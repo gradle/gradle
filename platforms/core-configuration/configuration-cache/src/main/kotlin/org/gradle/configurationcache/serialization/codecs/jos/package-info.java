@@ -14,20 +14,12 @@
  * limitations under the License.
  */
 
-plugins {
-    id("gradlebuild.distribution.api-java")
-}
-
-description = "Implementations of Core API classes that are only used by the JVM Platform"
-
-dependencies {
-    api(project(":base-services"))
-    api(project(":core-api"))
-
-    api(libs.inject)
-
-    implementation(project(":jvm-services"))
-
-    implementation(libs.jsr305)
-    implementation(libs.guava)
-}
+/**
+ * This package implements support for types that are compatible with
+ * Java Object Serialization.
+ *
+ * For more details, see:
+ *
+ * {@link org.gradle.configurationcache.serialization.codecs.jos.JavaObjectSerializationCodec}
+ */
+package org.gradle.configurationcache.serialization.codecs.jos;

@@ -175,6 +175,28 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         result.actionClassNames == null
         result.inputValueHashes == null
         result.outputPropertyNames == null
+
+        and:
+        verifyAll(receivedProblem(0)) {
+            fqid == 'validation:property-validation:unknown-implementation'
+            contextualLabel == 'Additional action of task \':customTask\' was loaded with an unknown classloader (class \'CustomTask_Decorated\').'
+            details == 'Gradle cannot track the implementation for classes loaded with an unknown classloader.'
+            solutions == [ 'Load your class by using one of Gradle\'s built-in ways.' ]
+            additionalData == [
+                'typeName' : 'CustomTask',
+                'typeIsIrrelevantInErrorMessage' : 'true',
+            ]
+        }
+        verifyAll(receivedProblem(1)) {
+            fqid == 'validation:property-validation:unknown-implementation'
+            contextualLabel == 'Implementation of task \':customTask\' was loaded with an unknown classloader (class \'CustomTask_Decorated\').'
+            details == 'Gradle cannot track the implementation for classes loaded with an unknown classloader.'
+            solutions == [ 'Load your class by using one of Gradle\'s built-in ways.' ]
+            additionalData == [
+                'typeName' : 'CustomTask',
+                'typeIsIrrelevantInErrorMessage' : 'true',
+            ]
+        }
     }
 
     def "handles invalid action classloader"() {
@@ -206,6 +228,19 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         result.actionClassNames == null
         result.inputValueHashes == null
         result.outputPropertyNames == null
+
+        and:
+        verifyAll(receivedProblem) {
+            fqid == 'validation:property-validation:unknown-implementation'
+            contextualLabel == 'Additional action of task \':customTask\' was loaded with an unknown classloader (class \'A\').'
+            details == 'Gradle cannot track the implementation for classes loaded with an unknown classloader.'
+            solutions == [ 'Load your class by using one of Gradle\'s built-in ways.' ]
+            additionalData == [
+                'typeName' : 'CustomTask',
+                'typeIsIrrelevantInErrorMessage' : 'true',
+            ]
+        }
+
     }
 
     def "exposes file inputs, ignoring empty directories"() {
@@ -506,6 +541,19 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         result.actionClassNames == null
         result.inputValueHashes == null
         result.outputPropertyNames == null
+
+        and:
+        verifyAll(receivedProblem(0)) {
+            fqid == 'validation:property-validation:unknown-implementation-nested'
+            contextualLabel == 'was loaded with an unknown classloader (class \'A\').'
+            details == 'Gradle cannot track the implementation for classes loaded with an unknown classloader.'
+            solutions == [ 'Load your class by using one of Gradle\'s built-in ways.' ]
+            additionalData == [
+                'typeName' : 'CustomTask',
+                'propertyName' : 'bean',
+                'typeIsIrrelevantInErrorMessage' : 'true',
+            ]
+        }
     }
 
     def "properly captures all attributes"() {

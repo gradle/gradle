@@ -44,6 +44,7 @@ import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.invocation.Gradle;
+import org.gradle.api.invocation.GradleLifecycle;
 import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
@@ -92,6 +93,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     private final CrossProjectConfigurator crossProjectConfigurator;
     private List<IncludedBuildInternal> includedBuilds;
     private final MutableActionSet<Project> rootProjectActions = new MutableActionSet<>();
+    private final IsolatedProjectEvaluationListenerProvider isolatedProjectEvaluationListenerProvider;
     private boolean projectsLoaded;
     private Path identityPath;
     private Supplier<? extends ClassLoaderScope> classLoaderScope;
@@ -102,6 +104,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
         this.startParameter = startParameter;
         this.services = parentRegistry.createFor(this);
         this.crossProjectConfigurator = services.get(CrossProjectConfigurator.class);
+        this.isolatedProjectEvaluationListenerProvider = services.get(IsolatedProjectEvaluationListenerProvider.class);
         buildListenerBroadcast = getListenerManager().createAnonymousBroadcaster(BuildListener.class);
         projectEvaluationListenerBroadcast = getListenerManager().createAnonymousBroadcaster(ProjectEvaluationListener.class);
 
@@ -110,6 +113,10 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
             public void projectsLoaded(Gradle gradle) {
                 if (!rootProjectActions.isEmpty()) {
                     services.get(CrossProjectConfigurator.class).rootProject(rootProject, rootProjectActions);
+                }
+                final ProjectEvaluationListener isolatedListener = isolatedProjectEvaluationListenerProvider.isolate();
+                if (isolatedListener != null) {
+                    projectEvaluationListenerBroadcast.add(isolatedListener);
                 }
                 projectsLoaded = true;
             }
@@ -191,6 +198,17 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     }
 
     @Override
+    public GradleLifecycle getLifecycle() {
+        return action -> {
+            if (projectsLoaded) {
+                throw new IllegalStateException("GradleLifecycle#beforeProject cannot be called after settings have been evaluated.");
+            }
+            // TODO:isolated how should decoration work for isolated actions? Should we just capture the current UserCodeApplication?
+            isolatedProjectEvaluationListenerProvider.beforeProject(action);
+        };
+    }
+
+    @Override
     public void resetState() {
         classLoaderScope = null;
         baseProjectClassLoaderScope = null;
@@ -199,6 +217,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
         projectsLoaded = false;
         includedBuilds = null;
         rootProjectActions.clear();
+        isolatedProjectEvaluationListenerProvider.clear();
         buildListenerBroadcast.removeAll();
         projectEvaluationListenerBroadcast.removeAll();
         getTaskGraph().resetState();

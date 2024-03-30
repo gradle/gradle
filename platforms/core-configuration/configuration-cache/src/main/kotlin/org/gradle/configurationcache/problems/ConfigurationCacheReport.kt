@@ -65,8 +65,9 @@ class ConfigurationCacheReport(
          */
         open fun commitReportTo(
             outputDirectory: File,
+            buildDisplayName: String?,
             cacheAction: String,
-            requestedTasks: String,
+            requestedTasks: String?,
             totalProblemCount: Int
         ): Pair<State, File?> =
             illegalState()
@@ -87,8 +88,9 @@ class ConfigurationCacheReport(
              */
             override fun commitReportTo(
                 outputDirectory: File,
+                buildDisplayName: String?,
                 cacheAction: String,
-                requestedTasks: String,
+                requestedTasks: String?,
                 totalProblemCount: Int
             ): Pair<State, File?> =
                 this to null
@@ -107,7 +109,7 @@ class ConfigurationCacheReport(
              * [JsonModelWriter] uses Groovy's [CharBuf] for fast json encoding.
              */
             val groovyJsonClassLoader: ClassLoader,
-            val decorate: (PropertyProblem) -> DecoratedPropertyProblem
+            val decorate: (PropertyProblem, ProblemSeverity) -> DecoratedPropertyProblem
         ) : State() {
 
             private
@@ -125,16 +127,24 @@ class ConfigurationCacheReport(
 
             override fun onDiagnostic(kind: DiagnosticKind, problem: PropertyProblem): State {
                 executor.submit {
-                    writer.writeDiagnostic(kind, decorate(problem))
+                    val severity = if (kind == DiagnosticKind.PROBLEM) ProblemSeverity.Failure else ProblemSeverity.Info
+                    writer.writeDiagnostic(kind, decorate(problem, severity))
                 }
                 return this
             }
 
-            override fun commitReportTo(outputDirectory: File, cacheAction: String, requestedTasks: String, totalProblemCount: Int): Pair<State, File?> {
+            override fun commitReportTo(
+                outputDirectory: File,
+                buildDisplayName: String?,
+                cacheAction: String,
+                requestedTasks: String?,
+                totalProblemCount: Int
+            ): Pair<State, File?> {
+
                 val reportFile = try {
                     executor
                         .submit(Callable {
-                            closeHtmlReport(cacheAction, requestedTasks, totalProblemCount)
+                            closeHtmlReport(buildDisplayName, cacheAction, requestedTasks, totalProblemCount)
                             moveSpoolFileTo(outputDirectory)
                         })
                         .get(30, TimeUnit.SECONDS)
@@ -157,8 +167,8 @@ class ConfigurationCacheReport(
             }
 
             private
-            fun closeHtmlReport(cacheAction: String, requestedTasks: String, totalProblemCount: Int) {
-                writer.endHtmlReport(cacheAction, requestedTasks, totalProblemCount)
+            fun closeHtmlReport(buildDisplayName: String?, cacheAction: String, requestedTasks: String?, totalProblemCount: Int) {
+                writer.endHtmlReport(buildDisplayName, cacheAction, requestedTasks, totalProblemCount)
                 writer.close()
             }
 
@@ -218,20 +228,26 @@ class ConfigurationCacheReport(
     val failureDecorator = FailureDecorator()
 
     private
-    fun decorateProblem(problem: PropertyProblem): DecoratedPropertyProblem {
-        val exception = problem.exception
-        val failure = exception?.toFailure()
+    fun decorateProblem(problem: PropertyProblem, severity: ProblemSeverity): DecoratedPropertyProblem {
+        val failure = problem.exception?.toFailure()
         return DecoratedPropertyProblem(
             problem.trace,
             decorateMessage(problem, failure),
-            failure?.let { failureDecorator.decorate(it) },
+            decoratedFailureFor(failure, severity),
             problem.documentationSection
         )
     }
 
     private
-    fun Throwable.toFailure(): Failure {
-        return failureFactory.create(this)
+    fun Throwable.toFailure() = failureFactory.create(this)
+
+    private
+    fun decoratedFailureFor(failure: Failure?, severity: ProblemSeverity): DecoratedFailure? {
+        return when {
+            failure != null -> failureDecorator.decorate(failure)
+            severity == ProblemSeverity.Failure -> DecoratedFailure.MARKER
+            else -> null
+        }
     }
 
     private
@@ -273,10 +289,10 @@ class ConfigurationCacheReport(
      * see [HtmlReportWriter].
      */
     internal
-    fun writeReportFileTo(outputDirectory: File, cacheAction: String, requestedTasks: String, totalProblemCount: Int): File? {
+    fun writeReportFileTo(outputDirectory: File, buildDisplayName: String?, cacheAction: String, requestedTasks: String?, totalProblemCount: Int): File? {
         var reportFile: File?
         modifyState {
-            val (newState, outputFile) = commitReportTo(outputDirectory, cacheAction, requestedTasks, totalProblemCount)
+            val (newState, outputFile) = commitReportTo(outputDirectory, buildDisplayName, cacheAction, requestedTasks, totalProblemCount)
             reportFile = outputFile
             newState
         }

@@ -16,7 +16,9 @@
 
 package org.gradle.caching.local.internal
 
+import org.gradle.api.internal.cache.CacheConfigurationsInternal
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.provider.Provider
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CleanupAction
 import org.gradle.cache.UnscopedCacheBuilderFactory
@@ -41,7 +43,8 @@ class DirectoryBuildCacheServiceFactoryTest extends Specification {
     def resolver = Mock(FileResolver)
     def cleanupActionDecorator = Mock(CleanupActionDecorator)
     def fileAccessTimeJournal = Mock(FileAccessTimeJournal)
-    def factory = new DirectoryBuildCacheServiceFactory(cacheRepository, globalScopedCache, resolver, cleanupActionDecorator, fileAccessTimeJournal)
+    def cacheConfigurations = Mock(CacheConfigurationsInternal)
+    def factory = new DirectoryBuildCacheServiceFactory(cacheRepository, globalScopedCache, resolver, cleanupActionDecorator, fileAccessTimeJournal, cacheConfigurations)
     def cacheBuilder = Stub(CacheBuilder)
     def config = Mock(DirectoryBuildCache)
     def buildCacheDescriber = new NoopBuildCacheDescriber()
@@ -58,6 +61,7 @@ class DirectoryBuildCacheServiceFactoryTest extends Specification {
         1 * globalScopedCache.baseDirForCrossVersionCache("build-cache-1") >> cacheDir
         1 * cacheRepository.cache(cacheDir) >> cacheBuilder
         1 * cleanupActionDecorator.decorate(_) >> Mock(CleanupAction)
+        1 * cacheConfigurations.getCleanupFrequency() >> Mock(Provider)
         0 * _
     }
 
@@ -73,6 +77,7 @@ class DirectoryBuildCacheServiceFactoryTest extends Specification {
         1 * resolver.resolve(cacheDir) >> cacheDir
         1 * cacheRepository.cache(cacheDir) >> cacheBuilder
         1 * cleanupActionDecorator.decorate(_) >> Mock(CleanupAction)
+        1 * cacheConfigurations.getCleanupFrequency() >> Mock(Provider)
         0 * _
     }
 

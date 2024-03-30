@@ -54,7 +54,9 @@ vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
 ### Configuration cache improvements
 
-[Java Record classes](https://docs.oracle.com/en/java/javase/21/language/records.html) are now supported in the configuration cache.
+The configuration cache now supports:
+* [Java Record classes](https://docs.oracle.com/en/java/javase/21/language/records.html)
+* [java.io.Externalizable instances](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/Externalizable.html)
 
 #### Ability to set conventions on file collections
 
@@ -174,6 +176,47 @@ tasks.test {
     }
 }
 ```
+
+#### Setting custom POM values in Maven publications for plugins
+
+The maven-publish plugin provides a way to set custom POM values for a Gradle plugin publication, as demonstrated in the following example:
+
+```groovy
+gradlePlugin {
+    plugins {
+        register("some.plugin") {
+            name = "SomePluginName"
+            description = "SomePluginDesc"
+        }
+    }
+}
+
+publishing {
+    publications.withType<MavenPublication> {
+        pom {
+            name = "CustomPublicationName"
+            description = "CustomPublicationDesc"
+        }
+    }
+}
+```
+
+Previously, this was not working as expected and the published POM would contain the name and description values configured via the `plugins` block.
+
+Now, any values configured in the `pom` block will take priority if present, and be written to the published POM for that publication:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <name>CustomPublicationName</name>
+  <description>CustomPublicationDesc</description>
+  ...
+</project>
+
+```
+
+This fixes https://github.com/gradle/gradle/issues/12259.
+
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================

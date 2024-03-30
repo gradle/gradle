@@ -49,6 +49,7 @@ class CacheConfigurationsContinuousIntegrationTest extends AbstractContinuousInt
                     snapshotWrappers.removeUnusedEntriesAfterDays = 5
                     downloadedResources.removeUnusedEntriesAfterDays = 10
                     createdResources.removeUnusedEntriesAfterDays = 5
+                    buildCache.removeUnusedEntriesAfterDays = 15
                 }
             }
         """
@@ -59,6 +60,7 @@ class CacheConfigurationsContinuousIntegrationTest extends AbstractContinuousInt
                 snapshotWrappers { ${assertValueIsSameInDays(5)} }
                 downloadedResources { ${assertValueIsSameInDays(10)} }
                 createdResources { ${assertValueIsSameInDays(5)} }
+                buildCache { ${assertValueIsSameInDays(15)} }
             }
         """
 

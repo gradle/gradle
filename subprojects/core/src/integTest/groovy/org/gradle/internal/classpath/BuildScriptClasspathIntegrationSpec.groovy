@@ -543,7 +543,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
     }
 
     TestFile getArtifactTransformCacheDir() {
-        return userHomeCacheDir.file(CacheLayout.TRANSFORMS.key)
+        return getGradleVersionedCacheDir().file(CacheLayout.TRANSFORMS.getName())
     }
 
     /**

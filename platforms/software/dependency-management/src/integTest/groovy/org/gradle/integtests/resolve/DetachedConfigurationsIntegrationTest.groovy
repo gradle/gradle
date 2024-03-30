@@ -171,7 +171,19 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         executer.expectDocumentedDeprecationWarning("The detachedConfiguration1 configuration has been deprecated for consumption. This will fail with an error in Gradle 9.0. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
         executer.expectDocumentedDeprecationWarning("While resolving configuration 'detachedConfiguration1', it was also selected as a variant. Configurations should not act as both a resolution root and a variant simultaneously. Depending on the resolved configuration in this manner has been deprecated. This will fail with an error in Gradle 9.0. Be sure to mark configurations meant for resolution as canBeConsumed=false or use the 'resolvable(String)' configuration factory method to create them. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#depending_on_root_configuration")
 
+        when:
         run "checkDependencies"
+
+        then:
+        verifyAll(receivedProblem(0)) {
+            fqid == 'deprecation:deprecated-feature-used'
+            contextualLabel == 'The detachedConfiguration1 configuration has been deprecated for consumption.'
+        }
+        verifyAll(receivedProblem(1)) {
+            fqid == 'deprecation:deprecated-feature-used'
+            contextualLabel == 'While resolving configuration \'detachedConfiguration1\', it was also selected as a variant. Configurations should not act as both a resolution root and a variant simultaneously. Depending on the resolved configuration in this manner has been deprecated.'
+            solutions == [ 'Be sure to mark configurations meant for resolution as canBeConsumed=false or use the \'resolvable(String)\' configuration factory method to create them.' ]
+        }
     }
 
     def "configurations container reserves name #name for detached configurations"() {
@@ -186,7 +198,16 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         executer.expectDocumentedDeprecationWarning("Creating a configuration with a name that starts with 'detachedConfiguration' has been deprecated. " +
             "This is scheduled to be removed in Gradle 9.0. Use a different name for the configuration '$name'. " +
             "Consult the upgrading guide for further information: ${BASE_URL}/userguide/upgrading_version_8.html#reserved_configuration_names")
+
+        when:
         succeeds "help"
+
+        then:
+        verifyAll(receivedProblem(0)) {
+            fqid == 'deprecation:deprecated-feature-used'
+            contextualLabel == 'Creating a configuration with a name that starts with \'detachedConfiguration\' has been deprecated.'
+            solutions == [ "Use a different name for the configuration '$name'." ]
+        }
 
         where:
         name << ["detachedConfiguration", "detachedConfiguration1", "detachedConfiguration22902"]

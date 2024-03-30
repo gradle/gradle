@@ -120,7 +120,7 @@ trait WithAndroidDeprecations implements WithReportDeprecations {
         }
     }
 
-    void maybeexpectConfigurationMutationDeprecationWarnings(String agpVersion, List<String> confs) {
+    void maybeExpectConfigurationMutationDeprecationWarnings(String agpVersion, List<String> confs) {
         confs.each { conf ->
             runner.maybeExpectLegacyDeprecationWarningIf(
                 versionIsLower(agpVersion, AGP_VERSION_WITHOUT_CONFIGURATION_MUTATION),
@@ -132,6 +132,17 @@ trait WithAndroidDeprecations implements WithReportDeprecations {
                     "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#mutate_configuration_after_locking"
             )
         }
+    }
+
+    void expectFilteredFileCollectionDeprecationWarning() {
+        // This warning is emitted by the Kotlin Kapt plugin
+        runner.expectLegacyDeprecationWarning(
+            "The Configuration.fileCollection(Spec) method has been deprecated. " +
+                "This is scheduled to be removed in Gradle 9.0. " +
+                "Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead. " +
+                "Consult the upgrading guide for further information: " +
+                "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods"
+        )
     }
 
     void expectBuildIdentifierIsCurrentBuildDeprecation(String agpVersion, String fixedVersion = '8.0.0') {

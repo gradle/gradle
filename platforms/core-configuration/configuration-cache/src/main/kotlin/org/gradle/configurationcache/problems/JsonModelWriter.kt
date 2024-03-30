@@ -45,17 +45,23 @@ class JsonModelWriter(val writer: Writer) {
         beginArray()
     }
 
-    fun endModel(cacheAction: String, requestedTasks: String, totalProblemCount: Int) {
+    fun endModel(buildDisplayName: String?, cacheAction: String, requestedTasks: String?, totalProblemCount: Int) {
         endArray()
 
         comma()
         property("totalProblemCount") {
             write(totalProblemCount.toString())
         }
+        if (buildDisplayName != null) {
+            comma()
+            property("buildName", buildDisplayName)
+        }
+        if (requestedTasks != null) {
+            comma()
+            property("requestedTasks", requestedTasks)
+        }
         comma()
         property("cacheAction", cacheAction)
-        comma()
-        property("requestedTasks", requestedTasks)
         comma()
         property("documentationLink", documentationRegistry.getDocumentationFor("configuration_cache"))
 
@@ -87,17 +93,22 @@ class JsonModelWriter(val writer: Writer) {
 
     private
     fun writeError(failure: DecoratedFailure) {
+        val summary = failure.summary
+        val parts = failure.parts
         property("error") {
             jsonObject {
-                failure.summary?.let {
+                if (summary != null) {
                     property("summary") {
-                        writeStructuredMessage(it)
+                        writeStructuredMessage(summary)
                     }
-                    comma()
                 }
-                property("parts") {
-                    jsonObjectList(failure.parts) { (isInternal, text) ->
-                        property(if (isInternal) "internalText" else "text", text)
+
+                if (parts != null) {
+                    if (summary != null) comma()
+                    property("parts") {
+                        jsonObjectList(parts) { (isInternal, text) ->
+                            property(if (isInternal) "internalText" else "text", text)
+                        }
                     }
                 }
             }
@@ -137,6 +148,7 @@ class JsonModelWriter(val writer: Writer) {
                         comma()
                         property("declaringType", firstTypeFrom(trace.trace).name)
                     }
+
                     PropertyKind.PropertyUsage -> {
                         property("kind", trace.kind.name)
                         comma()
@@ -144,6 +156,7 @@ class JsonModelWriter(val writer: Writer) {
                         comma()
                         property("from", projectPathFrom(trace.trace))
                     }
+
                     else -> {
                         property("kind", trace.kind.name)
                         comma()
@@ -153,11 +166,13 @@ class JsonModelWriter(val writer: Writer) {
                     }
                 }
             }
+
             is PropertyTrace.SystemProperty -> {
                 property("kind", "SystemProperty")
                 comma()
                 property("name", trace.name)
             }
+
             is PropertyTrace.Task -> {
                 property("kind", "Task")
                 comma()
@@ -165,29 +180,35 @@ class JsonModelWriter(val writer: Writer) {
                 comma()
                 property("type", trace.type.name)
             }
+
             is PropertyTrace.Bean -> {
                 property("kind", "Bean")
                 comma()
                 property("type", trace.type.name)
             }
+
             is PropertyTrace.Project -> {
                 property("kind", "Project")
                 comma()
                 property("path", trace.path)
             }
+
             is PropertyTrace.BuildLogic -> {
                 property("kind", "BuildLogic")
                 comma()
                 property("location", trace.source.displayName)
             }
+
             is PropertyTrace.BuildLogicClass -> {
                 property("kind", "BuildLogicClass")
                 comma()
                 property("type", trace.name)
             }
+
             PropertyTrace.Gradle -> {
                 property("kind", "Gradle")
             }
+
             PropertyTrace.Unknown -> {
                 property("kind", "Unknown")
             }

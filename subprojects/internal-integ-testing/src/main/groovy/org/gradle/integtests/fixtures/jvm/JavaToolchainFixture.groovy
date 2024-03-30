@@ -55,6 +55,11 @@ trait JavaToolchainFixture {
         """
     }
 
+    AbstractIntegrationSpec withAutoDetection() {
+        executer.withArgument("-Porg.gradle.java.installations.auto-detect=true")
+        return this as AbstractIntegrationSpec
+    }
+
     /**
      * Usage:
      * <pre>

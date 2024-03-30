@@ -55,9 +55,6 @@ dependencies {
     runtimeOnly(project(":diagnostics"))
 
     testImplementation(testFixtures(project(":core")))
-    testImplementation(project(":core-jvm"))
-
-    integTestImplementation(project(":core-jvm"))
 
     integTestDistributionRuntimeOnly(project(":distributions-jvm"))
 

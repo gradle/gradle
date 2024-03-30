@@ -34,8 +34,12 @@ data class DecoratedPropertyProblem(
 internal
 data class DecoratedFailure(
     val summary: StructuredMessage?,
-    val parts: List<StackTracePart>
-)
+    val parts: List<StackTracePart>?
+) {
+    companion object {
+        val MARKER = DecoratedFailure(null, null)
+    }
+}
 
 
 internal
