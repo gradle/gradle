@@ -30,6 +30,13 @@ dependencies {
     testImplementation("junit:junit:4.13")
 }
 
+// tag::specify-groovy-version[]
+dependencies {
+    implementation("org.codehaus.groovy:groovy-all:3.0.3")
+    codenarc("org.codenarc:CodeNarc:1.6.1")
+}
+// end::specify-groovy-version[]
+
 // tag::customize-checkstyle-memory[]
 tasks.withType<Checkstyle>().configureEach {
     minHeapSize = "200m"
