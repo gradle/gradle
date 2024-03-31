@@ -1,4 +1,7 @@
 plugins {
+    id("org.jetbrains.kotlin.jvm") version "1.9.22"  // Apply the Kotlin plugin for Kotlin language support
+    id("java-library")
+
     id("gradlebuild.build-environment")
     id("gradlebuild.root-build")
 
