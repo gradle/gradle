@@ -8,7 +8,7 @@ tasks.jar {
     manifest {
         attributes(
             "Implementation-Title" to "Gradle",
-            "Implementation-Version" to archiveVersion
+            "Implementation-Version" to providers.gradleProperty("archiveVersion")
         )
     }
 }

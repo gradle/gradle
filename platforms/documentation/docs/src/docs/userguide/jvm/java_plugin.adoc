@@ -451,6 +451,12 @@ The basename to use for archives, such as JAR or ZIP files. Default value: `__pr
 `link:{javadocPath}/org/gradle/api/java/archives/Manifest.html[Manifest] manifest`::
 The manifest to include in all JAR files. Default value: an empty manifest.
 
+.Customization of MANIFEST.MF
+====
+include::sample[dir="snippets/tutorial/manifest/kotlin",files="build.gradle.kts[tags=add-to-manifest]"]
+include::sample[dir="snippets/tutorial/manifest/groovy",files="build.gradle[tags=add-to-manifest]"]
+====
+
 [[sec:java_convention_properties]]
 == Convention properties (deprecated)
 
