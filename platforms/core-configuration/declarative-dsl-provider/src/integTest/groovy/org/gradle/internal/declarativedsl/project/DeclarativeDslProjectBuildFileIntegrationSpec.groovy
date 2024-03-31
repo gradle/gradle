@@ -407,4 +407,3 @@ secondaryAccess { three, true, true}"""
         "semantic"         | "body"        | ""                       | "x = 1"               | "4:9: unresolved reference 'x'"
     }
 }
-

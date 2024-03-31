@@ -16,7 +16,6 @@
 
 package org.gradle.plugin.internal;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
@@ -28,9 +27,6 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.RootScriptDomainObjectContext;
 import org.gradle.api.internal.initialization.ScriptClassPathResolver;
 import org.gradle.api.internal.plugins.PluginInspector;
-import org.gradle.api.internal.plugins.PluginRegistry;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectState;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.internal.Factory;
 import org.gradle.internal.build.BuildIncluder;
@@ -47,9 +43,7 @@ import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginRegistry
 import org.gradle.plugin.management.internal.autoapply.CompositeAutoAppliedPluginRegistry;
 import org.gradle.plugin.management.internal.autoapply.DefaultAutoAppliedPluginHandler;
 import org.gradle.plugin.management.internal.autoapply.InjectedAutoAppliedPluginRegistry;
-import org.gradle.plugin.software.internal.DefaultSoftwareTypeImplementationRegistry;
 import org.gradle.plugin.software.internal.DefaultSoftwareTypeRegistry;
-import org.gradle.plugin.software.internal.SoftwareTypeImplementationRegistry;
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
 import org.gradle.plugin.use.internal.DefaultPluginRequestApplicator;
 import org.gradle.plugin.use.internal.InjectedPluginClasspath;
@@ -73,11 +67,6 @@ public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistr
     @Override
     public void registerSettingsServices(ServiceRegistration registration) {
         registration.addProvider(new SettingsScopeServices());
-    }
-
-    @Override
-    public void registerProjectServices(ServiceRegistration registration) {
-        registration.addProvider(new ProjectScopeServices());
     }
 
     private static class SettingsScopeServices {
@@ -171,19 +160,6 @@ public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistr
 
         private ProjectFinder makeUnknownProjectFinder() {
             return new UnknownProjectFinder("Cannot use project dependencies in a plugin resolution definition.");
-        }
-    }
-
-    @NonNullApi
-    private static class ProjectScopeServices {
-        SoftwareTypeImplementationRegistry createSoftwareTypeImplementationRegistry(SoftwareTypeRegistry softwareTypeRegistry, PluginRegistry pluginRegistry, ProjectInternal project) {
-            ProjectState parent = project.getOwner().getBuildParent();
-            if (parent == null) {
-                return new DefaultSoftwareTypeImplementationRegistry(softwareTypeRegistry, pluginRegistry, null);
-            } else {
-                SoftwareTypeImplementationRegistry parentRegistry = parent.getMutableModel().getServices().get(SoftwareTypeImplementationRegistry.class);
-                return new DefaultSoftwareTypeImplementationRegistry(softwareTypeRegistry, pluginRegistry, parentRegistry);
-            }
         }
     }
 }

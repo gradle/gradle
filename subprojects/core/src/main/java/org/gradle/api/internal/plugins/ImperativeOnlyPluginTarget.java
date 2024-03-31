@@ -21,7 +21,8 @@ import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
-import org.gradle.declarative.dsl.model.annotations.SoftwareType;
+import org.gradle.api.plugins.SoftwareType;
+import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
 
@@ -49,6 +50,7 @@ public class ImperativeOnlyPluginTarget<T extends PluginAwareInternal> implement
         Plugin<T> cast = uncheckedCast(plugin);
         cast.apply(target);
 
+        // TODO - this should probably be done with TypeMetadataWalker and some sort of annotation handler
         if (target instanceof ExtensionAware) {
             ExtensionContainer extensions = ((ExtensionAware) target).getExtensions();
             Class<?> publicPluginType = GeneratedSubclasses.unpackType(plugin);
@@ -63,9 +65,8 @@ public class ImperativeOnlyPluginTarget<T extends PluginAwareInternal> implement
                     } catch (InvocationTargetException e) {
                         throw new RuntimeException("Failed to create extension", e);
                     }
-                    @SuppressWarnings("unchecked")
-                    Class<Object> returnType = (Class<Object>) method.getReturnType();
-                    extensions.add(returnType, softwareType.name(), extension);
+                    Class<?> returnType = softwareType.modelPublicType();
+                    extensions.add(returnType, softwareType.name(), Cast.uncheckedNonnullCast(extension));
                 }
             }
         }

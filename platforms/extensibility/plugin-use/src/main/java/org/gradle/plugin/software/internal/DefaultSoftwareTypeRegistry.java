@@ -16,63 +16,64 @@
 
 package org.gradle.plugin.software.internal;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.initialization.Settings;
-import org.gradle.plugin.management.internal.DefaultPluginRequest;
-import org.gradle.plugin.management.internal.PluginRequestInternal;
-import org.gradle.plugin.management.internal.PluginRequests;
-import org.gradle.plugin.use.internal.DefaultPluginId;
+import org.gradle.api.plugins.SoftwareType;
+import org.gradle.internal.Cast;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
+import java.util.Set;
 
+/**
+ * Default implementation of {@link SoftwareTypeRegistry} that registers software types.
+ */
 public class DefaultSoftwareTypeRegistry implements SoftwareTypeRegistry {
-    private final ImmutableList.Builder<String> registeredPluginIds = new ImmutableList.Builder<>();
-    private List<String> pluginIds;
+    private final List<Class<? extends Plugin<Project>>> pluginClasses = new ArrayList<>();
+    private Set<SoftwareTypeImplementation> softwareTypeImplementations;
 
     @Override
-    public void register(String pluginId) {
-        if (pluginIds != null) {
-            throw new IllegalStateException("Cannot register software types after they have been resolved.");
-        } else {
-            registeredPluginIds.add(pluginId);
+    public void register(Class<? extends Plugin<Project>> pluginClass) {
+        if (softwareTypeImplementations != null) {
+            throw new IllegalStateException("Cannot register a plugin after software types have been discovered");
         }
+        pluginClasses.add(pluginClass);
+    }
+
+    private Set<SoftwareTypeImplementation> discoverSoftwareTypeImplementations() {
+        Map<String, Class<? extends Plugin<Project>>> registeredTypes = new HashMap<>();
+        ImmutableSet.Builder<SoftwareTypeImplementation> softwareTypeImplementations = ImmutableSet.builder();
+        pluginClasses.forEach(pluginClass -> {
+            Arrays.stream(pluginClass.getDeclaredMethods()).filter(method -> method.isAnnotationPresent(SoftwareType.class)).forEach(method -> {
+                SoftwareType softwareType = method.getAnnotation(SoftwareType.class);
+                if (registeredTypes.get(softwareType.name()) != pluginClass) {
+                    if (registeredTypes.containsKey(softwareType.name())) {
+                        throw new IllegalArgumentException("Software type '" + softwareType.name() + "' is registered by both '" + pluginClass.getName() + "' and '" + registeredTypes.get(softwareType.name()).getName() + "'");
+                    }
+                    registeredTypes.put(softwareType.name(), pluginClass);
+                    softwareTypeImplementations.add(
+                        new DefaultSoftwareTypeImplementation(
+                            softwareType.name(),
+                            softwareType.modelPublicType(),
+                            Cast.uncheckedNonnullCast(pluginClass)
+                        )
+                    );
+                }
+            });
+
+        });
+        return softwareTypeImplementations.build();
     }
 
     @Override
-    public PluginRequests getAutoAppliedPlugins(Project target) {
-        // Auto-apply the software type plugins to the root project
-        if (target.getParent() == null) {
-            return PluginRequests.of(getRegisteredPluginIds().stream().map(pluginId ->
-                    new DefaultPluginRequest(
-                        DefaultPluginId.of(pluginId),
-                        false,
-                        PluginRequestInternal.Origin.OTHER,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null
-                    )
-                ).collect(Collectors.toList())
-            );
-        } else {
-            return PluginRequests.EMPTY;
+    public Set<SoftwareTypeImplementation> getSoftwareTypeImplementations() {
+        if (softwareTypeImplementations == null) {
+            softwareTypeImplementations = discoverSoftwareTypeImplementations();
         }
-    }
-
-    @Override
-    public List<String> getRegisteredPluginIds() {
-        if (pluginIds == null) {
-            pluginIds = registeredPluginIds.build();
-        }
-        return pluginIds;
-    }
-
-    @Override
-    public PluginRequests getAutoAppliedPlugins(Settings target) {
-        return PluginRequests.EMPTY;
+        return softwareTypeImplementations;
     }
 }

@@ -30,7 +30,6 @@ dependencies {
     testImplementation(libs.mockitoKotlin2)
 
     implementation(project(":resources"))
-    implementation(project(":plugin-use"))
     implementation(project(":model-core"))
     implementation(libs.futureKotlin("compiler-embeddable"))
     implementation(libs.futureKotlin("reflect"))

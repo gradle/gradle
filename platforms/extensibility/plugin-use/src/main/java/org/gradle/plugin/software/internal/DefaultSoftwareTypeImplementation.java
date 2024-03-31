@@ -19,18 +19,20 @@ package org.gradle.plugin.software.internal;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 
+import java.util.Objects;
+
+/**
+ * Represents a resolved software type implementation.  Used by declarative DSL to understand which model types should be exposed for
+ * which software types.
+ */
 public class DefaultSoftwareTypeImplementation implements SoftwareTypeImplementation {
     private final String softwareType;
-    private final String pluginId;
     private final Class<?> modelPublicType;
-    private final Class<?> modelImplementationType;
     private final Class<? extends Plugin<?>> pluginClass;
 
-    public DefaultSoftwareTypeImplementation(String softwareType, String pluginId, Class<?> modelPublicType, Class<?> modelImplementationType, Class<? extends Plugin<Project>> pluginClass) {
+    public DefaultSoftwareTypeImplementation(String softwareType, Class<?> modelPublicType, Class<? extends Plugin<Project>> pluginClass) {
         this.softwareType = softwareType;
-        this.pluginId = pluginId;
         this.modelPublicType = modelPublicType;
-        this.modelImplementationType = modelImplementationType;
         this.pluginClass = pluginClass;
     }
 
@@ -40,22 +42,29 @@ public class DefaultSoftwareTypeImplementation implements SoftwareTypeImplementa
     }
 
     @Override
-    public String getPluginId() {
-        return pluginId;
-    }
-
-    @Override
     public Class<?> getModelPublicType() {
         return modelPublicType;
     }
 
     @Override
-    public Class<?> getModelImplementationType() {
-        return modelImplementationType;
+    public Class<? extends Plugin<?>> getPluginClass() {
+        return pluginClass;
     }
 
     @Override
-    public Class<? extends Plugin<?>> getPluginClass() {
-        return pluginClass;
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DefaultSoftwareTypeImplementation that = (DefaultSoftwareTypeImplementation) o;
+        return Objects.equals(softwareType, that.softwareType) && Objects.equals(modelPublicType, that.modelPublicType) && Objects.equals(pluginClass, that.pluginClass);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(softwareType, modelPublicType, pluginClass);
     }
 }

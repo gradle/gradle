@@ -125,7 +125,6 @@ dependencies {
 
     implementation(project(":input-tracking"))
     implementation(project(":model-groovy"))
-    implementation(project(":declarative-dsl-api"))
 
     implementation(libs.asmCommons)
     implementation(libs.commonsIo)

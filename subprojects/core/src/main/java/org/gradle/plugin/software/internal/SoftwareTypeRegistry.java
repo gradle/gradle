@@ -16,15 +16,22 @@
 
 package org.gradle.plugin.software.internal;
 
-import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginRegistry;
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
 
-import java.util.List;
+import java.util.Set;
 
 /**
  * Allows registration of software types implemented by plugins.
  */
-public interface SoftwareTypeRegistry extends AutoAppliedPluginRegistry {
-    void register(String pluginId);
+public interface SoftwareTypeRegistry {
+    /**
+     * Registers a plugin as providing a software type.
+     */
+    void register(Class<? extends Plugin<Project>> pluginClass);
 
-    List<String> getRegisteredPluginIds();
+    /**
+     * Returns a set of the software types available along with their model types and associated plugins.
+     */
+    Set<SoftwareTypeImplementation> getSoftwareTypeImplementations();
 }

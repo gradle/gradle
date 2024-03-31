@@ -29,7 +29,7 @@ import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.toDataTypeRef
 import org.gradle.plugin.software.internal.SoftwareTypeImplementation
-import org.gradle.plugin.software.internal.SoftwareTypeImplementationRegistry
+import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 
@@ -41,9 +41,9 @@ class SoftwareTypeComponent(
     private val accessorIdPrefix: String,
 ) : EvaluationSchemaComponent {
     private
-    val softwareTypeImplementationRegistry = target.services.get(SoftwareTypeImplementationRegistry::class.java)
+    val softwareTypeRegistry = target.services.get(SoftwareTypeRegistry::class.java)
     private
-    val softwareTypeImplementations = softwareTypeImplementationRegistry.getSoftwareTypeImplementations().map {
+    val softwareTypeImplementations = softwareTypeRegistry.getSoftwareTypeImplementations().map {
         SoftwareTypeInfo(it, accessorIdPrefix) {
             target.pluginManager.apply(it.pluginClass)
             target.extensions.getByName(it.softwareType)

@@ -14,19 +14,35 @@
  * limitations under the License.
  */
 
-package org.gradle.declarative.dsl.model.annotations;
+package org.gradle.api.plugins;
+
+import org.gradle.api.Incubating;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * Marks a method as exposing a software type.  This should be used in plugin classes to communicate which software types they provide.
+ *
+ * @since 8.8
+ */
+@Incubating
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface SoftwareType {
+    /**
+     * The name of the software type.  This will correspond to the DSL element that is exposed to configure the software type.
+     *
+     * @since 8.8
+     */
     String name();
-    Class<?> modelPublicType();
-    Class<?> modelImplementationType() default UsePublicType.class;
 
-    class UsePublicType {}
+    /**
+     * The model type used to configure the software type.  Note that the actual return type of the method may be a subtype of this type.
+     *
+     * @since 8.8
+     */
+    Class<?> modelPublicType();
 }

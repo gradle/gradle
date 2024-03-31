@@ -16,8 +16,15 @@
 
 package org.gradle.plugin.software.internal;
 
-import java.util.Set;
+import org.gradle.api.Plugin;
 
-public interface SoftwareTypeImplementationRegistry {
-    Set<SoftwareTypeImplementation> getSoftwareTypeImplementations();
+/**
+ * Represents a resolved software type implementation including the public model type and the plugin that exposes it.
+ */
+public interface SoftwareTypeImplementation {
+    String getSoftwareType();
+
+    Class<?> getModelPublicType();
+
+    Class<? extends Plugin<?>> getPluginClass();
 }

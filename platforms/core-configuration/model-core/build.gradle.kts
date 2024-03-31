@@ -58,7 +58,6 @@ dependencies {
     implementation(libs.slf4jApi)
     implementation(libs.commonsLang)
     implementation(libs.fastutil)
-    implementation(project(":declarative-dsl-api"))
 
     testFixturesApi(testFixtures(project(":diagnostics")))
     testFixturesApi(testFixtures(project(":core")))
