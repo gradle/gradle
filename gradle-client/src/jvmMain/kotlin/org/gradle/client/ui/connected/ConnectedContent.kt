@@ -55,9 +55,7 @@ private fun ConnectingMainContent(component: ConnectedComponent) {
 @Composable
 private fun FailureContent(exception: Exception) {
     Column(
-        modifier = Modifier.fillMaxSize()
-            .horizontalScroll(rememberScrollState())
-            .verticalScroll(rememberScrollState())
+        modifier = Modifier.fillMaxSize().horizontalScroll(rememberScrollState())
     ) {
         Text(
             text = exception.stackTraceToString(),
@@ -77,6 +75,7 @@ private fun ConnectedMainContent(component: ConnectedComponent, model: Connectio
         if (model.events.isEmpty()) {
             sheetScaffoldState.bottomSheetState.partialExpand()
         }
+        eventsListState.animateScrollToItem(eventsListState.layoutInfo.totalItemsCount)
     }
     BottomSheetScaffold(
         scaffoldState = sheetScaffoldState,
@@ -90,6 +89,7 @@ private fun ConnectedMainContent(component: ConnectedComponent, model: Connectio
             ) {
                 if (sheetScaffoldState.bottomSheetState.currentValue == SheetValue.Expanded) {
                     IconButton(
+                        enabled = eventsListState.canScrollBackward,
                         onClick = {
                             scope.launch { eventsListState.animateScrollToItem(0) }
                         }
@@ -113,6 +113,7 @@ private fun ConnectedMainContent(component: ConnectedComponent, model: Connectio
                 }
                 if (sheetScaffoldState.bottomSheetState.currentValue == SheetValue.Expanded) {
                     IconButton(
+                        enabled = eventsListState.canScrollForward,
                         onClick = {
                             scope.launch { eventsListState.animateScrollToItem(eventsListState.layoutInfo.totalItemsCount) }
                         }
@@ -151,7 +152,9 @@ private fun ConnectedMainContent(component: ConnectedComponent, model: Connectio
 
             // Actions
             Column(
-                modifier = Modifier.padding(end = 8.dp).weight(0.3f),
+                modifier = Modifier.padding(end = 8.dp)
+                    .weight(0.3f)
+                    .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 component.modelActions.forEach { action ->
@@ -168,7 +171,8 @@ private fun ConnectedMainContent(component: ConnectedComponent, model: Connectio
 
             // Outcome
             Column(
-                modifier = Modifier.weight(0.7f),
+                modifier = Modifier.weight(0.7f)
+                    .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 when (val outcome = model.outcome) {
