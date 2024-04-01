@@ -748,7 +748,7 @@ The plugin achieves this by doing the following:
  * Configures the Kotlin compiler with the same settings that are used for Kotlin DSL scripts, ensuring consistency between your build logic and those scripts:
  ** adds <<kotlin_dsl#sec:kotlin_compiler_arguments, Kotlin compiler arguments>>,
  ** registers the link:https://kotlinlang.org/docs/sam-with-receiver-plugin.html[SAM-with-receiver Kotlin compiler plugin].
- * Enables support for <<custom_plugins#sec:precompiled_plugins,precompiled script plugins>>.
+ * Enables support for <<custom_plugins#sec:precompile_script_plugin,precompiled script plugins>>.
 
 .Avoid specifying a version for the `kotlin-dsl` plugin
 --
