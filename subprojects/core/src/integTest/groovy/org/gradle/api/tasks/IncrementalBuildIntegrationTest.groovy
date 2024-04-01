@@ -1217,11 +1217,11 @@ task b(dependsOn: a)
                 outputs.files fileTree(dir: 'build', include: 'output.txt')
                 def layout = project.layout
                 doLast {
-                    layout.file('build').mkdirs()
-                    layout.file('build/output.txt').text = new File('input.txt').text
+                    layout.projectDirectory.file('build').asFile.mkdirs()
+                    layout.projectDirectory.file('build/output.txt').asFile.text = new File('input.txt').text
                 }
             }
-        """.stripIndent()
+        """
 
         file('input.txt').text = 'input file'
 
