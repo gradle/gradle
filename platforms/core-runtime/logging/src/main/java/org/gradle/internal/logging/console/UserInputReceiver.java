@@ -23,7 +23,7 @@ import javax.annotation.Nullable;
  */
 public interface UserInputReceiver {
     /**
-     * Requests that a line of text should be received from the user, for example via this process' stdin, and forwarded to the daemon.
+     * Requests that a line of text should be received from the user, for example via this process' stdin, and forwarded to the {link UserInputReader} instance in the daemon.
      * Does not block waiting for the input.
      */
     void readAndForwardText(Normalizer normalizer);

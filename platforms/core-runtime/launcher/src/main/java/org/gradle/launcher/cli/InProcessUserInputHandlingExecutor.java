@@ -20,6 +20,7 @@ import org.gradle.api.internal.tasks.userinput.UserInputReader;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.logging.console.GlobalUserInputReceiver;
+import org.gradle.internal.logging.console.UserInputReceiver;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
@@ -45,7 +46,19 @@ class InProcessUserInputHandlingExecutor implements BuildActionExecuter<BuildAct
 
     @Override
     public BuildActionResult execute(BuildAction action, BuildActionParameters actionParameters, BuildRequestContext buildRequestContext) {
-        userInputReceiver.dispatchTo(normalizer -> {
+        userInputReceiver.dispatchTo(new AsyncStdInReader());
+        try {
+            return delegate.execute(action, actionParameters, buildRequestContext);
+        } finally {
+            userInputReceiver.stopDispatching();
+        }
+    }
+
+    private class AsyncStdInReader implements UserInputReceiver {
+        @Override
+        public void readAndForwardText(UserInputReceiver.Normalizer normalizer) {
+            // Starts a new thread for each input request
+            // This should be refactored to share more logic with DaemonClientInputForwarder
             Thread thread = new Thread(() -> {
                 // Read a single line of text from stdin and forward to the UserInputReader
                 while (true) {
@@ -71,11 +84,6 @@ class InProcessUserInputHandlingExecutor implements BuildActionExecuter<BuildAct
             });
             thread.setDaemon(true);
             thread.start();
-        });
-        try {
-            return delegate.execute(action, actionParameters, buildRequestContext);
-        } finally {
-            userInputReceiver.stopDispatching();
         }
     }
 }

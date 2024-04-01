@@ -29,9 +29,6 @@ public class DefaultUserInputReceiver implements GlobalUserInputReceiver {
     private final AtomicReference<UserInputReceiver> delegate = new AtomicReference<UserInputReceiver>();
     private OutputEventListener console;
 
-    public DefaultUserInputReceiver() {
-    }
-
     /**
      * This instance requires access to the "console" pipeline in order to prompt the user when there are validation problems.
      * However, the console pipeline also needs access to this instance in order to handle user input prompt requests.
