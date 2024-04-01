@@ -44,15 +44,17 @@ class YesNoQuestionPromptEventTest extends Specification {
         result.right.get() == "Please enter 'yes' or 'no': "
 
         where:
-        input | _
-        ''    | _
-        'bla' | _
-        'y'   | _
-        'Y'   | _
-        'ye'  | _
-        'YES' | _
-        'n'   | _
-        'N'   | _
-        'NO'  | _
+        input   | _
+        ''      | _
+        'bla'   | _
+        'y'     | _
+        'Y'     | _
+        'ye'    | _
+        'YES'   | _
+        'n'     | _
+        'N'     | _
+        'NO'    | _
+        'true'  | _
+        'false' | _
     }
 }

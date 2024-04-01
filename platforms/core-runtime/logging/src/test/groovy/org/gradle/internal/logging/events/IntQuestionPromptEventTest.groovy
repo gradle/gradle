@@ -33,6 +33,7 @@ class IntQuestionPromptEventTest extends Specification {
         '4'    | 4
         '1209' | 1209
         ' 2 '  | 2
+        Integer.MAX_VALUE.toString() | Integer.MAX_VALUE
     }
 
     def "uses default value on empty input"() {
@@ -42,6 +43,21 @@ class IntQuestionPromptEventTest extends Specification {
         def result = event.convert("")
         result.left.get() == 4
         !result.right.isPresent()
+    }
+
+    def "can have negative minimum value"() {
+        def event = new IntQuestionPromptEvent(123, "question?", -5, -2)
+
+        expect:
+        def result = event.convert(input)
+        result.left.get() == expected
+        !result.right.isPresent()
+
+        where:
+        input  | expected
+        ''    | -2
+        '-4'    | -4
+        '-5'    | -5
     }
 
     def "rejects input that is not an integer"() {
@@ -57,6 +73,7 @@ class IntQuestionPromptEventTest extends Specification {
         'bla' | ''
         '1s'  | ''
         '1 2' | ''
+        Long.MAX_VALUE.toString() | ''
     }
 
     def "rejects input that is below minimum"() {
