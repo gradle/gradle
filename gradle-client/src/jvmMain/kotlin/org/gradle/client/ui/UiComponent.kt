@@ -13,6 +13,7 @@ import org.gradle.client.ui.connected.ConnectedComponent
 
 class UiComponent(
     context: ComponentContext,
+    private val appDispatchers: AppDispatchers,
     private val appDirs: AppDirs,
     private val buildsRepository: BuildsRepository,
 ) : ComponentContext by context {
@@ -39,6 +40,7 @@ class UiComponent(
             Config.BuildList -> Child.BuildList(
                 BuildListComponent(
                     context = context,
+                    appDispatchers = appDispatchers,
                     buildsRepository = buildsRepository,
                     onBuildSelected = { id -> navigation.push(Config.Build(id)) }
                 )
@@ -47,6 +49,7 @@ class UiComponent(
             is Config.Build -> Child.Build(
                 BuildComponent(
                     context = context,
+                    appDispatchers = appDispatchers,
                     appDirs = appDirs,
                     buildsRepository = buildsRepository,
                     id = config.id,
@@ -58,6 +61,7 @@ class UiComponent(
             is Config.Connected -> Child.Connected(
                 ConnectedComponent(
                     context = context,
+                    appDispatchers = appDispatchers,
                     parameters = config.inputs,
                     onFinished = { navigation.pop() },
                 )

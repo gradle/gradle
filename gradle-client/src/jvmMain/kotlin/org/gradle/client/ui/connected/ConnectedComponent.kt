@@ -3,16 +3,18 @@ package org.gradle.client.ui.connected
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.lifecycle.coroutines.coroutineScope
 import com.arkivanov.essenty.lifecycle.doOnDestroy
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.gradle.client.logic.gradle.GradleConnectionParameters
+import org.gradle.client.ui.AppDispatchers
 import org.gradle.client.ui.connected.actions.GetBuildEnvironment
 import org.gradle.client.ui.connected.actions.GetGradleBuild
 import org.gradle.client.ui.connected.actions.GetGradleProject
 import org.gradle.client.ui.connected.actions.GetModelAction
-import org.gradle.client.ui.util.componentScope
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
@@ -49,6 +51,7 @@ sealed interface Outcome {
 
 class ConnectedComponent(
     context: ComponentContext,
+    private val appDispatchers: AppDispatchers,
     val parameters: GradleConnectionParameters,
     private val onFinished: () -> Unit,
 ) : ComponentContext by context {
@@ -66,7 +69,7 @@ class ConnectedComponent(
     fun <T : Any> actionFor(model: T): GetModelAction<T>? =
         modelActions.find { action -> action.modelType.java.isAssignableFrom(model::class.java) } as? GetModelAction<T>
 
-    private val scope = componentScope()
+    private val scope = coroutineScope(appDispatchers.main + SupervisorJob())
 
     private lateinit var connection: ProjectConnection
 
@@ -118,7 +121,7 @@ class ConnectedComponent(
             is ConnectionModel.Connected -> {
                 mutableModel.value = current.copy(events = emptyList(), outcome = Outcome.Building)
                 scope.launch {
-                    withContext(Dispatchers.IO) {
+                    withContext(appDispatchers.io) {
                         logger.atDebug().log { "Get ${modelType.simpleName} model!" }
                         try {
                             val result = connection.model(modelType.java)
@@ -129,15 +132,17 @@ class ConnectedComponent(
                                 .get()
                             logger.atInfo().log { "Got ${modelType.simpleName} model: $result" }
                             when (val c = model.value) {
-                                is ConnectionModel.Connected ->
+                                is ConnectionModel.Connected -> withContext(appDispatchers.main) {
                                     mutableModel.value = c.copy(outcome = Outcome.Result(result))
+                                }
 
                                 else -> TODO("BOOM")
                             }
                         } catch (ex: Exception) {
                             when (val c = model.value) {
-                                is ConnectionModel.Connected ->
+                                is ConnectionModel.Connected -> withContext(appDispatchers.main) {
                                     mutableModel.value = c.copy(outcome = Outcome.Failure(ex))
+                                }
 
                                 else -> TODO("BOOM")
                             }

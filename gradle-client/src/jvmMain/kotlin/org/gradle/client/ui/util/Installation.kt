@@ -2,12 +2,13 @@ package org.gradle.client.ui.util
 
 import org.gradle.client.logic.Constants.APPLICATION_NAME
 import org.gradle.client.logic.files.AppDirs
+import org.gradle.client.logic.files.RealAppDirs
 import java.io.File
 import java.nio.charset.Charset
 import java.security.MessageDigest
 
-val appDirs by lazy {
-    AppDirs(
+val appDirs: AppDirs by lazy {
+    RealAppDirs(
         appName = APPLICATION_NAME,
         installationIdentifier = calculateInstallationIdentifier()
     )

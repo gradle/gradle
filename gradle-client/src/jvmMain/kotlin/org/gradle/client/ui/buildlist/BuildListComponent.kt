@@ -3,11 +3,13 @@ package org.gradle.client.ui.buildlist
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.lifecycle.coroutines.coroutineScope
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.launch
 import org.gradle.client.logic.build.Build
 import org.gradle.client.logic.database.BuildsRepository
-import org.gradle.client.ui.util.componentScope
+import org.gradle.client.ui.AppDispatchers
 import java.io.File
 
 sealed interface BuildListModel {
@@ -17,6 +19,7 @@ sealed interface BuildListModel {
 
 class BuildListComponent(
     context: ComponentContext,
+    private val appDispatchers: AppDispatchers,
     private val buildsRepository: BuildsRepository,
     private val onBuildSelected: (String) -> Unit
 ) : ComponentContext by context {
@@ -24,7 +27,7 @@ class BuildListComponent(
     private val mutableModel = MutableValue<BuildListModel>(BuildListModel.Loading)
     val model: Value<BuildListModel> = mutableModel
 
-    private val scope = componentScope()
+    private val scope = coroutineScope(appDispatchers.main + SupervisorJob())
 
     init {
         val fetchAll = scope.launch {

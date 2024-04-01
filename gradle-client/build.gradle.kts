@@ -51,7 +51,8 @@ kotlin {
         }
 
         jvmTest.dependencies {
-            implementation(libs.junit.jupiter)
+            implementation(libs.junit.junit)
+            implementation(compose.desktop.uiTestJUnit4)
         }
     }
 }
@@ -86,10 +87,6 @@ compose.desktop {
             }
         }
     }
-}
-
-tasks.withType<Test>().configureEach {
-    useJUnitPlatform()
 }
 
 enum class DesktopOS(val id: String) {

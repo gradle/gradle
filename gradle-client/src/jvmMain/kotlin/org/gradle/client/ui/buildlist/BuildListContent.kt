@@ -11,6 +11,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
@@ -110,7 +111,7 @@ private fun AddBuildButton(component: BuildListComponent) {
     PlainTextTooltip(addBuildHelpText) {
         ExtendedFloatingActionButton(
             icon = { Icon(Icons.Default.Add, "") },
-            text = { Text("Add build") },
+            text = { Text(text = "Add build", Modifier.testTag("add_build")) },
             onClick = { isPathChooserOpen = true },
         )
     }

@@ -1,6 +1,6 @@
 package org.gradle.client.logic
 
-import org.junit.jupiter.api.Test
+import org.junit.Test
 
 class LogicTest {
 

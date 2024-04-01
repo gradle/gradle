@@ -6,30 +6,13 @@ import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
 import java.io.File
 
-class AppDirs(
-    private val appName: String,
-    private val installationIdentifier: String,
-) {
+interface AppDirs {
 
-    val configurationDirectory: File by lazy {
-        persistentDir("conf")
-    }
-
-    val dataDirectory: File by lazy {
-        persistentDir("data")
-    }
-
-    val logDirectory: File by lazy {
-        transientDir("log")
-    }
-
-    val cacheDirectory: File by lazy {
-        transientDir("cache")
-    }
-
-    val temporaryDirectory: File by lazy {
-        transientDir("tmp")
-    }
+    val configurationDirectory: File
+    val dataDirectory: File
+    val logDirectory: File
+    val cacheDirectory: File
+    val temporaryDirectory: File
 
     fun logApplicationDirectories(level: Level = Level.INFO) {
         LoggerFactory.getLogger(AppDirs::class.java).atLevel(level).log {
@@ -42,6 +25,32 @@ class AppDirs(
                 append("          temporary = $temporaryDirectory")
             }
         }
+    }
+}
+
+class RealAppDirs(
+    private val appName: String,
+    private val installationIdentifier: String,
+) : AppDirs {
+
+    override val configurationDirectory: File by lazy {
+        persistentDir("conf")
+    }
+
+    override val dataDirectory: File by lazy {
+        persistentDir("data")
+    }
+
+    override val logDirectory: File by lazy {
+        transientDir("log")
+    }
+
+    override val cacheDirectory: File by lazy {
+        transientDir("cache")
+    }
+
+    override val temporaryDirectory: File by lazy {
+        transientDir("tmp")
     }
 
     private val userDir: File =

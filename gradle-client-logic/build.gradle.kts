@@ -31,13 +31,9 @@ kotlin {
         }
 
         jvmTest.dependencies {
-            implementation(libs.junit.jupiter)
+            implementation(libs.junit.junit)
         }
     }
-}
-
-tasks.withType<Test>().configureEach {
-    useJUnitPlatform()
 }
 
 sqldelight {

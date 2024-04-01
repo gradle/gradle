@@ -7,7 +7,6 @@ decompose = "3.0.0-alpha07"
 gradle-tooling = "8.7"
 sqldelight = "2.0.1"
 ktor = "2.3.9"
-junit = "5.10.2"
 
 [libraries]
 kotlin-bom = { module = "org.jetbrains.kotlin:kotlin-bom", version.ref = "kotlin" }
@@ -32,7 +31,7 @@ material3WindowSizeClassMultiplatform = { module = "dev.chrisbanes.material3:mat
 materialKolor = { module = "com.materialkolor:material-kolor", version = "1.4.4" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version = "2.0.12" }
 logback-classic = { module = "ch.qos.logback:logback-classic", version = "1.5.3" }
-junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
+junit-junit = { module = "junit:junit", version = "4.13.2" }
 
 [plugins]
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }

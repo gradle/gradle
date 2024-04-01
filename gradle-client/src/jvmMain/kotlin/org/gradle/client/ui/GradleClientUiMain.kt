@@ -12,7 +12,6 @@ import org.gradle.client.logic.database.BuildsRepository
 import org.gradle.client.logic.database.sqldelight.ApplicationDatabaseFactory
 import org.gradle.client.logic.database.sqldelight.SqlDriverFactory
 import org.gradle.client.logic.files.AppDirs
-import org.gradle.client.ui.theme.GradleClientTheme
 import org.gradle.client.ui.util.appDirs
 import org.gradle.client.ui.util.runOnUiThread
 import org.slf4j.LoggerFactory
@@ -57,6 +56,7 @@ class GradleClientUiMain(
         val uiComponent = runOnUiThread {
             UiComponent(
                 context = DefaultComponentContext(lifecycle = lifecycle),
+                appDispatchers = AppDispatchers(),
                 appDirs = appDirs,
                 buildsRepository = buildsRepository,
             )
@@ -67,9 +67,7 @@ class GradleClientUiMain(
                 LaunchedEffect(Unit) {
                     logger.atInfo().log { "$APPLICATION_DISPLAY_NAME started!" }
                 }
-                GradleClientTheme {
-                    UiContent(uiComponent)
-                }
+                UiContent(uiComponent)
             }
         }
     }
