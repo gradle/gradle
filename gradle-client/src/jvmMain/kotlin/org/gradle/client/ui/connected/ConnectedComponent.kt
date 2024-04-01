@@ -5,7 +5,6 @@ import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.lifecycle.coroutines.coroutineScope
 import com.arkivanov.essenty.lifecycle.doOnDestroy
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -71,26 +70,6 @@ class ConnectedComponent(
 
     private lateinit var connection: ProjectConnection
 
-    private fun newEventListener(): org.gradle.tooling.events.ProgressListener =
-        object : org.gradle.tooling.events.ProgressListener {
-            private val start = Instant.now()
-            override fun statusChanged(event: ProgressEvent) {
-                val eventInstant = Instant.ofEpochMilli(event.eventTime)
-                val eventTimeSinceStart = Duration.between(start, eventInstant)
-                mutableModel.value = when (val current = model.value) {
-
-                    is ConnectionModel.Connected -> current.copy(
-                        current.events + Event(
-                            "${eventTimeSinceStart.toPrettyString().padEnd(12)} ${event.displayName}",
-                            event.hashCode()
-                        )
-                    )
-
-                    else -> TODO("BOOM")
-                }
-            }
-        }
-
     init {
         val cancel = GradleConnector.newCancellationTokenSource()
         val connector = GradleConnector.newConnector().forProjectDirectory(File(parameters.rootDir))
@@ -115,42 +94,62 @@ class ConnectedComponent(
     }
 
     fun getModel(modelType: KClass<*>) {
-        when (val current = model.value) {
-            is ConnectionModel.Connected -> {
+        scope.launch {
+            model.value.requireConnected { current ->
                 mutableModel.value = current.copy(events = emptyList(), outcome = Outcome.Building)
-                scope.launch {
-                    withContext(appDispatchers.io) {
-                        logger.atDebug().log { "Get ${modelType.simpleName} model!" }
-                        try {
-                            val result = connection.model(modelType.java)
-                                .addProgressListener(
-                                    newEventListener(),
-                                    OperationType.entries.toSet() - OperationType.GENERIC
-                                )
-                                .get()
-                            logger.atInfo().log { "Got ${modelType.simpleName} model: $result" }
-                            when (val c = model.value) {
-                                is ConnectionModel.Connected -> withContext(appDispatchers.main) {
-                                    mutableModel.value = c.copy(outcome = Outcome.Result(result))
-                                }
-
-                                else -> TODO("BOOM")
+                withContext(appDispatchers.io) {
+                    logger.atDebug().log { "Get ${modelType.simpleName} model!" }
+                    try {
+                        val result = connection.model(modelType.java)
+                            .addProgressListener(
+                                newEventListener(),
+                                OperationType.entries.toSet() - OperationType.GENERIC
+                            )
+                            .get()
+                        logger.atInfo().log { "Got ${modelType.simpleName} model: $result" }
+                        model.value.requireConnected { model ->
+                            withContext(appDispatchers.main) {
+                                mutableModel.value = model.copy(outcome = Outcome.Result(result))
                             }
-                        } catch (ex: Exception) {
-                            when (val c = model.value) {
-                                is ConnectionModel.Connected -> withContext(appDispatchers.main) {
-                                    mutableModel.value = c.copy(outcome = Outcome.Failure(ex))
-                                }
-
-                                else -> TODO("BOOM")
+                        }
+                    } catch (ex: Exception) {
+                        model.value.requireConnected { model ->
+                            withContext(appDispatchers.main) {
+                                mutableModel.value = model.copy(outcome = Outcome.Failure(ex))
                             }
                         }
                     }
                 }
             }
+        }
+    }
 
-            else -> TODO("BOOM")
+    private fun newEventListener(): org.gradle.tooling.events.ProgressListener =
+        object : org.gradle.tooling.events.ProgressListener {
+            private val start = Instant.now()
+            override fun statusChanged(event: ProgressEvent) {
+                val eventTimeSinceStart = Duration.between(start, Instant.ofEpochMilli(event.eventTime))
+                val uiEvent = Event(
+                    "${eventTimeSinceStart.toPrettyString().padEnd(12)} ${event.displayName}",
+                    event.hashCode()
+                )
+                scope.launch {
+                    model.value.requireConnected { current ->
+                        mutableModel.value = current.copy(events = current.events + uiEvent)
+                    }
+                }
+            }
+        }
 
+    private suspend fun ConnectionModel.requireConnected(action: suspend (connected: ConnectionModel.Connected) -> Unit) {
+        when (this) {
+            is ConnectionModel.Connected -> action(this)
+            else -> {
+                val ex = IllegalStateException("Not connected (was ${this@requireConnected})!")
+                withContext(appDispatchers.main) {
+                    mutableModel.value = ConnectionModel.ConnectionFailure(ex)
+                }
+            }
         }
     }
 
