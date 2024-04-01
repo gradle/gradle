@@ -61,7 +61,11 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerf
     @RunFor(
         @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["smallJavaMultiProjectManyExternalDependencies"])
     )
-    def "clean check on ephemeral ci"() {
+    /*
+     * Similar to the "first use" scenario, because ephemeral agents have no local caches, but we do have a well-populated remote
+     * cache. This scenario measures how much overhead Gradle's startup and input fingerprinting add on top of the cache hits.
+     */
+    def "clean check on ephemeral ci with remote http cache"() {
         runner.cleanTasks = ["clean"]
         runner.tasksToRun = ["check"]
         protocol = "http"

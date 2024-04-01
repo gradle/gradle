@@ -364,7 +364,7 @@
       }
     } ]
   }, {
-    "testId" : "org.gradle.performance.regression.buildcache.TaskOutputCachingJavaPerformanceTest.clean check on ephemeral ci",
+    "testId" : "org.gradle.performance.regression.buildcache.TaskOutputCachingJavaPerformanceTest.clean check on ephemeral ci with remote http cache",
     "groups" : [ {
       "testProject" : "smallJavaMultiProjectManyExternalDependencies",
       "coverage" : {
