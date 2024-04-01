@@ -17,11 +17,10 @@
 package org.gradle.internal.logging.console;
 
 import org.gradle.internal.logging.events.OutputEventListener;
-import org.gradle.internal.logging.events.PromptOutputEvent;
-import org.gradle.internal.logging.events.UserInputResumeEvent;
+import org.gradle.internal.logging.events.RenderableOutputEvent;
 
 public class UserInputStandardOutputRenderer extends AbstractUserInputRenderer {
-    public UserInputStandardOutputRenderer(OutputEventListener delegate, UserInputReceiver userInput) {
+    public UserInputStandardOutputRenderer(OutputEventListener delegate, GlobalUserInputReceiver userInput) {
         super(delegate, userInput);
     }
 
@@ -30,12 +29,12 @@ public class UserInputStandardOutputRenderer extends AbstractUserInputRenderer {
     }
 
     @Override
-    void handlePrompt(PromptOutputEvent event) {
+    void handlePrompt(RenderableOutputEvent event) {
         delegate.onOutput(event);
     }
 
     @Override
-    void finishInput(UserInputResumeEvent event) {
+    void finishInput(RenderableOutputEvent event) {
         delegate.onOutput(event);
     }
 }
