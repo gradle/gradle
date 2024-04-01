@@ -582,6 +582,7 @@ task someTask(type: SomeTask) {
         succeeds "test"
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "null input files registered via TaskInputs.#method are not allowed"() {
         expectReindentedValidationMessage()
         buildFile << """
@@ -613,6 +614,7 @@ task someTask(type: SomeTask) {
         method << ["file", "files", "dir"]
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "null output files registered via TaskOutputs.#method are not allowed"() {
         expectReindentedValidationMessage()
         buildFile << """
