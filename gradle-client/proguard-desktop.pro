@@ -22,6 +22,14 @@
 # Kotlinx DateTime
 -dontwarn kotlinx.datetime.**
 
+# Android
+-dontwarn android.**
+
+# OkHttp3 Crypto
+-dontwarn org.conscrypt.**
+-dontwarn org.bouncycastle.**
+-dontwarn org.openjsse.**
+
 # =========================================================================
 # KEEP
 
@@ -47,14 +55,18 @@
 # Logging
 -keep class org.slf4j.** { *; }
 -keep class ch.qos.logback.** { *; }
--keep class org.gradle.client.ui.util.Logback*
+-keep class org.gradle.client.core.util.Logback*
 
-# Gradle shaded dependencies
+# Gradle Tooling API
+-keep class org.gradle.** { *; }
 -dontwarn org.gradle.internal.impldep.**
--keep class org.gradle.internal.impldep.** { *; }
 
 # Decompose
 -keep class com.arkivanov.decompose.extensions.compose.mainthread.**
 
 # JDBC
 -keep class **.sqlite.** { *; }
+
+# KTor Client
+-keepclassmembers class io.ktor.** { volatile <fields>; }
+-keep class io.ktor.client.engine.** { *; }

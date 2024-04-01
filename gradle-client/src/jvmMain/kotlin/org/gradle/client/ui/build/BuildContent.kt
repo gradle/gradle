@@ -9,12 +9,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import org.gradle.client.logic.gradle.GradleConnectionParameters
+import org.gradle.client.core.gradle.GradleConnectionParameters
 import org.gradle.client.ui.composables.BackIcon
 import org.gradle.client.ui.composables.Loading
 import org.gradle.client.ui.composables.PathChooserDialog
 import org.gradle.client.ui.composables.PlainTextTooltip
-import org.gradle.client.logic.gradle.GradleDistribution
+import org.gradle.client.core.gradle.GradleDistribution
 import org.gradle.client.ui.theme.plusPaneSpacing
 
 @Composable

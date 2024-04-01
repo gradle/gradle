@@ -20,6 +20,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
@@ -59,7 +61,7 @@ private fun FailureContent(exception: Exception) {
     ) {
         Text(
             text = exception.stackTraceToString(),
-            style = MaterialTheme.typography.labelSmall,
+            style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
             color = MaterialTheme.colorScheme.error,
         )
     }
@@ -201,7 +203,6 @@ private fun ConnectedMainContent(component: ConnectedComponent, model: Connectio
         }
     }
 }
-
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)

@@ -15,8 +15,8 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import org.gradle.client.logic.Constants.APPLICATION_DISPLAY_NAME
-import org.gradle.client.logic.build.Build
+import org.gradle.client.core.Constants.APPLICATION_DISPLAY_NAME
+import org.gradle.client.core.database.Build
 import org.gradle.client.ui.composables.Loading
 import org.gradle.client.ui.composables.PathChooserDialog
 import org.gradle.client.ui.composables.PlainTextTooltip

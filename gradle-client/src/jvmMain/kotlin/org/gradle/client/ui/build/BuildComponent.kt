@@ -13,10 +13,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import org.gradle.client.logic.build.Build
-import org.gradle.client.logic.database.BuildsRepository
-import org.gradle.client.logic.files.AppDirs
-import org.gradle.client.logic.gradle.GradleConnectionParameters
+import org.gradle.client.core.database.Build
+import org.gradle.client.core.database.BuildsRepository
+import org.gradle.client.core.files.AppDirs
+import org.gradle.client.core.gradle.GradleConnectionParameters
 import org.gradle.client.ui.AppDispatchers
 
 sealed interface BuildModel {

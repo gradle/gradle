@@ -43,5 +43,4 @@ enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 rootProject.name = "gradle-client-root"
 
-include(":gradle-client-logic")
 include(":gradle-client")

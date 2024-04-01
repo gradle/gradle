@@ -1,6 +1,6 @@
 package org.gradle.client.ui.fixtures
 
-import org.gradle.client.logic.files.AppDirs
+import org.gradle.client.core.files.AppDirs
 import java.io.File
 
 class TestAppDirs(

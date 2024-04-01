@@ -9,7 +9,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.gradle.client.logic.gradle.GradleConnectionParameters
+import org.gradle.client.core.gradle.GradleConnectionParameters
 import org.gradle.client.ui.AppDispatchers
 import org.gradle.client.ui.connected.actions.GetBuildEnvironment
 import org.gradle.client.ui.connected.actions.GetGradleBuild
@@ -24,8 +24,6 @@ import java.io.File
 import java.time.Duration
 import java.time.Instant
 import kotlin.reflect.KClass
-
-// TODO revisit event stream filtering
 
 private val logger = LoggerFactory.getLogger(ConnectedComponent::class.java)
 

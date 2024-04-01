@@ -10,11 +10,11 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
-import org.gradle.client.logic.Constants.APPLICATION_DISPLAY_NAME
-import org.gradle.client.logic.database.BuildsRepository
-import org.gradle.client.logic.database.sqldelight.ApplicationDatabaseFactory
-import org.gradle.client.logic.database.sqldelight.SqlDriverFactory
-import org.gradle.client.logic.files.AppDirs
+import org.gradle.client.core.Constants.APPLICATION_DISPLAY_NAME
+import org.gradle.client.core.database.BuildsRepository
+import org.gradle.client.core.database.sqldelight.ApplicationDatabaseFactory
+import org.gradle.client.core.database.sqldelight.SqlDriverFactory
+import org.gradle.client.core.files.AppDirs
 import org.gradle.client.ui.connected.ConnectionModel
 import org.gradle.client.ui.connected.Outcome
 import org.gradle.client.ui.fixtures.TestAppDirs

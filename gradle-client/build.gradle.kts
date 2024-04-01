@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.jetbrainsCompose)
+    alias(libs.plugins.sqldelight)
 }
 
 kotlin {
@@ -22,7 +23,11 @@ kotlin {
 
         jvmMain.dependencies {
 
-            implementation(projects.gradleClientLogic)
+            implementation(libs.gradle.tooling)
+
+            implementation(libs.sqldelight.extensions.coroutines)
+            implementation(libs.sqldelight.runtime)
+            implementation(libs.sqldelight.driver.sqlite)
 
             implementation(compose.runtime)
             implementation(compose.foundation)
@@ -57,10 +62,21 @@ kotlin {
     }
 }
 
+sqldelight {
+    databases {
+        create("ApplicationDatabase") {
+            packageName = "org.gradle.client.core.database.sqldelight.generated"
+            verifyDefinitions = true
+            verifyMigrations = true
+            deriveSchemaFromMigrations = true
+            generateAsync = false
+        }
+    }
+}
 
 compose.desktop {
     application {
-        mainClass = "org.gradle.client.ui.GradleClientUiMainKt"
+        mainClass = "org.gradle.client.GradleClientMainKt"
         jvmArgs += "-Xms35m"
         jvmArgs += "-Xmx128m"
 
@@ -78,6 +94,7 @@ compose.desktop {
             appResourcesRootDir = layout.projectDirectory.dir("src/assets")
             jvmArgs += "-splash:${'$'}APPDIR/resources/splash.png"
             modules(
+                "java.management",
                 "java.naming",
                 "java.sql",
             )

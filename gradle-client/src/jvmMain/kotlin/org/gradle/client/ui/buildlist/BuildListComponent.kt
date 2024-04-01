@@ -7,8 +7,8 @@ import com.arkivanov.essenty.lifecycle.coroutines.coroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.launch
-import org.gradle.client.logic.build.Build
-import org.gradle.client.logic.database.BuildsRepository
+import org.gradle.client.core.database.Build
+import org.gradle.client.core.database.BuildsRepository
 import org.gradle.client.ui.AppDispatchers
 import java.io.File
 

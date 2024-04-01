@@ -4,9 +4,9 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.*
 import com.arkivanov.decompose.value.Value
 import kotlinx.serialization.Serializable
-import org.gradle.client.logic.database.BuildsRepository
-import org.gradle.client.logic.files.AppDirs
-import org.gradle.client.logic.gradle.GradleConnectionParameters
+import org.gradle.client.core.database.BuildsRepository
+import org.gradle.client.core.files.AppDirs
+import org.gradle.client.core.gradle.GradleConnectionParameters
 import org.gradle.client.ui.build.BuildComponent
 import org.gradle.client.ui.buildlist.BuildListComponent
 import org.gradle.client.ui.connected.ConnectedComponent
