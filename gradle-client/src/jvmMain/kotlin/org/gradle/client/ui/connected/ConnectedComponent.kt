@@ -9,6 +9,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.gradle.client.core.gradle.GradleConnectionParameters
+import org.gradle.client.core.gradle.GradleDistribution
 import org.gradle.client.ui.AppDispatchers
 import org.gradle.client.ui.connected.actions.GetBuildEnvironment
 import org.gradle.client.ui.connected.actions.GetGradleBuild
@@ -18,6 +19,7 @@ import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressEvent
+import org.gradle.tooling.events.ProgressListener
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.time.Duration
@@ -62,17 +64,21 @@ class ConnectedComponent(
         GetGradleProject()
     )
 
-    @Suppress("UNCHECKED_CAST")
-    fun <T : Any> actionFor(model: T): GetModelAction<T>? =
-        modelActions.find { action -> action.modelType.java.isAssignableFrom(model::class.java) } as? GetModelAction<T>
-
     private val scope = coroutineScope(appDispatchers.main + SupervisorJob())
 
     private lateinit var connection: ProjectConnection
 
     init {
         val cancel = GradleConnector.newCancellationTokenSource()
-        val connector = GradleConnector.newConnector().forProjectDirectory(File(parameters.rootDir))
+        val connector = GradleConnector.newConnector()
+            .forProjectDirectory(File(parameters.rootDir))
+            .let { c ->
+                when (parameters.distribution) {
+                    GradleDistribution.Default -> c
+                    is GradleDistribution.Local -> c.useInstallation(File(parameters.distribution.installDir))
+                    is GradleDistribution.Version -> c.useGradleVersion(parameters.distribution.version)
+                }
+            }
 
         lifecycle.doOnDestroy {
             cancel.cancel()
@@ -124,8 +130,8 @@ class ConnectedComponent(
         }
     }
 
-    private fun newEventListener(): org.gradle.tooling.events.ProgressListener =
-        object : org.gradle.tooling.events.ProgressListener {
+    private fun newEventListener(): ProgressListener =
+        object : ProgressListener {
             private val start = Instant.now()
             override fun statusChanged(event: ProgressEvent) {
                 val eventTimeSinceStart = Duration.between(start, Instant.ofEpochMilli(event.eventTime))
@@ -141,17 +147,23 @@ class ConnectedComponent(
             }
         }
 
-    private suspend fun ConnectionModel.requireConnected(action: suspend (connected: ConnectionModel.Connected) -> Unit) {
+    private suspend fun ConnectionModel.requireConnected(
+        action: suspend (connected: ConnectionModel.Connected) -> Unit
+    ) {
         when (this) {
             is ConnectionModel.Connected -> action(this)
             else -> {
-                val ex = IllegalStateException("Not connected (was ${this@requireConnected})!")
+                val ex = IllegalStateException("Not connected! (was ${this@requireConnected})")
                 withContext(appDispatchers.main) {
                     mutableModel.value = ConnectionModel.ConnectionFailure(ex)
                 }
             }
         }
     }
+
+    @Suppress("UNCHECKED_CAST")
+    fun <T : Any> actionFor(model: T): GetModelAction<T>? =
+        modelActions.find { it.modelType.java.isAssignableFrom(model::class.java) } as? GetModelAction<T>
 
     fun onCloseClicked() {
         onFinished()
