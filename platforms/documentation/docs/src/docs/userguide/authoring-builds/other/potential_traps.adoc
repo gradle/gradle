@@ -15,44 +15,4 @@
 [[potential_traps]]
 = Avoiding traps
 
-[[sec:groovy_script_variables]]
-== Groovy script variables
-
-For users of the Groovy DSL it is important to understand how Groovy deals with script variables.
-Groovy has two types of script variables.
-One with a local scope and one with a script-wide scope.
-
-=== Example: Variables scope: local and script wide
-
-[source,groovy]
-.scope.groovy
-----
-include::{snippetsPath}/tutorial/groovyScope/groovy/src/main/groovy/scope.groovy[]
-----
-
-.Output of `groovy scope.groovy`
-----
-> groovy scope.groovy
-include::{snippetsPath}/tutorial/groovyScope/tests/scope.out[]
-----
-
-Variables which are declared with a type modifier are visible within closures but not visible within methods.
-
-[[sec:configuration_and_execution_phase]]
-== Configuration and execution phase
-
-It is important to keep in mind that Gradle has a distinct configuration and execution phase (see <<build_lifecycle.adoc#build_lifecycle,Build Lifecycle>>).
-
-.Distinct configuration and execution phase
-====
-include::sample[dir="snippets/tutorial/mkdirTrap/kotlin", files="build.gradle.kts[]"]
-include::sample[dir="snippets/tutorial/mkdirTrap/groovy", files="build.gradle[]"]
-====
-
-.Output of **`gradle -q compile`**
-----
-> gradle -q compile
-include::{snippetsPath}/tutorial/mkdirTrap/tests/mkdirTrap.out[]
-----
-
-As the creation of the directory happens during the configuration phase, the `clean` task removes the directory during the execution phase.
+This page has been removed.

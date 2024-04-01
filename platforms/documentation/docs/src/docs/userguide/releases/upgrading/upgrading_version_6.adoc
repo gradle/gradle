@@ -300,7 +300,7 @@ The `layout` method taking a configuration block has been removed and is replace
 A Gradle build is defined by its `settings.gradle(.kts)` file found in the current or parent directory.
 Without a settings file, a Gradle build is undefined and Gradle produces an error when attempting to execute tasks.
 
-To fix this error, <<organizing_gradle_projects.adoc#sec:settings_file,create a `settings.gradle(.kts)` file>> for the build.
+To fix this error, <<settings_file_basics.adoc#sec:settings_file_script,create a `settings.gradle(.kts)` file>> for the build.
 
 Exceptions to this are invoking Gradle with the `init` task or using diagnostic command line flags, such as `--version`.
 

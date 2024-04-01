@@ -107,7 +107,7 @@ When you are done, the directory should look as follows:
 <3> Contains the JAR file and configuration of the <<gradle_wrapper.adoc#gradle_wrapper_reference,Gradle Wrapper>>.
 <4> macOS and Linux script for executing builds using the <<gradle_wrapper.adoc#gradle_wrapper_reference,Gradle Wrapper>>.
 <5> Windows script for executing builds using the <<gradle_wrapper.adoc#gradle_wrapper_reference,Gradle Wrapper>>.
-<6> The project's <<organizing_gradle_projects.adoc#sec:settings_file, settings file>> where the list of subprojects is defined.
+<6> The project's <<settings_file_basics.adoc#sec:settings_file_script, settings file>> where the list of subprojects is defined.
 <7> The source code and build configuration for the Java app.
 <8> Some additional Git files may be present such as `.gitignore`.
 =====
@@ -134,7 +134,7 @@ When you are done, the directory should look as follows:
 <3> Contains the JAR file and configuration of the <<gradle_wrapper.adoc#gradle_wrapper_reference,Gradle Wrapper>>.
 <4> macOS and Linux script for executing builds using the <<gradle_wrapper.adoc#gradle_wrapper_reference,Gradle Wrapper>>.
 <5> Windows script for executing builds using the <<gradle_wrapper.adoc#gradle_wrapper_reference,Gradle Wrapper>>.
-<6> The project's <<organizing_gradle_projects.adoc#sec:settings_file, settings file>> where the list of subprojects is defined.
+<6> The project's <<settings_file_basics.adoc#sec:settings_file_script, settings file>> where the list of subprojects is defined.
 <7> The source code and build configuration for the Java app.
 <8> Some additional Git files may be present such as `.gitignore`.
 =====

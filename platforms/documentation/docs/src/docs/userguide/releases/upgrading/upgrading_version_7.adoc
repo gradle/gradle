@@ -1602,9 +1602,6 @@ property in link:{groovyDslPath}/org.gradle.api.tasks.GradleBuild.html[GradleBui
 
 Please use the link:{groovyDslPath}/org.gradle.api.tasks.GradleBuild.html#org.gradle.api.tasks.GradleBuild:dir[dir]
 property instead to specify the root of the nested build.
-Alternatively, consider using one of the recommended alternatives for
-link:{groovyDslPath}/org.gradle.api.tasks.GradleBuild.html[GradleBuild] task as suggested in
-<<authoring_maintainable_build_scripts#sec:avoiding_use_of_gradlebuild, Avoid using the GradleBuild task type>> section.
 
 Setting custom build layout using
 link:{javadocPath}/org/gradle/StartParameter.html[StartParameter] methods

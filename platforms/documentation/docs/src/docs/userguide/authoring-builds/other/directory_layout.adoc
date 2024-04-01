@@ -235,7 +235,7 @@ The anatomy of a typical project root directory looks as follows:
 <4> Contains the JAR file and configuration of the <<gradle_wrapper.adoc#gradle_wrapper_reference,Gradle Wrapper>>.
 <5> Project-specific <<build_environment.adoc#sec:gradle_configuration_properties,Gradle configuration properties>>.
 <6> Scripts for executing builds using the <<gradle_wrapper.adoc#gradle_wrapper_reference,Gradle Wrapper>>.
-<7> The project's <<organizing_gradle_projects.adoc#sec:settings_file, settings file>> where the list of subprojects is defined.
+<7> The project's <<settings_file_basics.adoc#sec:settings_file_script, settings file>> where the list of subprojects is defined.
 <8> Usually, a project is organized into one or multiple subprojects.
 <9> Each subproject has its own Gradle build script.
 

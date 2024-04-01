@@ -156,8 +156,6 @@ Sometimes when using the Groovy DSL this creation is not obvious, as in the exam
 include::sample[dir="snippets/java/customConfs-creation/groovy",files="build.gradle[tags=create-configurations]"]
 ====
 
-For more information see <<authoring_maintainable_build_scripts.adoc#sec:dont_anticipate_configuration_creation, Don't anticipate configuration creation>>.
-
 [[sec:java_dependency_management_overview]]
 == Managing your dependencies
 
