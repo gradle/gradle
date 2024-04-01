@@ -14,7 +14,10 @@ import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
@@ -24,9 +27,6 @@ import kotlinx.coroutines.launch
 import org.gradle.client.ui.composables.BackIcon
 import org.gradle.client.ui.composables.Loading
 import org.gradle.client.ui.theme.plusPaneSpacing
-import org.gradle.tooling.model.GradleProject
-import org.gradle.tooling.model.build.BuildEnvironment
-import org.gradle.tooling.model.gradle.GradleBuild
 
 @Composable
 fun ConnectedContent(component: ConnectedComponent) {
@@ -73,9 +73,8 @@ private fun ConnectedMainContent(component: ConnectedComponent, model: Connectio
     val scope = rememberCoroutineScope()
     val sheetScaffoldState = rememberBottomSheetScaffoldState()
     val eventsListState = rememberLazyListState()
-    val hasEvents by derivedStateOf { model.events.isNotEmpty() }
-    LaunchedEffect(hasEvents) {
-        if (!hasEvents) {
+    LaunchedEffect(model.events) {
+        if (model.events.isEmpty()) {
             sheetScaffoldState.bottomSheetState.partialExpand()
         }
     }
@@ -99,7 +98,7 @@ private fun ConnectedMainContent(component: ConnectedComponent, model: Connectio
                     }
                 }
                 IconButton(
-                    enabled = hasEvents,
+                    enabled = model.events.isNotEmpty(),
                     onClick = {
                         scope.launch {
                             when (sheetScaffoldState.bottomSheetState.currentValue) {
@@ -155,15 +154,14 @@ private fun ConnectedMainContent(component: ConnectedComponent, model: Connectio
                 modifier = Modifier.padding(end = 8.dp).weight(0.3f),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                listOf(
-                    "Get BuildEnvironment" to { component.getBuildEnvironment() },
-                    "Get GradleBuild" to { component.getGradleBuild() },
-                    "Get GradleProject" to { component.getGradleProject() },
-                ).forEach { (name, action) ->
+                component.modelActions.forEach { action ->
                     ListItem(
-                        modifier = Modifier.selectable(selected = false, onClick = action),
-                        headlineContent = { Text(name, style = MaterialTheme.typography.titleSmall) },
-                        trailingContent = { Icon(Icons.Default.PlayCircle, name) },
+                        modifier = Modifier.selectable(
+                            selected = false,
+                            onClick = { component.getModel(action.modelType) }
+                        ),
+                        headlineContent = { Text(action.displayName, style = MaterialTheme.typography.titleSmall) },
+                        trailingContent = { Icon(Icons.Default.PlayCircle, action.displayName) },
                     )
                 }
             }
@@ -178,84 +176,20 @@ private fun ConnectedMainContent(component: ConnectedComponent, model: Connectio
                     Outcome.Building -> Loading()
                     is Outcome.Failure -> FailureContent(outcome.exception)
                     is Outcome.Result -> {
-                        when (val result = outcome.model) {
-                            null -> Unit
-
-                            is BuildEnvironment -> {
-                                Text(
-                                    text = "Build Environment",
-                                    style = MaterialTheme.typography.titleMedium
-                                )
-                                Text(
-                                    text = "Build Identifier: ${result.buildIdentifier.rootDir}",
-                                    style = MaterialTheme.typography.labelSmall
-                                )
-                                Text(
-                                    text = "Java Home: ${result.java.javaHome}",
-                                    style = MaterialTheme.typography.labelSmall
-                                )
-                                Text(
-                                    text = "JVM Arguments:  ${result.java.jvmArguments}",
-                                    style = MaterialTheme.typography.labelSmall
-                                )
-                                Text(
-                                    text = "Gradle Version: ${result.gradle.gradleVersion}",
-                                    style = MaterialTheme.typography.labelSmall
-                                )
-                                Text(
-                                    text = "Gradle User Home: ${result.gradle.gradleUserHome}",
-                                    style = MaterialTheme.typography.labelSmall
-                                )
+                        val action = component.actionFor(outcome.model)
+                        if (action != null) {
+                            action.run {
+                                ModelContent(outcome.model)
                             }
-
-                            is GradleBuild -> {
-                                Text(
-                                    text = "Gradle Build",
-                                    style = MaterialTheme.typography.titleMedium
-                                )
-                                Text(
-                                    text = "Build Identifier: ${result.buildIdentifier.rootDir}",
-                                    style = MaterialTheme.typography.labelSmall
-                                )
-                                Text(
-                                    text = "Root Project Identifier: ${result.rootProject.projectIdentifier}",
-                                    style = MaterialTheme.typography.labelSmall
-                                )
-                                Text(
-                                    text = "Root Project Name: ${result.rootProject.name}",
-                                    style = MaterialTheme.typography.labelSmall
-                                )
-                            }
-
-                            is GradleProject -> {
-                                Text(
-                                    text = "Gradle Project",
-                                    style = MaterialTheme.typography.titleMedium
-                                )
-                                Text(
-                                    text = "Root Project Identifier: ${result.projectIdentifier}",
-                                    style = MaterialTheme.typography.labelSmall
-                                )
-                                Text(
-                                    text = "Root Project Name: ${result.name}",
-                                    style = MaterialTheme.typography.labelSmall
-                                )
-                                Text(
-                                    text = "Root Project Description: ${result.description}",
-                                    style = MaterialTheme.typography.labelSmall
-                                )
-                            }
-
-                            else -> {
-                                Text(
-                                    text = "Unknown Model Type: ${result::class.simpleName}",
-                                    style = MaterialTheme.typography.titleMedium
-                                )
-                                Text(
-                                    text = result.toString(),
-                                    style = MaterialTheme.typography.labelSmall
-                                )
-                            }
+                        } else {
+                            Text(
+                                text = "Unknown Model Type: ${outcome.model::class.simpleName}",
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            Text(
+                                text = outcome.model.toString(),
+                                style = MaterialTheme.typography.labelSmall
+                            )
                         }
                     }
                 }

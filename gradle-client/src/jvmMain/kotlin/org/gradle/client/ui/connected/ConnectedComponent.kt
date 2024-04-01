@@ -8,24 +8,22 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.gradle.client.logic.gradle.GradleConnectionParameters
+import org.gradle.client.ui.connected.actions.GetBuildEnvironment
+import org.gradle.client.ui.connected.actions.GetGradleBuild
+import org.gradle.client.ui.connected.actions.GetGradleProject
+import org.gradle.client.ui.connected.actions.GetModelAction
 import org.gradle.client.ui.util.componentScope
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressEvent
-import org.gradle.tooling.model.GradleProject
-import org.gradle.tooling.model.build.BuildEnvironment
-import org.gradle.tooling.model.gradle.GradleBuild
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.time.Duration
 import java.time.Instant
 import kotlin.reflect.KClass
 
-// TODO loading spinners
-// TODO present errors nicely in the UI
 // TODO revisit event stream filtering
-// TODO refactor for easy addition of actions, presentation logic + ui
 
 private val logger = LoggerFactory.getLogger(ConnectedComponent::class.java)
 
@@ -57,6 +55,16 @@ class ConnectedComponent(
 
     private val mutableModel = MutableValue<ConnectionModel>(ConnectionModel.Connecting)
     val model: Value<ConnectionModel> = mutableModel
+
+    val modelActions = listOf(
+        GetBuildEnvironment(),
+        GetGradleBuild(),
+        GetGradleProject()
+    )
+
+    @Suppress("UNCHECKED_CAST")
+    fun <T : Any> actionFor(model: T): GetModelAction<T>? =
+        modelActions.find { action -> action.modelType.java.isAssignableFrom(model::class.java) } as? GetModelAction<T>
 
     private val scope = componentScope()
 
@@ -105,19 +113,7 @@ class ConnectedComponent(
         }
     }
 
-    fun getBuildEnvironment() {
-        getModel(BuildEnvironment::class)
-    }
-
-    fun getGradleBuild() {
-        getModel(GradleBuild::class)
-    }
-
-    fun getGradleProject() {
-        getModel(GradleProject::class)
-    }
-
-    private fun getModel(modelType: KClass<*>) {
+    fun getModel(modelType: KClass<*>) {
         when (val current = model.value) {
             is ConnectionModel.Connected -> {
                 mutableModel.value = current.copy(events = emptyList(), outcome = Outcome.Building)
