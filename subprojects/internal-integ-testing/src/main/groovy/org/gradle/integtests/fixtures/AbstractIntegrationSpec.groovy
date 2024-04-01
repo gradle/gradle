@@ -784,6 +784,7 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
     }
 
     def resetProblemApiCheck() {
+        // By nulling out the receivedProblems, upon calling getReceivedProblems() we will re-fetch the problems from the build operations fixture.
         receivedProblems = null
     }
 
