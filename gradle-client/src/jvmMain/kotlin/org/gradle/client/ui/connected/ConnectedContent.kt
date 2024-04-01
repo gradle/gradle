@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.ArrowDownward
@@ -21,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.coroutines.launch
 import org.gradle.client.ui.composables.BackIcon
+import org.gradle.client.ui.composables.Loading
 import org.gradle.client.ui.theme.plusPaneSpacing
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.build.BuildEnvironment
@@ -34,7 +36,8 @@ fun ConnectedContent(component: ConnectedComponent) {
         Surface(modifier = Modifier.padding(scaffoldPadding.plusPaneSpacing())) {
             val model by component.model.subscribeAsState()
             when (val current = model) {
-                ConnectionModel.Disconnected -> DisconnectedMainContent(component)
+                ConnectionModel.Connecting -> ConnectingMainContent(component)
+                is ConnectionModel.ConnectionFailure -> FailureContent(current.exception)
                 is ConnectionModel.Connected -> ConnectedMainContent(component, current)
             }
         }
@@ -42,10 +45,25 @@ fun ConnectedContent(component: ConnectedComponent) {
 }
 
 @Composable
-private fun DisconnectedMainContent(component: ConnectedComponent) {
+private fun ConnectingMainContent(component: ConnectedComponent) {
     Column {
-        Text("Disconnected from ${component.parameters.rootDir}")
+        Text("Connecting to ${component.parameters.rootDir}")
         Text(component.parameters.toString())
+    }
+}
+
+@Composable
+private fun FailureContent(exception: Exception) {
+    Column(
+        modifier = Modifier.fillMaxSize()
+            .horizontalScroll(rememberScrollState())
+            .verticalScroll(rememberScrollState())
+    ) {
+        Text(
+            text = exception.stackTraceToString(),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.error,
+        )
     }
 }
 
@@ -150,89 +168,95 @@ private fun ConnectedMainContent(component: ConnectedComponent, model: Connectio
                 }
             }
 
-            // Result
+            // Outcome
             Column(
                 modifier = Modifier.weight(0.7f),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                when (val result = model.result) {
+                when (val outcome = model.outcome) {
+                    Outcome.None -> Unit
+                    Outcome.Building -> Loading()
+                    is Outcome.Failure -> FailureContent(outcome.exception)
+                    is Outcome.Result -> {
+                        when (val result = outcome.model) {
+                            null -> Unit
 
-                    null -> Unit
+                            is BuildEnvironment -> {
+                                Text(
+                                    text = "Build Environment",
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                                Text(
+                                    text = "Build Identifier: ${result.buildIdentifier.rootDir}",
+                                    style = MaterialTheme.typography.labelSmall
+                                )
+                                Text(
+                                    text = "Java Home: ${result.java.javaHome}",
+                                    style = MaterialTheme.typography.labelSmall
+                                )
+                                Text(
+                                    text = "JVM Arguments:  ${result.java.jvmArguments}",
+                                    style = MaterialTheme.typography.labelSmall
+                                )
+                                Text(
+                                    text = "Gradle Version: ${result.gradle.gradleVersion}",
+                                    style = MaterialTheme.typography.labelSmall
+                                )
+                                Text(
+                                    text = "Gradle User Home: ${result.gradle.gradleUserHome}",
+                                    style = MaterialTheme.typography.labelSmall
+                                )
+                            }
 
-                    is BuildEnvironment -> {
-                        Text(
-                            text = "Build Environment",
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        Text(
-                            text = "Build Identifier: ${result.buildIdentifier.rootDir}",
-                            style = MaterialTheme.typography.labelSmall
-                        )
-                        Text(
-                            text = "Java Home: ${result.java.javaHome}",
-                            style = MaterialTheme.typography.labelSmall
-                        )
-                        Text(
-                            text = "JVM Arguments:  ${result.java.jvmArguments}",
-                            style = MaterialTheme.typography.labelSmall
-                        )
-                        Text(
-                            text = "Gradle Version: ${result.gradle.gradleVersion}",
-                            style = MaterialTheme.typography.labelSmall
-                        )
-                        Text(
-                            text = "Gradle User Home: ${result.gradle.gradleUserHome}",
-                            style = MaterialTheme.typography.labelSmall
-                        )
-                    }
+                            is GradleBuild -> {
+                                Text(
+                                    text = "Gradle Build",
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                                Text(
+                                    text = "Build Identifier: ${result.buildIdentifier.rootDir}",
+                                    style = MaterialTheme.typography.labelSmall
+                                )
+                                Text(
+                                    text = "Root Project Identifier: ${result.rootProject.projectIdentifier}",
+                                    style = MaterialTheme.typography.labelSmall
+                                )
+                                Text(
+                                    text = "Root Project Name: ${result.rootProject.name}",
+                                    style = MaterialTheme.typography.labelSmall
+                                )
+                            }
 
-                    is GradleBuild -> {
-                        Text(
-                            text = "Gradle Build",
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        Text(
-                            text = "Build Identifier: ${result.buildIdentifier.rootDir}",
-                            style = MaterialTheme.typography.labelSmall
-                        )
-                        Text(
-                            text = "Root Project Identifier: ${result.rootProject.projectIdentifier}",
-                            style = MaterialTheme.typography.labelSmall
-                        )
-                        Text(
-                            text = "Root Project Name: ${result.rootProject.name}",
-                            style = MaterialTheme.typography.labelSmall
-                        )
-                    }
+                            is GradleProject -> {
+                                Text(
+                                    text = "Gradle Project",
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                                Text(
+                                    text = "Root Project Identifier: ${result.projectIdentifier}",
+                                    style = MaterialTheme.typography.labelSmall
+                                )
+                                Text(
+                                    text = "Root Project Name: ${result.name}",
+                                    style = MaterialTheme.typography.labelSmall
+                                )
+                                Text(
+                                    text = "Root Project Description: ${result.description}",
+                                    style = MaterialTheme.typography.labelSmall
+                                )
+                            }
 
-                    is GradleProject -> {
-                        Text(
-                            text = "Gradle Project",
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        Text(
-                            text = "Root Project Identifier: ${result.projectIdentifier}",
-                            style = MaterialTheme.typography.labelSmall
-                        )
-                        Text(
-                            text = "Root Project Name: ${result.name}",
-                            style = MaterialTheme.typography.labelSmall
-                        )
-                        Text(
-                            text = "Root Project Description: ${result.description}",
-                            style = MaterialTheme.typography.labelSmall
-                        )
-                    }
-
-                    else -> {
-                        Text(
-                            text = "Unknown Model Type: ${result::class.simpleName}",
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        Text(
-                            text = result.toString(),
-                            style = MaterialTheme.typography.labelSmall
-                        )
+                            else -> {
+                                Text(
+                                    text = "Unknown Model Type: ${result::class.simpleName}",
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                                Text(
+                                    text = result.toString(),
+                                    style = MaterialTheme.typography.labelSmall
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -255,7 +279,8 @@ private fun TopBar(component: ConnectedComponent) {
             Row(Modifier.fillMaxHeight(), verticalAlignment = Alignment.CenterVertically) {
                 val model by component.model.subscribeAsState()
                 when (model) {
-                    ConnectionModel.Disconnected -> Text("Disconnected from ${component.parameters.rootDir}")
+                    ConnectionModel.Connecting -> Text("Connecting to ${component.parameters.rootDir}")
+                    is ConnectionModel.ConnectionFailure -> Text("Connection to ${component.parameters.rootDir} failed")
                     is ConnectionModel.Connected -> Text("Connected to ${component.parameters.rootDir}")
                 }
             }
