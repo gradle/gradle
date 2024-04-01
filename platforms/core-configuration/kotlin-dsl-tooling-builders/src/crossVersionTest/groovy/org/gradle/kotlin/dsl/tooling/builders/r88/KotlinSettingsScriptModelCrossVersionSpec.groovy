@@ -53,7 +53,6 @@ class KotlinSettingsScriptModelCrossVersionSpec extends AbstractKotlinScriptMode
 
         then:
         !accessorsClassPath.isEmpty()
-        withKotlinBuildSrc()
     }
 
     private List<File> accessorsClassPathFor(File buildFile) {
