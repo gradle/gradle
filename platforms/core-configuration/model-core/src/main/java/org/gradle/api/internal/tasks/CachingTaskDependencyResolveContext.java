@@ -60,7 +60,7 @@ public class CachingTaskDependencyResolveContext<T> extends AbstractTaskDependen
     }
 
     @Override
-    public String getName() {
+    public String getDisplayName() {
         if (task != null) {
             return "task dependencies";
         } else {
