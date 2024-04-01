@@ -84,27 +84,19 @@ public class DaemonClientInputForwarder implements Stoppable {
 
         @Override
         public void readAndForwardText(Normalizer normalizer) {
-            handler.forwardNextLineAsUserResponse(new UserInputRequest(normalizer));
-        }
-    }
-
-    private static class UserInputRequest {
-        private final UserInputReceiver.Normalizer normalizer;
-
-        public UserInputRequest(UserInputReceiver.Normalizer normalizer) {
-            this.normalizer = normalizer;
+            handler.forwardNextLineAsUserResponse(normalizer);
         }
     }
 
     private static class ForwardTextStreamToConnection implements TextStream {
         private final Dispatch<? super InputMessage> dispatch;
-        private final AtomicReference<UserInputRequest> pending = new AtomicReference<>();
+        private final AtomicReference<UserInputReceiver.Normalizer> pending = new AtomicReference<>();
 
         public ForwardTextStreamToConnection(Dispatch<? super InputMessage> dispatch) {
             this.dispatch = dispatch;
         }
 
-        void forwardNextLineAsUserResponse(UserInputRequest request) {
+        void forwardNextLineAsUserResponse(UserInputReceiver.Normalizer request) {
             if (!pending.compareAndSet(null, request)) {
                 throw new IllegalStateException("Already expecting user input");
             }
@@ -115,10 +107,10 @@ public class DaemonClientInputForwarder implements Stoppable {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Forwarding input to daemon: '{}'", input.replace("\n", "\\n"));
             }
-            UserInputRequest userInputRequest = pending.get();
-            if (userInputRequest != null) {
+            UserInputReceiver.Normalizer currentUserInputRequest = pending.get();
+            if (currentUserInputRequest != null) {
                 // Expecting some user input
-                String result = userInputRequest.normalizer.normalize(input);
+                String result = currentUserInputRequest.normalize(input);
                 if (result != null) {
                     // Send result
                     pending.set(null);

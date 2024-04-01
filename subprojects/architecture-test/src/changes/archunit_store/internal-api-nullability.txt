@@ -3157,7 +3157,6 @@ Class <org.gradle.launcher.daemon.client.DaemonClientFactory> is not annotated (
 Class <org.gradle.launcher.daemon.client.DaemonClientGlobalServices> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DaemonClientGlobalServices.java:0)
 Class <org.gradle.launcher.daemon.client.DaemonClientInputForwarder$ForwardTextStreamToConnection> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DaemonClientInputForwarder.java:0)
 Class <org.gradle.launcher.daemon.client.DaemonClientInputForwarder$ForwardingUserInput> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DaemonClientInputForwarder.java:0)
-Class <org.gradle.launcher.daemon.client.DaemonClientInputForwarder$UserInputRequest> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DaemonClientInputForwarder.java:0)
 Class <org.gradle.launcher.daemon.client.DaemonClientInputForwarder> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DaemonClientInputForwarder.java:0)
 Class <org.gradle.launcher.daemon.client.DaemonClientInterruptedException> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DaemonClientInterruptedException.java:0)
 Class <org.gradle.launcher.daemon.client.DaemonClientServices> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DaemonClientServices.java:0)
