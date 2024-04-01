@@ -17,12 +17,10 @@
 package org.gradle.api.internal.artifacts;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
-import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
+import org.gradle.api.internal.artifacts.ivyservice.TypedResolveException;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.internal.exceptions.ResolutionProvider;
 import org.gradle.internal.resolve.ModuleVersionNotFoundException;
 
 import javax.annotation.Nullable;
@@ -31,7 +29,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Adds additional hints to a {@link ResolveException} given the context of a {@link ResolveContext}.
+ * Adds additional context to exceptions thrown during resolution.
  */
 public class ResolveExceptionContextualizer {
 
@@ -47,80 +45,83 @@ public class ResolveExceptionContextualizer {
     }
 
     @Nullable
-    public ResolveException mapFailures(Collection<Throwable> failures, String contextDisplayName, String type) {
+    public TypedResolveException mapFailures(Collection<Throwable> failures, String contextDisplayName, String type) {
         if (failures.isEmpty()) {
             return null;
         }
 
         if (failures.size() > 1) {
-            return new DefaultLenientConfiguration.ArtifactResolveException(type, contextDisplayName, failures);
+            return new TypedResolveException(type, contextDisplayName, failures.stream().map(failure ->
+                mapRepositoryOverrideFailure(contextDisplayName, failure)
+            ).collect(ImmutableList.toImmutableList()));
         }
 
         Throwable failure = failures.iterator().next();
         return mapFailure(failure, type, contextDisplayName);
     }
 
-    public ResolveException contextualize(Throwable e, ResolveContext resolveContext) {
-        return mapFailure(e, "dependencies", resolveContext.getResolutionHost().getDisplayName());
-    }
-
-    private ResolveException mapFailure(Throwable failure, String type, String contextDisplayName) {
-        Collection<? extends Throwable> causes = failure instanceof ResolveException
-            ? ((ResolveException) failure).getCauses()
-            : Collections.singleton(failure);
-
-        ResolveException detected = detectRepositoryOverride(contextDisplayName, causes);
-        if (detected != null) {
-            return detected;
+    public TypedResolveException mapFailure(Throwable failure, String type, String contextDisplayName) {
+        if (!(failure instanceof TypedResolveException)) {
+            return new TypedResolveException(
+                type,
+                contextDisplayName,
+                ImmutableList.of(mapRepositoryOverrideFailure(contextDisplayName, failure))
+            );
         }
 
-        if (failure instanceof ResolveException) {
-            return (ResolveException) failure;
+        TypedResolveException resolveException = (TypedResolveException) failure;
+
+        List<Throwable> mappedCauses = resolveException.getCauses().stream()
+            .map(cause -> mapRepositoryOverrideFailure(contextDisplayName, cause))
+            .collect(ImmutableList.toImmutableList());
+
+        // Keep the original exception if no changes were made to
+        // the causes to avoid losing the original stack trace
+        if (mappedCauses.equals(resolveException.getCauses())) {
+            return resolveException;
         }
 
-        return new DefaultLenientConfiguration.ArtifactResolveException(type, contextDisplayName, Collections.singleton(failure));
+        return new TypedResolveException(resolveException.getType(), contextDisplayName, mappedCauses, resolveException.getResolutions());
     }
 
-    @Nullable
-    private ResolveException detectRepositoryOverride(String contextDisplayName, Collection<? extends Throwable> causes) {
+    // TODO: We should handle this exception at the source instead of using instanceof to detect it after it is thrown.
+    //       We should try to avoid catching and analyzing runtime exceptions
+    public Throwable mapRepositoryOverrideFailure(String contextDisplayName, Throwable failure) {
+        if (!(failure instanceof ModuleVersionNotFoundException) || !settingsRepositoriesIgnored()) {
+            return failure;
+        }
+
+        ImmutableList<String> resolutions = ImmutableList.of(
+            "The project declares repositories, effectively ignoring the repositories you have declared in the settings.\n" +
+                "You can figure out how project repositories are declared by configuring your build to fail on project repositories.\n" +
+                documentationRegistry.getDocumentationRecommendationFor("information", "declaring_repositories", "sub:fail_build_on_project_repositories")
+        );
+
+        return new TypedResolveException(
+            "dependencies",
+            contextDisplayName,
+            Collections.singleton(failure),
+            resolutions
+        );
+    }
+
+    private boolean settingsRepositoriesIgnored() {
+        if (!(domainObjectContext instanceof ProjectInternal)) {
+            return false;
+        }
+
+        ProjectInternal project = (ProjectInternal) domainObjectContext;
+
+        boolean hasSettingsRepos;
         try {
-            boolean ignoresSettingsRepositories = false;
-            if (domainObjectContext instanceof ProjectInternal) {
-                ProjectInternal project = (ProjectInternal) domainObjectContext;
-                ignoresSettingsRepositories = !project.getRepositories().isEmpty() &&
-                    !project.getGradle().getSettings().getDependencyResolutionManagement().getRepositories().isEmpty();
-            }
-
-            boolean hasModuleNotFound = causes.stream().anyMatch(ModuleVersionNotFoundException.class::isInstance);
-
-            if (ignoresSettingsRepositories && hasModuleNotFound) {
-                return new ResolveExceptionWithHints(contextDisplayName, causes,
-                    "The project declares repositories, effectively ignoring the repositories you have declared in the settings.\n" +
-                        "You can figure out how project repositories are declared by configuring your build to fail on project repositories.\n" +
-                        documentationRegistry.getDocumentationRecommendationFor("information", "declaring_repositories", "sub:fail_build_on_project_repositories")
-                );
-            }
-
-            return null;
+            hasSettingsRepos = !project.getGradle().getSettings().getDependencyResolutionManagement().getRepositories().isEmpty();
         } catch (Throwable e) {
             // To catch `The settings are not yet available for` error
-            return new ResolveException(contextDisplayName, ImmutableList.<Throwable>builder().addAll(causes).add(e).build());
-        }
-    }
-
-    public static class ResolveExceptionWithHints extends ResolveException implements ResolutionProvider {
-
-        private final List<String> resolutions;
-
-        public ResolveExceptionWithHints(String resolveContext, Iterable<? extends Throwable> causes, String resolution) {
-            super(resolveContext, causes);
-            this.resolutions = ImmutableList.of(resolution);
+            return false;
         }
 
-        @Override
-        public List<String> getResolutions() {
-            return resolutions;
-        }
+        boolean hasProjectRepos = !project.getRepositories().isEmpty();
+        return hasProjectRepos && hasSettingsRepos;
     }
 
 }

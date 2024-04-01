@@ -16,23 +16,63 @@
 
 package org.gradle.api.artifacts;
 
+import org.gradle.api.Incubating;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 
 /**
- * <p>A <code>ResolveException</code> is thrown when dependency resolution fails for some reason.</p>
+ * <p>An opaque exception, thrown when dependency resolution fails for some reason.</p>
+ *
+ * <strong>Even though this type is part of the public API, it is only meant to be thrown by Gradle.</strong>
  */
 @Contextual
 public class ResolveException extends DefaultMultiCauseException {
-    public ResolveException(String resolveContext, Throwable cause) {
-        super(buildMessage(resolveContext), cause);
+
+    /**
+     * Do not call this constructor.
+     *
+     * @deprecated This constructor will be removed in 9.0
+     */
+    @Deprecated
+    public ResolveException(String message, Throwable cause) {
+        super(message, cause);
+
+        DeprecationLogger.deprecateAction("Directly instantiating a ResolveException")
+            .withContext("Instantiating this exception is reserved for Gradle internal use only.")
+            .willBecomeAnErrorInGradle9()
+            .undocumented()
+            .nagUser();
     }
 
-    public ResolveException(String resolveContext, Iterable<? extends Throwable> causes) {
-        super(buildMessage(resolveContext), causes);
+    /**
+     * Do not call this constructor.
+     *
+     * @deprecated This constructor will be made protected in 9.0
+     */
+    @Deprecated
+    public ResolveException(String message, Iterable<? extends Throwable> causes) {
+        super(message, causes);
+
+        DeprecationLogger.deprecateAction("Directly instantiating a ResolveException")
+            .withContext("Instantiating this exception is reserved for Gradle internal use only.")
+            .willBecomeAnErrorInGradle9()
+            .undocumented()
+            .nagUser();
     }
 
-    private static String buildMessage(String resolveContext) {
-        return String.format("Could not resolve all dependencies for %s.", resolveContext);
+    /**
+     * The actual constructor called by concrete resolve exception implementations. Should not be
+     * called except from Gradle internal code.
+     *
+     * <p>This constructor accepts a dummy parameter since we cannot call the constructor without it,
+     * as that emits a deprecation warning. In 9.0, we can change the above constructor to protected
+     * and remove this constructor.</p>
+     *
+     * @since 8.9
+     */
+    @Incubating
+    protected ResolveException(String message, Iterable<? extends Throwable> causes, boolean dummy) {
+        super(message, causes);
     }
 }

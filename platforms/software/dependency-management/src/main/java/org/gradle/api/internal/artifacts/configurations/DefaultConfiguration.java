@@ -44,6 +44,7 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.ResolvableDependencies;
+import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -76,6 +77,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvi
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSelectionSpec;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.Conflict;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
 import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
@@ -756,7 +758,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 try {
                     results = resolver.resolveGraph(DefaultConfiguration.this);
                 } catch (Exception e) {
-                    throw exceptionMapper.contextualize(e, DefaultConfiguration.this);
+                    throw exceptionMapper.mapFailure(e, "dependencies", displayName.getDisplayName());
                 }
 
                 // Make the new state visible in case a dependency resolution listener queries the result, which requires the new state
@@ -933,7 +935,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 try {
                     return Optional.of(resolver.resolveBuildDependencies(this));
                 } catch (Exception e) {
-                    throw exceptionMapper.contextualize(e, this);
+                    throw exceptionMapper.mapFailure(e, "dependencies", displayName.getDisplayName());
                 }
             } // Otherwise, already have a result, so reuse it
             return initial;
@@ -2105,8 +2107,46 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         }
 
         @Override
-        public Optional<? extends RuntimeException> mapFailure(String type, Collection<Throwable> failures) {
+        public Optional<? extends ResolveException> mapFailure(String type, Collection<Throwable> failures) {
             return Optional.ofNullable(exceptionMapper.mapFailures(failures, DefaultConfiguration.this.getDisplayName(), type));
+        }
+    }
+
+    @Override
+    public FailureContext getFailureContext() {
+        return new ConfigurationFailureContext(domainObjectContext, name);
+    }
+
+    private static class ConfigurationFailureContext implements FailureContext {
+
+        private final DomainObjectContext domainObjectContext;
+        private final String configurationName;
+
+        public ConfigurationFailureContext(
+            DomainObjectContext domainObjectContext,
+            String configurationName
+        ) {
+            this.domainObjectContext = domainObjectContext;
+            this.configurationName = configurationName;
+        }
+
+        @Override
+        public List<String> getResolutionsForVersionConflict(Set<Conflict> conflicts) {
+            Path projectPath = domainObjectContext.getProjectPath();
+            if (projectPath == null) {
+                // projectPath is null for settings execution
+                return Collections.emptyList();
+            }
+
+            String taskPath = projectPath.append(Path.path("dependencyInsight")).getPath();
+
+            ModuleVersionIdentifier identifier = conflicts.iterator().next().getVersions().get(0);
+            String dependencyNotation = identifier.getGroup() + ":" + identifier.getName();
+
+            return Collections.singletonList(String.format(
+                "Run with %s --configuration %s --dependency %s to get more insight on how to solve the conflict.",
+                taskPath, configurationName, dependencyNotation
+            ));
         }
     }
 

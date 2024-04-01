@@ -35,7 +35,6 @@ import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.RepositoriesSupplier;
 import org.gradle.api.internal.artifacts.ResolveContext;
-import org.gradle.api.internal.artifacts.ResolveExceptionContextualizer;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
@@ -62,7 +61,9 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Visit
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.CompositeDependencyArtifactsVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.CompositeDependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.Conflict;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.FailOnVersionConflictGraphVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.VersionConflictException;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.DefaultVisitedGraphResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.DefaultResolvedConfigurationBuilder;
@@ -101,13 +102,13 @@ import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.locking.DependencyLockingGraphVisitor;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -130,7 +131,6 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     private final AttributeDesugaring attributeDesugaring;
     private final ResolvedArtifactSetResolver artifactSetResolver;
     private final ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory;
-    private final ResolveExceptionContextualizer exceptionContextualizer;
     private final ComponentDetailsSerializer componentDetailsSerializer;
     private final SelectedVariantSerializer selectedVariantSerializer;
     private final ResolvedVariantCache resolvedVariantCache;
@@ -160,7 +160,6 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         AttributeDesugaring attributeDesugaring,
         ResolvedArtifactSetResolver artifactSetResolver,
         ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
-        ResolveExceptionContextualizer exceptionContextualizer,
         ComponentDetailsSerializer componentDetailsSerializer,
         SelectedVariantSerializer selectedVariantSerializer,
         ResolvedVariantCache resolvedVariantCache,
@@ -189,7 +188,6 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         this.attributeDesugaring = attributeDesugaring;
         this.artifactSetResolver = artifactSetResolver;
         this.componentSelectionDescriptorFactory = componentSelectionDescriptorFactory;
-        this.exceptionContextualizer = exceptionContextualizer;
         this.componentDetailsSerializer = componentDetailsSerializer;
         this.selectedVariantSerializer = selectedVariantSerializer;
         this.resolvedVariantCache = resolvedVariantCache;
@@ -262,10 +260,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
 
         FailOnVersionConflictGraphVisitor versionConflictVisitor = null;
         if (resolutionStrategy.getConflictResolution() == ConflictResolution.strict) {
-            Path projectPath = resolveContext.getDomainObjectContext().getProjectPath();
-            // projectPath is null for settings execution
-            String path = projectPath != null ? projectPath.getPath() : "";
-            versionConflictVisitor = new FailOnVersionConflictGraphVisitor(path, resolveContext.getName());
+            versionConflictVisitor = new FailOnVersionConflictGraphVisitor();
             graphVisitors.add(versionConflictVisitor);
         }
 
@@ -298,8 +293,10 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
             lockingFailures = lockingVisitor.collectLockingFailures();
         }
         if (versionConflictVisitor != null) {
-            for (Throwable failure : versionConflictVisitor.collectConflictFailures()) {
-                nonFatalFailuresBuilder.add(failure);
+            Set<Conflict> versionConflicts = versionConflictVisitor.getAllConflicts();
+            if (!versionConflicts.isEmpty()) {
+                List<String> resolutions = resolveContext.getFailureContext().getResolutionsForVersionConflict(versionConflicts);
+                nonFatalFailuresBuilder.add(new VersionConflictException(versionConflicts, resolutions));
             }
         }
 
@@ -307,8 +304,8 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         Set<UnresolvedDependency> resolutionFailures = failureCollector.complete(lockingFailures);
 
         MinimalResolutionResult resolutionResult = newModelBuilder.complete(lockingFailures);
-        ResolveException failure = exceptionContextualizer.mapFailures(nonFatalFailures, resolutionHost.getDisplayName(), "dependencies");
-        VisitedGraphResults graphResults = new DefaultVisitedGraphResults(resolutionResult, resolutionFailures, failure);
+        Optional<? extends ResolveException> failure = resolutionHost.mapFailure("dependencies", nonFatalFailures);
+        VisitedGraphResults graphResults = new DefaultVisitedGraphResults(resolutionResult, resolutionFailures, failure.orElse(null));
 
         // Only write dependency locks if resolution completed without failure.
         if (lockingVisitor != null && !graphResults.hasAnyFailure()) {
