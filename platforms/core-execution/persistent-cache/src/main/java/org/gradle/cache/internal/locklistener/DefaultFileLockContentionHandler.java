@@ -16,7 +16,6 @@
 
 package org.gradle.cache.internal.locklistener;
 
-import org.gradle.api.Action;
 import org.gradle.cache.FileLockReleasedSignal;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
@@ -33,6 +32,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
 
 import static org.gradle.cache.internal.locklistener.FileLockPacketType.LOCK_RELEASE_CONFIRMATION;
 
@@ -46,7 +46,7 @@ import static org.gradle.cache.internal.locklistener.FileLockPacketType.LOCK_REL
  * The general strategy is that the Lock Holder keeps locks open as long as there is no Lock Requester. This is,
  * because each lock open/close action requires File I/O which is expensive.
  * <p>
- * The Lock Owner will inform this contention handler that it holds the lock via {@link #start(long, Action)}.
+ * The Lock Owner will inform this contention handler that it holds the lock via {@link #start(long, Consumer)}.
  * There it provides an action that this handler can call to release the lock, in case a release is requested.
  * <p>
  * A Lock Requester will notice that a lock is held by a Lock Holder by failing to lock the lock file.
@@ -78,10 +78,10 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
     private static final int PING_DELAY = 1000;
     private final Lock lock = new ReentrantLock();
 
-    private final Map<Long, ContendedAction> contendedActions = new HashMap<Long, ContendedAction>();
-    private final Map<Long, FileLockReleasedSignal> lockReleasedSignals = new HashMap<Long, FileLockReleasedSignal>();
-    private final Map<Long, Integer> unlocksRequestedFrom = new HashMap<Long, Integer>();
-    private final Map<Long, Integer> unlocksConfirmedFrom = new HashMap<Long, Integer>();
+    private final Map<Long, ContendedAction> contendedActions = new HashMap<>();
+    private final Map<Long, FileLockReleasedSignal> lockReleasedSignals = new HashMap<>();
+    private final Map<Long, Integer> unlocksRequestedFrom = new HashMap<>();
+    private final Map<Long, Integer> unlocksConfirmedFrom = new HashMap<>();
 
     private final ExecutorFactory executorFactory;
     private final InetAddressFactory addressFactory;
@@ -163,7 +163,7 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
     }
 
     @Override
-    public void start(long lockId, Action<FileLockReleasedSignal> whenContended) {
+    public void start(long lockId, Consumer<FileLockReleasedSignal> whenContended) {
         lock.lock();
         try {
             lockReleasedSignals.remove(lockId);
@@ -271,26 +271,23 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
     private class ContendedAction implements Runnable {
         private final Lock lock = new ReentrantLock();
         private final long lockId;
-        private final Action<FileLockReleasedSignal> action;
-        private Set<SocketAddress> requesters = new LinkedHashSet<SocketAddress>();
+        private final Consumer<FileLockReleasedSignal> action;
+        private Set<SocketAddress> requesters = new LinkedHashSet<>();
         private boolean running;
 
-        private ContendedAction(long lockId, Action<FileLockReleasedSignal> action) {
+        private ContendedAction(long lockId, Consumer<FileLockReleasedSignal> action) {
             this.lockId = lockId;
             this.action = action;
         }
 
         @Override
         public void run() {
-            action.execute(new FileLockReleasedSignal() {
-                @Override
-                public void trigger() {
-                    Set<SocketAddress> requesters = consumeRequesters();
-                    if (requesters == null) {
-                        throw new IllegalStateException("trigger() has already been called and must at most be called once");
-                    }
-                    communicator.confirmLockRelease(requesters, lockId);
+            action.accept(() -> {
+                Set<SocketAddress> requesters = consumeRequesters();
+                if (requesters == null) {
+                    throw new IllegalStateException("trigger() has already been called and must at most be called once");
                 }
+                communicator.confirmLockRelease(requesters, lockId);
             });
         }
 

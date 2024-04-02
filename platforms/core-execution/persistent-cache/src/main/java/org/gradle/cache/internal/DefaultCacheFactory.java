@@ -15,7 +15,6 @@
  */
 package org.gradle.cache.internal;
 
-import org.gradle.api.Action;
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.FileLockManager;
@@ -39,6 +38,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class DefaultCacheFactory implements CacheFactory, Closeable {
@@ -61,7 +61,7 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
     }
 
     @Override
-    public PersistentCache open(File cacheDir, String displayName, Map<String, ?> properties, LockOptions lockOptions, @Nullable Action<? super PersistentCache> initializer, @Nullable CacheCleanupStrategy cacheCleanupStrategy) throws CacheOpenException {
+    public PersistentCache open(File cacheDir, String displayName, Map<String, ?> properties, LockOptions lockOptions, @Nullable Consumer<? super PersistentCache> initializer, @Nullable CacheCleanupStrategy cacheCleanupStrategy) throws CacheOpenException {
         lock.lock();
         try {
             return doOpen(cacheDir, displayName, properties, lockOptions, initializer, cacheCleanupStrategy);
@@ -91,7 +91,7 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
         String displayName,
         Map<String, ?> properties,
         LockOptions lockOptions,
-        @Nullable Action<? super PersistentCache> initializer,
+        @Nullable Consumer<? super PersistentCache> initializer,
         @Nullable CacheCleanupStrategy cacheCleanupStrategy
     ) {
         File canonicalDir = FileUtils.canonicalize(cacheDir);

@@ -15,7 +15,6 @@
  */
 package org.gradle.cache.internal
 
-import org.gradle.api.Action
 import org.gradle.cache.AsyncCacheAccess
 import org.gradle.cache.CacheDecorator
 import org.gradle.cache.CrossProcessCacheAccess
@@ -32,6 +31,7 @@ import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 
+import java.util.function.Consumer
 import java.util.function.Supplier
 
 import static org.gradle.cache.FileLockManager.LockMode.Exclusive
@@ -257,7 +257,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
         def action = Mock(Runnable)
         def access = newAccess(OnDemand)
 
-        def contentionAction
+        Consumer contentionAction
 
         when:
         access.open()
@@ -270,7 +270,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
 
         then:
         1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "", _) >> {
-            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Action<FileLockReleasedSignal> whenContended -> contentionAction = whenContended; return lock }
+            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Consumer<FileLockReleasedSignal> whenContended -> contentionAction = whenContended; return lock }
         1 * initializationAction.requiresInitialization(lock) >> true
         1 * lock.writeFile(_) >> { Runnable r -> r.run() }
         1 * initializationAction.initialize(lock)
@@ -280,7 +280,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
         0 * _._
 
         when:
-        contentionAction.execute({} as FileLockReleasedSignal)
+        contentionAction.accept({} as FileLockReleasedSignal)
 
         then:
         1 * lock.close()
@@ -290,7 +290,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
 
         then:
         1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "", _) >> {
-            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Action<FileLockReleasedSignal> whenContended -> contentionAction = whenContended; return lock }
+            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Consumer<FileLockReleasedSignal> whenContended -> contentionAction = whenContended; return lock }
         1 * initializationAction.requiresInitialization(lock) >> true
         1 * lock.writeFile(_) >> { Runnable r -> r.run() }
         1 * initializationAction.initialize(lock)
@@ -510,7 +510,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
     def "contended action safely closes the lock when cache is not busy"() {
         Supplier<String> action = Mock()
         def access = newAccess(OnDemand)
-        def contendedAction
+        Consumer contendedAction
 
         when:
         access.open()
@@ -518,10 +518,10 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
 
         then:
         1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "", _) >> {
-            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Action<FileLockReleasedSignal> whenContended -> contendedAction = whenContended; return lock }
+            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Consumer<FileLockReleasedSignal> whenContended -> contendedAction = whenContended; return lock }
 
         when:
-        contendedAction.execute({} as FileLockReleasedSignal)
+        contendedAction.accept({} as FileLockReleasedSignal)
 
         then:
         1 * lock.close()
@@ -532,7 +532,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
         def access = newAccess(mode)
 
         given:
-        lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "", _) >> lock
+        lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "", _ as Consumer) >> lock
 
         when:
         access.open()
@@ -612,16 +612,16 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
 
     def "can close cache when the lock has been released"() {
         def access = newAccess(OnDemand)
-        def contendedAction
+        Consumer contendedAction
 
         given:
-        lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "", _) >> {
-            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Action<FileLockReleasedSignal> whenContended -> contendedAction = whenContended; return lock }
+        lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "", _ as Consumer) >> {
+            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Consumer<FileLockReleasedSignal> whenContended -> contendedAction = whenContended; return lock }
         lock.writeFile(_) >> { Runnable r -> r.run() }
         access.open()
         def cache = access.newCache(IndexedCacheParameters.of('cache', String.class, Integer.class))
         access.useCache { cache.getIfPresent("key") }
-        contendedAction.execute({} as FileLockReleasedSignal)
+        contendedAction.accept({} as FileLockReleasedSignal)
         lock.close()
 
         when:
@@ -634,7 +634,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
     def "releases lock acquired by cache decorator when contended"() {
         def decorator = Mock(CacheDecorator)
         def access = newAccess(OnDemand)
-        def contendedAction
+        Consumer contendedAction
 
         given:
         CrossProcessCacheAccess cpAccess
@@ -650,14 +650,14 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
 
         then:
         1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "", _) >> {
-            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Action<FileLockReleasedSignal> whenContended -> contendedAction = whenContended; return lock }
+            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Consumer<FileLockReleasedSignal> whenContended -> contendedAction = whenContended; return lock }
 
         when:
         cpAccess.withFileLock {
             access.useCache {
                 cache.getIfPresent("something")
             }
-            contendedAction.execute({} as FileLockReleasedSignal)
+            contendedAction.accept({} as FileLockReleasedSignal)
             "result"
         }
 

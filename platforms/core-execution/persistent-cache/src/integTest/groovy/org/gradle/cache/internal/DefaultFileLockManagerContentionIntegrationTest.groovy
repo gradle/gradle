@@ -16,7 +16,6 @@
 
 package org.gradle.cache.internal
 
-import org.gradle.api.Action
 import org.gradle.cache.FileLock
 import org.gradle.cache.FileLockManager
 import org.gradle.cache.FileLockReleasedSignal
@@ -32,6 +31,7 @@ import org.gradle.internal.time.Time
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
+import java.util.function.Consumer
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 import static org.gradle.util.internal.TextUtil.escapeString
@@ -363,7 +363,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
         socketReceiverThread.start()
     }
 
-    def setupLockOwner(Action<FileLockReleasedSignal> whenContended = null) {
+    def setupLockOwner(Consumer<FileLockReleasedSignal> whenContended = null) {
         receivingFileLockContentionHandler = new DefaultFileLockContentionHandler(new DefaultExecutorFactory(), addressFactory)
         def fileLockManager = new DefaultFileLockManager(new ProcessMetaDataProvider() {
             String getProcessIdentifier() { return "pid" }

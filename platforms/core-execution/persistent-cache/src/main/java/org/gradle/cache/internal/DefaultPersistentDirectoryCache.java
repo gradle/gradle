@@ -15,7 +15,6 @@
  */
 package org.gradle.cache.internal;
 
-import org.gradle.api.Action;
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
@@ -32,20 +31,21 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Map;
 import java.util.Properties;
+import java.util.function.Consumer;
 
 public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryStore implements ReferencablePersistentCache {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPersistentDirectoryCache.class);
 
     private final Properties properties = new Properties();
-    private final Action<? super PersistentCache> initAction;
+    private final Consumer<? super PersistentCache> initAction;
 
     public DefaultPersistentDirectoryCache(
         File dir,
         String displayName,
         Map<String, ?> properties,
         LockOptions lockOptions,
-        @Nullable Action<? super PersistentCache> initAction,
+        @Nullable Consumer<? super PersistentCache> initAction,
         @Nullable CacheCleanupStrategy cacheCleanupStrategy,
         FileLockManager lockManager,
         ExecutorFactory executorFactory,
@@ -106,7 +106,7 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
                 GFileUtils.forceDelete(file);
             }
             if (initAction != null) {
-                initAction.execute(DefaultPersistentDirectoryCache.this);
+                initAction.accept(DefaultPersistentDirectoryCache.this);
             }
             GUtil.saveProperties(properties, propertiesFile);
         }

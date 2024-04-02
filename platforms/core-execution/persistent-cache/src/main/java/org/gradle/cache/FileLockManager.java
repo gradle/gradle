@@ -15,12 +15,12 @@
  */
 package org.gradle.cache;
 
-import org.gradle.api.Action;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.function.Consumer;
 
 @ServiceScope(Scope.Global.class)
 public interface FileLockManager {
@@ -59,7 +59,7 @@ public interface FileLockManager {
      * @param whenContended will be called asynchronously by the thread that listens for cache access requests, when such request is received.
      * Note: currently, implementations are permitted to invoke the action <em>after</em> the lock as been closed.
      */
-    FileLock lock(File target, LockOptions options, String targetDisplayName, String operationDisplayName, @Nullable Action<FileLockReleasedSignal> whenContended) throws LockTimeoutException;
+    FileLock lock(File target, LockOptions options, String targetDisplayName, String operationDisplayName, @Nullable Consumer<FileLockReleasedSignal> whenContended) throws LockTimeoutException;
 
     /**
      * These modes can be used either with {@link FileLockManager} or when creating {@link PersistentCache} via {@link CacheBuilder#withInitialLockMode(LockMode)}

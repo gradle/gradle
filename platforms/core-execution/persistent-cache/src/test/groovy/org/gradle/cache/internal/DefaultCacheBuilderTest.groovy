@@ -15,12 +15,13 @@
  */
 package org.gradle.cache.internal
 
-import org.gradle.api.Action
 import org.gradle.cache.PersistentCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
+
+import java.util.function.Consumer
 
 import static org.gradle.cache.FileLockManager.LockMode.OnDemand
 import static org.gradle.cache.FileLockManager.LockMode.Shared
@@ -55,7 +56,7 @@ class DefaultCacheBuilderTest extends Specification {
     }
 
     void canSpecifyInitializerActionForDirectoryCache() {
-        Action<?> action = Mock()
+        Consumer<?> action = Mock()
 
         when:
         builder.withInitializer(action).open()

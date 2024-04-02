@@ -15,7 +15,6 @@
  */
 package org.gradle.cache.internal
 
-import org.gradle.api.Action
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.internal.locklistener.NoOpFileLockContentionHandler
 import org.gradle.internal.concurrent.ExecutorFactory
@@ -26,6 +25,8 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
+import java.util.function.Consumer
+
 import static org.gradle.cache.FileLockManager.LockMode.Exclusive
 import static org.gradle.cache.FileLockManager.LockMode.Shared
 import static org.gradle.cache.internal.filelock.DefaultLockOptions.mode
@@ -33,8 +34,8 @@ import static org.gradle.cache.internal.filelock.DefaultLockOptions.mode
 class DefaultCacheFactoryTest extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
-    final Action<?> opened = Mock()
-    final Action<?> closed = Mock()
+    final Consumer<?> opened = Mock()
+    final Consumer<?> closed = Mock()
     final ProcessMetaDataProvider metaDataProvider = Mock()
     final buildOperationRunner = Stub(BuildOperationRunner) {
         run(_ as RunnableBuildOperation) >> { RunnableBuildOperation operation ->
@@ -46,12 +47,12 @@ class DefaultCacheFactoryTest extends Specification {
     private final DefaultCacheFactory factory = new DefaultCacheFactory(new DefaultFileLockManager(metaDataProvider, new NoOpFileLockContentionHandler()), Mock(ExecutorFactory), buildOperationRunner) {
         @Override
         void onOpen(Object cache) {
-            opened.execute(cache)
+            opened.accept(cache)
         }
 
         @Override
         void onClose(Object cache) {
-            closed.execute(cache)
+            closed.accept(cache)
         }
     }
 
@@ -82,7 +83,7 @@ class DefaultCacheFactoryTest extends Specification {
         ref1.reference.cache.is(ref2.reference.cache)
 
         and:
-        1 * opened.execute(_)
+        1 * opened.accept(_)
         0 * opened._
 
         cleanup:
@@ -96,14 +97,14 @@ class DefaultCacheFactoryTest extends Specification {
         factory.open(tmpDir.testDirectory, null, [prop: 'value'], mode(Exclusive), null, null)
 
         then:
-        1 * opened.execute(_) >> { DefaultPersistentDirectoryStore s -> implementation = s }
+        1 * opened.accept(_) >> { DefaultPersistentDirectoryStore s -> implementation = s }
         0 * opened._
 
         when:
         factory.close()
 
         then:
-        1 * closed.execute(implementation)
+        1 * closed.accept(implementation)
         0 * _
     }
 
@@ -115,7 +116,7 @@ class DefaultCacheFactoryTest extends Specification {
         def cache2 = factory.open(tmpDir.testDirectory, null, [prop: 'value'], mode(Exclusive), null, null)
 
         then:
-        1 * opened.execute(_) >> { DefaultPersistentDirectoryStore s -> implementation = s }
+        1 * opened.accept(_) >> { DefaultPersistentDirectoryStore s -> implementation = s }
         0 * opened._
 
         when:
@@ -128,7 +129,7 @@ class DefaultCacheFactoryTest extends Specification {
         cache2.close()
 
         then:
-        1 * closed.execute(implementation)
+        1 * closed.accept(implementation)
         0 * _
     }
 
@@ -139,7 +140,7 @@ class DefaultCacheFactoryTest extends Specification {
         def cache = factory.open(tmpDir.testDirectory, null, [prop: 'value'], mode(Exclusive), null, null)
 
         then:
-        1 * opened.execute(_) >> { DefaultPersistentDirectoryStore s -> implementation = s }
+        1 * opened.accept(_) >> { DefaultPersistentDirectoryStore s -> implementation = s }
         0 * opened._
 
         when:
@@ -147,7 +148,7 @@ class DefaultCacheFactoryTest extends Specification {
         cache.close()
 
         then:
-        1 * closed.execute(implementation)
+        1 * closed.accept(implementation)
         0 * _
     }
 
@@ -158,7 +159,7 @@ class DefaultCacheFactoryTest extends Specification {
         def cache = factory.open(tmpDir.testDirectory, null, [prop: 'value'], mode(Exclusive), null, null)
 
         then:
-        1 * opened.execute(_) >> { DefaultPersistentDirectoryStore s -> implementation = s }
+        1 * opened.accept(_) >> { DefaultPersistentDirectoryStore s -> implementation = s }
         0 * opened._
 
         when:
@@ -166,7 +167,7 @@ class DefaultCacheFactoryTest extends Specification {
         factory.close()
 
         then:
-        1 * closed.execute(implementation)
+        1 * closed.accept(implementation)
         0 * _
     }
 

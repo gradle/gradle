@@ -1230,7 +1230,6 @@ Class <org.gradle.cache.internal.filelock.LockStateSerializer> is not annotated 
 Class <org.gradle.cache.internal.filelock.Version1LockStateSerializer$DirtyFlagLockState> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (Version1LockStateSerializer.java:0)
 Class <org.gradle.cache.internal.filelock.Version1LockStateSerializer> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (Version1LockStateSerializer.java:0)
 Class <org.gradle.cache.internal.locklistener.DefaultFileLockContentionHandler$1> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultFileLockContentionHandler.java:0)
-Class <org.gradle.cache.internal.locklistener.DefaultFileLockContentionHandler$ContendedAction$1> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultFileLockContentionHandler.java:0)
 Class <org.gradle.cache.internal.locklistener.DefaultFileLockContentionHandler$ContendedAction> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultFileLockContentionHandler.java:0)
 Class <org.gradle.cache.internal.locklistener.DefaultFileLockContentionHandler> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultFileLockContentionHandler.java:0)
 Class <org.gradle.cache.internal.locklistener.FileLockCommunicator> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (FileLockCommunicator.java:0)

@@ -17,7 +17,6 @@ package org.gradle.cache.internal;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
-import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.cache.AsyncCacheAccess;
 import org.gradle.cache.CacheDecorator;
@@ -54,6 +53,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import static org.gradle.cache.FileLockManager.LockMode.Exclusive;
@@ -94,8 +94,8 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
         this.executorFactory = executorFactory;
         this.operations = new CacheAccessOperationsStack();
 
-        Action<FileLock> onFileLockAcquireAction = this::afterLockAcquire;
-        Action<FileLock> onFileLockReleaseAction = this::beforeLockRelease;
+        Consumer<FileLock> onFileLockAcquireAction = this::afterLockAcquire;
+        Consumer<FileLock> onFileLockReleaseAction = this::beforeLockRelease;
 
         switch (lockOptions.getMode()) {
             case Shared:

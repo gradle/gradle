@@ -16,7 +16,6 @@
 
 package org.gradle.cache.internal
 
-import org.gradle.api.Action
 import org.gradle.cache.FileLock
 import org.gradle.cache.FileLockManager
 import org.gradle.cache.FileLockReleasedSignal
@@ -30,6 +29,8 @@ import org.gradle.internal.remote.internal.inet.InetAddressFactory
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
+
+import java.util.function.Consumer
 
 import static org.gradle.cache.FileLockManager.LockMode.Exclusive
 import static org.gradle.cache.FileLockManager.LockMode.Shared
@@ -51,7 +52,7 @@ class DefaultFileLockManagerContentionTest extends ConcurrentSpec {
     def "lock manager is notified while holding an exclusive lock when another lock manager in same process requires lock with mode #lockMode"() {
         given:
         def file = tmpDir.file("lock-file.bin")
-        def action = Mock(Action)
+        def action = Mock(Consumer)
 
         def lock = createLock(Exclusive, file, manager, action)
 
@@ -60,7 +61,7 @@ class DefaultFileLockManagerContentionTest extends ConcurrentSpec {
 
         then:
         lock2
-        1 * action.execute(_) >> { FileLockReleasedSignal signal ->
+        1 * action.accept(_) >> { FileLockReleasedSignal signal ->
             lock.close()
             signal.trigger()
         }
@@ -114,7 +115,7 @@ class DefaultFileLockManagerContentionTest extends ConcurrentSpec {
         }
     }
 
-    FileLock createLock(FileLockManager.LockMode lockMode, File file, FileLockManager lockManager = manager, Action<FileLockReleasedSignal> whenContended = null) {
+    FileLock createLock(FileLockManager.LockMode lockMode, File file, FileLockManager lockManager = manager, Consumer<FileLockReleasedSignal> whenContended = null) {
         def lock = lockManager.lock(file, DefaultLockOptions.mode(lockMode), "foo", "operation", whenContended)
         openedLocks << lock
         lock

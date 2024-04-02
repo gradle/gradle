@@ -65,6 +65,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -236,21 +237,18 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider {
         return new File(cache.getBaseDir(), "gradle-worker.jar");
     }
 
-    private static class CacheInitializer implements Action<PersistentCache> {
+    private static class CacheInitializer implements Consumer<PersistentCache> {
         private final WorkerClassRemapper remapper = new WorkerClassRemapper();
 
         @Override
-        public void execute(PersistentCache cache) {
+        public void accept(PersistentCache cache) {
             try {
                 File jarFile = jarFile(cache);
                 LOGGER.debug("Generating worker process classes to {}.", jarFile);
-                ZipOutputStream outputStream = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(jarFile)));
-                try {
+                try (ZipOutputStream outputStream = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(jarFile)))) {
                     for (Class<?> classToMap : getClassesForWorkerJar()) {
                         remapClass(classToMap, outputStream);
                     }
-                } finally {
-                    outputStream.close();
                 }
             } catch (Exception e) {
                 throw new GradleException("Could not generate worker process bootstrap classes.", e);
