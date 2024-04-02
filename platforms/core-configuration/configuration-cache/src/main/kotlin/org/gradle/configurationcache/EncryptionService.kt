@@ -281,7 +281,7 @@ class KeyStoreKeySource(
     override fun getKey(): SecretKey {
         return cacheBuilderFor()
             .withInitializer {
-                createKeyStoreAndGenerateKey(keyStoreFile())
+                createKeyStoreAndGenerateKey(it.keyStoreFile())
             }.open().useToRun {
                 try {
                     loadSecretKeyFromExistingKeystore(keyStoreFile())

@@ -15,7 +15,6 @@
  */
 package org.gradle.testfixtures.internal;
 
-import org.gradle.api.Action;
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.CleanupAction;
@@ -37,6 +36,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class TestInMemoryCacheFactory implements CacheFactory {
@@ -47,11 +47,11 @@ public class TestInMemoryCacheFactory implements CacheFactory {
     final Map<Pair<File, String>, IndexedCache<?, ?>> caches = Collections.synchronizedMap(new LinkedHashMap<>());
 
     @Override
-    public PersistentCache open(File cacheDir, String displayName, Map<String, ?> properties, LockOptions lockOptions, @Nullable Action<? super PersistentCache> initializer, @Nullable CacheCleanupStrategy cacheCleanupStrategy) throws CacheOpenException {
+    public PersistentCache open(File cacheDir, String displayName, Map<String, ?> properties, LockOptions lockOptions, @Nullable Consumer<? super PersistentCache> initializer, @Nullable CacheCleanupStrategy cacheCleanupStrategy) throws CacheOpenException {
         GFileUtils.mkdirs(cacheDir);
         InMemoryCache cache = new InMemoryCache(cacheDir, displayName, cacheCleanupStrategy != null ? cacheCleanupStrategy.getCleanupAction() : null);
         if (initializer != null) {
-            initializer.execute(cache);
+            initializer.accept(cache);
         }
         return cache;
     }

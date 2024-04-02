@@ -16,7 +16,6 @@
 
 package org.gradle.cache.internal;
 
-import org.gradle.api.Action;
 import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.CrossProcessCacheAccess;
 import org.gradle.cache.FileLock;
@@ -25,6 +24,7 @@ import org.gradle.cache.LockOptions;
 import org.gradle.internal.UncheckedException;
 
 import java.io.File;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import static org.gradle.cache.FileLockManager.LockMode.Exclusive;
@@ -40,11 +40,11 @@ public class FixedSharedModeCrossProcessCacheAccess extends AbstractCrossProcess
     private final LockOptions lockOptions;
     private final FileLockManager lockManager;
     private final CacheInitializationAction initializationAction;
-    private final Action<FileLock> onOpenAction;
-    private final Action<FileLock> onCloseAction;
+    private final Consumer<FileLock> onOpenAction;
+    private final Consumer<FileLock> onCloseAction;
     private FileLock fileLock;
 
-    public FixedSharedModeCrossProcessCacheAccess(String cacheDisplayName, File lockTarget, LockOptions lockOptions, FileLockManager lockManager, CacheInitializationAction initializationAction, Action<FileLock> onOpenAction, Action<FileLock> onCloseAction) {
+    public FixedSharedModeCrossProcessCacheAccess(String cacheDisplayName, File lockTarget, LockOptions lockOptions, FileLockManager lockManager, CacheInitializationAction initializationAction, Consumer<FileLock> onOpenAction, Consumer<FileLock> onCloseAction) {
         assert lockOptions.getMode() == Shared;
         this.cacheDisplayName = cacheDisplayName;
         this.lockTarget = lockTarget;
@@ -100,7 +100,7 @@ public class FixedSharedModeCrossProcessCacheAccess extends AbstractCrossProcess
                     throw new CacheOpenException(String.format("Failed to initialize %s", cacheDisplayName), latestException);
                 }
             }
-            onOpenAction.execute(fileLock);
+            onOpenAction.accept(fileLock);
         } catch (Exception e) {
             if (fileLock != null) {
                 fileLock.close();
@@ -114,7 +114,7 @@ public class FixedSharedModeCrossProcessCacheAccess extends AbstractCrossProcess
     public void close() {
         if (fileLock != null) {
             try {
-                onCloseAction.execute(fileLock);
+                onCloseAction.accept(fileLock);
                 fileLock.close();
             } finally {
                 fileLock = null;
