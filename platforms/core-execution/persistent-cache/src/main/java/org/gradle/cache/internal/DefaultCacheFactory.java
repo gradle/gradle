@@ -23,7 +23,6 @@ import org.gradle.cache.IndexedCache;
 import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.LockOptions;
 import org.gradle.cache.PersistentCache;
-import org.gradle.internal.Factory;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -40,6 +39,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Supplier;
 
 public class DefaultCacheFactory implements CacheFactory, Closeable {
     private final Map<File, DirCacheReference> dirCaches = new HashMap<>();
@@ -203,7 +203,7 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
         }
 
         @Override
-        public <T> T withFileLock(Factory<? extends T> action) {
+        public <T> T withFileLock(Supplier<? extends T> action) {
             return reference.cache.withFileLock(action);
         }
 
@@ -213,7 +213,7 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
         }
 
         @Override
-        public <T> T useCache(Factory<? extends T> action) {
+        public <T> T useCache(Supplier<? extends T> action) {
             return reference.cache.useCache(action);
         }
 

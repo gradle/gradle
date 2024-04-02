@@ -27,7 +27,6 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.CacheVisitor;
 import org.gradle.internal.Cast;
-import org.gradle.internal.Factory;
 import org.gradle.internal.Pair;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.util.internal.GFileUtils;
@@ -38,6 +37,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 
 public class TestInMemoryCacheFactory implements CacheFactory {
     /*
@@ -140,8 +140,8 @@ public class TestInMemoryCacheFactory implements CacheFactory {
         }
 
         @Override
-        public <T> T withFileLock(Factory<? extends T> action) {
-            return action.create();
+        public <T> T withFileLock(Supplier<? extends T> action) {
+            return action.get();
         }
 
         @Override
@@ -150,11 +150,11 @@ public class TestInMemoryCacheFactory implements CacheFactory {
         }
 
         @Override
-        public <T> T useCache(Factory<? extends T> action) {
+        public <T> T useCache(Supplier<? extends T> action) {
             assertNotClosed();
             // The contract of useCache() means we have to provide some basic synchronization.
             synchronized (this) {
-                return action.create();
+                return action.get();
             }
         }
 
