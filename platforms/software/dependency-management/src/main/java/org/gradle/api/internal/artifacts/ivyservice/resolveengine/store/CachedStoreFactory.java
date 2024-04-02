@@ -21,7 +21,6 @@ import com.google.common.cache.CacheBuilder;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.internal.Store;
-import org.gradle.internal.Factory;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.TimeFormatting;
 import org.gradle.internal.time.Timer;
@@ -29,6 +28,7 @@ import org.gradle.internal.time.Timer;
 import java.io.Closeable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Supplier;
 
 public class CachedStoreFactory<T> implements Closeable {
 
@@ -91,14 +91,14 @@ public class CachedStoreFactory<T> implements Closeable {
         }
 
         @Override
-        public T load(Factory<T> createIfNotPresent) {
+        public T load(Supplier<T> createIfNotPresent) {
             T out = cache.getIfPresent(id);
             if (out != null) {
                 stats.readFromCache();
                 return out;
             }
             Timer timer = Time.startTimer();
-            T value = createIfNotPresent.create();
+            T value = createIfNotPresent.get();
             stats.readFromDisk(timer.getElapsedMillis());
             cache.put(id, value);
             return value;

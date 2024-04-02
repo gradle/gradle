@@ -22,10 +22,10 @@ import org.gradle.cache.CrossProcessCacheAccess;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.LockOptions;
-import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 
 import java.io.File;
+import java.util.function.Supplier;
 
 import static org.gradle.cache.FileLockManager.LockMode.Exclusive;
 import static org.gradle.cache.FileLockManager.LockMode.Shared;
@@ -128,7 +128,7 @@ public class FixedSharedModeCrossProcessCacheAccess extends AbstractCrossProcess
     }
 
     @Override
-    public <T> T withFileLock(Factory<T> factory) {
+    public <T> T withFileLock(Supplier<T> factory) {
         throw failure();
     }
 

@@ -21,7 +21,6 @@ import org.gradle.cache.FileLockManager;
 import org.gradle.cache.IndexedCache;
 import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.LockOptions;
-import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -39,6 +38,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 import static org.gradle.cache.internal.CacheInitializationAction.NO_INIT_REQUIRED;
 
@@ -161,7 +161,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     }
 
     @Override
-    public <T> T withFileLock(Factory<? extends T> action) {
+    public <T> T withFileLock(Supplier<? extends T> action) {
         return cacheAccess.withFileLock(action);
     }
 
@@ -171,7 +171,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     }
 
     @Override
-    public <T> T useCache(Factory<? extends T> action) {
+    public <T> T useCache(Supplier<? extends T> action) {
         return cacheAccess.useCache(action);
     }
 

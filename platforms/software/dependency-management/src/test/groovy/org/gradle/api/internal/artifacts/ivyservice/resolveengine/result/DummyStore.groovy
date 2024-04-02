@@ -17,8 +17,10 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
 import org.gradle.cache.internal.Store
 
+import java.util.function.Supplier
+
 class DummyStore implements Store<Object> {
-    Object load(org.gradle.internal.Factory<Object> createIfNotPresent) {
-        return createIfNotPresent.create();
+    Object load(Supplier<Object> createIfNotPresent) {
+        return createIfNotPresent.get()
     }
 }

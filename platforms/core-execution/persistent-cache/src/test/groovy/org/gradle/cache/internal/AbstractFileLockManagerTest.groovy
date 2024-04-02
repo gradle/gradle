@@ -21,10 +21,9 @@ import org.gradle.cache.FileIntegrityViolationException
 import org.gradle.cache.FileLock
 import org.gradle.cache.FileLockManager
 import org.gradle.cache.InsufficientLockModeException
-import org.gradle.cache.internal.filelock.LockInfoSerializer
 import org.gradle.cache.internal.filelock.DefaultLockOptions
+import org.gradle.cache.internal.filelock.LockInfoSerializer
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler
-import org.gradle.internal.Factory
 import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.id.IdGenerator
 import org.gradle.test.fixtures.file.TestFile
@@ -33,6 +32,8 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Rule
 import spock.lang.Specification
+
+import java.util.function.Supplier
 
 import static org.gradle.cache.FileLockManager.LockMode.Exclusive
 import static org.gradle.cache.FileLockManager.LockMode.Shared
@@ -306,7 +307,7 @@ abstract class AbstractFileLockManagerTest extends Specification {
         lock.close()
 
         when:
-        lock.readFile({} as Factory)
+        lock.readFile({} as Supplier)
 
         then:
         thrown(IllegalStateException)

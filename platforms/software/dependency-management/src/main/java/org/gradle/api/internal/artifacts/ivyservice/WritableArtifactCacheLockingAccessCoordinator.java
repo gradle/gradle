@@ -30,7 +30,6 @@ import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
 import org.gradle.cache.internal.UnusedVersionsCacheCleanup;
 import org.gradle.cache.internal.UsedGradleVersions;
-import org.gradle.internal.Factory;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.resource.cached.DefaultExternalResourceFileStore;
 import org.gradle.internal.serialize.Serializer;
@@ -97,7 +96,7 @@ public class WritableArtifactCacheLockingAccessCoordinator implements ArtifactCa
     }
 
     @Override
-    public <T> T withFileLock(Factory<? extends T> action) {
+    public <T> T withFileLock(Supplier<? extends T> action) {
         return cache.withFileLock(action);
     }
 
@@ -107,7 +106,7 @@ public class WritableArtifactCacheLockingAccessCoordinator implements ArtifactCa
     }
 
     @Override
-    public <T> T useCache(Factory<? extends T> action) {
+    public <T> T useCache(Supplier<? extends T> action) {
         return cache.useCache(action);
     }
 

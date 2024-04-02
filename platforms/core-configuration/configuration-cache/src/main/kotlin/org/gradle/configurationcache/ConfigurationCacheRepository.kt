@@ -31,7 +31,6 @@ import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory
 import org.gradle.configurationcache.ConfigurationCacheStateStore.StateFile
 import org.gradle.configurationcache.extensions.toDefaultLowerCase
 import org.gradle.configurationcache.extensions.unsafeLazy
-import org.gradle.internal.Factory
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.file.FileAccessTimeJournal
 import org.gradle.internal.file.impl.SingleDepthFileAccessTracker
@@ -44,6 +43,7 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
+import java.util.function.Supplier
 
 
 @ServiceScope(Scope.BuildTree::class)
@@ -251,7 +251,7 @@ class ConfigurationCacheRepository(
     private
     fun <T> withExclusiveAccessToCache(baseDir: File, action: (File) -> T): T =
         cache.withFileLock(
-            Factory {
+            Supplier {
                 action(baseDir)
             }
         )

@@ -33,7 +33,6 @@ import org.gradle.cache.internal.filelock.LockStateAccess;
 import org.gradle.cache.internal.filelock.LockStateSerializer;
 import org.gradle.cache.internal.filelock.Version1LockStateSerializer;
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler;
-import org.gradle.internal.Factory;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
@@ -52,6 +51,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Supplier;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
@@ -189,9 +189,9 @@ public class DefaultFileLockManager implements FileLockManager {
         }
 
         @Override
-        public <T> T readFile(Factory<? extends T> action) throws LockTimeoutException, FileIntegrityViolationException {
+        public <T> T readFile(Supplier<? extends T> action) throws LockTimeoutException, FileIntegrityViolationException {
             assertOpenAndIntegral();
-            return action.create();
+            return action.get();
         }
 
         @Override

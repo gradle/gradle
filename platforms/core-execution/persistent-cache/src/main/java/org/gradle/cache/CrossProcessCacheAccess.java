@@ -16,13 +16,13 @@
 
 package org.gradle.cache;
 
-import org.gradle.internal.Factory;
+import java.util.function.Supplier;
 
 public interface CrossProcessCacheAccess {
     /**
      * Runs the given action while this process is holding an exclusive file lock on the cache. Multiple threads may run concurrently.
      */
-    <T> T withFileLock(Factory<T> factory);
+    <T> T withFileLock(Supplier<T> factory);
 
     /**
      * Acquires an exclusive file lock on the cache. The caller is responsible for running the resulting action to release the lock.

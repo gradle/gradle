@@ -24,10 +24,10 @@ import org.gradle.cache.FileLockManager;
 import org.gradle.cache.FileLockReleasedSignal;
 import org.gradle.cache.LockOptions;
 import org.gradle.internal.Actions;
-import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 
 import java.io.File;
+import java.util.function.Supplier;
 
 import static org.gradle.cache.FileLockManager.LockMode.Exclusive;
 
@@ -100,8 +100,8 @@ public class FixedExclusiveModeCrossProcessCacheAccess extends AbstractCrossProc
     }
 
     @Override
-    public <T> T withFileLock(Factory<T> factory) {
-        return factory.create();
+    public <T> T withFileLock(Supplier<T> factory) {
+        return factory.get();
     }
 
 }
