@@ -17,13 +17,12 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.Action;
-import org.gradle.api.Describable;
 import org.gradle.api.Task;
 import org.gradle.api.internal.artifacts.transform.TransformNodeDependency;
 
 import javax.annotation.Nullable;
 
-public interface TaskDependencyResolveContext extends Action<Task>, Describable {
+public interface TaskDependencyResolveContext extends Action<Task> {
     @Override
     default void execute(Task task) {
         add(task);
@@ -60,10 +59,4 @@ public interface TaskDependencyResolveContext extends Action<Task>, Describable 
      */
     @Nullable
     Task getTask();
-
-
-    @Override
-    default String getDisplayName() {
-        return "task dependencies";
-    }
 }

@@ -58,7 +58,7 @@ public class ResolutionBackedFileCollection extends AbstractFileCollection {
         FailureCollectingTaskDependencyResolveContext collectingContext = new FailureCollectingTaskDependencyResolveContext(context);
         selected.visitDependencies(collectingContext);
         if (!lenient) {
-            resolutionHost.mapFailure(context.getDisplayName(), collectingContext.getFailures()).ifPresent(context::visitFailure);
+            resolutionHost.mapFailure("dependencies", collectingContext.getFailures()).ifPresent(context::visitFailure);
         }
     }
 

@@ -59,15 +59,6 @@ public class CachingTaskDependencyResolveContext<T> extends AbstractTaskDependen
         this.walker = new CachingDirectedGraphWalker<>(new TaskGraphImpl(workResolvers));
     }
 
-    @Override
-    public String getDisplayName() {
-        if (task != null) {
-            return "task dependencies";
-        } else {
-            return "dependencies";
-        }
-    }
-
     public Set<T> getDependencies(@Nullable Task task, Object dependencies) {
         Preconditions.checkState(this.task == null);
         this.task = task;
