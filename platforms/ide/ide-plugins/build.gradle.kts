@@ -54,6 +54,7 @@ dependencies {
     implementation(project(":scala"))
     implementation(project(":test-suites-base"))
     implementation(project(":war"))
+    implementation(project(":declarative-dsl-provider"))
 
     implementation(libs.commonsLang)
 

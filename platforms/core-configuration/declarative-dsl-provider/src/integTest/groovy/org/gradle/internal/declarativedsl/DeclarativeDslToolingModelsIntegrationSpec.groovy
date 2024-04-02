@@ -1,0 +1,72 @@
+/*
+ * Copyright 2024 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.internal.declarativedsl
+
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.tooling.fixture.ToolingApi
+import org.gradle.internal.declarativedsl.toolingapi.DeclarativeSchema
+
+class DeclarativeDslToolingModelsIntegrationSpec extends AbstractIntegrationSpec {
+
+    final ToolingApi toolingApi = new ToolingApi(distribution, temporaryFolder)
+
+    def 'can obtain model containing project schema'() {
+        given:
+        file("settings.gradle.something") << """
+            rootProject.name = "test"
+            include(":a")
+            include(":b")
+        """
+
+        file("a/build.gradle.something") << """
+            plugins {
+                id("java")
+            }
+        """
+
+        file("b/build.gradle.something") << """
+            plugins {
+                id("java-library")
+            }
+            dependencies {
+                implementation(project(\":a\"))
+                api(project(\":a\"))
+                compileOnly(project(\":a\"))
+                runtimeOnly(project(\":a\"))
+                testImplementation(project(\":a\"))
+                testCompileOnly(project(\":a\"))
+            }
+        """
+
+        when:
+        run(":b:compileJava")
+
+        then:
+        executed(":a:compileJava", ":b:compileJava")
+
+        when:
+        DeclarativeSchema model = toolingApi.withConnection() { connection -> connection.getModel(DeclarativeSchema.class) }
+
+        then:
+        model != null
+        model.targets() == ['settings \'test\'', 'project \':a\'', 'project \':b\''] as Set
+        model.identifiers('settings \'test\'') == ['settingsPluginManagement', 'settingsPlugins', 'settings'] as Set
+        model.identifiers('project \':a\'') == ['plugins', 'project'] as Set
+        model.schema('project \':b\'', 'project').contains("topLevelReceiverType")
+    }
+
+}

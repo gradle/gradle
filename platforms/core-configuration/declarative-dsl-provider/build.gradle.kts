@@ -41,4 +41,6 @@ dependencies {
     integTestImplementation(project(":logging"))
 
     integTestDistributionRuntimeOnly(project(":distributions-full"))
+
+    integTestImplementation(testFixtures(project(":tooling-api")))
 }

@@ -22,6 +22,7 @@ import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.project.ProjectTaskLister;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.buildtree.BuildModelParameters;
+import org.gradle.internal.declarativedsl.evaluator.DeclarativeSchemaRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.plugins.ide.internal.configurer.DefaultUniqueProjectNameProvider;
@@ -51,6 +52,7 @@ public class ToolingModelServices extends AbstractPluginServiceRegistry {
             final FileCollectionFactory fileCollectionFactory,
             final BuildStateRegistry buildStateRegistry,
             final ProjectStateRegistry projectStateRegistry,
+            final DeclarativeSchemaRegistry declarativeSchemaRegistry,
             BuildModelParameters buildModelParameters,
             IntermediateToolingModelProvider intermediateToolingModelProvider
         ) {
@@ -74,6 +76,7 @@ public class ToolingModelServices extends AbstractPluginServiceRegistry {
                     registry.register(new IsolatedGradleProjectInternalBuilder());
                     registry.register(new IsolatedIdeaModuleInternalBuilder());
                     registry.register(new PluginApplyingBuilder());
+                    registry.register(new DeclarativeSchemaBuilder(declarativeSchemaRegistry));
                 }
 
                 private IdeaModelBuilderInternal createIdeaModelBuilder(boolean isolatedProjects, GradleProjectBuilderInternal gradleProjectBuilder) {

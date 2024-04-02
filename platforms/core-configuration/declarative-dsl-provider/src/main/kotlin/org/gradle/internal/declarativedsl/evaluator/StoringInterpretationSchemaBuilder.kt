@@ -31,8 +31,9 @@ import java.io.File
  * stores the produced serialized schema in the file system (under `.gradle/declarative-schema/...` in the project).
  */
 internal
-class StoringInterpretationSchemaBuilder(
-    private val schemaBuilder: InterpretationSchemaBuilder
+class StoringInterpretationSchemaBuilder (
+    private val schemaBuilder: InterpretationSchemaBuilder,
+    private val declarativeSchemaRegistry: DeclarativeSchemaRegistry
 ) : InterpretationSchemaBuilder {
     override fun getEvaluationSchemaForScript(targetInstance: Any, scriptContext: RestrictedScriptContext): InterpretationSchemaBuildingResult =
         addSerializationToSteps(targetInstance, schemaBuilder.getEvaluationSchemaForScript(targetInstance, scriptContext))
@@ -52,10 +53,13 @@ class StoringInterpretationSchemaBuilder(
 
     private
     fun storeSchemaResult(targetInstance: Any, identifier: String, analysisSchema: AnalysisSchema) {
-        val file = schemaFile(targetInstance, identifier)
+        val jsonSchema = SchemaSerialization.schemaToJsonString(analysisSchema)
 
+        val file = schemaFile(targetInstance, identifier)
         file.parentFile.mkdirs()
-        file.writeText(SchemaSerialization.schemaToJsonString(analysisSchema))
+        file.writeText(jsonSchema)
+
+        declarativeSchemaRegistry.storeSchema(targetInstance, identifier, jsonSchema)
     }
 
     private
