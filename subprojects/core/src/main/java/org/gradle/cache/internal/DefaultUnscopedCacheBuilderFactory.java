@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.cache.internal;
 
-import org.gradle.testfixtures.internal.TestInMemoryCacheFactory;
+import org.gradle.cache.CacheBuilder;
+import org.gradle.cache.UnscopedCacheBuilderFactory;
 
 import java.io.File;
 
-/**
- * Static util class for obtaining test doubles for a {@link DecompressionCoordinator}.
- */
-public abstract class TestCaches {
-    private TestCaches() {}
+public class DefaultUnscopedCacheBuilderFactory implements UnscopedCacheBuilderFactory {
+    private final CacheFactory factory;
 
-    public static DecompressionCoordinator decompressionCache(File cacheDir) {
-        final TestInMemoryCacheFactory cacheFactory = new TestInMemoryCacheFactory();
-        return new DefaultDecompressionCoordinator(cacheFactory.open(cacheDir, "test compression cache"));
+    public DefaultUnscopedCacheBuilderFactory(CacheFactory factory) {
+        this.factory = factory;
     }
+
+    @Override
+    public CacheBuilder cache(File baseDir) {
+        return new DefaultCacheBuilder(factory, baseDir);
+    }
+
 }

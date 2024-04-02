@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.cache.internal;
+package org.gradle.api.internal.file.archive;
 
 import java.io.Closeable;
 import java.io.File;
