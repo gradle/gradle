@@ -38,7 +38,7 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
     @Override
     AbstractCollectionProperty<String, C> propertyWithNoValue() {
         def p = property()
-        p.unset()
+        p.set((List) null)
         return p
     }
 
@@ -1591,6 +1591,20 @@ The value of this property is derived from: <source>""")
     def "property is empty when setToConventionIfUnset if convention not set yet"() {
         when:
         property.setToConventionIfUnset()
+
+        then:
+        assertValueIs([])
+        !property.explicit
+    }
+
+    def "property is restored to initial state after unset"() {
+        expect:
+        assertValueIs([])
+        !property.explicit
+
+        when:
+        property.add('1')
+        property.unset()
 
         then:
         assertValueIs([])

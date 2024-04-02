@@ -1977,4 +1977,18 @@ The value of this property is derived from: <source>""")
         // The following case abuses Groovy lax type-checking to put an invalid value into the property.
         "[k: (Object) provider {v}]" | { property().value(k: Providers.of("v")) }              || "Map(String->String, {k=fixed(class ${String.name}, v)})"
     }
+
+    def "property is restored to initial state after unset"() {
+        expect:
+        assertValueIs([:])
+        !property.explicit
+
+        when:
+        property.put('k1', 'v1')
+        property.unset()
+
+        then:
+        assertValueIs([:])
+        !property.explicit
+    }
 }

@@ -39,7 +39,12 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
         super(propertyHost);
         this.type = type;
         this.sanitizer = ValueSanitizers.forType(type);
-        init(Providers.notDefined());
+        init(getDefaultValue());
+    }
+
+    @Override
+    protected ProviderInternal<? extends T> getDefaultValue() {
+        return Providers.notDefined();
     }
 
     @Override

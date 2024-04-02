@@ -71,7 +71,17 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         this.valueType = valueType;
         keyCollector = new ValidatingValueCollector<>(Set.class, keyType, ValueSanitizers.forType(keyType));
         entryCollector = new ValidatingMapEntryCollector<>(keyType, valueType, ValueSanitizers.forType(keyType), ValueSanitizers.forType(valueType));
-        init(defaultValue, getDefaultConvention());
+        init();
+    }
+
+    private void init() {
+        defaultValue = emptySupplier();
+        init(defaultValue, noValueSupplier());
+    }
+
+    @Override
+    public MapSupplier<K, V> getDefaultValue() {
+        return defaultValue;
     }
 
     @Override
@@ -285,15 +295,16 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
     @Override
     public MapProperty<K, V> unset() {
+        assertCanMutate();
         doUnset(false);
         return this;
     }
 
     private void doUnset(boolean changeDefault) {
-        super.unset();
         if (changeDefault) {
             defaultValue = noValueSupplier();
         }
+        super.unset();
     }
 
     public void fromState(ExecutionTimeValue<? extends Map<? extends K, ? extends V>> value) {

@@ -115,6 +115,8 @@ public abstract class ValueState<S> {
     /**
      * Marks this value state as being non-explicit. Returns the convention, if any.
      */
+    public abstract S implicitValue(S convention);
+
     public abstract S implicitValue();
 
     public abstract boolean maybeFinalizeOnRead(Describable displayName, @Nullable ModelObject producer, ValueSupplier.ValueConsumer consumer);
@@ -290,6 +292,13 @@ public abstract class ValueState<S> {
         }
 
         @Override
+        public S implicitValue(S newConvention) {
+            explicitValue = false;
+            setConvention(newConvention);
+            return shallowCopy(convention);
+        }
+
+        @Override
         public S applyConvention(S value, S convention) {
             this.convention = convention;
             if (!explicitValue) {
@@ -377,6 +386,11 @@ public abstract class ValueState<S> {
 
         @Override
         public S implicitValue() {
+            throw unexpected();
+        }
+
+        @Override
+        public S implicitValue(S defaultValue) {
             throw unexpected();
         }
 

@@ -84,7 +84,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     private final Class<T> elementType;
     private final Supplier<ImmutableCollection.Builder<T>> collectionFactory;
     private final ValueCollector<T> valueCollector;
-    private CollectionSupplier<T, C> defaultValue = emptySupplier();
+    private CollectionSupplier<T, C> defaultValue;
 
     AbstractCollectionProperty(PropertyHost host, Class<? extends Collection> collectionType, Class<T> elementType, Supplier<ImmutableCollection.Builder<T>> collectionFactory) {
         super(host);
@@ -92,7 +92,17 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         this.elementType = elementType;
         this.collectionFactory = collectionFactory;
         valueCollector = new ValidatingValueCollector<>(collectionType, elementType, ValueSanitizers.forType(elementType));
+        init();
+    }
+
+    private void init() {
+        defaultValue = emptySupplier();
         init(defaultValue, noValueSupplier());
+    }
+
+    @Override
+    protected CollectionSupplier<T, C> getDefaultValue() {
+        return defaultValue;
     }
 
     @Override
@@ -270,15 +280,16 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     public SupportsConvention unset() {
+        assertCanMutate();
         doUnset(false);
         return this;
     }
 
     private void doUnset(boolean changeDefault) {
-        super.unset();
         if (changeDefault) {
             defaultValue = noValueSupplier();
         }
+        super.unset();
     }
 
     @Override
