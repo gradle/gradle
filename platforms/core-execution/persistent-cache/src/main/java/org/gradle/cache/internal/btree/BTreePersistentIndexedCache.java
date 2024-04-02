@@ -64,7 +64,7 @@ public class BTreePersistentIndexedCache<K, V> {
     public BTreePersistentIndexedCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer,
                                        short maxChildIndexEntries, int maxFreeListEntries) {
         this.cacheFile = cacheFile;
-        this.keyHasher = new KeyHasher<K>(keySerializer);
+        this.keyHasher = new KeyHasher<>(keySerializer);
         this.serializer = valueSerializer;
         this.maxChildIndexEntries = maxChildIndexEntries;
         this.minIndexChildNodes = maxChildIndexEntries / 2;
@@ -73,7 +73,7 @@ public class BTreePersistentIndexedCache<K, V> {
         try {
             open();
         } catch (Exception e) {
-            throw new UncheckedIOException(String.format("Could not open %s.", this), e);
+            throw new RuntimeException(String.format("Could not open %s.", this), e);
         }
     }
 
@@ -82,7 +82,7 @@ public class BTreePersistentIndexedCache<K, V> {
         return "cache " + cacheFile.getName() + " (" + cacheFile + ")";
     }
 
-    private void open() throws Exception {
+    private void open() {
         LOGGER.debug("Opening {}", this);
         try {
             doOpen();
@@ -91,30 +91,24 @@ public class BTreePersistentIndexedCache<K, V> {
         }
     }
 
-    private void doOpen() throws Exception {
-        BlockStore.Factory factory = new BlockStore.Factory() {
-            @Override
-            public Object create(Class<? extends BlockPayload> type) {
-                if (type == HeaderBlock.class) {
-                    return new HeaderBlock();
-                }
-                if (type == IndexBlock.class) {
-                    return new IndexBlock();
-                }
-                if (type == DataBlock.class) {
-                    return new DataBlock();
-                }
-                throw new UnsupportedOperationException();
+    private void doOpen() {
+        BlockStore.Factory factory = type -> {
+            if (type == HeaderBlock.class) {
+                return new HeaderBlock();
             }
+            if (type == IndexBlock.class) {
+                return new IndexBlock();
+            }
+            if (type == DataBlock.class) {
+                return new DataBlock();
+            }
+            throw new UnsupportedOperationException();
         };
-        Runnable initAction = new Runnable() {
-            @Override
-            public void run() {
-                header = new HeaderBlock();
-                store.write(header);
-                header.index.newRoot();
-                store.flush();
-            }
+        Runnable initAction = () -> {
+            header = new HeaderBlock();
+            store.write(header);
+            header.index.newRoot();
+            store.flush();
         };
 
         store.open(initAction, factory);
@@ -228,18 +222,13 @@ public class BTreePersistentIndexedCache<K, V> {
     }
 
     private void doVerify() throws Exception {
-        List<BlockPayload> blocks = new ArrayList<BlockPayload>();
+        List<BlockPayload> blocks = new ArrayList<>();
 
         HeaderBlock header = store.readFirst(HeaderBlock.class);
         blocks.add(header);
         verifyTree(header.getRoot(), "", blocks, Long.MAX_VALUE, true);
 
-        Collections.sort(blocks, new Comparator<BlockPayload>() {
-            @Override
-            public int compare(BlockPayload block, BlockPayload block1) {
-                return block.getPos().compareTo(block1.getPos());
-            }
-        });
+        blocks.sort(Comparator.comparing(BlockPayload::getPos));
 
         for (int i = 0; i < blocks.size() - 1; i++) {
             Block b1 = blocks.get(i).getBlock();
@@ -251,17 +240,17 @@ public class BTreePersistentIndexedCache<K, V> {
     }
 
     private void verifyTree(IndexBlock current, String prefix, Collection<BlockPayload> blocks, long maxValue,
-                            boolean loadData) throws Exception {
+                            boolean loadData) throws IOException {
         blocks.add(current);
 
-        if (!prefix.equals("") && current.entries.size() < maxChildIndexEntries / 2) {
+        if (!prefix.isEmpty() && current.entries.size() < maxChildIndexEntries / 2) {
             throw new IOException(String.format("Too few entries found in %s", current));
         }
         if (current.entries.size() > maxChildIndexEntries) {
             throw new IOException(String.format("Too many entries found in %s", current));
         }
 
-        boolean isLeaf = current.entries.size() == 0 || current.entries.get(0).childIndexBlock.isNull();
+        boolean isLeaf = current.entries.isEmpty() || current.entries.get(0).childIndexBlock.isNull();
         if (isLeaf ^ current.tailPos.isNull()) {
             throw new IOException(String.format("Mismatched leaf/tail-node in %s", current));
         }
@@ -301,8 +290,9 @@ public class BTreePersistentIndexedCache<K, V> {
     }
 
     private class IndexRoot {
+        private final HeaderBlock owner;
+
         private BlockPointer rootPos = BlockPointer.start();
-        private HeaderBlock owner;
 
         private IndexRoot(HeaderBlock owner) {
             this.owner = owner;
@@ -326,7 +316,7 @@ public class BTreePersistentIndexedCache<K, V> {
     }
 
     private class HeaderBlock extends BlockPayload {
-        private IndexRoot index;
+        private final IndexRoot index;
 
         private HeaderBlock() {
             index = new IndexRoot(this);
@@ -358,13 +348,13 @@ public class BTreePersistentIndexedCache<K, V> {
             outstr.writeShort(maxChildIndexEntries);
         }
 
-        public IndexBlock getRoot() throws Exception {
+        public IndexBlock getRoot() {
             return index.getRoot();
         }
     }
 
     private class IndexBlock extends BlockPayload {
-        private final List<IndexEntry> entries = new ArrayList<IndexEntry>();
+        private final List<IndexEntry> entries = new ArrayList<>();
         private BlockPointer tailPos = BlockPointer.start();
         // Transient fields
         private IndexBlock parent;
@@ -476,7 +466,7 @@ public class BTreePersistentIndexedCache<K, V> {
             return find(checksum);
         }
 
-        private Lookup find(long hashCode) throws Exception {
+        private Lookup find(long hashCode) {
             int index = Collections.binarySearch(entries, new IndexEntry(hashCode));
             if (index >= 0) {
                 return new Lookup(this, entries.get(index));
@@ -520,7 +510,7 @@ public class BTreePersistentIndexedCache<K, V> {
         private void maybeMerge() throws Exception {
             if (parent == null) {
                 // This is the root block. Can have any number of children <= maxChildIndexEntries
-                if (entries.size() == 0 && !tailPos.isNull()) {
+                if (entries.isEmpty() && !tailPos.isNull()) {
                     // This is an empty root block, discard it
                     header.index.setRootPos(tailPos);
                     store.remove(this);
@@ -575,7 +565,7 @@ public class BTreePersistentIndexedCache<K, V> {
             throw new IllegalStateException(String.format("%s does not have any siblings.", getBlock()));
         }
 
-        private void mergeFrom(IndexBlock right) throws Exception {
+        private void mergeFrom(IndexBlock right) {
             IndexEntry newChildEntry = parent.entries.remove(parentEntryIndex);
             if (right.getPos().equals(parent.tailPos)) {
                 parent.tailPos = getPos();
@@ -593,7 +583,7 @@ public class BTreePersistentIndexedCache<K, V> {
             store.remove(right);
         }
 
-        private IndexBlock getNext(IndexBlock indexBlock) throws Exception {
+        private IndexBlock getNext(IndexBlock indexBlock) {
             int index = indexBlock.parentEntryIndex + 1;
             if (index > entries.size()) {
                 return null;
@@ -604,7 +594,7 @@ public class BTreePersistentIndexedCache<K, V> {
             return load(entries.get(index).childIndexBlock, root, this, index);
         }
 
-        private IndexBlock getPrevious(IndexBlock indexBlock) throws Exception {
+        private IndexBlock getPrevious(IndexBlock indexBlock) {
             int index = indexBlock.parentEntryIndex - 1;
             if (index < 0) {
                 return null;
@@ -612,7 +602,7 @@ public class BTreePersistentIndexedCache<K, V> {
             return load(entries.get(index).childIndexBlock, root, this, index);
         }
 
-        private IndexBlock findHighestLeaf() throws Exception {
+        private IndexBlock findHighestLeaf() {
             if (tailPos.isNull()) {
                 return this;
             }
@@ -634,13 +624,7 @@ public class BTreePersistentIndexedCache<K, V> {
 
         @Override
         public int compareTo(IndexEntry indexEntry) {
-            if (hashCode > indexEntry.hashCode) {
-                return 1;
-            }
-            if (hashCode < indexEntry.hashCode) {
-                return -1;
-            }
-            return 0;
+            return Long.compare(hashCode, indexEntry.hashCode);
         }
     }
 
@@ -668,7 +652,7 @@ public class BTreePersistentIndexedCache<K, V> {
             size = buffer.totalBytesUnread();
         }
 
-        public DataBlock(V value, StreamByteBuffer buffer) throws Exception {
+        public DataBlock(V value, StreamByteBuffer buffer) {
             this.value = value;
             this.buffer = buffer;
             size = buffer.totalBytesUnread();
