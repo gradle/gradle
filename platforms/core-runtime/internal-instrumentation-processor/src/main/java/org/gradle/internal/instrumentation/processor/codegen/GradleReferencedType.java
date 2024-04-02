@@ -24,7 +24,6 @@ import org.objectweb.asm.Type;
  * And we don't want to depend on Gradle projects since that way we can't apply this annotation processor to them.
  */
 public enum GradleReferencedType {
-    METHOD_VISITOR_SCOPE("org.gradle.model.internal.asm.MethodVisitorScope"),
     LIST_PROPERTY_LIST_VIEW("org.gradle.api.internal.provider.views.ListPropertyListView"),
     SET_PROPERTY_SET_VIEW("org.gradle.api.internal.provider.views.SetPropertySetView"),
     MAP_PROPERTY_MAP_VIEW("org.gradle.api.internal.provider.views.MapPropertyMapView");

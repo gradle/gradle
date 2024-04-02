@@ -95,17 +95,17 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
         def generatedClass = source """
             package $GENERATED_CLASSES_PACKAGE_NAME;
             @SuppressWarnings({"NotJavadoc", "UnusedMethod", "UnusedVariable"})
-            public class InterceptorDeclaration_PropertyUpgradesJvmBytecode_TestProject extends MethodVisitorScope implements JvmBytecodeCallInterceptor, org.gradle.internal.instrumentation.api.types.BytecodeInterceptor.BytecodeUpgradeInterceptor {
+            public class InterceptorDeclaration_PropertyUpgradesJvmBytecode_TestProject implements JvmBytecodeCallInterceptor, org.gradle.internal.instrumentation.api.types.BytecodeInterceptor.BytecodeUpgradeInterceptor {
                 @Override
                 public boolean visitMethodInsn(String className, int opcode, String owner, String name,
                                                String descriptor, boolean isInterface, Supplier<MethodNode> readMethodNode) {
                     if (metadata.isInstanceOf(owner, "org/gradle/test/Task")) {
                          if (name.equals("isIncremental") && descriptor.equals("()Z") && (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE)) {
-                             _INVOKESTATIC(TASK__ADAPTER_TYPE, "access_get_isIncremental", "(Lorg/gradle/test/Task;)Z");
+                             mv._INVOKESTATIC(TASK__ADAPTER_TYPE, "access_get_isIncremental", "(Lorg/gradle/test/Task;)Z");
                              return true;
                          }
                         if (name.equals("setIncremental") && descriptor.equals("(Z)Lorg/gradle/test/Task;") && (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE)) {
-                             _INVOKESTATIC(TASK__ADAPTER_TYPE, "access_set_setIncremental", "(Lorg/gradle/test/Task;Z)Lorg/gradle/test/Task;");
+                             mv._INVOKESTATIC(TASK__ADAPTER_TYPE, "access_set_setIncremental", "(Lorg/gradle/test/Task;Z)Lorg/gradle/test/Task;");
                              return true;
                          }
                     }
@@ -220,17 +220,17 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
         def generatedClass = source """
             package $GENERATED_CLASSES_PACKAGE_NAME;
             @SuppressWarnings({"NotJavadoc", "UnusedMethod", "UnusedVariable"})
-            public class InterceptorDeclaration_PropertyUpgradesJvmBytecode_TestProject extends MethodVisitorScope implements JvmBytecodeCallInterceptor, org.gradle.internal.instrumentation.api.types.BytecodeInterceptor.BytecodeUpgradeInterceptor {
+            public class InterceptorDeclaration_PropertyUpgradesJvmBytecode_TestProject implements JvmBytecodeCallInterceptor, org.gradle.internal.instrumentation.api.types.BytecodeInterceptor.BytecodeUpgradeInterceptor {
                 @Override
                 public boolean visitMethodInsn(String className, int opcode, String owner, String name,
                                                String descriptor, boolean isInterface, Supplier<MethodNode> readMethodNode) {
                     if (metadata.isInstanceOf(owner, "org/gradle/test/Task")) {
                          if (name.equals("getTargetCompatibility") && descriptor.equals("()Ljava/lang/String;") && (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE)) {
-                             _INVOKESTATIC(TASK__ADAPTER_TYPE, "access_get_getTargetCompatibility", "(Lorg/gradle/test/Task;)Ljava/lang/String;");
+                             mv._INVOKESTATIC(TASK__ADAPTER_TYPE, "access_get_getTargetCompatibility", "(Lorg/gradle/test/Task;)Ljava/lang/String;");
                              return true;
                          }
                          if (name.equals("setTargetCompatibility") && descriptor.equals("(Ljava/lang/String;)V") && (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE)) {
-                           _INVOKESTATIC(TASK__ADAPTER_TYPE, "access_set_setTargetCompatibility", "(Lorg/gradle/test/Task;Ljava/lang/String;)V");
+                           mv._INVOKESTATIC(TASK__ADAPTER_TYPE, "access_set_setTargetCompatibility", "(Lorg/gradle/test/Task;Ljava/lang/String;)V");
                            return true;
                        }
                     }
@@ -316,21 +316,21 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
         def generatedClass = source """
             package $GENERATED_CLASSES_PACKAGE_NAME;
             @SuppressWarnings({"NotJavadoc", "UnusedMethod", "UnusedVariable"})
-            public class InterceptorDeclaration_PropertyUpgradesJvmBytecode_TestProject extends MethodVisitorScope implements JvmBytecodeCallInterceptor, org.gradle.internal.instrumentation.api.types.BytecodeInterceptor.BytecodeUpgradeInterceptor {
+            public class InterceptorDeclaration_PropertyUpgradesJvmBytecode_TestProject implements JvmBytecodeCallInterceptor, org.gradle.internal.instrumentation.api.types.BytecodeInterceptor.BytecodeUpgradeInterceptor {
                 @Override
                 public boolean visitMethodInsn(String className, int opcode, String owner, String name,
                                                String descriptor, boolean isInterface, Supplier<MethodNode> readMethodNode) {
                     if (metadata.isInstanceOf(owner, "org/gradle/test/Task")) {
                         if (name.equals("getDestinationDir") && descriptor.equals("()Ljava/io/File;") && (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE)) {
-                            _INVOKESTATIC(TASK__ADAPTER_TYPE, "access_get_getDestinationDir", "(Lorg/gradle/test/Task;)Ljava/io/File;");
+                            mv._INVOKESTATIC(TASK__ADAPTER_TYPE, "access_get_getDestinationDir", "(Lorg/gradle/test/Task;)Ljava/io/File;");
                             return true;
                         }
                         if (name.equals("setDestinationDir") && descriptor.equals("(Ljava/io/File;)V") && (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE)) {
-                            _INVOKESTATIC(TASK__ADAPTER_TYPE, "access_set_setDestinationDir", "(Lorg/gradle/test/Task;Ljava/io/File;)V");
+                            mv._INVOKESTATIC(TASK__ADAPTER_TYPE, "access_set_setDestinationDir", "(Lorg/gradle/test/Task;Ljava/io/File;)V");
                             return true;
                         }
                         if (name.equals("destinationDir") && descriptor.equals("(Ljava/io/File;)V") && (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE)) {
-                            _INVOKESTATIC(TASK__ADAPTER_TYPE, "access_set_destinationDir", "(Lorg/gradle/test/Task;Ljava/io/File;)V");
+                            mv._INVOKESTATIC(TASK__ADAPTER_TYPE, "access_set_destinationDir", "(Lorg/gradle/test/Task;Ljava/io/File;)V");
                             return true;
                         }
                     }
