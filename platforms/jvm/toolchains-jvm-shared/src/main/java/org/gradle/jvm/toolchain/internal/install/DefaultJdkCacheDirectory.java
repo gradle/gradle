@@ -58,10 +58,6 @@ public class DefaultJdkCacheDirectory implements JdkCacheDirectory {
     /**
      * Marker file used by Gradle 8.7 and earlier to indicate that a JDK has been provisioned. This is a flaky marker, as it may appear
      * before the JDK is fully provisioned, causing faulty detection of the JDK. It is replaced by {@value #MARKER_FILE}.
-     *
-     * <p>
-     * JDKs marked with only this legacy marker file are not considered valid installations, and will be cleaned up and re-provisioned.
-     * </p>
      */
     @VisibleForTesting
     static final String LEGACY_MARKER_FILE = "provisioned.ok";
@@ -162,6 +158,7 @@ public class DefaultJdkCacheDirectory implements JdkCacheDirectory {
                         LOGGER.info("Toolchain from {} already installed at {}", uri, installFolder);
                         return getJavaHome(installFolder);
                     } else {
+                        // This can happen if atomic moves are unsupported, and the JVM is forcibly killed during the copy
                         LOGGER.info("Found partially installed toolchain at {}, overwriting with toolchain from {}", installFolder, uri);
                         operations.delete(installFolder);
                     }
@@ -270,6 +267,7 @@ public class DefaultJdkCacheDirectory implements JdkCacheDirectory {
     @SuppressWarnings("ResultOfMethodCallIgnored")
     private void markAsReady(File root) {
         try {
+            // Create the legacy marker so that older Gradle versions can use this JDK as well.
             new File(root, LEGACY_MARKER_FILE).createNewFile();
         } catch (IOException e) {
             throw new UncheckedIOException("Unable to create " + LEGACY_MARKER_FILE + " file", e);
