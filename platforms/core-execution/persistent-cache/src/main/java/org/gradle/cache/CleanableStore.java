@@ -16,15 +16,13 @@
 
 package org.gradle.cache;
 
-import org.gradle.api.Describable;
-
 import java.io.File;
 import java.util.Collection;
 
 /**
  * Represents file-based store that can be cleaned by a {@link CleanupAction}.
  */
-public interface CleanableStore extends Describable {
+public interface CleanableStore {
 
     /**
      * Returns the base directory that should be cleaned for this store.
@@ -37,4 +35,5 @@ public interface CleanableStore extends Describable {
      */
     Collection<File> getReservedCacheFiles();
 
+    String getDisplayName();
 }
