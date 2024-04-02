@@ -158,6 +158,7 @@ import org.gradle.tooling.internal.consumer.DefaultFailure;
 import org.gradle.tooling.internal.consumer.DefaultFileComparisonTestAssertionFailure;
 import org.gradle.tooling.internal.consumer.DefaultTestAssertionFailure;
 import org.gradle.tooling.internal.consumer.DefaultTestFrameworkFailure;
+import org.gradle.tooling.internal.protocol.InternalBasicProblemDetailsVersion3;
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 import org.gradle.tooling.internal.protocol.InternalFailure;
 import org.gradle.tooling.internal.protocol.InternalFileComparisonTestAssertionFailure;
@@ -166,7 +167,6 @@ import org.gradle.tooling.internal.protocol.InternalProblemAggregationDetailsVer
 import org.gradle.tooling.internal.protocol.InternalProblemContextDetails;
 import org.gradle.tooling.internal.protocol.InternalProblemDefinition;
 import org.gradle.tooling.internal.protocol.InternalProblemDetails;
-import org.gradle.tooling.internal.protocol.InternalBasicProblemDetailsVersion3;
 import org.gradle.tooling.internal.protocol.InternalProblemEvent;
 import org.gradle.tooling.internal.protocol.InternalProblemEventVersion2;
 import org.gradle.tooling.internal.protocol.InternalProblemGroup;
@@ -630,8 +630,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
                 toAdditionalData(basicProblemDetails.getAdditionalData()),
                 toFailureContainer(basicProblemDetails)
             );
-        }
-        else if (details instanceof InternalProblemAggregationDetailsVersion3) {
+        } else if (details instanceof InternalProblemAggregationDetailsVersion3) {
             InternalProblemAggregationDetailsVersion3 problemAggregationDetails = (InternalProblemAggregationDetailsVersion3) details;
             return new DefaultProblemAggregationEvent(
                 problemEvent.getEventTime(),
@@ -654,6 +653,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             toFailureContainer(details.getFailure())
         );
     }
+
     private static List<ProblemContext> toProblemContextDetails(List<InternalProblemContextDetails> problems) {
         ImmutableList.Builder<ProblemContext> result = builderWithExpectedSize(problems.size());
         for (InternalProblemContextDetails problem : problems) {

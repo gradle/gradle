@@ -65,6 +65,12 @@ public interface ProblemAggregation {
     @Nullable
     DocumentationLink getDocumentationLink();
 
+    /**
+     * Returns the definition of the problem.
+     *
+     * @return the definition
+     * @since 8.8
+     */
     ProblemDefinition getDefinition();
 
     /**
