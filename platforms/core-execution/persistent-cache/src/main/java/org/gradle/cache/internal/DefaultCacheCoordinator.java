@@ -17,7 +17,6 @@ package org.gradle.cache.internal;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
-import org.gradle.api.GradleException;
 import org.gradle.cache.AsyncCacheAccess;
 import org.gradle.cache.CacheDecorator;
 import org.gradle.cache.ExclusiveCacheAccessCoordinator;
@@ -556,7 +555,7 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
     }
 
     @VisibleForTesting
-    static class InvalidCacheReuseException extends GradleException {
+    static class InvalidCacheReuseException extends RuntimeException {
         InvalidCacheReuseException(String message) {
             super(message);
         }

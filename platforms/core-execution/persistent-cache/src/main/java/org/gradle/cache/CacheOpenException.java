@@ -15,11 +15,10 @@
  */
 package org.gradle.cache;
 
-import org.gradle.api.GradleException;
 import org.gradle.internal.exceptions.Contextual;
 
 @Contextual
-public class CacheOpenException extends GradleException {
+public class CacheOpenException extends RuntimeException {
     public CacheOpenException(String message) {
         super(message);
     }

@@ -16,7 +16,6 @@
 
 package org.gradle.cache.internal;
 
-import org.gradle.api.GradleException;
 import org.gradle.cache.FileAccess;
 import org.gradle.cache.ObjectHolder;
 import org.gradle.internal.file.Chmod;
@@ -120,7 +119,7 @@ public class FileBackedObjectHolder<T> implements ObjectHolder<T> {
                 encoder.close();
             }
         } catch (Exception e) {
-            throw new GradleException(String.format("Could not write cache value to '%s'.", cacheFile), e);
+            throw new RuntimeException(String.format("Could not write cache value to '%s'.", cacheFile), e);
         }
     }
 
@@ -136,7 +135,7 @@ public class FileBackedObjectHolder<T> implements ObjectHolder<T> {
                 decoder.close();
             }
         } catch (Exception e) {
-            throw new GradleException(String.format("Could not read cache value from '%s'.", cacheFile), e);
+            throw new RuntimeException(String.format("Could not read cache value from '%s'.", cacheFile), e);
         }
     }
 
