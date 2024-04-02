@@ -17,6 +17,7 @@ package org.gradle.cache.internal.btree;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -150,7 +151,7 @@ public class FreeListBlockStore implements BlockStore {
         }
 
         @Override
-        protected void read(DataInputStream inputStream) throws Exception {
+        protected void read(DataInputStream inputStream) throws IOException {
             nextBlock = BlockPointer.pos(inputStream.readLong());
             largestInNextBlock = inputStream.readInt();
             int count = inputStream.readInt();
@@ -162,7 +163,7 @@ public class FreeListBlockStore implements BlockStore {
         }
 
         @Override
-        protected void write(DataOutputStream outputStream) throws Exception {
+        protected void write(DataOutputStream outputStream) throws IOException {
             outputStream.writeLong(nextBlock.getPos());
             outputStream.writeInt(largestInNextBlock);
             outputStream.writeInt(entries.size());

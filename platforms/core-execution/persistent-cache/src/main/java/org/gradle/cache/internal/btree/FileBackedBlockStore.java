@@ -15,14 +15,13 @@
  */
 package org.gradle.cache.internal.btree;
 
-import org.gradle.api.UncheckedIOException;
-
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.io.UncheckedIOException;
 
 public class FileBackedBlockStore implements BlockStore {
     private final File cacheFile;
@@ -122,9 +121,7 @@ public class FileBackedBlockStore implements BlockStore {
             BlockImpl block = new BlockImpl(payload, pos);
             block.read();
             return payload;
-        } catch (CorruptedCacheException e) {
-            throw e;
-        } catch (Exception e) {
+        } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
     }
@@ -134,9 +131,7 @@ public class FileBackedBlockStore implements BlockStore {
         BlockImpl blockImpl = (BlockImpl) block.getBlock();
         try {
             blockImpl.write();
-        } catch (CorruptedCacheException e) {
-            throw e;
-        } catch (Exception e) {
+        } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
     }
@@ -199,7 +194,7 @@ public class FileBackedBlockStore implements BlockStore {
             payloadSize = newPayloadSize;
         }
 
-        public void write() throws Exception {
+        public void write() throws IOException {
             long pos = getPos().getPos();
 
             DataOutputStream outputStream = output.start(pos);
@@ -229,7 +224,7 @@ public class FileBackedBlockStore implements BlockStore {
             }
         }
 
-        public void read() throws Exception {
+        public void read() throws IOException {
             long pos = getPos().getPos();
             assert pos >= 0;
             if (pos + HEADER_SIZE >= currentFileSize) {

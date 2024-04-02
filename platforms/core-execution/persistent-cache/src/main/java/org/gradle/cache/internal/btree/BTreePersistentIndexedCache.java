@@ -333,7 +333,7 @@ public class BTreePersistentIndexedCache<K, V> {
         }
 
         @Override
-        protected void read(DataInputStream instr) throws Exception {
+        protected void read(DataInputStream instr) throws IOException {
             index.rootPos = BlockPointer.pos(instr.readLong());
 
             short actualChildIndexEntries = instr.readShort();
@@ -343,7 +343,7 @@ public class BTreePersistentIndexedCache<K, V> {
         }
 
         @Override
-        protected void write(DataOutputStream outstr) throws Exception {
+        protected void write(DataOutputStream outstr) throws IOException {
             outstr.writeLong(index.rootPos.getPos());
             outstr.writeShort(maxChildIndexEntries);
         }
@@ -684,14 +684,14 @@ public class BTreePersistentIndexedCache<K, V> {
         }
 
         @Override
-        public void read(DataInputStream instr) throws Exception {
+        public void read(DataInputStream instr) throws IOException {
             size = instr.readInt();
             int bytes = instr.readInt();
             buffer = StreamByteBuffer.of(instr, bytes);
         }
 
         @Override
-        public void write(DataOutputStream outstr) throws Exception {
+        public void write(DataOutputStream outstr) throws IOException {
             outstr.writeInt(size);
             outstr.writeInt(buffer.totalBytesUnread());
             buffer.writeTo(outstr);

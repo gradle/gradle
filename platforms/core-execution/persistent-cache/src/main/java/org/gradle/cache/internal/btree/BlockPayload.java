@@ -17,6 +17,7 @@ package org.gradle.cache.internal.btree;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.IOException;
 
 public abstract class BlockPayload {
     private Block block;
@@ -41,9 +42,9 @@ public abstract class BlockPayload {
 
     protected abstract byte getType();
 
-    protected abstract void read(DataInputStream inputStream) throws Exception;
+    protected abstract void read(DataInputStream inputStream) throws IOException;
 
-    protected abstract void write(DataOutputStream outputStream) throws Exception;
+    protected abstract void write(DataOutputStream outputStream) throws IOException;
 
     protected RuntimeException blockCorruptedException() {
         return getBlock().blockCorruptedException();
