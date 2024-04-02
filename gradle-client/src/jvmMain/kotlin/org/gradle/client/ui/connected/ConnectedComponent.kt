@@ -136,7 +136,7 @@ class ConnectedComponent(
             override fun statusChanged(event: ProgressEvent) {
                 val eventTimeSinceStart = Duration.between(start, Instant.ofEpochMilli(event.eventTime))
                 val uiEvent = Event(
-                    "${eventTimeSinceStart.toPrettyString().padEnd(12)} ${event.displayName}",
+                    "${eventTimeSinceStart.toPrettyString().padStart(10)}  ${event.displayName}",
                     event.hashCode()
                 )
                 scope.launch {
@@ -174,13 +174,13 @@ private fun Duration.toPrettyString() = buildString {
     val hours = toHours()
     if (hours > 0) append("${hours}h ")
     val minutes = minusHours(hours).toMinutes()
-    if (minutes > 0) append("${minutes}m ")
+    if (minutes > 0) append("${minutes.toString().padStart(2)}m ")
     if (hours <= 0) {
         val seconds = minusHours(hours).minusMinutes(minutes).toSeconds()
-        if (seconds > 0) append("${seconds}s ")
+        if (seconds > 0) append("${seconds.toString().padStart(2)}s ")
         if (minutes <= 0) {
             val milliseconds = minusHours(hours).minusMinutes(minutes).minusSeconds(seconds).toMillis()
-            if (milliseconds > 0) append("${milliseconds}ms ")
+            if (milliseconds > 0) append("${milliseconds.toString().padStart(3)}ms")
         }
     }
 }

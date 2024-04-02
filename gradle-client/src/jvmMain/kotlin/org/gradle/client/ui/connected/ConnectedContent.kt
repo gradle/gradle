@@ -142,8 +142,12 @@ private fun ConnectedMainContent(component: ConnectedComponent, model: Connectio
                             Text(
                                 event.text,
                                 style = MaterialTheme.typography.labelSmall,
+                                fontFamily = FontFamily.Monospace,
                                 overflow = TextOverflow.Visible
                             )
+                        }
+                        item {
+                            Spacer(Modifier.size(8.dp))
                         }
                     }
                 }
@@ -165,8 +169,8 @@ private fun ConnectedMainContent(component: ConnectedComponent, model: Connectio
                             selected = false,
                             onClick = { component.getModel(action.modelType) }
                         ),
+                        leadingContent = { Icon(Icons.Default.PlayCircle, action.displayName) },
                         headlineContent = { Text(action.displayName, style = MaterialTheme.typography.titleSmall) },
-                        trailingContent = { Icon(Icons.Default.PlayCircle, action.displayName) },
                     )
                 }
             }
