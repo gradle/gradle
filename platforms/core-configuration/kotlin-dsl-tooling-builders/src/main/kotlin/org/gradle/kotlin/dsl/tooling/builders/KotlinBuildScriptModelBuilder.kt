@@ -264,7 +264,7 @@ fun ProjectInternal.accessorsClassPathOf(classPath: ClassPath): AccessorsClassPa
 }
 
 
-private
+internal
 fun SettingsInternal.accessorsClassPathOf(classPath: ClassPath): AccessorsClassPath {
     val projectAccessorClassPathGenerator = serviceOf<ProjectAccessorsClassPathGenerator>()
     return projectAccessorClassPathGenerator.projectAccessorsClassPath(this, classPath)
