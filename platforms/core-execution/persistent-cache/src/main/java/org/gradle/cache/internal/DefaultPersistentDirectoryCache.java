@@ -16,7 +16,6 @@
 package org.gradle.cache.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
@@ -98,7 +97,7 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
         public void initialize(FileLock fileLock) {
             File[] files = getBaseDir().listFiles();
             if (files == null) {
-                throw new UncheckedIOException("Cannot list files in " + getBaseDir());
+                throw new RuntimeException("Cannot list files in " + getBaseDir());
             }
             for (File file : files) {
                 if (fileLock.isLockFile(file) || file.equals(propertiesFile)) {
