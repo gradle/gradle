@@ -17,9 +17,7 @@
 package org.gradle.api.internal.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 import static org.hamcrest.CoreMatchers.allOf
 import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.startsWith
@@ -103,7 +101,6 @@ class ObjectFactoryNamedTypeIntegrationTest extends AbstractIntegrationSpec {
         outputContains("thing1: thing1")
     }
 
-    @ToBeFixedForConfigurationCache(because = "ClassNotFoundException: Thing\$Impl")
     def "named instance can be used as task input property"() {
         buildFile << """
             interface Thing extends Named { }
@@ -154,7 +151,6 @@ class ObjectFactoryNamedTypeIntegrationTest extends AbstractIntegrationSpec {
         result.assertTaskSkipped(":a")
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "cannot mutate named instance from groovy"() {
         buildFile << """
             interface Thing extends Named { }
