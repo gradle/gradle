@@ -69,6 +69,16 @@ public class DefaultJdkCacheDirectory implements JdkCacheDirectory {
     static final String MARKER_FILE = ".ready";
     private static final String MAC_OS_JAVA_HOME_FOLDER = "Contents/Home";
 
+    private static final class UnpackedRoot {
+        private final File dir;
+        private final JvmInstallationMetadata metadata;
+
+        private UnpackedRoot(File dir, JvmInstallationMetadata metadata) {
+            this.dir = dir;
+            this.metadata = metadata;
+        }
+    }
+
     private final FileOperations operations;
     private final File jdkDirectory;
     private final FileLockManager lockManager;
@@ -136,15 +146,12 @@ public class DefaultJdkCacheDirectory implements JdkCacheDirectory {
         File unpackFolder = unpack(jdkArchive);
         try {
             // Get the folder that is the real root of the unpacked JDK, skipping any archive root folder
-            File unpackedRoot = determineUnpackedRoot(unpackFolder);
+            UnpackedRoot unpackedRoot = determineUnpackedRoot(unpackFolder);
 
-            // Probe unpacked installation for its metadata
-            JvmInstallationMetadata metadata = getMetadata(unpackedRoot);
-
-            validateMetadataMatchesSpec(spec, uri, metadata);
+            validateMetadataMatchesSpec(spec, uri, unpackedRoot.metadata);
 
             // Check our target directory, to see if anything exists there, and if so, is it marked as ready?
-            File installFolder = new File(jdkDirectory, getInstallFolderName(metadata));
+            File installFolder = new File(jdkDirectory, getInstallFolderName(unpackedRoot.metadata));
             if (!installFolder.getParentFile().mkdirs() && !installFolder.getParentFile().isDirectory()) {
                 throw new IOException("Failed to create install parent directory: " + installFolder.getParentFile());
             }
@@ -162,13 +169,13 @@ public class DefaultJdkCacheDirectory implements JdkCacheDirectory {
 
                 // Move the unpacked root to the install location, atomically if possible
                 try {
-                    java.nio.file.Files.move(unpackedRoot.toPath(), installFolder.toPath(), StandardCopyOption.ATOMIC_MOVE);
+                    java.nio.file.Files.move(unpackedRoot.dir.toPath(), installFolder.toPath(), StandardCopyOption.ATOMIC_MOVE);
                 } catch (AtomicMoveNotSupportedException e) {
                     // In theory, we should never hit this code, but some more obscure file systems or OSes may not support atomic moves
-                    LOGGER.info("Failed to use an atomic move for unpacked JDK from {} to {}. Will try to copy instead.", unpackedRoot, installFolder, e);
+                    LOGGER.info("Failed to use an atomic move for unpacked JDK from {} to {}. Will try to copy instead.", unpackedRoot.dir, installFolder, e);
                     try {
                         operations.copy(copySpec -> {
-                            copySpec.from(unpackedRoot);
+                            copySpec.from(unpackedRoot.dir);
                             copySpec.into(installFolder);
                         });
                     } catch (Throwable t) {
@@ -204,29 +211,22 @@ public class DefaultJdkCacheDirectory implements JdkCacheDirectory {
         }
     }
 
-    private File determineUnpackedRoot(File unpackFolder) {
-        if (getUncheckedMetadata(unpackFolder).isValidInstallation()) {
-            return unpackFolder;
+    private UnpackedRoot determineUnpackedRoot(File unpackFolder) {
+        JvmInstallationMetadata uncheckedMetadata = getUncheckedMetadata(unpackFolder);
+        if (uncheckedMetadata.isValidInstallation()) {
+            return new UnpackedRoot(unpackFolder, uncheckedMetadata);
         }
         File[] subFolders = unpackFolder.listFiles(File::isDirectory);
         if (subFolders == null) {
             throw new IllegalStateException("Unpacked JDK archive is not a directory: " + unpackFolder);
         }
         for (File subFolder : subFolders) {
-            if (getUncheckedMetadata(subFolder).isValidInstallation()) {
-                return subFolder;
+            uncheckedMetadata = getUncheckedMetadata(subFolder);
+            if (uncheckedMetadata.isValidInstallation()) {
+                return new UnpackedRoot(subFolder, uncheckedMetadata);
             }
         }
         throw new IllegalStateException("Unpacked JDK archive does not contain a Java home: " + unpackFolder);
-    }
-
-    private JvmInstallationMetadata getMetadata(File root) {
-        JvmInstallationMetadata metadata = getUncheckedMetadata(root);
-        if (!metadata.isValidInstallation()) {
-            throw new GradleException("Provisioned toolchain '" + metadata.getJavaHome() + "' could not be probed: " + metadata.getErrorMessage(), metadata.getErrorCause());
-        }
-
-        return metadata;
     }
 
     private JvmInstallationMetadata getUncheckedMetadata(File root) {
