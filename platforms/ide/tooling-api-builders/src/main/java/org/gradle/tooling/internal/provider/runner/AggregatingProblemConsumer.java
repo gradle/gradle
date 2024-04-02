@@ -30,6 +30,7 @@ import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.tooling.internal.protocol.InternalBasicProblemDetailsVersion3;
 import org.gradle.tooling.internal.protocol.InternalProblemAggregationVersion3;
 import org.gradle.tooling.internal.protocol.InternalProblemContextDetails;
+import org.gradle.tooling.internal.protocol.InternalProblemDefinition;
 import org.gradle.tooling.internal.protocol.InternalProblemEventVersion2;
 import org.gradle.tooling.internal.protocol.InternalProblemGroup;
 import org.gradle.tooling.internal.protocol.InternalProblemId;
@@ -116,7 +117,8 @@ public class AggregatingProblemConsumer {
             throw new UnsupportedOperationException("Unsupported problem details: " + details.getClass().getName());
         }
         InternalBasicProblemDetailsVersion3 d = (InternalBasicProblemDetailsVersion3) details;
-        String aggregationKey = aggregationKeyFor(d.getDefinition().getId());
+        InternalProblemDefinition definition = d.getDefinition();
+        String aggregationKey = aggregationKeyFor(definition.getId());
         sendProgress(problem, aggregationKey);
 
         if (seenProblems.size() > thresholdForIntermediateSummary) {
