@@ -36,7 +36,6 @@ class KotlinSettingsScriptModelCrossVersionSpec extends AbstractKotlinScriptMode
             }
         """
         file("included/src/main/kotlin/settings-plugin.settings.gradle.kts") << """
-            import org.gradle.kotlin.dsl.create
             extensions.create<SettingsExtension>("mySettingsExtension")
         """
         withSettings("""
@@ -46,6 +45,12 @@ class KotlinSettingsScriptModelCrossVersionSpec extends AbstractKotlinScriptMode
             plugins {
                 id("settings-plugin")
             }
+
+            mySettingsExtension {
+                myProperty = 42
+            }
+
+            println(mySettingsExtension.myProperty)
         """)
 
         when:
@@ -62,6 +67,6 @@ class KotlinSettingsScriptModelCrossVersionSpec extends AbstractKotlinScriptMode
     }
 
     private static boolean isAccessorsDir(File dir) {
-        return dir.isDirectory() && dir.path.contains("/accessors/")
+        return dir.isDirectory() && dir.path.contains("accessors")
     }
 }
