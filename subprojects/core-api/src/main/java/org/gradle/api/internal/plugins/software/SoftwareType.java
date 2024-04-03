@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins;
+package org.gradle.api.internal.plugins.software;
 
 import org.gradle.api.Incubating;
 

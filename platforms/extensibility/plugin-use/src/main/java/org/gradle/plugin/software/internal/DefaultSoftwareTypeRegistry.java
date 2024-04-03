@@ -19,7 +19,7 @@ package org.gradle.plugin.software.internal;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.plugins.SoftwareType;
+import org.gradle.api.internal.plugins.software.SoftwareType;
 import org.gradle.internal.Cast;
 
 import java.util.ArrayList;

@@ -18,7 +18,7 @@ package org.gradle.plugin.software.internal
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.plugins.SoftwareType
+import org.gradle.api.internal.plugins.software.SoftwareType
 import spock.lang.Specification
 
 class DefaultSoftwareTypeRegistryTest extends Specification {

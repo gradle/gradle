@@ -21,7 +21,7 @@ import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
-import org.gradle.api.plugins.SoftwareType;
+import org.gradle.api.internal.plugins.software.SoftwareType;
 import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;

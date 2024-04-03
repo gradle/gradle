@@ -17,6 +17,7 @@
 package org.gradle.internal.declarativedsl.settings
 
 import groovy.test.NotYetImplemented
+import org.gradle.api.internal.plugins.software.SoftwareType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
@@ -236,7 +237,7 @@ secondaryAccess { three, true, true}"""
             import org.gradle.api.Project;
             import org.gradle.api.provider.ListProperty;
             import org.gradle.api.provider.Property;
-            import org.gradle.api.plugins.SoftwareType;
+            import ${SoftwareType.class.name};
             import org.gradle.api.model.ObjectFactory;
             import org.gradle.api.tasks.Nested;
             import javax.inject.Inject;
