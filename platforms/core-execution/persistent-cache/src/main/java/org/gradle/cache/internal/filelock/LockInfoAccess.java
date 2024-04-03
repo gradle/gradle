@@ -16,8 +16,8 @@
 
 package org.gradle.cache.internal.filelock;
 
-import org.gradle.internal.io.RandomAccessFileInputStream;
-import org.gradle.internal.io.RandomAccessFileOutputStream;
+import org.gradle.internal.file.RandomAccessFileInputStream;
+import org.gradle.internal.file.RandomAccessFileOutputStream;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;

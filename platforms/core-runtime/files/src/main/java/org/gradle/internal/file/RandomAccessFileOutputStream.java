@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.io;
+package org.gradle.internal.file;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -24,6 +24,7 @@ import java.io.RandomAccessFile;
  *
  * <p>Closing this stream does not close the underlying file. Flushing this stream does nothing.
  */
+// TODO Replace with Channels.newOutputStream(SeekableByteChannel)
 public class RandomAccessFileOutputStream extends OutputStream {
     private final RandomAccessFile file;
 
