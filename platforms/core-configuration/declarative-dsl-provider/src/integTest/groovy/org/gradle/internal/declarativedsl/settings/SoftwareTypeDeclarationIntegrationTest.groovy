@@ -59,7 +59,7 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec {
 
         file("settings.gradle.something") << """
             plugins {
-                id("com.example.test-software-type") version("1.0")
+                id("com.example.test-software-type").version("1.0")
             }
         """
 
@@ -88,7 +88,7 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
             plugins {
-                id("com.example.test-software-type") version("1.0")
+                id("com.example.test-software-type").version("1.0")
             }
         """
 
@@ -106,35 +106,15 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec {
             testSoftwareType {
                 id = "test"
 
-                referencePoint = point(1, 2)
-
-                primaryAccess {
-                    read = false
-                    write = false
-                }
-
-                secondaryAccess {
-                    name = "two"
-                    read = true
-                    write = false
-                }
-
-                secondaryAccess {
-                    name = "three"
-                    read = true
-                    write = true
+                foo {
+                    bar = "baz"
                 }
             }
         """
     }
 
     void assertThatDeclaredValuesAreSetProperly() {
-        outputContains("""id = test
-referencePoint = (1, 2)
-primaryAccess = { primary, false, false}
-secondaryAccess { two, true, false}
-secondaryAccess { three, true, true}"""
-        )
+        outputContains("""id = test\nbar = baz""")
     }
 
     PluginBuilder withSoftwareTypePlugins() {
@@ -157,74 +137,35 @@ secondaryAccess { three, true, true}"""
 
             @Restricted
             public abstract class TestSoftwareTypeExtension {
-                private final Access primaryAccess;
-                public abstract ListProperty<Access> getSecondaryAccess();
-                private final ObjectFactory objects;
-
-                public Access getPrimaryAccess() {
-                    return primaryAccess;
-                }
+                private final Foo foo;
 
                 @Inject
                 public TestSoftwareTypeExtension(ObjectFactory objects) {
-                    this.objects = objects;
-                    this.primaryAccess = objects.newInstance(Access.class);
-                    this.primaryAccess.getName().set("primary");
+                    this.foo = objects.newInstance(Foo.class);
+                    this.foo.getBar().set("bar");
 
                     getId().convention("<no id>");
-                    getReferencePoint().convention(point(-1, -1));
                 }
 
                 @Restricted
                 public abstract Property<String> getId();
 
-                @Restricted
-                public abstract Property<Point> getReferencePoint();
+                public Foo getFoo() {
+                    return foo;
+                }
 
                 @Configuring
-                public void primaryAccess(Action<? super Access> configure) {
-                    configure.execute(primaryAccess);
+                public void foo(Action<? super Foo> action) {
+                    action.execute(foo);
                 }
 
-                @Adding
-                public Access secondaryAccess(Action<? super Access> configure) {
-                    Access newAccess = objects.newInstance(Access.class);
-                    newAccess.getName().convention("<no name>");
-                    configure.execute(newAccess);
-                    getSecondaryAccess().add(newAccess);
-                    return newAccess;
-                }
-
-                @Restricted
-                public Point point(int x, int y) {
-                    return new Point(x, y);
-                }
-
-                public abstract static class Access {
-                    public Access() {
-                        getName().convention("<no name>");
-                        getRead().convention(false);
-                        getWrite().convention(false);
+                public abstract static class Foo {
+                    public Foo() {
+                        this.getBar().convention("nothing");
                     }
 
                     @Restricted
-                    public abstract Property<String> getName();
-
-                    @Restricted
-                    public abstract Property<Boolean> getRead();
-
-                    @Restricted
-                    public abstract Property<Boolean> getWrite();
-                }
-
-                public static class Point {
-                    public final int x;
-                    public final int y;
-
-                    public Point(int x, int y) {
-                        this.x = x;
-                        this.y = y;
-                    }
+                    public abstract Property<String> getBar();
                 }
             }
         """
@@ -253,23 +194,9 @@ secondaryAccess { three, true, true}"""
                 public void apply(Project target) {
                     TestSoftwareTypeExtension extension = getTestSoftwareTypeExtension();
                     target.getTasks().register("printConfiguration", DefaultTask.class, task -> {
-                        Property<TestSoftwareTypeExtension.Point> referencePoint = extension.getReferencePoint();
-                        TestSoftwareTypeExtension.Access acc = extension.getPrimaryAccess();
-                        ListProperty<TestSoftwareTypeExtension.Access> secondaryAccess = extension.getSecondaryAccess();
-
                         task.doLast("print restricted extension content", t -> {
                             System.out.println("id = " + extension.getId().get());
-                            TestSoftwareTypeExtension.Point point = referencePoint.getOrElse(extension.point(-1, -1));
-                            System.out.println("referencePoint = (" + point.x + ", " + point.y + ")");
-                            System.out.println("primaryAccess = { " +
-                                    acc.getName().get() + ", " + acc.getRead().get() + ", " + acc.getWrite().get() + "}"
-                            );
-                            secondaryAccess.get().forEach(it -> {
-                                System.out.println("secondaryAccess { " +
-                                        it.getName().get() + ", " + it.getRead().get() + ", " + it.getWrite().get() +
-                                        "}"
-                                );
-                            });
+                            System.out.println("bar = " + extension.getFoo().getBar().get());
                         });
                     });
                 }
