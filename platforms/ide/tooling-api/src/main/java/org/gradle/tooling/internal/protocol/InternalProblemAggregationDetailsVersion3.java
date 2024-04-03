@@ -27,6 +27,4 @@ public interface InternalProblemAggregationDetailsVersion3 extends InternalProbl
     InternalProblemDefinition getDefinition();
 
     List<InternalProblemContextDetails> getProblems();
-
-
 }

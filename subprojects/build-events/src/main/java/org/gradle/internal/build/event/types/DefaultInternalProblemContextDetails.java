@@ -36,10 +36,9 @@ public class DefaultInternalProblemContextDetails implements InternalProblemCont
     private final InternalDetails details;
     private final List<InternalLocation> locations;
     private final List<InternalSolution> solutions;
-    private InternalFailure failure;
+    private final InternalFailure failure;
 
     private final InternalContextualLabel contextualLabel;
-
 
     public DefaultInternalProblemContextDetails(InternalAdditionalData additionalData,
                                                 @Nullable InternalDetails details,
@@ -55,6 +54,7 @@ public class DefaultInternalProblemContextDetails implements InternalProblemCont
         this.failure = failure;
         this.contextualLabel = contextualLabel;
     }
+
     @Override
     public InternalAdditionalData getAdditionalData() {
         return additionalData;
@@ -76,6 +76,7 @@ public class DefaultInternalProblemContextDetails implements InternalProblemCont
         return solutions;
     }
 
+    @Nullable
     @Override
     public InternalFailure getFailure() {
         return failure;

@@ -17,6 +17,7 @@
 package org.gradle.tooling.internal.protocol;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.tooling.internal.protocol.problem.InternalProblemDetailsVersion2;
 
 import java.util.List;
 
@@ -24,5 +25,6 @@ import java.util.List;
 public interface InternalProblemAggregationVersion3 extends InternalProblemDetailsVersion2 {
 
     InternalProblemDefinition getProblemDefinition();
+
     List<InternalProblemContextDetails> getProblemContextDetails();
 }

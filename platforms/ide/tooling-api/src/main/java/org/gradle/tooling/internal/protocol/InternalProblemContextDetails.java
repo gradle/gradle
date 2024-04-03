@@ -36,6 +36,7 @@ public interface InternalProblemContextDetails {
 
     List<InternalSolution> getSolutions();
 
+    @Nullable
     InternalFailure getFailure();
 
     @Nullable

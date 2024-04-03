@@ -17,5 +17,4 @@
 package org.gradle.tooling.internal.protocol.problem;
 
 public interface InternalProblemDetailsVersion2 {
-
 }
