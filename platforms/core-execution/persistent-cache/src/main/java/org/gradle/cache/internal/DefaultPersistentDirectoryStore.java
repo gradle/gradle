@@ -15,6 +15,7 @@
  */
 package org.gradle.cache.internal;
 
+import org.apache.commons.io.FileUtils;
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.FileLockManager;
@@ -29,12 +30,13 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
-import org.gradle.util.internal.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
@@ -83,9 +85,9 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
 
     @Override
     public DefaultPersistentDirectoryStore open() {
-        GFileUtils.mkdirs(dir);
-        cacheAccess = createCacheAccess();
         try {
+            FileUtils.forceMkdir(dir);
+            cacheAccess = createCacheAccess();
             cacheAccess.open();
         } catch (Throwable e) {
             throw new CacheOpenException(String.format("Could not open %s.", this), e);
@@ -189,7 +191,11 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
         private boolean requiresCleanup() {
             if (dir.exists() && cacheCleanupStrategy != null) {
                 if (!gcFile.exists()) {
-                    GFileUtils.touch(gcFile);
+                    try {
+                        FileUtils.touch(gcFile);
+                    } catch (IOException e) {
+                        throw new UncheckedIOException(e);
+                    }
                 } else {
                     long duration = System.currentTimeMillis() - gcFile.lastModified();
                     long timeInHours = TimeUnit.MILLISECONDS.toHours(duration);
@@ -210,7 +216,9 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
                         Timer timer = Time.startTimer();
                         try {
                             cacheCleanupStrategy.getCleanupAction().clean(DefaultPersistentDirectoryStore.this, new DefaultCleanupProgressMonitor(context));
-                            GFileUtils.touch(gcFile);
+                            FileUtils.touch(gcFile);
+                        } catch (IOException e) {
+                            throw new UncheckedIOException(e);
                         } finally {
                             LOGGER.info("{} cleaned up in {}.", DefaultPersistentDirectoryStore.this, timer.getElapsed());
                         }

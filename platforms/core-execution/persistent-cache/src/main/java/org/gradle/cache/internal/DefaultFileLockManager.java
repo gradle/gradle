@@ -37,7 +37,6 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.io.ExponentialBackoff;
 import org.gradle.internal.io.IOQuery;
-import org.gradle.util.internal.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -157,8 +156,8 @@ public class DefaultFileLockManager implements FileLockManager {
             this.operationDisplayName = operationDisplayName;
             this.lockFile = determineLockTargetFile(target);
 
-            GFileUtils.mkdirs(lockFile.getParentFile());
             try {
+                org.apache.commons.io.FileUtils.forceMkdirParent(lockFile);
                 lockFile.createNewFile();
             } catch (IOException e) {
                 LOGGER.info("Couldn't create lock file for {}", lockFile);
