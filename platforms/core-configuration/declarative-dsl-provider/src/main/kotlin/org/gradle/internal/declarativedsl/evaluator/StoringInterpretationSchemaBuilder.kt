@@ -31,7 +31,7 @@ import java.io.File
  * stores the produced serialized schema in the file system (under `.gradle/restricted-schema/...` in the project).
  */
 internal
-class StoringInterpretationSchemaBuilder (
+class StoringInterpretationSchemaBuilder(
     private val schemaBuilder: InterpretationSchemaBuilder,
     private val declarativeSchemaRegistry: DeclarativeSchemaRegistry
 ) : InterpretationSchemaBuilder {
@@ -68,7 +68,7 @@ class StoringInterpretationSchemaBuilder (
 
     private
     fun schemaStoreLocationFor(targetInstance: Any): File {
-        val suffix = ".gradle/restricted-schema"   // TODO: need to rename to "declarative-schema"
+        val suffix = ".gradle/restricted-schema" // TODO: need to rename to "declarative-schema"
         return when (targetInstance) {
             is Settings -> targetInstance.settingsDir.resolve(suffix)
             is Project -> targetInstance.projectDir.resolve(suffix)

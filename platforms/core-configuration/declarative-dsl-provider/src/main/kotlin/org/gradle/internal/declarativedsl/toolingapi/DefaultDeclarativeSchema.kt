@@ -17,6 +17,7 @@ package org.gradle.internal.declarativedsl.toolingapi
 
 import java.io.Serializable
 
+
 class DefaultDeclarativeSchema(val schemas: Map<String, Map<String, String>>) : DeclarativeSchema, Serializable {
 
     override fun targets(): Set<String> {
@@ -30,5 +31,4 @@ class DefaultDeclarativeSchema(val schemas: Map<String, Map<String, String>>) : 
     override fun schema(target: String, identifier: String): String? {
         return schemas[target]?.get(identifier)
     }
-
 }
