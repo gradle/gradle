@@ -21,7 +21,6 @@ import org.gradle.api.problems.internal.InternalProblemBuilder;
 import org.gradle.api.problems.internal.Problem;
 
 import javax.annotation.Nullable;
-
 import java.util.Map;
 import java.util.Optional;
 
@@ -82,25 +81,24 @@ public class DefaultTypeAwareProblemBuilder extends DelegatingProblemBuilder imp
     }
 
     public static String introductionFor(Map<String, Object> additionalMetadata) {
+        Optional<String> rootType = ofNullable(additionalMetadata.get(TYPE_NAME))
+            .map(Object::toString)
+            .filter(DefaultTypeAwareProblemBuilder::shouldRenderType);
+        Optional<DefaultPluginId> pluginId = ofNullable(additionalMetadata.get(PLUGIN_ID))
+            .map(Object::toString)
+            .map(DefaultPluginId::new);
+
         StringBuilder builder = new StringBuilder();
-        String rootType = ofNullable(additionalMetadata.get(TYPE_NAME))
-            .map(Object::toString)
-            .filter(DefaultTypeAwareProblemBuilder::shouldRenderType)
-            .orElse(null);
-        DefaultPluginId pluginId = ofNullable(additionalMetadata.get(PLUGIN_ID))
-            .map(Object::toString)
-            .map(DefaultPluginId::new)
-            .orElse(null);
-        boolean typeRelevant = rootType != null && !parseBoolean(additionalMetadata.getOrDefault(TYPE_IS_IRRELEVANT_IN_ERROR_MESSAGE, "").toString());
+        boolean typeRelevant = rootType.isPresent() && !parseBoolean(additionalMetadata.getOrDefault(TYPE_IS_IRRELEVANT_IN_ERROR_MESSAGE, "").toString());
         if (typeRelevant) {
-            if (pluginId != null) {
+            if (pluginId.isPresent()) {
                 builder.append("In plugin '")
-                    .append(pluginId)
+                    .append(pluginId.get())
                     .append("' type '");
             } else {
                 builder.append("Type '");
             }
-            builder.append(rootType).append("' ");
+            builder.append(rootType.get()).append("' ");
         }
 
         Object property = additionalMetadata.get(PROPERTY_NAME);
@@ -108,9 +106,9 @@ public class DefaultTypeAwareProblemBuilder extends DelegatingProblemBuilder imp
             if (typeRelevant) {
                 builder.append("property '");
             } else {
-                if (pluginId != null) {
+                if (pluginId.isPresent()) {
                     builder.append("In plugin '")
-                        .append(pluginId)
+                        .append(pluginId.get())
                         .append("' property '");
                 } else {
                     builder.append("Property '");
