@@ -1,5 +1,10 @@
 # Gradle Client
 
+![GitHub License](https://img.shields.io/github/license/eskatos/gradle-client)
+![GitHub Top Language](https://img.shields.io/github/languages/top/eskatos/gradle-client)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/eskatos/gradle-client/ci.yml)
+![GitHub Issues](https://img.shields.io/github/issues/eskatos/gradle-client)
+
 This is a desktop application acting as a Gradle Tooling API client.
 
 The build requires Java 17 with `jlink` and `jpackage` JDK tools.
