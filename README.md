@@ -22,7 +22,7 @@ Building release distributables will fail if the required JDK tools are not avai
 
 To add more actions start from [GetModelAction.kt](./gradle-client/src/jvmMain/kotlin/org/gradle/client/ui/connected/actions/GetModelAction.kt).
 
-Packaging is platform dependent:
+Packaging native distributions is platform dependent:
 
 ```shell
 # Package DMG on MacOS
@@ -34,3 +34,6 @@ Packaging is platform dependent:
 # Package MSI on Windows
 ./gradlew :gradle-client:packageReleaseMsi
 ```
+
+The GitHub Actions based CI builds the native distributions.
+They are attached as artifacts to each workflow run.
