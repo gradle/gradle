@@ -17,7 +17,7 @@
 package gradlebuild.performance
 
 import com.google.common.annotations.VisibleForTesting
-import com.gradle.enterprise.gradleplugin.testretry.TestRetryExtension
+import com.gradle.develocity.agent.gradle.test.DevelocityTestConfiguration
 import gradlebuild.basics.accessors.groovy
 import gradlebuild.basics.buildBranch
 import gradlebuild.basics.buildCommitId
@@ -246,7 +246,7 @@ class PerformanceTestPlugin : Plugin<Project> {
             outputs.cacheIf { false }
             outputs.file(outputJson)
 
-            predictiveSelection.enabled = false
+            develocity.predictiveTestSelection.enabled = false
         }
 
     private
@@ -397,7 +397,7 @@ class PerformanceTestExtension(
                 mustRunAfter(currentlyRegisteredTestProjects)
                 testSpecificConfigurator(this)
 
-                extensions.findByType<TestRetryExtension>()?.maxRetries = 0
+                extensions.findByType<DevelocityTestConfiguration>()?.testRetry?.maxRetries = 0
             }
         )
 
@@ -408,7 +408,7 @@ class PerformanceTestExtension(
                 description = "Runs performance tests on $testProject - supposed to be used on CI"
                 channel = "commits$channelSuffix"
 
-                extensions.findByType<TestRetryExtension>()?.maxRetries = 1
+                extensions.findByType<DevelocityTestConfiguration>()?.testRetry?.maxRetries = 1
 
                 if (project.includePerformanceTestScenarios) {
                     val scenariosFromFile = project.loadScenariosFromFile(testProject)
