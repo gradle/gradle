@@ -25,7 +25,6 @@ import org.gradle.cache.internal.locklistener.DefaultFileLockContentionHandler
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler
 import org.gradle.cache.internal.locklistener.InetAddressProvider
 import org.gradle.internal.concurrent.CompositeStoppable
-import org.gradle.internal.id.LongIdGenerator
 import org.gradle.internal.remote.internal.inet.InetAddressFactory
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -53,8 +52,8 @@ class DefaultFileLockManagerContentionTest extends ConcurrentSpec {
     }
     FileLockContentionHandler contentionHandler = new DefaultFileLockContentionHandler(executorFactory, addressProvider)
     FileLockContentionHandler contentionHandler2 = new DefaultFileLockContentionHandler(executorFactory, addressProvider)
-    FileLockManager manager = new DefaultFileLockManager(Stub(ProcessMetaDataProvider), 2000, contentionHandler, new LongIdGenerator())
-    FileLockManager manager2 = new DefaultFileLockManager(Stub(ProcessMetaDataProvider), 2000, contentionHandler2, new LongIdGenerator())
+    FileLockManager manager = new DefaultFileLockManager(Stub(ProcessMetaDataProvider), 2000, contentionHandler)
+    FileLockManager manager2 = new DefaultFileLockManager(Stub(ProcessMetaDataProvider), 2000, contentionHandler2)
 
     List<Closeable> openedLocks = []
 
@@ -101,7 +100,7 @@ class DefaultFileLockManagerContentionTest extends ConcurrentSpec {
     def "lock manage resets the timeout if the lock owner changes"() {
         given:
         FileLockContentionHandler contentionHandler3 = Mock(FileLockContentionHandler)
-        FileLockManager manager3 = new DefaultFileLockManager(Stub(ProcessMetaDataProvider), 2000, contentionHandler3, new LongIdGenerator())
+        FileLockManager manager3 = new DefaultFileLockManager(Stub(ProcessMetaDataProvider), 2000, contentionHandler3)
 
         int port1 = contentionHandler.communicator.socket.localPort
         int port2 = contentionHandler2.communicator.socket.localPort
