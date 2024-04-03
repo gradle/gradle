@@ -321,6 +321,30 @@ $ gradle show
 include::{snippetsPath}/providers/propertyConvention/tests/propertyConvention.out[]
 ----
 
+=== Where to apply conventions from?
+
+In general, you want to apply convention to a property at configuration time, before tasks execute, so task actions are not appropriate.
+Still, there are multiple options for appropriate locations for setting a convention on a property.
+
+==== From a plugin's `apply()` method
+
+Plugin authors may configure a convention on a lazy property from a plugin's `apply()` method, while performing preliminary configuration of the property-owning task.
+
+==== From a build script
+
+Build engineers may configure a convention on a lazy property from shared build logic that is configuring tasks in a standard way for the entire build.
+Note that for project-specific values, instead of conventions, you should prefer setting explicit values (using `Property.value(...)` or `ConfigurableFileCollection.setFrom(...)`, for instance).
+
+==== From the task constructor
+
+A task author may configure a convention on a lazy property from the task constructor. This approach works for properties with trivial defaults,
+but it is not appropriate if additional context (external to the task implementation) is required in order to set a suitable default.
+
+==== Next to the property declaration
+
+You may configure a convention on a lazy property next to the place where the property is declared.
+Note this option is not available for <<custom_gradle_types.adoc#managed_properties,managed properties>>, and has the same caveats as configuring a convention from the task constructor.
+
 [[unmodifiable_property]]
 == Making a property unmodifiable
 
