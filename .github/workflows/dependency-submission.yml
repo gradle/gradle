@@ -1,0 +1,20 @@
+name: Dependency Submission
+on: push
+permissions:
+  contents: write
+jobs:
+  validate_wrapper:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: gradle/wrapper-validation-action@v2
+  submit_dependency_graph:
+    needs: validate_wrapper
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/dependency-submission@v3
