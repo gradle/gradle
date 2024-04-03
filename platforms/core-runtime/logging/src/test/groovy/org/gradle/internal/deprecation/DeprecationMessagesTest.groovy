@@ -18,18 +18,27 @@ package org.gradle.internal.deprecation
 
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.logging.configuration.WarningMode
+import org.gradle.api.problems.Severity
+import org.gradle.api.problems.internal.DefaultProblem
+import org.gradle.api.problems.internal.DefaultProblemDefinition
+import org.gradle.api.problems.internal.DefaultProblemId
 import org.gradle.api.problems.internal.DefaultProblems
+import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.api.problems.internal.ProblemEmitter
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
+import org.gradle.internal.operations.CurrentBuildOperationRef
+import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.problems.NoOpProblemDiagnosticsFactory
 import org.gradle.util.GradleVersion
 import org.junit.Rule
 import spock.lang.Specification
 
 import static org.gradle.api.internal.DocumentationRegistry.RECOMMENDATION
+import static org.gradle.internal.deprecation.DeprecationMessageBuilder.createDefaultDeprecationId
+
 
 class DeprecationMessagesTest extends Specification {
 
@@ -41,28 +50,62 @@ class DeprecationMessagesTest extends Specification {
     @Rule
     private final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
 
+    private ProblemEmitter problemEmitter
+    private identifier = new OperationIdentifier(2)
+
     def setup() {
         def diagnosticsFactory = new NoOpProblemDiagnosticsFactory()
 
-        def buildOperationProgressEventEmitter = Stub(BuildOperationProgressEventEmitter)
-        def problemEmitter = Stub(ProblemEmitter)
-        DeprecationLogger.init(WarningMode.All, buildOperationProgressEventEmitter, new DefaultProblems(problemEmitter), diagnosticsFactory.newUnlimitedStream())
+        problemEmitter = Mock(ProblemEmitter)
+        def currentBuildRef = Mock(CurrentBuildOperationRef)
+
+        currentBuildRef.getId() >> identifier
+
+        def buildOperationProgressEventEmitter = Mock(BuildOperationProgressEventEmitter)
+        DeprecationLogger.init(WarningMode.All, buildOperationProgressEventEmitter, new DefaultProblems(problemEmitter, currentBuildRef), diagnosticsFactory.newUnlimitedStream())
     }
 
     def cleanup() {
         DeprecationLogger.reset()
     }
 
-    def "logs deprecation message"() {
+
+    def summary = "Summary is deprecated."
+    def "logs deprecation message with default problem id"() {
         given:
         def builder = new DeprecationMessageBuilder()
-        builder.setSummary("Summary is deprecated.")
+        builder.setSummary(summary)
 
         when:
         builder.willBeRemovedInGradle9().undocumented().nagUser()
 
         then:
-        expectMessage "Summary is deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}."
+        expectMessage "$summary This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}."
+
+        1 * problemEmitter.emit(createProblem(summary), identifier)
+    }
+
+    def "logs deprecation message with custom problem id"() {
+        def deprecationDisplayName = "summary deprecation"
+        given:
+        def builder = new DeprecationMessageBuilder()
+        builder.setSummary(summary)
+        builder.withProblemIdDisplayName(deprecationDisplayName)
+
+        when:
+        builder.willBeRemovedInGradle9().undocumented().nagUser()
+
+        then:
+        expectMessage "$summary This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}."
+
+        1 * problemEmitter.emit(createProblem(deprecationDisplayName), identifier)
+    }
+
+    def createProblem(deprecationDisplayName) {
+        def id = new DefaultProblemId(createDefaultDeprecationId(deprecationDisplayName), deprecationDisplayName, GradleCoreProblemGroup.deprecation())
+        def definition = new DefaultProblemDefinition(id, Severity.WARNING, null)
+
+        return new DefaultProblem(definition, "Summary is deprecated.", [], [], "This is scheduled to be removed in Gradle 9.0.", null, ["type": "USER_CODE_DIRECT"])
     }
 
     def "logs deprecation message with advice"() {

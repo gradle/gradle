@@ -211,7 +211,9 @@ The Kotlin DSL replaces such dynamic resolution with type-safe model accessors t
 [[kotdsl:accessor_applicability]]
 === Understanding when type-safe model accessors are available
 
-The Kotlin DSL currently supports type-safe model accessors for any of the following that are contributed by plugins:
+The Kotlin DSL currently provides various sets of type-safe model accessors, each tailored to different scopes.
+
+For the main project build scripts and precompiled project script plugins:
 
 * Dependency and artifact configurations (such as `implementation` and `runtimeOnly` contributed by the Java Plugin)
 * Project extensions and conventions (such as `sourceSets`), and extensions on them
@@ -219,10 +221,13 @@ The Kotlin DSL currently supports type-safe model accessors for any of the follo
 * Elements in the `tasks` and `configurations` containers
 * Elements in <<kotdsl:containers,project-extension containers>> (for example the source sets contributed by the Java Plugin that are added to the `sourceSets` container)
 
+For the main project settings script:
+
+* Project extensions and conventions, contributed by `Settings` plugins, and extensions on them
+
 [IMPORTANT]
 ====
-Only the main project build scripts and precompiled project script plugins have type-safe model accessors.
-Initialization scripts, settings scripts, script plugins do not.
+Initialization scripts and script plugins do not have type-safe model accessors.
 These limitations will be removed in a future Gradle release.
 ====
 
@@ -748,7 +753,7 @@ The plugin achieves this by doing the following:
  * Configures the Kotlin compiler with the same settings that are used for Kotlin DSL scripts, ensuring consistency between your build logic and those scripts:
  ** adds <<kotlin_dsl#sec:kotlin_compiler_arguments, Kotlin compiler arguments>>,
  ** registers the link:https://kotlinlang.org/docs/sam-with-receiver-plugin.html[SAM-with-receiver Kotlin compiler plugin].
- * Enables support for <<custom_plugins#sec:precompiled_plugins,precompiled script plugins>>.
+ * Enables support for <<custom_plugins#sec:precompile_script_plugin,precompiled script plugins>>.
 
 .Avoid specifying a version for the `kotlin-dsl` plugin
 --

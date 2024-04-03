@@ -25,7 +25,6 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.testkit.runner.internal.ToolingApiGradleExecutor
-import org.gradle.util.internal.VersionNumber
 import org.junit.Rule
 
 /**
@@ -38,9 +37,7 @@ import org.junit.Rule
  * To run your tests against all AGP versions from agp-versions.properties, use higher version of java by setting -PtestJavaVersion=<version>
  * See {@link org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions#assumeCurrentJavaVersionIsSupportedBy() assumeCurrentJavaVersionIsSupportedBy} for more details
  */
-class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
-
-    protected static final Iterable<String> TESTED_AGP_VERSIONS = TestedVersions.androidGradle.versions
+class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest implements RunnerFactory {
 
     @Rule
     TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
@@ -64,108 +61,16 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
 
     protected SmokeTestGradleRunner.SmokeTestBuildResult buildLocation(File projectDir, String agpVersion) {
         return runnerForLocation(projectDir, agpVersion, "assembleDebug").deprecations(SantaTrackerDeprecations) {
-            expectBuildIdentifierNameDeprecation(agpVersion)
-            if (GradleContextualExecuter.notConfigCache) {
-                expectAndroidConventionTypeDeprecationWarning(agpVersion)
-                expectBasePluginConventionDeprecation(agpVersion)
-                expectConfigUtilDeprecationWarning(agpVersion)
-                expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
-                expectAndroidBasePluginExtensionArchivesBaseNameDeprecation(VersionNumber.parse(agpVersion))
-                expectClientModuleDeprecationWarning(agpVersion)
-                expectConfigurationMutationDeprecationWarnings(agpVersion, getMutatedConfigurations())
-                expectFilteredFileCollectionDeprecationWarning()
-            }
-            maybeExpectConfigurationMutationDeprecationWarnings(agpVersion, [":santa-tracker:debugCompileClasspath"])
+            expectFilteredFileCollectionDeprecationWarning()
         }.build()
     }
 
-    protected SmokeTestGradleRunner.SmokeTestBuildResult buildUpToDateLocation(File projectDir, String agpVersion) {
+    protected SmokeTestGradleRunner.SmokeTestBuildResult buildCachedLocation(File projectDir, String agpVersion) {
         return runnerForLocation(projectDir, agpVersion, "assembleDebug").deprecations(SantaTrackerDeprecations) {
             if (GradleContextualExecuter.notConfigCache) {
-                expectAndroidConventionTypeDeprecationWarning(agpVersion)
-                expectBasePluginConventionDeprecation(agpVersion)
-                expectConfigUtilDeprecationWarning(agpVersion)
-                expectBuildIdentifierNameDeprecation(agpVersion)
-                expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
-                expectAndroidBasePluginExtensionArchivesBaseNameDeprecation(VersionNumber.parse(agpVersion))
-                expectClientModuleDeprecationWarning(agpVersion)
-                expectConfigurationMutationDeprecationWarnings(agpVersion, getMutatedConfigurations())
                 expectFilteredFileCollectionDeprecationWarning()
-            } else {
-                def agpVersionNumber = VersionNumber.parse(agpVersion)
-
-                expectBuildIdentifierNameDeprecation(agpVersion)
-                // TODO - this is here because AGP 7.4.x reads build/generated/source/kapt/debug at configuration time
-                if (agpVersion.startsWith("7.4")){
-                    expectConfigUtilDeprecationWarning(agpVersion)
-                }
-                if (agpVersionNumber >= VersionNumber.parse("7.4")) {
-                    // TODO - this is here because AGP > 7.3 reads build/generated/source/kapt/debug at configuration time
-                    expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
-                }
-                maybeExpectClientModuleDeprecationWarning(agpVersion)
-                maybeExpectConfigurationMutationDeprecationWarnings(agpVersion, getMutatedConfigurations())
-                if (agpVersionNumber >= VersionNumber.parse("7.4") && agpVersionNumber <= VersionNumber.parse("8.0.2")) {
-                    expectFilteredFileCollectionDeprecationWarning()
-                }
             }
-            maybeExpectConfigurationMutationDeprecationWarnings(agpVersion, [":santa-tracker:debugCompileClasspath"])
         }.build()
-    }
-
-    protected SmokeTestGradleRunner.SmokeTestBuildResult buildLocationMaybeExpectingWorkerExecutorAndConventionDeprecation(File location, String agpVersion) {
-        return runnerForLocation(location, agpVersion,"assembleDebug")
-            .deprecations(SantaTrackerDeprecations) {
-                expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
-                expectAndroidConventionTypeDeprecationWarning(agpVersion)
-                expectBasePluginConventionDeprecation(agpVersion)
-                expectConfigUtilDeprecationWarning(agpVersion)
-                expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
-                expectBuildIdentifierNameDeprecation(agpVersion)
-                expectAndroidBasePluginExtensionArchivesBaseNameDeprecation(VersionNumber.parse(agpVersion))
-                expectClientModuleDeprecationWarning(agpVersion)
-                expectConfigurationMutationDeprecationWarnings(agpVersion, getMutatedConfigurations())
-                maybeExpectConfigurationMutationDeprecationWarnings(agpVersion, [
-                    ":santa-tracker:debugCompileClasspath",
-                    ":common:debugCompileClasspath",
-                ])
-                expectFilteredFileCollectionDeprecationWarning()
-            }.build()
-    }
-
-    protected SmokeTestGradleRunner.SmokeTestBuildResult buildLocationMaybeExpectingWorkerExecutorDeprecation(File location, String agpVersion) {
-        return runnerForLocation(location, agpVersion,"assembleDebug")
-            .deprecations(SantaTrackerDeprecations) {
-                expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
-                expectBuildIdentifierNameDeprecation(agpVersion)
-            }.build()
-    }
-
-    protected SmokeTestGradleRunner.SmokeTestBuildResult buildLocationMaybeExpectingWorkerExecutorAndConfigUtilDeprecation(File location, String agpVersion) {
-        return runnerForLocation(location, agpVersion,"assembleDebug")
-            .deprecations(SantaTrackerDeprecations) {
-                def agpVersionNumber = VersionNumber.parse(agpVersion)
-
-                expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
-                // TODO - this is here because AGP 7.4.x reads build/generated/source/kapt/debug at configuration time
-                if (agpVersion.startsWith("7.4")){
-                    expectConfigUtilDeprecationWarning(agpVersion)
-                }
-                expectBuildIdentifierNameDeprecation(agpVersion)
-                if (agpVersionNumber >= VersionNumber.parse("7.4")) {
-                    // TODO - this is here because AGP > 7.3 reads build/generated/source/kapt/debug at configuration time
-                    expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
-                }
-                maybeExpectClientModuleDeprecationWarning(agpVersion)
-                maybeExpectConfigurationMutationDeprecationWarnings(agpVersion, getMutatedConfigurations())
-                maybeExpectConfigurationMutationDeprecationWarnings(agpVersion, [
-                    ":santa-tracker:debugCompileClasspath",
-                    ":common:debugCompileClasspath",
-                ])
-                if (agpVersionNumber >= VersionNumber.parse("7.4") && agpVersionNumber <= VersionNumber.parse("8.0.2")) {
-                    expectFilteredFileCollectionDeprecationWarning()
-                }
-            }.build()
     }
 
     static class SantaTrackerDeprecations extends BaseDeprecations implements WithAndroidDeprecations {
@@ -174,18 +79,8 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
         }
     }
 
-    protected BuildResult cleanLocation(File projectDir, String agpVersion) {
-        return runnerForLocation(projectDir, agpVersion, "clean").deprecations(SantaTrackerDeprecations) {
-            expectAndroidConventionTypeDeprecationWarning(agpVersion)
-            expectBasePluginConventionDeprecation(agpVersion)
-            expectConfigUtilDeprecationWarning(agpVersion)
-            expectAndroidBasePluginExtensionArchivesBaseNameDeprecation(VersionNumber.parse(agpVersion))
-            expectClientModuleDeprecationWarning(agpVersion)
-        }.build()
-    }
-
     protected SmokeTestGradleRunner runnerForLocation(File projectDir, String agpVersion, String... tasks) {
-        def runnerArgs = [[
+        List<String> runnerArgs = [
             // TODO: the versions of KGP we use still access Task.project from a cacheIf predicate
             // A workaround for this has been added to TaskExecutionAccessCheckers;
             // TODO once we remove it, uncomment the flag below or upgrade AGP
@@ -193,9 +88,10 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
             "-DagpVersion=$agpVersion",
             "-DkotlinVersion=$kotlinVersion",
             "-DjavaVersion=${AGP_VERSIONS.getMinimumJavaVersionFor(agpVersion).majorVersion}",
-            "--stacktrace"],
-        tasks].flatten()
-        def runner = runner(*runnerArgs)
+            "--stacktrace"
+        ] + tasks.toList()
+
+        def runner = agpRunner(agpVersion, *runnerArgs)
             .withProjectDir(projectDir)
             .withTestKitDir(homeDir)
             .forwardOutput()
@@ -212,13 +108,7 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
                 "--add-opens", "jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED"
             )
         }
-        if (AGP_VERSIONS.isAgpNightly(agpVersion)) {
-            def init = AGP_VERSIONS.createAgpNightlyRepositoryInitScript()
-            runner.withArguments([runner.arguments, ['-I', init.canonicalPath]].flatten())
-        }
-        return runner.deprecations(SantaTrackerDeprecations) {
-            maybeExpectOrgGradleUtilGUtilDeprecation(agpVersion)
-        }
+        runner
     }
 
     protected static boolean verify(BuildResult result, Map<String, TaskOutcome> outcomes) {
@@ -247,24 +137,5 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
             }
         }
         return hasMatchingTasks && allOutcomesMatched
-    }
-
-    private static ArrayList<String> getMutatedConfigurations() {
-        [
-            ":common:debugCompileClasspath",
-            ":doodles-lib:debugCompileClasspath",
-            ":playgames:debugCompileClasspath",
-            ":tracker:debugCompileClasspath",
-            ":wearable:debugCompileClasspath",
-            ":jetpack:debugCompileClasspath",
-            ":cityquiz:debugCompileClasspath",
-            ":gumball:debugCompileClasspath",
-            ":memory:debugCompileClasspath",
-            ":dasherdancer:debugCompileClasspath",
-            ":penguinswim:debugCompileClasspath",
-            ":snowballrun:debugCompileClasspath",
-            ":presenttoss:debugCompileClasspath",
-            ":rocketsleigh:debugCompileClasspath"
-        ]
     }
 }

@@ -317,15 +317,6 @@ abstract class AbstractSmokeTest extends Specification {
         FileUtils.copyDirectory(smokeTestDirectory, testProjectDir)
     }
 
-    protected SmokeTestGradleRunner useAgpVersion(String agpVersion, SmokeTestGradleRunner runner) {
-        def extraArgs = [AGP_VERSIONS.OVERRIDE_VERSION_CHECK]
-        if (AGP_VERSIONS.isAgpNightly(agpVersion)) {
-            def init = AGP_VERSIONS.createAgpNightlyRepositoryInitScript()
-            extraArgs += ["-I", init.canonicalPath]
-        }
-        return runner.withArguments([runner.arguments, extraArgs].flatten())
-    }
-
     protected void replaceVariablesInBuildFile(Map binding) {
         replaceVariablesInFile(binding, buildFile)
     }

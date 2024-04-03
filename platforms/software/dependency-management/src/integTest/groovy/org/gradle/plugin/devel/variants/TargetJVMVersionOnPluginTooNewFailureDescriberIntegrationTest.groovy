@@ -256,12 +256,11 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
         fails 'greet', "--stacktrace"
 
         then:
-        failure.assertHasErrorOutput("""> Could not determine the dependencies of null.
-   > Could not resolve all task dependencies for configuration ':classpath'.
-      > Could not resolve project :producer.
-        Required by:
-            project :
-         > Dependency requires at least JVM runtime version ${higherVersion.javaVersion.majorVersion}. This build uses a Java ${lowerVersion.javaVersion.majorVersion} JVM.""")
+        failure.assertHasErrorOutput("""> Could not resolve all dependencies for configuration ':classpath'.
+   > Could not resolve project :producer.
+     Required by:
+         project :
+      > Dependency requires at least JVM runtime version ${higherVersion.javaVersion.majorVersion}. This build uses a Java ${lowerVersion.javaVersion.majorVersion} JVM.""")
         failure.assertHasErrorOutput("Caused by: " + VariantSelectionException.class.getName())
         failure.assertHasResolution("Run this build using a Java ${higherVersion.javaVersion.majorVersion} or newer JVM.")
     }

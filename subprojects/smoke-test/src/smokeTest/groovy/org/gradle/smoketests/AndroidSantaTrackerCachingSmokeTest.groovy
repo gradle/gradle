@@ -42,7 +42,7 @@ class AndroidSantaTrackerCachingSmokeTest extends AbstractAndroidSantaTrackerSmo
 
         when: 'clean build'
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(originalDir, homeDir)
-        def result = buildLocationMaybeExpectingWorkerExecutorAndConventionDeprecation(originalDir, agpVersion)
+        def result = buildLocation(originalDir, agpVersion)
 
         then:
         if (GradleContextualExecuter.isConfigCache()) {
@@ -51,7 +51,7 @@ class AndroidSantaTrackerCachingSmokeTest extends AbstractAndroidSantaTrackerSmo
 
         when: 'up-to-date build, reusing configuration cache when enabled'
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(originalDir, homeDir)
-        result = buildUpToDateLocation(originalDir, agpVersion)
+        result = buildCachedLocation(originalDir, agpVersion)
 
         then:
         // TODO - this is here because AGP >=7.4 and <8.1.0 reads build/generated/source/kapt/debug at configuration time
@@ -67,7 +67,7 @@ class AndroidSantaTrackerCachingSmokeTest extends AbstractAndroidSantaTrackerSmo
 
         when: 'up-to-date build, reusing configuration cache when enabled'
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(originalDir, homeDir)
-        result = buildLocation(originalDir, agpVersion)
+        result = buildCachedLocation(originalDir, agpVersion)
 
         then:
         if (GradleContextualExecuter.isConfigCache()) {
@@ -76,7 +76,7 @@ class AndroidSantaTrackerCachingSmokeTest extends AbstractAndroidSantaTrackerSmo
 
         when: 'clean cached build'
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(relocatedDir, homeDir)
-        result = buildLocationMaybeExpectingWorkerExecutorAndConventionDeprecation(relocatedDir, agpVersion)
+        result = buildLocation(relocatedDir, agpVersion)
 
         then:
         if (GradleContextualExecuter.isConfigCache()) {
@@ -98,13 +98,9 @@ class AndroidSantaTrackerCachingSmokeTest extends AbstractAndroidSantaTrackerSmo
         verify(result, expectedResults)
 
         when: 'clean cached build, reusing configuration cache when enabled'
-        cleanLocation(relocatedDir, agpVersion)
+        runnerForLocation(relocatedDir, agpVersion, "clean").build()
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(relocatedDir, homeDir)
-        if (GradleContextualExecuter.notConfigCache) {
-            result = buildLocationMaybeExpectingWorkerExecutorAndConventionDeprecation(relocatedDir, agpVersion)
-        } else {
-            result = buildLocationMaybeExpectingWorkerExecutorDeprecation(relocatedDir, agpVersion)
-        }
+        result = buildCachedLocation(relocatedDir, agpVersion)
 
         then:
         if (GradleContextualExecuter.isConfigCache()) {
@@ -112,7 +108,7 @@ class AndroidSantaTrackerCachingSmokeTest extends AbstractAndroidSantaTrackerSmo
         }
 
         where:
-        agpVersion << TESTED_AGP_VERSIONS
+        agpVersion << TestedVersions.androidGradle.versions
     }
 }
 
@@ -127,6 +123,7 @@ class AndroidPluginExpectations8 {
         ':cityquiz:compileDebugKotlin': FROM_CACHE,
         ':cityquiz:compileDebugShaders': NO_SOURCE,
         ':cityquiz:compressDebugAssets': FROM_CACHE,
+        ':cityquiz:copyDebugMergedManifest': SUCCESS,
         ':cityquiz:createDebugApkListingFileRedirect': SUCCESS,
         ':cityquiz:desugarDebugFileDependencies': FROM_CACHE,
         ':cityquiz:dexBuilderDebug': FROM_CACHE,
@@ -209,6 +206,7 @@ class AndroidPluginExpectations8 {
         ':dasherdancer:compileDebugKotlin': FROM_CACHE,
         ':dasherdancer:compileDebugShaders': NO_SOURCE,
         ':dasherdancer:compressDebugAssets': FROM_CACHE,
+        ':dasherdancer:copyDebugMergedManifest': SUCCESS,
         ':dasherdancer:createDebugApkListingFileRedirect': SUCCESS,
         ':dasherdancer:desugarDebugFileDependencies': FROM_CACHE,
         ':dasherdancer:dexBuilderDebug': FROM_CACHE,
@@ -283,6 +281,7 @@ class AndroidPluginExpectations8 {
         ':gumball:compileDebugJavaWithJavac': FROM_CACHE,
         ':gumball:compileDebugShaders': NO_SOURCE,
         ':gumball:compressDebugAssets': FROM_CACHE,
+        ':gumball:copyDebugMergedManifest': SUCCESS,
         ':gumball:createDebugApkListingFileRedirect': SUCCESS,
         ':gumball:desugarDebugFileDependencies': FROM_CACHE,
         ':gumball:dexBuilderDebug': FROM_CACHE,
@@ -323,6 +322,7 @@ class AndroidPluginExpectations8 {
         ':jetpack:compileDebugKotlin': FROM_CACHE,
         ':jetpack:compileDebugShaders': NO_SOURCE,
         ':jetpack:compressDebugAssets': FROM_CACHE,
+        ':jetpack:copyDebugMergedManifest': SUCCESS,
         ':jetpack:createDebugApkListingFileRedirect': SUCCESS,
         ':jetpack:desugarDebugFileDependencies': FROM_CACHE,
         ':jetpack:dexBuilderDebug': FROM_CACHE,
@@ -361,6 +361,7 @@ class AndroidPluginExpectations8 {
         ':memory:compileDebugJavaWithJavac': FROM_CACHE,
         ':memory:compileDebugShaders': NO_SOURCE,
         ':memory:compressDebugAssets': FROM_CACHE,
+        ':memory:copyDebugMergedManifest': SUCCESS,
         ':memory:createDebugApkListingFileRedirect': SUCCESS,
         ':memory:desugarDebugFileDependencies': FROM_CACHE,
         ':memory:dexBuilderDebug': FROM_CACHE,
@@ -399,6 +400,7 @@ class AndroidPluginExpectations8 {
         ':penguinswim:compileDebugJavaWithJavac': FROM_CACHE,
         ':penguinswim:compileDebugShaders': NO_SOURCE,
         ':penguinswim:compressDebugAssets': FROM_CACHE,
+        ':penguinswim:copyDebugMergedManifest': SUCCESS,
         ':penguinswim:createDebugApkListingFileRedirect': SUCCESS,
         ':penguinswim:desugarDebugFileDependencies': FROM_CACHE,
         ':penguinswim:dexBuilderDebug': FROM_CACHE,
@@ -473,6 +475,7 @@ class AndroidPluginExpectations8 {
         ':presenttoss:compileDebugJavaWithJavac': FROM_CACHE,
         ':presenttoss:compileDebugShaders': NO_SOURCE,
         ':presenttoss:compressDebugAssets': FROM_CACHE,
+        ':presenttoss:copyDebugMergedManifest': SUCCESS,
         ':presenttoss:createDebugApkListingFileRedirect': SUCCESS,
         ':presenttoss:desugarDebugFileDependencies': FROM_CACHE,
         ':presenttoss:dexBuilderDebug': FROM_CACHE,
@@ -513,6 +516,7 @@ class AndroidPluginExpectations8 {
         ':rocketsleigh:compileDebugKotlin': FROM_CACHE,
         ':rocketsleigh:compileDebugShaders': NO_SOURCE,
         ':rocketsleigh:compressDebugAssets': FROM_CACHE,
+        ':rocketsleigh:copyDebugMergedManifest': SUCCESS,
         ':rocketsleigh:createDebugApkListingFileRedirect': SUCCESS,
         ':rocketsleigh:desugarDebugFileDependencies': FROM_CACHE,
         ':rocketsleigh:dexBuilderDebug': FROM_CACHE,
@@ -583,6 +587,7 @@ class AndroidPluginExpectations8 {
         ':santa-tracker:mergeDebugNativeLibs': NO_SOURCE,
         ':santa-tracker:mergeDebugResources': FROM_CACHE,
         ':santa-tracker:mergeDebugShaders': SUCCESS,
+        ':santa-tracker:mergeDebugStartupProfile': SUCCESS,
         ':santa-tracker:mergeExtDexDebug': FROM_CACHE,
         ':santa-tracker:mergeLibDexDebug': FROM_CACHE,
         ':santa-tracker:mergeProjectDexDebug': FROM_CACHE,
@@ -606,6 +611,7 @@ class AndroidPluginExpectations8 {
         ':snowballrun:compileDebugJavaWithJavac': FROM_CACHE,
         ':snowballrun:compileDebugShaders': NO_SOURCE,
         ':snowballrun:compressDebugAssets': FROM_CACHE,
+        ':snowballrun:copyDebugMergedManifest': SUCCESS,
         ':snowballrun:createDebugApkListingFileRedirect': SUCCESS,
         ':snowballrun:desugarDebugFileDependencies': FROM_CACHE,
         ':snowballrun:dexBuilderDebug': FROM_CACHE,
@@ -706,6 +712,7 @@ class AndroidPluginExpectations8 {
         ':wearable:mergeDebugNativeLibs': NO_SOURCE,
         ':wearable:mergeDebugResources': FROM_CACHE,
         ':wearable:mergeDebugShaders': SUCCESS,
+        ':wearable:mergeDebugStartupProfile': SUCCESS,
         ':wearable:mergeExtDexDebug': FROM_CACHE,
         ':wearable:mergeLibDexDebug': FROM_CACHE,
         ':wearable:mergeProjectDexDebug': FROM_CACHE,

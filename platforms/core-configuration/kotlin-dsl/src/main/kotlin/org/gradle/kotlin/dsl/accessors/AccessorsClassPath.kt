@@ -17,8 +17,12 @@
 package org.gradle.kotlin.dsl.accessors
 
 import org.gradle.api.Project
+import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.file.FileCollectionFactory
+import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.plugins.ExtensionAware
 import org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL
 import org.gradle.internal.classloader.ClassLoaderUtils
 import org.gradle.internal.classpath.ClassPath
@@ -39,10 +43,13 @@ import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hasher
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.properties.InputBehavior.NON_INCREMENTAL
+import org.gradle.internal.service.scopes.Scope
+import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
+import org.gradle.kotlin.dsl.concurrent.AsyncIOScopeFactory
 import org.gradle.kotlin.dsl.concurrent.IO
-import org.gradle.kotlin.dsl.concurrent.withAsynchronousIO
+import org.gradle.kotlin.dsl.concurrent.runBlocking
 import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.fileHeaderFor
 import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.kotlinDslPackageName
 import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.primitiveKotlinTypeNames
@@ -65,62 +72,68 @@ import java.io.File
 import javax.inject.Inject
 
 
+@ServiceScope(Scope.Gradle::class)
 class ProjectAccessorsClassPathGenerator @Inject internal constructor(
     private val fileCollectionFactory: FileCollectionFactory,
     private val projectSchemaProvider: ProjectSchemaProvider,
     private val executionEngine: ExecutionEngine,
     private val inputFingerprinter: InputFingerprinter,
-    private val workspaceProvider: KotlinDslWorkspaceProvider
+    private val workspaceProvider: KotlinDslWorkspaceProvider,
+    private val asyncIO: AsyncIOScopeFactory
 ) {
 
-    fun projectAccessorsClassPath(project: Project, classPath: ClassPath): AccessorsClassPath =
-        project.getOrCreateProperty("gradleKotlinDsl.projectAccessorsClassPath") {
-            buildAccessorsClassPathFor(project, classPath)
+    fun projectAccessorsClassPath(scriptTarget: ExtensionAware, classPath: ClassPath): AccessorsClassPath =
+        scriptTarget.getOrCreateProperty("gradleKotlinDsl.accessorsClassPath") {
+            buildAccessorsClassPathFor(scriptTarget, classPath)
                 ?: AccessorsClassPath.empty
         }
 
 
     private
-    fun buildAccessorsClassPathFor(project: Project, classPath: ClassPath): AccessorsClassPath? {
-        return configuredProjectSchemaOf(project)?.let { projectSchema ->
-            val work = GenerateProjectAccessors(
-                project,
-                projectSchema,
-                classPath,
-                fileCollectionFactory,
-                inputFingerprinter,
-                workspaceProvider
-            )
-            executionEngine.createRequest(work)
-                .execute()
-                .getOutputAs(AccessorsClassPath::class.java)
-                .get()
-        }
-    }
+    fun buildAccessorsClassPathFor(scriptTarget: Any, classPath: ClassPath): AccessorsClassPath? =
+        classLoaderScopeOf(scriptTarget)
+            ?.let { classLoaderScope ->
+                configuredProjectSchemaOf(scriptTarget, classLoaderScope)
+            }?.let { scriptTargetSchema ->
+                val work = GenerateProjectAccessors(
+                    scriptTarget,
+                    scriptTargetSchema,
+                    classPath,
+                    fileCollectionFactory,
+                    inputFingerprinter,
+                    workspaceProvider,
+                    asyncIO
+                )
+                executionEngine.createRequest(work)
+                    .execute()
+                    .getOutputAs(AccessorsClassPath::class.java)
+                    .get()
+            }
 
 
     private
-    fun configuredProjectSchemaOf(project: Project): TypedProjectSchema? {
-        require(classLoaderScopeOf(project).isLocked) {
+    fun configuredProjectSchemaOf(scriptTarget: Any, classLoaderScope: ClassLoaderScope): TypedProjectSchema? {
+        require(classLoaderScope.isLocked) {
             "project.classLoaderScope must be locked before querying the project schema"
         }
-        return projectSchemaProvider.schemaFor(project).takeIf { it.isNotEmpty() }
+        return projectSchemaProvider.schemaFor(scriptTarget)?.takeIf { it.isNotEmpty() }
     }
 }
 
 
 internal
 class GenerateProjectAccessors(
-    private val project: Project,
-    private val projectSchema: TypedProjectSchema,
+    private val scriptTarget: Any,
+    private val scriptTargetSchema: TypedProjectSchema,
     private val classPath: ClassPath,
     private val fileCollectionFactory: FileCollectionFactory,
     private val inputFingerprinter: InputFingerprinter,
-    private val workspaceProvider: KotlinDslWorkspaceProvider
+    private val workspaceProvider: KotlinDslWorkspaceProvider,
+    private val asyncIO: AsyncIOScopeFactory
 ) : ImmutableUnitOfWork {
 
     companion object {
-        const val PROJECT_SCHEMA_INPUT_PROPERTY = "projectSchema"
+        const val TARGET_SCHEMA_INPUT_PROPERTY = "targetSchema"
         const val CLASSPATH_INPUT_PROPERTY = "classpath"
         const val SOURCES_OUTPUT_PROPERTY = "sources"
         const val CLASSES_OUTPUT_PROPERTY = "classes"
@@ -128,9 +141,9 @@ class GenerateProjectAccessors(
 
     override fun execute(executionRequest: UnitOfWork.ExecutionRequest): UnitOfWork.WorkOutput {
         val workspace = executionRequest.workspace
-        withAsynchronousIO(project) {
+        asyncIO.runBlocking {
             buildAccessorsFor(
-                projectSchema,
+                scriptTargetSchema,
                 classPath,
                 srcDir = getSourcesOutputDir(workspace),
                 binDir = getClassesOutputDir(workspace)
@@ -150,7 +163,7 @@ class GenerateProjectAccessors(
 
     override fun identify(identityInputs: Map<String, ValueSnapshot>, identityFileInputs: Map<String, CurrentFileCollectionFingerprint>): UnitOfWork.Identity {
         val hasher = Hashing.newHasher()
-        requireNotNull(identityInputs[PROJECT_SCHEMA_INPUT_PROPERTY]).appendToHasher(hasher)
+        requireNotNull(identityInputs[TARGET_SCHEMA_INPUT_PROPERTY]).appendToHasher(hasher)
         hasher.putHash(requireNotNull(identityFileInputs[CLASSPATH_INPUT_PROPERTY]).hash)
         val identityHash = hasher.hash().toString()
         return UnitOfWork.Identity { identityHash }
@@ -160,10 +173,10 @@ class GenerateProjectAccessors(
 
     override fun getInputFingerprinter() = inputFingerprinter
 
-    override fun getDisplayName(): String = "Kotlin DSL accessors for $project"
+    override fun getDisplayName(): String = "Kotlin DSL accessors for $scriptTarget"
 
     override fun visitIdentityInputs(visitor: InputVisitor) {
-        visitor.visitInputProperty(PROJECT_SCHEMA_INPUT_PROPERTY) { hashCodeFor(projectSchema) }
+        visitor.visitInputProperty(TARGET_SCHEMA_INPUT_PROPERTY) { hashCodeFor(scriptTargetSchema) }
         visitor.visitInputFileProperty(
             CLASSPATH_INPUT_PROPERTY,
             NON_INCREMENTAL,
@@ -552,8 +565,12 @@ fun inaccessible(type: SchemaType, reasons: List<InaccessibilityReason>): TypeAc
 
 
 private
-fun classLoaderScopeOf(project: Project) =
-    (project as ProjectInternal).classLoaderScope
+fun classLoaderScopeOf(scriptTarget: Any) = when (scriptTarget) {
+    is ProjectInternal -> scriptTarget.classLoaderScope
+    is SettingsInternal -> scriptTarget.classLoaderScope
+    is GradleInternal -> scriptTarget.classLoaderScope
+    else -> null
+}
 
 
 fun hashCodeFor(schema: TypedProjectSchema): HashCode = Hashing.newHasher().run {

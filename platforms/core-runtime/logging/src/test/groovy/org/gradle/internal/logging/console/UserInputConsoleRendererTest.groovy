@@ -31,7 +31,7 @@ class UserInputConsoleRendererTest extends Specification {
     def console = Mock(Console)
     def buildProgressArea = Mock(BuildProgressArea)
     def textArea = Mock(TextArea)
-    def userInput = Mock(UserInputReceiver)
+    def userInput = Mock(GlobalUserInputReceiver)
     @Subject def renderer = new UserInputConsoleRenderer(listener, console, userInput)
 
     def "can handle user input request and resume events"() {
@@ -62,7 +62,7 @@ class UserInputConsoleRendererTest extends Specification {
         1 * textArea.println()
         1 * textArea.text(prompt.prompt)
         1 * console.flush()
-        1 * userInput.readAndForwardText()
+        1 * userInput.readAndForwardText(prompt)
 
         and:
         0 * console._

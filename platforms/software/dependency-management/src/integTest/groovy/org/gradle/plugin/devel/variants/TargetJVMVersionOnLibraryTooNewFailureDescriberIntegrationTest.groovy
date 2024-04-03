@@ -58,7 +58,7 @@ class TargetJVMVersionOnLibraryTooNewFailureDescriberIntegrationTest extends Abs
         fails ':consumer:build', "--stacktrace"
 
         then:
-        failure.assertHasErrorOutput("""> Could not resolve all task dependencies for configuration ':consumer:compileClasspath'.
+        failure.assertHasErrorOutput("""> Could not resolve all dependencies for configuration ':consumer:compileClasspath'.
    > Could not resolve project :producer.
      Required by:
          project :consumer
@@ -109,7 +109,7 @@ class TargetJVMVersionOnLibraryTooNewFailureDescriberIntegrationTest extends Abs
         fails ':consumer:build', "--stacktrace"
 
         then:
-        failure.assertHasErrorOutput("""> Could not resolve all task dependencies for configuration ':consumer:compileClasspath'.
+        failure.assertHasErrorOutput("""> Could not resolve all dependencies for configuration ':consumer:compileClasspath'.
    > Could not resolve project :producer.
      Required by:
          project :consumer

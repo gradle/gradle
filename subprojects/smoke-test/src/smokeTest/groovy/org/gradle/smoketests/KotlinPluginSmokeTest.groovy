@@ -16,7 +16,6 @@
 
 package org.gradle.smoketests
 
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
@@ -26,6 +25,7 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
 import static org.junit.Assume.assumeFalse
 import static org.junit.Assume.assumeTrue
+
 /**
  * Smoke test for the Kotlin plugins.
  *
@@ -46,43 +46,14 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         useSample("kotlin-example")
         replaceVariablesInBuildFile(kotlinVersion: version)
         when:
-        def result = runner(parallelTasksInProject, kotlinPluginVersion, 'run')
-            .deprecations(KotlinDeprecations) {
-                expectKotlinParallelTasksDeprecation(kotlinPluginVersion, parallelTasksInProject)
-                expectKotlinArchiveNameDeprecation(kotlinPluginVersion)
-                expectAbstractCompileDestinationDirDeprecation(kotlinPluginVersion)
-                expectOrgGradleUtilWrapUtilDeprecation(kotlinPluginVersion)
-                runner.expectLegacyDeprecationWarningIf(
-                    kotlinPluginVersion <= VersionNumber.parse("1.9.0"),
-                    CONVENTION_TYPE_DEPRECATION
-                )
-                expectJavaPluginConventionDeprecation(kotlinPluginVersion)
-                if (GradleContextualExecuter.isConfigCache()) {
-                    expectBasePluginConventionDeprecation(kotlinPluginVersion)
-                    expectKotlinBasePluginExtensionArchivesBaseNameDeprecation(kotlinPluginVersion)
-                    expectForUseAtConfigurationTimeDeprecation(kotlinPluginVersion)
-                }
-            }.build()
+        def result = kgpRunner(parallelTasksInProject, kotlinPluginVersion, 'run').build()
 
         then:
         result.task(':compileKotlin').outcome == SUCCESS
         assert result.output.contains("Hello world!")
 
         when:
-        result = runner(parallelTasksInProject, kotlinPluginVersion, 'run')
-            .deprecations(KotlinDeprecations) {
-                if (GradleContextualExecuter.isNotConfigCache()) {
-                    expectOrgGradleUtilWrapUtilDeprecation(kotlinPluginVersion)
-                    runner.expectLegacyDeprecationWarningIf(
-                        kotlinPluginVersion <= VersionNumber.parse("1.9.0"),
-                        CONVENTION_TYPE_DEPRECATION
-                    )
-                    expectJavaPluginConventionDeprecation(kotlinPluginVersion)
-                }
-                if (GradleContextualExecuter.isConfigCache() && hasConfigurationCacheWarnings(kotlinPluginVersion)) {
-                    expectForUseAtConfigurationTimeDeprecation(kotlinPluginVersion)
-                }
-            }.build()
+        result = kgpRunner(parallelTasksInProject, kotlinPluginVersion, 'run').build()
 
         then:
         result.task(':compileKotlin').outcome == UP_TO_DATE
@@ -91,7 +62,7 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         where:
         [version, parallelTasksInProject] << [
             TestedVersions.kotlin.versions,
-            ParallelTasksInProject.values()
+            [true, false]
         ].combinations()
     }
 
@@ -139,13 +110,9 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         }
 
         when:
-        def result = runner(ParallelTasksInProject.FALSE, kotlinPluginVersion, 'test', 'integTest')
+        def result = kgpRunner(false, kotlinPluginVersion, 'test', 'integTest')
             .deprecations(KotlinDeprecations) {
                 runner.expectLegacyDeprecationWarning("Mutating dependency DefaultExternalModuleDependency{group='org.jetbrains.kotlin', name='kotlin-test-junit5', version='null', configuration='default'} after it has been finalized has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#dependency_mutate_dependency_collector_after_finalize")
-                runner.expectLegacyDeprecationWarningIf(
-                    kotlinPluginVersion <= VersionNumber.parse("1.9.0"),
-                    CONVENTION_TYPE_DEPRECATION
-                )
             }.build()
 
         then:
@@ -168,21 +135,7 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         withKotlinBuildFile()
         replaceVariablesInBuildFile(kotlinVersion: version)
         when:
-        def result = runner(parallelTasksInProject, kotlinPluginVersion, 'compileKotlin2Js')
-            .deprecations(KotlinDeprecations) {
-                expectKotlinParallelTasksDeprecation(kotlinPluginVersion, parallelTasksInProject)
-                expectKotlin2JsPluginDeprecation(kotlinPluginVersion)
-                expectKotlinCompileDestinationDirPropertyDeprecation(kotlinPluginVersion)
-                expectKotlinArchiveNameDeprecation(kotlinPluginVersion)
-                expectOrgGradleUtilWrapUtilDeprecation(kotlinPluginVersion)
-                expectConventionTypeDeprecation(kotlinPluginVersion)
-                expectJavaPluginConventionDeprecation(kotlinPluginVersion)
-                expectBasePluginConventionDeprecation(kotlinPluginVersion)
-                expectKotlinBasePluginExtensionArchivesBaseNameDeprecation(kotlinPluginVersion)
-                if (GradleContextualExecuter.isConfigCache()) {
-                    expectForUseAtConfigurationTimeDeprecation(kotlinPluginVersion)
-                }
-            }.build()
+        def result = kgpRunner(parallelTasksInProject, kotlinPluginVersion, 'compileKotlin2Js').build()
 
         then:
         result.task(':compileKotlin2Js').outcome == SUCCESS
@@ -190,7 +143,7 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         where:
         [version, parallelTasksInProject] << [
             TestedVersions.kotlin.versions,
-            ParallelTasksInProject.values()
+            [true, false]
         ].combinations()
     }
 
@@ -226,26 +179,9 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         file("src/main/groovy/Groovy.groovy") << "class Groovy { }"
         file("src/main/kotlin/Kotlin.kt") << "class Kotlin { val groovy = Groovy() }"
         file("src/main/java/Java.java") << "class Java { private Kotlin kotlin = new Kotlin(); }" // dependency to compileJava->compileKotlin is added by Kotlin plugin
-        def parallelTasksInProject = ParallelTasksInProject.FALSE
 
         when:
-        def result = runner(parallelTasksInProject, kotlinPluginVersion, 'compileJava')
-            .deprecations(KotlinDeprecations) {
-                expectKotlinParallelTasksDeprecation(kotlinPluginVersion, parallelTasksInProject)
-                expectKotlinArchiveNameDeprecation(kotlinPluginVersion)
-                expectAbstractCompileDestinationDirDeprecation(kotlinPluginVersion)
-                expectOrgGradleUtilWrapUtilDeprecation(kotlinPluginVersion)
-                runner.expectLegacyDeprecationWarningIf(
-                    kotlinPluginVersion <= VersionNumber.parse("1.9.0"),
-                    CONVENTION_TYPE_DEPRECATION
-                )
-                expectJavaPluginConventionDeprecation(kotlinPluginVersion)
-                if (GradleContextualExecuter.isConfigCache()) {
-                    expectBasePluginConventionDeprecation(kotlinPluginVersion)
-                    expectKotlinBasePluginExtensionArchivesBaseNameDeprecation(kotlinPluginVersion)
-                    expectForUseAtConfigurationTimeDeprecation(kotlinPluginVersion)
-                }
-            }.build()
+        def result = kgpRunner(false, kotlinPluginVersion, 'compileJava').build()
 
         then:
         result.task(':compileJava').outcome == SUCCESS
@@ -283,35 +219,13 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         """
         file("src/main/kotlin/Kotlin.kt") << "class Kotlin { }"
         when:
-        def result = runner(ParallelTasksInProject.FALSE, kotlinPluginVersion, 'build')
-            .deprecations(KotlinDeprecations) {
-                expectAbstractCompileDestinationDirDeprecation(kotlinPluginVersion)
-                expectOrgGradleUtilWrapUtilDeprecation(kotlinPluginVersion)
-                runner.expectLegacyDeprecationWarningIf(
-                    kotlinPluginVersion <= VersionNumber.parse("1.9.0"),
-                    CONVENTION_TYPE_DEPRECATION
-                )
-                expectJavaPluginConventionDeprecation(kotlinPluginVersion)
-                if (GradleContextualExecuter.isConfigCache()) {
-                    expectForUseAtConfigurationTimeDeprecation(kotlinPluginVersion)
-                }
-            }.build()
+        def result = kgpRunner(false, kotlinPluginVersion, 'build').build()
 
         then:
         result.task(':compileKotlin').outcome == SUCCESS
 
         when:
-        result = runner(ParallelTasksInProject.FALSE, kotlinPluginVersion, 'build')
-            .deprecations(KotlinDeprecations) {
-                if (GradleContextualExecuter.isNotConfigCache()) {
-                    expectOrgGradleUtilWrapUtilDeprecation(kotlinPluginVersion)
-                    runner.expectLegacyDeprecationWarningIf(
-                        kotlinPluginVersion <= VersionNumber.parse("1.9.0"),
-                        CONVENTION_TYPE_DEPRECATION
-                    )
-                    expectJavaPluginConventionDeprecation(kotlinPluginVersion)
-                }
-            }.build()
+        result = kgpRunner(false, kotlinPluginVersion, 'build').build()
 
         then:
         result.task(':compileKotlin').outcome == UP_TO_DATE

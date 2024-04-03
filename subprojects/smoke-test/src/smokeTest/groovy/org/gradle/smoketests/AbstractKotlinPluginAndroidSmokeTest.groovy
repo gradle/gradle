@@ -18,12 +18,9 @@ package org.gradle.smoketests
 
 import com.gradle.enterprise.testing.annotations.LocalOnly
 import org.gradle.integtests.fixtures.android.AndroidHome
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.util.internal.VersionNumber
 
-import static org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions.KOTLIN_1_8_0
-import static org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions.KOTLIN_2_0_0
 import static org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions.hasConfigurationCacheWarnings
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
@@ -33,13 +30,13 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
  * This test exists to avoid duplicating test logic for Groovy and Kotlin DSLs.
  */
 @LocalOnly(because = "Needs Android environment")
-abstract class AbstractKotlinPluginAndroidSmokeTest extends AbstractSmokeTest implements KotlinRunnerFactory {
+abstract class AbstractKotlinPluginAndroidSmokeTest extends AbstractSmokeTest implements RunnerFactory {
     abstract String getSampleName()
     abstract GradleDsl getDSL()
 
     VersionNumber kotlinPluginVersion
 
-    def "kotlin android on android-kotlin-example using #dsl DSL (kotlin=#kotlinPluginVersion, agp=#androidPluginVersion, workers=#parallelTasksInProject)"(String kotlinPluginVersion, String androidPluginVersion, ParallelTasksInProject parallelTasksInProject) {
+    def "kotlin android on android-kotlin-example using #dsl DSL (kotlin=#kotlinPluginVersion, agp=#androidPluginVersion, workers=#parallel)"(String kotlinPluginVersion, String androidPluginVersion, boolean parallel) {
         given:
         AndroidHome.assertIsSet()
         AGP_VERSIONS.assumeAgpSupportsCurrentJavaVersionAndKotlinVersion(androidPluginVersion, kotlinPluginVersion)
@@ -55,32 +52,9 @@ abstract class AbstractKotlinPluginAndroidSmokeTest extends AbstractSmokeTest im
                     androidBuildToolsVersion: TestedVersions.androidTools)
         }
         def kotlinPluginVersionNumber = VersionNumber.parse(kotlinPluginVersion)
-        def androidPluginVersionNumber = VersionNumber.parse(androidPluginVersion)
 
         when:
-        def runner = createRunner(parallelTasksInProject, kotlinPluginVersionNumber, androidPluginVersionNumber, 'clean', ":app:testDebugUnitTestCoverage")
-        def result = useAgpVersion(androidPluginVersion, runner)
-                .deprecations(KotlinAndroidDeprecations) {
-                    expectKotlinConfigurationAsDependencyDeprecation(kotlinPluginVersionNumber)
-                    expectAndroidOrKotlinWorkerSubmitDeprecation(androidPluginVersionNumber, parallelTasksInProject, kotlinPluginVersionNumber)
-                    expectReportDestinationPropertyDeprecation(androidPluginVersion)
-                    expectKotlinCompileDestinationDirPropertyDeprecation(kotlinPluginVersionNumber)
-                    if (GradleContextualExecuter.configCache || (kotlinPluginVersionNumber >= KOTLIN_1_8_0 && kotlinPluginVersionNumber.baseVersion < KOTLIN_2_0_0)) {
-                        expectBuildIdentifierIsCurrentBuildDeprecation(androidPluginVersion)
-                    }
-                    2.times {
-                        maybeExpectOrgGradleUtilGUtilDeprecation(androidPluginVersion)
-                    }
-                    if (GradleContextualExecuter.configCache) {
-                        expectForUseAtConfigurationTimeDeprecation(kotlinPluginVersionNumber)
-                    }
-                    expectBasePluginExtensionArchivesBaseNameDeprecation(kotlinPluginVersionNumber, androidPluginVersionNumber)
-                    expectClientModuleDeprecationWarning(androidPluginVersion)
-                    expectConfigurationMutationDeprecationWarnings(androidPluginVersion, [":app:debugCompileClasspath"])
-                    if (GradleContextualExecuter.configCache || (kotlinPluginVersionNumber >= KOTLIN_1_8_0 && kotlinPluginVersionNumber.baseVersion < KOTLIN_2_0_0)) {
-                        expectConfigurationMutationDeprecationWarnings(androidPluginVersion, [":app:debugUnitTestCompileClasspath"])
-                    }
-                }.build()
+        def result = mixedRunner(parallel, androidPluginVersion, kotlinPluginVersionNumber, 'clean', ":app:testDebugUnitTestCoverage").build()
 
         then:
         result.task(':app:testDebugUnitTestCoverage').outcome == SUCCESS
@@ -92,10 +66,10 @@ abstract class AbstractKotlinPluginAndroidSmokeTest extends AbstractSmokeTest im
 //        androidPluginVersion = TestedVersions.androidGradle.versions.last()
 //        parallelTasksInProject = ParallelTasksInProject.FALSE
 
-        [kotlinPluginVersion, androidPluginVersion, parallelTasksInProject] << [
+        [kotlinPluginVersion, androidPluginVersion, parallel] << [
                 TestedVersions.kotlin.versions,
                 TestedVersions.androidGradle.versions,
-                ParallelTasksInProject.values(),
+                [true, false]
         ].combinations()
 
         dsl = getDSL().name()

@@ -29,7 +29,7 @@ class IsolatedProjectsGradleExecuter extends DaemonGradleExecuter {
     ].collect { it.toString() }
 
     static boolean testWithLoadAfterStore() {
-        return !System.getProperty("org.gradle.configuration-cache.internal.test-disable-load-after-store")
+        return !Boolean.getBoolean("org.gradle.configuration-cache.internal.test-disable-load-after-store")
     }
 
     IsolatedProjectsGradleExecuter(
