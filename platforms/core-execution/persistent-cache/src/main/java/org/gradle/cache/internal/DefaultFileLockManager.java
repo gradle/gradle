@@ -36,7 +36,6 @@ import org.gradle.internal.FileUtils;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.time.ExponentialBackoff;
-import org.gradle.util.internal.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -156,8 +155,8 @@ public class DefaultFileLockManager implements FileLockManager {
             this.operationDisplayName = operationDisplayName;
             this.lockFile = determineLockTargetFile(target);
 
-            GFileUtils.mkdirs(lockFile.getParentFile());
             try {
+                org.apache.commons.io.FileUtils.forceMkdirParent(lockFile);
                 lockFile.createNewFile();
             } catch (IOException e) {
                 LOGGER.info("Couldn't create lock file for {}", lockFile);
@@ -308,7 +307,7 @@ public class DefaultFileLockManager implements FileLockManager {
          * 1. We first try to acquire a lock on the state region with retries, see {@link #lockStateRegion(LockMode)}.<br>
          * 2a. If we use exclusive lock, and we succeed in step 1., then we acquire an exclusive lock
          * on the information region and write our details (port and lock id) there, and then we release lock of information region.
-         * That way other processes can read our details and ping us. That is important for {@link org.gradle.cache.FileLockManager.LockMode.OnDemand} mode.<br>
+         * That way other processes can read our details and ping us. That is important for {@link LockMode#OnDemand} mode.<br>
          * 2b. If we use shared lock, and we succeed in step 1., then we just hold the lock. We don't write anything to the information region
          * since multiple processes can acquire shared lock (due to that we currently also don't support on demand shared locks).<br>
          * 2.c If we fail, we throw a timeout exception.

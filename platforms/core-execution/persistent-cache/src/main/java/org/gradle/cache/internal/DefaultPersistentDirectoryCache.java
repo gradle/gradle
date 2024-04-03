@@ -15,6 +15,7 @@
  */
 package org.gradle.cache.internal;
 
+import org.apache.commons.io.FileUtils;
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
@@ -22,7 +23,6 @@ import org.gradle.cache.LockOptions;
 import org.gradle.cache.PersistentCache;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.operations.BuildOperationRunner;
-import org.gradle.util.internal.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -113,7 +113,7 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
                     if (fileLock.isLockFile(file) || file.equals(propertiesFile)) {
                         continue;
                     }
-                    GFileUtils.forceDelete(file);
+                    FileUtils.forceDelete(file);
                 }
                 if (initAction != null) {
                     initAction.accept(DefaultPersistentDirectoryCache.this);
