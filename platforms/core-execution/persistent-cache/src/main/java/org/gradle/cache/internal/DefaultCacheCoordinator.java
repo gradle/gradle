@@ -32,12 +32,10 @@ import org.gradle.cache.MultiProcessSafeIndexedCache;
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache;
 import org.gradle.cache.internal.cacheops.CacheAccessOperationsStack;
 import org.gradle.internal.Cast;
-import org.gradle.internal.SystemProperties;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.serialize.Serializer;
-import org.gradle.util.internal.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -236,34 +234,34 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
 
     @Override
     public <T> T useCache(Supplier<? extends T> factory) {
-            boolean wasStarted;
+        boolean wasStarted;
+        stateLock.lock();
+        try {
+            takeOwnership();
+            try {
+                wasStarted = onStartWork();
+            } catch (Throwable t) {
+                releaseOwnership();
+                throw UncheckedException.throwAsUncheckedException(t);
+            }
+        } finally {
+            stateLock.unlock();
+        }
+        try {
+            return factory.get();
+        } finally {
             stateLock.lock();
             try {
-                takeOwnership();
                 try {
-                    wasStarted = onStartWork();
-                } catch (Throwable t) {
+                    if (wasStarted) {
+                        onEndWork();
+                    }
+                } finally {
                     releaseOwnership();
-                    throw UncheckedException.throwAsUncheckedException(t);
                 }
             } finally {
                 stateLock.unlock();
             }
-            try {
-                return factory.get();
-            } finally {
-                stateLock.lock();
-                try {
-                    try {
-                        if (wasStarted) {
-                            onEndWork();
-                        }
-                    } finally {
-                        releaseOwnership();
-                    }
-                } finally {
-                    stateLock.unlock();
-                }
         }
     }
 
@@ -512,8 +510,8 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
             checkCompatibleCacheDecorator(faultMessages, parameters.getCacheDecorator());
 
             if (!faultMessages.isEmpty()) {
-                String lineSeparator = SystemProperties.getInstance().getLineSeparator();
-                String faultMessage = CollectionUtils.join(lineSeparator, faultMessages);
+                String lineSeparator = System.lineSeparator();
+                String faultMessage = String.join(lineSeparator, faultMessages);
                 throw new InvalidCacheReuseException(
                     "Cache '" + parameters.getCacheName() + "' couldn't be reused because of the following mismatch:" + lineSeparator + faultMessage);
             }
