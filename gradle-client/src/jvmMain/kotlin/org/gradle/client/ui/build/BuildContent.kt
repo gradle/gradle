@@ -57,14 +57,14 @@ private fun BuildMainContent(
 
     val scope = rememberCoroutineScope()
 
-    var javaHome by rememberSaveable { mutableStateOf("") }
+    var javaHome by rememberSaveable { mutableStateOf(System.getenv("JAVA_HOME") ?: "") }
     var gradleUserHome by rememberSaveable { mutableStateOf("") }
     var gradleDistSource by rememberSaveable { mutableStateOf(GradleDistSource.DEFAULT) }
     var gradleDistVersion by rememberSaveable { mutableStateOf("") }
     var gradleDistLocalDir by rememberSaveable { mutableStateOf("") }
 
     val isJavaHomeValid by derivedStateOf {
-        javaHome.isBlank() || File(javaHome).let {
+        javaHome.isNotBlank() && File(javaHome).let {
             it.isDirectory && it.resolve("bin").listFiles { file ->
                 file.nameWithoutExtension == "java"
             }?.isNotEmpty() ?: false
@@ -108,7 +108,6 @@ private fun BuildMainContent(
             readOnly = false,
             onValueChange = { javaHome = it },
             label = { Text("Java Home") },
-            placeholder = { Text(System.getenv("JAVA_HOME") ?: "", color = Color.Gray) },
             isError = !isJavaHomeValid,
             trailingIcon = {
                 val helpText = "Select a Java home"
