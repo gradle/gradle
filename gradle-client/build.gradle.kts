@@ -1,5 +1,4 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
-import org.jetbrains.compose.desktop.application.tasks.AbstractJPackageTask
 import java.time.Year
 
 plugins {
@@ -9,7 +8,12 @@ plugins {
     alias(libs.plugins.sqldelight)
 }
 
-val appCodeName = project.name
+group = "org.gradle.client"
+
+// Version must be strictly x.y.z and >= 1.0.0
+// for native packaging to work across platforms
+version = "1.0.0"
+
 val appName = "GradleClient"
 val appDisplayName = "Gradle Client"
 val appQualifiedName = "org.gradle.client"
@@ -125,39 +129,5 @@ compose.desktop {
                 iconFile = layout.projectDirectory.file("src/assets/desktop/icon.ico")
             }
         }
-    }
-}
-
-enum class DesktopOS(val id: String) {
-    Linux("linux"),
-    Mac("macos"),
-    Windows("windows");
-}
-
-val currentDesktopOS: DesktopOS by lazy {
-    val os = System.getProperty("os.name")
-    when {
-        os.startsWith("Linux", ignoreCase = true) -> DesktopOS.Linux
-        os.equals("Mac OS X", ignoreCase = true) -> DesktopOS.Mac
-        os.startsWith("Win", ignoreCase = true) -> DesktopOS.Windows
-        else -> error("Unknown OS name: $os")
-    }
-}
-
-// Package as ZIP
-afterEvaluate {
-    val arch = System.getProperty("os.arch")
-    val distDir = layout.buildDirectory.dir("dist")
-    val createDistributable by tasks.existing(AbstractJPackageTask::class)
-    tasks.register<Zip>("packageZip") {
-        archiveFileName = "${project.name}-${project.version}-${currentDesktopOS.id}-$arch-debug.zip"
-        from(createDistributable.flatMap { it.destinationDir })
-        destinationDirectory = distDir
-    }
-    val createReleaseDistributable by tasks.existing(AbstractJPackageTask::class)
-    tasks.register<Zip>("packageReleaseZip") {
-        archiveFileName = "${project.name}-${project.version}-${currentDesktopOS.id}-$arch.zip"
-        from(createReleaseDistributable.flatMap { it.destinationDir })
-        destinationDirectory = distDir
     }
 }
