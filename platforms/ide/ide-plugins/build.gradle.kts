@@ -32,6 +32,7 @@ dependencies {
     api(project(":base-services"))
     api(project(":core"))
     api(project(":core-api"))
+    api(project(":declarative-dsl-provider"))
     api(project(":ide"))
     api(project(":platform-jvm"))
     api(project(":tooling-api"))
@@ -54,7 +55,6 @@ dependencies {
     implementation(project(":scala"))
     implementation(project(":test-suites-base"))
     implementation(project(":war"))
-    implementation(project(":declarative-dsl-provider"))
 
     implementation(libs.commonsLang)
 

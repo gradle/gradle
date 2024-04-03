@@ -16,18 +16,20 @@
 
 package org.gradle.internal.declarativedsl.evaluator
 
+
 interface DeclarativeSchemaRegistry {
 
     fun storeSchema(target: Any, identifier: String, schema: String)
 
     fun serializedSchemas(): MutableMap<String, MutableMap<String, String>>
-
 }
+
 
 internal
 class DefaultDeclarativeSchemaRegistry : DeclarativeSchemaRegistry {
 
-    private val schemas: MutableMap<Pair<Any, String>, String> = mutableMapOf()
+    private
+    val schemas: MutableMap<Pair<Any, String>, String> = mutableMapOf()
 
     override fun storeSchema(target: Any, identifier: String, schema: String) {
         schemas[target to identifier] = schema

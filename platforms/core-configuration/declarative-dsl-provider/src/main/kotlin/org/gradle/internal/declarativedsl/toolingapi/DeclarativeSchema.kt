@@ -15,7 +15,6 @@
  */
 package org.gradle.internal.declarativedsl.toolingapi
 
-import org.gradle.internal.declarativedsl.analysis.AnalysisSchema
 
 interface DeclarativeSchema {
 

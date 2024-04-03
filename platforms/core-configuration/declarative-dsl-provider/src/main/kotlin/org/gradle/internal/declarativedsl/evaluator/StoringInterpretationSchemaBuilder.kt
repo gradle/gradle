@@ -31,7 +31,7 @@ import java.io.File
  * stores the produced serialized schema in the file system (under `.gradle/declarative-schema/...` in the project).
  */
 internal
-class StoringInterpretationSchemaBuilder (
+class StoringInterpretationSchemaBuilder(
     private val schemaBuilder: InterpretationSchemaBuilder,
     private val declarativeSchemaRegistry: DeclarativeSchemaRegistry
 ) : InterpretationSchemaBuilder {

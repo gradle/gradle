@@ -4325,6 +4325,7 @@ Class <org.gradle.plugins.ide.internal.resolver.model.IdeExtendedRepoFileDepende
 Class <org.gradle.plugins.ide.internal.tooling.BasicIdeaModelBuilder> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (BasicIdeaModelBuilder.java:0)
 Class <org.gradle.plugins.ide.internal.tooling.BuildEnvironmentBuilder> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (BuildEnvironmentBuilder.java:0)
 Class <org.gradle.plugins.ide.internal.tooling.BuildInvocationsBuilder> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (BuildInvocationsBuilder.java:0)
+Class <org.gradle.plugins.ide.internal.tooling.DeclarativeSchemaBuilder> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DeclarativeSchemaBuilder.java:0)
 Class <org.gradle.plugins.ide.internal.tooling.EclipseModelBuilder$1> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (EclipseModelBuilder.java:0)
 Class <org.gradle.plugins.ide.internal.tooling.EclipseModelBuilder$ClasspathElements> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (EclipseModelBuilder.java:0)
 Class <org.gradle.plugins.ide.internal.tooling.EclipseModelBuilder> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (EclipseModelBuilder.java:0)
