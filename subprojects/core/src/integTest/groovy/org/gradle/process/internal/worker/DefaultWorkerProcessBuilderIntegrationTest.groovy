@@ -18,9 +18,13 @@ package org.gradle.process.internal.worker
 
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
 class DefaultWorkerProcessBuilderIntegrationTest extends AbstractIntegrationSpec {
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "test classpath does not contain nonexistent entries"() {
         given:
         file("src/test/java/ClasspathTest.java") << '''

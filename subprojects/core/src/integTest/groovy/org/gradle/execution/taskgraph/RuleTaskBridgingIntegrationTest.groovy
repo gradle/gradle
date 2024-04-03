@@ -18,8 +18,10 @@ package org.gradle.execution.taskgraph
 
 import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.util.internal.TextUtil
 
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.any
 
 class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements WithRuleBasedTasks {
@@ -250,6 +252,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
         output.contains "foo: task foo message"
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "task created in afterEvaluate() is visible to rules"() {
         when:
         buildFile << '''
