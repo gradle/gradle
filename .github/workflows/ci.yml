@@ -60,11 +60,11 @@ jobs:
           distribution: temurin
           java-version: 17
       - uses: gradle/actions/setup-gradle@v3
-      - run: ./gradlew --stacktrace --scan packageZip
+      - run: ./gradlew --stacktrace --scan packageReleaseDmg
       - uses: actions/upload-artifact@v4
         with:
           name: macos-distribution
-          path: gradle-client/build/dist
+          path: gradle-client/build/compose/binaries/main-release/dmg
           if-no-files-found: error
   build_windows:
     if: false # Needs Gradle 8.8

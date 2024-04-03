@@ -21,3 +21,16 @@ Building release distributables will fail if the required JDK tools are not avai
 ```
 
 To add more actions start from [GetModelAction.kt](./gradle-client/src/jvmMain/kotlin/org/gradle/client/ui/connected/actions/GetModelAction.kt).
+
+Packaging is platform dependent:
+
+```shell
+# Package DMG on MacOS
+./gradlew :gradle-client:packageReleaseDmg
+
+# Package DEB on Linux
+./gradlew :gradle-client:packageReleaseDeb
+
+# Package MSI on Windows
+./gradlew :gradle-client:packageReleaseMsi
+```
