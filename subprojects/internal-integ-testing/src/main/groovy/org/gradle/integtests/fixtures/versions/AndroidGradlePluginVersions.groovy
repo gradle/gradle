@@ -85,27 +85,18 @@ class AndroidGradlePluginVersions {
     }
 
     List<String> getLatestsPlusNightly() {
-        // 8.2.0-dev is somehow very slow and blocking developer feedback build
-        // Disable for now: https://github.com/gradle/gradle-private/issues/3966
-        return ([latests, nightlies].flatten() as List<String>) - ['8.2.0-dev', '8.3.0-dev']
-    }
-
-    List<String> getLatestsFromMinor(String lowerBound) {
-        assert lowerBound.matches("^[0-9]+\\.[0-9]+\$")
-        def withBound = (latests + lowerBound).sort()
-        return withBound.subList(withBound.indexOf(lowerBound) + 1, withBound.size())
-    }
-
-    String getLatestOfMinor(String lowerBound) {
-        return getLatestsFromMinor(lowerBound).first()
-    }
-
-    List<String> getLatestsFromMinorPlusNightly(String lowerBound) {
-        return [getLatestsFromMinor(lowerBound), nightlies].flatten() as List<String>
+        return [latests, nightlies].flatten() as List<String>
     }
 
     boolean isAgpNightly(String agpVersion) {
         return agpVersion in nightlies
+    }
+
+    /**
+     * Determines if the provided version is older than the most recent tested stable.
+     */
+    boolean isOld(String agpVersion) {
+        VersionNumber.parse(agpVersion) < VersionNumber.parse(latestStable)
     }
 
     File createAgpNightlyRepositoryInitScript() {

@@ -131,7 +131,7 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest {
 
         when: 'running the build for the 1st time'
         beforeAndroidBuild(runner)
-        def result = runnerWithDeprecations(runner, agpVersion, kotlinVersionNumber).build()
+        def result = runnerFor(runner, agpVersion, kotlinVersionNumber).build()
 
         then:
         result.task(":app:$taskName").outcome == TaskOutcome.SUCCESS
@@ -142,11 +142,7 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest {
         }
 
         when: 'running the build for the 2nd time'
-        result = (
-            GradleContextualExecuter.isConfigCache()
-                ? runner
-                : runnerWithDeprecations(runner, agpVersion, kotlinVersionNumber)
-        ).build()
+        result = runnerFor(runner, agpVersion, kotlinVersionNumber).build()
 
         then:
         result.task(":app:$taskName").outcome == TaskOutcome.UP_TO_DATE
@@ -195,24 +191,11 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest {
         )
     }
 
-    private SmokeTestGradleRunner runnerWithDeprecations(
+    private SmokeTestGradleRunner runnerFor(
         SmokeTestGradleRunner runner,
         String agpVersion,
         VersionNumber kotlinVersionNumber
     ) {
-        runner.deprecations(KotlinAndroidDeprecations) {
-            if (GradleContextualExecuter.configCache) {
-                expectForUseAtConfigurationTimeDeprecation(kotlinVersionNumber)
-            }
-            expectOrgGradleUtilWrapUtilDeprecation(kotlinVersionNumber)
-            maybeExpectOrgGradleUtilGUtilDeprecation(agpVersion)
-            expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
-            maybeExpectConventionTypeDeprecation(kotlinVersionNumber)
-            expectAndroidConventionTypeDeprecationWarning(agpVersion)
-            expectBasePluginConventionDeprecation(agpVersion)
-            expectBasePluginExtensionArchivesBaseNameDeprecation(kotlinVersionNumber, VersionNumber.parse(agpVersion))
-            expectClientModuleDeprecationWarning(agpVersion)
-            expectConfigurationMutationDeprecationWarnings(agpVersion, [":app:debugCompileClasspath"])
-        }
+        runner.ignoreDeprecationWarningsIf(AGP_VERSIONS.isOld(agpVersion) || KOTLIN_VERSIONS.isOld(kotlinVersionNumber), "Old version of AGP or KGP")
     }
 }
