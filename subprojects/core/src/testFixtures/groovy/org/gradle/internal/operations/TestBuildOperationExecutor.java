@@ -72,6 +72,12 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
         throw new UnsupportedOperationException();
     }
 
+    @Deprecated
+    @Override
+    public BuildOperationRef getCurrentOperation() {
+        throw new UnsupportedOperationException();
+    }
+
     public static class TestBuildOperationQueue<O extends RunnableBuildOperation> implements BuildOperationQueue<O> {
 
         public final BuildOperationRunner runner;
