@@ -1,5 +1,6 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.compose.desktop.application.tasks.AbstractJPackageTask
+import java.time.Year
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -7,6 +8,12 @@ plugins {
     alias(libs.plugins.jetbrainsCompose)
     alias(libs.plugins.sqldelight)
 }
+
+val appCodeName = project.name
+val appName = "GradleClient"
+val appDisplayName = "Gradle Client"
+val appQualifiedName = "org.gradle.client"
+val appUUID = file("app-uuid.txt").readText().trim()
 
 kotlin {
     jvm()
@@ -88,9 +95,11 @@ compose.desktop {
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = project.name
+            packageName = appName
             packageVersion = project.version.toString()
+            description = appDisplayName
             vendor = "Gradle"
+            copyright = "© ${Year.now()} the original author or authors."
             appResourcesRootDir = layout.projectDirectory.dir("src/assets")
             jvmArgs += "-splash:${'$'}APPDIR/resources/splash.png"
             modules(
@@ -98,9 +107,22 @@ compose.desktop {
                 "java.naming",
                 "java.sql",
             )
+            linux {
+                iconFile = layout.projectDirectory.file("src/assets/desktop/icon.png")
+            }
             macOS {
-                dockName = "Gradle Client"
                 appStore = false
+                bundleID = appQualifiedName
+                dockName = appDisplayName
+                iconFile = layout.projectDirectory.file("src/assets/desktop/icon.icns")
+            }
+            windows {
+                menu = true
+                menuGroup = "" // root
+                perUserInstall = true
+                // https://wixtoolset.org/documentation/manual/v3/howtos/general/generate_guids.html
+                upgradeUuid = appUUID
+                iconFile = layout.projectDirectory.file("src/assets/desktop/icon.ico")
             }
         }
     }
