@@ -1,7 +1,13 @@
 name: CI
 on: push
 jobs:
+  validate_wrapper:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: gradle/wrapper-validation-action@v2
   check_linux:
+    needs: validate_wrapper
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -10,6 +16,9 @@ jobs:
           distribution: temurin
           java-version: 17
       - uses: gradle/actions/setup-gradle@v3
+        with:
+          add-job-summary: on-failure
+          add-job-summary-as-pr-comment: on-failure
       - run: ./gradlew --stacktrace --scan check
   check_macos:
     needs: check_linux
@@ -21,6 +30,9 @@ jobs:
           distribution: temurin
           java-version: 17
       - uses: gradle/actions/setup-gradle@v3
+        with:
+          add-job-summary: on-failure
+          add-job-summary-as-pr-comment: on-failure
       - run: ./gradlew --stacktrace --scan check
   check_windows:
     if: false # Needs Gradle 8.8
@@ -33,6 +45,9 @@ jobs:
           distribution: temurin
           java-version: 17
       - uses: gradle/actions/setup-gradle@v3
+        with:
+          add-job-summary: on-failure
+          add-job-summary-as-pr-comment: on-failure
       - run: ./gradlew --stacktrace --scan check
   build_linux:
     needs: check_linux
@@ -44,6 +59,9 @@ jobs:
           distribution: temurin
           java-version: 17
       - uses: gradle/actions/setup-gradle@v3
+        with:
+          add-job-summary: on-failure
+          add-job-summary-as-pr-comment: on-failure
       - run: ./gradlew --stacktrace --scan packageReleaseDeb
       - uses: actions/upload-artifact@v4
         with:
@@ -60,6 +78,9 @@ jobs:
           distribution: temurin
           java-version: 17
       - uses: gradle/actions/setup-gradle@v3
+        with:
+          add-job-summary: on-failure
+          add-job-summary-as-pr-comment: on-failure
       - run: ./gradlew --stacktrace --scan packageReleaseDmg
       - uses: actions/upload-artifact@v4
         with:
@@ -77,6 +98,9 @@ jobs:
           distribution: temurin
           java-version: 17
       - uses: gradle/actions/setup-gradle@v3
+        with:
+          add-job-summary: on-failure
+          add-job-summary-as-pr-comment: on-failure
       - run: ./gradlew --stacktrace --scan packageReleaseMsi
       - uses: actions/upload-artifact@v4
         with:
