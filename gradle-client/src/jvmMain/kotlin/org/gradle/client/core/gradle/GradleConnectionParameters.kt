@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class GradleConnectionParameters(
     val rootDir: String,
-    val javaHome: String,
+    val javaHomeDir: String?,
+    val gradleUserHomeDir: String?,
     val distribution: GradleDistribution,
 )

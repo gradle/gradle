@@ -21,7 +21,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
@@ -123,7 +122,6 @@ private fun ConnectedMainContent(component: ConnectedComponent, model: Connectio
                         Icon(Icons.Default.ArrowDownward, "Bottom")
                     }
                 }
-
             }
         },
         sheetContent = {

@@ -2,31 +2,38 @@ package org.gradle.client.ui.build
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import kotlinx.coroutines.launch
 import org.gradle.client.core.gradle.GradleConnectionParameters
-import org.gradle.client.ui.composables.BackIcon
-import org.gradle.client.ui.composables.Loading
-import org.gradle.client.ui.composables.PathChooserDialog
-import org.gradle.client.ui.composables.PlainTextTooltip
 import org.gradle.client.core.gradle.GradleDistribution
+import org.gradle.client.ui.composables.BackIcon
+import org.gradle.client.ui.composables.DirChooserDialog
+import org.gradle.client.ui.composables.Loading
+import org.gradle.client.ui.composables.PlainTextTooltip
 import org.gradle.client.ui.theme.plusPaneSpacing
+import java.io.File
 
 @Composable
 fun BuildContent(component: BuildComponent) {
+    val snackbarHostState = remember { SnackbarHostState() }
     Scaffold(
-        topBar = { TopBar(component) }
+        topBar = { TopBar(component) },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { scaffoldPadding ->
         Surface(modifier = Modifier.padding(scaffoldPadding.plusPaneSpacing())) {
             val model by component.model.subscribeAsState()
             when (val current = model) {
                 BuildModel.Loading -> Loading()
-                is BuildModel.Loaded -> BuildMainContent(component, current)
+                is BuildModel.Loaded -> BuildMainContent(component, current, snackbarHostState)
             }
         }
     }
@@ -42,22 +49,45 @@ enum class GradleDistSource(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun BuildMainContent(component: BuildComponent, model: BuildModel.Loaded) {
+private fun BuildMainContent(
+    component: BuildComponent,
+    model: BuildModel.Loaded,
+    snackbarHostState: SnackbarHostState,
+) {
 
-    var javaHome by remember { mutableStateOf(System.getenv("JAVA_HOME") ?: "") }
-    var gradleDistSource by remember { mutableStateOf(GradleDistSource.DEFAULT) }
-    var gradleDistVersion by remember { mutableStateOf("") }
-    var gradleDistLocalDir by remember { mutableStateOf("") }
+    val scope = rememberCoroutineScope()
 
-    val isJavaHomeValid by derivedStateOf { javaHome.isNotBlank() }
-    val isGradleDistVersionValid by derivedStateOf { gradleDistVersion.isNotBlank() }
-    val isGradleDistLocalDirValid by derivedStateOf { gradleDistLocalDir.isNotBlank() }
-    val isCanConnect by derivedStateOf {
-        isJavaHomeValid && when (gradleDistSource) {
-            GradleDistSource.DEFAULT -> true
-            GradleDistSource.VERSION -> isGradleDistVersionValid
-            GradleDistSource.LOCAL -> isGradleDistLocalDirValid
+    var javaHome by rememberSaveable { mutableStateOf("") }
+    var gradleUserHome by rememberSaveable { mutableStateOf("") }
+    var gradleDistSource by rememberSaveable { mutableStateOf(GradleDistSource.DEFAULT) }
+    var gradleDistVersion by rememberSaveable { mutableStateOf("") }
+    var gradleDistLocalDir by rememberSaveable { mutableStateOf("") }
+
+    val isJavaHomeValid by derivedStateOf {
+        javaHome.isBlank() || File(javaHome).let {
+            it.isDirectory && it.resolve("bin").listFiles { file ->
+                file.nameWithoutExtension == "java"
+            }?.isNotEmpty() ?: false
         }
+    }
+    val isGradleUserHomeValid by derivedStateOf {
+        gradleUserHome.isBlank() || File(gradleUserHome).let { !it.exists() || it.isDirectory }
+    }
+    val isGradleDistVersionValid by derivedStateOf {
+        gradleDistVersion.isNotBlank()
+    }
+    val isGradleDistLocalDirValid by derivedStateOf {
+        gradleDistLocalDir.isNotBlank() && File(gradleDistLocalDir).resolve("bin").listFiles { file ->
+            file.nameWithoutExtension == "gradle"
+        }?.isNotEmpty() ?: false
+    }
+    val isCanConnect by derivedStateOf {
+        isJavaHomeValid && isGradleUserHomeValid &&
+                when (gradleDistSource) {
+                    GradleDistSource.DEFAULT -> true
+                    GradleDistSource.VERSION -> isGradleDistVersionValid
+                    GradleDistSource.LOCAL -> isGradleDistLocalDirValid
+                }
     }
 
     Column(
@@ -75,28 +105,77 @@ private fun BuildMainContent(component: BuildComponent, model: BuildModel.Loaded
         OutlinedTextField(
             modifier = Modifier.fillMaxWidth(),
             value = javaHome,
+            readOnly = false,
             onValueChange = { javaHome = it },
             label = { Text("Java Home") },
+            placeholder = { Text(System.getenv("JAVA_HOME") ?: "", color = Color.Gray) },
             isError = !isJavaHomeValid,
             trailingIcon = {
-                val helpText = "Select a java executable"
-                var isPathChooserOpen by remember { mutableStateOf(false) }
-                if (isPathChooserOpen) {
-                    PathChooserDialog(
+                val helpText = "Select a Java home"
+                var isDirChooserOpen by remember { mutableStateOf(false) }
+                if (isDirChooserOpen) {
+                    DirChooserDialog(
                         helpText = helpText,
-                        selectableFilter = { path -> path.isFile && path.nameWithoutExtension == "java" },
-                        choiceMapper = { path -> path.parentFile.parentFile },
-                        onPathChosen = { path ->
-                            isPathChooserOpen = false
-                            if (path != null) {
-                                javaHome = path.absolutePath
+                        showHiddenFiles = true,
+                        onDirChosen = { dir ->
+                            isDirChooserOpen = false
+                            if (dir == null) {
+                                scope.launch { snackbarHostState.showSnackbar("No Java home selected") }
+                            } else {
+                                javaHome = dir.absolutePath
                             }
                         }
                     )
                 }
-                PlainTextTooltip(helpText) {
-                    IconButton(onClick = { isPathChooserOpen = true }) {
-                        Icon(Icons.Default.Folder, helpText)
+                Row {
+                    IconButton(
+                        enabled = javaHome.isNotBlank(),
+                        onClick = { javaHome = "" },
+                        content = { Icon(Icons.Default.Clear, "Clear") }
+                    )
+                    PlainTextTooltip(helpText) {
+                        IconButton(onClick = { isDirChooserOpen = true }) {
+                            Icon(Icons.Default.Folder, helpText)
+                        }
+                    }
+                }
+            }
+        )
+        OutlinedTextField(
+            modifier = Modifier.fillMaxWidth(),
+            value = gradleUserHome,
+            readOnly = false,
+            onValueChange = { gradleUserHome = it },
+            label = { Text("Gradle User Home") },
+            placeholder = { Text(System.getProperty("user.home") + "/.gradle", color = Color.Gray) },
+            isError = !isGradleUserHomeValid,
+            trailingIcon = {
+                val helpText = "Select a Gradle user home"
+                var isDirChooserOpen by remember { mutableStateOf(false) }
+                if (isDirChooserOpen) {
+                    DirChooserDialog(
+                        helpText = helpText,
+                        showHiddenFiles = true,
+                        onDirChosen = { dir ->
+                            isDirChooserOpen = false
+                            if (dir == null) {
+                                scope.launch { snackbarHostState.showSnackbar("No Gradle user home selected") }
+                            } else {
+                                gradleUserHome = dir.absolutePath
+                            }
+                        }
+                    )
+                }
+                Row {
+                    IconButton(
+                        enabled = gradleUserHome.isNotBlank(),
+                        onClick = { gradleUserHome = "" },
+                        content = { Icon(Icons.Default.Clear, "Clear") }
+                    )
+                    PlainTextTooltip(helpText) {
+                        IconButton(onClick = { isDirChooserOpen = true }) {
+                            Icon(Icons.Default.Folder, helpText)
+                        }
                     }
                 }
             }
@@ -178,24 +257,31 @@ private fun BuildMainContent(component: BuildComponent, model: BuildModel.Loaded
                     label = { Text("Local installation path") },
                     isError = !isGradleDistLocalDirValid,
                     trailingIcon = {
-                        val helpText = "Select a gradle executable"
-                        var isPathChooserOpen by remember { mutableStateOf(false) }
-                        if (isPathChooserOpen) {
-                            PathChooserDialog(
+                        val helpText = "Select a Gradle installation"
+                        var isDirChooserOpen by remember { mutableStateOf(false) }
+                        if (isDirChooserOpen) {
+                            DirChooserDialog(
                                 helpText = helpText,
-                                selectableFilter = { path -> path.isFile && path.nameWithoutExtension == "gradle" },
-                                choiceMapper = { path -> path.parentFile.parentFile },
-                                onPathChosen = { path ->
-                                    isPathChooserOpen = false
-                                    if (path != null) {
-                                        gradleDistLocalDir = path.absolutePath
+                                onDirChosen = { dir ->
+                                    isDirChooserOpen = false
+                                    if (dir == null) {
+                                        scope.launch { snackbarHostState.showSnackbar("No Gradle installation selected") }
+                                    } else {
+                                        gradleDistLocalDir = dir.absolutePath
                                     }
                                 }
                             )
                         }
-                        PlainTextTooltip(helpText) {
-                            IconButton(onClick = { isPathChooserOpen = true }) {
-                                Icon(Icons.Default.Folder, helpText)
+                        Row {
+                            IconButton(
+                                enabled = gradleDistLocalDir.isNotBlank(),
+                                onClick = { gradleDistLocalDir = "" },
+                                content = { Icon(Icons.Default.Clear, "Clear") }
+                            )
+                            PlainTextTooltip(helpText) {
+                                IconButton(onClick = { isDirChooserOpen = true }) {
+                                    Icon(Icons.Default.Folder, helpText)
+                                }
                             }
                         }
                     }
@@ -209,9 +295,10 @@ private fun BuildMainContent(component: BuildComponent, model: BuildModel.Loaded
             onClick = {
                 component.onConnectClicked(
                     GradleConnectionParameters(
-                        model.build.rootDir.absolutePath,
-                        javaHome,
-                        when (gradleDistSource) {
+                        rootDir = model.build.rootDir.absolutePath,
+                        javaHomeDir = javaHome.takeIf { it.isNotBlank() },
+                        gradleUserHomeDir = gradleUserHome.takeIf { it.isNotBlank() },
+                        distribution = when (gradleDistSource) {
                             GradleDistSource.DEFAULT -> GradleDistribution.Default
                             GradleDistSource.VERSION -> GradleDistribution.Version(gradleDistVersion)
                             GradleDistSource.LOCAL -> GradleDistribution.Local(gradleDistLocalDir)

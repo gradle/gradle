@@ -15,18 +15,21 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import kotlinx.coroutines.launch
 import org.gradle.client.core.Constants.APPLICATION_DISPLAY_NAME
 import org.gradle.client.core.database.Build
+import org.gradle.client.ui.composables.DirChooserDialog
 import org.gradle.client.ui.composables.Loading
-import org.gradle.client.ui.composables.PathChooserDialog
 import org.gradle.client.ui.composables.PlainTextTooltip
 import org.gradle.client.ui.theme.plusPaneSpacing
 
 @Composable
 fun BuildListContent(component: BuildListComponent) {
+    val snackbarHostState = remember { SnackbarHostState() }
     Scaffold(
         topBar = { TopBar() },
-        floatingActionButton = { AddBuildButton(component) },
+        floatingActionButton = { AddBuildButton(component, snackbarHostState) },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { scaffoldPadding ->
         Surface(Modifier.padding(scaffoldPadding.plusPaneSpacing())) {
             val model by component.model.subscribeAsState()
@@ -89,21 +92,25 @@ private fun TopBar() {
 }
 
 @Composable
-private fun AddBuildButton(component: BuildListComponent) {
-    var isPathChooserOpen by remember { mutableStateOf(false) }
-    if (isPathChooserOpen) {
-        PathChooserDialog(
+private fun AddBuildButton(component: BuildListComponent, snackbarHostState: SnackbarHostState) {
+    val scope = rememberCoroutineScope()
+    var isDirChooserOpen by remember { mutableStateOf(false) }
+    if (isDirChooserOpen) {
+        DirChooserDialog(
             helpText = addBuildHelpText,
-            selectableFilter = { path ->
-                path.isFile && path.name.startsWith("settings.gradle")
-            },
-            choiceMapper = { path ->
-                path.parentFile
-            },
-            onPathChosen = { rootDir ->
-                isPathChooserOpen = false
-                if (rootDir != null) {
-                    component.onNewBuildRootDirChosen(rootDir)
+            onDirChosen = { rootDir ->
+                isDirChooserOpen = false
+                if (rootDir == null) {
+                    scope.launch { snackbarHostState.showSnackbar("No build selected") }
+                } else {
+                    val valid = rootDir.listFiles { file ->
+                        file.name.startsWith("settings.gradle")
+                    }?.isNotEmpty() ?: false
+                    if (!valid) {
+                        scope.launch { snackbarHostState.showSnackbar("Directory is not a Gradle build!") }
+                    } else {
+                        component.onNewBuildRootDirChosen(rootDir)
+                    }
                 }
             }
         )
@@ -112,9 +119,9 @@ private fun AddBuildButton(component: BuildListComponent) {
         ExtendedFloatingActionButton(
             icon = { Icon(Icons.Default.Add, "") },
             text = { Text(text = "Add build", Modifier.testTag("add_build")) },
-            onClick = { isPathChooserOpen = true },
+            onClick = { isDirChooserOpen = true },
         )
     }
 }
 
-private const val addBuildHelpText = "Choose a Gradle settings script"
+private const val addBuildHelpText = "Choose a Gradle build directory"

@@ -19,3 +19,5 @@ Building release distributables will fail if the required JDK tools are not avai
 # Run release build type from build installation
 ./gradlew :gradle-client:runReleaseDistributable
 ```
+
+To add more actions start from [GetModelAction.kt](./gradle-client/src/jvmMain/kotlin/org/gradle/client/ui/connected/actions/GetModelAction.kt).

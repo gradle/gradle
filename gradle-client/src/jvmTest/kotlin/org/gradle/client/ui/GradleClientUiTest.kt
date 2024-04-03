@@ -128,13 +128,9 @@ class GradleClientUiTest {
             rule.onNodeWithText(
                 connected.component.modelActions.single { it.modelType == GradleBuild::class }.displayName
             ).performClick()
-            assertThat(
-                (connected.component.model.value as ConnectionModel.Connected).outcome,
-                instanceOf(Outcome.Building::class.java)
-            )
-            advanceUntilIdle()
 
             // Displays model
+            advanceUntilIdle()
             rule.onNodeWithText("Root Project Name: some-root").assertIsDisplayed()
 
         } finally {

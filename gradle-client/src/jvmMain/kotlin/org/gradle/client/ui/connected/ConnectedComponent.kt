@@ -73,8 +73,14 @@ class ConnectedComponent(
         val connector = GradleConnector.newConnector()
             .forProjectDirectory(File(parameters.rootDir))
             .let { c ->
+                when (parameters.gradleUserHomeDir) {
+                    null -> c
+                    else -> c.useGradleUserHomeDir(File(parameters.gradleUserHomeDir))
+                }
+            }
+            .let { c ->
                 when (parameters.distribution) {
-                    GradleDistribution.Default -> c
+                    GradleDistribution.Default -> c.useBuildDistribution()
                     is GradleDistribution.Local -> c.useInstallation(File(parameters.distribution.installDir))
                     is GradleDistribution.Version -> c.useGradleVersion(parameters.distribution.version)
                 }
@@ -107,6 +113,12 @@ class ConnectedComponent(
                     logger.atDebug().log { "Get ${modelType.simpleName} model!" }
                     try {
                         val result = connection.model(modelType.java)
+                            .let { b ->
+                                when (parameters.javaHomeDir) {
+                                    null -> b
+                                    else -> b.addArguments("-Dorg.gradle.java.home=${parameters.javaHomeDir}")
+                                }
+                            }
                             .addProgressListener(
                                 newEventListener(),
                                 OperationType.entries.toSet() - OperationType.GENERIC
