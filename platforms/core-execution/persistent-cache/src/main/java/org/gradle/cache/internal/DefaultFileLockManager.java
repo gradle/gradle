@@ -35,8 +35,6 @@ import org.gradle.cache.internal.locklistener.FileLockContentionHandler;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.internal.id.IdGenerator;
-import org.gradle.internal.id.RandomLongIdGenerator;
 import org.gradle.internal.io.ExponentialBackoff;
 import org.gradle.internal.io.IOQuery;
 import org.gradle.util.internal.GFileUtils;
@@ -45,12 +43,14 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
+import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -66,7 +66,7 @@ public class DefaultFileLockManager implements FileLockManager {
     private final Set<File> lockedFiles = new CopyOnWriteArraySet<>();
     private final ProcessMetaDataProvider metaDataProvider;
     private final int lockTimeoutMs;
-    private final IdGenerator<Long> generator;
+    private final LongSupplier generator;
     private final FileLockContentionHandler fileLockContentionHandler;
     private final int shortTimeoutMs = 10000;
 
@@ -79,12 +79,22 @@ public class DefaultFileLockManager implements FileLockManager {
     }
 
     DefaultFileLockManager(ProcessMetaDataProvider metaDataProvider, int lockTimeoutMs, FileLockContentionHandler fileLockContentionHandler,
-                           IdGenerator<Long> generator) {
+                           LongSupplier generator) {
         this.metaDataProvider = metaDataProvider;
         this.lockTimeoutMs = lockTimeoutMs;
         this.fileLockContentionHandler = fileLockContentionHandler;
         this.generator = generator;
     }
+
+    private static class RandomLongIdGenerator implements LongSupplier {
+        private final Random random = new Random();
+
+        @Override
+        public long getAsLong() {
+            return random.nextLong();
+        }
+    }
+
 
     @Override
     public FileLock lock(File target, LockOptions options, String targetDisplayName) throws LockTimeoutException {
@@ -136,7 +146,7 @@ public class DefaultFileLockManager implements FileLockManager {
 
         public DefaultFileLock(File target, LockOptions options, String displayName, String operationDisplayName, int port, Consumer<FileLockReleasedSignal> whenContended) throws Throwable {
             this.port = port;
-            this.lockId = generator.generateId();
+            this.lockId = generator.getAsLong();
             if (options.getMode() == LockMode.OnDemand) {
                 throw new UnsupportedOperationException("Locking mode OnDemand is not supported.");
             }
