@@ -23,6 +23,7 @@ jobs:
       - uses: gradle/actions/setup-gradle@v3
       - run: ./gradlew --stacktrace --scan check
   check_windows:
+    if: false # Needs Gradle 8.8
     needs: check_linux
     runs-on: windows-latest
     steps:
@@ -66,6 +67,7 @@ jobs:
           path: gradle-client/build/dist
           if-no-files-found: error
   build_windows:
+    if: false # Needs Gradle 8.8
     needs: check_windows
     runs-on: windows-latest
     steps:
