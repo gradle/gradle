@@ -1746,7 +1746,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractValidatePluginsIntegra
 
         and:
         verifyAll(receivedProblem) {
-            fqid == 'deprecation:deprecated-feature-used'
+            fqid == 'deprecation:missing-java-toolchain-plugin'
             contextualLabel == 'Using task ValidatePlugins without applying the Java Toolchain plugin. This behavior has been deprecated.'
         }
 
