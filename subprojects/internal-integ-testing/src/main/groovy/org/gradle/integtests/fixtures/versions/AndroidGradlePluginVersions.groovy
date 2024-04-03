@@ -32,6 +32,9 @@ import static org.junit.Assume.assumeTrue
  */
 class AndroidGradlePluginVersions {
 
+    // TODO: This property appears to have been removed.
+    // We probably don't need to set this anymore. See:
+    // https://cs.android.com/android-studio/platform/tools/base/+/mirror-goog-studio-main:build-system/gradle-core/src/main/java/com/android/build/gradle/options/ReplacedOption.kt;l=54-59
     public static final String OVERRIDE_VERSION_CHECK = '-Dcom.android.build.gradle.overrideVersionCheck=true'
 
     private static final VersionNumber AGP_8_0 = VersionNumber.parse('8.0.0')

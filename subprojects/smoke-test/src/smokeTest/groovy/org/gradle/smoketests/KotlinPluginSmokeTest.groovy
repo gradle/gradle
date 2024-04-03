@@ -46,14 +46,14 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         useSample("kotlin-example")
         replaceVariablesInBuildFile(kotlinVersion: version)
         when:
-        def result = runner(parallelTasksInProject, kotlinPluginVersion, 'run').build()
+        def result = kgpRunner(parallelTasksInProject, kotlinPluginVersion, 'run').build()
 
         then:
         result.task(':compileKotlin').outcome == SUCCESS
         assert result.output.contains("Hello world!")
 
         when:
-        result = runner(parallelTasksInProject, kotlinPluginVersion, 'run').build()
+        result = kgpRunner(parallelTasksInProject, kotlinPluginVersion, 'run').build()
 
         then:
         result.task(':compileKotlin').outcome == UP_TO_DATE
@@ -62,7 +62,7 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         where:
         [version, parallelTasksInProject] << [
             TestedVersions.kotlin.versions,
-            ParallelTasksInProject.values()
+            [true, false]
         ].combinations()
     }
 
@@ -110,7 +110,7 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         }
 
         when:
-        def result = runner(ParallelTasksInProject.FALSE, kotlinPluginVersion, 'test', 'integTest')
+        def result = kgpRunner(false, kotlinPluginVersion, 'test', 'integTest')
             .deprecations(KotlinDeprecations) {
                 runner.expectLegacyDeprecationWarning("Mutating dependency DefaultExternalModuleDependency{group='org.jetbrains.kotlin', name='kotlin-test-junit5', version='null', configuration='default'} after it has been finalized has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#dependency_mutate_dependency_collector_after_finalize")
             }.build()
@@ -135,7 +135,7 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         withKotlinBuildFile()
         replaceVariablesInBuildFile(kotlinVersion: version)
         when:
-        def result = runner(parallelTasksInProject, kotlinPluginVersion, 'compileKotlin2Js').build()
+        def result = kgpRunner(parallelTasksInProject, kotlinPluginVersion, 'compileKotlin2Js').build()
 
         then:
         result.task(':compileKotlin2Js').outcome == SUCCESS
@@ -143,7 +143,7 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         where:
         [version, parallelTasksInProject] << [
             TestedVersions.kotlin.versions,
-            ParallelTasksInProject.values()
+            [true, false]
         ].combinations()
     }
 
@@ -179,10 +179,9 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         file("src/main/groovy/Groovy.groovy") << "class Groovy { }"
         file("src/main/kotlin/Kotlin.kt") << "class Kotlin { val groovy = Groovy() }"
         file("src/main/java/Java.java") << "class Java { private Kotlin kotlin = new Kotlin(); }" // dependency to compileJava->compileKotlin is added by Kotlin plugin
-        def parallelTasksInProject = ParallelTasksInProject.FALSE
 
         when:
-        def result = runner(parallelTasksInProject, kotlinPluginVersion, 'compileJava').build()
+        def result = kgpRunner(false, kotlinPluginVersion, 'compileJava').build()
 
         then:
         result.task(':compileJava').outcome == SUCCESS
@@ -220,13 +219,13 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         """
         file("src/main/kotlin/Kotlin.kt") << "class Kotlin { }"
         when:
-        def result = runner(ParallelTasksInProject.FALSE, kotlinPluginVersion, 'build').build()
+        def result = kgpRunner(false, kotlinPluginVersion, 'build').build()
 
         then:
         result.task(':compileKotlin').outcome == SUCCESS
 
         when:
-        result = runner(ParallelTasksInProject.FALSE, kotlinPluginVersion, 'build').build()
+        result = kgpRunner(false, kotlinPluginVersion, 'build').build()
 
         then:
         result.task(':compileKotlin').outcome == UP_TO_DATE

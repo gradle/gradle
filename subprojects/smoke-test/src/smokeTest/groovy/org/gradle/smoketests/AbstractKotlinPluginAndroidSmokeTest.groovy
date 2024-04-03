@@ -30,13 +30,13 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
  * This test exists to avoid duplicating test logic for Groovy and Kotlin DSLs.
  */
 @LocalOnly(because = "Needs Android environment")
-abstract class AbstractKotlinPluginAndroidSmokeTest extends AbstractSmokeTest implements KotlinRunnerFactory {
+abstract class AbstractKotlinPluginAndroidSmokeTest extends AbstractSmokeTest implements RunnerFactory {
     abstract String getSampleName()
     abstract GradleDsl getDSL()
 
     VersionNumber kotlinPluginVersion
 
-    def "kotlin android on android-kotlin-example using #dsl DSL (kotlin=#kotlinPluginVersion, agp=#androidPluginVersion, workers=#parallelTasksInProject)"(String kotlinPluginVersion, String androidPluginVersion, ParallelTasksInProject parallelTasksInProject) {
+    def "kotlin android on android-kotlin-example using #dsl DSL (kotlin=#kotlinPluginVersion, agp=#androidPluginVersion, workers=#parallel)"(String kotlinPluginVersion, String androidPluginVersion, boolean parallel) {
         given:
         AndroidHome.assertIsSet()
         AGP_VERSIONS.assumeAgpSupportsCurrentJavaVersionAndKotlinVersion(androidPluginVersion, kotlinPluginVersion)
@@ -54,10 +54,7 @@ abstract class AbstractKotlinPluginAndroidSmokeTest extends AbstractSmokeTest im
         def kotlinPluginVersionNumber = VersionNumber.parse(kotlinPluginVersion)
 
         when:
-        def runner = runner(parallelTasksInProject, kotlinPluginVersionNumber, 'clean', ":app:testDebugUnitTestCoverage")
-        def result = useAgpVersion(androidPluginVersion, runner)
-            .ignoreDeprecationWarningsIf(KOTLIN_VERSIONS.isOld(kotlinPluginVersion), "KGP version")
-            .build()
+        def result = mixedRunner(parallel, androidPluginVersion, kotlinPluginVersionNumber, 'clean', ":app:testDebugUnitTestCoverage").build()
 
         then:
         result.task(':app:testDebugUnitTestCoverage').outcome == SUCCESS
@@ -69,10 +66,10 @@ abstract class AbstractKotlinPluginAndroidSmokeTest extends AbstractSmokeTest im
 //        androidPluginVersion = TestedVersions.androidGradle.versions.last()
 //        parallelTasksInProject = ParallelTasksInProject.FALSE
 
-        [kotlinPluginVersion, androidPluginVersion, parallelTasksInProject] << [
+        [kotlinPluginVersion, androidPluginVersion, parallel] << [
                 TestedVersions.kotlin.versions,
                 TestedVersions.androidGradle.versions,
-                ParallelTasksInProject.values(),
+                [true, false]
         ].combinations()
 
         dsl = getDSL().name()

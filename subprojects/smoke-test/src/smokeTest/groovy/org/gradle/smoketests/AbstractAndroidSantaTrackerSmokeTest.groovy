@@ -37,7 +37,7 @@ import org.junit.Rule
  * To run your tests against all AGP versions from agp-versions.properties, use higher version of java by setting -PtestJavaVersion=<version>
  * See {@link org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions#assumeCurrentJavaVersionIsSupportedBy() assumeCurrentJavaVersionIsSupportedBy} for more details
  */
-class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
+class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest implements RunnerFactory {
 
     @Rule
     TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
@@ -80,7 +80,7 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
     }
 
     protected SmokeTestGradleRunner runnerForLocation(File projectDir, String agpVersion, String... tasks) {
-        def runnerArgs = [[
+        List<String> runnerArgs = [
             // TODO: the versions of KGP we use still access Task.project from a cacheIf predicate
             // A workaround for this has been added to TaskExecutionAccessCheckers;
             // TODO once we remove it, uncomment the flag below or upgrade AGP
@@ -88,9 +88,10 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
             "-DagpVersion=$agpVersion",
             "-DkotlinVersion=$kotlinVersion",
             "-DjavaVersion=${AGP_VERSIONS.getMinimumJavaVersionFor(agpVersion).majorVersion}",
-            "--stacktrace"],
-        tasks].flatten()
-        def runner = runner(*runnerArgs)
+            "--stacktrace"
+        ] + tasks.toList()
+
+        def runner = agpRunner(agpVersion, *runnerArgs)
             .withProjectDir(projectDir)
             .withTestKitDir(homeDir)
             .forwardOutput()
@@ -107,11 +108,7 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
                 "--add-opens", "jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED"
             )
         }
-        if (AGP_VERSIONS.isAgpNightly(agpVersion)) {
-            def init = AGP_VERSIONS.createAgpNightlyRepositoryInitScript()
-            runner.withArguments([runner.arguments, ['-I', init.canonicalPath]].flatten())
-        }
-        return runner.ignoreDeprecationWarningsIf(AGP_VERSIONS.isOld(agpVersion), "Old version of AGP")
+        runner
     }
 
     protected static boolean verify(BuildResult result, Map<String, TaskOutcome> outcomes) {

@@ -35,7 +35,7 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         replaceCssSupportBlocksInBuildFile(kotlinVersionNumber)
 
         when:
-        def result = runner(ParallelTasksInProject.OMIT, kotlinVersionNumber, ':tasks').build()
+        def result = kgpRunner(false, kotlinVersionNumber, ':tasks').build()
 
         then:
         result.task(':tasks').outcome == SUCCESS
@@ -68,7 +68,7 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         def kotlinVersionNumber = VersionNumber.parse(kotlinVersion)
 
         when:
-        def result = runner(ParallelTasksInProject.OMIT, kotlinVersionNumber, ':tasks').build()
+        def result = kgpRunner(false, kotlinVersionNumber, ':tasks').build()
 
         then:
         result.task(':tasks').outcome == SUCCESS
@@ -117,7 +117,7 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
 
         when:
         def kotlinVersionNumber = VersionNumber.parse(kotlinVersion)
-        def testRunner = runner(ParallelTasksInProject.FALSE, kotlinVersionNumber, ':resolve', '--stacktrace')
+        def testRunner = kgpRunner(false, kotlinVersionNumber, ':resolve', '--stacktrace')
         def result = testRunner.build()
 
         then:

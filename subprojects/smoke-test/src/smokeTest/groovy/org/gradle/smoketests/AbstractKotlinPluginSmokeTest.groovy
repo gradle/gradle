@@ -22,7 +22,7 @@ import org.gradle.internal.reflect.validation.ValidationMessageChecker
 /**
  * Base class for smoke tests for Kotlin and Kotlin Multiplatform plugins.
  */
-abstract class AbstractKotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker, KotlinRunnerFactory {
+abstract class AbstractKotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker, RunnerFactory {
     @Override
     void configureValidation(String testedPluginId, String version) {
         validatePlugins {

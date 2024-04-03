@@ -35,7 +35,7 @@ import static org.gradle.api.problems.Severity.ERROR
  * To run your tests against all AGP versions from agp-versions.properties, use higher version of java by setting -PtestJavaVersion=<version>
  * See {@link org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions#assumeCurrentJavaVersionIsSupportedBy() assumeCurrentJavaVersionIsSupportedBy} for more details
  */
-class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
+class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker, RunnerFactory {
 
     public static final String JAVA_COMPILE_DEPRECATION_MESSAGE = "Extending the JavaCompile task has been deprecated. This is scheduled to be removed in Gradle 7.0. Configure the task instead."
 
@@ -63,7 +63,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         androidLibraryAndApplicationBuild(agpVersion)
 
         and:
-        def runner = useAgpVersion(agpVersion, runner('sourceSets'))
+        def runner = agpRunner(agpVersion, 'sourceSets')
 
         when:
         def result = runner.build()
@@ -88,12 +88,12 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         def abiChange = androidLibraryAndApplicationBuild(agpVersion)
 
         and:
-        def runner = useAgpVersion(agpVersion, runner(
+        def runner = agpRunner(agpVersion,
             'assembleDebug',
             'testDebugUnitTest',
             'connectedDebugAndroidTest',
             "-Pandroid.injected.invoked.from.ide=$ide"
-        ))
+        )
 
         when: 'first build'
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(runner.projectDir, IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
@@ -144,7 +144,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         }
 
         when: 'clean re-build'
-        useAgpVersion(agpVersion, this.runner('clean')).build()
+        agpRunner(agpVersion, 'clean').build()
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(runner.projectDir, IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
         result = runner.build()
 
@@ -164,7 +164,6 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
             [false, true]
         ].combinations()
     }
-
 
     /**
      * @return ABI change runnable
