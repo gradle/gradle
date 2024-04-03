@@ -1142,7 +1142,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         fails "checkDeps"
 
         then:
-        failure.assertHasCause("Could not resolve all task dependencies for configuration ':conf'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':conf'.")
         failure.assertHasCause("""Could not resolve org.utils:impl:1.3.
 Required by:
     project :""")
@@ -1347,7 +1347,7 @@ Required by:
         fails "checkDeps"
 
         then:
-        failure.assertHasCause("Could not resolve all task dependencies for configuration ':conf'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':conf'.")
         failure.assertHasCause("Invalid format: 'foobar'")
     }
 

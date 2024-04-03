@@ -148,7 +148,7 @@ class ArtifactCollectionResultProviderIntegrationTest extends AbstractHttpDepend
 
         then:
         if (FluidDependenciesResolveInterceptor.isFluid()) {
-            failure.assertHasCause("Could not resolve all task dependencies for configuration ':compile'.")
+            failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
         } else {
             failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         }
