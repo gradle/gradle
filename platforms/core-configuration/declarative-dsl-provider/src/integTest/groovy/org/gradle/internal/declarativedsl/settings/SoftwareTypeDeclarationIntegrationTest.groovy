@@ -17,6 +17,7 @@
 package org.gradle.internal.declarativedsl.settings
 
 import groovy.test.NotYetImplemented
+import org.gradle.api.internal.plugins.software.RegistersSoftwareType
 import org.gradle.api.internal.plugins.software.SoftwareType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.plugin.PluginBuilder
@@ -274,13 +275,12 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.api.initialization.Settings;
             import org.gradle.api.internal.SettingsInternal;
             import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
+            import ${RegistersSoftwareType.class.name};
 
+            @RegistersSoftwareType(SoftwareTypeImplPlugin.class, AnotherSoftwareTypeImplPlugin.class)
             abstract public class SoftwareTypeRegistrationPlugin implements Plugin<Settings> {
                 @Override
-                public void apply(Settings target) {
-                    ((SettingsInternal)target).getServices().get(SoftwareTypeRegistry.class).register(SoftwareTypeImplPlugin.class);
-                    ((SettingsInternal)target).getServices().get(SoftwareTypeRegistry.class).register(AnotherSoftwareTypeImplPlugin.class);
-                }
+                public void apply(Settings target) { }
             }
         """
 

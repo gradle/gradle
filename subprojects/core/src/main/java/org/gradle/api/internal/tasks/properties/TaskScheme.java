@@ -18,20 +18,11 @@ package org.gradle.api.internal.tasks.properties;
 
 import org.gradle.api.Task;
 import org.gradle.internal.instantiation.InstantiationScheme;
-import org.gradle.internal.properties.annotations.TypeMetadataStore;
 
-public class TaskScheme implements TypeScheme {
-    private final InstantiationScheme instantiationScheme;
-    private final InspectionScheme inspectionScheme;
+public class TaskScheme extends AbstractTypeScheme {
 
     public TaskScheme(InstantiationScheme instantiationScheme, InspectionScheme inspectionScheme) {
-        this.instantiationScheme = instantiationScheme;
-        this.inspectionScheme = inspectionScheme;
-    }
-
-    @Override
-    public TypeMetadataStore getMetadataStore() {
-        return inspectionScheme.getMetadataStore();
+        super(instantiationScheme, inspectionScheme);
     }
 
     @Override
@@ -39,11 +30,4 @@ public class TaskScheme implements TypeScheme {
         return Task.class.isAssignableFrom(type);
     }
 
-    public InstantiationScheme getInstantiationScheme() {
-        return instantiationScheme;
-    }
-
-    public InspectionScheme getInspectionScheme() {
-        return inspectionScheme;
-    }
 }

@@ -176,7 +176,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                 effectiveProperties.add(property);
             }
         }
-        return new DefaultTypeMetadata(publicType, effectiveProperties.build(), validationContext, propertyAnnotationHandlers);
+        return new DefaultTypeMetadata(publicType, effectiveProperties.build(), validationContext, propertyAnnotationHandlers, annotationMetadata);
     }
 
     private static String toListOfAnnotations(ImmutableSet<Class<? extends Annotation>> classes) {
@@ -192,17 +192,20 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
         private final ImmutableSet<PropertyMetadata> propertiesMetadata;
         private final ReplayingTypeValidationContext validationProblems;
         private final ImmutableMap<Class<? extends Annotation>, ? extends PropertyAnnotationHandler> annotationHandlers;
+        private final TypeAnnotationMetadata typeAnnotationMetadata;
 
         DefaultTypeMetadata(
             Class<?> type,
             ImmutableSet<PropertyMetadata> propertiesMetadata,
             ReplayingTypeValidationContext validationProblems,
-            ImmutableMap<Class<? extends Annotation>, ? extends PropertyAnnotationHandler> annotationHandlers
+            ImmutableMap<Class<? extends Annotation>, ? extends PropertyAnnotationHandler> annotationHandlers,
+            TypeAnnotationMetadata typeAnnotationMetadata
         ) {
             this.type = type;
             this.propertiesMetadata = propertiesMetadata;
             this.validationProblems = validationProblems;
             this.annotationHandlers = annotationHandlers;
+            this.typeAnnotationMetadata = typeAnnotationMetadata;
         }
 
         @Override
@@ -228,6 +231,11 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
         @Override
         public Class<?> getType() {
             return type;
+        }
+
+        @Override
+        public TypeAnnotationMetadata getTypeAnnotationMetadata() {
+            return typeAnnotationMetadata;
         }
     }
 
