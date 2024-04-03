@@ -246,10 +246,15 @@ fun buildInitScriptModel(initScript: File, rootProject: ProjectInternal): NonPro
 private
 fun buildSettingsScriptModel(settingsScript: File, rootProject: Project): NonProjectScriptModel {
     val settings = rootProject.settings
+    val scriptCompilationClassPath = settings.scriptCompilationClassPath
+    val accessorsClassPath = rootProject.serviceOf<ClassPathModeExceptionCollector>().runCatching {
+        settings.accessorsClassPathOf(scriptCompilationClassPath)
+    } ?: AccessorsClassPath.empty
+
     return NonProjectScriptModel(
         settingsScript,
-        settings.scriptCompilationClassPath,
-        sourcePathFor(listOf(settings.buildscript)),
+        scriptCompilationClassPath + accessorsClassPath.bin,
+        sourcePathFor(listOf(settings.buildscript)) + accessorsClassPath.src,
     )
 }
 
