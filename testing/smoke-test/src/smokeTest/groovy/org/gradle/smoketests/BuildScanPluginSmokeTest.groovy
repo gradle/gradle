@@ -140,6 +140,7 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         "3.16",
         "3.16.1",
         "3.16.2",
+        "3.17",
     ]
 
     // Current injection scripts support Develocity plugin 3.3 and above
@@ -338,8 +339,22 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
     }
 
     void usePluginVersion(String version) {
+        def develocityPlugin = VersionNumber.parse(version) >= VersionNumber.parse("3.17")
         def gradleEnterprisePlugin = VersionNumber.parse(version) >= VersionNumber.parse("3.0")
-        if (gradleEnterprisePlugin) {
+        if (develocityPlugin) {
+            settingsFile << """
+                plugins {
+                    id "com.gradle.develocity" version "$version"
+                }
+
+                develocity {
+                    buildScan {
+                        termsOfUseUrl = 'https://gradle.com/help/legal-terms-of-use'
+                        termsOfUseAgree = 'yes'
+                    }
+                }
+            """
+        } else if (gradleEnterprisePlugin) {
             settingsFile << """
                 plugins {
                     id "com.gradle.enterprise" version "$version"
