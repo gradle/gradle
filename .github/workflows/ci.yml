@@ -44,11 +44,11 @@ jobs:
           distribution: temurin
           java-version: 17
       - uses: gradle/actions/setup-gradle@v3
-      - run: ./gradlew --stacktrace --scan packageZip
+      - run: ./gradlew --stacktrace --scan packageReleaseDeb
       - uses: actions/upload-artifact@v4
         with:
           name: linux-distribution
-          path: gradle-client/build/dist
+          path: gradle-client/build/compose/binaries/main-release/deb
           if-no-files-found: error
   build_macos:
     needs: check_macos
@@ -77,9 +77,9 @@ jobs:
           distribution: temurin
           java-version: 17
       - uses: gradle/actions/setup-gradle@v3
-      - run: ./gradlew --stacktrace --scan packageZip
+      - run: ./gradlew --stacktrace --scan packageReleaseMsi
       - uses: actions/upload-artifact@v4
         with:
           name: windows-distribution
-          path: gradle-client/build/dist
+          path: gradle-client/build/compose/binaries/main-release/msi
           if-no-files-found: error
