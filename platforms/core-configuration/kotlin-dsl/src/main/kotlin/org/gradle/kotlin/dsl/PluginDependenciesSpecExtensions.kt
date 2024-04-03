@@ -25,11 +25,27 @@ import org.gradle.plugin.use.PluginDependencySpec
  *
  * Visit the [Build Scan Plugin User Manual](https://docs.gradle.com/build-scan-plugin/) for additional information.
  *
- * By default, the applied plugin version will be the same as the one used by the `--scan` command line option.
+ * By default, the applied plugin version will be "3.16.2", which is the last version of the Gradle Enterprise plugin.
+ * To apply later versions, use `develocity` plugin instead.
  *
  * You can also use e.g. `` `gradle-enterprise` version "3.0" `` to request a different version.
  *
  * @since 6.0
  */
 val PluginDependenciesSpec.`gradle-enterprise`: PluginDependencySpec
+    get() = this.id(AutoAppliedGradleEnterprisePlugin.GRADLE_ENTERPRISE_PLUGIN_ID.id).version(AutoAppliedGradleEnterprisePlugin.LAST_GRADLE_ENTERPRISE_PLUGIN_VERSION)
+
+
+/**
+ * The `develocity` plugin.
+ *
+ * Visit the [Build Scan Plugin User Manual](https://docs.gradle.com/enterprise/gradle-plugin/) for additional information.
+ *
+ * By default, the applied plugin version will be the same as the one used by the `--scan` command line option.
+ *
+ * You can also use e.g. `` `develocity` version "3.17" `` to request a different version.
+ *
+ * @since 8.7
+ */
+val PluginDependenciesSpec.`develocity`: PluginDependencySpec
     get() = this.id(AutoAppliedGradleEnterprisePlugin.ID.id).version(AutoAppliedGradleEnterprisePlugin.VERSION)
