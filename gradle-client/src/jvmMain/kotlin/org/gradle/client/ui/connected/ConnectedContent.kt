@@ -68,6 +68,7 @@ private fun FailureContent(exception: Exception) {
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
+@Suppress("MagicNumber", "LongMethod")
 private fun ConnectedMainContent(component: ConnectedComponent, model: ConnectionModel.Connected) {
     val scope = rememberCoroutineScope()
     val sheetScaffoldState = rememberBottomSheetScaffoldState()
@@ -116,7 +117,9 @@ private fun ConnectedMainContent(component: ConnectedComponent, model: Connectio
                     IconButton(
                         enabled = eventsListState.canScrollForward,
                         onClick = {
-                            scope.launch { eventsListState.animateScrollToItem(eventsListState.layoutInfo.totalItemsCount) }
+                            scope.launch {
+                                eventsListState.animateScrollToItem(eventsListState.layoutInfo.totalItemsCount)
+                            }
                         }
                     ) {
                         Icon(Icons.Default.ArrowDownward, "Bottom")

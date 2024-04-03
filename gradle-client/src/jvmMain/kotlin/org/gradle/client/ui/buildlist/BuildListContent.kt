@@ -25,11 +25,11 @@ import org.gradle.client.ui.theme.plusPaneSpacing
 
 @Composable
 fun BuildListContent(component: BuildListComponent) {
-    val snackbarHostState = remember { SnackbarHostState() }
+    val snackbarState = remember { SnackbarHostState() }
     Scaffold(
         topBar = { TopBar() },
-        floatingActionButton = { AddBuildButton(component, snackbarHostState) },
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        floatingActionButton = { AddBuildButton(component, snackbarState) },
+        snackbarHost = { SnackbarHost(snackbarState) },
     ) { scaffoldPadding ->
         Surface(Modifier.padding(scaffoldPadding.plusPaneSpacing())) {
             val model by component.model.subscribeAsState()
@@ -92,22 +92,22 @@ private fun TopBar() {
 }
 
 @Composable
-private fun AddBuildButton(component: BuildListComponent, snackbarHostState: SnackbarHostState) {
+private fun AddBuildButton(component: BuildListComponent, snackbarState: SnackbarHostState) {
     val scope = rememberCoroutineScope()
     var isDirChooserOpen by remember { mutableStateOf(false) }
     if (isDirChooserOpen) {
         DirChooserDialog(
-            helpText = addBuildHelpText,
+            helpText = ADD_BUILD_HELP_TEXT,
             onDirChosen = { rootDir ->
                 isDirChooserOpen = false
                 if (rootDir == null) {
-                    scope.launch { snackbarHostState.showSnackbar("No build selected") }
+                    scope.launch { snackbarState.showSnackbar("No build selected") }
                 } else {
                     val valid = rootDir.listFiles { file ->
                         file.name.startsWith("settings.gradle")
                     }?.isNotEmpty() ?: false
                     if (!valid) {
-                        scope.launch { snackbarHostState.showSnackbar("Directory is not a Gradle build!") }
+                        scope.launch { snackbarState.showSnackbar("Directory is not a Gradle build!") }
                     } else {
                         component.onNewBuildRootDirChosen(rootDir)
                     }
@@ -115,7 +115,7 @@ private fun AddBuildButton(component: BuildListComponent, snackbarHostState: Sna
             }
         )
     }
-    PlainTextTooltip(addBuildHelpText) {
+    PlainTextTooltip(ADD_BUILD_HELP_TEXT) {
         ExtendedFloatingActionButton(
             icon = { Icon(Icons.Default.Add, "") },
             text = { Text(text = "Add build", Modifier.testTag("add_build")) },
@@ -124,4 +124,4 @@ private fun AddBuildButton(component: BuildListComponent, snackbarHostState: Sna
     }
 }
 
-private const val addBuildHelpText = "Choose a Gradle build directory"
+private const val ADD_BUILD_HELP_TEXT = "Choose a Gradle build directory"

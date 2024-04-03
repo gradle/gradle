@@ -9,8 +9,8 @@ import org.slf4j.LoggerFactory
 
 private val logger = LoggerFactory.getLogger("SqlDelightMigrations")
 
-const val metaTableName = "__sqldelight__"
-const val versionColumnName = "schema_version"
+const val META_TABLE_NAME = "__sqldelight__"
+const val VERSION_COLUMN_NAME = "schema_version"
 
 // TODO add transaction once https://github.com/cashapp/sqldelight/issues/1856 is fixed
 fun SqlDriver.migrateTo(schema: SqlSchema<QueryResult.Value<Unit>>, vararg codeVersions: AfterVersion) {
@@ -47,7 +47,7 @@ fun SqlDriver.migrateTo(schema: SqlSchema<QueryResult.Value<Unit>>, vararg codeV
 }
 
 private fun SqlDriver.fetchCurrentVersion(): Long =
-    executeQuery(null, "SELECT value FROM $metaTableName WHERE name = '$versionColumnName'", {
+    executeQuery(null, "SELECT value FROM $META_TABLE_NAME WHERE name = '$VERSION_COLUMN_NAME'", {
         QueryResult.Value(
             if (it.next().value) it.getLong(0) ?: 0L
             else 0L
@@ -55,22 +55,22 @@ private fun SqlDriver.fetchCurrentVersion(): Long =
     }, 0).value
 
 private fun SqlDriver.createMetaTable() {
-    execute(null, "CREATE TABLE $metaTableName(name VARCHAR NOT NULL PRIMARY KEY, value VARCHAR)", 0)
+    execute(null, "CREATE TABLE $META_TABLE_NAME(name VARCHAR NOT NULL PRIMARY KEY, value VARCHAR)", 0)
     logger.atDebug().log { "Meta table created" }
 }
 
 private fun SqlDriver.insertSchemaVersion(version: Long) {
-    execute(null, "INSERT INTO $metaTableName(name, value) VALUES(?, ?)", 2) {
-        bindString(0, versionColumnName)
+    execute(null, "INSERT INTO $META_TABLE_NAME(name, value) VALUES(?, ?)", 2) {
+        bindString(0, VERSION_COLUMN_NAME)
         bindLong(1, version)
     }
     logger.atDebug().log { "Initial schema version $version stored" }
 }
 
 private fun SqlDriver.updateSchemaVersion(version: Long) {
-    execute(null, "UPDATE $metaTableName SET value=? WHERE name=?", 2) {
+    execute(null, "UPDATE $META_TABLE_NAME SET value=? WHERE name=?", 2) {
         bindLong(0, version)
-        bindString(1, versionColumnName)
+        bindString(1, VERSION_COLUMN_NAME)
     }
     logger.atDebug().log { "Schema version updated to $version" }
 }

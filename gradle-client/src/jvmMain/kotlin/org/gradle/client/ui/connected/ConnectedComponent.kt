@@ -94,6 +94,7 @@ class ConnectedComponent(
         }
 
         scope.launch {
+            @Suppress("TooGenericExceptionCaught")
             try {
                 connection = connector.connect()
                 logger.atInfo().log { "Connected to ${parameters.rootDir}" }
@@ -111,6 +112,7 @@ class ConnectedComponent(
                 mutableModel.value = current.copy(events = emptyList(), outcome = Outcome.Building)
                 withContext(appDispatchers.io) {
                     logger.atDebug().log { "Get ${modelType.simpleName} model!" }
+                    @Suppress("TooGenericExceptionCaught")
                     try {
                         val result = connection.model(modelType.java)
                             .let { b ->
@@ -142,6 +144,7 @@ class ConnectedComponent(
         }
     }
 
+    @Suppress("MagicNumber")
     private fun newEventListener(): ProgressListener =
         object : ProgressListener {
             private val start = Instant.now()
@@ -182,6 +185,7 @@ class ConnectedComponent(
     }
 }
 
+@Suppress("MagicNumber")
 private fun Duration.toPrettyString() = buildString {
     val hours = toHours()
     if (hours > 0) append("${hours}h ")

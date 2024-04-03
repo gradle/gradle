@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.jetbrainsCompose)
     alias(libs.plugins.sqldelight)
+    alias(libs.plugins.detekt)
 }
 
 group = "org.gradle.client"
@@ -130,4 +131,10 @@ compose.desktop {
             }
         }
     }
+}
+
+detekt {
+    source.setFrom("src/jvmMain/kotlin", "src/jvmTest/kotlin")
+    config.setFrom(rootDir.resolve("gradle/detekt/detekt.conf"))
+    parallel = true
 }

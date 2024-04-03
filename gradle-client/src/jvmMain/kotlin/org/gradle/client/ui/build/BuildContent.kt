@@ -24,16 +24,16 @@ import java.io.File
 
 @Composable
 fun BuildContent(component: BuildComponent) {
-    val snackbarHostState = remember { SnackbarHostState() }
+    val snackbarState = remember { SnackbarHostState() }
     Scaffold(
         topBar = { TopBar(component) },
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = { SnackbarHost(snackbarState) },
     ) { scaffoldPadding ->
         Surface(modifier = Modifier.padding(scaffoldPadding.plusPaneSpacing())) {
             val model by component.model.subscribeAsState()
             when (val current = model) {
                 BuildModel.Loading -> Loading()
-                is BuildModel.Loaded -> BuildMainContent(component, current, snackbarHostState)
+                is BuildModel.Loaded -> BuildMainContent(component, current, snackbarState)
             }
         }
     }
@@ -47,12 +47,13 @@ enum class GradleDistSource(
     LOCAL("Local Installation")
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
+@OptIn(ExperimentalMaterial3Api::class)
+@Suppress("LongMethod", "CyclomaticComplexMethod")
 private fun BuildMainContent(
     component: BuildComponent,
     model: BuildModel.Loaded,
-    snackbarHostState: SnackbarHostState,
+    snackbarState: SnackbarHostState,
 ) {
 
     val scope = rememberCoroutineScope()
@@ -119,7 +120,7 @@ private fun BuildMainContent(
                         onDirChosen = { dir ->
                             isDirChooserOpen = false
                             if (dir == null) {
-                                scope.launch { snackbarHostState.showSnackbar("No Java home selected") }
+                                scope.launch { snackbarState.showSnackbar("No Java home selected") }
                             } else {
                                 javaHome = dir.absolutePath
                             }
@@ -158,7 +159,7 @@ private fun BuildMainContent(
                         onDirChosen = { dir ->
                             isDirChooserOpen = false
                             if (dir == null) {
-                                scope.launch { snackbarHostState.showSnackbar("No Gradle user home selected") }
+                                scope.launch { snackbarState.showSnackbar("No Gradle user home selected") }
                             } else {
                                 gradleUserHome = dir.absolutePath
                             }
@@ -264,7 +265,9 @@ private fun BuildMainContent(
                                 onDirChosen = { dir ->
                                     isDirChooserOpen = false
                                     if (dir == null) {
-                                        scope.launch { snackbarHostState.showSnackbar("No Gradle installation selected") }
+                                        scope.launch {
+                                            snackbarState.showSnackbar("No Gradle installation selected")
+                                        }
                                     } else {
                                         gradleDistLocalDir = dir.absolutePath
                                     }

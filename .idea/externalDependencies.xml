@@ -2,5 +2,6 @@
 <project version="4">
   <component name="ExternalDependencies">
     <plugin id="com.squareup.sqldelight" />
+    <plugin id="detekt" />
   </component>
 </project>
