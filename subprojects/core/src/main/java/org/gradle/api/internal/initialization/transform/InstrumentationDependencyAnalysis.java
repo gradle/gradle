@@ -19,19 +19,16 @@ package org.gradle.api.internal.initialization.transform;
 import java.util.Map;
 import java.util.Set;
 
-public class InstrumentationArtifactAnalysis {
+public class InstrumentationDependencyAnalysis {
 
     private final InstrumentationArtifactMetadata metadata;
-    private final Map<String, Set<String>> typeHierarchy;
-    private final Set<String> dependencies;
+    private final Map<String, Set<String>> dependencies;
 
-    public InstrumentationArtifactAnalysis(
+    public InstrumentationDependencyAnalysis(
         InstrumentationArtifactMetadata metadata,
-        Map<String, Set<String>> typeHierarchy,
-        Set<String> dependencies
+        Map<String, Set<String>> dependencies
     ) {
         this.metadata = metadata;
-        this.typeHierarchy = typeHierarchy;
         this.dependencies = dependencies;
     }
 
@@ -39,11 +36,7 @@ public class InstrumentationArtifactAnalysis {
         return metadata;
     }
 
-    public Map<String, Set<String>> getTypeHierarchy() {
-        return typeHierarchy;
-    }
-
-    public Set<String> getDependencies() {
+    public Map<String, Set<String>> getDependencies() {
         return dependencies;
     }
 }

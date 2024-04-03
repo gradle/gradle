@@ -57,7 +57,6 @@ import static org.gradle.api.internal.initialization.DefaultScriptClassPathResol
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.INSTRUMENTED_AND_UPGRADED;
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.INSTRUMENTED_ONLY;
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.NOT_INSTRUMENTED;
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.ANALYSIS_FILE_NAME;
 
 public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
 
@@ -133,7 +132,7 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         CacheInstrumentationDataBuildService buildService = resolutionContext.getBuildService().get();
         try (ResolutionScope resolutionScope = buildService.newResolutionScope(contextId)) {
             ArtifactView originalDependencies = getOriginalDependencies(classpathConfiguration);
-            resolutionScope.setAnalysisResult(getAnalysisResult(classpathConfiguration));
+            resolutionScope.setTypeHierarchyAnalysisResult(getAnalysisResult(classpathConfiguration));
             resolutionScope.setOriginalClasspath(originalDependencies.getFiles());
             ArtifactCollection instrumentedExternalDependencies = getInstrumentedExternalDependencies(classpathConfiguration);
             ArtifactCollection instrumentedProjectDependencies = getInstrumentedProjectDependencies(classpathConfiguration);
@@ -152,7 +151,7 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
             // We have to analyze external and project dependencies to get full hierarchies, since
             // for example user could use dependency substitution to replace external dependency with project dependency.
             config.componentFilter(componentId -> !isGradleApi(componentId));
-        }).getFiles().filter(file -> file.getName().equals(ANALYSIS_FILE_NAME));
+        }).getFiles();
     }
 
     private static ArtifactView getOriginalDependencies(Configuration classpathConfiguration) {

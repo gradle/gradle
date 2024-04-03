@@ -38,9 +38,10 @@ import java.util.regex.Pattern
 import java.util.stream.Collectors
 
 import static org.gradle.api.internal.initialization.transform.services.CacheInstrumentationDataBuildService.GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.ANALYSIS_FILE_NAME
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.ANALYSIS_OUTPUT_DIR
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.DEPENDENCY_ANALYSIS_FILE_NAME
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.MERGE_OUTPUT_DIR
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.TYPE_HIERARCHY_ANALYSIS_FILE_NAME
 import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegrationSpec implements FileAccessTimeJournalFixture {
@@ -285,22 +286,24 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         then:
         // InstrumentationAnalysisTransform is duplicated since InstrumentationAnalysisTransform result is also an input to MergeInstrumentationAnalysisTransform
         allTransformsFor("animals-1.0.jar") ==~ ["InstrumentationAnalysisTransform", "InstrumentationAnalysisTransform", "MergeInstrumentationAnalysisTransform", "ExternalDependencyInstrumentingArtifactTransform"]
-        def analysis = analyzeOutput("animals-1.0.jar")
-        analysis.exists()
-        serializer.readAnalysis(analysis).typeHierarchy == [
+        def typeHierarchyAnalysis = typeHierarchyAnalysisOutput("animals-1.0.jar")
+        typeHierarchyAnalysis.exists()
+        serializer.readTypeHierarchyAnalysis(typeHierarchyAnalysis) == [
             "test/gradle/test/Dog": ["test/gradle/test/Mammal"] as Set<String>,
             "test/gradle/test/GermanShepherd": ["test/gradle/test/Animal", "test/gradle/test/Dog"] as Set<String>,
             "test/gradle/test/Mammal": ["test/gradle/test/Animal"] as Set<String>
         ]
-        serializer.readAnalysis(analysis).dependencies == [
-            "org/gradle/api/DefaultTask",
-            "org/gradle/api/GradleException",
-            "org/gradle/api/Plugin",
-            "org/gradle/api/Task",
-            "test/gradle/test/Animal",
-            "test/gradle/test/Dog",
-            "test/gradle/test/Mammal"
-        ] as Set<String>
+        def dependencyAnalysis = dependencyAnalysisOutput("animals-1.0.jar")
+        dependencyAnalysis.exists()
+        serializer.readDependencyAnalysis(dependencyAnalysis).dependencies == [
+            "org/gradle/api/DefaultTask": [] as Set<String>,
+            "org/gradle/api/GradleException": [] as Set<String>,
+            "org/gradle/api/Plugin": [] as Set<String>,
+            "org/gradle/api/Task": [] as Set<String>,
+            "test/gradle/test/Animal": [] as Set<String>,
+            "test/gradle/test/Dog": [] as Set<String>,
+            "test/gradle/test/Mammal": [] as Set<String>,
+        ]
     }
 
     def "should output only org.gradle supertypes for class dependencies"() {
@@ -330,11 +333,11 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         mergeOutput("impl-1.0.jar").exists()
         mergeOutput("api-1.0.jar").exists()
         def implMergeAnalysis = mergeOutput("impl-1.0.jar")
-        serializer.readAnalysis(implMergeAnalysis).typeHierarchy == [
+        serializer.readDependencyAnalysis(implMergeAnalysis).dependencies == [
             "B": ["org/gradle/D", "org/gradle/E"] as Set
         ]
         def apiMergeAnalysis = mergeOutput("api-1.0.jar")
-        serializer.readAnalysis(apiMergeAnalysis).typeHierarchy == [
+        serializer.readDependencyAnalysis(apiMergeAnalysis).dependencies == [
             "C": ["org/gradle/D", "org/gradle/E"] as Set,
             "org/gradle/D": ["org/gradle/D", "org/gradle/E"] as Set,
             "org/gradle/E": ["org/gradle/E"] as Set
@@ -592,23 +595,33 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         return transforms
     }
 
-    Set<TestFile> analyzeOutputs(String artifactName, File cacheDir = getCacheDir()) {
-        return findOutputs("$ANALYSIS_OUTPUT_DIR/$ANALYSIS_FILE_NAME", cacheDir).findAll {
-            serializer.readOnlyMetadata(it).artifactName == artifactName
-        }.collect { it } as Set<TestFile>
+    Set<TestFile> analyzeOutputs(String artifactName, String fileName, File cacheDir = getCacheDir()) {
+        return findOutputs("$ANALYSIS_OUTPUT_DIR/$DEPENDENCY_ANALYSIS_FILE_NAME", cacheDir).findAll {
+            serializer.readMetadataOnly(it).artifactName == artifactName
+        }.collect {
+            it.parentFile.listFiles().findAll { it.name == fileName }
+        }.flatten() as Set<TestFile>
     }
 
-    TestFile analyzeOutput(String artifactName, File cacheDir = getCacheDir()) {
-        def analysis = analyzeOutputs(artifactName, cacheDir)
+    TestFile typeHierarchyAnalysisOutput(String artifactName, File cacheDir = getCacheDir()) {
+        def analysis = analyzeOutputs(artifactName, TYPE_HIERARCHY_ANALYSIS_FILE_NAME, cacheDir)
         if (analysis.size() == 1) {
             return analysis.first()
         }
-        throw new AssertionError("Could not find exactly one analyze directory for $artifactName: $analysis")
+        throw new AssertionError("Could not find exactly one type hierarchy analysis for $artifactName: $analysis")
+    }
+
+    TestFile dependencyAnalysisOutput(String artifactName, File cacheDir = getCacheDir()) {
+        def analysis = analyzeOutputs(artifactName, DEPENDENCY_ANALYSIS_FILE_NAME, cacheDir)
+        if (analysis.size() == 1) {
+            return analysis.first()
+        }
+        throw new AssertionError("Could not find exactly one dependency analysis for $artifactName: $analysis")
     }
 
     Set<TestFile> mergeOutputs(String artifactName, File cacheDir = getCacheDir()) {
-        return findOutputs("$MERGE_OUTPUT_DIR/$ANALYSIS_FILE_NAME", cacheDir).findAll {
-            serializer.readOnlyMetadata(it).artifactName == artifactName
+        return findOutputs("$MERGE_OUTPUT_DIR/$DEPENDENCY_ANALYSIS_FILE_NAME", cacheDir).findAll {
+            serializer.readMetadataOnly(it).artifactName == artifactName
         }.collect { it } as Set<TestFile>
     }
 
@@ -617,7 +630,7 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         if (analysis.size() == 1) {
             return analysis.first()
         }
-        throw new AssertionError("Could not find exactly one merge directory for $artifactName: $analysis")
+        throw new AssertionError("Could not find exactly one merge dependency analysis for $artifactName: $analysis")
     }
 
     TestFile gradleUserHomeOutput(String outputEndsWith, File cacheDir = getCacheDir()) {
