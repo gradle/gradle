@@ -18,7 +18,9 @@ package org.gradle.ide.sync
 
 import org.gradle.ide.sync.fixtures.IsolatedProjectsIdeSyncFixture
 import org.hamcrest.core.StringContains
+import spock.lang.Ignore
 
+@Ignore("https://github.com/gradle/gradle-private/issues/4167")
 class IsolatedProjectsJavaProjectSyncTest extends AbstractSyncSmokeIdeTest {
 
     private IsolatedProjectsIdeSyncFixture fixture = new IsolatedProjectsIdeSyncFixture(testDirectory)
