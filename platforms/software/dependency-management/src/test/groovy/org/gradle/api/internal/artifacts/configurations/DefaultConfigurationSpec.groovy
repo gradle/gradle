@@ -374,7 +374,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
 
         then:
         def t = thrown(GradleException)
-        t.cause == failure
+        t == failure
         configuration.getState() == RESOLVED_WITH_FAILURES
     }
 

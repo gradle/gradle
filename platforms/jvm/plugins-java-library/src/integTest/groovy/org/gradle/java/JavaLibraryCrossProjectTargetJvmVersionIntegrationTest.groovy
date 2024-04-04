@@ -55,7 +55,7 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
         fails ':checkDeps'
 
         then:
-        failure.assertHasErrorOutput("""> Could not resolve all task dependencies for configuration ':compileClasspath'.
+        failure.assertHasErrorOutput("""> Could not resolve all dependencies for configuration ':compileClasspath'.
    > Could not resolve project :producer.
      Required by:
          project :
@@ -137,7 +137,7 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
 
         then:
         failure.assertHasErrorOutput("""
-> Could not resolve all task dependencies for configuration ':compileClasspath'.
+> Could not resolve all dependencies for configuration ':compileClasspath'.
    > Could not resolve project :producer.
      Required by:
          project :

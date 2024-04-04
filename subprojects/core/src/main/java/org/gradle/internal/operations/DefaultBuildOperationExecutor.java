@@ -23,6 +23,7 @@ import org.gradle.internal.SystemProperties;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 
 import javax.annotation.Nullable;
@@ -125,6 +126,20 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         for (ManagedExecutor pool : managedExecutors.values()) {
             pool.stop();
         }
+    }
+
+    @Deprecated
+    @Override
+    public BuildOperationRef getCurrentOperation() {
+        DeprecationLogger.deprecateInternalApi("BuildOperationExecutor.getCurrentOperation()")
+            .willBeRemovedInGradle9()
+            .undocumented()
+            .nagUser();
+        BuildOperationRef operationRef = currentBuildOperationRef.get();
+        if (operationRef == null) {
+            throw new IllegalStateException("No operation is currently running.");
+        }
+        return operationRef;
     }
 
     private class QueueWorker<O extends BuildOperation> implements BuildOperationQueue.QueueWorker<O> {

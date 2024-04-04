@@ -16,7 +16,12 @@
 
 package org.gradle.api
 
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
+
 abstract class AbstractMutatingDomainObjectContainerInHookIntegrationTest extends AbstractDomainObjectContainerIntegrationTest {
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "can mutate containers inside Project hooks"() {
         createDirs("nested")
         settingsFile << """
@@ -43,6 +48,7 @@ abstract class AbstractMutatingDomainObjectContainerInHookIntegrationTest extend
         succeeds "verify"
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "can mutate containers inside Gradle hooks"() {
         createDirs("nested")
         settingsFile << """

@@ -56,7 +56,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
         and: "Has error output"
         failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
-        failure.assertHasCause("Could not resolve all task dependencies for configuration ':resolveMe'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
         failure.assertHasCause("Could not resolve project :.")
         assertFullMessageCorrect("""      > The consumer was configured to find attribute 'color' with value 'blue'. However we cannot choose between the following variants of project ::
           - blueRoundElements
@@ -117,7 +117,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
         and: "Has error output"
         failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
-        failure.assertHasCause("Could not resolve all task dependencies for configuration ':resolveMe'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
         failure.assertHasCause("Could not resolve project :.")
         assertFullMessageCorrect("""   > Could not resolve project :.
      Required by:
@@ -165,7 +165,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
         and: "Has error output"
         failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
-        failure.assertHasCause("Could not resolve all task dependencies for configuration ':resolveMe'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
         failure.assertHasCause("Could not resolve project :.")
         assertFullMessageCorrect("""     Required by:
          project :
@@ -188,7 +188,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
         and: "Has error output"
         failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
-        failure.assertHasCause("Could not resolve all task dependencies for configuration ':resolveMe'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
         failure.assertHasCause("Could not resolve project :.")
         assertFullMessageCorrect("""     Required by:
          project :
@@ -208,7 +208,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
         and: "Has error output"
         failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
-        failure.assertHasCause("Could not resolve all task dependencies for configuration ':resolveMe'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
         failure.assertHasCause("Could not resolve project :.")
         assertFullMessageCorrect("A dependency was declared on configuration 'absent' which is not declared in the descriptor for project :.")
 
@@ -229,7 +229,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
         and: "Has error output"
         failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
-        failure.assertHasCause("Could not resolve all task dependencies for configuration ':resolveMe'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
         failure.assertHasCause("Could not resolve project :.")
         assertFullMessageCorrect("""     Required by:
          project :
@@ -250,7 +250,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
         and: "Has error output"
         failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
-        failure.assertHasCause("Could not resolve all task dependencies for configuration ':resolveMe'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
         assertFullMessageCorrect("""   > No variants of project : match the consumer attributes:
        - Configuration ':myElements' declares attribute 'color' with value 'blue':
            - Incompatible because this component declares attribute 'artifactType' with value 'jar' and the consumer needed attribute 'artifactType' with value 'dll'
@@ -270,7 +270,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
         and: "Has error output"
         failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
-        failure.assertHasCause("Could not resolve all task dependencies for configuration ':resolveMe'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
         assertFullMessageCorrect("""   > Found multiple transforms that can produce a variant of project : with requested attributes:
        - color 'red'
        - shape 'round'
@@ -303,7 +303,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
         and: "Has error output"
         failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
-        failure.assertHasCause("Could not resolve all task dependencies for configuration ':resolveMe'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
         assertFullMessageCorrect("""   > More than one variant of project : matches the consumer attributes:
        - Configuration ':default' variant v1
        - Configuration ':default' variant v2""")

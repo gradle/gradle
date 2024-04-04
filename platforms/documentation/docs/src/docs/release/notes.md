@@ -217,6 +217,13 @@ Now, any values configured in the `pom` block will take priority if present, and
 
 This fixes https://github.com/gradle/gradle/issues/12259.
 
+#### Accessors for `Settings` extensions in Kotlin DSL
+
+Previously, extensions registered in `Plugin<Settings>` weren't available in `settings.gradle.kts`.  
+
+Now, type-safe accessors for these extensions are generated.
+
+This fixes https://github.com/gradle/gradle/issues/11210.
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================

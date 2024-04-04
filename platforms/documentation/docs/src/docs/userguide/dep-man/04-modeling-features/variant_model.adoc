@@ -274,7 +274,7 @@ An incompatible variant error looks like the following example, where a consumer
 
 [listing]
 ----
-> Could not resolve all task dependencies for configuration ':resolveMe'.
+> Could not resolve all dependencies for configuration ':resolveMe'.
    > Could not resolve project :.
      Required by:
          project :
@@ -292,7 +292,7 @@ Unfortunately one variant has `color=blue` and the other has `color=green`:
 
 [listing]
 ----
-> Could not resolve all task dependencies for configuration ':resolveMe'.
+> Could not resolve all dependencies for configuration ':resolveMe'.
    > Could not resolve project :.
      Required by:
          project :
@@ -318,7 +318,7 @@ If a project registers multiple artifact transforms, needs to use an artifact tr
 
 [listing]
 ----
-> Could not resolve all task dependencies for configuration ':resolveMe'.
+> Could not resolve all dependencies for configuration ':resolveMe'.
    > Found multiple transforms that can produce a variant of project : with requested attributes:
        - color 'red'
        - shape 'round'

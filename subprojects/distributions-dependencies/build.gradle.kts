@@ -21,7 +21,7 @@ val antVersion = "1.10.13"
 // when upgrading ASM.
 val asmVersion = "9.6"
 val awsS3Version = "1.12.651"
-val bouncycastleVersion = "1.73"
+val bouncycastleVersion = "1.77"
 val jacksonVersion = "2.16.1"
 val jaxbVersion = "3.0.0"
 val junit5Version = "5.8.2"
@@ -198,6 +198,7 @@ dependencies {
         api(libs.mockitoCore)           { version { strictly("3.7.7") }}
         api(libs.mockitoKotlin)         { version { strictly("1.6.0") }}
         api(libs.mockitoKotlin2)        { version { strictly("2.2.0") }}
+        api(libs.mockwebserver)         { version { strictly("4.12.0") }}
         api(libs.mySqlConnector)        { version { strictly("8.0.17") }}
         api(libs.samplesCheck)          { version { strictly("1.0.0") }}
         api(libs.snappy)                { version { strictly("0.4") }}
