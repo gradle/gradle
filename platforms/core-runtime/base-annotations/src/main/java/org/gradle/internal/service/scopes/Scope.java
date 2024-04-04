@@ -37,11 +37,15 @@ public interface Scope {
     interface UserHome extends Global {}
 
     /**
-     * TBD
+     * These services are reused across build sessions.
+     * <p>
+     * Generally, one regular Gradle invocation is conceptually a session.
+     * However, the GradleBuild task is currently implemented in such a way that it uses a discrete session.
+     * Having the GradleBuild task reuse the outer session is complicated because it <a href="https://github.com/gradle/gradle/issues/4559">may use a different Gradle user home</a>.
      *
-     * <p>{@link UserHome} and parent scope services are visible to {@link CrossBuildSession} scope services, but not vice versa.</p>
+     * <p>{@link Global} and parent scope services are visible to {@link CrossBuildSession} scope services, but not vice versa.</p>
      */
-    interface CrossBuildSession extends UserHome {}
+    interface CrossBuildSession extends Global {}
 
     /**
      * These services are reused across build invocations in a session.
@@ -49,7 +53,7 @@ public interface Scope {
      * A build session can be long-lived in a continuous build (where these services would be reused) or short-lived in a
      * regular, single build.
      *
-     * <p>{@link CrossBuildSession} and parent scope services are visible to {@link BuildSession} scope services, but not vice versa.</p>
+     * <p>{@link CrossBuildSession}, {@link UserHome} and parent scope services are visible to {@link BuildSession} scope services, but not vice versa.</p>
      */
     interface BuildSession extends CrossBuildSession {}
 
