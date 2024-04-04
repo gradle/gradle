@@ -42,7 +42,7 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
     void generate() {
         UpdateDaemonJvmModifier.updateJvmCriteria(
             getPropertiesFile().get().getAsFile(),
-            JavaVersion.toVersion(getToolchainVersion().get()),
+            getToolchainVersion().get(),
             null,
             null
         );
@@ -64,5 +64,5 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
     @Optional
     @Option(option = "toolchain-version", description = "The version of Java required to run the Gradle Daemon.")
     @Incubating
-    public abstract Property<String> getToolchainVersion();
+    public abstract Property<JavaVersion> getToolchainVersion();
 }

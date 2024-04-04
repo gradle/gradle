@@ -60,11 +60,12 @@ public class UpdateDaemonJvmModifier {
     }
 
     private static void validateToolchainVersion(JavaVersion version) {
+        // TODO: It would be nice to enforce this as part of task configuration instead of at runtime.
+        // TODO: Need to consider how to handle future versions of Java that are not yet known. This currently allows any version of Java above the minimum.
         JavaVersion minimumSupportedVersion = JavaVersion.VERSION_1_8;
-        JavaVersion maximumSupportedVersion = JavaVersion.VERSION_HIGHER;
-        if (version.compareTo(minimumSupportedVersion) < 0 || version.compareTo(maximumSupportedVersion) > 0) {
-            String exceptionMessage = String.format("Invalid Java version %s provided for the 'toolchain-version' option. The supported values are in the range [%s, %s].",
-                version.getMajorVersion(), minimumSupportedVersion.getMajorVersion(), maximumSupportedVersion.getMajorVersion());
+        if (version.compareTo(minimumSupportedVersion) < 0) {
+            String exceptionMessage = String.format("Unsupported Java version '%s' provided for the 'toolchain-version' option. Gradle can only run with Java %s and above.",
+                version.getMajorVersion(), minimumSupportedVersion.getMajorVersion());
             throw new IllegalArgumentException(exceptionMessage);
         }
     }

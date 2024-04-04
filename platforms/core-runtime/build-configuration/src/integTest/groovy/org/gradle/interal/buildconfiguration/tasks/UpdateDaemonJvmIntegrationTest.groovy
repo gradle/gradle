@@ -62,7 +62,45 @@ class UpdateDaemonJvmIntegrationTest extends AbstractIntegrationSpec implements 
         assertJvmCriteria(version)
 
         where:
-        version << [JavaVersion.VERSION_1_8, JavaVersion.VERSION_15, JavaVersion.VERSION_HIGHER]
+        version << [JavaVersion.VERSION_11, JavaVersion.VERSION_15, JavaVersion.VERSION_HIGHER]
+    }
+
+    def "When execute updateDaemonJvm for valid Java 8 versions Then build properties are populated with expected values"() {
+        when:
+        run "updateDaemonJvm", "--toolchain-version=${version}"
+
+        then:
+        assertJvmCriteria(JavaVersion.VERSION_1_8)
+
+        where:
+        version << ["1.8", "8"]
+    }
+
+    def "When execute updateDaemonJvm with invalid argument --toolchain-version option Then fails with expected exception message"() {
+        when:
+        fails "updateDaemonJvm", "--toolchain-version=$invalidVersion"
+
+        then:
+        failureDescriptionContains("Problem configuring option 'toolchain-version' on task ':updateDaemonJvm' from command line.")
+        failureHasCause("Could not determine Java version from '${invalidVersion}'")
+
+        where:
+        invalidVersion << ["0", "-10", 'asdf']
+    }
+
+    def "When execute updateDaemonJvm with unsupported Java version Then fails with expected exception message"() {
+        when:
+        fails "updateDaemonJvm", "--toolchain-version=7"
+
+        then:
+        failureDescriptionContains("Execution failed for task ':updateDaemonJvm'")
+        failureHasCause("Unsupported Java version '7' provided for the 'toolchain-version' option. Gradle can only run with Java 8 and above.")
+    }
+
+    def "When execute updateDaemonJvm with unsupported future Java version"() {
+        // Captures current, but maybe not desired behavior
+        expect:
+        succeeds( "updateDaemonJvm", "--toolchain-version=10000")
     }
 
     @NotYetImplemented
@@ -108,29 +146,6 @@ class UpdateDaemonJvmIntegrationTest extends AbstractIntegrationSpec implements 
     }
 
     @NotYetImplemented
-    def "When execute updateDaemonJvm with invalid argument --toolchain-version option Then fails with expected exception message"() {
-        when:
-        fails "updateDaemonJvm", "--toolchain-version=$invalidVersion"
-
-        then:
-        failureDescriptionContains("Execution failed for task ':updateDaemonJvm'.")
-        failureHasCause("Invalid integer value $invalidVersion provided for the 'toolchain-version' option. The supported values are in the range [8, $JavaVersion.VERSION_HIGHER.majorVersion].")
-
-        where:
-        invalidVersion << ["0", "-10", "7", "10000"]
-    }
-
-    @NotYetImplemented
-    def "When execute updateDaemonJvm with invalid format --toolchain-version option Then fails with expected exception message"() {
-        when:
-        fails "updateDaemonJvm", "--toolchain-version=asdf"
-
-        then:
-        failureDescriptionContains("Problem configuring option 'toolchain-version' on task ':updateDaemonJvm' from command line.")
-        failureHasCause("Could not determine Java version from 'asdf'")
-    }
-
-    @NotYetImplemented
     def "When execute updateDaemonJvm with unexpected --toolchain-vendor option Then fails with expected exception message"() {
         when:
         fails "updateDaemonJvm", "--toolchain-vendor=unknown-vendor"
@@ -158,7 +173,7 @@ class UpdateDaemonJvmIntegrationTest extends AbstractIntegrationSpec implements 
         writeJvmCriteria(Jvm.current())
 
         when:
-        run "updateDaemonJvm", "--toolchain-version=${otherJvm.javaVersion.majorVersion}}"
+        run "updateDaemonJvm", "--toolchain-version=${otherJvm.javaVersion.majorVersion}"
 
         then:
         assertJvmCriteria(otherJvm.javaVersion)
