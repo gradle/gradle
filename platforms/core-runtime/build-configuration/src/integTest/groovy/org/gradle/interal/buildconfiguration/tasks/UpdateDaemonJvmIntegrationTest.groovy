@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.buildconfiguration.BuildPropertiesDefaults
 import org.gradle.internal.buildconfiguration.fixture.BuildPropertiesFixture
-import org.gradle.internal.buildconfiguration.tasks.UpdateDaemonJvm
+import org.gradle.buildconfiguration.tasks.UpdateDaemonJvm
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions

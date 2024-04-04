@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.buildconfiguration.tasks;
+package org.gradle.buildconfiguration.tasks;
 
 import org.gradle.api.DefaultTask;
+import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.Property;
@@ -25,15 +26,19 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
+import org.gradle.internal.buildconfiguration.BuildPropertiesDefaults;
 import org.gradle.internal.buildconfiguration.UpdateDaemonJvmModifier;
 import org.gradle.internal.jvm.inspection.JvmVendor.KnownJvmVendor;
 import org.gradle.jvm.toolchain.JvmImplementation;
 import org.gradle.work.DisableCachingByDefault;
 
 /**
- * Generates or updates Daemon JVM criteria.
+ * Generates or updates the Gradle Daemon JVM criteria.
+ *
+ * This controls the version of Java required to run the Gradle Daemon.
  */
 @DisableCachingByDefault(because = "Not worth caching")
+@Incubating
 public abstract class UpdateDaemonJvm extends DefaultTask {
     @TaskAction
     void generate() {
@@ -45,21 +50,33 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
         );
     }
 
+    /**
+     * The file to write the requested daemon JVM criteria to.
+     *
+     * {@value BuildPropertiesDefaults#BUILD_PROPERTIES_FILE}
+     */
     @OutputFile
+    @Incubating
     public abstract RegularFileProperty getPropertiesFile();
 
+    /**
+     * The version of Java required to run the Gradle Daemon.
+     */
     @Input
     @Optional
-    @Option(option = "toolchain-version", description = "The version of the toolchain required to set up Daemon JVM")
+    @Option(option = "toolchain-version", description = "The version of Java required to run the Gradle Daemon.")
+    @Incubating
     public abstract Property<String> getToolchainVersion();
 
     @Input
     @Optional
     @Option(option = "toolchain-vendor", description = "The vendor of the toolchain required to set up Daemon JVM")
+    @Incubating
     public abstract Property<KnownJvmVendor> getToolchainVendor();
 
     @Input
     @Optional
     @Option(option = "toolchain-implementation", description = "The virtual machine implementation of the toolchain required to set up Daemon JVM")
+    @Incubating
     public abstract Property<JvmImplementation> getToolchainImplementation();
 }

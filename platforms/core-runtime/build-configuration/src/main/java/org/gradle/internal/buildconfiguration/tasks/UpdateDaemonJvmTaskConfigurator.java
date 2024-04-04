@@ -17,6 +17,7 @@
 package org.gradle.internal.buildconfiguration.tasks;
 
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.buildconfiguration.tasks.UpdateDaemonJvm;
 import org.gradle.configuration.project.ProjectConfigureAction;
 import org.gradle.internal.buildconfiguration.BuildPropertiesDefaults;
 
@@ -30,7 +31,7 @@ public class UpdateDaemonJvmTaskConfigurator implements ProjectConfigureAction {
         if (project.getParent() == null) {
             project.getTasks().register(TASK_NAME, UpdateDaemonJvm.class, task -> {
                 task.setGroup("Build Setup");
-                task.setDescription("Generates or updates the Daemon JVM criteria.");
+                task.setDescription("Generates or updates the Gradle Daemon JVM criteria.");
                 task.getPropertiesFile().convention(project.getLayout().getProjectDirectory().file(BuildPropertiesDefaults.BUILD_PROPERTIES_FILE));
                 task.getToolchainVersion().convention(BuildPropertiesDefaults.TOOLCHAIN_VERSION.getMajorVersion());
             });
