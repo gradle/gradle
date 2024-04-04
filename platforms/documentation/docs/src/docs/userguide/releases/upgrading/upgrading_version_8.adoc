@@ -242,6 +242,10 @@ The complete design specification can be found [here](https://docs.google.com/do
 In implementing this spec, we have introduced the following breaking changes to the `ProblemSpec` interface:
 - The `label(String)` and `description(String)` methods have been replaced with the `id(String, String)` method and its overloaded variants.
 
+==== Upgrade to ASM 9.7
+
+ASM was upgraded from 9.6 to https://asm.ow2.io/versions.html[9.7] to ensure earlier compatibility for Java 23.
+
 [[changes_8.7]]
 == Upgrading from 8.6 and earlier
 
