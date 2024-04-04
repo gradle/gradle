@@ -16,27 +16,65 @@
 
 package org.gradle.internal.buildconfiguration.fixture
 
+import groovy.transform.SelfType
+import org.gradle.api.JavaVersion
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.buildconfiguration.BuildPropertiesDefaults
+import org.gradle.internal.jvm.Jvm
+import org.gradle.internal.util.PropertiesUtils
 import org.gradle.test.fixtures.file.TestFile
 
-import static org.junit.Assert.assertFalse
-import static org.junit.Assert.assertTrue
-
-abstract class BuildPropertiesFixture {
-
-    protected final File propertiesFile
-
-    BuildPropertiesFixture(TestFile projectDirectory) {
-        propertiesFile = new File(projectDirectory, BuildPropertiesDefaults.BUILD_PROPERTIES_FILE)
+@SelfType(AbstractIntegrationSpec)
+trait BuildPropertiesFixture {
+    void expectJavaHome(Jvm expectedJvm) {
+        buildFile << """
+            def javaHome = org.gradle.internal.jvm.Jvm.current().javaHome.canonicalPath
+            println org.gradle.internal.jvm.Jvm.current().javaHome.canonicalPath
+            assert javaHome == "${expectedJvm.javaHome.canonicalPath}"
+        """
     }
 
-    def assertBuildPropertyExist(String property) {
-        assertTrue(propertiesFile.text.contains(property))
-        return true
+    TestFile getBuildPropertiesFile() {
+        return file(BuildPropertiesDefaults.BUILD_PROPERTIES_FILE)
     }
 
-    def assertBuildPropertyNotExist(String property) {
-        assertFalse(propertiesFile.text.contains(property))
-        return true
+    void assertHasBuildProperties() {
+        buildPropertiesFile.assertExists()
+    }
+
+    void assertJvmCriteria(JavaVersion version, String vendor = null, String implementation = null) {
+        Properties properties = readBuildProperties()
+        assert properties.get(BuildPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY) == version.majorVersion
+        assert properties.get(BuildPropertiesDefaults.TOOLCHAIN_VENDOR_PROPERTY) == vendor
+        assert properties.get(BuildPropertiesDefaults.TOOLCHAIN_IMPLEMENTATION_PROPERTY) == implementation
+    }
+
+    void writeJvmCriteria(Jvm jvm) {
+        def otherMetadata = AvailableJavaHomes.getJvmInstallationMetadata(jvm)
+        writeJvmCriteria(jvm.javaVersion, otherMetadata.vendor.knownVendor.name())
+    }
+
+    void writeJvmCriteria(JavaVersion version, String vendor = null, String implementation = null) {
+        Properties properties = new Properties()
+        properties.put(BuildPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY, version.majorVersion)
+        if (vendor) {
+            properties.put(BuildPropertiesDefaults.TOOLCHAIN_VENDOR_PROPERTY, vendor)
+        }
+        if (implementation) {
+            properties.put(BuildPropertiesDefaults.TOOLCHAIN_IMPLEMENTATION_PROPERTY, implementation)
+        }
+        buildPropertiesFile.touch()
+        PropertiesUtils.store(properties, buildPropertiesFile)
+        assertJvmCriteria(version, vendor, implementation)
+    }
+
+    Properties readBuildProperties() {
+        assertHasBuildProperties()
+        def properties = new Properties()
+        buildPropertiesFile.withInputStream {
+            properties.load(it)
+        }
+        properties
     }
 }

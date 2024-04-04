@@ -25,5 +25,5 @@ public class BuildPropertiesDefaults {
     public static final String TOOLCHAIN_VENDOR_PROPERTY = "daemon.jvm.toolchain.vendor";
     public static final String TOOLCHAIN_IMPLEMENTATION_PROPERTY = "daemon.jvm.toolchain.implementation";
 
-    public static final Integer TOOLCHAIN_VERSION = Integer.valueOf(JavaVersion.VERSION_21.getMajorVersion());
+    public static final JavaVersion TOOLCHAIN_VERSION = JavaVersion.current();
 }

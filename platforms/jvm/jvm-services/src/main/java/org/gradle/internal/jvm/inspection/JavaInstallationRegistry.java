@@ -98,6 +98,9 @@ public class JavaInstallationRegistry {
     }
 
     private Set<InstallationLocation> maybeCollectInBuildOperation(List<InstallationSupplier> suppliers) {
+        if (buildOperationRunner == null) {
+            return collectInstallations(suppliers);
+        }
         return buildOperationRunner.call(new ToolchainDetectionBuildOperation(() -> collectInstallations(suppliers)));
     }
 

@@ -26,10 +26,14 @@ public class UpdateDaemonJvmTaskConfigurator implements ProjectConfigureAction {
 
     @Override
     public void execute(ProjectInternal project) {
-        project.getTasks().register(TASK_NAME, UpdateDaemonJvmTask.class, task -> {
-            task.setGroup("Build Setup");
-            task.setDescription("Generates or updates the Daemon JVM criteria.");
-            task.getToolchainVersion().convention(BuildPropertiesDefaults.TOOLCHAIN_VERSION);
-        });
+        // Only useful for the root project
+        if (project.getParent() == null) {
+            project.getTasks().register(TASK_NAME, UpdateDaemonJvmTask.class, task -> {
+                task.setGroup("Build Setup");
+                task.setDescription("Generates or updates the Daemon JVM criteria.");
+                task.getPropertiesFile().convention(project.getLayout().getProjectDirectory().file(BuildPropertiesDefaults.BUILD_PROPERTIES_FILE));
+                task.getToolchainVersion().convention(BuildPropertiesDefaults.TOOLCHAIN_VERSION.getMajorVersion());
+            });
+        }
     }
 }

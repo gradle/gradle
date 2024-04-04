@@ -19,6 +19,7 @@ dependencies {
     testImplementation(testFixtures(project(":core")))
 
     testFixturesImplementation(project(":core-api"))
+    testFixturesImplementation(project(":internal-integ-testing"))
 
     testRuntimeOnly(project(":distributions-jvm")) {
         because("ProjectBuilder tests load services from a Gradle distribution.  Toolchain usage requires JVM distribution.")

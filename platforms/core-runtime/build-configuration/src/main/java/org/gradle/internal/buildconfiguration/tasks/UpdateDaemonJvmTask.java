@@ -17,7 +17,8 @@
 package org.gradle.internal.buildconfiguration.tasks;
 
 import org.gradle.api.DefaultTask;
-import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.JavaVersion;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
@@ -29,40 +30,28 @@ import org.gradle.internal.jvm.inspection.JvmVendor.KnownJvmVendor;
 import org.gradle.jvm.toolchain.JvmImplementation;
 import org.gradle.work.DisableCachingByDefault;
 
-import javax.inject.Inject;
-import java.io.File;
-
 /**
  * Generates or updates Daemon JVM criteria.
  */
 @DisableCachingByDefault(because = "Not worth caching")
 public abstract class UpdateDaemonJvmTask extends DefaultTask {
-
-    private final UpdateDaemonJvmModifier updateDaemonJvmModifier;
-
-    @Inject
-    public UpdateDaemonJvmTask(ProjectLayout projectLayout) {
-        updateDaemonJvmModifier = new UpdateDaemonJvmModifier(projectLayout.getProjectDirectory().getAsFile());
-    }
-
     @TaskAction
     void generate() {
-        updateDaemonJvmModifier.updateJvmCriteria(
-            getToolchainVersion().get(),
+        UpdateDaemonJvmModifier.updateJvmCriteria(
+            getPropertiesFile().get().getAsFile(),
+            JavaVersion.toVersion(getToolchainVersion().get()),
             getToolchainVendor().isPresent() ? getToolchainVendor().get().asJvmVendor() : null,
             getToolchainImplementation().getOrNull()
         );
     }
 
     @OutputFile
-    public File getPropertiesFile() {
-        return updateDaemonJvmModifier.getPropertiesFile();
-    }
+    public abstract RegularFileProperty getPropertiesFile();
 
     @Input
     @Optional
     @Option(option = "toolchain-version", description = "The version of the toolchain required to set up Daemon JVM")
-    public abstract Property<Integer> getToolchainVersion();
+    public abstract Property<String> getToolchainVersion();
 
     @Input
     @Optional

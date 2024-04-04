@@ -21,6 +21,7 @@ import junit.framework.AssertionFailedError;
 import org.apache.commons.io.output.TeeOutputStream;
 import org.gradle.BuildResult;
 import org.gradle.StartParameter;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.Task;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.execution.TaskExecutionListener;
@@ -210,6 +211,22 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             Properties properties = GUtil.loadProperties(gradleProperties);
             return properties.getProperty("org.gradle.java.home") != null || properties.getProperty("org.gradle.jvmargs") != null;
         }
+        File buildProperties = new File(getWorkingDir(), "gradle/gradle-build.properties");
+        if (buildProperties.isFile()) {
+            Properties properties = GUtil.loadProperties(buildProperties);
+            String requestedVersion = properties.getProperty("daemon.jvm.toolchain.version");
+            if (requestedVersion != null) {
+                try {
+                    JavaVersion requestedJavaVersion = JavaVersion.toVersion(requestedVersion);
+                    return !requestedJavaVersion.equals(JavaVersion.current());
+                } catch (Exception e) {
+                    // The build properties may be intentionally invalid, so we should attempt to test this outside the
+                    // in-process executor
+                    return true;
+                }
+            }
+        }
+
         boolean isInstrumentationEnabledForProcess = isAgentInstrumentationEnabled();
         boolean differentInstrumentationRequested = getAllArgs().stream().anyMatch(
             ("-D" + DaemonBuildOptions.ApplyInstrumentationAgentOption.GRADLE_PROPERTY + "=" + !isInstrumentationEnabledForProcess)::equals);

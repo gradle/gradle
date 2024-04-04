@@ -94,6 +94,7 @@ dependencies {
     integTestImplementation(libs.guava)
     integTestImplementation(libs.commonsLang)
     integTestImplementation(libs.commonsIo)
+    integTestImplementation(testFixtures(project(":build-configuration")))
 
     testRuntimeOnly(project(":distributions-core")) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")

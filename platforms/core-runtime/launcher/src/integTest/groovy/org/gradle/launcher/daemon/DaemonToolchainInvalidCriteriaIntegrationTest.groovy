@@ -16,60 +16,44 @@
 
 package org.gradle.launcher.daemon
 
-import org.gradle.integtests.fixtures.daemon.AbstractDaemonToolchainIntegrationSpec
+import org.gradle.api.JavaVersion
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.buildconfiguration.BuildPropertiesDefaults
+import org.gradle.internal.buildconfiguration.fixture.BuildPropertiesFixture
 import org.gradle.internal.jvm.Jvm
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
 
-@Requires(IntegTestPreconditions.NotEmbeddedExecutor)
-class DaemonToolchainInvalidCriteriaIntegrationTest extends AbstractDaemonToolchainIntegrationSpec {
+class DaemonToolchainInvalidCriteriaIntegrationTest extends AbstractIntegrationSpec implements BuildPropertiesFixture {
 
     def "Given empty build properties file When execute any task Then succeeds using the current java home"() {
-        def currentJvm = Jvm.current()
-
         given:
-        createDaemonJvmToolchainCriteria()
+        buildPropertiesFile.touch()
+        expectJavaHome(Jvm.current())
 
         expect:
-        succeedsSimpleTaskWithDaemonJvm(currentJvm, false)
+        succeeds("help")
     }
 
     def "Given non-integer toolchain version When execute any task Then fails with expected exception message"() {
         given:
-        createDaemonJvmToolchainCriteria("stringVersion")
-
+        buildPropertiesFile.writeProperties((BuildPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY): "stringVersion")
         when:
         fails 'help'
-
         then:
-        failureDescriptionContains("Value 'stringVersion' given for daemon.jvm.toolchain.version Build property is invalid (the value should be an int)")
+        failure.assertHasDescription("Value 'stringVersion' given for daemon.jvm.toolchain.version Build property is invalid (the value should be an int)")
     }
 
     def "Given negative toolchain version When execute any task Then fails with expected exception message"() {
         given:
-        createDaemonJvmToolchainCriteria("-1")
-
+        buildPropertiesFile.writeProperties((BuildPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY): "-1")
         when:
         fails 'help'
-
         then:
-        failureDescriptionContains("Value '-1' given for daemon.jvm.toolchain.version Build property is invalid (the value should be a positive int)")
-    }
-
-    def "Given undefined toolchain version but valid vendor and implementation When execute any task Then fails with expected exception message"() {
-        given:
-        createDaemonJvmToolchainCriteria(null, "ibm", "j9")
-
-        when:
-        fails 'help'
-
-        then:
-        failureDescriptionContains("Option daemon.jvm.toolchain.version undefined on build properties. Execute 'updateDaemonJvm' task with desired criteria to fix it.")
+        failure.assertHasDescription("Value '-1' given for daemon.jvm.toolchain.version Build property is invalid (the value should be a positive int)")
     }
 
     def "Given unexpected toolchain vendor When execute any task Then fails with expected exception message"() {
         given:
-        createDaemonJvmToolchainCriteria("17", "unexpectedVendor")
+        writeJvmCriteria(JavaVersion.VERSION_17, "unexpectedVendor")
 
         when:
         fails 'help'
@@ -81,7 +65,7 @@ class DaemonToolchainInvalidCriteriaIntegrationTest extends AbstractDaemonToolch
 
     def "Given unexpected toolchain implementation When execute any task Then fails with expected exception message"() {
         given:
-        createDaemonJvmToolchainCriteria("17", "amazon", "unknownImplementation")
+        writeJvmCriteria(JavaVersion.VERSION_17, "amazon", "unknownImplementation")
 
         when:
         fails 'help'

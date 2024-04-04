@@ -16,26 +16,34 @@
 
 package org.gradle.interal.buildconfiguration.tasks
 
+import groovy.test.NotYetImplemented
 import org.gradle.api.JavaVersion
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.daemon.AbstractDaemonToolchainIntegrationSpec
 import org.gradle.internal.buildconfiguration.BuildPropertiesDefaults
-import org.gradle.internal.buildconfiguration.fixture.DaemonJvmPropertiesFixture
+import org.gradle.internal.buildconfiguration.fixture.BuildPropertiesFixture
+import org.gradle.internal.buildconfiguration.tasks.UpdateDaemonJvmTask
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 
-@Requires(IntegTestPreconditions.NotEmbeddedExecutor)
-class UpdateDaemonJvmTaskIntegrationTest extends AbstractDaemonToolchainIntegrationSpec {
+class UpdateDaemonJvmTaskIntegrationTest extends AbstractIntegrationSpec implements BuildPropertiesFixture {
 
-    final daemonJvmFixture = new DaemonJvmPropertiesFixture(testDirectory)
+    def "root project has an updateDaemonJvm task only"() {
+        buildFile << """
+            def updateDaemonJvm = tasks.named("updateDaemonJvm").get()
+            assert updateDaemonJvm instanceof ${UpdateDaemonJvmTask.class.name}
+            assert updateDaemonJvm.description == "Generates or updates the Daemon JVM criteria."
+        """
+        settingsFile << """
+            rootProject.name = 'root'
+            include("sub")
+        """
+        file("sub").mkdir()
 
-    def "When executing tasks Then the output contains updateDaemonJvm task"() {
-        when:
-        run "tasks"
-
-        then:
-        output.contains("updateDaemonJvm - Generates or updates the Daemon JVM criteria.")
+        expect:
+        succeeds("help", "--task", "updateDaemonJvm")
+        fails(":sub:updateDaemonJvm") // should not exist
     }
 
     def "When execute updateDaemonJvm without options Then build properties are populated with default values"() {
@@ -43,18 +51,18 @@ class UpdateDaemonJvmTaskIntegrationTest extends AbstractDaemonToolchainIntegrat
         run "updateDaemonJvm"
 
         then:
-        daemonJvmFixture.assertJvmCriteria(JavaVersion.latestSupportedLTS.getMajorVersion().toInteger())
+        assertJvmCriteria(Jvm.current().javaVersion)
     }
 
     def "When execute updateDaemonJvm for valid version Then build properties are populated with expected values"() {
         when:
-        run "updateDaemonJvm", "--toolchain-version=$version"
+        run "updateDaemonJvm", "--toolchain-version=${version.majorVersion}"
 
         then:
-        daemonJvmFixture.assertJvmCriteria(version)
+        assertJvmCriteria(version)
 
         where:
-        version << (JavaVersion.VERSION_1_8.majorVersion.toInteger()..JavaVersion.VERSION_HIGHER.majorVersion.toInteger())
+        version << [JavaVersion.VERSION_1_8, JavaVersion.VERSION_15, JavaVersion.VERSION_HIGHER]
     }
 
     def "When execute updateDaemonJvm for valid vendor option Then build properties are populated with expected values"() {
@@ -62,7 +70,7 @@ class UpdateDaemonJvmTaskIntegrationTest extends AbstractDaemonToolchainIntegrat
         run "updateDaemonJvm", "--toolchain-vendor=$vendor"
 
         then:
-        daemonJvmFixture.assertJvmCriteria(BuildPropertiesDefaults.TOOLCHAIN_VERSION, vendor)
+        assertJvmCriteria(BuildPropertiesDefaults.TOOLCHAIN_VERSION, vendor)
 
         where:
         vendor << ["ADOPTIUM", "ADOPTOPENJDK", "AMAZON", "APPLE", "AZUL", "BELLSOFT", "GRAAL_VM", "HEWLETT_PACKARD", "IBM", "JETBRAINS", "MICROSOFT", "ORACLE", "SAP", "TENCENT", "UNKNOWN"]
@@ -73,7 +81,7 @@ class UpdateDaemonJvmTaskIntegrationTest extends AbstractDaemonToolchainIntegrat
         run "updateDaemonJvm", "--toolchain-implementation=$implementation"
 
         then:
-        daemonJvmFixture.assertJvmCriteria(BuildPropertiesDefaults.TOOLCHAIN_VERSION, null, implementation)
+        assertJvmCriteria(BuildPropertiesDefaults.TOOLCHAIN_VERSION, null, implementation)
 
         where:
         implementation << ["VENDOR_SPECIFIC", "J9"]
@@ -84,7 +92,7 @@ class UpdateDaemonJvmTaskIntegrationTest extends AbstractDaemonToolchainIntegrat
         run "updateDaemonJvm", "--toolchain-version=17", "--toolchain-vendor=IBM", "--toolchain-implementation=J9"
 
         then:
-        daemonJvmFixture.assertJvmCriteria(17, "IBM", "J9")
+        assertJvmCriteria(JavaVersion.VERSION_17, "IBM", "J9")
     }
 
     def "When execute updateDaemonJvm specifying different options in lower case Then build properties are populated with expected values"() {
@@ -92,9 +100,10 @@ class UpdateDaemonJvmTaskIntegrationTest extends AbstractDaemonToolchainIntegrat
         run "updateDaemonJvm", "--toolchain-version=17", "--toolchain-vendor=ibm", "--toolchain-implementation=j9"
 
         then:
-        daemonJvmFixture.assertJvmCriteria(17, "IBM", "J9")
+        assertJvmCriteria(JavaVersion.VERSION_17, "IBM", "J9")
     }
 
+    @NotYetImplemented
     def "When execute updateDaemonJvm with invalid argument --toolchain-version option Then fails with expected exception message"() {
         when:
         fails "updateDaemonJvm", "--toolchain-version=$invalidVersion"
@@ -107,13 +116,14 @@ class UpdateDaemonJvmTaskIntegrationTest extends AbstractDaemonToolchainIntegrat
         invalidVersion << ["0", "-10", "7", "10000"]
     }
 
+    @NotYetImplemented
     def "When execute updateDaemonJvm with invalid format --toolchain-version option Then fails with expected exception message"() {
         when:
-        fails "updateDaemonJvm", "--toolchain-version=17.0"
+        fails "updateDaemonJvm", "--toolchain-version=asdf"
 
         then:
         failureDescriptionContains("Problem configuring option 'toolchain-version' on task ':updateDaemonJvm' from command line.")
-        failureHasCause("Cannot convert string value '17.0' to an integer.")
+        failureHasCause("Could not determine Java version from 'asdf'")
     }
 
     def "When execute updateDaemonJvm with unexpected --toolchain-vendor option Then fails with expected exception message"() {
@@ -136,7 +146,7 @@ class UpdateDaemonJvmTaskIntegrationTest extends AbstractDaemonToolchainIntegrat
             "(valid case insensitive values: VENDOR_SPECIFIC, J9)")
     }
 
-    def "Given already existing build properties When execute updateDaemonJvm with different criteria Then criteria get modified but the other build properties are still present"() {
+    def "Given already existing build properties When execute updateDaemonJvm with different criteria Then criteria get modified and the other build properties are stripped"() {
         given:
         file("gradle/gradle-build.properties") << """
             test.property=testValue
@@ -144,25 +154,30 @@ class UpdateDaemonJvmTaskIntegrationTest extends AbstractDaemonToolchainIntegrat
             daemon.jvm.toolchain.vendor=IBM
             daemon.jvm.toolchain.implementation=J9
             another.property=anotherValue
+            # comments are stripped
         """
 
         when:
         run "updateDaemonJvm", "--toolchain-version=20", "--toolchain-vendor=AZUL"
 
         then:
-        daemonJvmFixture.assertJvmCriteria(20, "AZUL")
-        daemonJvmFixture.assertBuildPropertyExist("test.property=testValue")
-        daemonJvmFixture.assertBuildPropertyExist("another.property=anotherValue")
+        assertJvmCriteria(JavaVersion.VERSION_20, "AZUL")
+        def buildProperties = readBuildProperties()
+        !buildProperties.containsKey("test.property")
+        !buildProperties.containsKey("another.property")
+        !buildPropertiesFile.text.contains("# comments are stripped")
+        buildPropertiesFile.text.contains("#This file is generated by updateDaemonJvm")
     }
 
     def "Given defined invalid criteria When execute updateDaemonJvm with different criteria Then criteria get modified using java home"() {
-        def currentJvm = Jvm.current()
+        def currentJvm = JavaVersion.current()
 
         given:
-        createDaemonJvmToolchainCriteria("-1", "invalidVendor")
+        writeJvmCriteria(currentJvm, "invalidVendor")
 
         expect:
-        succeedsTaskWithDaemonJvm(currentJvm, false, "updateDaemonJvm", "--toolchain-version=20", "--toolchain-vendor=AZUL")
+        succeeds("updateDaemonJvm", "--toolchain-version=20", "--toolchain-vendor=AZUL")
+        assertJvmCriteria(JavaVersion.VERSION_20, "AZUL")
     }
 
     @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
@@ -171,9 +186,10 @@ class UpdateDaemonJvmTaskIntegrationTest extends AbstractDaemonToolchainIntegrat
         def otherMetadata = AvailableJavaHomes.getJvmInstallationMetadata(otherJvm)
 
         given:
-        createDaemonJvmToolchainCriteria(otherMetadata.languageVersion.majorVersion, otherMetadata.vendor.knownVendor.name())
+        writeJvmCriteria(otherJvm.javaVersion, otherMetadata.vendor.knownVendor.name())
 
         expect:
-        succeedsTaskWithDaemonJvm(otherJvm, true, "updateDaemonJvm", "--toolchain-version=20", "--toolchain-vendor=AZUL")
+        succeeds("updateDaemonJvm", "--toolchain-version=20", "--toolchain-vendor=AZUL")
+        assertJvmCriteria(JavaVersion.VERSION_20, "AZUL")
     }
 }

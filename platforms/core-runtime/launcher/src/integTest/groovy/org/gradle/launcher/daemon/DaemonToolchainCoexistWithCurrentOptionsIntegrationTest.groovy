@@ -16,62 +16,59 @@
 
 package org.gradle.launcher.daemon
 
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.daemon.AbstractDaemonToolchainIntegrationSpec
+import org.gradle.internal.buildconfiguration.fixture.BuildPropertiesFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 
-@Requires(IntegTestPreconditions.NotEmbeddedExecutor)
-class DaemonToolchainCoexistWithCurrentOptionsIntegrationTest extends AbstractDaemonToolchainIntegrationSpec {
+class DaemonToolchainCoexistWithCurrentOptionsIntegrationTest extends AbstractIntegrationSpec implements BuildPropertiesFixture {
 
     @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "Given disabled auto-detection When using daemon toolchain Then option is ignored resolving with expected toolchain"() {
-        def otherJvm = AvailableJavaHomes.differentVersion
-
         given:
-        createDaemonJvmToolchainCriteria(otherJvm)
+        def otherJvm = AvailableJavaHomes.differentVersion
+        writeJvmCriteria(otherJvm)
+        expectJavaHome(otherJvm)
         executer.withArgument("-Porg.gradle.java.installations.auto-detect=false")
 
         expect:
-        succeedsSimpleTaskWithDaemonJvm(otherJvm)
+        succeeds("help")
     }
 
     @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "Given defined org.gradle.java.home gradle property When using daemon toolchain Then option is ignored resolving with expected toolchain"() {
-        def currentJvm = Jvm.current()
-        def otherJvm = AvailableJavaHomes.differentVersion
-
         given:
-        createDaemonJvmToolchainCriteria(otherJvm)
-        file("gradle.properties").writeProperties("org.gradle.java.home": currentJvm.javaHome.canonicalPath)
+        def otherJvm = AvailableJavaHomes.differentVersion
+        writeJvmCriteria(otherJvm)
+        expectJavaHome(otherJvm)
+        file("gradle.properties").writeProperties("org.gradle.java.home": Jvm.current().javaHome.canonicalPath)
 
         expect:
-        succeedsSimpleTaskWithDaemonJvm(otherJvm)
+        succeeds("help")
     }
 
     @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "Given daemon toolchain properties When executing any task passing them as arguments Then those are ignored since aren't defined on build properties file"() {
-        def currentJvm = Jvm.current()
+        given:
         def otherJvm = AvailableJavaHomes.differentVersion
         def otherJvmMetadata = AvailableJavaHomes.getJvmInstallationMetadata(otherJvm)
-
-        given:
+        expectJavaHome(Jvm.current())
         executer
             .withArgument("-Pdaemon.jvm.toolchain.version=$otherJvmMetadata.javaVersion")
             .withArgument("-Pdaemon.jvm.toolchain.vendor=$otherJvmMetadata.vendor.knownVendor")
 
         expect:
-        succeedsSimpleTaskWithDaemonJvm(currentJvm)
+        succeeds("help")
     }
 
     @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "Given daemon toolchain properties defined on gradle properties When executing any task Then those are ignored since aren't defined on build properties file"() {
-        def currentJvm = Jvm.current()
+        given:
         def otherJvm = AvailableJavaHomes.differentVersion
         def otherJvmMetadata = AvailableJavaHomes.getJvmInstallationMetadata(otherJvm)
-
-        given:
+        expectJavaHome(Jvm.current())
         file("gradle.properties")
             .writeProperties(
                 "daemon.jvm.toolchain.version": otherJvmMetadata.javaVersion,
@@ -79,16 +76,15 @@ class DaemonToolchainCoexistWithCurrentOptionsIntegrationTest extends AbstractDa
             )
 
         expect:
-        succeedsSimpleTaskWithDaemonJvm(currentJvm)
+        succeeds("help")
     }
 
     @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "Given defined org.gradle.java.home under Build properties When executing any task Then this is ignored since isn't defined on gradle properties file"() {
-        def currentJvm = Jvm.current()
+        given:
         def otherJvm = AvailableJavaHomes.differentVersion
         def otherJvmMetadata = AvailableJavaHomes.getJvmInstallationMetadata(otherJvm)
-
-        given:
+        expectJavaHome(Jvm.current())
         createDir("gradle")
         file("gradle/gradle-build.properties")
             .writeProperties(
@@ -96,6 +92,6 @@ class DaemonToolchainCoexistWithCurrentOptionsIntegrationTest extends AbstractDa
             )
 
         expect:
-        succeedsSimpleTaskWithDaemonJvm(currentJvm)
+        succeeds("help")
     }
 }
