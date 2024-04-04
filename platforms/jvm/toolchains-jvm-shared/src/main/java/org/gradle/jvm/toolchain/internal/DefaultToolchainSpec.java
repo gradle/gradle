@@ -16,9 +16,6 @@
 
 package org.gradle.jvm.toolchain.internal;
 
-import org.gradle.api.internal.provider.PropertyFactory;
-import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.Property;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JvmImplementation;
@@ -28,7 +25,7 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.Objects;
 
-public class DefaultToolchainSpec implements JavaToolchainSpecInternal {
+public abstract class DefaultToolchainSpec implements JavaToolchainSpecInternal {
 
     public static class Key implements JavaToolchainSpecInternal.Key {
         private final JavaLanguageVersion languageVersion;
@@ -70,52 +67,25 @@ public class DefaultToolchainSpec implements JavaToolchainSpecInternal {
         }
     }
 
-    private final Property<JavaLanguageVersion> languageVersion;
-    private final Property<JvmVendorSpec> vendor;
-    private final Property<JvmImplementation> implementation;
-
     @Inject
-    public DefaultToolchainSpec(ObjectFactory factory) {
-        this.languageVersion = factory.property(JavaLanguageVersion.class);
-        this.vendor = factory.property(JvmVendorSpec.class).convention(getConventionVendor());
-        this.implementation = factory.property(JvmImplementation.class).convention(getConventionImplementation());
+    public DefaultToolchainSpec() {
+        getVendor().convention(getConventionVendor());
+        getImplementation().convention(getConventionImplementation());
     }
-
-    public DefaultToolchainSpec(PropertyFactory propertyFactory) {
-        this.languageVersion = propertyFactory.property(JavaLanguageVersion.class);
-        this.vendor = propertyFactory.property(JvmVendorSpec.class);
-        this.implementation = propertyFactory.property(JvmImplementation.class);
-    }
-
-    @Override
-    public Property<JavaLanguageVersion> getLanguageVersion() {
-        return languageVersion;
-    }
-
-    @Override
-    public Property<JvmVendorSpec> getVendor() {
-        return vendor;
-    }
-
-    @Override
-    public Property<JvmImplementation> getImplementation() {
-        return implementation;
-    }
-
     @Override
     public JavaToolchainSpecInternal.Key toKey() {
-        return new Key(languageVersion.getOrNull(), vendor.getOrNull(), implementation.getOrNull());
+        return new Key(getLanguageVersion().getOrNull(), getVendor().getOrNull(), getImplementation().getOrNull());
     }
 
     @Override
     public boolean isConfigured() {
-        return languageVersion.isPresent();
+        return getLanguageVersion().isPresent();
     }
 
     @SuppressWarnings("deprecation")
     @Override
     public boolean isValid() {
-        if (vendor.getOrNull() == JvmVendorSpec.IBM_SEMERU) {
+        if (getVendor().getOrNull() == JvmVendorSpec.IBM_SEMERU) {
             // https://github.com/gradle/gradle/issues/23155
             // This should make the spec invalid when the enum gets removed
             DeprecationLogger.deprecateBehaviour("Requesting JVM vendor IBM_SEMERU.")
@@ -123,12 +93,12 @@ public class DefaultToolchainSpec implements JavaToolchainSpecInternal {
                 .withUpgradeGuideSection(8, "ibm_semeru_should_not_be_used")
                 .nagUser();
         }
-        return languageVersion.isPresent() || isSecondaryPropertiesUnchanged();
+        return getLanguageVersion().isPresent() || isSecondaryPropertiesUnchanged();
     }
 
     private boolean isSecondaryPropertiesUnchanged() {
-        return Objects.equals(getConventionVendor(), vendor.getOrNull()) &&
-            Objects.equals(getConventionImplementation(), implementation.getOrNull());
+        return Objects.equals(getConventionVendor(), getVendor().getOrNull()) &&
+            Objects.equals(getConventionImplementation(), getImplementation().getOrNull());
     }
 
     @Override

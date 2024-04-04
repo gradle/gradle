@@ -48,7 +48,7 @@ abstract public class AbstractCodeQualityTask extends SourceTask implements Veri
     @Inject
     public AbstractCodeQualityTask() {
         getIgnoreFailuresProperty().convention(false);
-        getJavaLauncher().convention(getToolchainService().launcherFor(new CurrentJvmToolchainSpec(getObjectFactory())));
+        getJavaLauncher().convention(getToolchainService().launcherFor(getObjectFactory().newInstance(CurrentJvmToolchainSpec.class)));
     }
 
     /**

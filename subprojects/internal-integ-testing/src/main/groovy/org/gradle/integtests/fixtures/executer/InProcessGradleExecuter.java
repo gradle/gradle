@@ -30,8 +30,8 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.TestFiles;
-import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.logging.configuration.ConsoleOutput;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.cli.CommandLineParser;
@@ -63,8 +63,8 @@ import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.time.Time;
 import org.gradle.launcher.Main;
-import org.gradle.launcher.cli.Parameters;
 import org.gradle.launcher.cli.BuildEnvironmentConfigurationConverter;
+import org.gradle.launcher.cli.Parameters;
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
@@ -370,7 +370,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         // TODO: Reuse more of CommandlineActionFactory
         CommandLineParser parser = new CommandLineParser();
         FileCollectionFactory fileCollectionFactory = TestFiles.fileCollectionFactory();
-        PropertyFactory propertyFactory = GLOBAL_SERVICES.get(PropertyFactory.class);
+        ObjectFactory propertyFactory = GLOBAL_SERVICES.get(ObjectFactory.class);
         BuildEnvironmentConfigurationConverter buildEnvironmentConfigurationConverter = new BuildEnvironmentConfigurationConverter(new BuildLayoutFactory(), fileCollectionFactory, propertyFactory);
         buildEnvironmentConfigurationConverter.configure(parser);
         Parameters parameters = buildEnvironmentConfigurationConverter.convertParameters(parser.parse(getAllArgs()), getWorkingDir());

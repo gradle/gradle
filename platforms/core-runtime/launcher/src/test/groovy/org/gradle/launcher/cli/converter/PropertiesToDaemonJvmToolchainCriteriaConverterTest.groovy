@@ -24,12 +24,13 @@ import org.gradle.jvm.toolchain.JvmVendorSpec
 import org.gradle.jvm.toolchain.JvmImplementation
 import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec
 import org.gradle.launcher.daemon.configuration.DaemonJvmToolchainCriteriaOptions
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class PropertiesToDaemonJvmToolchainCriteriaConverterTest extends Specification {
 
     def converter = new DaemonJvmToolchainCriteriaOptions().propertiesConverter()
-    def params = new DefaultToolchainSpec(new DefaultPropertyFactory(Stub(PropertyHost)))
+    def params = TestUtil.objectFactory().newInstance(DefaultToolchainSpec.class)
 
     def "configures from empty build properties"() {
         when:

@@ -20,15 +20,14 @@ package org.gradle.jvm.toolchain.internal
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JvmImplementation
 import org.gradle.jvm.toolchain.JvmVendorSpec
-import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class JavaToolchainInputTest extends Specification {
 
     def "optional properties are using defaults"() {
         given:
-        def baseSpec = new DefaultToolchainSpec(TestUtil.objectFactory())
-        def diffSpec = new DefaultToolchainSpec(TestUtil.objectFactory())
+        def baseSpec = new DefaultToolchainSpec()
+        def diffSpec = new DefaultToolchainSpec()
         baseSpec.languageVersion.set(JavaLanguageVersion.of(11))
         diffSpec.languageVersion.set(JavaLanguageVersion.of(11))
         def base = new JavaToolchainInput(baseSpec)
@@ -85,7 +84,7 @@ class JavaToolchainInputTest extends Specification {
     }
 
     def newSpec(int languageVersion, String vendor = "ibm", JvmImplementation impl = JvmImplementation.VENDOR_SPECIFIC) {
-        def spec = new DefaultToolchainSpec(TestUtil.objectFactory())
+        def spec = new DefaultToolchainSpec()
         spec.languageVersion.set(JavaLanguageVersion.of(languageVersion))
         spec.vendor.set(JvmVendorSpec.matching(vendor))
         spec.implementation.set(impl)

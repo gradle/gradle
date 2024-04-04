@@ -132,7 +132,7 @@ public abstract class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc>
     }
 
     private void configureToolchains(CodeNarc task) {
-        Provider<JavaLauncher> javaLauncherProvider = getToolchainService().launcherFor(new CurrentJvmToolchainSpec(project.getObjects()));
+        Provider<JavaLauncher> javaLauncherProvider = getToolchainService().launcherFor(project.getObjects().newInstance(CurrentJvmToolchainSpec.class));
         task.getJavaLauncher().convention(javaLauncherProvider);
         project.getPluginManager().withPlugin("java-base", p -> {
             JavaToolchainSpec toolchain = getJavaPluginExtension().getToolchain();

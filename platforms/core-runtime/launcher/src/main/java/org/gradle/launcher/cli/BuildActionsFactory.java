@@ -23,8 +23,8 @@ import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.tasks.userinput.UserInputReader;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.configuration.GradleLauncherMetaData;
@@ -94,7 +94,7 @@ class BuildActionsFactory implements CommandLineActionCreator {
         buildEnvironmentConfigurationConverter = new BuildEnvironmentConfigurationConverter(
             new BuildLayoutFactory(),
             fileCollectionFactory,
-            basicServices.get(PropertyFactory.class)
+            basicServices.get(ObjectFactory.class)
         );
         jvmVersionDetector = basicServices.get(JvmVersionDetector.class);
         daemonJavaToolchainQueryService = new DaemonJavaToolchainQueryService(
