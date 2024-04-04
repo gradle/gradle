@@ -22,10 +22,6 @@ import org.gradle.util.internal.TextUtil;
 public abstract class Origin {
     protected String source;
 
-    public static Origin forBuildProperty(String buildProperty) {
-        return new BuildPropertyOrigin(buildProperty);
-    }
-
     public static Origin forGradleProperty(String gradleProperty) {
         return new GradlePropertyOrigin(gradleProperty);
     }
@@ -49,18 +45,6 @@ public abstract class Origin {
             return "";
         }
         return String.format(" (%s)", hint);
-    }
-
-    private static class BuildPropertyOrigin extends Origin {
-        public BuildPropertyOrigin(String value) {
-            super(value);
-        }
-
-        @Override
-        public void handleInvalidValue(String value, String hint) {
-            String message = String.format("Value '%s' given for %s Build property is invalid%s", value, source, hintMessage(hint));
-            throw new IllegalArgumentException(message);
-        }
     }
 
     private static class GradlePropertyOrigin extends Origin {

@@ -17,13 +17,9 @@
 package org.gradle.internal.buildoption;
 
 public enum PropertyOrigin {
-    BUILD_PROPERTIES,
     GRADLE_PROPERTIES;
 
     public Origin toOrigin(String property) {
-        if (this == PropertyOrigin.BUILD_PROPERTIES) {
-            return Origin.forBuildProperty(property);
-        }
         return Origin.forGradleProperty(property);
     }
 }

@@ -31,7 +31,6 @@ import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
 import org.gradle.launcher.configuration.AllProperties;
 import org.gradle.launcher.configuration.BuildLayoutResult;
 import org.gradle.launcher.configuration.InitialProperties;
-import org.gradle.launcher.daemon.configuration.DaemonJvmToolchainCriteriaOptions;
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
 import org.gradle.util.internal.CollectionUtils;
 
@@ -58,7 +57,6 @@ public class LayoutToPropertiesConverter {
         allBuildOptions.addAll(new LoggingConfigurationBuildOptions().getAllOptions()); // TODO maybe a new converter also here
         allBuildOptions.addAll(new WelcomeMessageBuildOptions().getAllOptions()); // TODO maybe a new converter also here
         allBuildOptions.addAll(DaemonBuildOptions.get());
-        allBuildOptions.addAll(DaemonJvmToolchainCriteriaOptions.get());
         allBuildOptions.addAll(new ParallelismBuildOptions().getAllOptions());
     }
 

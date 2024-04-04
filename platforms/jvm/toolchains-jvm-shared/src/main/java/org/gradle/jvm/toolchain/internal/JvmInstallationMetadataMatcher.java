@@ -21,16 +21,24 @@ import org.gradle.internal.jvm.inspection.JvmVendor;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.JvmImplementation;
+import org.gradle.jvm.toolchain.JvmVendorSpec;
 
 import java.util.function.Predicate;
 
 @SuppressWarnings("UnnecessaryLambda")
 public class JvmInstallationMetadataMatcher implements Predicate<JvmInstallationMetadata> {
+    private final JavaLanguageVersion languageVersion;
+    private final DefaultJvmVendorSpec vendorSpec;
+    private final JvmImplementation jvmImplementation;
 
-    private final JavaToolchainSpec spec;
+    public JvmInstallationMetadataMatcher(JavaLanguageVersion languageVersion, JvmVendorSpec vendorSpec, JvmImplementation jvmImplementation) {
+        this.languageVersion = languageVersion;
+        this.vendorSpec = (DefaultJvmVendorSpec)vendorSpec;
+        this.jvmImplementation = jvmImplementation;
+    }
 
     public JvmInstallationMetadataMatcher(JavaToolchainSpec spec) {
-        this.spec = spec;
+        this(spec.getLanguageVersion().get(), spec.getVendor().get(), spec.getImplementation().get());
     }
 
     @Override
@@ -42,34 +50,32 @@ public class JvmInstallationMetadataMatcher implements Predicate<JvmInstallation
     private Predicate<JvmInstallationMetadata> languagePredicate() {
         return metadata -> {
             JavaLanguageVersion actualVersion = JavaToolchain.getJavaLanguageVersion(metadata);
-            JavaLanguageVersion expectedVersion = spec.getLanguageVersion().get();
-            return actualVersion.equals(expectedVersion);
+            return actualVersion.equals(languageVersion);
         };
     }
 
     private Predicate<? super JvmInstallationMetadata> implementationPredicate() {
         return metadata -> {
-            if (spec.getImplementation().get() == JvmImplementation.VENDOR_SPECIFIC) {
+            if (jvmImplementation == JvmImplementation.VENDOR_SPECIFIC) {
                 return true;
             }
 
-            final boolean j9Requested = isJ9ExplicitlyRequested(spec) || isJ9RequestedViaVendor(spec);
+            final boolean j9Requested = isJ9ExplicitlyRequested() || isJ9RequestedViaVendor();
             final boolean isJ9Vm = metadata.hasCapability(JvmInstallationMetadata.JavaInstallationCapability.J9_VIRTUAL_MACHINE);
             return j9Requested == isJ9Vm;
         };
     }
 
-    private static boolean isJ9ExplicitlyRequested(JavaToolchainSpec spec) {
-        return spec.getImplementation().get() == JvmImplementation.J9;
+    private boolean isJ9ExplicitlyRequested() {
+        return jvmImplementation == JvmImplementation.J9;
     }
 
-    private static boolean isJ9RequestedViaVendor(JavaToolchainSpec spec) {
-        DefaultJvmVendorSpec vendorSpec = (DefaultJvmVendorSpec) spec.getVendor().get();
+    private boolean isJ9RequestedViaVendor() {
         return vendorSpec != DefaultJvmVendorSpec.any() && vendorSpec.test(JvmVendor.KnownJvmVendor.IBM.asJvmVendor());
     }
 
     private Predicate<JvmInstallationMetadata> vendorPredicate() {
-        return (DefaultJvmVendorSpec) spec.getVendor().get();
+        return vendorSpec;
     }
 
 }

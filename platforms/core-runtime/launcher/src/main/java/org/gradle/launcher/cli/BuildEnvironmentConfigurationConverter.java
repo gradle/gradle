@@ -18,16 +18,10 @@ package org.gradle.launcher.cli;
 
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.initialization.layout.BuildLayoutFactory;
-import org.gradle.internal.buildconfiguration.BuildPropertiesDefaults;
-import org.gradle.jvm.toolchain.JavaToolchainSpec;
-import org.gradle.jvm.toolchain.JvmImplementation;
-import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec;
-import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec;
 import org.gradle.launcher.cli.converter.BuildLayoutConverter;
 import org.gradle.launcher.cli.converter.BuildOptionBackedConverter;
 import org.gradle.launcher.cli.converter.InitialPropertiesConverter;
@@ -37,7 +31,6 @@ import org.gradle.launcher.configuration.AllProperties;
 import org.gradle.launcher.configuration.BuildLayoutResult;
 import org.gradle.launcher.configuration.InitialProperties;
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
-import org.gradle.launcher.daemon.configuration.DaemonJvmToolchainCriteriaOptions;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 
 import javax.annotation.Nullable;
@@ -50,37 +43,31 @@ public class BuildEnvironmentConfigurationConverter {
     private final LayoutToPropertiesConverter layoutToPropertiesConverter;
     private final StartParameterConverter startParameterConverter;
     private final BuildOptionBackedConverter<DaemonParameters> daemonParametersConverter;
-    private final BuildOptionBackedConverter<JavaToolchainSpec> daemonJvmToolchainCriteriaConverter;
     private final FileCollectionFactory fileCollectionFactory;
-    private final ObjectFactory objectFactory;
 
     BuildEnvironmentConfigurationConverter(InitialPropertiesConverter initialPropertiesConverter,
                                            BuildLayoutConverter buildLayoutConverter,
                                            LayoutToPropertiesConverter layoutToPropertiesConverter,
                                            StartParameterConverter startParameterConverter,
                                            BuildOptionBackedConverter<DaemonParameters> daemonParametersConverter,
-                                           BuildOptionBackedConverter<JavaToolchainSpec> daemonJvmToolchainCriteriaConverter,
-                                           FileCollectionFactory fileCollectionFactory,
-                                           ObjectFactory objectFactory) {
+                                           FileCollectionFactory fileCollectionFactory
+    ) {
         this.initialPropertiesConverter = initialPropertiesConverter;
         this.buildLayoutConverter = buildLayoutConverter;
         this.layoutToPropertiesConverter = layoutToPropertiesConverter;
         this.startParameterConverter = startParameterConverter;
         this.daemonParametersConverter = daemonParametersConverter;
-        this.daemonJvmToolchainCriteriaConverter = daemonJvmToolchainCriteriaConverter;
         this.fileCollectionFactory = fileCollectionFactory;
-        this.objectFactory = objectFactory;
     }
 
-    public BuildEnvironmentConfigurationConverter(BuildLayoutFactory buildLayoutFactory, FileCollectionFactory fileCollectionFactory, ObjectFactory objectFactory) {
+    public BuildEnvironmentConfigurationConverter(BuildLayoutFactory buildLayoutFactory, FileCollectionFactory fileCollectionFactory) {
         this(new InitialPropertiesConverter(),
             new BuildLayoutConverter(),
             new LayoutToPropertiesConverter(buildLayoutFactory),
             new StartParameterConverter(),
             new BuildOptionBackedConverter<>(new DaemonBuildOptions()),
-            new BuildOptionBackedConverter<>(new DaemonJvmToolchainCriteriaOptions()),
-            fileCollectionFactory,
-            objectFactory);
+            fileCollectionFactory
+        );
     }
 
     public Parameters convertParameters(ParsedCommandLine args, @Nullable File currentDir) throws CommandLineArgumentException {
@@ -96,30 +83,10 @@ public class BuildEnvironmentConfigurationConverter {
         return new Parameters(startParameter, daemonParameters, properties);
     }
 
-    @Nullable
-    public JavaToolchainSpec convertJvmToolchainCriteria(ParsedCommandLine args, AllProperties properties) throws IllegalArgumentException {
-        JavaToolchainSpec jvmToolchainCriteria = objectFactory.newInstance(DefaultToolchainSpec.class);
-        daemonJvmToolchainCriteriaConverter.convert(args, properties.getBuildProperties(), jvmToolchainCriteria);
-        if (jvmToolchainCriteria.getLanguageVersion().isPresent()) {
-            if (!jvmToolchainCriteria.getVendor().isPresent()) {
-                jvmToolchainCriteria.getVendor().set(DefaultJvmVendorSpec.any());
-            }
-            if (!jvmToolchainCriteria.getImplementation().isPresent()) {
-                jvmToolchainCriteria.getImplementation().set(JvmImplementation.VENDOR_SPECIFIC);
-            }
-        } else if (jvmToolchainCriteria.getVendor().isPresent() || jvmToolchainCriteria.getImplementation().isPresent()) {
-            String exceptionMessage = String.format("Option %s undefined on build properties. " +
-                "Execute 'updateDaemonJvm' task with desired criteria to fix it.", BuildPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY);
-            throw new IllegalArgumentException(exceptionMessage);
-        }
-        return jvmToolchainCriteria.getLanguageVersion().isPresent() ? jvmToolchainCriteria : null;
-    }
-
     public void configure(CommandLineParser parser) {
         initialPropertiesConverter.configure(parser);
         buildLayoutConverter.configure(parser);
         startParameterConverter.configure(parser);
         daemonParametersConverter.configure(parser);
-        daemonJvmToolchainCriteriaConverter.configure(parser);
     }
 }
