@@ -28,8 +28,6 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.buildconfiguration.BuildPropertiesDefaults;
 import org.gradle.internal.buildconfiguration.UpdateDaemonJvmModifier;
-import org.gradle.internal.jvm.inspection.JvmVendor.KnownJvmVendor;
-import org.gradle.jvm.toolchain.JvmImplementation;
 import org.gradle.work.DisableCachingByDefault;
 
 /**
@@ -45,8 +43,8 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
         UpdateDaemonJvmModifier.updateJvmCriteria(
             getPropertiesFile().get().getAsFile(),
             JavaVersion.toVersion(getToolchainVersion().get()),
-            getToolchainVendor().isPresent() ? getToolchainVendor().get().asJvmVendor() : null,
-            getToolchainImplementation().getOrNull()
+            null,
+            null
         );
     }
 
@@ -67,16 +65,4 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
     @Option(option = "toolchain-version", description = "The version of Java required to run the Gradle Daemon.")
     @Incubating
     public abstract Property<String> getToolchainVersion();
-
-    @Input
-    @Optional
-    @Option(option = "toolchain-vendor", description = "The vendor of the toolchain required to set up Daemon JVM")
-    @Incubating
-    public abstract Property<KnownJvmVendor> getToolchainVendor();
-
-    @Input
-    @Optional
-    @Option(option = "toolchain-implementation", description = "The virtual machine implementation of the toolchain required to set up Daemon JVM")
-    @Incubating
-    public abstract Property<JvmImplementation> getToolchainImplementation();
 }
