@@ -23,17 +23,19 @@ import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
 import java.util.Map;
 
-public class DeclarativeSchemaBuilder implements ToolingModelBuilder {
+public class DeclarativeSchemaModelBuilder implements ToolingModelBuilder {
+
+    // TODO: relocate to a new "declarative-dsl-tooling-builders" subproject?
 
     private final DeclarativeSchemaRegistry schemaRegistry;
 
-    public DeclarativeSchemaBuilder(DeclarativeSchemaRegistry schemaRegistry) {
+    public DeclarativeSchemaModelBuilder(DeclarativeSchemaRegistry schemaRegistry) {
         this.schemaRegistry = schemaRegistry;
     }
 
     @Override
     public boolean canBuild(String modelName) {
-        return modelName.equals("org.gradle.internal.declarativedsl.toolingapi.DeclarativeSchema");
+        return modelName.equals("org.gradle.declarative.dsl.tooling.models.DeclarativeSchemaModel");
     }
 
     @Override

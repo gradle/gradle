@@ -13,23 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.declarativedsl.toolingapi
 
-import org.gradle.declarative.dsl.tooling.models.DeclarativeSchemaModel
-import java.io.Serializable
+package org.gradle.declarative.dsl.tooling.models;import java.util.Set;
 
+public interface DeclarativeSchemaModel {
 
-class DefaultDeclarativeSchema(val schemas: Map<String, Map<String, String>>) : DeclarativeSchemaModel, Serializable {
+    Set<String> targets();
 
-    override fun targets(): Set<String> {
-        return schemas.keys
-    }
+    Set<String> identifiers(String target);
 
-    override fun identifiers(target: String): Set<String> {
-        return schemas[target]?.keys ?: emptySet()
-    }
+    String schema(String target, String identifier);
 
-    override fun schema(target: String, identifier: String): String? {
-        return schemas[target]?.get(identifier)
-    }
 }

@@ -16,9 +16,9 @@
 
 package org.gradle.internal.declarativedsl
 
+import org.gradle.declarative.dsl.tooling.models.DeclarativeSchemaModel
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.tooling.fixture.ToolingApi
-import org.gradle.internal.declarativedsl.toolingapi.DeclarativeSchema
 
 class DeclarativeDslToolingModelsIntegrationSpec extends AbstractIntegrationSpec {
 
@@ -59,7 +59,7 @@ class DeclarativeDslToolingModelsIntegrationSpec extends AbstractIntegrationSpec
         executed(":a:compileJava", ":b:compileJava")
 
         when:
-        DeclarativeSchema model = toolingApi.withConnection() { connection -> connection.getModel(DeclarativeSchema.class) }
+        DeclarativeSchemaModel model = toolingApi.withConnection() { connection -> connection.getModel(DeclarativeSchemaModel.class) }
 
         then:
         model != null

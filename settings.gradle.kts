@@ -111,6 +111,10 @@ val core = platform("core") {
         subproject("api-metadata")
         subproject("base-services-groovy")
         subproject("configuration-cache")
+        subproject("declarative-dsl-api")
+        subproject("declarative-dsl-core")
+        subproject("declarative-dsl-provider")
+        subproject("declarative-dsl-tooling-models")
         subproject("file-collections")
         subproject("input-tracking")
         subproject("kotlin-dsl")
@@ -121,9 +125,6 @@ val core = platform("core") {
         subproject("kotlin-dsl-integ-tests")
         subproject("model-core")
         subproject("model-groovy")
-        subproject("declarative-dsl-api")
-        subproject("declarative-dsl-provider")
-        subproject("declarative-dsl-core")
     }
 
     // Core Execution Module
