@@ -52,6 +52,15 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
+<a name="java-22"></a>
+### Full Java 22 support
+
+Gradle 8.7 supported compiling and testing with Java 21 using [Java toolchains](userguide/toolchains.html), but running Gradle itself on Java 22 was not yet supported.
+
+With this release, Gradle now fully supports compiling, testing and running on [Java 22](https://jdk.java.net/22/).
+
+See the full [compatibility documentation](userguide/compatibility.html#java) for details.
+
 ### Configuration cache improvements
 
 The configuration cache now supports:
