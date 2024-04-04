@@ -22,6 +22,8 @@ import org.gradle.integtests.tooling.fixture.ToolingApi
 
 class DeclarativeDslToolingModelsIntegrationSpec extends AbstractIntegrationSpec {
 
+    // TODO: should be cross-version test, not integration test (package name containing starting version)
+
     final ToolingApi toolingApi = new ToolingApi(distribution, temporaryFolder)
 
     def 'can obtain model containing project schema'() {
