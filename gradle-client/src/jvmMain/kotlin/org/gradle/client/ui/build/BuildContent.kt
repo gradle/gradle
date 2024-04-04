@@ -14,23 +14,33 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.coroutines.launch
 import org.gradle.client.core.gradle.GradleConnectionParameters
 import org.gradle.client.core.gradle.GradleDistribution
-import org.gradle.client.ui.composables.BackIcon
 import org.gradle.client.ui.composables.DirChooserDialog
 import org.gradle.client.ui.composables.Loading
 import org.gradle.client.ui.composables.PlainTextTooltip
+import org.gradle.client.ui.composables.TopBar
 import org.gradle.client.ui.theme.plusPaneSpacing
 import org.gradle.client.ui.theme.spacing
 import java.io.File
 
 @Composable
 fun BuildContent(component: BuildComponent) {
+    val model by component.model.subscribeAsState()
     val snackbarState = remember { SnackbarHostState() }
     Scaffold(
-        topBar = { TopBar(component) },
+        topBar = {
+            TopBar(
+                onBackClick = { component.onCloseClicked() },
+                title = {
+                    when (val current = model) {
+                        BuildModel.Loading -> Text("Build")
+                        is BuildModel.Loaded -> Text(current.build.rootDir.name)
+                    }
+                }
+            )
+        },
         snackbarHost = { SnackbarHost(snackbarState) },
     ) { scaffoldPadding ->
         Surface(modifier = Modifier.padding(scaffoldPadding.plusPaneSpacing())) {
-            val model by component.model.subscribeAsState()
             when (val current = model) {
                 BuildModel.Loading -> Loading()
                 is BuildModel.Loaded -> BuildMainContent(component, current, snackbarState)
@@ -310,28 +320,4 @@ private fun BuildMainContent(
             },
         )
     }
-}
-
-@Composable
-@OptIn(ExperimentalMaterial3Api::class)
-private fun TopBar(component: BuildComponent) {
-    val model by component.model.subscribeAsState()
-    TopAppBar(
-        modifier = Modifier.padding(MaterialTheme.spacing.level0)
-            .height(MaterialTheme.spacing.topBarHeight)
-            .fillMaxWidth(),
-        navigationIcon = {
-            Box(Modifier.fillMaxHeight(), contentAlignment = Alignment.Center) {
-                BackIcon { component.onCloseClicked() }
-            }
-        },
-        title = {
-            Row(Modifier.fillMaxHeight(), verticalAlignment = Alignment.CenterVertically) {
-                when (val current = model) {
-                    BuildModel.Loading -> Text("Build")
-                    is BuildModel.Loaded -> Text(current.build.rootDir.name)
-                }
-            }
-        }
-    )
 }

@@ -1,42 +1,42 @@
 package org.gradle.client.ui.connected
 
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.ArrowDownward
-import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import kotlinx.coroutines.launch
-import org.gradle.client.ui.composables.BackIcon
 import org.gradle.client.ui.composables.Loading
+import org.gradle.client.ui.composables.TopBar
 import org.gradle.client.ui.theme.plusPaneSpacing
-import org.gradle.client.ui.theme.spacing
 
 @Composable
 fun ConnectedContent(component: ConnectedComponent) {
+    val model by component.model.subscribeAsState()
     Scaffold(
-        topBar = { TopBar(component) }
+        topBar = {
+            TopBar(
+                onBackClick = { component.onCloseClicked() },
+                title = {
+                    val rootDir = component.parameters.rootDir
+                    when (model) {
+                        ConnectionModel.Connecting -> Text("Connecting to $rootDir")
+                        is ConnectionModel.ConnectionFailure -> Text("Connection to $rootDir failed")
+                        is ConnectionModel.Connected -> Text("Connected to $rootDir")
+                    }
+                }
+            )
+        }
     ) { scaffoldPadding ->
         Surface(modifier = Modifier.padding(scaffoldPadding.plusPaneSpacing())) {
-            val model by component.model.subscribeAsState()
             when (val current = model) {
                 ConnectionModel.Connecting -> ConnectingMainContent(component)
                 is ConnectionModel.ConnectionFailure -> FailureContent(current.exception)
@@ -68,108 +68,14 @@ private fun FailureContent(exception: Exception) {
 }
 
 @Composable
-@OptIn(ExperimentalMaterial3Api::class)
-@Suppress("MagicNumber", "LongMethod")
 private fun ConnectedMainContent(component: ConnectedComponent, model: ConnectionModel.Connected) {
-    val scope = rememberCoroutineScope()
-    val sheetScaffoldState = rememberBottomSheetScaffoldState()
-    val eventsListState = rememberLazyListState()
-    LaunchedEffect(model.events) {
-        if (model.events.isEmpty()) {
-            sheetScaffoldState.bottomSheetState.partialExpand()
-        }
-        eventsListState.animateScrollToItem(eventsListState.layoutInfo.totalItemsCount)
-    }
-    BottomSheetScaffold(
-        scaffoldState = sheetScaffoldState,
-        sheetPeekHeight = 48.dp,
-        sheetMaxWidth = 4000.dp,
-        sheetDragHandle = {
-            Row(
-                modifier = Modifier.height(48.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.level2),
-            ) {
-                if (sheetScaffoldState.bottomSheetState.currentValue == SheetValue.Expanded) {
-                    IconButton(
-                        enabled = eventsListState.canScrollBackward,
-                        onClick = {
-                            scope.launch { eventsListState.animateScrollToItem(0) }
-                        }
-                    ) {
-                        Icon(Icons.Default.ArrowUpward, "Top")
-                    }
-                }
-                IconButton(
-                    enabled = model.events.isNotEmpty(),
-                    onClick = {
-                        scope.launch {
-                            when (sheetScaffoldState.bottomSheetState.currentValue) {
-                                SheetValue.Hidden -> sheetScaffoldState.bottomSheetState.expand()
-                                SheetValue.PartiallyExpanded -> sheetScaffoldState.bottomSheetState.expand()
-                                SheetValue.Expanded -> sheetScaffoldState.bottomSheetState.partialExpand()
-                            }
-                        }
-                    }
-                ) {
-                    Icon(Icons.AutoMirrored.Filled.List, "Events")
-                }
-                if (sheetScaffoldState.bottomSheetState.currentValue == SheetValue.Expanded) {
-                    IconButton(
-                        enabled = eventsListState.canScrollForward,
-                        onClick = {
-                            scope.launch {
-                                eventsListState.animateScrollToItem(eventsListState.layoutInfo.totalItemsCount)
-                            }
-                        }
-                    ) {
-                        Icon(Icons.Default.ArrowDownward, "Bottom")
-                    }
-                }
-            }
-        },
-        sheetContent = {
-            if (model.events.isEmpty()) {
-                Text("No events", Modifier.padding(MaterialTheme.spacing.level4))
-            } else {
-                Box(
-                    modifier = Modifier.fillMaxWidth().fillMaxHeight(0.75f)
-                        .padding(
-                            top = MaterialTheme.spacing.level2,
-                            bottom = MaterialTheme.spacing.level4,
-                            start = MaterialTheme.spacing.level2,
-                            end = MaterialTheme.spacing.level2,
-                        )
-                ) {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-                        state = eventsListState,
-                    ) {
-                        items(model.events, { it }) { event ->
-                            Text(
-                                event.text,
-                                style = MaterialTheme.typography.labelSmall,
-                                fontFamily = FontFamily.Monospace,
-                                overflow = TextOverflow.Visible
-                            )
-                        }
-                        item {
-                            Spacer(Modifier.size(MaterialTheme.spacing.level2))
-                        }
-                    }
-                }
-            }
-        }
+    EventsBottomSheetScaffold(
+        events = model.events,
     ) { sheetPadding ->
-        Row(Modifier.padding(sheetPadding)) {
-
-            // Actions
-            Column(
-                modifier = Modifier.padding(end = MaterialTheme.spacing.level2)
-                    .weight(0.3f)
-                    .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.level2),
-            ) {
+        TwoPanes(
+            modifier = Modifier.padding(sheetPadding),
+            left = {
+                // Actions
                 component.modelActions.forEach { action ->
                     ListItem(
                         modifier = Modifier.selectable(
@@ -180,14 +86,9 @@ private fun ConnectedMainContent(component: ConnectedComponent, model: Connectio
                         headlineContent = { Text(action.displayName, style = MaterialTheme.typography.titleSmall) },
                     )
                 }
-            }
-
-            // Outcome
-            Column(
-                modifier = Modifier.weight(0.7f)
-                    .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.level2),
-            ) {
+            },
+            right = {
+                // Outcome
                 when (val outcome = model.outcome) {
                     Outcome.None -> Unit
                     Outcome.Building -> Loading()
@@ -210,32 +111,7 @@ private fun ConnectedMainContent(component: ConnectedComponent, model: Connectio
                         }
                     }
                 }
-            }
-        }
+            },
+        )
     }
-}
-
-@Composable
-@OptIn(ExperimentalMaterial3Api::class)
-private fun TopBar(component: ConnectedComponent) {
-    TopAppBar(
-        modifier = Modifier.padding(MaterialTheme.spacing.level0)
-            .height(MaterialTheme.spacing.topBarHeight)
-            .fillMaxWidth(),
-        navigationIcon = {
-            Box(Modifier.fillMaxHeight(), contentAlignment = Alignment.Center) {
-                BackIcon { component.onCloseClicked() }
-            }
-        },
-        title = {
-            Row(Modifier.fillMaxHeight(), verticalAlignment = Alignment.CenterVertically) {
-                val model by component.model.subscribeAsState()
-                when (model) {
-                    ConnectionModel.Connecting -> Text("Connecting to ${component.parameters.rootDir}")
-                    is ConnectionModel.ConnectionFailure -> Text("Connection to ${component.parameters.rootDir} failed")
-                    is ConnectionModel.Connected -> Text("Connected to ${component.parameters.rootDir}")
-                }
-            }
-        }
-    )
 }

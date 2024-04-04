@@ -15,8 +15,13 @@ import org.gradle.client.core.Constants.APPLICATION_NAME
 
 // Configures logback debug logging to file
 // https://logback.qos.ch/manual/configuration.html
-@Suppress("MagicNumber")
 class LogbackConfigurator : ContextAwareBase(), Configurator {
+
+    @Suppress("MagicNumber")
+    private companion object {
+        const val MAX_HISTORY = 30
+        const val FILE_SIZE_CAP = 1L * 1024 * 1024 * 1024 // 1GB
+    }
 
     override fun configure(loggerContext: LoggerContext): Configurator.ExecutionStatus {
 
@@ -35,8 +40,8 @@ class LogbackConfigurator : ContextAwareBase(), Configurator {
             rollingPolicy = TimeBasedRollingPolicy<ILoggingEvent>().apply {
                 context = loggerContext
                 fileNamePattern = "$logDir/%d{yyyy/MM}/$logFilename.gz"
-                maxHistory = 30
-                setTotalSizeCap(FileSize(1 * 1024 * 1024 * 1024)) // 1GB
+                maxHistory = MAX_HISTORY
+                setTotalSizeCap(FileSize(FILE_SIZE_CAP))
                 setParent(fileAppender)
                 start()
             }

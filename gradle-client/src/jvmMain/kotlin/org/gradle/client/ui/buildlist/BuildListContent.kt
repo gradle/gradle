@@ -1,6 +1,7 @@
 package org.gradle.client.ui.buildlist
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.selectable
@@ -9,7 +10,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
@@ -21,14 +21,14 @@ import org.gradle.client.core.database.Build
 import org.gradle.client.ui.composables.DirChooserDialog
 import org.gradle.client.ui.composables.Loading
 import org.gradle.client.ui.composables.PlainTextTooltip
+import org.gradle.client.ui.composables.TopBar
 import org.gradle.client.ui.theme.plusPaneSpacing
-import org.gradle.client.ui.theme.spacing
 
 @Composable
 fun BuildListContent(component: BuildListComponent) {
     val snackbarState = remember { SnackbarHostState() }
     Scaffold(
-        topBar = { TopBar() },
+        topBar = { TopBar(title = { Text(APPLICATION_DISPLAY_NAME) }) },
         floatingActionButton = { AddBuildButton(component, snackbarState) },
         snackbarHost = { SnackbarHost(snackbarState) },
     ) { scaffoldPadding ->
@@ -77,21 +77,6 @@ private fun BuildListDeleteButon(component: BuildListComponent, build: Build) {
             content = { Icon(Icons.Default.Close, "Close") }
         )
     }
-}
-
-@Composable
-@OptIn(ExperimentalMaterial3Api::class)
-private fun TopBar() {
-    TopAppBar(
-        modifier = Modifier.padding(MaterialTheme.spacing.level0)
-            .height(MaterialTheme.spacing.topBarHeight)
-            .fillMaxWidth(),
-        title = {
-            Row(Modifier.fillMaxHeight(), verticalAlignment = Alignment.CenterVertically) {
-                Text(APPLICATION_DISPLAY_NAME)
-            }
-        }
-    )
 }
 
 @Composable
