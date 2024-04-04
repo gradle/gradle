@@ -37,21 +37,16 @@ public interface Scope {
     interface UserHome extends Global {}
 
     /**
-     * TBD
-     *
-     * <p>{@link UserHome} and parent scope services are visible to {@link CrossBuildSession} scope services, but not vice versa.</p>
-     */
-    interface CrossBuildSession extends UserHome {}
-
-    /**
      * These services are reused across build invocations in a session.
      *
      * A build session can be long-lived in a continuous build (where these services would be reused) or short-lived in a
      * regular, single build.
      *
-     * <p>{@link CrossBuildSession} and parent scope services are visible to {@link BuildSession} scope services, but not vice versa.</p>
+     * They are closed at the end of the build session.
+     *
+     * <p>{@link UserHome} and parent scope services are visible to {@link BuildSession} scope services, but not vice versa.</p>
      */
-    interface BuildSession extends CrossBuildSession {}
+    interface BuildSession extends UserHome {}
 
     /**
      * These services are recreated when in continuous build and shared across all nested builds.

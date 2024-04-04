@@ -37,8 +37,6 @@ import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.internal.GFileUtils;
 
 import javax.annotation.Nonnull;
@@ -93,7 +91,6 @@ import static org.gradle.internal.Cast.uncheckedNonnullCast;
  *
  * @since 4.0
  */
-@ServiceScope(Scope.CrossBuildSession.class)
 public class BuildOperationTrace implements Stoppable {
 
     public static final String SYSPROP = "org.gradle.internal.operations.trace";
