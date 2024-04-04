@@ -243,24 +243,24 @@ module("enterprise") {
     subproject("enterprise-workers")
 }
 
-module("build-infrastructure") {
+testing {
+    subproject("architecture-test")
+    subproject("distributions-integ-tests")
+    subproject("integ-test")
+    subproject("internal-architecture-testing")
+    subproject("internal-integ-testing")
+    subproject("internal-performance-testing")
+    subproject("internal-testing")
+    subproject("performance")
     subproject("precondition-tester")
+    subproject("soak")
+    subproject("smoke-ide-test") // eventually should be owned by IDEX team
+    subproject("smoke-test")
 }
 
 // Internal utility and verification projects
 unassigned {
-    subproject("architecture-test")
-    subproject("internal-testing")
-    subproject("internal-integ-testing")
-    subproject("internal-performance-testing")
-    subproject("internal-architecture-testing")
     subproject("internal-build-reports")
-    subproject("integ-test")
-    subproject("distributions-integ-tests")
-    subproject("soak")
-    subproject("smoke-test")
-    subproject("performance")
-    subproject("smoke-ide-test") // eventually should be owned by IDEX team
 }
 
 rootProject.name = "gradle"
@@ -405,6 +405,12 @@ fun platform(platformName: String, platformConfiguration: PlatformBuilder.() -> 
     platform.platformConfiguration()
     return platform
 }
+
+/**
+ * Defines the testing module, for project helping test Gradle.
+ */
+fun testing(moduleConfiguration: ProjectScope.() -> Unit) =
+    ProjectScope("testing").moduleConfiguration()
 
 /**
  * Defines a bucket of unassigned projects.
