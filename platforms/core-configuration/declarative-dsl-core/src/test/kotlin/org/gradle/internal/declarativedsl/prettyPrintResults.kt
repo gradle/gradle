@@ -247,8 +247,9 @@ fun prettyPrintLanguageTree(languageTreeElement: LanguageTreeElement): String {
 private
 fun SourceData.prettyPrint(): String =
     buildString {
-        append("indexes: $indexRange, ")
-        append("line/column: ${lineRange.first}/$startColumn..${lineRange.last}/$endColumn, ")
+        // We add +1 here as that was how the original implementation worked, just to avoid fixing all test data:
+        append("indexes: ${indexRange.start}..${indexRange.endInclusive + 1}, ")
+        append("line/column: ${lineRange.first}/$startColumn..${lineRange.last}/${endColumn + 1}, ")
         append("file: ${sourceIdentifier.fileIdentifier}")
     }
 

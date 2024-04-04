@@ -81,9 +81,9 @@ class DeclarativeDslProjectSettingsIntegrationSpec extends AbstractIntegrationSp
 
         where:
         kind               | code                  | expectedMessage
-        "syntax"           | "..."                 | "2:13: parsing error: Expecting an element"
-        "language feature" | "@A dependencies { }" | "2:13: unsupported language feature: AnnotationUsage"
-        "semantic"         | "x = 1"               | "2:13: unresolved reference 'x'"
+        "syntax"           | "..."                 | "3:13: parsing error: Expecting an element"
+        "language feature" | "@A dependencies { }" | "3:13: unsupported language feature: AnnotationUsage"
+        "semantic"         | "x = 1"               | "3:13: unresolved reference 'x'"
     }
 
     def 'can apply settings plugins'() {

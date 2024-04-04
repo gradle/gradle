@@ -37,10 +37,10 @@ fun AnalysisSchema.resolve(
     code: String,
     resolver: Resolver = tracingCodeResolver()
 ): ResolutionResult {
-    val (parseTree, sourceCode, sourceOffset) = parse(code)
+    val parsedTree = parse(code)
 
     val languageBuilder = DefaultLanguageTreeBuilder()
-    val tree = languageBuilder.build(parseTree, sourceCode, sourceOffset, SourceIdentifier("demo"))
+    val tree = languageBuilder.build(parsedTree, SourceIdentifier("demo"))
 
     val failures = tree.allFailures
 
@@ -52,7 +52,7 @@ fun AnalysisSchema.resolve(
                     "Parsing error: " + failure.message
                 )
                 is UnsupportedConstruct -> println(
-                    failure.languageFeature.toString() + " in " + sourceCode.slice(sourceOffset..sourceOffset + 100)
+                    failure.languageFeature.toString() + " in " + parsedTree.wrappedCode.slice(parsedTree.originalCodeOffset..parsedTree.originalCodeOffset + 100)
                 )
                 is MultipleFailuresResult -> failure.failures.forEach { printFailures(it) }
             }

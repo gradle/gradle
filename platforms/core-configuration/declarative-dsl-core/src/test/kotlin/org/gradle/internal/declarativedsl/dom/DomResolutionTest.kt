@@ -300,7 +300,7 @@ object DomResolutionTest {
 
     private
     fun parseAsTopLevelBlock(@Language("kts") code: String): Block {
-        val (tree, sourceCode, sourceOffset) = parse(code)
-        return DefaultLanguageTreeBuilder().build(tree, sourceCode, sourceOffset, SourceIdentifier("test")).topLevelBlock
+        val tree = parse(code)
+        return DefaultLanguageTreeBuilder().build(tree, SourceIdentifier("test")).topLevelBlock
     }
 }

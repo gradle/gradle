@@ -5,7 +5,6 @@ import org.jetbrains.kotlin.com.intellij.lang.impl.PsiBuilderFactoryImpl
 import org.jetbrains.kotlin.lexer.KotlinLexer
 import org.jetbrains.kotlin.parsing.KotlinLightParser
 import org.jetbrains.kotlin.parsing.KotlinParserDefinition
-import org.jetbrains.kotlin.utils.doNothing
 
 
 private
@@ -26,12 +25,21 @@ val psiBuilderFactory by lazy {
 }
 
 
-fun parse(@Language("kts") code: String): Triple<LightTree, String, Int> {
-    val (wrappedCode, codeOffset) = wrapScriptIntoClassInitializerBlock(code)
-    return Triple(
+data class ParsedLightTree(
+    val lightTree: LightTree,
+    val wrappedCode: String,
+    val originalCodeOffset: Int,
+    val suffixLength: Int,
+)
+
+
+fun parse(@Language("kts") code: String): ParsedLightTree {
+    val (wrappedCode, codeOffset, suffixLength) = wrapScriptIntoClassInitializerBlock(code)
+    return ParsedLightTree(
         KotlinLightParser.parse(psiBuilderFactory.createBuilder(parserDefinition, lexer, wrappedCode)),
         wrappedCode,
-        codeOffset
+        codeOffset,
+        suffixLength
     )
 }
 
@@ -41,22 +49,38 @@ fun main() {
         """
             #!/usr/bin/env kscript
         a = 1""".trimIndent()
-    ).first.print()
+    ).lightTree.print()
 }
 
 
 private
-fun wrapScriptIntoClassInitializerBlock(@Language("kts") code: String): Pair<String, Int> {
+fun wrapScriptIntoClassInitializerBlock(@Language("kts") code: String): Triple<String, Int, Int> {
     val packageStatements = mutableListOf<String>()
     val importStatements = mutableListOf<String>()
     val codeStatements = mutableListOf<String>()
 
+    var isAfterImportLine = false
+
     code.lines().forEach { line ->
         when {
-            line.startsWith("import") -> importStatements.add(line)
-            line.startsWith("package") -> packageStatements.add(line)
-            line.isBlank() -> doNothing()
-            else -> codeStatements.add(line)
+            line.startsWith("import") -> {
+                importStatements.add(line)
+                isAfterImportLine = true
+            }
+
+            line.startsWith("package") -> {
+                packageStatements.add(line)
+                isAfterImportLine = false
+            }
+
+            line.isBlank() -> {
+                if (!isAfterImportLine) codeStatements.add(line)
+            }
+
+            else -> {
+                codeStatements.add(line)
+                isAfterImportLine = false
+            }
         } // TODO: ugly, brittle hack...
     }
 
@@ -69,9 +93,10 @@ fun wrapScriptIntoClassInitializerBlock(@Language("kts") code: String): Pair<Str
 
     val packageSection = packageStatements.joinToString("") { addNewlineIfNotBlank(it) }
     val importSection = importStatements.joinToString("") { addNewlineIfNotBlank(it) }
-    val codeSection = codeStatements.joinToString("") { addNewlineIfNotBlank(it) }
+    val codeSection = codeStatements.joinToString("") { "$it\n" }
 
     val prefix = "${packageSection}${importSection}class Script {init {"
+    val suffix = "}}"
     val codeOffset = prefix.length
-    return "$prefix$codeSection}}" to codeOffset
+    return Triple("$prefix$codeSection$suffix", codeOffset, suffix.length)
 }
