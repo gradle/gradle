@@ -59,9 +59,12 @@ public class DecoratingTestDescriptor implements TestDescriptorInternal {
         return descriptor.getClassName();
     }
 
-    @Override
     public String getMethodName() {
-        return descriptor.getMethodName();
+        if (descriptor instanceof AbstractTestDescriptor) {
+            return ((AbstractTestDescriptor) descriptor).getMethodName();
+        } else {
+            return null;
+        }
     }
 
     @Override

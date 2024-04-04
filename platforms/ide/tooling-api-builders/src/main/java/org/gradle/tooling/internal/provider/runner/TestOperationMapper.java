@@ -16,6 +16,8 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.internal.tasks.testing.AbstractTestDescriptor;
+import org.gradle.api.internal.tasks.testing.DecoratingTestDescriptor;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.operations.ExecuteTestBuildOperationType;
 import org.gradle.api.tasks.testing.TestFailure;
@@ -85,7 +87,13 @@ class TestOperationMapper implements BuildOperationMapper<ExecuteTestBuildOperat
     }
 
     private DefaultTestDescriptor toTestDescriptorForSuite(OperationIdentifier buildOperationId, OperationIdentifier parentId, TestDescriptorInternal suite) {
-        return new DefaultTestDescriptor(buildOperationId, suite.getName(), suite.toString(), suite.getDisplayName(), InternalJvmTestDescriptor.KIND_SUITE, suite.getName(), suite.getClassName(), suite.getMethodName(), parentId, taskTracker.getTaskPath(buildOperationId));
+        String methodName = null;
+        if (suite instanceof AbstractTestDescriptor) {
+            methodName = ((AbstractTestDescriptor) suite).getMethodName();
+        } else if (suite instanceof DecoratingTestDescriptor) {
+            methodName = ((DecoratingTestDescriptor) suite).getMethodName();
+        }
+        return new DefaultTestDescriptor(buildOperationId, suite.getName(), suite.toString(), suite.getDisplayName(), InternalJvmTestDescriptor.KIND_SUITE, suite.getName(), suite.getClassName(), methodName, parentId, taskTracker.getTaskPath(buildOperationId));
     }
 
     private DefaultTestDescriptor toTestDescriptorForTest(OperationIdentifier buildOperationId, OperationIdentifier parentId, TestDescriptorInternal test) {
