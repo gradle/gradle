@@ -323,8 +323,8 @@ include::{snippetsPath}/providers/propertyConvention/tests/propertyConvention.ou
 
 === Where to apply conventions from?
 
-In general, you want to apply convention to a property at configuration time, before tasks execute, so task actions are not appropriate.
-Still, there are multiple options for appropriate locations for setting a convention on a property.
+In general, you want to apply convention to a property at configuration time (i.e., before execution), so task actions are not appropriate.
+Still, there many appropriate locations for setting a convention on a property.
 
 ==== From a plugin's `apply()` method
 
@@ -337,8 +337,8 @@ Note that for project-specific values, instead of conventions, you should prefer
 
 ==== From the task constructor
 
-A task author may configure a convention on a lazy property from the task constructor. This approach works for properties with trivial defaults,
-but it is not appropriate if additional context (external to the task implementation) is required in order to set a suitable default.
+A task author may configure a convention on a lazy property from the task constructor. 
+This approach works for properties with trivial defaults, but it is not appropriate if additional context (external to the task implementation) is required in order to set a suitable default.
 
 ==== Next to the property declaration
 
