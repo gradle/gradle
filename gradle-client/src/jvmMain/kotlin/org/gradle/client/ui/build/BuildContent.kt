@@ -61,7 +61,6 @@ enum class GradleDistSource(
 }
 
 @Composable
-@OptIn(ExperimentalMaterial3Api::class)
 private fun BuildMainContent(
     component: BuildComponent,
     model: BuildModel.Loaded,
@@ -95,9 +94,9 @@ private fun BuildMainContent(
     ) {
         BuildTextField(
             value = model.build.rootDir.absolutePath,
-            readOnly = true,
             onValueChange = {},
-            label = { Text("Root directory") }
+            readOnly = true,
+            label = { Text("Root directory") },
         )
         DirectoryField(
             description = "Java Home",
@@ -168,14 +167,14 @@ private fun GradleDistributionField(
         expanded = sourceMenuExpanded,
         onExpandedChange = { sourceMenuExpanded = !sourceMenuExpanded }
     ) {
-        OutlinedTextField(
-            modifier = Modifier.fillMaxWidth().menuAnchor(),
-            readOnly = true,
+        BuildTextField(
+            modifier = Modifier.menuAnchor(),
             value = state.value.displayName,
+            readOnly = true,
             onValueChange = {},
+            label = { Text("Gradle Distribution") },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = sourceMenuExpanded) },
             colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
-            label = { Text("Gradle Distribution") }
         )
         ExposedDropdownMenu(
             expanded = sourceMenuExpanded,
@@ -208,14 +207,14 @@ private fun GradleVersionField(
         expanded = versionMenuExpanded,
         onExpandedChange = { versionMenuExpanded = !versionMenuExpanded }
     ) {
-        OutlinedTextField(
-            modifier = Modifier.fillMaxWidth().menuAnchor(),
+        BuildTextField(
+            modifier = Modifier.menuAnchor(),
             value = state.value,
             onValueChange = { state.value = it },
+            isError = isError,
+            label = { Text("Gradle Version") },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = versionMenuExpanded) },
             colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
-            label = { Text("Gradle Version") },
-            isError = isError
         )
         ExposedDropdownMenu(
             expanded = versionMenuExpanded,
@@ -289,13 +288,14 @@ private fun DirectoryField(
                     }
                 }
             }
-        }
+        },
     )
 }
 
 @Composable
 @Suppress("LongParameterList")
 private fun BuildTextField(
+    modifier: Modifier = Modifier,
     value: String,
     onValueChange: (String) -> Unit,
     readOnly: Boolean = false,
@@ -303,9 +303,10 @@ private fun BuildTextField(
     label: @Composable (() -> Unit)? = null,
     placeholder: @Composable (() -> Unit)? = null,
     trailingIcon: @Composable (() -> Unit)? = null,
+    colors: TextFieldColors = OutlinedTextFieldDefaults.colors(),
 ) {
     OutlinedTextField(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().then(modifier),
         value = value,
         readOnly = readOnly,
         onValueChange = onValueChange,
@@ -313,5 +314,6 @@ private fun BuildTextField(
         label = label,
         placeholder = placeholder,
         trailingIcon = trailingIcon,
+        colors = colors,
     )
 }
