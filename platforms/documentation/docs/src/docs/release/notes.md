@@ -133,6 +133,126 @@ In such a case, Gradle should retry the auto-provisioning process with other con
 This was also not the case before the fix.
 
 
+<a name="error-warning"></a>
+### Error and warning reporting improvements
+
+Gradle provides a rich set of error and warning messages to help you understand and resolve problems in your build.
+
+#### Improved JVM version mismatch error reporting
+
+When depending on a library that requires a higher version of the JVM runtime than [is requested](userguide/building_java_projects.html#sec:java_cross_compilation) via the automatically supplied [`TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE` attribute](javadoc/org/gradle/api/attributes/java/TargetJvmVersion.html), or when [applying a plugin](userguide/plugins.html#sec:plugins_block) that requires a higher version or the JVM runtime than the current JVM supplies, dependency reolution will fail.
+
+The error message in this situation will now clearly state the issue:
+
+```
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+A problem occurred configuring root project 'example'.
+> Could not determine the dependencies of task ':consumer:compileJava'.
+  > Could not resolve all task dependencies for configuration ':consumer:compileClasspath'.
+     > Could not resolve project :producer.
+       Required by:
+           project :consumer
+        > project :producer requires at least a Java 18 JVM. This build uses a Java 17 JVM.
+
+* Try:
+> Run this build using a Java 18 JVM (or newer).
+> Change the dependency on 'project :producer' to an earlier version that supports JVM runtime version 17.
+```
+
+The failure’s suggested resolutions will include upgrading your JVM or downgrading the version of the dependency.
+This replaces the previous low-level incompatibility message containing details about all the attributes involved in the plugin request, and all the available variants of the dependency.
+This message could be quite long and difficult to understand.
+
+This could be especially helpful for users upgrading the Spring Boot plugin to version 3+, which requires Java 17 or later.
+
+#### Fixed error message when buildscript dependencies fail to resolve
+
+When a build script fails to resolve dependencies on its classpath, the error message will now more clearly state the issue:
+
+```
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+A problem occurred configuring root project 'unified-prototype'.
+> Could not resolve all dependencies for configuration ':classpath'.
+   > Could not resolve project :unified-plugin:plugin-android.
+     ...
+```
+
+Previously, the error message contained a `null` and a possibly misleading reference to "task dependencies":
+
+```
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+A problem occurred configuring root project 'unified-prototype'.
+> Could not determine the dependencies of null.
+   > Could not resolve all task dependencies for configuration ':classpath'.
+      > Could not resolve project :unified-plugin:plugin-android.
+        ...
+```
+
+#### Fixed error reporting when repositories are disabled
+
+When Gradle determines that a particular repository is unavailable when requesting a dependency, it will stop trying to resolve any dependencies from that repository.
+This may prevent other dependencies from resolving successfully.
+
+Previously, this could result in an error message that only mentioned that dependencies failed to resolve due to "Skipped to earlier error", without printing the earlier error itself:
+
+```
+* What went wrong:
+A problem occurred configuring root project 'fevi6'.
+> Could not resolve all artifacts for configuration ':classpath'.
+   > Could not resolve group:a:1.0.
+     Required by:
+         project :
+      > Skipped due to earlier error
+   > Could not resolve group:b:1.0.
+     Required by:
+         project :
+      > Skipped due to earlier error
+   > Could not resolve group:c:1.0.
+     Required by:
+         project :
+      > Skipped due to earlier error
+   ...
+```
+
+This will now print the ultimate cause of this issue:
+
+```
+* What went wrong:
+A problem occurred configuring root project 'fevi6'.
+> Could not resolve all artifacts for configuration ':classpath'.
+   > Could not resolve group:a:1.0.
+     Required by:
+         project :
+      > Could not resolve group:a:1.0.
+         > Could not get resource 'http://127.0.0.1:49179/repo/group/a/1.0/a-1.0.pom'.
+            > Could not GET 'http://127.0.0.1:49179/repo/group/a/1.0/a-1.0.pom'.
+               > Read timed out
+            ...
+```
+
+#### Suppressed duplicate error reporting when multiple failures have the same cause
+
+When multiple failures occur with the same cause, Gradle will now only fully print the first failure, which contains the details.
+
+Instead of printing any other failures which stem from this same cause, Gradle will summarize how many were found at the end of the message:
+
+```
+* What went wrong:
+Execution failed for task ':resolve'.
+> Could not resolve all files for configuration ':deps'.
+   > Could not resolve group:a:1.0.
+     Required by:
+         project : > group:d:1.0
+      > <SOME FAILURE CAUSE>
+> There are 2 more failures with identical causes.
+```
+
 <a name="other"></a>
 ### Other improvements
 
@@ -219,7 +339,7 @@ This fixes https://github.com/gradle/gradle/issues/12259.
 
 #### Accessors for `Settings` extensions in Kotlin DSL
 
-Previously, extensions registered in `Plugin<Settings>` weren't available in `settings.gradle.kts`.  
+Previously, extensions registered in `Plugin<Settings>` weren't available in `settings.gradle.kts`.
 
 Now, type-safe accessors for these extensions are generated.
 
