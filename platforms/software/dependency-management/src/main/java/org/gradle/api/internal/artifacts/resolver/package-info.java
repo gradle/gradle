@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
-
-import org.gradle.internal.component.model.VariantGraphResolveState;
-
-import javax.annotation.Nullable;
-
-public interface ResolvedGraphVariant {
-    /**
-     * Returns a simple id for this node, unique across all nodes in the same graph.
-     * This id cannot be used across graphs.
-     */
-    long getNodeId();
-
-    VariantGraphResolveState getResolveState();
-
-    @Nullable
-    ResolvedGraphVariant getExternalVariant();
-}
+/**
+ * Contains classes implementing an enhanced dependency resolution API, intended to
+ * replace resolvable configurations.
+ */
+@org.gradle.api.NonNullApi
+package org.gradle.api.internal.artifacts.resolver;

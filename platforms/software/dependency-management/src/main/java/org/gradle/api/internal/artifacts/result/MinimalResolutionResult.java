@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.result;
 
-import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 
 import java.util.function.Supplier;
@@ -27,12 +26,17 @@ import java.util.function.Supplier;
 public interface MinimalResolutionResult {
 
     /**
-     * A function which provides root of the dependency graph.
+     * The ID of the root variant of the root component.
      */
-    Supplier<ResolvedComponentResult> getRootSource();
+    long getRootVariantId();
 
     /**
-     * The desugared request attributes used to initially build the dependency graph.
+     * A function which provides root of the dependency graph.
+     */
+    Supplier<ResolvedComponentResultInternal> getRootSource();
+
+    /**
+     * The request attributes used to initially build the dependency graph.
      */
     ImmutableAttributes getRequestedAttributes();
 }

@@ -50,7 +50,7 @@ public interface ResolvedGraphDependency {
     /**
      * Returns the simple id of the source variant, as per {@link ResolvedGraphVariant#getNodeId()}.
      */
-    Long getFromVariant();
+    long getFromVariant();
 
     /**
      * Returns the simple id of the selected variant, as per {@link ResolvedGraphVariant#getNodeId()}.

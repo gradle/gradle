@@ -28,13 +28,13 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionCause;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.artifacts.result.DependencyResult;
-import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphDependency;
 import org.gradle.api.internal.artifacts.result.DefaultMinimalResolutionResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult;
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
+import org.gradle.api.internal.artifacts.result.ResolvedComponentResultInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
@@ -64,13 +64,14 @@ public class DefaultResolutionResultBuilder implements ResolvedComponentVisitor 
         DefaultResolutionResultBuilder builder = new DefaultResolutionResultBuilder();
         builder.startVisitComponent(0L, ComponentSelectionReasons.root(), null);
         builder.visitComponentDetails(componentIdentifier, id);
+        // TODO: An empty root component should have a root variant.
         builder.visitComponentVariants(Collections.emptyList());
         builder.endVisitComponent();
-        ResolvedComponentResult root = builder.getRoot(0L);
-        return new DefaultMinimalResolutionResult(() -> root, attributes);
+        ResolvedComponentResultInternal root = builder.getRoot(0L);
+        return new DefaultMinimalResolutionResult(-1, () -> root, attributes);
     }
 
-    public ResolvedComponentResult getRoot(long rootId) {
+    public ResolvedComponentResultInternal getRoot(long rootId) {
         return components.get(rootId);
     }
 

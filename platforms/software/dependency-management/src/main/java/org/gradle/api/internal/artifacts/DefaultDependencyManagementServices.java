@@ -99,7 +99,6 @@ import org.gradle.api.internal.artifacts.transform.TransformRegistrationFactory;
 import org.gradle.api.internal.artifacts.transform.VariantSelectorFactory;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.artifacts.type.DefaultArtifactTypeRegistry;
-import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.DefaultAttributesSchema;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -521,7 +520,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             BuildState currentBuild,
             ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
             ResolvedArtifactSetResolver artifactSetResolver,
-            AttributeDesugaring attributeDesugaring,
             ResolveExceptionContextualizer resolveExceptionContextualizer,
             ComponentDetailsSerializer componentDetailsSerializer,
             SelectedVariantSerializer selectedVariantSerializer,
@@ -549,7 +547,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 componentSelectorConverter,
                 attributeContainerSerializer,
                 currentBuild,
-                attributeDesugaring,
                 artifactSetResolver,
                 componentSelectionDescriptorFactory,
                 resolveExceptionContextualizer,
