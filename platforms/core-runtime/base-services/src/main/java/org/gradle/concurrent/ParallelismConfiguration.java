@@ -16,15 +16,11 @@
 
 package org.gradle.concurrent;
 
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
-
 /**
  * A {@code ParallelismConfiguration} defines the parallel settings for a Gradle build.
  *
  * @since 4.1
  */
-@ServiceScope(Scope.CrossBuildSession.class)
 public interface ParallelismConfiguration {
     /**
      * Returns true if parallel project execution is enabled.
