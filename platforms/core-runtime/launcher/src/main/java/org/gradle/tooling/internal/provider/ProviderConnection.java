@@ -35,7 +35,6 @@ import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.jvm.Jvm;
-import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.console.GlobalUserInputReceiver;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
@@ -51,6 +50,7 @@ import org.gradle.launcher.daemon.client.DaemonClientFactory;
 import org.gradle.launcher.daemon.client.NotifyDaemonAboutChangedPathsClient;
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
+import org.gradle.launcher.daemon.configuration.ResolvedDaemonJvm;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
@@ -103,7 +103,6 @@ public class ProviderConnection {
     private final DaemonClientFactory daemonClientFactory;
     private final BuildActionExecuter<BuildActionParameters, BuildRequestContext> embeddedExecutor;
     private final ServiceRegistry sharedServices;
-    private final JvmVersionDetector jvmVersionDetector;
     private final FileCollectionFactory fileCollectionFactory;
     private final GlobalUserInputReceiver userInputReceiver;
     private final UserInputReader userInputReader;
@@ -116,7 +115,6 @@ public class ProviderConnection {
         DaemonClientFactory daemonClientFactory,
         BuildActionExecuter<BuildActionParameters, BuildRequestContext> embeddedExecutor,
         PayloadSerializer payloadSerializer,
-        JvmVersionDetector jvmVersionDetector,
         FileCollectionFactory fileCollectionFactory,
         GlobalUserInputReceiver userInputReceiver,
         UserInputReader userInputReader,
@@ -127,7 +125,6 @@ public class ProviderConnection {
         this.embeddedExecutor = embeddedExecutor;
         this.payloadSerializer = payloadSerializer;
         this.sharedServices = sharedServices;
-        this.jvmVersionDetector = jvmVersionDetector;
         this.fileCollectionFactory = fileCollectionFactory;
         this.userInputReceiver = userInputReceiver;
         this.userInputReader = userInputReader;
@@ -158,7 +155,7 @@ public class ProviderConnection {
                 new DefaultBuildIdentifier(providerParameters.getProjectDir()),
                 params.buildLayout.getGradleUserHomeDir(),
                 GradleVersion.current().getVersion(),
-                params.daemonParams.getEffectiveJvm().getJavaHome(),
+                reportableJavaHomeForBuild(params),
                 params.daemonParams.getEffectiveJvmArgs());
         }
 
@@ -166,6 +163,21 @@ public class ProviderConnection {
         ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters, consumerVersion, payloadSerializer);
         BuildAction action = new BuildModelAction(startParameter, modelName, tasks != null, listenerConfig.clientSubscriptions);
         return run(action, cancellationToken, listenerConfig, listenerConfig.buildEventConsumer, providerParameters, params);
+    }
+
+    private static File reportableJavaHomeForBuild(Parameters params) {
+        DaemonParameters daemonParameters = params.daemonParams;
+        // Gradle daemon properties have been defined
+        if (daemonParameters.getRequestedJvmCriteria() != null) {
+            // TODO: We don't know what this will be without searching.
+            // We'll say it's the current JVM because we don't know any better for now.
+            return Jvm.current().getJavaHome();
+        } else if (daemonParameters.getRequestedJvmBasedOnJavaHome() != null) {
+            // Either the TAPI client or org.gradle.java.home has been provided
+            return daemonParameters.getRequestedJvmBasedOnJavaHome().getJavaHome();
+        } else {
+            return Jvm.current().getJavaHome();
+        }
     }
 
     @SuppressWarnings({"deprecation", "overloads"})
@@ -289,7 +301,8 @@ public class ProviderConnection {
         } else {
             LoggingServiceRegistry requestSpecificLogging = LoggingServiceRegistry.newNestedLogging();
             loggingManager = requestSpecificLogging.getFactory(LoggingManagerInternal.class).create();
-            ServiceRegistry clientServices = daemonClientFactory.createBuildClientServices(requestSpecificLogging, params.daemonParams, standardInput);
+            // TODO: !!!
+            ServiceRegistry clientServices = daemonClientFactory.createBuildClientServices(requestSpecificLogging, params.daemonParams, new ResolvedDaemonJvm(Jvm.current()), standardInput);
             executer = clientServices.get(DaemonClient.class);
         }
         return new LoggingBridgingBuildActionExecuter(new DaemonBuildActionExecuter(executer), loggingManager);
@@ -329,6 +342,8 @@ public class ProviderConnection {
             daemonParams.setJvmArgs(jvmArguments);
         }
 
+        daemonParams.setRequestedJvmCriteria(properties.getBuildProperties());
+
         // Include the system properties that are defined in the daemon JVM args
         properties = properties.merge(daemonParams.getSystemProperties());
 
@@ -339,9 +354,8 @@ public class ProviderConnection {
 
         File javaHome = operationParameters.getJavaHome();
         if (javaHome != null) {
-            daemonParams.setJvm(Jvm.forHome(javaHome));
+            daemonParams.setRequestedJvmBasedOnJavaHome(Jvm.forHome(javaHome));
         }
-        daemonParams.applyDefaultsFor(jvmVersionDetector.getJavaVersion(daemonParams.getEffectiveJvm()));
 
         if (operationParameters.getDaemonMaxIdleTimeValue() != null && operationParameters.getDaemonMaxIdleTimeUnits() != null) {
             int idleTimeout = (int) operationParameters.getDaemonMaxIdleTimeUnits().toMillis(operationParameters.getDaemonMaxIdleTimeValue());

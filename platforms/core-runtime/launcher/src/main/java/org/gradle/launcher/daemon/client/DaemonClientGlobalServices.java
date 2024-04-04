@@ -31,8 +31,8 @@ public class DaemonClientGlobalServices {
         return BuildActionSerializer.create();
     }
 
-    JvmVersionValidator createJvmVersionValidator(JvmVersionDetector jvmVersionDetector) {
-        return new JvmVersionValidator(jvmVersionDetector);
+    JvmVersionValidator createJvmVersionValidator(JvmVersionDetector versionDetector) {
+        return new JvmVersionValidator(versionDetector);
     }
 
     DaemonGreeter createDaemonGreeter(DocumentationRegistry documentationRegistry) {

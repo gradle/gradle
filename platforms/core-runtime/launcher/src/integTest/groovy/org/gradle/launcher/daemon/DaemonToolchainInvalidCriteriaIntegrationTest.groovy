@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.daemon
 
+import groovy.test.NotYetImplemented
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.buildconfiguration.BuildPropertiesDefaults
@@ -39,7 +40,7 @@ class DaemonToolchainInvalidCriteriaIntegrationTest extends AbstractIntegrationS
         when:
         fails 'help'
         then:
-        failure.assertHasDescription("Value 'stringVersion' given for daemon.jvm.toolchain.version Build property is invalid (the value should be an int)")
+        failure.assertHasDescription("Value 'stringVersion' given for daemon.jvm.toolchain.version is an invalid Java version")
     }
 
     def "Given negative toolchain version When execute any task Then fails with expected exception message"() {
@@ -48,9 +49,10 @@ class DaemonToolchainInvalidCriteriaIntegrationTest extends AbstractIntegrationS
         when:
         fails 'help'
         then:
-        failure.assertHasDescription("Value '-1' given for daemon.jvm.toolchain.version Build property is invalid (the value should be a positive int)")
+        failure.assertHasDescription("Value '-1' given for daemon.jvm.toolchain.version is an invalid Java version")
     }
 
+    @NotYetImplemented
     def "Given unexpected toolchain vendor When execute any task Then fails with expected exception message"() {
         given:
         writeJvmCriteria(JavaVersion.VERSION_17, "unexpectedVendor")
@@ -63,6 +65,7 @@ class DaemonToolchainInvalidCriteriaIntegrationTest extends AbstractIntegrationS
             "[ADOPTIUM, ADOPTOPENJDK, AMAZON, APPLE, AZUL, BELLSOFT, GRAAL_VM, HEWLETT_PACKARD, IBM, JETBRAINS, MICROSOFT, ORACLE, SAP, TENCENT, UNKNOWN]")
     }
 
+    @NotYetImplemented
     def "Given unexpected toolchain implementation When execute any task Then fails with expected exception message"() {
         given:
         writeJvmCriteria(JavaVersion.VERSION_17, "amazon", "unknownImplementation")

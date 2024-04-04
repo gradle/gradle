@@ -26,14 +26,15 @@ import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
+import org.gradle.launcher.daemon.configuration.ResolvedDaemonJvm;
 import org.gradle.launcher.daemon.context.DaemonContext;
 
 import java.io.InputStream;
 import java.util.UUID;
 
 public class SingleUseDaemonClientServices extends DaemonClientServices {
-    public SingleUseDaemonClientServices(ServiceRegistry loggingServices, DaemonParameters daemonParameters, InputStream buildStandardInput) {
-        super(loggingServices, daemonParameters, buildStandardInput);
+    public SingleUseDaemonClientServices(ServiceRegistry loggingServices, DaemonParameters daemonParameters, ResolvedDaemonJvm resolvedDaemonJvm, InputStream buildStandardInput) {
+        super(loggingServices, daemonParameters, resolvedDaemonJvm, buildStandardInput);
     }
 
     @Override

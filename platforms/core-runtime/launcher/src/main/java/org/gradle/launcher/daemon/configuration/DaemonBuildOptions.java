@@ -27,7 +27,6 @@ import org.gradle.internal.buildoption.EnabledOnlyBooleanBuildOption;
 import org.gradle.internal.buildoption.Origin;
 import org.gradle.internal.buildoption.StringBuildOption;
 import org.gradle.internal.jvm.JavaHomeException;
-import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
 import org.gradle.process.internal.JvmOptions;
@@ -142,10 +141,8 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
             if (!javaHome.isDirectory()) {
                 origin.handleInvalidValue(value, "Java home supplied is invalid");
             }
-            JavaInfo jvm;
             try {
-                jvm = Jvm.forHome(javaHome);
-                settings.setJvm(jvm);
+                settings.setRequestedJvmBasedOnJavaHome(Jvm.forHome(javaHome));
             } catch (JavaHomeException e) {
                 origin.handleInvalidValue(value, "Java home supplied seems to be invalid");
             }

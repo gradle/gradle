@@ -22,7 +22,6 @@ import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.agents.AgentStatus;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.console.GlobalUserInputReceiver;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
@@ -64,7 +63,6 @@ public class ConnectionScopeServices {
                                                 DaemonClientFactory daemonClientFactory,
                                                 BuildLayoutFactory buildLayoutFactory,
                                                 ServiceRegistry serviceRegistry,
-                                                JvmVersionDetector jvmVersionDetector,
                                                 FileCollectionFactory fileCollectionFactory,
                                                 GlobalUserInputReceiver userInput,
                                                 UserInputReader userInputReader,
@@ -86,7 +84,6 @@ public class ConnectionScopeServices {
                                         new ModelClassLoaderFactory())),
                                 new ClasspathInferer(),
                                 classLoaderCache))),
-            jvmVersionDetector,
             fileCollectionFactory,
             userInput,
             userInputReader,

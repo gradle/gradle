@@ -20,6 +20,7 @@ import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
+import org.gradle.launcher.daemon.configuration.ResolvedDaemonJvm;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -120,8 +121,8 @@ public class DaemonContextBuilder implements Factory<DaemonContext> {
         this.priority = priority;
     }
 
-    public void useDaemonParameters(DaemonParameters daemonParameters) {
-        setJavaHome(daemonParameters.getEffectiveJvm().getJavaHome());
+    public void useDaemonParameters(DaemonParameters daemonParameters, ResolvedDaemonJvm resolvedDaemonJvm) {
+        setJavaHome(resolvedDaemonJvm.getJvm().getJavaHome());
         setDaemonOpts(daemonParameters.getEffectiveJvmArgs());
         setApplyInstrumentationAgent(daemonParameters.shouldApplyInstrumentationAgent());
         setNativeServicesMode(daemonParameters.getNativeServicesMode());

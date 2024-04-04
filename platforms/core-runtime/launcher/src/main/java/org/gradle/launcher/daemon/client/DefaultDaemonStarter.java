@@ -37,6 +37,7 @@ import org.gradle.launcher.daemon.DaemonExecHandleBuilder;
 import org.gradle.launcher.daemon.bootstrap.DaemonOutputConsumer;
 import org.gradle.launcher.daemon.bootstrap.GradleDaemon;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
+import org.gradle.launcher.daemon.configuration.ResolvedDaemonJvm;
 import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.process.internal.DefaultExecActionFactory;
@@ -60,12 +61,14 @@ public class DefaultDaemonStarter implements DaemonStarter {
 
     private final DaemonDir daemonDir;
     private final DaemonParameters daemonParameters;
+    private final ResolvedDaemonJvm resolvedDaemonJvm;
     private final DaemonGreeter daemonGreeter;
     private final JvmVersionValidator versionValidator;
 
-    public DefaultDaemonStarter(DaemonDir daemonDir, DaemonParameters daemonParameters, DaemonGreeter daemonGreeter, JvmVersionValidator versionValidator) {
+    public DefaultDaemonStarter(DaemonDir daemonDir, DaemonParameters daemonParameters, ResolvedDaemonJvm resolvedDaemonJvm, DaemonGreeter daemonGreeter, JvmVersionValidator versionValidator) {
         this.daemonDir = daemonDir;
         this.daemonParameters = daemonParameters;
+        this.resolvedDaemonJvm = resolvedDaemonJvm;
         this.daemonGreeter = daemonGreeter;
         this.versionValidator = versionValidator;
     }
@@ -92,11 +95,11 @@ public class DefaultDaemonStarter implements DaemonStarter {
             throw new IllegalStateException("Unable to construct a bootstrap classpath when starting the daemon");
         }
 
-        versionValidator.validate(daemonParameters);
+        versionValidator.validate(resolvedDaemonJvm);
 
         List<String> daemonArgs = new ArrayList<>();
         daemonArgs.addAll(getPriorityArgs(daemonParameters.getPriority()));
-        daemonArgs.add(daemonParameters.getEffectiveJvm().getJavaExecutable().getAbsolutePath());
+        daemonArgs.add(resolvedDaemonJvm.getJvm().getJavaExecutable().getAbsolutePath());
 
         List<String> daemonOpts = daemonParameters.getEffectiveJvmArgs();
         daemonArgs.addAll(daemonOpts);

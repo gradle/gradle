@@ -16,23 +16,23 @@
 
 package org.gradle.launcher.daemon.jvm;
 
-import org.gradle.jvm.toolchain.JavaLanguageVersion;
+import org.gradle.api.JavaVersion;
 import org.gradle.jvm.toolchain.JvmImplementation;
 import org.gradle.jvm.toolchain.JvmVendorSpec;
 
 public class DaemonJvmCriteria {
-    private final JavaLanguageVersion languageVersion;
+    private final JavaVersion javaVersion;
     private final JvmVendorSpec vendorSpec;
     private final JvmImplementation jvmImplementation;
 
-    public DaemonJvmCriteria(JavaLanguageVersion languageVersion, JvmVendorSpec vendorSpec, JvmImplementation jvmImplementation) {
-        this.languageVersion = languageVersion;
+    public DaemonJvmCriteria(JavaVersion javaVersion, JvmVendorSpec vendorSpec, JvmImplementation jvmImplementation) {
+        this.javaVersion = javaVersion;
         this.vendorSpec = vendorSpec;
         this.jvmImplementation = jvmImplementation;
     }
 
-    public JavaLanguageVersion getLanguageVersion() {
-        return languageVersion;
+    public JavaVersion getJavaVersion() {
+        return javaVersion;
     }
 
     public JvmVendorSpec getVendorSpec() {

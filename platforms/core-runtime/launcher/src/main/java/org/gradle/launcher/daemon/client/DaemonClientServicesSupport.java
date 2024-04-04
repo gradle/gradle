@@ -38,7 +38,6 @@ import org.gradle.internal.time.Clock;
 import org.gradle.internal.time.Time;
 import org.gradle.launcher.daemon.context.DaemonCompatibilitySpec;
 import org.gradle.launcher.daemon.context.DaemonContext;
-import org.gradle.launcher.daemon.context.DaemonContextBuilder;
 import org.gradle.launcher.daemon.protocol.DaemonMessageSerializer;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 
@@ -85,17 +84,6 @@ public abstract class DaemonClientServicesSupport extends DefaultServiceRegistry
                 get(ExecutorFactory.class),
                 idGenerator,
                 get(ProcessEnvironment.class));
-    }
-
-    DaemonContext createDaemonContext(ProcessEnvironment processEnvironment) {
-        DaemonContextBuilder builder = new DaemonContextBuilder(processEnvironment);
-        configureDaemonContextBuilder(builder);
-        return builder.create();
-    }
-
-    // subclass hook, allowing us to fake the context for testing
-    protected void configureDaemonContextBuilder(DaemonContextBuilder builder) {
-
     }
 
     IdGenerator<UUID> createIdGenerator() {

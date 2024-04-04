@@ -46,8 +46,8 @@ public class BuildProcess extends CurrentProcess {
      *
      * @return True if the current process could be configured, false otherwise.
      */
-    public boolean configureForBuild(DaemonParameters requiredBuildParameters) {
-        boolean javaHomeMatch = getJvm().equals(requiredBuildParameters.getEffectiveJvm());
+    public boolean configureForBuild(DaemonParameters requiredBuildParameters, ResolvedDaemonJvm resolvedDaemonJvm) {
+        boolean resolvedToCurrentJvm = getJvm() == resolvedDaemonJvm.getJvm();
         // Even if the agent is applied to this process, it is possible to run the build with the legacy instrumentation mode.
         boolean javaAgentStateMatch = agentStatus.isAgentInstrumentationEnabled() || !requiredBuildParameters.shouldApplyInstrumentationAgent();
 
@@ -60,7 +60,7 @@ public class BuildProcess extends CurrentProcess {
             );
             immutableJvmArgsMatch = getJvmOptions().getAllImmutableJvmArgs().equals(effectiveSingleUseJvmArgs);
         }
-        if (javaHomeMatch && javaAgentStateMatch && immutableJvmArgsMatch && !isLowDefaultMemory(requiredBuildParameters)) {
+        if (resolvedToCurrentJvm && javaAgentStateMatch && immutableJvmArgsMatch && !isLowDefaultMemory(requiredBuildParameters)) {
             // Set the system properties and use this process
             Properties properties = new Properties();
             properties.putAll(requiredBuildParameters.getEffectiveSystemProperties());

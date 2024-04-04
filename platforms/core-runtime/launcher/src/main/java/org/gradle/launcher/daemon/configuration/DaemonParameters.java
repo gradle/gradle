@@ -18,11 +18,14 @@ package org.gradle.launcher.daemon.configuration;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.internal.buildconfiguration.BuildPropertiesDefaults;
 import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.JpmsConfiguration;
-import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
+import org.gradle.jvm.toolchain.JvmImplementation;
+import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec;
 import org.gradle.launcher.configuration.BuildLayoutResult;
+import org.gradle.launcher.daemon.jvm.DaemonJvmCriteria;
 import org.gradle.util.internal.GUtil;
 
 import javax.annotation.Nullable;
@@ -59,7 +62,8 @@ public class DaemonParameters {
     private boolean stop;
     private boolean status;
     private Priority priority = Priority.NORMAL;
-    private JavaInfo jvm;
+    private JavaInfo requestedJvmBasedOnJavaHome;
+    private DaemonJvmCriteria requestedJvmCriteria;
 
     public DaemonParameters(BuildLayoutResult layout, FileCollectionFactory fileCollectionFactory) {
         this(layout, fileCollectionFactory, Collections.<String, String>emptyMap());
@@ -117,18 +121,31 @@ public class DaemonParameters {
     public List<String> getEffectiveSingleUseJvmArgs() {
         return jvmOptions.getAllSingleUseImmutableJvmArgs();
     }
+    @Nullable
+    public DaemonJvmCriteria getRequestedJvmCriteria() {
+        return requestedJvmCriteria;
+    }
 
-    public JavaInfo getEffectiveJvm() {
-        return jvm != null ? jvm : Jvm.current();
+    public void setRequestedJvmCriteria(Map<String, String> buildProperties) {
+        String requestedVersion = buildProperties.get(BuildPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY);
+        if (requestedVersion != null) {
+            try {
+                JavaVersion javaVersion = JavaVersion.toVersion(requestedVersion);
+                this.requestedJvmCriteria = new DaemonJvmCriteria(javaVersion, DefaultJvmVendorSpec.any(), JvmImplementation.VENDOR_SPECIFIC);
+            } catch (Exception e) {
+                // TODO: This should be pushed somewhere else so we consistently report this message in the right context.
+                throw new IllegalArgumentException(String.format("Value '%s' given for %s is an invalid Java version", requestedVersion, BuildPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY));
+            }
+        }
     }
 
     @Nullable
-    public JavaInfo getJvm() {
-        return jvm;
+    public JavaInfo getRequestedJvmBasedOnJavaHome() {
+        return requestedJvmBasedOnJavaHome;
     }
 
-    public void setJvm(@Nullable JavaInfo jvm) {
-        this.jvm = jvm;
+    public void setRequestedJvmBasedOnJavaHome(JavaInfo requestedJvmBasedOnJavaHome) {
+        this.requestedJvmBasedOnJavaHome = requestedJvmBasedOnJavaHome;
     }
 
     public void applyDefaultsFor(JavaVersion javaVersion) {

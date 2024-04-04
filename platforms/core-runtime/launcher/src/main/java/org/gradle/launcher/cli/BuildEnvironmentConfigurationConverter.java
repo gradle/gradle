@@ -80,6 +80,8 @@ public class BuildEnvironmentConfigurationConverter {
         DaemonParameters daemonParameters = new DaemonParameters(buildLayout, fileCollectionFactory, properties.getRequestedSystemProperties());
         daemonParametersConverter.convert(args, properties.getProperties(), daemonParameters);
 
+        daemonParameters.setRequestedJvmCriteria(properties.getBuildProperties());
+
         return new Parameters(startParameter, daemonParameters, properties);
     }
 

@@ -94,23 +94,18 @@ public class LayoutToPropertiesConverter {
 
     private void configureFromBuildProperties(BuildLayoutResult layoutResult, Map<String, String> result) {
         BuildLayout layout = buildLayoutFactory.getLayoutFor(layoutResult.toLayoutConfiguration());
-        maybeConfigureFrom(new File(layout.getRootDirectory(), BuildPropertiesDefaults.BUILD_PROPERTIES_FILE), result);
+        configureFrom(new File(layout.getRootDirectory(), BuildPropertiesDefaults.BUILD_PROPERTIES_FILE), result);
+    }
+
+    private void configureFrom(File propertiesFile, Map<String, String> result) {
+        Properties properties = readProperties(propertiesFile);
+        for (final Object key : properties.keySet()) {
+            result.put(key.toString(), properties.get(key).toString());
+        }
     }
 
     private void maybeConfigureFrom(File propertiesFile, Map<String, String> result) {
-        if (!propertiesFile.isFile()) {
-            return;
-        }
-
-        Properties properties = new Properties();
-        try {
-            try (FileInputStream inputStream = new FileInputStream(propertiesFile)) {
-                properties.load(inputStream);
-            }
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-
+        Properties properties = readProperties(propertiesFile);
         for (final Object key : properties.keySet()) {
             String keyAsString = key.toString();
             BuildOption<?> validOption = CollectionUtils.findFirst(allBuildOptions, new Spec<BuildOption<?>>() {
@@ -124,6 +119,22 @@ public class LayoutToPropertiesConverter {
                 result.put(key.toString(), properties.get(key).toString());
             }
         }
+    }
+
+    private static Properties readProperties(File propertiesFile) {
+        Properties properties = new Properties();
+
+        if (propertiesFile.isFile()) {
+
+            try {
+                try (FileInputStream inputStream = new FileInputStream(propertiesFile)) {
+                    properties.load(inputStream);
+                }
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        }
+        return properties;
     }
 
     private static class Result implements AllProperties {

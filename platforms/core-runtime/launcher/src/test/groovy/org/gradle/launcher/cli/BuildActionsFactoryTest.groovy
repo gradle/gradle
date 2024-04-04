@@ -30,6 +30,7 @@ import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonAction
 import org.gradle.launcher.daemon.client.DaemonClient
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient
 import org.gradle.launcher.daemon.configuration.DaemonParameters
+import org.gradle.launcher.daemon.configuration.ResolvedDaemonJvm
 import org.gradle.launcher.exec.BuildActionExecuter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.SetSystemProperties
@@ -61,7 +62,7 @@ class BuildActionsFactoryTest extends Specification {
 
         factory = new BuildActionsFactory(loggingServices) {
             @Override
-            boolean canUseCurrentProcess(DaemonParameters requiredBuildParameters) {
+            boolean canUseCurrentProcess(DaemonParameters requiredBuildParameters, ResolvedDaemonJvm resolvedDaemonJvm) {
                 return useCurrentProcess
             }
         }

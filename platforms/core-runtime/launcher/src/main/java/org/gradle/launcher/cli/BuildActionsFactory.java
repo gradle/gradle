@@ -19,6 +19,7 @@ package org.gradle.launcher.cli;
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.userinput.UserInputReader;
@@ -34,6 +35,8 @@ import org.gradle.internal.agents.AgentStatus;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.console.GlobalUserInputReceiver;
 import org.gradle.internal.nativeintegration.services.NativeServices;
@@ -54,12 +57,15 @@ import org.gradle.launcher.daemon.configuration.BuildProcess;
 import org.gradle.launcher.daemon.configuration.DaemonConfigurationServices;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.configuration.ForegroundDaemonConfiguration;
+import org.gradle.launcher.daemon.configuration.ResolvedDaemonJvm;
 import org.gradle.launcher.daemon.jvm.DaemonJavaInstallationRegistryFactory;
 import org.gradle.launcher.daemon.jvm.DaemonJavaToolchainQueryService;
+import org.gradle.launcher.daemon.jvm.DaemonJvmCriteria;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildExecuter;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
+import org.jetbrains.annotations.NotNull;
 
 import java.lang.management.ManagementFactory;
 import java.util.UUID;
@@ -115,14 +121,35 @@ class BuildActionsFactory implements CommandLineActionCreator {
                 daemonParameters.shouldApplyInstrumentationAgent(), daemonParameters.getNativeServicesMode());
             return Actions.toAction(new ForegroundDaemonAction(loggingServices, conf));
         }
+
+        ResolvedDaemonJvm resolvedDaemonJvm = resolveBuildJvm(daemonParameters, startParameter);
         if (daemonParameters.isEnabled()) {
-            return Actions.toAction(runBuildWithDaemon(startParameter, daemonParameters));
+            return Actions.toAction(runBuildWithDaemon(startParameter, daemonParameters, resolvedDaemonJvm));
         }
-        if (canUseCurrentProcess(daemonParameters)) {
+        if (canUseCurrentProcess(daemonParameters, resolvedDaemonJvm)) {
             return Actions.toAction(runBuildInProcess(startParameter, daemonParameters));
         }
 
-        return Actions.toAction(runBuildInSingleUseDaemon(startParameter, daemonParameters));
+        return Actions.toAction(runBuildInSingleUseDaemon(startParameter, daemonParameters, resolvedDaemonJvm));
+    }
+
+    @NotNull
+    private ResolvedDaemonJvm resolveBuildJvm(DaemonParameters daemonParameters, StartParameterInternal startParameter) {
+        // Gradle daemon properties have been defined
+        if (daemonParameters.getRequestedJvmCriteria() != null) {
+            DaemonJvmCriteria criteria = daemonParameters.getRequestedJvmCriteria();
+            JvmInstallationMetadata jvmInstallationMetadata = daemonJavaToolchainQueryService.findMatchingToolchain(criteria, startParameter);
+            daemonParameters.applyDefaultsFor(JavaVersion.toVersion(jvmInstallationMetadata.getJavaVersion()));
+            return new ResolvedDaemonJvm(Jvm.forHome(jvmInstallationMetadata.getJavaHome().toFile()));
+        } else if (daemonParameters.getRequestedJvmBasedOnJavaHome() != null) {
+            // Either the TAPI client or org.gradle.java.home has been provided
+            JavaVersion detectedVersion = jvmVersionDetector.getJavaVersion(daemonParameters.getRequestedJvmBasedOnJavaHome());
+            daemonParameters.applyDefaultsFor(detectedVersion);
+            return new ResolvedDaemonJvm(daemonParameters.getRequestedJvmBasedOnJavaHome());
+        } else {
+            daemonParameters.applyDefaultsFor(JavaVersion.current());
+            return new ResolvedDaemonJvm(Jvm.current());
+        }
     }
 
     private Runnable stopAllDaemons(DaemonParameters daemonParameters) {
@@ -139,18 +166,18 @@ class BuildActionsFactory implements CommandLineActionCreator {
         return new ReportDaemonStatusAction(statusClient);
     }
 
-    private Runnable runBuildWithDaemon(StartParameterInternal startParameter, DaemonParameters daemonParameters) {
+    private Runnable runBuildWithDaemon(StartParameterInternal startParameter, DaemonParameters daemonParameters, ResolvedDaemonJvm resolvedDaemonJvm) {
         // Create a client that will match based on the daemon startup parameters.
         ServiceRegistry clientSharedServices = createGlobalClientServices(true);
-        ServiceRegistry clientServices = clientSharedServices.get(DaemonClientFactory.class).createBuildClientServices(loggingServices, daemonParameters, System.in);
+        ServiceRegistry clientServices = clientSharedServices.get(DaemonClientFactory.class).createBuildClientServices(loggingServices, daemonParameters, resolvedDaemonJvm, System.in);
         DaemonClient client = clientServices.get(DaemonClient.class);
         return runBuildAndCloseServices(startParameter, daemonParameters, client, clientSharedServices, clientServices);
     }
 
     @VisibleForTesting
-    boolean canUseCurrentProcess(DaemonParameters requiredBuildParameters) {
+    boolean canUseCurrentProcess(DaemonParameters requiredBuildParameters, ResolvedDaemonJvm resolvedDaemonJvm) {
         BuildProcess currentProcess = new BuildProcess(fileCollectionFactory);
-        return currentProcess.configureForBuild(requiredBuildParameters);
+        return currentProcess.configureForBuild(requiredBuildParameters, resolvedDaemonJvm);
     }
 
     private Runnable runBuildInProcess(StartParameterInternal startParameter, DaemonParameters daemonParameters) {
@@ -174,7 +201,7 @@ class BuildActionsFactory implements CommandLineActionCreator {
         return runBuildAndCloseServices(startParameter, daemonParameters, executer, globalServices, globalServices.get(GradleUserHomeScopeServiceRegistry.class));
     }
 
-    private Runnable runBuildInSingleUseDaemon(StartParameterInternal startParameter, DaemonParameters daemonParameters) {
+    private Runnable runBuildInSingleUseDaemon(StartParameterInternal startParameter, DaemonParameters daemonParameters, ResolvedDaemonJvm resolvedDaemonJvm) {
         //(SF) this is a workaround until this story is completed. I'm hardcoding setting the idle timeout to be max X mins.
         //this way we avoid potential runaway daemons that steal resources on linux and break builds on windows.
         //We might leave that in if we decide it's a good idea for an extra safety net.
@@ -186,7 +213,7 @@ class BuildActionsFactory implements CommandLineActionCreator {
 
         // Create a client that will not match any existing daemons, so it will always start a new one
         ServiceRegistry clientSharedServices = createGlobalClientServices(true);
-        ServiceRegistry clientServices = clientSharedServices.get(DaemonClientFactory.class).createSingleUseDaemonClientServices(clientSharedServices, daemonParameters, System.in);
+        ServiceRegistry clientServices = clientSharedServices.get(DaemonClientFactory.class).createSingleUseDaemonClientServices(clientSharedServices, daemonParameters, resolvedDaemonJvm, System.in);
         DaemonClient client = clientServices.get(DaemonClient.class);
         return runBuildAndCloseServices(startParameter, daemonParameters, client, clientSharedServices, clientServices);
     }
