@@ -13,13 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.declarativedsl.toolingapi
 
+package org.gradle.declarative.dsl.tooling.builders
+
+import org.gradle.api.Project
 import org.gradle.declarative.dsl.tooling.models.DeclarativeSchemaModel
+import org.gradle.internal.declarativedsl.evaluator.DeclarativeSchemaRegistry
+import org.gradle.tooling.provider.model.ToolingModelBuilder
 import java.io.Serializable
 
+class DeclarativeSchemaModelBuilder(private val registry: DeclarativeSchemaRegistry): ToolingModelBuilder {
+    override fun canBuild(modelName: String): Boolean =
+        modelName == "org.gradle.declarative.dsl.tooling.models.DeclarativeSchemaModel"
 
-class DefaultDeclarativeSchema(val schemas: Map<String, Map<String, String>>) : DeclarativeSchemaModel, Serializable {
+    override fun buildAll(modelName: String, project: Project): Any =
+        DefaultDeclarativeSchemaModel(registry.serializedSchemas())
+}
+
+internal
+data class DefaultDeclarativeSchemaModel(val schemas: Map<String, Map<String, String>>): DeclarativeSchemaModel, Serializable {
 
     override fun targets(): Set<String> {
         return schemas.keys

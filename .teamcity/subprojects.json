@@ -252,6 +252,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "declarative-dsl-tooling-builders",
+    "path": "platforms/core-configuration/declarative-dsl-tooling-builders",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": true
+  },
+  {
     "name": "declarative-dsl-tooling-models",
     "path": "platforms/core-configuration/declarative-dsl-tooling-models",
     "unitTests": false,
