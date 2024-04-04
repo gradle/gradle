@@ -27,7 +27,6 @@ import org.gradle.internal.buildoption.StringBuildOption;
 import org.gradle.internal.jvm.inspection.JvmVendor;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
-import org.gradle.jvm.toolchain.JvmImplementation;
 import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec;
 
 import java.util.List;
@@ -36,8 +35,7 @@ public class DaemonJvmToolchainCriteriaOptions extends BuildOptionSet<JavaToolch
 
     private static List<BuildOption<JavaToolchainSpec>> options = ImmutableList.of(
         new ToolchainVersionOption(),
-        new ToolchainVendorOption(),
-        new ToolchainImplementationOption()
+        new ToolchainVendorOption()
     );
 
     public static List<BuildOption<JavaToolchainSpec>> get() {
@@ -77,18 +75,6 @@ public class DaemonJvmToolchainCriteriaOptions extends BuildOptionSet<JavaToolch
         @Override
         public void applyTo(JvmVendor.KnownJvmVendor value, JavaToolchainSpec settings, Origin origin) {
             settings.getVendor().set(DefaultJvmVendorSpec.of(value));
-        }
-    }
-
-    public static class ToolchainImplementationOption extends EnumBuildOption<JvmImplementation, JavaToolchainSpec> {
-
-        public ToolchainImplementationOption() {
-            super(BuildPropertiesDefaults.TOOLCHAIN_IMPLEMENTATION_PROPERTY, JvmImplementation.class, JvmImplementation.values(), BuildPropertiesDefaults.TOOLCHAIN_IMPLEMENTATION_PROPERTY, PropertyOrigin.BUILD_PROPERTIES);
-        }
-
-        @Override
-        public void applyTo(JvmImplementation value, JavaToolchainSpec settings, Origin origin) {
-            settings.getImplementation().set(value);
         }
     }
 }

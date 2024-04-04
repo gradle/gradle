@@ -22,9 +22,11 @@ import org.gradle.api.JavaVersion
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.inspection.JavaInstallationRegistry
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
+import org.gradle.internal.jvm.inspection.JvmInstallationProblemReporter
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector
 import org.gradle.internal.jvm.inspection.JvmVendor
 import org.gradle.internal.operations.TestBuildOperationExecutor
+import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.progress.NoOpProgressLoggerFactory
 import org.gradle.jvm.toolchain.JavaLanguageVersion
@@ -177,7 +179,7 @@ class DaemonJavaToolchainQueryServiceTest extends Specification {
 
         then:
         def e = thrown(GradleException)
-        e.message == "Cannot find a Java installation on your machine matching the Daemon JVM defined requirements: {languageVersion=12, vendor=any, implementation=VENDOR_SPECIFIC} for ${OperatingSystem.current()}."
+        e.message == "Cannot find a Java installation on your machine matching the Daemon JVM defined requirements: {languageVersion=12, vendor=any, implementation=vendor-specific} for ${OperatingSystem.current()}."
         e.cause == null
     }
 
@@ -206,7 +208,8 @@ class DaemonJavaToolchainQueryServiceTest extends Specification {
                 installations.collect{ locationFor(it) } as Set<InstallationLocation>
             }
         }
-        def registry = new JavaInstallationRegistry([supplier], detector, new TestBuildOperationExecutor(), OperatingSystem.current(), new NoOpProgressLoggerFactory()) {
+
+        def registry = new JavaInstallationRegistry([supplier], detector, new TestBuildOperationRunner(), OperatingSystem.current(), new NoOpProgressLoggerFactory(), new JvmInstallationProblemReporter()) {
             @Override
             boolean installationExists(InstallationLocation installationLocation) {
                 return true
@@ -220,8 +223,8 @@ class DaemonJavaToolchainQueryServiceTest extends Specification {
         registry
     }
 
-    private InstallationLocation locationFor(String version){
-        return new InstallationLocation(new File("/path/${version}").absoluteFile, "test")
+    private InstallationLocation locationFor(String version) {
+        return InstallationLocation.userDefined(new File("/path/${version}").absoluteFile, "test")
     }
 
     private def createJvmMetadataDetector(

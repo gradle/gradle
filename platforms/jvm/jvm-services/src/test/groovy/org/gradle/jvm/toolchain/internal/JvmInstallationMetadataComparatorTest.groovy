@@ -50,7 +50,7 @@ class JvmInstallationMetadataComparatorTest extends Specification {
         assertOrder(metadata, "11.0", "8.0", "6.0", "5.1")
     }
 
-    def "deterministically matches vendor over VENDOR_SPECIFIC tool version"() {
+    def "deterministically matches vendor over vendor-specific tool version"() {
         given:
         def metadata = [
             jvmMetadata("8.2", true, AMAZON),

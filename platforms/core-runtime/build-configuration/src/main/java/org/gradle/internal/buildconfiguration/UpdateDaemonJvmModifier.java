@@ -46,7 +46,7 @@ public class UpdateDaemonJvmModifier {
             buildProperties.remove(BuildPropertiesDefaults.TOOLCHAIN_VENDOR_PROPERTY);
         }
         if (toolchainImplementation != null) {
-            buildProperties.put(BuildPropertiesDefaults.TOOLCHAIN_IMPLEMENTATION_PROPERTY, toolchainImplementation.name());
+            buildProperties.put(BuildPropertiesDefaults.TOOLCHAIN_IMPLEMENTATION_PROPERTY, toolchainImplementation.toString());
         } else {
             buildProperties.remove(BuildPropertiesDefaults.TOOLCHAIN_IMPLEMENTATION_PROPERTY);
         }

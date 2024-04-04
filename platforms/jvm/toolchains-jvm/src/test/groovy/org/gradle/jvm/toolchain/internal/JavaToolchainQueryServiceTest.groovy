@@ -116,7 +116,7 @@ class JavaToolchainQueryServiceTest extends Specification {
         toolchain.getInstallationPath().toString() == systemSpecificAbsolutePath("/path/8.0.1.j9")
     }
 
-    def "no preferred implementation if VENDOR_SPECIFIC is requested"() {
+    def "no preferred implementation if vendor-specific is requested"() {
         given:
         def queryService = setupInstallations(["8.0.2.j9", "8.0.1.hs"])
 
@@ -177,7 +177,7 @@ class JavaToolchainQueryServiceTest extends Specification {
 
         then:
         def e = thrown(NoToolchainAvailableException)
-        e.message == "Cannot find a Java installation on your machine matching this tasks requirements: {languageVersion=12, vendor=any, implementation=VENDOR_SPECIFIC} for LINUX on x86_64."
+        e.message == "Cannot find a Java installation on your machine matching this tasks requirements: {languageVersion=12, vendor=any, implementation=vendor-specific} for LINUX on x86_64."
         e.cause.message == "Configured toolchain download repositories can't match requested specification"
     }
 
