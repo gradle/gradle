@@ -344,6 +344,25 @@ Previously, extensions registered in `Plugin<Settings>` weren't available in `se
 Now, type-safe accessors for these extensions are generated.
 
 This fixes https://github.com/gradle/gradle/issues/11210.
+
+#### Allow version catalog plugin aliases without a version
+
+Previously, a version catalog plugin alias could be defined without a version, but attempting to use it would result in an exception.
+It is now explicitly allowed to have a plugin alias with no version, and no exception will be thrown when using it:
+
+```toml
+# In libs.versions.toml
+[plugins]
+myPlugin = { id = "my.plugin.id" }
+```
+
+```kotlin
+// In build.gradle(.kts)
+plugins {
+    alias(libs.plugins.myPlugin)
+}
+```
+
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================
