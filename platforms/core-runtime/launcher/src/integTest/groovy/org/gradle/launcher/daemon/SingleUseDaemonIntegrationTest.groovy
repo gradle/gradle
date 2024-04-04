@@ -19,6 +19,8 @@ package org.gradle.launcher.daemon
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
+import org.gradle.internal.buildconfiguration.BuildPropertiesDefaults
+import org.gradle.internal.buildconfiguration.fixture.BuildPropertiesFixture
 import org.gradle.launcher.daemon.client.DaemonStartupMessage
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient
 import org.gradle.test.precondition.Requires
@@ -27,7 +29,7 @@ import org.gradle.test.preconditions.IntegTestPreconditions
 import java.nio.charset.Charset
 
 @Requires(IntegTestPreconditions.NotDaemonExecutor)
-class SingleUseDaemonIntegrationTest extends AbstractIntegrationSpec {
+class SingleUseDaemonIntegrationTest extends AbstractIntegrationSpec implements BuildPropertiesFixture {
 
     def setup() {
         executer.withArgument("--no-daemon")
@@ -101,17 +103,11 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
         daemons.daemon.stops()
     }
 
-    @Requires([IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable, IntegTestPreconditions.NotEmbeddedExecutor])
+    @Requires([IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable])
     def "forks build with default daemon JVM args when daemon jvm criteria from build properties does not match current process"() {
         def otherJdk = AvailableJavaHomes.differentVersion
-        def otherJdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(otherJdk)
-
-        file('gradle/gradle-build.properties') << """
-            daemon.jvm.toolchain.version=$otherJdkMetadata.languageVersion.majorVersion
-            daemon.jvm.toolchain.vendor=$otherJdkMetadata.vendor.knownVendor
-        """
-
-        file('build.gradle') << "assert org.gradle.internal.jvm.Jvm.current().javaVersion.toString() == '${otherJdk.javaVersion}'"
+        writeJvmCriteria(otherJdk)
+        expectJavaHome(otherJdk)
 
         when:
         succeeds()
@@ -137,15 +133,12 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
         wasNotForked()
     }
 
-    @Requires([IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable, IntegTestPreconditions.NotEmbeddedExecutor])
+    @Requires([IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable])
     def "does not fork build when daemon jvm criteria from build properties matches current process"() {
         def otherJdk = AvailableJavaHomes.differentVersion
-        def otherJdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(otherJdk)
 
-        file('gradle/gradle-build.properties') << """
-            daemon.jvm.toolchain.version=$otherJdkMetadata.languageVersion.majorVersion
-            daemon.jvm.toolchain.vendor=$otherJdkMetadata.vendor.knownVendor
-        """
+        writeJvmCriteria(otherJdk)
+        expectJavaHome(otherJdk)
 
         when:
         executer.withJavaHome(otherJdk.javaHome)
