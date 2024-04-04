@@ -330,13 +330,13 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         run("tasks", "-D$GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY=true")
 
         then:
-        mergeOutput("impl-1.0.jar").exists()
-        mergeOutput("api-1.0.jar").exists()
-        def implMergeAnalysis = mergeOutput("impl-1.0.jar")
+        mergeAnalysisOutput("impl-1.0.jar").exists()
+        mergeAnalysisOutput("api-1.0.jar").exists()
+        def implMergeAnalysis = mergeAnalysisOutput("impl-1.0.jar")
         serializer.readDependencyAnalysis(implMergeAnalysis).dependencies == [
             "B": ["org/gradle/D", "org/gradle/E"] as Set
         ]
-        def apiMergeAnalysis = mergeOutput("api-1.0.jar")
+        def apiMergeAnalysis = mergeAnalysisOutput("api-1.0.jar")
         serializer.readDependencyAnalysis(apiMergeAnalysis).dependencies == [
             "C": ["org/gradle/D", "org/gradle/E"] as Set,
             "org/gradle/D": ["org/gradle/D", "org/gradle/E"] as Set,
@@ -476,6 +476,48 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         run("help")
     }
 
+    def "external dependencies merge analysis is #mergeRun if type hierarchy #typeHierachyChange for local project"() {
+        given:
+        withIncludedBuild()
+        file("included/src/main/java/Foo.java") << "class Foo {}"
+        file("included/src/main/java/Bar.java") << "class Bar {}"
+        buildFile << """
+            import java.nio.file.Paths
+
+            buildscript {
+                repositories {
+                    ${mavenCentralRepository()}
+                }
+                dependencies {
+                    classpath "org.test:included"
+                    classpath "org.apache.commons:commons-lang3:3.8.1"
+                }
+            }
+        """
+
+        when:
+        run("tasks")
+
+        then:
+        typeHierarchyAnalysisOutputs("commons-lang3-3.8.1.jar").size() == 1
+        dependencyAnalysisOutputs("commons-lang3-3.8.1.jar").size() == 1
+        mergeAnalysisOutputs("commons-lang3-3.8.1.jar").size() == 1
+
+        when:
+        file("included/src/main/java/Bar.java").text = barContentOnChange
+        run("tasks")
+
+        then:
+        typeHierarchyAnalysisOutputs("commons-lang3-3.8.1.jar").size() == 1
+        dependencyAnalysisOutputs("commons-lang3-3.8.1.jar").size() == 1
+        mergeAnalysisOutputs("commons-lang3-3.8.1.jar").size() == expectedFinalMergeAnalysisOutputs
+
+        where:
+        mergeRun     | typeHierachyChange | barContentOnChange                   | expectedFinalMergeAnalysisOutputs
+        "re-run"     | "is changed"       | "class Bar extends Foo {}"           | 2
+        "not re-run" | "is not changed"   | "class Bar { public void bar() {} }" | 1
+    }
+
     def withBuildSrc() {
         file("buildSrc/src/main/java/Thing.java") << "class Thing { }"
         file("buildSrc/settings.gradle") << "\n"
@@ -603,30 +645,38 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         }.flatten() as Set<TestFile>
     }
 
+    Set<TestFile> typeHierarchyAnalysisOutputs(String artifactName, File cacheDir = getCacheDir()) {
+        return analyzeOutputs(artifactName, TYPE_HIERARCHY_ANALYSIS_FILE_NAME, cacheDir)
+    }
+
     TestFile typeHierarchyAnalysisOutput(String artifactName, File cacheDir = getCacheDir()) {
-        def analysis = analyzeOutputs(artifactName, TYPE_HIERARCHY_ANALYSIS_FILE_NAME, cacheDir)
+        def analysis = typeHierarchyAnalysisOutputs(artifactName, cacheDir)
         if (analysis.size() == 1) {
             return analysis.first()
         }
         throw new AssertionError("Could not find exactly one type hierarchy analysis for $artifactName: $analysis")
     }
 
+    Set<TestFile> dependencyAnalysisOutputs(String artifactName, File cacheDir = getCacheDir()) {
+        return analyzeOutputs(artifactName, DEPENDENCY_ANALYSIS_FILE_NAME, cacheDir)
+    }
+
     TestFile dependencyAnalysisOutput(String artifactName, File cacheDir = getCacheDir()) {
-        def analysis = analyzeOutputs(artifactName, DEPENDENCY_ANALYSIS_FILE_NAME, cacheDir)
+        def analysis = dependencyAnalysisOutputs(artifactName, cacheDir)
         if (analysis.size() == 1) {
             return analysis.first()
         }
         throw new AssertionError("Could not find exactly one dependency analysis for $artifactName: $analysis")
     }
 
-    Set<TestFile> mergeOutputs(String artifactName, File cacheDir = getCacheDir()) {
+    Set<TestFile> mergeAnalysisOutputs(String artifactName, File cacheDir = getCacheDir()) {
         return findOutputs("$MERGE_OUTPUT_DIR/$DEPENDENCY_ANALYSIS_FILE_NAME", cacheDir).findAll {
             serializer.readMetadataOnly(it).artifactName == artifactName
         }.collect { it } as Set<TestFile>
     }
 
-    TestFile mergeOutput(String artifactName, File cacheDir = getCacheDir()) {
-        def analysis = mergeOutputs(artifactName, cacheDir)
+    TestFile mergeAnalysisOutput(String artifactName, File cacheDir = getCacheDir()) {
+        def analysis = mergeAnalysisOutputs(artifactName, cacheDir)
         if (analysis.size() == 1) {
             return analysis.first()
         }
