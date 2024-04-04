@@ -78,7 +78,7 @@ public abstract class MergeInstrumentationAnalysisTransform implements Transform
          */
         @InputFiles
         @PathSensitive(PathSensitivity.NAME_ONLY)
-        ConfigurableFileCollection getAnalysisResult();
+        ConfigurableFileCollection getTypeHierarchyAnalysis();
     }
 
     @Inject
