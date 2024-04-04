@@ -28,7 +28,7 @@ public class UpdateDaemonJvmTaskConfigurator implements ProjectConfigureAction {
     public void execute(ProjectInternal project) {
         // Only useful for the root project
         if (project.getParent() == null) {
-            project.getTasks().register(TASK_NAME, UpdateDaemonJvmTask.class, task -> {
+            project.getTasks().register(TASK_NAME, UpdateDaemonJvm.class, task -> {
                 task.setGroup("Build Setup");
                 task.setDescription("Generates or updates the Daemon JVM criteria.");
                 task.getPropertiesFile().convention(project.getLayout().getProjectDirectory().file(BuildPropertiesDefaults.BUILD_PROPERTIES_FILE));

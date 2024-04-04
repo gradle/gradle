@@ -34,7 +34,7 @@ import org.gradle.work.DisableCachingByDefault;
  * Generates or updates Daemon JVM criteria.
  */
 @DisableCachingByDefault(because = "Not worth caching")
-public abstract class UpdateDaemonJvmTask extends DefaultTask {
+public abstract class UpdateDaemonJvm extends DefaultTask {
     @TaskAction
     void generate() {
         UpdateDaemonJvmModifier.updateJvmCriteria(

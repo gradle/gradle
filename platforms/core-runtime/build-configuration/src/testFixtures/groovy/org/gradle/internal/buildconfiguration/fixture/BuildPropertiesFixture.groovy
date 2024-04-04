@@ -39,12 +39,8 @@ trait BuildPropertiesFixture {
         return file(BuildPropertiesDefaults.BUILD_PROPERTIES_FILE)
     }
 
-    void assertHasBuildProperties() {
-        buildPropertiesFile.assertExists()
-    }
-
     void assertJvmCriteria(JavaVersion version, String vendor = null, String implementation = null) {
-        Properties properties = readBuildProperties()
+        Map<String, String> properties = buildPropertiesFile.properties
         assert properties.get(BuildPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY) == version.majorVersion
         assert properties.get(BuildPropertiesDefaults.TOOLCHAIN_VENDOR_PROPERTY) == vendor
         assert properties.get(BuildPropertiesDefaults.TOOLCHAIN_IMPLEMENTATION_PROPERTY) == implementation
@@ -64,17 +60,7 @@ trait BuildPropertiesFixture {
         if (implementation) {
             properties.put(BuildPropertiesDefaults.TOOLCHAIN_IMPLEMENTATION_PROPERTY, implementation)
         }
-        buildPropertiesFile.touch()
-        PropertiesUtils.store(properties, buildPropertiesFile)
+        buildPropertiesFile.writeProperties(properties)
         assertJvmCriteria(version, vendor, implementation)
-    }
-
-    Properties readBuildProperties() {
-        assertHasBuildProperties()
-        def properties = new Properties()
-        buildPropertiesFile.withInputStream {
-            properties.load(it)
-        }
-        properties
     }
 }

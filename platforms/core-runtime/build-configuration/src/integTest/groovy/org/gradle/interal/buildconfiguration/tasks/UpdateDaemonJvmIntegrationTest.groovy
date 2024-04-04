@@ -22,17 +22,17 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.buildconfiguration.BuildPropertiesDefaults
 import org.gradle.internal.buildconfiguration.fixture.BuildPropertiesFixture
-import org.gradle.internal.buildconfiguration.tasks.UpdateDaemonJvmTask
+import org.gradle.internal.buildconfiguration.tasks.UpdateDaemonJvm
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 
-class UpdateDaemonJvmTaskIntegrationTest extends AbstractIntegrationSpec implements BuildPropertiesFixture {
+class UpdateDaemonJvmIntegrationTest extends AbstractIntegrationSpec implements BuildPropertiesFixture {
 
     def "root project has an updateDaemonJvm task only"() {
         buildFile << """
             def updateDaemonJvm = tasks.named("updateDaemonJvm").get()
-            assert updateDaemonJvm instanceof ${UpdateDaemonJvmTask.class.name}
+            assert updateDaemonJvm instanceof ${UpdateDaemonJvm.class.name}
             assert updateDaemonJvm.description == "Generates or updates the Daemon JVM criteria."
         """
         settingsFile << """
@@ -162,7 +162,7 @@ class UpdateDaemonJvmTaskIntegrationTest extends AbstractIntegrationSpec impleme
 
         then:
         assertJvmCriteria(JavaVersion.VERSION_20, "AZUL")
-        def buildProperties = readBuildProperties()
+        def buildProperties = buildPropertiesFile.properties
         !buildProperties.containsKey("test.property")
         !buildProperties.containsKey("another.property")
         !buildPropertiesFile.text.contains("# comments are stripped")
