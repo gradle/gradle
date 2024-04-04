@@ -22,6 +22,7 @@ import org.gradle.client.ui.composables.DirChooserDialog
 import org.gradle.client.ui.composables.Loading
 import org.gradle.client.ui.composables.PlainTextTooltip
 import org.gradle.client.ui.theme.plusPaneSpacing
+import org.gradle.client.ui.theme.spacing
 
 @Composable
 fun BuildListContent(component: BuildListComponent) {
@@ -82,7 +83,9 @@ private fun BuildListDeleteButon(component: BuildListComponent, build: Build) {
 @OptIn(ExperimentalMaterial3Api::class)
 private fun TopBar() {
     TopAppBar(
-        modifier = Modifier.padding(0.dp).height(56.dp).fillMaxWidth(),
+        modifier = Modifier.padding(MaterialTheme.spacing.level0)
+            .height(MaterialTheme.spacing.topBarHeight)
+            .fillMaxWidth(),
         title = {
             Row(Modifier.fillMaxHeight(), verticalAlignment = Alignment.CenterVertically) {
                 Text(APPLICATION_DISPLAY_NAME)

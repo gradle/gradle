@@ -28,6 +28,7 @@ import kotlinx.coroutines.launch
 import org.gradle.client.ui.composables.BackIcon
 import org.gradle.client.ui.composables.Loading
 import org.gradle.client.ui.theme.plusPaneSpacing
+import org.gradle.client.ui.theme.spacing
 
 @Composable
 fun ConnectedContent(component: ConnectedComponent) {
@@ -87,7 +88,7 @@ private fun ConnectedMainContent(component: ConnectedComponent, model: Connectio
             Row(
                 modifier = Modifier.height(48.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.level2),
             ) {
                 if (sheetScaffoldState.bottomSheetState.currentValue == SheetValue.Expanded) {
                     IconButton(
@@ -129,11 +130,16 @@ private fun ConnectedMainContent(component: ConnectedComponent, model: Connectio
         },
         sheetContent = {
             if (model.events.isEmpty()) {
-                Text("No events", Modifier.padding(16.dp))
+                Text("No events", Modifier.padding(MaterialTheme.spacing.level4))
             } else {
                 Box(
                     modifier = Modifier.fillMaxWidth().fillMaxHeight(0.75f)
-                        .padding(top = 8.dp, bottom = 16.dp, start = 8.dp, end = 8.dp)
+                        .padding(
+                            top = MaterialTheme.spacing.level2,
+                            bottom = MaterialTheme.spacing.level4,
+                            start = MaterialTheme.spacing.level2,
+                            end = MaterialTheme.spacing.level2,
+                        )
                 ) {
                     LazyColumn(
                         modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
@@ -148,7 +154,7 @@ private fun ConnectedMainContent(component: ConnectedComponent, model: Connectio
                             )
                         }
                         item {
-                            Spacer(Modifier.size(8.dp))
+                            Spacer(Modifier.size(MaterialTheme.spacing.level2))
                         }
                     }
                 }
@@ -159,10 +165,10 @@ private fun ConnectedMainContent(component: ConnectedComponent, model: Connectio
 
             // Actions
             Column(
-                modifier = Modifier.padding(end = 8.dp)
+                modifier = Modifier.padding(end = MaterialTheme.spacing.level2)
                     .weight(0.3f)
                     .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.level2),
             ) {
                 component.modelActions.forEach { action ->
                     ListItem(
@@ -180,7 +186,7 @@ private fun ConnectedMainContent(component: ConnectedComponent, model: Connectio
             Column(
                 modifier = Modifier.weight(0.7f)
                     .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.level2),
             ) {
                 when (val outcome = model.outcome) {
                     Outcome.None -> Unit
@@ -213,7 +219,9 @@ private fun ConnectedMainContent(component: ConnectedComponent, model: Connectio
 @OptIn(ExperimentalMaterial3Api::class)
 private fun TopBar(component: ConnectedComponent) {
     TopAppBar(
-        modifier = Modifier.padding(0.dp).height(56.dp).fillMaxWidth(),
+        modifier = Modifier.padding(MaterialTheme.spacing.level0)
+            .height(MaterialTheme.spacing.topBarHeight)
+            .fillMaxWidth(),
         navigationIcon = {
             Box(Modifier.fillMaxHeight(), contentAlignment = Alignment.Center) {
                 BackIcon { component.onCloseClicked() }

@@ -3,18 +3,31 @@ package org.gradle.client.ui.theme
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
-private val paneSpacing = 24.dp
+@Suppress("MagicNumber")
+data object Spacing {
+    val level0 = 0.dp
+    val level1 = 4.dp
+    val level2 = 8.dp
+    val level4 = 16.dp
+    val level6 = 24.dp
+    val paneSpacing = level6
+    val topBarHeight = 56.dp
+}
+
+val MaterialTheme.spacing: Spacing
+    get() = Spacing
 
 @Composable
 fun PaddingValues.plusPaneSpacing() =
     map(
-        start = { it + paneSpacing },
-        end = { it + paneSpacing },
+        start = { it + Spacing.paneSpacing },
+        end = { it + Spacing.paneSpacing },
     )
 
 @Composable

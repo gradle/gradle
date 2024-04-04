@@ -10,7 +10,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.coroutines.launch
 import org.gradle.client.core.gradle.GradleConnectionParameters
@@ -20,6 +19,7 @@ import org.gradle.client.ui.composables.DirChooserDialog
 import org.gradle.client.ui.composables.Loading
 import org.gradle.client.ui.composables.PlainTextTooltip
 import org.gradle.client.ui.theme.plusPaneSpacing
+import org.gradle.client.ui.theme.spacing
 import java.io.File
 
 @Composable
@@ -94,7 +94,7 @@ private fun BuildMainContent(
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.level4)
     ) {
         OutlinedTextField(
             modifier = Modifier.fillMaxWidth(),
@@ -317,7 +317,9 @@ private fun BuildMainContent(
 private fun TopBar(component: BuildComponent) {
     val model by component.model.subscribeAsState()
     TopAppBar(
-        modifier = Modifier.padding(0.dp).height(56.dp).fillMaxWidth(),
+        modifier = Modifier.padding(MaterialTheme.spacing.level0)
+            .height(MaterialTheme.spacing.topBarHeight)
+            .fillMaxWidth(),
         navigationIcon = {
             Box(Modifier.fillMaxHeight(), contentAlignment = Alignment.Center) {
                 BackIcon { component.onCloseClicked() }
