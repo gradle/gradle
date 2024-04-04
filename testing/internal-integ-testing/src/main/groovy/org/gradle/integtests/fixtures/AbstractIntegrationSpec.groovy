@@ -872,10 +872,19 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         return receivedProblems
     }
 
+    /**
+     * Returns the first received problem
+     *
+     * @see #receivedProblem(int)
+     */
     ReceivedProblem getReceivedProblem() {
         receivedProblem(0)
     }
 
+    /**
+     * Returns the received problem at the given index and marks it as validated.
+     * The validation should only verify the contextual attributes of the received problem, as the problem definition is checked at the end of each test (see {@see KnownProblemIds}).
+     */
     ReceivedProblem receivedProblem(int index) {
         assert index >= 0: "Index must be non-negative"
         assert index < getReceivedProblems().size(): "Only ${getReceivedProblems().size()} problems received"
