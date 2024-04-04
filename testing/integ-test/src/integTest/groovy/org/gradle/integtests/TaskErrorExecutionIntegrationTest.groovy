@@ -167,6 +167,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
     }
 
     def "reports unknown task"() {
+        enableProblemsApiCheck()
         createDirs("a", "b")
         settingsFile << """
             rootProject.name = 'test'
@@ -182,6 +183,10 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         fails "someTest"
 
         then:
+        verifyAll(receivedProblem(0)) {
+            fqid == 'task-selection:no-matches'
+            contextualLabel == "Task 'someTest' not found in root project 'test' and its subprojects. Some candidates are: 'someTask', 'someTaskA', 'someTaskB'."
+        }
         failure.assertHasDescription("Task 'someTest' not found in root project 'test' and its subprojects. Some candidates are: 'someTask', 'someTaskA', 'someTaskB'.")
         failure.assertHasResolutions(
             GET_TASKS,
@@ -194,6 +199,10 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         when:
         fails ":someTest"
         then:
+        verifyAll(receivedProblem(0)) {
+            fqid == 'task-selection:no-matches'
+            contextualLabel == "Cannot locate tasks that match ':someTest' as task 'someTest' not found in root project 'test'. Some candidates are: 'someTask'."
+        }
         failure.assertHasDescription("Cannot locate tasks that match ':someTest' as task 'someTest' not found in root project 'test'. Some candidates are: 'someTask'.")
         failure.assertHasResolutions(
             GET_TASKS,
@@ -206,6 +215,10 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         when:
         fails "a:someTest"
         then:
+        verifyAll(receivedProblem(0)) {
+            fqid == 'task-selection:no-matches'
+            contextualLabel == "Cannot locate tasks that match 'a:someTest' as task 'someTest' not found in project ':a'. Some candidates are: 'someTask', 'someTaskA'."
+        }
         failure.assertHasDescription("Cannot locate tasks that match 'a:someTest' as task 'someTest' not found in project ':a'. Some candidates are: 'someTask', 'someTaskA'.")
         failure.assertHasResolutions(
             GET_TASKS,

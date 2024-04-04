@@ -489,6 +489,8 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
     }
 
     protected ExecutionResult succeeds(String... tasks) {
+        resetProblemApiCheck()
+
         result = executer.withTasks(*tasks).run()
         return result
     }
@@ -526,6 +528,8 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
     }
 
     protected ExecutionFailure fails(String... tasks) {
+        resetProblemApiCheck()
+
         failure = executer.withTasks(*tasks).runWithFailure()
 
         if (enableProblemsApiCheck && getReceivedProblems().isEmpty()) {
@@ -779,6 +783,11 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         recreateExecuter()
     }
 
+    def resetProblemApiCheck() {
+        // By nulling out the receivedProblems, upon calling getReceivedProblems() we will re-fetch the problems from the build operations fixture.
+        receivedProblems = null
+    }
+
     def enableProblemsApiCheck() {
         enableProblemsApiCheck = true
         buildOperationsFixture = new BuildOperationsFixture(executer, temporaryFolder)
@@ -860,7 +869,7 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
                 return 0
             }
         }
-        receivedProblems
+        return receivedProblems
     }
 
     ReceivedProblem getReceivedProblem() {
