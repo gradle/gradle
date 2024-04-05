@@ -16,12 +16,16 @@
 
 package org.gradle.internal.declarativedsl.evaluator
 
+import org.gradle.api.Project
+
 
 interface DeclarativeSchemaRegistry {
 
     fun storeSchema(target: Any, identifier: String, schema: String)
 
-    fun serializedSchemas(): MutableMap<String, MutableMap<String, String>>
+    fun serializedSchemas(): MutableMap<String, MutableMap<String, String>> // TODO: flatten, we only need one schema
+
+    fun projectSchema(): String
 }
 
 
@@ -45,5 +49,18 @@ class DefaultDeclarativeSchemaRegistry : DeclarativeSchemaRegistry {
             retMap[target]!![identifier] = schema
         }
         return retMap
+    }
+
+    override fun projectSchema(): String {
+        schemas.forEach {
+            val target = it.key.first
+            val identifier = it.key.second
+            if (target is Project && identifier == "project") {
+                val schema = it.value
+                return schema
+            }
+
+        }
+        return ""
     }
 }

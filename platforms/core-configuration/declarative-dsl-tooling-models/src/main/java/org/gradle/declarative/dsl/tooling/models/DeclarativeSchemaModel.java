@@ -14,14 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.declarative.dsl.tooling.models;import java.util.Set;
+package org.gradle.declarative.dsl.tooling.models;
 
 public interface DeclarativeSchemaModel {
 
-    Set<String> targets();
-
-    Set<String> identifiers(String target);
-
-    String schema(String target, String identifier);
+    String schema();
 
 }

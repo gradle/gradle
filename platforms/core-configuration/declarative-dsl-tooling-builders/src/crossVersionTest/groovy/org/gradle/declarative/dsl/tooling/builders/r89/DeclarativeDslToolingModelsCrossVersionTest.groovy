@@ -65,10 +65,7 @@ class DeclarativeDslToolingModelsCrossVersionTest extends ToolingApiSpecificatio
 
         then:
         model != null
-        model.targets() == ['settings \'test\'', 'project \':a\'', 'project \':b\''] as Set
-        model.identifiers('settings \'test\'') == ['settingsPluginManagement', 'settingsPlugins', 'settings'] as Set
-        model.identifiers('project \':a\'') == ['plugins', 'project'] as Set
-        model.schema('project \':b\'', 'project').contains("topLevelReceiverType")
+        model.schema().contains("topLevelReceiverType")
     }
 
 }

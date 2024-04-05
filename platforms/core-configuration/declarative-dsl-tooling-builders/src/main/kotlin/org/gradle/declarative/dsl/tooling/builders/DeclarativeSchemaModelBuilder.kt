@@ -27,21 +27,13 @@ class DeclarativeSchemaModelBuilder(private val registry: DeclarativeSchemaRegis
         modelName == "org.gradle.declarative.dsl.tooling.models.DeclarativeSchemaModel"
 
     override fun buildAll(modelName: String, project: Project): Any =
-        DefaultDeclarativeSchemaModel(registry.serializedSchemas())
+        DefaultDeclarativeSchemaModel(registry.projectSchema())
 }
 
 internal
-data class DefaultDeclarativeSchemaModel(val schemas: Map<String, Map<String, String>>): DeclarativeSchemaModel, Serializable {
+data class DefaultDeclarativeSchemaModel(val projectSchema: String): DeclarativeSchemaModel, Serializable {
 
-    override fun targets(): Set<String> {
-        return schemas.keys
-    }
-
-    override fun identifiers(target: String): Set<String> {
-        return schemas[target]?.keys ?: emptySet()
-    }
-
-    override fun schema(target: String, identifier: String): String? {
-        return schemas[target]?.get(identifier)
+    override fun schema(): String {
+        return projectSchema
     }
 }
