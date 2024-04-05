@@ -14,18 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl
+package org.gradle.declarative.dsl.tooling.builders.r89
 
 import org.gradle.declarative.dsl.tooling.models.DeclarativeSchemaModel
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.tooling.fixture.ToolingApi
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
-class DeclarativeDslToolingModelsIntegrationSpec extends AbstractIntegrationSpec {
+@TargetGradleVersion(">=8.8") // TODO: should end up 8.9
+@ToolingApiVersion('>=8.8') // TODO: should end up 8.9
+class DeclarativeDslToolingModelsCrossVersionTest extends ToolingApiSpecification {
 
-    // TODO: should be cross-version test, not integration test (package name containing starting version)
+    def setup(){
+        settingsFile.delete() //we are using a declarative settings file
+    }
 
-    final ToolingApi toolingApi = new ToolingApi(distribution, temporaryFolder)
-
+    @Requires([UnitTestPreconditions.Jdk11OrLater])
     def 'can obtain model containing project schema'() {
         given:
         file("settings.gradle.something") << """
@@ -53,12 +59,6 @@ class DeclarativeDslToolingModelsIntegrationSpec extends AbstractIntegrationSpec
                 testCompileOnly(project(\":a\"))
             }
         """
-
-        when:
-        run(":b:compileJava")
-
-        then:
-        executed(":a:compileJava", ":b:compileJava")
 
         when:
         DeclarativeSchemaModel model = toolingApi.withConnection() { connection -> connection.getModel(DeclarativeSchemaModel.class) }
