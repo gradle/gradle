@@ -16,6 +16,7 @@
 
 package org.gradle.smoketests
 
+import org.gradle.api.JavaVersion
 import org.gradle.util.internal.VersionNumber
 import spock.lang.Issue
 
@@ -28,7 +29,7 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
     def 'test kotlin multiplatform with js project (kotlin=#kotlinVersion)'() {
         given:
         withKotlinBuildFile()
-        useSample("kotlin-multiplatform-js-example")
+        useSample("kotlin-multiplatform-js-jvm-example")
 
         def kotlinVersionNumber = VersionNumber.parse(kotlinVersion)
         replaceVariablesInBuildFile(kotlinVersion: kotlinVersion)
@@ -42,6 +43,38 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
 
         where:
         kotlinVersion << TestedVersions.kotlin.versions
+    }
+
+    def 'can run tests with kotlin multiplatform with js project (kotlin=#kotlinVersion)'() {
+        given:
+        withKotlinBuildFile()
+        useSample("kotlin-multiplatform-js-jvm-example")
+
+        def kotlinVersionNumber = VersionNumber.parse(kotlinVersion)
+        replaceVariablesInBuildFile(kotlinVersion: kotlinVersion)
+        replaceCssSupportBlocksInBuildFile(kotlinVersionNumber)
+
+        when:
+        def result = kgpRunner(false, kotlinVersionNumber, ':allTests', '-s')
+            .expectDeprecationWarningIf(
+                kotlinVersionNumber >= VersionNumber.parse('1.9.22'),
+                "Internal API BuildOperationExecutor.getCurrentOperation() has been deprecated. This is scheduled to be removed in Gradle 9.0.",
+                "https://youtrack.jetbrains.com/issue/KT-67110"
+            )
+            .build()
+
+        then:
+        result.task(':allTests').outcome == SUCCESS
+
+        where:
+        kotlinVersion << TestedVersions.kotlin.versions.findAll {
+            def version = VersionNumber.parse(it)
+            // versions prior to 1.7.0 use the removed 'void org.gradle.api.reporting.DirectoryReport.setEnabled(boolean)' method
+            // 1.7.22 does not define implementation of the 'abstract void failure(java.lang.Object, org.gradle.api.tasks.testing.TestFailure)' of interface org.gradle.api.internal.tasks.testing.TestResultProcessor.
+            // versions prior to 2.0.0 don't support java 21
+            version > VersionNumber.parse('1.7.22') &&
+                (JavaVersion.current() < JavaVersion.VERSION_21 || version >= VersionNumber.parse('2.0.0-Beta1'))
+        }
     }
 
     /**

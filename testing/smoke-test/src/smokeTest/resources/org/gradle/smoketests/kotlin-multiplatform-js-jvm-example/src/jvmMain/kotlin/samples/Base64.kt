@@ -16,16 +16,14 @@
 
 package samples
 
-interface Base64Encoder {
-    fun encode(src: ByteArray): ByteArray
-    fun encodeToString(src: ByteArray): String {
-        val encoded = encode(src)
-        return buildString(encoded.size) {
-            encoded.forEach { append(it.toChar()) }
-        }
-    }
+import java.util.Base64
+
+actual object Base64Factory {
+    actual fun createEncoder(): Base64Encoder = JvmBase64Encoder
 }
 
-expect object Base64Factory {
-    fun createEncoder(): Base64Encoder
+object JvmBase64Encoder : Base64Encoder {
+    override fun encode(src: ByteArray): ByteArray {
+        return Base64.getEncoder().encode(src)
+    }
 }
