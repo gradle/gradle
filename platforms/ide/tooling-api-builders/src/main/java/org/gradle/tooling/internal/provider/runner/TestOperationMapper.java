@@ -18,8 +18,8 @@ package org.gradle.tooling.internal.provider.runner;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.tasks.testing.AbstractTestDescriptor;
 import org.gradle.api.internal.tasks.testing.DecoratingTestDescriptor;
-import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.operations.ExecuteTestBuildOperationType;
+import org.gradle.api.tasks.testing.TestDescriptor;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
@@ -71,7 +71,7 @@ class TestOperationMapper implements BuildOperationMapper<ExecuteTestBuildOperat
 
     @Override
     public DefaultTestDescriptor createDescriptor(ExecuteTestBuildOperationType.Details details, BuildOperationDescriptor buildOperation, @Nullable OperationIdentifier parent) {
-        TestDescriptorInternal testDescriptor = (TestDescriptorInternal) details.getTestDescriptor();
+        TestDescriptor testDescriptor = details.getTestDescriptor();
         return testDescriptor.isComposite() ? toTestDescriptorForSuite(buildOperation.getId(), parent, testDescriptor) : toTestDescriptorForTest(buildOperation.getId(), parent, testDescriptor);
     }
 
@@ -86,11 +86,11 @@ class TestOperationMapper implements BuildOperationMapper<ExecuteTestBuildOperat
         return new DefaultTestFinishedProgressEvent(testResult.getEndTime(), descriptor, adapt(testResult));
     }
 
-    private DefaultTestDescriptor toTestDescriptorForSuite(OperationIdentifier buildOperationId, OperationIdentifier parentId, TestDescriptorInternal suite) {
+    private DefaultTestDescriptor toTestDescriptorForSuite(OperationIdentifier buildOperationId, OperationIdentifier parentId, TestDescriptor suite) {
         String methodName = null;
         String operationDisplayName = suite.toString();
 
-        TestDescriptorInternal originalDescriptor = getOriginalDescriptor(suite);
+        TestDescriptor originalDescriptor = getOriginalDescriptor(suite);
         if (originalDescriptor instanceof AbstractTestDescriptor) {
             methodName = ((AbstractTestDescriptor) originalDescriptor).getMethodName();
         } else {
@@ -99,10 +99,10 @@ class TestOperationMapper implements BuildOperationMapper<ExecuteTestBuildOperat
         return new DefaultTestDescriptor(buildOperationId, suite.getName(), operationDisplayName, suite.getDisplayName(), InternalJvmTestDescriptor.KIND_SUITE, suite.getName(), suite.getClassName(), methodName, parentId, taskTracker.getTaskPath(buildOperationId));
     }
 
-    private DefaultTestDescriptor toTestDescriptorForTest(OperationIdentifier buildOperationId, OperationIdentifier parentId, TestDescriptorInternal test) {
+    private DefaultTestDescriptor toTestDescriptorForTest(OperationIdentifier buildOperationId, OperationIdentifier parentId, TestDescriptor test) {
         String operationDisplayName = test.toString();
 
-        TestDescriptorInternal originalDescriptor = getOriginalDescriptor(test);
+        TestDescriptor originalDescriptor = getOriginalDescriptor(test);
         if (!(originalDescriptor instanceof AbstractTestDescriptor)) {
             operationDisplayName = getLegacyOperationDisplayName(operationDisplayName, originalDescriptor);
         }
@@ -115,7 +115,7 @@ class TestOperationMapper implements BuildOperationMapper<ExecuteTestBuildOperat
      * Once this code is removed, the workaround can be removed as well and {@link org.gradle.api.internal.tasks.testing.AbstractTestDescriptor#getMethodName()} can be moved to {@link TestDescriptor}.
      * Alternatively, it can be removed in Gradle 9.0.
      */
-    private static String getLegacyOperationDisplayName(String operationDisplayName, TestDescriptorInternal testDescriptor) {
+    private static String getLegacyOperationDisplayName(String operationDisplayName, TestDescriptor testDescriptor) {
         // if toString() is not overridden, use the display name for test operation
         if (operationDisplayName.endsWith("@" + Integer.toHexString(testDescriptor.hashCode()))) {
             return testDescriptor.getDisplayName();
@@ -127,7 +127,7 @@ class TestOperationMapper implements BuildOperationMapper<ExecuteTestBuildOperat
     /**
      * can be removed once {@link #getLegacyOperationDisplayName(String, TestDescriptor) the workaround above} is removed
      */
-    private static TestDescriptorInternal getOriginalDescriptor(TestDescriptorInternal testDescriptor) {
+    private static TestDescriptor getOriginalDescriptor(TestDescriptor testDescriptor) {
         if (testDescriptor instanceof DecoratingTestDescriptor) {
             return getOriginalDescriptor(((DecoratingTestDescriptor) testDescriptor).getDescriptor());
         } else {
