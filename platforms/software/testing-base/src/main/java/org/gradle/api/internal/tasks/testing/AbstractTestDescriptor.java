@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.tasks.testing.TestDescriptor;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 import javax.annotation.Nullable;
@@ -53,6 +54,7 @@ public abstract class AbstractTestDescriptor implements TestDescriptorInternal {
      *
      * @return The method name. May return null.
      * @since 8.8
+     * @see org.gradle.tooling.internal.provider.runner.TestOperationMapper#getLegacyOperationDisplayName(String, TestDescriptor)
      */
     @Incubating
     @Nullable
