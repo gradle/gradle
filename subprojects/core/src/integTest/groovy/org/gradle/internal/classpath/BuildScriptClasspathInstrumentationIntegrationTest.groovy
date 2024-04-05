@@ -518,6 +518,49 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         "not re-run" | "is not changed"   | "class Bar { public void bar() {} }" | 1
     }
 
+    def "project dependency analysis is #analysisRun if classes are #classChangeDescription and recompiled"() {
+        given:
+        withIncludedBuild()
+        file("included/src/main/java/Foo.java") << "class Foo {}"
+        file("included/src/main/java/Bar.java") << "class Bar {}"
+        buildFile << """
+            buildscript {
+                repositories {
+                    ${mavenCentralRepository()}
+                }
+                dependencies {
+                    classpath "org.test:included"
+                    classpath "org.apache.commons:commons-lang3:3.8.1"
+                }
+            }
+        """
+
+        when:
+        run(":included:clean", "tasks")
+
+        then:
+        // Artifact name == "main" since in transform we get "classes/<language>/main" directory
+        // as an input and we write a file name to the metadata as artifact name
+        def artifactName = "main"
+        typeHierarchyAnalysisOutputs(artifactName).size() == 1
+        dependencyAnalysisOutputs(artifactName).size() == 1
+        mergeAnalysisOutputs(artifactName).size() == 0
+
+        when:
+        file("included/src/main/java/Bar.java").text = barContentOnChange
+        run(":included:clean", "tasks")
+
+        then:
+        typeHierarchyAnalysisOutputs(artifactName).size() == expectedFinalAnalysisOutputs
+        dependencyAnalysisOutputs(artifactName).size() == expectedFinalAnalysisOutputs
+        mergeAnalysisOutputs(artifactName).size() == 0
+
+        where:
+        analysisRun  | classChangeDescription | barContentOnChange                    | expectedFinalAnalysisOutputs
+        "not re-run" | "not changed"          | "class Bar {}"                        | 1
+        "re-run"     | "changed"              | "class Bar { private void bar() {} }" | 2
+    }
+
     def withBuildSrc() {
         file("buildSrc/src/main/java/Thing.java") << "class Thing { }"
         file("buildSrc/settings.gradle") << "\n"
