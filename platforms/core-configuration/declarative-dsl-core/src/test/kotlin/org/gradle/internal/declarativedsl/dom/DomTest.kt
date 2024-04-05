@@ -16,12 +16,8 @@
 
 package org.gradle.internal.declarativedsl.dom
 
-import org.gradle.internal.declarativedsl.parsing.DefaultLanguageTreeBuilder
-import org.gradle.internal.declarativedsl.parsing.parse
-import org.gradle.internal.declarativedsl.language.Block
 import org.gradle.internal.declarativedsl.language.SourceData
-import org.gradle.internal.declarativedsl.language.SourceIdentifier
-import org.intellij.lang.annotations.Language
+import org.gradle.internal.declarativedsl.parsing.ParseTestUtil.Parser.parseAsTopLevelBlock
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -118,12 +114,6 @@ object DomTest {
 
             DomPrettyPrinter(withSourceData = true).domAsString(convertBlockToDocument(tree))
         )
-    }
-
-    private
-    fun parseAsTopLevelBlock(@Language("kts") code: String): Block {
-        val parsedTree = parse(code)
-        return DefaultLanguageTreeBuilder().build(parsedTree, SourceIdentifier("test")).topLevelBlock
     }
 
     internal
