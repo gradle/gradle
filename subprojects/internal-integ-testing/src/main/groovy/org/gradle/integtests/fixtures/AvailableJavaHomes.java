@@ -308,15 +308,15 @@ public abstract class AvailableJavaHomes {
             new BaseDirJvmLocator("/opt/jdk"),
             new BaseDirJvmLocator("C:\\Program Files\\Java\\"),
             new BaseDirJvmLocator(SystemProperties.getInstance().getUserHome()),
-            new CurrentInstallationSupplier(providerFactory()),
+            new CurrentInstallationSupplier(),
             new EnvVariableJvmLocator(),
             new IntellijInstallationSupplier(providerFactory(), new IdentityFileResolver()),
             new JabbaInstallationSupplier(providerFactory()),
-            new LinuxInstallationSupplier(providerFactory()),
+            new LinuxInstallationSupplier(),
             new MavenToolchainsInstallationSupplier(providerFactory(), new IdentityFileResolver()),
-            new OsXInstallationSupplier(TestFiles.execHandleFactory(), providerFactory(), OperatingSystem.current()),
+            new OsXInstallationSupplier(TestFiles.execHandleFactory(), OperatingSystem.current()),
             new SdkmanInstallationSupplier(providerFactory()),
-            new WindowsInstallationSupplier(windowsRegistry, OperatingSystem.current(), providerFactory())
+            new WindowsInstallationSupplier(windowsRegistry, OperatingSystem.current())
         );
     }
 

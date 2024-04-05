@@ -5,7 +5,6 @@ plugins {
 description = "The Build configuration properties modifiers and helpers."
 
 dependencies {
-    api(libs.inject)
     api(libs.jsr305)
 
     api(project(":base-services"))
@@ -13,8 +12,7 @@ dependencies {
     api(project(":core-api"))
     api(project(":jvm-services"))
     api(project(":toolchains-jvm-shared"))
-
-    implementation(project(":base-annotations"))
+    api(project(":base-annotations"))
 
     testImplementation(testFixtures(project(":core")))
 

@@ -17,7 +17,6 @@
 package org.gradle.launcher.daemon.jvm;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.gradle.StartParameter;
 import org.gradle.api.GradleException;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JavaInstallationRegistry;
@@ -35,36 +34,35 @@ import java.util.function.Predicate;
 
 public class DaemonJavaToolchainQueryService {
 
-    private final JavaInstallationRegistryFactory javaInstallationRegistryFactory;
+    private final JavaInstallationRegistry javaInstallationRegistry;
     private final File currentJavaHome;
 
-    public DaemonJavaToolchainQueryService(JavaInstallationRegistryFactory javaInstallationRegistryFactory) {
-        this(javaInstallationRegistryFactory, Jvm.current().getJavaHome());
+    public DaemonJavaToolchainQueryService(JavaInstallationRegistry javaInstallationRegistry) {
+        this(javaInstallationRegistry, Jvm.current().getJavaHome());
     }
 
     @VisibleForTesting
-    public DaemonJavaToolchainQueryService(JavaInstallationRegistryFactory javaInstallationRegistryFactory, File currentJavaHome) {
-        this.javaInstallationRegistryFactory = javaInstallationRegistryFactory;
+    public DaemonJavaToolchainQueryService(JavaInstallationRegistry javaInstallationRegistry, File currentJavaHome) {
+        this.javaInstallationRegistry = javaInstallationRegistry;
         this.currentJavaHome = currentJavaHome;
     }
 
-    public JvmInstallationMetadata findMatchingToolchain(DaemonJvmCriteria toolchainSpec, StartParameter parameters) throws GradleException {
-        Optional<JvmToolchainMetadata> installation = locateToolchain(toolchainSpec, parameters);
+    public JvmInstallationMetadata findMatchingToolchain(DaemonJvmCriteria toolchainSpec) throws GradleException {
+        Optional<JvmToolchainMetadata> installation = locateToolchain(toolchainSpec);
         if (!installation.isPresent()) {
             String exceptionMessage = String.format(
-                "Cannot find a Java installation on your machine matching the Daemon JVM defined requirements: %s for %s.", toolchainSpec, OperatingSystem.current()
+                "Cannot find a Java installation on your machine (%s) matching the Daemon JVM defined requirements: %s.", OperatingSystem.current(), toolchainSpec
             );
             throw new GradleException(exceptionMessage);
         }
         return installation.get().metadata;
     }
 
-    private Optional<JvmToolchainMetadata> locateToolchain(DaemonJvmCriteria toolchainSpec, StartParameter parameters) {
-        JavaInstallationRegistry registry = javaInstallationRegistryFactory.getRegistry(parameters);
+    private Optional<JvmToolchainMetadata> locateToolchain(DaemonJvmCriteria toolchainSpec) {
         Predicate<JvmInstallationMetadata> matcher = new JvmInstallationMetadataMatcher(JavaLanguageVersion.of(toolchainSpec.getJavaVersion().getMajorVersion()), toolchainSpec.getVendorSpec(), toolchainSpec.getJvmImplementation());
         JvmInstallationMetadataComparator metadataComparator = new JvmInstallationMetadataComparator(currentJavaHome);
 
-        return registry.toolchains().stream()
+        return javaInstallationRegistry.toolchains().stream()
             .filter(result -> result.metadata.isValidInstallation())
             .filter(result -> matcher.test(result.metadata))
             .min(Comparator.comparing(result -> result.metadata, metadataComparator));

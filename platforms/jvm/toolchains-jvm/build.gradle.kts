@@ -57,7 +57,6 @@ dependencies {
     implementation(project(":logging"))
 
     implementation(libs.commonsIo)
-    implementation(libs.commonsLang)
     implementation(libs.guava)
     implementation(libs.slf4jApi)
 

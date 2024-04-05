@@ -16,15 +16,20 @@
 
 package org.gradle.jvm.internal.services;
 
+import net.rubygrapefruit.platform.WindowsRegistry;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.jvm.inspection.ConditionalInvalidation;
 import org.gradle.internal.jvm.inspection.InvalidJvmInstallationCacheInvalidator;
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.jvm.toolchain.internal.AsdfInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.CurrentInstallationSupplier;
+import org.gradle.jvm.toolchain.internal.DelegatingAutoDetectingInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.EnvironmentVariableListInstallationSupplier;
+import org.gradle.jvm.toolchain.internal.InstallationSupplier;
 import org.gradle.jvm.toolchain.internal.IntellijInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.JabbaInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.LinuxInstallationSupplier;
@@ -33,26 +38,40 @@ import org.gradle.jvm.toolchain.internal.MavenToolchainsInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.OsXInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.SdkmanInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.WindowsInstallationSupplier;
+import org.gradle.process.internal.ExecHandleFactory;
 
 public class PlatformJvmServices extends AbstractPluginServiceRegistry {
     @Override
     public void registerBuildServices(ServiceRegistration registration) {
+        registration.addProvider(new BuildServices());
+
         registerJavaInstallationSuppliers(registration);
         registerInvalidJavaInstallationsCacheInvalidator(registration);
     }
 
+    protected static class BuildServices {
+        protected InstallationSupplier createLinuxInstallationSupplier(ProviderFactory providerFactory) {
+            return new DelegatingAutoDetectingInstallationSupplier(providerFactory, new LinuxInstallationSupplier());
+        }
+
+        protected InstallationSupplier createWindowsInstallationSupplier(ProviderFactory providerFactory, WindowsRegistry registry) {
+            return new DelegatingAutoDetectingInstallationSupplier(providerFactory, new WindowsInstallationSupplier(registry, OperatingSystem.current()));
+        }
+
+        protected InstallationSupplier createOsXInstallationSupplier(ProviderFactory providerFactory, ExecHandleFactory execHandleFactory) {
+            return new DelegatingAutoDetectingInstallationSupplier(providerFactory, new OsXInstallationSupplier(execHandleFactory, OperatingSystem.current()));
+        }
+    }
     private void registerJavaInstallationSuppliers(ServiceRegistration registration) {
-        registration.add(AsdfInstallationSupplier.class);
         registration.add(CurrentInstallationSupplier.class);
         registration.add(EnvironmentVariableListInstallationSupplier.class);
+        registration.add(LocationListInstallationSupplier.class);
+
+        registration.add(AsdfInstallationSupplier.class);
         registration.add(IntellijInstallationSupplier.class);
         registration.add(JabbaInstallationSupplier.class);
-        registration.add(LinuxInstallationSupplier.class);
-        registration.add(LocationListInstallationSupplier.class);
         registration.add(MavenToolchainsInstallationSupplier.class);
-        registration.add(OsXInstallationSupplier.class);
         registration.add(SdkmanInstallationSupplier.class);
-        registration.add(WindowsInstallationSupplier.class);
     }
 
     private void registerInvalidJavaInstallationsCacheInvalidator(ServiceRegistration registration) {

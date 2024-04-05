@@ -19,7 +19,6 @@ package org.gradle.launcher.daemon
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
-import org.gradle.internal.buildconfiguration.BuildPropertiesDefaults
 import org.gradle.internal.buildconfiguration.fixture.BuildPropertiesFixture
 import org.gradle.launcher.daemon.client.DaemonStartupMessage
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient

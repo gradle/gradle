@@ -16,7 +16,6 @@
 
 package org.gradle.jvm.toolchain.internal;
 
-import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.os.OperatingSystem;
 
 import javax.inject.Inject;
@@ -26,18 +25,16 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class LinuxInstallationSupplier extends AutoDetectingInstallationSupplier {
-
+public class LinuxInstallationSupplier implements InstallationSupplier {
     private final String[] roots;
     private final OperatingSystem os;
 
     @Inject
-    public LinuxInstallationSupplier(ProviderFactory factory) {
-        this(factory, OperatingSystem.current(), "/usr/lib/jvm", "/usr/lib64/jvm", "/usr/java", "/usr/local/java", "/opt/java");
+    public LinuxInstallationSupplier() {
+        this(OperatingSystem.current(), "/usr/lib/jvm", "/usr/lib64/jvm", "/usr/java", "/usr/local/java", "/opt/java");
     }
 
-    private LinuxInstallationSupplier(ProviderFactory factory, OperatingSystem os, String... roots) {
-        super(factory);
+    private LinuxInstallationSupplier(OperatingSystem os, String... roots) {
         this.roots = roots;
         this.os = os;
     }
@@ -48,7 +45,7 @@ public class LinuxInstallationSupplier extends AutoDetectingInstallationSupplier
     }
 
     @Override
-    protected Set<InstallationLocation> findCandidates() {
+    public Set<InstallationLocation> get() {
         if (os.isLinux()) {
             return Arrays.stream(roots)
                 .map(root -> FileBasedInstallationFactory.fromDirectory(new File(root), getSourceName(), InstallationLocation::autoDetected))
@@ -57,5 +54,4 @@ public class LinuxInstallationSupplier extends AutoDetectingInstallationSupplier
         }
         return Collections.emptySet();
     }
-
 }

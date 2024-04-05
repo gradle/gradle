@@ -278,7 +278,7 @@ class DaemonJavaToolchainQueryServiceTest extends Specification {
         }
 
         @Override
-        JavaInstallationRegistry getRegistry(StartParameter startParameter) {
+        JavaInstallationRegistry getRegistry() {
             return createInstallationRegistry(installations, detector)
         }
     }

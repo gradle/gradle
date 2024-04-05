@@ -16,7 +16,6 @@
 
 package org.gradle.jvm.toolchain.internal;
 
-import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.process.internal.ExecException;
 import org.gradle.process.internal.ExecHandleBuilder;
@@ -33,15 +32,14 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class OsXInstallationSupplier extends AutoDetectingInstallationSupplier {
+public class OsXInstallationSupplier implements InstallationSupplier {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(OsXInstallationSupplier.class);
 
     private final ExecHandleFactory execHandleFactory;
     private final OperatingSystem os;
 
-    public OsXInstallationSupplier(ExecHandleFactory execHandleFactory, ProviderFactory providerFactory, OperatingSystem os) {
-        super(providerFactory);
+    public OsXInstallationSupplier(ExecHandleFactory execHandleFactory, OperatingSystem os) {
         this.execHandleFactory = execHandleFactory;
         this.os = os;
     }
@@ -52,7 +50,7 @@ public class OsXInstallationSupplier extends AutoDetectingInstallationSupplier {
     }
 
     @Override
-    protected Set<InstallationLocation> findCandidates() {
+    public Set<InstallationLocation> get() {
         if (os.isMacOsX()) {
             try {
                 final Reader output = executeJavaHome();
@@ -89,5 +87,4 @@ public class OsXInstallationSupplier extends AutoDetectingInstallationSupplier {
         execHandleBuilder.setStandardOutput(new ByteArrayOutputStream());
         execHandleBuilder.build().start().waitForFinish().assertNormalExitValue();
     }
-
 }

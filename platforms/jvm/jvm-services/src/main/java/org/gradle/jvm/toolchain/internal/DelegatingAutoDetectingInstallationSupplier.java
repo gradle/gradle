@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,24 +16,31 @@
 
 package org.gradle.jvm.toolchain.internal;
 
-import org.gradle.internal.jvm.Jvm;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 
-import java.io.File;
 import java.util.Collections;
 import java.util.Set;
 
-public class CurrentInstallationSupplier implements InstallationSupplier {
+public class DelegatingAutoDetectingInstallationSupplier implements InstallationSupplier {
+    private final Provider<Boolean> enabled;
+    private final InstallationSupplier delegate;
+
+    public DelegatingAutoDetectingInstallationSupplier(ProviderFactory providerFactory, InstallationSupplier delegate) {
+        this.enabled = providerFactory.gradleProperty(AutoDetectingInstallationSupplier.AUTO_DETECT).map(Boolean::parseBoolean).orElse(Boolean.TRUE);
+        this.delegate = delegate;
+    }
 
     @Override
     public String getSourceName() {
-        return "Current JVM";
+        return delegate.getSourceName();
     }
 
     @Override
     public Set<InstallationLocation> get() {
-        return Collections.singleton(asInstallation(Jvm.current().getJavaHome()));
-    }
-    private InstallationLocation asInstallation(File javaHome) {
-        return InstallationLocation.autoDetected(javaHome, getSourceName());
+        if (enabled.get()) {
+            return delegate.get();
+        }
+        return Collections.emptySet();
     }
 }

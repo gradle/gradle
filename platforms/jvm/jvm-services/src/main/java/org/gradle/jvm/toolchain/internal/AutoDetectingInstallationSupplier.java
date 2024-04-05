@@ -31,7 +31,7 @@ public abstract class AutoDetectingInstallationSupplier implements InstallationS
 
     @Inject
     public AutoDetectingInstallationSupplier(ProviderFactory factory) {
-        this.detectionEnabled = factory.gradleProperty(AUTO_DETECT).map(Boolean::parseBoolean);
+        this.detectionEnabled = factory.gradleProperty(AUTO_DETECT).map(Boolean::parseBoolean).orElse(Boolean.TRUE);
         this.factory = factory;
     }
 
@@ -54,7 +54,7 @@ public abstract class AutoDetectingInstallationSupplier implements InstallationS
     protected abstract Set<InstallationLocation> findCandidates();
 
     protected boolean isAutoDetectionEnabled() {
-        return detectionEnabled.getOrElse(true);
+        return detectionEnabled.get();
     }
 
 }

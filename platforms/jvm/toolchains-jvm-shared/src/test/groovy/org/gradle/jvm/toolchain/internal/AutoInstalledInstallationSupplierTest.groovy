@@ -87,7 +87,7 @@ class AutoInstalledInstallationSupplierTest extends Specification {
         def providerFactory = Mock(ProviderFactory)
         providerFactory.gradleProperty("org.gradle.java.installations.auto-detect") >> Providers.ofNullable("false")
         providerFactory.gradleProperty("org.gradle.java.installations.auto-download") >> Providers.ofNullable("true")
-        def supplier = new AutoInstalledInstallationSupplier(providerFactory, cacheDir)
+        def supplier = new AutoInstalledInstallationSupplier(cacheDir)
 
 
         when:
@@ -106,7 +106,7 @@ class AutoInstalledInstallationSupplierTest extends Specification {
         def providerFactory = Mock(ProviderFactory)
         providerFactory.gradleProperty("org.gradle.java.installations.auto-detect") >> Providers.ofNullable("false")
         providerFactory.gradleProperty("org.gradle.java.installations.auto-download") >> Providers.ofNullable(null)
-        def supplier = new AutoInstalledInstallationSupplier(providerFactory, cacheDir)
+        def supplier = new AutoInstalledInstallationSupplier(cacheDir)
 
 
         when:
@@ -129,7 +129,7 @@ class AutoInstalledInstallationSupplierTest extends Specification {
 
     def createSupplier(Set<File> javaHomes) {
         def cacheDir = newCacheDirProvider(javaHomes)
-        new AutoInstalledInstallationSupplier(createProviderFactory(), cacheDir)
+        new AutoInstalledInstallationSupplier(cacheDir)
     }
 
     private JdkCacheDirectory newCacheDirProvider(javaHomes) {

@@ -19,7 +19,6 @@ package org.gradle.jvm.toolchain.internal;
 import com.google.common.collect.Lists;
 import net.rubygrapefruit.platform.MissingRegistryEntryException;
 import net.rubygrapefruit.platform.WindowsRegistry;
-import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.os.OperatingSystem;
 
 import java.io.File;
@@ -29,13 +28,12 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class WindowsInstallationSupplier extends AutoDetectingInstallationSupplier {
+public class WindowsInstallationSupplier implements InstallationSupplier {
 
     private final WindowsRegistry windowsRegistry;
     private final OperatingSystem os;
 
-    public WindowsInstallationSupplier(WindowsRegistry registry, OperatingSystem os, ProviderFactory providerFactory) {
-        super(providerFactory);
+    public WindowsInstallationSupplier(WindowsRegistry registry, OperatingSystem os) {
         this.windowsRegistry = registry;
         this.os = os;
     }
@@ -46,7 +44,7 @@ public class WindowsInstallationSupplier extends AutoDetectingInstallationSuppli
     }
 
     @Override
-    protected Set<InstallationLocation> findCandidates() {
+    public Set<InstallationLocation> get() {
         if (os.isWindows()) {
             return findInstallationsInRegistry();
         }

@@ -112,7 +112,7 @@ class WindowsInstallationSupplierTest extends Specification {
     }
 
     WindowsInstallationSupplier createSupplier(OperatingSystem os = OperatingSystem.WINDOWS) {
-        new WindowsInstallationSupplier(registry, os, createProviderFactory())
+        new WindowsInstallationSupplier(registry, os)
     }
 
     ProviderFactory createProviderFactory(String propertyValue) {

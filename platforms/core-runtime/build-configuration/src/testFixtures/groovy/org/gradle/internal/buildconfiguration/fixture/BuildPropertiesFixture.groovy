@@ -22,16 +22,19 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.buildconfiguration.BuildPropertiesDefaults
 import org.gradle.internal.jvm.Jvm
-import org.gradle.internal.util.PropertiesUtils
 import org.gradle.test.fixtures.file.TestFile
 
 @SelfType(AbstractIntegrationSpec)
 trait BuildPropertiesFixture {
     void expectJavaHome(Jvm expectedJvm) {
+        expectJavaHome(expectedJvm.javaHome)
+    }
+
+    void expectJavaHome(File expectedJavaHome) {
         buildFile << """
             def javaHome = org.gradle.internal.jvm.Jvm.current().javaHome.canonicalPath
             println org.gradle.internal.jvm.Jvm.current().javaHome.canonicalPath
-            assert javaHome == "${expectedJvm.javaHome.canonicalPath}"
+            assert javaHome == "${expectedJavaHome.canonicalPath}"
         """
     }
 

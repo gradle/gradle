@@ -37,6 +37,7 @@ import org.gradle.jvm.toolchain.internal.AutoInstalledInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainResolverRegistry;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainService;
 import org.gradle.jvm.toolchain.internal.DefaultJvmToolchainManagement;
+import org.gradle.jvm.toolchain.internal.DelegatingAutoDetectingInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.InstallationSupplier;
 import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService;
 import org.gradle.jvm.toolchain.internal.install.DefaultJavaToolchainProvisioningService;
@@ -74,6 +75,9 @@ public class ToolchainsJvmServices extends AbstractPluginServiceRegistry {
             return objectFactory.newInstance(JavaInstallationRegistry.class, suppliers, buildOperationRunner, os);
         }
 
+        protected InstallationSupplier createAutoInstalledInstallationSupplier(JdkCacheDirectory cacheDirProvider, ProviderFactory providerFactory) {
+            return new DelegatingAutoDetectingInstallationSupplier(providerFactory, new AutoInstalledInstallationSupplier(cacheDirProvider));
+        }
     }
 
     @Override
@@ -84,7 +88,6 @@ public class ToolchainsJvmServices extends AbstractPluginServiceRegistry {
     @Override
     public void registerBuildServices(ServiceRegistration registration) {
         registration.addProvider(new BuildServices());
-        registration.add(AutoInstalledInstallationSupplier.class);
     }
 
     @Override

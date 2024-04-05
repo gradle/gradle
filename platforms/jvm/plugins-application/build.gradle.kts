@@ -39,6 +39,7 @@ dependencies {
     implementation(project(":plugins-java-base"))
     implementation(project(":process-services"))
     implementation(project(":toolchains-jvm"))
+    implementation(project(":toolchains-jvm-shared"))
 
     implementation(libs.ant)
     implementation(libs.commonsLang)

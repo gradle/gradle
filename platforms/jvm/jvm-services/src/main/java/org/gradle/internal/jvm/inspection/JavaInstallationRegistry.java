@@ -44,7 +44,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-@ServiceScope(Scope.Build.class)
+@ServiceScope({ Scope.Build.class, Scope.Global.class })
 public class JavaInstallationRegistry {
     private final BuildOperationRunner buildOperationRunner;
     private final Installations installations;

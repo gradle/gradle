@@ -43,5 +43,8 @@ public class DaemonJvmCriteria {
         return jvmImplementation;
     }
 
-    ;
+    @Override
+    public String toString() {
+        return String.format("JVM version '%s'", getJavaVersion());
+    }
 }

@@ -52,7 +52,7 @@ class LinuxInstallationSupplierTest extends Specification {
 
     def "detects installations in default roots"() {
         given:
-        def supplier = new LinuxInstallationSupplier(createProviderFactory())
+        def supplier = new LinuxInstallationSupplier()
 
         when:
         def directories = supplier.get()

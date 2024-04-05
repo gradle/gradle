@@ -58,14 +58,12 @@ import org.gradle.launcher.daemon.configuration.DaemonConfigurationServices;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.configuration.ForegroundDaemonConfiguration;
 import org.gradle.launcher.daemon.configuration.ResolvedDaemonJvm;
-import org.gradle.launcher.daemon.jvm.DaemonJavaInstallationRegistryFactory;
 import org.gradle.launcher.daemon.jvm.DaemonJavaToolchainQueryService;
 import org.gradle.launcher.daemon.jvm.DaemonJvmCriteria;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildExecuter;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
-import org.jetbrains.annotations.NotNull;
 
 import java.lang.management.ManagementFactory;
 import java.util.UUID;
@@ -79,7 +77,7 @@ class BuildActionsFactory implements CommandLineActionCreator {
     private final DaemonJavaToolchainQueryService daemonJavaToolchainQueryService;
 
     public BuildActionsFactory(ServiceRegistry loggingServices) {
-        basicServices = ServiceRegistryBuilder.builder()
+        this.basicServices = ServiceRegistryBuilder.builder()
             .scope(Scope.Global.class)
             .displayName("Basic global services")
             .parent(loggingServices)
@@ -88,14 +86,12 @@ class BuildActionsFactory implements CommandLineActionCreator {
             .provider(new DaemonConfigurationServices())
             .build();
         this.loggingServices = loggingServices;
-        fileCollectionFactory = basicServices.get(FileCollectionFactory.class);
-        buildEnvironmentConfigurationConverter = new BuildEnvironmentConfigurationConverter(
+        this.fileCollectionFactory = basicServices.get(FileCollectionFactory.class);
+        this.buildEnvironmentConfigurationConverter = new BuildEnvironmentConfigurationConverter(
             new BuildLayoutFactory(),
             fileCollectionFactory);
-        jvmVersionDetector = basicServices.get(JvmVersionDetector.class);
-        daemonJavaToolchainQueryService = new DaemonJavaToolchainQueryService(
-            basicServices.get(DaemonJavaInstallationRegistryFactory.class)
-        );
+        this.jvmVersionDetector = basicServices.get(JvmVersionDetector.class);
+        this.daemonJavaToolchainQueryService = basicServices.get(DaemonJavaToolchainQueryService.class);
     }
 
     @Override
@@ -122,7 +118,7 @@ class BuildActionsFactory implements CommandLineActionCreator {
             return Actions.toAction(new ForegroundDaemonAction(loggingServices, conf));
         }
 
-        ResolvedDaemonJvm resolvedDaemonJvm = resolveBuildJvm(daemonParameters, startParameter);
+        ResolvedDaemonJvm resolvedDaemonJvm = resolveBuildJvm(daemonParameters);
         if (daemonParameters.isEnabled()) {
             return Actions.toAction(runBuildWithDaemon(startParameter, daemonParameters, resolvedDaemonJvm));
         }
@@ -133,12 +129,11 @@ class BuildActionsFactory implements CommandLineActionCreator {
         return Actions.toAction(runBuildInSingleUseDaemon(startParameter, daemonParameters, resolvedDaemonJvm));
     }
 
-    @NotNull
-    private ResolvedDaemonJvm resolveBuildJvm(DaemonParameters daemonParameters, StartParameterInternal startParameter) {
+    private ResolvedDaemonJvm resolveBuildJvm(DaemonParameters daemonParameters) {
         // Gradle daemon properties have been defined
         if (daemonParameters.getRequestedJvmCriteria() != null) {
             DaemonJvmCriteria criteria = daemonParameters.getRequestedJvmCriteria();
-            JvmInstallationMetadata jvmInstallationMetadata = daemonJavaToolchainQueryService.findMatchingToolchain(criteria, startParameter);
+            JvmInstallationMetadata jvmInstallationMetadata = daemonJavaToolchainQueryService.findMatchingToolchain(criteria);
             daemonParameters.applyDefaultsFor(JavaVersion.toVersion(jvmInstallationMetadata.getJavaVersion()));
             return new ResolvedDaemonJvm(Jvm.forHome(jvmInstallationMetadata.getJavaHome().toFile()));
         } else if (daemonParameters.getRequestedJvmBasedOnJavaHome() != null) {

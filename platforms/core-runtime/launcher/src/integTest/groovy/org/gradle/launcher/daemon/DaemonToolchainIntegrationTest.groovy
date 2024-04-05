@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.buildconfiguration.fixture.BuildPropertiesFixture
 import org.gradle.internal.jvm.Jvm
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.junit.Assume
@@ -40,8 +39,31 @@ class DaemonToolchainIntegrationTest extends AbstractIntegrationSpec implements 
     def "Given other daemon toolchain version When executing any task Then daemon jvm was set up with expected configuration"() {
         given:
         def otherJvm = AvailableJavaHomes.differentVersion
+        buildFile << """
+            plugins {
+                id("org.gradle.jvm-toolchains")
+            }
+
+            task provision {
+                doLast {
+                    println("Provisioning Java ${otherJvm.javaVersion}")
+                    def launcher = javaToolchains.launcherFor {
+                        languageVersion = JavaLanguageVersion.of("${otherJvm.javaVersion.majorVersion}")
+                    }.get()
+                    file("provisioned.jdk") << launcher.metadata.installationPath.asFile.canonicalPath
+                }
+            }
+        """
+        settingsFile << """
+            plugins {
+                id("org.gradle.toolchains.foojay-resolver-convention") version ("0.8.0")
+            }
+        """
+        executer.withToolchainDownloadEnabled()
+        succeeds("provision")
+
         writeJvmCriteria(otherJvm)
-        expectJavaHome(otherJvm)
+        expectJavaHome(new File(file("provisioned.jdk").text))
 
         expect:
         succeeds("help")
@@ -56,6 +78,6 @@ class DaemonToolchainIntegrationTest extends AbstractIntegrationSpec implements 
 
         expect:
         fails("help")
-        failure.assertHasDescription("Cannot find a Java installation on your machine matching the Daemon JVM defined requirements")
+        failure.assertHasDescription("Cannot find a Java installation on your machine")
     }
 }

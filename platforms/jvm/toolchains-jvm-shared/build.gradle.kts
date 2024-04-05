@@ -21,8 +21,20 @@ plugins {
 description = "Declarations to define JVM toolchains shared between launcher and daemon"
 
 dependencies {
-    implementation(project(":core"))
+    api(libs.inject)
+    api(libs.jsr305)
 
+    api(project(":base-annotations"))
+    api(project(":base-services"))
+    api(project(":core-api"))
+    api(project(":file-collections"))
+    api(project(":jvm-services"))
+    api(project(":persistent-cache"))
+    api(project(":core"))
+
+    implementation(project(":logging"))
+    implementation(libs.guava)
+    implementation(libs.slf4jApi)
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
 

@@ -16,31 +16,40 @@
 
 package org.gradle.launcher.daemon.configuration;
 
-import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.cache.FileLockManager;
 import org.gradle.initialization.GradleUserHomeDirProvider;
+import org.gradle.internal.jvm.inspection.JavaInstallationRegistry;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.progress.DefaultProgressLoggerFactory;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.services.ProgressLoggingBridge;
 import org.gradle.internal.operations.DefaultBuildOperationIdFactory;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.time.Clock;
+import org.gradle.jvm.toolchain.internal.AutoInstalledInstallationSupplier;
+import org.gradle.jvm.toolchain.internal.CurrentInstallationSupplier;
+import org.gradle.jvm.toolchain.internal.InstallationSupplier;
 import org.gradle.jvm.toolchain.internal.install.JdkCacheDirectory;
-import org.gradle.launcher.daemon.jvm.DaemonJavaInstallationRegistryFactory;
-import org.gradle.process.internal.ExecFactory;
+import org.gradle.launcher.daemon.jvm.DaemonJavaToolchainQueryService;
+
+import java.util.List;
 
 public class DaemonConfigurationServices {
-
-    DaemonJavaInstallationRegistryFactory createDaemonJavaInstallationRegistryFactory(JdkCacheDirectory jdkCacheDirectory, JvmMetadataDetector jvmMetadataDetector, ExecFactory execFactory, ProgressLoggerFactory progressLoggerFactory, WindowsRegistry windowsRegistry) {
-        return new DaemonJavaInstallationRegistryFactory(
-            jdkCacheDirectory,
-            jvmMetadataDetector,
-            execFactory,
-            progressLoggerFactory,
-            windowsRegistry
-        );
+    protected DaemonJavaToolchainQueryService createDaemonJavaToolchainQueryService(JavaInstallationRegistry javaInstallationRegistry) {
+        return new DaemonJavaToolchainQueryService(javaInstallationRegistry);
     }
+    protected JavaInstallationRegistry createJavaInstallationRegistry(List<InstallationSupplier> installationSuppliers, JvmMetadataDetector jvmMetadataDetector, ProgressLoggerFactory progressLoggerFactory) {
+        return new JavaInstallationRegistry(installationSuppliers, jvmMetadataDetector, null, OperatingSystem.current(), progressLoggerFactory, null);
+    }
+    protected InstallationSupplier createAutoInstalledInstallationSupplier(JdkCacheDirectory jdkCacheDirectory) {
+        return new AutoInstalledInstallationSupplier(jdkCacheDirectory);
+    }
+    protected InstallationSupplier createCurrentInstallationSupplier() {
+        return new CurrentInstallationSupplier();
+    }
+
+    // TODO: Decide if we should use all of the different installation suppliers for Gradle daemons or not
 
     ProgressLoggerFactory createProgressLoggerFactory(OutputEventListener outputEventListener, Clock clock) {
         return new DefaultProgressLoggerFactory(
