@@ -363,6 +363,39 @@ plugins {
 }
 ```
 
+#### Improved control of local build cache cleanup
+
+Previously, cleanup of the local build cache (`~/.gradle/caches/build-cache-1`) ran every 24 hours, and this interval could not be configured.
+The retention period was configured via the `DirectoryBuildCache.removeUnusedEntriesAfterDays` setting. 
+
+With this release, local build cache cleanup is configurable via the [standard init-script mechanism](userguide/directory_layout.html#dir:gradle_user_home:cache_cleanup),
+providing improved control and consistency.
+- Specifying `Cleanup.DISABLED` or `Cleanup.ALWAYS` will now prevent or force the cleanup of the local build cache
+- Build cache entry retention is now configured via `Settings.caches.buildCache.setRemoveUnusedEntriesAfterDays()`
+
+E.g. if you want build-cache entries to be retained for 30 days, remove any calls to the deprecated method:
+<strike>
+```
+  buildCache {
+      local {
+          removeUnusedEntriesAfterDays = 30
+      }
+  }
+```
+</strike>
+
+and add a file like this in `~/.gradle/init.d`:
+```kotlin
+beforeSettings {
+    caches {
+        buildCache.setRemoveUnusedEntriesAfterDays(30)
+    }
+}
+```
+
+The `buildCache.local.removeUnusedEntriesAfterDays` method is now deprecated.
+If set to a non-default value, this deprecated setting will take precedence over `Settings.caches.buildCache.setRemoveUnusedEntriesAfterDays()`.
+
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================
