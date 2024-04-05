@@ -19,14 +19,12 @@ package org.gradle.internal.session;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultCollectionCallbackActionDecorator;
-import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.configuration.internal.DefaultDynamicCallContextTracker;
 import org.gradle.configuration.internal.DefaultListenerBuildOperationDecorator;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.internal.code.DefaultUserCodeApplicationContext;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.concurrent.DefaultParallelismConfiguration;
 import org.gradle.internal.concurrent.DefaultWorkerLimits;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.WorkerLimits;
@@ -103,10 +101,6 @@ public class CrossBuildSessionState implements Closeable {
 
         CrossBuildSessionState createCrossBuildSessionState() {
             return CrossBuildSessionState.this;
-        }
-
-        ParallelismConfiguration createParallelismConfiguration() {
-            return new DefaultParallelismConfiguration(startParameter.isParallelProjectExecutionEnabled(), startParameter.getMaxWorkerCount());
         }
 
         WorkerLimits createWorkerLimits() {
