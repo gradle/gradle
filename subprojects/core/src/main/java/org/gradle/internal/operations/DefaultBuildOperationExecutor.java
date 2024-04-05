@@ -18,11 +18,11 @@ package org.gradle.internal.operations;
 
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
-import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.concurrent.WorkerLimits;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 
@@ -46,13 +46,13 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         CurrentBuildOperationRef currentBuildOperationRef,
         BuildOperationQueueFactory buildOperationQueueFactory,
         ExecutorFactory executorFactory,
-        ParallelismConfiguration parallelismConfiguration
+        WorkerLimits workerLimits
     ) {
         this.runner = buildOperationRunner;
         this.currentBuildOperationRef = currentBuildOperationRef;
         this.buildOperationQueueFactory = buildOperationQueueFactory;
-        managedExecutors.put(BuildOperationConstraint.MAX_WORKERS, executorFactory.create("Build operations", parallelismConfiguration.getMaxWorkerCount()));
-        managedExecutors.put(BuildOperationConstraint.UNCONSTRAINED, executorFactory.create("Unconstrained build operations", parallelismConfiguration.getMaxWorkerCount() * 10));
+        managedExecutors.put(BuildOperationConstraint.MAX_WORKERS, executorFactory.create("Build operations", workerLimits.getMaxWorkerCount()));
+        managedExecutors.put(BuildOperationConstraint.UNCONSTRAINED, executorFactory.create("Unconstrained build operations", workerLimits.getMaxWorkerCount() * 10));
     }
 
     @Override

@@ -118,14 +118,14 @@ public class CrossBuildSessionState implements Closeable {
             CurrentBuildOperationRef currentBuildOperationRef,
             WorkerLeaseService workerLeaseService,
             ExecutorFactory executorFactory,
-            ParallelismConfiguration parallelismConfiguration
+            WorkerLimits workerLimits
         ) {
             return new DefaultBuildOperationExecutor(
                 buildOperationRunner,
                 currentBuildOperationRef,
                 new DefaultBuildOperationQueueFactory(workerLeaseService),
                 executorFactory,
-                parallelismConfiguration
+                workerLimits
             );
         }
 
