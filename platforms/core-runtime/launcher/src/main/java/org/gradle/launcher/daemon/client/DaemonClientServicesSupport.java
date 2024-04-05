@@ -18,19 +18,16 @@ package org.gradle.launcher.daemon.client;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.cache.FileLockManager;
 import org.gradle.initialization.GradleUserHomeDirProvider;
-import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.UUIDGenerator;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.jvm.inspection.JavaInstallationRegistry;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
-import org.gradle.internal.logging.console.GlobalUserInputReceiver;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.progress.DefaultProgressLoggerFactory;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.services.ProgressLoggingBridge;
-import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.DefaultBuildOperationIdFactory;
 import org.gradle.internal.os.OperatingSystem;
@@ -45,11 +42,13 @@ import org.gradle.jvm.toolchain.internal.AutoInstalledInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.CurrentInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.InstallationSupplier;
 import org.gradle.jvm.toolchain.internal.install.JdkCacheDirectory;
-import org.gradle.launcher.daemon.context.DaemonCompatibilitySpec;
+import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.context.DaemonRequestContext;
 import org.gradle.launcher.daemon.jvm.DaemonJavaToolchainQueryService;
 import org.gradle.launcher.daemon.protocol.DaemonMessageSerializer;
+import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
+import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
 
 import java.io.InputStream;
 import java.util.List;
@@ -63,9 +62,12 @@ import java.util.UUID;
 public abstract class DaemonClientServicesSupport extends DefaultServiceRegistry {
     private final InputStream buildStandardInput;
 
-    public DaemonClientServicesSupport(ServiceRegistry parent, InputStream buildStandardInput) {
+    public DaemonClientServicesSupport(ServiceRegistry parent, DaemonParameters daemonParameters, DaemonRequestContext requestContext, InputStream buildStandardInput) {
         super(parent);
         this.buildStandardInput = buildStandardInput;
+        add(daemonParameters);
+        add(requestContext);
+        addProvider(new DaemonRegistryServices(daemonParameters.getBaseDir()));
     }
 
     protected InputStream getBuildStandardInput() {
@@ -82,19 +84,6 @@ public abstract class DaemonClientServicesSupport extends DefaultServiceRegistry
 
     ReportDaemonStatusClient createReportDaemonStatusClient(DaemonRegistry registry, DaemonConnector connector, IdGenerator<UUID> idGenerator, DocumentationRegistry documentationRegistry) {
         return new ReportDaemonStatusClient(registry, connector, idGenerator, documentationRegistry);
-    }
-
-    protected DaemonClient createDaemonClient(IdGenerator<UUID> idGenerator) {
-        DaemonCompatibilitySpec matchingContextSpec = new DaemonCompatibilitySpec(get(DaemonRequestContext.class));
-        return new DaemonClient(
-                get(DaemonConnector.class),
-                get(OutputEventListener.class),
-                matchingContextSpec,
-                buildStandardInput,
-                get(GlobalUserInputReceiver.class),
-                get(ExecutorFactory.class),
-                idGenerator,
-                get(ProcessEnvironment.class));
     }
 
     IdGenerator<UUID> createIdGenerator() {
@@ -136,5 +125,9 @@ public abstract class DaemonClientServicesSupport extends DefaultServiceRegistry
     // TODO: Decide if we should use all of the different installation suppliers for Gradle daemons or not
     protected JdkCacheDirectory createJdkCacheDirectory(GradleUserHomeDirProvider gradleUserHomeDirProvider, FileLockManager fileLockManager, JvmMetadataDetector jvmMetadataDetector) {
         return new JdkCacheDirectory(gradleUserHomeDirProvider, null, fileLockManager, jvmMetadataDetector);
+    }
+
+    DaemonStarter createDaemonStarter(DaemonDir daemonDir, DaemonParameters daemonParameters, DaemonGreeter daemonGreeter, JvmVersionValidator jvmVersionValidator, DaemonJavaToolchainQueryService daemonJavaToolchainQueryService) {
+        return new DefaultDaemonStarter(daemonDir, daemonParameters, daemonGreeter, jvmVersionValidator, daemonJavaToolchainQueryService);
     }
 }

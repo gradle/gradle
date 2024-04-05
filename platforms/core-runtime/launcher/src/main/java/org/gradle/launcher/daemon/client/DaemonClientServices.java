@@ -15,27 +15,36 @@
  */
 package org.gradle.launcher.daemon.client;
 
+import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.id.IdGenerator;
+import org.gradle.internal.logging.console.GlobalUserInputReceiver;
+import org.gradle.internal.logging.events.OutputEventListener;
+import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
+import org.gradle.launcher.daemon.context.DaemonCompatibilitySpec;
 import org.gradle.launcher.daemon.context.DaemonRequestContext;
-import org.gradle.launcher.daemon.jvm.DaemonJavaToolchainQueryService;
-import org.gradle.launcher.daemon.registry.DaemonDir;
-import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
 
 import java.io.InputStream;
+import java.util.UUID;
 
 /**
  * Takes care of instantiating and wiring together the services required by the daemon client.
  */
 public class DaemonClientServices extends DaemonClientServicesSupport {
     public DaemonClientServices(ServiceRegistry parent, DaemonParameters daemonParameters, DaemonRequestContext requestContext, InputStream buildStandardInput) {
-        super(parent, buildStandardInput);
-        add(daemonParameters);
-        add(requestContext);
-        addProvider(new DaemonRegistryServices(daemonParameters.getBaseDir()));
+        super(parent, daemonParameters, requestContext, buildStandardInput);
     }
-
-    DaemonStarter createDaemonStarter(DaemonDir daemonDir, DaemonParameters daemonParameters, DaemonGreeter daemonGreeter, JvmVersionValidator jvmVersionValidator, DaemonJavaToolchainQueryService daemonJavaToolchainQueryService) {
-        return new DefaultDaemonStarter(daemonDir, daemonParameters, daemonGreeter, jvmVersionValidator, daemonJavaToolchainQueryService);
+    protected DaemonClient createDaemonClient(IdGenerator<UUID> idGenerator) {
+        DaemonCompatibilitySpec matchingContextSpec = new DaemonCompatibilitySpec(get(DaemonRequestContext.class));
+        return new DaemonClient(
+            get(DaemonConnector.class),
+            get(OutputEventListener.class),
+            matchingContextSpec,
+            getBuildStandardInput(),
+            get(GlobalUserInputReceiver.class),
+            get(ExecutorFactory.class),
+            idGenerator,
+            get(ProcessEnvironment.class));
     }
 }

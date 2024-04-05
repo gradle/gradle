@@ -32,12 +32,13 @@ import org.gradle.launcher.daemon.context.DaemonRequestContext;
 import java.io.InputStream;
 import java.util.UUID;
 
-public class SingleUseDaemonClientServices extends DaemonClientServices {
+/**
+ * Takes care of instantiating and wiring together the services required by the single-use daemon client.
+ */
+public class SingleUseDaemonClientServices extends DaemonClientServicesSupport {
     public SingleUseDaemonClientServices(ServiceRegistry loggingServices, DaemonParameters daemonParameters, DaemonRequestContext requestContext, InputStream buildStandardInput) {
         super(loggingServices, daemonParameters, requestContext, buildStandardInput);
     }
-
-    @Override
     protected DaemonClient createDaemonClient(IdGenerator<UUID> idGenerator) {
         ExplainingSpec<DaemonContext> matchNone = ExplainingSpecs.satisfyNone();
         return new SingleUseDaemonClient(
