@@ -16,6 +16,9 @@
 
 package org.gradle.internal.concurrent;
 
+import org.gradle.api.NonNullApi;
+
+@NonNullApi
 public class DefaultWorkerLimits implements WorkerLimits {
 
     private final int maxWorkerCount;

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.concurrent;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -31,6 +32,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  *     <li>A language compiler in a forked process</li>
  * </ul>
  */
+@NonNullApi
 @ServiceScope(Scope.CrossBuildSession.class)
 public interface WorkerLimits {
 
