@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.plugins;
 
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Plugin;
 import org.gradle.api.internal.plugins.software.SoftwareType;
@@ -25,11 +26,20 @@ import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.internal.Cast;
+import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
-import org.gradle.internal.reflect.validation.TypeValidationContext;
+import org.gradle.internal.reflect.DefaultTypeValidationContext;
+import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
+import org.gradle.model.internal.type.ModelType;
+import org.gradle.plugin.use.PluginId;
+import org.gradle.plugin.use.internal.DefaultPluginId;
 
 import javax.annotation.Nullable;
+import java.util.Optional;
+import java.util.function.Supplier;
+
+import static com.google.common.collect.ImmutableList.toImmutableList;
 
 @NonNullApi
 public class AddSoftwareTypesAsExtensionsPluginTarget implements PluginTarget {
@@ -50,12 +60,36 @@ public class AddSoftwareTypesAsExtensionsPluginTarget implements PluginTarget {
 
     @Override
     public void applyImperative(@Nullable String pluginId, Plugin<?> plugin) {
+        DefaultTypeValidationContext typeValidationContext = DefaultTypeValidationContext.withRootType(plugin.getClass(), false);
         inspectionScheme.getPropertyWalker().visitProperties(
             plugin,
-            TypeValidationContext.NOOP,
+            typeValidationContext,
             addSoftwareTypesAsExtensions
         );
+
+        if (!typeValidationContext.getProblems().isEmpty()) {
+            throw new DefaultMultiCauseException(
+                String.format(typeValidationContext.getProblems().size() == 1
+                        ? "A problem was found with the %s plugin."
+                        : "Some problems were found with the %s plugin.",
+                    getPluginObjectDisplayName(plugin)),
+                typeValidationContext.getProblems().stream()
+                    .map(TypeValidationProblemRenderer::renderMinimalInformationAbout)
+                    .sorted()
+                    .map(InvalidUserDataException::new)
+                    .collect(toImmutableList())
+            );
+        }
+
         delegate.applyImperative(pluginId, plugin);
+    }
+
+    private static String getPluginObjectDisplayName(Object parameterObject) {
+        return ModelType.of(new DslObject(parameterObject).getDeclaredType()).getDisplayName();
+    }
+
+    private static Supplier<Optional<PluginId>> getOptionalSupplier(@Nullable String pluginId) {
+        return () -> Optional.ofNullable(pluginId).map(DefaultPluginId::of);
     }
 
     @Override

@@ -18,11 +18,15 @@ package org.gradle.plugin.software.internal;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.plugins.software.SoftwareType;
+import org.gradle.api.problems.Severity;
+import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.properties.annotations.AbstractPropertyAnnotationHandler;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
+import org.gradle.model.internal.type.ModelType;
+import org.gradle.util.internal.TextUtil;
 
 public class SoftwareTypeAnnotationHandler extends AbstractPropertyAnnotationHandler {
 
@@ -37,18 +41,27 @@ public class SoftwareTypeAnnotationHandler extends AbstractPropertyAnnotationHan
 
     @Override
     public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor) {
-        propertyMetadata.getAnnotation(SoftwareType.class).ifPresent(softwareType -> {
-            visitor.visitSoftwareTypeProperty(propertyName, value, softwareType);
-        });
+        propertyMetadata.getAnnotation(SoftwareType.class).ifPresent(softwareType ->
+            visitor.visitSoftwareTypeProperty(propertyName, value, softwareType)
+        );
     }
 
     @Override
     public void validatePropertyMetadata(PropertyMetadata propertyMetadata, TypeValidationContext validationContext) {
-//        propertyMetadata.getAnnotation(SoftwareType.class).ifPresent(softwareType -> {
-//            Class<?> publicType = softwareType.modelPublicType();
-//            if (!publicType.isAssignableFrom(propertyMetadata.getDeclaredType().getRawType())) {
-//                validationContext.addError("Property '%s' is annotated with @SoftwareType, but the property type is not a subtype of the declared return type '%s'", propertyMetadata.getPropertyName(), publicType.getName());
-//            }
-//        });
+        propertyMetadata.getAnnotation(SoftwareType.class).ifPresent(softwareType -> {
+            Class<?> publicType = softwareType.modelPublicType();
+            Class<?> valueType = propertyMetadata.getDeclaredType().getRawType();
+            if (!publicType.isAssignableFrom(valueType)) {
+                validationContext.visitPropertyProblem(problem ->
+                    problem
+                        .forProperty(propertyMetadata.getPropertyName())
+                        .id(TextUtil.screamingSnakeToKebabCase("mismatched-types-for-software-type"), "has @SoftwareType annotation used on property", GradleCoreProblemGroup.validation().property())
+                        .contextualLabel(String.format("has @SoftwareType annotation with public type '%s' used on property of type '%s'", ModelType.of(publicType).getDisplayName(), ModelType.of(valueType).getDisplayName()))
+                        .severity(Severity.ERROR)
+                        .details("The publicType value of the @SoftwareType annotation (" + ModelType.of(publicType).getDisplayName() + ") must be the same type as or a supertype of '" + ModelType.of(valueType).getDisplayName() + "'")
+                        .solution("Provide a public type for @SoftwareType that is the same type as or a supertype of the property type '" + ModelType.of(valueType).getDisplayName() + "'")
+                );
+            }
+        });
     }
 }

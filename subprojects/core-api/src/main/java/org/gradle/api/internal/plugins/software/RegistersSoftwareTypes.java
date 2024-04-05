@@ -33,11 +33,11 @@ import java.lang.annotation.Target;
 @Incubating
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface RegistersSoftwareType {
+public @interface RegistersSoftwareTypes {
     /**
      * The plugin that provides the software type.
      *
      * @since 8.8
      */
-    Class<? extends Plugin<Project>> value();
+    Class<? extends Plugin<Project>>[] value();
 }

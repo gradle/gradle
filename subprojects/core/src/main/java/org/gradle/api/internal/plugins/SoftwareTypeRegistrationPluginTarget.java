@@ -17,15 +17,16 @@
 package org.gradle.api.internal.plugins;
 
 import com.google.common.reflect.TypeToken;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Plugin;
+import org.gradle.api.Project;
+import org.gradle.api.internal.plugins.software.SoftwareType;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
-import org.gradle.api.internal.plugins.software.RegistersSoftwareType;
-import org.gradle.api.tasks.Nested;
+import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
 import org.gradle.internal.properties.annotations.TypeMetadata;
-import org.gradle.internal.properties.annotations.TypeMetadataWalker;
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
 
 import javax.annotation.Nullable;
@@ -36,7 +37,6 @@ public class SoftwareTypeRegistrationPluginTarget implements PluginTarget {
     private final PluginTarget delegate;
     private final SoftwareTypeRegistry softwareTypeRegistry;
     private final InspectionScheme inspectionScheme;
-    private final RegisterSoftwareTypeVisitor registerSoftwareTypeVisitor = new RegisterSoftwareTypeVisitor();
 
     public SoftwareTypeRegistrationPluginTarget(PluginTarget delegate, SoftwareTypeRegistry softwareTypeRegistry, InspectionScheme inspectionScheme) {
         this.delegate = delegate;
@@ -52,7 +52,9 @@ public class SoftwareTypeRegistrationPluginTarget implements PluginTarget {
     @Override
     public void applyImperative(@Nullable String pluginId, Plugin<?> plugin) {
         TypeToken<?> pluginType = TypeToken.of(plugin.getClass());
-        TypeMetadataWalker.typeWalker(inspectionScheme.getMetadataStore(), Nested.class).walk(pluginType, registerSoftwareTypeVisitor);
+        TypeMetadata typeMetadata = inspectionScheme.getMetadataStore().getTypeMetadata(pluginType.getRawType());
+        registerSoftwareTypes(typeMetadata);
+
         delegate.applyImperative(pluginId, plugin);
     }
 
@@ -66,17 +68,27 @@ public class SoftwareTypeRegistrationPluginTarget implements PluginTarget {
         delegate.applyImperativeRulesHybrid(pluginId, plugin, declaringClass);
     }
 
-    @NonNullApi
-    private class RegisterSoftwareTypeVisitor implements TypeMetadataWalker.StaticMetadataVisitor {
-        @Override
-        public void visitRoot(TypeMetadata typeMetadata, TypeToken<?> value) {
-            Optional<RegistersSoftwareType> registersSoftwareType = typeMetadata.getTypeAnnotationMetadata().getAnnotation(RegistersSoftwareType.class);
-            registersSoftwareType.ifPresent(registration -> softwareTypeRegistry.register(registration.value()));
+    void registerSoftwareTypes(TypeMetadata typeMetadata) {
+        Optional<RegistersSoftwareTypes> registersSoftwareType = typeMetadata.getTypeAnnotationMetadata().getAnnotation(RegistersSoftwareTypes.class);
+        registersSoftwareType.ifPresent(registration -> {
+            for (Class<? extends Plugin<Project>> softwareTypeImplClass : registration.value()) {
+                validateSoftwareTypePluginExposesSoftwareTypes(softwareTypeImplClass);
+                softwareTypeRegistry.register(softwareTypeImplClass);
+            }
+        });
+    }
+
+    void validateSoftwareTypePluginExposesSoftwareTypes(Class<? extends Plugin<Project>> softwareTypePluginImplClass) {
+        TypeToken<?> softwareTypePluginImplType = TypeToken.of(softwareTypePluginImplClass);
+        TypeMetadata softwareTypePluginImplMetadata = inspectionScheme.getMetadataStore().getTypeMetadata(softwareTypePluginImplType.getRawType());
+
+        for (PropertyMetadata propertyMetadata : softwareTypePluginImplMetadata.getPropertiesMetadata()) {
+            Optional<SoftwareType> registersSoftwareType = propertyMetadata.getAnnotation(SoftwareType.class);
+            if (registersSoftwareType.isPresent()) {
+                return;
+            }
         }
 
-        @Override
-        public void visitNested(TypeMetadata typeMetadata, String qualifiedName, PropertyMetadata propertyMetadata, TypeToken<?> value) {
-
-        }
+        throw new InvalidUserDataException("A plugin with type '" + softwareTypePluginImplClass.getName() + "' was registered as a software type plugin, but it does not expose any software types. Software type plugins must expose software types via properties with the @SoftwareType annotation.");
     }
 }

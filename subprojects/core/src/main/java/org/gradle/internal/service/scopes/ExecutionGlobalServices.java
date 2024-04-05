@@ -40,7 +40,7 @@ import org.gradle.api.internal.tasks.properties.annotations.OutputFilePropertyAn
 import org.gradle.api.internal.tasks.properties.annotations.OutputFilesPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.UntrackedTaskTypeAnnotationHandler;
 import org.gradle.api.model.ReplacedBy;
-import org.gradle.api.internal.plugins.software.RegistersSoftwareType;
+import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes;
 import org.gradle.api.provider.Property;
 import org.gradle.api.services.ServiceReference;
 import org.gradle.api.tasks.CacheableTask;
@@ -147,7 +147,7 @@ public class ExecutionGlobalServices {
                 CacheableTransform.class,
                 DisableCachingByDefault.class,
                 UntrackedTask.class,
-                RegistersSoftwareType.class
+                RegistersSoftwareTypes.class
             ),
             ModifierAnnotationCategory.asMap(builder.build()),
             ImmutableSet.of(
