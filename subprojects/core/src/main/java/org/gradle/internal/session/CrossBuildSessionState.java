@@ -67,7 +67,7 @@ public class CrossBuildSessionState implements Closeable {
 
     public CrossBuildSessionState(ServiceRegistry parent, StartParameter startParameter) {
         this.services = ServiceRegistryBuilder.builder()
-            .scope(Scope.CrossBuildSession.class)
+            .scopeStrictly(Scope.CrossBuildSession.class)
             .displayName("cross session services")
             .parent(parent)
             .provider(new Services(startParameter))

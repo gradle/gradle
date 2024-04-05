@@ -40,9 +40,11 @@ class ServiceScopeValidator implements AnnotatedServiceLifecycleHandler {
     private static final List<Class<? extends Annotation>> SCOPE_ANNOTATIONS = Collections.<Class<? extends Annotation>>singletonList(ServiceScope.class);
 
     private final Class<? extends Scope> scope;
+    private final boolean strict;
 
-    public ServiceScopeValidator(Class<? extends Scope> scope) {
+    public ServiceScopeValidator(Class<? extends Scope> scope, boolean strict) {
         this.scope = scope;
+        this.strict = strict;
     }
 
     @Override
@@ -59,6 +61,9 @@ class ServiceScopeValidator implements AnnotatedServiceLifecycleHandler {
         Class<? extends Scope>[] serviceScopes = scopeOf(serviceType);
 
         if (serviceScopes == null) {
+            if (strict) {
+                throw new IllegalArgumentException(missingScopeMessage(serviceType));
+            }
             return;
         }
 
@@ -81,6 +86,14 @@ class ServiceScopeValidator implements AnnotatedServiceLifecycleHandler {
             scope.getSimpleName(),
             serviceType.getSimpleName(),
             scope.getSimpleName()
+        );
+    }
+
+    private String missingScopeMessage(Class<?> serviceType) {
+        return String.format(
+            "The service '%s' is registered in the '%s' scope but does not declare it. " +
+                "Add the '@ServiceScope() annotation on '%s' with the '%s' scope.",
+            serviceType.getName(), scope.getSimpleName(), serviceType.getSimpleName(), scope.getSimpleName()
         );
     }
 
