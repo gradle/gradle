@@ -32,7 +32,6 @@ dependencies {
     api(project(":base-services"))
     api(project(":core"))
     api(project(":core-api"))
-    api(project(":declarative-dsl-provider"))
     api(project(":ide"))
     api(project(":platform-jvm"))
     api(project(":tooling-api"))

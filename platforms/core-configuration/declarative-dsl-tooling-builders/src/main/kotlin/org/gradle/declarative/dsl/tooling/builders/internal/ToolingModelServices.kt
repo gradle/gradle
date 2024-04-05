@@ -22,13 +22,14 @@ import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry
 import org.gradle.tooling.provider.model.internal.BuildScopeToolingModelBuilderRegistryAction
 
-class ToolingModelServices: AbstractPluginServiceRegistry() {
+
+class ToolingModelServices : AbstractPluginServiceRegistry() {
 
     override fun registerBuildServices(registration: ServiceRegistration) {
         registration.addProvider(BuildScopeToolingServices)
     }
-
 }
+
 
 internal
 object BuildScopeToolingServices {
@@ -39,5 +40,4 @@ object BuildScopeToolingServices {
             it.register(DeclarativeSchemaModelBuilder(declarativeSchemaRegistry))
         }
     }
-
 }
