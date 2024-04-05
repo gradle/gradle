@@ -26,7 +26,6 @@ dependencies {
     api(project(":build-operations"))
     api(project(":base-services"))
     api(project(":messaging"))
-    api(project(":native"))
     api(project(":files"))
 
     api(libs.jsr305)
