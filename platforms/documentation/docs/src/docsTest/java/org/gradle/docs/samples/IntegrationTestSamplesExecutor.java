@@ -16,7 +16,6 @@
 
 package org.gradle.docs.samples;
 
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.exemplar.executor.CommandExecutor;
 import org.gradle.integtests.fixtures.AvailableJavaHomes;
@@ -34,6 +33,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;

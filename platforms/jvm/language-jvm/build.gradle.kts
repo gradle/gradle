@@ -28,6 +28,7 @@ dependencies {
     api(libs.inject)
     api(libs.jsr305)
 
+    implementation(projects.baseUtils)
     implementation(project(":dependency-management"))
     implementation(project(":logging"))
     implementation(project(":model-core"))

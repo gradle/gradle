@@ -15,6 +15,7 @@ dependencies {
     api(project(":enterprise-operations"))
     api(project(":enterprise-logging"))
 
+    implementation(projects.baseUtils)
     implementation(libs.inject)
     implementation(libs.jsr305)
     implementation(libs.guava)

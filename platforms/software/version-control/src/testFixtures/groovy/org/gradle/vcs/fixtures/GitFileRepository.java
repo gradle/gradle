@@ -25,13 +25,13 @@ import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.submodule.SubmoduleWalk;
 import org.gradle.api.Named;
-import org.gradle.internal.UncheckedException;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.internal.GFileUtils;
 import org.junit.rules.ExternalResource;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -134,7 +134,7 @@ public class GitFileRepository extends ExternalResource implements Named, GitRep
             }
             return commit("update submodules", submodulePaths.toArray(new String[submodulePaths.size()]));
         } catch (IOException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
+            throw new UncheckedIOException(e);
         }
     }
 

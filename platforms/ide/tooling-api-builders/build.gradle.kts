@@ -11,6 +11,7 @@ errorprone {
 }
 
 dependencies {
+    implementation(projects.baseUtils)
     implementation(project(":base-services"))
     implementation(project(":base-services-groovy")) // for 'Specs'
     implementation(project(":enterprise-operations"))

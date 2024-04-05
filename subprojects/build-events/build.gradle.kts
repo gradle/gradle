@@ -19,9 +19,11 @@ dependencies {
     api(project(":messaging"))
     api(project(":tooling-api"))
 
+    api(libs.jsr305)
+
+    implementation(projects.baseUtils)
     implementation(project(":model-core"))
 
-    api(libs.jsr305)
     implementation(libs.guava)
 
     testImplementation(project(":internal-testing"))

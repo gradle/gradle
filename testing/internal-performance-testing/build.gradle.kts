@@ -34,6 +34,7 @@ dependencies {
 
     api(libs.jettyWebApp)
 
+    implementation(projects.baseUtils)
     implementation(project(":base-services"))
     implementation(project(":native"))
     implementation(project(":cli"))

@@ -38,6 +38,7 @@ dependencies {
     api(project(":toolchains-jvm"))
     api(project(":workers"))
 
+    implementation(projects.baseUtils)
     implementation(project(":logging-api"))
     implementation(project(":platform-native"))
     implementation(project(":plugins-application")) {

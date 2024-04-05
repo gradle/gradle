@@ -17,6 +17,7 @@ dependencies {
     api(libs.bouncycastlePgp)
     api(libs.jsr305)
 
+    implementation(projects.baseUtils)
     implementation(project(":base-services"))
     implementation(project(":functional"))
     implementation(project(":logging-api"))

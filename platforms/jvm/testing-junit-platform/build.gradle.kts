@@ -20,5 +20,6 @@ dependencies {
     api(libs.junitPlatform)
     api(libs.junitPlatformEngine)
 
+    implementation(projects.baseUtils)
     implementation(libs.jsr305)
 }

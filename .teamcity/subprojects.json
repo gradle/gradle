@@ -49,6 +49,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "base-utils",
+    "path": "platforms/core-runtime/base-utils",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "bootstrap",
     "path": "platforms/core-runtime/bootstrap",
     "unitTests": false,

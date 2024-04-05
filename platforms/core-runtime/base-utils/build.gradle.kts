@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,19 +15,15 @@
  */
 
 plugins {
-    id("gradlebuild.distribution.api-java")
+    id("gradlebuild.distribution.implementation-java")
+    id("gradlebuild.publish-public-libraries")
 }
 
-description = "Utilities for working with temporary files & directories"
+description = "Base utilities required available everywhere in Gradle"
 
 gradlebuildJava.usedInWorkers()
 
 dependencies {
-    api(project(":base-annotations"))
-    api(project(":base-services"))
-
-    api(libs.inject)
-    api(libs.jsr305)
-
-    implementation(projects.baseUtils)
+//    api(libs.jsr305)
+//    implementation(project(":base-annotations"))
 }

@@ -31,7 +31,7 @@ dependencies {
         because("We always need a BuildLogicTransformStrategy service implementation.")
     }
     pluginsRuntimeOnly(project(":testing-junit-platform")) {
-        because("All test workers have JUnit platform on their classpath (see ForkingTestClassProcessor.getTestWorkerImplementationClasspath).")
+        because("All test workers have JUnit platform on their classpath (see ForkedTestClasspathFactory.withImplementation()).")
     }
     pluginsRuntimeOnly(project(":kotlin-dsl-provider-plugins")) {
         because("We need a KotlinScriptBasePluginsApplicator service implementation to use Kotlin DSL scripts.")

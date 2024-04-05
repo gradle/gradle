@@ -70,6 +70,7 @@ val core = platform("core") {
     module("core-runtime") {
         subproject("base-annotations")
         subproject("base-services")
+        subproject("base-utils")
         subproject("bootstrap")
         subproject("build-operations")
         subproject("build-option")

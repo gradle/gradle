@@ -28,6 +28,7 @@ dependencies {
     implementation(libs.slf4jApi)
     implementation(libs.commonsIo)
 
+    testImplementation(projects.baseUtils)
     testImplementation(project(":base-services"))
     testImplementation(project(":internal-testing"))
     testImplementation(testFixtures(project(":snapshots")))

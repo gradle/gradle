@@ -52,6 +52,7 @@ dependencies {
     api(libs.groovy)
     api(libs.guava)
 
+    implementation(projects.baseUtils)
     implementation(project(":base-services-groovy"))
 
     implementation(libs.futureKotlin("stdlib"))

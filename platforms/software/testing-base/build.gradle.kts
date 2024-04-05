@@ -40,6 +40,7 @@ dependencies {
     api(libs.jsr305)
     api(libs.inject)
 
+    implementation(projects.baseUtils)
     implementation(project(":base-services-groovy"))
     implementation(project(":files"))
     implementation(project(":model-core"))

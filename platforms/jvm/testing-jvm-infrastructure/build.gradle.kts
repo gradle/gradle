@@ -46,6 +46,7 @@ dependencies {
         """.trimMargin())
     }
 
+    implementation(projects.baseUtils)
     implementation(libs.commonsLang)
     implementation(libs.slf4jApi)
 

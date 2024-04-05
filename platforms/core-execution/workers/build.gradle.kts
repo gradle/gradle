@@ -12,6 +12,7 @@ errorprone {
 }
 
 dependencies {
+    implementation(projects.baseUtils)
     implementation(project(":base-services"))
     implementation(project(":messaging"))
     implementation(project(":logging"))

@@ -17,7 +17,6 @@
 package org.gradle.ide.sync
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.UncheckedException
 import org.gradle.internal.jvm.Jvm
 import org.gradle.profiler.BuildAction
 import org.gradle.profiler.BuildMutator
@@ -144,8 +143,11 @@ abstract class AbstractSyncSmokeIdeTest extends AbstractIntegrationSpec {
                         syncResult = studioBuildInvocationResult
                     }
                 })
-        } catch (IOException | InterruptedException e) {
-            throw UncheckedException.throwAsUncheckedException(e)
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt()
+            throw new RuntimeException(e)
+        } catch (IOException e) {
+            throw new UncheckedIOException(e)
         } finally {
             try {
                 Logging.resetLogging()

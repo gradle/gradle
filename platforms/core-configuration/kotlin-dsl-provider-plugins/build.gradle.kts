@@ -5,6 +5,7 @@ plugins {
 description = "Kotlin DSL Provider Plugins"
 
 dependencies {
+    implementation(projects.baseUtils)
     implementation(project(":kotlin-dsl"))
 
     implementation(project(":base-services"))

@@ -26,6 +26,7 @@ dependencies {
     api(libs.jsr305)
     api(libs.inject)
 
+    implementation(projects.baseUtils)
     implementation(project(":functional"))
     implementation(project(":logging-api"))
 

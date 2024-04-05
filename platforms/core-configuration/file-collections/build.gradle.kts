@@ -25,6 +25,7 @@ dependencies {
     api(libs.inject)
     api(libs.jsr305)
 
+    implementation(projects.baseUtils)
     implementation(project(":base-services-groovy"))
 
     implementation(libs.slf4jApi)

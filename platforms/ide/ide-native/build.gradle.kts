@@ -28,6 +28,7 @@ dependencies {
     implementation(project(":testing-native"))
     implementation(project(":test-suites-base"))
 
+    implementation(projects.baseUtils)
     implementation(libs.groovy)
     implementation(libs.guava)
     implementation(libs.commonsLang)

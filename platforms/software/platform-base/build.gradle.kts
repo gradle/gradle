@@ -25,6 +25,7 @@ dependencies {
     api(libs.inject)
     api(libs.jsr305)
 
+    implementation(projects.baseUtils)
     implementation(project(":execution"))
 
     implementation(libs.commonsLang)

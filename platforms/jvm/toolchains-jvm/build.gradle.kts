@@ -53,6 +53,7 @@ dependencies {
         because("Required for SystemInfo")
     }
 
+    implementation(projects.baseUtils)
     implementation(project(":logging"))
 
     implementation(libs.commonsIo)

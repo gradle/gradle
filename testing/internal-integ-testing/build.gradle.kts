@@ -37,6 +37,7 @@ dependencies {
         because("HttpServer leaks PortAllocator to spock AST transformer")
     }
 
+    implementation(projects.baseUtils)
     implementation(project(":enterprise-operations"))
     implementation(project(":messaging"))
     implementation(project(":native"))

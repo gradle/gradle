@@ -123,6 +123,7 @@ dependencies {
     api(libs.jsr305)
     api(libs.nativePlatform)
 
+    implementation(projects.baseUtils)
     implementation(project(":input-tracking"))
     implementation(project(":model-groovy"))
 
@@ -216,6 +217,7 @@ dependencies {
     testFixturesApi(testFixtures(project(":snapshots"))) {
         because("test fixtures expose file snapshot related functionality")
     }
+    testFixturesImplementation(projects.baseUtils)
     testFixturesImplementation(project(":build-option"))
     testFixturesImplementation(project(":enterprise-operations"))
     testFixturesImplementation(project(":messaging"))

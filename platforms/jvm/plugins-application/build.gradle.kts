@@ -28,6 +28,7 @@ dependencies {
     api(libs.jsr305)
 
     implementation(project(":base-annotations"))
+    implementation(projects.baseUtils)
     implementation(project(":base-services"))
     implementation(project(":language-java"))
     implementation(project(":language-jvm"))

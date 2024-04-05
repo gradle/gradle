@@ -38,6 +38,7 @@ dependencies {
     implementation(project(":tooling-api"))
     implementation(project(":version-control"))
 
+    implementation(projects.baseUtils)
     implementation(libs.groovy)
     implementation(libs.slf4jApi)
     implementation(libs.guava)

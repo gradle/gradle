@@ -22,6 +22,7 @@ dependencies {
 
     api(libs.jsr305)
 
+    implementation(projects.baseUtils)
     implementation(project(":logging"))
 
     implementation(libs.slf4jApi)

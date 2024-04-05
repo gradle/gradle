@@ -82,6 +82,7 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider {
         "gradle-logging",
         "gradle-logging-api",
         "gradle-messaging",
+        "gradle-base-utils",
         "gradle-base-services",
         "gradle-enterprise-logging",
         "gradle-enterprise-workers",
@@ -154,6 +155,7 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider {
         "jul-to-slf4j",
         "javax.inject",
         "gradle-jvm-services",
+        "gradle-base-utils",
         "asm"
     };
 

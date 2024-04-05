@@ -38,6 +38,7 @@ dependencies {
     api(libs.ant)
     api(libs.inject)
 
+    implementation(projects.baseUtils)
     implementation(project(":base-services-groovy"))
     implementation(project(":logging"))
     implementation(libs.commonsLang)

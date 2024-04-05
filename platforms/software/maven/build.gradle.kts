@@ -37,6 +37,7 @@ dependencies {
         because("We use the metadata model classes to create repository metadata files")
     }
 
+    implementation(projects.baseUtils)
     implementation(project(":functional"))
     implementation(project(":hashing"))
     implementation(project(":logging-api"))

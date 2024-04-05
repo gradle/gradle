@@ -29,6 +29,7 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.inject)
 
+    implementation(projects.baseUtils)
     implementation(project(":core-api"))
     implementation(project(":core"))
     implementation(project(":base-services"))

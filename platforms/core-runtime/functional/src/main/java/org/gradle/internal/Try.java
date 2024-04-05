@@ -16,8 +16,6 @@
 
 package org.gradle.internal;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
@@ -223,21 +221,7 @@ public abstract class Try<T> {
 
         @Override
         public T get() {
-            // TODO Merge back with org.gradle.internal.UncheckedException.throwAsUncheckedException()
-            //      once it's extracted from :base-services
-            if (failure instanceof InterruptedException) {
-                Thread.currentThread().interrupt();
-            }
-            if (failure instanceof RuntimeException) {
-                throw (RuntimeException) failure;
-            }
-            if (failure instanceof Error) {
-                throw (Error) failure;
-            }
-            if (failure instanceof IOException) {
-                throw new UncheckedIOException((IOException) failure);
-            }
-            throw new RuntimeException(failure);
+            throw UncheckedException.throwAsUncheckedException(failure);
         }
 
         @Override

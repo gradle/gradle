@@ -30,6 +30,8 @@ dependencies {
 
     api(libs.jsr305)
 
+    implementation(projects.baseUtils)
+
     implementation(libs.guava)
     implementation(libs.slf4jApi)
     implementation(libs.commonsIo)

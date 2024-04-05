@@ -38,6 +38,8 @@ dependencies {
     api(libs.inject)
     api(libs.jsr305)
 
+    implementation(projects.baseUtils)
+
     testImplementation(project(":logging"))
     integTestImplementation(project(":internal-testing"))
     integTestImplementation(testFixtures(project(":logging")))

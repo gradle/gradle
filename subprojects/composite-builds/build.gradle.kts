@@ -27,6 +27,7 @@ dependencies {
     api(libs.inject)
     api(libs.jsr305)
 
+    implementation(projects.baseUtils)
     implementation(project(":enterprise-logging"))
     implementation(project(":enterprise-operations"))
     implementation(project(":logging"))

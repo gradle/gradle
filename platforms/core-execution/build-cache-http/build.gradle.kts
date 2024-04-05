@@ -15,6 +15,7 @@ dependencies {
     api(project(":resources-http"))
 
     implementation(project(":base-annotations"))
+    implementation(projects.baseUtils)
     implementation(project(":core"))
     implementation(project(":logging"))
     implementation(project(":resources"))

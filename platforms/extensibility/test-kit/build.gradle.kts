@@ -16,6 +16,7 @@ errorprone {
 }
 
 dependencies {
+    implementation(projects.baseUtils)
     implementation(project(":base-services"))
     implementation(project(":core-api"))
     implementation(project(":core"))

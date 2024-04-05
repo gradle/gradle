@@ -37,6 +37,7 @@ dependencies {
     implementation(project(":functional"))
     implementation(project(":logging-api"))
 
+    implementation(projects.baseUtils)
     implementation(libs.groovyJson)
     implementation(libs.guava)
     implementation(libs.commonsLang)

@@ -43,8 +43,10 @@ dependencies {
     implementation(project(":wrapper-shared"))
     implementation(project(":persistent-cache"))
 
+    implementation(projects.baseUtils)
     implementation(libs.guava)
 
+    testFixturesImplementation(projects.baseUtils)
     testFixturesImplementation(project(":core-api"))
     testFixturesImplementation(project(":core"))
     testFixturesImplementation(project(":logging"))
