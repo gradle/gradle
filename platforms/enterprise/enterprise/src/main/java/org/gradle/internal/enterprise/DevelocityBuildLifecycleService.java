@@ -29,7 +29,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  *
  * @since 8.8
  */
-@ServiceScope(Scope.Gradle.class)
+@ServiceScope(Scope.Build.class)
 public interface DevelocityBuildLifecycleService {
 
     /**

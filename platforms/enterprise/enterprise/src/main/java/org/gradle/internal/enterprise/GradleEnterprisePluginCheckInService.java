@@ -24,7 +24,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  *
  * It is obtained via the settings object's service registry for the root build only.
  */
-@ServiceScope(Scope.Gradle.class)
+@ServiceScope(Scope.Build.class)
 public interface GradleEnterprisePluginCheckInService {
 
     /**

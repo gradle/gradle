@@ -24,7 +24,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  * Obtained from the Gradle object services.
  * Exists to remove linkage against types such as {@link BuildInvocationScopeId} and friends.
  */
-@ServiceScope(Scope.Gradle.class)
+@ServiceScope(Scope.Build.class)
 public interface BuildScanScopeIds {
 
     String getBuildInvocationId();

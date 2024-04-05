@@ -28,7 +28,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.Closeable;
 
-@ServiceScope(Scope.Gradle.class)
+@ServiceScope(Scope.Build.class)
 public class DefaultCompilationStateCacheFactory implements CompilationStateCacheFactory, Closeable {
 
     private final IndexedCache<String, CompilationState> compilationStateIndexedCache;
