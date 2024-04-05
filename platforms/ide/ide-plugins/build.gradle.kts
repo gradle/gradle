@@ -43,6 +43,7 @@ dependencies {
     api(libs.inject)
     api(libs.jsr305)
 
+    implementation(projects.baseUtils)
     implementation(project(":dependency-management"))
     implementation(project(":ear"))
     implementation(project(":file-collections"))

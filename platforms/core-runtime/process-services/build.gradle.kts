@@ -19,6 +19,7 @@ dependencies {
 
     api(libs.jsr305)
 
+    implementation(projects.baseUtils)
     implementation(project(":native"))
 
     implementation(libs.slf4jApi)

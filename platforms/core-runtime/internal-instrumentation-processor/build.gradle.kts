@@ -40,6 +40,7 @@ dependencies {
     implementation(libs.jacksonAnnotations)
     implementation(libs.jacksonDatabind)
 
+    implementation(projects.baseUtils)
     implementation(project(":base-services"))
     implementation(project(":core-api"))
     implementation(project(":model-core"))

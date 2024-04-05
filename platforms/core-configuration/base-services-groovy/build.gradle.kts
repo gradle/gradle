@@ -12,5 +12,7 @@ dependencies {
     api(libs.groovy)
     api(libs.guava)
 
+    implementation(projects.baseUtils)
+
     testImplementation(testFixtures(project(":core")))
 }

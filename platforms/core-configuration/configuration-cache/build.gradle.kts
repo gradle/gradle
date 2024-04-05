@@ -69,6 +69,7 @@ dependencies {
     api(libs.inject)
     api(libs.futureKotlin("stdlib"))
 
+    implementation(projects.baseUtils)
     implementation(project(":base-services-groovy"))
     // TODO - it might be good to allow projects to contribute state to save and restore, rather than have this project know about everything
     implementation(project(":build-events"))

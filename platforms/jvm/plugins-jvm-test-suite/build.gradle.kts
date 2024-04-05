@@ -38,6 +38,7 @@ dependencies {
 
     api(libs.inject)
 
+    implementation(projects.baseUtils)
     implementation(project(":core"))
     implementation(project(":logging"))
     implementation(project(":plugins-java-base"))

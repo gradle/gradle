@@ -63,6 +63,7 @@ dependencies {
     testFixturesApi(testFixtures(project(":diagnostics")))
     testFixturesApi(testFixtures(project(":core")))
     testFixturesApi(project(":internal-integ-testing"))
+    testFixturesImplementation(projects.baseUtils)
     testFixturesImplementation(libs.guava)
     testFixturesImplementation(libs.groovyAnt)
     testFixturesImplementation(libs.groovyDatetime)

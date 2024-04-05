@@ -24,6 +24,6 @@ description = "Base utilities required available everywhere in Gradle"
 gradlebuildJava.usedInWorkers()
 
 dependencies {
-//    api(libs.jsr305)
+    api(libs.jsr305)
 //    implementation(project(":base-annotations"))
 }
