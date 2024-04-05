@@ -17,10 +17,10 @@
 package org.gradle.launcher.daemon.client;
 
 import org.gradle.api.JavaVersion;
+import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
-import org.gradle.launcher.daemon.configuration.ResolvedDaemonJvm;
 
 public class JvmVersionValidator {
     private final JvmVersionDetector versionDetector;
@@ -29,12 +29,12 @@ public class JvmVersionValidator {
         this.versionDetector = versionDetector;
     }
 
-    public void validate(ResolvedDaemonJvm resolvedDaemonJvm) {
-        if (resolvedDaemonJvm.getJvm() == Jvm.current()) {
+    public void validate(JavaInfo resolvedJvm) {
+        if (resolvedJvm == Jvm.current()) {
             return;
         }
 
-        JavaVersion javaVersion = versionDetector.getJavaVersion(resolvedDaemonJvm.getJvm());
+        JavaVersion javaVersion = versionDetector.getJavaVersion(resolvedJvm);
         UnsupportedJavaRuntimeException.assertUsingVersion("Gradle", JavaVersion.VERSION_1_8, javaVersion);
     }
 }

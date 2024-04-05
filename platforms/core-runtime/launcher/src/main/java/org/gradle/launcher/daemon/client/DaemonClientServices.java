@@ -15,12 +15,10 @@
  */
 package org.gradle.launcher.daemon.client;
 
-import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
-import org.gradle.launcher.daemon.configuration.ResolvedDaemonJvm;
-import org.gradle.launcher.daemon.context.DaemonContext;
-import org.gradle.launcher.daemon.context.DaemonContextBuilder;
+import org.gradle.launcher.daemon.context.DaemonRequestContext;
+import org.gradle.launcher.daemon.jvm.DaemonJavaToolchainQueryService;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
 
@@ -30,21 +28,14 @@ import java.io.InputStream;
  * Takes care of instantiating and wiring together the services required by the daemon client.
  */
 public class DaemonClientServices extends DaemonClientServicesSupport {
-    public DaemonClientServices(ServiceRegistry parent, DaemonParameters daemonParameters, ResolvedDaemonJvm resolvedDaemonJvm, InputStream buildStandardInput) {
+    public DaemonClientServices(ServiceRegistry parent, DaemonParameters daemonParameters, DaemonRequestContext requestContext, InputStream buildStandardInput) {
         super(parent, buildStandardInput);
         add(daemonParameters);
-        add(resolvedDaemonJvm);
+        add(requestContext);
         addProvider(new DaemonRegistryServices(daemonParameters.getBaseDir()));
     }
 
-    DaemonStarter createDaemonStarter(DaemonDir daemonDir, DaemonParameters daemonParameters, ResolvedDaemonJvm resolvedDaemonJvm, DaemonGreeter daemonGreeter, JvmVersionValidator jvmVersionValidator) {
-        return new DefaultDaemonStarter(daemonDir, daemonParameters, resolvedDaemonJvm, daemonGreeter, jvmVersionValidator);
-    }
-
-    DaemonContext createDaemonContext(ProcessEnvironment processEnvironment, DaemonDir daemonDir, DaemonParameters daemonParameters, ResolvedDaemonJvm resolvedDaemonJvm) {
-        DaemonContextBuilder builder = new DaemonContextBuilder(processEnvironment);
-        builder.setDaemonRegistryDir(daemonDir.getBaseDir());
-        builder.useDaemonParameters(daemonParameters, resolvedDaemonJvm);
-        return builder.create();
+    DaemonStarter createDaemonStarter(DaemonDir daemonDir, DaemonParameters daemonParameters, DaemonGreeter daemonGreeter, JvmVersionValidator jvmVersionValidator, DaemonJavaToolchainQueryService daemonJavaToolchainQueryService) {
+        return new DefaultDaemonStarter(daemonDir, daemonParameters, daemonGreeter, jvmVersionValidator, daemonJavaToolchainQueryService);
     }
 }

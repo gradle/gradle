@@ -24,9 +24,9 @@ import java.nio.file.Files;
 
 public class DaemonCompatibilitySpec implements ExplainingSpec<DaemonContext> {
 
-    private final DaemonContext desiredContext;
+    private final DaemonRequestContext desiredContext;
 
-    public DaemonCompatibilitySpec(DaemonContext desiredContext) {
+    public DaemonCompatibilitySpec(DaemonRequestContext desiredContext) {
         this.desiredContext = desiredContext;
     }
 
@@ -37,7 +37,7 @@ public class DaemonCompatibilitySpec implements ExplainingSpec<DaemonContext> {
 
     @Override
     public String whyUnsatisfied(DaemonContext context) {
-        if (!javaHomeMatches(context)) {
+        if (!jvmCompatible(context)) {
             return "Java home is different.\n" + description(context);
         } else if (!daemonOptsMatch(context)) {
             return "At least one daemon option is different.\n" + description(context);
@@ -61,16 +61,21 @@ public class DaemonCompatibilitySpec implements ExplainingSpec<DaemonContext> {
             && potentialContext.getDaemonOpts().size() == desiredContext.getDaemonOpts().size();
     }
 
-    private boolean javaHomeMatches(DaemonContext potentialContext) {
-        try {
-            File potentialJavaHome = potentialContext.getJavaHome();
-            if (potentialJavaHome.exists()) {
-                File potentialJava = Jvm.forHome(potentialJavaHome).getJavaExecutable();
-                File desiredJava = Jvm.forHome(desiredContext.getJavaHome()).getJavaExecutable();
-                return Files.isSameFile(potentialJava.toPath(), desiredJava.toPath());
+    private boolean jvmCompatible(DaemonContext potentialContext) {
+        if (desiredContext.getJvmCriteria() != null) {
+            // TODO: This should consider other criteria
+            return desiredContext.getJvmCriteria().getJavaVersion().equals(potentialContext.getJavaVersion());
+        } else {
+            try {
+                File potentialJavaHome = potentialContext.getJavaHome();
+                if (potentialJavaHome.exists()) {
+                    File potentialJava = Jvm.forHome(potentialJavaHome).getJavaExecutable();
+                    File desiredJava = Jvm.forHome(desiredContext.getJavaHome()).getJavaExecutable();
+                    return Files.isSameFile(potentialJava.toPath(), desiredJava.toPath());
+                }
+            } catch (IOException e) {
+                // ignore
             }
-        } catch (IOException e) {
-            // ignore
         }
         return false;
     }

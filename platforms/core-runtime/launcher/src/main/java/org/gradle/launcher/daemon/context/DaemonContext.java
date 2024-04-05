@@ -15,6 +15,7 @@
  */
 package org.gradle.launcher.daemon.context;
 
+import org.gradle.api.JavaVersion;
 import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 
@@ -32,8 +33,8 @@ import java.util.List;
  * to use serialization to communicate across VM boundaries. Implementations are not required to be,
  * but should also be immutable.
  *
- * @see DaemonContextBuilder
  * @see DaemonCompatibilitySpec
+ * @see DaemonRequestContext
  */
 public interface DaemonContext extends Serializable {
 
@@ -46,6 +47,8 @@ public interface DaemonContext extends Serializable {
      * The JAVA_HOME in use, as the canonical file.
      */
     File getJavaHome();
+
+    JavaVersion getJavaVersion();
 
     /**
      * The directory that should be used for daemon storage (not including the gradle version number).
@@ -82,4 +85,6 @@ public interface DaemonContext extends Serializable {
     NativeServicesMode getNativeServicesMode();
 
     DaemonParameters.Priority getPriority();
+
+    DaemonRequestContext toRequest();
 }

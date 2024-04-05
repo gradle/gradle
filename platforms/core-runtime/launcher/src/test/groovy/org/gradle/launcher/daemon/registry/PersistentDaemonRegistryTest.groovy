@@ -22,7 +22,7 @@ import org.gradle.internal.remote.Address
 import org.gradle.internal.remote.internal.inet.InetEndpoint
 import org.gradle.internal.remote.internal.inet.MultiChoiceAddress
 import org.gradle.launcher.daemon.context.DaemonContext
-import org.gradle.launcher.daemon.context.DaemonContextBuilder
+
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule

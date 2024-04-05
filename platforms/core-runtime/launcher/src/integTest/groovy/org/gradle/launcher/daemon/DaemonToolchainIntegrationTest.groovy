@@ -66,7 +66,7 @@ class DaemonToolchainIntegrationTest extends AbstractIntegrationSpec implements 
         expectJavaHome(new File(file("provisioned.jdk").text))
 
         expect:
-        succeeds("help")
+        succeeds("help", "-S")
     }
 
     def "Given daemon toolchain criteria that doesn't match installed ones When executing any task Then fails with the expected message"() {

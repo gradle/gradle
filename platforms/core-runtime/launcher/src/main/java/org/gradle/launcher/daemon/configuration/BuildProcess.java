@@ -21,11 +21,13 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.agents.AgentStatus;
 import org.gradle.internal.jvm.JavaInfo;
+import org.gradle.launcher.daemon.context.DaemonRequestContext;
 import org.gradle.process.internal.CurrentProcess;
 import org.gradle.process.internal.JvmOptions;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.List;
-import java.util.Properties;
 
 public class BuildProcess extends CurrentProcess {
     private final AgentStatus agentStatus;
@@ -46,8 +48,21 @@ public class BuildProcess extends CurrentProcess {
      *
      * @return True if the current process could be configured, false otherwise.
      */
-    public boolean configureForBuild(DaemonParameters requiredBuildParameters, ResolvedDaemonJvm resolvedDaemonJvm) {
-        boolean resolvedToCurrentJvm = getJvm() == resolvedDaemonJvm.getJvm();
+    public boolean configureForBuild(DaemonParameters requiredBuildParameters, DaemonRequestContext requestContext) {
+        boolean sameJavaHome;
+        if (requestContext.getJavaHome() != null) {
+            try {
+                sameJavaHome = Files.isSameFile(getJvm().getJavaHome().toPath(), requestContext.getJavaHome().toPath());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        } else if (requestContext.getJvmCriteria() != null) {
+            // assume that the current JVM is not compatible with the required JVM
+            sameJavaHome = false;
+        } else {
+            sameJavaHome = true;
+        }
+
         // Even if the agent is applied to this process, it is possible to run the build with the legacy instrumentation mode.
         boolean javaAgentStateMatch = agentStatus.isAgentInstrumentationEnabled() || !requiredBuildParameters.shouldApplyInstrumentationAgent();
 
@@ -60,14 +75,7 @@ public class BuildProcess extends CurrentProcess {
             );
             immutableJvmArgsMatch = getJvmOptions().getAllImmutableJvmArgs().equals(effectiveSingleUseJvmArgs);
         }
-        if (resolvedToCurrentJvm && javaAgentStateMatch && immutableJvmArgsMatch && !isLowDefaultMemory(requiredBuildParameters)) {
-            // Set the system properties and use this process
-            Properties properties = new Properties();
-            properties.putAll(requiredBuildParameters.getEffectiveSystemProperties());
-            System.setProperties(properties);
-            return true;
-        }
-        return false;
+        return sameJavaHome && javaAgentStateMatch && immutableJvmArgsMatch && !isLowDefaultMemory(requiredBuildParameters);
     }
 
     /**
