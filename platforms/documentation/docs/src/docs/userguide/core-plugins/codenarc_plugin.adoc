@@ -88,7 +88,7 @@ The CodeNarc plugin adds the following dependency configurations:
 
 [NOTE]
 ====
-When there is a significant difference between the Groovy version used for compiling the code and the version that CodeNarc depends on, it's necessary to specify a specific Groovy version.
+If CodeNarc requires a different Groovy version than that used to compile Groovy source,  you can supply one using the `codenarc` configuration.
 ====
 
 .Specifying the Groovy version
