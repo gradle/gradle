@@ -47,6 +47,7 @@ dependencies {
     api(libs.slf4jApi)
 
     implementation(projects.baseUtils)
+    implementation(projects.concurrent)
     implementation(libs.julToSlf4j)
     implementation(libs.ant)
     implementation(libs.commonsLang)

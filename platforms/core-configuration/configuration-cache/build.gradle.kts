@@ -43,6 +43,7 @@ dependencies {
     api(project(":build-operations"))
     // TODO - it might be good to allow projects to contribute state to save and restore, rather than have this project know about everything
     api(project(":build-option"))
+    api(projects.concurrent)
     api(project(":core"))
     api(project(":core-api"))
     api(project(":dependency-management"))

@@ -87,6 +87,7 @@ dependencies {
     api(project(":build-cache-spi"))
     api(project(":build-operations"))
     api(project(":build-option"))
+    api(projects.concurrent)
     api(project(":cli"))
     api(project(":core-api"))
     api(project(":enterprise-logging"))

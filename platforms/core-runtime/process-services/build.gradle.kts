@@ -15,6 +15,7 @@ errorprone {
 dependencies {
     api(project(":base-annotations"))
     api(project(":base-services"))
+    api(projects.concurrent)
     api(project(":messaging"))
 
     api(libs.jsr305)

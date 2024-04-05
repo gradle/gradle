@@ -24,13 +24,14 @@ errorprone {
 dependencies {
     api(project(":base-annotations"))
     api(project(":build-operations"))
-    api(project(":base-services"))
+    api(projects.concurrent)
     api(project(":messaging"))
     api(project(":files"))
 
     api(libs.jsr305)
 
     implementation(projects.baseUtils)
+    implementation(project(":base-services"))
 
     implementation(libs.guava)
     implementation(libs.slf4jApi)

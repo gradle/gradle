@@ -25,7 +25,8 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public abstract class AbstractManagedExecutor<S extends ExecutorService> extends AbstractDelegatingExecutorService<S> implements ManagedExecutor {
-    private final ThreadLocal<Object> executing = new ThreadLocal<Object>();
+    @SuppressWarnings("ThreadLocalUsage")
+    private final ThreadLocal<Object> executing = new ThreadLocal<>();
     private final ExecutorPolicy executorPolicy;
 
     public AbstractManagedExecutor(S delegate, ExecutorPolicy executorPolicy) {
@@ -39,29 +40,23 @@ public abstract class AbstractManagedExecutor<S extends ExecutorService> extends
     }
 
     protected Runnable trackedCommand(final Runnable command) {
-        return new Runnable() {
-            @Override
-            public void run() {
-                executing.set(command);
-                try {
-                    executorPolicy.onExecute(command);
-                } finally {
-                    executing.remove();
-                }
+        return () -> {
+            executing.set(command);
+            try {
+                executorPolicy.onExecute(command);
+            } finally {
+                executing.remove();
             }
         };
     }
 
     protected <V> Callable<V> trackedCommand(final Callable<V> command) {
-        return new Callable<V>() {
-            @Override
-            public V call() throws Exception {
-                executing.set(command);
-                try {
-                    return executorPolicy.onExecute(command);
-                } finally {
-                    executing.remove();
-                }
+        return () -> {
+            executing.set(command);
+            try {
+                return executorPolicy.onExecute(command);
+            } finally {
+                executing.remove();
             }
         };
     }

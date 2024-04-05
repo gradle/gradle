@@ -14,6 +14,7 @@ errorprone {
 
 dependencies {
     api(project(":base-services"))
+    api(projects.concurrent)
     api(project(":core"))
     api(project(":core-api"))
     api(project(":dependency-management"))

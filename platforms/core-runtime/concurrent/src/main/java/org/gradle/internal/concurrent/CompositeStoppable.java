@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -89,7 +90,7 @@ public class CompositeStoppable implements Stoppable {
                     try {
                         closeable.close();
                     } catch (IOException e) {
-                        throw UncheckedException.throwAsUncheckedException(e);
+                        throw new UncheckedIOException(e);
                     }
                 }
             };

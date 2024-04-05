@@ -16,8 +16,6 @@
 
 package org.gradle.internal.concurrent;
 
-import org.gradle.internal.Factories;
-import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 
 import java.util.HashMap;
@@ -25,6 +23,7 @@ import java.util.Map;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Supplier;
 
 /**
  * Manages the lifecycle of some thread-safe service or resource.
@@ -36,37 +35,37 @@ public class ServiceLifecycle implements AsyncStoppable {
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
     private State state = State.RUNNING;
-    private Map<Thread, Integer> usages = new HashMap<Thread, Integer>();
+    private final Map<Thread, Integer> usages = new HashMap<>();
 
     public ServiceLifecycle(String displayName) {
         this.displayName = displayName;
     }
 
     public void use(Runnable runnable) {
-        use(Factories.toFactory(runnable));
+        use(() -> {
+            runnable.run();
+            return null;
+        });
     }
 
-    public <T> T use(Factory<T> factory) {
+    public <T> T use(Supplier<T> factory) {
         lock.lock();
         try {
             switch (state) {
+                case RUNNING:
+                    break;
                 case STOPPING:
                     throw new IllegalStateException(String.format("Cannot use %s as it is currently stopping.", displayName));
                 case STOPPED:
                     throw new IllegalStateException(String.format("Cannot use %s as it has been stopped.", displayName));
             }
-            Integer depth = usages.get(Thread.currentThread());
-            if (depth == null) {
-                usages.put(Thread.currentThread(), 1);
-            } else {
-                usages.put(Thread.currentThread(), depth + 1);
-            }
+            usages.merge(Thread.currentThread(), 1, Integer::sum);
         } finally {
             lock.unlock();
         }
 
         try {
-            return factory.create();
+            return factory.get();
         } finally {
             lock.lock();
             try {

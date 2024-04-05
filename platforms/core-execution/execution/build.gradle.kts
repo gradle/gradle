@@ -29,6 +29,7 @@ dependencies {
     api(project(":build-cache-base"))
     api(project(":build-cache-spi"))
     api(project(":build-operations"))
+    api(projects.concurrent)
     api(project(":core-api"))
     api(project(":files"))
     api(project(":functional"))

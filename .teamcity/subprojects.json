@@ -161,6 +161,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "concurrent",
+    "path": "platforms/core-runtime/concurrent",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "configuration-cache",
     "path": "platforms/core-configuration/configuration-cache",
     "unitTests": true,

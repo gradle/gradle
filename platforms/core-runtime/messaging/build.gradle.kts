@@ -25,6 +25,7 @@ dependencies {
     api(project(":base-annotations"))
     api(project(":hashing"))
     api(project(":base-services"))
+    api(projects.concurrent)
 
     api(libs.fastutil)
     api(libs.jsr305)
