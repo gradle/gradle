@@ -40,6 +40,7 @@ import org.gradle.internal.io.IOQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.Random;
@@ -106,7 +107,7 @@ public class DefaultFileLockManager implements FileLockManager {
     }
 
     @Override
-    public FileLock lock(File target, LockOptions options, String targetDisplayName, String operationDisplayName, Consumer<FileLockReleasedSignal> whenContended) {
+    public FileLock lock(File target, LockOptions options, String targetDisplayName, String operationDisplayName, @Nullable Consumer<FileLockReleasedSignal> whenContended) {
         if (options.getMode() == LockMode.OnDemand) {
             throw new UnsupportedOperationException(String.format("No %s mode lock implementation available.", options));
         }
@@ -143,7 +144,7 @@ public class DefaultFileLockManager implements FileLockManager {
         private final int port;
         private final long lockId;
 
-        public DefaultFileLock(File target, LockOptions options, String displayName, String operationDisplayName, int port, Consumer<FileLockReleasedSignal> whenContended) throws Throwable {
+        public DefaultFileLock(File target, LockOptions options, String displayName, String operationDisplayName, int port, @Nullable Consumer<FileLockReleasedSignal> whenContended) throws Throwable {
             this.port = port;
             this.lockId = generator.getAsLong();
             if (options.getMode() == LockMode.OnDemand) {
