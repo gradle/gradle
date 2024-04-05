@@ -83,7 +83,6 @@ To forcefully override or prevent a convention (i.e., regardless of the order of
 val files = objects.fileCollection().convention("dir1")
 files.setFrom("dir2")
 
-
 println(files.elements.get()) // [.../dir2]
 ```
 
@@ -406,14 +405,6 @@ ADD RELEASE FEATURES ABOVE
 
 The source encoding of `JacocoReport` tasks may now be specified via the `sourceEncoding` property.
 
-## Promoted features
-Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backward compatibility.
-See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
-
-The following are the features that have been promoted in this Gradle release.
-
-This Gradle release promotes the following features to stable:
-
 ### File permissions API
 
 The new API for defining file permissions (added in Gradle 8.3) is now stable, see:
@@ -432,6 +423,14 @@ The new API for defining file permissions (added in Gradle 8.3) is now stable, s
 * [FileSystemOperations.permissions(String)](javadoc/org/gradle/api/file/FileSystemOperations.html#permissions-java.lang.String-)
 * [FileSystemOperations.permissions(Provider)](javadoc/org/gradle/api/file/FileSystemOperations.html#permissions-org.gradle.api.provider.Provider-)
 * [FileTreeElement.getPermissions()](javadoc/org/gradle/api/file/FileTreeElement.html#getPermissions--)
+
+## Promoted features
+Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backward compatibility.
+See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
+
+The following are the features that have been promoted in this Gradle release.
+
+This Gradle release promotes the following features to stable:
 
 <!--
 ### Example promoted
