@@ -36,8 +36,14 @@ kotlin {
         }
     }
 
+    jvm {
+        tasks.withType<Test>() {
+            useJUnitPlatform()
+        }
+    }
+
     sourceSets {
-        named("commonTest") {
+        val commonTest by getting {
             dependencies {
                 implementation(kotlin("test-common"))
                 implementation(kotlin("test-annotations-common"))
@@ -47,6 +53,14 @@ kotlin {
         named("jsTest") {
             dependencies {
                 implementation(kotlin("test-js"))
+            }
+        }
+
+        named("jvmTest") {
+            dependencies {
+                implementation(kotlin("test-junit5"))
+                implementation("org.junit.jupiter:junit-jupiter:5.10.1")
+                runtimeOnly("org.junit.platform:junit-platform-launcher")
             }
         }
     }
