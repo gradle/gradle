@@ -55,7 +55,7 @@ vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 <a name="java-22"></a>
 ### Full Java 22 support
 
-Gradle 8.7 supported compiling and testing with Java 21 using [Java toolchains](userguide/toolchains.html), but running Gradle itself on Java 22 was not yet supported.
+Gradle 8.7 supported compiling and testing with Java 22 using [Java toolchains](userguide/toolchains.html), but running Gradle itself on Java 22 was not yet supported.
 
 With this release, Gradle now fully supports compiling, testing and running on [Java 22](https://jdk.java.net/22/).
 
