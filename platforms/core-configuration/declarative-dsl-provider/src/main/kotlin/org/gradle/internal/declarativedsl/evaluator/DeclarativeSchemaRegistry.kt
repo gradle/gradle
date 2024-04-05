@@ -59,7 +59,6 @@ class DefaultDeclarativeSchemaRegistry : DeclarativeSchemaRegistry {
                 val schema = it.value
                 return schema
             }
-
         }
         return ""
     }

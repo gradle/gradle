@@ -22,7 +22,8 @@ import org.gradle.internal.declarativedsl.evaluator.DeclarativeSchemaRegistry
 import org.gradle.tooling.provider.model.ToolingModelBuilder
 import java.io.Serializable
 
-class DeclarativeSchemaModelBuilder(private val registry: DeclarativeSchemaRegistry): ToolingModelBuilder {
+
+class DeclarativeSchemaModelBuilder(private val registry: DeclarativeSchemaRegistry) : ToolingModelBuilder {
     override fun canBuild(modelName: String): Boolean =
         modelName == "org.gradle.declarative.dsl.tooling.models.DeclarativeSchemaModel"
 
@@ -30,8 +31,9 @@ class DeclarativeSchemaModelBuilder(private val registry: DeclarativeSchemaRegis
         DefaultDeclarativeSchemaModel(registry.projectSchema())
 }
 
-internal
-data class DefaultDeclarativeSchemaModel(val projectSchema: String): DeclarativeSchemaModel, Serializable {
+
+private
+class DefaultDeclarativeSchemaModel(val projectSchema: String) : DeclarativeSchemaModel, Serializable {
 
     override fun schema(): String {
         return projectSchema

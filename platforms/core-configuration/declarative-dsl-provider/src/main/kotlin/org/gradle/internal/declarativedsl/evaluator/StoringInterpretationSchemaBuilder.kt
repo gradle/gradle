@@ -20,7 +20,6 @@ import org.gradle.internal.declarativedsl.serialization.SchemaSerialization
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.internal.declarativedsl.analysis.AnalysisSchema
-import org.gradle.internal.declarativedsl.analysis.AnalysisSchemaImpl
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequence
 import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequenceStep
