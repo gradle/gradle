@@ -29,7 +29,7 @@ public class LocationAwareException extends ContextAwareException implements Fai
     private final String sourceDisplayName;
     private final Integer lineNumber;
 
-    public LocationAwareException(Throwable cause, ScriptSource source, Integer lineNumber) {
+    public LocationAwareException(Throwable cause, @Nullable ScriptSource source, @Nullable Integer lineNumber) {
         this(cause, source != null ? source.getDisplayName() : null, lineNumber);
     }
 

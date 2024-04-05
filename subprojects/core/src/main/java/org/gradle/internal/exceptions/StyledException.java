@@ -68,7 +68,8 @@ public class StyledException extends GradleException {
         styledMessage = message;
     }
 
-    public static String style(StyledTextOutput.Style style, String text) {
+    @Nullable
+    public static String style(StyledTextOutput.Style style, @Nullable String text) {
         if (text == null) {
             return null;
         }
