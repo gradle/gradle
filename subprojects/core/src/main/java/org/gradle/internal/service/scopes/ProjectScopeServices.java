@@ -191,7 +191,7 @@ public class ProjectScopeServices extends ScopedServiceRegistry {
             get(ModelRuleSourceDetector.class)
         );
         PluginTarget target = new AddSoftwareTypesAsExtensionsPluginTarget(project, ruleBasedTarget, pluginScheme.getInspectionScheme());
-        return instantiator.newInstance(DefaultPluginManager.class, get(PluginRegistry.class), new PluginInstantiator(instantiatorFactory, this), target, buildOperationRunner, userCodeApplicationContext, decorator, domainObjectCollectionFactory);
+        return instantiator.newInstance(DefaultPluginManager.class, get(PluginRegistry.class), new PluginInstantiator(instantiatorFactory.injectScheme(), pluginScheme.getInstantiationScheme(), this), target, buildOperationRunner, userCodeApplicationContext, decorator, domainObjectCollectionFactory);
     }
 
     protected ITaskFactory createTaskFactory(ITaskFactory parentFactory, TaskScheme taskScheme) {
