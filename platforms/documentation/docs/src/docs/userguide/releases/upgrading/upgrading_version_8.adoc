@@ -226,11 +226,36 @@ The new API has now been promoted to stable and the old methods have been deprec
 [[directory_build_cache_retention_deprecated]]
 ==== Deprecated setting retention period directly on local build cache ====
 
-In Gradle 8.0, link:{userManualPath}/directory_layout.html#dir:gradle_user_home:configure_cache_cleanup[a new mechanism] was added to configure the cleanup and retention periods for various resources in Gradle User Home.
-In Gradle 8.8, this mechanism was extended to permit configuration of retention of local build cache entries.
-This mechanism replaces the previous method of configuring retention in the local build cache settings.
+In previous versions, cleanup of the local build cache entries ran every 24 hours, and this interval could not be configured.
+The retention period was configured using `buildCache.local.removeUnusedEntriesAfterDays`. 
 
-Calling link:{javadocPath}/org/gradle/caching/local/DirectoryBuildCache.html#setRemoveUnusedEntriesAfterDays-int-[DirectoryBuildCache.removeUnusedEntriesAfterDays] is deprecated and this method will be removed in Gradle 9.0.
+In Gradle 8.0, link:directory_layout.html#dir:gradle_user_home:configure_cache_cleanup[a new mechanism] was added to configure the cleanup and retention periods for various resources in Gradle User Home.
+In Gradle 8.8, this mechanism was extended to permit configuration of retention of local build cache entries, providing improved control and consistency.
+
+- Specifying `Cleanup.DISABLED` or `Cleanup.ALWAYS` will now prevent or force the cleanup of the local build cache
+- Build cache entry retention is now configured via an `init-script`, link:directory_layout.html#dir:gradle_user_home:configure_cache_cleanup[in the same manner as other caches].
+
+E.g. if you want build-cache entries to be retained for 30 days, **remove** any calls to the deprecated method:
+```kotlin
+buildCache {
+    local {
+        // Remove this line
+        removeUnusedEntriesAfterDays = 30
+    }
+}
+```
+
+add a file like this in `~/.gradle/init.d`:
+```kotlin
+beforeSettings {
+    caches {
+        buildCache.setRemoveUnusedEntriesAfterDays(30)
+    }
+}
+```
+
+Calling link:{javadocPath}/org/gradle/caching/local/DirectoryBuildCache.html#setRemoveUnusedEntriesAfterDays-int-[buildCache.local.removeUnusedEntriesAfterDays] is deprecated and this method will be removed in Gradle 9.0.
+If set to a non-default value, this deprecated setting will take precedence over `Settings.caches.buildCache.setRemoveUnusedEntriesAfterDays()`.
 
 === Potential breaking changes
 
