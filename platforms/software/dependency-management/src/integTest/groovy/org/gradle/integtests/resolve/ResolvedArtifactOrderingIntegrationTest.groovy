@@ -60,6 +60,10 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
         checkLegacyArtifacts("dependencyFirst", ordered)
 
         3.times { executer.expectDocumentedDeprecationWarning("The Configuration.files(Closure) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods") }
+        if (!GradleContextualExecuter.configCache) {
+            3.times { executer.expectDocumentedDeprecationWarning("The ResolvedConfiguration.getFiles(Spec) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use an ArtifactView with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods") }
+        }
+
         assert succeeds("checkLegacyunordered", "checkLegacyconsumerFirst", "checkLegacydependencyFirst")
     }
 

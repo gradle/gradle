@@ -119,8 +119,9 @@ For the following use cases, consider these alternatives when replacing a `befor
 [[deprecate_filtered_configuration_file_and_filecollection_methods]]
 ==== Filtered Configuration `file` and `fileCollection` methods are deprecated
 
-In an ongoing effort to simplify the Gradle API, the following methods on
-link:{javadocPath}/org/gradle/api/artifacts/Configuration.html--[Configuration] have been deprecated:
+In an ongoing effort to simplify the Gradle API, the following methods that support filtering based on declared dependencies have been deprecated:
+
+On link:{javadocPath}/org/gradle/api/artifacts/Configuration.html--[Configuration]:
 
 - `files(Dependency...)`
 - `files(Spec)`
@@ -128,6 +129,17 @@ link:{javadocPath}/org/gradle/api/artifacts/Configuration.html--[Configuration] 
 - `fileCollection(Dependency...)`
 - `fileCollection(Spec)`
 - `fileCollection(Closure)`
+
+On link:{javadocPath}/org/gradle/api/artifacts/ResolvedConfiguration.html--[ResolvedConfiguration]:
+
+- `getFiles(Spec)`
+- `getFirstLevelModuleDependencies(Spec)`
+
+On link:{javadocPath}/org/gradle/api/artifacts/LenientConfiguration.html--[LenientConfiguration]:
+
+- `getFirstLevelModuleDependencies(Spec)`
+- `getFiles(Spec)`
+- `getArtifacts(Spec)`
 
 To mitigate this deprecation, consider the example below that leverages the `ArtifactView`
 API along with the `componentFilter` method to select a subset of a Configuration's artifacts:
@@ -193,9 +205,8 @@ tasks.register("filterDependencies") {
 =====
 ====
 
-Note that as contrary to the behavior of the deprecated `Dependency` filtering methods,
-`componentFilter` does not consider the transitive dependencies of the component being
-selected. This allows for more granular control over which artifacts are selected.
+Note that contrary to the behavior of the deprecated `Dependency` filtering methods, `componentFilter` does not consider the transitive dependencies of the component being filtered.
+This allows for more granular control over which artifacts are selected.
 
 [[deprecated_namers]]
 ==== Deprecated `Namer` of `Task` and `Configuration`
