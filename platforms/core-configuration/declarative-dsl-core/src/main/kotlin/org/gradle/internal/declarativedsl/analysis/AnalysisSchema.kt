@@ -20,8 +20,9 @@ data class AnalysisSchema(
 data class DataClass(
     val name: FqName,
     val supertypes: Set<FqName>,
-    val properties: List<DataProperty>,
+    val rawProperties: List<DataProperty>,
     val memberFunctions: List<SchemaMemberFunction>,
+    val properties: List<SchemaMemberFunction>,
     val constructors: List<DataConstructor>
 ) : DataType {
     override fun toString(): String = name.simpleName

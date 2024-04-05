@@ -59,7 +59,7 @@ class SettingsExtensionsSchemaTest {
 
         val schemaType = schema.analysisSchema.dataClassesByFqName.values.find { it.name.simpleName == MyExtension::class.simpleName }
         assertNotNull(schemaType)
-        assertTrue(schemaType!!.properties.any { it.name == "id" })
+        assertTrue(schemaType!!.rawProperties.any { it.name == "id" })
 
         assertTrue(schema.analysisSchema.dataClassesByFqName.keys.any { it.simpleName == MyNestedType::class.simpleName })
     }

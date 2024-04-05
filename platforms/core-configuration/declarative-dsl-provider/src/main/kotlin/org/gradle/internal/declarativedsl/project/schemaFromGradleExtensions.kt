@@ -115,8 +115,8 @@ fun extensionConfiguringFunctions(typeToExtend: KClass<*>, extensionInfo: Iterab
     override fun memberFunctions(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<SchemaMemberFunction> =
         if (kClass == typeToExtend) extensionInfo.map(ExtensionInfo::schemaFunction) else emptyList()
 
+    override fun properties(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<SchemaMemberFunction> = emptyList()
     override fun constructors(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<DataConstructor> = emptyList()
-
     override fun topLevelFunction(function: KFunction<*>, preIndex: DataSchemaBuilder.PreIndex) = null
 }
 

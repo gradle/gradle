@@ -26,7 +26,7 @@ object ReflectionDemo {
 
         printReflection(result)
 
-        val pluginsProp = schema.topLevelReceiverType.properties.find { it.name == "plugins" }
+        val pluginsProp = schema.topLevelReceiverType.rawProperties.find { it.name == "plugins" }
 
         val plugins = (result as DataObjectReflection).properties[pluginsProp]!!.value as DataObjectReflection
 
@@ -66,7 +66,7 @@ val pluginDefinition = schema.dataClassesByFqName
     .getValue(FqName.parse("org.gradle.internal.declarativedsl.demo.demoPlugins.PluginDefinition"))
 
 
-val idProp = pluginDefinition.properties.single { it.name == "id" }
+val idProp = pluginDefinition.rawProperties.single { it.name == "id" }
 
 
-val versionProp = pluginDefinition.properties.single { it.name == "version" }
+val versionProp = pluginDefinition.rawProperties.single { it.name == "version" }

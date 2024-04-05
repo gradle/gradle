@@ -44,7 +44,7 @@ class GeneralGradleDslSchemaTest {
     @Test
     fun `general dsl schema has properties imported from gradle property api`() {
         val schema = schemaFrom(NestedReceiver::class)
-        assertTrue(schema.analysisSchema.dataClassesByFqName.values.single { it.name.simpleName == NestedReceiver::class.simpleName }.properties.any { it.name == "property" })
+        assertTrue(schema.analysisSchema.dataClassesByFqName.values.single { it.name.simpleName == NestedReceiver::class.simpleName }.rawProperties.any { it.name == "property" })
     }
 
     private

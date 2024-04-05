@@ -29,7 +29,7 @@ class ImportTest {
     fun testContext(): AnalysisContext {
         return AnalysisContext(
             AnalysisSchema(
-                DataClass(FqName("", ""), emptySet(), emptyList(), emptyList(), emptyList()),
+                DataClass(FqName("", ""), emptySet(), emptyList(), emptyList(), emptyList(), emptyList()),
                 emptyMap(),
                 emptyMap(),
                 emptyMap(),

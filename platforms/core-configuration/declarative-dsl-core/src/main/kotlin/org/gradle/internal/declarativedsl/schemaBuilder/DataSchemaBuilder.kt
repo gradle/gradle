@@ -130,12 +130,13 @@ class DataSchemaBuilder(
         kClass: KClass<*>,
         preIndex: PreIndex,
     ): DataClass {
-        val properties = preIndex.getAllProperties(kClass)
+        val rawProperties = preIndex.getAllProperties(kClass)
 
         val functions = functionExtractor.memberFunctions(kClass, preIndex)
+        val properties = functionExtractor.properties(kClass, preIndex)
         val constructors = functionExtractor.constructors(kClass, preIndex)
         val name = kClass.fqName
-        return DataClass(name, supertypesOf(kClass), properties, functions.toList(), constructors.toList())
+        return DataClass(name, supertypesOf(kClass), rawProperties, functions.toList(), properties.toList(), constructors.toList())
     }
 
     private

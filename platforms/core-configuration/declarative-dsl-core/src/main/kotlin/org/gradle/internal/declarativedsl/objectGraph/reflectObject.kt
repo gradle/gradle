@@ -160,7 +160,7 @@ fun reflectData(
     objectOrigin: ObjectOrigin,
     context: ReflectionContext
 ): ObjectReflection.DataObjectReflection {
-    val propertiesWithValue = type.properties.mapNotNull {
+    val propertiesWithValue = type.rawProperties.mapNotNull {
         val referenceResolution = PropertyReferenceResolution(objectOrigin, it)
         when (val assignment = context.resolveAssignment(referenceResolution)) {
             is Assigned -> it to PropertyValueReflection(reflect(assignment.objectOrigin, context), assignment.assignmentMethod)

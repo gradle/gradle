@@ -46,6 +46,7 @@ import kotlin.reflect.typeOf
 
 interface FunctionExtractor {
     fun memberFunctions(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<SchemaMemberFunction>
+    fun properties(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<SchemaMemberFunction>
     fun constructors(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<DataConstructor>
     fun topLevelFunction(function: KFunction<*>, preIndex: DataSchemaBuilder.PreIndex): DataTopLevelFunction?
 }
@@ -54,6 +55,9 @@ interface FunctionExtractor {
 class CompositeFunctionExtractor(internal val extractors: Iterable<FunctionExtractor>) : FunctionExtractor {
     override fun memberFunctions(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<SchemaMemberFunction> =
         extractors.flatMapTo(mutableSetOf()) { it.memberFunctions(kClass, preIndex) }
+
+    override fun properties(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<SchemaMemberFunction> =
+        extractors.flatMapTo(mutableSetOf()) { it.properties(kClass, preIndex) }
 
     override fun constructors(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<DataConstructor> =
         extractors.flatMapTo(mutableSetOf()) { it.constructors(kClass, preIndex) }
@@ -85,6 +89,8 @@ class DefaultFunctionExtractor(
                 it !in functionsClaimedByProperties
         }.map { function -> memberFunction(kClass, function, preIndex, configureLambdas) }
     }
+
+    override fun properties(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<SchemaMemberFunction> = emptyList()
 
     override fun constructors(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<DataConstructor> =
         kClass.constructors.filter { it.visibility == KVisibility.PUBLIC && includeFilter.shouldIncludeMember(it) }
