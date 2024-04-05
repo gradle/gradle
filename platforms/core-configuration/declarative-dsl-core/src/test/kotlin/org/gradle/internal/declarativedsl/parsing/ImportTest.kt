@@ -1,7 +1,7 @@
 package org.gradle.internal.declarativedsl.parsing
 
 import org.gradle.internal.declarativedsl.analysis.AnalysisContext
-import org.gradle.internal.declarativedsl.analysis.AnalysisSchema
+import org.gradle.internal.declarativedsl.analysis.AnalysisSchemaImpl
 import org.gradle.internal.declarativedsl.analysis.DataClass
 import org.gradle.internal.declarativedsl.analysis.ErrorCollectorImpl
 import org.gradle.internal.declarativedsl.analysis.ErrorReason
@@ -28,7 +28,7 @@ class ImportTest {
     private
     fun testContext(): AnalysisContext {
         return AnalysisContext(
-            AnalysisSchema(
+            AnalysisSchemaImpl(
                 DataClass(FqName("", ""), emptySet(), emptyList(), emptyList(), emptyList()),
                 emptyMap(),
                 emptyMap(),
