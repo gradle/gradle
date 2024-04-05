@@ -35,7 +35,7 @@ dependencies {
         api(kotlin("compiler-embeddable")) { version { strictly(kotlinVersion) } }
         api("org.jlleitschuh.gradle:ktlint-gradle:10.3.0")
         api("org.gradle.kotlin:gradle-kotlin-dsl-conventions:0.9.0")
-        api("com.autonomousapps:dependency-analysis-gradle-plugin:1.28.0")
+        api("com.autonomousapps:dependency-analysis-gradle-plugin:1.31.0")
         api("com.squareup.okio:okio:3.4.0") {
             because("Bump version brought in by dependency-analysis-gradle-plugin, to resolve CVE-2022-3635")
         }
