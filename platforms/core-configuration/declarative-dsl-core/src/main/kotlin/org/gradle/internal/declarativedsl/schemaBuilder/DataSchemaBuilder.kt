@@ -17,6 +17,7 @@
 package org.gradle.internal.declarativedsl.schemaBuilder
 
 import org.gradle.internal.declarativedsl.analysis.AnalysisSchema
+import org.gradle.internal.declarativedsl.analysis.AnalysisSchemaImpl
 import org.gradle.internal.declarativedsl.analysis.DataClass
 import org.gradle.internal.declarativedsl.analysis.DataProperty
 import org.gradle.internal.declarativedsl.analysis.ExternalObjectProviderKey
@@ -48,7 +49,7 @@ class DataSchemaBuilder(
 
         val topLevelReceiverName = topLevelReceiver.fqName
 
-        return AnalysisSchema(
+        return AnalysisSchemaImpl(
             dataTypes.single { it.name == topLevelReceiverName },
             dataTypes.associateBy { it.name },
             extFunctions,

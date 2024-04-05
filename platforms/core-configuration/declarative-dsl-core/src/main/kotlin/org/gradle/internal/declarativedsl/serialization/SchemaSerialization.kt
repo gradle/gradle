@@ -16,12 +16,13 @@
 
 package org.gradle.internal.declarativedsl.serialization
 
-import org.gradle.internal.declarativedsl.analysis.AnalysisSchema
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
+import org.gradle.internal.declarativedsl.analysis.AnalysisSchema
+import org.gradle.internal.declarativedsl.analysis.AnalysisSchemaImpl
 import org.gradle.internal.declarativedsl.analysis.DataClass
 import org.gradle.internal.declarativedsl.language.DataType
 
@@ -45,7 +46,7 @@ object SchemaSerialization {
         allowStructuredMapKeys = true
     }
 
-    fun schemaToJsonString(analysisSchema: AnalysisSchema) = json.encodeToString(analysisSchema)
+    fun schemaToJsonString(analysisSchema: AnalysisSchema) = json.encodeToString(analysisSchema as AnalysisSchemaImpl)
 
-    fun schemaFromJsonString(schemaString: String) = json.decodeFromString<AnalysisSchema>(schemaString)
+    fun schemaFromJsonString(schemaString: String) = json.decodeFromString<AnalysisSchemaImpl>(schemaString)
 }

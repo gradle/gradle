@@ -6,13 +6,23 @@ import org.gradle.internal.declarativedsl.language.DataType
 
 
 @Serializable
-data class AnalysisSchema(
-    val topLevelReceiverType: DataClass,
-    val dataClassesByFqName: Map<FqName, DataClass>,
-    val externalFunctionsByFqName: Map<FqName, DataTopLevelFunction>,
-    val externalObjectsByFqName: Map<FqName, ExternalObjectProviderKey>,
-    val defaultImports: Set<FqName>
-)
+data class AnalysisSchemaImpl(
+    private val topLevelReceiverType: DataClass,
+    private val dataClassesByFqName: Map<FqName, DataClass>,
+    private val externalFunctionsByFqName: Map<FqName, DataTopLevelFunction>,
+    private val externalObjectsByFqName: Map<FqName, ExternalObjectProviderKey>,
+    private val defaultImports: Set<FqName>
+) : AnalysisSchema {
+    override fun getTopLevelReceiverType(): DataClass = topLevelReceiverType
+
+    override fun getDataClassesByFqName(): Map<FqName, DataClass> = dataClassesByFqName
+
+    override fun getExternalFunctionsByFqName(): Map<FqName, DataTopLevelFunction> = externalFunctionsByFqName
+
+    override fun getExternalObjectsByFqName(): Map<FqName, ExternalObjectProviderKey> = externalObjectsByFqName
+
+    override fun getDefaultImports(): Set<FqName> = defaultImports
+}
 
 
 @Serializable
