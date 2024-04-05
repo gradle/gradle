@@ -1850,7 +1850,6 @@ Class <org.gradle.internal.concurrent.ManagedThreadPoolExecutorImpl> is not anno
 Class <org.gradle.internal.concurrent.ServiceLifecycle$State> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ServiceLifecycle.java:0)
 Class <org.gradle.internal.concurrent.ServiceLifecycle> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ServiceLifecycle.java:0)
 Class <org.gradle.internal.concurrent.Stoppable> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (Stoppable.java:0)
-Class <org.gradle.internal.concurrent.Synchronizer> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (Synchronizer.java:0)
 Class <org.gradle.internal.concurrent.ThreadFactoryImpl> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ThreadFactoryImpl.java:0)
 Class <org.gradle.internal.concurrent.ThreadSafe> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ThreadSafe.java:0)
 Class <org.gradle.internal.configurationcache.ConfigurationCacheLoadBuildOperationType$Details> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ConfigurationCacheLoadBuildOperationType.java:0)
