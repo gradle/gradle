@@ -67,7 +67,7 @@ public class Attribute<T> implements Named {
         this.name = name;
         this.type = type;
         int hashCode = name.hashCode();
-        hashCode = 31 * hashCode + type.hashCode();
+        hashCode = 31 * hashCode + type.toString().hashCode();
         this.hashCode = hashCode;
     }
 
