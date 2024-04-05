@@ -41,6 +41,7 @@ dependencies {
     api(libs.inject)
 
     implementation(project(":base-services-groovy"))
+    implementation(project(":files"))
     implementation(project(":model-core"))
     implementation(project(":process-services"))
 
