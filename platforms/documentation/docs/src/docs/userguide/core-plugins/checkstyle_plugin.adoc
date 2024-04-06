@@ -89,8 +89,8 @@ The Checkstyle plugin adds the following dependency configurations:
 | The Checkstyle libraries to use
 |===
 
-By default, the checkstyle plugin contains a dependency on `com.puppycrawl.tools:checkstyle`.
-The version of `com.puppycrawl.tools:checkstyle` used is derived from the Checkstyle extension's tool version:
+By default, the `checkstyle` configuration uses link:https://mvnrepository.com/artifact/com.puppycrawl.tools/checkstyle[`com.puppycrawl.tools:checkstyle`].
+The version of `com.puppycrawl.tools:checkstyle` used is derived from the extension's tool version:
 
 [source,kotlin]
 ----
@@ -99,7 +99,7 @@ checkstyle {
 }
 ----
 
-If another dependency is added, the default `com.puppycrawl.tools:checkstyle` dependency may be lost:
+If another dependency is added, the default `com.puppycrawl.tools:checkstyle` dependency will be removed:
 
 [source,kotlin]
 ----
@@ -112,7 +112,7 @@ dependencies {
 }
 ----
 
-To add a dependency to the checkstyle configuration while also retaining a dependency on `com.puppycrawl.tools:checkstyle`, use the following solution:
+To add a dependency to the `checkstyle` configuration while also retaining a dependency on `com.puppycrawl.tools:checkstyle`, use the following solution:
 
 [source,kotlin]
 ----
