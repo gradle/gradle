@@ -23,7 +23,7 @@ You can get other tips and search the link:https://discuss.gradle.org/c/help-dis
 
 If you followed the <<installation.adoc#installation,installation instructions>>, and aren’t able to execute your Gradle build, here are some tips that may help.
 
-If you installed Gradle outside of just invoking the <<gradle_wrapper.adoc#gradle_wrapper,Gradle Wrapper>>, you can check your Gradle installation by running `gradle --version` in a terminal.
+If you installed Gradle outside of just invoking the <<gradle_wrapper.adoc#gradle_wrapper_reference,Gradle Wrapper>>, you can check your Gradle installation by running `gradle --version` in a terminal.
 
 You should see something like this:
 
@@ -106,7 +106,7 @@ Many tips are also covered in the Android Studio user guide link:https://develop
 
 === Attaching a debugger to your build
 
-You can set breakpoints and debug <<custom_plugins.adoc#sec:packaging_a_plugin,`buildSrc` and standalone plugins>> in your Gradle build itself by setting the `org.gradle.debug` property to “true” and then attaching a remote debugger to port 5005.
+You can set breakpoints and debug <<custom_plugins.adoc#custom_plugins,`buildSrc` and standalone plugins>> in your Gradle build itself by setting the `org.gradle.debug` property to “true” and then attaching a remote debugger to port 5005.
 You can change the port number by setting the `org.gradle.debug.port` property to the desired port number.
 
 To attach the debugger remotely via the network, you must set the `org.gradle.debug.host` property to the machine's IP address or `*` (listen on all interfaces).
