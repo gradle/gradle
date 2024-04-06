@@ -279,6 +279,9 @@ If set to a non-default value, this deprecated setting will take precedence over
 
 === Potential breaking changes
 
+==== Change to toolchain provisioning
+In previous versions of Gradle, toolchain provisioning could leave a partially provisioned toolchain in place **with a marker file indicating that the toolchain was fully provisioned**. This could lead to strange behavior with the toolchain. In Gradle 8.8, the toolchain is now fully provisioned before the marker file is written. However, in order to not detect potentially broken toolchains, a different marker file (`.ready`) is used. This means that all of your existing toolchains will be re-provisioned the first time you use them with Gradle 8.8. Gradle 8.8 also writes the old marker file (`provisioned.ok`) to indicate that the toolchain was fully provisioned. This means that if you go back to an older version of Gradle, a 8.8-provisioned toolchain will **not** be re-provisioned.
+
 ==== Changes in the Problems API
 
 We have implemented several refactorings of the Problems API, including a significant change in the way problem definitions and contextual information are handled.
