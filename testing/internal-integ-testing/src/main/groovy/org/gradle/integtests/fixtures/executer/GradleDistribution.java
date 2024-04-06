@@ -185,4 +185,14 @@ public interface GradleDistribution {
      * Returns true if this version has a method for tests display names
      */
     boolean isHasTestDisplayNames();
+
+    /**
+     * Returns true if this version supports toolchains using the Foojay resolver plugin.
+     */
+    boolean isSupportsToolchainsUsingFoojay();
+
+    /**
+     * Returns true if this version uses the non-flaky toolchain provisioning mechanism introduced in 8.8.
+     */
+    boolean isNonFlakyToolchainProvisioning();
 }
