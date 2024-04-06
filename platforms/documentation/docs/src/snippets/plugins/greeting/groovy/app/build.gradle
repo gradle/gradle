@@ -6,5 +6,5 @@ plugins {
 // end::use-plugin[]
 
 configure(greeting) {
-    message = "Custom message"
+    message = "Hello from Gradle"
 }

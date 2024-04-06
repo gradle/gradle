@@ -5,6 +5,6 @@ plugins {
 }
 // end::use-plugin[]
 
-project.extensions.configure<GreetingPluginExtension>("greeting") {
-    message = "Custom message"
+greeting {
+    message = "Hello from Gradle"
 }
