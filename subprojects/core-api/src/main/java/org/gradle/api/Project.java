@@ -63,30 +63,25 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 
 /**
- * <p>This interface is the main API you use to interact with Gradle from your build file. From a <code>Project</code>,
- * you have programmatic access to all of Gradle's features.</p>
+ * This interface is the main API you use to interact with Gradle from your build file. From a <code>Project</code>,
+ * you have programmatic access to all of Gradle's features.
  *
  * <h3>Lifecycle</h3>
  *
  * <p>There is a one-to-one relationship between a <code>Project</code> and a <code>{@value #DEFAULT_BUILD_FILE}</code>
- * file. During build initialisation, Gradle assembles a <code>Project</code> object for each project which is to
- * participate in the build, as follows:</p>
+ * file. During build initialization, Gradle assembles a <code>Project</code> object for each project, which is to
+ * participate in the build as follows:
  *
  * <ul>
- *
- * <li>Create a {@link org.gradle.api.initialization.Settings} instance for the build.</li>
- *
- * <li>Evaluate the <code>{@value org.gradle.api.initialization.Settings#DEFAULT_SETTINGS_FILE}</code> script, if
- * present, against the {@link org.gradle.api.initialization.Settings} object to configure it.</li>
- *
- * <li>Use the configured {@link org.gradle.api.initialization.Settings} object to create the hierarchy of
- * <code>Project</code> instances.</li>
- *
- * <li>Finally, evaluate each <code>Project</code> by executing its <code>{@value #DEFAULT_BUILD_FILE}</code> file, if
- * present, against the project. The projects are evaluated in breadth-wise order, such that a project is evaluated
- * before its child projects. This order can be overridden by calling <code>{@link #evaluationDependsOnChildren()}</code> or by adding an
- * explicit evaluation dependency using <code>{@link #evaluationDependsOn(String)}</code>.</li>
- *
+ *   <li>Create a {@link org.gradle.api.initialization.Settings} instance for the build.
+ *   <li>Evaluate the <code>{@value org.gradle.api.initialization.Settings#DEFAULT_SETTINGS_FILE}</code> script, if
+ *   present, against the {@link org.gradle.api.initialization.Settings} object to configure it.
+ *   <li>Use the configured {@link org.gradle.api.initialization.Settings} object to create the hierarchy of
+ *   <code>Project</code> instances.
+ *   <li>Finally, evaluate each <code>Project</code> by executing its <code>{@value #DEFAULT_BUILD_FILE}</code> file, if
+ *   present, against the project. The projects are evaluated in breadth-wise order, such that a project is evaluated
+ *   before its child projects. This order can be overridden by calling <code>{@link #evaluationDependsOnChildren()}</code> or by adding an
+ *   explicit evaluation dependency using <code>{@link #evaluationDependsOn(String)}</code>.
  * </ul>
  *
  * <h3>Tasks</h3>
@@ -94,129 +89,124 @@ import java.util.concurrent.Callable;
  * <p>A project is essentially a collection of {@link Task} objects. Each task performs some basic piece of work, such
  * as compiling classes, or running unit tests, or zipping up a WAR file. You add tasks to a project using one of the
  * {@code create()} methods on {@link TaskContainer}, such as {@link TaskContainer#create(String)}.  You can locate existing
- * tasks using one of the lookup methods on {@link TaskContainer}, such as {@link org.gradle.api.tasks.TaskCollection#getByName(String)}.</p>
+ * tasks using one of the lookup methods on {@link TaskContainer}, such as {@link org.gradle.api.tasks.TaskCollection#getByName(String)}.
  *
  * <h3>Dependencies</h3>
  *
- * <p>A project generally has a number of dependencies it needs in order to do its work.  Also, a project generally
- * produces a number of artifacts, which other projects can use. Those dependencies are grouped in configurations, and
+ * <p>A project generally needs several dependencies to do its work. Also, a project generally
+ * produces a number of artifacts that other projects can use. Those dependencies are grouped in configurations, and
  * can be retrieved and uploaded from repositories. You use the {@link org.gradle.api.artifacts.ConfigurationContainer}
  * returned by {@link #getConfigurations()} method to manage the configurations. The {@link
  * org.gradle.api.artifacts.dsl.DependencyHandler} returned by {@link #getDependencies()} method to manage the
  * dependencies. The {@link org.gradle.api.artifacts.dsl.ArtifactHandler} returned by {@link #getArtifacts()} method to
  * manage the artifacts. The {@link org.gradle.api.artifacts.dsl.RepositoryHandler} returned by {@link
- * #getRepositories()} method to manage the repositories.</p>
+ * #getRepositories()} method to manage the repositories.
  *
  * <h3>Multi-project Builds</h3>
  *
- * <p>Projects are arranged into a hierarchy of projects. A project has a name, and a fully qualified path which
- * uniquely identifies it in the hierarchy.</p>
+ * <p>Projects are arranged into a hierarchy of projects. A project has a name and a fully qualified path, which
+ * uniquely identifies it in the hierarchy.
  *
  * <h3>Plugins</h3>
  *
- * <p>
- * Plugins can be used to modularise and reuse project configuration.
+ * <p>Plugins can modularise and reuse project configuration.
  * Plugins can be applied using the {@link PluginAware#apply(java.util.Map)} method, or by using the {@link org.gradle.plugin.use.PluginDependenciesSpec} plugins script block.
- * </p>
- *
  * <a name="properties"></a> <h3>Dynamic Project Properties</h3>
- *
  * <p>Gradle executes the project's build file against the <code>Project</code> instance to configure the project. Any
- * property or method which your script uses is delegated through to the associated <code>Project</code> object.  This
- * means, that you can use any of the methods and properties on the <code>Project</code> interface directly in your script.
- * </p><p>For example:
- * <pre>
- * defaultTasks('some-task')  // Delegates to Project.defaultTasks()
+ * property or method your script uses is delegated to the associated <code>Project</code> object. This
+ * means you can use any of the methods and properties on the <code>Project</code> interface directly in your script.
+ *
+ * <p>For example:
+ *
+ * <div class="codeBlock">
+ * <span class="label">Kotlin</span>
+ * <pre class='kotlin autoTested'><code class="language-kotlin">
+ * defaultTasks("some-task")    // Delegates to Project.defaultTasks()
+ * reportsDir = file("reports") // Delegates to Project.file() and the Java Plugin
+ * </code></pre>
+ * </div>
+ * <div class="codeBlock">
+ * <span class="label">Groovy</span>
+ * <pre class='groovy autoTested'><code class="language-groovy">
+ * defaultTasks('some-task')    // Delegates to Project.defaultTasks()
  * reportsDir = file('reports') // Delegates to Project.file() and the Java Plugin
- * </pre>
+ * </code></pre>
+ * </div>
+ *
  * <p>You can also access the <code>Project</code> instance using the <code>project</code> property. This can make the
  * script clearer in some cases. For example, you could use <code>project.name</code> rather than <code>name</code> to
- * access the project's name.</p>
+ * access the project's name.
  *
  * <p>A project has 5 property 'scopes', which it searches for properties. You can access these properties by name in
- * your build file, or by calling the project's {@link #property(String)} method. The scopes are:</p>
+ * your build file, or by calling the project's {@link #property(String)} method. The scopes are:
  *
  * <ul>
- *
- * <li>The <code>Project</code> object itself. This scope includes any property getters and setters declared by the
- * <code>Project</code> implementation class.  For example, {@link #getRootProject()} is accessible as the
- * <code>rootProject</code> property.  The properties of this scope are readable or writable depending on the presence
- * of the corresponding getter or setter method.</li>
- *
- * <li>The <em>extra</em> properties of the project.  Each project maintains a map of extra properties, which
- * can contain any arbitrary name -&gt; value pair.  Once defined, the properties of this scope are readable and writable.
- * See <a href="#extraproperties">extra properties</a> for more details.</li>
- *
- * <li>The <em>extensions</em> added to the project by the plugins. Each extension is available as a read-only property with the same name as the extension.</li>
- *
- * <li>The <em>convention</em> properties added to the project by the plugins. A plugin can add properties and methods
- * to a project through the project's {@link Convention} object.  The properties of this scope may be readable or writable, depending on the convention objects.</li>
- *
- * <li>The tasks of the project.  A task is accessible by using its name as a property name.  The properties of this
- * scope are read-only. For example, a task called <code>compile</code> is accessible as the <code>compile</code>
- * property.</li>
- *
- * <li>The extra properties and convention properties are inherited from the project's parent, recursively up to the root
- * project. The properties of this scope are read-only.</li>
- *
+ *   <li>The <code>Project</code> object itself. This scope includes any property getters and setters declared by the
+ *   <code>Project</code> implementation class.  For example, {@link #getRootProject()} is accessible as the
+ *   <code>rootProject</code> property.  The properties of this scope are readable or writable depending on the presence
+ *   of the corresponding getter or setter method.
+ *   <li>The <em>extra</em> properties of the project.  Each project maintains a map of extra properties, which
+ *   can contain any arbitrary name -&gt; value pair.  Once defined, the properties of this scope are readable and writable.
+ *   See <a href="#extraproperties">extra properties</a> for more details.
+ *   <li>The <em>extensions</em> added to the project by the plugins. Each extension is available as a read-only property with the same name as the extension.
+ *   <li>The <em>convention</em> properties added to the project by the plugins. A plugin can add properties and methods
+ *   to a project through the project's {@link Convention} object. The properties of this scope may be readable or writable, depending on the convention objects.
+ *   <li>The tasks of the project. A task is accessible by using its name as a property name. The properties of this
+ *   scope are read-only. For example, a task called <code>compile</code> is accessible as the <code>compile</code>
+ *   property.
+ *   <li>The extra properties and convention properties are inherited from the project's parent, recursively up to the root
+ *   project. The properties of this scope are read-only.
  * </ul>
  *
- * <p>When reading a property, the project searches the above scopes in order, and returns the value from the first
- * scope it finds the property in. If not found, an exception is thrown. See {@link #property(String)} for more details.</p>
+ * <p>When reading a property, the project searches the above scopes in order and returns the value from the first
+ * scope it finds the property in. If not found, an exception is thrown. See {@link #property(String)} for more details.
  *
- * <p>When writing a property, the project searches the above scopes in order, and sets the property in the first scope
- * it finds the property in. If not found, an exception is thrown. See {@link #setProperty(String, Object)} for more details.</p>
+ * <p>When writing a property, the project searches the above scopes in order and sets the property in the first scope
+ * it finds the property in. If not found, an exception is thrown. See {@link #setProperty(String, Object)} for more details.
  *
- * <a name="extraproperties"></a> <h4>Extra Properties</h4>
+ * <a name="extraproperties"></a>
+ * <h4>Extra Properties</h4>
  *
  * All extra properties must be defined through the &quot;ext&quot; namespace. Once an extra property has been defined,
- * it is available directly on the owning object (in the below case the Project, Task, and sub-projects respectively) and can
- * be read and updated. Only the initial declaration that needs to be done via the namespace.
+ * it is available directly on the owning object (in the below case the Project, Task, and subprojects, respectively) and can
+ * be read and updated. Only the initial declaration needs to be done via the namespace.
  *
- * <pre>
+ * <pre class='kotlin autoTested'><code class="language-kotlin">
  * project.ext.prop1 = "foo"
  * task doStuff {
  *     ext.prop2 = "bar"
  * }
  * subprojects { ext.${prop3} = false }
- * </pre>
+ * </code></pre>
  *
  * Reading extra properties is done through the &quot;ext&quot; or through the owning object.
  *
- * <pre>
+ * <pre class='kotlin autoTested'><code class="language-kotlin">
  * ext.isSnapshot = version.endsWith("-SNAPSHOT")
  * if (isSnapshot) {
  *     // do snapshot stuff
  * }
- * </pre>
+ * </code></pre>
  *
  * <h4>Dynamic Methods</h4>
  *
  * <p>A project has 5 method 'scopes', which it searches for methods:</p>
  *
- * <ul>
- *
- * <li>The <code>Project</code> object itself.</li>
- *
- * <li>The build file. The project searches for a matching method declared in the build file.</li>
- *
- * <li>The <em>extensions</em> added to the project by the plugins. Each extension is available as a method which takes
- * a closure or {@link org.gradle.api.Action} as a parameter.</li>
- *
- * <li>The <em>convention</em> methods added to the project by the plugins. A plugin can add properties and method to
- * a project through the project's {@link Convention} object.</li>
- *
- * <li>The tasks of the project. A method is added for each task, using the name of the task as the method name and
- * taking a single closure or {@link org.gradle.api.Action} parameter. The method calls the {@link Task#configure(groovy.lang.Closure)} method for the
- * associated task with the provided closure. For example, if the project has a task called <code>compile</code>, then a
- * method is added with the following signature: <code>void compile(Closure configureClosure)</code>.</li>
- *
- * <li>The methods of the parent project, recursively up to the root project.</li>
- *
- * <li>A property of the project whose value is a closure. The closure is treated as a method and called with the provided parameters.
- * The property is located as described above.</li>
- *
- * </ul>
+ * <ol>
+ *   <li>The <code>Project</code> object itself.
+ *   <li>The build file. The project searches for a matching method declared in the build file.
+ *   <li>The <em>extensions</em> added to the project by the plugins. Each extension is available as a method which takes
+ *   a closure or {@link org.gradle.api.Action} as a parameter.
+ *   <li>The <em>convention</em> methods added to the project by the plugins. A plugin can add properties and methods to
+ *   a project through the project's {@link Convention} object.
+ *   <li>The tasks of the project. A method is added for each task, using the name of the task as the method name and
+ *   taking a single closure or {@link org.gradle.api.Action} parameter. The method calls the {@link Task#configure(groovy.lang.Closure)} method for the
+ *   associated task with the provided closure. For example, if the project has a task called <code>compile</code>, then a
+ *   method is added with the following signature: <code>void compile(Closure configureClosure)</code>.
+ *   <li>The parent project methods recursively up to the root project.
+ *   <li>A property of the project whose value is a closure. The closure is treated as a method and is called with the parameters provided.
+ *   The property is located as described above.
+ * </ol>
  */
 @HasInternalProtocol
 public interface Project extends Comparable<Project>, ExtensionAware, PluginAware {
@@ -788,11 +778,11 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * <p>Creates a new {@code ConfigurableFileCollection} using the given paths. The paths are evaluated as per {@link
      * #files(Object...)}. The file collection is configured using the given closure. The file collection is passed to
      * the closure as its delegate. Example:</p>
-     * <pre>
+     * <pre class='groovy'><code class="language-groovy">
      * files "$buildDir/classes" {
      *     builtBy 'compile'
      * }
-     * </pre>
+     * </code></pre>
      * <p>The returned file collection is lazy, so that the paths are evaluated only when the contents of the file
      * collection are queried. The file collection is also live, so that it evaluates the above each time the contents
      * of the collection is queried.</p>
@@ -806,11 +796,11 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     /**
      * <p>Creates a new {@code ConfigurableFileCollection} using the given paths. The paths are evaluated as per {@link
      * #files(Object...)}. The file collection is configured using the given action. Example:</p>
-     * <pre>
+     * <pre class='groovy'><code class="language-groovy">
      * files "$buildDir/classes" {
      *     builtBy 'compile'
      * }
-     * </pre>
+     * </code></pre>
      * <p>The returned file collection is lazy, so that the paths are evaluated only when the contents of the file
      * collection are queried. The file collection is also live, so that it evaluates the above each time the contents
      * of the collection is queried.</p>
@@ -830,7 +820,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * queried. The file tree is also live, so that it scans for files each time the contents of the file tree are
      * queried.</p>
      *
-     * <pre class='autoTested'>
+     * <pre class='groovy autoTested'><code class="language-groovy">
      * def myTree = fileTree("src")
      * myTree.include "**&#47;*.java"
      * myTree.builtBy "someTask"
@@ -838,7 +828,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * task copy(type: Copy) {
      *    from myTree
      * }
-     * </pre>
+     * </code></pre>
      *
      * <p>The order of the files in a {@code FileTree} is not stable, even on a single computer.
      *
@@ -852,7 +842,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * as per {@link #file(Object)}. The closure will be used to configure the new file tree.
      * The file tree is passed to the closure as its delegate.  Example:</p>
      *
-     * <pre class='autoTested'>
+     * <pre class='groovy autoTested'><code class="language-groovy">
      * def myTree = fileTree('src') {
      *    exclude '**&#47;.data/**'
      *    builtBy 'someTask'
@@ -861,7 +851,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * task copy(type: Copy) {
      *    from myTree
      * }
-     * </pre>
+     * </code></pre>
      *
      * <p>The returned file tree is lazy, so that it scans for files only when the contents of the file tree are
      * queried. The file tree is also live, so that it scans for files each time the contents of the file tree are
