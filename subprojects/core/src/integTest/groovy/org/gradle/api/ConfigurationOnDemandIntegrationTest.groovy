@@ -27,6 +27,8 @@ import org.gradle.test.preconditions.IntegTestPreconditions
 import org.junit.Rule
 import spock.lang.Issue
 
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
+
 @FluidDependenciesResolveTest
 class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
 
@@ -331,6 +333,7 @@ project(':api') {
         output.contains "Horray!!!"
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "may configure project at execution time"() {
         createDirs("a", "b", "c")
         settingsFile << "include 'a', 'b', 'c'"
@@ -537,6 +540,7 @@ allprojects {
         fixture.assertProjectsConfigured(":", ":a", ":b", ":b:child")
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "extra properties defined in parent project are accessible to child"() {
         createDirs("a", "a/child")
         settingsFile << "include 'a', 'a:child'"

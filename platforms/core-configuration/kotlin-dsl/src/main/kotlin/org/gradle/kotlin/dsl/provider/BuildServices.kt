@@ -35,7 +35,7 @@ import org.gradle.internal.execution.FileCollectionSnapshotter
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
-import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.scripts.ScriptExecutionListener
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
 import org.gradle.kotlin.dsl.normalization.KotlinCompileClasspathFingerprinter
@@ -93,7 +93,7 @@ object BuildServices {
         classpathHasher: ClasspathHasher,
         implicitImports: ImplicitImports,
         progressLoggerFactory: ProgressLoggerFactory,
-        buildOperationExecutor: BuildOperationExecutor,
+        buildOperationRunner: BuildOperationRunner,
         cachedClasspathTransformer: CachedClasspathTransformer,
         listenerManager: ListenerManager,
         executionEngine: ExecutionEngine,
@@ -117,7 +117,7 @@ object BuildServices {
             classpathHasher,
             implicitImports,
             progressLoggerFactory,
-            buildOperationExecutor,
+            buildOperationRunner,
             cachedClasspathTransformer,
             listenerManager.getBroadcaster(ScriptExecutionListener::class.java),
             executionEngine,

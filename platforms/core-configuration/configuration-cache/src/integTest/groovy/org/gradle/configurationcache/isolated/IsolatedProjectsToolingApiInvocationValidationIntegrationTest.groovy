@@ -39,8 +39,7 @@ class IsolatedProjectsToolingApiInvocationValidationIntegrationTest extends Abst
         fixture.assertStateStoredAndDiscarded {
             projectConfigured(":buildSrc")
             modelsCreated(":")
-            problem("Build file 'build.gradle': line 3: Cannot access project ':a' from project ':'")
-            problem("Build file 'build.gradle': line 3: Cannot access project ':b' from project ':'")
+            problem("Build file 'build.gradle': line 3: Project ':' cannot access 'Project.plugins' functionality on subprojects via 'allprojects'", 2)
         }
 
         when:
@@ -51,8 +50,7 @@ class IsolatedProjectsToolingApiInvocationValidationIntegrationTest extends Abst
         fixture.assertStateStoredAndDiscarded {
             projectConfigured(":buildSrc")
             modelsCreated(":")
-            problem("Build file 'build.gradle': line 3: Cannot access project ':a' from project ':'")
-            problem("Build file 'build.gradle': line 3: Cannot access project ':b' from project ':'")
+            problem("Build file 'build.gradle': line 3: Project ':' cannot access 'Project.plugins' functionality on subprojects via 'allprojects'", 2)
         }
     }
 
@@ -77,8 +75,7 @@ class IsolatedProjectsToolingApiInvocationValidationIntegrationTest extends Abst
         fixture.assertStateStoredAndDiscarded {
             projectConfigured(":buildSrc")
             modelsCreated(":")
-            problem("Plugin class 'my.MyPlugin': Cannot access project ':a' from project ':'")
-            problem("Plugin class 'my.MyPlugin': Cannot access project ':b' from project ':'")
+            problem("Plugin class 'my.MyPlugin': Project ':' cannot access 'Project.extensions' functionality on subprojects", 2)
         }
 
         when:
@@ -89,8 +86,7 @@ class IsolatedProjectsToolingApiInvocationValidationIntegrationTest extends Abst
         fixture.assertStateStoredAndDiscarded {
             projectConfigured(":buildSrc")
             modelsCreated(":")
-            problem("Plugin class 'my.MyPlugin': Cannot access project ':a' from project ':'")
-            problem("Plugin class 'my.MyPlugin': Cannot access project ':b' from project ':'")
+            problem("Plugin class 'my.MyPlugin': Project ':' cannot access 'Project.extensions' functionality on subprojects", 2)
         }
     }
 

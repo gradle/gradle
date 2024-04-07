@@ -123,9 +123,6 @@ dependencies {
     api(libs.jsr305)
     api(libs.nativePlatform)
 
-    implementation(project(":core-jvm")) {
-        because("This is temporary, as ideally the core-jvm project would (optionally) depend on the core project.  This would require a base-core project, or some other common dep of both core and core-jvm to hold common code that is not yet created.")
-    }
     implementation(project(":input-tracking"))
     implementation(project(":model-groovy"))
 
@@ -305,7 +302,3 @@ tasks.compileTestGroovy {
 integTest.usesJavadocCodeSnippets = true
 testFilesCleanup.reportOnly = true
 
-// Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
-tasks.configCacheIntegTest {
-    systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
-}

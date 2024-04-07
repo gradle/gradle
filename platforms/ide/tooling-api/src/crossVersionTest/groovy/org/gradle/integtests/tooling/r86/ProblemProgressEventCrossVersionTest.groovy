@@ -151,13 +151,6 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         def firstProblem = problems[0].getDescriptor()
         firstProblem.label.label == "The 'standard-plugin' is deprecated"
         firstProblem.details.details == null
-
-        def aggregatedProblems = problems[1].getDescriptor()
-
-        def aggregations = aggregatedProblems.aggregations
-        aggregations.size() == 1
-        aggregations[0].label.label == "The 'standard-plugin' is deprecated"
-        aggregations[0].problemDescriptors.size() == 10
     }
 
     def "Problems expose details via Tooling API events"() {

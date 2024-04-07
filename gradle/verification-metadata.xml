@@ -81,7 +81,6 @@
          <trusted-key id="0785B3EFF60B1B1BEA94E0BB7C25280EAE63EBE5" group="org.apache.httpcomponents"/>
          <trusted-key id="07DBC3C1AB1F4468471656061C8D5EF0DF2B70D4" group="cglib"/>
          <trusted-key id="07E20F0103D9DFC697C490D0368557390486F2C5" group="org.awaitility"/>
-         <trusted-key id="08F0AAB4D0C1A4BDDE340765B341DDB020FCB6AB" group="org.bouncycastle"/>
          <trusted-key id="0A123C1ED3F13A6A0140E166C71FB765CD9DE313" group="org.apache.ant"/>
          <trusted-key id="0CB5871FB7BF3B351614BBF6CA85FFE638D4407A" group="it.unimi.dsi" name="fastutil"/>
          <trusted-key id="0E18EAE07B7774EAC5DB3F2113BB90CE8EAFBE37" group="com.microsoft.playwright"/>
@@ -103,6 +102,7 @@
          <trusted-key id="253E8E4C6FB28D11748115C1249DEE8E2C07A0A2" group="com.github.javaparser" name="javaparser-core"/>
          <trusted-key id="28118C070CB22A0175A2E8D43D12CA2AC19F3181">
             <trusting group="com.fasterxml.jackson.core"/>
+            <trusting group="com.fasterxml.woodstox"/>
             <trusting group="^com[.]fasterxml[.]jackson($|([.].*))" regex="true"/>
          </trusted-key>
          <trusted-key id="29BEA2A645F2D6CED7FB12E02B172E3E156466E8" group="^org[.]apache[.]maven($|([.].*))" regex="true"/>
@@ -184,6 +184,7 @@
          <trusted-key id="719F7C29985A8E95F58F47194D8159D6A1159B69" group="dev.zacsweers.moshix"/>
          <trusted-key id="7616EB882DAF57A11477AAF559A252FB1199D873" group="com.google.code.findbugs"/>
          <trusted-key id="76E94E8FF0AB5AF3B6F8366972FEFD1572EB75E1" group="org.spockframework"/>
+         <trusted-key id="7B121B76A7ED6CE6E60AD51784E913A8E3A748C0" group="org.bouncycastle"/>
          <trusted-key id="7B79ADD11F8A779FE90FD3D0893A028475557671">
             <trusting group="com.gradle"/>
             <trusting group="com.gradle" name="gradle-enterprise-gradle-plugin"/>
@@ -233,10 +234,6 @@
          <trusted-key id="A55830120AED177E1AA4F66A431B8F80403A7DC1" group="com.github.javaparser"/>
          <trusted-key id="A5BD02B93E7A40482EB1D66A5F69AD087600B22C" group="org.ow2.asm"/>
          <trusted-key id="A602970FE1BF5C9C8A9491B97A3C9FE21DFDBF44" group="org.apache.pdfbox"/>
-         <trusted-key id="A6D6C97108B8585F91B158748671A8DF71296252">
-            <trusting group="com.squareup.okhttp3"/>
-            <trusting group="^com[.]squareup($|([.].*))" regex="true"/>
-         </trusted-key>
          <trusted-key id="A7892505CF1A58076453E52D7999BEFBA1039E8B" group="net.bytebuddy"/>
          <trusted-key id="AA417737BD805456DB3CBDDE6601E5C08DCCBB96" group="info.picocli"/>
          <trusted-key id="ACF39CCDED38E2C6F0898BF28F7F6C0451967B84" group="org.scala-lang"/>
@@ -289,7 +286,9 @@
          <trusted-key id="D5FC4D8E6FF704C573819555BF7CC7DEFE9389D7" group="com.github.docker-java"/>
          <trusted-key id="D9AA7402BA75F78720D975211D185615D0A84648" group="net.sf.saxon" name="Saxon-HE"/>
          <trusted-key id="DB467D22A2666D061FDD120DB5BD4591883D638C" group="com.tngtech.archunit"/>
-         <trusted-key id="DBD744ACE7ADE6AA50DD591F66B50994442D2D40" group="com.squareup.moshi"/>
+         <trusted-key id="DBD744ACE7ADE6AA50DD591F66B50994442D2D40">
+            <trusting group="^com[.]squareup($|([.].*))" regex="true"/>
+         </trusted-key>
          <trusted-key id="DC98224C6421A7A5BB87F346ED2378CD09A08CDE" group="org.jline"/>
          <trusted-key id="DDDEE87612E9FB95F5C8D91E411063A3A0FFD119">
             <trusting group="commons-beanutils"/>
@@ -347,18 +346,18 @@
       </trusted-keys>
    </configuration>
    <components>
-      <component group="android-studio" name="android-studio" version="2023.2.1.16">
-         <artifact name="android-studio-2023.2.1.16.linux.tar.gz">
-            <sha256 value="6bd59abffdd3b68274be54dd104c2a44254a54fa5ad19390c1be2489a66f51d8" origin="Verified" reason="Artifact is not signed"/>
+      <component group="android-studio" name="android-studio" version="2023.2.1.24">
+         <artifact name="android-studio-2023.2.1.24.linux.tar.gz">
+            <sha256 value="0026427572849c9cbb0c94d6f9718ea08bc345dccfe3b372b54100a95fff99b5" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
-         <artifact name="android-studio-2023.2.1.16.mac.zip">
-            <sha256 value="260898e96f1ec21bbc00ac7d0878f5a1037b024b128caf5c71fe9ef05dd5e0d0" origin="Verified" reason="Artifact is not signed"/>
+         <artifact name="android-studio-2023.2.1.24.mac.zip">
+            <sha256 value="c0bf9d6f7ee5fe8f61e556a2326c73dabea4ba0b2e6b13bfed824268dcc7e585" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
-         <artifact name="android-studio-2023.2.1.16.mac_arm.zip">
-            <sha256 value="3a8788bbc4a0f051d86d5a51789a446405764825d16c9d44622232dc110c517d" origin="Verified" reason="Artifact is not signed"/>
+         <artifact name="android-studio-2023.2.1.24.mac_arm.zip">
+            <sha256 value="736c7c372353925378205087c59b58ac7a0e9a26c096e72796017f4f5f29562b" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
-         <artifact name="android-studio-2023.2.1.16.windows.zip">
-            <sha256 value="dbe764371f40869cf199e02d538b305656f49fb930afe072a1c929b881a035cf" origin="Verified" reason="Artifact is not signed"/>
+         <artifact name="android-studio-2023.2.1.24.windows.zip">
+            <sha256 value="da1c548b6d57f1dd63737cb248cf6760eddbd79ab21e8b1e3c3b55123ab4ef57" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="antlr" name="antlr" version="2.7.7">
@@ -750,8 +749,8 @@
             <pgp value="6DD3B8C64EF75253BEB2C53AD908A43FB7EC07AC"/>
          </artifact>
       </component>
-      <component group="com.swoval" name="file-tree-views" version="2.1.10">
-         <artifact name="file-tree-views-2.1.10.jar">
+      <component group="com.swoval" name="file-tree-views" version="2.1.12">
+         <artifact name="file-tree-views-2.1.12.jar">
             <pgp value="EE2CFEB6A2AECF44C781C5C3DCD5181297A43D24"/>
          </artifact>
       </component>
@@ -1562,8 +1561,8 @@
             <pgp value="DBE61B6BA51DFCAEDED256477090AF43A5E10D0B"/>
          </artifact>
       </component>
-      <component group="org.scala-lang.modules" name="scala-xml_2.13" version="2.1.0">
-         <artifact name="scala-xml_2.13-2.1.0.jar">
+      <component group="org.scala-lang.modules" name="scala-xml_2.13" version="2.2.0">
+         <artifact name="scala-xml_2.13-2.2.0.jar">
             <pgp value="600D21219963F228200A72375365A8A69292AF1A"/>
          </artifact>
       </component>

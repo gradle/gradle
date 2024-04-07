@@ -177,7 +177,7 @@ abstract class AbstractReadOnlyCacheDependencyResolutionTest extends AbstractHtt
     private void copyToReadOnlyCache() {
         roCacheDir = temporaryFolder.createDir("read-only-cache")
         def cachePath = roCacheDir.toPath()
-        doCopy(metadataCacheDir, cachePath, CacheLayout.ROOT)
+        doCopy(metadataCacheDir, cachePath, CacheLayout.MODULES)
 
         roCacheDir
     }

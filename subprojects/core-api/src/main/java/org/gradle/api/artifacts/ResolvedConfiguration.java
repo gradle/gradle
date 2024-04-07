@@ -61,7 +61,10 @@ public interface ResolvedConfiguration {
      * @param dependencySpec The filter for the configuration dependencies.
      * @return The artifact files of the specified dependencies.
      * @throws ResolveException when the resolve was not successful.
+     *
+     * @deprecated Use an {@link ArtifactView} with a {@code componentFilter} instead.
      */
+    @Deprecated
     Set<File> getFiles(Spec<? super Dependency> dependencySpec) throws ResolveException;
 
     /**
@@ -82,7 +85,10 @@ public interface ResolvedConfiguration {
      * @param dependencySpec A filter for the dependencies to be resolved.
      * @return A {@code ResolvedDependency} instance for each direct dependency.
      * @throws ResolveException when the resolve was not successful.
+     *
+     * @deprecated Use {@link #getFirstLevelModuleDependencies()}.
      */
+    @Deprecated
     Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) throws ResolveException;
 
     /**

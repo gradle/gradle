@@ -83,6 +83,15 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
     }
 
     @Override
+    public BuildOperationRef getCurrentOperation() {
+        BuildOperationRef operationRef = currentBuildOperationRef.get();
+        if (operationRef == null) {
+            throw new IllegalStateException("No operation is currently running.");
+        }
+        return operationRef;
+    }
+
+    @Override
     public BuildOperationContext start(BuildOperationDescriptor.Builder descriptorBuilder) {
         return execute(descriptorBuilder, getCurrentBuildOperation(), new BuildOperationExecution<BuildOperationContext>() {
             @Override

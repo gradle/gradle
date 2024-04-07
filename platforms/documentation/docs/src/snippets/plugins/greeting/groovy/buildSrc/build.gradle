@@ -1,0 +1,10 @@
+// tag::use-and-configure-plugin[]
+plugins {
+    id 'groovy-gradle-plugin'
+    id 'java-gradle-plugin'
+}
+// end::use-and-configure-plugin[]
+
+repositories {
+    gradlePluginPortal()
+}

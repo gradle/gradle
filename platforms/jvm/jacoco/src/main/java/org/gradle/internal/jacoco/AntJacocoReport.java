@@ -23,6 +23,8 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.testing.jacoco.tasks.JacocoReportsContainer;
 
+import javax.annotation.Nullable;
+
 public class AntJacocoReport extends AbstractAntJacocoReport<JacocoReportsContainer> {
 
     public AntJacocoReport(IsolatedAntBuilder ant) {
@@ -31,11 +33,11 @@ public class AntJacocoReport extends AbstractAntJacocoReport<JacocoReportsContai
 
     public void execute(FileCollection classpath, final String projectName,
                         final FileCollection allClassesDirs, final FileCollection allSourcesDirs,
-                        final FileCollection executionData, final JacocoReportsContainer reports) {
+                        @Nullable final String encoding, final FileCollection executionData, final JacocoReportsContainer reports) {
         configureAntReportTask(classpath, new Action<GroovyObjectSupport>() {
             @Override
             public void execute(GroovyObjectSupport antBuilder) {
-                invokeJacocoReport(antBuilder, projectName, allClassesDirs, allSourcesDirs, executionData, reports);
+                invokeJacocoReport(antBuilder, projectName, allClassesDirs, allSourcesDirs, encoding, executionData, reports);
             }
         });
     }

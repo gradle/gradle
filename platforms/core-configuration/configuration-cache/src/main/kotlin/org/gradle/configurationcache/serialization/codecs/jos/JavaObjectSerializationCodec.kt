@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache.serialization.codecs.jos
 
+import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.EncodingProvider
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
@@ -32,6 +33,7 @@ import org.gradle.configurationcache.serialization.readEnum
 import org.gradle.configurationcache.serialization.withBeanTrace
 import org.gradle.configurationcache.serialization.withImmediateMode
 import org.gradle.configurationcache.serialization.writeEnum
+import java.io.Externalizable
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.io.Serializable
@@ -45,8 +47,8 @@ import java.lang.reflect.Modifier.isStatic
  * Allows objects that support the [Java Object Serialization](https://docs.oracle.com/javase/8/docs/platform/serialization/spec/serialTOC.html)
  * protocol to be stored in the configuration cache.
  *
- * The implementation is currently limited to serializable classes that implement the [java.io.Serializable] interface
- * and define one of the following combination of methods:
+ * The implementation is currently limited to serializable classes that
+ * either implement the [java.io.Externalizable] interface, or implement the [java.io.Serializable] interface and define one of the following combination of methods:
  * - a `writeObject` method combined with a `readObject` method to control exactly which information to store;
  * - a `writeObject` method with no corresponding `readObject`; `writeObject` must eventually call [ObjectOutputStream.defaultWriteObject];
  * - a `readObject` method with no corresponding `writeObject`; `readObject` must eventually call [ObjectInputStream.defaultReadObject];
@@ -54,7 +56,6 @@ import java.lang.reflect.Modifier.isStatic
  * - a `readResolve` method to allow the class to nominate a replacement for the object just read;
  *
  * The following _Java Object Serialization_ features are **not** supported:
- * - serializable classes implementing the [java.io.Externalizable] interface; objects of such classes are discarded by the configuration cache during serialization and reported as problems;
  * - the `serialPersistentFields` member to explicitly declare which fields are serializable; the member, if present, is ignored; the configuration cache considers all but `transient` fields serializable;
  * - the following methods of [ObjectOutputStream] are not supported and will throw [UnsupportedOperationException]:
  *    - `reset()`, `writeFields()`, `putFields()`, `writeChars(String)`, `writeBytes(String)` and `writeUnshared(Any?)`.
@@ -257,4 +258,31 @@ fun invokeAll(methods: List<Method>, bean: Any, vararg args: Any?) {
     methods.forEach { method ->
         method.invoke(bean, *args)
     }
+}
+
+
+internal
+object ExternalizableCodec : Codec<Externalizable> {
+    override suspend fun WriteContext.encode(value: Externalizable) {
+        encodePreservingIdentityOf(value) {
+            val beanType = value.javaClass
+            writeClass(beanType)
+            val record = recordWritingOf(beanType, value)
+            record.run { playback() }
+        }
+    }
+
+    private
+    fun recordWritingOf(beanType: Class<Externalizable>, value: Externalizable): RecordingObjectOutputStream =
+        RecordingObjectOutputStream(beanType, value).also { recordingObjectOutputStream ->
+            value.writeExternal(recordingObjectOutputStream)
+        }
+
+    override suspend fun ReadContext.decode(): Externalizable? =
+        decodePreservingIdentity { id ->
+            decodingBeanWithId(id) { bean, _, beanStateReader ->
+                val objectInputStream = ObjectInputStreamAdapter(bean, beanStateReader, this)
+                (bean as Externalizable).readExternal(objectInputStream)
+            } as Externalizable
+        }
 }

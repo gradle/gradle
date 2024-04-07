@@ -241,6 +241,7 @@ fun <T : Configuration> NamedDomainObjectProvider<T>.resolve(): Set<File> =
 /**
  * See [Configuration.files].
  */
+@Suppress("DEPRECATION")
 @Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().files(dependencySpec)"), level = DeprecationLevel.HIDDEN)
 fun <T : Configuration> NamedDomainObjectProvider<T>.files(dependencySpec: Spec<Dependency>): Set<File> =
     get().files(dependencySpec)
@@ -249,6 +250,7 @@ fun <T : Configuration> NamedDomainObjectProvider<T>.files(dependencySpec: Spec<
 /**
  * See [Configuration.files].
  */
+@Suppress("DEPRECATION")
 @Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().files(dependencies)"), level = DeprecationLevel.HIDDEN)
 fun <T : Configuration> NamedDomainObjectProvider<T>.files(vararg dependencies: Dependency): Set<File> =
     get().files(*dependencies)
@@ -257,6 +259,7 @@ fun <T : Configuration> NamedDomainObjectProvider<T>.files(vararg dependencies: 
 /**
  * See [Configuration.fileCollection].
  */
+@Suppress("DEPRECATION")
 @Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().fileCollection(dependencySpec)"), level = DeprecationLevel.HIDDEN)
 fun <T : Configuration> NamedDomainObjectProvider<T>.fileCollection(dependencySpec: Spec<Dependency>): FileCollection =
     get().fileCollection(dependencySpec)
@@ -265,6 +268,7 @@ fun <T : Configuration> NamedDomainObjectProvider<T>.fileCollection(dependencySp
 /**
  * See [Configuration.fileCollection].
  */
+@Suppress("DEPRECATION")
 @Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().fileCollection(dependencies)"), level = DeprecationLevel.HIDDEN)
 fun <T : Configuration> NamedDomainObjectProvider<T>.fileCollection(vararg dependencies: Dependency): FileCollection =
     get().fileCollection(*dependencies)

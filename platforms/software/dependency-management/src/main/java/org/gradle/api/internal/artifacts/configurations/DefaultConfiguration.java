@@ -114,7 +114,7 @@ import org.gradle.internal.model.CalculatedModelValue;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
@@ -176,7 +176,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private DefaultPublishArtifactSet allArtifacts;
     private final ConfigurationResolvableDependencies resolvableDependencies;
     private ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners;
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationRunner buildOperationRunner;
     private final Instantiator instantiator;
     private Factory<ResolutionStrategyInternal> resolutionStrategyFactory;
     private ResolutionStrategyInternal resolutionStrategy;
@@ -253,7 +253,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         DependencyLockingProvider dependencyLockingProvider,
         Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
         FileCollectionFactory fileCollectionFactory,
-        BuildOperationExecutor buildOperationExecutor,
+        BuildOperationRunner buildOperationRunner,
         Instantiator instantiator,
         NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
         NotationParser<Object, Capability> capabilityNotationParser,
@@ -287,7 +287,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         this.resolutionStrategyFactory = resolutionStrategyFactory;
         this.fileCollectionFactory = fileCollectionFactory;
         this.dependencyResolutionListeners = dependencyResolutionListeners;
-        this.buildOperationExecutor = buildOperationExecutor;
+        this.buildOperationRunner = buildOperationRunner;
         this.instantiator = instantiator;
         this.attributesFactory = attributesFactory;
         this.domainObjectContext = domainObjectContext;
@@ -501,7 +501,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     @Deprecated
     @Override
     public Set<Configuration> getAll() {
-        DeprecationLogger.deprecateAction("Calling the Configuration.getAll() method")
+        DeprecationLogger.deprecateMethod(Configuration.class, "getAll()")
             .withAdvice("Use the configurations container to access the set of configurations instead.")
             .willBeRemovedInGradle9()
             .withUpgradeGuideSection(8, "deprecated_configuration_get_all")
@@ -549,38 +549,52 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     }
 
     @Override
+    @Deprecated
     public Set<File> files(Dependency... dependencies) {
-        return fileCollection(dependencies).getFiles();
-    }
-
-    @Override
-    public Set<File> files(Closure dependencySpecClosure) {
-        return fileCollection(dependencySpecClosure).getFiles();
-    }
-
-    @Override
-    public Set<File> files(Spec<? super Dependency> dependencySpec) {
-        return fileCollection(dependencySpec).getFiles();
-    }
-
-    @Override
-    public FileCollection fileCollection(Closure dependencySpecClosure) {
-        warnOnDeprecatedUsage("fileCollection(Closure)", ProperMethodUsage.RESOLVABLE);
-        return fileCollection(Specs.convertClosureToSpec(dependencySpecClosure));
-    }
-
-    @Override
-    public FileCollection fileCollection(Dependency... dependencies) {
-        warnOnDeprecatedUsage("fileCollection(Dependency...)", ProperMethodUsage.RESOLVABLE);
         Set<Dependency> deps = WrapUtil.toLinkedSet(dependencies);
-        return fileCollection(deps::contains);
+        return fileCollectionInternal("files(Dependency...)", deps::contains).getFiles();
     }
 
     @Override
+    @Deprecated
+    public Set<File> files(Closure dependencySpecClosure) {
+        return fileCollectionInternal("files(Closure)", Specs.convertClosureToSpec(dependencySpecClosure)).getFiles();
+    }
+
+    @Override
+    @Deprecated
+    public Set<File> files(Spec<? super Dependency> dependencySpec) {
+        return fileCollectionInternal("files(Spec)", dependencySpec).getFiles();
+    }
+
+    @Override
+    @Deprecated
+    public FileCollection fileCollection(Closure dependencySpecClosure) {
+        return fileCollectionInternal("fileCollection(Closure)", Specs.convertClosureToSpec(dependencySpecClosure));
+    }
+
+    @Override
+    @Deprecated
+    public FileCollection fileCollection(Dependency... dependencies) {
+        Set<Dependency> deps = WrapUtil.toLinkedSet(dependencies);
+        return fileCollectionInternal("fileCollection(Dependency...)", deps::contains);
+    }
+
+    @Override
+    @Deprecated
     public FileCollection fileCollection(Spec<? super Dependency> dependencySpec) {
+        return fileCollectionInternal("fileCollection(Spec)", dependencySpec);
+    }
+
+    private FileCollection fileCollectionInternal(String methodName, Spec<? super Dependency> dependencySpec) {
         assertIsResolvable();
-        // After asserting, we are definitely allowed, but might be deprecated, so check to warn now
-        warnOnDeprecatedUsage("fileCollection(Spec)", ProperMethodUsage.RESOLVABLE);
+
+        DeprecationLogger.deprecateMethod(Configuration.class, methodName)
+            .withAdvice("Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecate_filtered_configuration_file_and_filecollection_methods")
+            .nagUser();
+
         return new ResolutionBackedFileCollection(
             new ResolverResultsResolutionResultProvider(false).map(resolverResults ->
                 resolverResults.getLegacyResults().getLegacyVisitedArtifactSet().select(dependencySpec)
@@ -732,7 +746,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
      * Must be called from {@link #resolveExclusivelyIfRequired} only.
      */
     private ResolverResults resolveGraphInBuildOperation() {
-        return buildOperationExecutor.call(new CallableBuildOperation<ResolverResults>() {
+        return buildOperationRunner.call(new CallableBuildOperation<ResolverResults>() {
             @Override
             public ResolverResults call(BuildOperationContext context) {
                 runDependencyActions();
@@ -1627,58 +1641,51 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     }
 
     /**
-     * Conditionally warn when the usage of the configuration changes. In the following cases, the warning will not be emitted:
-     * <ol>
-     *     <li>Changes to the usage of the detached configurations should NOT warn (this done by the Kotlin plugin).</li>
-     *     <li>Configurations with a legacy role should NOT warn when changing usage, since the role-locked configuration APIs are still incubating</li>
-     * </ol>
+     * If this configuration has a role set upon creation, conditionally warn upon usage mutation.
+     * Configurations with roles set upon creation should not have their usage changed. In 9.0,
+     * changing the usage of a configuration with a role set upon creation will become an error.
      *
-     * The eventual goal is that all configuration usage be specified upon creation and immutable thereafter.
+     * <p>In the below two cases, for non-legacy configurations, this method does not warn. This is
+     * to avoid spamming users with these warnings, as popular third-party plugins continue to
+     * violate these conditions.
+     * </p>
+     * <ul>
+     *     <li>The configuration is detached and the new value is false.</li>
+     *     <li>The current value and the new value are the same</li>
+     * </ul>
+     *
+     * The eventual goal is that all configuration usage be specified upon creation and immutable
+     * thereafter.
      */
-    private void maybeWarnOnChangingUsage(String usage, boolean current) {
-        if (isDetachedConfiguration() || isInLegacyRole()) {
+    private void maybeWarnOnChangingUsage(String methodName, boolean current, boolean newValue) {
+        if (isInLegacyRole()) {
             return;
         }
 
-        String msgTemplate = "Allowed usage is changing for %s, %s. Ideally, usage should be fixed upon creation.";
-        String changingUsage = usage + " was " + !current + " and is now " + current;
+        // Error will be thrown later. Don't emit a duplicate warning.
+        if (!usageCanBeMutated && (current != newValue)) {
+            return;
+        }
 
-        DeprecationLogger.deprecateBehaviour(String.format(msgTemplate, getDisplayName(), changingUsage))
-            .withAdvice("Usage should be fixed upon creation.")
-            .willBeRemovedInGradle9()
+        // KGP continues to set the already-set value for a given usage even though it is already set
+        boolean redundantChange = current == newValue;
+
+        // KGP disables `consumable` on detached configurations even though this is not necessary
+        boolean disableUsageForDetached = isDetachedConfiguration() && !newValue;
+
+        // This property exists to allow KGP to test whether they have properly resolved this deprecation.
+        // This property WILL be removed without warning.
+        if ((redundantChange || disableUsageForDetached) &&
+            !Boolean.getBoolean("org.gradle.internal.deprecation.preliminary.Configuration.redundantUsageChangeWarning.enabled")
+        ) {
+            return;
+        }
+
+        DeprecationLogger.deprecateAction(String.format("Calling %s(%b) on %s", methodName, newValue, this))
+            .withContext("This configuration's role was set upon creation and its usage should not be changed.")
+            .willBecomeAnErrorInGradle9()
             .withUpgradeGuideSection(8, "configurations_allowed_usage")
             .nagUser();
-    }
-
-    private void maybeWarnOnRedundantUsageActivation(String usage, String method) {
-        if (!isSpecialCaseOfRedundantUsageActivation()) {
-            String msgTemplate = "The %s usage is already allowed on %s.";
-            DeprecationLogger.deprecateBehaviour(String.format(msgTemplate, usage, getDisplayName()))
-                .withAdvice(String.format("Remove the call to %s, it has no effect.", method))
-                .willBeRemovedInGradle9()
-                .withUpgradeGuideSection(8, "redundant_configuration_usage_activation")
-                .nagUser();
-        }
-    }
-
-    /**
-     * This is a temporary method that decides if a redundant usage activation is a known/supported special case,
-     * where a deprecation warning message should not be emitted.
-     * <p>
-     * These exceptions are needed to avoid spamming deprecations warnings whenever some important 3rd party plugins like
-     * Kotlin or Android are used.
-     * <p>
-     * <ol>
-     *     <li>Redundant activation of a usage of a detached configurations should NOT warn (this done by the Kotlin plugin).</li>
-     *     <li>Configurations with a legacy role should NOT warn during redundant usage activation,
-     * since users cannot create non-legacy configurations and there is no current public API for setting roles upon creation</li>
-     *     <li>All other usage changes should warn.</li>
-     * </ol>
-     *
-     * @return {@code true} if the usage change is a known special case; {@code false} otherwise
-     */
-    private boolean isSpecialCaseOfRedundantUsageActivation() {
-        return isInLegacyRole() || isDetachedConfiguration() || isPermittedConfigurationForRedundantActivation();
     }
 
     private boolean isDetachedConfiguration() {
@@ -1688,20 +1695,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     @SuppressWarnings("deprecation")
     private boolean isInLegacyRole() {
         return roleAtCreation == ConfigurationRoles.LEGACY;
-    }
-
-    /**
-     * Determine if this is a configuration that is permitted to redundantly activate usage, to support important 3rd party
-     * plugins such as Kotlin that do this.
-     * <p>
-     * This method is temporary, so the duplication of the configuration names defined in
-     * {@link JvmConstants}, which are not available to be referenced directly from here, is unfortunate, but not a showstopper.
-     *
-     * @return {@code true} if this is a configuration that is permitted to redundantly activate usage; {@code false} otherwise
-     */
-    @SuppressWarnings("JavadocReference")
-    private boolean isPermittedConfigurationForRedundantActivation() {
-        return name.equals("runtimeClasspath") || name.equals("testFixturesRuntimeClasspath") || name.endsWith("testRuntimeClasspath") || name.endsWith("TestRuntimeClasspath");
     }
 
     @Override
@@ -1726,21 +1719,17 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public void setCanBeConsumed(boolean allowed) {
-        setCanBeConsumed(allowed, true);
+        maybeWarnOnChangingUsage("setCanBeConsumed", canBeConsumed, allowed);
+        setCanBeConsumedInternal(allowed);
     }
 
     /**
-     * Configures if a configuration can be consumed, and if a warning should be emitted if it is not already consumable.
+     * Configures if a configuration can be consumed, without emitting any warnings.
      */
-    public void setCanBeConsumed(boolean allowed, boolean warn) {
+    private void setCanBeConsumedInternal(boolean allowed) {
         if (canBeConsumed != allowed) {
             validateMutation(MutationType.USAGE);
             canBeConsumed = allowed;
-            if (warn) {
-                maybeWarnOnChangingUsage("consumable", allowed);
-            }
-        } else if (canBeConsumed && allowed) {
-            maybeWarnOnRedundantUsageActivation("consumable", "setCanBeConsumed(true)");
         }
     }
 
@@ -1751,21 +1740,17 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public void setCanBeResolved(boolean allowed) {
-        setCanBeResolved(allowed, true);
+        maybeWarnOnChangingUsage("setCanBeResolved", canBeResolved, allowed);
+        setCanBeResolvedInternal(allowed);
     }
 
     /**
-     * Configures if a configuration can be resolved, and if a warning should be emitted if it is not already resolvable.
+     * Configures if a configuration can be resolved, without emitting any warnings.
      */
-    public void setCanBeResolved(boolean allowed, boolean warn) {
+    private void setCanBeResolvedInternal(boolean allowed) {
         if (canBeResolved != allowed) {
             validateMutation(MutationType.USAGE);
             canBeResolved = allowed;
-            if (warn) {
-                maybeWarnOnChangingUsage("resolvable", allowed);
-            }
-        } else if (canBeResolved && allowed) {
-            maybeWarnOnRedundantUsageActivation("resolvable", "setCanBeResolved(true)");
         }
     }
 
@@ -1776,34 +1761,30 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public void setCanBeDeclared(boolean allowed) {
-        setCanBeDeclared(allowed, true);
+        maybeWarnOnChangingUsage("setCanBeDeclared", canBeDeclaredAgainst, allowed);
+        setCanBeDeclaredInternal(allowed);
     }
 
     /**
-     * Configures if a configuration can have dependencies declared against it, and if a warning should be emitted if it is not already declarable against.
+     * Configures if a configuration can have dependencies declared against it, without emitting any warnings.
      */
-    public void setCanBeDeclared(boolean allowed, boolean warn) {
+    private void setCanBeDeclaredInternal(boolean allowed) {
         if (canBeDeclaredAgainst != allowed) {
             validateMutation(MutationType.USAGE);
             canBeDeclaredAgainst = allowed;
-            if (warn) {
-                maybeWarnOnChangingUsage("declarable", allowed);
-            }
-        } else if (canBeDeclaredAgainst && allowed) {
-            maybeWarnOnRedundantUsageActivation("declarable", "setCanBeDeclared(true)");
         }
     }
 
     @Override
     public void setAllowedUsageFromRole(ConfigurationRole role) {
         if (isCanBeConsumed() != role.isConsumable()) {
-            setCanBeConsumed(role.isConsumable(), false);
+            setCanBeConsumedInternal(role.isConsumable());
         }
         if (isCanBeResolved() != role.isResolvable()) {
-            setCanBeResolved(role.isResolvable(), false);
+            setCanBeResolvedInternal(role.isResolvable());
         }
         if (isCanBeDeclared() != role.isDeclarable()) {
-            setCanBeDeclared(role.isDeclarable(), false);
+            setCanBeDeclaredInternal(role.isDeclarable());
         }
     }
 

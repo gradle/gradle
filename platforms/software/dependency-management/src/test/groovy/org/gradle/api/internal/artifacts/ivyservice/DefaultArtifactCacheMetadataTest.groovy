@@ -29,7 +29,7 @@ class DefaultArtifactCacheMetadataTest extends Specification {
     def "calculates file store directory"() {
         given:
         TestFile testCacheDir = temporaryFolder.file("test/cache")
-        cache.baseDirForCrossVersionCache(CacheLayout.ROOT.key) >> testCacheDir
+        cache.baseDirForCrossVersionCache(CacheLayout.MODULES.key) >> testCacheDir
 
         when:
         def metaData = new DefaultArtifactCacheMetadata(cache)
@@ -42,7 +42,7 @@ class DefaultArtifactCacheMetadataTest extends Specification {
     def "calculates metadata store directory"() {
         given:
         TestFile testCacheDir = temporaryFolder.file("test/cache")
-        cache.baseDirForCrossVersionCache(CacheLayout.ROOT.key) >> testCacheDir
+        cache.baseDirForCrossVersionCache(CacheLayout.MODULES.key) >> testCacheDir
 
         when:
         def metaData = new DefaultArtifactCacheMetadata(cache)

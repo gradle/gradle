@@ -34,7 +34,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.work.WorkerThreadRegistry;
@@ -55,7 +55,7 @@ public class DefaultUnlockedConfiguration extends DefaultConfiguration {
         DependencyLockingProvider dependencyLockingProvider,
         Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
         FileCollectionFactory fileCollectionFactory,
-        BuildOperationExecutor buildOperationExecutor,
+        BuildOperationRunner buildOperationRunner,
         Instantiator instantiator,
         NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
         NotationParser<Object, Capability> capabilityNotationParser,
@@ -82,7 +82,7 @@ public class DefaultUnlockedConfiguration extends DefaultConfiguration {
             dependencyLockingProvider,
             resolutionStrategyFactory,
             fileCollectionFactory,
-            buildOperationExecutor,
+            buildOperationRunner,
             instantiator,
             artifactNotationParser,
             capabilityNotationParser,

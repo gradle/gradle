@@ -33,7 +33,7 @@ class DefaultArtifactCacheLockingAccessCoordinatorTest extends Specification {
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     def cacheRepository = new DefaultUnscopedCacheBuilderFactory(new TestInMemoryCacheFactory())
-    def cacheDir = temporaryFolder.createDir(CacheLayout.ROOT.key)
+    def cacheDir = temporaryFolder.createDir(CacheLayout.MODULES.key)
     def resourcesDir = cacheDir.createDir(CacheLayout.RESOURCES.key)
     def filesDir = cacheDir.createDir(CacheLayout.FILE_STORE.key)
     def metaDataDir = cacheDir.createDir(CacheLayout.META_DATA.key)

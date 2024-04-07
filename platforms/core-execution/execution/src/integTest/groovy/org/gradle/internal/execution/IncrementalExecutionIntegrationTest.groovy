@@ -42,7 +42,7 @@ import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.id.UniqueId
-import org.gradle.internal.operations.TestBuildOperationExecutor
+import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.snapshot.SnapshotVisitorUtil
 import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter
@@ -82,7 +82,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
     def valueSnapshotter = new DefaultValueSnapshotter([], classloaderHierarchyHasher)
     def inputFingerprinter = new DefaultInputFingerprinter(snapshotter, fingerprinterRegistry, valueSnapshotter)
     def buildCacheController = Mock(BuildCacheController)
-    def buildOperationExecutor = new TestBuildOperationExecutor()
+    def buildOperationRunner = new TestBuildOperationRunner()
     def validationWarningReporter = Mock(ValidateStep.ValidationWarningRecorder)
 
     final outputFile = temporaryFolder.file("output-file")
@@ -111,7 +111,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
         TestExecutionEngineFactory.createExecutionEngine(
             buildId,
             buildCacheController,
-            buildOperationExecutor,
+            buildOperationRunner,
             classloaderHierarchyHasher,
             deleter,
             changeDetector,

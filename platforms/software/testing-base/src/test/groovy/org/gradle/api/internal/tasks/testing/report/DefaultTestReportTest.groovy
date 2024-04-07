@@ -20,6 +20,8 @@ import org.gradle.api.internal.tasks.testing.junit.result.AggregateTestResultsPr
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.BuildOperationExecutorSupport
+import org.gradle.internal.operations.BuildOperationRunner
+import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -31,6 +33,7 @@ import spock.lang.Specification
 class DefaultTestReportTest extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
+    BuildOperationRunner buildOperationRunner = new TestBuildOperationRunner()
     BuildOperationExecutor buildOperationExecutor
     DefaultTestReport report
     final TestFile reportDir = tmpDir.file('report')
@@ -40,9 +43,10 @@ class DefaultTestReportTest extends Specification {
 
     def reportWithMaxThreads(int numThreads) {
         buildOperationExecutor = BuildOperationExecutorSupport.builder(false, numThreads)
+            .withRunner(buildOperationRunner)
             .withWorkerLeaseService(workerLeaseService)
             .build()
-        return new DefaultTestReport(buildOperationExecutor)
+        return new DefaultTestReport(buildOperationRunner, buildOperationExecutor)
     }
 
     def generatesReportWhenThereAreNoTestResults() {

@@ -16,13 +16,25 @@
 
 package org.gradle.internal.logging.console;
 
+import javax.annotation.Nullable;
+
 /**
  * Controls how user input is routed to the daemon.
  */
 public interface UserInputReceiver {
     /**
-     * Requests that a line of text should be received from the user, for example via this process' stdin, and forwarded to the daemon.
+     * Requests that a line of text should be received from the user, for example via this process' stdin, and forwarded to the {link UserInputReader} instance in the daemon.
      * Does not block waiting for the input.
      */
-    void readAndForwardText();
+    void readAndForwardText(Normalizer normalizer);
+
+    interface Normalizer {
+        /**
+         * Validates and normalizes the given text received from the user.
+         *
+         * @return The normalized text to forward to the daemon.
+         */
+        @Nullable
+        String normalize(String text);
+    }
 }
