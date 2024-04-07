@@ -118,14 +118,14 @@ import java.util.concurrent.Callable;
  *
  * <p>For example:
  *
- * <div class="codeBlock">
+ * <div class="code-block">
  * <span class="label">Kotlin</span>
  * <pre class='kotlin autoTested'><code class="language-kotlin">
  * defaultTasks("some-task")    // Delegates to Project.defaultTasks()
  * reportsDir = file("reports") // Delegates to Project.file() and the Java Plugin
  * </code></pre>
  * </div>
- * <div class="codeBlock">
+ * <div class="code-block">
  * <span class="label">Groovy</span>
  * <pre class='groovy autoTested'><code class="language-groovy">
  * defaultTasks('some-task')    // Delegates to Project.defaultTasks()

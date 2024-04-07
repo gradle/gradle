@@ -57,6 +57,38 @@
     /* Colors for invalid tag notifications */
     --invalid-tag-background-color: #ffe6e6;
     --invalid-tag-text-color: #000000;
+
+    .dark-mode {
+        --body-text-color: #e0e0e3;
+        --block-text-color: #e6e7ef;
+        --body-background-color: #404040;
+        --section-background-color: #484848;
+        --detail-background-color: #404040;
+        --navbar-background-color: #3d6178;
+        --navbar-text-color: #ffffff;
+        --subnav-background-color: #303030;
+        --selected-background-color: #f8981d;
+        --selected-text-color: #253441;
+        --selected-link-color: #1f389c;
+        --even-row-color: #484848;
+        --odd-row-color: #383838;
+        --title-color: #ffffff;
+        --link-color: #86cdfb;
+        --link-color-active: #ffb863;
+        --snippet-background-color: #383838;
+        --snippet-text-color: var(--block-text-color);
+        --snippet-highlight-color: #f7c590;
+        --border-color: #383838;
+        --table-border-color: #000000;
+        --search-input-background-color: #000000;
+        --search-input-text-color: #ffffff;
+        --search-input-placeholder-color: #909090;
+        --search-tag-highlight-color: #ffff00;
+        --copy-icon-brightness: 250%;
+        --copy-button-background-color-active: rgba(168, 168, 176, 0.3);
+        --invalid-tag-background-color: #ffe6e6;
+        --invalid-tag-text-color: #000000;
+    }
 }
 /*
  * Styles for individual HTML elements.
@@ -1360,7 +1392,7 @@ pre.snippet .highlighted {
      src: url("https://assets.gradle.com/lato/fonts/lato-heavy/lato-heavy.woff2") format("woff2"),
      url("https://assets.gradle.com/lato/fonts/lato-heavy/lato-heavy.woff") format("woff");
  }
-.codeBlock {
+.code-block {
   position: relative;
   .label {
     position: absolute;
@@ -1785,7 +1817,7 @@ table tr td dl, table tr td dl dt, table tr td dl dd {
     margin-right:3px;
     display:inline-block;
     float:left;
-    background-color:var(--link-color);
+    background-color:var(--navbar-background-color);
     height:16px;
 }
 .memberSummary caption span.tableTab, .memberSummary caption span.activeTableTab,
