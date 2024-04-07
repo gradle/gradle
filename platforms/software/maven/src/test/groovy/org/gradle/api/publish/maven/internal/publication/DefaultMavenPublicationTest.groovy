@@ -19,20 +19,29 @@ import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ConfigurationPublications
 import org.gradle.api.artifacts.DependencyArtifact
+import org.gradle.api.artifacts.DependencyConstraint
 import org.gradle.api.artifacts.ExcludeRule
 import org.gradle.api.artifacts.ExternalDependency
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.PublishArtifact
+import org.gradle.api.artifacts.ResolvableDependencies
 import org.gradle.api.attributes.Category
 import org.gradle.api.component.ComponentWithVariants
+import org.gradle.api.component.SoftwareComponentVariant
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.artifacts.DefaultDependencyConstraintSet
+import org.gradle.api.internal.artifacts.DefaultDependencySet
+import org.gradle.api.internal.artifacts.DefaultExcludeRule
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModule
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
 import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport
@@ -47,6 +56,7 @@ import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.publish.internal.PublicationArtifactInternal
 import org.gradle.api.publish.internal.PublicationInternal
+import org.gradle.api.publish.internal.component.ConfigurationSoftwareComponentVariant
 import org.gradle.api.publish.internal.mapping.DefaultDependencyCoordinateResolverFactory
 import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrategyInternal
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal
@@ -62,6 +72,7 @@ import org.gradle.util.AttributeTestUtil
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
 import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Specification
 
 class DefaultMavenPublicationTest extends Specification {
@@ -252,7 +263,7 @@ class DefaultMavenPublicationTest extends Specification {
             getClassifier() >> "artifact-classifier"
             getType() >> "artifact-type"
         }
-        def excludeRule = Mock(ExcludeRule)
+        def excludeRule = new DefaultExcludeRule("*", "*")
 
         when:
         moduleDependency.group >> "dep-group"
@@ -312,7 +323,7 @@ class DefaultMavenPublicationTest extends Specification {
             getType() >> "artifact-type"
         }
         def moduleDependency = Mock(ExternalDependency)
-        def excludeRule = Mock(ExcludeRule)
+        def excludeRule = new DefaultExcludeRule("*", "*")
 
         when:
         artifact.classifier >> "other"
@@ -381,6 +392,64 @@ class DefaultMavenPublicationTest extends Specification {
         }
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/28714")
+    def "adopts non-transitive module dependency from component with non-transitive configuration"() {
+        given:
+        def publication = createPublication()
+        def moduleDependency = Mock(ExternalDependency)
+        def artifact = Mock(DependencyArtifact) {
+            getName() >> "dep-name"
+            getClassifier() >> "artifact-classifier"
+            getType() >> "artifact-type"
+        }
+        def excludeRule = Mock(ExcludeRule)
+
+        def objectFactory = TestUtil.objectFactory()
+        def configuration = Mock(ConfigurationInternal)
+        def incoming = Mock(ResolvableDependencies)
+        def outgoing = Mock(ConfigurationPublications)
+        def moduleDependencies = objectFactory.domainObjectSet(ModuleDependency)
+
+        when:
+        moduleDependency.group >> "dep-group"
+        moduleDependency.name >> "dep-name"
+        moduleDependency.version >> "dep-version"
+        moduleDependency.artifacts >> [artifact]
+        moduleDependency.excludeRules >> [excludeRule]
+        moduleDependency.transitive >> true
+        moduleDependency.attributes >> ImmutableAttributes.EMPTY
+        moduleDependency.requestedCapabilities >> []
+        moduleDependencies.addAll(moduleDependency)
+
+        configuration.transitive >> false
+        configuration.incoming >> incoming
+        configuration.outgoing >> outgoing
+        configuration.extendsFrom >> []
+        configuration.getAllExcludeRules() >> []
+
+        incoming.dependencies >> new DefaultDependencySet(() -> "test", configuration, moduleDependencies)
+        incoming.dependencyConstraints >> new DefaultDependencyConstraintSet(() -> "test", configuration, objectFactory.domainObjectSet(DependencyConstraint))
+        outgoing.capabilities >> []
+
+        and:
+        publication.from(createComponent(createConfigurationVariant([artifact] as Collection<? extends PublishArtifact>, [moduleDependency], 'runtime', configuration)))
+
+        then:
+        publication.pom.dependencies.get().dependencies.size() == 1
+        with(publication.pom.dependencies.get().dependencies.asList().first()) {
+            groupId == "dep-group"
+            artifactId == "dep-name"
+            version == "mapped-dep-version"
+            type == "artifact-type"
+            classifier == "artifact-classifier"
+            scope == "runtime"
+            excludeRules != [excludeRule] as Set
+            excludeRules.size() == 1
+            excludeRules[0].group == '*'
+            excludeRules[0].module == '*'
+        }
+    }
+
     def 'adopts platform in #scope declaration from added components'() {
         given:
         def publication = createPublication()
@@ -397,7 +466,7 @@ class DefaultMavenPublicationTest extends Specification {
         moduleDependency.requestedCapabilities >> []
 
         and:
-        publication.from(createComponent([], [moduleDependency], scope))
+        publication.from(createComponent(createVariant([], [moduleDependency], scope)))
 
         then:
         publication.pom.dependencies.get().dependencyManagement.size() == 1
@@ -643,11 +712,10 @@ class DefaultMavenPublicationTest extends Specification {
     }
 
     def createComponent(def artifacts, def dependencies) {
-        return createComponent(artifacts, dependencies, 'runtime')
+        return createComponent(createVariant(artifacts, dependencies, 'runtime'))
     }
 
-    def createComponent(Collection<? extends PublishArtifact> artifacts, Collection<? extends ModuleDependency> dependencies, String scope) {
-        def variant = createVariant(artifacts, dependencies, scope)
+    def createComponent(SoftwareComponentVariant variant) {
         def component = Stub(SoftwareComponentInternal) {
             getUsages() >> [variant]
         }
@@ -657,6 +725,12 @@ class DefaultMavenPublicationTest extends Specification {
     def createVariant(Collection<? extends PublishArtifact> artifacts, Collection<? extends ModuleDependency> dependencies, String scope) {
         new DefaultSoftwareComponentVariant(
             scope, ImmutableAttributes.EMPTY, artifacts as Set, dependencies as Set, [] as Set, [] as Set, [] as Set
+        )
+    }
+
+    def createConfigurationVariant(Collection<? extends PublishArtifact> artifacts, Collection<? extends ModuleDependency> dependencies, String scope, Configuration configuration) {
+        new ConfigurationSoftwareComponentVariant(
+            createVariant(artifacts, dependencies, scope), artifacts as Set, configuration
         )
     }
 

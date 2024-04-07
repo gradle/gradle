@@ -92,4 +92,8 @@ public class ConfigurationSoftwareComponentVariant extends AbstractSoftwareCompo
         }
         return excludeRules;
     }
+
+    public Configuration getConfiguration() {
+        return configuration;
+    }
 }
