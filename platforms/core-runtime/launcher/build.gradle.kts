@@ -64,6 +64,7 @@ dependencies {
     runtimeOnly(libs.slf4jApi)
 
     manifestClasspath(project(":bootstrap"))
+    manifestClasspath(projects.baseUtils)
     manifestClasspath(project(":base-services"))
     manifestClasspath(project(":worker-services"))
     manifestClasspath(project(":core-api"))
