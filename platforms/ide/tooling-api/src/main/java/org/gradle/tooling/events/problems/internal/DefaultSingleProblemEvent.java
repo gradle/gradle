@@ -105,7 +105,7 @@ public class DefaultSingleProblemEvent extends BaseProgressEvent implements Sing
 
     @Override
     public DocumentationLink getDocumentationLink() {
-        return problemDefinition.getDocumentationLink(); // TODO nullability
+        return problemDefinition.getDocumentationLink();
     }
 
     @Override

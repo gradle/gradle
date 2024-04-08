@@ -600,7 +600,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
                 toAdditionalData(basicProblemDetails.getAdditionalData()),
                 toFailureContainer(basicProblemDetails)
             );
-        } else if (details instanceof InternalProblemAggregationDetailsV2) { // TODO
+        } else if (details instanceof InternalProblemAggregationDetailsV2) {
             InternalProblemAggregationDetailsV2 problemAggregationDetails = (InternalProblemAggregationDetailsV2) details;
             return new DefaultProblemAggregationEvent(
                 problemEvent.getEventTime(),
@@ -828,21 +828,20 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         return new DefaultTestOutputOperationDescriptor(descriptor, parent, destination, message);
     }
 
-    private static @Nullable FailureContainer toFailureContainer(@Nullable InternalBasicProblemDetails problemDetails) {
+    private static FailureContainer toFailureContainer(@Nullable InternalBasicProblemDetails problemDetails) {
         if (!(problemDetails instanceof InternalBasicProblemDetailsVersion2)) {
-            return null;
+            return new DefaultFailureContainer(null);
         }
         return toFailureContainer(((InternalBasicProblemDetailsVersion2) problemDetails).getFailure());
     }
 
-    private static @Nullable FailureContainer toFailureContainer(@Nullable InternalBasicProblemDetailsVersion3 problemDetails) {
+    private static FailureContainer toFailureContainer(@Nullable InternalBasicProblemDetailsVersion3 problemDetails) {
         return toFailureContainer(problemDetails == null ? null : problemDetails.getFailure());
     }
 
-    @Nullable
     private static FailureContainer toFailureContainer(@Nullable InternalFailure failure) {
         if (failure == null) {
-            return null;
+            return new DefaultFailureContainer(null);
         }
         return new DefaultFailureContainer(toFailure(failure));
     }

@@ -18,8 +18,6 @@ package org.gradle.tooling.events.problems;
 
 import org.gradle.api.Incubating;
 
-import javax.annotation.Nullable;
-
 /**
  * Represents a problem definition.
  *
@@ -51,6 +49,5 @@ public interface ProblemDefinition {
      *
      * @since 8.8
      */
-    @Nullable
     DocumentationLink getDocumentationLink();
 }

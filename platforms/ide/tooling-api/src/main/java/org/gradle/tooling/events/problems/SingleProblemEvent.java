@@ -103,8 +103,6 @@ public interface SingleProblemEvent extends ProblemEvent {
 
     /**
      * Returns the failure associated with this problem.
-     * <br>
-     * <code>null</code> if run against a Gradle version prior to 8.8
      *
      * @return the failure
      * @since 8.8
