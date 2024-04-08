@@ -23,8 +23,13 @@ import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
+import java.util.ArrayDeque;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Queue;
+import java.util.Set;
 
 import static org.gradle.util.internal.ArrayUtils.contains;
 import static org.gradle.util.internal.CollectionUtils.join;
@@ -62,7 +67,7 @@ class ServiceScopeValidator implements AnnotatedServiceLifecycleHandler {
 
         if (serviceScopes == null) {
             if (strict) {
-                throw new IllegalArgumentException(missingScopeMessage(serviceType));
+                failWithMissingScope(serviceType);
             }
             return;
         }
@@ -74,6 +79,45 @@ class ServiceScopeValidator implements AnnotatedServiceLifecycleHandler {
         if (!contains(serviceScopes, scope)) {
             throw new IllegalArgumentException(invalidScopeMessage(serviceType, serviceScopes));
         }
+    }
+
+    private void failWithMissingScope(Class<?> serviceType) {
+        Set<Class<?>> annotatedSupertypes = findAnnotatedSupertypes(serviceType);
+        if (annotatedSupertypes.size() != 1) {
+            throw new IllegalArgumentException(missingScopeMessage(serviceType));
+        }
+
+        Class<?> inferredServiceType = annotatedSupertypes.iterator().next();
+        throw new IllegalArgumentException(implementationWithMissingScopeMessage(inferredServiceType, serviceType));
+    }
+
+    private static Set<Class<?>> findAnnotatedSupertypes(Class<?> serviceType) {
+        Set<Class<?>> annotatedSuperTypes = new LinkedHashSet<Class<?>>();
+
+        Set<Class<?>> seen = new HashSet<Class<?>>();
+        seen.add(Object.class);
+
+        Queue<Class<?>> queue = new ArrayDeque<Class<?>>();
+        queue.add(serviceType);
+
+        while (!queue.isEmpty()) {
+            Class<?> type = queue.remove();
+            if (scopeOf(type) != null) {
+                annotatedSuperTypes.add(type);
+                continue;
+            }
+
+            if (type.getSuperclass() != null) {
+                queue.add(type.getSuperclass());
+            }
+            for (Class<?> superInterface : type.getInterfaces()) {
+                if (seen.add(superInterface)) {
+                    queue.add(superInterface);
+                }
+            }
+        }
+
+        return annotatedSuperTypes;
     }
 
     private String invalidScopeMessage(Class<?> serviceType, Class<? extends Scope>[] actualScopes) {
@@ -95,6 +139,21 @@ class ServiceScopeValidator implements AnnotatedServiceLifecycleHandler {
                 "Add the '@ServiceScope()' annotation on '%s' with the '%s' scope.",
             serviceType.getName(), scope.getSimpleName(), serviceType.getSimpleName(), scope.getSimpleName()
         );
+    }
+
+    private String implementationWithMissingScopeMessage(Class<?> serviceType, Class<?> implementationType) {
+        return String.format(
+            "The service implementation '%s' is registered in the '%s' scope but does not declare it explicitly. " +
+                "It appears to back %s\n" +
+                "- If registered via 'ServiceRegistration' use 'add(serviceType, implementationType)' overload\n" +
+                "- If registered via creator-method change the return type to the service type\n" +
+                "- Alternatively, add the '@ServiceScope()' to the implementation type",
+            implementationType.getName(), scope.getSimpleName(), displayServiceTypes(serviceType)
+        );
+    }
+
+    private static String displayServiceTypes(Class<?> serviceType) {
+        return String.format("'%s' service type", serviceType.getSimpleName());
     }
 
     private static String displayScopes(Class<? extends Scope>[] scopes) {
