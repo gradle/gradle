@@ -21,8 +21,6 @@ import org.gradle.api.Action;
 import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.MutableReference;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
 import java.io.Closeable;
@@ -34,7 +32,6 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-@ServiceScope(Scope.CrossBuildSession.class)
 public class DefaultResourceLockCoordinationService implements ResourceLockCoordinationService, Closeable {
     private final Object lock = new Object();
     private final Set<Action<ResourceLock>> releaseHandlers = new LinkedHashSet<Action<ResourceLock>>();
