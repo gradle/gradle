@@ -36,7 +36,7 @@ public @interface UpgradedDeprecation {
     /**
      * Corresponds to .willBeRemovedInGradle9() in the DeprecationLogger
      */
-    RemovedIn removedIn() default RemovedIn.UNSET;
+    RemovedIn removedIn() default RemovedIn.UNSPECIFIED;
 
     /**
      * Corresponds to .withUpgradeGuideSection(majorVersion, section) in the DeprecationLogger
@@ -59,6 +59,6 @@ public @interface UpgradedDeprecation {
 
     enum RemovedIn {
         GRADLE9,
-        UNSET
+        UNSPECIFIED
     }
 }

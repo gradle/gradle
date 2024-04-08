@@ -143,7 +143,7 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
             case GRADLE9:
                 depreactionBuilder.add(".willBeRemovedInGradle9()\n");
                 break;
-            case UNSET:
+            case UNSPECIFIED:
                 depreactionBuilder.add(".startingWithGradle9($S)\n", "Property is replaced with lazy version.");
                 break;
             default:
