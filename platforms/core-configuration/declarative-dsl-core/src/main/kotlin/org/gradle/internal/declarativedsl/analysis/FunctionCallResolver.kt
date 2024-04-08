@@ -320,7 +320,7 @@ class FunctionCallResolverImpl(
         if (receiver is PropertyAccess && receiver.asChainOrNull() != null || receiver == null) {
             val packageNameParts = (receiver as? PropertyAccess)?.asChainOrNull()?.nameParts.orEmpty()
             val candidates = buildList {
-                val fqn = FqName(packageNameParts.joinToString("."), functionCall.name)
+                val fqn = FqNameImpl(packageNameParts.joinToString("."), functionCall.name)
                 schema.externalFunctionsByFqName[fqn]?.let { add(it) }
 
                 if (receiver == null) {
@@ -366,7 +366,7 @@ class FunctionCallResolverImpl(
         val candidateTypes = buildList<DataType> {
             val receiverAsChain = functionCall.receiver?.asChainOrNull()
             if (receiverAsChain != null) {
-                val fqn = FqName(receiverAsChain.nameParts.joinToString("."), functionCall.name)
+                val fqn = FqNameImpl(receiverAsChain.nameParts.joinToString("."), functionCall.name)
                 val typeByFqn = schema.dataClassesByFqName[fqn]
                 if (typeByFqn != null) {
                     add(typeByFqn as DataClassImpl)

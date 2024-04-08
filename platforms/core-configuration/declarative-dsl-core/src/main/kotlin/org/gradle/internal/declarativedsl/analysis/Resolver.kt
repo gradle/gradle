@@ -31,7 +31,7 @@ class ResolverImpl(
         analysisContext: AnalysisContext
     ): Map<String, FqName> = buildMap {
         trees.forEach { import ->
-            val fqn = FqName(
+            val fqn = FqNameImpl(
                 import.name.nameParts.dropLast(1).joinToString("."), import.name.nameParts.last()
             )
 

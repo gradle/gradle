@@ -217,4 +217,4 @@ class PropertyAccessResolverImpl(
 
 
 private
-fun AccessChain.asFqName(): FqName = FqName(nameParts.dropLast(1).joinToString("."), nameParts.last())
+fun AccessChain.asFqName(): FqName = FqNameImpl(nameParts.dropLast(1).joinToString("."), nameParts.last())

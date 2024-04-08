@@ -5,7 +5,7 @@ import org.gradle.internal.declarativedsl.analysis.AnalysisSchemaImpl
 import org.gradle.internal.declarativedsl.analysis.DataClassImpl
 import org.gradle.internal.declarativedsl.analysis.ErrorCollectorImpl
 import org.gradle.internal.declarativedsl.analysis.ErrorReason
-import org.gradle.internal.declarativedsl.analysis.FqName
+import org.gradle.internal.declarativedsl.analysis.FqNameImpl
 import org.gradle.internal.declarativedsl.analysis.ResolutionError
 import org.gradle.internal.declarativedsl.analysis.defaultCodeResolver
 import org.gradle.internal.declarativedsl.language.AccessChain
@@ -29,7 +29,7 @@ class ImportTest {
     fun testContext(): AnalysisContext {
         return AnalysisContext(
             AnalysisSchemaImpl(
-                DataClassImpl(FqName("", ""), emptySet(), emptyList(), emptyList(), emptyList()),
+                DataClassImpl(FqNameImpl("", ""), emptySet(), emptyList(), emptyList(), emptyList()),
                 emptyMap(),
                 emptyMap(),
                 emptyMap(),
@@ -51,8 +51,8 @@ class ImportTest {
 
         assertEquals(
             mapOf(
-                "C" to FqName("a.b", "C"),
-                "d" to FqName("a.b.c", "d")
+                "C" to FqNameImpl("a.b", "C"),
+                "d" to FqNameImpl("a.b.c", "d")
             ),
             result
         )
@@ -71,13 +71,13 @@ class ImportTest {
 
         assertEquals(
             mapOf(
-                "C" to FqName("a.b", "C"),
-                "D" to FqName("a.b", "D"),
+                "C" to FqNameImpl("a.b", "C"),
+                "D" to FqNameImpl("a.b", "D"),
             ),
             result
         )
         assertEquals(
-            listOf(ResolutionError(imports[1], ErrorReason.AmbiguousImport(FqName("a.c", "C")))),
+            listOf(ResolutionError(imports[1], ErrorReason.AmbiguousImport(FqNameImpl("a.c", "C")))),
             analysisContext.errorCollector.errors
         )
     }
@@ -94,7 +94,7 @@ class ImportTest {
 
         assertEquals(
             mapOf(
-                "C" to FqName("a.b", "C"),
+                "C" to FqNameImpl("a.b", "C"),
             ),
             result
         )

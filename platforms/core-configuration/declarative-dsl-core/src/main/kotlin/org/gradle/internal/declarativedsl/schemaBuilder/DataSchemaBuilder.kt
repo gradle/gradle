@@ -23,6 +23,7 @@ import org.gradle.internal.declarativedsl.analysis.DataClassImpl
 import org.gradle.internal.declarativedsl.analysis.DataProperty
 import org.gradle.internal.declarativedsl.analysis.ExternalObjectProviderKey
 import org.gradle.internal.declarativedsl.analysis.FqName
+import org.gradle.internal.declarativedsl.analysis.FqNameImpl
 import org.gradle.internal.declarativedsl.analysis.fqName
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
@@ -61,7 +62,7 @@ class DataSchemaBuilder(
 
     private
     val KClass<*>.fqName
-        get() = FqName.parse(qualifiedName!!)
+        get() = FqNameImpl.parse(qualifiedName!!)
 
     class PreIndex {
         private

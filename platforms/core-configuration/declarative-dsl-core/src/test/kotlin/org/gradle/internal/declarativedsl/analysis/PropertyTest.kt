@@ -61,7 +61,7 @@ object PropertyTest {
             propertyExtractor = testPropertyContributor(expectedName, typeOf<Int>()) + testPropertyContributor(expectedName, typeOf<String>())
         )
 
-        val property = schema.dataClassesByFqName[FqName.parse(MyReceiver::class.qualifiedName!!)]!!.properties.single()
+        val property = schema.dataClassesByFqName[FqNameImpl.parse(MyReceiver::class.qualifiedName!!)]!!.properties.single()
         assertEquals(expectedName, property.name)
         assertEquals(DataType.IntDataType.ref, property.type)
     }

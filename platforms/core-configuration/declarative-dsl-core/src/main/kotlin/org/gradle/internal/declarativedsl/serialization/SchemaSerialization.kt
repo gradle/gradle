@@ -25,6 +25,8 @@ import org.gradle.internal.declarativedsl.analysis.AnalysisSchema
 import org.gradle.internal.declarativedsl.analysis.AnalysisSchemaImpl
 import org.gradle.internal.declarativedsl.analysis.DataClass
 import org.gradle.internal.declarativedsl.analysis.DataClassImpl
+import org.gradle.internal.declarativedsl.analysis.FqName
+import org.gradle.internal.declarativedsl.analysis.FqNameImpl
 import org.gradle.internal.declarativedsl.language.DataType
 
 
@@ -43,6 +45,9 @@ object SchemaSerialization {
             }
             polymorphic(DataClass::class) {
                 subclass(DataClassImpl::class)
+            }
+            polymorphic(FqName::class) {
+                subclass(FqNameImpl::class)
             }
         }
         prettyPrint = true
