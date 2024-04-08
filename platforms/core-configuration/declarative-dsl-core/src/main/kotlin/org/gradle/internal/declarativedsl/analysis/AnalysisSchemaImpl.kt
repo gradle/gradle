@@ -316,7 +316,11 @@ val DataTopLevelFunction.fqName: FqName
 
 
 @Serializable
-data class ExternalObjectProviderKey(val type: DataTypeRef)
+data class ExternalObjectProviderKeyImpl(
+    private val type: DataTypeRef
+) : ExternalObjectProviderKey {
+    override fun getType(): DataTypeRef = type
+}
 
 
 @Serializable

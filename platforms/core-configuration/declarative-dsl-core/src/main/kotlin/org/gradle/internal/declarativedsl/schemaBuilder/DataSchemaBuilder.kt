@@ -21,7 +21,7 @@ import org.gradle.internal.declarativedsl.analysis.AnalysisSchemaImpl
 import org.gradle.internal.declarativedsl.analysis.DataClass
 import org.gradle.internal.declarativedsl.analysis.DataClassImpl
 import org.gradle.internal.declarativedsl.analysis.DataProperty
-import org.gradle.internal.declarativedsl.analysis.ExternalObjectProviderKey
+import org.gradle.internal.declarativedsl.analysis.ExternalObjectProviderKeyImpl
 import org.gradle.internal.declarativedsl.analysis.FqName
 import org.gradle.internal.declarativedsl.analysis.FqNameImpl
 import org.gradle.internal.declarativedsl.analysis.fqName
@@ -47,7 +47,7 @@ class DataSchemaBuilder(
         val dataTypes = preIndex.types.map { createDataType(it, preIndex) }
 
         val extFunctions = externalFunctions.mapNotNull { functionExtractor.topLevelFunction(it, preIndex) }.associateBy { it.fqName }
-        val extObjects = externalObjects.map { (key, value) -> key to ExternalObjectProviderKey(value.toDataTypeRef()) }.toMap()
+        val extObjects = externalObjects.map { (key, value) -> key to ExternalObjectProviderKeyImpl(value.toDataTypeRef()) }.toMap()
 
         val topLevelReceiverName = topLevelReceiver.fqName
 
