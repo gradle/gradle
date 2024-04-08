@@ -145,10 +145,10 @@ data class DataMemberFunction(
 
 
 @Serializable
-data class DataConstructor(
+data class DataConstructorImpl(
     private val parameters: List<DataParameter>,
-    val dataClass: DataTypeRef
-) : SchemaFunction {
+    private val dataClass: DataTypeRef
+) : DataConstructor {
     private
     val internalSemantics: FunctionSemantics by lazy { FunctionSemantics.Pure(dataClass) }
 
@@ -159,6 +159,8 @@ data class DataConstructor(
     override fun getSemantics(): FunctionSemantics = internalSemantics
 
     override fun getReturnValueType(): DataTypeRef = internalSemantics.returnValueType
+
+    override fun getDataClass(): DataTypeRef = dataClass
 }
 
 
