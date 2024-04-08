@@ -23,6 +23,7 @@ import org.gradle.configurationcache.extensions.useToRun
 import org.gradle.configurationcache.problems.ProblemsListener
 import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.serialization.Codec
+import org.gradle.configurationcache.serialization.DefaultClassEncoder
 import org.gradle.configurationcache.serialization.DefaultReadContext
 import org.gradle.configurationcache.serialization.DefaultWriteContext
 import org.gradle.configurationcache.serialization.IsolateOwner
@@ -131,7 +132,7 @@ abstract class AbstractUserTypeCodecTest {
         DefaultWriteContext(
             codec = codec,
             encoder = encoder,
-            scopeLookup = mock(),
+            classEncoder = DefaultClassEncoder(mock()),
             beanStateWriterLookup = BeanStateWriterLookup(),
             logger = mock(),
             tracer = null,
@@ -143,7 +144,7 @@ abstract class AbstractUserTypeCodecTest {
         DefaultReadContext(
             codec = codec,
             decoder = KryoBackedDecoder(inputStream),
-            beanStateReaderLookup = BeanStateReaderLookup(BeanConstructors(TestCrossBuildInMemoryCacheFactory()), TestUtil.instantiatorFactory()),
+            beanStateReaderLookup = beanStateReaderLookupForTesting(),
             logger = mock(),
             problemsListener = mock()
         )
@@ -186,3 +187,10 @@ abstract class AbstractUserTypeCodecTest {
         transformStepNodeFactory = mock(),
     )
 }
+
+
+internal
+fun beanStateReaderLookupForTesting() = BeanStateReaderLookup(
+    BeanConstructors(TestCrossBuildInMemoryCacheFactory()),
+    TestUtil.instantiatorFactory()
+)

@@ -22,13 +22,26 @@ import org.gradle.api.ProjectEvaluationListener;
 
 import javax.annotation.Nullable;
 
+/**
+ * Provides support for isolated Project callbacks to Gradle.
+ */
 public interface IsolatedProjectEvaluationListenerProvider {
 
+    /**
+     * @see org.gradle.api.invocation.GradleLifecycle#beforeProject(IsolatedAction)
+     */
     void beforeProject(IsolatedAction<? super Project> action);
 
+    /**
+     * Returns an isolated listener for the registered actions, if any. The listener makes it impossible for
+     * the actions to carry any shared mutable state across projects.
+     */
     @Nullable
     ProjectEvaluationListener isolate();
 
+    /**
+     * Discards any registered actions. This doesn't affect any {@link #isolate() previously returned isolated listeners}.
+     */
     void clear();
 
 }

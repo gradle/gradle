@@ -28,6 +28,11 @@ private
 typealias IsolatedProjectAction = IsolatedAction<in Project>
 
 
+/**
+ * TODO:
+ *   - introduce isolation mechanism based on the configuration cache
+ *   - save isolated listener to the build scoped configuration cache when isolated projects is enabled
+ */
 internal
 class DefaultIsolatedProjectEvaluationListenerProvider : IsolatedProjectEvaluationListenerProvider {
 
@@ -50,7 +55,10 @@ class DefaultIsolatedProjectEvaluationListenerProvider : IsolatedProjectEvaluati
 
 
 private
-class IsolatedProjectEvaluationListener(private val isolated: ImmutableList<IsolatedProjectAction>) : ProjectEvaluationListener {
+class IsolatedProjectEvaluationListener(
+    private val isolated: ImmutableList<IsolatedProjectAction>
+) : ProjectEvaluationListener {
+
     override fun beforeEvaluate(project: Project) {
         for (action in isolated) {
             action.execute(project)
