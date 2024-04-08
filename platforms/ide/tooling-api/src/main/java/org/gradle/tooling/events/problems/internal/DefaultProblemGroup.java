@@ -28,7 +28,7 @@ public class DefaultProblemGroup implements ProblemGroup {
     private final String displayName;
     private final ProblemGroup parent;
 
-    public DefaultProblemGroup(String name, String displayName, @Nullable  ProblemGroup parent) {
+    public DefaultProblemGroup(String name, String displayName, @Nullable ProblemGroup parent) {
         this.name = name;
         this.displayName = displayName;
         this.parent = parent;
