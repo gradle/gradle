@@ -18,6 +18,8 @@ package org.gradle.internal.nativeintegration.services
 
 import net.rubygrapefruit.platform.Native
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
+import org.gradle.internal.Cast
+import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.file.Chmod
 import org.gradle.internal.reflect.JavaMethod
 import org.gradle.internal.service.ServiceRegistry
@@ -39,6 +41,8 @@ class NativeServicesInitializationTest extends Specification {
             jar(LoggerFactory),
             jar(Chmod),
             jar(TemporaryFileProvider),
+            jar(Stoppable),
+            jar(Cast),
             jar(Inject)
         ]
         ClassLoader classLoader = new URLClassLoader(jars, null as ClassLoader)
