@@ -34,4 +34,9 @@ public interface SoftwareTypeRegistry {
      * Returns a set of the software types available along with their model types and associated plugins.
      */
     Set<SoftwareTypeImplementation> getSoftwareTypeImplementations();
+
+    /**
+     * Returns whether a plugin is registered as providing a software type or not.
+     */
+    boolean isRegistered(Class<? extends Plugin<?>> pluginClass);
 }

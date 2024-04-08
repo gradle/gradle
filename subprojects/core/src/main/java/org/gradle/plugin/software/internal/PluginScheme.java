@@ -21,6 +21,9 @@ import org.gradle.api.internal.tasks.properties.AbstractTypeScheme;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.internal.instantiation.InstantiationScheme;
 
+/**
+ * Scheme for instantiating and inspecting plugin classes.
+ */
 public class PluginScheme extends AbstractTypeScheme {
 
     public PluginScheme(InstantiationScheme instantiationScheme, InspectionScheme inspectionScheme) {

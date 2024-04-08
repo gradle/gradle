@@ -68,6 +68,11 @@ public class SoftwareTypeRegistrationPluginTarget implements PluginTarget {
         delegate.applyImperativeRulesHybrid(pluginId, plugin, declaringClass);
     }
 
+    @Override
+    public String toString() {
+        return delegate.toString();
+    }
+
     void registerSoftwareTypes(TypeMetadata typeMetadata) {
         Optional<RegistersSoftwareTypes> registersSoftwareType = typeMetadata.getTypeAnnotationMetadata().getAnnotation(RegistersSoftwareTypes.class);
         registersSoftwareType.ifPresent(registration -> {

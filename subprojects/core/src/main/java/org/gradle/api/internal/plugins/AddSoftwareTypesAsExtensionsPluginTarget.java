@@ -32,6 +32,7 @@ import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.reflect.DefaultTypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 import org.gradle.model.internal.type.ModelType;
+import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
 
@@ -47,10 +48,13 @@ public class AddSoftwareTypesAsExtensionsPluginTarget implements PluginTarget {
     private final PluginTarget delegate;
     private final InspectionScheme inspectionScheme;
 
-    public AddSoftwareTypesAsExtensionsPluginTarget(ProjectInternal target, PluginTarget delegate, InspectionScheme inspectionScheme) {
+    private final SoftwareTypeRegistry softwareTypeRegistry;
+
+    public AddSoftwareTypesAsExtensionsPluginTarget(ProjectInternal target, PluginTarget delegate, InspectionScheme inspectionScheme, SoftwareTypeRegistry softwareTypeRegistry) {
         this.addSoftwareTypesAsExtensions = new AddSoftwareTypesAsExtensions(target);
         this.delegate = delegate;
         this.inspectionScheme = inspectionScheme;
+        this.softwareTypeRegistry = softwareTypeRegistry;
     }
 
     @Override
@@ -60,28 +64,35 @@ public class AddSoftwareTypesAsExtensionsPluginTarget implements PluginTarget {
 
     @Override
     public void applyImperative(@Nullable String pluginId, Plugin<?> plugin) {
-        DefaultTypeValidationContext typeValidationContext = DefaultTypeValidationContext.withRootType(plugin.getClass(), false);
-        inspectionScheme.getPropertyWalker().visitProperties(
-            plugin,
-            typeValidationContext,
-            addSoftwareTypesAsExtensions
-        );
-
-        if (!typeValidationContext.getProblems().isEmpty()) {
-            throw new DefaultMultiCauseException(
-                String.format(typeValidationContext.getProblems().size() == 1
-                        ? "A problem was found with the %s plugin."
-                        : "Some problems were found with the %s plugin.",
-                    getPluginObjectDisplayName(plugin)),
-                typeValidationContext.getProblems().stream()
-                    .map(TypeValidationProblemRenderer::renderMinimalInformationAbout)
-                    .sorted()
-                    .map(InvalidUserDataException::new)
-                    .collect(toImmutableList())
+        if (softwareTypeRegistry.isRegistered(Cast.uncheckedCast(plugin.getClass()))) {
+            DefaultTypeValidationContext typeValidationContext = DefaultTypeValidationContext.withRootType(plugin.getClass(), false);
+            inspectionScheme.getPropertyWalker().visitProperties(
+                plugin,
+                typeValidationContext,
+                addSoftwareTypesAsExtensions
             );
+
+            if (!typeValidationContext.getProblems().isEmpty()) {
+                throw new DefaultMultiCauseException(
+                    String.format(typeValidationContext.getProblems().size() == 1
+                            ? "A problem was found with the %s plugin."
+                            : "Some problems were found with the %s plugin.",
+                        getPluginObjectDisplayName(plugin)),
+                    typeValidationContext.getProblems().stream()
+                        .map(TypeValidationProblemRenderer::renderMinimalInformationAbout)
+                        .sorted()
+                        .map(InvalidUserDataException::new)
+                        .collect(toImmutableList())
+                );
+            }
         }
 
         delegate.applyImperative(pluginId, plugin);
+    }
+
+    @Override
+    public String toString() {
+        return delegate.toString();
     }
 
     private static String getPluginObjectDisplayName(Object parameterObject) {

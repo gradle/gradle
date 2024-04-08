@@ -36,14 +36,7 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
         given:
         withSoftwareTypePlugins().prepareToExecute()
 
-        file("settings.gradle.something") << """
-            pluginManagement {
-                includeBuild("plugins")
-            }
-            plugins {
-                id("com.example.test-software-type")
-            }
-        """
+        file("settings.gradle.something") << pluginsFromIncludedBuild
 
         file("build.gradle.something") << declarativeScriptThatConfiguresOnlyTestSoftwareType
 
@@ -119,14 +112,7 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
         given:
         withPluginThatExposesMultipleSoftwareTypes().prepareToExecute()
 
-        file("settings.gradle.something") << """
-            pluginManagement {
-                includeBuild("plugins")
-            }
-            plugins {
-                id("com.example.test-software-type")
-            }
-        """
+        file("settings.gradle.something") << pluginsFromIncludedBuild
 
         file("build.gradle.something") << declarativeScriptThatConfiguresSoftwareType + """
             anotherSoftwareType {
@@ -150,14 +136,7 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
         given:
         withSoftwareTypePluginWithDifferentPublicAndImplementationModelTypes().prepareToExecute()
 
-        file("settings.gradle.something") << """
-            pluginManagement {
-                includeBuild("plugins")
-            }
-            plugins {
-                id("com.example.test-software-type")
-            }
-        """
+        file("settings.gradle.something") << pluginsFromIncludedBuild
 
         file("build.gradle.something") << declarativeScriptThatConfiguresSoftwareType
 
@@ -184,14 +163,22 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
         given:
         withSoftwareTypePluginExposeSoftwareTypeFromParentClass().prepareToExecute()
 
-        file("settings.gradle.something") << """
-            pluginManagement {
-                includeBuild("plugins")
-            }
-            plugins {
-                id("com.example.test-software-type")
-            }
-        """
+        file("settings.gradle.something") << pluginsFromIncludedBuild
+
+        file("build.gradle.something") << declarativeScriptThatConfiguresSoftwareType
+
+        when:
+        run(":printTestSoftwareTypeExtensionConfiguration")
+
+        then:
+        assertThatDeclaredValuesAreSetProperly()
+    }
+
+    def 'can declare and configure a custom software type from a plugin with unannotated methods'() {
+        given:
+        withSoftwareTypePluginThatHasUnannotatedMethods().prepareToExecute()
+
+        file("settings.gradle.something") << pluginsFromIncludedBuild
 
         file("build.gradle.something") << declarativeScriptThatConfiguresSoftwareType
 
@@ -206,14 +193,7 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
         given:
         withSoftwareTypePluginWithMismatchedModelTypes().prepareToExecute()
 
-        file("settings.gradle.something") << """
-            pluginManagement {
-                includeBuild("plugins")
-            }
-            plugins {
-                id("com.example.test-software-type")
-            }
-        """
+        file("settings.gradle.something") << pluginsFromIncludedBuild
 
         file("build.gradle.something") << declarativeScriptThatConfiguresSoftwareType
 
@@ -230,14 +210,7 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
         given:
         withSoftwareTypePluginThatDoesNotExposeSoftwareTypes().prepareToExecute()
 
-        file("settings.gradle.something") << """
-            pluginManagement {
-                includeBuild("plugins")
-            }
-            plugins {
-                id("com.example.test-software-type")
-            }
-        """
+        file("settings.gradle.something") << pluginsFromIncludedBuild
 
         when:
         fails(":help")
@@ -245,6 +218,17 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
         then:
         failure.assertHasCause("Failed to apply plugin 'com.example.test-software-type'.")
         failure.assertHasCause("A plugin with type 'org.gradle.test.SoftwareTypeImplPlugin' was registered as a software type plugin, but it does not expose any software types. Software type plugins must expose software types via properties with the @SoftwareType annotation.")
+    }
+
+    static String getPluginsFromIncludedBuild() {
+        return """
+            pluginManagement {
+                includeBuild("plugins")
+            }
+            plugins {
+                id("com.example.test-software-type")
+            }
+        """
     }
 
     static String getDeclarativeScriptThatConfiguresSoftwareType() {

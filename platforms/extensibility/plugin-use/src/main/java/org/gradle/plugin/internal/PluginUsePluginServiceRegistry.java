@@ -38,6 +38,7 @@ import org.gradle.internal.build.BuildIncluder;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.properties.annotations.MissingPropertyAnnotationHandler;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
@@ -133,7 +134,8 @@ public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistr
             InspectionScheme inspectionScheme = inspectionSchemeFactory.inspectionScheme(
                 allPropertyTypes.build(),
                 Collections.emptySet(),
-                instantiationScheme
+                instantiationScheme,
+                MissingPropertyAnnotationHandler.DO_NOTHING
             );
             return new PluginScheme(instantiationScheme, inspectionScheme);
         }

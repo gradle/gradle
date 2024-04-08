@@ -100,6 +100,7 @@ import org.gradle.normalization.internal.DefaultRuntimeClasspathNormalization;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 import org.gradle.normalization.internal.RuntimeClasspathNormalizationInternal;
 import org.gradle.plugin.software.internal.PluginScheme;
+import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
 import org.gradle.process.internal.ExecFactory;
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry;
 import org.gradle.util.Path;
@@ -183,14 +184,23 @@ public class ProjectScopeServices extends ScopedServiceRegistry {
         return buildScopedToolingModelBuilders.createChild();
     }
 
-    protected PluginManagerInternal createPluginManager(Instantiator instantiator, InstantiatorFactory instantiatorFactory, BuildOperationRunner buildOperationRunner, UserCodeApplicationContext userCodeApplicationContext, CollectionCallbackActionDecorator decorator, DomainObjectCollectionFactory domainObjectCollectionFactory, PluginScheme pluginScheme) {
+    protected PluginManagerInternal createPluginManager(
+        Instantiator instantiator,
+        InstantiatorFactory instantiatorFactory,
+        BuildOperationRunner buildOperationRunner,
+        UserCodeApplicationContext userCodeApplicationContext,
+        CollectionCallbackActionDecorator decorator,
+        DomainObjectCollectionFactory domainObjectCollectionFactory,
+        PluginScheme pluginScheme,
+        SoftwareTypeRegistry softwareTypeRegistry
+        ) {
         PluginTarget ruleBasedTarget = new RuleBasedPluginTarget(
             project,
             new ImperativeOnlyPluginTarget<>(project),
             get(ModelRuleExtractor.class),
             get(ModelRuleSourceDetector.class)
         );
-        PluginTarget target = new AddSoftwareTypesAsExtensionsPluginTarget(project, ruleBasedTarget, pluginScheme.getInspectionScheme());
+        PluginTarget target = new AddSoftwareTypesAsExtensionsPluginTarget(project, ruleBasedTarget, pluginScheme.getInspectionScheme(), softwareTypeRegistry);
         return instantiator.newInstance(DefaultPluginManager.class, get(PluginRegistry.class), new PluginInstantiator(instantiatorFactory.injectScheme(), pluginScheme.getInstantiationScheme(), this), target, buildOperationRunner, userCodeApplicationContext, decorator, domainObjectCollectionFactory);
     }
 

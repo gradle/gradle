@@ -100,6 +100,14 @@ trait SoftwareTypeFixture {
         return pluginBuilder
     }
 
+    PluginBuilder withSoftwareTypePluginThatHasUnannotatedMethods() {
+        return withSoftwareTypePlugins(
+            softwareTypeExtension,
+            projectPluginThatProvidesSoftwareTypeThatHasUnannotatedMethods,
+            settingsPluginThatRegistersSoftwareType
+        )
+    }
+
     static String getSoftwareTypeExtension() {
         return """
             package org.gradle.test;
@@ -400,6 +408,48 @@ trait SoftwareTypeFixture {
             public interface ExposesSoftwareType extends Plugin<Project> {
                 @SoftwareType(name="${softwareType}", modelPublicType=${publicTypeClassName}.class)
                 abstract public ${implementationTypeClassName} getTestSoftwareTypeExtension();
+            }
+        """
+    }
+
+    static String getProjectPluginThatProvidesSoftwareTypeThatHasUnannotatedMethods(
+        String implementationTypeClassName = "TestSoftwareTypeExtension",
+        String publicTypeClassName = "TestSoftwareTypeExtension",
+        String softwareTypePluginClassName = "SoftwareTypeImplPlugin",
+        String softwareType = "testSoftwareType"
+    ) {
+        return """
+            package org.gradle.test;
+
+            import org.gradle.api.DefaultTask;
+            import org.gradle.api.Plugin;
+            import org.gradle.api.Project;
+            import org.gradle.api.provider.ListProperty;
+            import org.gradle.api.provider.Property;
+            import org.gradle.api.tasks.Nested;
+            import ${SoftwareType.class.name};
+            import javax.inject.Inject;
+
+            abstract public class ${softwareTypePluginClassName} implements Plugin<Project> {
+
+                @SoftwareType(name="${softwareType}", modelPublicType=${publicTypeClassName}.class)
+                abstract public ${implementationTypeClassName} getTestSoftwareTypeExtension();
+
+                String getFoo() {
+                    return "foo";
+                }
+
+                @Override
+                public void apply(Project target) {
+                    ${implementationTypeClassName} extension = getTestSoftwareTypeExtension();
+                    target.getTasks().register("print${implementationTypeClassName}Configuration", DefaultTask.class, task -> {
+                        task.doLast("print restricted extension content", t -> {
+                            System.out.println("id = " + extension.getId().get());
+                            System.out.println("bar = " + extension.getFoo().getBar().get());
+                        });
+                    });
+                    System.out.println(getFoo());
+                }
             }
         """
     }
