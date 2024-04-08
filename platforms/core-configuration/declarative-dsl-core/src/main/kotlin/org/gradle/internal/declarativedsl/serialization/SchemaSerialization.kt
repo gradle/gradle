@@ -24,6 +24,7 @@ import kotlinx.serialization.modules.subclass
 import org.gradle.internal.declarativedsl.analysis.AnalysisSchema
 import org.gradle.internal.declarativedsl.analysis.AnalysisSchemaImpl
 import org.gradle.internal.declarativedsl.analysis.DataClass
+import org.gradle.internal.declarativedsl.analysis.DataClassImpl
 import org.gradle.internal.declarativedsl.language.DataType
 
 
@@ -39,7 +40,9 @@ object SchemaSerialization {
                 subclass(DataType.BooleanDataType::class)
                 subclass(DataType.NullType::class)
                 subclass(DataType.UnitType::class)
-                subclass(DataClass::class)
+            }
+            polymorphic(DataClass::class) {
+                subclass(DataClassImpl::class)
             }
         }
         prettyPrint = true

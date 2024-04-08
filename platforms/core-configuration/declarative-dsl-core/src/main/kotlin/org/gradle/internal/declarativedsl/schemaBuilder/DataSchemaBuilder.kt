@@ -19,6 +19,7 @@ package org.gradle.internal.declarativedsl.schemaBuilder
 import org.gradle.internal.declarativedsl.analysis.AnalysisSchema
 import org.gradle.internal.declarativedsl.analysis.AnalysisSchemaImpl
 import org.gradle.internal.declarativedsl.analysis.DataClass
+import org.gradle.internal.declarativedsl.analysis.DataClassImpl
 import org.gradle.internal.declarativedsl.analysis.DataProperty
 import org.gradle.internal.declarativedsl.analysis.ExternalObjectProviderKey
 import org.gradle.internal.declarativedsl.analysis.FqName
@@ -136,7 +137,7 @@ class DataSchemaBuilder(
         val functions = functionExtractor.memberFunctions(kClass, preIndex)
         val constructors = functionExtractor.constructors(kClass, preIndex)
         val name = kClass.fqName
-        return DataClass(name, supertypesOf(kClass), properties, functions.toList(), constructors.toList())
+        return DataClassImpl(name, supertypesOf(kClass), properties, functions.toList(), constructors.toList())
     }
 
     private

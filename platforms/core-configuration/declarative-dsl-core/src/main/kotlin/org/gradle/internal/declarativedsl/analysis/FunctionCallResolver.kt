@@ -369,14 +369,14 @@ class FunctionCallResolverImpl(
                 val fqn = FqName(receiverAsChain.nameParts.joinToString("."), functionCall.name)
                 val typeByFqn = schema.dataClassesByFqName[fqn]
                 if (typeByFqn != null) {
-                    add(typeByFqn)
+                    add(typeByFqn as DataClassImpl)
                 }
             } else if (functionCall.receiver == null) {
                 val importedName = imports[functionCall.name]
                 if (importedName != null) {
                     val maybeType = schema.dataClassesByFqName[importedName]
                     if (maybeType != null) {
-                        add(maybeType)
+                        add(maybeType as DataClassImpl)
                     }
                 }
             }

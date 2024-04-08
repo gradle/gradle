@@ -27,13 +27,24 @@ data class AnalysisSchemaImpl(
 
 @Serializable
 @SerialName("data")
-data class DataClass(
-    val name: FqName,
-    val supertypes: Set<FqName>,
-    val properties: List<DataProperty>,
-    val memberFunctions: List<SchemaMemberFunction>,
-    val constructors: List<DataConstructor>
-) : DataType {
+data class DataClassImpl(
+    private val name: FqName,
+    private val supertypes: Set<FqName>,
+    private val properties: List<DataProperty>,
+    private val memberFunctions: List<SchemaMemberFunction>,
+    private val constructors: List<DataConstructor>
+) : DataClass, DataType {
+
+    override fun getName(): FqName = name
+
+    override fun getSupertypes(): Set<FqName> = supertypes
+
+    override fun getProperties(): List<DataProperty> = properties
+
+    override fun getMemberFunctions(): List<SchemaMemberFunction> = memberFunctions
+
+    override fun getConstructors(): List<DataConstructor> = constructors
+
     override fun toString(): String = name.simpleName
 }
 
