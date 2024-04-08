@@ -110,7 +110,7 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
 
     def 'can declare multiple custom software types from a single settings plugin'() {
         given:
-        withPluginThatExposesMultipleSoftwareTypes().prepareToExecute()
+        withSettingsPluginThatExposesMultipleSoftwareTypes().prepareToExecute()
 
         file("settings.gradle.something") << pluginsFromIncludedBuild
 
@@ -134,7 +134,7 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
 
     def 'can declare and configure a custom software type with different public and implementation model types'() {
         given:
-        withSoftwareTypePluginWithDifferentPublicAndImplementationModelTypes().prepareToExecute()
+        withSoftwareTypePluginThatHasDifferentPublicAndImplementationModelTypes().prepareToExecute()
 
         file("settings.gradle.something") << pluginsFromIncludedBuild
 
@@ -161,7 +161,7 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
 
     def 'can declare and configure a custom software type from a parent class'() {
         given:
-        withSoftwareTypePluginExposeSoftwareTypeFromParentClass().prepareToExecute()
+        withSoftwareTypePluginThatExposesSoftwareTypeFromParentClass().prepareToExecute()
 
         file("settings.gradle.something") << pluginsFromIncludedBuild
 

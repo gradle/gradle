@@ -57,7 +57,7 @@ trait SoftwareTypeFixture {
         )
     }
 
-    PluginBuilder withPluginThatExposesMultipleSoftwareTypes() {
+    PluginBuilder withSettingsPluginThatExposesMultipleSoftwareTypes() {
         PluginBuilder pluginBuilder = withSoftwareTypePlugins(
             softwareTypeExtension,
             projectPluginThatProvidesSoftwareType,
@@ -76,7 +76,7 @@ trait SoftwareTypeFixture {
         return pluginBuilder
     }
 
-    PluginBuilder withSoftwareTypePluginWithDifferentPublicAndImplementationModelTypes() {
+    PluginBuilder withSoftwareTypePluginThatHasDifferentPublicAndImplementationModelTypes() {
         PluginBuilder pluginBuilder = withSoftwareTypePlugins(
             publicModelType,
             getProjectPluginThatProvidesSoftwareType("TestSoftwareTypeExtensionImpl", "TestSoftwareTypeExtension"),
@@ -88,7 +88,7 @@ trait SoftwareTypeFixture {
         return pluginBuilder
     }
 
-    PluginBuilder withSoftwareTypePluginExposeSoftwareTypeFromParentClass() {
+    PluginBuilder withSoftwareTypePluginThatExposesSoftwareTypeFromParentClass() {
         PluginBuilder pluginBuilder = withSoftwareTypePlugins(
             softwareTypeExtension,
             projectPluginThatProvidesSoftwareTypeFromParentClass,

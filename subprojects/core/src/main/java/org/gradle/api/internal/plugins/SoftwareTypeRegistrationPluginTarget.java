@@ -32,6 +32,10 @@ import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
 import javax.annotation.Nullable;
 import java.util.Optional;
 
+/**
+ * A {@link PluginTarget} that inspects the plugin for {@link RegistersSoftwareTypes} annotations and registers them
+ * specified software type plugins with the {@link SoftwareTypeRegistry} prior to applying the plugin via the delegate.
+ */
 @NonNullApi
 public class SoftwareTypeRegistrationPluginTarget implements PluginTarget {
     private final PluginTarget delegate;

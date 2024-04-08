@@ -42,6 +42,10 @@ import java.util.function.Supplier;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 
+/**
+ * A {@link PluginTarget} that inspects the plugin for {@link SoftwareType} properties and adds them as extensions on the target prior to
+ * applying the plugin via the delegate.
+ */
 @NonNullApi
 public class AddSoftwareTypesAsExtensionsPluginTarget implements PluginTarget {
     private final AddSoftwareTypesAsExtensions addSoftwareTypesAsExtensions;

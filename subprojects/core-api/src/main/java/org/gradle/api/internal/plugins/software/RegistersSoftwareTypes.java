@@ -28,7 +28,7 @@ import java.lang.annotation.Target;
 /**
  * Marks a Settings plugin as registering a software type.
  *
- * @since 8.8
+ * @since 8.9
  */
 @Incubating
 @Target({ElementType.TYPE})
@@ -37,7 +37,7 @@ public @interface RegistersSoftwareTypes {
     /**
      * The plugin that provides the software type.
      *
-     * @since 8.8
+     * @since 8.9
      */
     Class<? extends Plugin<Project>>[] value();
 }
