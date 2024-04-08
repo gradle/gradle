@@ -22,7 +22,7 @@ import org.gradle.cache.LockTimeoutException;
 import java.util.concurrent.Callable;
 import java.util.function.Supplier;
 
-import static org.gradle.util.internal.GUtil.uncheckedCall;
+import static org.gradle.internal.UncheckedException.uncheckedCall;
 
 public abstract class AbstractFileAccess implements FileAccess {
     @Override
