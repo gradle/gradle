@@ -87,7 +87,7 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
                 "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/kotlin.min.js\"></script>" +
                 "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/groovy.min.js\"></script>" +
                 "<script>hljs.highlightAll();</script>");
-            options.addBooleanOption("-allow-script-in-comments",true);
+            options.addBooleanOption("-allow-script-in-comments", true);
 
             // TODO: This would be better to model as separate options
             options.addStringOption("Xdoclint:syntax,html,reference", "-quiet");
