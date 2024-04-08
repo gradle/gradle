@@ -23,13 +23,15 @@ import org.gradle.cache.LockOptions;
 import org.gradle.cache.PersistentCache;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.operations.BuildOperationRunner;
-import org.gradle.util.internal.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.util.Map;
 import java.util.Properties;
@@ -82,7 +84,13 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
                     LOGGER.debug("Invalidating {} as cache properties file {} is missing and cache properties are not empty.", DefaultPersistentDirectoryCache.this, propertiesFile.getAbsolutePath());
                     return true;
                 }
-                Properties cachedProperties = GUtil.loadProperties(propertiesFile);
+                Properties cachedProperties = new Properties();
+                try (InputStream propertiesInputStream = new FileInputStream(propertiesFile)) {
+                    cachedProperties.load(propertiesInputStream);
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+
                 for (Map.Entry<?, ?> entry : properties.entrySet()) {
                     String previousValue = cachedProperties.getProperty(entry.getKey().toString());
                     String currentValue = entry.getValue().toString();
@@ -114,7 +122,11 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
             if (initAction != null) {
                 initAction.accept(DefaultPersistentDirectoryCache.this);
             }
-            GUtil.saveProperties(properties, propertiesFile);
+            try (FileOutputStream propertiesFileOutputStream = new FileOutputStream(propertiesFile)) {
+                properties.store(propertiesFileOutputStream, null);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
         }
     }
 }
