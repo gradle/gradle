@@ -49,6 +49,10 @@ class K2IntegrationTest : AbstractKotlinIntegrationTest() {
                     }
                 }
             }
+            // Work around JVM validation issue: https://youtrack.jetbrains.com/issue/KT-66919
+            tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+                jvmTargetValidationMode = org.jetbrains.kotlin.gradle.dsl.jvm.JvmTargetValidationMode.WARNING
+            }
         """)
         withK2BuildLogic()
 
