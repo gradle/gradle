@@ -51,7 +51,7 @@ class PluginDetectionIntegrationTest extends AbstractIntegrationSpec {
             task verify {
                 doLast {
                     assert operations[0] == 'applying'
-                    assert operations[1] =~ /withId for JavaPlugin[\$]Inject[\\d]*/
+                    assert operations[1] =~ /withId for JavaPlugin_Decorated[\\d]*/
                     assert operations[2] == 'withPlugin'
                     assert operations[3] == 'applied'
                 }

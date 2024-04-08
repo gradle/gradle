@@ -17,9 +17,17 @@
 package org.gradle.api.internal.plugins;
 
 import org.gradle.api.Plugin;
+import org.gradle.api.internal.GeneratedSubclasses;
+import org.gradle.api.plugins.ExtensionAware;
+import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
+import org.gradle.api.internal.plugins.software.SoftwareType;
+import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 import static org.gradle.internal.Cast.uncheckedCast;
 
@@ -41,6 +49,28 @@ public class ImperativeOnlyPluginTarget<T extends PluginAwareInternal> implement
         // TODO validate that the plugin accepts this kind of argument
         Plugin<T> cast = uncheckedCast(plugin);
         cast.apply(target);
+
+        // TODO - this should probably be done with TypeMetadataWalker and some sort of annotation handler
+        if (target instanceof ExtensionAware) {
+            ExtensionContainer extensions = ((ExtensionAware) target).getExtensions();
+            Class<?> publicPluginType = GeneratedSubclasses.unpackType(plugin);
+            for (Method method : publicPluginType.getDeclaredMethods()) {
+                SoftwareType softwareType = method.getAnnotation(SoftwareType.class);
+                if (softwareType != null) {
+                    Object extension;
+                    try {
+                        extension = method.invoke(plugin);
+                    } catch (IllegalAccessException e) {
+                        throw new RuntimeException("Must be able to access @SoftwareType method", e);
+                    } catch (InvocationTargetException e) {
+                        throw new RuntimeException("Failed to create extension", e);
+                    }
+                    Class<?> returnType = softwareType.modelPublicType();
+                    extensions.add(returnType, softwareType.name(), Cast.uncheckedNonnullCast(extension));
+                }
+            }
+        }
+
     }
 
     @Override
