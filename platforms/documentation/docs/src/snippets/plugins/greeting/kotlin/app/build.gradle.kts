@@ -4,3 +4,7 @@ plugins {
     id("greetings")
 }
 // end::use-plugin[]
+
+greeting {
+    message = "Hello from Gradle"
+}

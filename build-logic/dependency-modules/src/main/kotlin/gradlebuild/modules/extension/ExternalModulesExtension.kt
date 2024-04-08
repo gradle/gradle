@@ -62,7 +62,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val googleHttpClientApacheV2 = "com.google.http-client:google-http-client-apache-v2"
     val googleOauthClient = "com.google.oauth-client:google-oauth-client"
     val gradleProfiler = "org.gradle.profiler:gradle-profiler"
-    val gradleEnterpriseTestAnnotation = "com.gradle:gradle-enterprise-testing-annotations"
+    val develocityTestAnnotation = "com.gradle:develocity-testing-annotations"
     val groovyGroup = if (isBundleGroovy4) "org.apache.groovy" else "org.codehaus.groovy"
     val groovy = "$groovyGroup:groovy"
     val groovyAnt = "$groovyGroup:groovy-ant"
