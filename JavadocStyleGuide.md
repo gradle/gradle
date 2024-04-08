@@ -200,6 +200,20 @@ A formatted and highlighted code snippet looks should look as follows:
  */
 ```
 
+In order to label the coding language used in the snippet, you can use additional HTML, `<div class="code-block"><span class="label">Groovy</span>...</div>`:
+
+```java
+/**
+ * <div class="code-block">
+ * <span class="label">Groovy</span>
+ * <pre class='groovy autoTested'><code class="language-groovy">
+ * defaultTasks('some-task')    // Delegates to Project.defaultTasks()
+ * reportsDir = file('reports') // Delegates to Project.file() and the Java Plugin
+ * </code></pre>
+ * </div>
+ */
+```
+
 ## 1.4 Where Javadoc is used
 
 At the minimum, Javadoc is present for every public class, and every public or protected member of such a class, with a few exceptions such as overrides and self-explanatory members:

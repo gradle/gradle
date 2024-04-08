@@ -796,7 +796,7 @@ li.ui-static-link a, li.ui-static-link a:visited {
     right:-18px;
 }
 #reset {
-    background-color: var(--detail-background-color);
+    background-color: rgb(255,255,255);
     background-image:url('resources/x.png');
     background-position:center;
     background-repeat:no-repeat;
