@@ -26,7 +26,7 @@ dependencies {
     implementation(kotlin("compiler-embeddable") as String) {
         because("Required by IncubatingApiReportTask")
     }
-    implementation("com.gradle:gradle-enterprise-gradle-plugin") {
+    implementation("com.gradle:develocity-gradle-plugin") {
         because("Arch-test plugin configures the PTS extension")
     }
 
