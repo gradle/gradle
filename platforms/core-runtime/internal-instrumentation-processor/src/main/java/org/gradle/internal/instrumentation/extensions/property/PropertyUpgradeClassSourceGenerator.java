@@ -21,7 +21,6 @@ import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.TypeSpec;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeAnnotatedMethodReader.DeprecationSpec;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 import org.gradle.internal.instrumentation.model.CallableInfo;
@@ -38,6 +37,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import static org.gradle.internal.instrumentation.processor.codegen.GradleReferencedType.DEPRECATION_LOGGER;
 import static org.gradle.internal.instrumentation.processor.codegen.GradleReferencedType.LIST_PROPERTY_LIST_VIEW;
 import static org.gradle.internal.instrumentation.processor.codegen.GradleReferencedType.MAP_PROPERTY_MAP_VIEW;
 import static org.gradle.internal.instrumentation.processor.codegen.GradleReferencedType.SET_PROPERTY_SET_VIEW;
@@ -132,19 +132,22 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
         DeprecationSpec deprecationSpec = requestExtra.getDeprecationSpec();
 
         CodeBlock.Builder depreactionBuilder = CodeBlock.builder()
-            .add("$T.deprecateProperty($T.class, $S)\n", DeprecationLogger.class, TypeUtils.typeName(callableInfo.getOwner().getType()), deprecatedPropertyName)
+            .add("$T.deprecateProperty($T.class, $S)\n", DEPRECATION_LOGGER.asTypeName(), TypeUtils.typeName(callableInfo.getOwner().getType()), deprecatedPropertyName)
             .add(".withContext($S)\n", "Property was automatically upgraded to the lazy version.");
 
         if (!newPropertyName.equals(deprecatedPropertyName)) {
             depreactionBuilder.add(".replaceWith($S)\n", newPropertyName);
         }
 
-        if (deprecationSpec.getRemovedIn() == -1) {
-            depreactionBuilder.add(".startingWithGradle9($S)\n", "Property is replaced with lazy version.");
-        } else if (deprecationSpec.getRemovedIn() == 9) {
-            depreactionBuilder.add(".willBeRemovedInGradle9()\n");
-        } else if (deprecationSpec.getRemovedIn() != -1) {
-            throw new UnsupportedOperationException("Only unset or 9 is currently supported for removedIn, but was: " + deprecationSpec.getRemovedIn());
+        switch (deprecationSpec.getRemovedIn()) {
+            case GRADLE9:
+                depreactionBuilder.add(".willBeRemovedInGradle9()\n");
+                break;
+            case UNSET:
+                depreactionBuilder.add(".startingWithGradle9($S)\n", "Property is replaced with lazy version.");
+                break;
+            default:
+                throw new UnsupportedOperationException("Only unset or 9 is currently supported for removedIn, but was: " + deprecationSpec.getRemovedIn());
         }
 
         if (deprecationSpec.getWithUpgradeGuideVersion() != -1) {

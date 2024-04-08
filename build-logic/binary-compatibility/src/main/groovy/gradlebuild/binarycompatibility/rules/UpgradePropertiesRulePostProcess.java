@@ -17,8 +17,8 @@
 package gradlebuild.binarycompatibility.rules;
 
 import gradlebuild.binarycompatibility.upgrades.UpgradedProperty.BinaryCompatibility;
-import gradlebuild.binarycompatibility.upgrades.UpgradedProperty.UpgradedMethod;
-import gradlebuild.binarycompatibility.upgrades.UpgradedProperty.UpgradedMethodKey;
+import gradlebuild.binarycompatibility.upgrades.UpgradedProperty.UpgradedAccessor;
+import gradlebuild.binarycompatibility.upgrades.UpgradedProperty.UpgradedAccessorKey;
 import me.champeau.gradle.japicmp.report.PostProcessViolationsRule;
 import me.champeau.gradle.japicmp.report.ViolationCheckContextWithViolations;
 import org.gradle.util.internal.CollectionUtils;
@@ -27,43 +27,43 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import static gradlebuild.binarycompatibility.upgrades.UpgradedProperties.OLD_METHODS_OF_UPGRADED_PROPERTIES;
-import static gradlebuild.binarycompatibility.upgrades.UpgradedProperties.SEEN_OLD_METHODS_OF_UPGRADED_PROPERTIES;
+import static gradlebuild.binarycompatibility.upgrades.UpgradedProperties.OLD_ACCESSORS_OF_UPGRADED_PROPERTIES;
+import static gradlebuild.binarycompatibility.upgrades.UpgradedProperties.SEEN_OLD_ACCESSORS_OF_UPGRADED_PROPERTIES;
 
 public class UpgradePropertiesRulePostProcess implements PostProcessViolationsRule {
 
     @Override
     @SuppressWarnings("unchecked")
     public void execute(ViolationCheckContextWithViolations context) {
-        Set<UpgradedMethodKey> seenUpgradedMethodChanges = (Set<UpgradedMethodKey>) context.getUserData().get(SEEN_OLD_METHODS_OF_UPGRADED_PROPERTIES);
-        Map<UpgradedMethodKey, UpgradedMethod> oldMethodsOfUpgradedProperties = (Map<UpgradedMethodKey, UpgradedMethod>) context.getUserData().get(OLD_METHODS_OF_UPGRADED_PROPERTIES);
+        Set<UpgradedAccessorKey> seenUpgradedAccessorsChanges = (Set<UpgradedAccessorKey>) context.getUserData().get(SEEN_OLD_ACCESSORS_OF_UPGRADED_PROPERTIES);
+        Map<UpgradedAccessorKey, UpgradedAccessor> oldAccessorsOfUpgradedProperties = (Map<UpgradedAccessorKey, UpgradedAccessor>) context.getUserData().get(OLD_ACCESSORS_OF_UPGRADED_PROPERTIES);
 
-        // Find methods that were not removed but should be
-        Map<UpgradedMethodKey, UpgradedMethod> leftMethods = new HashMap<>(oldMethodsOfUpgradedProperties);
-        leftMethods.entrySet().removeIf(e -> {
-            if (seenUpgradedMethodChanges.contains(e.getKey())) {
+        // Find accessors that were not removed but should be
+        Map<UpgradedAccessorKey, UpgradedAccessor> keptAccessors = new HashMap<>(oldAccessorsOfUpgradedProperties);
+        keptAccessors.entrySet().removeIf(e -> {
+            if (seenUpgradedAccessorsChanges.contains(e.getKey())) {
                 return true;
             }
-            UpgradedMethod method = e.getValue();
-            return method.getBinaryCompatibility() == BinaryCompatibility.METHODS_KEPT;
+            UpgradedAccessor accessor = e.getValue();
+            return accessor.getBinaryCompatibility() == BinaryCompatibility.ACCESSORS_KEPT;
         });
-        if (!leftMethods.isEmpty()) {
-            String formattedLeft = CollectionUtils.join("\n", leftMethods.keySet());
-            throw new RuntimeException("The following methods were upgraded, but didn't match any removed/changed method:\n\n" + formattedLeft);
+        if (!keptAccessors.isEmpty()) {
+            String formattedLeft = CollectionUtils.join("\n", keptAccessors.keySet());
+            throw new RuntimeException("The following accessors were upgraded, but didn't match any removed/changed method:\n\n" + formattedLeft);
         }
 
-        // Find methods that were removed but shouldn't be
-        Map<UpgradedMethodKey, UpgradedMethod> keptMethods = new HashMap<>(oldMethodsOfUpgradedProperties);
-        keptMethods.entrySet().removeIf(e -> {
-            if (!seenUpgradedMethodChanges.contains(e.getKey())) {
+        // Find accessors that were removed but shouldn't be
+        Map<UpgradedAccessorKey, UpgradedAccessor> removedAccessors = new HashMap<>(oldAccessorsOfUpgradedProperties);
+        removedAccessors.entrySet().removeIf(e -> {
+            if (!seenUpgradedAccessorsChanges.contains(e.getKey())) {
                 return true;
             }
-            UpgradedMethod method = e.getValue();
-            return method.getBinaryCompatibility() == BinaryCompatibility.METHODS_REMOVED;
+            UpgradedAccessor accessor = e.getValue();
+            return accessor.getBinaryCompatibility() == BinaryCompatibility.ACCESSORS_REMOVED;
         });
-        if (!keptMethods.isEmpty()) {
-            String formattedKept = CollectionUtils.join("\n", keptMethods.keySet());
-            throw new RuntimeException("The following methods were upgraded, but methods were removed although they shouldn't be:\n\n" + formattedKept);
+        if (!removedAccessors.isEmpty()) {
+            String formattedKept = CollectionUtils.join("\n", keptAccessors.keySet());
+            throw new RuntimeException("The following accessors were upgraded, but methods were removed although they shouldn't be:\n\n" + formattedKept);
         }
     }
 }

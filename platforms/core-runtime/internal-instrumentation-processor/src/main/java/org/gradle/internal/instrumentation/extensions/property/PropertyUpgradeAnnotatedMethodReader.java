@@ -16,6 +16,7 @@
 
 package org.gradle.internal.instrumentation.extensions.property;
 
+import org.gradle.internal.instrumentation.api.annotations.UpgradedDeprecation.RemovedIn;
 import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty;
 import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty.BinaryCompatibility;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
@@ -167,8 +168,8 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         boolean enabled = AnnotationUtils.findAnnotationValueWithDefaults(elements, deprecation, "enabled")
             .map(annotationValue -> (Boolean) annotationValue.getValue())
             .orElseThrow(() -> new AnnotationReadFailure("Missing 'enabled' attribute in @UpgradedDeprecation"));
-        int removedIn = AnnotationUtils.findAnnotationValueWithDefaults(elements, deprecation, "removedIn")
-            .map(annotationValue -> (int) annotationValue.getValue())
+        RemovedIn removedIn = AnnotationUtils.findAnnotationValueWithDefaults(elements, deprecation, "removedIn")
+            .map(v -> RemovedIn.valueOf(v.getValue().toString()))
             .orElseThrow(() -> new AnnotationReadFailure("Missing 'removedIn' attribute in @UpgradedDeprecation"));
         int withUpgradeGuideVersion = AnnotationUtils.findAnnotationValueWithDefaults(elements, deprecation, "withUpgradeGuideMajorVersion")
             .map(annotationValue -> (int) annotationValue.getValue())
@@ -412,14 +413,14 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
 
     static class DeprecationSpec {
         private final boolean enabled;
-        private final int removedIn;
+        private final RemovedIn removedIn;
         private final int withUpgradeGuideVersion;
         private final String withUpgradeGuideSection;
         private final boolean withDslReference;
 
         private DeprecationSpec(
             boolean enabled,
-            int removedIn,
+            RemovedIn removedIn,
             int withUpgradeGuideVersion,
             String withUpgradeGuideSection,
             boolean withDslReference
@@ -435,7 +436,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
             return enabled;
         }
 
-        public int getRemovedIn() {
+        public RemovedIn getRemovedIn() {
             return removedIn;
         }
 

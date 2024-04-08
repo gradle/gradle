@@ -102,7 +102,7 @@ public class InstrumentedPropertiesResourceGenerator implements InstrumentationR
         String methodName = upgradeExtra.getMethodName();
         String methodDescriptor = upgradeExtra.getMethodDescriptor();
         String containingType = firstRequest.getInterceptedCallable().getOwner().getType().getClassName();
-        List<UpgradedMethod> upgradedMethods = requests.stream()
+        List<UpgradedAccessor> upgradedAccessors = requests.stream()
             .map(request -> {
                 PropertyUpgradeRequestExtra requestExtra = request.getRequestExtras().getByType(PropertyUpgradeRequestExtra.class).get();
                 CallableInfo intercepted = request.getInterceptedCallable();
@@ -110,11 +110,11 @@ public class InstrumentedPropertiesResourceGenerator implements InstrumentationR
                 Type[] parameterTypes = intercepted.getParameters().stream()
                     .map(ParameterInfo::getParameterType)
                     .toArray(Type[]::new);
-                return new UpgradedMethod(intercepted.getCallableName(), Type.getMethodDescriptor(returnType, parameterTypes), requestExtra.getBinaryCompatibility());
+                return new UpgradedAccessor(intercepted.getCallableName(), Type.getMethodDescriptor(returnType, parameterTypes), requestExtra.getBinaryCompatibility());
             })
-            .sorted(Comparator.comparing((UpgradedMethod o) -> o.name).thenComparing(o -> o.descriptor))
+            .sorted(Comparator.comparing((UpgradedAccessor o) -> o.name).thenComparing(o -> o.descriptor))
             .collect(Collectors.toList());
-        return new PropertyEntry(containingType, propertyName, methodName, methodDescriptor, upgradedMethods);
+        return new PropertyEntry(containingType, propertyName, methodName, methodDescriptor, upgradedAccessors);
     }
 
     @JsonPropertyOrder(alphabetic = true)
@@ -123,14 +123,14 @@ public class InstrumentedPropertiesResourceGenerator implements InstrumentationR
         private final String methodName;
         private final String methodDescriptor;
         private final String containingType;
-        private final List<UpgradedMethod> upgradedMethods;
+        private final List<UpgradedAccessor> upgradedAccessors;
 
-        public PropertyEntry(String containingType, String propertyName, String methodName, String methodDescriptor, List<UpgradedMethod> upgradedMethods) {
+        public PropertyEntry(String containingType, String propertyName, String methodName, String methodDescriptor, List<UpgradedAccessor> upgradedAccessors) {
             this.containingType = containingType;
             this.propertyName = propertyName;
             this.methodName = methodName;
             this.methodDescriptor = methodDescriptor;
-            this.upgradedMethods = upgradedMethods;
+            this.upgradedAccessors = upgradedAccessors;
         }
 
         public String getContainingType() {
@@ -149,18 +149,18 @@ public class InstrumentedPropertiesResourceGenerator implements InstrumentationR
             return methodDescriptor;
         }
 
-        public List<UpgradedMethod> getUpgradedMethods() {
-            return upgradedMethods;
+        public List<UpgradedAccessor> getUpgradedAccessors() {
+            return upgradedAccessors;
         }
     }
 
     @JsonPropertyOrder(alphabetic = true)
-    static class UpgradedMethod {
+    static class UpgradedAccessor {
         private final String name;
         private final String descriptor;
         private final BinaryCompatibility binaryCompatibility;
 
-        public UpgradedMethod(String name, String descriptor, BinaryCompatibility binaryCompatibility) {
+        public UpgradedAccessor(String name, String descriptor, BinaryCompatibility binaryCompatibility) {
             this.name = name;
             this.descriptor = descriptor;
             this.binaryCompatibility = binaryCompatibility;

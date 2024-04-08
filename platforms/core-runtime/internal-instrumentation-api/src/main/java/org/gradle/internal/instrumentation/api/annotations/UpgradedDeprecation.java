@@ -36,7 +36,7 @@ public @interface UpgradedDeprecation {
     /**
      * Corresponds to .willBeRemovedInGradle9() in the DeprecationLogger
      */
-    int removedIn() default -1;
+    RemovedIn removedIn() default RemovedIn.UNSET;
 
     /**
      * Corresponds to .withUpgradeGuideSection(majorVersion, section) in the DeprecationLogger
@@ -56,4 +56,9 @@ public @interface UpgradedDeprecation {
      * WithDslReference has lower priority than withUpgradeGuideSection
      */
     boolean withDslReference() default false;
+
+    enum RemovedIn {
+        GRADLE9,
+        UNSET
+    }
 }

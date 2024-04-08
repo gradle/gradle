@@ -25,6 +25,7 @@ import org.objectweb.asm.Type;
  */
 public enum GradleReferencedType {
     METHOD_VISITOR_SCOPE("org.gradle.model.internal.asm.MethodVisitorScope"),
+    DEPRECATION_LOGGER("org.gradle.internal.deprecation.DeprecationLogger"),
     LIST_PROPERTY_LIST_VIEW("org.gradle.api.internal.provider.views.ListPropertyListView"),
     SET_PROPERTY_SET_VIEW("org.gradle.api.internal.provider.views.SetPropertySetView"),
     MAP_PROPERTY_MAP_VIEW("org.gradle.api.internal.provider.views.MapPropertyMapView");

@@ -100,12 +100,12 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
                             "methodName": "getSourceCompatibility",
                             "methodDescriptor": "()Lorg/gradle/api/provider/Property;",
                             "propertyName": "sourceCompatibility",
-                            "upgradedMethods": [{
-                                "binaryCompatibility": "METHODS_REMOVED",
+                            "upgradedAccessors": [{
+                                "binaryCompatibility": "ACCESSORS_REMOVED",
                                 "descriptor": "()Ljava/lang/String;",
                                 "name": "getSourceCompatibility"
                             }, {
-                                "binaryCompatibility": "METHODS_REMOVED",
+                                "binaryCompatibility": "ACCESSORS_REMOVED",
                                 "descriptor": "(Ljava/lang/String;)V",
                                 "name": "setSourceCompatibility"
                             }]
@@ -164,12 +164,12 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
                             "methodName": "getFailOnError",
                             "methodDescriptor": "()Lorg/gradle/api/provider/Property;",
                             "propertyName": "failOnError",
-                            "upgradedMethods": [{
-                                "binaryCompatibility": "METHODS_REMOVED",
+                            "upgradedAccessors": [{
+                                "binaryCompatibility": "ACCESSORS_REMOVED",
                                 "descriptor": "()Z",
                                 "name": "isFailOnError"
                             }, {
-                                "binaryCompatibility": "METHODS_REMOVED",
+                                "binaryCompatibility": "ACCESSORS_REMOVED",
                                 "descriptor": "(Z)V",
                                 "name": "setFailOnError"
                             }]
@@ -224,8 +224,8 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
                             "methodName": "getFailOnError",
                             "methodDescriptor": "()Lorg/gradle/api/provider/Property;",
                             "propertyName": "failOnError",
-                            "upgradedMethods": [{
-                                "binaryCompatibility": "METHODS_REMOVED",
+                            "upgradedAccessors": [{
+                                "binaryCompatibility": "ACCESSORS_REMOVED",
                                 "descriptor": "()Z",
                                 "name": "isFailOnError"
                             }]
@@ -283,12 +283,12 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
                             "methodName": "getSourceCompatibility",
                             "methodDescriptor": "()Lorg/gradle/api/provider/Property;",
                             "propertyName": "sourceCompatibility",
-                            "upgradedMethods": [{
-                                "binaryCompatibility": "METHODS_REMOVED",
+                            "upgradedAccessors": [{
+                                "binaryCompatibility": "ACCESSORS_REMOVED",
                                 "descriptor": "()Ljava/lang/String;",
                                 "name": "getSourceCompatibility"
                             }, {
-                                "binaryCompatibility": "METHODS_REMOVED",
+                                "binaryCompatibility": "ACCESSORS_REMOVED",
                                 "descriptor": "(Ljava/lang/String;)V",
                                 "name": "setSourceCompatibility"
                             }]
@@ -297,7 +297,7 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
                 )
             }
         ) {
-            assertOutputContains("The following methods were upgraded, but didn't match any removed/changed method:\n\ncom.example.Task#setSourceCompatibility(Ljava/lang/String;)V")
+            assertOutputContains("The following accessors were upgraded, but didn't match any removed/changed method:\n\ncom.example.Task#setSourceCompatibility(Ljava/lang/String;)V")
         }
     }
 
@@ -342,12 +342,12 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
                             "methodName": "getSourceCompatibility",
                             "methodDescriptor": "()Lorg/gradle/api/provider/Property;",
                             "propertyName": "sourceCompatibility",
-                            "upgradedMethods": [{
-                                "binaryCompatibility": "METHODS_REMOVED",
+                            "upgradedAccessors": [{
+                                "binaryCompatibility": "ACCESSORS_REMOVED",
                                 "descriptor": "()Ljava/lang/String;",
                                 "name": "getSourceCompatibility"
                             }, {
-                                "binaryCompatibility": "METHODS_KEPT",
+                                "binaryCompatibility": "ACCESSORS_KEPT",
                                 "descriptor": "(Ljava/lang/String;)V",
                                 "name": "setSourceCompatibility"
                             }]
@@ -404,12 +404,12 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
                             "methodName": "getSourceCompatibility",
                             "methodDescriptor": "()Lorg/gradle/api/provider/Property;",
                             "propertyName": "sourceCompatibility",
-                            "upgradedMethods": [{
-                                "binaryCompatibility": "METHODS_REMOVED",
+                            "upgradedAccessors": [{
+                                "binaryCompatibility": "ACCESSORS_REMOVED",
                                 "descriptor": "()Ljava/lang/String;",
                                 "name": "getSourceCompatibility"
                             }, {
-                                "binaryCompatibility": "METHODS_KEPT",
+                                "binaryCompatibility": "ACCESSORS_KEPT",
                                 "descriptor": "(Ljava/lang/String;)V",
                                 "name": "setSourceCompatibility"
                             }]
@@ -467,12 +467,12 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
                             "methodName": "getSourceCompatibility",
                             "methodDescriptor": "()Lorg/gradle/api/provider/Property;",
                             "propertyName": "sourceCompatibility",
-                            "upgradedMethods": [{
-                                "binaryCompatibility": "METHODS_REMOVED",
+                            "upgradedAccessors": [{
+                                "binaryCompatibility": "ACCESSORS_REMOVED",
                                 "descriptor": "()Ljava/lang/String;",
                                 "name": "getSourceCompat"
                             }, {
-                                "binaryCompatibility": "METHODS_REMOVED",
+                                "binaryCompatibility": "ACCESSORS_REMOVED",
                                 "descriptor": "(Ljava/lang/String;)V",
                                 "name": "setSourceCompat"
                             }]
