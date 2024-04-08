@@ -86,7 +86,7 @@ class PropertyAccessResolverImpl(
             } else {
                 if (result is ObjectOrigin.PropertyReference) {
                     checkAccessOnCurrentReceiver(result)
-                    if (result.property.isWriteOnly) {
+                    if (result.property.isWriteOnly()) {
                         errorCollector.collect(ResolutionError(result.originElement, ErrorReason.NonReadableProperty(result.property)))
                         return null
                     } else {

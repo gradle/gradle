@@ -62,7 +62,7 @@ class StatementResolverImpl(
             null
         } else {
             var hasErrors = false
-            if (lhsResolution.property.isReadOnly) {
+            if (lhsResolution.property.isReadOnly()) {
                 errorCollector.collect(ResolutionError(assignment, ErrorReason.ReadOnlyPropertyAssignment(lhsResolution.property)))
                 hasErrors = true
             }

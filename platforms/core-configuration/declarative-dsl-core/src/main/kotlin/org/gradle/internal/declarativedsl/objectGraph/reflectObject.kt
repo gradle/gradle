@@ -165,7 +165,7 @@ fun reflectData(
         val referenceResolution = PropertyReferenceResolution(objectOrigin, it)
         when (val assignment = context.resolveAssignment(referenceResolution)) {
             is Assigned -> it to PropertyValueReflection(reflect(assignment.objectOrigin, context), assignment.assignmentMethod)
-            else -> if (it.hasDefaultValue) {
+            else -> if (it.hasDefaultValue()) {
                 it to PropertyValueReflection(reflect(ObjectOrigin.PropertyDefaultValue(objectOrigin, it, objectOrigin.originElement), context), AssignmentMethod.AsConstructed)
             } else null
         }
