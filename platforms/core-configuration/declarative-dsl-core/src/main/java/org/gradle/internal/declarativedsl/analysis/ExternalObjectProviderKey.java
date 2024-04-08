@@ -18,14 +18,8 @@ package org.gradle.internal.declarativedsl.analysis;
 
 import java.io.Serializable;
 
-public interface DataParameter extends Serializable {
-
-    String getName();
+public interface ExternalObjectProviderKey extends Serializable {
 
     DataTypeRef getType();
-
-    boolean isDefault();
-
-    ParameterSemantics getSemantics();
 
 }
