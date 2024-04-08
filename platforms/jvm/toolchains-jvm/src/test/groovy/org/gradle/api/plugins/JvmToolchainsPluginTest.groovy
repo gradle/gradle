@@ -16,9 +16,8 @@
 
 package org.gradle.api.plugins
 
-
+import org.gradle.internal.Actions
 import org.gradle.jvm.toolchain.JavaToolchainService
-import org.gradle.jvm.toolchain.internal.CurrentJvmToolchainSpec
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 class JvmToolchainsPluginTest extends AbstractProjectBuilderSpec {
@@ -39,6 +38,6 @@ class JvmToolchainsPluginTest extends AbstractProjectBuilderSpec {
 
     def "toolchain service dependencies are satisfied"() {
         expect:
-        project.extensions.getByType(JavaToolchainService).launcherFor(new CurrentJvmToolchainSpec(project.objects)).get().executablePath.asFile.isFile()
+        project.extensions.getByType(JavaToolchainService).launcherFor(Actions.doNothing()).get().executablePath.asFile.isFile()
     }
 }

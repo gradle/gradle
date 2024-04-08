@@ -129,7 +129,7 @@ public class DaemonParameters {
         return requestedJvmCriteria;
     }
 
-    public void setRequestedJvmCriteria(Map<String, String> buildProperties) {
+    public void setRequestedJvmCriteria(@Nullable Map<String, String> buildProperties) {
         String requestedVersion = buildProperties.get(BuildPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY);
         if (requestedVersion != null) {
             try {
@@ -147,7 +147,7 @@ public class DaemonParameters {
         return requestedJvmBasedOnJavaHome;
     }
 
-    public void setRequestedJvmBasedOnJavaHome(JavaInfo requestedJvmBasedOnJavaHome) {
+    public void setRequestedJvmBasedOnJavaHome(@Nullable JavaInfo requestedJvmBasedOnJavaHome) {
         this.requestedJvmBasedOnJavaHome = requestedJvmBasedOnJavaHome;
     }
 

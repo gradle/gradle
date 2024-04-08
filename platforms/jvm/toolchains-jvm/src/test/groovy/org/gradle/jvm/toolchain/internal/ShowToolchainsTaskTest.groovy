@@ -17,57 +17,50 @@
 package org.gradle.jvm.toolchain.internal
 
 
-import org.gradle.api.internal.provider.Providers
-import org.gradle.api.provider.ProviderFactory
 import org.gradle.internal.jvm.inspection.JavaInstallationRegistry
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
-import org.gradle.internal.jvm.inspection.JvmInstallationProblemReporter
-import org.gradle.internal.jvm.inspection.JvmMetadataDetector
+import org.gradle.internal.jvm.inspection.JvmToolchainMetadata
 import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.internal.logging.text.TestStyledTextOutput
-import org.gradle.internal.operations.TestBuildOperationRunner
-import org.gradle.internal.progress.NoOpProgressLoggerFactory
 import org.gradle.jvm.toolchain.internal.task.ShowToolchainsTask
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import spock.lang.Subject
+
+import javax.inject.Inject
 
 class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
-
+    @Subject
     TestShowToolchainsTask task
-    def output
-    JvmMetadataDetector detector
+    TestStyledTextOutput outputProbe = new TestStyledTextOutput()
+    ToolchainConfiguration toolchainConfiguration = Stub(ToolchainConfiguration)
 
-    def setup() {
-        task = project.tasks.create("test", TestShowToolchainsTask.class)
-        detector = Mock(JvmMetadataDetector)
-        output = new TestStyledTextOutput()
+    def defineJdks(JvmToolchainMetadata... toolchains) {
+        def javaInstallationRegistry = Mock(JavaInstallationRegistry)
+        javaInstallationRegistry.toolchains() >> toolchains
 
-        task.metadataDetector = detector
-        task.providerFactory = createProviderFactory(true, true)
-        task.outputFactory = Mock(StyledTextOutputFactory) {
-            create(_ as Class) >> output
-        }
+        def styledTextOutputFactory = Mock(StyledTextOutputFactory)
+        styledTextOutputFactory.create(_) >> outputProbe
+
+        task = project.tasks.create("test", TestShowToolchainsTask.class, javaInstallationRegistry, styledTextOutputFactory, toolchainConfiguration)
     }
 
     def "reports toolchains in right order"() {
-        def jdk14 = testLocation("14")
-        def jdk15 = testLocation("15")
-        def jdk9 = testLocation("9")
-        def jdk8 = testLocation("1.8.0_202")
-        def jdk82 = testLocation("1.8.0_404")
-
         given:
-        task.installationRegistry = createRegistry([jdk14, jdk15, jdk9, jdk8, jdk82])
-        detector.getMetadata(jdk14) >> metadata("14", "+2")
-        detector.getMetadata(jdk15) >> metadata("15-ea", "+2")
-        detector.getMetadata(jdk9) >> metadata("9", "+2")
-        detector.getMetadata(jdk8) >> metadata("1.8.0_202", "-b01")
-        detector.getMetadata(jdk82) >> metadata("1.8.0_404", "-b01")
+        defineJdks(
+            jdk("14", "+2", "14"),
+            jdk("15-ea", "+2", "15"),
+            jdk("9", "+2", "15"),
+            jdk("1.8.0_202", "-b01", "1.8.0_202"),
+            jdk("1.8.0_404", "-b01", "1.8.0_404")
+        )
+        toolchainConfiguration.isAutoDetectEnabled() >> true
+        toolchainConfiguration.isDownloadEnabled() >> true
 
         when:
         task.showToolchains()
 
         then:
-        output.value == """
+        outputProbe.value == """
 {identifier} + Options{normal}
      | Auto-detection:     {description}Enabled{normal}
      | Auto-download:      {description}Enabled{normal}
@@ -116,21 +109,20 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
     }
 
     def "reports toolchains with good and invalid ones"() {
-        def jdk14 = testLocation("14")
-        def invalid = testLocation("invalid")
-        def noSuchDirectory = testLocation("noSuchDirectory")
-
         given:
-        task.installationRegistry = createRegistry([jdk14, invalid, noSuchDirectory])
-        detector.getMetadata(jdk14) >> metadata("14", "+1")
-        detector.getMetadata(invalid) >> newInvalidMetadata()
-        detector.getMetadata(noSuchDirectory) >> newInvalidMetadata()
+        defineJdks(
+            jdk("14", "+1", "14"),
+            jdk(null, null, "invalid"),
+            jdk(null, null, "noSuchDirectory"),
+        )
+        toolchainConfiguration.isAutoDetectEnabled() >> true
+        toolchainConfiguration.isDownloadEnabled() >> true
 
         when:
         task.showToolchains()
 
         then:
-        output.value == """
+        outputProbe.value == """
 {identifier} + Options{normal}
      | Auto-detection:     {description}Enabled{normal}
      | Auto-download:      {description}Enabled{normal}
@@ -153,7 +145,7 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
     }
 
     def "reports toolchain probing failure cause lines"() {
-        def path = testLocation("path")
+        given:
         def createFailureWithNCauses = { n ->
             def rootCause = new Exception("lastLine")
             n == 0
@@ -161,15 +153,18 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
                 (1..n).inject(new Exception("lastLine")) { acc, it -> new Exception("line${n - it}", acc) }
         }
 
-        given:
-        task.installationRegistry = createRegistry([path])
-        detector.getMetadata(path) >> JvmInstallationMetadata.failure(path.location, createFailureWithNCauses(nCauses))
+        def jdkPath = testLocation("path")
+        defineJdks(
+            new JvmToolchainMetadata(JvmInstallationMetadata.failure(jdkPath.location, createFailureWithNCauses(nCauses)), jdkPath),
+        )
+        toolchainConfiguration.isAutoDetectEnabled() >> true
+        toolchainConfiguration.isDownloadEnabled() >> true
 
         when:
         task.showToolchains()
 
         then:
-        output.value == """
+        outputProbe.value == """
 {identifier} + Options{normal}
      | Auto-detection:     {description}Enabled{normal}
      | Auto-download:      {description}Enabled{normal}
@@ -220,14 +215,15 @@ $errorLines
 
     def "reports download and detection options"() {
         given:
-        task.providerFactory = createProviderFactory(false, false)
-        task.installationRegistry = createRegistry([])
+        defineJdks()
+        toolchainConfiguration.isAutoDetectEnabled() >> false
+        toolchainConfiguration.isDownloadEnabled() >> false
 
         when:
         task.showToolchains()
 
         then:
-        output.value == """
+        outputProbe.value == """
 {identifier} + Options{normal}
      | Auto-detection:     {description}Disabled{normal}
      | Auto-download:      {description}Disabled{normal}
@@ -236,19 +232,19 @@ $errorLines
     }
 
     def "reports only toolchains with errors"() {
-        def invalid = testLocation("invalid")
-        def noSuchDirectory = testLocation("noSuchDirectory")
-
         given:
-        task.installationRegistry = createRegistry([invalid, noSuchDirectory])
-        detector.getMetadata(invalid) >> newInvalidMetadata()
-        detector.getMetadata(noSuchDirectory) >> newInvalidMetadata()
+        defineJdks(
+            jdk(null, null, "invalid"),
+            jdk(null, null, "noSuchDirectory"),
+        )
+        toolchainConfiguration.isAutoDetectEnabled() >> true
+        toolchainConfiguration.isDownloadEnabled() >> true
 
         when:
         task.showToolchains()
 
         then:
-        output.value == """
+        outputProbe.value == """
 {identifier} + Options{normal}
      | Auto-detection:     {description}Enabled{normal}
      | Auto-download:      {description}Enabled{normal}
@@ -262,41 +258,38 @@ $errorLines
 """
     }
 
-    JvmInstallationMetadata metadata(String javaVersion, String build) {
+    private static JvmToolchainMetadata jdk(String javaVersion, String build, String javaHomePath) {
+        if (javaVersion == null) {
+            return new JvmToolchainMetadata(newInvalidMetadata(), testLocation(javaHomePath))
+        }
+        return new JvmToolchainMetadata(metadata(javaVersion, build), testLocation(javaHomePath))
+    }
+
+    private static JvmInstallationMetadata metadata(String javaVersion, String build) {
         def runtimeVersion = javaVersion + build
         def jvmVersion = runtimeVersion + "-vm"
         return JvmInstallationMetadata.from(new File("path"), javaVersion, "adoptopenjdk", "runtimeName", runtimeVersion, "", jvmVersion, "jvmVendor", "archName")
     }
 
-    JvmInstallationMetadata newInvalidMetadata() {
+    private static JvmInstallationMetadata newInvalidMetadata() {
         return JvmInstallationMetadata.failure(new File("path"), "errorMessage")
-    }
-
-    ProviderFactory createProviderFactory(boolean enableDetection, boolean enableDownload) {
-        def providerFactory = Mock(ProviderFactory)
-        providerFactory.gradleProperty("org.gradle.java.installations.auto-detect") >> Providers.of(String.valueOf(enableDetection))
-        providerFactory.gradleProperty("org.gradle.java.installations.auto-download") >> Providers.of(String.valueOf(enableDownload))
-        providerFactory
-    }
-
-    private JavaInstallationRegistry createRegistry(List<InstallationLocation> locations) {
-        return new JavaInstallationRegistry(null, detector, new TestBuildOperationRunner(), null, new NoOpProgressLoggerFactory(), new JvmInstallationProblemReporter()) {
-            @Override
-            protected Set<InstallationLocation> listInstallations() {
-                return locations;
-            }
-        }
     }
 
     private static InstallationLocation testLocation(String javaHomePath) {
         return InstallationLocation.userDefined(new File(javaHomePath), "TestSource")
     }
 
-    static class TestShowToolchainsTask extends ShowToolchainsTask {
-        def installationRegistry
-        def metadataDetector
-        def outputFactory
-        def providerFactory
+    static abstract class TestShowToolchainsTask extends ShowToolchainsTask {
+        private final JavaInstallationRegistry installationRegistry
+        private final StyledTextOutputFactory outputFactory
+        private final ToolchainConfiguration toolchainConfiguration
+
+        @Inject
+        TestShowToolchainsTask(JavaInstallationRegistry installationRegistry, StyledTextOutputFactory outputFactory, ToolchainConfiguration toolchainConfiguration) {
+            this.toolchainConfiguration = toolchainConfiguration
+            this.installationRegistry = installationRegistry
+            this.outputFactory = outputFactory
+        }
 
         @Override
         protected JavaInstallationRegistry getInstallationRegistry() {
@@ -309,8 +302,8 @@ $errorLines
         }
 
         @Override
-        protected ProviderFactory getProviderFactory() {
-            providerFactory
+        protected ToolchainConfiguration getToolchainConfiguration() {
+            return toolchainConfiguration
         }
     }
 }

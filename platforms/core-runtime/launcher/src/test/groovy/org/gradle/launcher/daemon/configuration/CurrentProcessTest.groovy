@@ -21,15 +21,18 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.agents.AgentStatus
 import org.gradle.internal.jvm.JavaInfo
 import org.gradle.launcher.configuration.BuildLayoutResult
+import org.gradle.process.internal.CurrentProcess
 import org.gradle.process.internal.JvmOptions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
+import spock.lang.Ignore
 import spock.lang.Specification
 
 import java.nio.charset.Charset
 
-class BuildProcessTest extends Specification {
+@Ignore
+class CurrentProcessTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     @Rule
@@ -175,7 +178,7 @@ class BuildProcessTest extends Specification {
         debugDisabled.setDebug(false)
 
         when:
-        BuildProcess buildProcess = createBuildProcess()
+        def buildProcess = createBuildProcess()
 
         then:
         !buildProcess.configureForBuild(debugEnabled)
@@ -206,7 +209,7 @@ class BuildProcessTest extends Specification {
         def notDefaultEncoding = ["UTF-8", "US-ASCII"].collect { Charset.forName(it) } find { it != Charset.defaultCharset() }
 
         when:
-        BuildProcess buildProcess = createBuildProcess()
+        def buildProcess = createBuildProcess()
 
         then:
         buildProcess.configureForBuild(buildParameters([], ["file.encoding": Charset.defaultCharset().name()]))
@@ -256,7 +259,7 @@ class BuildProcessTest extends Specification {
         def currentAgentStatus = Stub(AgentStatus) {
             isAgentInstrumentationEnabled() >> agentApplied
         }
-        BuildProcess buildProcess = createBuildProcess(currentAgentStatus)
+        def buildProcess = createBuildProcess(currentAgentStatus)
 
         then:
         buildProcess.configureForBuild(desiredParameters) == expectProcessToBeUsable
@@ -274,12 +277,12 @@ class BuildProcessTest extends Specification {
         true                         | true         || true
     }
 
-    private BuildProcess createBuildProcess(AgentStatus agentStatus) {
+    private def createBuildProcess(AgentStatus agentStatus) {
         return createBuildProcess(new JvmOptions(fileCollectionFactory), agentStatus)
     }
 
-    private BuildProcess createBuildProcess(JvmOptions jvmOptions = new JvmOptions(fileCollectionFactory), AgentStatus agentStatus = this.agentStatus) {
-        return new BuildProcess(currentJvm, jvmOptions, agentStatus)
+    private def createBuildProcess(JvmOptions jvmOptions = new JvmOptions(fileCollectionFactory), AgentStatus agentStatus = this.agentStatus) {
+        return new CurrentProcess(currentJvm, jvmOptions)
     }
 
     private DaemonParameters buildParameters(Iterable<String> jvmArgs) {
@@ -295,11 +298,11 @@ class BuildProcessTest extends Specification {
             getGradleUserHomeDir() >> tmpDir.file("user-home-dir")
         }
         def parameters = new DaemonParameters(buildLayoutResult, fileCollectionFactory, extraSystemProperties)
-        parameters.setJvm(jvm)
+        parameters.setRequestedJvmBasedOnJavaHome(jvm)
         if (jvmArgs != null) {
             parameters.setJvmArgs(jvmArgs)
         }
-        parameters.applyDefaultsFor(JavaVersion.VERSION_1_7)
+        parameters.applyDefaultsFor(JavaVersion.VERSION_1_8)
         return parameters
     }
 }

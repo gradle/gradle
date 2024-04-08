@@ -66,14 +66,14 @@ public class DaemonContextParser {
             String javaHome = matcher.group(2);
             String javaVersion = matcher.group(3);
             String daemonRegistryDir = matcher.group(4);
-            String pidStr = matcher.group(4);
+            String pidStr = matcher.group(5);
             Long pid = pidStr.equals("null") ? null : Long.parseLong(pidStr);
-            Integer idleTimeout = Integer.decode(matcher.group(5));
-            DaemonParameters.Priority priority = matcher.group(6) == null ? DaemonParameters.Priority.NORMAL : DaemonParameters.Priority.valueOf(matcher.group(6).substring(",priority=".length()));
-            boolean applyInstrumentationAgent = Boolean.parseBoolean(matcher.group(7));
-            NativeServicesMode nativeServicesMode = matcher.group(8) == null ? NativeServicesMode.ENABLED : NativeServicesMode.valueOf(matcher.group(8));
-            List<String> jvmOpts = Lists.newArrayList(Splitter.on(',').split(matcher.group(9)));
-            return new DefaultDaemonContext(uid, new File(javaHome), JavaVersion.valueOf(javaVersion), new File(daemonRegistryDir), pid, idleTimeout, jvmOpts, applyInstrumentationAgent, nativeServicesMode, priority);
+            Integer idleTimeout = Integer.decode(matcher.group(6));
+            DaemonParameters.Priority priority = matcher.group(7) == null ? DaemonParameters.Priority.NORMAL : DaemonParameters.Priority.valueOf(matcher.group(7).substring(",priority=".length()));
+            boolean applyInstrumentationAgent = Boolean.parseBoolean(matcher.group(8));
+            NativeServicesMode nativeServicesMode = matcher.group(9) == null ? NativeServicesMode.ENABLED : NativeServicesMode.valueOf(matcher.group(9));
+            List<String> jvmOpts = Lists.newArrayList(Splitter.on(',').split(matcher.group(10)));
+            return new DefaultDaemonContext(uid, new File(javaHome), JavaVersion.toVersion(javaVersion), new File(daemonRegistryDir), pid, idleTimeout, jvmOpts, applyInstrumentationAgent, nativeServicesMode, priority);
         } else {
             return null;
         }

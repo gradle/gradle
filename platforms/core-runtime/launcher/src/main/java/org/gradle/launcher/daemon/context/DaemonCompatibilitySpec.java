@@ -38,7 +38,7 @@ public class DaemonCompatibilitySpec implements ExplainingSpec<DaemonContext> {
     @Override
     public String whyUnsatisfied(DaemonContext context) {
         if (!jvmCompatible(context)) {
-            return "Java home is different.\n" + description(context);
+            return "JVM is incompatible.\n" + description(context);
         } else if (!daemonOptsMatch(context)) {
             return "At least one daemon option is different.\n" + description(context);
         } else if (!priorityMatches(context)) {
@@ -63,8 +63,7 @@ public class DaemonCompatibilitySpec implements ExplainingSpec<DaemonContext> {
 
     private boolean jvmCompatible(DaemonContext potentialContext) {
         if (desiredContext.getJvmCriteria() != null) {
-            // TODO: This should consider other criteria
-            return desiredContext.getJvmCriteria().getJavaVersion().equals(potentialContext.getJavaVersion());
+            return desiredContext.getJvmCriteria().isCompatibleWith(potentialContext.getJavaVersion());
         } else {
             try {
                 File potentialJavaHome = potentialContext.getJavaHome();

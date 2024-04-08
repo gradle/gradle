@@ -38,6 +38,7 @@ import org.gradle.jvm.toolchain.internal.AutoInstalledInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainResolverRegistry;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainService;
 import org.gradle.jvm.toolchain.internal.DefaultJvmToolchainManagement;
+import org.gradle.jvm.toolchain.internal.DefaultOsXJavaHomeCommand;
 import org.gradle.jvm.toolchain.internal.InstallationSupplier;
 import org.gradle.jvm.toolchain.internal.IntellijInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.JabbaInstallationSupplier;
@@ -46,6 +47,7 @@ import org.gradle.jvm.toolchain.internal.LinuxInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.MavenToolchainsInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.OsXInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.SdkmanInstallationSupplier;
+import org.gradle.jvm.toolchain.internal.ToolchainConfiguration;
 import org.gradle.jvm.toolchain.internal.WindowsInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.install.DefaultJavaToolchainProvisioningService;
 import org.gradle.jvm.toolchain.internal.install.JdkCacheDirectory;
@@ -78,12 +80,13 @@ public class ToolchainsJvmServices extends AbstractPluginServiceRegistry {
             return objectFactory.newInstance(JdkCacheDirectory.class, homeDirProvider, operations, lockManager, detector);
         }
 
-        protected JavaInstallationRegistry createJavaInstallationRegistry(ObjectFactory objectFactory, List<InstallationSupplier> suppliers, BuildOperationRunner buildOperationRunner, OperatingSystem os) {
-            return objectFactory.newInstance(JavaInstallationRegistry.class, suppliers, buildOperationRunner, os);
+        protected JavaInstallationRegistry createJavaInstallationRegistry(ObjectFactory objectFactory, ToolchainConfiguration toolchainConfiguration, List<InstallationSupplier> suppliers, BuildOperationRunner buildOperationRunner, OperatingSystem os) {
+            return objectFactory.newInstance(JavaInstallationRegistry.class, toolchainConfiguration, suppliers, buildOperationRunner, os);
         }
 
         public void configure(ServiceRegistration registration) {
             registration.add(ProviderBackedToolchainConfiguration.class);
+            registration.add(DefaultOsXJavaHomeCommand.class);
 
             registration.add(AutoInstalledInstallationSupplier.class);
 

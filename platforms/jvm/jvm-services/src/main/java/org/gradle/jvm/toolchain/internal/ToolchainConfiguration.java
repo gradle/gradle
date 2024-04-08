@@ -16,8 +16,12 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 import java.util.Collection;
 
+@ServiceScope({ Scope.Build.class, Scope.Global.class })
 public interface ToolchainConfiguration {
     Collection<String> getJavaInstallationsFromEnvironment();
     void setJavaInstallationsFromEnvironment(Collection<String> installations);
@@ -27,4 +31,7 @@ public interface ToolchainConfiguration {
 
     boolean isAutoDetectEnabled();
     void setAutoDetectEnabled(boolean enabled);
+
+    boolean isDownloadEnabled();
+    void setDownloadEnabled(boolean enabled);
 }

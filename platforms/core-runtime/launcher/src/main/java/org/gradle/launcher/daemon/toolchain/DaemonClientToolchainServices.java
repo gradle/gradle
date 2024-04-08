@@ -26,6 +26,7 @@ import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.jvm.toolchain.internal.AutoInstalledInstallationSupplier;
+import org.gradle.jvm.toolchain.internal.DefaultOsXJavaHomeCommand;
 import org.gradle.jvm.toolchain.internal.InstallationSupplier;
 import org.gradle.jvm.toolchain.internal.LinuxInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.OsXInstallationSupplier;
@@ -45,6 +46,8 @@ public class DaemonClientToolchainServices {
 
     public void configure(ServiceRegistration registration) {
         registration.add(ToolchainConfiguration.class, toolchainConfiguration);
+        registration.add(DefaultOsXJavaHomeCommand.class);
+
         registration.add(AutoInstalledInstallationSupplier.class);
 
 //        registration.add(AsdfInstallationSupplier.class);

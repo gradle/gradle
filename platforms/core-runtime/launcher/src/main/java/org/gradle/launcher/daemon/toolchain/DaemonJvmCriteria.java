@@ -17,6 +17,7 @@
 package org.gradle.launcher.daemon.toolchain;
 
 import org.gradle.api.JavaVersion;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.jvm.toolchain.JvmImplementation;
 import org.gradle.jvm.toolchain.JvmVendorSpec;
 
@@ -43,8 +44,18 @@ public class DaemonJvmCriteria {
         return jvmImplementation;
     }
 
+    public boolean isCompatibleWith(Jvm other) {
+        return isCompatibleWith(other.getJavaVersion());
+    }
+
     @Override
     public String toString() {
+        // TODO: Include vendor and implementation
         return String.format("JVM version '%s'", getJavaVersion());
+    }
+
+    public boolean isCompatibleWith(JavaVersion javaVersion) {
+        // TODO: Implement comparisons for vendorSpec and jvmImplementation
+        return javaVersion == getJavaVersion(); // && vendorSpec.matches() && jvmImplementation == other.jvmImplementation;
     }
 }

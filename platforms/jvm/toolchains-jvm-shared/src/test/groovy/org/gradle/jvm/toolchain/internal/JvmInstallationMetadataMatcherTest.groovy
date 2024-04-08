@@ -29,6 +29,7 @@ import org.gradle.process.internal.ExecHandle
 import org.gradle.process.internal.ExecHandleBuilder
 import org.gradle.process.internal.ExecHandleFactory
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.TempDir
 
@@ -50,7 +51,7 @@ class JvmInstallationMetadataMatcherTest extends Specification {
         def metadata = detector.getMetadata(testLocation(javaHome))
 
         when:
-        def spec = new DefaultToolchainSpec()
+        def spec = TestUtil.objectFactory().newInstance(DefaultToolchainSpec)
         spec.getLanguageVersion().set(JavaLanguageVersion.of(javaVersion.getMajorVersion()))
         spec.getVendor().set(vendor)
         spec.getImplementation().set(implementation)

@@ -16,14 +16,14 @@
 
 package org.gradle.jvm.toolchain.internal
 
-
+import org.gradle.process.internal.ExecException
+import org.gradle.process.internal.ExecHandleFactory
 import spock.lang.Specification
 
-class OsXJavaHomeOutputParserTest extends Specification {
+class DefaultOsXJavaHomeCommandTest extends Specification {
 
     def "parses new format output"() {
         given:
-        def parser = new OsXJavaHomeOutputParser()
         def output = """
 Matching Java Virtual Machines (11):
     9, x86_64:\t"Java SE 9-ea"\t/Library/Java/JavaVirtualMachines/jdk-9.jdk/Contents/Home
@@ -40,7 +40,7 @@ Matching Java Virtual Machines (11):
 """
 
         when:
-        def result = parser.parse(new StringReader(output))
+        def result = DefaultOsXJavaHomeCommand.parse(new StringReader(output))
 
         then:
         result.containsAll([
@@ -56,14 +56,13 @@ Matching Java Virtual Machines (11):
 
     def "parses old format output"() {
         given:
-        def parser = new OsXJavaHomeOutputParser()
         def output = """
 Matching Java Virtual Machines (2):
     1.6.0_17 (x86_64):\t/System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Home
     1.6.0_17 (x86_64):\t/System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Home
 """
         when:
-        def result = parser.parse(new StringReader(output))
+        def result = DefaultOsXJavaHomeCommand.parse(new StringReader(output))
 
         then:
         result.containsAll([
@@ -74,7 +73,6 @@ Matching Java Virtual Machines (2):
 
     def "can parse output with no installations"() {
         given:
-        def parser = new OsXJavaHomeOutputParser()
         def output = """
 Unable to find any JVMs matching version "(null)".
 Matching Java Virtual Machines (0):
@@ -84,10 +82,20 @@ Default Java Virtual Machines (0):
 No Java runtime present, try --request to install.
 """
         when:
-        def result = parser.parse(new StringReader(output))
+        def result = DefaultOsXJavaHomeCommand.parse(new StringReader(output))
 
         then:
         result.isEmpty()
     }
 
+    def "returns empty set when command fails"() {
+        def parser = new DefaultOsXJavaHomeCommand(Mock(ExecHandleFactory)) {
+            @Override
+            protected void executeCommand(ByteArrayOutputStream outputStream) {
+                throw new ExecException("command failed")
+            }
+        }
+        expect:
+        parser.findJavaHomes().isEmpty()
+    }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.internal.os.OperatingSystem;
 
 import javax.inject.Inject;
@@ -26,15 +27,17 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class LinuxInstallationSupplier implements InstallationSupplier {
-    private final String[] roots;
+    @VisibleForTesting
+    final File[] roots;
     private final OperatingSystem os;
 
     @Inject
     public LinuxInstallationSupplier() {
-        this(OperatingSystem.current(), "/usr/lib/jvm", "/usr/lib64/jvm", "/usr/java", "/usr/local/java", "/opt/java");
+        this(OperatingSystem.current(), new File("/usr/lib/jvm"), new File("/usr/lib64/jvm"), new File("/usr/java"), new File("/usr/local/java"), new File("/opt/java"));
     }
 
-    private LinuxInstallationSupplier(OperatingSystem os, String... roots) {
+    @VisibleForTesting
+    LinuxInstallationSupplier(OperatingSystem os, File... roots) {
         this.roots = roots;
         this.os = os;
     }
@@ -48,7 +51,7 @@ public class LinuxInstallationSupplier implements InstallationSupplier {
     public Set<InstallationLocation> get() {
         if (os.isLinux()) {
             return Arrays.stream(roots)
-                .map(root -> FileBasedInstallationFactory.fromDirectory(new File(root), getSourceName(), InstallationLocation::autoDetected))
+                .map(root -> FileBasedInstallationFactory.fromDirectory(root, getSourceName(), InstallationLocation::autoDetected))
                 .flatMap(Set::stream)
                 .collect(Collectors.toSet());
         }

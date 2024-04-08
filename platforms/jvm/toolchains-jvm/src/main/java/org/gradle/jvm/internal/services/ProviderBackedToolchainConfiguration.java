@@ -18,6 +18,7 @@ package org.gradle.jvm.internal.services;
 
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.jvm.toolchain.internal.AutoDetectingInstallationSupplier;
+import org.gradle.jvm.toolchain.internal.AutoInstalledInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.EnvironmentVariableListInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.LocationListInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.ToolchainConfiguration;
@@ -61,6 +62,16 @@ public class ProviderBackedToolchainConfiguration implements ToolchainConfigurat
 
     @Override
     public void setAutoDetectEnabled(boolean enabled) {
+
+    }
+
+    @Override
+    public boolean isDownloadEnabled() {
+        return providerFactory.gradleProperty(AutoInstalledInstallationSupplier.AUTO_DOWNLOAD).map(Boolean::parseBoolean).getOrElse(Boolean.TRUE);
+    }
+
+    @Override
+    public void setDownloadEnabled(boolean enabled) {
 
     }
 }

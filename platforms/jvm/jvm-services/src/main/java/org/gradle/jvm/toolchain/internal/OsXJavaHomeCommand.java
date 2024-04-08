@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.toolchain.internal
+package org.gradle.jvm.toolchain.internal;
 
-import org.gradle.internal.jvm.Jvm
-import spock.lang.Specification
+import java.io.File;
+import java.util.Set;
 
-class CurrentInstallationSupplierTest extends Specification {
-
-    def "supplies java home as installation"() {
-        given:
-        def supplier = new CurrentInstallationSupplier()
-
-        when:
-        def directories = supplier.get()
-
-        then:
-        directories.size() == 1
-        directories[0].location == Jvm.current().javaHome
-        directories[0].source == "Current JVM"
-    }
+public interface OsXJavaHomeCommand {
+    Set<File> findJavaHomes();
 }

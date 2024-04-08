@@ -76,7 +76,7 @@ class PropertiesToDaemonParametersConverterTest extends Specification {
         then:
         params.effectiveJvmArgs.contains("-Xmx256m")
         params.debug
-        params.effectiveJvm == Jvm.current()
+        params.requestedJvmBasedOnJavaHome == Jvm.current()
         !params.enabled
         params.baseDir == new File("baseDir").absoluteFile
         params.idleTimeout == 115

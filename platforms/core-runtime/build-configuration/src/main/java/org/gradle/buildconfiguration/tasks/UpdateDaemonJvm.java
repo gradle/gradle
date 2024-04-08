@@ -30,14 +30,28 @@ import org.gradle.internal.buildconfiguration.BuildPropertiesDefaults;
 import org.gradle.internal.buildconfiguration.UpdateDaemonJvmModifier;
 import org.gradle.work.DisableCachingByDefault;
 
+import javax.inject.Inject;
+
 /**
  * Generates or updates the Gradle Daemon JVM criteria.
  *
  * This controls the version of Java required to run the Gradle Daemon.
+ *
+ * @since 8.8
  */
 @DisableCachingByDefault(because = "Not worth caching")
 @Incubating
 public abstract class UpdateDaemonJvm extends DefaultTask {
+    /**
+     * Constructor.
+     *
+     * @since 8.8
+     */
+    @Inject
+    public UpdateDaemonJvm() {
+
+    }
+
     @TaskAction
     void generate() {
         UpdateDaemonJvmModifier.updateJvmCriteria(
@@ -52,6 +66,8 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
      * The file to write the requested daemon JVM criteria to.
      *
      * {@value BuildPropertiesDefaults#BUILD_PROPERTIES_FILE}
+     *
+     * @since 8.8
      */
     @OutputFile
     @Incubating
@@ -59,6 +75,8 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
 
     /**
      * The version of Java required to run the Gradle Daemon.
+     *
+     * @since 8.8
      */
     @Input
     @Optional

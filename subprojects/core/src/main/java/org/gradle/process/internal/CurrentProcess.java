@@ -46,7 +46,7 @@ public class CurrentProcess {
         return jvm;
     }
 
-    private static JvmOptions inferJvmOptions(FileCollectionFactory fileCollectionFactory) {
+    static JvmOptions inferJvmOptions(FileCollectionFactory fileCollectionFactory) {
         // Try to infer the effective jvm options for the currently running process.
         // We only care about 'managed' jvm args, anything else is unimportant to the running build
         JvmOptions jvmOptions = new JvmOptions(fileCollectionFactory);

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.jvm.inspection;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.logging.Logger;
@@ -85,22 +86,40 @@ public class JavaInstallationRegistry {
         FileResolver fileResolver,
         JvmInstallationProblemReporter problemReporter
     ) {
+        this(toolchainConfiguration, builtInSuppliers(toolchainConfiguration, fileResolver), suppliers, metadataDetector, logger, buildOperationRunner, os, progressLoggerFactory, problemReporter);
+    }
+
+    @VisibleForTesting
+    protected JavaInstallationRegistry(
+        ToolchainConfiguration toolchainConfiguration,
+        List<InstallationSupplier> suppliers,
+        List<InstallationSupplier> optionalSuppliers,
+        JvmMetadataDetector metadataDetector,
+        Logger logger,
+        BuildOperationRunner buildOperationRunner,
+        OperatingSystem os,
+        ProgressLoggerFactory progressLoggerFactory,
+        JvmInstallationProblemReporter problemReporter
+    ) {
         this.logger = logger;
         this.buildOperationRunner = buildOperationRunner;
         this.metadataDetector = metadataDetector;
-        List<InstallationSupplier> allSuppliers = new ArrayList<>();
-        allSuppliers.add(new CurrentInstallationSupplier());
-        allSuppliers.add(new EnvironmentVariableListInstallationSupplier(toolchainConfiguration, fileResolver));
-        allSuppliers.add(new LocationListInstallationSupplier(toolchainConfiguration, fileResolver));
+        List<InstallationSupplier> allSuppliers = new ArrayList<>(suppliers);
         if (toolchainConfiguration.isAutoDetectEnabled()) {
-            allSuppliers.addAll(suppliers);
+            allSuppliers.addAll(optionalSuppliers);
         }
-
-
         this.installations = new Installations(() -> maybeCollectInBuildOperation(allSuppliers));
         this.os = os;
         this.progressLoggerFactory = progressLoggerFactory;
         this.problemReporter = problemReporter;
+    }
+
+    private static List<InstallationSupplier> builtInSuppliers(ToolchainConfiguration toolchainConfiguration, FileResolver fileResolver) {
+        List<InstallationSupplier> allSuppliers = new ArrayList<>();
+        allSuppliers.add(new EnvironmentVariableListInstallationSupplier(toolchainConfiguration, fileResolver, System.getenv()));
+        allSuppliers.add(new LocationListInstallationSupplier(toolchainConfiguration, fileResolver));
+        allSuppliers.add(new CurrentInstallationSupplier());
+        return allSuppliers;
     }
 
     private Set<InstallationLocation> maybeCollectInBuildOperation(List<InstallationSupplier> suppliers) {
@@ -110,6 +129,7 @@ public class JavaInstallationRegistry {
         return buildOperationRunner.call(new ToolchainDetectionBuildOperation(() -> collectInstallations(suppliers)));
     }
 
+    @VisibleForTesting
     protected Set<InstallationLocation> listInstallations() {
         return installations.get();
     }

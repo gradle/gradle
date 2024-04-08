@@ -17,30 +17,19 @@
 package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.process.internal.ExecException;
-import org.gradle.process.internal.ExecHandleBuilder;
-import org.gradle.process.internal.ExecHandleFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
+import javax.inject.Inject;
 import java.io.File;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 public class OsXInstallationSupplier implements InstallationSupplier {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(OsXInstallationSupplier.class);
-
-    private final ExecHandleFactory execHandleFactory;
+    private final OsXJavaHomeCommand javaHomeCommand;
     private final OperatingSystem os;
-
-    public OsXInstallationSupplier(ExecHandleFactory execHandleFactory, OperatingSystem os) {
-        this.execHandleFactory = execHandleFactory;
+    @Inject
+    public OsXInstallationSupplier(OperatingSystem os, OsXJavaHomeCommand javaHomeCommand) {
+        this.javaHomeCommand = javaHomeCommand;
         this.os = os;
     }
 
@@ -52,18 +41,7 @@ public class OsXInstallationSupplier implements InstallationSupplier {
     @Override
     public Set<InstallationLocation> get() {
         if (os.isMacOsX()) {
-            try {
-                final Reader output = executeJavaHome();
-                final Set<File> javaHomes = new OsXJavaHomeOutputParser().parse(output);
-                return javaHomes.stream().map(this::asInstallation).collect(Collectors.toSet());
-            } catch (ExecException e) {
-                String errorMessage = "Java Toolchain auto-detection failed to find local MacOS system JVMs";
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug(errorMessage, e);
-                } else {
-                    LOGGER.info(errorMessage);
-                }
-            }
+            return javaHomeCommand.findJavaHomes().stream().map(this::asInstallation).collect(Collectors.toSet());
         }
         return Collections.emptySet();
     }
@@ -72,19 +50,4 @@ public class OsXInstallationSupplier implements InstallationSupplier {
         return InstallationLocation.autoDetected(javaHome, getSourceName());
     }
 
-    private Reader executeJavaHome() {
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        executeCommand(outputStream);
-        return new InputStreamReader(new ByteArrayInputStream(outputStream.toByteArray()));
-    }
-
-    void executeCommand(ByteArrayOutputStream outputStream) {
-        ExecHandleBuilder execHandleBuilder = execHandleFactory.newExec();
-        execHandleBuilder.workingDir(new File(".").getAbsoluteFile());
-        execHandleBuilder.commandLine("/usr/libexec/java_home", "-V");
-        execHandleBuilder.getEnvironment().remove("JAVA_VERSION"); //JAVA_VERSION filters the content of java_home's output
-        execHandleBuilder.setErrorOutput(outputStream); // verbose output is written to stderr
-        execHandleBuilder.setStandardOutput(new ByteArrayOutputStream());
-        execHandleBuilder.build().start().waitForFinish().assertNormalExitValue();
-    }
 }

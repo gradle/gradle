@@ -16,9 +16,9 @@
 
 package org.gradle.launcher.daemon.toolchain
 
-import org.gradle.StartParameter
 import org.gradle.api.GradleException
 import org.gradle.api.JavaVersion
+import org.gradle.api.internal.file.IdentityFileResolver
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.inspection.JavaInstallationRegistry
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
@@ -28,21 +28,18 @@ import org.gradle.internal.jvm.inspection.JvmVendor
 import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.progress.NoOpProgressLoggerFactory
-import org.gradle.jvm.toolchain.JavaLanguageVersion
-import org.gradle.jvm.toolchain.JavaToolchainSpec
 import org.gradle.jvm.toolchain.JvmImplementation
 import org.gradle.jvm.toolchain.JvmVendorSpec
-import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec
+import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec
+import org.gradle.jvm.toolchain.internal.DefaultToolchainConfiguration
 import org.gradle.jvm.toolchain.internal.InstallationLocation
 import org.gradle.jvm.toolchain.internal.InstallationSupplier
-import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import java.util.function.Function
 
 import static org.gradle.api.internal.file.TestFiles.systemSpecificAbsolutePath
 import static org.gradle.internal.jvm.inspection.JvmInstallationMetadata.JavaInstallationCapability.J9_VIRTUAL_MACHINE
-
 
 class DaemonJavaToolchainQueryServiceTest extends Specification {
 
@@ -52,7 +49,7 @@ class DaemonJavaToolchainQueryServiceTest extends Specification {
 
         when:
         def filter = createSpec(versionToFind)
-        def toolchain = queryService.findMatchingToolchain(filter, new StartParameter())
+        def toolchain = queryService.findMatchingToolchain(filter)
 
         then:
         toolchain.languageVersion == versionToFind
@@ -70,7 +67,7 @@ class DaemonJavaToolchainQueryServiceTest extends Specification {
 
         when:
         def filter = createSpec(versionToFind)
-        def toolchain = queryService.findMatchingToolchain(filter, new StartParameter())
+        def toolchain = queryService.findMatchingToolchain(filter)
 
         then:
         toolchain.languageVersion == versionToFind
@@ -88,8 +85,8 @@ class DaemonJavaToolchainQueryServiceTest extends Specification {
         def queryService = createQueryServiceWithInstallations(["8.0", "8.0.242.hs-adpt", "7.9", "7.7", "14.0.2+12", "8.0.1.j9"])
 
         when:
-        def filter = createSpec(JavaVersion.VERSION_1_8, null, JvmImplementation.J9)
-        def toolchain = queryService.findMatchingToolchain(filter, new StartParameter())
+        def filter = createSpec(JavaVersion.VERSION_1_8, DefaultJvmVendorSpec.any(), JvmImplementation.J9)
+        def toolchain = queryService.findMatchingToolchain(filter)
 
         then:
         toolchain.languageVersion == JavaVersion.VERSION_1_8
@@ -101,8 +98,8 @@ class DaemonJavaToolchainQueryServiceTest extends Specification {
         def queryService = createQueryServiceWithInstallations(["8.0.2.j9", "8.0.1.hs"])
 
         when:
-        def filter = createSpec(JavaVersion.VERSION_1_8, null, JvmImplementation.J9)
-        def toolchain = queryService.findMatchingToolchain(filter, new StartParameter())
+        def filter = createSpec(JavaVersion.VERSION_1_8, DefaultJvmVendorSpec.any(), JvmImplementation.J9)
+        def toolchain = queryService.findMatchingToolchain(filter)
 
         then:
         toolchain.languageVersion == JavaVersion.VERSION_1_8
@@ -120,7 +117,7 @@ class DaemonJavaToolchainQueryServiceTest extends Specification {
 
         when:
         def filter = createSpec(JavaVersion.VERSION_1_8, JvmVendorSpec.IBM)
-        def toolchain = queryService.findMatchingToolchain(filter, new StartParameter())
+        def toolchain = queryService.findMatchingToolchain(filter)
 
         then:
         toolchain.vendor.knownVendor == JvmVendor.KnownJvmVendor.IBM
@@ -137,7 +134,7 @@ class DaemonJavaToolchainQueryServiceTest extends Specification {
 
         when:
         def filter = createSpec(JavaVersion.VERSION_1_8, JvmVendorSpec.BELLSOFT)
-        def toolchain = queryService.findMatchingToolchain(filter, new StartParameter())
+        def toolchain = queryService.findMatchingToolchain(filter)
 
         then:
         toolchain.vendor.knownVendor == JvmVendor.KnownJvmVendor.BELLSOFT
@@ -149,7 +146,7 @@ class DaemonJavaToolchainQueryServiceTest extends Specification {
 
         when:
         def filter = createSpec(JavaVersion.VERSION_1_8)
-        def toolchain = queryService.findMatchingToolchain(filter, new StartParameter())
+        def toolchain = queryService.findMatchingToolchain(filter)
 
         then:
         toolchain.languageVersion == JavaVersion.VERSION_1_8
@@ -162,7 +159,7 @@ class DaemonJavaToolchainQueryServiceTest extends Specification {
 
         when:
         def filter = createSpec(JavaVersion.VERSION_1_8)
-        def toolchain = queryService.findMatchingToolchain(filter, new StartParameter())
+        def toolchain = queryService.findMatchingToolchain(filter)
 
         then:
         toolchain.languageVersion == JavaVersion.VERSION_1_8
@@ -175,11 +172,11 @@ class DaemonJavaToolchainQueryServiceTest extends Specification {
 
         when:
         def filter = createSpec(JavaVersion.VERSION_12)
-        queryService.findMatchingToolchain(filter, new StartParameter())
+        queryService.findMatchingToolchain(filter)
 
         then:
         def e = thrown(GradleException)
-        e.message == "Cannot find a Java installation on your machine matching the Daemon JVM defined requirements: {languageVersion=12, vendor=any, implementation=vendor-specific} for ${OperatingSystem.current()}."
+        e.message == "Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching the Daemon JVM defined requirements: JVM version '12'."
         e.cause == null
     }
 
@@ -190,10 +187,9 @@ class DaemonJavaToolchainQueryServiceTest extends Specification {
         Function<String, String> getVendor = { "" }
     ) {
         def detector = createJvmMetadataDetector(getVersion, getVendor)
-        def installationRegistryFactory = new SimpleJavaInstallationRegistryFactory(installations, detector)
         def currentJavaHomePath = currentJavaHome?.location ?: Jvm.current().javaHome
 
-        return new DaemonJavaToolchainQueryService(installationRegistryFactory, currentJavaHomePath)
+        return new DaemonJavaToolchainQueryService(createInstallationRegistry(installations, detector), currentJavaHomePath)
     }
 
     private def createInstallationRegistry(Collection<String> installations, JvmMetadataDetector detector) {
@@ -209,7 +205,7 @@ class DaemonJavaToolchainQueryServiceTest extends Specification {
             }
         }
 
-        def registry = new JavaInstallationRegistry([supplier], detector, new TestBuildOperationRunner(), OperatingSystem.current(), new NoOpProgressLoggerFactory(), new JvmInstallationProblemReporter()) {
+        def registry = new JavaInstallationRegistry(new DefaultToolchainConfiguration(), [supplier], detector, new TestBuildOperationRunner(), OperatingSystem.current(), new NoOpProgressLoggerFactory(), new IdentityFileResolver(), new JvmInstallationProblemReporter()) {
             @Override
             boolean installationExists(InstallationLocation installationLocation) {
                 return true
@@ -267,27 +263,7 @@ class DaemonJavaToolchainQueryServiceTest extends Specification {
         return (begin..end).collect { it.toString() }
     }
 
-    private class SimpleJavaInstallationRegistryFactory implements JavaInstallationRegistryFactory {
-
-        private Collection<String> installations
-        private JvmMetadataDetector detector
-
-        SimpleJavaInstallationRegistryFactory(Collection<String> installations, JvmMetadataDetector detector) {
-            this.installations = installations
-            this.detector = detector
-        }
-
-        @Override
-        JavaInstallationRegistry getRegistry() {
-            return createInstallationRegistry(installations, detector)
-        }
-    }
-
-    JavaToolchainSpec createSpec(JavaVersion javaVersion, JvmVendorSpec vendor = null, JvmImplementation implementation = null) {
-        def spec = TestUtil.objectFactory().newInstance(DefaultToolchainSpec.class)
-        spec.languageVersion.set(JavaLanguageVersion.of(javaVersion.majorVersion))
-        spec.vendor.set(vendor)
-        spec.implementation.set(implementation)
-        spec
+    DaemonJvmCriteria createSpec(JavaVersion javaVersion, JvmVendorSpec vendor = DefaultJvmVendorSpec.any(), JvmImplementation implementation = JvmImplementation.VENDOR_SPECIFIC) {
+        new DaemonJvmCriteria(javaVersion, vendor, implementation)
     }
 }

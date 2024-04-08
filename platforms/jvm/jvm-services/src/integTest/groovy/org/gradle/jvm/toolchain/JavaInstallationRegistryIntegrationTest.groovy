@@ -34,7 +34,9 @@ class JavaInstallationRegistryIntegrationTest extends AbstractIntegrationSpec {
 
                 void apply(Project project) {
                     project.tasks.register("show") {
-                        println "installations:" + registry.listInstallations()
+                        def installations = registry.listInstallations()
+                        assert installations.size() == 1
+                        assert installations[0].location == org.gradle.internal.jvm.Jvm.current().javaHome
                     }
                 }
             }
@@ -42,14 +44,8 @@ class JavaInstallationRegistryIntegrationTest extends AbstractIntegrationSpec {
             apply plugin: ShowPlugin
         """
 
-        when:
-        result = executer
-            .withArgument("-Porg.gradle.java.installations.auto-detect=false")
-            .withTasks("show")
-            .run()
-
-        then:
-        outputContains("installations:[]")
+        expect:
+        succeeds("show", "-Porg.gradle.java.installations.auto-detect=false")
     }
 
     @Requires(IntegTestPreconditions.MoreThanOneJavaHomeAvailable)
@@ -83,8 +79,8 @@ class JavaInstallationRegistryIntegrationTest extends AbstractIntegrationSpec {
             .withTasks("show")
             .run()
         then:
-        outputContains("${File.separator}unknown${File.separator}path' (Gradle property 'org.gradle.java.installations.paths') used for java installations does not exist")
-        outputContains("${File.separator}unknown${File.separator}env' (environment variable 'JDK1') used for java installations does not exist")
+        outputContains("Directory '${File.separator}unknown${File.separator}path' (Gradle property 'org.gradle.java.installations.paths') used for java installations does not exist")
+        outputContains("Directory '${File.separator}unknown${File.separator}env' (environment variable 'JDK1') used for java installations does not exist")
         outputContains(firstJavaHome)
         outputContains(secondJavaHome)
 
@@ -96,8 +92,8 @@ class JavaInstallationRegistryIntegrationTest extends AbstractIntegrationSpec {
             .withTasks("show")
             .run()
         then:
-        outputContains("${File.separator}other${File.separator}path' (Gradle property 'org.gradle.java.installations.paths') used for java installations does not exist")
-        outputContains("${File.separator}unknown${File.separator}env' (environment variable 'JDK1') used for java installations does not exist")
+        outputContains("Directory '${File.separator}other${File.separator}path' (Gradle property 'org.gradle.java.installations.paths') used for java installations does not exist")
+        outputContains("Directory '${File.separator}unknown${File.separator}env' (environment variable 'JDK1') used for java installations does not exist")
         outputContains(firstJavaHome)
         outputContains(secondJavaHome)
     }

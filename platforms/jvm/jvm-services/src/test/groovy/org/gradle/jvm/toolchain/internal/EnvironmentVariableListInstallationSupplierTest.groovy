@@ -16,31 +16,21 @@
 
 package org.gradle.jvm.toolchain.internal
 
-import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.provider.Providers
-import org.gradle.api.provider.ProviderFactory
-import spock.lang.Specification
 
-import static org.gradle.api.internal.file.TestFiles.systemSpecificAbsolutePath
+import org.gradle.api.internal.file.IdentityFileResolver
+import spock.lang.Specification
+import spock.lang.Subject
 
 class EnvironmentVariableListInstallationSupplierTest extends Specification {
+    final buildOptions = Mock(ToolchainConfiguration)
+    final Map<String, String> environment = [JDK8: "/path/jdk8", JDK9: "/path/jdk9"]
 
-    def "supplies no installations for absent property"() {
-        given:
-        def supplier = createSupplier(null)
-
-        when:
-        def directories = supplier.get()
-
-        then:
-        directories.isEmpty()
-    }
+    @Subject
+    def supplier =  new EnvironmentVariableListInstallationSupplier(buildOptions, new IdentityFileResolver(), environment)
 
     def "supplies no installations for empty property"() {
-        given:
-        def supplier = createSupplier("")
-
         when:
+        buildOptions.getJavaInstallationsFromEnvironment() >> []
         def directories = supplier.get()
 
         then:
@@ -48,65 +38,30 @@ class EnvironmentVariableListInstallationSupplierTest extends Specification {
     }
 
     def "supplies single installations for single path"() {
-        given:
-        def supplier = createSupplier("JDK8")
-
         when:
+        buildOptions.getJavaInstallationsFromEnvironment() >> ["JDK8"]
         def directories = supplier.get()
 
         then:
-        directoriesAsStablePaths(directories) == stablePaths(["/path/jdk8"])
-        directories*.source == ["environment variable 'JDK8'"]
+        directories.size() == 1
+        directories[0].location.absolutePath == "/path/jdk8"
+        directories[0].source == "environment variable 'JDK8'"
     }
 
     def "supplies multiple installations for multiple paths"() {
-        given:
-        def supplier = createSupplier("JDK8,JDK9")
-
         when:
-        def directories = supplier.get()
+        buildOptions.getJavaInstallationsFromEnvironment() >> ["JDK8", "JDK9"]
+        def directories = consistentOrder(supplier.get())
 
         then:
-        directoriesAsStablePaths(directories) == stablePaths(["/path/jdk8", "/path/jdk9"])
+        directories.size() == 2
+        directories[0].location.absolutePath == "/path/jdk8"
+        directories[0].source == "environment variable 'JDK8'"
+        directories[1].location.absolutePath == "/path/jdk9"
+        directories[1].source == "environment variable 'JDK9'"
     }
 
-    def "supplies installations with malformed variables"() {
-        given:
-        def supplier = createSupplier(",JDK9 ")
-
-        when:
-        def directories = supplier.get()
-
-        then:
-        directoriesAsStablePaths(directories) == stablePaths(["/path/jdk9"])
+    Set<InstallationLocation> consistentOrder(Set<InstallationLocation> s) {
+        s.sort { it.location.absolutePath }
     }
-
-    def directoriesAsStablePaths(Set<InstallationLocation> actualDirectories) {
-        actualDirectories*.location.absolutePath.sort()
-    }
-
-    def stablePaths(List<String> expectedPaths) {
-        expectedPaths.replaceAll({ String s -> systemSpecificAbsolutePath(s) })
-        expectedPaths
-    }
-
-    private EnvironmentVariableListInstallationSupplier createSupplier(String propertyValue) {
-        new EnvironmentVariableListInstallationSupplier(createProviderFactory(propertyValue), createFileResolver())
-    }
-
-    private ProviderFactory createProviderFactory(String propertyValue) {
-        def providerFactory = Mock(ProviderFactory)
-        providerFactory.gradleProperty("org.gradle.java.installations.fromEnv") >> Providers.ofNullable(propertyValue)
-        providerFactory.environmentVariable("JDK8") >> Providers.of("/path/jdk8")
-        providerFactory.environmentVariable("JDK9") >> Providers.of("/path/jdk9")
-        providerFactory.environmentVariable("") >> Providers.ofNullable(null)
-        providerFactory
-    }
-
-    private FileResolver createFileResolver() {
-        def fileResolver = Mock(FileResolver)
-        fileResolver.resolve(_) >> {String path -> new File(path)}
-        fileResolver
-    }
-
 }

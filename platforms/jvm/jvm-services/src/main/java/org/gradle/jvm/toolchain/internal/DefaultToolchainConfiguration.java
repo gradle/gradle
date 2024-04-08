@@ -23,6 +23,7 @@ public class DefaultToolchainConfiguration implements ToolchainConfiguration {
     private Collection<String> javaInstallationsFromEnvironment = Collections.emptyList();
     private Collection<String> installationsFromPaths = Collections.emptyList();
     private boolean autoDetectEnabled = true;
+    private boolean downloadEnabled = true;
 
     @Override
     public Collection<String> getJavaInstallationsFromEnvironment() {
@@ -52,5 +53,15 @@ public class DefaultToolchainConfiguration implements ToolchainConfiguration {
     @Override
     public void setAutoDetectEnabled(boolean autoDetectEnabled) {
         this.autoDetectEnabled = autoDetectEnabled;
+    }
+
+    @Override
+    public boolean isDownloadEnabled() {
+        return downloadEnabled;
+    }
+
+    @Override
+    public void setDownloadEnabled(boolean enabled) {
+        this.downloadEnabled = enabled;
     }
 }

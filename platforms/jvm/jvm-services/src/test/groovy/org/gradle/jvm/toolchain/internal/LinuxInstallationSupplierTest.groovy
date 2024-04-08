@@ -16,8 +16,7 @@
 
 package org.gradle.jvm.toolchain.internal
 
-import org.gradle.api.internal.provider.Providers
-import org.gradle.api.provider.ProviderFactory
+
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -26,56 +25,25 @@ import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Rule
 import spock.lang.Specification
 
-import static org.gradle.api.internal.file.TestFiles.systemSpecificAbsolutePath
-
 @CleanupTestDirectory
 class LinuxInstallationSupplierTest extends Specification {
-
     @Rule
-    public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass());
+    private final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     def candidates = temporaryFolder.createDir("linux")
-    def otherCandidates = temporaryFolder.createDir("centos")
+    def otherCandidates = temporaryFolder.createDir("other")
+    def emptyDir = temporaryFolder.createDir("empty")
+    def nonExistent = temporaryFolder.file("non-existent")
 
-    def "supplies no installations for non-existing directory"() {
-        assert candidates.delete()
-
-        given:
-        def supplier = createSupplier(candidates.absolutePath)
-
-        when:
-        def directories = supplier.get()
-
-        then:
-        directories.isEmpty()
-    }
-
-    def "detects installations in default roots"() {
-        given:
-        def supplier = new LinuxInstallationSupplier()
-
-        when:
-        def directories = supplier.get()
-
-        then:
-        directories != null
-    }
-
-    def "supplies no installations for empty directory"() {
-        given:
-        def supplier = createSupplier(candidates.absolutePath)
-
-        when:
-        def directories = supplier.get()
-
-        then:
-        directories.isEmpty()
+    def setup() {
+        candidates.createDir("11.0.6.hs-adpt")
+        candidates.createDir("14")
+        otherCandidates.createDir("8.0.262.fx-librca")
     }
 
     def "supplies no installations non-linux operating system"() {
         given:
-        candidates.createDir("11.0.6.hs-adpt")
-        def supplier = new LinuxInstallationSupplier(createProviderFactory(), OperatingSystem.WINDOWS, candidates.absolutePath)
+        def supplier = new LinuxInstallationSupplier(OperatingSystem.WINDOWS, candidates)
 
         when:
         def directories = supplier.get()
@@ -84,53 +52,68 @@ class LinuxInstallationSupplierTest extends Specification {
         directories.isEmpty()
     }
 
-    def "supplies single installations for single candidate"() {
+    def "has default roots"() {
         given:
-        candidates.createDir("11.0.6.hs-adpt")
-        def supplier = createSupplier(candidates.absolutePath)
+        def supplier = new LinuxInstallationSupplier()
+
+        expect:
+        supplier.roots.length > 1
+    }
+
+    def "supplies no installations for non-existing directory"() {
+        given:
+        def supplier = new LinuxInstallationSupplier(OperatingSystem.LINUX, nonExistent)
 
         when:
         def directories = supplier.get()
 
         then:
-        directoriesAsStablePaths(directories) == stablePaths([new File(candidates, "11.0.6.hs-adpt").absolutePath])
-        directories*.source == ["Common Linux Locations"]
+        directories.isEmpty()
+    }
+
+
+    def "supplies no installations for empty directory"() {
+        given:
+        def supplier = new LinuxInstallationSupplier(OperatingSystem.LINUX, emptyDir)
+
+        when:
+        def directories = supplier.get()
+
+        then:
+        directories.isEmpty()
     }
 
     def "supplies multiple installations for multiple paths"() {
         given:
-        candidates.createDir("11.0.6.hs-adpt")
-        candidates.createDir("14")
-        candidates.createDir("8.0.262.fx-librca")
-        def supplier = createSupplier(candidates.absolutePath)
+        def supplier = new LinuxInstallationSupplier(OperatingSystem.LINUX, candidates)
 
         when:
         def directories = supplier.get()
 
         then:
-        directoriesAsStablePaths(directories) == stablePaths([
-            new File(candidates, "11.0.6.hs-adpt").absolutePath,
-            new File(candidates, "14").absolutePath,
-            new File(candidates, "8.0.262.fx-librca").absolutePath
-        ])
-        directories*.source == ["Common Linux Locations", "Common Linux Locations", "Common Linux Locations"]
+        directories.size() == 2
+        directories*.location.toSorted() == [
+            candidates.file("11.0.6.hs-adpt"),
+            candidates.file("14")
+        ]
+        directories*.source.unique() == ["Common Linux Locations"]
     }
 
     def "supplies installations for multiple locations"() {
         given:
-        candidates.createDir("11.0.6.hs-adpt")
-        otherCandidates.createDir("8.0.262.fx-librca")
-        def supplier = createSupplier(candidates.absolutePath, otherCandidates.absolutePath)
+        def supplier = new LinuxInstallationSupplier(OperatingSystem.LINUX, candidates, otherCandidates)
 
         when:
         def directories = supplier.get()
 
         then:
-        directoriesAsStablePaths(directories) == stablePaths([
-            new File(otherCandidates, "8.0.262.fx-librca").absolutePath,
-            new File(candidates, "11.0.6.hs-adpt").absolutePath
-        ])
-        directories*.source == ["Common Linux Locations", "Common Linux Locations"]
+        directories.size() == 3
+        directories*.location.toSorted() == [
+            candidates.file("11.0.6.hs-adpt"),
+            candidates.file("14"),
+            otherCandidates.file("8.0.262.fx-librca")
+        ]
+        directories*.source.unique() == ["Common Linux Locations"]
     }
 
     @Requires(UnitTestPreconditions.Symlinks)
@@ -138,36 +121,21 @@ class LinuxInstallationSupplierTest extends Specification {
         given:
         def otherLocation = temporaryFolder.createDir("other")
         candidates.createDir("14-real")
-        candidates.file("other-symlinked").createLink(otherLocation.canonicalFile)
-        def supplier = createSupplier(candidates.absolutePath)
+        candidates.file("symlinked").createLink(otherLocation.canonicalFile)
+
+        def supplier = new LinuxInstallationSupplier(OperatingSystem.LINUX, candidates)
 
         when:
         def directories = supplier.get()
 
         then:
-        directoriesAsStablePaths(directories) == stablePaths([
-            new File(candidates, "14-real").absolutePath,
-            new File(candidates, "other-symlinked").absolutePath
-        ])
-        directories*.source == ["Common Linux Locations", "Common Linux Locations"]
-    }
-
-    def directoriesAsStablePaths(Set<InstallationLocation> actualDirectories) {
-        actualDirectories*.location.absolutePath.sort()
-    }
-
-    def stablePaths(List<String> expectedPaths) {
-        expectedPaths.replaceAll({ String s -> systemSpecificAbsolutePath(s) })
-        expectedPaths
-    }
-
-    InstallationSupplier createSupplier(String... roots) {
-        new LinuxInstallationSupplier(createProviderFactory(), OperatingSystem.LINUX, roots)
-    }
-
-    ProviderFactory createProviderFactory(String propertyValue) {
-        def providerFactory = Mock(ProviderFactory)
-        providerFactory.gradleProperty("org.gradle.java.installations.auto-detect") >> Providers.ofNullable(null)
-        providerFactory
+        directories.size() == 4
+        directories*.location.toSorted() == [
+            candidates.file("11.0.6.hs-adpt"),
+            candidates.file("14"),
+            candidates.file("14-real"),
+            candidates.file("symlinked"),
+        ]
+        directories*.source.unique() == ["Common Linux Locations"]
     }
 }

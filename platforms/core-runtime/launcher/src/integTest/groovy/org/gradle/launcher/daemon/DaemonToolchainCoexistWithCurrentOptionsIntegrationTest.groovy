@@ -18,12 +18,13 @@ package org.gradle.launcher.daemon
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.buildconfiguration.fixture.BuildPropertiesFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 
-class DaemonToolchainCoexistWithCurrentOptionsIntegrationTest extends AbstractIntegrationSpec implements BuildPropertiesFixture {
+class DaemonToolchainCoexistWithCurrentOptionsIntegrationTest extends AbstractIntegrationSpec implements BuildPropertiesFixture, JavaToolchainFixture {
 
     @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "Given disabled auto-detection When using daemon toolchain Then option is ignored resolving with expected toolchain"() {
@@ -34,7 +35,7 @@ class DaemonToolchainCoexistWithCurrentOptionsIntegrationTest extends AbstractIn
         executer.withArgument("-Porg.gradle.java.installations.auto-detect=false")
 
         expect:
-        succeeds("help")
+        withInstallations(otherJvm).succeeds("help")
         assertDaemonUsedJvm(otherJvm)
     }
 
@@ -47,7 +48,7 @@ class DaemonToolchainCoexistWithCurrentOptionsIntegrationTest extends AbstractIn
         file("gradle.properties").writeProperties("org.gradle.java.home": Jvm.current().javaHome.canonicalPath)
 
         expect:
-        succeeds("help")
+        withInstallations(otherJvm).succeeds("help")
         assertDaemonUsedJvm(otherJvm)
     }
 

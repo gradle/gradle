@@ -42,6 +42,7 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.progress.NoOpProgressLoggerFactory;
 import org.gradle.jvm.toolchain.internal.AsdfInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.CurrentInstallationSupplier;
+import org.gradle.jvm.toolchain.internal.DefaultOsXJavaHomeCommand;
 import org.gradle.jvm.toolchain.internal.DefaultToolchainConfiguration;
 import org.gradle.jvm.toolchain.internal.InstallationLocation;
 import org.gradle.jvm.toolchain.internal.InstallationSupplier;
@@ -315,7 +316,7 @@ public abstract class AvailableJavaHomes {
             new JabbaInstallationSupplier(providerFactory()),
             new LinuxInstallationSupplier(),
             new MavenToolchainsInstallationSupplier(providerFactory(), new IdentityFileResolver()),
-            new OsXInstallationSupplier(TestFiles.execHandleFactory(), OperatingSystem.current()),
+            new OsXInstallationSupplier(OperatingSystem.current(), new DefaultOsXJavaHomeCommand(TestFiles.execHandleFactory())),
             new SdkmanInstallationSupplier(providerFactory()),
             new WindowsInstallationSupplier(windowsRegistry, OperatingSystem.current())
         );

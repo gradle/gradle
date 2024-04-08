@@ -17,21 +17,26 @@
 package org.gradle.jvm.toolchain.internal
 
 import org.gradle.jvm.toolchain.JavaLanguageVersion
+import org.gradle.jvm.toolchain.JavaToolchainSpec
 import org.gradle.jvm.toolchain.JvmImplementation
 import org.gradle.jvm.toolchain.JvmVendorSpec
 import org.gradle.util.Matchers
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultToolchainSpecTest extends Specification {
+    JavaToolchainSpec createSpec() {
+        TestUtil.objectFactory().newInstance(DefaultToolchainSpec)
+    }
 
     def "spec key implements equals"() {
         given:
-        def spec11 = new DefaultToolchainSpec()
-        def spec12 = new DefaultToolchainSpec()
-        def spec11Vendor1 = new DefaultToolchainSpec()
-        def spec11Vendor2 = new DefaultToolchainSpec()
-        def spec11Impl1 = new DefaultToolchainSpec()
-        def spec11Impl2 = new DefaultToolchainSpec()
+        def spec11 = createSpec()
+        def spec12 = createSpec()
+        def spec11Vendor1 = createSpec()
+        def spec11Vendor2 = createSpec()
+        def spec11Impl1 = createSpec()
+        def spec11Impl2 = createSpec()
 
         when:
         spec11.languageVersion.set(JavaLanguageVersion.of(11))

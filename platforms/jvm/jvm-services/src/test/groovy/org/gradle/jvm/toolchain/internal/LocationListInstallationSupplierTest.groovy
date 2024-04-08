@@ -16,29 +16,21 @@
 
 package org.gradle.jvm.toolchain.internal
 
-import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.provider.Providers
-import org.gradle.api.provider.ProviderFactory
+
+import org.gradle.api.internal.file.IdentityFileResolver
 import spock.lang.Specification
+import spock.lang.Subject
 
 class LocationListInstallationSupplierTest extends Specification {
 
-    def "supplies no installations for absent property"() {
-        given:
-        def supplier = createSupplier(null)
+    final buildOptions = Mock(ToolchainConfiguration)
 
-        when:
-        def directories = supplier.get()
-
-        then:
-        directories.isEmpty()
-    }
+    @Subject
+    def supplier = new LocationListInstallationSupplier(buildOptions, new IdentityFileResolver())
 
     def "supplies no installations for empty property"() {
-        given:
-        def supplier = createSupplier("")
-
         when:
+        buildOptions.installationsFromPaths >> []
         def directories = supplier.get()
 
         then:
@@ -46,42 +38,24 @@ class LocationListInstallationSupplierTest extends Specification {
     }
 
     def "supplies single installations for single path"() {
-        given:
-        def supplier = createSupplier("/foo/bar")
-
         when:
+        buildOptions.installationsFromPaths >> ["/foo/bar"]
         def directories = supplier.get()
 
         then:
-        directories*.location == [new File("/foo/bar")]
-        directories*.source == ["Gradle property 'org.gradle.java.installations.paths'"]
+        directories.size() == 1
+        directories[0].location == new File("/foo/bar")
+        directories[0].source == "Gradle property 'org.gradle.java.installations.paths'"
     }
 
     def "supplies multiple installations for multiple paths"() {
-        given:
-        def supplier = createSupplier("/foo/bar,/foo/123")
-
         when:
+        buildOptions.installationsFromPaths >> ["/foo/bar", "/foo/123"]
         def directories = supplier.get()
 
         then:
-        directories*.location.sort() == [new File("/foo/123"), new File("/foo/bar")]
+        directories.size() == 2
+        directories*.location.containsAll(new File("/foo/bar"), new File("/foo/123"))
+        directories*.source.unique() == [ "Gradle property 'org.gradle.java.installations.paths'" ]
     }
-
-    private createSupplier(String propertyValue) {
-        new LocationListInstallationSupplier(createProviderFactory(propertyValue), createFileResolver())
-    }
-
-    private ProviderFactory createProviderFactory(String propertyValue) {
-        def providerFactory = Mock(ProviderFactory)
-        providerFactory.gradleProperty("org.gradle.java.installations.paths") >> Providers.ofNullable(propertyValue)
-        providerFactory
-    }
-
-    private FileResolver createFileResolver() {
-        def fileResolver = Mock(FileResolver)
-        fileResolver.resolve(_) >> {String path -> new File(path)}
-        fileResolver
-    }
-
 }

@@ -6,6 +6,7 @@ description = "The Build configuration properties modifiers and helpers."
 
 dependencies {
     api(libs.jsr305)
+    api(libs.inject)
 
     api(project(":base-services"))
     api(project(":core"))
