@@ -256,23 +256,29 @@ sealed interface ConfigureAccessor {
 
 
 @Serializable
-data class FqName(val packageName: String, val simpleName: String) {
+data class FqNameImpl(private val packageName: String, private val simpleName: String) : FqName {
     companion object {
         fun parse(fqNameString: String): FqName {
             val parts = fqNameString.split(".")
-            return FqName(parts.dropLast(1).joinToString("."), parts.last())
+            return FqNameImpl(parts.dropLast(1).joinToString("."), parts.last())
         }
     }
 
-    val qualifiedName
-        get() = "$packageName.$simpleName"
+    @get:JvmName("privateQualifiedName")
+    private val qualifiedName by lazy { "$packageName.$simpleName" }
+
+    override fun getPackageName(): String = packageName
+
+    override fun getSimpleName(): String = simpleName
+
+    override fun getQualifiedName(): String = qualifiedName
 
     override fun toString(): String = qualifiedName
 }
 
 
 val DataTopLevelFunction.fqName: FqName
-    get() = FqName(packageName, simpleName)
+    get() = FqNameImpl(packageName, simpleName)
 
 
 @Serializable

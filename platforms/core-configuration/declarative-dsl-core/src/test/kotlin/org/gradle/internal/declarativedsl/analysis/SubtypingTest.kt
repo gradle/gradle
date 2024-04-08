@@ -95,7 +95,7 @@ object SubtypingTest {
             assertNotNull(error)
             val reason = error.errorReason
             assertIs<ErrorReason.AssignmentTypeMismatch>(reason)
-            assertEquals(NotASubtype::class.simpleName, ((reason.actual.ref as DataTypeRef.Type).dataType as DataClass).name.simpleName)
+            assertEquals(NotASubtype::class.simpleName, (((reason.actual.ref as DataTypeRef.Type).dataType as DataClass).name as FqNameImpl).simpleName)
         }
     }
 
