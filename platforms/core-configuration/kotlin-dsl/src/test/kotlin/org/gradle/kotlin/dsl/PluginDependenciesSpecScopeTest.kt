@@ -46,7 +46,7 @@ class PluginDependenciesSpecScopeTest {
 
     @Test
     fun `given gradle-enterprise plugin accessor, it should create a single request matching the auto-applied plugin version`() {
-        expecting(plugin(id = "com.gradle.enterprise", version = AutoAppliedGradleEnterprisePlugin.LAST_GRADLE_ENTERPRISE_PLUGIN_VERSION)) {
+        expecting(plugin(id = "com.gradle.enterprise", version = AutoAppliedGradleEnterprisePlugin.VERSION)) {
             `gradle-enterprise`
         }
     }

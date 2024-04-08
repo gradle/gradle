@@ -36,6 +36,5 @@ public final class AutoAppliedGradleEnterprisePlugin {
 
     public static final PluginId GRADLE_ENTERPRISE_PLUGIN_ID = new DefaultPluginId("com.gradle.enterprise");
     public static final String GRADLE_ENTERPRISE_PLUGIN_ARTIFACT_NAME = "gradle-enterprise-gradle-plugin";
-    public static final String LAST_GRADLE_ENTERPRISE_PLUGIN_VERSION = "3.16.2";
 
 }
