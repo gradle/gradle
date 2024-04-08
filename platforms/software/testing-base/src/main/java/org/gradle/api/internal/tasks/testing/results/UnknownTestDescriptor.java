@@ -15,8 +15,12 @@
  */
 package org.gradle.api.internal.tasks.testing.results;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 
+import javax.annotation.Nullable;
+
+@NonNullApi
 public class UnknownTestDescriptor implements TestDescriptorInternal {
 
     @Override
@@ -50,6 +54,7 @@ public class UnknownTestDescriptor implements TestDescriptorInternal {
     }
 
     @Override
+    @Nullable
     public String getClassDisplayName() {
         return getClassName();
     }
