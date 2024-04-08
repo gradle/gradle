@@ -714,7 +714,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
         }
 
         /**
-         * Do any preparation work and validation to ensure that {@link #createServiceInstance()} ()} can be called later.
+         * Do any preparation work and validation to ensure that {@link #createServiceInstance()} can be called later.
          * This method is never called concurrently.
          */
         protected void bind() {
