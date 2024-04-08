@@ -113,7 +113,7 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
 
             if (BuildEnvironment.INSTANCE.getJavaVersion().isJava11Compatible()) {
                 // TODO html4 output was removed in Java 13, see https://bugs.openjdk.org/browse/JDK-8215578
-                options.addBooleanOption("html4", true);
+                //options.addBooleanOption("html4", true);
                 options.addBooleanOption("-no-module-directories", true);
 
                 FileSystemOperations fs = getFs();
@@ -137,7 +137,6 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
 
         extension.javadocs(javadocs -> {
             javadocs.getJavadocCss().convention(extension.getSourceRoot().file("css/javadoc.css"));
-            javadocs.getJavadocJs().convention(extension.getSourceRoot().file("css/javadoc.js"));
 
             // TODO: destinationDirectory should be part of Javadoc
             javadocs.getRenderedDocumentation().from(javadocAll.flatMap(task -> (DirectoryProperty) task.getExtensions().getExtraProperties().get("destinationDirectory")));

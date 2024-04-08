@@ -111,7 +111,7 @@ import java.util.concurrent.Callable;
  *
  * <p>Plugins can modularise and reuse project configuration.
  * Plugins can be applied using the {@link PluginAware#apply(java.util.Map)} method, or by using the {@link org.gradle.plugin.use.PluginDependenciesSpec} plugins script block.
- * <a name="properties"></a> <h3>Dynamic Project Properties</h3>
+ * <h3 id="properties">Dynamic Project Properties</h3>
  * <p>Gradle executes the project's build file against the <code>Project</code> instance to configure the project. Any
  * property or method your script uses is delegated to the associated <code>Project</code> object. This
  * means you can use any of the methods and properties on the <code>Project</code> interface directly in your script.
@@ -157,8 +157,7 @@ import java.util.concurrent.Callable;
  * <p>When writing a property, the project searches the above scopes in order and sets the property in the first scope
  * it finds the property in. If not found, an exception is thrown. See {@link #setProperty(String, Object)} for more details.
  *
- * <a name="extraproperties"></a>
- * <h4>Extra Properties</h4>
+ * <h4 id="extraproperties">Extra Properties</h4>
  *
  * All extra properties must be defined through the &quot;ext&quot; namespace. Once an extra property has been defined,
  * it is available directly on the owning object (in the below case the Project, Task, and subprojects, respectively) and can
