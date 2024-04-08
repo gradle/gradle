@@ -21,6 +21,7 @@ import org.gradle.internal.declarativedsl.analysis.AnalysisSchemaImpl
 import org.gradle.internal.declarativedsl.analysis.DataClass
 import org.gradle.internal.declarativedsl.analysis.DataClassImpl
 import org.gradle.internal.declarativedsl.analysis.DataProperty
+import org.gradle.internal.declarativedsl.analysis.DataPropertyImpl
 import org.gradle.internal.declarativedsl.analysis.ExternalObjectProviderKeyImpl
 import org.gradle.internal.declarativedsl.analysis.FqName
 import org.gradle.internal.declarativedsl.analysis.FqNameImpl
@@ -120,7 +121,7 @@ class DataSchemaBuilder(
                     it.claimedFunctions.forEach { claimFunction(type, it) }
                     addProperty(
                         type,
-                        DataProperty(it.name, it.returnType, it.propertyMode, it.hasDefaultValue, it.isHiddenInDeclarativeDsl, it.isDirectAccessOnly),
+                        DataPropertyImpl(it.name, it.returnType, it.propertyMode, it.hasDefaultValue, it.isHiddenInDeclarativeDsl, it.isDirectAccessOnly),
                         it.originalReturnType
                     )
                 }

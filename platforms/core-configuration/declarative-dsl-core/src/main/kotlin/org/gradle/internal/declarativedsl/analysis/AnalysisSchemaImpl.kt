@@ -50,22 +50,30 @@ data class DataClassImpl(
 
 
 @Serializable
-data class DataProperty(
-    val name: String,
-    val type: DataTypeRef,
-    val mode: PropertyMode,
-    val hasDefaultValue: Boolean,
-    val isHiddenInDsl: Boolean = false,
-    val isDirectAccessOnly: Boolean = false
-) {
-    enum class PropertyMode {
-        READ_WRITE, READ_ONLY, WRITE_ONLY
-    }
+data class DataPropertyImpl(
+    private val name: String,
+    @SerialName("privateType") // TODO: is this ok?
+    private val type: DataTypeRef,
+    private val mode: DataProperty.PropertyMode,
+    private val hasDefaultValue: Boolean,
+    private val isHiddenInDsl: Boolean = false,
+    private val isDirectAccessOnly: Boolean = false
+) : DataProperty {
+    override fun getName(): String = name
 
-    val isReadOnly: Boolean
-        get() = mode == PropertyMode.READ_ONLY
-    val isWriteOnly: Boolean
-        get() = mode == PropertyMode.WRITE_ONLY
+    override fun getType(): DataTypeRef = type
+
+    override fun getMode(): DataProperty.PropertyMode = mode
+
+    override fun hasDefaultValue(): Boolean = hasDefaultValue
+
+    override fun isHiddenInDsl(): Boolean = isHiddenInDsl
+
+    override fun isDirectAccessOnly(): Boolean = isDirectAccessOnly
+
+    override fun isReadOnly(): Boolean = mode == DataProperty.PropertyMode.READ_ONLY
+
+    override fun isWriteOnly(): Boolean = mode == DataProperty.PropertyMode.WRITE_ONLY
 }
 
 
