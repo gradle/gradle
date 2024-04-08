@@ -23,6 +23,7 @@ import org.gradle.declarative.dsl.model.annotations.Configuring
 import org.gradle.internal.declarativedsl.analysis.ConfigureAccessor
 import org.gradle.internal.declarativedsl.analysis.DataBuilderFunction
 import org.gradle.internal.declarativedsl.analysis.DataConstructor
+import org.gradle.internal.declarativedsl.analysis.DataConstructorImpl
 import org.gradle.internal.declarativedsl.analysis.DataMemberFunction
 import org.gradle.internal.declarativedsl.analysis.DataParameter
 import org.gradle.internal.declarativedsl.analysis.DataParameterImpl
@@ -159,7 +160,7 @@ class DefaultFunctionExtractor(
         val dataParams = params.map { param ->
             dataParameter(constructor, param, kClass, FunctionSemantics.Pure(kClass.toDataTypeRef()), preIndex)
         }
-        return DataConstructor(dataParams, kClass.toDataTypeRef())
+        return DataConstructorImpl(dataParams, kClass.toDataTypeRef())
     }
 
     private
