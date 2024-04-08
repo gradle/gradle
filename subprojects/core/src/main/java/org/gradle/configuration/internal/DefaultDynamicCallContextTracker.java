@@ -16,12 +16,16 @@
 
 package org.gradle.configuration.internal;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.Stack;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 
+@ServiceScope(Scope.CrossBuildSession.class)
 public class DefaultDynamicCallContextTracker implements DynamicCallContextTracker {
     private static class State {
         Stack<Object> entryPointsStack = new Stack<>();
