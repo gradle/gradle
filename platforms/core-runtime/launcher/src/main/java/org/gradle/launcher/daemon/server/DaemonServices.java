@@ -16,6 +16,7 @@
 package org.gradle.launcher.daemon.server;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.internal.tasks.userinput.UserInputReader;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.agents.AgentStatus;
@@ -98,6 +99,7 @@ public class DaemonServices extends DefaultServiceRegistry {
 
         builder.setDaemonOpts(configuration.getJvmOptions());
         builder.setApplyInstrumentationAgent(agentStatus.isAgentInstrumentationEnabled());
+        builder.setNativeServicesMode(configuration.getNativeServicesMode());
 
         return builder.create();
     }
@@ -144,7 +146,8 @@ public class DaemonServices extends DefaultServiceRegistry {
         DaemonHealthStats healthStats,
         DaemonRunningStats runningStats,
         ExecutorFactory executorFactory,
-        ProcessEnvironment processEnvironment
+        ProcessEnvironment processEnvironment,
+        UserInputReader inputReader
     ) {
         File daemonLog = getDaemonLogFile();
         DaemonDiagnostics daemonDiagnostics = new DaemonDiagnostics(daemonLog, daemonContext.getPid());
@@ -160,7 +163,7 @@ public class DaemonServices extends DefaultServiceRegistry {
             new EstablishBuildEnvironment(processEnvironment),
             new LogToClient(loggingManager, daemonDiagnostics), // from this point down, logging is sent back to the client
             new LogAndCheckHealth(healthStats, healthCheck, runningStats),
-            new ForwardClientInput(),
+            new ForwardClientInput(inputReader),
             new RequestStopIfSingleUsedDaemon(),
             new ResetDeprecationLogger(),
             new WatchForDisconnection(),

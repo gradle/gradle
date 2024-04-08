@@ -35,6 +35,253 @@ The previous step will help you identify potential problems by issuing deprecati
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_8.8]]
+== Upgrading from 8.7 and earlier
+
+=== Deprecations
+
+[[mutate_configuration_after_locking]]
+==== Deprecate mutating configuration after observation
+
+To ensure the accuracy of dependency resolution, Gradle checks that Configurations are not mutated after they have been used as part of a dependency graph.
+
+* Resolvable configurations should not have their resolution strategy, dependencies, hierarchy, etc. modified after they have been resolved.
+* Consumable configurations should not have their dependencies, hierarchy, attributes, etc. modified after they have been published or consumed as a variant.
+* Dependency scope configurations should not have their dependencies, constraints, etc. modified after a configuration that extends from them are observed.
+
+In prior versions of Gradle, many of these circumstances were detected and handled by failing the build.
+However, some cases went undetected or did not trigger build failures.
+In Gradle 9.0, all changes to a configuration after it has been observed will become an error.
+After a configuration of any type has been observed, it should be considered immutable.
+This validation covers the following properties of a configuration:
+
+* Resolution Strategy
+* Dependencies
+* Constraints
+* Exclude Rules
+* Artifacts
+* Role (consumable, resolvable, dependency scope)
+* Hierarchy (`extendsFrom`)
+* Others (Transitive, Visible)
+
+Starting in Gradle 8.8, a deprecation warning will be emitted in cases that were not already an error.
+Usually, this deprecation is caused by mutating a configuration in a link:{javadocPath}/org/gradle/api/artifacts/ResolvableDependencies.html#beforeResolve-org.gradle.api.Action-[`beforeResolve`] hook.
+This hook is only executed after a configuration is fully resolved but not when it is partially resolved for computing task dependencies.
+
+Consider the following code that showcases the deprecated behavior:
+
+=====
+[.multi-language-sample]
+======
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("java-library")
+}
+
+configurations.runtimeClasspath {
+    // `beforeResolve` is called after the configuration is resolved for task dependencies,
+    // but before it is fully resolved during artifact resolution.
+    // Configurations should not be mutated in this hook
+    incoming.beforeResolve {
+        // Add a dependency on `com:foo` if not already present
+        if (allDependencies.none { it.group == "com" && it.name == "foo" }) {
+            configurations.implementation.get().dependencies.add(project.dependencies.create("com:foo:1.0"))
+        }
+    }
+}
+
+tasks.register("resolve") {
+    val conf: FileCollection = configurations["runtimeClasspath"]
+
+    // Wire build dependencies
+    dependsOn(conf)
+
+    // Resolve dependencies
+    doLast {
+        assert(conf.files.map { it.name } == listOf("foo-1.0.jar"))
+    }
+}
+----
+======
+=====
+
+For the following use cases, consider these alternatives when replacing a `beforeResolve` hook:
+
+* **Adding dependencies**: Use link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#withDependencies-org.gradle.api.Action-[`withDependencies`].
+* **Changing dependency versions**: Use <<using_preferred_versions,preferred version constraints>>.
+* **Adding excludes**: Use <<component_metadata_rules.adoc#sec:component_metadata_rules,Component Metadata Rules>>.
+* **Roles**: Configuration roles should be set upon creation and not changed afterward.
+* **Hierarchy**: Configuration hierarchy (`extendsFrom`) should be set upon creation. Mutating the hierarchy prior to resolution is highly discouraged, but is permitted within a `withDependencies` hook.
+* **Resolution Strategy**: Mutating a configuration's ResolutionStrategy is still permitted in a `beforeResolve` hook; however, this is not recommended.
+
+[[deprecate_filtered_configuration_file_and_filecollection_methods]]
+==== Filtered Configuration `file` and `fileCollection` methods are deprecated
+
+In an ongoing effort to simplify the Gradle API, the following methods that support filtering based on declared dependencies have been deprecated:
+
+On link:{javadocPath}/org/gradle/api/artifacts/Configuration.html--[Configuration]:
+
+- `files(Dependency...)`
+- `files(Spec)`
+- `files(Closure)`
+- `fileCollection(Dependency...)`
+- `fileCollection(Spec)`
+- `fileCollection(Closure)`
+
+On link:{javadocPath}/org/gradle/api/artifacts/ResolvedConfiguration.html--[ResolvedConfiguration]:
+
+- `getFiles(Spec)`
+- `getFirstLevelModuleDependencies(Spec)`
+
+On link:{javadocPath}/org/gradle/api/artifacts/LenientConfiguration.html--[LenientConfiguration]:
+
+- `getFirstLevelModuleDependencies(Spec)`
+- `getFiles(Spec)`
+- `getArtifacts(Spec)`
+
+To mitigate this deprecation, consider the example below that leverages the `ArtifactView`
+API along with the `componentFilter` method to select a subset of a Configuration's artifacts:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+val conf by configurations.creating
+
+dependencies {
+    conf("com.thing:foo:1.0")
+    conf("org.example:bar:1.0")
+}
+
+tasks.register("filterDependencies") {
+    val files: FileCollection = conf.incoming.artifactView {
+        componentFilter {
+            when(it) {
+                is ModuleComponentIdentifier ->
+                    it.group == "com.thing" && it.module == "foo"
+                else -> false
+            }
+        }
+    }.files
+
+    doLast {
+        assert(files.map { it.name } == listOf("foo-1.0.jar"))
+    }
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+configurations {
+    conf
+}
+
+dependencies {
+    conf "com.thing:foo:1.0"
+    conf "org.example:bar:1.0"
+}
+
+tasks.register("filterDependencies") {
+    FileCollection files = configurations.conf.incoming.artifactView {
+        componentFilter {
+            it instanceof ModuleComponentIdentifier
+                && it.group == "com.thing"
+                && it.module == "foo"
+        }
+    }.files
+
+    doLast {
+        assert files*.name == ["foo-1.0.jar"]
+    }
+}
+----
+=====
+====
+
+Note that contrary to the behavior of the deprecated `Dependency` filtering methods, `componentFilter` does not consider the transitive dependencies of the component being filtered.
+This allows for more granular control over which artifacts are selected.
+
+[[deprecated_namers]]
+==== Deprecated `Namer` of `Task` and `Configuration`
+`Task` and `Configuration` have a link:{javadocPath}/org/gradle/api/Namer.html[`Namer`] inner class (also called `Namer`) that can be used as a common way to retrieve the name of a task or configuration.
+Now that these types implement link:{javadocPath}/org/gradle/api/Named.html[`Named`], these classes are no longer necessary and have been deprecated.
+They will be removed in Gradle 9.0.
+Use link:{javadocPath}/org/gradle/api/Named.Namer.html#INSTANCE[`Named.Namer.INSTANCE`] instead.
+
+The superinterface, link:{javadocPath}/org/gradle/api/Namer.html[`Namer`], is *not* being deprecated.
+
+[[unix_file_permissions_deprecated]]
+==== Unix mode based file permissions deprecated ====
+
+A new API for defining file permissions has been added in Gradle 8.3, see:
+
+- link:{javadocPath}/org/gradle/api/file/FilePermissions.html[FilePermissions].
+- link:{javadocPath}/org/gradle/api/file/ConfigurableFilePermissions.html[ConfigurableFilePermissions].
+
+The new API has now been promoted to stable and the old methods have been deprecated:
+
+- link:{javadocPath}/org/gradle/api/file/CopyProcessingSpec.html#getFileMode--[CopyProcessingSpec.getFileMode]
+- link:{javadocPath}/org/gradle/api/file/CopyProcessingSpec.html#setFileMode-java.lang.Integer-[CopyProcessingSpec.setFileMode]
+- link:{javadocPath}/org/gradle/api/file/CopyProcessingSpec.html#getDirMode--[CopyProcessingSpec.getDirMode]
+- link:{javadocPath}/org/gradle/api/file/CopyProcessingSpec.html#setDirMode-java.lang.Integer-[CopyProcessingSpec.setDirMode]
+- link:{javadocPath}/org/gradle/api/file/FileTreeElement.html#getMode--[FileTreeElement.getMode]
+- link:{javadocPath}/org/gradle/api/file/FileCopyDetails.html#setMode-int-[FileCopyDetails.setMode]
+
+[[directory_build_cache_retention_deprecated]]
+==== Deprecated setting retention period directly on local build cache ====
+
+In previous versions, cleanup of the local build cache entries ran every 24 hours, and this interval could not be configured.
+The retention period was configured using `buildCache.local.removeUnusedEntriesAfterDays`. 
+
+In Gradle 8.0, link:directory_layout.html#dir:gradle_user_home:configure_cache_cleanup[a new mechanism] was added to configure the cleanup and retention periods for various resources in Gradle User Home.
+In Gradle 8.8, this mechanism was extended to permit configuration of retention of local build cache entries, providing improved control and consistency.
+
+- Specifying `Cleanup.DISABLED` or `Cleanup.ALWAYS` will now prevent or force the cleanup of the local build cache
+- Build cache entry retention is now configured via an `init-script`, link:directory_layout.html#dir:gradle_user_home:configure_cache_cleanup[in the same manner as other caches].
+
+E.g. if you want build-cache entries to be retained for 30 days, **remove** any calls to the deprecated method:
+```kotlin
+buildCache {
+    local {
+        // Remove this line
+        removeUnusedEntriesAfterDays = 30
+    }
+}
+```
+
+add a file like this in `~/.gradle/init.d`:
+```kotlin
+beforeSettings {
+    caches {
+        buildCache.setRemoveUnusedEntriesAfterDays(30)
+    }
+}
+```
+
+Calling link:{javadocPath}/org/gradle/caching/local/DirectoryBuildCache.html#setRemoveUnusedEntriesAfterDays-int-[buildCache.local.removeUnusedEntriesAfterDays] is deprecated and this method will be removed in Gradle 9.0.
+If set to a non-default value, this deprecated setting will take precedence over `Settings.caches.buildCache.setRemoveUnusedEntriesAfterDays()`.
+
+=== Potential breaking changes
+
+==== Changes in the Problems API
+
+We have implemented several refactorings of the Problems API, including a significant change in the way problem definitions and contextual information are handled.
+The complete design specification can be found [here](https://docs.google.com/document/d/1T_vM-Upa23aA21sanFTTLZa3j9xV6R32djJk6-muWzI/edit#heading=h.610fausqnpu6).
+
+In implementing this spec, we have introduced the following breaking changes to the `ProblemSpec` interface:
+- The `label(String)` and `description(String)` methods have been replaced with the `id(String, String)` method and its overloaded variants.
+
+==== Upgrade to ASM 9.7
+
+ASM was upgraded from 9.6 to https://asm.ow2.io/versions.html[9.7] to ensure earlier compatibility for Java 23.
+
 [[changes_8.7]]
 == Upgrading from 8.6 and earlier
 
@@ -42,7 +289,7 @@ The previous step will help you identify potential problems by issuing deprecati
 
 ==== Upgrade to Kotlin 1.9.22
 
-The embedded Kotlin has been updated to link:https://github.com/JetBrains/kotlin/releases/tag/v1.9.22[Kotlin 1.9.22].
+The embedded Kotlin has been updated from 1.9.10 to link:https://github.com/JetBrains/kotlin/releases/tag/v1.9.22[Kotlin 1.9.22].
 
 ==== Upgrade to Apache SSHD 2.10.0
 
@@ -140,7 +387,7 @@ Currently, `ProjectDependency` and `FileCollectionDependency` implement this int
 In Gradle 9.0, these types will no longer implement `SelfResolvingDependency`.
 Instead, they will both directly implement `Dependency`.
 
-As such, the following methods of `ProjectDependency` and `FileCollectionDependency` will no longer be avaDilable:
+As such, the following methods of `ProjectDependency` and `FileCollectionDependency` will no longer be available:
 
 - `resolve`
 - `resolve(boolean)`
@@ -430,6 +677,7 @@ Build logic like the above example creates challenges in resolving declared depe
 Instead, the build logic can avoid iteration and mutation by declaring a `preferred` version constraint on the dependency's coordinates.
 This allows the dependency management engine to use the version declared on the constraint if no other version is declared.
 
+[[using_preferred_versions]]
 Consider the following example that replaces the above iteration with an indiscriminate <<rich_versions.adoc#sec:preferred-version,preferred>> version constraint:
 
 =====
@@ -1580,13 +1828,6 @@ tasks.withType(HtmlDependencyReportTask) {
 ----
 =====
 ====
-
-[[redundant_configuration_usage_activation]]
-==== Redundant configuration usage activation
-
-Calling `setCanBeConsumed(boolean)` or `setCanBeResolved(boolean)` on a configuration that already allows that usage is deprecated.
-
-This deprecation is intended to help users identify unnecessary configuration usage modifications.
 
 [[deprecated_configuration_get_all]]
 ==== `link:{javadocPath}/org/gradle/api/artifacts/Configuration.html[Configuration]` method deprecations

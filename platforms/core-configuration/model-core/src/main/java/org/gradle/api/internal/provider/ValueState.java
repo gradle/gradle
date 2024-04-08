@@ -23,6 +23,7 @@ import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.state.ModelObject;
 
 import javax.annotation.Nullable;
+import java.util.function.Function;
 
 /**
  * Provides a state pattern implementation for values that are finalizable and support conventions.
@@ -38,8 +39,21 @@ import javax.annotation.Nullable;
 public abstract class ValueState<S> {
     private static final ValueState<Object> FINALIZED_VALUE = new FinalizedValue<>();
 
+    /**
+     * Creates a new non-finalized state.
+     */
     public static <S> ValueState<S> newState(PropertyHost host) {
-        return new ValueState.NonFinalizedValue<>(host);
+        return new ValueState.NonFinalizedValue<>(host, Function.identity());
+    }
+
+    /**
+     * Creates a new non-finalized state.
+     *
+     * @param copier when the value is mutable, a shallow-copying function should be provided to avoid
+     * sharing of mutable state between effective values and convention values
+     */
+    public static <S> ValueState<S> newState(PropertyHost host, Function<S, S> copier) {
+        return new ValueState.NonFinalizedValue<>(host, copier);
     }
 
     public abstract boolean shouldFinalize(Describable displayName, @Nullable ModelObject producer);
@@ -151,14 +165,16 @@ public abstract class ValueState<S> {
 
     private static class NonFinalizedValue<S> extends ValueState<S> {
         private final PropertyHost host;
+        private final Function<S, S> copier;
         private boolean explicitValue;
         private boolean finalizeOnNextGet;
         private boolean disallowChanges;
         private boolean disallowUnsafeRead;
         private S convention;
 
-        public NonFinalizedValue(PropertyHost host) {
+        public NonFinalizedValue(PropertyHost host, Function<S, S> copier) {
             this.host = host;
+            this.copier = copier;
         }
 
         @Override
@@ -238,7 +254,11 @@ public abstract class ValueState<S> {
         @Override
         public S setToConvention() {
             explicitValue = true;
-            return convention;
+            return shallowCopy(convention);
+        }
+
+        private S shallowCopy(S toCopy) {
+            return copier.apply(toCopy);
         }
 
         @Override
@@ -266,14 +286,14 @@ public abstract class ValueState<S> {
         @Override
         public S implicitValue() {
             explicitValue = false;
-            return convention;
+            return shallowCopy(convention);
         }
 
         @Override
         public S applyConvention(S value, S convention) {
             this.convention = convention;
             if (!explicitValue) {
-                return convention;
+                return shallowCopy(convention);
             } else {
                 return value;
             }

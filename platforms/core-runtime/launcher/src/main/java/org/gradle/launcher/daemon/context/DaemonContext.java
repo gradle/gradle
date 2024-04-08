@@ -15,6 +15,7 @@
  */
 package org.gradle.launcher.daemon.context;
 
+import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 
 import java.io.File;
@@ -74,6 +75,11 @@ public interface DaemonContext extends Serializable {
      * @return {@code true} if the agent should be applied
      */
     boolean shouldApplyInstrumentationAgent();
+
+    /**
+     * Returns whether the daemon should use native services.
+     */
+    NativeServicesMode getNativeServicesMode();
 
     DaemonParameters.Priority getPriority();
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
+import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 
 import java.util.Collection;
@@ -28,9 +29,16 @@ import java.util.Optional;
  * being resolved. This type should remain as minimal as possible.</p>
  */
 public interface ResolutionHost {
-    String getDisplayName();
 
-    DisplayName displayName(String type);
+    DisplayName displayName();
+
+    default String getDisplayName() {
+        return displayName().getDisplayName();
+    }
+
+    default DisplayName displayName(String type) {
+        return Describables.of(displayName(), type);
+    }
 
     /**
      * Rethrows the provided failures. Does nothing if the list of failures is empty.

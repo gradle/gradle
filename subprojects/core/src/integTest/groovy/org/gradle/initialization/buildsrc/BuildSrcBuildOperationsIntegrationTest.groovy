@@ -24,12 +24,15 @@ import org.gradle.initialization.ConfigureBuildBuildOperationType
 import org.gradle.initialization.LoadBuildBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.internal.taskgraph.CalculateTreeTaskGraphBuildOperationType
 import org.gradle.launcher.exec.RunBuildBuildOperationType
 import org.gradle.operations.lifecycle.RunRequestedWorkBuildOperationType
 
 import java.util.regex.Pattern
+
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
 class BuildSrcBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
     BuildOperationsFixture ops
@@ -38,6 +41,7 @@ class BuildSrcBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         file("buildSrc/src/main/java/Thing.java") << "class Thing { }"
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "includes build identifier in build operations with #display"() {
         when:
         file("buildSrc/settings.gradle") << settings << "\n"

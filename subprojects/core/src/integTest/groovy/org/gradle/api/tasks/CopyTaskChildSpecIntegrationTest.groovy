@@ -18,10 +18,14 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Issue
+
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
 class CopyTaskChildSpecIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "changing child specs of the copy task while executing is disallowed"() {
         given:
         file("some-dir/input.txt") << "Data"
@@ -51,21 +55,20 @@ class CopyTaskChildSpecIntegrationTest extends AbstractIntegrationSpec implement
         given:
         file("root/root-file.txt") << 'root'
         buildScript("""
-
             def baseSpec = copySpec {
                 from("root") {
-                    println(fileMode)
-                    dirMode = 0755
-                    println(dirMode)
-                    dirMode = 0755
+                    println(filePermissions.getOrNull() == null ? "DEFAULT" : filePermissions.get().toUnixNumeric())
+                    dirPermissions {unix(0755) }
+                    println(dirPermissions.getOrNull() == null ? "DEFAULT" : dirPermissions.get().toUnixNumeric())
+                    dirPermissions {unix(0755) }
                 }
             }
 
             tasks.register("copy", Copy) {
-                println(fileMode)
-                dirMode = 0755
-                println(dirMode)
-                dirMode = 0755
+                println(filePermissions.getOrNull() == null ? "DEFAULT" : filePermissions.get().toUnixNumeric())
+                dirPermissions {unix(0755) }
+                println(dirPermissions.getOrNull() == null ? "DEFAULT" : dirPermissions.get().toUnixNumeric())
+                dirPermissions {unix(0755) }
                 into("build-output")
                 with baseSpec
             }

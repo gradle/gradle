@@ -15,7 +15,7 @@
   },
   {
     "name": "architecture-test",
-    "path": "subprojects/architecture-test",
+    "path": "testing/architecture-test",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
@@ -182,6 +182,27 @@
     "crossVersionTests": false
   },
   {
+    "name": "declarative-dsl-api",
+    "path": "platforms/core-configuration/declarative-dsl-api",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "declarative-dsl-core",
+    "path": "platforms/core-configuration/declarative-dsl-core",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "declarative-dsl-provider",
+    "path": "platforms/core-configuration/declarative-dsl-provider",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "dependency-management",
     "path": "platforms/software/dependency-management",
     "unitTests": true,
@@ -225,7 +246,7 @@
   },
   {
     "name": "distributions-integ-tests",
-    "path": "subprojects/distributions-integ-tests",
+    "path": "testing/distributions-integ-tests",
     "unitTests": false,
     "functionalTests": true,
     "crossVersionTests": false
@@ -322,6 +343,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "execution-e2e-tests",
+    "path": "platforms/core-execution/execution-e2e-tests",
+    "unitTests": false,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "file-collections",
     "path": "platforms/core-configuration/file-collections",
     "unitTests": true,
@@ -414,14 +442,14 @@
   },
   {
     "name": "integ-test",
-    "path": "subprojects/integ-test",
+    "path": "testing/integ-test",
     "unitTests": false,
     "functionalTests": true,
     "crossVersionTests": true
   },
   {
     "name": "internal-architecture-testing",
-    "path": "subprojects/internal-architecture-testing",
+    "path": "testing/internal-architecture-testing",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -449,21 +477,21 @@
   },
   {
     "name": "internal-integ-testing",
-    "path": "subprojects/internal-integ-testing",
+    "path": "testing/internal-integ-testing",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
     "name": "internal-performance-testing",
-    "path": "subprojects/internal-performance-testing",
+    "path": "testing/internal-performance-testing",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
     "name": "internal-testing",
-    "path": "subprojects/internal-testing",
+    "path": "testing/internal-testing",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
@@ -638,7 +666,7 @@
   },
   {
     "name": "performance",
-    "path": "subprojects/performance",
+    "path": "testing/performance",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -688,6 +716,13 @@
   {
     "name": "plugins",
     "path": "subprojects/plugins",
+    "unitTests": false,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "plugins-application",
+    "path": "platforms/jvm/plugins-application",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
@@ -704,14 +739,14 @@
     "path": "platforms/jvm/plugins-groovy",
     "unitTests": true,
     "functionalTests": true,
-    "crossVersionTests": false
+    "crossVersionTests": true
   },
   {
     "name": "plugins-java",
     "path": "platforms/jvm/plugins-java",
     "unitTests": true,
     "functionalTests": true,
-    "crossVersionTests": false
+    "crossVersionTests": true
   },
   {
     "name": "plugins-java-base",
@@ -757,7 +792,7 @@
   },
   {
     "name": "precondition-tester",
-    "path": "platforms/build-infrastructure/precondition-tester",
+    "path": "testing/precondition-tester",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": true
@@ -862,14 +897,14 @@
   },
   {
     "name": "smoke-ide-test",
-    "path": "subprojects/smoke-ide-test",
+    "path": "testing/smoke-ide-test",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
     "name": "smoke-test",
-    "path": "subprojects/smoke-test",
+    "path": "testing/smoke-test",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -883,7 +918,7 @@
   },
   {
     "name": "soak",
-    "path": "subprojects/soak",
+    "path": "testing/soak",
     "unitTests": false,
     "functionalTests": true,
     "crossVersionTests": false

@@ -34,7 +34,6 @@ import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -90,16 +89,13 @@ public final class ResolutionCandidateAssessor {
     }
 
     public List<AssessedCandidate> assessGraphSelectionCandidates(GraphSelectionCandidates candidates) {
-        final List<? extends VariantGraphResolveMetadata> variantMetadatas;
-        if (candidates.isUseVariants()) {
-            variantMetadatas = candidates.getVariants().stream()
-                .map(VariantGraphResolveState::getMetadata)
-                .collect(Collectors.toList());
-        } else {
-            variantMetadatas = new ArrayList<>(candidates.getCandidateConfigurations()); // Need non-immutable copy to sort
-        }
+        assert candidates.isUseVariants() : "Cannot assess graph selection candidates when variants are not used.";
 
-        return assessVariantMetadatas(variantMetadatas);
+        return candidates.getVariants().stream()
+            .map(VariantGraphResolveState::getMetadata)
+            .map(variantMetadata -> assessCandidate(variantMetadata.getName(), variantMetadata.getCapabilities(), variantMetadata.getAttributes()))
+            .sorted(Comparator.comparing(AssessedCandidate::getDisplayName))
+            .collect(Collectors.toList());
     }
 
     public AssessedCandidate assessCandidate(
@@ -148,10 +144,10 @@ public final class ResolutionCandidateAssessor {
      * An immutable data class that holds information about a single variant which was a candidate for matching during resolution.
      *
      * This includes classifying its attributes into lists of compatible, incompatible, and absent attributes.  Each candidate
-     * is assessed within the context of a resolution, so this is a non-{@code static} class implicitly linked to the assessor
-     * that produced it.
+     * is assessed within the context of a resolution, but must not reference the assessor
+     * that produced it, in order to remain configuration cache compatible - the assessor is not serializable.
      */
-    public final class AssessedCandidate implements Describable {
+    public static final class AssessedCandidate implements Describable {
         private final String name;
         private final ImmutableAttributes candidateAttributes;
         private final ImmutableCapabilities candidateCapabilities;
@@ -178,10 +174,6 @@ public final class ResolutionCandidateAssessor {
 
         public ImmutableAttributes getAllCandidateAttributes() {
             return candidateAttributes;
-        }
-
-        public ImmutableAttributes getAllRequestedAttributes() {
-            return requestedAttributes;
         }
 
         public ImmutableCapabilities getCandidateCapabilities() {

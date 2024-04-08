@@ -26,13 +26,14 @@ class UserInputResumeEventSerializerTest extends LogSerializerSpec {
 
     def "can serialize user input resume event"() {
         given:
-        def event = new UserInputResumeEvent()
+        def event = new UserInputResumeEvent(123)
 
         when:
         def result = serialize(event, serializer)
 
         then:
         result instanceof UserInputResumeEvent
+        result.timestamp == 123l
         result.logLevel == LogLevel.QUIET
     }
 }

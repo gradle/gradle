@@ -16,28 +16,44 @@
 
 package org.gradle.internal.build.event.types;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
 
+import javax.annotation.Nullable;
 import java.io.Serializable;
 
+@NonNullApi
 public class DefaultTestDescriptor implements Serializable, InternalJvmTestDescriptor, InternalOperationDescriptor {
 
     private final OperationIdentifier id;
-    private final String name;
-    private final String displayName;
+    private final String operationName;
+    private final String operationDisplayName;
     private final String testKind;
     private final String suiteName;
     private final String className;
     private final String methodName;
     private final OperationIdentifier parentId;
     private final String taskPath;
+    private final String testDisplayName;
 
-    public DefaultTestDescriptor(OperationIdentifier id, String name, String displayName, String testKind, String suiteName, String className, String methodName, OperationIdentifier parentId, String taskPath) {
+    public DefaultTestDescriptor(
+        OperationIdentifier id,
+        String operationName,
+        String operationDisplayName,
+        String displayName,
+        String testKind,
+        @Nullable String suiteName,
+        @Nullable String className,
+        @Nullable String methodName,
+        OperationIdentifier parentId,
+        String taskPath
+    ) {
         this.id = id;
-        this.name = name;
-        this.displayName = displayName;
+        this.operationName = operationName;
+        this.operationDisplayName = operationDisplayName;
+        this.testDisplayName = displayName;
         this.testKind = testKind;
         this.suiteName = suiteName;
         this.className = className;
@@ -53,12 +69,17 @@ public class DefaultTestDescriptor implements Serializable, InternalJvmTestDescr
 
     @Override
     public String getName() {
-        return name;
+        return operationName;
     }
 
     @Override
     public String getDisplayName() {
-        return displayName;
+        return operationDisplayName;
+    }
+
+    @Override
+    public String getTestDisplayName() {
+        return testDisplayName;
     }
 
     @Override
@@ -67,16 +88,19 @@ public class DefaultTestDescriptor implements Serializable, InternalJvmTestDescr
     }
 
     @Override
+    @Nullable
     public String getSuiteName() {
         return suiteName;
     }
 
     @Override
+    @Nullable
     public String getClassName() {
         return className;
     }
 
     @Override
+    @Nullable
     public String getMethodName() {
         return methodName;
     }

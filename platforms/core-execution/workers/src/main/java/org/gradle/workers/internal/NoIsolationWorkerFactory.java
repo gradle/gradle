@@ -21,8 +21,8 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolated.IsolationScheme;
-import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.workers.WorkAction;
 import org.gradle.workers.WorkParameters;
@@ -32,13 +32,13 @@ import javax.annotation.Nullable;
 import java.util.Collections;
 
 public class NoIsolationWorkerFactory implements WorkerFactory {
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationRunner buildOperationRunner;
     private final ActionExecutionSpecFactory specFactory;
     private final Worker workerServer;
     private WorkerExecutor workerExecutor;
 
-    public NoIsolationWorkerFactory(BuildOperationExecutor buildOperationExecutor, InstantiatorFactory instantiatorFactory, ActionExecutionSpecFactory specFactory, ServiceRegistry internalServices) {
-        this.buildOperationExecutor = buildOperationExecutor;
+    public NoIsolationWorkerFactory(BuildOperationRunner buildOperationRunner, InstantiatorFactory instantiatorFactory, ActionExecutionSpecFactory specFactory, ServiceRegistry internalServices) {
+        this.buildOperationRunner = buildOperationRunner;
         this.specFactory = specFactory;
         IsolationScheme<WorkAction<?>, WorkParameters> isolationScheme = new IsolationScheme<>(Cast.uncheckedNonnullCast(WorkAction.class), WorkParameters.class, WorkParameters.None.class);
         workerServer = new DefaultWorkerServer(internalServices, instantiatorFactory, isolationScheme, Collections.singleton(WorkerExecutor.class));
@@ -53,7 +53,7 @@ public class NoIsolationWorkerFactory implements WorkerFactory {
     public BuildOperationAwareWorker getWorker(WorkerRequirement workerRequirement) {
         final WorkerExecutor workerExecutor = this.workerExecutor;
         final ClassLoader contextClassLoader = ((FixedClassLoaderWorkerRequirement) workerRequirement).getContextClassLoader();
-        return new AbstractWorker(buildOperationExecutor) {
+        return new AbstractWorker(buildOperationRunner) {
             @Override
             public DefaultWorkResult execute(IsolatedParametersActionExecutionSpec<?> spec, BuildOperationRef parentBuildOperation) {
                 return executeWrappedInBuildOperation(spec, parentBuildOperation, workSpec -> {

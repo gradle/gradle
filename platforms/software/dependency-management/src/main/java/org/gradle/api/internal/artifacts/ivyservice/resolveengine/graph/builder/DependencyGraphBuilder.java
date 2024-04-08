@@ -49,13 +49,13 @@ import org.gradle.api.internal.attributes.CompatibilityRule;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.component.AbstractVariantSelectionException;
 import org.gradle.internal.component.ResolutionFailureHandler;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.component.model.DefaultCompatibilityCheckResult;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.GraphVariantSelector;
+import org.gradle.internal.component.resolution.failure.exception.AbstractResolutionFailureException;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.operations.BuildOperationConstraint;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -407,6 +407,8 @@ public class DependencyGraphBuilder {
                             "Depending on the resolved configuration in this manner",
                         rootNodeName
                     ))
+                .withProblemIdDisplayName("Configurations should not act as both a resolution root and a variant simultaneously.")
+                .withProblemId("configurations-acting-as-both-root-and-variant")
                 .withAdvice("Be sure to mark configurations meant for resolution as canBeConsumed=false or use the 'resolvable(String)' configuration factory method to create them.")
                 .willBecomeAnErrorInGradle9()
                 .withUpgradeGuideSection(8, "depending_on_root_configuration")
@@ -505,7 +507,7 @@ public class DependencyGraphBuilder {
             assertCompatibleAttributes(first, second, incompatibleNodes, consumerSchema);
         }
         if (!incompatibleNodes.isEmpty()) {
-            AbstractVariantSelectionException variantsSelectionException = resolutionFailureHandler.incompatibleArtifactVariantsFailure(consumerSchema, selected, incompatibleNodes);
+            AbstractResolutionFailureException variantsSelectionException = resolutionFailureHandler.incompatibleArtifactVariantsFailure(consumerSchema, selected, incompatibleNodes);
             for (EdgeState edge : module.getIncomingEdges()) {
                 edge.failWith(variantsSelectionException);
             }

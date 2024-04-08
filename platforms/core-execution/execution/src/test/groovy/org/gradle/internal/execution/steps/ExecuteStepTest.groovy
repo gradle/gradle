@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableSortedMap
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.history.PreviousExecutionState
 import org.gradle.internal.execution.history.changes.InputChangesInternal
-import org.gradle.internal.operations.TestBuildOperationExecutor
+import org.gradle.internal.operations.TestBuildOperationRunner
 
 import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.EXECUTED_INCREMENTALLY
 import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
@@ -35,7 +35,7 @@ class ExecuteStepTest extends StepSpec<ChangingOutputsContext> {
         getOutputFilesProducedByWork() >> previousOutputs
     }
 
-    def step = new ExecuteStep<>(new TestBuildOperationExecutor())
+    def step = new ExecuteStep<>(new TestBuildOperationRunner())
     def inputChanges = Mock(InputChangesInternal)
 
 

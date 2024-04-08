@@ -32,7 +32,7 @@ class HandleStaleOutputsStepTest extends StepSpec<WorkspaceContext> implements S
     def outputFilesRepository = Mock(OutputFilesRepository)
 
     def step = new HandleStaleOutputsStep<>(
-        buildOperationExecutor,
+        buildOperationRunner,
         cleanupRegistry,
         deleter,
         outputChangeListener,

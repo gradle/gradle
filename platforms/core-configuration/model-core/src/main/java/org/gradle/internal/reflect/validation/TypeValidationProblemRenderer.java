@@ -16,41 +16,38 @@
 package org.gradle.internal.reflect.validation;
 
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.problems.internal.ProblemReport;
+import org.gradle.api.problems.internal.Problem;
 import org.gradle.internal.logging.text.TreeFormatter;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 
-import static java.lang.Boolean.parseBoolean;
 import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang.StringUtils.capitalize;
-import static org.gradle.internal.reflect.validation.DefaultTypeAwareProblemBuilder.PARENT_PROPERTY_NAME;
-import static org.gradle.internal.reflect.validation.DefaultTypeAwareProblemBuilder.PLUGIN_ID;
-import static org.gradle.internal.reflect.validation.DefaultTypeAwareProblemBuilder.PROPERTY_NAME;
-import static org.gradle.internal.reflect.validation.DefaultTypeAwareProblemBuilder.TYPE_IS_IRRELEVANT_IN_ERROR_MESSAGE;
-import static org.gradle.internal.reflect.validation.DefaultTypeAwareProblemBuilder.TYPE_NAME;
 import static org.gradle.util.internal.TextUtil.endLineWithDot;
 
 public class TypeValidationProblemRenderer {
 
-    public static String renderMinimalInformationAbout(ProblemReport problem) {
+    public static String renderMinimalInformationAbout(Problem problem) {
         return renderMinimalInformationAbout(problem, true);
     }
 
-    public static String renderMinimalInformationAbout(ProblemReport problem, boolean renderDocLink) {
+    public static String renderMinimalInformationAbout(Problem problem, boolean renderDocLink) {
         return renderMinimalInformationAbout(problem, renderDocLink, true);
     }
 
-    public static String renderMinimalInformationAbout(ProblemReport problem, boolean renderDocLink, boolean renderSolutions) {
+    public static String renderMinimalInformationAbout(Problem problem, boolean renderDocLink, boolean renderSolutions) {
         TreeFormatter formatter = new TreeFormatter();
-        formatter.node(introductionFor(problem.getContext().getAdditionalData()) + endLineWithDot(problem.getDefinition().getLabel()));
-        ofNullable(problem.getContext().getDetails()).ifPresent(reason -> {
+        formatter.node(endLineWithDot(Optional.ofNullable(problem.getContextualLabel()).orElseGet(() -> problem.getDefinition().getId().getDisplayName())));
+        ofNullable(problem.getDetails()).ifPresent(reason -> {
             formatter.blankLine();
-            formatter.node("Reason: " + capitalize(endLineWithDot(problem.getContext().getDetails())));
+            formatter.node("Reason: " + capitalize(endLineWithDot(problem.getDetails())));
         });
         if (renderSolutions) {
-            renderSolutions(formatter, problem.getDefinition().getSolutions());
+            List<String> allSolutions = new ArrayList<>(problem.getSolutions().size() + problem.getSolutions().size());
+            allSolutions.addAll(problem.getSolutions());
+            renderSolutions(formatter, allSolutions);
         }
         if (renderDocLink) {
             ofNullable(problem.getDefinition().getDocumentationLink()).ifPresent(docLink -> {
@@ -87,51 +84,6 @@ public class TypeValidationProblemRenderer {
             .replaceAll("[.]+", ".")
             .replaceAll("[ ]+", " ")
             .replaceAll(": ?[. ]", ": ");
-    }
-
-    public static String introductionFor(Map<String, Object> additionalMetadata) {
-        StringBuilder builder = new StringBuilder();
-        String rootType = ofNullable(additionalMetadata.get(TYPE_NAME))
-            .map(Object::toString)
-            .filter(TypeValidationProblemRenderer::shouldRenderType)
-            .orElse(null);
-        DefaultPluginId pluginId = ofNullable(additionalMetadata.get(PLUGIN_ID))
-            .map(Object::toString)
-            .map(DefaultPluginId::new)
-            .orElse(null);
-        boolean typeRelevant = rootType != null && !parseBoolean(additionalMetadata.getOrDefault(TYPE_IS_IRRELEVANT_IN_ERROR_MESSAGE, "").toString());
-        if (typeRelevant) {
-            if (pluginId != null) {
-                builder.append("In plugin '")
-                    .append(pluginId)
-                    .append("' type '");
-            } else {
-                builder.append("Type '");
-            }
-            builder.append(rootType).append("' ");
-        }
-
-        Object property = additionalMetadata.get(PROPERTY_NAME);
-        if (property != null) {
-            if (typeRelevant) {
-                builder.append("property '");
-            } else {
-                if (pluginId != null) {
-                    builder.append("In plugin '")
-                        .append(pluginId)
-                        .append("' property '");
-                } else {
-                    builder.append("Property '");
-                }
-            }
-            ofNullable(additionalMetadata.get(PARENT_PROPERTY_NAME)).ifPresent(parentProperty -> {
-                builder.append(parentProperty);
-                builder.append('.');
-            });
-            builder.append(property)
-                .append("' ");
-        }
-        return builder.toString();
     }
 
     // A heuristic to determine if the type is relevant or not.

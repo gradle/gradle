@@ -18,7 +18,7 @@ package org.gradle.api.file;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.initialization.Settings;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
@@ -33,7 +33,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  * @since 8.5
  */
 @Incubating
-@ServiceScope(Scopes.Build.class)
+@ServiceScope(Scope.Build.class)
 public interface BuildLayout {
     /**
      * Returns the settings directory.

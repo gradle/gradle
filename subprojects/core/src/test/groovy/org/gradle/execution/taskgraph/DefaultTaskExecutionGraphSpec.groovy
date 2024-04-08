@@ -62,9 +62,9 @@ import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.ManagedExecutor
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.file.Stat
-import org.gradle.internal.operations.TestBuildOperationExecutor
+import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.work.DefaultWorkerLeaseService
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.util.Path
@@ -73,25 +73,25 @@ import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 
 class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
     def cancellationToken = Mock(BuildCancellationToken)
-    def listenerManager = new DefaultListenerManager(Scopes.Build)
+    def listenerManager = new DefaultListenerManager(Scope.Build)
     def graphListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionGraphListener.class)
     def taskExecutionListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionListener.class)
     def listenerRegistrationListener = listenerManager.getBroadcaster(BuildScopeListenerRegistrationListener.class)
     def nodeExecutor = Mock(NodeExecutor)
-    def buildOperationExecutor = new TestBuildOperationExecutor()
+    def buildOperationRunner = new TestBuildOperationRunner()
     def listenerBuildOperationDecorator = new TestListenerBuildOperationDecorator()
     def parallelismConfiguration = new DefaultParallelismConfiguration(true, 1)
     def workerLeases = new DefaultWorkerLeaseService(coordinator, parallelismConfiguration)
     def executorFactory = Mock(ExecutorFactory)
     def accessHierarchies = new ExecutionNodeAccessHierarchies(CASE_SENSITIVE, Stub(Stat))
-    def taskNodeFactory = new TaskNodeFactory(thisBuild, Stub(BuildTreeWorkGraphController), nodeValidator, new TestBuildOperationExecutor(), accessHierarchies)
+    def taskNodeFactory = new TaskNodeFactory(thisBuild, Stub(BuildTreeWorkGraphController), nodeValidator, new TestBuildOperationRunner(), accessHierarchies)
     def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory)])
     def projectStateRegistry = Stub(ProjectStateRegistry)
     def executionPlan = newExecutionPlan()
     def taskGraph = new DefaultTaskExecutionGraph(
         new DefaultPlanExecutor(parallelismConfiguration, executorFactory, workerLeases, cancellationToken, coordinator, new DefaultInternalOptions([:])),
         [nodeExecutor],
-        buildOperationExecutor,
+        buildOperationRunner,
         listenerBuildOperationDecorator,
         thisBuild,
         graphListeners,
@@ -374,7 +374,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         def taskGraph = new DefaultTaskExecutionGraph(
             planExecutor,
             [nodeExecutor],
-            buildOperationExecutor,
+            buildOperationRunner,
             listenerBuildOperationDecorator,
             thisBuild,
             graphListeners,
@@ -409,7 +409,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         def taskGraph = new DefaultTaskExecutionGraph(
             planExecutor,
             [nodeExecutor],
-            buildOperationExecutor,
+            buildOperationRunner,
             listenerBuildOperationDecorator,
             thisBuild,
             graphListeners,
@@ -436,7 +436,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         1 * planExecutor.process(_, _)
 
         and:
-        with(buildOperationExecutor.operations[0]) {
+        with(buildOperationRunner.operations[0]) {
             name == 'Notify task graph whenReady listeners'
             displayName == 'Notify task graph whenReady listeners'
             details.buildPath == ':'

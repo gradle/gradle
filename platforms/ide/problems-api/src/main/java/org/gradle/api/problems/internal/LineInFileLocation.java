@@ -20,7 +20,6 @@ package org.gradle.api.problems.internal;
  * A basic location pointing to a specific part of a file using line number, column, and length for coordinates.
  * <p>
  * The line and column coordinates are one-indexed so that they can be easily matched to the content of a UI editor interface.
- *
  */
 public interface LineInFileLocation extends FileLocation {
 

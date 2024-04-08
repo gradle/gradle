@@ -18,18 +18,16 @@ package org.gradle.api.internal.artifacts.repositories.resolver
 
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.internal.component.external.descriptor.MavenScope
-import org.gradle.internal.component.external.model.ConfigurationBoundExternalDependencyMetadata
-import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.internal.component.external.model.ExternalDependencyDescriptor
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata
 import org.gradle.internal.component.external.model.maven.MavenDependencyDescriptor
+import org.gradle.internal.component.external.model.maven.MavenDependencyMetadata
 import org.gradle.internal.component.external.model.maven.MavenDependencyType
 
 class DependenciesMetadataAdapterOnPomMetadataTest extends DependenciesMetadataAdapterTest {
 
     @Override
     ModuleDependencyMetadata newDependency(ModuleComponentSelector requested) {
-        ExternalDependencyDescriptor dependencyDescriptor = new MavenDependencyDescriptor(MavenScope.Compile, MavenDependencyType.DEPENDENCY, requested, null, [])
-        return new ConfigurationBoundExternalDependencyMetadata(null, DefaultModuleComponentIdentifier.newId(requested.moduleIdentifier, requested.version), dependencyDescriptor)
+        MavenDependencyDescriptor dependencyDescriptor = new MavenDependencyDescriptor(MavenScope.Compile, MavenDependencyType.DEPENDENCY, requested, null, [])
+        return new MavenDependencyMetadata(dependencyDescriptor)
     }
 }

@@ -190,6 +190,8 @@ public interface HasMultipleValues<T> extends HasConfigurableValue, SupportsConv
      * @since 8.7
      */
     @Incubating
+    @SuppressWarnings("unchecked")
+    // TODO Use @SafeVarargs and make method final
     void appendAll(T... elements);
 
     /**

@@ -41,7 +41,7 @@ public interface PluginServiceRegistry {
      *
      * <p>Global services are visible to these shared services, but not vice versa.</p>
      *
-     * @see Scopes.UserHome
+     * @see Scope.UserHome
      */
     void registerGradleUserHomeServices(ServiceRegistration registration);
 
@@ -51,7 +51,7 @@ public interface PluginServiceRegistry {
      *
      * <p>Global and shared services are visible to build session scope services, but not vice versa</p>
      *
-     * @see Scopes.BuildSession
+     * @see Scope.BuildSession
      */
     void registerBuildSessionServices(ServiceRegistration registration);
 
@@ -60,7 +60,7 @@ public interface PluginServiceRegistry {
      *
      * <p>Global, user home and build session services are visible to build tree scope services, but not vice versa.</p>
      *
-     * @see Scopes.BuildTree
+     * @see Scope.BuildTree
      */
     void registerBuildTreeServices(ServiceRegistration registration);
 
@@ -69,7 +69,7 @@ public interface PluginServiceRegistry {
      *
      * <p>Global, user home, build session and build tree services are visible to the build scope services, but not vice versa.</p>
      *
-     * @see Scopes.Build
+     * @see Scope.Build
      */
     void registerBuildServices(ServiceRegistration registration);
 
@@ -85,7 +85,7 @@ public interface PluginServiceRegistry {
      *
      * <p>Global, user home, build session, build tree and build scoped services are visible to the gradle scope services, but not vice versa.</p>
      *
-     * @see Scopes.Gradle
+     * @see Scope.Gradle
      */
     void registerGradleServices(ServiceRegistration registration);
 
@@ -94,7 +94,7 @@ public interface PluginServiceRegistry {
      *
      * <p>Global, user home, build session, build tree, build and gradle scoped services are visible to the project scope services, but not vice versa.</p>
      *
-     * @see Scopes.Project
+     * @see Scope.Project
      */
     void registerProjectServices(ServiceRegistration registration);
 

@@ -26,7 +26,7 @@ import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UnitOfWork.Identity;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.snapshot.ValueSnapshot;
 
@@ -36,10 +36,10 @@ public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> e
     private final DeferredExecutionAwareStep<? super IdentityContext, R> delegate;
 
     public IdentifyStep(
-        BuildOperationExecutor buildOperationExecutor,
+        BuildOperationRunner buildOperationRunner,
         DeferredExecutionAwareStep<? super IdentityContext, R> delegate
     ) {
-        super(buildOperationExecutor);
+        super(buildOperationRunner);
         this.delegate = delegate;
     }
 

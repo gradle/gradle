@@ -29,6 +29,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
+import static org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode
 import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Idle
 
 class DaemonRegistryServicesTest extends Specification {
@@ -59,9 +60,19 @@ class DaemonRegistryServicesTest extends Specification {
         def registry = registry("someDir").get(DaemonRegistry)
         5.times { idx ->
             concurrent.start {
-                def context = new DefaultDaemonContext("$idx", new File("$idx"), new File("$idx"), idx, 5000, [], false, DaemonParameters.Priority.NORMAL)
+                def context = new DefaultDaemonContext(
+                    "$idx",
+                    new File("$idx"),
+                    new File("$idx"),
+                    idx,
+                    5000,
+                    [],
+                    false,
+                    NativeServicesMode.ENABLED,
+                    DaemonParameters.Priority.NORMAL
+                )
                 registry.store(new DaemonInfo(
-                    new SocketInetAddress(localhost, (int)(8888 + idx)), context, "foo-$idx".bytes, Idle))
+                    new SocketInetAddress(localhost, (int) (8888 + idx)), context, "foo-$idx".bytes, Idle))
             }
         }
         concurrent.finished()

@@ -58,6 +58,6 @@ public class IntellijInstallationSupplier extends AutoDetectingInstallationSuppl
     @Override
     protected Set<InstallationLocation> findCandidates() {
         File directory = fileResolver.resolve(ideaJdksDirectory.get());
-        return FileBasedInstallationFactory.fromDirectory(directory, getSourceName());
+        return FileBasedInstallationFactory.fromDirectory(directory, getSourceName(), InstallationLocation::autoDetected);
     }
 }

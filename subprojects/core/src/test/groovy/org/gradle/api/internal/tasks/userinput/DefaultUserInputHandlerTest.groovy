@@ -16,10 +16,14 @@
 
 package org.gradle.api.internal.tasks.userinput
 
+import org.gradle.internal.logging.events.BooleanQuestionPromptEvent
+import org.gradle.internal.logging.events.IntQuestionPromptEvent
 import org.gradle.internal.logging.events.OutputEventListener
-import org.gradle.internal.logging.events.PromptOutputEvent
+import org.gradle.internal.logging.events.SelectOptionPromptEvent
+import org.gradle.internal.logging.events.TextQuestionPromptEvent
 import org.gradle.internal.logging.events.UserInputRequestEvent
 import org.gradle.internal.logging.events.UserInputResumeEvent
+import org.gradle.internal.logging.events.YesNoQuestionPromptEvent
 import org.gradle.internal.time.Clock
 import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
@@ -42,10 +46,11 @@ class DefaultUserInputHandlerTest extends Specification {
 
         then:
         1 * outputEventBroadcaster.onOutput(_ as UserInputRequestEvent)
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt.trim() == 'Accept license? [yes, no]' }
-        1 * userInputReader.readInput() >> enteredUserInput
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
+        1 * outputEventBroadcaster.onOutput(_) >> { YesNoQuestionPromptEvent event ->
+            assert event.prompt.trim() == 'Accept license? [yes, no]'
+            assert event.newQuestion
+        }
+        1 * userInputReader.readInput() >> new UserInputReader.TextResponse(enteredUserInput)
         1 * outputEventBroadcaster.onOutput(_ as UserInputResumeEvent)
         0 * outputEventBroadcaster._
         0 * userInputHandler._
@@ -55,7 +60,6 @@ class DefaultUserInputHandlerTest extends Specification {
 
         where:
         enteredUserInput | sanitizedUserInput
-        null             | null
         'yes   '         | true
         'yes'            | true
         '   no   '       | false
@@ -67,42 +71,11 @@ class DefaultUserInputHandlerTest extends Specification {
         def input = ask { it.askYesNoQuestion(TEXT) }
 
         then:
-        1 * userInputReader.readInput() >> null
+        1 * userInputReader.readInput() >> UserInputReader.END_OF_INPUT
         0 * userInputHandler._
 
         and:
         input == null
-    }
-
-    def "prompts user again on invalid response to required yes/no question"() {
-        when:
-        def input = ask { it.askYesNoQuestion(TEXT) }
-
-        then:
-        1 * outputEventBroadcaster.onOutput(_ as UserInputRequestEvent)
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt.trim() == 'Accept license? [yes, no]' }
-        1 * userInputReader.readInput() >> invalidInput
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt.trim() == "Please enter 'yes' or 'no':" }
-        1 * userInputReader.readInput() >> 'no'
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
-        1 * outputEventBroadcaster.onOutput(_ as UserInputResumeEvent)
-        0 * outputEventBroadcaster._
-        0 * userInputHandler._
-
-        and:
-        input == false
-
-        where:
-        invalidInput | _
-        ''           | _
-        'bla'        | _
-        'y'          | _
-        'Y'          | _
-        'ye'         | _
-        'YES'        | _
-        'n'          | _
-        'NO'         | _
     }
 
     def "can ask yes/no question"() {
@@ -111,10 +84,11 @@ class DefaultUserInputHandlerTest extends Specification {
 
         then:
         1 * outputEventBroadcaster.onOutput(_ as UserInputRequestEvent)
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt.trim() == 'Accept license? (default: yes) [yes, no]' }
-        1 * userInputReader.readInput() >> enteredUserInput
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
+        1 * outputEventBroadcaster.onOutput(_) >> { BooleanQuestionPromptEvent event ->
+            assert event.prompt.trim() == 'Accept license? (default: yes) [yes, no]'
+            assert event.newQuestion
+        }
+        1 * userInputReader.readInput() >> new UserInputReader.TextResponse(enteredUserInput)
         1 * outputEventBroadcaster.onOutput(_ as UserInputResumeEvent)
         0 * outputEventBroadcaster._
         0 * userInputHandler._
@@ -124,7 +98,6 @@ class DefaultUserInputHandlerTest extends Specification {
 
         where:
         enteredUserInput | expected
-        null             | true
         'yes'            | true
         'y'              | true
         'Y'              | true
@@ -144,10 +117,8 @@ class DefaultUserInputHandlerTest extends Specification {
 
         then:
         1 * outputEventBroadcaster.onOutput(_ as UserInputRequestEvent)
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt.trim() == 'Accept license? (default: yes) [yes, no]' }
-        1 * userInputReader.readInput() >> ""
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
+        1 * outputEventBroadcaster.onOutput(_ as BooleanQuestionPromptEvent)
+        1 * userInputReader.readInput() >> new UserInputReader.TextResponse("")
         1 * outputEventBroadcaster.onOutput(_ as UserInputResumeEvent)
         0 * outputEventBroadcaster._
         0 * userInputHandler._
@@ -156,30 +127,16 @@ class DefaultUserInputHandlerTest extends Specification {
         input == true
     }
 
-    def "prompts user again on invalid response to yes/no question"() {
+    def "yes/no question returns default on end-of-input"() {
         when:
         def input = ask { it.askBooleanQuestion(TEXT, true) }
 
         then:
-        1 * outputEventBroadcaster.onOutput(_ as UserInputRequestEvent)
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt.trim() == 'Accept license? (default: yes) [yes, no]' }
-        1 * userInputReader.readInput() >> invalidInput
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt.trim() == "Please enter 'yes' or 'no' (default: 'yes'):" }
-        1 * userInputReader.readInput() >> 'no'
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
-        1 * outputEventBroadcaster.onOutput(_ as UserInputResumeEvent)
-        0 * outputEventBroadcaster._
+        1 * userInputReader.readInput() >> UserInputReader.END_OF_INPUT
         0 * userInputHandler._
 
         and:
-        input == false
-
-        where:
-        invalidInput | _
-        'bla'        | ''
-        'nope'       | ''
-        'yep'        | ''
+        input == true
     }
 
     def "can ask select question"() {
@@ -188,16 +145,15 @@ class DefaultUserInputHandlerTest extends Specification {
 
         then:
         1 * outputEventBroadcaster.onOutput(_ as UserInputRequestEvent)
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event ->
+        1 * outputEventBroadcaster.onOutput(_) >> { SelectOptionPromptEvent event ->
             assert event.prompt == TextUtil.toPlatformLineSeparators("""select option:
   1: 11
   2: 12
   3: 13
 Enter selection (default: 12) [1..3] """)
+            assert event.newQuestion
         }
-        1 * userInputReader.readInput() >> " 3  "
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
+        1 * userInputReader.readInput() >> new UserInputReader.TextResponse(" 3  ")
         1 * outputEventBroadcaster.onOutput(_ as UserInputResumeEvent)
         0 * outputEventBroadcaster._
         0 * userInputHandler._
@@ -216,16 +172,14 @@ Enter selection (default: 12) [1..3] """)
 
         then:
         1 * outputEventBroadcaster.onOutput(_ as UserInputRequestEvent)
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event ->
+        1 * outputEventBroadcaster.onOutput(_) >> { SelectOptionPromptEvent event ->
             assert event.prompt == TextUtil.toPlatformLineSeparators("""select option:
   1: 11!
   2: 12!
   3: 13!
 Enter selection (default: 11!) [1..3] """)
         }
-        1 * userInputReader.readInput() >> " 3  "
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
+        1 * userInputReader.readInput() >> new UserInputReader.TextResponse("3")
         1 * outputEventBroadcaster.onOutput(_ as UserInputResumeEvent)
         0 * outputEventBroadcaster._
         0 * userInputHandler._
@@ -251,36 +205,11 @@ Enter selection (default: 11!) [1..3] """)
         def input = ask { it.selectOption(TEXT, [11, 12, 13], 12) }
 
         then:
-        1 * userInputReader.readInput() >> ""
+        1 * userInputReader.readInput() >> new UserInputReader.TextResponse("")
         0 * userInputHandler._
 
         and:
         input == 12
-    }
-
-    def "prompts user again on invalid response to select question"() {
-        when:
-        def input = ask { it.selectOption(TEXT, [11, 12, 13], 12) }
-
-        then:
-        1 * outputEventBroadcaster.onOutput(_ as UserInputRequestEvent)
-        2 * outputEventBroadcaster.onOutput(_ as PromptOutputEvent)
-        1 * userInputReader.readInput() >> 'bla'
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt.trim() == "Please enter a value between 1 and 3:" }
-        1 * userInputReader.readInput() >> '4'
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt.trim() == "Please enter a value between 1 and 3:" }
-        1 * userInputReader.readInput() >> '0'
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt.trim() == "Please enter a value between 1 and 3:" }
-        1 * userInputReader.readInput() >> '-2'
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt.trim() == "Please enter a value between 1 and 3:" }
-        1 * userInputReader.readInput() >> '1'
-        1 * outputEventBroadcaster.onOutput(_ as PromptOutputEvent)
-        1 * outputEventBroadcaster.onOutput(_ as UserInputResumeEvent)
-        0 * outputEventBroadcaster._
-        0 * userInputHandler._
-
-        and:
-        input == 11
     }
 
     def "select question returns default on end-of-input"() {
@@ -288,7 +217,7 @@ Enter selection (default: 11!) [1..3] """)
         def input = ask { it.selectOption(TEXT, [11, 12, 13], 12) }
 
         then:
-        1 * userInputReader.readInput() >> null
+        1 * userInputReader.readInput() >> UserInputReader.END_OF_INPUT
         0 * userInputHandler._
 
         and:
@@ -320,7 +249,7 @@ Enter selection (default: 11!) [1..3] """)
     }
 
     <T> void choiceUsesDefault(Choice<T> choice, T expected) {
-        1 * userInputReader.readInput() >> null
+        1 * userInputReader.readInput() >> UserInputReader.END_OF_INPUT
         0 * userInputHandler._
 
         def input = choice.ask()
@@ -333,56 +262,17 @@ Enter selection (default: 11!) [1..3] """)
 
         then:
         1 * outputEventBroadcaster.onOutput(_ as UserInputRequestEvent)
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt.trim() == "enter value (min: 1, default: 2):" }
-        1 * userInputReader.readInput() >> "12"
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
+        1 * outputEventBroadcaster.onOutput(_) >> { IntQuestionPromptEvent event ->
+            assert event.prompt.trim() == "enter value (min: 1, default: 2):"
+            assert event.newQuestion
+        }
+        1 * userInputReader.readInput() >> new UserInputReader.TextResponse("12")
         1 * outputEventBroadcaster.onOutput(_ as UserInputResumeEvent)
         0 * outputEventBroadcaster._
         0 * userInputHandler._
 
         and:
         input == 12
-    }
-
-    def "prompts user again on invalid response to int question"() {
-        when:
-        def input = ask { it.askIntQuestion("enter value", 1, 2) }
-
-        then:
-        1 * outputEventBroadcaster.onOutput(_ as UserInputRequestEvent)
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt.trim() == "enter value (min: 1, default: 2):" }
-        1 * userInputReader.readInput() >> "not an int"
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt.trim() == "Please enter an integer value (min: 1, default: 2):" }
-        1 * userInputReader.readInput() >> "12"
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
-        1 * outputEventBroadcaster.onOutput(_ as UserInputResumeEvent)
-        0 * outputEventBroadcaster._
-        0 * userInputHandler._
-
-        and:
-        input == 12
-    }
-
-    def "prompts user again on int question response below minimum value"() {
-        when:
-        def input = ask { it.askIntQuestion("enter value", 10, 12) }
-
-        then:
-        1 * outputEventBroadcaster.onOutput(_ as UserInputRequestEvent)
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt.trim() == "enter value (min: 10, default: 12):" }
-        1 * userInputReader.readInput() >> "9"
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt.trim() == "Please enter an integer value >= 10 (default: 12):" }
-        1 * userInputReader.readInput() >> "10"
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
-        1 * outputEventBroadcaster.onOutput(_ as UserInputResumeEvent)
-        0 * outputEventBroadcaster._
-        0 * userInputHandler._
-
-        and:
-        input == 10
     }
 
     def "uses default value for int question when empty line input received"() {
@@ -391,10 +281,8 @@ Enter selection (default: 11!) [1..3] """)
 
         then:
         1 * outputEventBroadcaster.onOutput(_ as UserInputRequestEvent)
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt.trim() == "enter value (min: 1, default: 2):" }
-        1 * userInputReader.readInput() >> ""
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
+        1 * outputEventBroadcaster.onOutput(_ as IntQuestionPromptEvent)
+        1 * userInputReader.readInput() >> new UserInputReader.TextResponse("")
         1 * outputEventBroadcaster.onOutput(_ as UserInputResumeEvent)
         0 * outputEventBroadcaster._
         0 * userInputHandler._
@@ -409,10 +297,8 @@ Enter selection (default: 11!) [1..3] """)
 
         then:
         1 * outputEventBroadcaster.onOutput(_ as UserInputRequestEvent)
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt.trim() == "enter value (min: 1, default: 2):" }
-        1 * userInputReader.readInput() >> null
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
+        1 * outputEventBroadcaster.onOutput(_ as IntQuestionPromptEvent)
+        1 * userInputReader.readInput() >> UserInputReader.END_OF_INPUT
         1 * outputEventBroadcaster.onOutput(_ as UserInputResumeEvent)
         0 * outputEventBroadcaster._
         0 * userInputHandler._
@@ -427,10 +313,11 @@ Enter selection (default: 11!) [1..3] """)
 
         then:
         1 * outputEventBroadcaster.onOutput(_ as UserInputRequestEvent)
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt.trim() == "enter value (default: value):" }
-        1 * userInputReader.readInput() >> "thing"
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
+        1 * outputEventBroadcaster.onOutput(_) >> { TextQuestionPromptEvent event ->
+            assert event.prompt.trim() == "enter value (default: value):"
+            assert event.newQuestion
+        }
+        1 * userInputReader.readInput() >> new UserInputReader.TextResponse("thing")
         1 * outputEventBroadcaster.onOutput(_ as UserInputResumeEvent)
         0 * outputEventBroadcaster._
         0 * userInputHandler._
@@ -444,7 +331,7 @@ Enter selection (default: 11!) [1..3] """)
         def input = ask { it.askQuestion(TEXT, "default") }
 
         then:
-        1 * userInputReader.readInput() >> ""
+        1 * userInputReader.readInput() >> new UserInputReader.TextResponse("")
         0 * userInputHandler._
 
         and:
@@ -456,7 +343,7 @@ Enter selection (default: 11!) [1..3] """)
         def input = ask { it.askQuestion(TEXT, "default") }
 
         then:
-        1 * userInputReader.readInput() >> null
+        1 * userInputReader.readInput() >> UserInputReader.END_OF_INPUT
         0 * userInputHandler._
 
         and:
@@ -473,13 +360,16 @@ Enter selection (default: 11!) [1..3] """)
 
         then:
         1 * outputEventBroadcaster.onOutput(_ as UserInputRequestEvent)
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt.trim() == "enter value (default: value):" }
-        1 * userInputReader.readInput() >> "thing"
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt.trim() == "enter value (default: value):" }
-        1 * userInputReader.readInput() >> ""
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
+        1 * outputEventBroadcaster.onOutput(_) >> { TextQuestionPromptEvent event ->
+            assert event.prompt.trim() == "enter value (default: value):"
+            assert event.newQuestion
+        }
+        1 * userInputReader.readInput() >> new UserInputReader.TextResponse("thing")
+        1 * outputEventBroadcaster.onOutput(_) >> { TextQuestionPromptEvent event ->
+            assert event.prompt.trim() == "enter value (default: value):"
+            assert event.newQuestion
+        }
+        1 * userInputReader.readInput() >> new UserInputReader.TextResponse("")
         1 * outputEventBroadcaster.onOutput(_ as UserInputResumeEvent)
         0 * outputEventBroadcaster._
         0 * userInputHandler._
@@ -517,10 +407,8 @@ Enter selection (default: 11!) [1..3] """)
         then:
         1 * action.apply(_) >> { UserQuestions questions -> questions.askQuestion("thing?", "value") }
         1 * outputEventBroadcaster.onOutput(_ as UserInputRequestEvent)
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt.trim() == "thing? (default: value):" }
-        1 * userInputReader.readInput() >> "42"
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
+        1 * outputEventBroadcaster.onOutput(_ as TextQuestionPromptEvent)
+        1 * userInputReader.readInput() >> new UserInputReader.TextResponse("42")
         1 * outputEventBroadcaster.onOutput(_ as UserInputResumeEvent)
 
         and:
@@ -582,10 +470,8 @@ Enter selection (default: 11!) [1..3] """)
 
         then:
         1 * outputEventBroadcaster.onOutput(_ as UserInputRequestEvent)
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt.trim() == "enter value (default: value):" }
-        1 * userInputReader.readInput() >> "thing"
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
+        1 * outputEventBroadcaster.onOutput(_) >> { TextQuestionPromptEvent event -> assert event.prompt.trim() == "enter value (default: value):" }
+        1 * userInputReader.readInput() >> new UserInputReader.TextResponse("thing")
         1 * outputEventBroadcaster.onOutput(_ as UserInputResumeEvent)
         0 * outputEventBroadcaster._
         0 * userInputHandler._
@@ -598,9 +484,8 @@ Enter selection (default: 11!) [1..3] """)
 
         then:
         1 * outputEventBroadcaster.onOutput(_ as UserInputRequestEvent)
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt.trim() == "enter value (default: value):" }
-        1 * userInputReader.readInput() >> ""
-        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
+        1 * outputEventBroadcaster.onOutput(_) >> { TextQuestionPromptEvent event -> assert event.prompt.trim() == "enter value (default: value):" }
+        1 * userInputReader.readInput() >> new UserInputReader.TextResponse("")
         1 * outputEventBroadcaster.onOutput(_ as UserInputResumeEvent)
         0 * outputEventBroadcaster._
         0 * userInputHandler._

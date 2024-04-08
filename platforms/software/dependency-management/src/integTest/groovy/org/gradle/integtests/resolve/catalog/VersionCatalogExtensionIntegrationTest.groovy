@@ -117,6 +117,17 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
             inCatalog("libs")
             alias("my.great.lib")
         })
+
+        and:
+        verifyAll(receivedProblem) {
+            fqid == 'dependency-version-catalog:alias-not-finished'
+            contextualLabel == 'Problem: In version catalog libs, dependency alias builder \'my.great.lib\' was not finished.'
+            details == 'A version was not set or explicitly declared as not wanted'
+            solutions == [
+                'Call `.version()` to give the alias a version',
+                'Call `.withoutVersion()` to explicitly declare that the alias should not have a version',
+            ]
+        }
     }
 
     def "logs contain a message indicating if an unfinished builder is overwritten with one that finishes"() {
@@ -1213,14 +1224,14 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module('org.gradle.test:lib:1.1') {
+                edge('org.gradle.test:lib:{strictly 1.1}', 'org.gradle.test:lib:1.1') {
                     variant('enforced-platform-runtime', [
                         'org.gradle.status': 'release',
                         'org.gradle.usage': 'java-runtime',
                         'org.gradle.category': 'enforced-platform'])
                     noArtifacts()
                 }
-                module('org.gradle.test:lib.subgroup:1.1') {
+                edge('org.gradle.test:lib.subgroup:{strictly 1.1}', 'org.gradle.test:lib.subgroup:1.1') {
                     variant('enforced-platform-runtime', [
                         'org.gradle.status': 'release',
                         'org.gradle.usage': 'java-runtime',
@@ -1937,6 +1948,14 @@ Second: 1.1"""
             reservedAliases "extensions", "convention"
         })
 
+        and:
+        verifyAll(receivedProblem) {
+            fqid == 'dependency-version-catalog:reserved-alias-name'
+            contextualLabel == "Problem: In version catalog libs, alias '$reserved' is not a valid alias."
+            details == "Alias '$reserved' is a reserved name in Gradle which prevents generation of accessors."
+            solutions == [ 'Use a different alias which doesn\'t contain any of \'convention\' or \'extensions\'.' ]
+        }
+
         where:
         reserved << [
             "extensions",
@@ -1970,6 +1989,14 @@ Second: 1.1"""
             reservedNames "class"
         })
 
+        and:
+        verifyAll(receivedProblem) {
+            fqid == 'dependency-version-catalog:reserved-alias-name'
+            contextualLabel == "Problem: In version catalog libs, alias '$reserved' is not a valid alias."
+            details == "Alias '$reserved' is a reserved name in Gradle which prevents generation of accessors."
+            solutions == [ 'Use a different alias which doesn\'t contain \'class\'.' ]
+        }
+
         where:
         reserved << [
             "class",
@@ -2002,6 +2029,14 @@ Second: 1.1"""
             alias(reservedName).shouldNotBeEqualTo(prefix)
             reservedAliasPrefix('bundles', 'plugins', 'versions')
         })
+
+        and:
+        verifyAll(receivedProblem) {
+            fqid == 'dependency-version-catalog:reserved-alias-name'
+            contextualLabel == "Problem: In version catalog libs, alias '$reservedName' is not a valid alias."
+            details == "Prefix for dependency shouldn\'t be equal to '$prefix'"
+            solutions == [ 'Use a different alias which prefix is not equal to \'bundles\', \'plugins\', or \'versions\'' ]
+        }
 
         where:
         reservedName  | prefix

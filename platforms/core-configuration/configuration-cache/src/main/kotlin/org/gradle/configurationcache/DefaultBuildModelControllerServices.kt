@@ -54,6 +54,7 @@ import org.gradle.internal.buildtree.IntermediateBuildActionRunner
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.model.StateTransitionControllerFactory
 import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.CachingServiceLocator
 import org.gradle.internal.service.scopes.BuildScopeServices
@@ -196,13 +197,13 @@ class DefaultBuildModelControllerServices(
     private
     class ConfigurationCacheModelProvider {
         fun createProjectEvaluator(
-            buildOperationExecutor: BuildOperationExecutor,
+            buildOperationRunner: BuildOperationRunner,
             cachingServiceLocator: CachingServiceLocator,
             scriptPluginFactory: ScriptPluginFactory,
             fingerprintController: ConfigurationCacheFingerprintController,
             cancellationToken: BuildCancellationToken
         ): ProjectEvaluator {
-            val evaluator = VintageModelProvider().createProjectEvaluator(buildOperationExecutor, cachingServiceLocator, scriptPluginFactory, cancellationToken)
+            val evaluator = VintageModelProvider().createProjectEvaluator(buildOperationRunner, cachingServiceLocator, scriptPluginFactory, cancellationToken)
             return ConfigurationCacheAwareProjectEvaluator(evaluator, fingerprintController)
         }
     }
@@ -210,7 +211,7 @@ class DefaultBuildModelControllerServices(
     private
     class VintageModelProvider {
         fun createProjectEvaluator(
-            buildOperationExecutor: BuildOperationExecutor,
+            buildOperationRunner: BuildOperationRunner,
             cachingServiceLocator: CachingServiceLocator,
             scriptPluginFactory: ScriptPluginFactory,
             cancellationToken: BuildCancellationToken
@@ -220,7 +221,7 @@ class DefaultBuildModelControllerServices(
                 BuildScriptProcessor(scriptPluginFactory),
                 DelayedConfigurationActions()
             )
-            return LifecycleProjectEvaluator(buildOperationExecutor, withActionsEvaluator, cancellationToken)
+            return LifecycleProjectEvaluator(buildOperationRunner, withActionsEvaluator, cancellationToken)
         }
     }
 }

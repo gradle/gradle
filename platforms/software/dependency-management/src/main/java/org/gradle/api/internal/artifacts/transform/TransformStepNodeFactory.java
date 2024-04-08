@@ -20,8 +20,8 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.internal.id.ConfigurationCacheableIdFactory;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
-import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -31,7 +31,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * when creating new instances and/or loading from the configuration cache.
  */
 @ThreadSafe
-@ServiceScope(Scopes.BuildTree.class)
+@ServiceScope(Scope.BuildTree.class)
 public class TransformStepNodeFactory {
 
     private final ConfigurationCacheableIdFactory idFactory;
@@ -49,11 +49,11 @@ public class TransformStepNodeFactory {
         TransformStep initial,
         ResolvableArtifact artifact,
         TransformUpstreamDependencies upstreamDependencies,
-        BuildOperationExecutor buildOperationExecutor,
+        BuildOperationRunner buildOperationRunner,
         CalculatedValueContainerFactory calculatedValueContainerFactory
     ) {
         long transformStepNodeId = idFactory.createId();
-        return new TransformStepNode.InitialTransformStepNode(transformStepNodeId, targetComponentVariant, sourceAttributes, initial, artifact, upstreamDependencies, buildOperationExecutor, calculatedValueContainerFactory);
+        return new TransformStepNode.InitialTransformStepNode(transformStepNodeId, targetComponentVariant, sourceAttributes, initial, artifact, upstreamDependencies, buildOperationRunner, calculatedValueContainerFactory);
     }
 
     /**
@@ -68,11 +68,11 @@ public class TransformStepNodeFactory {
         TransformStep initial,
         ResolvableArtifact artifact,
         TransformUpstreamDependencies upstreamDependencies,
-        BuildOperationExecutor buildOperationExecutor,
+        BuildOperationRunner buildOperationRunner,
         CalculatedValueContainerFactory calculatedValueContainerFactory
     ) {
         idFactory.idRecreated();
-        return new TransformStepNode.InitialTransformStepNode(transformStepNodeId, targetComponentVariant, sourceAttributes, initial, artifact, upstreamDependencies, buildOperationExecutor, calculatedValueContainerFactory);
+        return new TransformStepNode.InitialTransformStepNode(transformStepNodeId, targetComponentVariant, sourceAttributes, initial, artifact, upstreamDependencies, buildOperationRunner, calculatedValueContainerFactory);
     }
 
     /**
@@ -84,7 +84,7 @@ public class TransformStepNodeFactory {
         TransformStep current,
         TransformStepNode previous,
         TransformUpstreamDependencies upstreamDependencies,
-        BuildOperationExecutor buildOperationExecutor,
+        BuildOperationRunner buildOperationExecutor,
         CalculatedValueContainerFactory calculatedValueContainerFactory
     ) {
         long transformStepNodeId = idFactory.createId();
@@ -103,7 +103,7 @@ public class TransformStepNodeFactory {
         TransformStep current,
         TransformStepNode previous,
         TransformUpstreamDependencies upstreamDependencies,
-        BuildOperationExecutor buildOperationExecutor,
+        BuildOperationRunner buildOperationExecutor,
         CalculatedValueContainerFactory calculatedValueContainerFactory
     ) {
         idFactory.idRecreated();

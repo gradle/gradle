@@ -246,10 +246,15 @@ fun buildInitScriptModel(initScript: File, rootProject: ProjectInternal): NonPro
 private
 fun buildSettingsScriptModel(settingsScript: File, rootProject: Project): NonProjectScriptModel {
     val settings = rootProject.settings
+    val scriptCompilationClassPath = settings.scriptCompilationClassPath
+    val accessorsClassPath = rootProject.serviceOf<ClassPathModeExceptionCollector>().runCatching {
+        settings.accessorsClassPathOf(scriptCompilationClassPath)
+    } ?: AccessorsClassPath.empty
+
     return NonProjectScriptModel(
         settingsScript,
-        settings.scriptCompilationClassPath,
-        sourcePathFor(listOf(settings.buildscript)),
+        scriptCompilationClassPath + accessorsClassPath.bin,
+        sourcePathFor(listOf(settings.buildscript)) + accessorsClassPath.src,
     )
 }
 
@@ -294,9 +299,11 @@ fun isolatedScriptsModelFor(project: ProjectInternal): IsolatedScriptsModel {
     // TODO:isolated compute own classpaths
     val additionalClassPath = ClassPath.EMPTY
     val additionalSourcePath = ClassPath.EMPTY
-    val models = buildList {
-        addNotNull(buildScriptModelFor(project, additionalClassPath, additionalSourcePath))
-        this.addAll(precompiledScriptModelsFor(project))
+    val models = mutableListOf<IntermediateScriptModel>().apply {
+        buildScriptModelFor(project, additionalClassPath, additionalSourcePath)?.let {
+            add(it)
+        }
+        addAll(precompiledScriptModelsFor(project))
     }
     return IsolatedScriptsModel(models)
 }

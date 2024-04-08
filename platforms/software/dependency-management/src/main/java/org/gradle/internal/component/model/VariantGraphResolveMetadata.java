@@ -55,6 +55,13 @@ public interface VariantGraphResolveMetadata extends HasAttributes {
 
     boolean isExternalVariant();
 
+    /**
+     * Returns true if this variant is deprecated and consuming it in a dependency graph should emit a warning. False otherwise.
+     */
+    default boolean isDeprecated() {
+        return false;
+    }
+
     interface Subvariant {
         String getName();
 

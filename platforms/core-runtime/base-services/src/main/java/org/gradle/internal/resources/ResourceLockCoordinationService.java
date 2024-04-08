@@ -19,12 +19,12 @@ package org.gradle.internal.resources;
 import com.google.common.base.Supplier;
 import org.gradle.api.Action;
 import org.gradle.internal.InternalTransformer;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
 
-@ServiceScope(Scopes.BuildSession.class)
+@ServiceScope(Scope.CrossBuildSession.class)
 public interface ResourceLockCoordinationService {
     /**
      * Gets the current {@link ResourceLockState} active in this thread.  This must be called in the context

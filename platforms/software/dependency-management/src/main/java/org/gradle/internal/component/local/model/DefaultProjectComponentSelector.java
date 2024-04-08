@@ -153,10 +153,6 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
         return getDisplayName();
     }
 
-    public static ProjectComponentSelector newSelector(Project project) {
-        return newSelector(project, ImmutableAttributes.EMPTY, Collections.emptyList());
-    }
-
     public static ProjectComponentSelector newSelector(Project project, ImmutableAttributes attributes, List<Capability> requestedCapabilities) {
         ProjectInternal projectInternal = (ProjectInternal) project;
         ProjectComponentIdentifier projectComponentIdentifier = projectInternal.getOwner().getComponentIdentifier();

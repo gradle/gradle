@@ -73,7 +73,7 @@ class WorkerDaemonProcessFailureIntegrationTest extends AbstractDaemonWorkerExec
         then:
         pidFile().exists()
         def pid1 = pidFile().text.strip() as long
-        new ProcessFixture(pid1).kill(false)
+        kill(pid1)
 
         when:
         args "--rerun-tasks"
@@ -148,7 +148,7 @@ class WorkerDaemonProcessFailureIntegrationTest extends AbstractDaemonWorkerExec
         and:
         pidFile('other').exists()
         def pid1 = pidFile('other').text.strip() as long
-        new ProcessFixture(pid1).kill(false)
+        kill(pid1)
 
         when:
         handler.releaseAll()
@@ -211,7 +211,9 @@ class WorkerDaemonProcessFailureIntegrationTest extends AbstractDaemonWorkerExec
     }
 
     static void kill(long pid1) {
-        new ProcessFixture(pid1).kill(false)
+        def proc = new ProcessFixture(pid1)
+        proc.kill(false)
+        proc.waitForFinish()
     }
 
     void outputContainsKilledWorkerWarning() {

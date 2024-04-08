@@ -28,7 +28,7 @@ import org.gradle.internal.execution.history.impl.DefaultBeforeExecutionState;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
@@ -47,11 +47,11 @@ public abstract class AbstractCaptureStateBeforeExecutionStep<C extends Previous
     private final Step<? super BeforeExecutionContext, ? extends R> delegate;
 
     public AbstractCaptureStateBeforeExecutionStep(
-        BuildOperationExecutor buildOperationExecutor,
+        BuildOperationRunner buildOperationRunner,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         Step<? super BeforeExecutionContext, ? extends R> delegate
     ) {
-        super(buildOperationExecutor);
+        super(buildOperationRunner);
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.delegate = delegate;
     }

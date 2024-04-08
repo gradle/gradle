@@ -6,28 +6,36 @@ description = "Base plugin for the maven and ivy publish plugins. Defines the pu
 
 errorprone {
     disabledChecks.addAll(
+        "InlineMeSuggester", // 7 occurrences
         "MixedMutabilityReturnType", // 5 occurrences
         "StringCaseLocaleUsage", // 1 occurrences
     )
 }
 
 dependencies {
+    api(project(":base-services"))
+    api(project(":core"))
+    api(project(":core-api"))
     api(project(":dependency-management"))
+    api(project(":file-collections"))
+    api(project(":hashing"))
+    api(project(":logging"))
+    api(project(":logging-api"))
+    api(project(":model-core"))
 
-    implementation(project(":base-services"))
+    api(libs.groovy)
+    api(libs.inject)
+    api(libs.jsr305)
+
+    implementation(project(":base-annotations"))
+    implementation(project(":base-services-groovy")) {
+        because("Required for Specs")
+    }
     implementation(project(":functional"))
-    implementation(project(":logging"))
-    implementation(project(":file-collections"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":core"))
-    implementation(project(":base-services-groovy")) // for 'Specs'
 
-    implementation(libs.groovy)
-    implementation(libs.guava)
     implementation(libs.commonsLang)
     implementation(libs.gson)
-    implementation(libs.inject)
+    implementation(libs.guava)
 
     testImplementation(testFixtures(project(":core")))
 
