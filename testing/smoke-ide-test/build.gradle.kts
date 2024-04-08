@@ -13,6 +13,7 @@ val smokeIdeTestSourceSet = sourceSets.create("smokeIdeTest") {
 }
 
 addDependenciesAndConfigurations("smokeIde")
+
 val smokeIdeTestImplementation: Configuration by configurations
 val smokeIdeTestDistributionRuntimeOnly: Configuration by configurations
 val ideStarter by configurations.creating {
@@ -20,11 +21,9 @@ val ideStarter by configurations.creating {
     isCanBeConsumed = false
 }
 
-val ideStarterHome = layout.buildDirectory.dir("ideStarter")
-
-val unzipIdeStarter = tasks.register<ProcessResources>("unzipIdeStarter") {
-    from(zipTree(provider { ideStarter.files.first() }))
-    into(ideStarterHome)
+val unzipIdeStarter by tasks.registering(ProcessResources::class) {
+    from(zipTree(ideStarter.elements.map { it.single() }))
+    into(layout.buildDirectory.dir("ideStarter"))
 }
 
 plugins.withType<IdeaPlugin> {
