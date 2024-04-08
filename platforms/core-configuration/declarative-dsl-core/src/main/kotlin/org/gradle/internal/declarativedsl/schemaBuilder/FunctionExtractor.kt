@@ -25,6 +25,7 @@ import org.gradle.internal.declarativedsl.analysis.DataBuilderFunction
 import org.gradle.internal.declarativedsl.analysis.DataConstructor
 import org.gradle.internal.declarativedsl.analysis.DataMemberFunction
 import org.gradle.internal.declarativedsl.analysis.DataParameter
+import org.gradle.internal.declarativedsl.analysis.DataParameterImpl
 import org.gradle.internal.declarativedsl.analysis.DataTopLevelFunction
 import org.gradle.internal.declarativedsl.analysis.DataTopLevelFunctionImpl
 import org.gradle.internal.declarativedsl.analysis.FunctionSemantics
@@ -198,7 +199,7 @@ class DefaultFunctionExtractor(
         val paramType = fnParam.type
         checkInScope(paramType, preIndex)
         val paramSemantics = getParameterSemantics(functionSemantics, function, fnParam, returnClass, preIndex)
-        return DataParameter(fnParam.name, paramType.toDataTypeRefOrError(), fnParam.isOptional, paramSemantics)
+        return DataParameterImpl(fnParam.name, paramType.toDataTypeRefOrError(), fnParam.isOptional, paramSemantics)
     }
 
     private

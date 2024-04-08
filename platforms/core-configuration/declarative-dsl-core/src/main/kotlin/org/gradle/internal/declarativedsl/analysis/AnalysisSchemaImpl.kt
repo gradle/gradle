@@ -155,12 +155,21 @@ data class DataConstructor(
 
 
 @Serializable
-data class DataParameter(
-    val name: String?,
-    val type: DataTypeRef,
-    val isDefault: Boolean,
-    val semantics: ParameterSemantics
-)
+data class DataParameterImpl(
+    private val name: String?,
+    @SerialName("privateType") // TODO: is this ok?
+    private val type: DataTypeRef,
+    private val isDefault: Boolean,
+    private val semantics: ParameterSemantics
+) : DataParameter {
+    override fun getName(): String? = name
+
+    override fun getType(): DataTypeRef = type
+
+    override fun isDefault(): Boolean = isDefault
+
+    override fun getSemantics(): ParameterSemantics = semantics
+}
 
 
 @Serializable

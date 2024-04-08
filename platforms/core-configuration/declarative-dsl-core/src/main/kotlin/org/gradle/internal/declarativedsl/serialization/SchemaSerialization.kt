@@ -27,6 +27,8 @@ import org.gradle.internal.declarativedsl.analysis.DataBuilderFunction
 import org.gradle.internal.declarativedsl.analysis.DataClass
 import org.gradle.internal.declarativedsl.analysis.DataClassImpl
 import org.gradle.internal.declarativedsl.analysis.DataMemberFunction
+import org.gradle.internal.declarativedsl.analysis.DataParameter
+import org.gradle.internal.declarativedsl.analysis.DataParameterImpl
 import org.gradle.internal.declarativedsl.analysis.FqName
 import org.gradle.internal.declarativedsl.analysis.FqNameImpl
 import org.gradle.internal.declarativedsl.analysis.SchemaMemberFunction
@@ -48,6 +50,9 @@ object SchemaSerialization {
             }
             polymorphic(DataClass::class) {
                 subclass(DataClassImpl::class)
+            }
+            polymorphic(DataParameter::class) {
+                subclass(DataParameterImpl::class)
             }
             polymorphic(FqName::class) {
                 subclass(FqNameImpl::class)
