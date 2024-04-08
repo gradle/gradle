@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.internal.declarativedsl.analysis.DataConstructor
 import org.gradle.internal.declarativedsl.analysis.DataMemberFunction
 import org.gradle.internal.declarativedsl.analysis.DataParameter
+import org.gradle.internal.declarativedsl.analysis.DataParameterImpl
 import org.gradle.internal.declarativedsl.analysis.DataTopLevelFunction
 import org.gradle.internal.declarativedsl.analysis.FunctionSemantics
 import org.gradle.internal.declarativedsl.analysis.FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement.NOT_ALLOWED
@@ -56,10 +57,10 @@ class DependencyConfigurationsComponent(
     val configurations = DependencyConfigurations(project.configurations.names.toList())
 
     private
-    val gavDependencyParam = DataParameter("dependency", String::class.toDataTypeRef(), false, ParameterSemantics.Unknown)
+    val gavDependencyParam = DataParameterImpl("dependency", String::class.toDataTypeRef(), false, ParameterSemantics.Unknown)
 
     private
-    val projectDependencyParam = DataParameter("dependency", ProjectDependency::class.toDataTypeRef(), false, ParameterSemantics.Unknown)
+    val projectDependencyParam = DataParameterImpl("dependency", ProjectDependency::class.toDataTypeRef(), false, ParameterSemantics.Unknown)
 
     private
     val dependencyCollectorFunctionExtractorAndRuntimeResolver = DependencyCollectorFunctionExtractorAndRuntimeResolver(gavDependencyParam, projectDependencyParam)
