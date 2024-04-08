@@ -30,11 +30,12 @@ class DaemonToolchainCoexistWithCurrentOptionsIntegrationTest extends AbstractIn
         given:
         def otherJvm = AvailableJavaHomes.differentVersion
         writeJvmCriteria(otherJvm)
-        expectJavaHome(otherJvm)
+        captureJavaHome()
         executer.withArgument("-Porg.gradle.java.installations.auto-detect=false")
 
         expect:
         succeeds("help")
+        assertDaemonUsedJvm(otherJvm)
     }
 
     @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
@@ -42,11 +43,12 @@ class DaemonToolchainCoexistWithCurrentOptionsIntegrationTest extends AbstractIn
         given:
         def otherJvm = AvailableJavaHomes.differentVersion
         writeJvmCriteria(otherJvm)
-        expectJavaHome(otherJvm)
+        captureJavaHome()
         file("gradle.properties").writeProperties("org.gradle.java.home": Jvm.current().javaHome.canonicalPath)
 
         expect:
         succeeds("help")
+        assertDaemonUsedJvm(otherJvm)
     }
 
     @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
@@ -54,13 +56,14 @@ class DaemonToolchainCoexistWithCurrentOptionsIntegrationTest extends AbstractIn
         given:
         def otherJvm = AvailableJavaHomes.differentVersion
         def otherJvmMetadata = AvailableJavaHomes.getJvmInstallationMetadata(otherJvm)
-        expectJavaHome(Jvm.current())
+        captureJavaHome()
         executer
             .withArgument("-Pdaemon.jvm.toolchain.version=$otherJvmMetadata.javaVersion")
             .withArgument("-Pdaemon.jvm.toolchain.vendor=$otherJvmMetadata.vendor.knownVendor")
 
         expect:
         succeeds("help")
+        assertDaemonUsedJvm(Jvm.current())
     }
 
     @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
@@ -68,7 +71,7 @@ class DaemonToolchainCoexistWithCurrentOptionsIntegrationTest extends AbstractIn
         given:
         def otherJvm = AvailableJavaHomes.differentVersion
         def otherJvmMetadata = AvailableJavaHomes.getJvmInstallationMetadata(otherJvm)
-        expectJavaHome(Jvm.current())
+        captureJavaHome()
         file("gradle.properties")
             .writeProperties(
                 "daemon.jvm.toolchain.version": otherJvmMetadata.javaVersion,
@@ -77,6 +80,7 @@ class DaemonToolchainCoexistWithCurrentOptionsIntegrationTest extends AbstractIn
 
         expect:
         succeeds("help")
+        assertDaemonUsedJvm(Jvm.current())
     }
 
     @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
@@ -84,8 +88,8 @@ class DaemonToolchainCoexistWithCurrentOptionsIntegrationTest extends AbstractIn
         given:
         def otherJvm = AvailableJavaHomes.differentVersion
         def otherJvmMetadata = AvailableJavaHomes.getJvmInstallationMetadata(otherJvm)
-        expectJavaHome(Jvm.current())
-        createDir("gradle")
+        captureJavaHome()
+
         file("gradle/gradle-build.properties")
             .writeProperties(
                 "org.gradle.java.home": otherJvmMetadata.javaVersion,
@@ -93,5 +97,6 @@ class DaemonToolchainCoexistWithCurrentOptionsIntegrationTest extends AbstractIn
 
         expect:
         succeeds("help")
+        assertDaemonUsedJvm(Jvm.current())
     }
 }

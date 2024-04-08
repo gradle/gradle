@@ -26,15 +26,15 @@ import org.gradle.test.fixtures.file.TestFile
 
 @SelfType(AbstractIntegrationSpec)
 trait BuildPropertiesFixture {
-    void expectJavaHome(Jvm expectedJvm) {
-        expectJavaHome(expectedJvm.javaHome)
+    void assertDaemonUsedJvm(Jvm expectedJvm) {
+        assert file("javaHome.txt").text == expectedJvm.javaHome.canonicalPath
     }
 
-    void expectJavaHome(File expectedJavaHome) {
+    void captureJavaHome() {
         buildFile << """
             def javaHome = org.gradle.internal.jvm.Jvm.current().javaHome.canonicalPath
-            println org.gradle.internal.jvm.Jvm.current().javaHome.canonicalPath
-            assert javaHome == "${expectedJavaHome.canonicalPath}"
+            println javaHome
+            file("javaHome.txt").text = javaHome
         """
     }
 

@@ -33,13 +33,20 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.jvm.toolchain.JavaToolchainResolverRegistry;
+import org.gradle.jvm.toolchain.internal.AsdfInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.AutoInstalledInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainResolverRegistry;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainService;
 import org.gradle.jvm.toolchain.internal.DefaultJvmToolchainManagement;
-import org.gradle.jvm.toolchain.internal.DelegatingAutoDetectingInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.InstallationSupplier;
+import org.gradle.jvm.toolchain.internal.IntellijInstallationSupplier;
+import org.gradle.jvm.toolchain.internal.JabbaInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService;
+import org.gradle.jvm.toolchain.internal.LinuxInstallationSupplier;
+import org.gradle.jvm.toolchain.internal.MavenToolchainsInstallationSupplier;
+import org.gradle.jvm.toolchain.internal.OsXInstallationSupplier;
+import org.gradle.jvm.toolchain.internal.SdkmanInstallationSupplier;
+import org.gradle.jvm.toolchain.internal.WindowsInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.install.DefaultJavaToolchainProvisioningService;
 import org.gradle.jvm.toolchain.internal.install.JdkCacheDirectory;
 import org.gradle.jvm.toolchain.internal.install.SecureFileDownloader;
@@ -75,8 +82,20 @@ public class ToolchainsJvmServices extends AbstractPluginServiceRegistry {
             return objectFactory.newInstance(JavaInstallationRegistry.class, suppliers, buildOperationRunner, os);
         }
 
-        protected InstallationSupplier createAutoInstalledInstallationSupplier(JdkCacheDirectory cacheDirProvider, ProviderFactory providerFactory) {
-            return new DelegatingAutoDetectingInstallationSupplier(providerFactory, new AutoInstalledInstallationSupplier(cacheDirProvider));
+        public void configure(ServiceRegistration registration) {
+            registration.add(ProviderBackedToolchainConfiguration.class);
+
+            registration.add(AutoInstalledInstallationSupplier.class);
+
+            registration.add(AsdfInstallationSupplier.class);
+            registration.add(IntellijInstallationSupplier.class);
+            registration.add(JabbaInstallationSupplier.class);
+            registration.add(MavenToolchainsInstallationSupplier.class);
+            registration.add(SdkmanInstallationSupplier.class);
+
+            registration.add(LinuxInstallationSupplier.class);
+            registration.add(OsXInstallationSupplier.class);
+            registration.add(WindowsInstallationSupplier.class);
         }
     }
 

@@ -19,7 +19,7 @@ package org.gradle.launcher.daemon.context;
 import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
-import org.gradle.launcher.daemon.jvm.DaemonJvmCriteria;
+import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria;
 
 import javax.annotation.Nullable;
 import java.io.File;

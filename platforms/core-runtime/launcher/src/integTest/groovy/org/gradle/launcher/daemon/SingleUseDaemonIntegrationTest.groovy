@@ -19,6 +19,7 @@ package org.gradle.launcher.daemon
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
+import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.buildconfiguration.fixture.BuildPropertiesFixture
 import org.gradle.launcher.daemon.client.DaemonStartupMessage
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient
@@ -28,7 +29,7 @@ import org.gradle.test.preconditions.IntegTestPreconditions
 import java.nio.charset.Charset
 
 @Requires(IntegTestPreconditions.NotDaemonExecutor)
-class SingleUseDaemonIntegrationTest extends AbstractIntegrationSpec implements BuildPropertiesFixture {
+class SingleUseDaemonIntegrationTest extends AbstractIntegrationSpec implements BuildPropertiesFixture, JavaToolchainFixture {
 
     def setup() {
         executer.withArgument("--no-daemon")
@@ -106,12 +107,13 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
     def "forks build with default daemon JVM args when daemon jvm criteria from build properties does not match current process"() {
         def otherJdk = AvailableJavaHomes.differentVersion
         writeJvmCriteria(otherJdk)
-        expectJavaHome(otherJdk)
+        captureJavaHome()
 
         when:
-        succeeds()
+        withInstallations(otherJdk).succeeds()
 
         then:
+        assertDaemonUsedJvm(otherJdk)
         wasForked()
         daemons.daemon.stops()
     }
@@ -137,11 +139,12 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
         def otherJdk = AvailableJavaHomes.differentVersion
 
         writeJvmCriteria(otherJdk)
-        expectJavaHome(otherJdk)
+        captureJavaHome()
 
         when:
         executer.withJavaHome(otherJdk.javaHome)
-        succeeds()
+        withInstallations(otherJdk).succeeds()
+        assertDaemonUsedJvm(otherJdk)
 
         then:
         wasNotForked()

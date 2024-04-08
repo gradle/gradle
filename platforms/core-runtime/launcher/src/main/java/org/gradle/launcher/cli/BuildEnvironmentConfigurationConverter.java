@@ -22,6 +22,7 @@ import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.jvm.toolchain.internal.ToolchainConfiguration;
 import org.gradle.launcher.cli.converter.BuildLayoutConverter;
 import org.gradle.launcher.cli.converter.BuildOptionBackedConverter;
 import org.gradle.launcher.cli.converter.InitialPropertiesConverter;
@@ -32,9 +33,12 @@ import org.gradle.launcher.configuration.BuildLayoutResult;
 import org.gradle.launcher.configuration.InitialProperties;
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
+import org.gradle.launcher.daemon.toolchain.ToolchainBuildOptions;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 public class BuildEnvironmentConfigurationConverter {
 
@@ -43,6 +47,8 @@ public class BuildEnvironmentConfigurationConverter {
     private final LayoutToPropertiesConverter layoutToPropertiesConverter;
     private final StartParameterConverter startParameterConverter;
     private final BuildOptionBackedConverter<DaemonParameters> daemonParametersConverter;
+
+    private final BuildOptionBackedConverter<ToolchainConfiguration> toolchainConfigurationBuildOptionBackedConverter;
     private final FileCollectionFactory fileCollectionFactory;
 
     BuildEnvironmentConfigurationConverter(InitialPropertiesConverter initialPropertiesConverter,
@@ -58,6 +64,7 @@ public class BuildEnvironmentConfigurationConverter {
         this.startParameterConverter = startParameterConverter;
         this.daemonParametersConverter = daemonParametersConverter;
         this.fileCollectionFactory = fileCollectionFactory;
+        this.toolchainConfigurationBuildOptionBackedConverter = new BuildOptionBackedConverter<>(new ToolchainBuildOptions());
     }
 
     public BuildEnvironmentConfigurationConverter(BuildLayoutFactory buildLayoutFactory, FileCollectionFactory fileCollectionFactory) {
@@ -80,6 +87,12 @@ public class BuildEnvironmentConfigurationConverter {
         DaemonParameters daemonParameters = new DaemonParameters(buildLayout, fileCollectionFactory, properties.getRequestedSystemProperties());
         daemonParametersConverter.convert(args, properties.getProperties(), daemonParameters);
 
+        // This is a workaround to maintain existing behavior that allowed
+        // toolchain-specific properties to be specified with -P instead of -D
+        Map<String, String> gradlePropertiesAsSeenByToolchains = new HashMap<>();
+        gradlePropertiesAsSeenByToolchains.putAll(properties.getProperties());
+        gradlePropertiesAsSeenByToolchains.putAll(startParameter.getProjectProperties());
+        toolchainConfigurationBuildOptionBackedConverter.convert(args, gradlePropertiesAsSeenByToolchains, daemonParameters.getToolchainConfiguration());
         daemonParameters.setRequestedJvmCriteria(properties.getBuildProperties());
 
         return new Parameters(startParameter, daemonParameters, properties);

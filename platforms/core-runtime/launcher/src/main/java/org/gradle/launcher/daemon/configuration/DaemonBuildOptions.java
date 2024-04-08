@@ -59,10 +59,6 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
         new NativeServicesOption()
     );
 
-    public static List<BuildOption<DaemonParameters>> get() {
-        return options;
-    }
-
     @Override
     public List<? extends BuildOption<? super DaemonParameters>> getAllOptions() {
         return options;

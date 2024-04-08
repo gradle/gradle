@@ -19,54 +19,35 @@ package org.gradle.launcher.daemon
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.buildconfiguration.fixture.BuildPropertiesFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.junit.Assume
 
-class DaemonToolchainIntegrationTest extends AbstractIntegrationSpec implements BuildPropertiesFixture {
+class DaemonToolchainIntegrationTest extends AbstractIntegrationSpec implements BuildPropertiesFixture, JavaToolchainFixture {
     def "Given daemon toolchain version When executing any task Then daemon jvm was set up with expected configuration"() {
         given:
         writeJvmCriteria(Jvm.current())
-        expectJavaHome(Jvm.current())
+        captureJavaHome()
 
         expect:
         succeeds("help")
+        assertDaemonUsedJvm(Jvm.current())
     }
 
     @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "Given other daemon toolchain version When executing any task Then daemon jvm was set up with expected configuration"() {
         given:
         def otherJvm = AvailableJavaHomes.differentVersion
-        buildFile << """
-            plugins {
-                id("org.gradle.jvm-toolchains")
-            }
-
-            task provision {
-                doLast {
-                    println("Provisioning Java ${otherJvm.javaVersion}")
-                    def launcher = javaToolchains.launcherFor {
-                        languageVersion = JavaLanguageVersion.of("${otherJvm.javaVersion.majorVersion}")
-                    }.get()
-                    file("provisioned.jdk") << launcher.metadata.installationPath.asFile.canonicalPath
-                }
-            }
-        """
-        settingsFile << """
-            plugins {
-                id("org.gradle.toolchains.foojay-resolver-convention") version ("0.8.0")
-            }
-        """
-        executer.withToolchainDownloadEnabled()
-        succeeds("provision")
-
         writeJvmCriteria(otherJvm)
-        expectJavaHome(new File(file("provisioned.jdk").text))
+        captureJavaHome()
 
         expect:
-        succeeds("help", "-S")
+//        executer.startLauncherInDebugger(true)
+        withInstallations(otherJvm).succeeds("help")
+        assertDaemonUsedJvm(otherJvm)
     }
 
     def "Given daemon toolchain criteria that doesn't match installed ones When executing any task Then fails with the expected message"() {
@@ -75,6 +56,7 @@ class DaemonToolchainIntegrationTest extends AbstractIntegrationSpec implements 
         def java10 = AvailableJavaHomes.getAvailableJdks(JavaVersion.VERSION_1_10)
         Assume.assumeTrue(java10.isEmpty())
         writeJvmCriteria(JavaVersion.VERSION_1_10)
+        captureJavaHome()
 
         expect:
         fails("help")

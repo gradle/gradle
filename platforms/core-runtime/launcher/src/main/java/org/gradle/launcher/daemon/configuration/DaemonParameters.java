@@ -24,8 +24,10 @@ import org.gradle.internal.jvm.JpmsConfiguration;
 import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
 import org.gradle.jvm.toolchain.JvmImplementation;
 import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec;
+import org.gradle.jvm.toolchain.internal.DefaultToolchainConfiguration;
+import org.gradle.jvm.toolchain.internal.ToolchainConfiguration;
 import org.gradle.launcher.configuration.BuildLayoutResult;
-import org.gradle.launcher.daemon.jvm.DaemonJvmCriteria;
+import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria;
 import org.gradle.util.internal.GUtil;
 
 import javax.annotation.Nullable;
@@ -45,6 +47,7 @@ public class DaemonParameters {
     public static final List<String> DEFAULT_JVM_8_ARGS = ImmutableList.of("-Xmx512m", "-Xms256m", "-XX:MaxMetaspaceSize=384m", "-XX:+HeapDumpOnOutOfMemoryError");
     public static final List<String> ALLOW_ENVIRONMENT_VARIABLE_OVERWRITE = ImmutableList.of("--add-opens=java.base/java.util=ALL-UNNAMED");
 
+    private final ToolchainConfiguration toolchainConfiguration = new DefaultToolchainConfiguration();
     private final File gradleUserHomeDir;
 
     private File baseDir;
@@ -275,6 +278,10 @@ public class DaemonParameters {
 
     public Map<String, String> getEnvironmentVariables() {
         return envVariables;
+    }
+
+    public ToolchainConfiguration getToolchainConfiguration() {
+        return toolchainConfiguration;
     }
 
     public Priority getPriority() {

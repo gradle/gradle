@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.jvm;
+package org.gradle.launcher.daemon.toolchain;
 
 import org.gradle.api.JavaVersion;
 import org.gradle.jvm.toolchain.JvmImplementation;

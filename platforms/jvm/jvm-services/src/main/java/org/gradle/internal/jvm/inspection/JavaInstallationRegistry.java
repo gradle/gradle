@@ -16,8 +16,8 @@
 
 package org.gradle.internal.jvm.inspection;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.GradleException;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.logging.progress.ProgressLogger;
@@ -29,12 +29,17 @@ import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.jvm.toolchain.internal.CurrentInstallationSupplier;
+import org.gradle.jvm.toolchain.internal.EnvironmentVariableListInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.InstallationLocation;
 import org.gradle.jvm.toolchain.internal.InstallationSupplier;
+import org.gradle.jvm.toolchain.internal.LocationListInstallationSupplier;
+import org.gradle.jvm.toolchain.internal.ToolchainConfiguration;
 
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -57,44 +62,45 @@ public class JavaInstallationRegistry {
 
     @Inject
     public JavaInstallationRegistry(
+        ToolchainConfiguration toolchainConfiguration,
         List<InstallationSupplier> suppliers,
         JvmMetadataDetector metadataDetector,
         BuildOperationRunner buildOperationRunner,
         OperatingSystem os,
         ProgressLoggerFactory progressLoggerFactory,
+        FileResolver fileResolver,
         JvmInstallationProblemReporter problemReporter
     ) {
-        this(suppliers, metadataDetector, Logging.getLogger(JavaInstallationRegistry.class), buildOperationRunner, os, progressLoggerFactory, problemReporter);
+        this(toolchainConfiguration, suppliers, metadataDetector, Logging.getLogger(JavaInstallationRegistry.class), buildOperationRunner, os, progressLoggerFactory, fileResolver, problemReporter);
     }
 
     private JavaInstallationRegistry(
+        ToolchainConfiguration toolchainConfiguration,
         List<InstallationSupplier> suppliers,
         JvmMetadataDetector metadataDetector,
         Logger logger,
         BuildOperationRunner buildOperationRunner,
         OperatingSystem os,
         ProgressLoggerFactory progressLoggerFactory,
+        FileResolver fileResolver,
         JvmInstallationProblemReporter problemReporter
     ) {
         this.logger = logger;
         this.buildOperationRunner = buildOperationRunner;
         this.metadataDetector = metadataDetector;
-        this.installations = new Installations(() -> maybeCollectInBuildOperation(suppliers));
+        List<InstallationSupplier> allSuppliers = new ArrayList<>();
+        allSuppliers.add(new CurrentInstallationSupplier());
+        allSuppliers.add(new EnvironmentVariableListInstallationSupplier(toolchainConfiguration, fileResolver));
+        allSuppliers.add(new LocationListInstallationSupplier(toolchainConfiguration, fileResolver));
+        if (toolchainConfiguration.isAutoDetectEnabled()) {
+            allSuppliers.addAll(suppliers);
+        }
+
+
+        this.installations = new Installations(() -> maybeCollectInBuildOperation(allSuppliers));
         this.os = os;
         this.progressLoggerFactory = progressLoggerFactory;
         this.problemReporter = problemReporter;
-    }
-
-    @VisibleForTesting
-    public static JavaInstallationRegistry withLogger(
-        List<InstallationSupplier> suppliers,
-        JvmMetadataDetector metadataDetector,
-        Logger logger,
-        BuildOperationRunner buildOperationRunner,
-        ProgressLoggerFactory progressLoggerFactory,
-        JvmInstallationProblemReporter problemDeduplicator
-    ) {
-        return new JavaInstallationRegistry(suppliers, metadataDetector, logger, buildOperationRunner, OperatingSystem.current(), progressLoggerFactory, problemDeduplicator);
     }
 
     private Set<InstallationLocation> maybeCollectInBuildOperation(List<InstallationSupplier> suppliers) {

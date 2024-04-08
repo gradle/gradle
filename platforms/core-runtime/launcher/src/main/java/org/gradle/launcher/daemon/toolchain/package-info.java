@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.cli;
+@NonNullApi
+package org.gradle.launcher.daemon.toolchain;
 
-public class ProjectPropertiesCommandLineConverter extends AbstractPropertiesCommandLineConverter {
-
-    @Override
-    protected String getPropertyOption() {
-        return "P";
-    }
-
-    @Override
-    protected String getPropertyOptionDetailed() {
-        return "project-prop";
-    }
-
-    @Override
-    protected String getPropertyOptionDescription() {
-        return "Set project property for the build script (e.g. -Pmyprop=myvalue).";
-    }
-}
+import org.gradle.api.NonNullApi;

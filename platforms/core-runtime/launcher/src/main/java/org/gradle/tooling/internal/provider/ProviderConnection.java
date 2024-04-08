@@ -53,7 +53,7 @@ import org.gradle.launcher.daemon.client.NotifyDaemonAboutChangedPathsClient;
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.context.DaemonRequestContext;
-import org.gradle.launcher.daemon.jvm.DaemonJvmCriteria;
+import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
@@ -308,6 +308,7 @@ public class ProviderConnection {
         } else {
             LoggingServiceRegistry requestSpecificLogging = LoggingServiceRegistry.newNestedLogging();
             loggingManager = requestSpecificLogging.getFactory(LoggingManagerInternal.class).create();
+            // TODO: !!!
             ServiceRegistry clientServices = daemonClientFactory.createBuildClientServices(requestSpecificLogging, params.daemonParams, configureForRequestContext(params.daemonParams), standardInput);
             executer = clientServices.get(DaemonClient.class);
         }

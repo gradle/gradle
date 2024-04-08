@@ -18,6 +18,7 @@ package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.jvm.toolchain.internal.install.JdkCacheDirectory;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -28,6 +29,7 @@ public class AutoInstalledInstallationSupplier implements InstallationSupplier {
 
     private final JdkCacheDirectory cacheDirProvider;
 
+    @Inject
     public AutoInstalledInstallationSupplier(JdkCacheDirectory cacheDirProvider) {
         this.cacheDirProvider = cacheDirProvider;
     }

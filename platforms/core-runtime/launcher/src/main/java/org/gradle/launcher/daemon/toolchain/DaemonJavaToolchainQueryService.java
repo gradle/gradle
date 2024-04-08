@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.jvm;
+package org.gradle.launcher.daemon.toolchain;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.GradleException;

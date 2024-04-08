@@ -14,7 +14,17 @@
  * limitations under the License.
  */
 
-@NonNullApi
-package org.gradle.launcher.daemon.jvm;
+package org.gradle.jvm.toolchain.internal;
 
-import org.gradle.api.NonNullApi;
+import java.util.Collection;
+
+public interface ToolchainConfiguration {
+    Collection<String> getJavaInstallationsFromEnvironment();
+    void setJavaInstallationsFromEnvironment(Collection<String> installations);
+
+    Collection<String> getInstallationsFromPaths();
+    void setInstallationsFromPaths(Collection<String> installations);
+
+    boolean isAutoDetectEnabled();
+    void setAutoDetectEnabled(boolean enabled);
+}

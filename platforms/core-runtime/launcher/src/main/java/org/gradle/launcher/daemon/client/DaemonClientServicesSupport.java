@@ -16,21 +16,16 @@
 package org.gradle.launcher.daemon.client;
 
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.cache.FileLockManager;
-import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.UUIDGenerator;
 import org.gradle.internal.invocation.BuildAction;
-import org.gradle.internal.jvm.inspection.JavaInstallationRegistry;
-import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.progress.DefaultProgressLoggerFactory;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.services.ProgressLoggingBridge;
 import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.DefaultBuildOperationIdFactory;
-import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.remote.internal.OutgoingConnector;
 import org.gradle.internal.remote.internal.inet.TcpOutgoingConnector;
 import org.gradle.internal.serialize.Serializer;
@@ -38,20 +33,16 @@ import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.time.Time;
-import org.gradle.jvm.toolchain.internal.AutoInstalledInstallationSupplier;
-import org.gradle.jvm.toolchain.internal.CurrentInstallationSupplier;
-import org.gradle.jvm.toolchain.internal.InstallationSupplier;
-import org.gradle.jvm.toolchain.internal.install.JdkCacheDirectory;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.context.DaemonRequestContext;
-import org.gradle.launcher.daemon.jvm.DaemonJavaToolchainQueryService;
 import org.gradle.launcher.daemon.protocol.DaemonMessageSerializer;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
+import org.gradle.launcher.daemon.toolchain.DaemonClientToolchainServices;
+import org.gradle.launcher.daemon.toolchain.DaemonJavaToolchainQueryService;
 
 import java.io.InputStream;
-import java.util.List;
 import java.util.UUID;
 
 /**
@@ -68,6 +59,7 @@ public abstract class DaemonClientServicesSupport extends DefaultServiceRegistry
         add(daemonParameters);
         add(requestContext);
         addProvider(new DaemonRegistryServices(daemonParameters.getBaseDir()));
+        addProvider(new DaemonClientToolchainServices(daemonParameters.getToolchainConfiguration()));
     }
 
     protected InputStream getBuildStandardInput() {
@@ -108,23 +100,6 @@ public abstract class DaemonClientServicesSupport extends DefaultServiceRegistry
 
     DaemonConnector createDaemonConnector(DaemonRegistry daemonRegistry, OutgoingConnector outgoingConnector, DaemonStarter daemonStarter, ListenerManager listenerManager, ProgressLoggerFactory progressLoggerFactory, Serializer<BuildAction> buildActionSerializer) {
         return new DefaultDaemonConnector(daemonRegistry, outgoingConnector, daemonStarter, listenerManager.getBroadcaster(DaemonStartListener.class), progressLoggerFactory, DaemonMessageSerializer.create(buildActionSerializer));
-    }
-    protected DaemonJavaToolchainQueryService createDaemonJavaToolchainQueryService(JavaInstallationRegistry javaInstallationRegistry) {
-        return new DaemonJavaToolchainQueryService(javaInstallationRegistry);
-    }
-    protected JavaInstallationRegistry createJavaInstallationRegistry(List<InstallationSupplier> installationSuppliers, JvmMetadataDetector jvmMetadataDetector, ProgressLoggerFactory progressLoggerFactory) {
-        return new JavaInstallationRegistry(installationSuppliers, jvmMetadataDetector, null, OperatingSystem.current(), progressLoggerFactory, null);
-    }
-    protected InstallationSupplier createAutoInstalledInstallationSupplier(JdkCacheDirectory jdkCacheDirectory) {
-        return new AutoInstalledInstallationSupplier(jdkCacheDirectory);
-    }
-    protected InstallationSupplier createCurrentInstallationSupplier() {
-        return new CurrentInstallationSupplier();
-    }
-
-    // TODO: Decide if we should use all of the different installation suppliers for Gradle daemons or not
-    protected JdkCacheDirectory createJdkCacheDirectory(GradleUserHomeDirProvider gradleUserHomeDirProvider, FileLockManager fileLockManager, JvmMetadataDetector jvmMetadataDetector) {
-        return new JdkCacheDirectory(gradleUserHomeDirProvider, null, fileLockManager, jvmMetadataDetector);
     }
 
     DaemonStarter createDaemonStarter(DaemonDir daemonDir, DaemonParameters daemonParameters, DaemonGreeter daemonGreeter, JvmVersionValidator jvmVersionValidator, DaemonJavaToolchainQueryService daemonJavaToolchainQueryService) {

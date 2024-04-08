@@ -28,10 +28,11 @@ class DaemonToolchainInvalidCriteriaIntegrationTest extends AbstractIntegrationS
     def "Given empty build properties file When execute any task Then succeeds using the current java home"() {
         given:
         buildPropertiesFile.touch()
-        expectJavaHome(Jvm.current())
+        captureJavaHome()
 
         expect:
         succeeds("help")
+        assertDaemonUsedJvm(Jvm.current())
     }
 
     def "Given non-integer toolchain version When execute any task Then fails with expected exception message"() {

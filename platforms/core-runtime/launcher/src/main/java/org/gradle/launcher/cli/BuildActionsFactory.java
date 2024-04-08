@@ -46,6 +46,7 @@ import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.launcher.bootstrap.ExecutionListener;
+import org.gradle.launcher.configuration.AllProperties;
 import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonAction;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.DaemonClientFactory;
@@ -56,7 +57,7 @@ import org.gradle.launcher.daemon.configuration.BuildProcess;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.configuration.ForegroundDaemonConfiguration;
 import org.gradle.launcher.daemon.context.DaemonRequestContext;
-import org.gradle.launcher.daemon.jvm.DaemonJvmCriteria;
+import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildExecuter;
@@ -100,6 +101,8 @@ class BuildActionsFactory implements CommandLineActionCreator {
 
         StartParameterInternal startParameter = parameters.getStartParameter();
         DaemonParameters daemonParameters = parameters.getDaemonParameters();
+        AllProperties allProperties = parameters.getProperties();
+
         if (daemonParameters.isStop()) {
             return Actions.toAction(stopAllDaemons(daemonParameters));
         }
@@ -247,48 +250,4 @@ class BuildActionsFactory implements CommandLineActionCreator {
     private GradleLauncherMetaData clientMetaData() {
         return new GradleLauncherMetaData();
     }
-//
-//    private void configDaemonJvm(ParsedCommandLine commandLine, Parameters parameters) {
-//        StartParameterInternal startParameters = parameters.getStartParameter();
-//        DaemonParameters daemonParameters = parameters.getDaemonParameters();
-//        JavaVersion version = jvmVersionDetector.getJavaVersion(daemonParameters.getEffectiveJvm());
-//        try {
-//            DaemonJvmCriteria jvmToolchainCriteria = buildEnvironmentConfigurationConverter.convertJvmToolchainCriteria(commandLine, parameters.getProperties());
-//            if (jvmToolchainCriteria != null) {
-//                JvmInstallationMetadata installation = daemonJavaToolchainQueryService.findMatchingToolchain(jvmToolchainCriteria, startParameters);
-//                daemonParameters.setJvm(Jvm.forHome(installation.getJavaHome().toFile()));
-//                version = installation.getLanguageVersion();
-//            }
-//        } catch (Exception exception) {
-//            if (!isExecutingUpdateDaemonJvmTask(startParameters)) {
-//                throw exception;
-//            }
-//        }
-//        daemonParameters.applyDefaultsFor(version);
-//    }
-//
-//    @Nullable
-//    public DaemonJvmCriteria convertJvmToolchainCriteria(ParsedCommandLine args, AllProperties properties) throws IllegalArgumentException {;
-////        DaemonJvmCriteria jvmToolchainCriteria = new DaemonJvmCriteria();
-////        daemonJvmToolchainCriteriaConverter.convert(args, properties.getBuildProperties(), jvmToolchainCriteria);
-////        if (jvmToolchainCriteria.getLanguageVersion().isPresent()) {
-////            if (!jvmToolchainCriteria.getVendor().isPresent()) {
-////                jvmToolchainCriteria.getVendor().set(DefaultJvmVendorSpec.any());
-////            }
-////            if (!jvmToolchainCriteria.getImplementation().isPresent()) {
-////                jvmToolchainCriteria.getImplementation().set(JvmImplementation.VENDOR_SPECIFIC);
-////            }
-////        } else if (jvmToolchainCriteria.getVendor().isPresent() || jvmToolchainCriteria.getImplementation().isPresent()) {
-////            String exceptionMessage = String.format("Option %s undefined on build properties. " +
-////                "Execute 'updateDaemonJvm' task with desired criteria to fix it.", BuildPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY);
-////            throw new IllegalArgumentException(exceptionMessage);
-////        }
-////        return jvmToolchainCriteria;
-//        return null;
-//    }
-//
-//    private boolean isExecutingUpdateDaemonJvmTask(StartParameter startParameters) {
-//        List<TaskExecutionRequest> taskExecutionRequests = startParameters.getTaskRequests();
-//        return taskExecutionRequests.size() == 1 && taskExecutionRequests.get(0).getArgs().contains(UpdateDaemonJvmTaskConfigurator.TASK_NAME);
-//    }
 }
