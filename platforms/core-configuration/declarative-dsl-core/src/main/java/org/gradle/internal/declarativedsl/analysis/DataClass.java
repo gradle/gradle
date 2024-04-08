@@ -17,19 +17,19 @@
 package org.gradle.internal.declarativedsl.analysis;
 
 import java.io.Serializable;
-import java.util.Map;
+import java.util.List;
 import java.util.Set;
 
-public interface AnalysisSchema extends Serializable {
+public interface DataClass extends Serializable {
 
-    DataClass getTopLevelReceiverType();
+    FqName getName();
 
-    Map<FqName, DataClass> getDataClassesByFqName();
+    Set<FqName> getSupertypes();
 
-    Map<FqName, DataTopLevelFunction> getExternalFunctionsByFqName();
+    List<DataProperty> getProperties();
 
-    Map<FqName, ExternalObjectProviderKey> getExternalObjectsByFqName();
+    List<SchemaMemberFunction> getMemberFunctions();
 
-    Set<FqName> getDefaultImports();
+    List<DataConstructor> getConstructors();
 
 }

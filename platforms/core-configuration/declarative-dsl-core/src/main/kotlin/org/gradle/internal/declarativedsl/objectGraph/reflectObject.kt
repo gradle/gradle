@@ -3,6 +3,7 @@ package org.gradle.internal.declarativedsl.objectGraph
 import org.gradle.internal.declarativedsl.analysis.AssignmentMethod
 import org.gradle.internal.declarativedsl.analysis.DataAddition
 import org.gradle.internal.declarativedsl.analysis.DataClass
+import org.gradle.internal.declarativedsl.analysis.DataClassImpl
 import org.gradle.internal.declarativedsl.analysis.DataParameter
 import org.gradle.internal.declarativedsl.analysis.DataProperty
 import org.gradle.internal.declarativedsl.analysis.ExternalObjectProviderKey
@@ -24,7 +25,7 @@ sealed interface ObjectReflection {
 
     data class DataObjectReflection(
         val identity: Long,
-        override val type: DataClass,
+        override val type: DataClassImpl,
         override val objectOrigin: ObjectOrigin,
         val properties: Map<DataProperty, PropertyValueReflection>,
         val addedObjects: List<ObjectReflection>,
@@ -94,9 +95,9 @@ fun reflect(
 
         is ObjectOrigin.NullObjectOrigin -> ObjectReflection.Null(objectOrigin)
 
-        is ObjectOrigin.TopLevelReceiver -> reflectData(0, type as DataClass, objectOrigin, context)
+        is ObjectOrigin.TopLevelReceiver -> reflectData(0, type as DataClassImpl, objectOrigin, context)
 
-        is ObjectOrigin.ConfiguringLambdaReceiver -> reflectData(-1L, type as DataClass, objectOrigin, context)
+        is ObjectOrigin.ConfiguringLambdaReceiver -> reflectData(-1L, type as DataClassImpl, objectOrigin, context)
 
         is ObjectOrigin.PropertyDefaultValue -> reflectDefaultValue(objectOrigin, context)
         is ObjectOrigin.FunctionInvocationOrigin -> context.functionCall(objectOrigin.invocationId) {
@@ -107,7 +108,7 @@ fun reflect(
                     } else {
                         reflectData(
                             objectOrigin.invocationId,
-                            type as DataClass,
+                            type as DataClassImpl,
                             objectOrigin,
                             context
                         )
@@ -132,7 +133,7 @@ fun reflect(
 
         is ObjectOrigin.PropertyReference,
         is ObjectOrigin.FromLocalValue -> error("value origin needed")
-        is ObjectOrigin.CustomConfigureAccessor -> reflectData(-1L, type as DataClass, objectOrigin, context)
+        is ObjectOrigin.CustomConfigureAccessor -> reflectData(-1L, type as DataClassImpl, objectOrigin, context)
 
         is ObjectOrigin.ImplicitThisReceiver -> reflect(objectOrigin.resolvedTo, context)
         is ObjectOrigin.AddAndConfigureReceiver -> reflect(objectOrigin.receiver, context)
@@ -173,7 +174,7 @@ fun reflectData(
     val customAccessors = context.customAccessorsUsedByReceiver[objectOrigin].orEmpty()
     val lambdaReceiversAccessed = context.lambdaAccessorsUsedByReceiver[objectOrigin].orEmpty()
     return ObjectReflection.DataObjectReflection(
-        identity, type, objectOrigin,
+        identity, type as DataClassImpl, objectOrigin,
         properties = propertiesWithValue,
         addedObjects = added,
         customAccessorObjects = customAccessors.map { reflect(it, context) },

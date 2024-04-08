@@ -2,7 +2,7 @@ package org.gradle.internal.declarativedsl.parsing
 
 import org.gradle.internal.declarativedsl.analysis.AnalysisContext
 import org.gradle.internal.declarativedsl.analysis.AnalysisSchemaImpl
-import org.gradle.internal.declarativedsl.analysis.DataClass
+import org.gradle.internal.declarativedsl.analysis.DataClassImpl
 import org.gradle.internal.declarativedsl.analysis.ErrorCollectorImpl
 import org.gradle.internal.declarativedsl.analysis.ErrorReason
 import org.gradle.internal.declarativedsl.analysis.FqName
@@ -29,7 +29,7 @@ class ImportTest {
     fun testContext(): AnalysisContext {
         return AnalysisContext(
             AnalysisSchemaImpl(
-                DataClass(FqName("", ""), emptySet(), emptyList(), emptyList(), emptyList()),
+                DataClassImpl(FqName("", ""), emptySet(), emptyList(), emptyList(), emptyList()),
                 emptyMap(),
                 emptyMap(),
                 emptyMap(),

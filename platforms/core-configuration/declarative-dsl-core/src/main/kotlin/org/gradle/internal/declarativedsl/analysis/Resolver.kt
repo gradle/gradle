@@ -17,7 +17,7 @@ class ResolverImpl(
         val importContext = AnalysisContext(schema, emptyMap(), errorCollector)
         val importFqnBySimpleName = collectImports(imports, importContext) + schema.defaultImports.associateBy { it.simpleName }
 
-        val topLevelReceiver = ObjectOrigin.TopLevelReceiver(schema.topLevelReceiverType, topLevelBlock)
+        val topLevelReceiver = ObjectOrigin.TopLevelReceiver(schema.topLevelReceiverType as DataClassImpl, topLevelBlock)
         val topLevelScope = AnalysisScope(null, topLevelReceiver, topLevelBlock)
 
         val context = AnalysisContext(schema, importFqnBySimpleName, errorCollector)
