@@ -92,7 +92,7 @@ class ServiceScopeValidator implements AnnotatedServiceLifecycleHandler {
     private String missingScopeMessage(Class<?> serviceType) {
         return String.format(
             "The service '%s' is registered in the '%s' scope but does not declare it. " +
-                "Add the '@ServiceScope() annotation on '%s' with the '%s' scope.",
+                "Add the '@ServiceScope()' annotation on '%s' with the '%s' scope.",
             serviceType.getName(), scope.getSimpleName(), serviceType.getSimpleName(), scope.getSimpleName()
         );
     }
