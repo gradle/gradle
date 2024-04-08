@@ -70,63 +70,87 @@ data class DataProperty(
 
 
 @Serializable
-sealed interface SchemaFunction {
-    val simpleName: String
-    val semantics: FunctionSemantics
-    val parameters: List<DataParameter>
-    val returnValueType: DataTypeRef
-        get() = semantics.returnValueType
-}
-
-
-@Serializable
-sealed interface SchemaMemberFunction : SchemaFunction {
-    override val simpleName: String
-    val receiver: DataTypeRef
-    val isDirectAccessOnly: Boolean
-}
-
-
-@Serializable
 data class DataBuilderFunction(
-    override val receiver: DataTypeRef,
-    override val simpleName: String,
-    override val isDirectAccessOnly: Boolean,
+    private val receiver: DataTypeRef,
+    private val simpleName: String,
+    private val isDirectAccessOnly: Boolean,
     val dataParameter: DataParameter,
 ) : SchemaMemberFunction {
-    override val semantics: FunctionSemantics.Builder = FunctionSemantics.Builder(receiver)
-    override val parameters: List<DataParameter>
-        get() = listOf(dataParameter)
+    private
+    val internalSemantics: FunctionSemantics.Builder by lazy { FunctionSemantics.Builder(receiver) }
+    private
+    val internalParameters: List<DataParameter> by lazy { listOf(dataParameter) }
+
+    override fun getSimpleName(): String = simpleName
+
+    override fun getParameters(): List<DataParameter> = internalParameters
+
+    override fun getSemantics(): FunctionSemantics = internalSemantics
+
+    override fun getReturnValueType(): DataTypeRef = internalSemantics.returnValueType
+
+    override fun getReceiver(): DataTypeRef = receiver
+
+    override fun isDirectAccessOnly(): Boolean = isDirectAccessOnly
 }
 
 
 @Serializable
-data class DataTopLevelFunction(
-    val packageName: String,
-    override val simpleName: String,
-    override val parameters: List<DataParameter>,
-    override val semantics: FunctionSemantics.Pure,
-) : SchemaFunction
+data class DataTopLevelFunctionImpl(
+    private val packageName: String,
+    private val simpleName: String,
+    private val parameters: List<DataParameter>,
+    private val semantics: FunctionSemantics.Pure,
+) : DataTopLevelFunction {
+    override fun getPackageName(): String = packageName
+
+    override fun getSimpleName(): String = simpleName
+
+    override fun getParameters(): List<DataParameter> = parameters
+
+    override fun getSemantics(): FunctionSemantics = semantics
+
+    override fun getReturnValueType(): DataTypeRef = semantics.returnValueType
+}
 
 
 @Serializable
 data class DataMemberFunction(
-    override val receiver: DataTypeRef,
-    override val simpleName: String,
-    override val parameters: List<DataParameter>,
-    override val isDirectAccessOnly: Boolean,
-    override val semantics: FunctionSemantics,
-) : SchemaMemberFunction
+    private val receiver: DataTypeRef,
+    private val simpleName: String,
+    private val parameters: List<DataParameter>,
+    private val isDirectAccessOnly: Boolean,
+    private val semantics: FunctionSemantics,
+) : SchemaMemberFunction {
+    override fun getSimpleName(): String = simpleName
+
+    override fun getParameters(): List<DataParameter> = parameters
+
+    override fun getSemantics(): FunctionSemantics = semantics
+
+    override fun getReturnValueType(): DataTypeRef = semantics.returnValueType
+
+    override fun getReceiver(): DataTypeRef = receiver
+
+    override fun isDirectAccessOnly(): Boolean = isDirectAccessOnly
+}
 
 
 @Serializable
 data class DataConstructor(
-    override val parameters: List<DataParameter>,
+    private val parameters: List<DataParameter>,
     val dataClass: DataTypeRef
 ) : SchemaFunction {
-    override val simpleName
-        get() = "<init>"
-    override val semantics: FunctionSemantics = FunctionSemantics.Pure(dataClass)
+    private
+    val internalSemantics: FunctionSemantics by lazy { FunctionSemantics.Pure(dataClass) }
+
+    override fun getSimpleName(): String = "<init>"
+
+    override fun getParameters(): List<DataParameter> = parameters
+
+    override fun getSemantics(): FunctionSemantics = internalSemantics
+
+    override fun getReturnValueType(): DataTypeRef = internalSemantics.returnValueType
 }
 
 
@@ -265,7 +289,8 @@ data class FqNameImpl(private val packageName: String, private val simpleName: S
     }
 
     @get:JvmName("privateQualifiedName")
-    private val qualifiedName by lazy { "$packageName.$simpleName" }
+    private
+    val qualifiedName by lazy { "$packageName.$simpleName" }
 
     override fun getPackageName(): String = packageName
 

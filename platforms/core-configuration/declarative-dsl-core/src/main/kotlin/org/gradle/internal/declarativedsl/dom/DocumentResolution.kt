@@ -18,8 +18,8 @@ package org.gradle.internal.declarativedsl.dom
 
 import org.gradle.internal.declarativedsl.analysis.DataClassImpl
 import org.gradle.internal.declarativedsl.analysis.DataProperty
-import org.gradle.internal.declarativedsl.language.DataType
 import org.gradle.internal.declarativedsl.analysis.SchemaFunction
+import org.gradle.internal.declarativedsl.language.DataType
 import org.gradle.internal.declarativedsl.analysis.SchemaMemberFunction
 
 

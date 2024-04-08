@@ -26,6 +26,7 @@ import org.gradle.internal.declarativedsl.analysis.DataConstructor
 import org.gradle.internal.declarativedsl.analysis.DataMemberFunction
 import org.gradle.internal.declarativedsl.analysis.DataParameter
 import org.gradle.internal.declarativedsl.analysis.DataTopLevelFunction
+import org.gradle.internal.declarativedsl.analysis.DataTopLevelFunctionImpl
 import org.gradle.internal.declarativedsl.analysis.FunctionSemantics
 import org.gradle.internal.declarativedsl.analysis.FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement.NOT_ALLOWED
 import org.gradle.internal.declarativedsl.analysis.FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement.OPTIONAL
@@ -178,7 +179,7 @@ class DefaultFunctionExtractor(
             index != fnParams.lastIndex || configureLambdas.getTypeConfiguredByLambda(returnTypeClassifier) == null
         }.map { dataParameter(function, it, function.returnType.toKClass(), semanticsFromSignature, preIndex) }
 
-        return DataTopLevelFunction(
+        return DataTopLevelFunctionImpl(
             function.javaMethod!!.declaringClass.`package`.name,
             function.name,
             params,

@@ -23,10 +23,13 @@ import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
 import org.gradle.internal.declarativedsl.analysis.AnalysisSchema
 import org.gradle.internal.declarativedsl.analysis.AnalysisSchemaImpl
+import org.gradle.internal.declarativedsl.analysis.DataBuilderFunction
 import org.gradle.internal.declarativedsl.analysis.DataClass
 import org.gradle.internal.declarativedsl.analysis.DataClassImpl
+import org.gradle.internal.declarativedsl.analysis.DataMemberFunction
 import org.gradle.internal.declarativedsl.analysis.FqName
 import org.gradle.internal.declarativedsl.analysis.FqNameImpl
+import org.gradle.internal.declarativedsl.analysis.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.language.DataType
 
 
@@ -48,6 +51,10 @@ object SchemaSerialization {
             }
             polymorphic(FqName::class) {
                 subclass(FqNameImpl::class)
+            }
+            polymorphic(SchemaMemberFunction::class) {
+                subclass(DataMemberFunction::class)
+                subclass(DataBuilderFunction::class)
             }
         }
         prettyPrint = true
