@@ -202,7 +202,7 @@ class PropertyAccessResolverImpl(
 
     private
     fun findDataProperty(
-        receiverType: DataType_,
+        receiverType: DataType,
         name: String
     ): DataProperty? =
         if (receiverType is DataClass) receiverType.properties.find { !it.isHiddenInDsl && it.name == name } else null

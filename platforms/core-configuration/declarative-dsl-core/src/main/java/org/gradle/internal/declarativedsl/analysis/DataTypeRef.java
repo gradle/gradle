@@ -21,7 +21,7 @@ import java.io.Serializable;
 public interface DataTypeRef extends Serializable {
     interface Type extends DataTypeRef {
 
-        DataType_ getDataType();
+        DataType getDataType();
 
     }
 

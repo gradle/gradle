@@ -1,6 +1,6 @@
 package org.gradle.internal.declarativedsl.language
 
-import org.gradle.internal.declarativedsl.analysis.DataType_
+import org.gradle.internal.declarativedsl.analysis.DataType
 
 
 sealed interface LanguageTreeElement {
@@ -63,13 +63,13 @@ data class LocalValue(val name: String, val rhs: Expr, override val sourceData: 
 
 sealed interface Literal<T : Any> : Expr {
     val value: T
-    val type: DataType_.ConstantType<T>
+    val type: DataType.ConstantType<T>
 
     data class StringLiteral(
         override val value: String,
         override val sourceData: SourceData
     ) : Literal<String> {
-        override val type: DataType_.ConstantType<String>
+        override val type: DataType.ConstantType<String>
             get() = StringDataType
     }
 
@@ -77,7 +77,7 @@ sealed interface Literal<T : Any> : Expr {
         override val value: Int,
         override val sourceData: SourceData
     ) : Literal<Int> {
-        override val type: DataType_.ConstantType<Int>
+        override val type: DataType.ConstantType<Int>
             get() = IntDataType
     }
 
@@ -85,7 +85,7 @@ sealed interface Literal<T : Any> : Expr {
         override val value: Long,
         override val sourceData: SourceData
     ) : Literal<Long> {
-        override val type: DataType_.ConstantType<Long>
+        override val type: DataType.ConstantType<Long>
             get() = LongDataType
     }
 
@@ -93,7 +93,7 @@ sealed interface Literal<T : Any> : Expr {
         override val value: Boolean,
         override val sourceData: SourceData
     ) : Literal<Boolean> {
-        override val type: DataType_.ConstantType<Boolean>
+        override val type: DataType.ConstantType<Boolean>
             get() = BooleanDataType
     }
 }

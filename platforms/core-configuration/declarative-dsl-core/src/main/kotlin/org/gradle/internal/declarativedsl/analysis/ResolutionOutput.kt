@@ -57,7 +57,7 @@ sealed interface ObjectOrigin {
 
     sealed interface ReceiverOrigin : ObjectOrigin
 
-    data class TopLevelReceiver(val type: DataType_, override val originElement: LanguageTreeElement) : ReceiverOrigin {
+    data class TopLevelReceiver(val type: DataType, override val originElement: LanguageTreeElement) : ReceiverOrigin {
         override fun toString(): String = "(top-level-object)"
     }
 

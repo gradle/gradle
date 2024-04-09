@@ -18,45 +18,52 @@ package org.gradle.internal.declarativedsl.language
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.gradle.internal.declarativedsl.analysis.DataType_
+import org.gradle.internal.declarativedsl.analysis.DataType
 
 
 @Serializable
 @SerialName("int")
-data object IntDataType : DataType_.ConstantType<Int> {
+data object IntDataType : DataType.ConstantType<Int> {
     override fun toString(): String = "Int"
     override fun getType(): Class<Int> = Int::class.java
 }
 
+
 @Serializable
 @SerialName("long")
-data object LongDataType : DataType_.ConstantType<Long> {
+data object LongDataType : DataType.ConstantType<Long> {
     override fun toString(): String = "Long"
 
     override fun getType(): Class<Long> = Long::class.java
 }
+
+
 @Serializable
 @SerialName("string")
-data object StringDataType : DataType_.ConstantType<String> {
+data object StringDataType : DataType.ConstantType<String> {
     override fun toString(): String = "String"
 
     override fun getType(): Class<String> = String::class.java
 }
+
+
 @Serializable
 @SerialName("boolean")
-data object BooleanDataType : DataType_.ConstantType<Boolean> {
+data object BooleanDataType : DataType.ConstantType<Boolean> {
     override fun toString(): String = "Boolean"
 
     override fun getType(): Class<Boolean> = Boolean::class.java
 }
 
+
 @Serializable
 @SerialName("null")
-data object NullDataType : DataType_.NullType // TODO: implement nulls?
+data object NullDataType : DataType.NullType // TODO: implement nulls?
+
 
 @Serializable
 @SerialName("unit")
-data object UnitDataType : DataType_.UnitType
+data object UnitDataType : DataType.UnitType
 
 // TODO: `Any` type?
 // TODO: Support subtyping of some sort in the schema rather than via reflection?
