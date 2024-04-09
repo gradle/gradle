@@ -21,7 +21,7 @@ dependencies {
     implementation("commons-io:commons-io")
     implementation("javax.activation:activation")
     implementation("javax.xml.bind:jaxb-api")
-    implementation("com.gradle:gradle-enterprise-gradle-plugin")
+    implementation("com.gradle:develocity-gradle-plugin")
 
     testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation("junit:junit")

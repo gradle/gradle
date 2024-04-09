@@ -50,13 +50,27 @@ Plugins can:
 
 == Step 2. Applying a Plugin
 Our project currently applies a single plugin, the <<application_plugin#application_plugin,Application Plugin>> which is bundled with Gradle:
-[source,groovy]
+
+[.multi-language-sample]
+=====
+[source, kotlin]
 ----
 plugins {
     // Apply the application plugin to add support for building a CLI application in Java.
     application
 }
 ----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+plugins {
+    // Apply the application plugin to add support for building a CLI application in Java.
+    id 'application'
+}
+----
+=====
 
 Let's apply a plugin to our project that is maintained and distributed by Gradle called the <<publishing_maven#publishing_maven,Maven Publish Plugin>>.
 The Maven Publish Plugin provides the ability to publish build artifacts to an https://maven.apache.org/[Apache Maven repository].
@@ -74,21 +88,37 @@ A publication destined for a Maven repository normally includes:
 - The Gradle Module Metadata
 - The Maven POM file
 
-Apply the plugin by adding `maven-publish` to the plugins block in `build.gradle.kts`:
-[source,groovy]
+Apply the plugin by adding `maven-publish` to the plugins block in `build.gradle(.kts)`:
+
+[.multi-language-sample]
+=====
+[source, kotlin]
 ----
 plugins {
     // Apply the application plugin to add support for building a CLI application in Java.
     application
-    `maven-publish`
+    id("maven-publish")
 }
 ----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+plugins {
+    // Apply the application plugin to add support for building a CLI application in Java.
+    id 'application'
+    id 'maven-publish'
+}
+----
+=====
 
 Don't forget to sync Gradle if you are using IntelliJ IDEA.
 
 Let's make sure the plugin has been applied by looking at the new tasks that are available.
 
 Run `./gradlew :app:tasks` in your command line:
+
 [source,text]
 ----
 $ ./gradlew :app:tasks
@@ -114,8 +144,11 @@ Similarly, the new tasks from the Maven Publish plugin are now available in Inte
 image::tutorial/intellij-idea-plugin.png[]
 
 == Step 3. Configuring the Plugin
-Add the publishing information to your `build.gradle.kts` file:
-[source]
+Add the publishing information to your `build.gradle(.kts)` file:
+
+[.multi-language-sample]
+=====
+[source, kotlin]
 ----
 publishing {
     publications {
@@ -129,8 +162,27 @@ publishing {
     }
 }
 ----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+publishing {
+    publications {
+        create("maven", MavenPublication) {
+            groupId = "com.gradle.tutorial"
+            artifactId = "tutorial"
+            version = "1.0"
+
+            from(components["java"])
+        }
+    }
+}
+----
+=====
 
 Run `./gradlew :app:tasks` in your command line again, you will see additional tasks now that we have given the plugin additional information about our app:
+
 [source,text]
 ----
 $ ./gradlew :app:tasks
@@ -171,7 +223,8 @@ $ ./gradlew :app:publishToMavenLocal
 BUILD SUCCESSFUL in 331ms
 ----
 
-The `publishToMavenLocal` task builds the POM file and the artifacts to be published. It then _installs_ them into the local Maven repository.
+The `publishToMavenLocal` task builds the POM file and the artifacts to be published.
+It then _installs_ them into the local Maven repository.
 
 You can view the POM and GMM file in the `build` directory:
 
