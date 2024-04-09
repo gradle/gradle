@@ -274,6 +274,7 @@ trait SoftwareTypeFixture {
 
                 @Override
                 public void apply(Project target) {
+                    System.out.println("Applying " + getClass().getSimpleName());
                     ${implementationTypeClassName} extension = getTestSoftwareTypeExtension();
                     target.getTasks().register("print${implementationTypeClassName}Configuration", DefaultTask.class, task -> {
                         task.doLast("print restricted extension content", t -> {
