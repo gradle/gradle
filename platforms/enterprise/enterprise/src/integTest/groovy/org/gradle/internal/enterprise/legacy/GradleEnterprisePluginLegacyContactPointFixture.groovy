@@ -111,7 +111,7 @@ class GradleEnterprisePluginLegacyContactPointFixture {
             println '$BUILD_SCAN_PLUGIN_APPLIED_MESSAGE'
         """, BUILD_SCAN_PLUGIN_ID, BUILD_SCAN_PLUGIN_CLASS_SIMPLE_NAME)
 
-        builder.publishAs("com.gradle:gradle-enterprise-gradle-plugin:${artifactVersion}", mavenRepo, pluginBuildExecuter)
+        builder.publishAs("com.gradle:develocity-gradle-plugin:${artifactVersion}", mavenRepo, pluginBuildExecuter)
     }
 
     void assertDisabled(String output, boolean disabled) {

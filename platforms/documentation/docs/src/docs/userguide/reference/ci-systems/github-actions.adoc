@@ -150,7 +150,7 @@ image::ci-systems/github-actions-workflows.png[View workflow executions]
 
 === See the results for GitHub Actions workflow run
 
-Clicking on the link for a workflow run will show the details of the workflow run, 
+Clicking on the link for a workflow run will show the details of the workflow run,
 including a summary of all Gradle builds with links to any Build Scan published.
 
 TIP: Configuring link:https://scans.gradle.com/[build scans] is especially helpful on cloud CI systems like GitHub Actions because it has additional environment and test results information that are difficult to obtain otherwise.
@@ -179,10 +179,10 @@ image::ci-systems/github-actions-cache-details.png[View cache entry details]
 link:https://docs.github.com/en/code-security/supply-chain-security/understanding-your-software-supply-chain/about-supply-chain-security[GitHub supply chain security] features will detect and alert about any dependencies that have known vulnerabilities.
 In order to do this, GitHub requires a complete dependency graph for your project.
 
-NOTE: Ensure that you have both link:https://docs.github.com/en/code-security/supply-chain-security/understanding-your-software-supply-chain/configuring-the-dependency-graph[Dependency graph] 
+NOTE: Ensure that you have both link:https://docs.github.com/en/code-security/supply-chain-security/understanding-your-software-supply-chain/configuring-the-dependency-graph[Dependency graph]
 and link:https://docs.github.com/en/code-security/dependabot/dependabot-alerts/configuring-dependabot-alerts#managing-dependabot-alerts-for-your-repository[Dependabot alerts] enabled for your repository.
 
-The link:https://github.com/gradle/actions/tree/main/dependency-submission[dependency-submission] action for Gradle provides the simplest way to generate a dependency graph for your project. 
+The link:https://github.com/gradle/actions/tree/main/dependency-submission[dependency-submission] action for Gradle provides the simplest way to generate a dependency graph for your project.
 This action will attempt to detect and upload a list of all dependencies used by your build.
 
 We recommend a separate GitHub Actions workflow for dependency submission. Create a GitHub Actions workflow by adding a `.github/workflows/<workflow-name>.yml` file to your repository.
@@ -245,7 +245,7 @@ image::ci-systems/github-actions-dependency-alerts.png[View dependency alerts]
 In some cases, resolving a vulnerability is as easy as updating a dependency declaration in your project.
 In other cases, when the dependency is transitive or is part of a plugin classpath, the solution is not so simple.
 
-Please refer to the link:https://github.com/gradle/actions/blob/main/docs/dependency-submission.md[dependency-submission] documentation, 
+Please refer to the link:https://github.com/gradle/actions/blob/main/docs/dependency-submission.md[dependency-submission] documentation,
 together with the link:https://github.com/gradle/github-dependency-submission-demo[github-dependency-submission-demo] repository to learn more.
 
 == Further reading

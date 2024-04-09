@@ -32,7 +32,7 @@ import static org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginC
 
 class GradleEnterprisePluginCheckInIntegrationTest extends AbstractIntegrationSpec {
 
-    def plugin = new GradleEnterprisePluginCheckInFixture(testDirectory, mavenRepo, createExecuter())
+    def plugin = new DevelocityPluginCheckInFixture(testDirectory, mavenRepo, createExecuter())
 
     def setup() {
         settingsFile << plugin.pluginManagement()
@@ -116,7 +116,7 @@ class GradleEnterprisePluginCheckInIntegrationTest extends AbstractIntegrationSp
         output.contains("present: ${applied}")
 
         and:
-        output.contains("gradleEnterprisePlugin.checkIn.unsupported.reasonMessage = $UNSUPPORTED_PLUGIN_DUE_TO_CONFIGURATION_CACHING_MESSAGE") != applied
+        output.contains("develocityPlugin.checkIn.unsupported.reasonMessage = $UNSUPPORTED_PLUGIN_DUE_TO_CONFIGURATION_CACHING_MESSAGE") != applied
 
         where:
         pluginVersion                               | applied
@@ -141,7 +141,7 @@ class GradleEnterprisePluginCheckInIntegrationTest extends AbstractIntegrationSp
         output.contains("present: ${applied}")
 
         and:
-        output.contains("gradleEnterprisePlugin.checkIn.unsupported.reasonMessage = $UNSUPPORTED_PLUGIN_DUE_TO_ISOLATED_PROJECTS_MESSAGE") != applied
+        output.contains("develocityPlugin.checkIn.unsupported.reasonMessage = $UNSUPPORTED_PLUGIN_DUE_TO_ISOLATED_PROJECTS_MESSAGE") != applied
 
         where:
         pluginVersion                           | applied
