@@ -34,7 +34,7 @@ sealed interface ErrorReason {
     data class AmbiguousFunctions(val functions: List<FunctionCallResolver.FunctionResolutionAndBinding>) : ErrorReason
     data class ValReassignment(val localVal: LocalValue) : ErrorReason
     data class ExternalReassignment(val external: ObjectOrigin.External) : ErrorReason
-    data class AssignmentTypeMismatch(val expected: DataType_, val actual: DataType_) : ErrorReason
+    data class AssignmentTypeMismatch(val expected: DataType, val actual: DataType) : ErrorReason
 
     // TODO: these two are never reported for now, instead it is UnresolvedFunctionCallSignature
     data object UnusedConfigureLambda : ErrorReason

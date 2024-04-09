@@ -34,7 +34,7 @@ import org.gradle.internal.declarativedsl.analysis.DataPropertyImpl
 import org.gradle.internal.declarativedsl.analysis.DataTypeRefNameImpl
 import org.gradle.internal.declarativedsl.analysis.DataTypeRefTypeImpl
 import org.gradle.internal.declarativedsl.analysis.DataTypeRef
-import org.gradle.internal.declarativedsl.analysis.DataType_
+import org.gradle.internal.declarativedsl.analysis.DataType
 import org.gradle.internal.declarativedsl.analysis.FqName
 import org.gradle.internal.declarativedsl.analysis.FqNameImpl
 import org.gradle.internal.declarativedsl.analysis.SchemaMemberFunction
@@ -51,7 +51,7 @@ object SchemaSerialization {
     private
     val json = Json {
         serializersModule = SerializersModule {
-            polymorphic(DataType_::class) {
+            polymorphic(DataType::class) {
                 subclass(IntDataType::class)
                 subclass(LongDataType::class)
                 subclass(StringDataType::class)

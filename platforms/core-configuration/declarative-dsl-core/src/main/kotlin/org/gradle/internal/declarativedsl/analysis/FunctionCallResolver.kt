@@ -362,7 +362,7 @@ class FunctionCallResolverImpl(
         argResolution: Map<FunctionArgument.ValueArgument, ObjectOrigin>
     ): List<FunctionResolutionAndBinding> {
         // TODO: no nested types for now
-        val candidateTypes = buildList<DataType_> {
+        val candidateTypes = buildList<DataType> {
             val receiverAsChain = functionCall.receiver?.asChainOrNull()
             if (receiverAsChain != null) {
                 val fqn = FqNameImpl(receiverAsChain.nameParts.joinToString("."), functionCall.name)

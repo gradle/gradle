@@ -6,7 +6,7 @@ import org.gradle.internal.declarativedsl.analysis.DataClass
 import org.gradle.internal.declarativedsl.analysis.DataClassImpl
 import org.gradle.internal.declarativedsl.analysis.DataParameter
 import org.gradle.internal.declarativedsl.analysis.DataProperty
-import org.gradle.internal.declarativedsl.analysis.DataType_
+import org.gradle.internal.declarativedsl.analysis.DataType
 import org.gradle.internal.declarativedsl.analysis.ExternalObjectProviderKey
 import org.gradle.internal.declarativedsl.analysis.FunctionSemantics
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
@@ -22,7 +22,7 @@ import org.gradle.internal.declarativedsl.objectGraph.AssignmentResolver.Express
 
 
 sealed interface ObjectReflection {
-    val type: DataType_
+    val type: DataType
     val objectOrigin: ObjectOrigin
 
     data class DataObjectReflection(
@@ -36,13 +36,13 @@ sealed interface ObjectReflection {
     ) : ObjectReflection
 
     data class ConstantValue(
-        override val type: DataType_.ConstantType<*>,
+        override val type: DataType.ConstantType<*>,
         override val objectOrigin: ObjectOrigin.ConstantOrigin,
         val value: Any
     ) : ObjectReflection
 
     data class External(
-        override val type: DataType_,
+        override val type: DataType,
         override val objectOrigin: ObjectOrigin.External,
     ) : ObjectReflection {
         val key: ExternalObjectProviderKey
@@ -50,17 +50,17 @@ sealed interface ObjectReflection {
     }
 
     data class Null(override val objectOrigin: ObjectOrigin) : ObjectReflection {
-        override val type: DataType_
+        override val type: DataType
             get() = NullDataType
     }
 
     data class DefaultValue(
-        override val type: DataType_,
+        override val type: DataType,
         override val objectOrigin: ObjectOrigin
     ) : ObjectReflection
 
     data class PureFunctionInvocation(
-        override val type: DataType_,
+        override val type: DataType,
         override val objectOrigin: ObjectOrigin.FunctionOrigin,
         val parameterResolution: Map<DataParameter, ObjectReflection>
     ) : ObjectReflection
@@ -88,7 +88,7 @@ fun reflect(
     }
     return when (objectOrigin) {
         is ObjectOrigin.ConstantOrigin -> ObjectReflection.ConstantValue(
-            type as DataType_.ConstantType<*>,
+            type as DataType.ConstantType<*>,
             objectOrigin,
             objectOrigin.literal.value
         )
@@ -105,7 +105,7 @@ fun reflect(
         is ObjectOrigin.FunctionInvocationOrigin -> context.functionCall(objectOrigin.invocationId) {
             when (objectOrigin.function.semantics) {
                 is FunctionSemantics.AddAndConfigure -> {
-                    if (type is DataType_.UnitType) {
+                    if (type is DataType.UnitType) {
                         ObjectReflection.AddedByUnitInvocation(objectOrigin)
                     } else {
                         reflectData(
@@ -148,10 +148,10 @@ fun reflectDefaultValue(
     context: ReflectionContext
 ): ObjectReflection {
     return when (val type = context.typeRefContext.getDataType(objectOrigin)) {
-        is DataType_.ConstantType<*> -> ObjectReflection.DefaultValue(type, objectOrigin)
+        is DataType.ConstantType<*> -> ObjectReflection.DefaultValue(type, objectOrigin)
         is DataClass -> reflectData(-1L, type, objectOrigin, context)
-        is DataType_.NullType -> error("Null type can't appear in property types")
-        is DataType_.UnitType -> error("Unit can't appear in property types")
+        is DataType.NullType -> error("Null type can't appear in property types")
+        is DataType.UnitType -> error("Unit can't appear in property types")
         else -> { error("Unhandled data type: ${type.javaClass.simpleName}") }
     }
 }

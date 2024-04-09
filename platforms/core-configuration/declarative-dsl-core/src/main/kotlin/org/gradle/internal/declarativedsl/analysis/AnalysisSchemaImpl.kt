@@ -33,7 +33,7 @@ data class DataClassImpl(
     private val properties: List<DataProperty>,
     private val memberFunctions: List<SchemaMemberFunction>,
     private val constructors: List<DataConstructor>
-) : DataClass, DataType_ {
+) : DataClass, DataType {
 
     override fun getName(): FqName = name
 
@@ -334,8 +334,8 @@ data class ExternalObjectProviderKeyImpl(
 
 
 @Serializable
-data class DataTypeRefTypeImpl(private val dataType: DataType_) : DataTypeRef.Type {
-    override fun getDataType(): DataType_ = dataType
+data class DataTypeRefTypeImpl(private val dataType: DataType) : DataTypeRef.Type {
+    override fun getDataType(): DataType = dataType
 }
 
 
@@ -345,5 +345,5 @@ data class DataTypeRefNameImpl(private val fqName: FqName) : DataTypeRef.Name {
 }
 
 
-val DataType_.ref: DataTypeRef
+val DataType.ref: DataTypeRef
     get() = DataTypeRefTypeImpl(this)
