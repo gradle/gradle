@@ -21,7 +21,7 @@ import org.gradle.api.Incubating;
 /**
  * Represents a problem definition.
  *
- * @since 8.8
+ * @since 8.9
  */
 @Incubating
 public interface ProblemDefinition {
@@ -30,7 +30,7 @@ public interface ProblemDefinition {
      * The id of the problem.
      * @return the id.
      *
-     * @since 8.8
+     * @since 8.9
      */
     ProblemId getId();
 
@@ -40,14 +40,14 @@ public interface ProblemDefinition {
      * The severity of a problem is a hint to the user about how important the problem is.
      * ERROR will fail the build, WARNING will not.
      *
-     *  @since 8.8
+     *  @since 8.9
      */
     Severity getSeverity();
 
     /**
      * A link to the documentation for this problem.
      *
-     * @since 8.8
+     * @since 8.9
      */
     DocumentationLink getDocumentationLink();
 }

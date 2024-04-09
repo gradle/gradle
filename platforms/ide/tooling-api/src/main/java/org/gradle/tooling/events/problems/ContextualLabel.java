@@ -23,7 +23,7 @@ import javax.annotation.Nullable;
 /**
  * Represents a contextual label.
  *
- * @since 8.8
+ * @since 8.9
  */
 @Incubating
 public interface ContextualLabel {
@@ -32,7 +32,7 @@ public interface ContextualLabel {
      * Returns the contextual description of a problem.
      *
      * @return the contextual label
-     * @since 8.8
+     * @since 8.9
      */
     @Nullable
     String getContextualLabel();

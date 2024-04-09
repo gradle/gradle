@@ -23,7 +23,7 @@ import javax.annotation.Nullable;
 /**
  * Represents a problem group.
  *
- * @since 8.8
+ * @since 8.9
  */
 @Incubating
 public interface ProblemGroup {
@@ -32,7 +32,7 @@ public interface ProblemGroup {
      * The name of the problem group.
      *
      * @return the label
-     * @since 8.8
+     * @since 8.9
      */
     String getName();
 
@@ -40,7 +40,7 @@ public interface ProblemGroup {
      * Returns a human-readable label describing the group.
      *
      * @return the display name
-     * @since 8.8
+     * @since 8.9
      */
     String getDisplayName();
 
@@ -48,7 +48,7 @@ public interface ProblemGroup {
      * Returns the parent group or {@code null} for root groups.
      *
      * @return the parent group
-     * @since 8.8
+     * @since 8.9
      */
     @Nullable
     ProblemGroup getParent();

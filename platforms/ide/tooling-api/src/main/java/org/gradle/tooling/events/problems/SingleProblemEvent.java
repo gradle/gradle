@@ -33,7 +33,7 @@ public interface SingleProblemEvent extends ProblemEvent {
      * Returns the problem definition.
      *
      * @return the definition
-     * @since 8.8
+     * @since 8.9
      */
     ProblemDefinition getDefinition();
 
@@ -57,7 +57,7 @@ public interface SingleProblemEvent extends ProblemEvent {
      * Returns the contextual label.
      *
      * @return the problem label
-     * @since 8.8
+     * @since 8.9
      */
     ContextualLabel getContextualLabel();
 

@@ -69,7 +69,7 @@ public interface ProblemAggregation {
      * Returns the definition of the problem.
      *
      * @return the definition
-     * @since 8.8
+     * @since 8.9
      */
     ProblemDefinition getDefinition();
 

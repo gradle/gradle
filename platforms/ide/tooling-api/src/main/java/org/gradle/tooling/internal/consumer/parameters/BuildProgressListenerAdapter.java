@@ -70,9 +70,7 @@ import org.gradle.tooling.events.problems.ContextualLabel;
 import org.gradle.tooling.events.problems.Details;
 import org.gradle.tooling.events.problems.DocumentationLink;
 import org.gradle.tooling.events.problems.FailureContainer;
-import org.gradle.tooling.events.problems.Label;
 import org.gradle.tooling.events.problems.Location;
-import org.gradle.tooling.events.problems.ProblemCategory;
 import org.gradle.tooling.events.problems.ProblemContext;
 import org.gradle.tooling.events.problems.ProblemDefinition;
 import org.gradle.tooling.events.problems.ProblemEvent;
@@ -81,13 +79,11 @@ import org.gradle.tooling.events.problems.ProblemId;
 import org.gradle.tooling.events.problems.Severity;
 import org.gradle.tooling.events.problems.Solution;
 import org.gradle.tooling.events.problems.internal.DefaultAdditionalData;
-import org.gradle.tooling.events.problems.internal.DefaultCategory;
 import org.gradle.tooling.events.problems.internal.DefaultContextualLabel;
 import org.gradle.tooling.events.problems.internal.DefaultDetails;
 import org.gradle.tooling.events.problems.internal.DefaultDocumentationLink;
 import org.gradle.tooling.events.problems.internal.DefaultFailureContainer;
 import org.gradle.tooling.events.problems.internal.DefaultFileLocation;
-import org.gradle.tooling.events.problems.internal.DefaultLabel;
 import org.gradle.tooling.events.problems.internal.DefaultLineInFileLocation;
 import org.gradle.tooling.events.problems.internal.DefaultOffsetInFileLocation;
 import org.gradle.tooling.events.problems.internal.DefaultPluginIdLocation;
@@ -583,7 +579,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         return null;
     }
 
-    private ProblemEvent createProblemEvent(InternalProblemEvent problemEvent, InternalProblemDescriptor descriptor) {
+    private @Nullable ProblemEvent createProblemEvent(InternalProblemEvent problemEvent, InternalProblemDescriptor descriptor) {
         InternalProblemDetails details = problemEvent.getDetails();
         OperationDescriptor parentDescriptor = getParentDescriptor(descriptor.getParentId());
 
@@ -613,7 +609,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         return null;
     }
 
-    private ProblemEvent createProblemEvent(InternalProblemEventVersion2 problemEvent, InternalProblemDescriptor descriptor) {
+    private @Nullable ProblemEvent createProblemEvent(InternalProblemEventVersion2 problemEvent, InternalProblemDescriptor descriptor) {
         InternalProblemDetailsVersion2 details = problemEvent.getDetails();
         OperationDescriptor parentDescriptor = getParentDescriptor(descriptor.getParentId());
 
@@ -854,7 +850,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         );
     }
 
-    private static ProblemDefinition toProblemDefinition(InternalLabel label, InternalProblemCategory category, InternalSeverity severity, InternalDocumentationLink documentationLink) {
+    private static ProblemDefinition toProblemDefinition(InternalLabel label, InternalProblemCategory category, InternalSeverity severity, @Nullable InternalDocumentationLink documentationLink) {
         return new DefaultProblemDefinition(
             toProblemId(label, category),
             toProblemSeverity(severity),
@@ -889,14 +885,6 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
 
     private static AdditionalData toAdditionalData(InternalAdditionalData additionalData) {
         return new DefaultAdditionalData(additionalData.getAsMap());
-    }
-
-    private static ProblemCategory toProblemCategory(InternalProblemCategory category) {
-        return new DefaultCategory(category.getNamespace(), category.getCategory(), category.getSubcategories());
-    }
-
-    private static Label toProblemLabel(InternalLabel label) {
-        return new DefaultLabel(label.getLabel());
     }
 
     private static ContextualLabel toContextualLabel(@Nullable InternalContextualLabel contextualLabel) {

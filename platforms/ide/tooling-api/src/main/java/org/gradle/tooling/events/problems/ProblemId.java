@@ -21,7 +21,7 @@ import org.gradle.api.Incubating;
 /**
  * Represents a problem id.
  *
- * @since 8.8
+ * @since 8.9
  */
 @Incubating
 public interface ProblemId {
@@ -30,7 +30,7 @@ public interface ProblemId {
      * The name of the problem group.
      *
      * @return the label
-     * @since 8.8
+     * @since 8.9
      */
     String getName();
 
@@ -38,7 +38,7 @@ public interface ProblemId {
      * Returns a human-readable label describing the group.
      *
      * @return the display name
-     * @since 8.8
+     * @since 8.9
      */
     String getDisplayName();
 
@@ -46,7 +46,7 @@ public interface ProblemId {
      * Returns the container  group.
      *
      * @return the group
-     * @since 8.8
+     * @since 8.9
      */
     ProblemGroup getGroup();
 }
