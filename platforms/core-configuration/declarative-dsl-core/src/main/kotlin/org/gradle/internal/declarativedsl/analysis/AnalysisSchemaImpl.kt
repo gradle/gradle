@@ -85,7 +85,7 @@ data class DataBuilderFunction(
     val dataParameter: DataParameter,
 ) : SchemaMemberFunction {
     private
-    val internalSemantics: FunctionSemantics.Builder by lazy { FunctionSemantics.Builder(receiver) }
+    val internalSemantics: BuilderFunctionSemantics by lazy { BuilderFunctionSemantics(receiver) }
     private
     val internalParameters: List<DataParameter> by lazy { listOf(dataParameter) }
 
@@ -108,7 +108,7 @@ data class DataTopLevelFunctionImpl(
     private val packageName: String,
     private val simpleName: String,
     private val parameters: List<DataParameter>,
-    private val semantics: FunctionSemantics.Pure,
+    private val semantics: PureFunctionSemantics,
 ) : DataTopLevelFunction {
     override fun getPackageName(): String = packageName
 
@@ -150,7 +150,7 @@ data class DataConstructorImpl(
     private val dataClass: DataTypeRef
 ) : DataConstructor {
     private
-    val internalSemantics: FunctionSemantics by lazy { FunctionSemantics.Pure(dataClass) }
+    val internalSemantics: FunctionSemantics by lazy { PureFunctionSemantics(dataClass) }
 
     override fun getSimpleName(): String = "<init>"
 
@@ -193,76 +193,52 @@ data object UnknownParameterSemantics : ParameterSemantics.Unknown
 
 
 @Serializable
-sealed interface FunctionSemantics {
-    @Serializable
-    sealed interface ConfigureSemantics : FunctionSemantics {
-        val configuredType: DataTypeRef
-        val configureBlockRequirement: ConfigureBlockRequirement
-
-        @Serializable
-        enum class ConfigureBlockRequirement {
-            NOT_ALLOWED, OPTIONAL, REQUIRED;
-
-            val allows: Boolean
-                get() = this != NOT_ALLOWED
-
-            val requires: Boolean
-                get() = this == REQUIRED
-
-            fun isValidIfLambdaIsPresent(isPresent: Boolean): Boolean = when {
-                isPresent -> allows
-                else -> !requires
-            }
-        }
+class AccessAndConfigureFunctionSemantics(
+    val accessor: ConfigureAccessor,
+    val returnType: ReturnType
+) : FunctionSemantics.ConfigureSemantics {
+    enum class ReturnType {
+        UNIT, CONFIGURED_OBJECT
     }
 
-    @Serializable
-    sealed interface NewObjectFunctionSemantics : FunctionSemantics
-
-    val returnValueType: DataTypeRef
-
-    @Serializable
-    class Builder(private val objectType: DataTypeRef) : FunctionSemantics {
-        override val returnValueType: DataTypeRef
-            get() = objectType
-    }
-
-    @Serializable
-    class AccessAndConfigure(
-        val accessor: ConfigureAccessor,
-        val returnType: ReturnType
-    ) : ConfigureSemantics {
-        enum class ReturnType {
-            UNIT, CONFIGURED_OBJECT
+    override fun getReturnValueType(): DataTypeRef =
+        when (returnType) {
+            ReturnType.UNIT -> UnitDataType.ref
+            ReturnType.CONFIGURED_OBJECT -> accessor.objectType
         }
 
-        override val returnValueType: DataTypeRef
-            get() = when (returnType) {
-                ReturnType.UNIT -> UnitDataType.ref
-                ReturnType.CONFIGURED_OBJECT -> accessor.objectType
-            }
+    override fun getConfiguredType(): DataTypeRef =
+        if (returnType == ReturnType.CONFIGURED_OBJECT) returnValueType else accessor.objectType
 
-        override val configuredType: DataTypeRef
-            get() = if (returnType == ReturnType.CONFIGURED_OBJECT) returnValueType else accessor.objectType
+    override fun getConfigureBlockRequirement(): FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement =
+        FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement.REQUIRED
+}
 
-        override val configureBlockRequirement: ConfigureSemantics.ConfigureBlockRequirement
-            get() = ConfigureSemantics.ConfigureBlockRequirement.REQUIRED
-    }
 
-    @Serializable
-    class AddAndConfigure(
-        private val objectType: DataTypeRef,
-        override val configureBlockRequirement: ConfigureSemantics.ConfigureBlockRequirement
-    ) : NewObjectFunctionSemantics, ConfigureSemantics {
-        override val returnValueType: DataTypeRef
-            get() = objectType
+@Serializable
+class AddAndConfigureFunctionSemantics(
+    private val objectType: DataTypeRef,
+    private val configureBlockRequirement: FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement
+) : FunctionSemantics.NewObjectFunctionSemantics, FunctionSemantics.ConfigureSemantics {
 
-        override val configuredType: DataTypeRef
-            get() = returnValueType
-    }
+    override fun getReturnValueType(): DataTypeRef = objectType
 
-    @Serializable
-    class Pure(override val returnValueType: DataTypeRef) : NewObjectFunctionSemantics
+    override fun getConfiguredType(): DataTypeRef = objectType
+
+    override fun getConfigureBlockRequirement(): FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement = configureBlockRequirement
+}
+
+
+@Serializable
+class PureFunctionSemantics(private val returnValueType: DataTypeRef) : FunctionSemantics.NewObjectFunctionSemantics {
+    override fun getReturnValueType(): DataTypeRef = returnValueType
+}
+
+
+@Serializable
+class BuilderFunctionSemantics(private val objectType: DataTypeRef) : FunctionSemantics {
+
+    override fun getReturnValueType(): DataTypeRef = objectType
 }
 
 

@@ -171,13 +171,13 @@ class FunctionCallResolverImpl(
         if (semantics !is FunctionSemantics.ConfigureSemantics)
             return
 
-        val (expectsConfigureLambda, requiresConfigureLambda) = semantics.configureBlockRequirement.run { allows to requires }
+        val (expectsConfigureLambda, requiresConfigureLambda) = semantics.configureBlockRequirement.run { allows() to requires() }
 
         val lambda = call.args.filterIsInstance<FunctionArgument.Lambda>().singleOrNull()
         if (expectsConfigureLambda) {
             if (lambda != null) {
                 val configureReceiver = when (semantics) {
-                    is FunctionSemantics.AccessAndConfigure -> configureReceiverObject(
+                    is AccessAndConfigureFunctionSemantics -> configureReceiverObject(
                         semantics,
                         function,
                         call,
@@ -185,7 +185,8 @@ class FunctionCallResolverImpl(
                         newFunctionCallId
                     )
 
-                    is FunctionSemantics.AddAndConfigure -> ObjectOrigin.AddAndConfigureReceiver(result)
+                    is AddAndConfigureFunctionSemantics -> ObjectOrigin.AddAndConfigureReceiver(result)
+                    else -> error("Unhandled function semantics type: $semantics")
                 }
                 withScope(AnalysisScope(currentScopes.last(), configureReceiver, lambda)) {
                     codeAnalyzer.analyzeStatementsInProgramOrder(this, lambda.block.statements)
@@ -208,12 +209,12 @@ class FunctionCallResolverImpl(
         function: FunctionResolutionAndBinding,
         argResolutions: Map<FunctionArgument.ValueArgument, ObjectOrigin>
     ) {
-        if (semantics is FunctionSemantics.AddAndConfigure) {
+        if (semantics is AddAndConfigureFunctionSemantics) {
             require(receiver != null)
             recordAddition(receiver, result)
         }
         val assignmentMethod = when (semantics) {
-            is FunctionSemantics.Builder -> AssignmentMethod.BuilderFunction(function.schemaFunction as DataBuilderFunction)
+            is BuilderFunctionSemantics -> AssignmentMethod.BuilderFunction(function.schemaFunction as DataBuilderFunction)
             else -> AssignmentMethod.AsConstructed
         }
         function.binding.binding.forEach { (param, arg) ->
@@ -231,7 +232,7 @@ class FunctionCallResolverImpl(
         receiver: ObjectOrigin?,
         function: FunctionResolutionAndBinding
     ) {
-        if (semantics is FunctionSemantics.Builder) {
+        if (semantics is BuilderFunctionSemantics) {
             require(receiver != null)
 
             val parameter = function.schemaFunction.parameters.singleOrNull()
@@ -249,7 +250,7 @@ class FunctionCallResolverImpl(
         valueBinding: ParameterValueBinding,
         newFunctionCallId: Long
     ) = when (semantics) {
-        is FunctionSemantics.Builder -> ObjectOrigin.BuilderReturnedReceiver(
+        is BuilderFunctionSemantics -> ObjectOrigin.BuilderReturnedReceiver(
             function.schemaFunction,
             checkNotNull(function.receiver),
             functionCall,
@@ -257,11 +258,11 @@ class FunctionCallResolverImpl(
             newFunctionCallId
         )
 
-        is FunctionSemantics.AccessAndConfigure -> when (semantics.returnType) {
-            FunctionSemantics.AccessAndConfigure.ReturnType.UNIT ->
+        is AccessAndConfigureFunctionSemantics -> when (semantics.returnType) {
+            AccessAndConfigureFunctionSemantics.ReturnType.UNIT ->
                 newObjectInvocationResult(function, valueBinding, functionCall, newFunctionCallId)
 
-            FunctionSemantics.AccessAndConfigure.ReturnType.CONFIGURED_OBJECT ->
+            AccessAndConfigureFunctionSemantics.ReturnType.CONFIGURED_OBJECT ->
                 configureReceiverObject(semantics, function, functionCall, valueBinding, newFunctionCallId)
         }
 
@@ -270,7 +271,7 @@ class FunctionCallResolverImpl(
 
     private
     fun configureReceiverObject(
-        semantics: FunctionSemantics.AccessAndConfigure,
+        semantics: AccessAndConfigureFunctionSemantics,
         function: FunctionResolutionAndBinding,
         functionCall: FunctionCall,
         binding: ParameterValueBinding,
