@@ -53,13 +53,11 @@ class StoringInterpretationSchemaBuilder(
 
     private
     fun storeSchemaResult(targetInstance: Any, identifier: String, analysisSchema: AnalysisSchema) {
-        val jsonSchema = SchemaSerialization.schemaToJsonString(analysisSchema)
-
         val file = schemaFile(targetInstance, identifier)
         file.parentFile.mkdirs()
-        file.writeText(jsonSchema)
+        file.writeText(SchemaSerialization.schemaToJsonString(analysisSchema))
 
-        declarativeSchemaRegistry.storeSchema(targetInstance, identifier, jsonSchema)
+        declarativeSchemaRegistry.storeSchema(targetInstance, identifier, analysisSchema)
     }
 
     private

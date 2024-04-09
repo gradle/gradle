@@ -16,8 +16,10 @@
 
 package org.gradle.declarative.dsl.tooling.models;
 
+import org.gradle.declarative.dsl.schema.AnalysisSchema;
+
 public interface DeclarativeSchemaModel {
 
-    String schema();
+    AnalysisSchema schema();
 
 }

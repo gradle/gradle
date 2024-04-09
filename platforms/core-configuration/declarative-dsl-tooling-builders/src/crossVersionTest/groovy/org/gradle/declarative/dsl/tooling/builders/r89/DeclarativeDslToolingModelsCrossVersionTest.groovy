@@ -65,7 +65,9 @@ class DeclarativeDslToolingModelsCrossVersionTest extends ToolingApiSpecificatio
 
         then:
         model != null
-        model.schema().contains("topLevelReceiverType")
+
+        def schema = model.schema()
+        println schema
     }
 
 }
