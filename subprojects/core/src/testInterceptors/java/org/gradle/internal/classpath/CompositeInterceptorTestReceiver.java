@@ -16,6 +16,10 @@
 
 package org.gradle.internal.classpath;
 
+/**
+ * Class with the same methods as {@link InterceptorTestReceiver} but intercepted via
+ * a different class {@link CompositeCallInterceptionTestInterceptorsDeclaration}.
+ */
 public class CompositeInterceptorTestReceiver {
     public String intercepted = null;
     private String testString = "testString";

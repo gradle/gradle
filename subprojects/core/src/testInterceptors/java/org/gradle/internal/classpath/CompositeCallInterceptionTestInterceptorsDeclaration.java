@@ -27,13 +27,13 @@ import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterc
 @SpecificJvmCallInterceptors(generatedClassName = CompositeCallInterceptionTestInterceptorsDeclaration.JVM_BYTECODE_GENERATED_CLASS)
 @SpecificGroovyCallInterceptors(generatedClassName = CompositeCallInterceptionTestInterceptorsDeclaration.GROOVY_GENERATED_CLASS)
 public class CompositeCallInterceptionTestInterceptorsDeclaration {
-    public static final String TEST_GENERATED_CLASSES_PACKAGE = "test.gradle.internal.classpath";
 
     /**
-     * The generated class name has to be different than the one used in {@link BasicCallInterceptionTestInterceptorsDeclaration}.
+     * The generated class name has to be different from the one used in {@link BasicCallInterceptionTestInterceptorsDeclaration}
+     * so that the generated class is different and we can test {@link CompositeInterceptorTestReceiver}.
      */
-    public static final String JVM_BYTECODE_GENERATED_CLASS = TEST_GENERATED_CLASSES_PACKAGE + ".Test_Composite_interceptors_jvmbytecode_generated";
-    public static final String GROOVY_GENERATED_CLASS = TEST_GENERATED_CLASSES_PACKAGE + ".Test_Composite_interceptors_groovy_generated";
+    public static final String JVM_BYTECODE_GENERATED_CLASS = BasicCallInterceptionTestInterceptorsDeclaration.JVM_BYTECODE_GENERATED_CLASS + "_composite";
+    public static final String GROOVY_GENERATED_CLASS = BasicCallInterceptionTestInterceptorsDeclaration.GROOVY_GENERATED_CLASS + "_composite";
 
     @InterceptCalls
     @CallableKind.InstanceMethod
