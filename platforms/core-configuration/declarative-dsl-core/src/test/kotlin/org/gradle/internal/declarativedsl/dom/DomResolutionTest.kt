@@ -219,6 +219,7 @@ object DomResolutionTest {
     fun typeString(typeRef: DataTypeRef) = when (typeRef) {
         is DataTypeRef.Type -> typeRef.dataType.toString()
         is DataTypeRef.Name -> typeRef.fqName.simpleName
+        else -> error("Unhandled data type reference type: $typeRef")
     }
 
     private

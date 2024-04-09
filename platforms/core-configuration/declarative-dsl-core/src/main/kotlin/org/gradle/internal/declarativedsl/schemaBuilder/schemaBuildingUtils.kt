@@ -16,6 +16,7 @@
 
 package org.gradle.internal.declarativedsl.schemaBuilder
 
+import org.gradle.internal.declarativedsl.analysis.DataTypeRefNameImpl
 import org.gradle.internal.declarativedsl.language.DataType
 import org.gradle.internal.declarativedsl.analysis.DataTypeRef
 import org.gradle.internal.declarativedsl.analysis.FqNameImpl
@@ -34,7 +35,7 @@ fun KClassifier.toDataTypeRef(): DataTypeRef =
         String::class -> DataType.StringDataType.ref
         Boolean::class -> DataType.BooleanDataType.ref
         Long::class -> DataType.LongDataType.ref
-        is KClass<*> -> DataTypeRef.Name(FqNameImpl.parse(checkNotNull(qualifiedName)))
+        is KClass<*> -> DataTypeRefNameImpl(FqNameImpl.parse(checkNotNull(qualifiedName)))
         else -> error("unexpected type")
     }
 

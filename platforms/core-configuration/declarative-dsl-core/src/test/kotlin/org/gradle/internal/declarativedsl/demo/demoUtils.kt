@@ -4,6 +4,7 @@ import org.gradle.internal.declarativedsl.analysis.AnalysisSchema
 import org.gradle.internal.declarativedsl.language.DataType
 import org.gradle.internal.declarativedsl.analysis.DataTypeRef
 import org.gradle.internal.declarativedsl.analysis.FqNameImpl
+import org.gradle.internal.declarativedsl.analysis.DataTypeRefNameImpl
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 import org.gradle.internal.declarativedsl.analysis.Resolver
 import org.gradle.internal.declarativedsl.analysis.ref
@@ -107,7 +108,7 @@ fun printResolvedAssignments(result: ResolutionResult) {
 
 inline fun <reified T> typeRef(): DataTypeRef.Name {
     val parts = T::class.qualifiedName!!.split(".")
-    return DataTypeRef.Name(FqNameImpl(parts.dropLast(1).joinToString("."), parts.last()))
+    return DataTypeRefNameImpl(FqNameImpl(parts.dropLast(1).joinToString("."), parts.last()))
 }
 
 

@@ -19,8 +19,8 @@ package org.gradle.internal.declarativedsl.schemaBuilder
 import org.gradle.declarative.dsl.model.annotations.AccessFromCurrentReceiverOnly
 import org.gradle.declarative.dsl.model.annotations.HasDefaultValue
 import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl
-import org.gradle.internal.declarativedsl.analysis.DataTypeRef
 import org.gradle.internal.declarativedsl.analysis.DataProperty.PropertyMode
+import org.gradle.internal.declarativedsl.analysis.DataTypeRef
 import java.util.Locale
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction

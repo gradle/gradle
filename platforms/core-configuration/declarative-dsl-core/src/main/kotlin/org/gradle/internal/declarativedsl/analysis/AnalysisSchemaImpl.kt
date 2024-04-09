@@ -334,14 +334,16 @@ data class ExternalObjectProviderKeyImpl(
 
 
 @Serializable
-sealed interface DataTypeRef {
-    @Serializable
-    data class Type(val dataType: DataType) : DataTypeRef
+data class DataTypeRefTypeImpl(private val dataType: DataType) : DataTypeRef.Type {
+    override fun getDataType(): DataType = dataType
+}
 
-    @Serializable
-    data class Name(val fqName: FqName) : DataTypeRef
+
+@Serializable
+data class DataTypeRefNameImpl(private val fqName: FqName) : DataTypeRef.Name {
+    override fun getFqName(): FqName = fqName
 }
 
 
 val DataType.ref: DataTypeRef
-    get() = DataTypeRef.Type(this)
+    get() = DataTypeRefTypeImpl(this)
