@@ -28,6 +28,7 @@ import org.gradle.util.GradleVersion;
 public class DocumentationRegistry {
     public static final String BASE_URL = "https://docs.gradle.org/" + GradleVersion.current().getVersion();
     public static final String DSL_PROPERTY_URL_FORMAT = "%s/dsl/%s.html#%s:%s";
+    public static final String KOTLIN_DSL_URL_FORMAT = "%s/kotlin-dsl/gradle/%s";
     public static final String LEARN_MORE_STRING = "To learn more about Gradle by exploring our Samples at ";
 
     /**
@@ -52,6 +53,15 @@ public class DocumentationRegistry {
 
     public String getDslRefForProperty(String className, String property) {
         return String.format(DSL_PROPERTY_URL_FORMAT, BASE_URL, className, className, property);
+    }
+
+    /**
+     * The location of the Kotlin DSL documentation for a Kotlin extension function .
+     * <p>
+     * The extension function is expected to be defined in the {@code org.gradle.kotlin.dsl} package.
+     */
+    public String getKotlinDslRefForExtension(String extensionName) {
+        return String.format(KOTLIN_DSL_URL_FORMAT, BASE_URL, "org.gradle.kotlin.dsl/" + extensionName + ".html");
     }
 
     public String getSampleIndex() {
