@@ -39,9 +39,7 @@ import java.util.List;
 @NonNullApi
 public class DefaultSingleProblemEvent extends BaseProgressEvent implements SingleProblemEvent {
     private final ProblemDefinition problemDefinition;
-
     private final ContextualLabel contextualLabel;
-
     private final Details details;
     private final List<Location> locations;
     private final List<Solution> solutions;
