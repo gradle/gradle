@@ -15,7 +15,6 @@
  */
 package org.gradle.kotlin.dsl
 
-import org.gradle.api.Incubating
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec
@@ -32,6 +31,7 @@ import org.gradle.plugin.use.PluginDependencySpec
  *
  * @since 6.0
  */
+@Deprecated("use `develocity` instead", replaceWith = ReplaceWith("develocity"))
 val PluginDependenciesSpec.`gradle-enterprise`: PluginDependencySpec
     get() = this.id(AutoAppliedGradleEnterprisePlugin.GRADLE_ENTERPRISE_PLUGIN_ID.id).version(AutoAppliedGradleEnterprisePlugin.VERSION)
 
@@ -43,10 +43,9 @@ val PluginDependenciesSpec.`gradle-enterprise`: PluginDependencySpec
  *
  * By default, the applied plugin version will be the same as the one used by the `--scan` command line option.
  *
- * You can also use e.g. `` `develocity` version "3.17" `` to request a different version.
+ * You can also use e.g. `` develocity version "3.17" `` to request a different version.
  *
  * @since 8.8
  */
-@get:Incubating
 val PluginDependenciesSpec.develocity: PluginDependencySpec
     get() = this.id(AutoAppliedGradleEnterprisePlugin.ID.id).version(AutoAppliedGradleEnterprisePlugin.VERSION)
