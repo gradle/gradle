@@ -18,11 +18,13 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Issue
 
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 import static org.junit.Assert.assertTrue
 
 class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements UnreadableCopyDestinationFixture {
@@ -203,6 +205,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
     }
 
     @Requires(UnitTestPreconditions.FilePermissions)
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "fileMode can be modified in copy action"() {
         given:
         file("reference.txt") << 'test file"'

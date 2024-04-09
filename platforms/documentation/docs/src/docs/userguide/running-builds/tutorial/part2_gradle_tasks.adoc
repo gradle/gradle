@@ -82,7 +82,9 @@ Gradle provides many _built-in_ tasks that developers can use to enhance build s
 
 This example task copies `*.war` files from the `source` directory to the `target` directory using the `Copy` built-in task.
 
-[source,kotlin]
+[.multi-language-sample]
+=====
+[source, kotlin]
 ----
 tasks.register<Copy>("copyTask") {
     from("source")
@@ -90,8 +92,21 @@ tasks.register<Copy>("copyTask") {
     include("*.war")
 }
 ----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+tasks.register(Copy, "copyTask") {
+    from("source")
+    into("target")
+    include("*.war")
+}
 
-This task, if added to `build.gradle.kts` file in the `app` subproject directory, would be executed using the command `./gradlew :app:copyTask`.
+----
+=====
+
+This task, if added to `build.gradle(.kts)` file in the `app` subproject directory, would be executed using the command `./gradlew :app:copyTask`.
 
 Popular built-in tasks include:
 
@@ -100,7 +115,7 @@ Popular built-in tasks include:
 - **Exec** - `Exec` is useful to execute arbitrary O/S commands.
 - **Zip** - `Zip` is useful to bundle files.
 
-Many more are included in the link:{kotlinDslPath}/gradle/org.gradle.api.tasks/-delete/index.html[DSL documentation].
+With many more documented in the Kotlin and Groovy DSLs.
 
 == Step 3. Understanding Dependencies Between Tasks
 Many times, a task requires another task to run first.
@@ -110,7 +125,9 @@ If task B uses the output of task A, then task A must complete before task B beg
 - A task may depend on other tasks implicitly.
 
 Here is an example of explicit task dependency:
-[source,kotlin]
+[.multi-language-sample]
+=====
+[source, kotlin]
 ----
 tasks.register("hello") {
     doLast {
@@ -125,6 +142,26 @@ tasks.register("greet") {
     dependsOn("hello")
 }
 ----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+tasks.register("hello") {
+    doLast {
+        println('Hello!')
+    }
+}
+
+tasks.register("greet") {
+    doLast {
+        println('How are you?')
+    }
+    dependsOn("hello")
+}
+
+----
+=====
 
 In this case, `hello` prints before `greet`. The output is `Hello! How are you?`.
 

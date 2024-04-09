@@ -48,6 +48,7 @@ fun projectEvaluationSchema(
 ): EvaluationSchema {
     val component = gradleDslGeneralSchemaComponent() +
         ThirdPartyExtensionsComponent(ProjectTopLevelReceiver::class, target, "projectExtension") +
+        SoftwareTypeComponent(ProjectTopLevelReceiver::class, target, "softwareType") +
         DependencyConfigurationsComponent(target) +
         TypesafeProjectAccessorsComponent(targetScope)
 

@@ -31,12 +31,14 @@ import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginAdapter
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 
 import static com.google.common.base.CaseFormat.UPPER_CAMEL
 import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.*
 
 class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
 
@@ -144,6 +146,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         !operations.hasOperation(SnapshotTaskInputsBuildOperationType)
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "handles invalid implementation classloader"() {
         given:
         buildScript """
@@ -199,6 +202,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "handles invalid action classloader"() {
         given:
         buildScript """
@@ -403,6 +407,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "exposes file inputs, not ignoring empty directories"() {
         given:
         withBuildCache()
@@ -511,6 +516,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "handles invalid nested bean classloader"() {
         given:
         buildScript """
@@ -545,7 +551,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         and:
         verifyAll(receivedProblem(0)) {
             fqid == 'validation:property-validation:unknown-implementation-nested'
-            contextualLabel == 'was loaded with an unknown classloader (class \'A\').'
+            contextualLabel == "Property 'bean' was loaded with an unknown classloader (class 'A')."
             details == 'Gradle cannot track the implementation for classes loaded with an unknown classloader.'
             solutions == [ 'Load your class by using one of Gradle\'s built-in ways.' ]
             additionalData == [

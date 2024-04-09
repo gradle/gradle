@@ -16,7 +16,10 @@
 
 package org.gradle.api.tasks.options
 
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Issue
+
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
 class TaskOptionIntegrationTest extends AbstractOptionIntegrationSpec {
 
@@ -205,6 +208,7 @@ Options
      --prop3     Configures command line option 'prop3'.""")
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "can override option with configure task"() {
         given:
         file('buildSrc/src/main/java/SampleTask.java') << taskWithSingleOption("String")

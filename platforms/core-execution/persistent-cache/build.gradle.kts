@@ -28,11 +28,10 @@ dependencies {
     api(project(":messaging"))
     api(project(":native"))
     api(project(":files"))
-    api(project(":logging"))
 
     api(libs.jsr305)
-    api(libs.guava)
 
+    implementation(libs.guava)
     implementation(libs.slf4jApi)
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)

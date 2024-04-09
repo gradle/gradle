@@ -119,8 +119,9 @@ For the following use cases, consider these alternatives when replacing a `befor
 [[deprecate_filtered_configuration_file_and_filecollection_methods]]
 ==== Filtered Configuration `file` and `fileCollection` methods are deprecated
 
-In an ongoing effort to simplify the Gradle API, the following methods on
-link:{javadocPath}/org/gradle/api/artifacts/Configuration.html--[Configuration] have been deprecated:
+In an ongoing effort to simplify the Gradle API, the following methods that support filtering based on declared dependencies have been deprecated:
+
+On link:{javadocPath}/org/gradle/api/artifacts/Configuration.html--[Configuration]:
 
 - `files(Dependency...)`
 - `files(Spec)`
@@ -128,6 +129,17 @@ link:{javadocPath}/org/gradle/api/artifacts/Configuration.html--[Configuration] 
 - `fileCollection(Dependency...)`
 - `fileCollection(Spec)`
 - `fileCollection(Closure)`
+
+On link:{javadocPath}/org/gradle/api/artifacts/ResolvedConfiguration.html--[ResolvedConfiguration]:
+
+- `getFiles(Spec)`
+- `getFirstLevelModuleDependencies(Spec)`
+
+On link:{javadocPath}/org/gradle/api/artifacts/LenientConfiguration.html--[LenientConfiguration]:
+
+- `getFirstLevelModuleDependencies(Spec)`
+- `getFiles(Spec)`
+- `getArtifacts(Spec)`
 
 To mitigate this deprecation, consider the example below that leverages the `ArtifactView`
 API along with the `componentFilter` method to select a subset of a Configuration's artifacts:
@@ -193,9 +205,8 @@ tasks.register("filterDependencies") {
 =====
 ====
 
-Note that as contrary to the behavior of the deprecated `Dependency` filtering methods,
-`componentFilter` does not consider the transitive dependencies of the component being
-selected. This allows for more granular control over which artifacts are selected.
+Note that contrary to the behavior of the deprecated `Dependency` filtering methods, `componentFilter` does not consider the transitive dependencies of the component being filtered.
+This allows for more granular control over which artifacts are selected.
 
 [[deprecated_namers]]
 ==== Deprecated `Namer` of `Task` and `Configuration`
@@ -226,11 +237,36 @@ The new API has now been promoted to stable and the old methods have been deprec
 [[directory_build_cache_retention_deprecated]]
 ==== Deprecated setting retention period directly on local build cache ====
 
-In Gradle 8.0, link:{userManualPath}/directory_layout.html#dir:gradle_user_home:configure_cache_cleanup[a new mechanism] was added to configure the cleanup and retention periods for various resources in Gradle User Home.
-In Gradle 8.8, this mechanism was extended to permit configuration of retention of local build cache entries.
-This mechanism replaces the previous method of configuring retention in the local build cache settings.
+In previous versions, cleanup of the local build cache entries ran every 24 hours, and this interval could not be configured.
+The retention period was configured using `buildCache.local.removeUnusedEntriesAfterDays`. 
 
-Calling link:{javadocPath}/org/gradle/caching/local/DirectoryBuildCache.html#setRemoveUnusedEntriesAfterDays-int-[DirectoryBuildCache.removeUnusedEntriesAfterDays] is deprecated and this method will be removed in Gradle 9.0.
+In Gradle 8.0, link:directory_layout.html#dir:gradle_user_home:configure_cache_cleanup[a new mechanism] was added to configure the cleanup and retention periods for various resources in Gradle User Home.
+In Gradle 8.8, this mechanism was extended to permit configuration of retention of local build cache entries, providing improved control and consistency.
+
+- Specifying `Cleanup.DISABLED` or `Cleanup.ALWAYS` will now prevent or force the cleanup of the local build cache
+- Build cache entry retention is now configured via an `init-script`, link:directory_layout.html#dir:gradle_user_home:configure_cache_cleanup[in the same manner as other caches].
+
+E.g. if you want build-cache entries to be retained for 30 days, **remove** any calls to the deprecated method:
+```kotlin
+buildCache {
+    local {
+        // Remove this line
+        removeUnusedEntriesAfterDays = 30
+    }
+}
+```
+
+add a file like this in `~/.gradle/init.d`:
+```kotlin
+beforeSettings {
+    caches {
+        buildCache.setRemoveUnusedEntriesAfterDays(30)
+    }
+}
+```
+
+Calling link:{javadocPath}/org/gradle/caching/local/DirectoryBuildCache.html#setRemoveUnusedEntriesAfterDays-int-[buildCache.local.removeUnusedEntriesAfterDays] is deprecated and this method will be removed in Gradle 9.0.
+If set to a non-default value, this deprecated setting will take precedence over `Settings.caches.buildCache.setRemoveUnusedEntriesAfterDays()`.
 
 === Potential breaking changes
 
@@ -241,6 +277,10 @@ The complete design specification can be found [here](https://docs.google.com/do
 
 In implementing this spec, we have introduced the following breaking changes to the `ProblemSpec` interface:
 - The `label(String)` and `description(String)` methods have been replaced with the `id(String, String)` method and its overloaded variants.
+
+==== Upgrade to ASM 9.7
+
+ASM was upgraded from 9.6 to https://asm.ow2.io/versions.html[9.7] to ensure earlier compatibility for Java 23.
 
 [[changes_8.7]]
 == Upgrading from 8.6 and earlier
@@ -1366,7 +1406,7 @@ The `getAllDependencies()` method, which retrieves all declared dependencies on 
 [[deprecated_access_to_conventions]]
 ==== Deprecated access to plugin conventions
 
-The concept of conventions is outdated and superseded by <<implementing_gradle_plugins.adoc#modeling_dsl_like_apis, extensions>> to provide custom DSLs.
+The concept of conventions is outdated and superseded by <<implementing_gradle_plugins_binary.adoc#modeling_dsl_like_apis, extensions>> to provide custom DSLs.
 
 To reflect this in the Gradle API, the following elements are deprecated:
 

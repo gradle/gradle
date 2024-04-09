@@ -549,7 +549,7 @@ Configuration 'bar' declares attribute 'flavor' with value 'free':
 
         then:
         failure.assertHasDescription("Could not determine the dependencies of task ':a:checkDebug'.")
-        failure.assertHasCause("Could not resolve all task dependencies for configuration ':a:_compileFreeDebug'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':a:_compileFreeDebug'.")
         failure.assertHasCause("Could not resolve project :b.")
         failure.assertHasCause("""No matching variant of project :b was found. The consumer was configured to find attribute 'buildType' with value 'debug', attribute 'flavor' with value 'free' but:
   - Variant 'bar':
@@ -595,7 +595,7 @@ Configuration 'bar' declares attribute 'flavor' with value 'free':
 
         then:
         failure.assertHasDescription("Could not determine the dependencies of task ':a:checkDebug'.")
-        failure.assertHasCause("Could not resolve all task dependencies for configuration ':a:compile'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':a:compile'.")
         failure.assertHasCause("Could not resolve project :b.")
         failure.assertHasCause("""Cannot choose between the following variants of project :b:
   - bar

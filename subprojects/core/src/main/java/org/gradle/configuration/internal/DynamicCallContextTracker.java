@@ -16,6 +16,9 @@
 
 package org.gradle.configuration.internal;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 import java.util.function.Consumer;
 
 /**
@@ -32,10 +35,12 @@ import java.util.function.Consumer;
  */
 // TODO: consider transforming this to a more generic tool for tracking the events
 //       of entering and leaving some generic context (marked with a key?)
+@ServiceScope(Scope.CrossBuildSession.class)
 public interface DynamicCallContextTracker {
     /**
      * Notifies the tracker that the control flow entered the context of a new dynamic call.
      * The tracker itself notifies all the registered listeners.
+     *
      * @param entryPoint the key to identify the dynamic call
      */
     void enterDynamicCall(Object entryPoint);
@@ -43,6 +48,7 @@ public interface DynamicCallContextTracker {
     /**
      * Notifies the tracker that the dynamic call ended.
      * The tracker itself notifies all the registered listeners.
+     *
      * @param entryPoint the key identifying the dynamic call, should match the key passed to {@code enterDynamicCall}.
      * @throws IllegalStateException if the {@code entryPoint} does not match the one stored in the call entry.
      */

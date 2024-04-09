@@ -16,64 +16,159 @@
 = Configuring the Build Environment
 
 Gradle provides multiple mechanisms for configuring the behavior of Gradle itself and specific projects.
-The following is a reference for using these mechanisms.
 
-When configuring Gradle behavior, you can use these methods, listed in order of highest to lowest precedence (the first one wins):
+The following is a reference for using these mechanisms:
 
-[cols="1,1,1,2"]
+[cols="~,~,~"]
 |===
-|Order |Method |Example |Notes
+|Mechanism |Information |Example
+
+|<<command_line_interface#command_line_interface,Command line interface>>
+|Flags that configure build behavior and Gradle features
+|`--rerun`
+
+|<<sec:project_properties,Project properties>>
+|Properties specific to your Gradle project
+|`TestFilter::isFailOnNoMatchingTests=false`
+
+|<<#sec:gradle_system_properties,System properties>>
+|Properties that are passed to the Gradle runtime (JVM)
+|`systemProp.http.proxyHost=somehost.org`
+
+|<<#sec:gradle_configuration_properties,Gradle properties>>
+|Properties that configure Gradle settings
+|`org.gradle.caching=true`
+
+|<<#sec:gradle_environment_variables,Environment variables>>
+|Properties that configure build behavior based on the environment
+|`JAVA_HOME`
+|===
+
+== Priority for configurations
+
+When configuring Gradle behavior, you can use these methods, but you must consider their priority.
+The following table lists these methods in order of highest to lowest precedence (the first one wins):
+
+[cols="~,~,~,~,~"]
+|===
+|Priority |Method |Location |Example |Details
 
 |1
-|<<command_line_interface#command_line_interface, Command-line flags>>
+|<<command_line_interface#command_line_interface,Command-line flags>>
+|Command line
 |`--build-cache`
 |These have precedence over properties and environment variables.
 
 |2
-|<<#sec:gradle_system_properties, System properties>>
-|`systemProp.http.proxyHost=somehost.org`
-|Stored in a `gradle.properties` file in a root project directory.
+|<<#sec:gradle_system_properties,System properties>>
+|Project Root Dir
+|`systemProp.http.proxyPort=443`
+|Stored in a `gradle.properties` file.
 
 |3
-|<<#sec:gradle_configuration_properties, Gradle properties>>
-|`org.gradle.caching=true`
-|Stored in a `gradle.properties` file in the `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>`.
-
-|3.1
-|<<#sec:gradle_configuration_properties, Gradle properties>>
-|`org.gradle.caching=true`
-|Stored in a `gradle.properties` file in a project directory, then its parent project’s directory up to the project’s root directory.
-
-|3.2
-|<<#sec:gradle_configuration_properties, Gradle properties>>
-|`org.gradle.caching=true`
-|Stored in a `gradle.properties` file in the `<<sec:gradle_environment_variables,GRADLE_HOME>>`.
+|<<#sec:gradle_configuration_properties,Gradle properties>>
+|`GRADLE_USER_HOME` +
+Project Root Dir +
+`GRADLE_HOME`
+|`org.gradle.logging.level=quiet`
+|Stored in a `gradle.properties` file.
 
 |4
-|<<#sec:gradle_environment_variables, Environment variables>>
+|<<#sec:gradle_environment_variables,Environment variables>>
+|Environment
 |`GRADLE_OPTS`
 |Sourced by the environment that executes Gradle.
 |===
 
-== Configuring your build environment
-You can configure the build using the same mechanisms.
+[[sec:project_properties]]
+== Project properties
 
-You can also read information about the environment in the build logic.
+Project properties are specific to your Gradle project.
+They are defined using blocks in your build script or directly in the `project` object.
+
+For example, the project property `myProperty` is created in a build file:
+
+.build.gradle
+[source,groovy]
+----
+ext {
+    myProperty = findProperty('myProperty') ?: 'Hello, world!'
+}
+
+println "My property value: ${project.ext.myProperty}"
+----
+
+You have two options to add project properties, listed in order of priority:
+
+1. *Command Line:* You can add properties directly to your link:{groovyDslPath}/org.gradle.api.Project.html[Project] object via the `-P` command line option.
++
+[source,text]
+----
+$ ./gradlew build -PmyProperty='Hi, world'
+----
+2. *System Properties or Environment Variables:* You can set project properties with specially-named system properties or environment variables.
++
+[source,text]
+----
+$ ./gradlew build -Dorg.gradle.project.myProperty='Hi, world'
+----
+
+If the environment variable name looks like `ORG_GRADLE_PROJECT___prop__=somevalue`, then Gradle will set a `prop` property on your project object, with the value of `somevalue`.
+Gradle also supports this for system properties, but with a different naming pattern, which looks like `org.gradle.project.__prop__`.
+
+The following examples will set the `foo` property on your Project object to `"bar"`.
+
+*Example 1:* Setting a project property via the command line.
+
+[source,text]
+----
+$ ./gradlew build -Pfoo=bar
+----
+
+*Example 2:* Setting a project property via a system property.
+
+.gradle.properties
+[source,text]
+----
+org.gradle.project.foo=bar
+----
+
+*Example 3:* Setting a project property via an environment variable.
+
+[source,text]
+----
+$ export ORG_GRADLE_PROJECT_foo=bar
+----
+
+This feature is very useful when you don't have admin rights to a continuous integration server and need to set property values that are not easily visible. Since you cannot use the `-P` option in that scenario nor change the system-level configuration files, the correct strategy is to change the configuration of your continuous integration build job, adding an environment variable setting that matches an expected pattern. This won't be visible to normal users on the system.
+
+You can access a project property in your build script simply by using its name, as you would a variable.
 
 [[sec:gradle_command_line_flags]]
-== 1. Command-line flags
+== Command-line flags
 
-The command line interface, along with the available flags, is described in <<command_line_interface#command_line_interface,its own section>>.
+The command line interface and the available flags are described in <<command_line_interface#command_line_interface,its own section>>.
 
 [[sec:gradle_system_properties]]
-== 2. System properties
+== System properties
 
-Using the `-D` command-line option, you can pass a system property to the JVM, which runs Gradle.
+System properties are variables set at the JVM level and accessible to the Gradle build process.
+System properties can be accessed using the `System` class in the build script.
+Common system properties are listed below.
 
+You have two options to add system properties listed in order of priority:
+
+1. *Command Line:* Using the `-D` command-line option, you can pass a system property to the JVM, which runs Gradle.
 The `-D` option of the `gradle` command has the same effect as the `-D` option of the `java` command.
-
-You can also set system properties in `gradle.properties` files with the prefix `systemProp`:
-
++
+[source,text]
+----
+$ ./gradlew build -Dgradle.wrapperUser=myuser
+----
+2. *`gradle.properties` file:* You can also set system properties in `gradle.properties` files with the prefix `systemProp`:
++
+.gradle.properties
+[source,text]
 ----
 systemProp.gradle.wrapperUser=myuser
 systemProp.gradle.wrapperPassword=mypassword
@@ -81,59 +176,17 @@ systemProp.gradle.wrapperPassword=mypassword
 
 The following are _common_ system properties:
 
-*Gradle Properties*
-
 `gradle.wrapperUser=(myuser)`:: Specify username to download Gradle distributions <<gradle_wrapper.adoc#sec:authenticated_download,from servers using HTTP Basic Authentication>>.
 `gradle.wrapperPassword=(mypassword)`:: Specify password for downloading a Gradle distribution using the Gradle wrapper.
 `gradle.user.home=(path to directory)`:: Specify the `GRADLE_USER_HOME` directory.
-
-The Gradle Properties listed the <<#sec:gradle_configuration_properties,section below>> can also be set as system properties.
-
-*Networking Properties*
-
 `https.protocols`:: Specify the supported TLS versions in a comma-separated format. e.g., `TLSv1.2,TLSv1.3`.
-`http.proxyHost`:: The hostname, or address, of the proxy server. Default: `none`.
-`http.proxyPort`:: The port number of the proxy server. Default: `80`.
-`http.nonProxyHosts`:: Indicates the hosts that should be accessed without going through the proxy. Default: `localhost|127.*|[::1]`.
-`https.proxyHost`:: The hostname, or address, of the proxy server. Default: `none`.
-`https.proxyPort`:: The port number of the proxy server. Default: `443`.
-`socksProxyHost`:: The hostname, or address, of the proxy server. Default: `none`.
-`socksProxyPort`:: The port number of the proxy server. Default: `1080`.
-`socksProxyVersion`:: The version of the SOCKS protocol supported by the server. Default: `5` for SOCKS V5.
-`java.net.socks.username`:: Username to use if the SOCKSv5 server asks for authentication. Default: `none`.
-`java.net.socks.password`:: Password to use if the SOCKSv5 server asks for authentication. Default: `none`.
 
-*Runtime Environment Properties*
-
-`java.runtime.version=(string)`:: JRE version, e.g. `1.7.0_09-b05`.
-`java.version=(string)`:: JDK version, e.g., `1.7.0_09`.
-`java.home=(string)`:: JRE home directory, e.g., `C:\Program Files\Java\jdk1.7.0_09\jre`.
-`java.class.path=(string)`:: JRE classpath e.g., `.` (dot – used for current working directory).
-`java.library.path=(string)`:: JRE library search path for search native libraries. Typically taken from the environment variable PATH.
-`java.ext.dirs=(string)`:: JRE extension library path(s), e.g, `C:\Program Files\Java\jdk1.7.0_09\jre\lib\ext;C:\Windows\Sun\Java\lib\ext`.
-
-*Operating System Properties*
-
-`os.name=(string)`:: The OS’s name, e.g., `Windows 7`.
-`os.arch=(string)`:: The OS’s architecture, e.g., `x86`.
-`os.version=(string)`:: The OS’s version, e.g., `6.1`.
-
-*File System Properties*
-
-`file.separator=(string)`:: Symbol for file directory separator such as `d:\test\test.java`. Default is '\' for windows or '/' for Unix/Mac.
-`path.separator=(string)`:: Symbol for separating path entries, e.g., in PATH or CLASSPATH. Default is ';' for windows or ':' for Unix/Mac.
-`line.separator=(string)`:: Symbol for end-of-line (or new line). Default is "\r\n" for windows or "\n" for Unix/Mac OS X.
-
-*User Properties*
-
-`user.name=(string)`:: The user’s name.
-`user.home=(string)`:: The user’s home directory.
-`user.dir=(string)`:: The user’s current working directory.
+Additional Java system properties are listed link:https://docs.oracle.com/javase/tutorial/essential/environment/sysprop.html[here].
 
 In a multi-project build, `systemProp` properties set in any project except the root will be *ignored*.
 Only the root project's `gradle.properties` file will be checked for properties that begin with `systemProp`.
 
-The following examples demonstrate how to use System properties.
+The following examples demonstrate how to use system properties:
 
 *Example 1:* Setting system properties with a `gradle.properties` file:
 ====
@@ -160,26 +213,52 @@ $ gradle -Dsystem=commandLineValue
 ====
 
 [[sec:gradle_configuration_properties]]
-== 3. Gradle properties
+== Gradle properties
 
 Gradle provides several options that make it easy to configure the Java process that will be used to execute your build.
-
 While it's possible to configure these in your local environment via `GRADLE_OPTS` or `JAVA_OPTS`, it is useful to be able to store certain settings like JVM memory configuration and `JAVA_HOME` location in version control so that an entire team can work with a consistent environment.
 
-To do so, place these settings into a `gradle.properties` file and commit it to your version control system.
+You have one option to add gradle properties:
 
-The final configuration taken into account by Gradle is a combination of all Gradle properties set on the command line and your `gradle.properties` files.
+1. *`gradle.properties` file:* Place these settings into a `gradle.properties` file and commit it to your version control system.
++
+.gradle.properties
+[source,text]
+----
+org.gradle.caching.debug=false
+----
 
+The final configuration considered by Gradle is a combination of all Gradle properties set on the command line and your `gradle.properties` files.
 If an option is configured in multiple locations, the _first one_ found in any of these locations wins:
 
-. command line, set using `-D`.
-. `gradle.properties` in <<directory_layout.adoc#dir:gradle_user_home,`GRADLE_USER_HOME`>> directory.
-. `gradle.properties` in the project's directory, then its parent project's directory up to the build's root directory.
-. `gradle.properties` in the Gradle installation directory.
+[cols="~,~,~,~"]
+|===
+|Priority |Method |Location |Details
+
+|1
+|Command line interface
+|.
+|In the command line using `-D`.
+
+|2
+|`gradle.properties` file
+|`GRADLE_USER_HOME`
+|Stored in a `gradle.properties` file in the `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>`.
+
+|3
+|`gradle.properties` file
+|Project Root Dir
+|Stored in a `gradle.properties` file in a project directory, then its parent project’s directory up to the project’s root directory.
+
+|4
+|`gradle.properties` file
+|`GRADLE_HOME`
+|Stored in a `gradle.properties` file in the `<<sec:gradle_environment_variables,GRADLE_HOME>>`, the optional Gradle installation directory.
+|===
 
 NOTE: The location of the `GRADLE_USER_HOME` may have been changed beforehand via the `-Dgradle.user.home` system property passed on the command line.
 
-The following properties can be used to configure the Gradle build environment:
+The following properties are common Gradle properties:
 
 `org.gradle.caching=(true,false)`::
 When set to `true`, Gradle will reuse task outputs from any previous build when possible, <<build_cache.adoc#build_cache,resulting in much faster builds>>.
@@ -196,30 +275,6 @@ Enables <<configuration_cache.adoc#config_cache:usage:enable, configuration cach
 +
 _Default is `false`._
 
-`org.gradle.configuration-cache.inputs.unsafe.ignore.file-system-checks=(file path)`::
-Used to exclude file system checks on the specified path from configuration cache inputs fingerprinting.
-+
-_Default is `null`._
-
-`org.gradle.configuration-cache.inputs.unsafe.ignore.in-serialization=(true,false)`::
-Used to ignore inputs in task graph serialization.
-+
-_Default is `false`._
-
-`org.gradle.configuration-cache.problems=(fail,warn)`::
-Configures how the configuration cache <<configuration_cache.adoc#config_cache:usage:ignore_problems, handles problems>>.
-+
-Set to `warn` to report problems without failing the build.
-+
-Set to `fail` to report problems and fail the build if there are any problems.
-+
-_Default is `fail`._
-
-`org.gradle.configuration-cache.max-problems=(# of problems)`::
-Configures the <<configuration_cache.adoc#config_cache:usage:max_problems, maximum number of configuration cache problems>> allowed as warnings until Gradle fails the build.
-+
-_Default is `512`._
-
 `org.gradle.configureondemand=(true,false)`::
 Enables incubating configuration-on-demand, where Gradle will attempt to configure only necessary projects.
 +
@@ -235,31 +290,15 @@ If enabled, continue task execution after a task failure, else stop task executi
 +
 _Default is `false`._
 
-`org.gradle.continuous.quietperiod=(# of quiet period millis)`::
-When using <<command_line_interface.adoc#sec:continuous_build,continuous build>>, Gradle will wait for the quiet period to pass before triggering another build.
-Any additional changes within this quiet period restart the quiet period countdown.
-+
-_Default is `250` milliseconds._
-
 `org.gradle.daemon=(true,false)`::
 When set to `true` the <<gradle_daemon.adoc#gradle_daemon, Gradle Daemon>> is used to run the build.
 +
 _Default is `true`._
 
-`org.gradle.daemon.healthcheckinterval=(# of millis)`::
-Gradle Daemon health will be checked after a specified number of milliseconds.
-+
-_Default is `10000;` (10 secs)._
-
 `org.gradle.daemon.idletimeout=(# of idle millis)`::
 Gradle Daemon will terminate itself after a specified number of idle milliseconds.
 +
 _Default is `10800000` (3 hours)._
-
-`org.gradle.daemon.registry.base=(directory)`::
-Specify a Daemon registry path where the daemon registry file (addresses of active daemons) and daemon log files reside.
-+
-_Default is `.` (local directory)._
 
 `org.gradle.debug=(true,false)`::
 When set to `true`, Gradle will run the build with remote debugging enabled, listening on port 5005.
@@ -267,41 +306,9 @@ Note that this is equivalent to adding `-agentlib:jdwp=transport=dt_socket,serve
 +
 _Default is `false`._
 
-`org.gradle.debug.host=(host address)`::
-Specifies the host address to listen on or connect to when debug is enabled.
-In the server mode on Java 9 and above, passing `*` for the host will make the server listen on all network interfaces.
-+
-_Default is `null`; no host address is passed to JDWP (on Java 9 and above, the loopback address is used, while earlier versions listen on all interfaces)._
-
-`org.gradle.debug.port=(port number)`::
-Specifies the port number to listen on when debug is enabled.
-+
-_Default is `5005`._
-
-`org.gradle.debug.server=(true,false)`::
-If set to `true` and debugging is enabled, Gradle will run the build with the socket-attach mode of the debugger.
-Otherwise, the socket-listen mode is used.
-+
-_Default is `true`._
-
-`org.gradle.debug.suspend=(true,false)`::
-When set to `true` and debugging is enabled, the JVM running Gradle will suspend until a debugger is attached.
-+
-_Default is `true`._
-
-`org.gradle.dependency.verification=(strict,lenient,off)`::
-Configures the dependency verification mode where in `strict` mode verification fails as early as possible, in order to avoid the use of compromised dependencies during the build.
-+
-_Default is `strict`._
-
-`org.gradle.internal.instrumentation.agent=(true,false)`::
-Enables the instrumentation Java agent for the daemon.
-+
-_Default is `true`._
-
 `org.gradle.java.home=(path to JDK home)`::
 Specifies the Java home for the Gradle build process.
-The value can be set to either a `jdk` or `jre` location; however, depending on what your build does, using a JDK is safer.
+The value can be set to either a `jdk` or `jre` location; however, using a JDK is safer depending on what your build does.
 This does not affect the version of Java used to launch the <<#sec:gradle_environment_variables,Gradle client VM>>.
 +
 _Default is derived from your environment (`JAVA_HOME` or the path to `java`) if the setting is unspecified._
@@ -319,17 +326,6 @@ The values are not case-sensitive.
 +
 _Default is `lifecycle` level._
 
-`org.gradle.logging.stacktrace=(internal,all,full)`::
-Specifies whether stacktraces should be displayed as part of the build result upon an exception. See the <<command_line_interface.adoc#sec:command_line_debugging, `--stacktrace command-line option` for additional information>>.
-+
-When set to `internal`, a stacktrace is present in the output only in case of internal exceptions.
-+
-When set to `all` or `full`, a stacktrace is present in the output for all exceptions and build failures.
-+
-Using `full` doesn't truncate the stacktrace, which leads to a much more verbose output.
-+
-_Default is `internal`._
-
 `org.gradle.parallel=(true,false)`::
 When configured, Gradle will fork up to `org.gradle.workers.max` JVMs to execute <<performance.adoc#parallel_execution,projects in parallel>>.
 +
@@ -346,7 +342,7 @@ Specify the project-specific cache directory. Defaults to `.gradle` in the root 
 _Default is `.gradle`._
 
 `org.gradle.unsafe.isolated-projects=(true,false)`::
-Enables project isolation which enables configuration caching.
+Enables project isolation, which enables configuration caching.
 +
 _Default is `false`._
 
@@ -361,24 +357,10 @@ When enabled, Gradle reuses information it collects about the file system betwee
 +
 _Default is `true` on operating systems where Gradle supports this feature._
 
-`org.gradle.vfs.watch.debug=(true,false)`::
-Enables debug events emitted in `native-platform` to be shown. Events are only shown when `--debug` is enabled or when the daemon is between builds.
-+
-_Default is `false`._
-
 `org.gradle.warning.mode=(all,fail,summary,none)`::
-When set to `all`, `summary` or `none`, Gradle will use <<command_line_interface.adoc#sec:command_line_logging,different warning type display>>.
+When set to `all`, `summary`, or `none`, Gradle will use <<command_line_interface.adoc#sec:command_line_logging,different warning type display>>.
 +
 _Default is `summary`._
-
-`org.gradle.welcome=(never,once)`::
-Controls whether Gradle should print a welcome message.
-+
-If set to `never`, then the welcome message will be suppressed.
-+
-If set to `once`, then the message is printed once for each new version of Gradle.
-+
-_Default is `once`._
 
 `org.gradle.workers.max=(max # of worker processes)`::
 When configured, Gradle will use a maximum of the <<command_line_interface.adoc#sec:command_line_performance,given number of workers>>.
@@ -404,7 +386,7 @@ You need to explicitly specify the type as `String`.
 If you need to branch depending on the presence of the property, you can also use `String?` and check for `null`.
 
 [.multi-language-text.lang-groovy]
-Note that if a Gradle property has a dot in its name, using the dynamic Groovy names is not possible.
+Note that using the dynamic Groovy names is impossible if a Gradle property has a dot in its name.
 You have to use the API or the dynamic array notation instead.
 
 *Example 3:* Reading Gradle properties for consumption at execution time:
@@ -432,7 +414,10 @@ include::sample[dir="snippets/tutorial/gradleProperties/groovy",files="init.grad
 Properties declared in a `gradle.properties` file present in a subproject directory are only available to that project and its children.
 
 [[sec:gradle_environment_variables]]
-== 4. Environment variables
+== Environment variables
+
+Gradle provides a number of environment variables, which are listed below.
+You can access environment variables as properties in the build script using the `System.getenv()` method.
 
 The following environment variables are available for the `gradle` command.
 
@@ -441,7 +426,7 @@ Installation directory for Gradle.
 +
 Can be used to specify a local Gradle version instead of using the wrapper.
 +
-You can add `GRADLE_HOME/bin` to your `PATH` for specific applications and use-cases (such as testing an early release for Gradle).
+You can add `GRADLE_HOME/bin` to your `PATH` for specific applications and use cases (such as testing an early release for Gradle).
 
 `JAVA_OPTS`::
 Used to pass JVM options and custom settings to the JVM.
@@ -449,7 +434,7 @@ Used to pass JVM options and custom settings to the JVM.
 `GRADLE_OPTS`::
 Specifies JVM arguments to use when starting the Gradle client VM.
 +
-The client VM only handles command line input/output, so it is rare that one would need to change its VM options.
+The client VM only handles command line input/output, so one would rarely need to change its VM options.
 +
 The actual build is run by the Gradle daemon, which is not affected by this environment variable.
 
@@ -468,8 +453,7 @@ Overrides for the default Gradle library repository.
 +
 Can be used to specify a default Gradle repository URL in `org.gradle.plugins.ide.internal.resolver`.
 +
-Useful override to specify an internally hosted repository in case your company uses a firewall/proxy.
-
+Useful override to specify an internally hosted repository if your company uses a firewall/proxy.
 
 The following examples demonstrate how to use environment variables.
 

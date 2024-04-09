@@ -6,11 +6,7 @@ description = "Provider-side implementation for running tooling model builders"
 
 errorprone {
     disabledChecks.addAll(
-        "BadImport", // 2 occurrences
-        "InlineMeInliner", // 8 occurrences
         "InlineMeSuggester", // 1 occurrences
-        "OperatorPrecedence", // 2 occurrences
-        "UnnecessaryLambda", // 1 occurrences
     )
 }
 

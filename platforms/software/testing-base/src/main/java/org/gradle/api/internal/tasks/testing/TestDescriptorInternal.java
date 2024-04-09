@@ -16,12 +16,14 @@
 
 package org.gradle.api.internal.tasks.testing;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.api.tasks.testing.TestDescriptor;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 import javax.annotation.Nullable;
 
 @UsedByScanPlugin
+@NonNullApi
 public interface TestDescriptorInternal extends TestDescriptor {
     @Nullable
     @Override
@@ -33,6 +35,7 @@ public interface TestDescriptorInternal extends TestDescriptor {
      * The class name for display. It may be the same as or different from {@link #getClassName()}
      * @return the class name for display.
      */
+    @Nullable
     String getClassDisplayName();
 
 }

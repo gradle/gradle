@@ -17,13 +17,17 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 import spock.lang.Issue
+
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
 @DoesNotSupportNonAsciiPaths(reason = "Uses non-Unicode default charset")
 class CopyTaskEncodingIntegrationSpec extends AbstractIntegrationSpec {
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2181")
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "can copy files with unicode characters in name with non-unicode platform encoding"() {
         given:
         def nonAsciiFileName = "القيادة والسيطرة - الإدارة.lnk"
@@ -54,10 +58,14 @@ class CopyTaskEncodingIntegrationSpec extends AbstractIntegrationSpec {
         given:
         def nonAsciiFileName = "القيادة والسيطرة - الإدارة.lnk"
 
-        buildFile << """
+        buildFile """
+            interface Services {
+                @Inject FileSystemOperations getFs()
+            }
             task copyFiles {
+                def fs = objects.newInstance(Services).fs
                 doLast {
-                    copy {
+                    fs.copy {
                         from 'res'
                         into 'build/resources'
                     }

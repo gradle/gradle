@@ -37,6 +37,8 @@ import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.internal.GFileUtils;
 
 import javax.annotation.Nonnull;
@@ -68,28 +70,30 @@ import static org.gradle.internal.Cast.uncheckedNonnullCast;
 /**
  * Writes files describing the build operation stream for a build.
  * Can be enabled for any build with `-Dorg.gradle.internal.operations.trace=«path-base»`.
- *
+ * <p>
  * Imposes no overhead when not enabled.
  * Also used as the basis for asserting on the event stream in integration tests, via BuildOperationFixture.
- *
+ * <p>
  * Three files are created:
- *
- * - «path-base»-log.txt: a chronological log of events, each line is a JSON object
- * - «path-base»-tree.json: a JSON tree of the event structure
- * - «path-base»-tree.txt: A simplified tree representation showing basic information
- *
+ * <ul>
+ * <li>«path-base»-log.txt: a chronological log of events, each line is a JSON object</li>
+ * <li>«path-base»-tree.json: a JSON tree of the event structure</li>
+ * <li>«path-base»-tree.txt: A simplified tree representation showing basic information</li>
+ * </ul>
+ * <p>
  * Generally, the simplified tree view is best for browsing.
  * The JSON tree view can be used for more detailed analysis — open in a JSON tree viewer, like Chrome.
- *
+ * <p>
  * The «path-base» param is optional.
  * If invoked as `-Dorg.gradle.internal.operations.trace`, a base value of "operations" will be used.
- *
+ * <p>
  * The “trace” produced here is different to the trace produced by Gradle Profiler.
  * There, the focus is analyzing the performance profile.
  * Here, the focus is debugging/developing the information structure of build operations.
  *
  * @since 4.0
  */
+@ServiceScope(Scope.CrossBuildSession.class)
 public class BuildOperationTrace implements Stoppable {
 
     public static final String SYSPROP = "org.gradle.internal.operations.trace";

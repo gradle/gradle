@@ -1054,6 +1054,9 @@ group:projectB:2.2;release
         }
 
         when:
+        // bouncycastle has .properties files that are actually binary files
+        // see https://github.com/bcgit/bc-java/commit/0aacc38aefe7e79a6d9cca76bd690c24671c3feb
+        executer.withStackTraceChecksDisabled()
         run 'checkDeps', '--debug'
 
         then:

@@ -103,6 +103,10 @@ public abstract class Wrapper extends DefaultTask {
     private boolean distributionUrlConfigured = false;
     private final boolean isOffline = getProject().getGradle().getStartParameter().isOffline();
 
+    public Wrapper() {
+        getValidateDistributionUrl().convention(WrapperDefaults.VALIDATE_DISTRIBUTION_URL);
+    }
+
     @TaskAction
     void generate() {
         File jarFileDestination = getJarFile();

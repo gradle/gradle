@@ -19,9 +19,9 @@ val antVersion = "1.10.13"
 // Don't forget to bump versions in
 // subprojects/base-services/src/main/java/org/gradle/internal/classanalysis/AsmConstants.java
 // when upgrading ASM.
-val asmVersion = "9.6"
+val asmVersion = "9.7"
 val awsS3Version = "1.12.651"
-val bouncycastleVersion = "1.73"
+val bouncycastleVersion = "1.77"
 val jacksonVersion = "2.16.1"
 val jaxbVersion = "3.0.0"
 val junit5Version = "5.8.2"
@@ -73,7 +73,7 @@ dependencies {
         api(libs.commonsMath)           { version { strictly("3.6.1") }}
         api(libs.eclipseSisuPlexus)     { version { strictly("0.3.5"); because("transitive dependency of Maven modules to process POM metadata") }}
         api(libs.gradleProfiler)        { version { strictly("0.21.0-alpha-3") }}
-        api(libs.gradleEnterpriseTestAnnotation) { version { strictly("1.0") }}
+        api(libs.develocityTestAnnotation) { version { strictly("2.0.1") }}
         api(libs.gcs)                   { version { strictly("v1-rev20220705-1.32.1") }}
         api(libs.googleApiClient)       { version { strictly("1.34.0"); because("our GCS version requires 1.34.0") }}
         api(libs.guava)                 { version { strictly("32.1.2-jre"); because("our Google API Client version requires at least 31.1-jre")  }}
@@ -198,6 +198,7 @@ dependencies {
         api(libs.mockitoCore)           { version { strictly("3.7.7") }}
         api(libs.mockitoKotlin)         { version { strictly("1.6.0") }}
         api(libs.mockitoKotlin2)        { version { strictly("2.2.0") }}
+        api(libs.mockwebserver)         { version { strictly("4.12.0") }}
         api(libs.mySqlConnector)        { version { strictly("8.0.17") }}
         api(libs.samplesCheck)          { version { strictly("1.0.0") }}
         api(libs.snappy)                { version { strictly("0.4") }}
