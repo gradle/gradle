@@ -98,6 +98,24 @@ class ScopedServiceRegistryTest extends Specification {
         registry.get(UnscopedService) === service
     }
 
+    def "succeeds when registering a service via #method in the correct scope in strict mode"() {
+        given:
+        def registry = strictScopedRegistry(Scope.BuildTree)
+
+        when:
+        registration(registry)
+        registry.get(BuildTreeScopedServiceInterface) != null
+
+        then:
+        noExceptionThrown()
+
+        where:
+        method     | registration
+        'instance' | { ScopedServiceRegistry it -> it.add(BuildTreeScopedServiceInterface, new BuildTreeScopedServiceInterfaceUnscopedImpl()) }
+        'type'     | { ScopedServiceRegistry it -> it.register { it.add(BuildTreeScopedServiceInterface, BuildTreeScopedServiceInterfaceUnscopedImpl) } }
+        'provider' | { ScopedServiceRegistry it -> it.addProvider(new BuildTreeScopedServiceInterfaceProvider()) }
+    }
+
     def "fails when registering an unscoped implementation via #method in strict mode"() {
         given:
         def registry = strictScopedRegistry(Scope.BuildTree)
@@ -115,7 +133,6 @@ class ScopedServiceRegistryTest extends Specification {
         'type'     | { ScopedServiceRegistry it -> it.register { it.add(BuildTreeScopedServiceInterfaceUnscopedImpl) } }
         'provider' | { ScopedServiceRegistry it -> it.addProvider(new BuildTreeScopedServiceInterfaceUnscopedImplProvider()) }
     }
-
 
     def "succeeds when registering a multi-scoped service in the correct scope (#scopeName)"() {
         given:
@@ -166,6 +183,13 @@ class ScopedServiceRegistryTest extends Specification {
         @SuppressWarnings('unused')
         BuildTreeScopedService createScopedService() {
             return new BuildTreeScopedService()
+        }
+    }
+
+    static class BuildTreeScopedServiceInterfaceProvider {
+        @SuppressWarnings('unused')
+        BuildTreeScopedServiceInterface createScopedService() {
+            return new BuildTreeScopedServiceInterfaceUnscopedImpl()
         }
     }
 
