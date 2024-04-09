@@ -12,6 +12,7 @@ dependencies {
     api(libs.futureKotlin("stdlib"))
 
     implementation(project(":core"))
+    implementation(project(":declarative-dsl-api"))
     implementation(project(":declarative-dsl-tooling-models"))
 
     crossVersionTestDistributionRuntimeOnly(project(":distributions-basics"))

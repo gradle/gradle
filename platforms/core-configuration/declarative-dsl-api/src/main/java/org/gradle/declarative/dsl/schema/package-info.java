@@ -13,21 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+@NonNullApi
 package org.gradle.declarative.dsl.schema;
 
-import java.io.Serializable;
-
-public interface DataType extends Serializable {
-
-    interface ConstantType<T> extends DataType {
-
-        Class<T> getType();
-
-    }
-
-    interface NullType extends DataType {}
-
-    interface UnitType extends DataType {}
-
-}
+import org.gradle.api.NonNullApi;
