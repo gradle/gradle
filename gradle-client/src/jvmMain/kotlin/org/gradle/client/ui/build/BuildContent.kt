@@ -1,6 +1,8 @@
 package org.gradle.client.ui.build
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Folder
@@ -88,9 +90,9 @@ private fun BuildMainContent(
     }
 
     Column(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.level4)
+        verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.level4),
     ) {
         BuildTextField(
             value = model.build.rootDir.absolutePath,
