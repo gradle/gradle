@@ -16,6 +16,7 @@
 
 package org.gradle.api.problems.internal;
 
+import com.google.common.collect.Multimap;
 import org.gradle.api.problems.Problems;
 
 public interface InternalProblems extends Problems {
@@ -27,4 +28,6 @@ public interface InternalProblems extends Problems {
      * @return The reporter.
      */
     InternalProblemReporter getInternalReporter();
+
+    Multimap<Throwable, Problem> getProblemsForThrowables();
 }

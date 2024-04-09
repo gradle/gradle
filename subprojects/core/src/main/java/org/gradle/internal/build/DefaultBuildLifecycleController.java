@@ -16,6 +16,7 @@
 package org.gradle.internal.build;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Multimap;
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.api.NonNullApi;
@@ -26,6 +27,7 @@ import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
+import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.specs.Spec;
 import org.gradle.execution.BuildWorkExecutor;
 import org.gradle.execution.EntryTaskSelector;
@@ -66,7 +68,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         Finished
     }
 
-    public static final ImmutableList<State> CONFIGURATION_STATES = ImmutableList.of(State.Configure, State.TaskSchedule, State.ReadyToRun);
+    private static final ImmutableList<State> CONFIGURATION_STATES = ImmutableList.of(State.Configure, State.TaskSchedule, State.ReadyToRun);
 
     private final ExceptionAnalyser exceptionAnalyser;
     private final BuildListener buildListener;
@@ -76,6 +78,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
     private final BuildToolingModelControllerFactory toolingModelControllerFactory;
     private final BuildModelController modelController;
     private final StateTransitionController<State> state;
+    private final Multimap<Throwable, Problem> problems;
     private final GradleInternal gradle;
     private boolean hasTasks;
     private boolean hasFiredBeforeModelDiscarded;
@@ -89,7 +92,8 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         BuildWorkPreparer workPreparer,
         BuildWorkExecutor workExecutor,
         BuildToolingModelControllerFactory toolingModelControllerFactory,
-        StateTransitionControllerFactory controllerFactory
+        StateTransitionControllerFactory controllerFactory,
+        Multimap<Throwable, Problem> problems
     ) {
         this.gradle = gradle;
         this.modelController = buildModelController;
@@ -100,6 +104,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         this.buildModelLifecycleListener = buildModelLifecycleListener;
         this.toolingModelControllerFactory = toolingModelControllerFactory;
         this.state = controllerFactory.newController(Describables.of("state of", targetBuild().getDisplayName()), State.Configure);
+        this.problems = problems;
     }
 
     @Override

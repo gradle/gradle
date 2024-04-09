@@ -16,6 +16,7 @@
 
 package org.gradle.api.problems.internal;
 
+import com.google.common.collect.Multimap;
 import org.gradle.api.Action;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
@@ -28,11 +29,18 @@ public class DefaultProblemReporter implements InternalProblemReporter {
     private final ProblemEmitter emitter;
     private final List<ProblemTransformer> transformers;
     private final CurrentBuildOperationRef currentBuildOperationRef;
+    private final Multimap<Throwable, Problem> problems;
 
-    public DefaultProblemReporter(ProblemEmitter emitter, List<ProblemTransformer> transformers, CurrentBuildOperationRef currentBuildOperationRef) {
+    public DefaultProblemReporter(
+        ProblemEmitter emitter,
+        List<ProblemTransformer> transformers,
+        CurrentBuildOperationRef currentBuildOperationRef,
+        Multimap<Throwable, Problem> problems
+    ) {
         this.emitter = emitter;
         this.transformers = transformers;
         this.currentBuildOperationRef = currentBuildOperationRef;
+        this.problems = problems;
     }
 
     @Override
@@ -57,6 +65,7 @@ public class DefaultProblemReporter implements InternalProblemReporter {
 
     public RuntimeException throwError(RuntimeException exception, Problem problem) {
         report(problem);
+        problems.put(exception, problem);
         throw exception;
     }
 
