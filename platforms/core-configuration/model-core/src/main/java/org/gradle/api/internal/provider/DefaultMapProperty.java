@@ -29,6 +29,7 @@ import org.gradle.api.internal.provider.MapCollectors.EntryWithValueFromProvider
 import org.gradle.api.internal.provider.MapCollectors.SingleEntry;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -295,18 +296,13 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
     @Override
     public MapProperty<K, V> unset() {
-        assertCanMutate();
-        unsetValue();
-        return this;
-    }
-
-    private void unsetValue() {
-        super.unset();
+        return Cast.uncheckedNonnullCast(super.unset());
     }
 
     private void unsetValueAndDefault() {
+        // assign no-value default before restoring to it
         defaultValue = noValueSupplier();
-        unsetValue();
+        unset();
     }
 
     public void fromState(ExecutionTimeValue<? extends Map<? extends K, ? extends V>> value) {

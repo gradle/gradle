@@ -28,7 +28,6 @@ import org.gradle.api.internal.provider.Collectors.ElementsFromCollectionProvide
 import org.gradle.api.internal.provider.Collectors.SingleElement;
 import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.SupportsConvention;
 import org.gradle.internal.Cast;
 import org.gradle.util.internal.TextUtil;
 
@@ -278,20 +277,10 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         setSupplier(new CollectingSupplier(new ElementsFromCollectionProvider<>(p)));
     }
 
-    @Override
-    public SupportsConvention unset() {
-        assertCanMutate();
-        unsetValue();
-        return this;
-    }
-
-    private void unsetValue() {
-        super.unset();
-    }
-
     private void unsetValueAndDefault() {
+        // assign no-value default before restoring to it
         defaultValue = noValueSupplier();
-        unsetValue();
+        unset();
     }
 
     @Override
