@@ -1465,6 +1465,7 @@ table {
     padding-top: 107px;
 }
 .fixedNav {
+    position: fixed;
     width:100%;
     z-index:999;
     background-color:var(--navbar-background-color);
