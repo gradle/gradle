@@ -34,10 +34,16 @@ import org.gradle.internal.declarativedsl.analysis.DataPropertyImpl
 import org.gradle.internal.declarativedsl.analysis.DataTypeRefNameImpl
 import org.gradle.internal.declarativedsl.analysis.DataTypeRefTypeImpl
 import org.gradle.internal.declarativedsl.analysis.DataTypeRef
+import org.gradle.internal.declarativedsl.analysis.DataType_
 import org.gradle.internal.declarativedsl.analysis.FqName
 import org.gradle.internal.declarativedsl.analysis.FqNameImpl
 import org.gradle.internal.declarativedsl.analysis.SchemaMemberFunction
-import org.gradle.internal.declarativedsl.language.DataType
+import org.gradle.internal.declarativedsl.language.BooleanDataType
+import org.gradle.internal.declarativedsl.language.IntDataType
+import org.gradle.internal.declarativedsl.language.LongDataType
+import org.gradle.internal.declarativedsl.language.NullDataType
+import org.gradle.internal.declarativedsl.language.StringDataType
+import org.gradle.internal.declarativedsl.language.UnitDataType
 
 
 object SchemaSerialization {
@@ -45,13 +51,13 @@ object SchemaSerialization {
     private
     val json = Json {
         serializersModule = SerializersModule {
-            polymorphic(DataType::class) {
-                subclass(DataType.IntDataType::class)
-                subclass(DataType.LongDataType::class)
-                subclass(DataType.StringDataType::class)
-                subclass(DataType.BooleanDataType::class)
-                subclass(DataType.NullType::class)
-                subclass(DataType.UnitType::class)
+            polymorphic(DataType_::class) {
+                subclass(IntDataType::class)
+                subclass(LongDataType::class)
+                subclass(StringDataType::class)
+                subclass(BooleanDataType::class)
+                subclass(NullDataType::class)
+                subclass(UnitDataType::class)
             }
             polymorphic(DataTypeRef::class) {
                 subclass(DataTypeRefNameImpl::class)

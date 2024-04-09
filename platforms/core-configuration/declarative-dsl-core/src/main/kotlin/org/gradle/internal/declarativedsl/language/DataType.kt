@@ -18,40 +18,45 @@ package org.gradle.internal.declarativedsl.language
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import org.gradle.internal.declarativedsl.analysis.DataType_
 
 
-interface DataType {
-    sealed interface ConstantType<JvmType> : DataType
-    @Serializable
-    @SerialName("int")
-    data object IntDataType : ConstantType<Int> {
-        override fun toString(): String = "Int"
-    }
-    @Serializable
-    @SerialName("long")
-    data object LongDataType : ConstantType<Long> {
-        override fun toString(): String = "Long"
-    }
-    @Serializable
-    @SerialName("string")
-    data object StringDataType : ConstantType<String> {
-        override fun toString(): String = "String"
-    }
-    @Serializable
-    @SerialName("boolean")
-    data object BooleanDataType : ConstantType<Boolean> {
-        override fun toString(): String = "Boolean"
-    }
-
-    // TODO: implement nulls?
-    @Serializable
-    @SerialName("null")
-    data object NullType : DataType
-
-    @Serializable
-    @SerialName("unit")
-    data object UnitType : DataType
-
-    // TODO: `Any` type?
-    // TODO: Support subtyping of some sort in the schema rather than via reflection?
+@Serializable
+@SerialName("int")
+data object IntDataType : DataType_.ConstantType<Int> {
+    override fun toString(): String = "Int"
+    override fun getType(): Class<Int> = Int::class.java
 }
+
+@Serializable
+@SerialName("long")
+data object LongDataType : DataType_.ConstantType<Long> {
+    override fun toString(): String = "Long"
+
+    override fun getType(): Class<Long> = Long::class.java
+}
+@Serializable
+@SerialName("string")
+data object StringDataType : DataType_.ConstantType<String> {
+    override fun toString(): String = "String"
+
+    override fun getType(): Class<String> = String::class.java
+}
+@Serializable
+@SerialName("boolean")
+data object BooleanDataType : DataType_.ConstantType<Boolean> {
+    override fun toString(): String = "Boolean"
+
+    override fun getType(): Class<Boolean> = Boolean::class.java
+}
+
+@Serializable
+@SerialName("null")
+data object NullDataType : DataType_.NullType // TODO: implement nulls?
+
+@Serializable
+@SerialName("unit")
+data object UnitDataType : DataType_.UnitType
+
+// TODO: `Any` type?
+// TODO: Support subtyping of some sort in the schema rather than via reflection?

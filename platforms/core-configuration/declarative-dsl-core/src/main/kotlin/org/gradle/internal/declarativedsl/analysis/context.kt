@@ -1,6 +1,5 @@
 package org.gradle.internal.declarativedsl.analysis
 
-import org.gradle.internal.declarativedsl.language.DataType
 import org.gradle.internal.declarativedsl.language.LanguageTreeElement
 import org.gradle.internal.declarativedsl.language.LocalValue
 import java.util.concurrent.atomic.AtomicLong
@@ -47,7 +46,7 @@ class AnalysisScope(
 
 
 interface TypeRefContext {
-    fun resolveRef(dataTypeRef: DataTypeRef): DataType
+    fun resolveRef(dataTypeRef: DataTypeRef): DataType_
 }
 
 
@@ -60,7 +59,7 @@ interface AnalysisContextView : TypeRefContext {
 
 
 class SchemaTypeRefContext(val schema: AnalysisSchema) : TypeRefContext {
-    override fun resolveRef(dataTypeRef: DataTypeRef): DataType = when (dataTypeRef) {
+    override fun resolveRef(dataTypeRef: DataTypeRef): DataType_ = when (dataTypeRef) {
         is DataTypeRef.Name -> schema.dataClassesByFqName.getValue(dataTypeRef.fqName) as DataClassImpl
         is DataTypeRef.Type -> dataTypeRef.dataType
         else -> error("Unhandled data type reference type: $dataTypeRef")
@@ -96,7 +95,7 @@ class AnalysisContext(
     private
     val typeRefContext = SchemaTypeRefContext(schema)
 
-    override fun resolveRef(dataTypeRef: DataTypeRef): DataType = typeRefContext.resolveRef(dataTypeRef)
+    override fun resolveRef(dataTypeRef: DataTypeRef): DataType_ = typeRefContext.resolveRef(dataTypeRef)
 
     fun enterScope(newScope: AnalysisScope) {
         mutableScopes.add(newScope)

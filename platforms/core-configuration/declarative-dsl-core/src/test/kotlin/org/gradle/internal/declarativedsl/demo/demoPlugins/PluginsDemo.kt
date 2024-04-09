@@ -4,7 +4,8 @@ import org.gradle.internal.declarativedsl.analysis.ErrorReason
 import org.gradle.internal.declarativedsl.demo.printResolutionResults
 import org.gradle.internal.declarativedsl.demo.printResolvedAssignments
 import org.gradle.internal.declarativedsl.demo.resolve
-import org.gradle.internal.declarativedsl.language.DataType
+import org.gradle.internal.declarativedsl.language.IntDataType
+import org.gradle.internal.declarativedsl.language.StringDataType
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
@@ -66,7 +67,7 @@ class Tests {
         assertNotNull(error)
         val reason = error.errorReason
         assertIs<ErrorReason.AssignmentTypeMismatch>(reason)
-        assertEquals(DataType.StringDataType, reason.expected)
-        assertEquals(DataType.IntDataType, reason.actual)
+        assertEquals(StringDataType, reason.expected)
+        assertEquals(IntDataType, reason.actual)
     }
 }

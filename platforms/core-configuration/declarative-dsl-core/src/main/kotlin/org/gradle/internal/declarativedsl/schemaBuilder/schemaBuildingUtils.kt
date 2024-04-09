@@ -17,10 +17,14 @@
 package org.gradle.internal.declarativedsl.schemaBuilder
 
 import org.gradle.internal.declarativedsl.analysis.DataTypeRefNameImpl
-import org.gradle.internal.declarativedsl.language.DataType
 import org.gradle.internal.declarativedsl.analysis.DataTypeRef
 import org.gradle.internal.declarativedsl.analysis.FqNameImpl
 import org.gradle.internal.declarativedsl.analysis.ref
+import org.gradle.internal.declarativedsl.language.BooleanDataType
+import org.gradle.internal.declarativedsl.language.IntDataType
+import org.gradle.internal.declarativedsl.language.LongDataType
+import org.gradle.internal.declarativedsl.language.StringDataType
+import org.gradle.internal.declarativedsl.language.UnitDataType
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
 import kotlin.reflect.KClassifier
@@ -30,11 +34,11 @@ import kotlin.reflect.KType
 
 fun KClassifier.toDataTypeRef(): DataTypeRef =
     when (this) {
-        Unit::class -> DataType.UnitType.ref
-        Int::class -> DataType.IntDataType.ref
-        String::class -> DataType.StringDataType.ref
-        Boolean::class -> DataType.BooleanDataType.ref
-        Long::class -> DataType.LongDataType.ref
+        Unit::class -> UnitDataType.ref
+        Int::class -> IntDataType.ref
+        String::class -> StringDataType.ref
+        Boolean::class -> BooleanDataType.ref
+        Long::class -> LongDataType.ref
         is KClass<*> -> DataTypeRefNameImpl(FqNameImpl.parse(checkNotNull(qualifiedName)))
         else -> error("unexpected type")
     }
