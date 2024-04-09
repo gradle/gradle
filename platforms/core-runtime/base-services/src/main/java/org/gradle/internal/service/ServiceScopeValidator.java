@@ -91,6 +91,7 @@ class ServiceScopeValidator implements AnnotatedServiceLifecycleHandler {
         throw new IllegalArgumentException(implementationWithMissingScopeMessage(inferredServiceType, serviceType));
     }
 
+    // TODO: use the implementation from `org.gradle.internal.reflect.Types`, when its available for `:base-services`
     private static Set<Class<?>> findAnnotatedSupertypes(Class<?> serviceType) {
         Set<Class<?>> annotatedSuperTypes = new LinkedHashSet<Class<?>>();
 
