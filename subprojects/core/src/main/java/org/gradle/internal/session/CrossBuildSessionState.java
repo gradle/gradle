@@ -19,15 +19,15 @@ package org.gradle.internal.session;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultCollectionCallbackActionDecorator;
-import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.configuration.internal.DefaultDynamicCallContextTracker;
 import org.gradle.configuration.internal.DefaultListenerBuildOperationDecorator;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.internal.code.DefaultUserCodeApplicationContext;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.concurrent.DefaultParallelismConfiguration;
+import org.gradle.internal.concurrent.DefaultWorkerLimits;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.concurrent.WorkerLimits;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.logging.sink.OutputEventListenerManager;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -103,8 +103,8 @@ public class CrossBuildSessionState implements Closeable {
             return CrossBuildSessionState.this;
         }
 
-        ParallelismConfiguration createParallelismConfiguration() {
-            return new DefaultParallelismConfiguration(startParameter.isParallelProjectExecutionEnabled(), startParameter.getMaxWorkerCount());
+        WorkerLimits createWorkerLimits() {
+            return new DefaultWorkerLimits(startParameter.getMaxWorkerCount());
         }
 
         BuildOperationExecutor createBuildOperationExecutor(
@@ -112,14 +112,14 @@ public class CrossBuildSessionState implements Closeable {
             CurrentBuildOperationRef currentBuildOperationRef,
             WorkerLeaseService workerLeaseService,
             ExecutorFactory executorFactory,
-            ParallelismConfiguration parallelismConfiguration
+            WorkerLimits workerLimits
         ) {
             return new DefaultBuildOperationExecutor(
                 buildOperationRunner,
                 currentBuildOperationRef,
                 new DefaultBuildOperationQueueFactory(workerLeaseService),
                 executorFactory,
-                parallelismConfiguration
+                workerLimits
             );
         }
 
