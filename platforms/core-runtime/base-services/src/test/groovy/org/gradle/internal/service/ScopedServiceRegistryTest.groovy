@@ -98,6 +98,25 @@ class ScopedServiceRegistryTest extends Specification {
         registry.get(UnscopedService) === service
     }
 
+    def "fails when registering an unscoped implementation via #method in strict mode"() {
+        given:
+        def registry = strictScopedRegistry(Scope.BuildTree)
+
+        when:
+        registration(registry)
+
+        then:
+        def exception = thrown(IllegalArgumentException)
+        exception.message.contains("The service implementation '${BuildTreeScopedServiceInterfaceUnscopedImpl.name}' is registered in the 'BuildTree' scope but does not declare it explicitly.")
+
+        where:
+        method     | registration
+        'instance' | { ScopedServiceRegistry it -> it.add(new BuildTreeScopedServiceInterfaceUnscopedImpl()) }
+        'type'     | { ScopedServiceRegistry it -> it.register { it.add(BuildTreeScopedServiceInterfaceUnscopedImpl) } }
+        'provider' | { ScopedServiceRegistry it -> it.addProvider(new BuildTreeScopedServiceInterfaceUnscopedImplProvider()) }
+    }
+
+
     def "succeeds when registering a multi-scoped service in the correct scope (#scopeName)"() {
         given:
         def registry = scopedRegistry(scope)
@@ -118,7 +137,15 @@ class ScopedServiceRegistryTest extends Specification {
     }
 
     private static ScopedServiceRegistry scopedRegistry(Class<? extends Scope> scope) {
-        return new ScopedServiceRegistry(scope, "test service registry")
+        return scopedRegistry(scope, false)
+    }
+
+    private static ScopedServiceRegistry strictScopedRegistry(Class<? extends Scope> scope) {
+        return scopedRegistry(scope, true)
+    }
+
+    private static ScopedServiceRegistry scopedRegistry(Class<? extends Scope> scope, boolean strict) {
+        return new ScopedServiceRegistry(scope, strict, "test service registry")
     }
 
     @ServiceScope(Scope.BuildTree)
@@ -129,10 +156,23 @@ class ScopedServiceRegistryTest extends Specification {
 
     static class UnscopedService {}
 
+    // Important that this is an interface, because then `@ServiceScope` is not inherited for implementations
+    @ServiceScope(Scope.BuildTree)
+    interface BuildTreeScopedServiceInterface {}
+
+    static class BuildTreeScopedServiceInterfaceUnscopedImpl implements BuildTreeScopedServiceInterface {}
+
     static class BuildTreeScopedServiceProvider {
         @SuppressWarnings('unused')
         BuildTreeScopedService createScopedService() {
             return new BuildTreeScopedService()
+        }
+    }
+
+    static class BuildTreeScopedServiceInterfaceUnscopedImplProvider {
+        @SuppressWarnings('unused')
+        BuildTreeScopedServiceInterfaceUnscopedImpl createScopedService() {
+            return new BuildTreeScopedServiceInterfaceUnscopedImpl()
         }
     }
 
