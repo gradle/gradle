@@ -62,6 +62,7 @@ class ServiceScopeValidator implements AnnotatedServiceLifecycleHandler {
         validateScope(registration.getDeclaredType());
     }
 
+    // TODO: ignore self
     private void validateScope(Class<?> serviceType) {
         Class<? extends Scope>[] serviceScopes = scopeOf(serviceType);
 
@@ -144,10 +145,11 @@ class ServiceScopeValidator implements AnnotatedServiceLifecycleHandler {
 
     private String implementationWithMissingScopeMessage(Class<?> serviceType, Class<?> implementationType) {
         return String.format(
-            "The service implementation '%s' is registered in the '%s' scope but does not declare it explicitly. " +
-                "It appears to back %s\n" +
-                "- If registered via 'ServiceRegistration' use 'add(serviceType, implementationType)' overload\n" +
-                "- If registered via creator-method change the return type to the service type\n" +
+            "The service implementation '%s' is registered in the '%s' scope but does not declare it explicitly.\n" +
+                "The implementation appears to serve %s.\n" +
+                "Try the following:\n" +
+                "- If registered via an instance or implementation type then use an overload providing an explicit service type, e.g. 'ServiceRegistration.add(serviceType, implementationType)'\n" +
+                "- If registered via a creator-method in a service provider class then change the return type of the method to the service type\n" +
                 "- Alternatively, add the '@ServiceScope()' to the implementation type",
             implementationType.getName(), scope.getSimpleName(), displayServiceTypes(serviceType)
         );
