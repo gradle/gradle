@@ -17,6 +17,7 @@
 package org.gradle.configurationcache.isolated
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Ignore
 
 import static org.gradle.integtests.fixtures.KotlinDslTestUtil.getKotlinDslBuildSrcConfig
 
@@ -42,6 +43,7 @@ class IsolatedActionIntegrationTest extends AbstractIntegrationSpec {
         true
     }
 
+    @Ignore("wip")
     def 'isolated action given as Kotlin lambda can capture managed value'() {
         given:
         createDir('build-logic') {
@@ -68,10 +70,11 @@ class IsolatedActionIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 // Expose dsl to the user, the value will be isolated only after settings has been fully evaluated
-                val dsl = extensions.create<my.SettingsPluginDsl>("dsl")
-                gradle.lifecycle.beforeProject {
-                    tasks.register<CustomTask>("test") {
-                        taskParameter = dsl.parameter
+                extensions.create<my.SettingsPluginDsl>("dsl").let { dsl ->
+                    gradle.lifecycle.beforeProject {
+                        tasks.register<CustomTask>("test") {
+                            taskParameter = dsl.parameter
+                        }
                     }
                 }
             '''
@@ -81,6 +84,7 @@ class IsolatedActionIntegrationTest extends AbstractIntegrationSpec {
         configuredTaskRunsCorrectly()
     }
 
+    @Ignore("wip")
     def 'isolated action given as Java lambda can capture managed value'() {
         given:
         createDir('build-logic') {

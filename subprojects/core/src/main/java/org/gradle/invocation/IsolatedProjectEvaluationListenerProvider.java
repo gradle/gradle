@@ -19,6 +19,7 @@ package org.gradle.invocation;
 import org.gradle.api.IsolatedAction;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
+import org.gradle.api.invocation.Gradle;
 
 import javax.annotation.Nullable;
 
@@ -37,7 +38,7 @@ public interface IsolatedProjectEvaluationListenerProvider {
      * the actions to carry any shared mutable state across projects.
      */
     @Nullable
-    ProjectEvaluationListener isolate();
+    ProjectEvaluationListener isolateFor(Gradle owner);
 
     /**
      * Discards any registered actions. This doesn't affect any {@link #isolate() previously returned isolated listeners}.

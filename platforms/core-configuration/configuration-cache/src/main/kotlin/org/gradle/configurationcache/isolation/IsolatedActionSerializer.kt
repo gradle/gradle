@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.services
+package org.gradle.configurationcache.isolation
 
-import com.nhaarman.mockitokotlin2.mock
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import org.gradle.api.IsolatedAction
 import org.gradle.api.services.internal.BuildServiceProvider
@@ -34,66 +33,16 @@ import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.beans.BeanStateReaderLookup
 import org.gradle.configurationcache.serialization.beans.BeanStateWriterLookup
-import org.gradle.configurationcache.serialization.codecs.BeanCodec
-import org.gradle.configurationcache.serialization.codecs.Bindings
-import org.gradle.configurationcache.serialization.codecs.baseTypes
-import org.gradle.configurationcache.serialization.codecs.beanStateReaderLookupForTesting
-import org.gradle.configurationcache.serialization.codecs.unsupportedTypes
 import org.gradle.configurationcache.serialization.readNonNull
 import org.gradle.configurationcache.serialization.runReadOperation
 import org.gradle.configurationcache.serialization.runWriteOperation
 import org.gradle.configurationcache.serialization.withIsolate
+import org.gradle.configurationcache.services.IsolatedActionCodecsFactory
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
-import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers.equalTo
-import org.junit.Test
 import java.io.ByteArrayOutputStream
 import java.io.OutputStream
 import java.util.IdentityHashMap
-import java.util.function.Consumer
-
-
-typealias TestableIsolatedAction = IsolatedAction<in Consumer<Any>>
-
-
-class IsolatedActionSerializerTest {
-
-    @Test
-    fun `can serialize Kotlin action holding primitives`() {
-        assertThat(
-            replay(roundtripOf(isolatedActionCarrying(true, 42, "42"))),
-            equalTo(arrayListOf(true, 42, "42"))
-        )
-    }
-
-    private
-    fun isolatedActionCarrying(vararg values: Any): TestableIsolatedAction =
-        TestableIsolatedAction {
-            values.forEach(this::accept) // Consumer::accept
-        }
-
-    private
-    fun replay(isolatedAction: TestableIsolatedAction) =
-        buildList {
-            isolatedAction.execute(this::add)
-        }
-
-    private
-    fun roundtripOf(action: TestableIsolatedAction): TestableIsolatedAction =
-        deserialize(serialize(action))
-
-    private
-    fun serialize(action: TestableIsolatedAction): SerializedAction =
-        IsolatedActionSerializer(IsolateOwner.OwnerGradle(mock()), BeanStateWriterLookup())
-            .serialize(action)
-
-    private
-    fun deserialize(serialized: SerializedAction): TestableIsolatedAction =
-        IsolatedActionDeserializer(IsolateOwner.OwnerGradle(mock()), beanStateReaderLookupForTesting())
-            .deserialize(serialized)
-            .uncheckedCast()
-}
 
 
 /**
@@ -116,7 +65,8 @@ class SerializedAction(
 internal
 class IsolatedActionSerializer(
     private val owner: IsolateOwner,
-    private val beanStateWriterLookup: BeanStateWriterLookup
+    private val beanStateWriterLookup: BeanStateWriterLookup,
+    private val isolatedActionCodecs: IsolatedActionCodecsFactory
 ) {
     fun serialize(action: Any): SerializedAction {
         val outputStream = ByteArrayOutputStream()
@@ -144,7 +94,7 @@ class IsolatedActionSerializer(
         outputStream: OutputStream,
         classEncoder: ClassEncoder,
     ) = DefaultWriteContext(
-        codec = isolatedActionCodecs(),
+        codec = isolatedActionCodecs.isolatedActionCodecs(),
         encoder = KryoBackedEncoder(outputStream),
         beanStateWriterLookup = beanStateWriterLookup,
         logger = logger,
@@ -158,7 +108,8 @@ class IsolatedActionSerializer(
 internal
 class IsolatedActionDeserializer(
     private val owner: IsolateOwner,
-    private val beanStateReaderLookup: BeanStateReaderLookup
+    private val beanStateReaderLookup: BeanStateReaderLookup,
+    private val isolatedActionCodecs: IsolatedActionCodecsFactory
 ) {
     fun deserialize(action: SerializedAction): Any =
         readerContextFor(action).useToRun {
@@ -171,7 +122,7 @@ class IsolatedActionDeserializer(
 
     private
     fun readerContextFor(action: SerializedAction) = DefaultReadContext(
-        codec = isolatedActionCodecs(),
+        codec = isolatedActionCodecs.isolatedActionCodecs(),
         decoder = KryoBackedDecoder(action.graph.inputStream()),
         beanStateReaderLookup = beanStateReaderLookup,
         logger = logger,
@@ -219,9 +170,3 @@ object ThrowingProblemsListener : ProblemsListener {
 }
 
 
-private
-fun isolatedActionCodecs() = Bindings.of {
-    baseTypes()
-    unsupportedTypes()
-    bind(BeanCodec)
-}.build()

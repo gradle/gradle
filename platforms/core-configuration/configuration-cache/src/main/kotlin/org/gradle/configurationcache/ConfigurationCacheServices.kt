@@ -26,6 +26,7 @@ import org.gradle.configurationcache.initialization.ConfigurationCacheStartParam
 import org.gradle.configurationcache.problems.ConfigurationCacheReport
 import org.gradle.configurationcache.serialization.beans.BeanConstructors
 import org.gradle.configurationcache.services.DefaultIsolatedProjectEvaluationListenerProvider
+import org.gradle.configurationcache.services.IsolatedActionCodecsFactory
 import org.gradle.configurationcache.services.RemoteScriptUpToDateChecker
 import org.gradle.execution.ExecutionAccessChecker
 import org.gradle.execution.ExecutionAccessListener
@@ -69,6 +70,7 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
             addProvider(IgnoredConfigurationInputsProvider)
             addProvider(RemoteScriptUpToDateCheckerProvider)
             addProvider(ExecutionAccessCheckerProvider)
+            add(IsolatedActionCodecsFactory::class.java)
         }
     }
 
