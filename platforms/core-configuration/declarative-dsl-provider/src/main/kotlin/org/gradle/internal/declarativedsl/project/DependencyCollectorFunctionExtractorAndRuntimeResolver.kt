@@ -32,39 +32,80 @@ import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeFunctionResolver
 import org.gradle.internal.declarativedsl.schemaBuilder.DataSchemaBuilder
 import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.toDataTypeRef
-import java.lang.reflect.Type
 import java.util.Locale
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
-import kotlin.reflect.full.functions
+import kotlin.reflect.KMutableProperty
+import kotlin.reflect.KProperty
 import kotlin.reflect.full.isSubclassOf
-import kotlin.reflect.full.isSuperclassOf
 import kotlin.reflect.full.memberFunctions
-import kotlin.reflect.javaType
+import kotlin.reflect.full.memberProperties
+import kotlin.reflect.typeOf
 
 
-class DependencyCollectorFunctionExtractorAndRuntimeResolver(private val gavDependencyParam: DataParameter, private val projectDependencyParam: DataParameter) : FunctionExtractor, RuntimeFunctionResolver {
-    /**
-     * Map from a class -> { map from function name -> list of parameter types } for all functions that are extracted by this type,
-     * and can later be resolved at runtime.
-     */
+class DependencyCollectorFunctionExtractorAndRuntimeResolver(
+    private val gavDependencyParam: DataParameter,
+    private val projectDependencyParam: DataParameter
+) : FunctionExtractor, RuntimeFunctionResolver {
+
     private
-    val managedFunctions: MutableMap<KClass<*>, Map<DataMemberFunction, DeclarativeRuntimeFunction>> = mutableMapOf()
+    val collectorDeclarationsByClass: MutableMap<KClass<*>, Map<DataMemberFunction, DependencyCollectorDeclaration>> = mutableMapOf()
+
+    private
+    data class DependencyCollectorDeclaration(
+        val name: String,
+        val addingSchemaFunction: DataMemberFunction,
+        val runtimeFunction: DeclarativeRuntimeFunction,
+        val accessor: DependencyCollectorAccessor
+    )
+
+    private
+    sealed interface DependencyCollectorAccessor : (Any) -> DependencyCollector {
+
+        data class Getter(val getterFunction: KFunction<*>) : DependencyCollectorAccessor {
+            override fun invoke(receiver: Any): DependencyCollector = getterFunction.call(receiver) as DependencyCollector
+        }
+
+        data class Property(val property: KProperty<*>) : DependencyCollectorAccessor {
+            override fun invoke(receiver: Any): DependencyCollector = property.call(receiver) as DependencyCollector
+        }
+    }
+
+    private
+    fun expandToOverloads(produceDeclaration: (DataParameter) -> DependencyCollectorDeclaration) =
+        listOf(gavDependencyParam, projectDependencyParam).map(produceDeclaration)
 
     override fun memberFunctions(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<SchemaMemberFunction> {
-        val discoveredCollectorNames = kClass.memberFunctions
+        val discoveredCollectorDeclarations: List<DependencyCollectorDeclaration> = kClass.memberFunctions
             .filter { function -> hasDependencyCollectorGetterSignature(kClass, function) }
-            .map { function -> dependencyCollectorNameFromGetterName(function.name) }
-
-        val managedFunctionsForKClass = mutableMapOf<DataMemberFunction, DeclarativeRuntimeFunction>()
-        discoveredCollectorNames.forEach { name ->
-            listOf(gavDependencyParam, projectDependencyParam).forEach { param ->
-                managedFunctionsForKClass[buildDataMemberFunction(kClass, name, param)] = buildDeclarativeRuntimeFunction(name)
+            .flatMap { function ->
+                val name = dependencyCollectorNameFromGetterName(function.name)
+                val declarationOrigin = DependencyCollectorAccessor.Getter(function)
+                expandToOverloads { param ->
+                    DependencyCollectorDeclaration(
+                        name,
+                        buildDataMemberFunction(kClass, name, param),
+                        buildDeclarativeRuntimeFunction(declarationOrigin),
+                        declarationOrigin
+                    )
+                }
             }
-        }
-        managedFunctions[kClass] = managedFunctionsForKClass
+            .plus(kClass.memberProperties.filter { isDependencyCollectorProperty(kClass, it) }.flatMap { property ->
+                val declarationOrigin = DependencyCollectorAccessor.Property(property)
+                expandToOverloads { param ->
+                    DependencyCollectorDeclaration(
+                        property.name,
+                        buildDataMemberFunction(kClass, property.name, param),
+                        buildDeclarativeRuntimeFunction(declarationOrigin),
+                        declarationOrigin
+                    )
+                }
+            })
 
-        return managedFunctionsForKClass.keys
+        val declarationsBySchemaFunctions = discoveredCollectorDeclarations.associateBy { it.addingSchemaFunction }
+        collectorDeclarationsByClass[kClass] = declarationsBySchemaFunctions
+
+        return declarationsBySchemaFunctions.keys
     }
 
     override fun constructors(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<DataConstructor> = emptyList()
@@ -72,9 +113,6 @@ class DependencyCollectorFunctionExtractorAndRuntimeResolver(private val gavDepe
 
     private
     fun dependencyCollectorNameFromGetterName(getterName: String) = getterName.removePrefix("get").replaceFirstChar { it.lowercase(Locale.getDefault()) }
-
-    private
-    fun dependencyCollectorGetterNameFromName(name: String) = "get${name.replaceFirstChar { it.uppercase(Locale.getDefault()) }}"
 
     private
     fun buildDataMemberFunction(kClass: KClass<*>, name: String, dependencyParam: DataParameter) = DataMemberFunction(
@@ -86,9 +124,9 @@ class DependencyCollectorFunctionExtractorAndRuntimeResolver(private val gavDepe
     )
 
     private
-    fun buildDeclarativeRuntimeFunction(name: String) = object : DeclarativeRuntimeFunction {
+    fun buildDeclarativeRuntimeFunction(collectorAccessor: DependencyCollectorAccessor) = object : DeclarativeRuntimeFunction {
         override fun callBy(receiver: Any, binding: Map<DataParameter, Any?>, hasLambda: Boolean): DeclarativeRuntimeFunction.InvocationResult {
-            val dependencyCollector = getDependencyCollector(receiver, name)
+            val dependencyCollector = collectorAccessor(receiver)
             when (val dependencyNotation = binding.values.single()) {
                 is ProjectDependency -> dependencyCollector.add(dependencyNotation)
                 else -> dependencyCollector.add(dependencyNotation.toString())
@@ -98,32 +136,54 @@ class DependencyCollectorFunctionExtractorAndRuntimeResolver(private val gavDepe
     }
 
     private
-    fun getDependencyCollector(receiver: Any, name: String) = receiver::class.functions
-        .first { function -> function.name == dependencyCollectorGetterNameFromName(name) }
-        .call(receiver) as DependencyCollector
-
-    @OptIn(ExperimentalStdlibApi::class) // For javaType
-    private
     fun hasDependencyCollectorGetterSignature(receiverClass: KClass<*>, function: KFunction<*>): Boolean {
-        if (!receiverClass.isSubclassOf(Dependencies::class)) {
-            return false
+        return receiverClass.isSubclassOf(Dependencies::class) && with(function) {
+            name.startsWith("get") && returnType.classifier == DependencyCollector::class && parameters.size == 1
         }
-        val returnType: Type = try {
-            function.returnType.javaType
-        } catch (e: Throwable) { // Sometimes reflection fails with an error when the return type is unusual, if it failed then it's not a getter of interest
-            Void::class.java
-        }
-        return function.name.startsWith("get") && returnType == DependencyCollector::class.java && function.parameters.size == 1
+    }
+
+    private
+    fun isDependencyCollectorProperty(receiverClass: KClass<*>, property: KProperty<*>): Boolean {
+        return receiverClass.isSubclassOf(Dependencies::class) &&
+            property.returnType == typeOf<DependencyCollector>() &&
+            property !is KMutableProperty // TODO: decide what to do with `var foo: DependencyCollector`
     }
 
     override fun resolve(receiverClass: KClass<*>, name: String, parameterValueBinding: ParameterValueBinding): RuntimeFunctionResolver.Resolution {
         // We can't just use find receiverClass directly as a key because at runtime we get a decorated class with a different type
         // that extends the original class we extracted into the managedFunctions map, so we have to check the superClass
-        return managedFunctions.entries.find { it.key.isSuperclassOf(receiverClass) }
-            ?.value // Map<DataMemberFunction, DeclarativeRuntimeFunction>?
-            ?.entries?.find { it.key.simpleName == name && it.key.parameters == parameterValueBinding.bindingMap.keys.toList() }
-            ?.value // DeclarativeRuntimeFunction?
-            ?.run { RuntimeFunctionResolver.Resolution.Resolved(this) }
+        return typeHierarchyViaJavaReflection(receiverClass)
+            .firstNotNullOfOrNull(collectorDeclarationsByClass::get)
+            ?.values?.find { it.name == name && it.addingSchemaFunction.parameters == parameterValueBinding.bindingMap.keys.toList() }
+            ?.run { RuntimeFunctionResolver.Resolution.Resolved(runtimeFunction) }
             ?: RuntimeFunctionResolver.Resolution.Unresolved
     }
+
+    /**
+     * Gradle decoration does not generate correct Kotlin metadata for decorated Kotlin types.
+     * Because of that, decorated types do not appear as subtypes of the original types when inspected with Kotlin reflection.
+     * Workaround: use Java reflection to determine the supertypes.
+     * TODO: Either fix Kotlin metadata in decorated classes or introduce generic utilities
+     */
+    private
+    fun typeHierarchyViaJavaReflection(kClass: KClass<*>): Sequence<*> =
+        sequence {
+            val seen = hashSetOf<Class<*>>() // i.e., visited or currently in the queue
+            val queue = ArrayDeque<Class<*>>()
+            fun enqueueSupertypes(type: Class<*>) {
+                if (type.superclass != null && seen.add(type.superclass)) {
+                    queue.add(type.superclass)
+                }
+                queue.addAll(type.interfaces.filter(seen::add))
+            }
+
+            enqueueSupertypes(kClass.java)
+            yield(kClass.java)
+
+            while (queue.isNotEmpty()) {
+                val supertype = queue.removeFirst()
+                enqueueSupertypes(supertype)
+                yield(supertype)
+            }
+        }.map { it.kotlin }
 }
