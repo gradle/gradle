@@ -115,7 +115,7 @@ Gradle provides rich APIs and [lazy configuration](userguide/lazy_configuration.
 
 #### File Permissions API is now stable
 
-The File Permissions API for defining file permissions using UNIX style values (added in [Gradle 8.3](https://docs.gradle.org/8.3/release-notes.html#kotlin-dsl-improvements)) is now stable; see:
+The File Permissions API for defining file permissions using UNIX style values (added in Gradle 8.3) is now stable; see:
 
 * [FilePermissions](javadoc/org/gradle/api/file/FilePermissions.html)
 * [ConfigurableFilePermissions](javadoc/org/gradle/api/file/ConfigurableFilePermissions.html)
@@ -160,7 +160,7 @@ println(files.elements.get()) // [.../dir2]
 ```
 
 This feature caters to plugin developers.
-It is analogous to the [`convention(...)`](javadoc/org/gradle/api/provider/Property.html#convention-T-) methods that have been available on lazy properties since [Gradle 5.1](https://docs.gradle.org/5.1/release-notes.html#kotlin-dsl-improvements).
+It is analogous to the [`convention(...)`](javadoc/org/gradle/api/provider/Property.html#convention-T-) methods that have been available on lazy properties since Gradle 5.1.
 
 #### Updating lazy property based on its current value with `replace()`
 
@@ -349,7 +349,7 @@ The environments that benefit from this fix are Android Studio, IntelliJ IDEA, E
 <a name="kotlin-dsl"></a>
 ### Kotlin DSL improvements
 
-Kotlin DSL provides an alternative syntax to the traditional Groovy DSL and has been the default choice for new Gradle builds since [Gradle 8.2](https://docs.gradle.org/8.2/release-notes.html).
+Kotlin DSL provides an alternative syntax to the traditional Groovy DSL and has been the default choice for new Gradle builds since Gradle 8.2.
 
 #### Accessors for `Settings` extensions in Kotlin DSL
 
