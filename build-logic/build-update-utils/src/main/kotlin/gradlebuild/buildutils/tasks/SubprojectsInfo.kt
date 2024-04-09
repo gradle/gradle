@@ -22,6 +22,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.Internal
 import org.gradle.work.DisableCachingByDefault
 import java.io.File
+import kotlin.io.path.invariantSeparatorsPathString
 
 
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
@@ -36,6 +37,9 @@ abstract class SubprojectsInfo : DefaultTask() {
     private
     val subprojectsFolder = project.layout.projectDirectory.dir("subprojects")
 
+    private
+    val testingFolder = project.layout.projectDirectory.dir("testing")
+
     @get:Internal
     protected
     val subprojectsJson = project.layout.projectDirectory.file(".teamcity/subprojects.json")
@@ -49,7 +53,7 @@ abstract class SubprojectsInfo : DefaultTask() {
 
     private
     fun generateSubprojectsDirectories(): List<File> {
-        val subprojectRoots = platformsFolder.asFile.listFiles(File::isDirectory).plus(subprojectsFolder.asFile)
+        val subprojectRoots = platformsFolder.asFile.listFiles(File::isDirectory).plus(subprojectsFolder.asFile).plus(testingFolder.asFile)
         return subprojectRoots.map { it.listFiles(File::isDirectory).asList() }.flatten()
     }
 
@@ -69,7 +73,7 @@ abstract class SubprojectsInfo : DefaultTask() {
     fun generateSubproject(subprojectDir: File): GradleSubproject {
         return GradleSubproject(
             subprojectDir.name,
-            rootPath.relativize(subprojectDir.toPath()).toString(),
+            rootPath.relativize(subprojectDir.toPath()).invariantSeparatorsPathString,
             subprojectDir.hasDescendantDir("src/test"),
             subprojectDir.hasDescendantDir("src/integTest"),
             subprojectDir.hasDescendantDir("src/crossVersionTest")

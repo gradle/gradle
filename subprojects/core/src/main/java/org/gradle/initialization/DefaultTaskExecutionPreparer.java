@@ -21,22 +21,22 @@ import org.gradle.execution.BuildTaskScheduler;
 import org.gradle.execution.EntryTaskSelector;
 import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.internal.buildtree.BuildModelParameters;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 
 import javax.annotation.Nullable;
 
 public class DefaultTaskExecutionPreparer implements TaskExecutionPreparer {
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationRunner buildOperationRunner;
     private final BuildTaskScheduler buildTaskScheduler;
     private final BuildModelParameters buildModelParameters;
 
     public DefaultTaskExecutionPreparer(
         BuildTaskScheduler buildTaskScheduler,
-        BuildOperationExecutor buildOperationExecutor,
+        BuildOperationRunner buildOperationRunner,
         BuildModelParameters buildModelParameters
     ) {
         this.buildTaskScheduler = buildTaskScheduler;
-        this.buildOperationExecutor = buildOperationExecutor;
+        this.buildOperationRunner = buildOperationRunner;
         this.buildModelParameters = buildModelParameters;
     }
 
@@ -46,7 +46,7 @@ public class DefaultTaskExecutionPreparer implements TaskExecutionPreparer {
             buildTaskScheduler.scheduleRequestedTasks(gradle, selector, plan);
 
             if (buildModelParameters.isConfigureOnDemand() && gradle.isRootBuild()) {
-                new ProjectsEvaluatedNotifier(buildOperationExecutor).notify(gradle);
+                new ProjectsEvaluatedNotifier(buildOperationRunner).notify(gradle);
             }
         });
     }

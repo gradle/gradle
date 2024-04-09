@@ -19,7 +19,6 @@ package org.gradle.internal.event
 import com.google.common.reflect.ClassPath
 import org.gradle.internal.service.scopes.EventScope
 import org.gradle.internal.service.scopes.Scope
-import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.StatefulListener
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import spock.lang.Ignore
@@ -30,7 +29,7 @@ import java.util.concurrent.CopyOnWriteArrayList
 
 @Timeout(60)
 class DefaultListenerManagerTest extends ConcurrentSpec {
-    def manager = new DefaultListenerManager(Scopes.BuildTree)
+    def manager = new DefaultListenerManager(Scope.BuildTree)
 
     def fooListener1 = Mock(TestFooListener.class)
     def fooListener2 = Mock(TestFooListener.class)
@@ -40,8 +39,8 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
     def broadcasterDoesNothingWhenNoListenersRegistered() {
         when:
         manager.getBroadcaster(TestFooListener.class).foo("param")
-        manager.createChild(Scopes.Build).getBroadcaster(BuildScopeListener.class).foo("param")
-        manager.createChild(Scopes.Build).createAnonymousBroadcaster(BuildScopeListener.class).source.foo("param")
+        manager.createChild(Scope.Build).getBroadcaster(BuildScopeListener.class).foo("param")
+        manager.createChild(Scope.Build).createAnonymousBroadcaster(BuildScopeListener.class).source.foo("param")
 
         then:
         0 * _
@@ -426,7 +425,7 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
         def listener3 = Mock(BuildScopeListener)
         manager.addListener(listener1)
         manager.addListener(listener2)
-        def child = manager.createChild(Scopes.Build)
+        def child = manager.createChild(Scope.Build)
         child.addListener(listener3)
         def broadcast = child.getBroadcaster(BuildScopeListener.class)
 
@@ -477,7 +476,7 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
         def listener2 = Mock(BuildScopeListener)
         def listener3 = Mock(BuildScopeListener)
         manager.addListener(listener1)
-        def child = manager.createChild(Scopes.Build)
+        def child = manager.createChild(Scope.Build)
         child.addListener(listener2)
         def broadcast = child.createAnonymousBroadcaster(BuildScopeListener.class)
         broadcast.add(listener3)
@@ -503,7 +502,7 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
         def listener2 = Mock(BuildScopeListener)
         def listener3 = Mock(BuildScopeListener)
         manager.addListener(listener1)
-        def child = manager.createChild(Scopes.Build)
+        def child = manager.createChild(Scope.Build)
         child.addListener(listener2)
         def broadcaster = child.getBroadcaster(BuildScopeListener.class)
         manager.addListener(listener3)
@@ -534,7 +533,7 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
         def listener1 = Mock(BuildScopeListener)
         def listener2 = Mock(BuildScopeListener)
         manager.useLogger(listener1)
-        def child = manager.createChild(Scopes.Build)
+        def child = manager.createChild(Scope.Build)
         def broadcaster = child.getBroadcaster(BuildScopeListener.class)
 
         when:
@@ -570,7 +569,7 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
         def listener2 = Mock(BuildScopeListener)
         def listener3 = Mock(BuildScopeListener)
         manager.useLogger(listener1)
-        def child = manager.createChild(Scopes.Build)
+        def child = manager.createChild(Scope.Build)
         def broadcaster = child.getBroadcaster(BuildScopeListener.class)
         child.useLogger(listener2)
 
@@ -965,7 +964,7 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
     def "cannot add a stateful listener after events have been broadcast by a child"() {
         given:
         manager.addListener(Stub(StatefulTestListener))
-        def broadcaster = manager.createChild(Scopes.BuildTree).getBroadcaster(StatefulTestListener)
+        def broadcaster = manager.createChild(Scope.BuildTree).getBroadcaster(StatefulTestListener)
         broadcaster.something("12")
 
         when:
@@ -1013,7 +1012,7 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
         def listener3 = Mock(BuildScopeListener)
 
         manager.addListener(listener1)
-        def child = manager.createChild(Scopes.Build)
+        def child = manager.createChild(Scope.Build)
         def broadcast = child.createAnonymousBroadcaster(BuildScopeListener)
         child.addListener(listener2)
         broadcast.add(listener3)
@@ -1028,26 +1027,26 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
         0 * listener3._
     }
 
-    @EventScope(Scopes.BuildTree.class)
+    @EventScope(Scope.BuildTree.class)
     interface TestFooListener {
         void foo(String param);
     }
 
-    @EventScope(Scopes.Build.class)
+    @EventScope(Scope.Build.class)
     interface BuildScopeListener {
         void foo(String param);
     }
 
-    @EventScope(Scopes.BuildTree.class)
+    @EventScope(Scope.BuildTree.class)
     interface TestBarListener {
         void bar(int value);
     }
 
-    @EventScope(Scopes.BuildTree.class)
+    @EventScope(Scope.BuildTree.class)
     interface BothListener extends TestFooListener, TestBarListener {
     }
 
-    @EventScope(Scopes.BuildTree.class)
+    @EventScope(Scope.BuildTree.class)
     interface TestBazListener {
         void baz()
     }
@@ -1057,7 +1056,7 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
         void foo(String param)
     }
 
-    @EventScope(Scopes.BuildTree.class)
+    @EventScope(Scope.BuildTree.class)
     @StatefulListener
     interface StatefulTestListener {
         void something(String value)

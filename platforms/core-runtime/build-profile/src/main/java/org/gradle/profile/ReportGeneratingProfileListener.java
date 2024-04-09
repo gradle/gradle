@@ -15,12 +15,14 @@
  */
 package org.gradle.profile;
 
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.initialization.StartParameterBuildOptions;
+import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.File;
@@ -29,20 +31,38 @@ import java.util.Date;
 
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 
-@ServiceScope(Scopes.BuildTree.class)
+@ServiceScope(Scope.BuildTree.class)
 public class ReportGeneratingProfileListener {
     private static final SimpleDateFormat FILE_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
     private final StyledTextOutputFactory textOutputFactory;
+    private final BuildStateRegistry buildStateRegistry;
 
-    public ReportGeneratingProfileListener(StyledTextOutputFactory textOutputFactory) {
+    public ReportGeneratingProfileListener(
+        StyledTextOutputFactory textOutputFactory,
+        BuildStateRegistry buildStateRegistry
+    ) {
         this.textOutputFactory = textOutputFactory;
+        this.buildStateRegistry = buildStateRegistry;
     }
 
     public void buildFinished(BuildProfile buildProfile) {
         ProfileReportRenderer renderer = new ProfileReportRenderer();
-        File file = new File(buildProfile.getBuildDir(), "reports/profile/profile-" + FILE_DATE_FORMAT.format(new Date(buildProfile.getBuildStarted())) + ".html");
+        File file = new File(getBuildDir(), "reports/profile/profile-" + FILE_DATE_FORMAT.format(new Date(buildProfile.getBuildStarted())) + ".html");
         renderer.writeTo(buildProfile, file);
         renderReportUrl(file);
+    }
+
+    private File getBuildDir() {
+        return buildStateRegistry
+            .getRootBuild()
+            .getProjects()
+            .getRootProject()
+            .getMutableModel()
+            .getServices()
+            .get(ProjectLayout.class)
+            .getBuildDirectory()
+            .getAsFile()
+            .get();
     }
 
     private void renderReportUrl(File reportFile) {

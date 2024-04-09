@@ -17,6 +17,7 @@
 package org.gradle.launcher.daemon.configuration;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.NonNullApi;
 import org.gradle.internal.buildoption.BooleanBuildOption;
 import org.gradle.internal.buildoption.BooleanCommandLineOptionConfiguration;
 import org.gradle.internal.buildoption.BuildOption;
@@ -28,11 +29,14 @@ import org.gradle.internal.buildoption.StringBuildOption;
 import org.gradle.internal.jvm.JavaHomeException;
 import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
 import org.gradle.process.internal.JvmOptions;
 
 import java.io.File;
 import java.util.List;
 import java.util.Locale;
+
+import static org.gradle.internal.nativeintegration.services.NativeServices.NATIVE_SERVICES_OPTION;
 
 public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
 
@@ -52,7 +56,9 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
         new ForegroundOption(),
         new StopOption(),
         new StatusOption(),
-        new PriorityOption());
+        new PriorityOption(),
+        new NativeServicesOption()
+    );
 
     public static List<BuildOption<DaemonParameters>> get() {
         return options;
@@ -235,6 +241,18 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
         @Override
         public void applyTo(boolean value, DaemonParameters settings, Origin origin) {
             settings.setApplyInstrumentationAgent(value);
+        }
+    }
+
+    @NonNullApi
+    public static class NativeServicesOption extends StringBuildOption<DaemonParameters> {
+        public NativeServicesOption() {
+            super(NATIVE_SERVICES_OPTION);
+        }
+
+        @Override
+        public void applyTo(String value, DaemonParameters settings, Origin origin) {
+            settings.setNativeServicesMode(NativeServicesMode.fromString(value));
         }
     }
 

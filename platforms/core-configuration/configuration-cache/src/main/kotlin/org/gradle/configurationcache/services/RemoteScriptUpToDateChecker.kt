@@ -26,12 +26,12 @@ import org.gradle.internal.resource.metadata.ExternalResourceMetaDataCompare
 import org.gradle.internal.resource.transfer.AccessorBackedExternalResource
 import org.gradle.internal.resource.transfer.DownloadAction
 import org.gradle.internal.resource.transfer.ExternalResourceConnector
-import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import java.net.URI
 
 
-@ServiceScope(Scopes.BuildTree::class)
+@ServiceScope(Scope.BuildTree::class)
 class RemoteScriptUpToDateChecker(
     private val lockingAccessCoordinator: ArtifactCacheLockingAccessCoordinator,
     private val startParameter: ConfigurationCacheStartParameter,

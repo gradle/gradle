@@ -39,6 +39,8 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.vcs.internal.VcsMappingsStore;
 
+import javax.inject.Inject;
+
 /**
  * Creates fully initialized {@link ResolutionStrategyInternal} instances.
  */
@@ -58,6 +60,7 @@ public class ResolutionStrategyFactory implements Factory<ResolutionStrategyInte
     private final NotationParser<Object, Capability> capabilityNotationParser;
     private final NotationParser<Object, ComponentIdentifier> componentIdentifierNotationParser;
 
+    @Inject
     public ResolutionStrategyFactory(
         Instantiator instantiator,
         DependencySubstitutionRules globalDependencySubstitutionRules,

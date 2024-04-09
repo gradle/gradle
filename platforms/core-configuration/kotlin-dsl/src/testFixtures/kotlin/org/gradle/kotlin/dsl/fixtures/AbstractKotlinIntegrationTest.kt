@@ -331,4 +331,15 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
     protected
     fun gradleExecuterFor(arguments: Array<out String>, rootDir: File = projectRoot) =
         inDirectory(rootDir).withArguments(*arguments)
+
+    protected
+    inline fun withOwnGradleUserHomeDir(reason: String, block: () -> Unit) {
+        executer.requireOwnGradleUserHomeDir(reason)
+        try {
+            block()
+        } finally {
+            // wait for all daemons to shut down so the test dir can be deleted
+            executer.cleanup()
+        }
+    }
 }

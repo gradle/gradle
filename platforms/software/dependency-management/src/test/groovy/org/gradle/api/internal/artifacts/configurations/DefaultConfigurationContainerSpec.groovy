@@ -34,7 +34,7 @@ import org.gradle.api.specs.Spec
 import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.model.CalculatedValueContainerFactory
-import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.work.WorkerThreadRegistry
 import org.gradle.util.AttributeTestUtil
@@ -51,7 +51,7 @@ class DefaultConfigurationContainerSpec extends Specification {
     private DependencyMetaDataProvider metaDataProvider = Mock()
     private FileCollectionFactory fileCollectionFactory = Mock()
     private ComponentIdentifierFactory componentIdentifierFactory = Mock()
-    private BuildOperationExecutor buildOperationExecutor = Mock()
+    private BuildOperationRunner buildOperationRunner = Mock()
     private DependencyLockingProvider dependencyLockingProvider = Mock()
     private ProjectStateRegistry projectStateRegistry = Mock()
     private UserCodeApplicationContext userCodeApplicationContext = Mock()
@@ -77,7 +77,7 @@ class DefaultConfigurationContainerSpec extends Specification {
         dependencyLockingProvider,
         domainObjectContext,
         fileCollectionFactory,
-        buildOperationExecutor,
+        buildOperationRunner,
         Stub(PublishArtifactNotationParserFactory),
         immutableAttributesFactory,
         Stub(ResolveExceptionContextualizer),

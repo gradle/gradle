@@ -18,6 +18,7 @@ package org.gradle.launcher.daemon.context;
 import org.gradle.internal.Factory;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
+import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 
 import java.io.File;
@@ -43,6 +44,7 @@ public class DaemonContextBuilder implements Factory<DaemonContext> {
     private Locale locale = Locale.getDefault();
     private List<String> daemonOpts = new ArrayList<>();
     private boolean applyInstrumentationAgent;
+    private NativeServicesMode nativeServicesMode;
     private DaemonParameters.Priority priority;
 
     public DaemonContextBuilder(ProcessEnvironment processEnvironment) {
@@ -110,6 +112,10 @@ public class DaemonContextBuilder implements Factory<DaemonContext> {
         this.applyInstrumentationAgent = applyInstrumentationAgent;
     }
 
+    public void setNativeServicesMode(NativeServicesMode nativeServicesMode) {
+        this.nativeServicesMode = nativeServicesMode;
+    }
+
     public void setPriority(DaemonParameters.Priority priority) {
         this.priority = priority;
     }
@@ -118,6 +124,7 @@ public class DaemonContextBuilder implements Factory<DaemonContext> {
         setJavaHome(daemonParameters.getEffectiveJvm().getJavaHome());
         setDaemonOpts(daemonParameters.getEffectiveJvmArgs());
         setApplyInstrumentationAgent(daemonParameters.shouldApplyInstrumentationAgent());
+        setNativeServicesMode(daemonParameters.getNativeServicesMode());
         setPriority(daemonParameters.getPriority());
     }
 
@@ -129,6 +136,6 @@ public class DaemonContextBuilder implements Factory<DaemonContext> {
         if (daemonRegistryDir == null) {
             throw new IllegalStateException("Registry dir must be specified.");
         }
-        return new DefaultDaemonContext(uid, javaHome, daemonRegistryDir, pid, idleTimeout, daemonOpts, applyInstrumentationAgent, priority);
+        return new DefaultDaemonContext(uid, javaHome, daemonRegistryDir, pid, idleTimeout, daemonOpts, applyInstrumentationAgent, nativeServicesMode, priority);
     }
 }

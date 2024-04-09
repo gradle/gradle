@@ -16,11 +16,13 @@
 
 package org.gradle.api.internal.tasks.testing;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 import javax.annotation.Nullable;
 
 @UsedByScanPlugin("test-distribution")
+@NonNullApi
 public class DefaultTestDescriptor extends AbstractTestDescriptor {
     private final String displayName;
     private final String className;
@@ -52,6 +54,11 @@ public class DefaultTestDescriptor extends AbstractTestDescriptor {
     @Override
     public String getClassName() {
         return className;
+    }
+
+    @Override
+    public String getMethodName() {
+        return getName();
     }
 
     @Override

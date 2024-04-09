@@ -16,7 +16,6 @@
 
 package gradlebuild.integrationtests
 
-import gradlebuild.basics.accessors.groovy
 import gradlebuild.basics.capitalize
 import gradlebuild.basics.repoRoot
 import gradlebuild.basics.testSplitExcludeTestClasses
@@ -36,6 +35,7 @@ import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.Directory
+import org.gradle.api.tasks.GroovySourceDirectorySet
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.PathSensitive
@@ -232,7 +232,7 @@ fun Project.configureIde(testType: TestType) {
     plugins.withType<IdeaPlugin> {
         with(model) {
             module {
-                testSources.from(sourceSet.java.srcDirs, sourceSet.groovy.srcDirs)
+                testSources.from(sourceSet.java.srcDirs, sourceSet.the<GroovySourceDirectorySet>().srcDirs)
                 testResources.from(sourceSet.resources.srcDirs)
             }
         }

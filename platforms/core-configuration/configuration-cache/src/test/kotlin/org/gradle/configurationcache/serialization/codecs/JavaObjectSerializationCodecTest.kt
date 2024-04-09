@@ -26,11 +26,9 @@ import org.gradle.configurationcache.problems.PropertyKind
 import org.gradle.configurationcache.problems.PropertyTrace
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.equalTo
-import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.CoreMatchers.sameInstance
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert.assertThrows
-import org.junit.Ignore
 import org.junit.Test
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -133,30 +131,44 @@ class JavaObjectSerializationCodecTest : AbstractUserTypeCodecTest() {
     }
 
     @Test
-    fun `Externalizable problems link to the Java serialization section`() {
-        val problems = serializationProblemsOf(ExternalizableBean())
-        assertThat(problems.size, equalTo(1))
-        assertThat(
-            problems[0].documentationSection,
-            equalTo(NotYetImplementedJavaSerialization)
-        )
-    }
-
-    @Test
-    fun `Externalizable roundtrips to null`() {
-        val (first, second) = configurationCacheRoundtripOf(pairOf(ExternalizableBean()))
-        assertThat(first, nullValue())
-        assertThat(second, nullValue())
-    }
-
-    @Ignore("wip")
-    @Test
     fun `can handle Externalizable beans`() {
-        verifyRoundtripOf({ ExternalizableBean() }) {
+        verifyRoundtripOf({ ExternalizableBean().apply { value = 42 } }) {
             assertThat(
                 it.value,
-                equalTo<Any>(42)
+                equalTo(42)
             )
+        }
+    }
+
+    @Test
+    fun `can handle Externalizable beans that contain serializable beans`() {
+        verifyRoundtripOf({ ExternalizableBeanContainingSerializable(33, 42 to "foo") }) {
+            assertThat(
+                it.value,
+                equalTo(33)
+            )
+            assertThat(
+                it.child,
+                equalTo(42 to "foo")
+            )
+        }
+    }
+
+    @Test
+    fun `can handle Serializable bean containing Externalizable bean`() {
+        verifyRoundtripOf({
+            SerializableBeanContainingExternalizable().apply {
+                someString = "foo"
+                childBean = ExternalizableBean(42)
+                someInt = 13
+            }
+        }) {
+            assertThat(it.someString, equalTo("foo"))
+            assertThat(
+                it.childBean?.value,
+                equalTo(42)
+            )
+            assertThat(it.someInt, equalTo(13))
         }
     }
 
@@ -222,6 +234,17 @@ class JavaObjectSerializationCodecTest : AbstractUserTypeCodecTest() {
                 decodedPair.first,
                 sameInstance(decodedPair.second)
             )
+        }
+    }
+
+    @Test
+    fun `preserves identity of Externalizable objects`() {
+        verifyRoundtripOf({
+            val toShare = ExternalizableBean(42)
+            toShare to toShare
+        }) { (first, second) ->
+            assertThat(first.value, equalTo(42))
+            assertThat(first, sameInstance(second))
         }
     }
 
@@ -330,14 +353,32 @@ class JavaObjectSerializationCodecTest : AbstractUserTypeCodecTest() {
         }
     }
 
-    class ExternalizableBean(var value: Int? = null) : Externalizable {
+    class SerializableBeanContainingExternalizable(
+        var someString: String? = null,
+        var childBean: ExternalizableBean? = null,
+        var someInt: Int? = null
+    ) : Serializable
+
+    open class ExternalizableBean(var value: Int = 0) : Externalizable {
 
         override fun writeExternal(out: ObjectOutput) {
-            out.writeInt(42)
+            out.writeInt(value)
         }
 
         override fun readExternal(`in`: ObjectInput) {
             value = `in`.readInt()
+        }
+    }
+
+    class ExternalizableBeanContainingSerializable(value: Int = 0, var child: Pair<Int, String>? = null) : ExternalizableBean(value) {
+        override fun writeExternal(out: ObjectOutput) {
+            super.writeExternal(out)
+            out.writeObject(child)
+        }
+
+        override fun readExternal(`in`: ObjectInput) {
+            value = `in`.readInt()
+            child = `in`.readObject().uncheckedCast()
         }
     }
 

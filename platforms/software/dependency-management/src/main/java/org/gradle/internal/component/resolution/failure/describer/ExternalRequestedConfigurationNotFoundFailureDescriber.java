@@ -16,22 +16,25 @@
 
 package org.gradle.internal.component.resolution.failure.describer;
 
-import org.apache.commons.lang.StringUtils;
-import org.gradle.internal.component.ExternalConfigurationNotFoundException;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.internal.component.resolution.failure.exception.ConfigurationSelectionException;
 import org.gradle.internal.component.resolution.failure.type.ExternalRequestedConfigurationNotFoundFailure;
+
+import java.util.List;
+import java.util.Optional;
 
 /**
  * A {@link ResolutionFailureDescriber} that describes an {@link ExternalRequestedConfigurationNotFoundFailure}.
  */
-public abstract class ExternalRequestedConfigurationNotFoundFailureDescriber extends AbstractResolutionFailureDescriber<ExternalConfigurationNotFoundException, ExternalRequestedConfigurationNotFoundFailure> {
+public abstract class ExternalRequestedConfigurationNotFoundFailureDescriber extends AbstractResolutionFailureDescriber<ExternalRequestedConfigurationNotFoundFailure> {
     @Override
-    public ExternalConfigurationNotFoundException describeFailure(ExternalRequestedConfigurationNotFoundFailure failure) {
-        ExternalConfigurationNotFoundException result = new ExternalConfigurationNotFoundException(buildExternalConfigurationNotFoundFailureMsg(failure));
-        suggestReviewAlgorithm(result);
-        return result;
+    public ConfigurationSelectionException describeFailure(ExternalRequestedConfigurationNotFoundFailure failure, Optional<AttributesSchemaInternal> schema) {
+        String message = buildExternalConfigurationNotFoundFailureMsg(failure);
+        List<String> resolutions = buildResolutions(suggestReviewAlgorithm());
+        return new ConfigurationSelectionException(message, failure, resolutions);
     }
 
     private String buildExternalConfigurationNotFoundFailureMsg(ExternalRequestedConfigurationNotFoundFailure failure) {
-        return String.format("%s declares a dependency from configuration '%s' to configuration '%s' which is not declared in the descriptor for %s.", StringUtils.capitalize(failure.getFromComponent().getDisplayName()), failure.getFromConfigurationName(), failure.getRequestedName(), failure.getRequestedComponent().getDisplayName());
+        return String.format("A dependency was declared from configuration '%s' to configuration '%s' which is not declared in the descriptor for %s.", failure.getFromConfigurationName(), failure.getRequestedName(), failure.getRequestedComponentDisplayName());
     }
 }

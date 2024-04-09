@@ -19,7 +19,7 @@ package org.gradle.internal.fingerprint.classpath;
 import org.gradle.internal.execution.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.impl.RelativePathFileCollectionFingerprinter;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
@@ -27,6 +27,6 @@ import org.gradle.internal.service.scopes.ServiceScope;
  *
  * @see org.gradle.api.tasks.Classpath
  */
-@ServiceScope(Scopes.UserHome.class)
+@ServiceScope(Scope.UserHome.class)
 public interface ClasspathFingerprinter extends FileCollectionFingerprinter {
 }

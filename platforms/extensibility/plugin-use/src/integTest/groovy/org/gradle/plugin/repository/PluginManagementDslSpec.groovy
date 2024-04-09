@@ -138,6 +138,12 @@ class PluginManagementDslSpec extends AbstractIntegrationSpec {
         failure.assertHasLineNumber(2)
         failure.assertThatCause(containsString("Only Settings scripts can contain a pluginManagement {} block."))
         includesLinkToUserguide()
+
+        and:
+        verifyAll(receivedProblem) {
+            fqid == 'compilation:groovy-dsl:compilation-failed'
+            contextualLabel == "Could not compile build file '${buildFile.absolutePath}'."
+        }
     }
 
     def "pluginManagement block is not supported in InitScripts"() {
@@ -155,6 +161,12 @@ class PluginManagementDslSpec extends AbstractIntegrationSpec {
         failure.assertHasLineNumber(2)
         failure.assertThatCause(containsString("Only Settings scripts can contain a pluginManagement {} block."))
         includesLinkToUserguide()
+
+        and:
+        verifyAll(receivedProblem) {
+            fqid == 'compilation:groovy-dsl:compilation-failed'
+            contextualLabel == "Could not compile initialization script '${initScript.absolutePath}'."
+        }
     }
 
     def "pluginManagement block must come before imperative blocks in the settings.gradle script"() {
@@ -171,6 +183,12 @@ class PluginManagementDslSpec extends AbstractIntegrationSpec {
         failure.assertHasLineNumber(3)
         failure.assertThatCause(containsString("The pluginManagement {} block must appear before any other statements in the script."))
         includesLinkToUserguide()
+
+        and:
+        verifyAll(receivedProblem) {
+            fqid == 'compilation:groovy-dsl:compilation-failed'
+            contextualLabel == "Could not compile settings file '${settingsFile.absolutePath}'."
+        }
     }
 
     def "pluginManagement block must come before buildScript blocks in the settings.gradle script"() {
@@ -187,6 +205,12 @@ class PluginManagementDslSpec extends AbstractIntegrationSpec {
         failure.assertHasLineNumber(3)
         failure.assertThatCause(containsString("The pluginManagement {} block must appear before any other statements in the script."))
         includesLinkToUserguide()
+
+        and:
+        verifyAll(receivedProblem) {
+            fqid == 'compilation:groovy-dsl:compilation-failed'
+            contextualLabel == "Could not compile settings file '${settingsFile.absolutePath}'."
+        }
     }
 
     def "Only one pluginManagement block is allowed in each script"() {
@@ -203,6 +227,12 @@ class PluginManagementDslSpec extends AbstractIntegrationSpec {
         failure.assertHasLineNumber(3)
         failure.assertThatCause(containsString("At most, one pluginManagement {} block may appear in the script."))
         includesLinkToUserguide()
+
+        and:
+        verifyAll(receivedProblem) {
+            fqid == 'compilation:groovy-dsl:compilation-failed'
+            contextualLabel == "Could not compile settings file '${settingsFile.absolutePath}'."
+        }
     }
 
     def "Can access properties in pluginManagement block"() {
@@ -293,9 +323,17 @@ class PluginManagementDslSpec extends AbstractIntegrationSpec {
         executer.expectDocumentedDeprecationWarning "The RepositoryHandler.jcenter() method has been deprecated. " +
             "This is scheduled to be removed in Gradle 9.0. JFrog announced JCenter's sunset in February 2021. Use mavenCentral() instead. " +
             "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#jcenter_deprecation"
-        succeeds "help"
-    }
 
+        when:
+        succeeds "help"
+
+        then:
+        verifyAll(receivedProblem) {
+            fqid == 'deprecation:repository-jcenter'
+            contextualLabel == 'The RepositoryHandler.jcenter() method has been deprecated.'
+            solutions == [ 'JFrog announced JCenter\'s sunset in February 2021. Use mavenCentral() instead.' ]
+        }
+    }
 
     void includesLinkToUserguide() {
         failure.assertThatCause(containsString("https://docs.gradle.org/${GradleVersion.current().getVersion()}/userguide/plugins.html#sec:plugin_management"))

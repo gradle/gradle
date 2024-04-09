@@ -104,6 +104,12 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
 
         then:
         failure.assertHasDescription("Could not compile build file '$buildA.buildFile.canonicalPath'.")
+
+        and:
+        verifyAll(receivedProblem) {
+            fqid == 'compilation:groovy-dsl:compilation-failed'
+            contextualLabel == "Could not compile build file '${buildA.buildFile.absolutePath}'."
+        }
     }
 
     def "can co-develop plugin and consumer with both plugin and consumer as included builds"() {

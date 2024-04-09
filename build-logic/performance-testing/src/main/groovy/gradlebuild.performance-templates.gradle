@@ -40,8 +40,23 @@ performanceTest.registerTestProject("gradleBuildBaseline", RemoteProject) {
     ref = '264bd7744d2e89b2708303cd56bb11bc5003fa7e'
 }
 
+// === Declarative DSL ===
+performanceTest.registerTestProject("largeEmptyMultiProjectDeclarativeDsl", JavaExecProjectGeneratorTask) {
+    outputs.dir new File(buildDir, "largeEmptyMultiProjectDeclarativeDsl")
+    outputs.cacheIf { true }
+    inputs.property('template', "largeEmptyMultiProjectDeclarativeDsl")
+    inputs.property('args') { // Arguments are covered by the testProjectName and the outputs. We don't want them to contain the absolute path
+        return []
+    }
+    classpath = sourceSets.performanceTest.runtimeClasspath.filter { it.name.contains('groovy') || it.name.contains('guava')  || it.name.contains('gradle-') }
+    mainClass = 'org.gradle.performance.generator.DeclarativeDslTestProjectGenerator'
+    args name, buildDir.absolutePath
+}
+
+
+
 // === Java ===
-['largeMonolithicJavaProject', 'largeJavaMultiProject', 'largeMonolithicGroovyProject', 'largeGroovyMultiProject', 'largeJavaMultiProjectNoBuildSrc', 'largeJavaMultiProjectKotlinDsl',
+['largeMonolithicJavaProject', 'largeJavaMultiProject', 'largeJavaMultiProjectHierarchy', 'largeMonolithicGroovyProject', 'largeGroovyMultiProject', 'largeJavaMultiProjectNoBuildSrc', 'largeJavaMultiProjectKotlinDsl',
  'mediumMonolithicJavaProject', 'mediumJavaMultiProject', 'mediumJavaMultiProjectWithTestNG', 'mediumJavaCompositeBuild', 'mediumJavaPredefinedCompositeBuild',
  'smallJavaMultiProject', 'smallJavaMultiProjectNoBuildSrc'].each { template ->
     performanceTest.registerTestProject(template, JavaExecProjectGeneratorTask) {
@@ -409,7 +424,7 @@ performanceTest.registerAndroidTestProject("largeAndroidBuild2", RemoteProject) 
 performanceTest.registerAndroidTestProject("nowInAndroidBuild", RemoteProject) {
     remoteUri = 'https://github.com/android/nowinandroid.git'
     // Pinned from main branch
-    ref = "e40fb7925deac9912985522378281ce0f6c9d31a" // latest on September 19th, 2023
+    ref = "88c3eb0b90ace5499962d9495464fa2388ec9e9a" // latest of March 29th, 2024
     doLast {
         setMaxWorkers(outputDirectory, 8)
     }

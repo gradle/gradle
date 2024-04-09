@@ -34,7 +34,6 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
 import java.nio.charset.Charset;
 import java.util.LinkedHashMap;
@@ -65,8 +64,8 @@ public class FilterChain implements Transformer<InputStream, InputStream> {
     @Override
     public InputStream transform(InputStream original) {
         try {
-            return new ReaderInputStream(transform(new InputStreamReader(original, charset)), charset);
-        } catch (UnsupportedEncodingException e) {
+            return ReaderInputStream.builder().setCharset(charset).setReader(transform(new InputStreamReader(original, charset))).get();
+        } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
     }

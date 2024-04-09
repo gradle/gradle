@@ -38,7 +38,6 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.PluginAware;
@@ -88,7 +87,7 @@ import java.util.concurrent.Callable;
  *
  * <p>A project is essentially a collection of {@link Task} objects. Each task performs some basic piece of work, such
  * as compiling classes, or running unit tests, or zipping up a WAR file. You add tasks to a project using one of the
- * {@code create()} methods on {@link TaskContainer}, such as {@link TaskContainer#create(String)}.  You can locate existing
+ * {@code create()} methods on {@link TaskContainer}, such as {@link TaskContainer#create(String)} .  You can locate existing
  * tasks using one of the lookup methods on {@link TaskContainer}, such as {@link org.gradle.api.tasks.TaskCollection#getByName(String)}.
  *
  * <h3>Dependencies</h3>
@@ -111,7 +110,9 @@ import java.util.concurrent.Callable;
  *
  * <p>Plugins can modularise and reuse project configuration.
  * Plugins can be applied using the {@link PluginAware#apply(java.util.Map)} method, or by using the {@link org.gradle.plugin.use.PluginDependenciesSpec} plugins script block.
+ *
  * <h3 id="properties">Dynamic Project Properties</h3>
+ *
  * <p>Gradle executes the project's build file against the <code>Project</code> instance to configure the project. Any
  * property or method your script uses is delegated to the associated <code>Project</code> object. This
  * means you can use any of the methods and properties on the <code>Project</code> interface directly in your script.
@@ -134,21 +135,21 @@ import java.util.concurrent.Callable;
  * your build file, or by calling the project's {@link #property(String)} method. The scopes are:
  *
  * <ul>
- *   <li>The <code>Project</code> object itself. This scope includes any property getters and setters declared by the
- *   <code>Project</code> implementation class.  For example, {@link #getRootProject()} is accessible as the
- *   <code>rootProject</code> property.  The properties of this scope are readable or writable depending on the presence
- *   of the corresponding getter or setter method.
- *   <li>The <em>extra</em> properties of the project.  Each project maintains a map of extra properties, which
- *   can contain any arbitrary name -&gt; value pair.  Once defined, the properties of this scope are readable and writable.
- *   See <a href="#extraproperties">extra properties</a> for more details.
- *   <li>The <em>extensions</em> added to the project by the plugins. Each extension is available as a read-only property with the same name as the extension.
- *   <li>The <em>convention</em> properties added to the project by the plugins. A plugin can add properties and methods
- *   to a project through the project's {@link Convention} object. The properties of this scope may be readable or writable, depending on the convention objects.
- *   <li>The tasks of the project. A task is accessible by using its name as a property name. The properties of this
- *   scope are read-only. For example, a task called <code>compile</code> is accessible as the <code>compile</code>
- *   property.
- *   <li>The extra properties and convention properties are inherited from the project's parent, recursively up to the root
- *   project. The properties of this scope are read-only.
+ * <li>The <code>Project</code> object itself. This scope includes any property getters and setters declared by the
+ * <code>Project</code> implementation class.  For example, {@link #getRootProject()} is accessible as the
+ * <code>rootProject</code> property.  The properties of this scope are readable or writable depending on the presence
+ * of the corresponding getter or setter method.</li>
+ * <li>The <em>extra</em> properties of the project.  Each project maintains a map of extra properties, which
+ * can contain any arbitrary name -&gt; value pair.  Once defined, the properties of this scope are readable and writable.
+ * See <a href="#extraproperties">extra properties</a> for more details.</li>
+ * <li>The <em>extensions</em> added to the project by the plugins. Each extension is available as a read-only property with the same name as the extension.</li>
+ * <li>The <em>convention</em> properties added to the project by the plugins. A plugin can add properties and methods
+ * to a project through the project's {@link org.gradle.api.plugins.Convention} object.  The properties of this scope may be readable or writable, depending on the convention objects.</li>
+ * <li>The tasks of the project.  A task is accessible by using its name as a property name.  The properties of this
+ * scope are read-only. For example, a task called <code>compile</code> is accessible as the <code>compile</code>
+ * property.</li>
+ * <li>The extra properties and convention properties are inherited from the project's parent, recursively up to the root
+ * project. The properties of this scope are read-only.</li>
  * </ul>
  *
  * <p>When reading a property, the project searches the above scopes in order and returns the value from the first
@@ -184,21 +185,21 @@ import java.util.concurrent.Callable;
  *
  * <p>A project has 5 method 'scopes', which it searches for methods:</p>
  *
- * <ol>
- *   <li>The <code>Project</code> object itself.
- *   <li>The build file. The project searches for a matching method declared in the build file.
- *   <li>The <em>extensions</em> added to the project by the plugins. Each extension is available as a method which takes
- *   a closure or {@link org.gradle.api.Action} as a parameter.
- *   <li>The <em>convention</em> methods added to the project by the plugins. A plugin can add properties and methods to
- *   a project through the project's {@link Convention} object.
- *   <li>The tasks of the project. A method is added for each task, using the name of the task as the method name and
- *   taking a single closure or {@link org.gradle.api.Action} parameter. The method calls the {@link Task#configure(groovy.lang.Closure)} method for the
- *   associated task with the provided closure. For example, if the project has a task called <code>compile</code>, then a
- *   method is added with the following signature: <code>void compile(Closure configureClosure)</code>.
- *   <li>The parent project methods recursively up to the root project.
- *   <li>A property of the project whose value is a closure. The closure is treated as a method and is called with the parameters provided.
- *   The property is located as described above.
- * </ol>
+ * <ul>
+ * <li>The <code>Project</code> object itself.</li>
+ * <li>The build file. The project searches for a matching method declared in the build file.</li>
+ * <li>The <em>extensions</em> added to the project by the plugins. Each extension is available as a method which takes
+ * a closure or {@link org.gradle.api.Action} as a parameter.</li>
+ * <li>The <em>convention</em> methods added to the project by the plugins. A plugin can add properties and methods to
+ * a project through the project's {@link org.gradle.api.plugins.Convention} object.</li>
+ * <li>The tasks of the project. A method is added for each task, using the name of the task as the method name and
+ * taking a single closure or {@link org.gradle.api.Action} parameter. The method calls the {@link Task#configure(groovy.lang.Closure)} method for the
+ * associated task with the provided closure. For example, if the project has a task called <code>compile</code>, then a
+ * method is added with the following signature: <code>void compile(Closure configureClosure)</code>.</li>
+ * <li>The methods of the parent project, recursively up to the root project.</li>
+ * <li>A property of the project whose value is a closure. The closure is treated as a method and is called with the provided parameters.
+ * The property is located as described above.</li>
+ * </ul>
  */
 @HasInternalProtocol
 public interface Project extends Comparable<Project>, ExtensionAware, PluginAware {
@@ -385,7 +386,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * <li>The project object itself.  For example, the <code>rootDir</code> project property.</li>
      *
-     * <li>The project's {@link Convention} object.  For example, the <code>srcRootName</code> java plugin
+     * <li>The project's {@link org.gradle.api.plugins.Convention} object.  For example, the <code>srcRootName</code> java plugin
      * property.</li>
      *
      * <li>The project's extra properties.</li>
@@ -408,6 +409,15 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @return This project. Never returns null.
      */
     Project getProject();
+
+    /**
+     * <p>Returns an immutable view of this project, safe for use with isolated projects.</p>
+     *
+     * @return This project as an {@link IsolatedProject}. Never returns null.
+     * @since 8.8
+     */
+    @Incubating
+    IsolatedProject getIsolated();
 
     /**
      * <p>Returns the set containing this project and its subprojects.</p>
@@ -1246,7 +1256,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     void artifacts(Action<? super ArtifactHandler> configureAction);
 
     /**
-     * <p>Returns the {@link Convention} for this project.</p> <p>You can access this property in your build file
+     * <p>Returns the {@link org.gradle.api.plugins.Convention} for this project.</p> <p>You can access this property in your build file
      * using <code>convention</code>. You can also access the properties and methods of the convention object
      * as if they were properties and methods of this project. See <a href="#properties">here</a> for more details</p>
      *
@@ -1255,7 +1265,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @see ExtensionAware#getExtensions()
      */
     @Deprecated
-    Convention getConvention();
+    org.gradle.api.plugins.Convention getConvention();
 
     /**
      * <p>Compares the nesting level of this project with another project of the multi-project hierarchy.</p>

@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.provider.model;
 
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
@@ -24,7 +24,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  *
  * <p>An instance of this type can be injected into a task, plugin or other object by annotating a public constructor or property getter method with {@code javax.inject.Inject}.
  */
-@ServiceScope(Scopes.Build.class)
+@ServiceScope(Scope.Build.class)
 public interface ToolingModelBuilderRegistry {
     void register(ToolingModelBuilder builder);
 

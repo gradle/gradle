@@ -11,34 +11,37 @@ errorprone {
 }
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":logging"))
-    implementation(project(":worker-processes"))
-    implementation(project(":persistent-cache"))
-    implementation(project(":files"))
+    api(project(":base-annotations"))
+    api(project(":base-services"))
+    api(project(":core"))
+    api(project(":core-api"))
+    api(project(":files"))
+    api(project(":hashing"))
+    api(project(":language-java"))
+    api(project(":language-jvm"))
+    api(project(":logging-api"))
+    api(project(":model-core"))
+    api(project(":platform-base"))
+    api(project(":platform-jvm"))
+    api(project(":toolchains-jvm"))
+    api(project(":workers"))
+
+    api(libs.groovy)
+    api(libs.inject)
+    api(libs.jsr305)
+
+    implementation(project(":dependency-management"))
     implementation(project(":file-collections"))
-    implementation(project(":file-temp"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":core"))
-    implementation(project(":workers"))
-    implementation(project(":platform-base"))
-    implementation(project(":platform-jvm"))
-    implementation(project(":language-jvm"))
-    implementation(project(":language-java"))
-    implementation(project(":plugins"))
+    implementation(project(":logging"))
+    implementation(project(":persistent-cache"))
     implementation(project(":plugins-java"))
     implementation(project(":plugins-java-base"))
     implementation(project(":reporting"))
-    implementation(project(":dependency-management"))
-    implementation(project(":process-services"))
-    implementation(project(":toolchains-jvm"))
+    implementation(project(":worker-processes"))
 
-    implementation(libs.groovy)
     implementation(libs.guava)
-    implementation(libs.inject)
 
-    compileOnly("org.scala-sbt:zinc_2.13:1.9.3") {
+    compileOnly(libs.zinc) {
         // Because not needed and was vulnerable
         exclude(module="log4j-core")
         exclude(module="log4j-api")
@@ -62,6 +65,24 @@ dependencies {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
     integTestDistributionRuntimeOnly(project(":distributions-jvm"))
+}
+
+dependencyAnalysis {
+    issues {
+        onUsedTransitiveDependencies {
+            // These are compileOnly transitive dependencies that are needed by the Scala compiler
+            exclude("org.scala-sbt:compiler-interface")
+            exclude("org.scala-sbt:util-interface")
+            exclude("org.scala-sbt:zinc-classpath_2.13")
+            exclude("org.scala-lang:scala-library")
+            exclude("org.scala-sbt:io_2.13")
+            exclude("org.scala-sbt:util-logging_2.13")
+            exclude("org.scala-sbt:util-relation_2.13")
+            exclude("org.scala-sbt:zinc-compile-core_2.13")
+            exclude("org.scala-sbt:zinc-core_2.13")
+            exclude("org.scala-sbt:zinc-persist_2.13")
+        }
+    }
 }
 
 packageCycles {

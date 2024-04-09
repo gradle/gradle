@@ -16,14 +16,18 @@
 package org.gradle.api.internal.tasks.userinput;
 
 import com.google.common.base.CharMatcher;
-import com.google.common.collect.Lists;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Transformer;
+import org.gradle.internal.logging.events.BooleanQuestionPromptEvent;
+import org.gradle.internal.logging.events.IntQuestionPromptEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.PromptOutputEvent;
+import org.gradle.internal.logging.events.SelectOptionPromptEvent;
+import org.gradle.internal.logging.events.TextQuestionPromptEvent;
 import org.gradle.internal.logging.events.UserInputRequestEvent;
 import org.gradle.internal.logging.events.UserInputResumeEvent;
+import org.gradle.internal.logging.events.YesNoQuestionPromptEvent;
 import org.gradle.internal.time.Clock;
 import org.gradle.util.internal.TextUtil;
 
@@ -31,17 +35,13 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 
 public class DefaultUserInputHandler extends AbstractUserInputHandler {
-    private static final List<String> YES_NO_CHOICES = Lists.newArrayList("yes", "no");
-    private static final List<String> LENIENT_YES_NO_CHOICES = Lists.newArrayList("yes", "no", "y", "n");
     private final OutputEventListener outputEventBroadcaster;
     private final Clock clock;
     private final UserInputReader userInputReader;
-    private final AtomicBoolean hasAsked = new AtomicBoolean();
     private final AtomicBoolean interrupted = new AtomicBoolean();
 
     public DefaultUserInputHandler(OutputEventListener outputEventBroadcaster, Clock clock, UserInputReader userInputReader) {
@@ -60,10 +60,6 @@ public class DefaultUserInputHandler extends AbstractUserInputHandler {
         return interrupted.get();
     }
 
-    private void sendPrompt(String prompt) {
-        outputEventBroadcaster.onOutput(new PromptOutputEvent(clock.getCurrentTime(), prompt));
-    }
-
     private String sanitizeInput(String input) {
         return CharMatcher.javaIsoControl().removeFrom(StringUtils.trim(input));
     }
@@ -76,15 +72,10 @@ public class DefaultUserInputHandler extends AbstractUserInputHandler {
             StringBuilder builder = new StringBuilder();
             builder.append(question);
             builder.append(" [");
-            builder.append(StringUtils.join(YES_NO_CHOICES, ", "));
+            builder.append(StringUtils.join(YesNoQuestionPromptEvent.YES_NO_CHOICES, ", "));
             builder.append("] ");
-            return prompt(builder.toString(), value -> {
-                if (YES_NO_CHOICES.contains(value)) {
-                    return BooleanUtils.toBoolean(value);
-                }
-                sendPrompt("Please enter 'yes' or 'no': ");
-                return null;
-            });
+            YesNoQuestionPromptEvent prompt = new YesNoQuestionPromptEvent(clock.getCurrentTime(), builder.toString());
+            return prompt(prompt, BooleanUtils::toBoolean);
         }
 
         @Override
@@ -95,15 +86,10 @@ public class DefaultUserInputHandler extends AbstractUserInputHandler {
             String defaultString = defaultValue ? "yes" : "no";
             builder.append(defaultString);
             builder.append(") [");
-            builder.append(StringUtils.join(YES_NO_CHOICES, ", "));
+            builder.append(StringUtils.join(YesNoQuestionPromptEvent.YES_NO_CHOICES, ", "));
             builder.append("] ");
-            return prompt(builder.toString(), defaultValue, value -> {
-                if (LENIENT_YES_NO_CHOICES.contains(value.toLowerCase(Locale.US))) {
-                    return BooleanUtils.toBoolean(value);
-                }
-                sendPrompt("Please enter 'yes' or 'no' (default: '" + defaultString + "'): ");
-                return null;
-            });
+            BooleanQuestionPromptEvent prompt = new BooleanQuestionPromptEvent(clock.getCurrentTime(), builder.toString(), defaultValue, defaultString);
+            return prompt(prompt, defaultValue, BooleanUtils::toBoolean);
         }
 
         @Override
@@ -128,19 +114,8 @@ public class DefaultUserInputHandler extends AbstractUserInputHandler {
             builder.append(", default: ");
             builder.append(defaultValue);
             builder.append("): ");
-            return prompt(builder.toString(), defaultValue, sanitizedValue -> {
-                try {
-                    int result = Integer.parseInt(sanitizedValue);
-                    if (result >= minValue) {
-                        return result;
-                    }
-                    sendPrompt("Please enter an integer value >= " + minValue + " (default: " + defaultValue + "): ");
-                    return null;
-                } catch (NumberFormatException e) {
-                    sendPrompt("Please enter an integer value (min: " + minValue + ", default: " + defaultValue + "): ");
-                    return null;
-                }
-            });
+            IntQuestionPromptEvent prompt = new IntQuestionPromptEvent(clock.getCurrentTime(), builder.toString(), minValue, defaultValue);
+            return prompt(prompt, defaultValue, Integer::parseInt);
         }
 
         @Override
@@ -150,10 +125,11 @@ public class DefaultUserInputHandler extends AbstractUserInputHandler {
             builder.append(" (default: ");
             builder.append(defaultValue);
             builder.append("): ");
-            return prompt(builder.toString(), defaultValue, sanitizedValue -> sanitizedValue);
+            TextQuestionPromptEvent prompt = new TextQuestionPromptEvent(clock.getCurrentTime(), builder.toString());
+            return prompt(prompt, defaultValue, sanitizedValue -> sanitizedValue);
         }
 
-        private <T> T prompt(String prompt, final T defaultValue, final Transformer<T, String> parser) {
+        private <T> T prompt(PromptOutputEvent prompt, final T defaultValue, final Transformer<T, String> parser) {
             T result = prompt(prompt, sanitizedInput -> {
                 if (sanitizedInput.isEmpty()) {
                     return defaultValue;
@@ -167,7 +143,7 @@ public class DefaultUserInputHandler extends AbstractUserInputHandler {
         }
 
         @Nullable
-        private <T> T prompt(String prompt, Transformer<T, String> parser) {
+        private <T> T prompt(PromptOutputEvent prompt, Transformer<T, String> parser) {
             if (interrupted.get()) {
                 return null;
             }
@@ -177,31 +153,19 @@ public class DefaultUserInputHandler extends AbstractUserInputHandler {
                 hasPrompted = true;
             }
 
-            try {
-                // Add a line before the first question that has been asked of the user
-                // This makes the assumption that all questions happen together, which is ok for now
-                // It would be better to allow this handler to ask the output renderers to show a blank line before the prompt, if not already present
-                if (hasAsked.compareAndSet(false, true)) {
-                    sendPrompt(TextUtil.getPlatformLineSeparator());
+            outputEventBroadcaster.onOutput(prompt);
+            while (true) {
+                UserInputReader.UserInput input = userInputReader.readInput();
+                if (input == UserInputReader.END_OF_INPUT) {
+                    interrupted.set(true);
+                    return null;
                 }
-                sendPrompt(prompt);
-                while (true) {
-                    String input = userInputReader.readInput();
-                    if (input == null) {
-                        interrupted.set(true);
-                        return null;
-                    }
 
-                    String sanitizedInput = sanitizeInput(input);
-                    T result = parser.transform(sanitizedInput);
-                    if (result != null) {
-                        return result;
-                    }
+                String sanitizedInput = sanitizeInput(input.getText());
+                T result = parser.transform(sanitizedInput);
+                if (result != null) {
+                    return result;
                 }
-            } finally {
-                // Send an end-of-line. This is a workaround to convince the console that the cursor is at the start of the line to avoid indenting the next line of text that is displayed
-                // It would be better for the console to listen for stuff read from stdin that would also be echoed to the output and update its state based on this
-                sendPrompt(TextUtil.getPlatformLineSeparator());
             }
         }
 
@@ -231,22 +195,17 @@ public class DefaultUserInputHandler extends AbstractUserInputHandler {
             builder.append(") [1..");
             builder.append(options.size());
             builder.append("] ");
-            return prompt(builder.toString(), defaultOption, sanitizedInput -> {
-                if (sanitizedInput.matches("\\d+")) {
-                    int value = Integer.parseInt(sanitizedInput);
-                    if (value > 0 && value <= values.size()) {
-                        return values.get(value - 1);
-                    }
-                }
-                sendPrompt("Please enter a value between 1 and " + options.size() + ": ");
-                return null;
+            SelectOptionPromptEvent prompt = new SelectOptionPromptEvent(clock.getCurrentTime(), builder.toString(), values.size(), values.indexOf(defaultOption) + 1);
+            return prompt(prompt, defaultOption, sanitizedInput -> {
+                int value = Integer.parseInt(sanitizedInput);
+                return values.get(value - 1);
             });
         }
 
         @Override
         public void finish() {
             if (hasPrompted) {
-                outputEventBroadcaster.onOutput(new UserInputResumeEvent());
+                outputEventBroadcaster.onOutput(new UserInputResumeEvent(clock.getCurrentTime()));
             }
         }
     }

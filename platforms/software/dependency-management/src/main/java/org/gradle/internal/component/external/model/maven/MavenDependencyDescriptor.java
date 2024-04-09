@@ -18,21 +18,13 @@ package org.gradle.internal.component.external.model.maven;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.internal.component.ResolutionFailureHandler;
 import org.gradle.internal.component.external.descriptor.MavenScope;
 import org.gradle.internal.component.external.model.ExternalDependencyDescriptor;
-import org.gradle.internal.component.model.ComponentGraphResolveState;
-import org.gradle.internal.component.model.ConfigurationGraphResolveState;
-import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
-import org.gradle.internal.component.model.GraphVariantSelectionResult;
 import org.gradle.internal.component.model.IvyArtifactName;
-import org.gradle.internal.component.model.VariantGraphResolveState;
 
 import javax.annotation.Nullable;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -77,47 +69,8 @@ public class MavenDependencyDescriptor extends ExternalDependencyDescriptor {
         return !(isConstraint() || isOptional());
     }
 
-    /**
-     * Returns a set of configurations from the target component:
-     *    - If this dependency is sourced from a 'compile' configuration, choose 'compile' if it exists, or 'default'.
-     *    - Otherwise, choose 'runtime' if it exists, or 'default'. Also include 'compile' if it's not a parent of chosen ('runtime'/'default').
-     *    - Always include 'master' if it exists, and it has dependencies and/or artifacts.
-     */
     @Override
-    public GraphVariantSelectionResult selectLegacyConfigurations(ComponentIdentifier fromComponent, ConfigurationMetadata fromConfiguration, ComponentGraphResolveState targetComponentState, ResolutionFailureHandler resolutionFailureHandler) {
-        ImmutableList.Builder<VariantGraphResolveState> result = ImmutableList.builder();
-        boolean requiresCompile = fromConfiguration.getName().equals("compile");
-        if (!requiresCompile) {
-            // From every configuration other than compile, include both the runtime and compile dependencies
-            ConfigurationGraphResolveState runtime = findTargetConfiguration(fromComponent, fromConfiguration, targetComponentState, "runtime", resolutionFailureHandler);
-            result.add(runtime.asVariant());
-            requiresCompile = !runtime.getMetadata().getHierarchy().contains("compile");
-        }
-        if (requiresCompile) {
-            // From compile configuration, or when the target's runtime configuration does not extend from compile, include the compile dependencies
-            ConfigurationGraphResolveState compile = findTargetConfiguration(fromComponent, fromConfiguration, targetComponentState, "compile", resolutionFailureHandler);
-            result.add(compile.asVariant());
-        }
-        ConfigurationGraphResolveState master = targetComponentState.getConfiguration("master");
-        if (master != null && (!master.getMetadata().getDependencies().isEmpty() || !master.asVariant().resolveArtifacts().getArtifacts().isEmpty())) {
-            result.add(master.asVariant());
-        }
-        return new GraphVariantSelectionResult(result.build(), false);
-    }
-
-    private ConfigurationGraphResolveState findTargetConfiguration(ComponentIdentifier fromComponentId, ConfigurationMetadata fromConfiguration, ComponentGraphResolveState targetComponent, String target, ResolutionFailureHandler resolutionFailureHandler) {
-        ConfigurationGraphResolveState configuration = targetComponent.getConfiguration(target);
-        if (configuration == null) {
-            configuration = targetComponent.getConfiguration("default");
-            if (configuration == null) {
-                throw resolutionFailureHandler.externalConfigurationNotFoundFailure(fromComponentId, fromConfiguration.getName(), targetComponent.getId(), target);
-            }
-        }
-        return configuration;
-    }
-
-    @Override
-    protected ExternalDependencyDescriptor withRequested(ModuleComponentSelector newRequested) {
+    protected MavenDependencyDescriptor withRequested(ModuleComponentSelector newRequested) {
         return new MavenDependencyDescriptor(scope, type, newRequested, dependencyArtifact, excludes);
     }
 
@@ -129,8 +82,7 @@ public class MavenDependencyDescriptor extends ExternalDependencyDescriptor {
         return type;
     }
 
-    @Override
-    public List<ExcludeMetadata> getConfigurationExcludes(Collection<String> configurations) {
+    public List<ExcludeMetadata> getConfigurationExcludes() {
         // Ignore exclusions for dependencies with `<optional>true</optional>`, but not for <dependencyManagement>.
         if (type == MavenDependencyType.OPTIONAL_DEPENDENCY) {
             return Collections.emptyList();
@@ -151,8 +103,7 @@ public class MavenDependencyDescriptor extends ExternalDependencyDescriptor {
      * This means that instead of resolving the default artifacts for the target dependency, we'll use the one defined
      * for the dependency.
      */
-    @Override
-    public ImmutableList<IvyArtifactName> getConfigurationArtifacts(ConfigurationMetadata fromConfiguration) {
+    public ImmutableList<IvyArtifactName> getConfigurationArtifacts() {
         // Special handling for artifacts declared for optional dependencies
         if (isOptional()) {
             return getArtifactsForOptionalDependency();

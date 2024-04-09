@@ -19,14 +19,14 @@ package org.gradle.vcs.internal;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.vcs.VcsMapping;
 import org.gradle.vcs.VersionControlSpec;
 
 import javax.annotation.Nullable;
 
-@ServiceScope(Scopes.BuildTree.class)
+@ServiceScope(Scope.BuildTree.class)
 public interface VcsMappingsStore {
     VcsResolver asResolver();
 

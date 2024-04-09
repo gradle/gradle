@@ -52,4 +52,9 @@ class WriterSignatureVerificationResult implements SignatureVerificationResultBu
     public void ignored(String keyId) {
         ignoredKeys.add(keyId);
     }
+
+    @Override
+    public void noSignatures() {
+        entry.noSignatures();
+    }
 }

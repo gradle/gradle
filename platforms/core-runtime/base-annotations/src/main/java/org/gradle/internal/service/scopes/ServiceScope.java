@@ -33,7 +33,7 @@ import java.lang.annotation.Target;
  * The additional instances of the service in lower scopes "override" the instance from the parent
  * for their scope and its children.
  *
- * @see org.gradle.internal.service.scopes.Scopes
+ * @see Scope
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)

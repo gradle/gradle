@@ -36,12 +36,12 @@ import static org.gradle.cache.internal.CacheVersionMapping.introducedIn;
  */
 public enum CacheLayout {
 
-    ROOT(null, "modules", introducedIn("1.9-rc-1").incrementedIn("1.9-rc-2")),
+    MODULES(null, "modules", introducedIn("1.9-rc-1").incrementedIn("1.9-rc-2")),
 
     // If you update FILE_STORE, you may also need to update LocallyAvailableResourceFinderFactory
-    FILE_STORE(ROOT, "files", introducedIn("1.9-rc-1")),
+    FILE_STORE(MODULES, "files", introducedIn("1.9-rc-1")),
 
-    META_DATA(ROOT, "metadata",
+    META_DATA(MODULES, "metadata",
         // skipped versions were not used in a release
         introducedIn("1.9-rc-2")
         .changedTo(2, "1.11-rc-1")
@@ -78,13 +78,14 @@ public enum CacheLayout {
         .changedTo(106, "8.2-milestone-1")
     ),
 
-    RESOURCES(ROOT, "resources", introducedIn("1.9-rc-1")),
+    RESOURCES(MODULES, "resources", introducedIn("1.9-rc-1")),
 
     TRANSFORMS(null, "transforms", introducedIn("3.5-rc-1")
         .changedTo(2, "5.1")
         .changedTo(3, "6.8-rc-1")
         // Introduced move semantics
         .changedTo(4, "8.6-rc-1")
+        .retiredIn("8.8-rc-1")
     );
 
     private final String name;

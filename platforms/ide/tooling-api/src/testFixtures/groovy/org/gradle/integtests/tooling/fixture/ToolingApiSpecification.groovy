@@ -94,6 +94,8 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
     @Rule
     public RuleChain cleanupRule = RuleChain.outerRule(temporaryFolder).around(temporaryDistributionFolder).around(toolingApi)
 
+    private List<String> expectedDeprecations = []
+
     // used reflectively by retry rule
     String getReleasedGradleVersion() {
         return targetDist.version.baseVersion.version
@@ -296,18 +298,18 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
     }
 
     void assertHasBuildSuccessfulLogging() {
-        assertHasNoDeprecationWarnings()
+        assertHasNoUnexpectedDeprecationWarnings()
         assert stdout.toString().contains("BUILD SUCCESSFUL")
     }
 
     void assertHasBuildFailedLogging() {
-        assertHasNoDeprecationWarnings()
+        assertHasNoUnexpectedDeprecationWarnings()
         def failureOutput = targetDist.selectOutputWithFailureLogging(stdout, stderr).toString()
         assert failureOutput.contains("BUILD FAILED")
     }
 
     void assertHasConfigureSuccessfulLogging() {
-        assertHasNoDeprecationWarnings()
+        assertHasNoUnexpectedDeprecationWarnings()
         if (targetDist.isToolingApiLogsConfigureSummary()) {
             assert stdout.toString().contains("CONFIGURE SUCCESSFUL")
         } else {
@@ -316,7 +318,7 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
     }
 
     void assertHasConfigureFailedLogging() {
-        assertHasNoDeprecationWarnings()
+        assertHasNoUnexpectedDeprecationWarnings()
         def failureOutput = targetDist.selectOutputWithFailureLogging(stdout, stderr).toString()
         if (targetDist.isToolingApiLogsConfigureSummary()) {
             assert failureOutput.contains("CONFIGURE FAILED")
@@ -325,17 +327,26 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
         }
     }
 
-    private void assertHasNoDeprecationWarnings() {
-        if (shouldCheckForDeprecationWarnings()) {
-            assert !stdout.toString()
-                .replace("[deprecated]", "IGNORE") // don't check deprecated command-line argument
-                .containsIgnoreCase("deprecated")
-        }
-    }
-
     def shouldCheckForDeprecationWarnings() {
         // Older versions have deprecations
         GradleVersion.version("6.9") < targetVersion
+    }
+
+    private void assertHasNoUnexpectedDeprecationWarnings() {
+        // Clear all expected warnings first
+        String rawOutput = stdout.toString()
+        if (!expectedDeprecations.isEmpty()) {
+            expectedDeprecations.each { expectedDeprecation ->
+                assert rawOutput.contains(expectedDeprecation)
+                rawOutput = rawOutput.replace(expectedDeprecation, "")
+            }
+        }
+        // Then proceed as before
+        if (shouldCheckForDeprecationWarnings()) {
+            assert !rawOutput
+                .replace("[deprecated]", "IGNORE") // don't check deprecated command-line argument
+                .containsIgnoreCase("deprecated")
+        }
     }
 
     ExecutionResult getResult() {
@@ -366,5 +377,9 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
 
     protected static String mavenCentralRepository() {
         RepoScriptBlockUtil.mavenCentralRepository()
+    }
+
+    void expectDeprecation(String message) {
+        expectedDeprecations << message
     }
 }

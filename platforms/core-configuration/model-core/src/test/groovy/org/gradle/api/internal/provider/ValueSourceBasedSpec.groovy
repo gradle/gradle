@@ -23,7 +23,7 @@ import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.api.provider.ValueSourceSpec
 import org.gradle.internal.event.DefaultListenerManager
-import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.snapshot.impl.DefaultIsolatableFactory
 import org.gradle.process.ExecOperations
 import org.gradle.util.TestUtil
@@ -31,7 +31,7 @@ import spock.lang.Specification
 
 abstract class ValueSourceBasedSpec extends Specification {
 
-    def listenerManager = new DefaultListenerManager(Scopes.Build)
+    def listenerManager = new DefaultListenerManager(Scope.Build)
     def isolatableFactory = new DefaultIsolatableFactory(
         null,
         TestUtil.managedFactoryRegistry()

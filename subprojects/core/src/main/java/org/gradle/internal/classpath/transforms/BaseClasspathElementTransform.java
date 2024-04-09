@@ -24,7 +24,7 @@ import org.gradle.internal.classpath.ClassData;
 import org.gradle.internal.classpath.ClasspathBuilder;
 import org.gradle.internal.classpath.ClasspathEntryVisitor;
 import org.gradle.internal.classpath.ClasspathWalker;
-import org.gradle.internal.classpath.types.InstrumentingTypeRegistry;
+import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
 import org.gradle.internal.file.FileException;
 import org.gradle.util.internal.JarUtil;
 import org.objectweb.asm.ClassReader;
@@ -33,6 +33,7 @@ import org.objectweb.asm.ClassWriter;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.function.BiConsumer;
 
 /**
  * Base class for the transformations. Note that the order in which entries are visited is not defined.
@@ -42,28 +43,28 @@ class BaseClasspathElementTransform implements ClasspathElementTransform {
     private static final Logger LOGGER = Logging.getLogger(BaseClasspathElementTransform.class);
 
     protected final File source;
-    private final InstrumentingTypeRegistry typeRegistry;
     private final ClasspathBuilder classpathBuilder;
     private final ClasspathWalker classpathWalker;
+    private final InstrumentationTypeRegistry typeRegistry;
     private final ClassTransform transform;
 
     BaseClasspathElementTransform(
         File source,
         ClasspathBuilder classpathBuilder,
         ClasspathWalker classpathWalker,
-        InstrumentingTypeRegistry typeRegistry,
+        InstrumentationTypeRegistry typeRegistry,
         ClassTransform transform
     ) {
+        this.source = source;
         this.classpathBuilder = classpathBuilder;
         this.classpathWalker = classpathWalker;
-        this.source = source;
         this.typeRegistry = typeRegistry;
         this.transform = transform;
     }
 
     @Override
     public final void transform(File destination) {
-        classpathBuilder.jar(destination, builder -> {
+        resultBuilder().accept(destination, builder -> {
             try {
                 visitEntries(builder);
             } catch (FileException e) {
@@ -71,6 +72,13 @@ class BaseClasspathElementTransform implements ClasspathElementTransform {
                 LOGGER.debug("Malformed archive '{}'. Discarding contents.", source.getName(), e);
             }
         });
+    }
+
+    private BiConsumer<File, ClasspathBuilder.Action> resultBuilder() {
+        if (source.isDirectory()) {
+            return classpathBuilder::directory;
+        }
+        return classpathBuilder::jar;
     }
 
     private void visitEntries(ClasspathBuilder.EntryBuilder builder) throws IOException, FileException {

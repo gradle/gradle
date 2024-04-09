@@ -16,10 +16,10 @@
 
 package org.gradle.api.problems.internal;
 
+import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.Severity;
 
 import javax.annotation.Nullable;
-import java.util.List;
 
 /**
  * Describes a specific problem without context.
@@ -34,23 +34,10 @@ import java.util.List;
  * <p>
  * The category and the label uniquely identify the problem definition, the remaining fields only supply additional information.
  * <p>
- * The context for reported problems is stored in {@link ProblemContext}.
  */
 public interface ProblemDefinition {
 
-    /**
-     * Returns the problem category.
-     *
-     * @return the problem category.
-     */
-    ProblemCategory getCategory();
-
-    /**
-     * The label of the problem.
-     * <p>
-     * Labels should be short and concise, so they fit approximately in a single line.
-     */
-    String getLabel();
+    ProblemId getId();
 
     /**
      * Problem severity.
@@ -65,9 +52,4 @@ public interface ProblemDefinition {
      */
     @Nullable
     DocLink getDocumentationLink();
-
-    /**
-     * A list of possible solutions the user can try to fix the problem.
-     */
-    List<String> getSolutions();
 }

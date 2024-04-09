@@ -18,6 +18,7 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.internal.execution.timeout.impl.DefaultTimeoutHandler
 import org.gradle.internal.logging.events.operations.LogEventBuildOperationProgressDetails
@@ -26,6 +27,8 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 
 import java.time.Duration
+
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
 @Requires(value = IntegTestPreconditions.NotNoDaemonExecutor, reason = "https://github.com/gradle/gradle-private/issues/3433")
 @IntegrationTestTimeout(60)
@@ -317,6 +320,7 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "stack trace of task is printed if it is slow to stop"() {
         given:
         executer.withStackTraceChecksDisabled()

@@ -18,12 +18,15 @@ package org.gradle.api.tasks.bundling
 
 import org.apache.commons.io.FileUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.junit.Rule
 import spock.lang.Issue
+
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
 class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
 
@@ -591,6 +594,7 @@ class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
         result.assertTasksExecutedAndNotSkipped(':update1', ':update2', ':verify1', ':verify2')
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "when two identical archives have the same hashes and same decompression cache entry is reused"() {
         given: "2 archive files"
         createTar('test1.tar') {

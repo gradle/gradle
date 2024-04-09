@@ -37,6 +37,10 @@ class FunctionSinceRepository(classPath: Set<File>, sourcePath: Set<File>) : Aut
     val filesWithUnsupportedAnnotations = listOf(
         "Transformer.java",
         "Provider.java",
+        "ListProperty.java",
+        "MapProperty.java",
+        "Property.java",
+        "SetProperty.java",
     )
 
     private

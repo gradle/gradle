@@ -86,9 +86,8 @@ public class Maven2Gradle {
 
     public void convert() {
         BuildContentGenerationContext buildContentGenerationContext = new BuildContentGenerationContext(new VersionCatalogDependencyRegistry(true));
-        boolean multimodule = !rootProject.getModules().isEmpty();
 
-        if (multimodule) {
+        if (isMultiModule()) {
             String buildLocation = useIncubatingAPIs ? "build-logic" : "buildSrc";
 
             BuildScriptBuilder buildSrcSettingsScriptBuilder = scriptBuilderFactory.scriptForMavenConversion(dsl, buildContentGenerationContext, buildLocation + "/settings", useIncubatingAPIs, insecureProtocolOption);
@@ -506,7 +505,8 @@ public class Maven2Gradle {
     private void generateSettings(String mvnProjectName, Set<MavenProject> projects, BuildContentGenerationContext buildContentGenerationContext) {
         BuildScriptBuilder scriptBuilder = scriptBuilderFactory.scriptForMavenConversion(dsl, buildContentGenerationContext, "settings", useIncubatingAPIs, insecureProtocolOption);
 
-        if (useIncubatingAPIs) {
+        if (useIncubatingAPIs && isMultiModule()) {
+            // build logic is only generated for multi-module projects
             scriptBuilder.block(null, "pluginManagement").methodInvocation(
                 "Include 'plugins build' to define convention plugins.", "includeBuild", "build-logic");
         }
@@ -539,6 +539,10 @@ public class Maven2Gradle {
             scriptBuilder.propertyAssignment(null, "project(\"" + entry.getKey() + "\").projectDir", dirExpression);
         }
         scriptBuilder.create(workingDir).generate();
+    }
+
+    private boolean isMultiModule() {
+        return !rootProject.getModules().isEmpty();
     }
 
     private void createExternalDependency(org.apache.maven.model.Dependency mavenDependency, List<Dependency> result, String scope) {

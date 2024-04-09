@@ -18,7 +18,6 @@ package gradlebuild.performance
 
 import com.google.common.annotations.VisibleForTesting
 import com.gradle.develocity.agent.gradle.test.DevelocityTestConfiguration
-import gradlebuild.basics.accessors.groovy
 import gradlebuild.basics.buildBranch
 import gradlebuild.basics.buildCommitId
 import gradlebuild.basics.capitalize
@@ -55,6 +54,7 @@ import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.ClasspathNormalizer
 import org.gradle.api.tasks.Delete
+import org.gradle.api.tasks.GroovySourceDirectorySet
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
@@ -83,10 +83,10 @@ object Config {
     const val performanceTestResultsJsonName = "perf-results.json"
     const val performanceTestResultsJson = "performance-tests/$performanceTestResultsJsonName"
 
-    // Android Studio Iguana 2023.2.1.16 Canary 16
+    // Android Studio Iguana 2023.2.1 Patch 1
     // Find all references here https://developer.android.com/studio/archive
-    // Update verification-medata.xml
-    const val performanceTestAndroidStudioVersion = "2023.2.1.16"
+    // Update verification-metadata.xml
+    const val performanceTestAndroidStudioVersion = "2023.2.1.24"
     val performanceTestAndroidStudioJvmArgs = listOf("-Xms256m", "-Xmx4096m")
 }
 
@@ -287,7 +287,7 @@ class PerformanceTestPlugin : Plugin<Project> {
         plugins.withType<IdeaPlugin> {
             configure<IdeaModel> {
                 module {
-                    testSources.from(performanceTestSourceSet.java.srcDirs, performanceTestSourceSet.groovy.srcDirs)
+                    testSources.from(performanceTestSourceSet.java.srcDirs, performanceTestSourceSet.the<GroovySourceDirectorySet>().srcDirs)
                     testResources.from(performanceTestSourceSet.resources.srcDirs)
                 }
             }

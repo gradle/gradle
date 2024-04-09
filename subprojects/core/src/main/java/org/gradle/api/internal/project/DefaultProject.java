@@ -23,6 +23,7 @@ import org.gradle.api.AntBuilder;
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.IsolatedProject;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.PathValidation;
@@ -145,7 +146,6 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.Callable;
-import java.util.stream.Collectors;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.Collections.singletonMap;
@@ -518,12 +518,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public Map<String, Project> getChildProjects() {
-        return getChildProjectsUnchecked().entrySet().stream().collect(
-            Collectors.toMap(
-                Map.Entry::getKey,
-                entry -> getCrossProjectModelAccess().access(this, (ProjectInternal) entry.getValue())
-            )
-        );
+        return getCrossProjectModelAccess().getChildProjects(this, this);
     }
 
     @Override
@@ -773,11 +768,16 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     /**
-     * This method is used when scripts access the project via project.x
+     * This method is used when scripts access the project via project.
      */
     @Override
     public ProjectInternal getProject() {
         return this;
+    }
+
+    @Override
+    public IsolatedProject getIsolated() {
+        return new DefaultIsolatedProject(this, rootProject);
     }
 
     @Override

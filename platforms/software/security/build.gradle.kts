@@ -13,19 +13,18 @@ errorprone {
 dependencies {
     api(project(":core-api"))
     api(project(":resources"))
-    implementation(project(":base-services"))
-    implementation(project(":functional"))
-    implementation(project(":logging"))
-    implementation(project(":process-services"))
-    implementation(project(":resources-http"))
-    implementation(libs.guava)
-    implementation(libs.inject)
 
     api(libs.bouncycastlePgp)
+    api(libs.jsr305)
 
-    implementation(libs.groovy) {
-        because("Project.exec() depends on Groovy")
-    }
+    implementation(project(":base-services"))
+    implementation(project(":functional"))
+    implementation(project(":logging-api"))
+    implementation(project(":process-services"))
+
+    implementation(libs.bouncycastleProvider)
+    implementation(libs.guava)
+    implementation(libs.inject)
 
     testImplementation(testFixtures(project(":core")))
 

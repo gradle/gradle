@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.testing;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
@@ -26,6 +27,7 @@ import javax.annotation.Nullable;
  * composite test, made up of zero or more tests.
  */
 @HasInternalProtocol
+@NonNullApi
 public interface TestDescriptor {
     /**
      * Returns the name of the test.  Not guaranteed to be unique.

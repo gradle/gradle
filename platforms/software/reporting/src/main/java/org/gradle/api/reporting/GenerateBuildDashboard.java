@@ -122,6 +122,7 @@ public abstract class GenerateBuildDashboard extends DefaultTask implements Repo
      * @param reportings an array of {@link Reporting} instances that are to be aggregated
      */
     @SuppressWarnings("unchecked")
+    // TODO Use @SafeVarargs and make method final
     public void aggregate(Reporting<? extends ReportContainer<?>>... reportings) {
         aggregated.addAll(Arrays.asList(reportings));
     }

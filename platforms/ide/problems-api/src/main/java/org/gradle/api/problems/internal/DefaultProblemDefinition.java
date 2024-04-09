@@ -16,40 +16,36 @@
 
 package org.gradle.api.problems.internal;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.NonNullApi;
+import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.Severity;
 
 import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.util.Arrays;
-import java.util.List;
 
 @NonNullApi
 public class DefaultProblemDefinition implements Serializable, ProblemDefinition {
-    private final String label;
-    private Severity severity;
-    private final DocLink documentationLink;
-    private final List<String> solutions;
-    private final ProblemCategory problemCategory;
 
+    private final ProblemId id;
+    private final Severity severity;
+    private final DocLink documentationLink;
+
+    @VisibleForTesting
     DefaultProblemDefinition(
-        String label,
+        ProblemId id,
         Severity severity,
-        @Nullable DocLink documentationUrl,
-        @Nullable List<String> solutions,
-        ProblemCategory problemCategory
+        @Nullable DocLink documentationUrl
     ) {
-        this.label = label;
+        this.id = id;
         this.severity = severity;
         this.documentationLink = documentationUrl;
-        this.solutions = solutions == null ? ImmutableList.<String>of() : ImmutableList.copyOf(solutions);
-        this.problemCategory = problemCategory;
     }
 
     @Override
-    public String getLabel() {
-        return label;
+    public ProblemId getId() {
+        return id;
     }
 
     @Override
@@ -61,20 +57,6 @@ public class DefaultProblemDefinition implements Serializable, ProblemDefinition
     @Override
     public DocLink getDocumentationLink() {
         return documentationLink;
-    }
-
-    @Override
-    public List<String> getSolutions() {
-        return solutions;
-    }
-
-    @Override
-    public ProblemCategory getCategory() {
-        return problemCategory;
-    }
-
-    public void setSeverity(Severity severity) {
-        this.severity = severity;
     }
 
     private static boolean equals(@Nullable Object a, @Nullable Object b) {
@@ -90,16 +72,14 @@ public class DefaultProblemDefinition implements Serializable, ProblemDefinition
             return false;
         }
         DefaultProblemDefinition that = (DefaultProblemDefinition) o;
-        return equals(label, that.label) &&
-            severity == that.severity &&
-            equals(problemCategory, that.problemCategory) &&
-            equals(documentationLink, that.documentationLink) &&
-            equals(solutions, that.solutions);
+        return severity == that.severity &&
+            equals(id, that.id) &&
+            equals(documentationLink, that.documentationLink);
     }
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(new Object[]{label, severity, documentationLink, solutions});
+        return Arrays.hashCode(new Object[]{id, severity, documentationLink});
     }
 
 }

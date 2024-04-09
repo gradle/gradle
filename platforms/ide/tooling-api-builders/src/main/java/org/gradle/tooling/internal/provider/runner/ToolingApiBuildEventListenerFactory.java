@@ -17,7 +17,6 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableList.Builder;
 import org.gradle.api.NonNullApi;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.build.event.BuildEventListenerFactory;
@@ -64,7 +63,7 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
 
         ProgressEventConsumer progressEventConsumer = new ProgressEventConsumer(consumer, ancestryTracker);
 
-        Builder<Object> listeners = ImmutableList.builder();
+        ImmutableList.Builder<Object> listeners = ImmutableList.builder();
 
         if (subscriptions.isRequested(OperationType.TEST) && subscriptions.isRequested(OperationType.TEST_OUTPUT)) {
             listeners.add(new ClientForwardingTestOutputOperationListener(progressEventConsumer, idFactory));

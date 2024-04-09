@@ -36,7 +36,7 @@ import org.gradle.tooling.events.download.FileDownloadFinishEvent
 import org.gradle.tooling.events.download.FileDownloadOperationDescriptor
 import org.gradle.tooling.events.download.FileDownloadResult
 import org.gradle.tooling.events.download.FileDownloadStartEvent
-import org.gradle.tooling.events.problems.ProblemDescriptor
+import org.gradle.tooling.events.problems.ProblemEvent
 import org.gradle.tooling.events.task.TaskFinishEvent
 import org.gradle.tooling.events.task.TaskOperationDescriptor
 import org.gradle.tooling.events.task.TaskStartEvent
@@ -104,6 +104,7 @@ class ProgressEvents implements ProgressListener {
                         || descriptor.displayName.startsWith('Configure project ')
                         || descriptor.displayName.startsWith('Cross-configure project ')
                         || descriptor.displayName.startsWith('Resolve files of')
+                        || descriptor.displayName.startsWith('Fingerprint transform inputs')
                         || descriptor.displayName.startsWith('Identifying ')
                         || descriptor.displayName.startsWith('Execute unit of work')
                         || descriptor.displayName.startsWith('Execute transform')
@@ -159,7 +160,7 @@ class ProgressEvents implements ProgressListener {
             } else {
                 def descriptor = event.descriptor
                 // operation should still be running
-                if (descriptor instanceof ProblemDescriptor) {
+                if (event instanceof ProblemEvent) {
                     continue
                 }
                 assert running.containsKey(descriptor)

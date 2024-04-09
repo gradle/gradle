@@ -47,6 +47,7 @@ import org.gradle.configurationcache.serialization.readEnum
 import org.gradle.configurationcache.serialization.readList
 import org.gradle.configurationcache.serialization.readNonNull
 import org.gradle.configurationcache.serialization.readStrings
+import org.gradle.configurationcache.serialization.readStringsSet
 import org.gradle.configurationcache.serialization.withDebugFrame
 import org.gradle.configurationcache.serialization.withGradleIsolate
 import org.gradle.configurationcache.serialization.withIsolate
@@ -96,20 +97,24 @@ enum class StateType(val encryptable: Boolean = false) {
      * Contains the state for the entire build.
      */
     Work(true),
+
     /**
      * Contains the model objects sent back to the IDE in response to a TAPI request.
      */
     Model(true),
+
     /**
      * Contains the model objects queried by the IDE provided build action in order to calculate the model to send back.
      */
     IntermediateModels(true),
+
     /**
      * Contains the dependency resolution metadata for each project.
      */
     ProjectMetadata(false),
     BuildFingerprint(true),
     ProjectFingerprint(true),
+
     /**
      * The index file that points to all of these things
      */
@@ -255,7 +260,7 @@ class ConfigurationCacheState(
         val settingsFile = read() as File?
         val rootBuild = host.createBuild(settingsFile)
         val gradle = rootBuild.gradle
-        readBuildTreeState(gradle)
+        readBuildTreeScopedState(gradle)
         return readBuildsInTree(rootBuild)
     }
 
@@ -274,9 +279,7 @@ class ConfigurationCacheState(
         writeCollection(builds.values) { build ->
             writeBuildState(
                 build,
-                StoredBuildTreeState(
-                    requiredBuildServicesPerBuild = requiredBuildServicesPerBuild
-                ),
+                StoredBuildTreeState(requiredBuildServicesPerBuild),
                 rootBuild
             )
         }
@@ -578,7 +581,7 @@ class ConfigurationCacheState(
     }
 
     private
-    suspend fun DefaultReadContext.readBuildTreeState(gradle: GradleInternal) {
+    suspend fun DefaultReadContext.readBuildTreeScopedState(gradle: GradleInternal) {
         withGradleIsolate(gradle, userTypesCodec) {
             readCachedEnvironmentState(gradle)
             readPreviewFlags(gradle)
@@ -685,7 +688,7 @@ class ConfigurationCacheState(
 
     private
     fun DefaultReadContext.readFileSystemDefaultExcludes(gradle: GradleInternal) {
-        val defaultExcludes = readStrings()
+        val defaultExcludes = readStringsSet()
         gradle.serviceOf<FileSystemDefaultExcludesProvider>().updateCurrentDefaultExcludes(defaultExcludes)
     }
 
@@ -715,6 +718,7 @@ class ConfigurationCacheState(
             write(cacheConfigurations.snapshotWrappers.removeUnusedEntriesOlderThan)
             write(cacheConfigurations.downloadedResources.removeUnusedEntriesOlderThan)
             write(cacheConfigurations.createdResources.removeUnusedEntriesOlderThan)
+            write(cacheConfigurations.buildCache.removeUnusedEntriesOlderThan)
             write(cacheConfigurations.cleanup)
             write(cacheConfigurations.markingStrategy)
         }
@@ -727,6 +731,7 @@ class ConfigurationCacheState(
             cacheConfigurations.snapshotWrappers.removeUnusedEntriesOlderThan.value(readNonNull<Provider<Long>>())
             cacheConfigurations.downloadedResources.removeUnusedEntriesOlderThan.value(readNonNull<Provider<Long>>())
             cacheConfigurations.createdResources.removeUnusedEntriesOlderThan.value(readNonNull<Provider<Long>>())
+            cacheConfigurations.buildCache.removeUnusedEntriesOlderThan.value(readNonNull<Provider<Long>>())
             cacheConfigurations.cleanup.value(readNonNull<Provider<Cleanup>>())
             cacheConfigurations.markingStrategy.value(readNonNull<Provider<MarkingStrategy>>())
         }

@@ -202,7 +202,7 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
         downloadedLibsDir.assertContainsDescendants('a-1.0.jar')
     }
 
-    def "skips subsequent dependency resolution if HTTP connection exceeds timeout"() {
+    def "skips subsequent dependency resolution if HTTP connection exceeds timeout, and only prints original cause once"() {
         given:
         MavenHttpModule moduleB = publishMavenModule(mavenHttpRepo, 'b')
         MavenHttpModule moduleC = publishMavenModule(mavenHttpRepo, 'c')
@@ -221,11 +221,93 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
         moduleA.pom.expectGetBlocking()
         fails('resolve', '--max-workers=1')
 
-        then:
+        then: "the original failure cause is reported and the subsequent failures which only duplicate the same info are skipped"
         assertDependencyMetaDataReadTimeout(moduleA)
-        assertDependencySkipped(moduleB)
-        assertDependencySkipped(moduleC)
+        failure.assertHasErrorOutput("There are 2 more failures with identical causes.")
+        outputDoesNotContain("Could not resolve ${mavenModuleCoordinates(moduleD)}")
+        outputDoesNotContain("Could not resolve ${mavenModuleCoordinates(moduleE)}")
         !downloadedLibsDir.isDirectory()
+    }
+
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
+    def "when repository timeout resolving a configuration is swallowed, trying to re-resolve that configuration still prints the original cause"() {
+        given:
+        MavenHttpModule moduleB = publishMavenModule(mavenHttpRepo, 'b')
+
+        buildFile << """
+            ${mavenRepository(mavenHttpRepo)}
+            configurations {
+                fail
+                lax
+            }
+            dependencies {
+                fail "${mavenModuleCoordinates(moduleB)}"
+                lax "${mavenModuleCoordinates(moduleA)}"
+            }
+
+            task resolve {
+                doLast {
+                    // Try to resolve configuration "lax" and swallow any exception to continue the build
+                    try {
+                        configurations.lax.files
+                    } catch (Exception e) {
+                        println "Lax failure swallowed"
+                    }
+
+                    // Try to resolve configuration "lax" again - this exception is printed
+                    configurations.lax.files
+                }
+            }
+        """
+
+        when:
+        moduleA.pom.expectGetBlocking()
+        fails('resolve', '--max-workers=1')
+
+        then:
+        outputContains("Lax failure swallowed")
+        assertDependencyMetaDataReadTimeout(moduleA)
+    }
+
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
+    def "when repository timeout resolving a configuration is swallowed, trying to resolve another configuration using the same repository still prints original cause"() {
+        given:
+        MavenHttpModule moduleB = publishMavenModule(mavenHttpRepo, 'b')
+
+        buildFile << """
+            ${mavenRepository(mavenHttpRepo)}
+            configurations {
+                lax
+                fail
+            }
+            dependencies {
+                lax "${mavenModuleCoordinates(moduleA)}"
+                fail "${mavenModuleCoordinates(moduleB)}"
+            }
+
+            task resolve {
+                doLast {
+                    // Try to resolve configuration "lax" and swallow any exception to continue the build
+                    try {
+                        configurations.lax.files
+                    } catch (Exception e) {
+                        println "Lax failure swallowed"
+                    }
+
+                    // Try to resolve configuration "fail" - this fails due to the repository being disabled, and the original cause is also printed underneath
+                    configurations.fail.files
+                }
+            }
+        """
+
+        when:
+        moduleA.pom.expectGetBlocking()
+        fails('resolve', '--max-workers=1')
+
+        then:
+        outputContains("Lax failure swallowed")
+        assertDependencySkipped(moduleB, "maven")
+        assertDependencyMetaDataReadTimeout(moduleA)
     }
 
     def "fails build and #abortDescriptor repository search if HTTP connection #reason when resolving metadata"() {
@@ -413,9 +495,9 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
         failure.assertHasCause("Could not GET '${mavenHttpRepo.uri.toString()}/${mavenModuleRepositoryPath(module)}.jar'. Received status code 401 from server: Unauthorized")
     }
 
-    private void assertDependencySkipped(MavenModule module) {
+    private void assertDependencySkipped(MavenModule module, String repositoryName) {
         failure.assertHasCause("Could not resolve ${mavenModuleCoordinates(module)}.")
-        failure.assertHasCause("Skipped due to earlier error")
+        failure.assertHasCause("Repository $repositoryName is disabled due to earlier error below:")
     }
 
     private String mavenModuleCoordinates(MavenHttpModule module) {

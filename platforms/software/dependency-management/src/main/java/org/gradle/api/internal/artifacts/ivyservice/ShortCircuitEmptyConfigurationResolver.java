@@ -78,6 +78,7 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
             return delegate.resolveBuildDependencies(resolveContext);
         }
 
+        resolveContext.markAsObserved();
         VisitedGraphResults graphResults = emptyGraphResults(resolveContext);
         return DefaultResolverResults.buildDependenciesResolved(graphResults, EmptyResults.INSTANCE,
             DefaultResolverResults.DefaultLegacyResolverResults.buildDependenciesResolved(EmptyResults.INSTANCE)
@@ -92,14 +93,15 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
 
         if (resolveContext.getResolutionStrategy().isDependencyLockingEnabled()) {
             DependencyLockingProvider dependencyLockingProvider = resolveContext.getResolutionStrategy().getDependencyLockingProvider();
-            DependencyLockingState lockingState = dependencyLockingProvider.loadLockState(resolveContext.getName());
+            DependencyLockingState lockingState = dependencyLockingProvider.loadLockState(resolveContext.getDependencyLockingId(), resolveContext.getResolutionHost().displayName());
             if (lockingState.mustValidateLockState() && !lockingState.getLockedDependencies().isEmpty()) {
                 // Invalid lock state, need to do a real resolution to gather locking failures
                 return delegate.resolveGraph(resolveContext);
             }
-            dependencyLockingProvider.persistResolvedDependencies(resolveContext.getName(), Collections.emptySet(), Collections.emptySet());
+            dependencyLockingProvider.persistResolvedDependencies(resolveContext.getDependencyLockingId(), resolveContext.getResolutionHost().displayName(), Collections.emptySet(), Collections.emptySet());
         }
 
+        resolveContext.markAsObserved();
         VisitedGraphResults graphResults = emptyGraphResults(resolveContext);
         ResolvedConfiguration resolvedConfiguration = new DefaultResolvedConfiguration(
             graphResults, resolveContext.getResolutionHost(), EmptyResults.INSTANCE, new EmptyLenientConfiguration()
@@ -162,6 +164,7 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
         }
 
         @Override
+        @Deprecated
         public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) {
             return Collections.emptySet();
         }
@@ -182,6 +185,7 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
         }
 
         @Override
+        @Deprecated
         public Set<File> getFiles(Spec<? super Dependency> dependencySpec) {
             return Collections.emptySet();
         }
@@ -192,6 +196,7 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
         }
 
         @Override
+        @Deprecated
         public Set<ResolvedArtifact> getArtifacts(Spec<? super Dependency> dependencySpec) {
             return Collections.emptySet();
         }

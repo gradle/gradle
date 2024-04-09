@@ -16,7 +16,7 @@
 
 package org.gradle.execution.plan;
 
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
@@ -27,7 +27,7 @@ import java.util.List;
  * Preserves identity of {@see OrdinalGroup} instances so there's a 1-to-1 mapping of ordinals to groups allowing groups
  * to be freely compared by identity.
  */
-@ServiceScope(Scopes.Build.class)
+@ServiceScope(Scope.Build.class)
 public class OrdinalGroupFactory {
 
     private final List<OrdinalGroup> groups = new ArrayList<>();

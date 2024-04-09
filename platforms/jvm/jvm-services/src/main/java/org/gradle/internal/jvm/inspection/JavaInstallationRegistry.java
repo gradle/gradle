@@ -24,15 +24,14 @@ import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.jvm.toolchain.internal.InstallationLocation;
 import org.gradle.jvm.toolchain.internal.InstallationSupplier;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
@@ -45,60 +44,61 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-@ServiceScope(Scopes.Build.class)
+@ServiceScope(Scope.Build.class)
 public class JavaInstallationRegistry {
-    private final BuildOperationExecutor executor;
+    private final BuildOperationRunner buildOperationRunner;
     private final Installations installations;
     private final JvmMetadataDetector metadataDetector;
     private final Logger logger;
     private final OperatingSystem os;
 
     private final ProgressLoggerFactory progressLoggerFactory;
+    private final JvmInstallationProblemReporter problemReporter;
 
     @Inject
     public JavaInstallationRegistry(
         List<InstallationSupplier> suppliers,
         JvmMetadataDetector metadataDetector,
-        @Nullable BuildOperationExecutor executor,
+        BuildOperationRunner buildOperationRunner,
         OperatingSystem os,
-        ProgressLoggerFactory progressLoggerFactory
+        ProgressLoggerFactory progressLoggerFactory,
+        JvmInstallationProblemReporter problemReporter
     ) {
-        this(suppliers, metadataDetector, Logging.getLogger(JavaInstallationRegistry.class), executor, os, progressLoggerFactory);
+        this(suppliers, metadataDetector, Logging.getLogger(JavaInstallationRegistry.class), buildOperationRunner, os, progressLoggerFactory, problemReporter);
     }
 
     private JavaInstallationRegistry(
         List<InstallationSupplier> suppliers,
         JvmMetadataDetector metadataDetector,
         Logger logger,
-       @Nullable BuildOperationExecutor executor,
+        BuildOperationRunner buildOperationRunner,
         OperatingSystem os,
-        ProgressLoggerFactory progressLoggerFactory
+        ProgressLoggerFactory progressLoggerFactory,
+        JvmInstallationProblemReporter problemReporter
     ) {
         this.logger = logger;
-        this.executor = executor;
+        this.buildOperationRunner = buildOperationRunner;
         this.metadataDetector = metadataDetector;
         this.installations = new Installations(() -> maybeCollectInBuildOperation(suppliers));
         this.os = os;
         this.progressLoggerFactory = progressLoggerFactory;
+        this.problemReporter = problemReporter;
     }
 
     @VisibleForTesting
-    static JavaInstallationRegistry withLogger(
+    public static JavaInstallationRegistry withLogger(
         List<InstallationSupplier> suppliers,
         JvmMetadataDetector metadataDetector,
         Logger logger,
-        BuildOperationExecutor executor,
-        ProgressLoggerFactory progressLoggerFactory
+        BuildOperationRunner buildOperationRunner,
+        ProgressLoggerFactory progressLoggerFactory,
+        JvmInstallationProblemReporter problemDeduplicator
     ) {
-        return new JavaInstallationRegistry(suppliers, metadataDetector, logger, executor, OperatingSystem.current(), progressLoggerFactory);
+        return new JavaInstallationRegistry(suppliers, metadataDetector, logger, buildOperationRunner, OperatingSystem.current(), progressLoggerFactory, problemDeduplicator);
     }
 
     private Set<InstallationLocation> maybeCollectInBuildOperation(List<InstallationSupplier> suppliers) {
-        if (executor != null) {
-            return executor.call(new ToolchainDetectionBuildOperation(() -> collectInstallations(suppliers)));
-        } else {
-            return collectInstallations(suppliers);
-        }
+        return buildOperationRunner.call(new ToolchainDetectionBuildOperation(() -> collectInstallations(suppliers)));
     }
 
     protected Set<InstallationLocation> listInstallations() {
@@ -141,11 +141,11 @@ public class JavaInstallationRegistry {
     protected boolean installationExists(InstallationLocation installationLocation) {
         File file = installationLocation.getLocation();
         if (!file.exists()) {
-            logger.warn("Directory {} used for java installations does not exist", installationLocation.getDisplayName());
+            problemReporter.reportProblemIfNeeded(logger, installationLocation, "Directory " + installationLocation.getDisplayName() + " used for java installations does not exist");
             return false;
         }
         if (!file.isDirectory()) {
-            logger.warn("Path for java installation {} points to a file, not a directory", installationLocation.getDisplayName());
+            problemReporter.reportProblemIfNeeded(logger, installationLocation, "Path for java installation " + installationLocation.getDisplayName() + " points to a file, not a directory");
             return false;
         }
         return true;
@@ -153,7 +153,7 @@ public class JavaInstallationRegistry {
 
     protected boolean installationHasExecutable(InstallationLocation installationLocation) {
         if (!hasJavaExecutable(installationLocation.getLocation())) {
-            logger.warn("Path for java installation {} does not contain a java executable", installationLocation.getDisplayName());
+            problemReporter.reportProblemIfNeeded(logger, installationLocation, "Path for java installation " + installationLocation.getDisplayName() + " does not contain a java executable");
             return false;
         }
         return true;
@@ -164,7 +164,7 @@ public class JavaInstallationRegistry {
         try {
             final File canonicalFile = file.getCanonicalFile();
             final File javaHome = findJavaHome(canonicalFile);
-            return new InstallationLocation(javaHome, location.getSource(), location.isAutoProvisioned());
+            return location.withLocation(javaHome);
         } catch (IOException e) {
             throw new GradleException(String.format("Could not canonicalize path to java installation: %s.", file), e);
         }
@@ -175,7 +175,7 @@ public class JavaInstallationRegistry {
         final File parentPath = home.getParentFile();
         final boolean isEmbeddedJre = home.getName().equalsIgnoreCase("jre");
         if (isEmbeddedJre && hasJavaExecutable(parentPath)) {
-            return new InstallationLocation(parentPath, location.getSource());
+            return location.withLocation(parentPath);
         }
         return location;
     }
