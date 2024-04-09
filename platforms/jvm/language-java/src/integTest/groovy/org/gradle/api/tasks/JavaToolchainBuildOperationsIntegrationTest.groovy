@@ -537,8 +537,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         "1.6"           | _
         "1.7"           | _
         "1.8"           | _
-        "1.9.0"         | _
-        "1.9.23"        | _
+        "1.9"           | _
         "latest"        | _
 
         kotlinPluginVersion = kotlinPlugin == "latest" ? kgpLatestVersions.last() : latestStableKotlinPluginVersion(kotlinPlugin)
@@ -663,6 +662,10 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
     }
 
     private static String latestStableKotlinPluginVersion(String major) {
+        println("================")
+        println(kgpLatestVersions)
+        println(major)
+        println(kgpLatestVersions.findAll { it.startsWith(major) && !it.contains("-") })
         return kgpLatestVersions.findAll { it.startsWith(major) && !it.contains("-") }.last()
     }
 }
