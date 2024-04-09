@@ -3,6 +3,7 @@ package org.gradle.internal.declarativedsl.analysis
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.gradle.declarative.dsl.schema.AnalysisSchema
+import org.gradle.declarative.dsl.schema.ConfigureAccessor
 import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.DataConstructor
 import org.gradle.declarative.dsl.schema.DataParameter
@@ -207,7 +208,7 @@ data object UnknownParameterSemantics : ParameterSemantics.Unknown
 
 @Serializable
 class AccessAndConfigureFunctionSemantics(
-    val accessor: ConfigureAccessor,
+    val accessor: ConfigureAccessorImpl,
     val returnType: ReturnType
 ) : FunctionSemantics.ConfigureSemantics {
     enum class ReturnType {
@@ -256,28 +257,40 @@ class BuilderFunctionSemantics(private val objectType: DataTypeRef) : FunctionSe
 
 
 @Serializable
-sealed interface ConfigureAccessor {
-    val objectType: DataTypeRef
+sealed interface ConfigureAccessorImpl : ConfigureAccessor {
 
     fun access(objectOrigin: ObjectOrigin, inFunction: ObjectOrigin.AccessAndConfigureReceiver): ObjectOrigin
 
     @Serializable
-    data class Property(val dataProperty: DataProperty) : ConfigureAccessor {
-        override val objectType: DataTypeRef
-            get() = dataProperty.type
+    data class Property(
+        private val dataProperty: DataProperty
+    ) : ConfigureAccessorImpl {
+
+        override fun getObjectType(): DataTypeRef = dataProperty.type
 
         override fun access(objectOrigin: ObjectOrigin, inFunction: ObjectOrigin.AccessAndConfigureReceiver): ObjectOrigin =
             ObjectOrigin.PropertyReference(objectOrigin, dataProperty, objectOrigin.originElement)
     }
 
     @Serializable
-    data class Custom(override val objectType: DataTypeRef, val customAccessorIdentifier: String) : ConfigureAccessor {
+    data class Custom(
+        private val objectType: DataTypeRef,
+        val customAccessorIdentifier: String
+    ) : ConfigureAccessorImpl {
+
+        override fun getObjectType(): DataTypeRef = objectType
+
         override fun access(objectOrigin: ObjectOrigin, inFunction: ObjectOrigin.AccessAndConfigureReceiver): ObjectOrigin =
             ObjectOrigin.CustomConfigureAccessor(objectOrigin, this, objectOrigin.originElement)
     }
 
     @Serializable
-    data class ConfiguringLambdaArgument(override val objectType: DataTypeRef) : ConfigureAccessor {
+    data class ConfiguringLambdaArgument(
+        private val objectType: DataTypeRef
+    ) : ConfigureAccessorImpl {
+
+        override fun getObjectType(): DataTypeRef = objectType
+
         override fun access(objectOrigin: ObjectOrigin, inFunction: ObjectOrigin.AccessAndConfigureReceiver): ObjectOrigin =
             ObjectOrigin.ConfiguringLambdaReceiver(inFunction.function, inFunction.parameterBindings, inFunction.invocationId, objectType, inFunction.originElement, inFunction.receiver)
     }

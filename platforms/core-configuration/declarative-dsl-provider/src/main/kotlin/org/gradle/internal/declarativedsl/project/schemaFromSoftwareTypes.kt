@@ -17,11 +17,11 @@
 package org.gradle.internal.declarativedsl.project
 
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.internal.declarativedsl.analysis.ConfigureAccessor
-import org.gradle.internal.declarativedsl.analysis.DataConstructor
+import org.gradle.declarative.dsl.schema.DataConstructor
+import org.gradle.declarative.dsl.schema.SchemaMemberFunction
+import org.gradle.internal.declarativedsl.analysis.AccessAndConfigureFunctionSemantics
+import org.gradle.internal.declarativedsl.analysis.ConfigureAccessorImpl
 import org.gradle.internal.declarativedsl.analysis.DataMemberFunction
-import org.gradle.internal.declarativedsl.analysis.FunctionSemantics
-import org.gradle.internal.declarativedsl.analysis.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaComponent
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeCustomAccessors
 import org.gradle.internal.declarativedsl.schemaBuilder.DataSchemaBuilder
@@ -76,9 +76,9 @@ data class SoftwareTypeInfo(
         delegate.softwareType,
         emptyList(),
         isDirectAccessOnly = true,
-        semantics = FunctionSemantics.AccessAndConfigure(
-            accessor = ConfigureAccessor.Custom(delegate.modelPublicType.kotlin.toDataTypeRef(), customAccessorId),
-            FunctionSemantics.AccessAndConfigure.ReturnType.UNIT
+        semantics = AccessAndConfigureFunctionSemantics(
+            accessor = ConfigureAccessorImpl.Custom(delegate.modelPublicType.kotlin.toDataTypeRef(), customAccessorId),
+            AccessAndConfigureFunctionSemantics.ReturnType.UNIT
         )
     )
 }
@@ -100,6 +100,6 @@ class RuntimeModelTypeAccessors(info: List<SoftwareTypeInfo>) : RuntimeCustomAcc
 
     val modelTypeById = info.associate { it.customAccessorId to it.extensionProvider }
 
-    override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessor.Custom): Any? =
+    override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessorImpl.Custom): Any? =
         modelTypeById[accessor.customAccessorIdentifier]?.invoke(receiverObject)
 }
