@@ -538,7 +538,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         "1.7"           | _
         "1.8"           | _
         "1.9.0"         | _
-        "1.9.22"        | _
+        "1.9.23"        | _
         "latest"        | _
 
         kotlinPluginVersion = kotlinPlugin == "latest" ? kgpLatestVersions.last() : latestStableKotlinPluginVersion(kotlinPlugin)
