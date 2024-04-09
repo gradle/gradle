@@ -114,12 +114,12 @@ class StatementResolverImpl(
             is ObjectOrigin.ConstantOrigin -> false
             is ObjectOrigin.External -> true
             is ObjectOrigin.FunctionOrigin -> {
-                val semantics = objectOrigin.function.semantics
-                when (semantics) {
-                    is FunctionSemantics.Builder -> error("should be impossible?")
-                    is FunctionSemantics.AccessAndConfigure -> true
-                    is FunctionSemantics.AddAndConfigure -> true
-                    is FunctionSemantics.Pure -> false
+                when (val semantics = objectOrigin.function.semantics) {
+                    is BuilderFunctionSemantics -> error("should be impossible?")
+                    is AccessAndConfigureFunctionSemantics -> true
+                    is AddAndConfigureFunctionSemantics -> true
+                    is PureFunctionSemantics -> false
+                    else -> error("Unhandled function semantics type: $semantics")
                 }
             }
 
@@ -131,7 +131,7 @@ class StatementResolverImpl(
         }
 
         return when {
-            obj.function.semantics is FunctionSemantics.Pure -> true
+            obj.function.semantics is PureFunctionSemantics -> true
             obj is ObjectOrigin.BuilderReturnedReceiver -> !isPotentiallyPersistentReceiver(obj.receiver)
             else -> false
         }

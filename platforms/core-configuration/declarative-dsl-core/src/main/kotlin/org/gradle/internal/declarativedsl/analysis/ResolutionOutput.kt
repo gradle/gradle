@@ -183,7 +183,7 @@ sealed interface ObjectOrigin {
     ) : FunctionInvocationOrigin, HasReceiver, ReceiverOrigin {
         init {
             val semantics = function.semantics
-            require(semantics is FunctionSemantics.AccessAndConfigure && semantics.accessor is ConfigureAccessor.ConfiguringLambdaArgument)
+            require(semantics is AccessAndConfigureFunctionSemantics && semantics.accessor is ConfigureAccessor.ConfiguringLambdaArgument)
         }
 
         override fun toString(): String {

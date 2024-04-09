@@ -16,6 +16,7 @@
 
 package org.gradle.internal.declarativedsl.dom
 
+import org.gradle.internal.declarativedsl.analysis.AccessAndConfigureFunctionSemantics
 import org.gradle.internal.declarativedsl.analysis.AnalysisSchema
 import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter
 import org.gradle.internal.declarativedsl.analysis.DataClass
@@ -87,7 +88,7 @@ class DocumentResolver(
                 }
                 val function = functionOrigin.function
                 when (val semantics = function.semantics) {
-                    is FunctionSemantics.AccessAndConfigure -> {
+                    is AccessAndConfigureFunctionSemantics -> {
                         val configuredType = typeRefContext.resolveRef(semantics.accessor.objectType) as DataClass
                         DocumentResolution.ElementResolution.SuccessfulElementResolution.PropertyConfiguringElementResolved(configuredType as DataClassImpl)
                     }

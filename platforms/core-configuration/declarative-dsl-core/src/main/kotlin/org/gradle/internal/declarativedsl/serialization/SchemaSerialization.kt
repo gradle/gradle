@@ -21,8 +21,11 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
+import org.gradle.internal.declarativedsl.analysis.AccessAndConfigureFunctionSemantics
+import org.gradle.internal.declarativedsl.analysis.AddAndConfigureFunctionSemantics
 import org.gradle.internal.declarativedsl.analysis.AnalysisSchema
 import org.gradle.internal.declarativedsl.analysis.AnalysisSchemaImpl
+import org.gradle.internal.declarativedsl.analysis.BuilderFunctionSemantics
 import org.gradle.internal.declarativedsl.analysis.DataBuilderFunction
 import org.gradle.internal.declarativedsl.analysis.DataClass
 import org.gradle.internal.declarativedsl.analysis.DataClassImpl
@@ -37,7 +40,9 @@ import org.gradle.internal.declarativedsl.analysis.DataTypeRef
 import org.gradle.internal.declarativedsl.analysis.DataType
 import org.gradle.internal.declarativedsl.analysis.FqName
 import org.gradle.internal.declarativedsl.analysis.FqNameImpl
+import org.gradle.internal.declarativedsl.analysis.FunctionSemantics
 import org.gradle.internal.declarativedsl.analysis.ParameterSemantics
+import org.gradle.internal.declarativedsl.analysis.PureFunctionSemantics
 import org.gradle.internal.declarativedsl.analysis.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.analysis.StoreValueInPropertyParameterSemantics
 import org.gradle.internal.declarativedsl.analysis.UnknownParameterSemantics
@@ -77,6 +82,12 @@ object SchemaSerialization {
             }
             polymorphic(FqName::class) {
                 subclass(FqNameImpl::class)
+            }
+            polymorphic(FunctionSemantics::class) {
+                subclass(AccessAndConfigureFunctionSemantics::class)
+                subclass(AddAndConfigureFunctionSemantics::class)
+                subclass(PureFunctionSemantics::class)
+                subclass(BuilderFunctionSemantics::class)
             }
             polymorphic(ParameterSemantics::class) {
                 subclass(StoreValueInPropertyParameterSemantics::class)
