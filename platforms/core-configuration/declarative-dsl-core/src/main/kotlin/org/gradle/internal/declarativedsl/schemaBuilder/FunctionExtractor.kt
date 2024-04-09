@@ -23,7 +23,6 @@ import org.gradle.declarative.dsl.model.annotations.Configuring
 import org.gradle.internal.declarativedsl.analysis.AccessAndConfigureFunctionSemantics
 import org.gradle.internal.declarativedsl.analysis.AddAndConfigureFunctionSemantics
 import org.gradle.internal.declarativedsl.analysis.BuilderFunctionSemantics
-import org.gradle.internal.declarativedsl.analysis.ConfigureAccessor
 import org.gradle.internal.declarativedsl.analysis.DataBuilderFunction
 import org.gradle.declarative.dsl.schema.DataConstructor
 import org.gradle.internal.declarativedsl.analysis.DataConstructorImpl
@@ -39,6 +38,7 @@ import org.gradle.declarative.dsl.schema.FunctionSemantics.ConfigureSemantics.Co
 import org.gradle.declarative.dsl.schema.ParameterSemantics
 import org.gradle.internal.declarativedsl.analysis.PureFunctionSemantics
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
+import org.gradle.internal.declarativedsl.analysis.ConfigureAccessorImpl
 import org.gradle.internal.declarativedsl.analysis.StoreValueInPropertyParameterSemantics
 import org.gradle.internal.declarativedsl.analysis.UnknownParameterSemantics
 import kotlin.reflect.KClass
@@ -287,7 +287,7 @@ class DefaultFunctionExtractor(
                     else -> error("cannot infer the return type of a configuring function; it must be Unit or the configured object type")
                 }
                 check(function.parameters.filter { it != function.instanceParameter }.size == 1) { "a configuring function may not accept any other parameters" }
-                val accessor = if (property != null) ConfigureAccessor.Property(property) else ConfigureAccessor.ConfiguringLambdaArgument(configuredType.toDataTypeRefOrError())
+                val accessor = if (property != null) ConfigureAccessorImpl.Property(property) else ConfigureAccessorImpl.ConfiguringLambdaArgument(configuredType.toDataTypeRefOrError())
                 AccessAndConfigureFunctionSemantics(accessor, returnType)
             }
 

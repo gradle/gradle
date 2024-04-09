@@ -20,11 +20,11 @@ import org.gradle.declarative.dsl.model.annotations.Configuring
 import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.internal.declarativedsl.analysis.AccessAndConfigureFunctionSemantics
 import org.gradle.internal.declarativedsl.analysis.AccessAndConfigureFunctionSemantics.ReturnType.UNIT
-import org.gradle.internal.declarativedsl.analysis.ConfigureAccessor
 import org.gradle.declarative.dsl.schema.DataConstructor
 import org.gradle.internal.declarativedsl.analysis.DataMemberFunction
 import org.gradle.declarative.dsl.schema.DataTopLevelFunction
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
+import org.gradle.internal.declarativedsl.analysis.ConfigureAccessorImpl
 import org.gradle.internal.declarativedsl.demo.resolve
 import org.gradle.internal.declarativedsl.schemaBuilder.DataSchemaBuilder
 import org.gradle.internal.declarativedsl.schemaBuilder.DefaultFunctionExtractor
@@ -71,7 +71,7 @@ object AccessorTest {
 
     // don't make this private, will produce failures on Java 8 (due to https://youtrack.jetbrains.com/issue/KT-37660)
     val runtimeCustomAccessors = object : RuntimeCustomAccessors {
-        override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessor.Custom): Any? =
+        override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessorImpl.Custom): Any? =
             if (receiverObject is MyReceiver && accessor.customAccessorIdentifier == "test")
                 receiverObject.myHiddenInstance
             else null
@@ -87,7 +87,7 @@ object AccessorTest {
                         "configureCustomInstance",
                         emptyList(),
                         false,
-                        AccessAndConfigureFunctionSemantics(ConfigureAccessor.Custom(Configured::class.toDataTypeRef(), "test"), UNIT)
+                        AccessAndConfigureFunctionSemantics(ConfigureAccessorImpl.Custom(Configured::class.toDataTypeRef(), "test"), UNIT)
                     )
                 )
             } else emptyList()

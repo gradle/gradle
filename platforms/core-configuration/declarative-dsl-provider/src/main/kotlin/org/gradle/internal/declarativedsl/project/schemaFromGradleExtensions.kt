@@ -16,7 +16,6 @@
 
 package org.gradle.internal.declarativedsl.project
 
-import org.gradle.internal.declarativedsl.analysis.ConfigureAccessor
 import org.gradle.internal.declarativedsl.analysis.DataMemberFunction
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeCustomAccessors
 import org.gradle.internal.declarativedsl.schemaBuilder.DataSchemaBuilder
@@ -28,6 +27,7 @@ import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.internal.declarativedsl.analysis.AccessAndConfigureFunctionSemantics
 import org.gradle.declarative.dsl.schema.DataConstructor
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
+import org.gradle.internal.declarativedsl.analysis.ConfigureAccessorImpl
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaComponent
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
@@ -93,7 +93,7 @@ data class ExtensionInfo(
         emptyList(),
         isDirectAccessOnly = true,
         semantics = AccessAndConfigureFunctionSemantics(
-            accessor = ConfigureAccessor.Custom(type.toDataTypeRef(), customAccessorId),
+            accessor = ConfigureAccessorImpl.Custom(type.toDataTypeRef(), customAccessorId),
             AccessAndConfigureFunctionSemantics.ReturnType.UNIT
         )
     )
@@ -105,7 +105,7 @@ class RuntimeExtensionAccessors(info: List<ExtensionInfo>) : RuntimeCustomAccess
 
     val extensionsByIdentifier = info.associate { it.customAccessorId to it.extensionProvider() }
 
-    override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessor.Custom): Any? =
+    override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessorImpl.Custom): Any? =
         extensionsByIdentifier[accessor.customAccessorIdentifier]
 }
 

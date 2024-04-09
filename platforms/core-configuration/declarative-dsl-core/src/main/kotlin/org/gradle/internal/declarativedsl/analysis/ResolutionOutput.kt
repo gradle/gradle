@@ -141,7 +141,7 @@ sealed interface ObjectOrigin {
         override val originElement: FunctionCall,
         override val parameterBindings: ParameterValueBinding,
         override val invocationId: Long,
-        val accessor: ConfigureAccessor,
+        val accessor: ConfigureAccessorImpl,
     ) : FunctionInvocationOrigin, ReceiverOrigin, DelegatingObjectOrigin {
         override fun toString(): String = accessor.access(receiver, this).toString()
 
@@ -174,7 +174,7 @@ sealed interface ObjectOrigin {
 
     data class CustomConfigureAccessor(
         override val receiver: ObjectOrigin,
-        val accessor: ConfigureAccessor.Custom,
+        val accessor: ConfigureAccessorImpl.Custom,
         override val originElement: LanguageTreeElement
     ) : ObjectOrigin, HasReceiver {
         override fun toString(): String = "$receiver${'.'}${accessor.customAccessorIdentifier}"
@@ -192,7 +192,7 @@ sealed interface ObjectOrigin {
     ) : FunctionInvocationOrigin, HasReceiver, ReceiverOrigin {
         init {
             val semantics = function.semantics
-            require(semantics is AccessAndConfigureFunctionSemantics && semantics.accessor is ConfigureAccessor.ConfiguringLambdaArgument)
+            require(semantics is AccessAndConfigureFunctionSemantics && semantics.accessor is ConfigureAccessorImpl.ConfiguringLambdaArgument)
         }
 
         override fun toString(): String {
