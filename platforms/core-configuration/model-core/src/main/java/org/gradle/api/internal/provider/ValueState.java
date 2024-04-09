@@ -293,9 +293,8 @@ public abstract class ValueState<S> {
 
         @Override
         public S implicitValue(S newConvention) {
-            explicitValue = false;
             setConvention(newConvention);
-            return shallowCopy(convention);
+            return implicitValue();
         }
 
         @Override
