@@ -18,16 +18,16 @@ package org.gradle.internal.declarativedsl.analysis;
 
 import java.io.Serializable;
 
-public interface DataTypeRef extends Serializable {
-    interface Type extends DataTypeRef {
+public interface DataType_ extends Serializable {
 
-        DataType_ getDataType();
+    interface ConstantType<JvmType> extends  DataType_ {
 
-    }
-
-    interface Name extends DataTypeRef {
-
-        FqName getFqName();
+        Class<JvmType> getType();
 
     }
+
+    interface NullType extends DataType_ {}
+
+    interface UnitType extends DataType_ {}
+
 }

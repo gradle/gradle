@@ -1,6 +1,5 @@
 package org.gradle.internal.declarativedsl.analysis
 
-import org.gradle.internal.declarativedsl.language.DataType
 import org.gradle.internal.declarativedsl.language.FunctionCall
 import org.gradle.internal.declarativedsl.language.LanguageTreeElement
 import org.gradle.internal.declarativedsl.language.Literal
@@ -58,7 +57,7 @@ sealed interface ObjectOrigin {
 
     sealed interface ReceiverOrigin : ObjectOrigin
 
-    data class TopLevelReceiver(val type: DataType, override val originElement: LanguageTreeElement) : ReceiverOrigin {
+    data class TopLevelReceiver(val type: DataType_, override val originElement: LanguageTreeElement) : ReceiverOrigin {
         override fun toString(): String = "(top-level-object)"
     }
 

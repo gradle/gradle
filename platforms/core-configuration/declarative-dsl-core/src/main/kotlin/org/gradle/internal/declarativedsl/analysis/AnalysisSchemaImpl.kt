@@ -2,7 +2,7 @@ package org.gradle.internal.declarativedsl.analysis
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.gradle.internal.declarativedsl.language.DataType
+import org.gradle.internal.declarativedsl.language.UnitDataType
 
 
 @Serializable
@@ -33,7 +33,7 @@ data class DataClassImpl(
     private val properties: List<DataProperty>,
     private val memberFunctions: List<SchemaMemberFunction>,
     private val constructors: List<DataConstructor>
-) : DataClass, DataType {
+) : DataClass, DataType_ {
 
     override fun getName(): FqName = name
 
@@ -238,7 +238,7 @@ sealed interface FunctionSemantics {
 
         override val returnValueType: DataTypeRef
             get() = when (returnType) {
-                ReturnType.UNIT -> DataType.UnitType.ref
+                ReturnType.UNIT -> UnitDataType.ref
                 ReturnType.CONFIGURED_OBJECT -> accessor.objectType
             }
 
@@ -334,8 +334,8 @@ data class ExternalObjectProviderKeyImpl(
 
 
 @Serializable
-data class DataTypeRefTypeImpl(private val dataType: DataType) : DataTypeRef.Type {
-    override fun getDataType(): DataType = dataType
+data class DataTypeRefTypeImpl(private val dataType: DataType_) : DataTypeRef.Type {
+    override fun getDataType(): DataType_ = dataType
 }
 
 
@@ -345,5 +345,5 @@ data class DataTypeRefNameImpl(private val fqName: FqName) : DataTypeRef.Name {
 }
 
 
-val DataType.ref: DataTypeRef
+val DataType_.ref: DataTypeRef
     get() = DataTypeRefTypeImpl(this)

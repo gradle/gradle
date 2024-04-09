@@ -1,7 +1,6 @@
 package org.gradle.internal.declarativedsl.demo
 
 import org.gradle.internal.declarativedsl.analysis.AnalysisSchema
-import org.gradle.internal.declarativedsl.language.DataType
 import org.gradle.internal.declarativedsl.analysis.DataTypeRef
 import org.gradle.internal.declarativedsl.analysis.FqNameImpl
 import org.gradle.internal.declarativedsl.analysis.DataTypeRefNameImpl
@@ -9,10 +8,13 @@ import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 import org.gradle.internal.declarativedsl.analysis.Resolver
 import org.gradle.internal.declarativedsl.analysis.ref
 import org.gradle.internal.declarativedsl.analysis.tracingCodeResolver
+import org.gradle.internal.declarativedsl.language.BooleanDataType
 import org.gradle.internal.declarativedsl.language.FailingResult
+import org.gradle.internal.declarativedsl.language.IntDataType
 import org.gradle.internal.declarativedsl.language.MultipleFailuresResult
 import org.gradle.internal.declarativedsl.language.ParsingError
 import org.gradle.internal.declarativedsl.language.SourceIdentifier
+import org.gradle.internal.declarativedsl.language.StringDataType
 import org.gradle.internal.declarativedsl.language.UnsupportedConstruct
 import org.gradle.internal.declarativedsl.objectGraph.AssignmentResolver
 import org.gradle.internal.declarativedsl.objectGraph.AssignmentResolver.AssignmentAdditionResult.AssignmentAdded
@@ -25,13 +27,13 @@ import org.gradle.internal.declarativedsl.parsing.DefaultLanguageTreeBuilder
 import org.gradle.internal.declarativedsl.parsing.parse
 
 
-val int = DataType.IntDataType.ref
+val int = IntDataType.ref
 
 
-val string = DataType.StringDataType.ref
+val string = StringDataType.ref
 
 
-val boolean = DataType.BooleanDataType.ref
+val boolean = BooleanDataType.ref
 
 
 fun AnalysisSchema.resolve(
@@ -120,7 +122,7 @@ fun prettyStringFromReflection(objectReflection: ObjectReflection): String {
         fun nextIndent() = "    ".repeat(depth + 1)
         when (current) {
             is ObjectReflection.ConstantValue -> append(
-                if (current.type == DataType.StringDataType)
+                if (current.type == StringDataType)
                     "\"${current.value}\""
                 else current.value.toString()
             )

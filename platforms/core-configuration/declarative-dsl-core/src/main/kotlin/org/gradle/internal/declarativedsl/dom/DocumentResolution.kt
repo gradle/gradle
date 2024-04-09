@@ -18,8 +18,8 @@ package org.gradle.internal.declarativedsl.dom
 
 import org.gradle.internal.declarativedsl.analysis.DataClassImpl
 import org.gradle.internal.declarativedsl.analysis.DataProperty
+import org.gradle.internal.declarativedsl.analysis.DataType_
 import org.gradle.internal.declarativedsl.analysis.SchemaFunction
-import org.gradle.internal.declarativedsl.language.DataType
 import org.gradle.internal.declarativedsl.analysis.SchemaMemberFunction
 
 
@@ -30,20 +30,20 @@ sealed interface DocumentResolution {
     }
 
     sealed interface PropertyResolution : DocumentResolution {
-        data class PropertyAssignmentResolved(val receiverType: DataType, val property: DataProperty) : PropertyResolution, SuccessfulResolution
+        data class PropertyAssignmentResolved(val receiverType: DataType_, val property: DataProperty) : PropertyResolution, SuccessfulResolution
         data class PropertyNotAssigned(override val reasons: List<PropertyNotAssignedReason>) : PropertyResolution, UnsuccessfulResolution
     }
 
     sealed interface ElementResolution : DocumentResolution {
         sealed interface SuccessfulElementResolution : ElementResolution, SuccessfulResolution {
-            val elementType: DataType
+            val elementType: DataType_
 
             data class PropertyConfiguringElementResolved(
                 override val elementType: DataClassImpl
             ) : SuccessfulElementResolution
 
             data class ContainerElementResolved(
-                override val elementType: DataType,
+                override val elementType: DataType_,
                 val elementFactoryFunction: SchemaMemberFunction,
                 val isKeyArguments: Boolean
             ) : SuccessfulElementResolution

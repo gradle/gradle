@@ -1,7 +1,6 @@
 package org.gradle.internal.declarativedsl.analysis
 
 import org.gradle.internal.declarativedsl.analysis.FunctionCallResolver.FunctionResolutionAndBinding
-import org.gradle.internal.declarativedsl.language.DataType
 import org.gradle.internal.declarativedsl.language.Expr
 import org.gradle.internal.declarativedsl.language.FunctionArgument
 import org.gradle.internal.declarativedsl.language.FunctionCall
@@ -363,7 +362,7 @@ class FunctionCallResolverImpl(
         argResolution: Map<FunctionArgument.ValueArgument, ObjectOrigin>
     ): List<FunctionResolutionAndBinding> {
         // TODO: no nested types for now
-        val candidateTypes = buildList<DataType> {
+        val candidateTypes = buildList<DataType_> {
             val receiverAsChain = functionCall.receiver?.asChainOrNull()
             if (receiverAsChain != null) {
                 val fqn = FqNameImpl(receiverAsChain.nameParts.joinToString("."), functionCall.name)
