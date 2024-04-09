@@ -37,7 +37,10 @@ import org.gradle.internal.declarativedsl.analysis.DataTypeRef
 import org.gradle.internal.declarativedsl.analysis.DataType
 import org.gradle.internal.declarativedsl.analysis.FqName
 import org.gradle.internal.declarativedsl.analysis.FqNameImpl
+import org.gradle.internal.declarativedsl.analysis.ParameterSemantics
 import org.gradle.internal.declarativedsl.analysis.SchemaMemberFunction
+import org.gradle.internal.declarativedsl.analysis.StoreValueInPropertyParameterSemantics
+import org.gradle.internal.declarativedsl.analysis.UnknownParameterSemantics
 import org.gradle.internal.declarativedsl.language.BooleanDataType
 import org.gradle.internal.declarativedsl.language.IntDataType
 import org.gradle.internal.declarativedsl.language.LongDataType
@@ -74,6 +77,10 @@ object SchemaSerialization {
             }
             polymorphic(FqName::class) {
                 subclass(FqNameImpl::class)
+            }
+            polymorphic(ParameterSemantics::class) {
+                subclass(StoreValueInPropertyParameterSemantics::class)
+                subclass(UnknownParameterSemantics::class)
             }
             polymorphic(SchemaMemberFunction::class) {
                 subclass(DataMemberFunction::class)

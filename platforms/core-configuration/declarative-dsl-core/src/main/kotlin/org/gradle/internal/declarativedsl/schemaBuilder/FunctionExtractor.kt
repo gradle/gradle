@@ -35,6 +35,8 @@ import org.gradle.internal.declarativedsl.analysis.FunctionSemantics.ConfigureSe
 import org.gradle.internal.declarativedsl.analysis.FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement.REQUIRED
 import org.gradle.internal.declarativedsl.analysis.ParameterSemantics
 import org.gradle.internal.declarativedsl.analysis.SchemaMemberFunction
+import org.gradle.internal.declarativedsl.analysis.StoreValueInPropertyParameterSemantics
+import org.gradle.internal.declarativedsl.analysis.UnknownParameterSemantics
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
@@ -220,10 +222,10 @@ class DefaultFunctionExtractor(
                 preIndex.getAllProperties(returnClass).any { it.name == propertyName }
             if (isPropertyLike) {
                 val storeProperty = checkNotNull(preIndex.getProperty(returnClass, propertyName))
-                return ParameterSemantics.StoreValueInProperty(storeProperty)
+                return StoreValueInPropertyParameterSemantics(storeProperty)
             }
         }
-        return ParameterSemantics.Unknown
+        return UnknownParameterSemantics
     }
 
     private

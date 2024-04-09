@@ -19,7 +19,7 @@ package org.gradle.internal.declarativedsl.project
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.dsl.DependencyCollector
 import org.gradle.internal.declarativedsl.analysis.DataParameterImpl
-import org.gradle.internal.declarativedsl.analysis.ParameterSemantics
+import org.gradle.internal.declarativedsl.analysis.UnknownParameterSemantics
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaComponent
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeFunctionResolver
 import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
@@ -33,10 +33,10 @@ import org.gradle.internal.declarativedsl.schemaBuilder.toDataTypeRef
 internal
 class DependencyCollectorsComponent : EvaluationSchemaComponent {
     private
-    val gavDependencyParam = DataParameterImpl("dependency", String::class.toDataTypeRef(), false, ParameterSemantics.Unknown)
+    val gavDependencyParam = DataParameterImpl("dependency", String::class.toDataTypeRef(), false, UnknownParameterSemantics)
 
     private
-    val projectDependencyParam = DataParameterImpl("dependency", ProjectDependency::class.toDataTypeRef(), false, ParameterSemantics.Unknown)
+    val projectDependencyParam = DataParameterImpl("dependency", ProjectDependency::class.toDataTypeRef(), false, UnknownParameterSemantics)
 
     private
     val dependencyCollectorFunctionExtractorAndRuntimeResolver = DependencyCollectorFunctionExtractorAndRuntimeResolver(gavDependencyParam, projectDependencyParam)
