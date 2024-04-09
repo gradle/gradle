@@ -24,8 +24,9 @@ import java.nio.charset.StandardCharsets
 
 import static com.google.testing.compile.CompilationSubject.assertThat
 import static javax.tools.StandardLocation.CLASS_OUTPUT
+import static org.gradle.internal.instrumentation.api.annotations.UpgradedProperty.BinaryCompatibility.ACCESSORS_REMOVED
 import static org.gradle.internal.instrumentation.extensions.property.InstrumentedPropertiesResourceGenerator.PropertyEntry
-import static org.gradle.internal.instrumentation.extensions.property.InstrumentedPropertiesResourceGenerator.UpgradedMethod
+import static org.gradle.internal.instrumentation.extensions.property.InstrumentedPropertiesResourceGenerator.UpgradedAccessor
 
 class InstrumentedPropertiesResourceGeneratorTest extends InstrumentationCodeGenTest {
 
@@ -54,26 +55,26 @@ class InstrumentedPropertiesResourceGeneratorTest extends InstrumentationCodeGen
         Compilation compilation = compile(givenSource)
 
         then:
-        def maxErrorMethods = [
+        def maxErrorAccessors = [
             // Order is important
-            new UpgradedMethod("getMaxErrors", "()I"),
-            new UpgradedMethod("setMaxErrors", "(I)V")
+            new UpgradedAccessor("getMaxErrors", "()I", ACCESSORS_REMOVED),
+            new UpgradedAccessor("setMaxErrors", "(I)V", ACCESSORS_REMOVED)
         ]
-        def sourceCompatibilityMethods = [
+        def sourceCompatibilityAccessors = [
             // Order is important
-            new UpgradedMethod("getSourceCompatibility", "()Ljava/lang/String;"),
-            new UpgradedMethod("setSourceCompatibility", "(Ljava/lang/String;)V")
+            new UpgradedAccessor("getSourceCompatibility", "()Ljava/lang/String;", ACCESSORS_REMOVED),
+            new UpgradedAccessor("setSourceCompatibility", "(Ljava/lang/String;)V", ACCESSORS_REMOVED)
         ]
-        def targetCompatibilityMethods = [
+        def targetCompatibilityAccessors = [
             // Order is important
-            new UpgradedMethod("getTargetCompatibility", "()Ljava/lang/String;"),
-            new UpgradedMethod("setTargetCompatibility", "(Ljava/lang/String;)Lorg/gradle/test/Task;")
+            new UpgradedAccessor("getTargetCompatibility", "()Ljava/lang/String;", ACCESSORS_REMOVED),
+            new UpgradedAccessor("setTargetCompatibility", "(Ljava/lang/String;)Lorg/gradle/test/Task;", ACCESSORS_REMOVED)
         ]
         def properties = [
             // Order is important
-            new PropertyEntry("org.gradle.test.Task", "maxErrors", "getMaxErrors", "()Lorg/gradle/api/provider/Property;", maxErrorMethods),
-            new PropertyEntry("org.gradle.test.Task", "sourceCompatibility", "getSourceCompatibility", "()Lorg/gradle/api/provider/Property;", sourceCompatibilityMethods),
-            new PropertyEntry("org.gradle.test.Task", "targetCompatibility", "getTargetCompatibility", "()Lorg/gradle/api/provider/Property;", targetCompatibilityMethods)
+            new PropertyEntry("org.gradle.test.Task", "maxErrors", "getMaxErrors", "()Lorg/gradle/api/provider/Property;", maxErrorAccessors),
+            new PropertyEntry("org.gradle.test.Task", "sourceCompatibility", "getSourceCompatibility", "()Lorg/gradle/api/provider/Property;", sourceCompatibilityAccessors),
+            new PropertyEntry("org.gradle.test.Task", "targetCompatibility", "getTargetCompatibility", "()Lorg/gradle/api/provider/Property;", targetCompatibilityAccessors)
         ]
         assertThat(compilation)
             .generatedFile(CLASS_OUTPUT, "META-INF/gradle/instrumentation/upgraded-properties.json")
@@ -103,6 +104,6 @@ class InstrumentedPropertiesResourceGeneratorTest extends InstrumentationCodeGen
         assertThat(compilation)
             .generatedFile(CLASS_OUTPUT, "META-INF/gradle/instrumentation/upgraded-properties.json")
             .contentsAsString(StandardCharsets.UTF_8)
-            .isEqualTo("[{\"containingType\":\"org.gradle.test.Task\",\"methodDescriptor\":\"()Lorg/gradle/api/provider/Property;\",\"methodName\":\"getSourceCompatibility\",\"propertyName\":\"sourceCompatibility\",\"upgradedMethods\":[{\"descriptor\":\"()Ljava/lang/String;\",\"name\":\"getSourceCompatibility\"},{\"descriptor\":\"(Ljava/lang/String;)V\",\"name\":\"setSourceCompatibility\"}]}]")
+            .isEqualTo("[{\"containingType\":\"org.gradle.test.Task\",\"methodDescriptor\":\"()Lorg/gradle/api/provider/Property;\",\"methodName\":\"getSourceCompatibility\",\"propertyName\":\"sourceCompatibility\",\"upgradedAccessors\":[{\"binaryCompatibility\":\"ACCESSORS_REMOVED\",\"descriptor\":\"()Ljava/lang/String;\",\"name\":\"getSourceCompatibility\"},{\"binaryCompatibility\":\"ACCESSORS_REMOVED\",\"descriptor\":\"(Ljava/lang/String;)V\",\"name\":\"setSourceCompatibility\"}]}]")
     }
 }
