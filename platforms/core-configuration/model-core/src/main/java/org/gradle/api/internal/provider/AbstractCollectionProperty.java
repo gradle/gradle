@@ -254,7 +254,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     @Override
     public void set(@Nullable final Iterable<? extends T> elements) {
         if (elements == null) {
-            doUnset(true);
+            unsetValueAndDefault();
         } else {
             setSupplier(new CollectingSupplier(new ElementsFromCollection<>(elements)));
         }
@@ -281,15 +281,17 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     @Override
     public SupportsConvention unset() {
         assertCanMutate();
-        doUnset(false);
+        unsetValue();
         return this;
     }
 
-    private void doUnset(boolean changeDefault) {
-        if (changeDefault) {
-            defaultValue = noValueSupplier();
-        }
+    private void unsetValue() {
         super.unset();
+    }
+
+    private void unsetValueAndDefault() {
+        defaultValue = noValueSupplier();
+        unsetValue();
     }
 
     @Override

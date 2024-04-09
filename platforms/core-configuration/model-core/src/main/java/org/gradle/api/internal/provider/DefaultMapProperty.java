@@ -158,7 +158,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
     @SuppressWarnings("unchecked")
     public void set(@Nullable Map<? extends K, ? extends V> entries) {
         if (entries == null) {
-            doUnset(true);
+            unsetValueAndDefault();
         } else {
             setSupplier(new CollectingSupplier(new MapCollectors.EntriesFromMap<>(entries), false));
         }
@@ -296,15 +296,17 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
     @Override
     public MapProperty<K, V> unset() {
         assertCanMutate();
-        doUnset(false);
+        unsetValue();
         return this;
     }
 
-    private void doUnset(boolean changeDefault) {
-        if (changeDefault) {
-            defaultValue = noValueSupplier();
-        }
+    private void unsetValue() {
         super.unset();
+    }
+
+    private void unsetValueAndDefault() {
+        defaultValue = noValueSupplier();
+        unsetValue();
     }
 
     public void fromState(ExecutionTimeValue<? extends Map<? extends K, ? extends V>> value) {
