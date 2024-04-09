@@ -21,7 +21,7 @@ import gradlebuild.modules.model.License
 abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
 
     val groovyVersion = if (isBundleGroovy4) "4.0.7" else "3.0.17"
-    val configurationCacheReportVersion = "1.4"
+    val configurationCacheReportVersion = "1.5"
     val kotlinVersion = "1.9.22"
 
     fun futureKotlin(module: String) = "org.jetbrains.kotlin:kotlin-$module:$kotlinVersion"
@@ -40,9 +40,9 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val awsS3Kms = "com.amazonaws:aws-java-sdk-kms"
     val awsS3S3 = "com.amazonaws:aws-java-sdk-s3"
     val awsS3Sts = "com.amazonaws:aws-java-sdk-sts"
-    val bouncycastlePgp = "org.bouncycastle:bcpg-jdk15on"
-    val bouncycastlePkix = "org.bouncycastle:bcpkix-jdk15on"
-    val bouncycastleProvider = "org.bouncycastle:bcprov-jdk15on"
+    val bouncycastlePgp = "org.bouncycastle:bcpg-jdk18on"
+    val bouncycastlePkix = "org.bouncycastle:bcpkix-jdk18on"
+    val bouncycastleProvider = "org.bouncycastle:bcprov-jdk18on"
     val bsh = "org.apache-extras.beanshell:bsh"
     val capsule = "io.usethesource:capsule"
     val commonsCodec = "commons-codec:commons-codec"
@@ -62,7 +62,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val googleHttpClientApacheV2 = "com.google.http-client:google-http-client-apache-v2"
     val googleOauthClient = "com.google.oauth-client:google-oauth-client"
     val gradleProfiler = "org.gradle.profiler:gradle-profiler"
-    val gradleEnterpriseTestAnnotation = "com.gradle:gradle-enterprise-testing-annotations"
+    val develocityTestAnnotation = "com.gradle:develocity-testing-annotations"
     val groovyGroup = if (isBundleGroovy4) "org.apache.groovy" else "org.codehaus.groovy"
     val groovy = "$groovyGroup:groovy"
     val groovyAnt = "$groovyGroup:groovy-ant"
@@ -151,6 +151,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     // Compile only dependencies (dynamically downloaded if needed)
     val maven3Compat = "org.apache.maven:maven-compat"
     val maven3PluginApi = "org.apache.maven:maven-plugin-api"
+    val zinc = "org.scala-sbt:zinc_2.13"
 
     // Test classpath only libraries
     val aircompressor = "io.airlift:aircompressor"
@@ -181,6 +182,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val mockitoCore = "org.mockito:mockito-core"
     val mockitoKotlin = "com.nhaarman:mockito-kotlin"
     val mockitoKotlin2 = "com.nhaarman.mockitokotlin2:mockito-kotlin"
+    val mockwebserver = "com.squareup.okhttp3:mockwebserver"
     val mySqlConnector = "mysql:mysql-connector-java"
     val samplesCheck = "org.gradle.exemplar:samples-check"
     val snappy = "org.iq80.snappy:snappy"
@@ -297,6 +299,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
         tomlj to License.Apache2,
         trove4j to License.LGPL21,
         xbeanReflect to License.Apache2,
-        xmlApis to License.Apache2
+        xmlApis to License.Apache2,
+        zinc to License.Apache2
     )
 }

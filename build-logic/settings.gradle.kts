@@ -32,7 +32,7 @@ dependencyResolutionManagement {
             url = uri("https://repo.gradle.org/gradle/enterprise-libs-release-candidates")
             content {
                 val rcAndMilestonesPattern = "\\d{1,2}?\\.\\d{1,2}?(\\.\\d{1,2}?)?-((rc-\\d{1,2}?)|(milestone-\\d{1,2}?))"
-                includeVersionByRegex("com.gradle", "gradle-enterprise-gradle-plugin", rcAndMilestonesPattern)
+                includeVersionByRegex("com.gradle", "develocity-gradle-plugin", rcAndMilestonesPattern)
             }
         }
         maven {

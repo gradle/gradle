@@ -42,6 +42,7 @@ import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.plugins.DefaultPluginManager;
+import org.gradle.api.internal.plugins.PluginInstantiator;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.plugins.PluginTarget;
@@ -80,7 +81,7 @@ import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ScopedServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
@@ -175,17 +176,17 @@ public class ProjectScopeServices extends ScopedServiceRegistry {
         return new DefaultAntBuilderFactory(project, new DefaultAntLoggingAdapterFactory());
     }
 
-    protected DefaultToolingModelBuilderRegistry decorateToolingModelRegistry(DefaultToolingModelBuilderRegistry buildScopedToolingModelBuilders, BuildOperationExecutor buildOperationExecutor, ProjectStateRegistry projectStateRegistry) {
+    protected DefaultToolingModelBuilderRegistry decorateToolingModelRegistry(DefaultToolingModelBuilderRegistry buildScopedToolingModelBuilders, BuildOperationRunner buildOperationRunner, ProjectStateRegistry projectStateRegistry) {
         return buildScopedToolingModelBuilders.createChild();
     }
 
-    protected PluginManagerInternal createPluginManager(Instantiator instantiator, InstantiatorFactory instantiatorFactory, BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext, CollectionCallbackActionDecorator decorator, DomainObjectCollectionFactory domainObjectCollectionFactory) {
+    protected PluginManagerInternal createPluginManager(Instantiator instantiator, InstantiatorFactory instantiatorFactory, BuildOperationRunner buildOperationRunner, UserCodeApplicationContext userCodeApplicationContext, CollectionCallbackActionDecorator decorator, DomainObjectCollectionFactory domainObjectCollectionFactory) {
         PluginTarget target = new RuleBasedPluginTarget(
             project,
             get(ModelRuleExtractor.class),
             get(ModelRuleSourceDetector.class)
         );
-        return instantiator.newInstance(DefaultPluginManager.class, get(PluginRegistry.class), instantiatorFactory.inject(this), target, buildOperationExecutor, userCodeApplicationContext, decorator, domainObjectCollectionFactory);
+        return instantiator.newInstance(DefaultPluginManager.class, get(PluginRegistry.class), new PluginInstantiator(instantiatorFactory, this), target, buildOperationRunner, userCodeApplicationContext, decorator, domainObjectCollectionFactory);
     }
 
     protected ITaskFactory createTaskFactory(ITaskFactory parentFactory, TaskScheme taskScheme) {
@@ -196,14 +197,14 @@ public class ProjectScopeServices extends ScopedServiceRegistry {
         return new TaskInstantiator(taskIdentityFactory, taskFactory, project);
     }
 
-    protected TaskContainerInternal createTaskContainerInternal(TaskStatistics taskStatistics, BuildOperationExecutor buildOperationExecutor, CrossProjectConfigurator crossProjectConfigurator, CollectionCallbackActionDecorator decorator) {
+    protected TaskContainerInternal createTaskContainerInternal(TaskStatistics taskStatistics, BuildOperationRunner buildOperationRunner, CrossProjectConfigurator crossProjectConfigurator, CollectionCallbackActionDecorator decorator) {
         return new DefaultTaskContainerFactory(
             get(Instantiator.class),
             get(TaskIdentityFactory.class),
             get(ITaskFactory.class),
             project,
             taskStatistics,
-            buildOperationExecutor,
+            buildOperationRunner,
             crossProjectConfigurator,
             decorator
         ).create();

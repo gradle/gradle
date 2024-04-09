@@ -57,6 +57,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
             package $GENERATED_CLASSES_PACKAGE_NAME;
             import org.gradle.test.Task;
 
+            @Generated
             public class Task_Adapter {
                 public static int access_get_getMaxErrors(Task self) {
                     ${getDefaultDeprecation("Task", "maxErrors")}
@@ -97,7 +98,8 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
         then:
         def generatedClass = source """
             package $GENERATED_CLASSES_PACKAGE_NAME;
-            @SuppressWarnings({"NotJavadoc", "UnusedMethod", "UnusedVariable"})
+
+            @Generated
             public class InterceptorDeclaration_PropertyUpgradesJvmBytecode_TestProject extends MethodVisitorScope implements JvmBytecodeCallInterceptor, org.gradle.internal.instrumentation.api.types.BytecodeInterceptor.BytecodeUpgradeInterceptor {
                 @Override
                 public boolean visitMethodInsn(String className, int opcode, String owner, String name,
@@ -120,6 +122,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
             package $GENERATED_CLASSES_PACKAGE_NAME;
             import org.gradle.test.Task;
 
+            @Generated
             public class Task_Adapter {
                 public static boolean access_get_isIncremental(Task self) {
                     ${getDefaultDeprecation("Task", "incremental")}
@@ -171,6 +174,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
             import org.gradle.internal.deprecation.DeprecationLogger;
             import org.gradle.test.Task;
 
+            @Generated
             public class Task_Adapter {
                 ${hasSuppressWarnings ? '@SuppressWarnings({"unchecked", "rawtypes"})' : ''}
                 public static $originalType access_get_${getterPrefix}Property(Task self) {
@@ -188,7 +192,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
         assertThat(compilation).succeededWithoutWarnings()
         assertThat(compilation)
             .generatedSourceFile(fqName(generatedClass))
-            .hasSourceEquivalentTo(generatedClass)
+            .containsElementsIn(generatedClass)
 
         where:
         upgradedType                  | originalType     | getCall                                          | setCall            | imports
@@ -227,7 +231,8 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
         then:
         def generatedClass = source """
             package $GENERATED_CLASSES_PACKAGE_NAME;
-            @SuppressWarnings({"NotJavadoc", "UnusedMethod", "UnusedVariable"})
+
+            @Generated
             public class InterceptorDeclaration_PropertyUpgradesJvmBytecode_TestProject extends MethodVisitorScope implements JvmBytecodeCallInterceptor, org.gradle.internal.instrumentation.api.types.BytecodeInterceptor.BytecodeUpgradeInterceptor {
                 @Override
                 public boolean visitMethodInsn(String className, int opcode, String owner, String name,
@@ -323,7 +328,8 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
         then:
         def generatedClass = source """
             package $GENERATED_CLASSES_PACKAGE_NAME;
-            @SuppressWarnings({"NotJavadoc", "UnusedMethod", "UnusedVariable"})
+
+            @Generated
             public class InterceptorDeclaration_PropertyUpgradesJvmBytecode_TestProject extends MethodVisitorScope implements JvmBytecodeCallInterceptor, org.gradle.internal.instrumentation.api.types.BytecodeInterceptor.BytecodeUpgradeInterceptor {
                 @Override
                 public boolean visitMethodInsn(String className, int opcode, String owner, String name,

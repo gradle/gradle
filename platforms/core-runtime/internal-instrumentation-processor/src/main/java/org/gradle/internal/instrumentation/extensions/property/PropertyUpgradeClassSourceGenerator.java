@@ -38,6 +38,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static org.gradle.internal.instrumentation.processor.codegen.GradleReferencedType.DEPRECATION_LOGGER;
+import static org.gradle.internal.instrumentation.processor.codegen.GradleReferencedType.GENERATED_ANNOTATION;
 import static org.gradle.internal.instrumentation.processor.codegen.GradleReferencedType.LIST_PROPERTY_LIST_VIEW;
 import static org.gradle.internal.instrumentation.processor.codegen.GradleReferencedType.MAP_PROPERTY_MAP_VIEW;
 import static org.gradle.internal.instrumentation.processor.codegen.GradleReferencedType.SET_PROPERTY_SET_VIEW;
@@ -64,7 +65,11 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
         List<MethodSpec> methods = requestsClassGroup.stream()
             .map(request -> mapToMethodSpec(request, onProcessedRequest, onFailure))
             .collect(Collectors.toList());
-        return builder -> builder.addModifiers(Modifier.PUBLIC).addMethods(methods);
+
+        return builder -> builder
+            .addAnnotation(GENERATED_ANNOTATION.asClassName())
+            .addModifiers(Modifier.PUBLIC)
+            .addMethods(methods);
     }
 
     private static MethodSpec mapToMethodSpec(CallInterceptionRequest request, Consumer<? super CallInterceptionRequest> onProcessedRequest, Consumer<? super HasFailures.FailureInfo> onFailure) {

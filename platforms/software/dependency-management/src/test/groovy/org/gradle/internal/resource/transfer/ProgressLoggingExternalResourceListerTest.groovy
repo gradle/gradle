@@ -13,13 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
 package org.gradle.internal.resource.transfer
 
-
 import org.gradle.internal.operations.BuildOperationContext
-import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.operations.CallableBuildOperation
 import org.gradle.internal.resource.ExternalResourceListBuildOperationType
 import org.gradle.internal.resource.ExternalResourceName
@@ -27,9 +24,9 @@ import spock.lang.Specification
 
 class ProgressLoggingExternalResourceListerTest extends Specification {
     def delegate = Mock(ExternalResourceLister)
-    def buildOperationExecutor = Mock(BuildOperationExecutor)
+    def buildOperationRunner = Mock(BuildOperationRunner)
     def context = Mock(BuildOperationContext)
-    def lister = new ProgressLoggingExternalResourceLister(delegate, buildOperationExecutor)
+    def lister = new ProgressLoggingExternalResourceLister(delegate, buildOperationRunner)
     def location = new ExternalResourceName(new URI("https://location/"))
 
     def "delegates list to delegate and generates build operation"() {
@@ -60,7 +57,7 @@ class ProgressLoggingExternalResourceListerTest extends Specification {
     }
 
     def expectListBuildOperation() {
-        1 * buildOperationExecutor.call(_) >> { CallableBuildOperation action ->
+        1 * buildOperationRunner.call(_) >> { CallableBuildOperation action ->
             def descriptor = action.description().build()
             assert descriptor.name == "List https://location/"
             assert descriptor.displayName == "List https://location/"

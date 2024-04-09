@@ -20,14 +20,14 @@ import org.gradle.internal.configurationcache.ConfigurationCacheLoadBuildOperati
 import org.gradle.internal.configurationcache.ConfigurationCacheStoreBuildOperationType
 import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationDescriptor
-import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.operations.CallableBuildOperation
 import org.gradle.internal.operations.RunnableBuildOperation
 import java.io.File
 
 
 internal
-fun <T : Any> BuildOperationExecutor.withLoadOperation(block: () -> Pair<LoadResult, T>) =
+fun <T : Any> BuildOperationRunner.withLoadOperation(block: () -> Pair<LoadResult, T>) =
     call(object : CallableBuildOperation<T> {
         override fun description(): BuildOperationDescriptor.Builder = BuildOperationDescriptor
             .displayName("Load configuration cache state")
@@ -43,7 +43,7 @@ fun <T : Any> BuildOperationExecutor.withLoadOperation(block: () -> Pair<LoadRes
 
 
 internal
-fun BuildOperationExecutor.withStoreOperation(@Suppress("UNUSED_PARAMETER") cacheKey: String, block: () -> StoreResult) =
+fun BuildOperationRunner.withStoreOperation(@Suppress("UNUSED_PARAMETER") cacheKey: String, block: () -> StoreResult) =
     run(object : RunnableBuildOperation {
         override fun description(): BuildOperationDescriptor.Builder = BuildOperationDescriptor
             .displayName("Store configuration cache state")

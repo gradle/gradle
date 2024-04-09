@@ -44,6 +44,14 @@ class TimeFormattingTest extends Specification {
         TimeFormatting.formatDurationVeryTerse(24 * 60 * 60 * 1000 + 23 * 1000) == '1d0h0m23.00s'
     }
 
+    def formatsNegativeDurations() {
+        expect:
+        TimeFormatting.formatDurationVeryTerse(-1200) == '-1.200s'
+        TimeFormatting.formatDurationVeryTerse(-60 * 1000) == '-1m0.00s'
+        TimeFormatting.formatDurationVeryTerse(-60 * 60 * 1000) == '-1h0m0.00s'
+        TimeFormatting.formatDurationVeryTerse(-(23 * 60 * 1000 + 12 * 1000 + 310)) == '-23m12.31s'
+    }
+
     def roundsMillisWhenDurationIsGreaterThanOneMinute() {
         expect:
         TimeFormatting.formatDurationVeryTerse(60 * 1000 + 12 * 1000 + 300) == '1m12.30s'

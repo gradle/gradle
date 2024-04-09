@@ -18,6 +18,7 @@ package org.gradle.kotlin.dsl.accessors
 
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.initialization.Settings
 import org.gradle.kotlin.dsl.concurrent.IO
 import org.gradle.kotlin.dsl.concurrent.writeFile
 import org.gradle.kotlin.dsl.support.bytecode.InternalName
@@ -41,6 +42,9 @@ fun IO.emitAccessorsFor(
 
     makeAccessorOutputDirs(srcDir, binDir, outputPackage.path)
 
+    // When building accessors for Settings, preserve semantics for existing custom accessors by
+    // giving the generated accessors lower priority in Kotlin overload resolution.
+    val useLowPriorityOverloadResolution = projectSchema.scriptTarget is Settings
     val moduleName = binDir?.name ?: "kotlin-dsl-accessors"
     val emittedClassNames =
         accessorsFor(projectSchema).map { accessor ->
@@ -50,7 +54,8 @@ fun IO.emitAccessorsFor(
                 binDir,
                 outputPackage,
                 format,
-                moduleName
+                moduleName,
+                useLowPriorityOverloadResolution
             )
         }.toList()
 
@@ -91,7 +96,8 @@ fun IO.emitClassFor(
     binDir: File?,
     outputPackage: OutputPackage,
     format: AccessorFormat,
-    moduleName: String
+    moduleName: String,
+    useLowPriorityOverloadResolution: Boolean
 ): InternalName {
 
     val (simpleClassName, fragments) = fragmentsFor(accessor)
@@ -108,7 +114,8 @@ fun IO.emitClassFor(
             className,
             fragments,
             ::collectSourceFragment,
-            moduleName
+            moduleName,
+            useLowPriorityOverloadResolution
         )
     } else {
         for ((source, _, _, _) in fragments) {
@@ -138,7 +145,8 @@ fun IO.writeAccessorsBytecodeTo(
     className: InternalName,
     fragments: Sequence<AccessorFragment>,
     collectSourceFragment: (String) -> Unit,
-    moduleName: String
+    moduleName: String,
+    useLowPriorityOverloadResolution: Boolean
 ) {
 
     val metadataWriter = beginFileFacadeClassHeader()
@@ -146,8 +154,8 @@ fun IO.writeAccessorsBytecodeTo(
 
     for ((source, bytecode, metadata, signature) in fragments) {
         collectSourceFragment(source)
-        MetadataFragmentScope(signature, metadataWriter).run(metadata)
-        BytecodeFragmentScope(signature, classWriter).run(bytecode)
+        MetadataFragmentScope(signature, metadataWriter, useLowPriorityOverloadResolution).run(metadata)
+        BytecodeFragmentScope(signature, classWriter, useLowPriorityOverloadResolution).run(bytecode)
     }
 
     val metadata = metadataWriter.closeHeader(moduleName)

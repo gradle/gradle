@@ -1,13 +1,17 @@
 {
   "latestReleaseSnapshot": {
-    "version": "8.7-20240315011508+0000",
-    "buildTime": "20240315011508+0000"
+    "version": "8.8-20240406001318+0000",
+    "buildTime": "20240406001318+0000"
   },
   "latestRc": {
-    "version": "8.7-rc-3",
-    "buildTime": "20240311171310+0000"
+    "version": "8.7-rc-4",
+    "buildTime": "20240320140334+0000"
   },
   "finalReleases": [
+    {
+      "version": "8.7",
+      "buildTime": "20240322155246+0000"
+    },
     {
       "version": "8.6",
       "buildTime": "20240202164716+0000"

@@ -83,8 +83,8 @@ public class DefaultModelBuilder<T> extends AbstractLongRunningOperation<Default
         return this;
     }
 
-    private class ResultHandlerAdapter<T> extends org.gradle.tooling.internal.consumer.ResultHandlerAdapter<T> {
-        public ResultHandlerAdapter(ResultHandler<? super T> handler) {
+    private class ResultHandlerAdapter<R> extends org.gradle.tooling.internal.consumer.ResultHandlerAdapter<R> {
+        public ResultHandlerAdapter(ResultHandler<? super R> handler) {
             super(handler, new ExceptionTransformer(new Transformer<String, Throwable>() {
                 @Override
                 public String transform(Throwable failure) {

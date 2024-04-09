@@ -38,38 +38,8 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
         this.log = runner.log;
     }
 
-    @Override
-    public BuildOperationRef getCurrentOperation() {
-        return new BuildOperationRef() {
-            @Override
-            public OperationIdentifier getId() {
-                return new OperationIdentifier(1L);
-            }
-
-            @Override
-            public OperationIdentifier getParentId() {
-                return null;
-            }
-        };
-    }
-
     public List<BuildOperationDescriptor> getOperations() {
         return runner.getOperations();
-    }
-
-    @Override
-    public void run(RunnableBuildOperation buildOperation) {
-        runner.run(buildOperation);
-    }
-
-    @Override
-    public <T> T call(CallableBuildOperation<T> buildOperation) {
-        return runner.call(buildOperation);
-    }
-
-    @Override
-    public BuildOperationContext start(BuildOperationDescriptor.Builder descriptor) {
-        return runner.start(descriptor);
     }
 
     @Override
@@ -99,6 +69,12 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
 
     @Override
     public <O extends BuildOperation> void runAll(BuildOperationWorker<O> worker, Action<BuildOperationQueue<O>> schedulingAction, BuildOperationConstraint buildOperationConstraint) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Deprecated
+    @Override
+    public BuildOperationRef getCurrentOperation() {
         throw new UnsupportedOperationException();
     }
 

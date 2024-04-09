@@ -19,10 +19,10 @@ package org.gradle.internal.classpath
 
 import spock.lang.Specification
 
-import static org.gradle.internal.classpath.TransformedClassPath.AGENT_INSTRUMENTATION_MARKER_FILE_NAME
-import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME
-import static org.gradle.internal.classpath.TransformedClassPath.LEGACY_INSTRUMENTATION_MARKER_FILE_NAME
-import static org.gradle.internal.classpath.TransformedClassPath.ORIGINAL_FILE_DOES_NOT_EXIST_MARKER
+import static org.gradle.internal.classpath.TransformedClassPath.FileMarker.AGENT_INSTRUMENTATION_MARKER
+import static org.gradle.internal.classpath.TransformedClassPath.FileMarker.INSTRUMENTATION_CLASSPATH_MARKER
+import static org.gradle.internal.classpath.TransformedClassPath.FileMarker.LEGACY_INSTRUMENTATION_MARKER
+import static org.gradle.internal.classpath.TransformedClassPath.FileMarker.ORIGINAL_FILE_DOES_NOT_EXIST_MARKER
 import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 class TransformedClassPathTest extends Specification {
@@ -188,12 +188,12 @@ class TransformedClassPathTest extends Specification {
         cp.findTransformedEntryFor(file(original)) == (transformed != null ? file(transformed) : null)
 
         where:
-        inputClassPath                                                                                                                                                                                    | outputClassPath             | original | transformed
-        classPathAsList(AGENT_INSTRUMENTATION_MARKER_FILE_NAME, "instrumented/instrumented-1.jar", "1.jar")                                                                                               | classPath("1.jar")          | "1.jar"  | "instrumented/instrumented-1.jar"
-        classPathAsList(AGENT_INSTRUMENTATION_MARKER_FILE_NAME, "instrumented/instrumented-1.jar", "1.jar", ORIGINAL_FILE_DOES_NOT_EXIST_MARKER)                                                          | classPath("1.jar")          | "1.jar"  | "instrumented/instrumented-1.jar"
-        classPathAsList("1/$LEGACY_INSTRUMENTATION_MARKER_FILE_NAME", "1.jar", "2/$LEGACY_INSTRUMENTATION_MARKER_FILE_NAME", "2.jar")                                                                     | classPath("1.jar", "2.jar") | "2.jar"  | null
-        classPathAsList(INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME, ORIGINAL_FILE_DOES_NOT_EXIST_MARKER)                                                                                                  | classPath()                 | ""       | null
-        classPathAsList("1/$AGENT_INSTRUMENTATION_MARKER_FILE_NAME", "instrumented/instrumented-1.jar", "1.jar", "2/$AGENT_INSTRUMENTATION_MARKER_FILE_NAME", "instrumented/instrumented-2.jar", "2.jar") | classPath("1.jar", "2.jar") | "1.jar"  | "instrumented/instrumented-1.jar"
+        inputClassPath                                                                                                                                                                                      | outputClassPath             | original | transformed
+        classPathAsList(AGENT_INSTRUMENTATION_MARKER.fileName, "instrumented/instrumented-1.jar", "1.jar")                                                                                                  | classPath("1.jar")          | "1.jar"  | "instrumented/instrumented-1.jar"
+        classPathAsList(AGENT_INSTRUMENTATION_MARKER.fileName, "instrumented/instrumented-1.jar", "1.jar", ORIGINAL_FILE_DOES_NOT_EXIST_MARKER.fileName)                                                    | classPath("1.jar")          | "1.jar"  | "instrumented/instrumented-1.jar"
+        classPathAsList("1/${LEGACY_INSTRUMENTATION_MARKER.fileName}", "1.jar", "2/${LEGACY_INSTRUMENTATION_MARKER.fileName}", "2.jar")                                                                     | classPath("1.jar", "2.jar") | "2.jar"  | null
+        classPathAsList(INSTRUMENTATION_CLASSPATH_MARKER.fileName, ORIGINAL_FILE_DOES_NOT_EXIST_MARKER.fileName)                                                                                            | classPath()                 | ""       | null
+        classPathAsList("1/${AGENT_INSTRUMENTATION_MARKER.fileName}", "instrumented/instrumented-1.jar", "1.jar", "2/${AGENT_INSTRUMENTATION_MARKER.fileName}", "instrumented/instrumented-2.jar", "2.jar") | classPath("1.jar", "2.jar") | "1.jar"  | "instrumented/instrumented-1.jar"
     }
 
     def "invalid instrumenting artifact transform outputs are detected"() {
@@ -205,13 +205,13 @@ class TransformedClassPathTest extends Specification {
         normaliseFileSeparators(e.message) == normaliseFileSeparators(message)
 
         where:
-        inputClassPath                                                                                                                                                        | message
-        classPathAsList("instrumented/instrumented-1.jar", "1.jar")                                                                                                           | "Unexpected marker file: instrumented/instrumented-1.jar in instrumented buildscript classpath. Possible reason: Injecting custom artifact transform in between instrumentation stages is not supported."
-        classPathAsList(AGENT_INSTRUMENTATION_MARKER_FILE_NAME, "instrumented/instrumented-1.jar")                                                                            | "Missing the instrumented or original entry for classpath [.gradle-agent-instrumented.marker, instrumented/instrumented-1.jar]"
-        classPathAsList(AGENT_INSTRUMENTATION_MARKER_FILE_NAME, "instrumented/instrumented-1.jar", AGENT_INSTRUMENTATION_MARKER_FILE_NAME, "instrumented/instrumented-2.jar") | "Instrumented entry ${file("instrumented/instrumented-1.jar").absolutePath} doesn't match original entry ${file(AGENT_INSTRUMENTATION_MARKER_FILE_NAME).absolutePath}"
-        classPathAsList(AGENT_INSTRUMENTATION_MARKER_FILE_NAME, "instrumented/instrumented-1.jar", "2.jar")                                                                   | "Instrumented entry ${file("instrumented/instrumented-1.jar").absolutePath} doesn't match original entry ${file("2.jar").absolutePath}"
-        classPathAsList(LEGACY_INSTRUMENTATION_MARKER_FILE_NAME, "instrumented/instrumented-1.jar", "1.jar")                                                                  | "Unexpected marker file: 1.jar in instrumented buildscript classpath. Possible reason: Injecting custom artifact transform in between instrumentation stages is not supported."
-        classPathAsList(AGENT_INSTRUMENTATION_MARKER_FILE_NAME, "1.jar", "instrumented/instrumented-1.jar")                                                                   | "Instrumented entry ${file("1.jar").absolutePath} doesn't match original entry ${file("instrumented/instrumented-1.jar").absolutePath}"
+        inputClassPath                                                                                                                                                      | message
+        classPathAsList("instrumented/instrumented-1.jar", "1.jar")                                                                                                         | "Unexpected marker file: instrumented/instrumented-1.jar in instrumented buildscript classpath. Possible reason: Injecting custom artifact transform in between instrumentation stages is not supported."
+        classPathAsList(AGENT_INSTRUMENTATION_MARKER.fileName, "instrumented/instrumented-1.jar")                                                                           | "Missing the instrumented or original entry for classpath [.gradle-agent-instrumented.marker, instrumented/instrumented-1.jar]"
+        classPathAsList(AGENT_INSTRUMENTATION_MARKER.fileName, "instrumented/instrumented-1.jar", AGENT_INSTRUMENTATION_MARKER.fileName, "instrumented/instrumented-2.jar") | "Instrumented entry ${file("instrumented/instrumented-1.jar").absolutePath} doesn't match original entry ${file(AGENT_INSTRUMENTATION_MARKER.fileName).absolutePath}"
+        classPathAsList(AGENT_INSTRUMENTATION_MARKER.fileName, "instrumented/instrumented-1.jar", "2.jar")                                                                  | "Instrumented entry ${file("instrumented/instrumented-1.jar").absolutePath} doesn't match original entry ${file("2.jar").absolutePath}"
+        classPathAsList(LEGACY_INSTRUMENTATION_MARKER.fileName, "instrumented/instrumented-1.jar", "1.jar")                                                                 | "Unexpected marker file: 1.jar in instrumented buildscript classpath. Possible reason: Injecting custom artifact transform in between instrumentation stages is not supported."
+        classPathAsList(AGENT_INSTRUMENTATION_MARKER.fileName, "1.jar", "instrumented/instrumented-1.jar")                                                                  | "Instrumented entry ${file("1.jar").absolutePath} doesn't match original entry ${file("instrumented/instrumented-1.jar").absolutePath}"
     }
 
     private static File file(String path) {

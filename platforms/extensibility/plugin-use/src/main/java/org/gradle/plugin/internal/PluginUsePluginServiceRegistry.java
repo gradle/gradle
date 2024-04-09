@@ -43,6 +43,8 @@ import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginRegistry
 import org.gradle.plugin.management.internal.autoapply.CompositeAutoAppliedPluginRegistry;
 import org.gradle.plugin.management.internal.autoapply.DefaultAutoAppliedPluginHandler;
 import org.gradle.plugin.management.internal.autoapply.InjectedAutoAppliedPluginRegistry;
+import org.gradle.plugin.software.internal.DefaultSoftwareTypeRegistry;
+import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
 import org.gradle.plugin.use.internal.DefaultPluginRequestApplicator;
 import org.gradle.plugin.use.internal.InjectedPluginClasspath;
 import org.gradle.plugin.use.internal.PluginDependencyResolutionServices;
@@ -93,6 +95,10 @@ public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistr
 
         AutoAppliedPluginHandler createAutoAppliedPluginHandler(List<AutoAppliedPluginRegistry> registries) {
             return new DefaultAutoAppliedPluginHandler(new CompositeAutoAppliedPluginRegistry(registries));
+        }
+
+        SoftwareTypeRegistry createSoftwareTypeRegistry() {
+            return new DefaultSoftwareTypeRegistry();
         }
 
         ClientInjectedClasspathPluginResolver createInjectedClassPathPluginResolver(

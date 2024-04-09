@@ -38,7 +38,7 @@ class JsonModelWriterTest {
                         StructuredMessage.build { reference("") }
                     )
                 )
-                endModel("", "", 0)
+                endModel("", "", "", 0)
             },
             hasEntry(
                 "diagnostics",

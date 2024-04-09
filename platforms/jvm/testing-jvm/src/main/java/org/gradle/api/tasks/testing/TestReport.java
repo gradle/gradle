@@ -35,6 +35,7 @@ import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
@@ -52,6 +53,11 @@ import static org.gradle.util.internal.CollectionUtils.collect;
 public abstract class TestReport extends DefaultTask {
     private final DirectoryProperty destinationDir = getObjectFactory().directoryProperty();
     private final ConfigurableFileCollection resultDirs = getObjectFactory().fileCollection();
+
+    @Inject
+    protected BuildOperationRunner getBuildOperationRunner() {
+        throw new UnsupportedOperationException();
+    }
 
     @Inject
     protected BuildOperationExecutor getBuildOperationExecutor() {
@@ -168,7 +174,7 @@ public abstract class TestReport extends DefaultTask {
         TestResultsProvider resultsProvider = createAggregateProvider();
         try {
             if (resultsProvider.isHasResults()) {
-                DefaultTestReport testReport = new DefaultTestReport(getBuildOperationExecutor());
+                DefaultTestReport testReport = new DefaultTestReport(getBuildOperationRunner(), getBuildOperationExecutor());
                 testReport.generateReport(resultsProvider, getDestinationDirectory().get().getAsFile());
             } else {
                 getLogger().info("{} - no binary test results found in dirs: {}.", getPath(), getTestResults().getFiles());

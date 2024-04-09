@@ -17,7 +17,9 @@
 package org.gradle.api.file
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.any
 
 class TaskFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
@@ -147,6 +149,7 @@ class TaskFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
         result.assertTasksNotSkipped(":transform")
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "task dependencies are inferred from contents of input FileCollection"() {
         // Include a configuration with transitive dep on a Jar and an unmanaged Jar.
         file('settings.gradle') << 'include "a", "b"'

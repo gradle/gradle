@@ -157,8 +157,10 @@ class CommandLineIntegrationTest extends AbstractIntegrationSpec {
         when:
         buildFile """
             task checkGradleUserHomeViaSystemEnv {
+                def gradleUserHomeDir = gradle.gradleUserHomeDir
+                def customUserHome = file('customUserHome')
                 doLast {
-                    assert gradle.gradleUserHomeDir == file('customUserHome')
+                    assert gradleUserHomeDir == customUserHome
                 }
             }
         """
@@ -180,8 +182,9 @@ class CommandLineIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile """
             task checkDefaultGradleUserHome {
+                def gradleUserHomeDir = gradle.gradleUserHomeDir
                 doLast {
-                    assert gradle.gradleUserHomeDir == new File(System.properties['user.home'], ".gradle")
+                    assert gradleUserHomeDir == new File(System.properties['user.home'], ".gradle")
                 }
             }
         """
@@ -269,8 +272,10 @@ class CommandLineIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile """
             task checkSystemPropertyGradleUserHomeHasPrecedence {
+                def gradleUserHomeDir = gradle.gradleUserHomeDir
+                def systemPropCustomUserHome = file('systemPropCustomUserHome')
                 doLast {
-                    assert gradle.gradleUserHomeDir == file('systemPropCustomUserHome')
+                    assert gradleUserHomeDir == systemPropCustomUserHome
                 }
             }
         """

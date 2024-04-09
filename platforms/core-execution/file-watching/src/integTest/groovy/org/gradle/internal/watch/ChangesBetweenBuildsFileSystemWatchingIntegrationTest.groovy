@@ -16,7 +16,7 @@
 
 package org.gradle.internal.watch
 
-import com.gradle.enterprise.testing.annotations.LocalOnly
+import com.gradle.develocity.testing.annotations.LocalOnly
 import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.internal.watch.registry.impl.WatchableHierarchies

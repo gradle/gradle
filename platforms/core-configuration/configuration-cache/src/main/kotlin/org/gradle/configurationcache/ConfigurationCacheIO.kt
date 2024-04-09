@@ -24,6 +24,7 @@ import org.gradle.configurationcache.cacheentry.ModelKey
 import org.gradle.configurationcache.extensions.useToRun
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.configurationcache.problems.ConfigurationCacheProblems
+import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.DefaultReadContext
 import org.gradle.configurationcache.serialization.DefaultWriteContext
 import org.gradle.configurationcache.serialization.LoggingTracer
@@ -294,8 +295,19 @@ class ConfigurationCacheIO internal constructor(
         encoder: Encoder,
         tracer: Tracer?,
         codecs: Codecs
+    ) = writeContextFor(
+        encoder,
+        tracer,
+        codecs.userTypesCodec()
+    )
+
+    private
+    fun writeContextFor(
+        encoder: Encoder,
+        tracer: Tracer?,
+        codec: Codec<Any?>
     ) = DefaultWriteContext(
-        codecs.userTypesCodec(),
+        codec,
         encoder,
         scopeRegistryListener,
         beanStateWriterLookup,
@@ -308,8 +320,14 @@ class ConfigurationCacheIO internal constructor(
     fun readContextFor(
         decoder: Decoder,
         codecs: Codecs
+    ) = readContextFor(decoder, codecs.userTypesCodec())
+
+    private
+    fun readContextFor(
+        decoder: Decoder,
+        codec: Codec<Any?>
     ) = DefaultReadContext(
-        codecs.userTypesCodec(),
+        codec,
         decoder,
         beanStateReaderLookup,
         logger,
@@ -332,7 +350,7 @@ class ConfigurationCacheIO internal constructor(
             taskNodeFactory = service(),
             ordinalGroupFactory = service(),
             inputFingerprinter = service(),
-            buildOperationExecutor = service(),
+            buildOperationRunner = service(),
             classLoaderHierarchyHasher = service(),
             isolatableFactory = service(),
             managedFactoryRegistry = service(),

@@ -17,6 +17,7 @@
 package org.gradle.api.problems.internal;
 
 import org.gradle.api.problems.ProblemReporter;
+import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -26,17 +27,22 @@ import java.util.List;
 @ServiceScope(Scope.BuildTree.class)
 public class DefaultProblems implements InternalProblems {
 
+    private final CurrentBuildOperationRef currentBuildOperationRef;
     private final ProblemEmitter emitter;
     private final List<ProblemTransformer> transformers;
     private final InternalProblemReporter internalReporter;
 
+    public DefaultProblems(ProblemEmitter emitter, CurrentBuildOperationRef currentBuildOperationRef) {
+        this(emitter, Collections.<ProblemTransformer>emptyList(), currentBuildOperationRef);
+    }
     public DefaultProblems(ProblemEmitter emitter) {
-        this(emitter, Collections.<ProblemTransformer>emptyList());
+        this(emitter, Collections.<ProblemTransformer>emptyList(), CurrentBuildOperationRef.instance());
     }
 
-    public DefaultProblems(ProblemEmitter emitter, List<ProblemTransformer> transformers) {
+    public DefaultProblems(ProblemEmitter emitter, List<ProblemTransformer> transformers, CurrentBuildOperationRef currentBuildOperationRef) {
         this.emitter = emitter;
         this.transformers = transformers;
+        this.currentBuildOperationRef = currentBuildOperationRef;
         internalReporter = createReporter(emitter, transformers);
     }
 
@@ -48,8 +54,8 @@ public class DefaultProblems implements InternalProblems {
         return createReporter(emitter, transformers);
     }
 
-    private static DefaultProblemReporter createReporter(ProblemEmitter emitter, List<ProblemTransformer> transformers) {
-        return new DefaultProblemReporter(emitter, transformers);
+    private DefaultProblemReporter createReporter(ProblemEmitter emitter, List<ProblemTransformer> transformers) {
+        return new DefaultProblemReporter(emitter, transformers, currentBuildOperationRef);
     }
 
     @Override

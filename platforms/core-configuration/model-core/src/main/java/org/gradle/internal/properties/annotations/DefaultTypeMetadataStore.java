@@ -110,7 +110,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                 validationContext.visitPropertyProblem(problem ->
                     problem
                         .forProperty(propertyAnnotationMetadata.getPropertyName())
-                        .id(TextUtil.screamingSnakeToKebabCase(MISSING_ANNOTATION), "property missing", GradleCoreProblemGroup.validation().property())
+                        .id(TextUtil.screamingSnakeToKebabCase(MISSING_ANNOTATION), "Missing annotation", GradleCoreProblemGroup.validation().property())
                         .contextualLabel("is missing " + displayName)
                         .documentedAt(userManual("validation_problems", MISSING_ANNOTATION.toLowerCase()))
                         .severity(ERROR)
@@ -126,7 +126,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                 validationContext.visitPropertyProblem(problem ->
                     problem
                         .forProperty(propertyAnnotationMetadata.getPropertyName())
-                        .id(TextUtil.screamingSnakeToKebabCase(ANNOTATION_INVALID_IN_CONTEXT), "is annotated with invalid property type", GradleCoreProblemGroup.validation().property())
+                        .id(TextUtil.screamingSnakeToKebabCase(ANNOTATION_INVALID_IN_CONTEXT), "Invalid annotation in context", GradleCoreProblemGroup.validation().property())
                         .contextualLabel(String.format("is annotated with invalid property type @%s", propertyType.getSimpleName()))
                         .documentedAt(userManual("validation_problems", ANNOTATION_INVALID_IN_CONTEXT.toLowerCase()))
                         .severity(ERROR)
@@ -148,7 +148,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                     validationContext.visitPropertyProblem(problem ->
                         problem
                             .forProperty(propertyAnnotationMetadata.getPropertyName())
-                            .id(TextUtil.screamingSnakeToKebabCase(INCOMPATIBLE_ANNOTATIONS), "Wrong property annotation", GradleCoreProblemGroup.validation().property())
+                            .id(TextUtil.screamingSnakeToKebabCase(INCOMPATIBLE_ANNOTATIONS), "Incompatible annotations", GradleCoreProblemGroup.validation().property())
                             .contextualLabel("is annotated with @" + annotationType.getSimpleName() + " but that is not allowed for '" + propertyType.getSimpleName() + "' properties")
                             .documentedAt(userManual("validation_problems", INCOMPATIBLE_ANNOTATIONS.toLowerCase()))
                             .severity(ERROR)
@@ -158,7 +158,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                     validationContext.visitPropertyProblem(problem ->
                         problem
                             .forProperty(propertyAnnotationMetadata.getPropertyName())
-                            .id(TextUtil.screamingSnakeToKebabCase(ANNOTATION_INVALID_IN_CONTEXT), "is annotated with invalid modifier", GradleCoreProblemGroup.validation().property())
+                            .id(TextUtil.screamingSnakeToKebabCase(ANNOTATION_INVALID_IN_CONTEXT), "Invalid annotation in context", GradleCoreProblemGroup.validation().property())
                             .contextualLabel(String.format("is annotated with invalid modifier @%s", annotationType.getSimpleName()))
                             .documentedAt(userManual("validation_problems", ANNOTATION_INVALID_IN_CONTEXT.toLowerCase()))
                             .severity(ERROR)

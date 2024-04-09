@@ -24,7 +24,7 @@ import org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalA
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.language.base.internal.compile.Compiler;
 
@@ -35,17 +35,17 @@ public class CompileJavaBuildOperationReportingCompiler implements Compiler<Java
 
     private final TaskInternal task;
     private final Compiler<JavaCompileSpec> delegate;
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationRunner buildOperationRunner;
 
-    public CompileJavaBuildOperationReportingCompiler(TaskInternal task, Compiler<JavaCompileSpec> delegate, BuildOperationExecutor buildOperationExecutor) {
+    public CompileJavaBuildOperationReportingCompiler(TaskInternal task, Compiler<JavaCompileSpec> delegate, BuildOperationRunner buildOperationRunner) {
         this.task = task;
         this.delegate = delegate;
-        this.buildOperationExecutor = buildOperationExecutor;
+        this.buildOperationRunner = buildOperationRunner;
     }
 
     @Override
     public WorkResult execute(final JavaCompileSpec spec) {
-        return buildOperationExecutor.call(new CallableBuildOperation<WorkResult>() {
+        return buildOperationRunner.call(new CallableBuildOperation<WorkResult>() {
             @Override
             public BuildOperationDescriptor.Builder description() {
                 String taskIdentityPath = task.getIdentityPath().getPath();

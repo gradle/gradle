@@ -32,7 +32,7 @@ class CaptureIncrementalStateBeforeExecutionStepTest extends AbstractCaptureStat
     def overlappingOutputDetector = Mock(OverlappingOutputDetector)
 
     AbstractCaptureStateBeforeExecutionStep<PreviousExecutionContext, CachingResult> step
-        = new CaptureIncrementalStateBeforeExecutionStep(buildOperationExecutor, classloaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector, delegate)
+        = new CaptureIncrementalStateBeforeExecutionStep(buildOperationRunner, classloaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector, delegate)
 
     def setup() {
         _ * work.inputFingerprinter >> inputFingerprinter

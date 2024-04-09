@@ -34,11 +34,62 @@ Learn the basics of project dependencies and Gradle's dependency management.
 1. You initialized your Java app in <<part1_gradle_init.adoc#part1_begin,part 1>>.
 2. You ran several tasks in <<part2_gradle_tasks#part2_begin,part 2>>.
 
-== Step 1. Understanding Project Dependencies
+== Step 1. Understanding the Version Catalog
+A version catalog is used to declare all direct dependencies of a project in a central location.
+
+It is created in by Gradle init in `gradle/libs.versions.toml` and referenced in subproject build files.
+
+.libs.versions.toml
+[source,text]
+----
+[versions]
+guava = "32.1.2-jre"
+junit-jupiter = "5.10.0"
+
+[libraries]
+guava = { module = "com.google.guava:guava", version.ref = "guava" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit-jupiter" }
+----
+
+To reference the libraries defined in the version catalog:
+
+[.multi-language-sample]
+=====
+[source, kotlin]
+----
+dependencies {
+    implementation(libs.guava)
+    testImplementation(libs.junit.jupiter)
+}
+----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+dependencies {
+    implementation libs.guava
+    testImplementation libs.junit.jupiter
+}
+----
+=====
+
+In this example, `libs.guava` and `libs.junit.jupiter` refer to the corresponding libraries defined in your version catalog.
+
+TIP: The `versions.junit.jupiter` syntax is used because the key contains a hyphen which is a special characters.
+
+A version catalog provides a number of advantages over declaring dependencies directly in build scripts:
+
+- Gradle generates type-safe accessors from the catalog so that you can easily add dependencies with autocompletion in the IDE.
+- It is a central place to declare a version of a dependency so that any changes apply to every subproject.
+
+== Step 2. Understanding Project Dependencies
 Gradle provides excellent support for dependency management and automation.
 
-Let's take another look at our build script (the `build.gradle.kts` file), specifically the following section:
-[source,kotlin]
+Let's take another look at our build script (the `build.gradle(.kts)` file), specifically the following section:
+[.multi-language-sample]
+=====
+[source, kotlin]
 ----
 repositories {
     // Use Maven Central for resolving dependencies.
@@ -47,12 +98,35 @@ repositories {
 
 dependencies {
     // Use JUnit Jupiter for testing.
-    testImplementation("org.junit.jupiter:junit-jupiter:5.9.1")
+    testImplementation(libs.junit.jupiter)
+
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
     // This dependency is used by the application.
-    implementation("com.google.guava:guava:32.1.2-jre")
+    implementation(libs.guava)
 }
 ----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+repositories {
+    // Use Maven Central for resolving dependencies.
+    mavenCentral()
+}
+
+dependencies {
+    // Use JUnit Jupiter for testing.
+    testImplementation libs.junit.jupiter
+
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    // This dependency is used by the application.
+    implementation libs.guava
+}
+----
+=====
 
 Some key concepts in Gradle dependency management include:
 
@@ -61,10 +135,10 @@ Some key concepts in Gradle dependency management include:
 https://mvnrepository.com/repos/central[Maven Central] is a collection of jar files, plugins, and libraries provided by the Maven community and backed by https://central.sonatype.org/[Sonatype^].
 It is the de-facto public artifact store for Java and is used by many build systems.
 
-*Dependencies* - Dependencies declared via configuration types -> https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api[`junit`] and https://mvnrepository.com/artifact/com.google.guava/guava[`guava`] +
+*Dependencies* - Dependencies declared via configuration types -> https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api[`libs.junit.jupiter`] and https://mvnrepository.com/artifact/com.google.guava/guava[`libs.guava`] +
 
 Gradle needs specific information to find a dependency.
-Let's look at `com.google.guava:guava:32.1.2-jre` and `org.junit.jupiter:junit-jupiter-api:5.9.1`; they are broken down as follows:
+Let's look at `libs.guava` -> `com.google.guava:guava:32.1.2-jre` and `libs.junit.jupiter` -> `org.junit.jupiter:junit-jupiter-api:5.9.1`; they are broken down as follows:
 
 [cols="10h,30,40,20"]
 |===
@@ -86,13 +160,13 @@ Let's look at `com.google.guava:guava:32.1.2-jre` and `org.junit.jupiter:junit-j
 |`5.9.1`
 |===
 
-== Step 2. Understanding Transitive Dependencies
+== Step 3. Understanding Transitive Dependencies
 A _transitive dependency_ is a dependency of a dependency.
 
 For our `guava` dependency to work, it requires a library called `failureaccess`.
 Therefore `failureaccess` is a transitive dependency of the project.
 
-== Step 3. Viewing Project Dependencies
+== Step 4. Viewing Project Dependencies
 You can view your dependency tree in the terminal using the `./gradlew :app:dependencies` command:
 [source,kotlin]
 ----
@@ -108,19 +182,23 @@ Project ':app'
 
 compileClasspath - Compile classpath for source set 'main'.
 \--- com.google.guava:guava:32.1.2-jre
+     +--- com.google.guava:guava-parent:32.1.2-jre
+     |    +--- com.google.code.findbugs:jsr305:3.0.2 (c)
+     |    +--- org.checkerframework:checker-qual:3.33.0 (c)
+     |    +--- com.google.errorprone:error_prone_annotations:2.18.0 (c)
+     |    \--- com.google.j2objc:j2objc-annotations:2.8 (c)
      +--- com.google.guava:failureaccess:1.0.1
      +--- com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava
-     +--- com.google.code.findbugs:jsr305:3.0.2
-     +--- org.checkerframework:checker-qual:3.12.0
-     +--- com.google.errorprone:error_prone_annotations:2.11.0
-     \--- com.google.j2objc:j2objc-annotations:1.3
+     +--- com.google.code.findbugs:jsr305 -> 3.0.2
+     +--- org.checkerframework:checker-qual -> 3.33.0
+     +--- com.google.errorprone:error_prone_annotations -> 2.18.0
+     \--- com.google.j2objc:j2objc-annotations -> 2.8
 
-...
 ----
 
 The output clearly depicts that `com.google.guava:guava:32.1.2-jre` has a dependency on `com.google.guava:failureaccess:1.0.1`.
 
-== Step 4. Viewing Dependencies in a Build Scan®
+== Step 5. Viewing Dependencies in a Build Scan®
 To view dependencies using a https://scans.gradle.com/[Build Scan], run the build task with an optional `--scan` flag.
 
 In the `tutorial` directory, enter the command below and follow the prompt to accept the terms:
@@ -166,15 +244,23 @@ image::tutorial/build-scan-trans-dependencies.png[]
 There are several transitive dependencies under `junit` and `guava`.
 For example, the `com.google.code.findbugs:jsr305:3.0.2` transitive dependency comes from the `com.google.guava:guava:32.1.2-jre` dependency.
 
-== Step 5. Updating Project Dependencies
+== Step 6. Updating Project Dependencies
 Adding and changing dependencies is done in the build file.
 
 Let's change the `guava` version and look at how this affects the dependency tree.
 
-Change the `guava` dependency to the `gradle.build.kts` file to:
-[source,kotlin]
+Change the `guava` dependency in the version catalog to:
+
+.gradle/libs.version.toml
+[source,text]
 ----
-implementation("com.google.guava:guava:30.0-jre")
+[versions]
+guava = "30.0-jre"
+junit-jupiter = "5.10.0"
+
+[libraries]
+guava = { module = "com.google.guava:guava", version.ref = "guava" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit-jupiter" }
 ----
 
 If you change the file using IntelliJ, don't forget to click the `sync` Gradle button:
@@ -186,8 +272,11 @@ Run `./gradlew build --scan` and view the Build Scan results:
 image::tutorial/build-scan-change.png[]
 
 Run `./gradlew :app:dependencies` in the terminal to check the changes in the dependency tree:
+
 [source,text]
 ----
+...
+
 compileClasspath - Compile classpath for source set 'main'.
 \--- com.google.guava:guava:30.0-jre
      +--- com.google.guava:failureaccess:1.0.1
@@ -202,34 +291,7 @@ compileClasspath - Compile classpath for source set 'main'.
 
 It is clear the `guava` dependency has been updated to version `30.0` and the transitive dependencies have changed as well.
 
-== Step 6. Adding a Version Catalog
-A version catalog is used to declare all direct dependencies of a project in a central location.
-
-It is created in `gradle/libs.versions.toml` and referenced in subproject build files.
-
-First, create the `libs.versions.toml` file in the `gradle` directory.
-
-Then, add the following lines to this new file:
-----
-[versions]
-junitVer = "5.9.1"
-guavaVer = "32.1.2-jre"
-
-[libraries]
-junit = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junitVer" }
-guava = { module = "com.google.guava:guava", version.ref = "guavaVer" }
-----
-
-In your `app/build.gradle.kts` file, update the dependency block accordingly:
-----
-dependencies {
-    testImplementation(libs.junit)
-    implementation(libs.guava)
-}
-----
-
-Run `./gradlew build` to make sure the changes take effect.
-
+== Step 7. Run the Java app
 Finally, make sure everything is working using the `run` task, either in your terminal or IDE:
 ----
 ./gradlew run
@@ -241,11 +303,6 @@ Finally, make sure everything is working using the `run` task, either in your te
 > Task :app:run
 Hello World!
 ----
-
-A version catalog provides a number of advantages over declaring the dependencies directly in build scripts:
-
-- Gradle generates type-safe accessors from the catalog so that you can easily add dependencies with autocompletion in the IDE.
-- It is a central place to declare a version of a dependency so that any changes apply to every subproject.
 
 [.text-right]
 **Next Step:** <<part4_gradle_plugins#part4_begin,Applying Plugins>> >>

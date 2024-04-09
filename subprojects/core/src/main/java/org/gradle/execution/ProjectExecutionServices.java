@@ -53,7 +53,7 @@ import org.gradle.internal.file.ReservedFileSystemLocation;
 import org.gradle.internal.file.ReservedFileSystemLocationRegistry;
 import org.gradle.internal.fingerprint.impl.FileCollectionFingerprinterRegistrations;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.work.AsyncWorkTracker;
@@ -86,7 +86,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
 
     TaskExecuter createTaskExecuter(
         AsyncWorkTracker asyncWorkTracker,
-        BuildOperationExecutor buildOperationExecutor,
+        BuildOperationRunner buildOperationRunner,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         ExecutionHistoryStore executionHistoryStore,
         FileCollectionFactory fileCollectionFactory,
@@ -105,7 +105,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
     ) {
         TaskExecuter executer = new ExecuteActionsTaskExecuter(
             executionHistoryStore,
-            buildOperationExecutor,
+            buildOperationRunner,
             asyncWorkTracker,
             actionListener,
             taskCacheabilityResolver,
@@ -124,7 +124,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         executer = new SkipTaskWithNoActionsExecuter(taskExecutionGraph, executer);
         executer = new SkipOnlyIfTaskExecuter(executer);
         executer = new CatchExceptionTaskExecuter(executer);
-        executer = new EventFiringTaskExecuter(buildOperationExecutor, taskExecutionListener, taskListenerInternal, executer);
+        executer = new EventFiringTaskExecuter(buildOperationRunner, taskExecutionListener, taskListenerInternal, executer);
         return executer;
     }
 

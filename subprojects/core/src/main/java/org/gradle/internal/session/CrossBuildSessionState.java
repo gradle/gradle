@@ -19,15 +19,15 @@ package org.gradle.internal.session;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultCollectionCallbackActionDecorator;
-import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.configuration.internal.DefaultDynamicCallContextTracker;
 import org.gradle.configuration.internal.DefaultListenerBuildOperationDecorator;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.internal.code.DefaultUserCodeApplicationContext;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.concurrent.DefaultParallelismConfiguration;
+import org.gradle.internal.concurrent.DefaultWorkerLimits;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.concurrent.WorkerLimits;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.logging.sink.OutputEventListenerManager;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -54,20 +54,20 @@ import java.io.Closeable;
 
 /**
  * Services to be shared across build sessions.
- *
+ * <p>
  * Generally, one regular Gradle invocation is conceptually a session.
  * However, the GradleBuild task is currently implemented in such a way that it uses a discrete session.
- * Having the GradleBuild task reuse the outer session is complicated because it may use a different Gradle user home.
- * See https://github.com/gradle/gradle/issues/4559.
- *
+ * Having the GradleBuild task reuse the outer session is complicated because it <a href="https://github.com/gradle/gradle/issues/4559">may use a different Gradle user home</a>.
+ * <p>
  * This set of services is added as a parent of each build session scope.
  */
-@ServiceScope(Scope.BuildSession.class)
+@ServiceScope(Scope.CrossBuildSession.class)
 public class CrossBuildSessionState implements Closeable {
     private final ServiceRegistry services;
 
     public CrossBuildSessionState(ServiceRegistry parent, StartParameter startParameter) {
         this.services = ServiceRegistryBuilder.builder()
+            .scope(Scope.CrossBuildSession.class)
             .displayName("cross session services")
             .parent(parent)
             .provider(new Services(startParameter))
@@ -103,8 +103,8 @@ public class CrossBuildSessionState implements Closeable {
             return CrossBuildSessionState.this;
         }
 
-        ParallelismConfiguration createParallelismConfiguration() {
-            return new DefaultParallelismConfiguration(startParameter.isParallelProjectExecutionEnabled(), startParameter.getMaxWorkerCount());
+        WorkerLimits createWorkerLimits() {
+            return new DefaultWorkerLimits(startParameter.getMaxWorkerCount());
         }
 
         BuildOperationExecutor createBuildOperationExecutor(
@@ -112,14 +112,14 @@ public class CrossBuildSessionState implements Closeable {
             CurrentBuildOperationRef currentBuildOperationRef,
             WorkerLeaseService workerLeaseService,
             ExecutorFactory executorFactory,
-            ParallelismConfiguration parallelismConfiguration
+            WorkerLimits workerLimits
         ) {
             return new DefaultBuildOperationExecutor(
                 buildOperationRunner,
                 currentBuildOperationRef,
                 new DefaultBuildOperationQueueFactory(workerLeaseService),
                 executorFactory,
-                parallelismConfiguration
+                workerLimits
             );
         }
 
@@ -127,12 +127,12 @@ public class CrossBuildSessionState implements Closeable {
             return new DefaultUserCodeApplicationContext();
         }
 
-        ListenerBuildOperationDecorator createListenerBuildOperationDecorator(BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext) {
-            return new DefaultListenerBuildOperationDecorator(buildOperationExecutor, userCodeApplicationContext);
+        ListenerBuildOperationDecorator createListenerBuildOperationDecorator(BuildOperationRunner buildOperationRunner, UserCodeApplicationContext userCodeApplicationContext) {
+            return new DefaultListenerBuildOperationDecorator(buildOperationRunner, userCodeApplicationContext);
         }
 
-        CollectionCallbackActionDecorator createDomainObjectCollectioncallbackActionDecorator(BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext) {
-            return new DefaultCollectionCallbackActionDecorator(buildOperationExecutor, userCodeApplicationContext);
+        CollectionCallbackActionDecorator createDomainObjectCollectioncallbackActionDecorator(BuildOperationRunner buildOperationRunner, UserCodeApplicationContext userCodeApplicationContext) {
+            return new DefaultCollectionCallbackActionDecorator(buildOperationRunner, userCodeApplicationContext);
         }
 
         LoggingBuildOperationProgressBroadcaster createLoggingBuildOperationProgressBroadcaster(OutputEventListenerManager outputEventListenerManager, BuildOperationProgressEventEmitter buildOperationProgressEventEmitter) {
