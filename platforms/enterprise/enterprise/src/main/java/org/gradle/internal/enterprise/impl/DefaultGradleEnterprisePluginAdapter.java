@@ -16,6 +16,9 @@
 
 package org.gradle.internal.enterprise.impl;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Multimap;
+import org.gradle.api.problems.internal.Problem;
 import org.gradle.internal.enterprise.GradleEnterprisePluginBuildState;
 import org.gradle.internal.enterprise.GradleEnterprisePluginConfig;
 import org.gradle.internal.enterprise.GradleEnterprisePluginEndOfBuildListener;
@@ -25,7 +28,9 @@ import org.gradle.internal.enterprise.GradleEnterprisePluginServiceRef;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginAdapter;
 import org.gradle.internal.operations.notify.BuildOperationNotificationListenerRegistrar;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collection;
 
 /**
  * Captures the state to recreate the {@link GradleEnterprisePluginService} instance.
@@ -48,6 +53,7 @@ public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePlu
     private final DefaultGradleEnterprisePluginServiceRef pluginServiceRef;
 
     private final BuildOperationNotificationListenerRegistrar buildOperationNotificationListenerRegistrar;
+    private final Multimap<Throwable, Problem> problemsMapping;
 
     private transient GradleEnterprisePluginService pluginService;
 
@@ -57,7 +63,8 @@ public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePlu
         DefaultGradleEnterprisePluginRequiredServices requiredServices,
         GradleEnterprisePluginBuildState buildState,
         DefaultGradleEnterprisePluginServiceRef pluginServiceRef,
-        BuildOperationNotificationListenerRegistrar buildOperationNotificationListenerRegistrar
+        BuildOperationNotificationListenerRegistrar buildOperationNotificationListenerRegistrar,
+        Multimap<Throwable, Problem> problemsMapping
     ) {
         this.pluginServiceFactory = pluginServiceFactory;
         this.config = config;
@@ -65,6 +72,7 @@ public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePlu
         this.buildState = buildState;
         this.pluginServiceRef = pluginServiceRef;
         this.buildOperationNotificationListenerRegistrar = buildOperationNotificationListenerRegistrar;
+        this.problemsMapping = problemsMapping;
 
         createPluginService();
     }
@@ -95,8 +103,23 @@ public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePlu
                 public Throwable getFailure() {
                     return buildFailure;
                 }
+
+                @Override
+                public Collection<Problem> getProblems() {
+                    return DefaultGradleEnterprisePluginAdapter.this.getProblems(buildFailure);
+                }
             });
         }
+    }
+
+    private @Nonnull Collection<Problem> getProblems(@Nullable Throwable buildFailure) {
+        ImmutableList.Builder<Problem> builder = ImmutableList.builder();
+        while(buildFailure != null) {
+            Collection<Problem> problems = problemsMapping.get(buildFailure);
+            builder.addAll(problems);
+            buildFailure = buildFailure.getCause();
+        }
+        return builder.build();
     }
 
     private void createPluginService() {
@@ -104,5 +127,4 @@ public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePlu
         pluginServiceRef.set(pluginService);
         buildOperationNotificationListenerRegistrar.register(pluginService.getBuildOperationNotificationListener());
     }
-
 }

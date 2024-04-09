@@ -51,6 +51,7 @@ dependencies {
     integTestImplementation(project(":messaging"))
     integTestImplementation(project(":persistent-cache"))
     integTestImplementation(project(":native"))
+    integTestImplementation(testFixtures(project(":problems-api")))
     integTestImplementation(libs.guava)
 
     integTestDistributionRuntimeOnly(project(":distributions-full"))
