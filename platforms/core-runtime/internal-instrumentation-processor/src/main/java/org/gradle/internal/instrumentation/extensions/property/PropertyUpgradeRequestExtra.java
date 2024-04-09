@@ -16,58 +16,17 @@
 
 package org.gradle.internal.instrumentation.extensions.property;
 
-import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.file.RegularFileProperty;
-import org.gradle.api.provider.ListProperty;
-import org.gradle.api.provider.MapProperty;
-import org.gradle.api.provider.SetProperty;
 import org.gradle.internal.instrumentation.model.RequestExtra;
-import org.objectweb.asm.Type;
+import org.gradle.internal.instrumentation.processor.codegen.GradleLazyType;
 
 class PropertyUpgradeRequestExtra implements RequestExtra {
-
-    enum UpgradedPropertyType {
-        LIST_PROPERTY(true),
-        SET_PROPERTY(true),
-        MAP_PROPERTY(true),
-        PROPERTY(false),
-        FILE_SYSTEM_LOCATION_PROPERTY(false),
-        CONFIGURABLE_FILE_COLLECTION(false);
-
-        private final boolean isMultiValueProperty;
-
-        UpgradedPropertyType(boolean isMultiValueProperty) {
-            this.isMultiValueProperty = isMultiValueProperty;
-        }
-
-        public boolean isMultiValueProperty() {
-            return isMultiValueProperty;
-        }
-
-        public static UpgradedPropertyType from(Type type) {
-            if (type.getClassName().equals(DirectoryProperty.class.getName()) || type.getClassName().equals(RegularFileProperty.class.getName())) {
-                return FILE_SYSTEM_LOCATION_PROPERTY;
-            } else if (type.getClassName().equals(ConfigurableFileCollection.class.getName())) {
-                return CONFIGURABLE_FILE_COLLECTION;
-            } else if (type.getClassName().equals(MapProperty.class.getName())) {
-                return MAP_PROPERTY;
-            } else if (type.getClassName().equals(SetProperty.class.getName())) {
-                return SET_PROPERTY;
-            } else if (type.getClassName().equals(ListProperty.class.getName())) {
-                return LIST_PROPERTY;
-            } else {
-                return PROPERTY;
-            }
-        }
-    }
 
     private final String propertyName;
     private final boolean isFluentSetter;
     private final String implementationClassName;
     private final String interceptedPropertyAccessorName;
     private final String interceptedPropertyAccessorDescriptor;
-    private final UpgradedPropertyType upgradedPropertyType;
+    private final GradleLazyType upgradedPropertyType;
 
     public PropertyUpgradeRequestExtra(
         String propertyName,
@@ -75,7 +34,7 @@ class PropertyUpgradeRequestExtra implements RequestExtra {
         String implementationClassName,
         String interceptedPropertyAccessorName,
         String interceptedPropertyAccessorDescriptor,
-        UpgradedPropertyType upgradedPropertyType
+        GradleLazyType upgradedPropertyType
     ) {
         this.propertyName = propertyName;
         this.isFluentSetter = isFluentSetter;
@@ -101,7 +60,7 @@ class PropertyUpgradeRequestExtra implements RequestExtra {
         return interceptedPropertyAccessorDescriptor;
     }
 
-    public UpgradedPropertyType getUpgradedPropertyType() {
+    public GradleLazyType getUpgradedPropertyType() {
         return upgradedPropertyType;
     }
 
