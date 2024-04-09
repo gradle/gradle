@@ -183,13 +183,13 @@ data class DataParameterImpl(
 
 
 @Serializable
-sealed interface ParameterSemantics {
-    @Serializable
-    data class StoreValueInProperty(val dataProperty: DataProperty) : ParameterSemantics
-
-    @Serializable
-    data object Unknown : ParameterSemantics
+data class StoreValueInPropertyParameterSemantics(private val dataProperty: DataProperty) : ParameterSemantics.StoreValueInProperty {
+    override fun getDataProperty(): DataProperty = dataProperty
 }
+
+
+@Serializable
+data object UnknownParameterSemantics : ParameterSemantics.Unknown
 
 
 @Serializable
