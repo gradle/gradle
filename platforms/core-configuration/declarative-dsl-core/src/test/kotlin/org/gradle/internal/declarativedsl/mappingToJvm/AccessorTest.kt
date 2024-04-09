@@ -21,10 +21,10 @@ import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.internal.declarativedsl.analysis.AccessAndConfigureFunctionSemantics
 import org.gradle.internal.declarativedsl.analysis.AccessAndConfigureFunctionSemantics.ReturnType.UNIT
 import org.gradle.internal.declarativedsl.analysis.ConfigureAccessor
-import org.gradle.internal.declarativedsl.analysis.DataConstructor
+import org.gradle.declarative.dsl.schema.DataConstructor
 import org.gradle.internal.declarativedsl.analysis.DataMemberFunction
-import org.gradle.internal.declarativedsl.analysis.DataTopLevelFunction
-import org.gradle.internal.declarativedsl.analysis.SchemaMemberFunction
+import org.gradle.declarative.dsl.schema.DataTopLevelFunction
+import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.demo.resolve
 import org.gradle.internal.declarativedsl.schemaBuilder.DataSchemaBuilder
 import org.gradle.internal.declarativedsl.schemaBuilder.DefaultFunctionExtractor

@@ -14,20 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.analysis;
+package org.gradle.declarative.dsl.schema;
 
 import java.io.Serializable;
 
-public interface DataType extends Serializable {
+public interface ExternalObjectProviderKey extends Serializable {
 
-    interface ConstantType<JvmType> extends DataType {
-
-        Class<JvmType> getType();
-
-    }
-
-    interface NullType extends DataType {}
-
-    interface UnitType extends DataType {}
+    DataTypeRef getType();
 
 }

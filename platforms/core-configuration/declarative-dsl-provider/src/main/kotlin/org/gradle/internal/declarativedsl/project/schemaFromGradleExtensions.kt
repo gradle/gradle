@@ -26,8 +26,8 @@ import org.gradle.internal.declarativedsl.schemaBuilder.toDataTypeRef
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.internal.declarativedsl.analysis.AccessAndConfigureFunctionSemantics
-import org.gradle.internal.declarativedsl.analysis.DataConstructor
-import org.gradle.internal.declarativedsl.analysis.SchemaMemberFunction
+import org.gradle.declarative.dsl.schema.DataConstructor
+import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaComponent
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction

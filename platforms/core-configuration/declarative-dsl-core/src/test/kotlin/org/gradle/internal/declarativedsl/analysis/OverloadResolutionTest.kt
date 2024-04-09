@@ -17,8 +17,9 @@
 package org.gradle.internal.declarativedsl.analysis
 
 import org.gradle.declarative.dsl.model.annotations.Adding
-import org.gradle.internal.declarativedsl.analysis.FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement.NOT_ALLOWED
-import org.gradle.internal.declarativedsl.analysis.FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement.REQUIRED
+import org.gradle.declarative.dsl.schema.FunctionSemantics
+import org.gradle.declarative.dsl.schema.FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement.NOT_ALLOWED
+import org.gradle.declarative.dsl.schema.FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement.REQUIRED
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin.FunctionInvocationOrigin
 import org.gradle.internal.declarativedsl.demo.resolve
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes

@@ -19,7 +19,7 @@ package org.gradle.internal.declarativedsl.project
 import org.gradle.api.Project
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.internal.declarativedsl.analysis.FqNameImpl
-import org.gradle.internal.declarativedsl.analysis.DataProperty.PropertyMode
+import org.gradle.declarative.dsl.schema.DataProperty.PropertyMode
 import org.gradle.internal.declarativedsl.analysis.DataTypeRefNameImpl
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaComponent
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimePropertyResolver

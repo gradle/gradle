@@ -14,18 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.analysis;
+package org.gradle.declarative.dsl.schema;
 
-import java.io.Serializable;
+public interface DataTopLevelFunction extends SchemaFunction {
 
-public interface DataParameter extends Serializable {
-
-    String getName();
-
-    DataTypeRef getType();
-
-    boolean isDefault();
-
-    ParameterSemantics getSemantics();
+    String getPackageName();
 
 }

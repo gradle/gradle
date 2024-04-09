@@ -14,16 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.analysis;
+package org.gradle.declarative.dsl.schema;
 
 import java.io.Serializable;
 
-public interface FqName extends Serializable {
+public interface DataParameter extends Serializable {
 
-    String getPackageName();
+    String getName();
 
-    String getSimpleName();
+    DataTypeRef getType();
 
-    String getQualifiedName();
+    boolean isDefault();
+
+    ParameterSemantics getSemantics();
 
 }

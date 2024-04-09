@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.analysis;
+package org.gradle.declarative.dsl.schema;
 
 import java.io.Serializable;
+import java.util.List;
 
-public interface ParameterSemantics extends Serializable {
+public interface SchemaFunction extends Serializable {
 
-    interface StoreValueInProperty extends ParameterSemantics {
+    String getSimpleName();
 
-        DataProperty getDataProperty();
+    List<DataParameter> getParameters();
 
-    }
+    FunctionSemantics getSemantics();
 
-    interface Unknown extends ParameterSemantics {}
+    DataTypeRef getReturnValueType();
 
 }

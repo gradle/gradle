@@ -14,12 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.analysis;
+package org.gradle.declarative.dsl.schema;
 
-public interface SchemaMemberFunction extends SchemaFunction {
+import java.io.Serializable;
 
-    DataTypeRef getReceiver();
+public interface FqName extends Serializable {
 
-    boolean isDirectAccessOnly();
+    String getPackageName();
+
+    String getSimpleName();
+
+    String getQualifiedName();
 
 }

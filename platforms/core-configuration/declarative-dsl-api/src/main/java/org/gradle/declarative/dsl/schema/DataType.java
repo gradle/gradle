@@ -14,10 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.analysis;
+package org.gradle.declarative.dsl.schema;
 
-public interface DataConstructor extends SchemaFunction {
+import java.io.Serializable;
 
-    DataTypeRef getDataClass();
+public interface DataType extends Serializable {
+
+    interface ConstantType<JvmType> extends DataType {
+
+        Class<JvmType> getType();
+
+    }
+
+    interface NullType extends DataType {}
+
+    interface UnitType extends DataType {}
 
 }

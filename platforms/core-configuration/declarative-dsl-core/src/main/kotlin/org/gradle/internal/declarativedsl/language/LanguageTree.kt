@@ -1,6 +1,6 @@
 package org.gradle.internal.declarativedsl.language
 
-import org.gradle.internal.declarativedsl.analysis.DataType
+import org.gradle.declarative.dsl.schema.DataType
 
 
 sealed interface LanguageTreeElement {

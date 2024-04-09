@@ -16,7 +16,7 @@
 
 package org.gradle.internal.declarativedsl.evaluationSchema
 
-import org.gradle.internal.declarativedsl.analysis.AnalysisSchema
+import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter
 import org.gradle.internal.declarativedsl.analysis.analyzeEverything
 import org.gradle.internal.declarativedsl.mappingToJvm.MemberFunctionResolver

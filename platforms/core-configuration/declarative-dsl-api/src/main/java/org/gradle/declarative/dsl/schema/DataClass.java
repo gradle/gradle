@@ -14,12 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.analysis;
+package org.gradle.declarative.dsl.schema;
 
 import java.io.Serializable;
+import java.util.List;
+import java.util.Set;
 
-public interface ExternalObjectProviderKey extends Serializable {
+public interface DataClass extends Serializable {
 
-    DataTypeRef getType();
+    FqName getName();
+
+    Set<FqName> getSupertypes();
+
+    List<DataProperty> getProperties();
+
+    List<SchemaMemberFunction> getMemberFunctions();
+
+    List<DataConstructor> getConstructors();
 
 }
