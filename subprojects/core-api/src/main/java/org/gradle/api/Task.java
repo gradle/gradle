@@ -256,7 +256,7 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
     Set<Object> getDependsOn();
 
     /**
-     * <p>Sets the dependencies of this task. See <a href="#dependencies">here</a> for a description of the types of
+     * <p>Sets the dependencies of this task. <a href="./Task.html#dependencies">here</a> for a description of the types of
      * objects which can be used as task dependencies.</p>
      *
      * @param dependsOnTasks The set of task paths.
@@ -264,7 +264,7 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
     void setDependsOn(Iterable<?> dependsOnTasks);
 
     /**
-     * <p>Adds the given dependencies to this task. See <a href="#dependencies">here</a> for a description of the types
+     * <p>Adds the given dependencies to this task. See <a href="./Task.html#dependencies">here</a> for a description of the types
      * of objects which can be used as task dependencies.</p>
      *
      * @param paths The dependencies to add to this task.
@@ -692,7 +692,7 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
      * <p>For each supplied task, this action adds a task 'ordering', and does not specify a 'dependency' between the tasks.
      * As such, it is still possible to execute 'taskY' without first executing the 'taskX' in the example.</p>
      *
-     * <p>See <a href="#dependencies">here</a> for a description of the types of objects which can be used to specify
+     * <p>See <a href="./Task.html#dependencies">here</a> for a description of the types of objects which can be used to specify
      * an ordering relationship.</p>
      *
      * @param paths The tasks this task must run after.
@@ -713,7 +713,7 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
      * <p>For each supplied task, this action adds a task 'ordering', and does not specify a 'dependency' between the tasks.
      * As such, it is still possible to execute 'taskY' without first executing the 'taskX' in the example.</p>
      *
-     * <p>See <a href="#dependencies">here</a> for a description of the types of objects which can be used to specify
+     * <p>See <a href="./Task.html#dependencies">here</a> for a description of the types of objects which can be used to specify
      * an ordering relationship.</p>
      *
      * @param mustRunAfter The set of task paths this task must run after.
@@ -737,7 +737,7 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
      * }
      * </pre>
      *
-     * <p>See <a href="#dependencies">here</a> for a description of the types of objects which can be used to specify
+     * <p>See <a href="./Task.html#dependencies">here</a> for a description of the types of objects which can be used to specify
      * a finalizer task.</p>
      *
      * @param paths The tasks that finalize this task.
@@ -755,7 +755,7 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
      * }
      * </pre>
      *
-     * <p>See <a href="#dependencies">here</a> for a description of the types of objects which can be used to specify
+     * <p>See <a href="./Task.html#dependencies">here</a> for a description of the types of objects which can be used to specify
      * a finalizer task.</p>
      *
      * @param finalizedBy The tasks that finalize this task.
@@ -782,7 +782,7 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
      * <p>For each supplied task, this action adds a task 'ordering', and does not specify a 'dependency' between the tasks.
      * As such, it is still possible to execute 'taskY' without first executing the 'taskX' in the example.</p>
      *
-     * <p>See <a href="#dependencies">here</a> for a description of the types of objects which can be used to specify
+     * <p>See <a href="./Task.html#dependencies">here</a> for a description of the types of objects which can be used to specify
      * an ordering relationship.</p>
      *
      * @param paths The tasks this task should run after.
@@ -803,7 +803,7 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
      * <p>For each supplied task, this action adds a task 'ordering', and does not specify a 'dependency' between the tasks.
      * As such, it is still possible to execute 'taskY' without first executing the 'taskX' in the example.</p>
      *
-     * <p>See <a href="#dependencies">here</a> for a description of the types of objects which can be used to specify
+     * <p>See <a href="./Task.html#dependencies">here</a> for a description of the types of objects which can be used to specify
      * an ordering relationship.</p>
      *
      * @param shouldRunAfter The set of task paths this task should run after.
