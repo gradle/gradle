@@ -15,6 +15,8 @@
  */
 package org.gradle.kotlin.dsl
 
+import org.gradle.internal.deprecation.DeprecationLogger
+import org.gradle.internal.deprecation.Documentation
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec
@@ -31,9 +33,16 @@ import org.gradle.plugin.use.PluginDependencySpec
  *
  * @since 6.0
  */
-@Deprecated("use `develocity` instead", replaceWith = ReplaceWith("develocity"))
+@Deprecated("Gradle Enterprise has been renamed to Develocity", replaceWith = ReplaceWith("develocity"))
 val PluginDependenciesSpec.`gradle-enterprise`: PluginDependencySpec
-    get() = this.id(AutoAppliedGradleEnterprisePlugin.GRADLE_ENTERPRISE_PLUGIN_ID.id).version(AutoAppliedGradleEnterprisePlugin.VERSION)
+    get() {
+        DeprecationLogger.deprecateProperty(PluginDependencySpec::class.java, "`gradle-enterprise`")
+            .replaceWith("develocity")
+            .willBeRemovedInGradle9()
+            .withDocumentation(Documentation.kotlinDslExtensionReference("gradle-enterprise"))
+            .nagUser()
+        return this.id(AutoAppliedGradleEnterprisePlugin.GRADLE_ENTERPRISE_PLUGIN_ID.id).version(AutoAppliedGradleEnterprisePlugin.VERSION)
+    }
 
 
 /**
@@ -43,7 +52,7 @@ val PluginDependenciesSpec.`gradle-enterprise`: PluginDependencySpec
  *
  * By default, the applied plugin version will be the same as the one used by the `--scan` command line option.
  *
- * You can also use e.g. `` develocity version "3.17" `` to request a different version.
+ * You can also use e.g. `develocity version "3.17"` to request a different version.
  *
  * @since 8.8
  */
