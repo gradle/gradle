@@ -62,7 +62,6 @@ class ServiceScopeValidator implements AnnotatedServiceLifecycleHandler {
         validateScope(registration.getDeclaredType());
     }
 
-    // TODO: ignore self
     private void validateScope(Class<?> serviceType) {
         Class<? extends Scope>[] serviceScopes = scopeOf(serviceType);
 
