@@ -17,15 +17,14 @@
 package org.gradle.internal.declarativedsl.evaluator
 
 import org.gradle.api.Project
+import org.gradle.declarative.dsl.schema.AnalysisSchema
 
 
 interface DeclarativeSchemaRegistry {
 
-    fun storeSchema(target: Any, identifier: String, schema: String)
+    fun storeSchema(target: Any, identifier: String, schema: AnalysisSchema)
 
-    fun serializedSchemas(): MutableMap<String, MutableMap<String, String>> // TODO: flatten, we only need one schema
-
-    fun projectSchema(): String
+    fun projectSchema(): AnalysisSchema
 }
 
 
@@ -33,25 +32,13 @@ internal
 class DefaultDeclarativeSchemaRegistry : DeclarativeSchemaRegistry {
 
     private
-    val schemas: MutableMap<Pair<Any, String>, String> = mutableMapOf()
+    val schemas: MutableMap<Pair<Any, String>, AnalysisSchema> = mutableMapOf()
 
-    override fun storeSchema(target: Any, identifier: String, schema: String) {
+    override fun storeSchema(target: Any, identifier: String, schema: AnalysisSchema) {
         schemas[target to identifier] = schema
     }
 
-    override fun serializedSchemas(): MutableMap<String, MutableMap<String, String>> {
-        val retMap: MutableMap<String, MutableMap<String, String>> = mutableMapOf()
-        schemas.forEach {
-            val target = it.key.first.toString() // TODO: toString() not ok, but not sure what else to do
-            val identifier = it.key.second
-            val schema = it.value
-            retMap.putIfAbsent(target, mutableMapOf())
-            retMap[target]!![identifier] = schema
-        }
-        return retMap
-    }
-
-    override fun projectSchema(): String {
+    override fun projectSchema(): AnalysisSchema {
         schemas.forEach {
             val target = it.key.first
             val identifier = it.key.second
@@ -60,6 +47,6 @@ class DefaultDeclarativeSchemaRegistry : DeclarativeSchemaRegistry {
                 return schema
             }
         }
-        return ""
+        return AnalysisSchema.EMPTY
     }
 }

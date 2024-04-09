@@ -26,4 +26,21 @@ public interface FqName extends Serializable {
 
     String getQualifiedName();
 
+    FqName EMPTY = new FqName() {
+        @Override
+        public String getPackageName() {
+            return "";
+        }
+
+        @Override
+        public String getSimpleName() {
+            return "";
+        }
+
+        @Override
+        public String getQualifiedName() {
+            return "";
+        }
+    };
+
 }

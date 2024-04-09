@@ -17,6 +17,7 @@
 package org.gradle.declarative.dsl.tooling.builders
 
 import org.gradle.api.Project
+import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.declarative.dsl.tooling.models.DeclarativeSchemaModel
 import org.gradle.internal.declarativedsl.evaluator.DeclarativeSchemaRegistry
 import org.gradle.tooling.provider.model.ToolingModelBuilder
@@ -33,9 +34,9 @@ class DeclarativeSchemaModelBuilder(private val registry: DeclarativeSchemaRegis
 
 
 private
-class DefaultDeclarativeSchemaModel(val projectSchema: String) : DeclarativeSchemaModel, Serializable {
+class DefaultDeclarativeSchemaModel(val projectSchema: AnalysisSchema) : DeclarativeSchemaModel, Serializable {
 
-    override fun schema(): String {
+    override fun schema(): AnalysisSchema {
         return projectSchema
     }
 }

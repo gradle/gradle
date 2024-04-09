@@ -17,6 +17,7 @@
 package org.gradle.declarative.dsl.schema;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -31,5 +32,32 @@ public interface DataClass extends Serializable {
     List<SchemaMemberFunction> getMemberFunctions();
 
     List<DataConstructor> getConstructors();
+
+    DataClass EMPTY = new DataClass() {
+        @Override
+        public FqName getName() {
+            return FqName.EMPTY;
+        }
+
+        @Override
+        public Set<FqName> getSupertypes() {
+            return Collections.emptySet();
+        }
+
+        @Override
+        public List<DataProperty> getProperties() {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public List<SchemaMemberFunction> getMemberFunctions() {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public List<DataConstructor> getConstructors() {
+            return Collections.emptyList();
+        }
+    };
 
 }
