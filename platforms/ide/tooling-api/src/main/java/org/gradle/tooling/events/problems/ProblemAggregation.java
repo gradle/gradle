@@ -41,14 +41,6 @@ public interface ProblemAggregation {
     ProblemCategory getCategory();
 
     /**
-     * Returns the problem label that is common for all aggregated problems.
-     *
-     * @return the problem label
-     * @since 8.6
-     */
-    Label getLabel();
-
-    /**
      * Returns the problem severity.
      *
      * @return the problem severity

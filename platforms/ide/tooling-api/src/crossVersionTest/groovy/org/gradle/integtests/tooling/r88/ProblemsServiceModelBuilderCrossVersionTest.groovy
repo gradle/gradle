@@ -39,6 +39,7 @@ class ProblemsServiceModelBuilderCrossVersionTest extends ToolingApiSpecificatio
         listener = new org.gradle.integtests.tooling.r87.ProblemProgressEventCrossVersionTest.ProblemProgressListener()
     }
 
+    @ToolingApiVersion("=8.8")
     def "Can use problems service in model builder and get failure objects"() {
         given:
         Assume.assumeTrue(javaHome != null)

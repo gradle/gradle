@@ -24,7 +24,6 @@ import org.gradle.tooling.events.problems.ContextualLabel;
 import org.gradle.tooling.events.problems.Details;
 import org.gradle.tooling.events.problems.DocumentationLink;
 import org.gradle.tooling.events.problems.FailureContainer;
-import org.gradle.tooling.events.problems.Label;
 import org.gradle.tooling.events.problems.Location;
 import org.gradle.tooling.events.problems.ProblemCategory;
 import org.gradle.tooling.events.problems.ProblemDefinition;
@@ -74,11 +73,6 @@ public class DefaultSingleProblemEvent extends BaseProgressEvent implements Sing
     @Override
     public ProblemCategory getCategory() {
         return new DefaultCategory("", "", Collections.<String>emptyList());
-    }
-
-    @Override
-    public Label getLabel() {
-        return new DefaultLabel(problemDefinition.getId().getDisplayName());
     }
 
     @Override

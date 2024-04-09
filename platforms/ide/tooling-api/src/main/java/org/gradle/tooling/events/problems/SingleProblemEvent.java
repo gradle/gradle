@@ -46,14 +46,6 @@ public interface SingleProblemEvent extends ProblemEvent {
     ProblemCategory getCategory();
 
     /**
-     * Returns the problem label.
-     *
-     * @return the problem label
-     * @since 8.8
-     */
-    Label getLabel();
-
-    /**
      * Returns the contextual label.
      *
      * @return the problem label

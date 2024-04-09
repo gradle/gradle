@@ -17,7 +17,6 @@
 package org.gradle.tooling.events.problems.internal;
 
 import org.gradle.tooling.events.problems.DocumentationLink;
-import org.gradle.tooling.events.problems.Label;
 import org.gradle.tooling.events.problems.ProblemAggregation;
 import org.gradle.tooling.events.problems.ProblemCategory;
 import org.gradle.tooling.events.problems.ProblemContext;
@@ -44,11 +43,6 @@ public class DefaultProblemAggregation implements ProblemAggregation {
     @Override
     public ProblemCategory getCategory() {
         return new DefaultCategory("", "", Collections.<String>emptyList());
-    }
-
-    @Override
-    public Label getLabel() {
-        return new DefaultLabel(problemDefinition.getId().getDisplayName());
     }
 
     @Override

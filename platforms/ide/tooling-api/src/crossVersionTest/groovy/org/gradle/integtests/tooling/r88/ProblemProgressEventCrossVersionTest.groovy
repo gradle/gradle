@@ -31,7 +31,9 @@ import static org.gradle.integtests.tooling.r86.ProblemProgressEventCrossVersion
 import static org.gradle.integtests.tooling.r86.ProblemProgressEventCrossVersionTest.assertProblemDetailsForTAPIProblemEventWithoutSolution
 import static org.gradle.integtests.tooling.r86.ProblemProgressEventCrossVersionTest.getProblemReportTaskString
 
-@ToolingApiVersion(">=8.8")
+@ToolingApiVersion("=8.8")
+@TargetGradleVersion("<8.9")
+// TODO (donat) migrate all tests to Gradle 8.9 
 class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
     def withReportProblemTask(@GroovyBuildScriptLanguage String taskActionMethodBody) {
@@ -77,7 +79,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         listener.problems.size() == 0
     }
 
-    @TargetGradleVersion(">=8.8")
+    @ToolingApiVersion("=8.8")
     def "Problems expose details via Tooling API events with failure"() {
         given:
         withReportProblemTask """
@@ -107,6 +109,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         ''                         | null            | ''                                          | null
     }
 
+    @ToolingApiVersion("=8.8")
     @TargetGradleVersion(">=8.6 <=8.7")
     def "Problems expose details via Tooling API events with failure 8.6 to 8.7"() {
         given:
@@ -159,7 +162,6 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         problems.size() == 0
     }
 
-    @TargetGradleVersion(">=8.8")
     def "Can serialize groovy compilation error"() {
         buildFile """
             tasks.register("foo) {
@@ -183,8 +185,6 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         problems[0].failure.failure.message == "Could not compile build file '$buildFile.absolutePath'."
     }
 
-    @ToolingApiVersion("current")
-    @TargetGradleVersion("current")
     def "sample problem"() {
         given:
         withReportProblemTask """
@@ -208,7 +208,6 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         problems.size() == 1
     }
 
-    @TargetGradleVersion(">=8.8")
     def "Problems expose summary Tooling API events"() {
         given:
         withMultipleProblems("id(\"deprecation\", \"The 'standard-plugin' is deprecated\")")
