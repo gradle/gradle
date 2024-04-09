@@ -25,13 +25,11 @@ repositories {
     mavenCentral()
 }
 
-dependencies {
-    implementation(localGroovy())
-    testImplementation("junit:junit:4.13")
-}
-
 // tag::specify-groovy-version[]
 dependencies {
+// end::specify-groovy-version[]
+    testImplementation("junit:junit:4.13")
+// tag::specify-groovy-version[]
     implementation("org.codehaus.groovy:groovy-all:3.0.3")
     codenarc("org.codenarc:CodeNarc:1.6.1")
 }
