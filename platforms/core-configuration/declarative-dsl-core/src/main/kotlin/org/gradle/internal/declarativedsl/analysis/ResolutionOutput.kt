@@ -237,6 +237,7 @@ fun functionInvocationString(function: SchemaFunction, receiver: ObjectOrigin?, 
                 is DataTypeRef.Name -> ref.fqName.toString()
                 is DataTypeRef.Type -> (ref.dataType as? DataClass)?.name?.qualifiedName
                     ?: ref.dataType.toString()
+                else -> error("Unhandled data type reference type: $ref")
             }
             append(fqn)
             append(".")

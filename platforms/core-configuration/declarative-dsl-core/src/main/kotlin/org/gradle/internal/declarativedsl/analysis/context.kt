@@ -63,6 +63,7 @@ class SchemaTypeRefContext(val schema: AnalysisSchema) : TypeRefContext {
     override fun resolveRef(dataTypeRef: DataTypeRef): DataType = when (dataTypeRef) {
         is DataTypeRef.Name -> schema.dataClassesByFqName.getValue(dataTypeRef.fqName) as DataClassImpl
         is DataTypeRef.Type -> dataTypeRef.dataType
+        else -> error("Unhandled data type reference type: $dataTypeRef")
     }
 }
 
