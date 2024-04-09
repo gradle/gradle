@@ -1,28 +1,5 @@
 // tag::convention-callsites[]
 
-abstract class GreetingTask extends DefaultTask {
-    // tag::convention-callsites-from-declaration[]
-    // setting convention from declaration
-    @Input
-    final Property<String> greeter = project.objects.property(String).convention("person1")
-    // end::convention-callsites-from-declaration[]
-
-    // tag::convention-callsites-from-constructor[]
-    // setting convention from constructor
-    @Input
-    abstract Property<String> getGuest()
-
-    GreetingTask() {
-        guest.convention("person2")
-    }
-    // end::convention-callsites-from-constructor[]
-
-    @TaskAction
-    void greet() {
-        println("hello, ${guest.get()}, from ${greeter.get()}")
-    }
-}
-
 // tag::convention-callsites-from-plugin[]
 // setting convention when registering a task from plugin
 class GreetingPlugin implements Plugin<Project> {
@@ -42,6 +19,29 @@ tasks.withType(GreetingTask).configureEach {
     guest.convention("Guest")
 }
 // end::convention-callsites-from-buildscript[]
+
+abstract class GreetingTask extends DefaultTask {
+    // tag::convention-callsites-from-constructor[]
+    // setting convention from constructor
+    @Input
+    abstract Property<String> getGuest()
+
+    GreetingTask() {
+        guest.convention("person2")
+    }
+    // end::convention-callsites-from-constructor[]
+
+    // tag::convention-callsites-from-declaration[]
+    // setting convention from declaration
+    @Input
+    final Property<String> greeter = project.objects.property(String).convention("person1")
+    // end::convention-callsites-from-declaration[]
+
+    @TaskAction
+    void greet() {
+        println("hello, ${guest.get()}, from ${greeter.get()}")
+    }
+}
 
 // end::convention-callsites[]
 
