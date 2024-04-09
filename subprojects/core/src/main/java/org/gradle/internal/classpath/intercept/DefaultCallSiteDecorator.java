@@ -79,11 +79,11 @@ public class DefaultCallSiteDecorator implements CallSiteDecorator, CallIntercep
 
     private void addInterceptor(CallInterceptor interceptor) {
         for (InterceptScope scope : interceptor.getInterceptScopes()) {
-            CallInterceptor oldInterceptor = interceptors.put(scope, interceptor);
-            if (oldInterceptor != null) {
-                throw new IllegalArgumentException("Interceptor " + interceptor +
-                    " attempted to overwrite already registered " + oldInterceptor +
-                    " in the scope " + scope);
+            CallInterceptor previous = interceptors.get(scope);
+            if (previous != null) {
+                interceptors.put(scope, new CompositeCallInterceptor(previous, interceptor));
+            } else {
+                interceptors.put(scope, interceptor);
             }
             interceptedCallSiteNames.add(scope.getCallSiteName());
         }
