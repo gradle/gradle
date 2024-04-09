@@ -18,7 +18,7 @@ package org.gradle.internal.declarativedsl.language
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.gradle.internal.declarativedsl.analysis.DataType
+import org.gradle.declarative.dsl.schema.DataType
 
 
 @Serializable

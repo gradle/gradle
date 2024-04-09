@@ -1,5 +1,7 @@
 package org.gradle.internal.declarativedsl.analysis
 
+import org.gradle.declarative.dsl.schema.AnalysisSchema
+import org.gradle.declarative.dsl.schema.FqName
 import org.gradle.internal.declarativedsl.language.Block
 import org.gradle.internal.declarativedsl.language.Import
 

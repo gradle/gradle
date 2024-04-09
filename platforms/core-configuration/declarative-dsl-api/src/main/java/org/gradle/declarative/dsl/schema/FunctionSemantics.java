@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.analysis;
+package org.gradle.declarative.dsl.schema;
 
 import java.io.Serializable;
 
@@ -31,15 +31,15 @@ public interface FunctionSemantics extends Serializable {
         enum ConfigureBlockRequirement {
             NOT_ALLOWED, OPTIONAL, REQUIRED;
 
-            boolean allows() {
+            public boolean allows() {
                 return this != NOT_ALLOWED;
             }
 
-            boolean requires() {
+            public boolean requires() {
                 return this == REQUIRED;
             }
 
-            boolean isValidIfLambdaIsPresent(boolean isPresent) {
+            public boolean isValidIfLambdaIsPresent(boolean isPresent) {
                 return isPresent ? allows() : !requires();
             }
 

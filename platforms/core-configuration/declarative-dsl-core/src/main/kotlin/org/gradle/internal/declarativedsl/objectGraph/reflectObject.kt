@@ -5,12 +5,12 @@ import org.gradle.internal.declarativedsl.analysis.AddAndConfigureFunctionSemant
 import org.gradle.internal.declarativedsl.analysis.AssignmentMethod
 import org.gradle.internal.declarativedsl.analysis.BuilderFunctionSemantics
 import org.gradle.internal.declarativedsl.analysis.DataAddition
-import org.gradle.internal.declarativedsl.analysis.DataClass
+import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.internal.declarativedsl.analysis.DataClassImpl
-import org.gradle.internal.declarativedsl.analysis.DataParameter
-import org.gradle.internal.declarativedsl.analysis.DataProperty
-import org.gradle.internal.declarativedsl.analysis.DataType
-import org.gradle.internal.declarativedsl.analysis.ExternalObjectProviderKey
+import org.gradle.declarative.dsl.schema.DataParameter
+import org.gradle.declarative.dsl.schema.DataProperty
+import org.gradle.declarative.dsl.schema.DataType
+import org.gradle.declarative.dsl.schema.ExternalObjectProviderKey
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
 import org.gradle.internal.declarativedsl.analysis.PropertyReferenceResolution
 import org.gradle.internal.declarativedsl.analysis.PureFunctionSemantics

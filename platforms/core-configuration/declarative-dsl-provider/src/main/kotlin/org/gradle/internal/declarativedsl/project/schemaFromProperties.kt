@@ -24,7 +24,7 @@ import org.gradle.internal.declarativedsl.schemaBuilder.toDataTypeRefOrError
 import org.gradle.api.provider.Property
 import org.gradle.declarative.dsl.model.annotations.AccessFromCurrentReceiverOnly
 import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl
-import org.gradle.internal.declarativedsl.analysis.DataProperty.PropertyMode
+import org.gradle.declarative.dsl.schema.DataProperty.PropertyMode
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaComponent
 import org.gradle.internal.declarativedsl.schemaBuilder.MemberFilter
 import org.gradle.internal.declarativedsl.schemaBuilder.isPublicAndRestricted

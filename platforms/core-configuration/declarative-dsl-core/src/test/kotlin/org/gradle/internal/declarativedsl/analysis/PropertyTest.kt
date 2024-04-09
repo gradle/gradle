@@ -17,6 +17,7 @@
 package org.gradle.internal.declarativedsl.analysis
 
 import org.gradle.declarative.dsl.model.annotations.Restricted
+import org.gradle.declarative.dsl.schema.DataProperty
 import org.gradle.internal.declarativedsl.demo.resolve
 import org.gradle.internal.declarativedsl.language.IntDataType
 import org.gradle.internal.declarativedsl.schemaBuilder.CollectedPropertyInformation

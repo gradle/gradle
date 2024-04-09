@@ -14,22 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.analysis;
+package org.gradle.declarative.dsl.schema;
 
-import java.io.Serializable;
-import java.util.Map;
-import java.util.Set;
+public interface DataConstructor extends SchemaFunction {
 
-public interface AnalysisSchema extends Serializable {
-
-    DataClass getTopLevelReceiverType();
-
-    Map<FqName, DataClass> getDataClassesByFqName();
-
-    Map<FqName, DataTopLevelFunction> getExternalFunctionsByFqName();
-
-    Map<FqName, ExternalObjectProviderKey> getExternalObjectsByFqName();
-
-    Set<FqName> getDefaultImports();
+    DataTypeRef getDataClass();
 
 }
