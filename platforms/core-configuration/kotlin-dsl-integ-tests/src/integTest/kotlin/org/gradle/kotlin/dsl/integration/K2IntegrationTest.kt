@@ -101,7 +101,6 @@ class K2IntegrationTest : AbstractKotlinIntegrationTest() {
 
     private
     fun withK2BuildLogic() {
-        withFile("build-logic/gradle.properties", "kotlin.experimental.tryK2=true")
         withFile("build-logic/src/main/kotlin/MyTask.kt", """
             import org.gradle.api.DefaultTask
             import org.gradle.api.tasks.TaskAction
@@ -137,9 +136,6 @@ class K2IntegrationTest : AbstractKotlinIntegrationTest() {
 
     private
     fun assertCanConsumeK2BuildLogic() {
-        build("help").apply {
-            assertOutputContains("ATTENTION: 'kotlin.experimental.tryK2' is an experimental option enabled in the project for trying out the new Kotlin K2 compiler only.")
-            assertOutputContains("w: Language version 2.0 is experimental, there are no backwards compatibility guarantees for new language and library features")
-        }
+        build("help")
     }
 }
