@@ -37,14 +37,14 @@ public class DefaultProblemReporter implements InternalProblemReporter {
 
     @Override
     public void reporting(Action<ProblemSpec> spec) {
-        DefaultProblemBuilder problemBuilder = createProblemBuilder();
+        DefaultProblemBuilder problemBuilder = new DefaultProblemBuilder();
         spec.execute(problemBuilder);
         report(problemBuilder.build());
     }
 
     @Override
     public RuntimeException throwing(Action<ProblemSpec> spec) {
-        DefaultProblemBuilder problemBuilder = createProblemBuilder();
+        DefaultProblemBuilder problemBuilder = new DefaultProblemBuilder();
         spec.execute(problemBuilder);
         Problem problem = problemBuilder.build();
         RuntimeException exception = problem.getException();
@@ -62,7 +62,7 @@ public class DefaultProblemReporter implements InternalProblemReporter {
 
     @Override
     public RuntimeException rethrowing(RuntimeException e, Action<ProblemSpec> spec) {
-        DefaultProblemBuilder problemBuilder = createProblemBuilder();
+        DefaultProblemBuilder problemBuilder = new DefaultProblemBuilder();
         spec.execute(problemBuilder);
         problemBuilder.withException(e);
         throw throwError(e, problemBuilder.build());
@@ -70,15 +70,9 @@ public class DefaultProblemReporter implements InternalProblemReporter {
 
     @Override
     public Problem create(Action<InternalProblemSpec> action) {
-        DefaultProblemBuilder defaultProblemBuilder = createProblemBuilder();
+        DefaultProblemBuilder defaultProblemBuilder = new DefaultProblemBuilder();
         action.execute(defaultProblemBuilder);
         return defaultProblemBuilder.build();
-    }
-
-    // This method is only public to integrate with the existing task validation framework.
-    // We should rework this integration and this method private.
-    public DefaultProblemBuilder createProblemBuilder() {
-        return new DefaultProblemBuilder();
     }
 
     private Problem transformProblem(Problem problem, OperationIdentifier id) {
