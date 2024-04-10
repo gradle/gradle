@@ -53,8 +53,8 @@ import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.build.BuildLayoutValidator;
 import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.event.ScopedListenerManager;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.DefaultChecksumService;
@@ -129,7 +129,7 @@ public class BuildSessionScopeServices extends WorkerSharedBuildSessionScopeServ
         return new DefaultDeploymentRegistry(pendingChangesManager, buildOperationRunner, objectFactory);
     }
 
-    DefaultListenerManager createListenerManager(DefaultListenerManager parent) {
+    ScopedListenerManager createListenerManager(ScopedListenerManager parent) {
         return parent.createChild(Scope.BuildSession.class);
     }
 
