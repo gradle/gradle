@@ -34,21 +34,19 @@ class SoftwareTypeRegistrationPluginTargetTest extends Specification {
     def softwareTypeRegistry = Mock(SoftwareTypeRegistry)
     def inspectionScheme = Mock(InspectionScheme)
     def pluginTarget = new SoftwareTypeRegistrationPluginTarget(delegate, softwareTypeRegistry, inspectionScheme)
+    def plugin = Mock(Plugin)
+    def metadataStore = Mock(TypeMetadataStore)
+    def pluginTypeMetadata = Mock(TypeMetadata)
+    def typeAnnotationMetadata = Mock(TypeAnnotationMetadata)
+    def registersSoftwareTypes = Mock(RegistersSoftwareTypes)
+    def softwareTypePluginMetadata = Mock(TypeMetadata)
+    def propertyMetadata = Mock(PropertyMetadata)
 
     def "adds software type plugins for plugin that registers software types"() {
-        given:
-        def plugin = Mock(Plugin)
-        def metadataStore = Mock(TypeMetadataStore)
-        def pluginTypeMetadata = Mock(TypeMetadata)
-        def typeAnnotationMetadata = Mock(TypeAnnotationMetadata)
-        def registersSoftwareTypes = Mock(RegistersSoftwareTypes)
-        def softwareTypePluginMetadata = Mock(TypeMetadata)
-        def propertyMetadata = Mock(PropertyMetadata)
-
         when:
         pluginTarget.applyImperative(null, plugin)
 
-        then:
+        then: // setup property metadata
         2 * inspectionScheme.getMetadataStore() >> metadataStore
         1 * metadataStore.getTypeMetadata(plugin.class) >> pluginTypeMetadata
         1 * pluginTypeMetadata.getTypeAnnotationMetadata() >> typeAnnotationMetadata
@@ -56,6 +54,8 @@ class SoftwareTypeRegistrationPluginTargetTest extends Specification {
         1 * registersSoftwareTypes.value() >> [SoftwareTypePlugin.class]
         1 * metadataStore.getTypeMetadata(SoftwareTypePlugin.class) >> softwareTypePluginMetadata
         1 * softwareTypePluginMetadata.getPropertiesMetadata() >> [propertyMetadata]
+
+        and: // returns property metadata with an annotation
         1 * propertyMetadata.getAnnotation(SoftwareType.class) >> Optional.of(Stub(SoftwareType))
         1 * softwareTypeRegistry.register(SoftwareTypePlugin.class)
 
@@ -64,19 +64,10 @@ class SoftwareTypeRegistrationPluginTargetTest extends Specification {
     }
 
     def "throws exception when plugins are registered that do not expose software types"() {
-        given:
-        def plugin = Mock(Plugin)
-        def metadataStore = Mock(TypeMetadataStore)
-        def pluginTypeMetadata = Mock(TypeMetadata)
-        def typeAnnotationMetadata = Mock(TypeAnnotationMetadata)
-        def registersSoftwareTypes = Mock(RegistersSoftwareTypes)
-        def softwareTypePluginMetadata = Mock(TypeMetadata)
-        def propertyMetadata = Mock(PropertyMetadata)
-
         when:
         pluginTarget.applyImperative(null, plugin)
 
-        then:
+        then: // setup property metadata
         2 * inspectionScheme.getMetadataStore() >> metadataStore
         1 * metadataStore.getTypeMetadata(plugin.class) >> pluginTypeMetadata
         1 * pluginTypeMetadata.getTypeAnnotationMetadata() >> typeAnnotationMetadata
@@ -84,6 +75,8 @@ class SoftwareTypeRegistrationPluginTargetTest extends Specification {
         1 * registersSoftwareTypes.value() >> [SoftwareTypePlugin.class]
         1 * metadataStore.getTypeMetadata(SoftwareTypePlugin.class) >> softwareTypePluginMetadata
         1 * softwareTypePluginMetadata.getPropertiesMetadata() >> [propertyMetadata]
+
+        and: // returns metadata with no annotation present
         1 * propertyMetadata.getAnnotation(SoftwareType.class) >> Optional.empty()
 
         and:
@@ -91,12 +84,6 @@ class SoftwareTypeRegistrationPluginTargetTest extends Specification {
     }
 
     def "calls delegate for plugins that do not register software types"() {
-        given:
-        def plugin = Mock(Plugin)
-        def metadataStore = Mock(TypeMetadataStore)
-        def pluginTypeMetadata = Mock(TypeMetadata)
-        def typeAnnotationMetadata = Mock(TypeAnnotationMetadata)
-
         when:
         pluginTarget.applyImperative(null, plugin)
 
