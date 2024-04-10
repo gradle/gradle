@@ -662,6 +662,10 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
     }
 
     private static String latestStableKotlinPluginVersion(String major) {
+        println("================")
+        println(kgpLatestVersions)
+        println(major)
+        println(kgpLatestVersions.findAll { it.startsWith(major) && !it.contains("-") })
         return kgpLatestVersions.findAll { it.startsWith(major) && !it.contains("-") }.last()
     }
 }
