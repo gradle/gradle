@@ -16,6 +16,10 @@
 
 package org.gradle.process.internal.health.memory;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
+@ServiceScope(Scope.Global.class)
 public interface OsMemoryInfo {
     /**
      * Get a snapshot of the memory status of the operating system.

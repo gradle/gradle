@@ -28,6 +28,7 @@ import java.util.Optional;
  * <p>A plugin can contribute shared services to this scope by providing an implementation of {@link PluginServiceRegistry}.
  */
 @ThreadSafe
+@ServiceScope(Scope.Global.class)
 public interface GradleUserHomeScopeServiceRegistry {
     /**
      * Locates the shared services to use for the given Gradle user home dir. The returned registry also includes global services.

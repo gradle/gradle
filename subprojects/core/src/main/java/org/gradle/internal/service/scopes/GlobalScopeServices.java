@@ -39,6 +39,7 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.properties.annotations.AbstractOutputPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.OutputPropertyRoleAnnotationHandler;
 import org.gradle.api.internal.tasks.userinput.DefaultUserInputReader;
+import org.gradle.api.internal.tasks.userinput.UserInputReader;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.CachingPatternSpecFactory;
@@ -142,7 +143,7 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
         }
         registration.add(DefaultScriptFileResolverListeners.class);
         registration.add(BuildLayoutFactory.class);
-        registration.add(DefaultUserInputReader.class);
+        registration.add(UserInputReader.class, DefaultUserInputReader.class);
     }
 
     ScriptFileResolver createScriptFileResolver(DefaultScriptFileResolverListeners listeners) {

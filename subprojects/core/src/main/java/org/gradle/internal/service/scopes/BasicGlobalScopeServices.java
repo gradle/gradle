@@ -66,7 +66,7 @@ import org.gradle.process.internal.ExecHandleFactory;
  */
 public class BasicGlobalScopeServices {
     void configure(ServiceRegistration serviceRegistration) {
-        serviceRegistration.add(DefaultFileLookup.class);
+        serviceRegistration.add(FileLookup.class, DefaultFileLookup.class);
         serviceRegistration.addProvider(new MessagingServices());
     }
 
@@ -77,7 +77,7 @@ public class BasicGlobalScopeServices {
             fileLockContentionHandler);
     }
 
-    DefaultFileLockContentionHandler createFileLockContentionHandler(ExecutorFactory executorFactory, InetAddressFactory inetAddressFactory) {
+    FileLockContentionHandler createFileLockContentionHandler(ExecutorFactory executorFactory, InetAddressFactory inetAddressFactory) {
         return new DefaultFileLockContentionHandler(
             executorFactory,
             inetAddressFactory);

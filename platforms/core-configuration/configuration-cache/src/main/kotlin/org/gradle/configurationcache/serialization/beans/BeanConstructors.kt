@@ -19,6 +19,8 @@ package org.gradle.configurationcache.serialization.beans
 import groovy.lang.GroovyObjectSupport
 import org.gradle.cache.internal.CrossBuildInMemoryCache
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory
+import org.gradle.internal.service.scopes.Scope
+import org.gradle.internal.service.scopes.ServiceScope
 import sun.reflect.ReflectionFactory
 import java.lang.reflect.Constructor
 
@@ -26,6 +28,7 @@ import java.lang.reflect.Constructor
 /**
  * A global service that caches the serialization constructors for bean types.
  */
+@ServiceScope(Scope.Global::class)
 class BeanConstructors(
     cacheFactory: CrossBuildInMemoryCacheFactory
 ) {
