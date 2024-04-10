@@ -22,15 +22,15 @@ import org.gradle.integtests.fixtures.KotlinDslTestUtil
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedDevelocityPlugin
 import spock.lang.Issue
 
-class ConfigurationCacheEnterprisePluginIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+class ConfigurationCacheDevelocityPluginIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
     def setup() {
         settingsFile '''
             pluginManagement {
-                includeBuild("ge-conventions")
+                includeBuild("dv-conventions")
             }
             plugins {
-                id("ge-conventions")
+                id("dv-conventions")
             }
         '''
 
@@ -41,19 +41,19 @@ class ConfigurationCacheEnterprisePluginIntegrationTest extends AbstractConfigur
 
     @NotYetImplemented
     @Issue("https://github.com/gradle/gradle/issues/19047")
-    def "problem is reported for Kotlin lambda expression with enterprise plugin"() {
+    def "problem is reported for Kotlin lambda expression with develocity plugin"() {
         given:
-        createDir('ge-conventions') {
-            file('src/main/kotlin/my/GeConventionsPlugin.kt') << """
+        createDir('dv-conventions') {
+            file('src/main/kotlin/my/DvConventionsPlugin.kt') << """
                 package my
 
                 import org.gradle.api.*
                 import org.gradle.kotlin.dsl.*
 
-                class GeConventionsPlugin : Plugin<$Settings.name> {
+                class DvConventionsPlugin : Plugin<$Settings.name> {
                     override fun apply(settings: $Settings.name) {
-                        settings.apply(mapOf("plugin" to "com.gradle.enterprise"))
-                        settings.gradleEnterprise {
+                        settings.apply(mapOf("plugin" to "com.gradle.develocity"))
+                        settings.develocity {
                             buildScan.obfuscation.hostname {
                                 // lambda expression
                                 "unset"
@@ -69,13 +69,13 @@ class ConfigurationCacheEnterprisePluginIntegrationTest extends AbstractConfigur
                 }
                 gradlePlugin {
                     plugins {
-                        create("gradleEnterpriseConventions") {
-                            id = "ge-conventions"
-                            implementationClass = "my.GeConventionsPlugin"
+                        create("gradleDevelocityConventions") {
+                            id = "dv-conventions"
+                            implementationClass = "my.DvConventionsPlugin"
                         }
                     }
                 }
-                $geConventionsConfig
+                $dvConventionsConfig
             """
         }
         def configurationCache = newConfigurationCacheFixture()
@@ -95,8 +95,8 @@ class ConfigurationCacheEnterprisePluginIntegrationTest extends AbstractConfigur
     @Issue("https://github.com/gradle/gradle/issues/19047")
     def "precompiled script plugin can use lambda expression with develocity plugin"() {
         given:
-        createDir('ge-conventions') {
-            file('src/main/kotlin/ge-conventions.settings.gradle.kts') << '''
+        createDir('dv-conventions') {
+            file('src/main/kotlin/dv-conventions.settings.gradle.kts') << '''
                 plugins {
                     com.gradle.develocity
                 }
@@ -110,7 +110,7 @@ class ConfigurationCacheEnterprisePluginIntegrationTest extends AbstractConfigur
             '''
             file('build.gradle.kts') << """
                 plugins { `kotlin-dsl` }
-                $geConventionsConfig
+                $dvConventionsConfig
             """
         }
         def configurationCache = newConfigurationCacheFixture()
@@ -133,7 +133,7 @@ class ConfigurationCacheEnterprisePluginIntegrationTest extends AbstractConfigur
         postBuildOutputContains 'Build scan written to'
     }
 
-    static String getGeConventionsConfig() {
+    static String getDvConventionsConfig() {
         """
             dependencies {
                 implementation("com.gradle:develocity-gradle-plugin:${AutoAppliedDevelocityPlugin.VERSION}")
