@@ -28,6 +28,9 @@ import java.lang.annotation.*;
  *
  * <p>This will cause the task to be considered out-of-date when the file path or contents
  * are different to when the task was last run.</p>
+ *
+ *  To mark a file that might created or deleted by a task, use this.
+ *
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
