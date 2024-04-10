@@ -31,6 +31,8 @@ import java.lang.annotation.Target;
  * that other tasks that either create or consume this file (by specifying the file or directory as an input
  * or output) cannot execute concurrently with a task that destroys this file.</p>
  *
+ * To mark a file that might created or deleted use (@see org.gradle.api.tasks.OutputFile) instead
+ *
  * @since 4.0
  */
 @Documented
