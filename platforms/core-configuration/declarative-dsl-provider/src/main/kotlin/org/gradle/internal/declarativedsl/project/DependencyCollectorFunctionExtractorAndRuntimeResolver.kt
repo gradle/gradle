@@ -16,6 +16,7 @@
 
 package org.gradle.internal.declarativedsl.project
 
+import com.google.common.graph.Traverser
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.dsl.Dependencies
 import org.gradle.api.artifacts.dsl.DependencyCollector
@@ -49,19 +50,16 @@ class DependencyCollectorFunctionExtractorAndRuntimeResolver(
 ) : FunctionExtractor, RuntimeFunctionResolver {
 
     private
-    val collectorDeclarationsByClass: MutableMap<KClass<*>, Map<DataMemberFunction, DependencyCollectorDeclaration>> = mutableMapOf()
+    val collectorDeclarationsByClass: MutableMap<KClass<*>, Map<DataMemberFunction, DeclarativeRuntimeFunction>> = mutableMapOf()
 
     private
     data class DependencyCollectorDeclaration(
-        val name: String,
         val addingSchemaFunction: DataMemberFunction,
         val runtimeFunction: DeclarativeRuntimeFunction,
-        val accessor: DependencyCollectorAccessor
     )
 
     private
     sealed interface DependencyCollectorAccessor : (Any) -> DependencyCollector {
-
         data class Getter(val getterFunction: KFunction<*>) : DependencyCollectorAccessor {
             override fun invoke(receiver: Any): DependencyCollector = getterFunction.call(receiver) as DependencyCollector
         }
@@ -80,29 +78,23 @@ class DependencyCollectorFunctionExtractorAndRuntimeResolver(
             .filter { function -> hasDependencyCollectorGetterSignature(kClass, function) }
             .flatMap { function ->
                 val name = dependencyCollectorNameFromGetterName(function.name)
-                val declarationOrigin = DependencyCollectorAccessor.Getter(function)
                 expandToOverloads { param ->
                     DependencyCollectorDeclaration(
-                        name,
                         buildDataMemberFunction(kClass, name, param),
-                        buildDeclarativeRuntimeFunction(declarationOrigin),
-                        declarationOrigin
+                        buildDeclarativeRuntimeFunction(DependencyCollectorAccessor.Getter(function)),
                     )
                 }
             }
             .plus(kClass.memberProperties.filter { isDependencyCollectorProperty(kClass, it) }.flatMap { property ->
-                val declarationOrigin = DependencyCollectorAccessor.Property(property)
                 expandToOverloads { param ->
                     DependencyCollectorDeclaration(
-                        property.name,
                         buildDataMemberFunction(kClass, property.name, param),
-                        buildDeclarativeRuntimeFunction(declarationOrigin),
-                        declarationOrigin
+                        buildDeclarativeRuntimeFunction(DependencyCollectorAccessor.Property(property)),
                     )
                 }
             })
 
-        val declarationsBySchemaFunctions = discoveredCollectorDeclarations.associateBy { it.addingSchemaFunction }
+        val declarationsBySchemaFunctions = discoveredCollectorDeclarations.associate { it.addingSchemaFunction to it.runtimeFunction }
         collectorDeclarationsByClass[kClass] = declarationsBySchemaFunctions
 
         return declarationsBySchemaFunctions.keys
@@ -154,8 +146,10 @@ class DependencyCollectorFunctionExtractorAndRuntimeResolver(
         // that extends the original class we extracted into the managedFunctions map, so we have to check the superClass
         return typeHierarchyViaJavaReflection(receiverClass)
             .firstNotNullOfOrNull(collectorDeclarationsByClass::get)
-            ?.values?.find { it.name == name && it.addingSchemaFunction.parameters == parameterValueBinding.bindingMap.keys.toList() }
-            ?.run { RuntimeFunctionResolver.Resolution.Resolved(runtimeFunction) }
+            ?.entries?.find { (schemaFunction, _) ->
+                schemaFunction.simpleName == name && schemaFunction.parameters == parameterValueBinding.bindingMap.keys.toList()
+            }
+            ?.value?.let(RuntimeFunctionResolver.Resolution::Resolved)
             ?: RuntimeFunctionResolver.Resolution.Unresolved
     }
 
@@ -166,24 +160,7 @@ class DependencyCollectorFunctionExtractorAndRuntimeResolver(
      * TODO: Either fix Kotlin metadata in decorated classes or introduce generic utilities
      */
     private
-    fun typeHierarchyViaJavaReflection(kClass: KClass<*>): Sequence<*> =
-        sequence {
-            val seen = hashSetOf<Class<*>>() // i.e., visited or currently in the queue
-            val queue = ArrayDeque<Class<*>>()
-            fun enqueueSupertypes(type: Class<*>) {
-                if (type.superclass != null && seen.add(type.superclass)) {
-                    queue.add(type.superclass)
-                }
-                queue.addAll(type.interfaces.filter(seen::add))
-            }
-
-            enqueueSupertypes(kClass.java)
-            yield(kClass.java)
-
-            while (queue.isNotEmpty()) {
-                val supertype = queue.removeFirst()
-                enqueueSupertypes(supertype)
-                yield(supertype)
-            }
-        }.map { it.kotlin }
+    fun typeHierarchyViaJavaReflection(kClass: KClass<*>): Iterable<KClass<*>> =
+        Traverser.forGraph<Class<*>> { listOf(it.superclass) + it.interfaces }
+            .breadthFirst(kClass.java).map { it.kotlin }
 }
