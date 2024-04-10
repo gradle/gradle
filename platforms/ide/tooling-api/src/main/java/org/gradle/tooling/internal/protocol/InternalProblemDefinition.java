@@ -14,23 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events.problems;
+package org.gradle.tooling.internal.protocol;
 
-import org.gradle.api.Incubating;
+import org.gradle.api.NonNullApi;
+import org.gradle.tooling.internal.protocol.problem.InternalDocumentationLink;
+import org.gradle.tooling.internal.protocol.problem.InternalSeverity;
 
-/**
- * Represents a problem label.
- *
- * @since 8.6
- */
-@Incubating
-public interface Label {
+import javax.annotation.Nullable;
 
-    /**
-     * Returns the brief description of a problem.
-     *
-     * @return the label
-     * @since 8.6
-     */
-    String getLabel();
+@NonNullApi
+public interface InternalProblemDefinition {
+
+    InternalProblemId getId();
+
+    InternalSeverity getSeverity();
+
+    @Nullable
+    InternalDocumentationLink getDocumentationLink();
 }

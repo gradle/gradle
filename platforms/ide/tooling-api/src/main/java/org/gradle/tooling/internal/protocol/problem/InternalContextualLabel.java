@@ -14,27 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events.problems;
+package org.gradle.tooling.internal.protocol.problem;
 
-import org.gradle.api.Incubating;
-import org.gradle.tooling.Failure;
+public interface InternalContextualLabel {
 
-import javax.annotation.Nullable;
-
-/**
- * Holds an exception for a problem.
- *
- * @since 8.7
- */
-@Incubating
-public interface FailureContainer {
-
-    /**
-     * Failure that caused the problem.
-     * <p>
-     * The method will always return <code>null</code> if run against a Gradle version prior to 8.8.
-     * @since 8.7
-     */
-    @Nullable
-    Failure getFailure();
+    String getContextualLabel();
 }

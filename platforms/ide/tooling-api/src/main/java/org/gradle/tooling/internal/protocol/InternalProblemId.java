@@ -14,22 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events.problems.internal;
+package org.gradle.tooling.internal.protocol;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.tooling.events.problems.Label;
 
 @NonNullApi
-public class DefaultLabel implements Label {
+public interface InternalProblemId {
 
-    private final String label;
+    String getName();
 
-    public DefaultLabel(String label) {
-        this.label = label;
-    }
+    String getDisplayName();
 
-    @Override
-    public String getLabel() {
-        return label;
-    }
+    InternalProblemGroup getGroup();
 }

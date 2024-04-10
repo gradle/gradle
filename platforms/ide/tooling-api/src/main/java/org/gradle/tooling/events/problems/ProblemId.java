@@ -17,24 +17,36 @@
 package org.gradle.tooling.events.problems;
 
 import org.gradle.api.Incubating;
-import org.gradle.tooling.Failure;
-
-import javax.annotation.Nullable;
 
 /**
- * Holds an exception for a problem.
+ * Represents a problem id.
  *
- * @since 8.7
+ * @since 8.9
  */
 @Incubating
-public interface FailureContainer {
+public interface ProblemId {
 
     /**
-     * Failure that caused the problem.
-     * <p>
-     * The method will always return <code>null</code> if run against a Gradle version prior to 8.8.
-     * @since 8.7
+     * The name of the problem group.
+     *
+     * @return the label
+     * @since 8.9
      */
-    @Nullable
-    Failure getFailure();
+    String getName();
+
+    /**
+     * Returns a human-readable label describing the group.
+     *
+     * @return the display name
+     * @since 8.9
+     */
+    String getDisplayName();
+
+    /**
+     * Returns the container  group.
+     *
+     * @return the group
+     * @since 8.9
+     */
+    ProblemGroup getGroup();
 }

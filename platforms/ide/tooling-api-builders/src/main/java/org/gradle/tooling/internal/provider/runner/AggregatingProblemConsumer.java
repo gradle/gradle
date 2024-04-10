@@ -27,12 +27,14 @@ import org.gradle.internal.build.event.types.DefaultProblemDescriptor;
 import org.gradle.internal.build.event.types.DefaultProblemEvent;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.OperationIdentifier;
-import org.gradle.tooling.internal.protocol.InternalProblemAggregationVersion2;
+import org.gradle.tooling.internal.protocol.InternalBasicProblemDetailsVersion3;
+import org.gradle.tooling.internal.protocol.InternalProblemAggregationVersion3;
 import org.gradle.tooling.internal.protocol.InternalProblemContextDetails;
-import org.gradle.tooling.internal.protocol.InternalProblemDetails;
-import org.gradle.tooling.internal.protocol.InternalProblemEvent;
-import org.gradle.tooling.internal.protocol.problem.InternalBasicProblemDetails;
-import org.gradle.tooling.internal.protocol.problem.InternalBasicProblemDetailsVersion2;
+import org.gradle.tooling.internal.protocol.InternalProblemDefinition;
+import org.gradle.tooling.internal.protocol.InternalProblemEventVersion2;
+import org.gradle.tooling.internal.protocol.InternalProblemGroup;
+import org.gradle.tooling.internal.protocol.InternalProblemId;
+import org.gradle.tooling.internal.protocol.problem.InternalProblemDetailsVersion2;
 
 import java.util.Collection;
 import java.util.List;
@@ -42,7 +44,7 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 
 @NonNullApi
 public class AggregatingProblemConsumer {
-    private final Multimap<String, InternalProblemEvent> seenProblems = ArrayListMultimap.create();
+    private final Multimap<String, InternalProblemEventVersion2> seenProblems = ArrayListMultimap.create();
     private final ProgressEventConsumer progressEventConsumer;
     private final Supplier<OperationIdentifier> operationIdentifierSupplier;
     private int thresholdForIntermediateSummary = 10_000;
@@ -57,7 +59,7 @@ public class AggregatingProblemConsumer {
     }
 
     void sendProblemSummaries() {
-        List<InternalProblemAggregationVersion2> problemSummaries = createSummaries();
+        List<InternalProblemAggregationVersion3> problemSummaries = createSummaries();
 
         if (problemSummaries.isEmpty()) {
             seenProblems.clear();
@@ -69,16 +71,13 @@ public class AggregatingProblemConsumer {
             progressEventConsumer.progress(new DefaultProblemEvent(
                 new DefaultProblemDescriptor(operationIdentifierSupplier.get(), CurrentBuildOperationRef.instance().getId()),
                 new DefaultProblemAggregationDetails(
-                    summary.getLabel(),
-                    summary.getCategory(),
-                    summary.getSeverity(),
-                    summary.getDocumentationLink(),
+                    summary.getProblemDefinition(),
                     problemContextDetails.stream().skip(1).collect(toImmutableList()))));
         });
         seenProblems.clear();
     }
 
-    private List<InternalProblemAggregationVersion2> createSummaries() {
+    private List<InternalProblemAggregationVersion3> createSummaries() {
         return seenProblems.asMap().values()
             .stream()
             .map(ImmutableList::copyOf)
@@ -87,26 +86,39 @@ public class AggregatingProblemConsumer {
             .collect(toImmutableList());
     }
 
-    private static DefaultInternalProblemAggregation createProblemAggregation(List<InternalProblemEvent> aggregatedEvents) {
-        InternalBasicProblemDetails firstProblem = (InternalBasicProblemDetails) aggregatedEvents.iterator().next().getDetails();
-
+    private static DefaultInternalProblemAggregation createProblemAggregation(List<InternalProblemEventVersion2> aggregatedEvents) {
+        InternalProblemDetailsVersion2 details = aggregatedEvents.iterator().next().getDetails();
+        if (!(details instanceof InternalBasicProblemDetailsVersion3)) {
+            throw new UnsupportedOperationException("Unsupported problem details: " + details.getClass().getName());
+        }
+        InternalBasicProblemDetailsVersion3 detailsV3 = (InternalBasicProblemDetailsVersion3) details;
         List<InternalProblemContextDetails> aggregatedContextDetails = aggregatedEvents.stream().map(event -> {
-            InternalBasicProblemDetailsVersion2 details = (InternalBasicProblemDetailsVersion2) event.getDetails();
-            return new DefaultInternalProblemContextDetails(details.getAdditionalData(), details.getDetails(), details.getLocations(), details.getSolutions(), details.getFailure());
-        }).collect(toImmutableList());
-
-        return new DefaultInternalProblemAggregation(firstProblem.getCategory(), firstProblem.getLabel(), firstProblem.getSeverity(), firstProblem.getDocumentationLink(), aggregatedContextDetails);
+            InternalProblemDetailsVersion2 detailsV2 = event.getDetails();
+            if (detailsV2 instanceof InternalBasicProblemDetailsVersion3) {
+                InternalBasicProblemDetailsVersion3 basicDetails = (InternalBasicProblemDetailsVersion3) detailsV2;
+                return new DefaultInternalProblemContextDetails(
+                    basicDetails.getAdditionalData(),
+                    basicDetails.getDetails(),
+                    basicDetails.getLocations(),
+                    basicDetails.getSolutions(),
+                    basicDetails.getFailure(),
+                    basicDetails.getContextualLabel()
+                );
+            } else {
+                throw new UnsupportedOperationException("Unsupported problem details: " + detailsV2.getClass().getName());
+            }
+    }).collect(toImmutableList());
+        return new DefaultInternalProblemAggregation(detailsV3.getDefinition(), aggregatedContextDetails);
     }
 
-    void emit(InternalProblemEvent problem) {
-        InternalProblemDetails details = problem.getDetails();
-        if (!(details instanceof InternalBasicProblemDetails)) {
-            return;
+    void emit(InternalProblemEventVersion2 problem) {
+        InternalProblemDetailsVersion2 details = problem.getDetails();
+        if (!(details instanceof InternalBasicProblemDetailsVersion3)) {
+            throw new UnsupportedOperationException("Unsupported problem details: " + details.getClass().getName());
         }
-
-        InternalBasicProblemDetails basicDetails = (InternalBasicProblemDetails) details;
-        String aggregationKey = basicDetails.getCategory().getCategory() + ";" + basicDetails.getLabel().getLabel();
-
+        InternalBasicProblemDetailsVersion3 d = (InternalBasicProblemDetailsVersion3) details;
+        InternalProblemDefinition definition = d.getDefinition();
+        String aggregationKey = aggregationKeyFor(definition.getId());
         sendProgress(problem, aggregationKey);
 
         if (seenProblems.size() > thresholdForIntermediateSummary) {
@@ -114,8 +126,16 @@ public class AggregatingProblemConsumer {
         }
     }
 
-    private void sendProgress(InternalProblemEvent problem, String aggregationKey) {
-        Collection<InternalProblemEvent> seenProblem = seenProblems.get(aggregationKey);
+    private static String aggregationKeyFor(InternalProblemId id) {
+        return aggregationKeyFor(id.getGroup()) + ";" + id.getName();
+    }
+
+    private static String aggregationKeyFor(InternalProblemGroup group) {
+        return group.getParent() == null ? group.getName() : aggregationKeyFor(group.getParent()) + ";" + group.getName();
+    }
+
+    private void sendProgress(InternalProblemEventVersion2 problem, String aggregationKey) {
+        Collection<InternalProblemEventVersion2> seenProblem = seenProblems.get(aggregationKey);
         if (seenProblem.isEmpty()) {
             seenProblems.put(aggregationKey, problem);
             progressEventConsumer.progress(problem);

@@ -17,24 +17,23 @@
 package org.gradle.tooling.events.problems;
 
 import org.gradle.api.Incubating;
-import org.gradle.tooling.Failure;
 
 import javax.annotation.Nullable;
 
 /**
- * Holds an exception for a problem.
+ * Represents a contextual label.
  *
- * @since 8.7
+ * @since 8.9
  */
 @Incubating
-public interface FailureContainer {
+public interface ContextualLabel {
 
     /**
-     * Failure that caused the problem.
-     * <p>
-     * The method will always return <code>null</code> if run against a Gradle version prior to 8.8.
-     * @since 8.7
+     * Returns the contextual description of a problem.
+     *
+     * @return the contextual label
+     * @since 8.9
      */
     @Nullable
-    Failure getFailure();
+    String getContextualLabel();
 }

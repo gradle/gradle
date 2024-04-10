@@ -28,6 +28,15 @@ import java.util.List;
  */
 @Incubating
 public interface SingleProblemEvent extends ProblemEvent {
+
+    /**
+     * Returns the problem definition.
+     *
+     * @return the definition
+     * @since 8.9
+     */
+    ProblemDefinition getDefinition();
+
     /**
      * Returns the problem category.
      *
@@ -37,12 +46,12 @@ public interface SingleProblemEvent extends ProblemEvent {
     ProblemCategory getCategory();
 
     /**
-     * Returns the problem label.
+     * Returns the contextual label.
      *
      * @return the problem label
-     * @since 8.8
+     * @since 8.9
      */
-    Label getLabel();
+    ContextualLabel getContextualLabel();
 
     /**
      * Returns the details string.
@@ -86,8 +95,6 @@ public interface SingleProblemEvent extends ProblemEvent {
 
     /**
      * Returns the failure associated with this problem.
-     * <br>
-     * <code>null</code> if run against a Gradle version prior to 8.8
      *
      * @return the failure
      * @since 8.8

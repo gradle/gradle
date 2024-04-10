@@ -17,24 +17,37 @@
 package org.gradle.tooling.events.problems;
 
 import org.gradle.api.Incubating;
-import org.gradle.tooling.Failure;
-
-import javax.annotation.Nullable;
 
 /**
- * Holds an exception for a problem.
+ * Represents a problem definition.
  *
- * @since 8.7
+ * @since 8.9
  */
 @Incubating
-public interface FailureContainer {
+public interface ProblemDefinition {
 
     /**
-     * Failure that caused the problem.
-     * <p>
-     * The method will always return <code>null</code> if run against a Gradle version prior to 8.8.
-     * @since 8.7
+     * The id of the problem.
+     * @return the id.
+     *
+     * @since 8.9
      */
-    @Nullable
-    Failure getFailure();
+    ProblemId getId();
+
+    /**
+     * Problem severity.
+     * <p>
+     * The severity of a problem is a hint to the user about how important the problem is.
+     * ERROR will fail the build, WARNING will not.
+     *
+     *  @since 8.9
+     */
+    Severity getSeverity();
+
+    /**
+     * A link to the documentation for this problem.
+     *
+     * @since 8.9
+     */
+    DocumentationLink getDocumentationLink();
 }
