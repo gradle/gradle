@@ -42,11 +42,15 @@ trait SoftwareTypeFixture {
     }
 
     PluginBuilder withSoftwareTypePluginWithMismatchedModelTypes() {
-        return withSoftwareTypePlugins(
+        def pluginBuilder = withSoftwareTypePlugins(
             softwareTypeExtension,
-            getProjectPluginThatProvidesSoftwareType("TestSoftwareTypeExtension", "String"),
+            getProjectPluginThatProvidesSoftwareType("TestSoftwareTypeExtension", "AnotherSoftwareTypeExtension"),
             settingsPluginThatRegistersSoftwareType
         )
+
+        pluginBuilder.file("src/main/java/org/gradle/test/AnotherSoftwareTypeExtension.java") << anotherSoftwareTypeExtension
+
+        return pluginBuilder
     }
 
     PluginBuilder withSoftwareTypePluginThatDoesNotExposeSoftwareTypes() {
@@ -104,6 +108,26 @@ trait SoftwareTypeFixture {
         return withSoftwareTypePlugins(
             softwareTypeExtension,
             projectPluginThatProvidesSoftwareTypeThatHasUnannotatedMethods,
+            settingsPluginThatRegistersSoftwareType
+        )
+    }
+
+    PluginBuilder withSoftwareTypePluginThatExposesMultipleSoftwareTypes() {
+        PluginBuilder pluginBuilder = withSoftwareTypePlugins(
+            softwareTypeExtension,
+            projectPluginThatProvidesMultipleSoftwareTypes,
+            settingsPluginThatRegistersSoftwareType
+        )
+
+        pluginBuilder.file("src/main/java/org/gradle/test/AnotherSoftwareTypeExtension.java") << anotherSoftwareTypeExtension
+
+        return pluginBuilder
+    }
+
+    PluginBuilder withSoftwareTypePluginThatExposesPrivateSoftwareType() {
+        return withSoftwareTypePlugins(
+            softwareTypeExtension,
+            projectPluginThatProvidesPrivateSoftwareType,
             settingsPluginThatRegistersSoftwareType
         )
     }
@@ -450,6 +474,126 @@ trait SoftwareTypeFixture {
                         });
                     });
                     System.out.println(getFoo());
+                }
+            }
+        """
+    }
+
+    static String getProjectPluginThatProvidesMultipleSoftwareTypes(
+        String softwareTypePluginClassName = "SoftwareTypeImplPlugin"
+    ) {
+        return """
+            package org.gradle.test;
+
+            import org.gradle.api.DefaultTask;
+            import org.gradle.api.Plugin;
+            import org.gradle.api.Project;
+            import org.gradle.api.provider.ListProperty;
+            import org.gradle.api.provider.Property;
+            import org.gradle.api.tasks.Nested;
+            import ${SoftwareType.class.name};
+            import javax.inject.Inject;
+
+            abstract public class ${softwareTypePluginClassName} implements Plugin<Project> {
+
+                @SoftwareType(name="testSoftwareType", modelPublicType=TestSoftwareTypeExtension.class)
+                abstract public TestSoftwareTypeExtension getTestSoftwareTypeExtension();
+
+                @SoftwareType(name="anotherSoftwareType", modelPublicType=AnotherSoftwareTypeExtension.class)
+                abstract public AnotherSoftwareTypeExtension getAnotherSoftwareTypeExtension();
+
+                @Override
+                public void apply(Project target) {
+                    System.out.println("Applying " + getClass().getSimpleName());
+                    TestSoftwareTypeExtension extension = getTestSoftwareTypeExtension();
+                    target.getTasks().register("printTestSoftwareTypeExtensionConfiguration", DefaultTask.class, task -> {
+                        task.doLast("print restricted extension content", t -> {
+                            System.out.println("id = " + extension.getId().get());
+                            System.out.println("bar = " + extension.getFoo().getBar().get());
+                        });
+                    });
+                    AnotherSoftwareTypeExtension another = getAnotherSoftwareTypeExtension();
+                    target.getTasks().register("printAnotherSoftwareTypeExtensionConfiguration", DefaultTask.class, task -> {
+                        task.doLast("print restricted extension content", t -> {
+                            System.out.println("id = " + another.getId().get());
+                            System.out.println("bar = " + another.getFoo().getBar().get());
+                        });
+                    });
+                }
+            }
+        """
+    }
+
+    static String getProjectPluginThatProvidesPrivateSoftwareType(
+        String softwareTypePluginClassName = "SoftwareTypeImplPlugin"
+    ) {
+        return """
+            package org.gradle.test;
+
+            import org.gradle.api.DefaultTask;
+            import org.gradle.api.Plugin;
+            import org.gradle.api.Project;
+            import org.gradle.api.provider.ListProperty;
+            import org.gradle.api.provider.Property;
+            import org.gradle.api.tasks.Nested;
+            import ${SoftwareType.class.name};
+            import org.gradle.declarative.dsl.model.annotations.Adding;
+            import org.gradle.declarative.dsl.model.annotations.Configuring;
+            import org.gradle.declarative.dsl.model.annotations.Restricted;
+            import org.gradle.api.Action;
+            import org.gradle.api.model.ObjectFactory;
+
+            import javax.inject.Inject;
+
+            abstract public class ${softwareTypePluginClassName} implements Plugin<Project> {
+
+                @SoftwareType(name="testSoftwareType", modelPublicType=AnotherSoftwareTypeExtension.class)
+                abstract public AnotherSoftwareTypeExtension getTestSoftwareTypeExtension();
+
+                @Override
+                public void apply(Project target) {
+                    System.out.println("Applying " + getClass().getSimpleName());
+                    AnotherSoftwareTypeExtension extension = getTestSoftwareTypeExtension();
+                    target.getTasks().register("printTestSoftwareTypeExtensionConfiguration", DefaultTask.class, task -> {
+                        task.doLast("print restricted extension content", t -> {
+                            System.out.println("id = " + extension.getId().get());
+                            System.out.println("bar = " + extension.getFoo().getBar().get());
+                        });
+                    });
+                }
+
+                @Restricted
+                private static abstract class AnotherSoftwareTypeExtension {
+                    private final Foo foo;
+
+                    @Inject
+                    public AnotherSoftwareTypeExtension(ObjectFactory objects) {
+                        this.foo = objects.newInstance(Foo.class);
+                        this.foo.getBar().set("bar");
+
+                        getId().convention("<no id>");
+                    }
+
+                    @Restricted
+                    public abstract Property<String> getId();
+
+                    public Foo getFoo() {
+                        return foo;
+                    }
+
+                    @Configuring
+                    public void foo(Action<? super Foo> action) {
+                        action.execute(foo);
+                    }
+
+                    public static abstract class Foo {
+                        public Foo() {
+                            this.getBar().convention("nothing");
+                        }
+
+                        @Restricted
+                        public abstract Property<String> getBar();
+                    }
                 }
             }
         """

@@ -129,6 +129,10 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
         then:
         assertThatDeclaredValuesAreSetProperly()
         outputContains("""id = test2\nbar = fizz""")
+
+        and:
+        outputContains("Applying SoftwareTypeImplPlugin")
+        outputContains("Applying AnotherSoftwareTypeImplPlugin")
     }
 
     def 'can declare multiple custom software types from a single settings plugin but apply only one'() {
@@ -148,6 +152,30 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
         and:
         outputContains("Applying SoftwareTypeImplPlugin")
         outputDoesNotContain("Applying AnotherSoftwareTypeImplPlugin")
+    }
+
+    def 'can declare multiple custom software types from a single software type plugin'() {
+        given:
+        withSoftwareTypePluginThatExposesMultipleSoftwareTypes().prepareToExecute()
+
+        file("settings.gradle.something") << pluginsFromIncludedBuild
+
+        file("build.gradle.something") << declarativeScriptThatConfiguresOnlyTestSoftwareType + """
+            anotherSoftwareType {
+                id = "test2"
+
+                foo {
+                    bar = "fizz"
+                }
+            }
+        """
+
+        when:
+        run(":printTestSoftwareTypeExtensionConfiguration", ":printAnotherSoftwareTypeExtensionConfiguration")
+
+        then:
+        assertThatDeclaredValuesAreSetProperly()
+        outputContains("""id = test2\nbar = fizz""")
     }
 
     def 'can declare and configure a custom software type with different public and implementation model types'() {
@@ -221,7 +249,7 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
         then:
         failure.assertHasCause("Failed to apply plugin class 'org.gradle.test.SoftwareTypeImplPlugin'.")
         failure.assertHasCause("A problem was found with the SoftwareTypeImplPlugin plugin.")
-        failure.assertThatCause(containsText("Type 'org.gradle.test.SoftwareTypeImplPlugin_Decorated' property 'testSoftwareTypeExtension' has @SoftwareType annotation with public type 'String' used on property of type 'TestSoftwareTypeExtension'."))
+        failure.assertThatCause(containsText("Type 'org.gradle.test.SoftwareTypeImplPlugin_Decorated' property 'testSoftwareTypeExtension' has @SoftwareType annotation with public type 'AnotherSoftwareTypeExtension' used on property of type 'TestSoftwareTypeExtension'."))
     }
 
     def 'sensible error when a software type plugin is registered that does not expose a software type'() {
@@ -236,6 +264,23 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
         then:
         failure.assertHasCause("Failed to apply plugin 'com.example.test-software-type'.")
         failure.assertHasCause("A plugin with type 'org.gradle.test.SoftwareTypeImplPlugin' was registered as a software type plugin, but it does not expose any software types. Software type plugins must expose software types via properties with the @SoftwareType annotation.")
+    }
+
+    def 'sensible error when a software type plugin exposes a private software type'() {
+        given:
+        withSoftwareTypePluginThatExposesPrivateSoftwareType().prepareToExecute()
+
+        file("settings.gradle.something") << pluginsFromIncludedBuild
+
+        file("build.gradle.something") << declarativeScriptThatConfiguresOnlyTestSoftwareType
+
+        when:
+        fails(":printTestSoftwareTypeExtensionConfiguration")
+
+        then:
+        failure.assertHasCause("Failed to apply plugin class 'org.gradle.test.SoftwareTypeImplPlugin'.")
+        failure.assertHasCause("Could not create an instance of type org.gradle.test.SoftwareTypeImplPlugin\$AnotherSoftwareTypeExtension.")
+        failure.assertHasCause("Class SoftwareTypeImplPlugin.AnotherSoftwareTypeExtension is private.")
     }
 
     static String getPluginsFromIncludedBuild() {
