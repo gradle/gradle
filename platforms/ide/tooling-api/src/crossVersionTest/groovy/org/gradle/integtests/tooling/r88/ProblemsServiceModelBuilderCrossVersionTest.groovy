@@ -21,7 +21,6 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r85.CustomModel
 import org.gradle.tooling.events.problems.SingleProblemEvent
-import org.gradle.util.GradleVersion
 import org.junit.Assume
 
 import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk17
