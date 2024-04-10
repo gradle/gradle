@@ -48,6 +48,10 @@ class BuildOperationsFixture extends BuildOperationTreeQueries {
         getTree().roots
     }
 
+    List<BuildOperationRecord> getDanglingChildren() {
+        new BuildOperationTreeFixture(BuildOperationTrace.readPartialTree(path)).roots.findAll { it.parentId != null }
+    }
+
     @Override
     @SuppressWarnings("GrUnnecessaryPublicModifier")
     public <T extends BuildOperationType<?, ?>> BuildOperationRecord root(Class<T> type, Spec<? super BuildOperationRecord> predicate = Specs.satisfyAll()) {
