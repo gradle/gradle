@@ -180,6 +180,11 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
         }
 
         @Override
+        public String toString() {
+            return configuration.toString();
+        }
+
+        @Override
         public ConfigurationGraphResolveMetadata getMetadata() {
             return configuration;
         }
