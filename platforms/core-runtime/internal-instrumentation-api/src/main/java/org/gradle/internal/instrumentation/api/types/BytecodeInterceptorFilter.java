@@ -34,11 +34,11 @@ public enum BytecodeInterceptorFilter {
         this.instrumentationTypes = instrumentationTypes;
     }
 
-    public boolean matches(BytecodeInterceptor bytecodeInterceptor) {
+    public boolean matches(FilterableBytecodeInterceptor bytecodeInterceptor) {
         return instrumentationTypes.contains(bytecodeInterceptor.getType());
     }
 
-    public boolean matches(BytecodeInterceptorFactory bytecodeInterceptorFactory) {
+    public boolean matches(FilterableBytecodeInterceptorFactory bytecodeInterceptorFactory) {
         return instrumentationTypes.contains(bytecodeInterceptorFactory.getType());
     }
 }

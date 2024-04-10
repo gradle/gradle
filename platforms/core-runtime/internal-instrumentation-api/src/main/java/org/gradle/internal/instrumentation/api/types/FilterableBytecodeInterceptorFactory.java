@@ -16,21 +16,21 @@
 
 package org.gradle.internal.instrumentation.api.types;
 
-public interface BytecodeInterceptorFactory {
+public interface FilterableBytecodeInterceptorFactory {
 
     BytecodeInterceptorType getType();
 
     /**
      * A marker interface that indicates that a class is used for generating bytecode upgrades.
      */
-    interface BytecodeUpgradeInterceptorFactory extends BytecodeInterceptorFactory {
+    interface BytecodeUpgradeInterceptorFactory extends FilterableBytecodeInterceptorFactory {
         @Override
         default BytecodeInterceptorType getType() {
             return BytecodeInterceptorType.BYTECODE_UPGRADE;
         }
     }
 
-    interface InstrumentationInterceptorFactory extends BytecodeInterceptorFactory {
+    interface InstrumentationInterceptorFactory extends FilterableBytecodeInterceptorFactory {
         @Override
         default BytecodeInterceptorType getType() {
             return BytecodeInterceptorType.INSTRUMENTATION;

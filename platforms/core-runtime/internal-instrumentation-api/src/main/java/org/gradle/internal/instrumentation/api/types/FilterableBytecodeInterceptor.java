@@ -16,14 +16,17 @@
 
 package org.gradle.internal.instrumentation.api.types;
 
-public interface BytecodeInterceptor {
+/**
+ * A base interface for all bytecode interceptors, that can be filtered by {@link BytecodeInterceptorFilter}.
+ */
+public interface FilterableBytecodeInterceptor {
 
     BytecodeInterceptorType getType();
 
     /**
      * A marker interface that indicates that a class is used for bytecode upgrades.
      */
-    interface BytecodeUpgradeInterceptor extends BytecodeInterceptor {
+    interface BytecodeUpgradeInterceptor extends FilterableBytecodeInterceptor {
         @Override
         default BytecodeInterceptorType getType() {
             return BytecodeInterceptorType.BYTECODE_UPGRADE;
@@ -33,7 +36,7 @@ public interface BytecodeInterceptor {
     /**
      * A marker interface that indicates that a class is used for configuration cache instrumentation.
      */
-    interface InstrumentationInterceptor extends BytecodeInterceptor {
+    interface InstrumentationInterceptor extends FilterableBytecodeInterceptor {
         @Override
         default BytecodeInterceptorType getType() {
             return BytecodeInterceptorType.INSTRUMENTATION;

@@ -22,34 +22,34 @@ public enum BytecodeInterceptorType {
      * An interceptor that is applied to the bytecode always.
      */
     INSTRUMENTATION(
-        BytecodeInterceptor.InstrumentationInterceptor.class,
-        BytecodeInterceptorFactory.InstrumentationInterceptorFactory.class
+        FilterableBytecodeInterceptor.InstrumentationInterceptor.class,
+        FilterableBytecodeInterceptorFactory.InstrumentationInterceptorFactory.class
     ),
 
     /**
      * An interceptor that is applied to the bytecode only for upgrades.
      */
     BYTECODE_UPGRADE(
-        BytecodeInterceptor.BytecodeUpgradeInterceptor.class,
-        BytecodeInterceptorFactory.BytecodeUpgradeInterceptorFactory.class
+        FilterableBytecodeInterceptor.BytecodeUpgradeInterceptor.class,
+        FilterableBytecodeInterceptorFactory.BytecodeUpgradeInterceptorFactory.class
     );
 
-    private final Class<? extends BytecodeInterceptor> interceptorMarkerInterface;
-    private final Class<? extends BytecodeInterceptorFactory> interceptorFactoryMarkerInterface;
+    private final Class<? extends FilterableBytecodeInterceptor> interceptorMarkerInterface;
+    private final Class<? extends FilterableBytecodeInterceptorFactory> interceptorFactoryMarkerInterface;
 
     BytecodeInterceptorType(
-        Class<? extends BytecodeInterceptor> interceptorMarkerInterface,
-        Class<? extends BytecodeInterceptorFactory> interceptorFactoryMarkerInterface
+        Class<? extends FilterableBytecodeInterceptor> interceptorMarkerInterface,
+        Class<? extends FilterableBytecodeInterceptorFactory> interceptorFactoryMarkerInterface
     ) {
         this.interceptorMarkerInterface = interceptorMarkerInterface;
         this.interceptorFactoryMarkerInterface = interceptorFactoryMarkerInterface;
     }
 
-    public Class<? extends BytecodeInterceptor> getInterceptorMarkerInterface() {
+    public Class<? extends FilterableBytecodeInterceptor> getInterceptorMarkerInterface() {
         return interceptorMarkerInterface;
     }
 
-    public Class<? extends BytecodeInterceptorFactory> getInterceptorFactoryMarkerInterface() {
+    public Class<? extends FilterableBytecodeInterceptorFactory> getInterceptorFactoryMarkerInterface() {
         return interceptorFactoryMarkerInterface;
     }
 }

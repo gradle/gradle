@@ -17,8 +17,8 @@
 package org.gradle.internal.instrumentation.api.jvmbytecode;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.internal.instrumentation.api.types.BytecodeInterceptor;
-import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFactory;
+import org.gradle.internal.instrumentation.api.types.FilterableBytecodeInterceptor;
+import org.gradle.internal.instrumentation.api.types.FilterableBytecodeInterceptorFactory;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
 import org.gradle.internal.instrumentation.api.metadata.InstrumentationMetadata;
 import org.objectweb.asm.MethodVisitor;
@@ -26,7 +26,7 @@ import org.objectweb.asm.tree.MethodNode;
 
 import java.util.function.Supplier;
 
-public interface JvmBytecodeCallInterceptor extends BytecodeInterceptor {
+public interface JvmBytecodeCallInterceptor extends FilterableBytecodeInterceptor {
     boolean visitMethodInsn(
             String className,
             int opcode,
@@ -38,7 +38,7 @@ public interface JvmBytecodeCallInterceptor extends BytecodeInterceptor {
     );
 
     @NonNullApi
-    interface Factory extends BytecodeInterceptorFactory {
+    interface Factory extends FilterableBytecodeInterceptorFactory {
         JvmBytecodeCallInterceptor create(MethodVisitor methodVisitor, InstrumentationMetadata metadata, BytecodeInterceptorFilter interceptorFilter);
     }
 }

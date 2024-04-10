@@ -51,7 +51,7 @@ class InterceptJvmCallsGeneratorTest extends InstrumentationCodeGenTest {
         then:
         def expectedJvmInterceptors = source """
             package my;
-            public class InterceptorDeclaration_JvmBytecodeImpl extends MethodVisitorScope implements JvmBytecodeCallInterceptor, BytecodeInterceptor.InstrumentationInterceptor {
+            public class InterceptorDeclaration_JvmBytecodeImpl extends MethodVisitorScope implements JvmBytecodeCallInterceptor, FilterableBytecodeInterceptor.InstrumentationInterceptor {
                 @Override
                 public boolean visitMethodInsn(String className, int opcode, String owner, String name,
                         String descriptor, boolean isInterface, Supplier<MethodNode> readMethodNode) {
@@ -182,7 +182,7 @@ class InterceptJvmCallsGeneratorTest extends InstrumentationCodeGenTest {
         then:
         def expectedJvmInterceptors = source """
             package my;
-            public class InterceptorDeclaration_JvmBytecodeImpl extends MethodVisitorScope implements JvmBytecodeCallInterceptor, BytecodeInterceptor.InstrumentationInterceptor {
+            public class InterceptorDeclaration_JvmBytecodeImpl extends MethodVisitorScope implements JvmBytecodeCallInterceptor, FilterableBytecodeInterceptor.InstrumentationInterceptor {
                 @Override
                 public boolean visitMethodInsn(String className, int opcode, String owner, String name,
                         String descriptor, boolean isInterface, Supplier<MethodNode> readMethodNode) {
@@ -232,7 +232,7 @@ class InterceptJvmCallsGeneratorTest extends InstrumentationCodeGenTest {
         then:
         def expectedJvmInterceptors = source """
             package my;
-            public class InterceptorDeclaration_JvmBytecodeImpl extends MethodVisitorScope implements JvmBytecodeCallInterceptor, BytecodeInterceptor.InstrumentationInterceptor {
+            public class InterceptorDeclaration_JvmBytecodeImpl extends MethodVisitorScope implements JvmBytecodeCallInterceptor, FilterableBytecodeInterceptor.InstrumentationInterceptor {
                 @Override
                 public boolean visitMethodInsn(String className, int opcode, String owner, String name,
                         String descriptor, boolean isInterface, Supplier<MethodNode> readMethodNode) {
