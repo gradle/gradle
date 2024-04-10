@@ -257,6 +257,52 @@ class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractIntegration
         outputContains("org.apache.commons:commons-lang3:3.12.0")
     }
 
+    def 'can configure an extension using DependencyCollector in declarative DSL using project() from the Dependencies class to add dependencies'() {
+        given: "a plugin that creates a custom extension using a DependencyCollector"
+        file("buildSrc/src/main/java/com/example/restricted/DependenciesExtension.java") << defineDependenciesExtension()
+        file("buildSrc/src/main/java/com/example/restricted/LibraryExtension.java") << defineLibraryExtension()
+        file("buildSrc/src/main/java/com/example/restricted/RestrictedPlugin.java") << """
+            package com.example.restricted;
+
+            import org.gradle.api.Plugin;
+            import org.gradle.api.Project;
+            import org.gradle.api.artifacts.DependencyScopeConfiguration;
+
+            public class RestrictedPlugin implements Plugin<Project> {
+                @Override
+                public void apply(Project project) {
+                    // no plugin application, must create configurations manually
+                    DependencyScopeConfiguration api = project.getConfigurations().dependencyScope("api").get();
+                    DependencyScopeConfiguration implementation = project.getConfigurations().dependencyScope("implementation").get();
+
+                    // create and wire the custom dependencies extension's dependencies to these global configurations
+                    LibraryExtension restricted = project.getExtensions().create("library", LibraryExtension.class);
+                    api.fromDependencyCollector(restricted.getDependencies().getApi());
+                    implementation.fromDependencyCollector(restricted.getDependencies().getImplementation());
+                }
+            }
+        """
+        file("buildSrc/build.gradle") << defineRestrictedPluginBuild()
+
+        and: "a producer build that defines a required class"
+        file("producer/src/main/java/com/example/Producer.java") << defineExampleProducerJavaClass()
+        file("producer/build.gradle.something") << defineDeclarativeDSLProducerBuildScript()
+
+        and: "a consumer build that requires the class in the producer project"
+        file("consumer/src/main/java/com/example/Consumer.java") << defineExampleConsumerJavaClass()
+        file("consumer/build.gradle.something") << defineDeclarativeDSLConsumerBuildScript()
+
+        and: "a project including both the producer and consumer projects"
+        file("settings.gradle") << defineSettings() + 'include("consumer", "producer")'
+
+        expect: "the project dependency has been added to the api configuration"
+        succeeds(":consumer:dependencies", "--configuration", "api")
+        outputContains("\\--- project producer (n)")
+
+        and: "the producer project can be built successfully"
+        succeeds(":producer:build")
+    }
+
     private String defineDependenciesExtension(boolean extendDependencies = true) {
         return """
             package com.example.restricted;
@@ -368,6 +414,42 @@ class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractIntegration
         """
     }
 
+    private String defineExampleProducerJavaClass() {
+        return """
+            package com.example;
+
+            public class Producer {
+                private final String name;
+
+                public Producer(String name) {
+                    this.name = name;
+                }
+
+                public String getName() {
+                    return name;
+                }
+            }
+        """
+    }
+
+    private String defineExampleConsumerJavaClass() {
+        return """
+            package com.example;
+
+            public class Consumer {
+                private final Producer producer;
+
+                public Consumer(String name) {
+                    producer = new Producer(name);
+                }
+
+                public Producer getProducer() {
+                    return producer;
+                }
+            }
+        """
+    }
+
     private String defineDeclarativeDSLBuildScript() {
         return """
             plugins {
@@ -378,6 +460,30 @@ class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractIntegration
                 dependencies {
                     api("com.google.guava:guava:30.1.1-jre")
                     implementation("org.apache.commons:commons-lang3:3.12.0")
+                }
+            }
+        """
+    }
+
+    private String defineDeclarativeDSLProducerBuildScript() {
+        return """
+            plugins {
+                id("com.example.restricted")
+            }
+
+            library {}
+        """
+    }
+
+    private String defineDeclarativeDSLConsumerBuildScript() {
+        return """
+            plugins {
+                id("com.example.restricted")
+            }
+
+            library {
+                dependencies {
+                    api(project(":producer"))
                 }
             }
         """
