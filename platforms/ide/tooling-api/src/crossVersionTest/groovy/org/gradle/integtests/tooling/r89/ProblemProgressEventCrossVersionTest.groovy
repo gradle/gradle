@@ -25,8 +25,10 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
+import org.gradle.tooling.events.problems.LineInFileLocation
 import org.gradle.tooling.events.problems.Severity
 import org.gradle.tooling.events.problems.SingleProblemEvent
+import org.gradle.util.GradleVersion
 import org.junit.Assume
 
 import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk17
@@ -51,6 +53,80 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                 .run()
         }
         return listener.problems
+    }
+
+    def "Failing executions produce problems"() {
+        setup:
+        buildFile """
+            plugins {
+              id 'java-library'
+            }
+            repositories.jcenter()
+            task bar {}
+            task baz {}
+        """
+
+
+        when:
+        def listener = new ProblemProgressListener()
+        withConnection { connection ->
+            connection.newBuild()
+                .forTasks(":ba")
+                .addProgressListener(listener)
+                .setStandardError(System.err)
+                .setStandardOutput(System.out)
+                .addArguments("--info")
+                .run()
+        }
+
+        then:
+        thrown(BuildException)
+        listener.problems.size() == 2
+        verifyAll(listener.problems[0]) {
+            definition.id.displayName == "The RepositoryHandler.jcenter() method has been deprecated."
+            definition.id.group.displayName == "Deprecation"
+            definition.id.group.name == "deprecation"
+            definition.severity == Severity.WARNING
+            locations.size() == 2
+            (locations[0] as LineInFileLocation).path == "build file '$buildFile.path'" // FIXME: the path should not contain a prefix nor extra quotes
+            (locations[1] as LineInFileLocation).path == "build file '$buildFile.path'"
+        }
+    }
+
+    def "Problems expose details via Tooling API events with failure"() {
+        given:
+        withReportProblemTask """
+            getProblems().forNamespace("org.example.plugin").reporting {
+                it.${targetVersion < GradleVersion.version("8.8") ? 'label("shortProblemMessage").category("main", "sub", "id")' : 'id("id", "shortProblemMessage")'}
+                $documentationConfig
+                .lineInFileLocation("/tmp/foo", 1, 2, 3)
+                $detailsConfig
+                .additionalData("aKey", "aValue")
+                .severity(Severity.WARNING)
+                .solution("try this instead")
+            }
+        """
+        when:
+
+        def problems = runTask()
+
+        then:
+        problems.size() == 1
+        verifyAll(problems[0]) {
+            details.details == expectedDetails
+            definition.documentationLink.url == expecteDocumentation
+            locations.size() == 2
+            (locations[0] as LineInFileLocation).path == '/tmp/foo'
+            (locations[1] as LineInFileLocation).path == "build file '$buildFile.path'"
+            severity == Severity.WARNING
+            solutions.size() == 1
+            solutions[0].solution == 'try this instead'
+        }
+
+        where:
+        detailsConfig              | expectedDetails | documentationConfig                         | expecteDocumentation
+        '.details("long message")' | "long message"  | '.documentedAt("https://docs.example.org")' | 'https://docs.example.org'
+        ''                         | null            | ''                                          | null
     }
 
     def "Problems expose details via Tooling API events with problem definition"() {
@@ -90,7 +166,6 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         ''                         | null            | ''                                          | null
     }
 
-    @TargetGradleVersion("=8.7")
     def "Can serialize groovy compilation error"() {
         buildFile """
             tasks.register("foo) {
