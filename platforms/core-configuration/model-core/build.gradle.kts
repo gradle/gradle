@@ -53,6 +53,7 @@ dependencies {
     api(libs.guava)
 
     implementation(project(":base-services-groovy"))
+    implementation(project(":base-asm"))
 
     implementation(libs.futureKotlin("stdlib"))
     implementation(libs.slf4jApi)

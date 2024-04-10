@@ -47,6 +47,7 @@ dependencies {
 
     testImplementation(libs.asm)
     testImplementation(libs.asmCommons)
+    testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":logging")))
 
     testFixturesImplementation(project(":base-services"))

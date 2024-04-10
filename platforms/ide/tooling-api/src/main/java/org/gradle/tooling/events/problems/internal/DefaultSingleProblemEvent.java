@@ -20,27 +20,27 @@ import org.gradle.api.NonNullApi;
 import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.internal.BaseProgressEvent;
 import org.gradle.tooling.events.problems.AdditionalData;
+import org.gradle.tooling.events.problems.ContextualLabel;
 import org.gradle.tooling.events.problems.Details;
 import org.gradle.tooling.events.problems.DocumentationLink;
 import org.gradle.tooling.events.problems.FailureContainer;
-import org.gradle.tooling.events.problems.Label;
 import org.gradle.tooling.events.problems.Location;
 import org.gradle.tooling.events.problems.ProblemCategory;
+import org.gradle.tooling.events.problems.ProblemDefinition;
 import org.gradle.tooling.events.problems.Severity;
 import org.gradle.tooling.events.problems.SingleProblemEvent;
 import org.gradle.tooling.events.problems.Solution;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.List;
 
 @NonNullApi
 public class DefaultSingleProblemEvent extends BaseProgressEvent implements SingleProblemEvent {
-    private final ProblemCategory category;
-    private final Severity severity;
-    private final Label label;
+    private final ProblemDefinition problemDefinition;
+    private final ContextualLabel contextualLabel;
     private final Details details;
     private final List<Location> locations;
-    private final DocumentationLink documentationLink;
     private final List<Solution> solutions;
     private final AdditionalData additionalData;
     private final FailureContainer failure;
@@ -48,35 +48,36 @@ public class DefaultSingleProblemEvent extends BaseProgressEvent implements Sing
     public DefaultSingleProblemEvent(
         long eventTime,
         @Nullable OperationDescriptor problemDescriptor,
-        ProblemCategory category,
-        Severity severity,
-        Label label,
+        ProblemDefinition problemDefinition,
+        ContextualLabel contextualLabel,
         Details details,
         List<Location> locations,
-        DocumentationLink documentationLink,
         List<Solution> solutions,
         AdditionalData additionalData,
         @Nullable FailureContainer failure) {
         super(eventTime, problemDescriptor == null ? "<null>" : problemDescriptor.getDisplayName(), problemDescriptor);
-        this.category = category;
-        this.severity = severity;
-        this.label = label;
+        this.problemDefinition = problemDefinition;
+        this.contextualLabel = contextualLabel;
         this.details = details;
         this.locations = locations;
-        this.documentationLink = documentationLink;
         this.solutions = solutions;
         this.additionalData = additionalData;
         this.failure = failure;
     }
 
     @Override
-    public ProblemCategory getCategory() {
-        return category;
+    public ProblemDefinition getDefinition() {
+        return problemDefinition;
     }
 
     @Override
-    public Label getLabel() {
-        return label;
+    public ProblemCategory getCategory() {
+        return new DefaultCategory("", "", Collections.<String>emptyList());
+    }
+
+    @Override
+    public ContextualLabel getContextualLabel() {
+        return contextualLabel;
     }
 
     @Override
@@ -86,7 +87,7 @@ public class DefaultSingleProblemEvent extends BaseProgressEvent implements Sing
 
     @Override
     public Severity getSeverity() {
-        return severity;
+        return problemDefinition.getSeverity();
     }
 
     @Override
@@ -96,7 +97,7 @@ public class DefaultSingleProblemEvent extends BaseProgressEvent implements Sing
 
     @Override
     public DocumentationLink getDocumentationLink() {
-        return documentationLink;
+        return problemDefinition.getDocumentationLink();
     }
 
     @Override

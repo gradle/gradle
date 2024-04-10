@@ -123,6 +123,7 @@ dependencies {
     api(libs.jsr305)
     api(libs.nativePlatform)
 
+    implementation(project(":base-asm"))
     implementation(project(":input-tracking"))
     implementation(project(":model-groovy"))
 

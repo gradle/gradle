@@ -166,6 +166,8 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractInt
                     apiVersion.set(KotlinVersion.fromVersion("${kotlinLanguageVersion}"))
                     languageVersion.set(KotlinVersion.fromVersion("${kotlinLanguageVersion}"))
                 }
+                // Work around JVM validation issue: https://youtrack.jetbrains.com/issue/KT-66919
+                jvmTargetValidationMode = org.jetbrains.kotlin.gradle.dsl.jvm.JvmTargetValidationMode.WARNING
             }
         """
         file("buildSrc/src/main/kotlin/MyPlugin.kt") << """
@@ -190,7 +192,7 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractInt
         """
 
         when:
-        if (['1.4', '1.5'].contains(kotlinLanguageVersion)) {
+        if (['1.4', '1.5', '1.6'].contains(kotlinLanguageVersion)) {
             executer.expectDeprecationWarning("w: Language version $kotlinLanguageVersion is deprecated and its support will be removed in a future version of Kotlin")
         }
         run "myTask"

@@ -21,6 +21,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import static org.gradle.internal.instrumentation.api.annotations.UpgradedProperty.BinaryCompatibility.ACCESSORS_REMOVED;
+
 /**
  * Marks that a property is upgraded
  */
@@ -41,6 +43,27 @@ public @interface UpgradedProperty {
 
     boolean fluentSetter() default false;
 
+    UpgradedAccessor[] originalAccessors() default {};
+
+    BinaryCompatibility binaryCompatibility() default ACCESSORS_REMOVED;
+
+    /**
+     * Deprecation configuration for the property
+     */
+    UpgradedDeprecation deprecation() default @UpgradedDeprecation();
+
     interface DefaultValue {
+    }
+
+    enum BinaryCompatibility {
+        /**
+         * Gradle binary compatibility check will fail if the accessor was not removed
+         */
+        ACCESSORS_REMOVED,
+
+        /**
+         * Gradle binary compatibility check will fail if the accessor was not kept
+         */
+        ACCESSORS_KEPT
     }
 }

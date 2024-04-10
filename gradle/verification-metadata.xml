@@ -99,7 +99,7 @@
          <trusted-key id="1FA37FBE4453C1073E7EF61D6449005F96BC97A3" group="de.undercouch"/>
          <trusted-key id="1FA868A348719E88B6D0DE24C03EF1D7D692BCFF" group="org.scala-lang"/>
          <trusted-key id="21F0942275EA159A501D375328852008A47BB995" group="^com[.]google($|([.].*))" regex="true"/>
-         <trusted-key id="253E8E4C6FB28D11748115C1249DEE8E2C07A0A2" group="com.github.javaparser" name="javaparser-core"/>
+         <trusted-key id="FC2C31FC25FEDE4E7AD0D18C2BFD7825A8984FBE" group="com.github.javaparser" name="javaparser-core"/>
          <trusted-key id="28118C070CB22A0175A2E8D43D12CA2AC19F3181">
             <trusting group="com.fasterxml.jackson.core"/>
             <trusting group="com.fasterxml.woodstox"/>
@@ -551,16 +551,6 @@
             <pgp value="635EE627345F3C1DD422B2E207D3516820BCF6B1"/>
          </artifact>
       </component>
-      <component group="com.github.javaparser" name="javaparser-core" version="3.24.9">
-         <artifact name="javaparser-core-3.24.9.jar">
-            <pgp value="FC2C31FC25FEDE4E7AD0D18C2BFD7825A8984FBE"/>
-         </artifact>
-      </component>
-      <component group="com.github.javaparser" name="javaparser-core" version="3.25.1">
-         <artifact name="javaparser-core-3.25.1.jar">
-            <pgp value="FC2C31FC25FEDE4E7AD0D18C2BFD7825A8984FBE"/>
-         </artifact>
-      </component>
       <component group="com.github.jnr" name="jnr-x86asm" version="1.0.2">
          <artifact name="jnr-x86asm-1.0.2.jar">
             <pgp value="0057FBD7F284A1C1B4F1E891EE6E41E5483F557D"/>
@@ -870,9 +860,9 @@
             <pgp value="7186BBF993566D8C2F4F7ED7D945E643368FEF62"/>
          </artifact>
       </component>
-      <component group="io.github.gradle" name="gradle-enterprise-conventions-plugin" version="0.7.6">
-         <artifact name="gradle-enterprise-conventions-plugin-0.7.6.jar">
-            <sha256 value="b3ff4bba6c5ac6e50e7225c7d1f69c0a9bc2ae9f3ce2bfacdc3f1b3999c2e758" origin="Verified" reason="Artifact is not signed"/>
+      <component group="io.github.gradle" name="gradle-enterprise-conventions-plugin" version="0.9.1">
+         <artifact name="gradle-enterprise-conventions-plugin-0.9.1.jar">
+            <sha256 value="e894e097ed05878f2730807a452c4fb01bd229dfdedc42e9908f0b200c68d058" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="io.github.java-diff-utils" name="java-diff-utils" version="4.12">

@@ -2,7 +2,7 @@
 plugins {
     id("com.android.application") version "7.3.0" apply false
 // end::android[]
-    kotlin("android") version "1.9.22" apply false
+    kotlin("android") version "1.9.23" apply false
 // tag::android[]
 }
 // end::android[]

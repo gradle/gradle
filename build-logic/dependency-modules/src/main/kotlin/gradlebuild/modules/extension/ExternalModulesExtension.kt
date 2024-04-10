@@ -20,9 +20,10 @@ import gradlebuild.modules.model.License
 
 abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
 
-    val groovyVersion = if (isBundleGroovy4) "4.0.7" else "3.0.17"
+    val groovyVersion = if (isBundleGroovy4) "4.0.20" else "3.0.21"
     val configurationCacheReportVersion = "1.5"
-    val kotlinVersion = "1.9.22"
+    val gradleIdeStarterVersion = "0.2-SNAPSHOT"
+    val kotlinVersion = "1.9.23"
 
     fun futureKotlin(module: String) = "org.jetbrains.kotlin:kotlin-$module:$kotlinVersion"
 
@@ -61,6 +62,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val googleHttpClientGson = "com.google.http-client:google-http-client-gson"
     val googleHttpClientApacheV2 = "com.google.http-client:google-http-client-apache-v2"
     val googleOauthClient = "com.google.oauth-client:google-oauth-client"
+    val gradleIdeStarter = "org.gradle.buildtool.internal:gradle-ide-starter:$gradleIdeStarterVersion"
     val gradleProfiler = "org.gradle.profiler:gradle-profiler"
     val develocityTestAnnotation = "com.gradle:develocity-testing-annotations"
     val groovyGroup = if (isBundleGroovy4) "org.apache.groovy" else "org.codehaus.groovy"
@@ -233,6 +235,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
         googleHttpClientGson to License.Apache2,
         googleHttpClientApacheV2 to License.Apache2,
         googleOauthClient to License.Apache2,
+        gradleIdeStarter to License.Apache2,
         gradleProfiler to License.Apache2,
         groovy to License.Apache2,
         gson to License.Apache2,

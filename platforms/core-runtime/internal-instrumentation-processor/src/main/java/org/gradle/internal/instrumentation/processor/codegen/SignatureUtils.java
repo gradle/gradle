@@ -20,6 +20,7 @@ import org.gradle.internal.instrumentation.model.CallableInfo;
 import org.gradle.internal.instrumentation.model.ParameterKindInfo;
 
 public class SignatureUtils {
+
     public static boolean hasCallerClassName(CallableInfo callableInfo) {
         return callableInfo.getParameters().stream().anyMatch(it -> it.getKind() == ParameterKindInfo.CALLER_CLASS_NAME);
     }

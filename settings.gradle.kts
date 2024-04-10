@@ -27,7 +27,7 @@ pluginManagement {
 
 plugins {
     id("com.gradle.develocity").version("3.17") // Sync with `build-logic-commons/build-platform/build.gradle.kts`
-    id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.7.6")
+    id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.9.1")
     id("org.gradle.toolchains.foojay-resolver-convention") version ("0.8.0")
 //    id("net.ltgt.errorprone").version("3.1.0")
 }
@@ -69,6 +69,7 @@ val core = platform("core") {
     // Core Runtime Module
     module("core-runtime") {
         subproject("base-annotations")
+        subproject("base-asm")
         subproject("base-services")
         subproject("bootstrap")
         subproject("build-operations")

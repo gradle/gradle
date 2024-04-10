@@ -243,6 +243,11 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
             }
 
             @Override
+            public void add(Class<?> serviceType, Class<?> implementationType) {
+                ownServices.add(new ConstructorService(DefaultServiceRegistry.this, serviceType, implementationType));
+            }
+
+            @Override
             public void addProvider(Object provider) {
                 DefaultServiceRegistry.this.addProvider(provider);
             }
@@ -714,7 +719,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
         }
 
         /**
-         * Do any preparation work and validation to ensure that {@link #createServiceInstance()} ()} can be called later.
+         * Do any preparation work and validation to ensure that {@link #createServiceInstance()} can be called later.
          * This method is never called concurrently.
          */
         protected void bind() {
@@ -957,11 +962,18 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
         private final Constructor<?> constructor;
 
         private ConstructorService(DefaultServiceRegistry owner, Class<?> serviceType) {
+            this(owner, serviceType, serviceType);
+        }
+
+        private ConstructorService(DefaultServiceRegistry owner, Class<?> serviceType, Class<?> implementationType) {
             super(owner, serviceType);
-            if (serviceType.isInterface()) {
+            if (!serviceType.isAssignableFrom(implementationType)) {
+                throw new ServiceValidationException(String.format("Cannot register implementation '%s' for service '%s', because it does not implement it", implementationType.getSimpleName(), serviceType.getSimpleName()));
+            }
+            if (implementationType.isInterface()) {
                 throw new ServiceValidationException("Cannot register an interface for construction.");
             }
-            Constructor<?> match = InjectUtil.selectConstructor(serviceType);
+            Constructor<?> match = InjectUtil.selectConstructor(implementationType);
             if (InjectUtil.isPackagePrivate(match.getModifiers()) || Modifier.isPrivate(match.getModifiers())) {
                 match.setAccessible(true);
             }

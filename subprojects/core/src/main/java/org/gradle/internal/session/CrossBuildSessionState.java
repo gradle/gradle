@@ -21,6 +21,7 @@ import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultCollectionCallbackActionDecorator;
 import org.gradle.configuration.internal.DefaultDynamicCallContextTracker;
 import org.gradle.configuration.internal.DefaultListenerBuildOperationDecorator;
+import org.gradle.configuration.internal.DynamicCallContextTracker;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.internal.code.DefaultUserCodeApplicationContext;
 import org.gradle.internal.code.UserCodeApplicationContext;
@@ -42,6 +43,7 @@ import org.gradle.internal.operations.notify.BuildOperationNotificationBridge;
 import org.gradle.internal.operations.notify.BuildOperationNotificationValve;
 import org.gradle.internal.operations.trace.BuildOperationTrace;
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
+import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
@@ -67,7 +69,7 @@ public class CrossBuildSessionState implements Closeable {
 
     public CrossBuildSessionState(ServiceRegistry parent, StartParameter startParameter) {
         this.services = ServiceRegistryBuilder.builder()
-            .scope(Scope.CrossBuildSession.class)
+            .scopeStrictly(Scope.CrossBuildSession.class)
             .displayName("cross session services")
             .parent(parent)
             .provider(new Services(startParameter))
@@ -94,9 +96,9 @@ public class CrossBuildSessionState implements Closeable {
         }
 
         void configure(ServiceRegistration registration) {
-            registration.add(DefaultResourceLockCoordinationService.class);
+            registration.add(ResourceLockCoordinationService.class, DefaultResourceLockCoordinationService.class);
             registration.add(DefaultWorkerLeaseService.class);
-            registration.add(DefaultDynamicCallContextTracker.class);
+            registration.add(DynamicCallContextTracker.class, DefaultDynamicCallContextTracker.class);
         }
 
         CrossBuildSessionState createCrossBuildSessionState() {

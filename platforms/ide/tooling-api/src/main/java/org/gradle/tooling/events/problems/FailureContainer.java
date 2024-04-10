@@ -31,7 +31,8 @@ public interface FailureContainer {
 
     /**
      * Failure that caused the problem.
-     *
+     * <p>
+     * The method will always return <code>null</code> if run against a Gradle version prior to 8.8.
      * @since 8.7
      */
     @Nullable
