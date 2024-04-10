@@ -124,8 +124,8 @@ class InterceptJvmCallsGeneratorTest extends InstrumentationCodeGenTest {
         Compilation compilation = compile(givenSource)
 
         then:
-        def capability = type.getInterceptorMarkerInterface().getCanonicalName() - (type.getInterceptorMarkerInterface().packageName + ".")
-        def factoryCapability = type.getInterceptorFactoryMarkerInterface().getCanonicalName() - (type.getInterceptorFactoryMarkerInterface().packageName + ".")
+        def capability = type.getInterceptorMarkerInterface().getCanonicalName() - (type.getInterceptorMarkerInterface().package.name + ".")
+        def factoryCapability = type.getInterceptorFactoryMarkerInterface().getCanonicalName() - (type.getInterceptorFactoryMarkerInterface().package.name + ".")
         def expectedJvmInterceptors = source """
             package my;
 
