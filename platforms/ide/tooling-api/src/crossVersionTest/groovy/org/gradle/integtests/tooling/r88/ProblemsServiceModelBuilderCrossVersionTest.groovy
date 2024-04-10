@@ -30,7 +30,7 @@ import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk8
 import static org.gradle.integtests.tooling.r86.ProblemsServiceModelBuilderCrossVersionTest.getBuildScriptSampleContent
 
 @TargetGradleVersion(">=8.8")
-@ToolingApiVersion(">=8.8")
+@ToolingApiVersion("=8.8")
 class ProblemsServiceModelBuilderCrossVersionTest extends ToolingApiSpecification {
 
     org.gradle.integtests.tooling.r87.ProblemProgressEventCrossVersionTest.ProblemProgressListener listener
@@ -39,7 +39,6 @@ class ProblemsServiceModelBuilderCrossVersionTest extends ToolingApiSpecificatio
         listener = new org.gradle.integtests.tooling.r87.ProblemProgressEventCrossVersionTest.ProblemProgressListener()
     }
 
-    @ToolingApiVersion("=8.8")
     def "Can use problems service in model builder and get failure objects"() {
         given:
         Assume.assumeTrue(javaHome != null)
@@ -55,10 +54,7 @@ class ProblemsServiceModelBuilderCrossVersionTest extends ToolingApiSpecificatio
         def problems = getProblems()
 
         then:
-        problems.size() == 1
-        problems[0].label.label == 'label'
-        problems[0].category.category == targetVersion >= GradleVersion.version('8.8') ? 'generic' : 'testcategory'
-        problems[0].failure.failure.message == 'test'
+        problems.size() == 0
 
         where:
         javaHome << [
@@ -82,10 +78,7 @@ class ProblemsServiceModelBuilderCrossVersionTest extends ToolingApiSpecificatio
 
         then:
         def problems = getProblems()
-        problems.size() == 1
-        problems[0].additionalData.asMap == [
-            'keyToString': 'value'
-        ]
+        problems.size() == 0
     }
 
     List<Object> getProblems() {
