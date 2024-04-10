@@ -26,7 +26,7 @@ This work piece has to process the task execution result, so it cannot be a task
 The Dataflow Actions API provides a way to schedule this type of work.
 A dataflow action is a parameterized isolated piece of work that becomes eligible for execution as soon as all input parameters become available.
 
-== Implementing a Dataflow Action
+== Implementing a dataflow action
 
 The first step is to implement the action itself.
 You must create a class implementing the link:{javadocPath}/org/gradle/api/flow/FlowAction.html[FlowAction] interface:

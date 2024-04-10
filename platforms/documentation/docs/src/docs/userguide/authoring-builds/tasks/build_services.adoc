@@ -13,13 +13,14 @@
 // limitations under the License.
 
 [[build_services]]
-= Shared Build Services
+= Using Shared Build Services
 
 Shared build services allow tasks to share state or resources.
 For example, tasks might share a cache of pre-computed values or use a web service or database instance.
 
 A build service is an object that holds the state for tasks to use.
 It provides an alternative mechanism for hooking into a Gradle build and receiving information about task execution and operation completion.
+
 Build services are configuration cacheable.
 
 Gradle manages the service lifecycle, creating the service instance only when required and cleaning it up when no longer needed.
@@ -118,7 +119,7 @@ include::{snippetsPath}/plugins/buildServiceUsingServiceReference/groovy/buildSr
 ----
 ====
 
-== Registering a build service and Connecting to a task
+== Registering a build service and connecting it to a task
 
 To create a build service, you register the service instance using the link:{javadocPath}/org/gradle/api/services/BuildServiceRegistry.html#registerIfAbsent-java.lang.String-java.lang.Class-org.gradle.api.Action-[BuildServiceRegistry.registerIfAbsent()] method.
 Registering the service does not create the service instance.
