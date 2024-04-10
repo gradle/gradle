@@ -512,11 +512,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
             collectProvidersForClassHierarchy(inspector, serviceProvider.serviceClass, serviceProvider);
             services.add(serviceProvider);
             for (AnnotatedServiceLifecycleHandler annotationHandler : lifecycleHandlers) {
-                for (Class<? extends Annotation> annotation : annotationHandler.getAnnotations()) {
-                    if (inspector.hasAnnotation(serviceProvider.serviceClass, annotation)) {
-                        annotationHandler.whenRegistered(annotation, new RegistrationWrapper(serviceProvider));
-                    }
-                }
+                notifyAnnotationHandler(annotationHandler, serviceProvider);
             }
         }
 
@@ -564,6 +560,14 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
         void annotationHandlerCreated(AnnotatedServiceLifecycleHandler annotationHandler) {
             lifecycleHandlers.add(annotationHandler);
             for (SingletonService candidate : services) {
+                notifyAnnotationHandler(annotationHandler, candidate);
+            }
+        }
+
+        private void notifyAnnotationHandler(AnnotatedServiceLifecycleHandler annotationHandler, SingletonService candidate) {
+            if (annotationHandler.getImplicitAnnotation() != null) {
+                annotationHandler.whenRegistered(annotationHandler.getImplicitAnnotation(), new RegistrationWrapper(candidate));
+            } else {
                 for (Class<? extends Annotation> annotation : annotationHandler.getAnnotations()) {
                     if (inspector.hasAnnotation(candidate.serviceClass, annotation)) {
                         annotationHandler.whenRegistered(annotation, new RegistrationWrapper(candidate));

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.service;
 
+import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.util.List;
 
@@ -24,6 +25,9 @@ import java.util.List;
  */
 public interface AnnotatedServiceLifecycleHandler {
     List<Class<? extends Annotation>> getAnnotations();
+
+    @Nullable
+    Class<? extends Annotation> getImplicitAnnotation();
 
     /**
      * Called when a service with the given annotation is registered.
