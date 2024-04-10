@@ -161,6 +161,6 @@ class DependencyCollectorFunctionExtractorAndRuntimeResolver(
      */
     private
     fun typeHierarchyViaJavaReflection(kClass: KClass<*>): Iterable<KClass<*>> =
-        Traverser.forGraph<Class<*>> { listOf(it.superclass) + it.interfaces }
+        Traverser.forGraph<Class<*>> { listOfNotNull(it.superclass) + it.interfaces }
             .breadthFirst(kClass.java).map { it.kotlin }
 }
