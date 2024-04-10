@@ -27,13 +27,10 @@ import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.problems.ProblemEvent
 
 import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk17
-import static org.gradle.integtests.tooling.r86.ProblemProgressEventCrossVersionTest.assertProblemDetailsForTAPIProblemEvent
-import static org.gradle.integtests.tooling.r86.ProblemProgressEventCrossVersionTest.assertProblemDetailsForTAPIProblemEventWithoutSolution
 import static org.gradle.integtests.tooling.r86.ProblemProgressEventCrossVersionTest.getProblemReportTaskString
 
 @ToolingApiVersion("=8.8")
-@TargetGradleVersion("<8.9")
-// TODO (donat) migrate all tests to Gradle 8.9 
+@TargetGradleVersion(">=8.8")
 class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
     def withReportProblemTask(@GroovyBuildScriptLanguage String taskActionMethodBody) {
@@ -79,7 +76,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         listener.problems.size() == 0
     }
 
-    @ToolingApiVersion("=8.8")
+    @TargetGradleVersion(">=8.8 <8.9")
     def "Problems expose details via Tooling API events with failure"() {
         given:
         withReportProblemTask """
@@ -99,9 +96,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         def problems = runTask()
 
         then:
-        assertProblemDetailsForTAPIProblemEvent(problems, expectedDetails, expecteDocumentation)
-        def location = problems[0].locations[1]
-        problems[0].failure == null
+        problems.size() == 0
 
         where:
         detailsConfig              | expectedDetails | documentationConfig                         | expecteDocumentation
@@ -109,7 +104,6 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         ''                         | null            | ''                                          | null
     }
 
-    @ToolingApiVersion("=8.8")
     @TargetGradleVersion(">=8.6 <=8.7")
     def "Problems expose details via Tooling API events with failure 8.6 to 8.7"() {
         given:
@@ -131,9 +125,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         def problems = runTask()
 
         then:
-        assertProblemDetailsForTAPIProblemEventWithoutSolution(problems, expectedDetails, expecteDocumentation)
-        def location = problems[0].locations[1]
-        problems[0].failure == null
+        problems.size() == 0
 
         where:
         detailsConfig              | expectedDetails | documentationConfig                         | expecteDocumentation
@@ -180,32 +172,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
         then:
         thrown(BuildException)
-        def problems = listener.problems
-        org.gradle.integtests.tooling.r87.ProblemProgressEventCrossVersionTest.validateCompilationProblem(problems, buildFile)
-        problems[0].failure.failure.message == "Could not compile build file '$buildFile.absolutePath'."
-    }
-
-    def "sample problem"() {
-        given:
-        withReportProblemTask """
-            problems.forNamespace("org.example.plugin").reporting {
-                it.id("deprecation", "plugin")
-                    .severity(Severity.WARNING)
-                    .solution("Please use 'standard-plugin-2' instead of this plugin")
-                }
-        """
-
-        when:
-        def listener = new ProblemProgressListener()
-        withConnection { connection ->
-            connection.newBuild().forTasks('reportProblem')
-                .addProgressListener(listener)
-                .run()
-        }
-
-        then:
-        def problems = listener.problems
-        problems.size() == 1
+        listener.problems.size() == 0
     }
 
     def "Problems expose summary Tooling API events"() {
@@ -221,18 +188,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         }
 
         then:
-        def problems = listener.problems
-        problems.size() == 2
-
-        def firstProblem = problems[0]
-        firstProblem.label.label == "The 'standard-plugin' is deprecated"
-        firstProblem.details.details == null
-
-        def aggregatedProblems = problems[1]
-
-        def aggregation =  aggregatedProblems.problemAggregation
-        aggregation.label.label == "The 'standard-plugin' is deprecated"
-        aggregation.problemContext.size() == 9
+        listener.problems.size() == 0
     }
 
     @TargetGradleVersion(">=8.6 <=8.7")
@@ -250,8 +206,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         }
 
         then:
-        def problems = listener.problems
-        problems.size() == 1
+        listener.problems.size() == 0
     }
 
     def withMultipleProblems(String labelCode) {
