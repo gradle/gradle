@@ -71,8 +71,7 @@ class DaemonParametersTest extends Specification {
         parameters.applyDefaultsFor(JavaVersion.VERSION_1_9)
 
         then:
-        parameters.effectiveJvmArgs.containsAll(DaemonParameters.DEFAULT_JVM_8_ARGS)
-        !parameters.effectiveJvmArgs.containsAll(DaemonParameters.DEFAULT_JVM_ARGS)
+        parameters.effectiveJvmArgs.containsAll(DaemonParameters.DEFAULT_JVM_ARGS)
     }
 
     @Issue("20611")

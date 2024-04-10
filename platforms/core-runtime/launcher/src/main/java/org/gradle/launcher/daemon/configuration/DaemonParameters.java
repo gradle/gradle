@@ -43,8 +43,7 @@ public class DaemonParameters {
     static final int DEFAULT_IDLE_TIMEOUT = 3 * 60 * 60 * 1000;
     public static final int DEFAULT_PERIODIC_CHECK_INTERVAL_MILLIS = 10 * 1000;
 
-    public static final List<String> DEFAULT_JVM_ARGS = ImmutableList.of("-Xmx512m", "-Xms256m", "-XX:MaxPermSize=384m", "-XX:+HeapDumpOnOutOfMemoryError");
-    public static final List<String> DEFAULT_JVM_8_ARGS = ImmutableList.of("-Xmx512m", "-Xms256m", "-XX:MaxMetaspaceSize=384m", "-XX:+HeapDumpOnOutOfMemoryError");
+    public static final List<String> DEFAULT_JVM_ARGS = ImmutableList.of("-Xmx512m", "-Xms256m", "-XX:MaxMetaspaceSize=384m", "-XX:+HeapDumpOnOutOfMemoryError");
     public static final List<String> ALLOW_ENVIRONMENT_VARIABLE_OVERWRITE = ImmutableList.of("--add-opens=java.base/java.util=ALL-UNNAMED");
 
     private final ToolchainConfiguration toolchainConfiguration = new DefaultToolchainConfiguration();
@@ -160,11 +159,7 @@ public class DaemonParameters {
         if (hasJvmArgs) {
             return;
         }
-        if (javaVersion.compareTo(JavaVersion.VERSION_1_8) >= 0) {
-            jvmOptions.jvmArgs(DEFAULT_JVM_8_ARGS);
-        } else {
-            jvmOptions.jvmArgs(DEFAULT_JVM_ARGS);
-        }
+        jvmOptions.jvmArgs(DEFAULT_JVM_ARGS);
     }
 
     public Map<String, String> getSystemProperties() {
