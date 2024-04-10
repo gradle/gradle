@@ -79,7 +79,7 @@ class BuildActionsFactory implements CommandLineActionCreator {
 
     public BuildActionsFactory(ServiceRegistry loggingServices) {
         this.basicServices = ServiceRegistryBuilder.builder()
-            .scope(Scope.Global.class)
+            .scopeStrictly(Scope.Global.class)
             .displayName("Basic global services")
             .parent(loggingServices)
             .parent(NativeServices.getInstance())
@@ -211,7 +211,7 @@ class BuildActionsFactory implements CommandLineActionCreator {
         System.setProperties(properties);
 
         ServiceRegistry globalServices = ServiceRegistryBuilder.builder()
-            .scope(Scope.Global.class)
+            .scopeStrictly(Scope.Global.class)
             .displayName("Global services")
             .parent(loggingServices)
             .parent(NativeServices.getInstance())
