@@ -29,7 +29,7 @@ import static org.gradle.internal.enterprise.GradleEnterprisePluginConfig.BuildS
 import static org.gradle.internal.enterprise.GradleEnterprisePluginConfig.BuildScanRequest.REQUESTED
 import static org.gradle.internal.enterprise.GradleEnterprisePluginConfig.BuildScanRequest.SUPPRESSED
 
-class GradleEnterprisePluginConfigIntegrationTest extends AbstractIntegrationSpec {
+class DevelocityPluginConfigIntegrationTest extends AbstractIntegrationSpec {
 
     def plugin = new DevelocityPluginCheckInFixture(testDirectory, mavenRepo, createExecuter())
 
