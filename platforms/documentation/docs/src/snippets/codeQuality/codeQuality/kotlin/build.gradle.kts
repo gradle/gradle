@@ -63,7 +63,7 @@ tasks.withType<Checkstyle>().configureEach {
 // tag::customize-pmd[]
 pmd {
     isConsoleOutput = true
-    toolVersion = "6.21.0"
+    toolVersion = "7.0.0"
     rulesMinimumPriority = 5
     ruleSets = listOf("category/java/errorprone.xml", "category/java/bestpractices.xml")
 }

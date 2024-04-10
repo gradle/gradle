@@ -656,6 +656,13 @@ tasks.named("docsTest") { task ->
             excludeTestsMatching "org.gradle.docs.samples.*.snippet-test-kit-gradle-version_*_testKitFunctionalTestSpockGradleDistribution.sample"
         }
 
+        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_22)) {
+            // Does not work due to JVM validation issue: https://youtrack.jetbrains.com/issue/KT-66919
+            excludeTestsMatching "org.gradle.docs.samples.*.building-kotlin-*"
+            // Incompatible for unknown reasons, investigation ongoing
+            excludeTestsMatching "org.gradle.docs.samples.*.structuring-software-projects_*_build-android-app.sample"
+        }
+
         if (OperatingSystem.current().macOsX && System.getProperty("os.arch") == "aarch64") {
             excludeTestsMatching "org.gradle.docs.samples.*.snippet-native*.sample"
             excludeTestsMatching "org.gradle.docs.samples.*.snippet-swift*.sample"

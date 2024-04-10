@@ -166,6 +166,8 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractInt
                     apiVersion.set(KotlinVersion.fromVersion("${kotlinLanguageVersion}"))
                     languageVersion.set(KotlinVersion.fromVersion("${kotlinLanguageVersion}"))
                 }
+                // Work around JVM validation issue: https://youtrack.jetbrains.com/issue/KT-66919
+                jvmTargetValidationMode = org.jetbrains.kotlin.gradle.dsl.jvm.JvmTargetValidationMode.WARNING
             }
         """
         file("buildSrc/src/main/kotlin/MyPlugin.kt") << """
