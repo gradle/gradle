@@ -23,8 +23,8 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 
-@TargetGradleVersion(">=8.8") // TODO: should end up 8.9
-@ToolingApiVersion('>=8.8') // TODO: should end up 8.9
+@TargetGradleVersion(">=8.9")
+@ToolingApiVersion('>=8.9')
 class DeclarativeDslToolingModelsCrossVersionTest extends ToolingApiSpecification {
 
     def setup(){
