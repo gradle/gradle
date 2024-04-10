@@ -526,24 +526,28 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         return state;
     }
 
-    @Override @Inject
+    @Inject
+    @Override
     public abstract FileResolver getFileResolver();
 
-    @Override @Inject
+    @Inject
+    @Override
     public abstract TaskDependencyFactory getTaskDependencyFactory();
 
     public void setAnt(AntBuilder ant) {
         this.ant = ant;
     }
 
-    @Override @Inject
+    @Inject
+    @Override
     public abstract ArtifactHandler getArtifacts();
 
     @Inject
     @Override
     public abstract RepositoryHandler getRepositories();
 
-    @Override @Inject
+    @Inject
+    @Override
     public abstract RoleBasedConfigurationContainerInternal getConfigurations();
 
     @Deprecated
@@ -895,20 +899,20 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         return foundTasks;
     }
 
-    @Override
     @Inject
+    @Override
     public abstract FileOperations getFileOperations();
 
-    @Override
     @Inject
+    @Override
     public abstract ProviderFactory getProviders();
 
-    @Override
     @Inject
+    @Override
     public abstract ObjectFactory getObjects();
 
-    @Override
     @Inject
+    @Override
     public abstract DefaultProjectLayout getLayout();
 
     @Override
@@ -1012,11 +1016,12 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         return antBuilderFactory;
     }
 
-    @Override @Inject
+    @Inject
+    @Override
     public abstract DependencyHandler getDependencies();
 
-    @Override
     @Inject
+    @Override
     public abstract DependencyFactory getDependencyFactory();
 
     @Override
@@ -1165,8 +1170,8 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         return getFileOperations().copySpec();
     }
 
-    @Override
     @Inject
+    @Override
     public abstract ProcessOperations getProcessOperations();
 
     @Override
@@ -1199,8 +1204,8 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         return services.get(ServiceRegistryFactory.class);
     }
 
-    @Override
     @Inject
+    @Override
     public abstract DependencyMetaDataProvider getDependencyMetaDataProvider();
 
     @Override
