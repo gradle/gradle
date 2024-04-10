@@ -28,7 +28,6 @@ Gradle represents lazy properties with two interfaces:
 2. link:{javadocPath}/org/gradle/api/provider/Provider.html[Provider] - Represents a value that can only be queried and cannot be changed.
 
 Properties and providers manage values and configurations in a build script.
-
 In this example, we define a custom task (`CustomTask`) and a custom plugin (`CustomPlugin`):
 
 [source,kotlin]
@@ -70,13 +69,13 @@ They can be defined and accessed within the build script to store information li
 
 Properties can be set and retrieved using the `project` object:
 
-[source,groovy]
+[source,kotlin]
 ----
 // Setting a property
-project.ext.myProperty = "value"
-
+val messageProperty: Property<String> = project.objects.property(String::class.java)
+messageProperty.set("Hello, World!")
 // Accessing a property
-println(project.myProperty)
+println(messageProperty.get())
 ----
 
 Properties:
@@ -89,17 +88,14 @@ Properties:
 == Understanding Providers
 
 Providers are objects that represent a value that may not be immediately available.
-They allow you to defer the calculation of a value until it is needed.
-
 Providers are useful for lazy evaluation and can be used to model values that may change over time or depend on other tasks or inputs:
 
-[source,groovy]
+[source,kotlin]
 ----
-// Defining a provider
-def myProvider = provider { "value" }
-
-// Accessing a provider's value
-println(myProvider.get())
+// Setting a provider
+val messageProvider: Provider<String> = project.providers.provider { "Hello, world!" }
+// Accessing a provider
+println(messageProvider.get())
 ----
 
 Providers:
@@ -165,14 +161,34 @@ Note that for a property to be considered a mutable managed property, the proper
 
 The property type must be one of the following:
 
-- `Property<T>`
-- `RegularFileProperty`
-- `DirectoryProperty`
-- `ListProperty<T>`
-- `SetProperty<T>`
-- `MapProperty<K, V>`
-- `ConfigurableFileCollection`
-- `ConfigurableFileTree`
+[cols="1,1"]
+|===
+|Property Type |Cell in column 2, header row
+
+|`Property<T>`
+|Where `T` is typically `Double`, `Integer`, `Long`, `String`, or `Bool`
+
+|`RegularFileProperty`
+|Configurable regular file location, whose value is mutable
+
+|`DirectoryProperty`
+|Configurable directory location, whose value is mutable
+
+|`ListProperty<T>`
+|List of elements of type `T`
+
+|`SetProperty<T>`
+|Set of elements of type `T`
+
+|`MapProperty<K, V>`
+|Map of `K` type keys with `V` type values
+
+|`ConfigurableFileCollection`
+|A mutable `FileCollection` which represents a collection of file system locations
+
+|`ConfigurableFileTree`
+|A mutable `FileTree` which represents a hierarchy of files
+|===
 
 [[read_only_managed_properties]]
 === Read-only Managed Properties (Providers)
