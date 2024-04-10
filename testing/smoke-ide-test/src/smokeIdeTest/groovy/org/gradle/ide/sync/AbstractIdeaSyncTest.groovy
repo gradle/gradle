@@ -26,7 +26,6 @@ import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Timeout
 
-import java.nio.file.DirectoryStream
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -99,17 +98,18 @@ abstract class AbstractIdeaSyncTest extends Specification {
         assert syncProcess.waitFor() == 0
     }
 
-    private Path findIdeStarter() {
-        def basePath = Paths.get("build/ideStarter")
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(basePath)) {
-            for (Path path : stream) {
-                if (Files.isDirectory(path)) {
-                    // Assuming there is only one version of ideStarter presented
-                    return path.resolve("bin/app").toAbsolutePath()
-                }
-            }
+    private static Path findIdeStarter() {
+        def ideStarterDirs = Files.newDirectoryStream(Paths.get("build/ideStarter")).asList()
+        switch (ideStarterDirs.size()) {
+            case 1:
+                def path = ideStarterDirs[0].resolve("bin/app").toAbsolutePath()
+                assert Files.isRegularFile(path): "Unexpected gradle-ide-starter layout"
+                return path
+            case 0:
+                throw new IllegalStateException("gradle-ide-starter is missing")
+            default:
+                throw new IllegalStateException("More than one gradle-ide-starter found")
         }
-        return null
     }
 
     private Path getIdeHome() {
