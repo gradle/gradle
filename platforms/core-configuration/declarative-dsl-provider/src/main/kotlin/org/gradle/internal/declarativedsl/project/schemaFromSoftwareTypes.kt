@@ -30,6 +30,7 @@ import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.toDataTypeRef
 import org.gradle.plugin.software.internal.SoftwareTypeImplementation
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
+import java.util.function.Supplier
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 
@@ -68,7 +69,7 @@ private
 data class SoftwareTypeInfo(
     val delegate: SoftwareTypeImplementation,
     val accessorIdPrefix: String,
-    val extensionProvider: () -> Any
+    val extensionProvider: Supplier<Any>
 ) : SoftwareTypeImplementation by delegate {
     val customAccessorId = "$accessorIdPrefix:${delegate.softwareType}"
 
@@ -99,8 +100,8 @@ fun extensionConfiguringFunctions(typeToExtend: KClass<*>, softwareTypeImplement
 private
 class RuntimeModelTypeAccessors(info: List<SoftwareTypeInfo>) : RuntimeCustomAccessors {
 
-    val modelTypeById = info.associate { it.customAccessorId to it.extensionProvider() }
+    val modelTypeById = info.associate { it.customAccessorId to it.extensionProvider }
 
     override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessor.Custom): Any? =
-        modelTypeById[accessor.customAccessorIdentifier]
+        modelTypeById[accessor.customAccessorIdentifier]?.get()
 }
