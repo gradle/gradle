@@ -24,10 +24,10 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
 import org.gradle.internal.instrumentation.api.annotations.CallableKind;
 import org.gradle.internal.instrumentation.api.annotations.ParameterKind;
-import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
-import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorType;
 import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
 import org.gradle.internal.instrumentation.api.metadata.InstrumentationMetadata;
+import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
+import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorType;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 import org.gradle.internal.instrumentation.model.CallableInfo;
 import org.gradle.internal.instrumentation.model.CallableKindInfo;
@@ -38,7 +38,6 @@ import org.gradle.internal.instrumentation.model.RequestExtra;
 import org.gradle.internal.instrumentation.processor.codegen.HasFailures.FailureInfo;
 import org.gradle.internal.instrumentation.processor.codegen.JavadocUtils;
 import org.gradle.internal.instrumentation.processor.codegen.RequestGroupingInstrumentationClassSourceGenerator;
-import org.gradle.model.internal.asm.MethodVisitorScope;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -59,12 +58,15 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.gradle.internal.instrumentation.processor.codegen.GradleReferencedType.GENERATED_ANNOTATION;
+import static org.gradle.internal.instrumentation.processor.codegen.GradleReferencedType.METHOD_VISITOR_SCOPE;
 import static org.gradle.internal.instrumentation.processor.codegen.SignatureUtils.hasCallerClassName;
 import static org.gradle.internal.instrumentation.processor.codegen.SignatureUtils.hasInjectVisitorContext;
 import static org.gradle.internal.instrumentation.processor.codegen.TypeUtils.typeName;
 import static org.gradle.util.internal.TextUtil.camelToKebabCase;
 
 public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationClassSourceGenerator {
+
     @Override
     protected String classNameForRequest(CallInterceptionRequest request) {
         return request.getRequestExtras().getByType(RequestExtra.InterceptJvmCalls.class)
@@ -90,8 +92,11 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         );
         TypeSpec factoryClass = generateFactoryClass(className, interceptorType);
 
+        // Suppress some error prone warnings that are not important and would complicate the logic for code generation.
+
         return builder ->
             builder.addMethod(constructor)
+                .addAnnotation(GENERATED_ANNOTATION.asClassName())
                 .addModifiers(Modifier.PUBLIC)
                 // generic stuff not related to the content:
                 .addSuperinterface(JvmBytecodeCallInterceptor.class)
@@ -102,7 +107,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
                 .addField(METHOD_VISITOR_FIELD)
                 .addField(METADATA_FIELD)
                 .addField(CONTEXT_FIELD)
-                .superclass(MethodVisitorScope.class)
+                .superclass(METHOD_VISITOR_SCOPE.asTypeName())
                 // actual content:
                 .addMethod(visitMethodInsnBuilder.build())
                 .addFields(typeFieldByOwner.values())

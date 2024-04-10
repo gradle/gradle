@@ -23,8 +23,8 @@ class ScalaCoverage {
 
     static final List<String> SCALA_2 = [
         "2.11.12",
-        "2.12.18",
-        "2.13.12",
+        "2.12.19",
+        "2.13.13",
     ]
     static final List<String> SCALA_3 = [
         "3.1.3",
@@ -61,6 +61,9 @@ class ScalaCoverage {
     }
 
     private static Set<String> scala3VersionsSupportedByJdk(JavaVersion javaVersion) {
+        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_22)) {
+            return VersionCoverage.versionsAtLeast(SCALA_3, "3.3.4")
+        }
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_20)) {
             return VersionCoverage.versionsAtLeast(SCALA_3, "3.3.0")
         }
