@@ -78,7 +78,7 @@ class BuildScanIntegrationTest : AbstractScriptCachingIntegrationTest() {
             "The PluginDependencySpec.`gradle-enterprise` property has been deprecated. " +
                 "This is scheduled to be removed in Gradle 9.0. Please use the develocity property instead. " +
                 "For more information, please refer to https://docs.gradle.org/current/kotlin-dsl/gradle/org.gradle.kotlin.dsl/gradle-enterprise.html in the Gradle documentation.")
-        executer.expectDeprecationWarning("WARNING: The following functionality has been deprecated and will be removed in the next major release of the Develocity Gradle plugin:")
+        executer.expectDeprecationWarning("WARNING: The following functionality has been deprecated and will be removed in the next major release of the Develocity Gradle plugin. For assistance with migration, see https://gradle.com/help/gradle-plugin-develocity-migration.")
         executer.expectDeprecationWarning("""- The deprecated "gradleEnterprise.buildScan.termsOfServiceUrl" API has been replaced by "develocity.buildScan.termsOfUseUrl"""")
         executer.expectDeprecationWarning("""- The deprecated "gradleEnterprise.buildScan.termsOfServiceAgree" API has been replaced by "develocity.buildScan.termsOfUseAgree"""")
         build("--scan", "--build-cache", "-Dscan.dump").apply {
