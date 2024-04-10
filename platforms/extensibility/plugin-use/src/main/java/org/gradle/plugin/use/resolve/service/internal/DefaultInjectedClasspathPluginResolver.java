@@ -23,14 +23,15 @@ import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.api.internal.initialization.ScriptClassPathResolver;
 import org.gradle.api.internal.initialization.ScriptClassPathResolutionContext;
+import org.gradle.api.internal.initialization.ScriptClassPathResolver;
 import org.gradle.api.internal.plugins.DefaultPluginRegistry;
 import org.gradle.api.internal.plugins.PluginImplementation;
 import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.internal.Factory;
+import org.gradle.internal.classpath.CachedClasspathTransformer.StandardTransform;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
@@ -67,11 +68,29 @@ public class DefaultInjectedClasspathPluginResolver implements ClientInjectedCla
         this.injectedClasspath = injectedClasspath;
         this.fileCollectionFactory = fileCollectionFactory;
         this.scriptClassPathResolver = scriptClassPathResolver;
-        this.pluginRegistry = Lazy.locking().of(() -> createPluginRegistry(dependencyResolutionServicesFactory));
-        maybeReportAgentUsageWithTestKitProblem(instrumentationStrategy);
+        this.pluginRegistry = createPluginRegistry(instrumentationStrategy, dependencyResolutionServicesFactory);
     }
 
-    private PluginRegistry createPluginRegistry(Factory<DependencyResolutionServices> dependencyResolutionServicesFactory) {
+    private Lazy<PluginRegistry> createPluginRegistry(
+        InjectedClasspathInstrumentationStrategy instrumentationStrategy,
+        Factory<DependencyResolutionServices> dependencyResolutionServicesFactory
+    ) {
+        if (instrumentationStrategy.getTransform() == StandardTransform.None) {
+            return Lazy.locking().of(this::createUninstrumentedPluginRegistry);
+        } else {
+            return Lazy.locking().of(() -> createInstrumentedPluginRegistry(dependencyResolutionServicesFactory));
+        }
+    }
+
+    private PluginRegistry createUninstrumentedPluginRegistry() {
+        return new DefaultPluginRegistry(pluginInspector,
+            parentScope.createChild("injected-plugin", null)
+                .local(injectedClasspath)
+                .lock()
+        );
+    }
+
+    private PluginRegistry createInstrumentedPluginRegistry(Factory<DependencyResolutionServices> dependencyResolutionServicesFactory) {
         DependencyResolutionServices dependencyResolutionServices = dependencyResolutionServicesFactory.create();
         DependencyHandler dependencies = dependencyResolutionServices.getDependencyHandler();
         ConfigurationContainer configurations = dependencyResolutionServices.getConfigurationContainer();
@@ -85,13 +104,6 @@ public class DefaultInjectedClasspathPluginResolver implements ClientInjectedCla
                 .local(instrumentedClassPath)
                 .lock()
         );
-    }
-
-    /**
-     * InstrumentationStrategy will report a problem if the agent is used with TestKit, see ConfigurationCacheInjectedClasspathInstrumentationStrategy class.
-     */
-    private static void maybeReportAgentUsageWithTestKitProblem(InjectedClasspathInstrumentationStrategy instrumentationStrategy) {
-        instrumentationStrategy.getTransform();
     }
 
     @Override
