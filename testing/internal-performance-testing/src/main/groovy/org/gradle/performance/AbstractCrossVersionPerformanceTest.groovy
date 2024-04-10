@@ -66,9 +66,9 @@ class AbstractCrossVersionPerformanceTest extends AbstractPerformanceTest {
         runner
     }
 
-    void applyEnterprisePlugin() {
+    void applyDevelocityPlugin() {
         runner.addBuildMutator { invocationSettings ->
-            new ApplyGradleEnterprisePluginMutator(invocationSettings.projectDir)
+            new ApplyDevelocityPluginMutator(invocationSettings.projectDir)
         }
     }
 
@@ -80,11 +80,11 @@ class AbstractCrossVersionPerformanceTest extends AbstractPerformanceTest {
     }
 }
 
-class ApplyGradleEnterprisePluginMutator implements BuildMutator {
+class ApplyDevelocityPluginMutator implements BuildMutator {
 
     private final File projectDir
 
-    ApplyGradleEnterprisePluginMutator(File projectDir) {
+    ApplyDevelocityPluginMutator(File projectDir) {
         this.projectDir = projectDir
     }
 
