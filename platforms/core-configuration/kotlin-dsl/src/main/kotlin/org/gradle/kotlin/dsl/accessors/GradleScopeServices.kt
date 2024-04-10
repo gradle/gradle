@@ -21,6 +21,7 @@ import org.gradle.internal.execution.ExecutionEngine
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
+import org.gradle.kotlin.dsl.concurrent.AsyncIOScopeFactory
 
 
 internal
@@ -47,12 +48,14 @@ object GradleScopeServices {
         projectSchemaProvider: ProjectSchemaProvider,
         executionEngine: ExecutionEngine,
         inputFingerprinter: InputFingerprinter,
-        workspaceProvider: KotlinDslWorkspaceProvider
+        workspaceProvider: KotlinDslWorkspaceProvider,
+        asyncIO: AsyncIOScopeFactory
     ) = ProjectAccessorsClassPathGenerator(
         fileCollectionFactory,
         projectSchemaProvider,
         executionEngine,
         inputFingerprinter,
-        workspaceProvider
+        workspaceProvider,
+        asyncIO
     )
 }

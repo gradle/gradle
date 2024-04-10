@@ -24,56 +24,11 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Executes build operations synchronously, asynchronously or via a {@link BuildOperationQueue}.
- *
- * The executor provides several capabilities:
- *
- * <ul>
- *     <li>Fires events via {@link BuildOperationListener}. For example, this means that notification of build operation
- *     execution can be received by tooling API clients.</li>
- *     <li>Generates progress logging events.</li>
- * </ul>
+ * Executes build operations via a {@link BuildOperationQueue}.
  */
 @ThreadSafe
-@ServiceScope(Scope.BuildSession.class)
+@ServiceScope(Scope.CrossBuildSession.class)
 public interface BuildOperationExecutor {
-    /**
-     * Runs the given build operation synchronously. Invokes the given operation from the current thread.
-     *
-     * <p>Rethrows any exception thrown by the action.
-     * Runtime exceptions are rethrown as is.
-     * Checked exceptions are wrapped in {@link BuildOperationInvocationException}.</p>
-     */
-    // TODO Use BuildOperationRunner directly
-    void run(RunnableBuildOperation buildOperation);
-
-    /**
-     * Calls the given build operation synchronously. Invokes the given operation from the current thread.
-     * Returns the result.
-     *
-     * <p>Rethrows any exception thrown by the action.
-     * Runtime exceptions are rethrown as is.
-     * Checked exceptions are wrapped in {@link BuildOperationInvocationException}.</p>
-     */
-    // TODO Use BuildOperationRunner directly
-    <T> T call(CallableBuildOperation<T> buildOperation);
-
-    /**
-     * Starts an operation that can be finished later.
-     *
-     * When a parent operation is finished any unfinished child operations will be failed.
-     */
-    // TODO Use BuildOperationRunner directly
-    BuildOperationContext start(BuildOperationDescriptor.Builder descriptor);
-
-    /**
-     * Returns the state of the build operation currently running on this thread. Can be used as parent of a new build operation
-     * started in a different thread (or process). See {@link BuildOperationDescriptor.Builder#parent(BuildOperationRef)}
-     *
-     * @throws IllegalStateException When the current thread is not executing an operation.
-     */
-    BuildOperationRef getCurrentOperation();
-
     /**
      * Submits an arbitrary number of runnable operations, created synchronously by the scheduling action, to be executed in the global
      * build operation thread pool. Operations may execute concurrently. Blocks until all operations are complete.
@@ -119,4 +74,7 @@ public interface BuildOperationExecutor {
      * @see BuildOperationExecutor#runAll(BuildOperationWorker, Action)
      */
     <O extends BuildOperation> void runAll(BuildOperationWorker<O> worker, Action<BuildOperationQueue<O>> schedulingAction, BuildOperationConstraint buildOperationConstraint);
+
+    @Deprecated
+    BuildOperationRef getCurrentOperation();
 }

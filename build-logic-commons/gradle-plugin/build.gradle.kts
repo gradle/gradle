@@ -14,7 +14,7 @@ java {
 }
 
 dependencies {
-    compileOnly("com.gradle:gradle-enterprise-gradle-plugin:3.16.2")
+    compileOnly("com.gradle:develocity-gradle-plugin:3.17")
 
     api(platform(project(":build-platform")))
 
@@ -22,7 +22,7 @@ dependencies {
     implementation(project(":module-identity"))
     implementation("net.ltgt.gradle:gradle-errorprone-plugin:3.1.0")
 
-    implementation("org.gradle.kotlin.kotlin-dsl:org.gradle.kotlin.kotlin-dsl.gradle.plugin:4.3.0")
+    implementation("org.gradle.kotlin.kotlin-dsl:org.gradle.kotlin.kotlin-dsl.gradle.plugin:4.3.1")
     // This Kotlin version should only be updated when updating the above kotlin-dsl version
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.22")
     implementation("org.gradle.kotlin:gradle-kotlin-dsl-conventions")

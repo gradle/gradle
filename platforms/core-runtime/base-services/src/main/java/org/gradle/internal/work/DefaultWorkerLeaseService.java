@@ -19,10 +19,10 @@ package org.gradle.internal.work;
 import com.google.common.base.Supplier;
 import com.google.common.collect.Lists;
 import org.gradle.api.specs.Spec;
-import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.concurrent.WorkerLimits;
 import org.gradle.internal.resources.AbstractResourceLockRegistry;
 import org.gradle.internal.resources.DefaultLease;
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
@@ -34,6 +34,8 @@ import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.resources.ResourceLockContainer;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.resources.TaskExecutionLockRegistry;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 import org.gradle.util.Path;
@@ -53,21 +55,22 @@ import static org.gradle.internal.resources.DefaultResourceLockCoordinationServi
 import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.tryLock;
 import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.unlock;
 
+@ServiceScope(Scope.CrossBuildSession.class)
 public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectParallelExecutionController, Stoppable {
     public static final String PROJECT_LOCK_STATS_PROPERTY = "org.gradle.internal.project.lock.stats";
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultWorkerLeaseService.class);
 
-    private final int maxWorkerCount;
+    private final WorkerLimits workerLimits;
     private final ResourceLockCoordinationService coordinationService;
     private final WorkerLeaseLockRegistry workerLeaseLockRegistry;
     private final ProjectLockStatisticsImpl projectLockStatistics = new ProjectLockStatisticsImpl();
     private final AtomicReference<Registries> registries = new AtomicReference<Registries>(new NoRegistries());
 
-    public DefaultWorkerLeaseService(ResourceLockCoordinationService coordinationService, ParallelismConfiguration parallelismConfiguration) {
-        this.maxWorkerCount = parallelismConfiguration.getMaxWorkerCount();
+    public DefaultWorkerLeaseService(ResourceLockCoordinationService coordinationService, WorkerLimits workerLimits) {
+        this.workerLimits = workerLimits;
         this.coordinationService = coordinationService;
         this.workerLeaseLockRegistry = new WorkerLeaseLockRegistry(coordinationService);
-        LOGGER.info("Using {} worker leases.", maxWorkerCount);
+        LOGGER.info("Using {} worker leases.", this.workerLimits.getMaxWorkerCount());
     }
 
     @Override
@@ -93,7 +96,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
 
     @Override
     public int getMaxWorkerCount() {
-        return maxWorkerCount;
+        return workerLimits.getMaxWorkerCount();
     }
 
     @Override
@@ -494,7 +497,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
     }
 
     private class WorkerLeaseLockRegistry extends AbstractResourceLockRegistry<String, DefaultWorkerLease> {
-        private final LeaseHolder root = new LeaseHolder(maxWorkerCount);
+        private final LeaseHolder root = new LeaseHolder(getMaxWorkerCount());
 
         WorkerLeaseLockRegistry(ResourceLockCoordinationService coordinationService) {
             super(coordinationService);

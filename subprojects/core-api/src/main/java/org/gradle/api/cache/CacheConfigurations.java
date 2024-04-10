@@ -77,6 +77,21 @@ public interface CacheConfigurations {
     CacheResourceConfiguration getCreatedResources();
 
     /**
+     * Configures caching for entries in the local build cache.
+     * By default, build cache entries are removed after 7 days of not being used.
+     *
+     * @since 8.8
+     */
+    void buildCache(Action<? super CacheResourceConfiguration> cacheConfiguration);
+
+    /**
+     * Returns the cache configuration for local build cache.
+     *
+     * @since 8.8
+     */
+    CacheResourceConfiguration getBuildCache();
+
+    /**
      * Returns the cache cleanup settings that apply to all caches.
      */
     Property<Cleanup> getCleanup();

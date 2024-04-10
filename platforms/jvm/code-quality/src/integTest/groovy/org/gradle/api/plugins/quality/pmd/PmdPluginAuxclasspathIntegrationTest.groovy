@@ -46,7 +46,7 @@ class PmdPluginAuxclasspathIntegrationTest extends AbstractPmdPluginVersionInteg
 
             project("pmd-rule") {
                 dependencies {
-                    implementation "${calculateDefaultDependencyNotation()}"
+                    ${calculateDefaultDependencyNotation().collect { dependency -> """implementation("$dependency")""" }.join('\n')}
                 }
             }
         """.stripIndent()
@@ -72,6 +72,7 @@ class PmdPluginAuxclasspathIntegrationTest extends AbstractPmdPluginVersionInteg
                 pmd {
                     ruleSets = ["rulesets/java/auxclasspath.xml"]
                     ${supportIncrementalAnalysis() ? "" : "incrementalAnalysis = false"}
+                    toolVersion = '$version'
                 }
             }
         """.stripIndent()
@@ -197,6 +198,23 @@ project("rule-using") {
     }
 
     private static ruleCode() {
+        def resolverFunction
+        def addViolation
+        if (versionNumber < VersionNumber.parse("7.0.0")) {
+            resolverFunction = """
+            boolean classNameExists(final ASTCompilationUnit node, final String name){
+                return node.getClassTypeResolver().classNameExists(name);
+            }
+            """
+            addViolation = { String message -> """addViolationWithMessage(data, node, "$message")""" }
+        } else {
+            resolverFunction = """
+            boolean classNameExists(final ASTCompilationUnit node, final String name){
+                return node.getTypeSystem().getClassSymbolFromCanonicalName(name) != null;
+            }
+            """
+            addViolation = { String message -> """asCtx(data).addViolationWithMessage(node, "$message")""" }
+        }
         """
             package org.gradle.pmd.rules;
 
@@ -210,14 +228,15 @@ project("rule-using") {
 
                 @Override
                 public Object visit(final ASTCompilationUnit node, final Object data) {
-                    if (node.getClassTypeResolver().classNameExists(ASSERTJ_TEST)
-                        && node.getClassTypeResolver().classNameExists(CLASS1)) {
-                        addViolationWithMessage(data, node, "auxclasspath configured.");
+                    if (classNameExists(node, ASSERTJ_TEST) && classNameExists(node, CLASS1)) {
+                        ${addViolation("auxclasspath configured.")};
                     } else {
-                        addViolationWithMessage(data, node, "auxclasspath not configured.");
+                        ${addViolation("auxclasspath not configured.")};
                     }
                     return super.visit(node, data);
                 }
+
+                $resolverFunction
             }
         """
     }
@@ -231,6 +250,8 @@ project("rule-using") {
                 xsi:noNamespaceSchemaLocation="http://pmd.sf.net/ruleset_2_0_0.xsd">
 
                 <rule name="Auxclasspath"
+                    language="java"
+                    description="custom rule"
                     class="org.gradle.pmd.rules.AuxclasspathRule"
                     typeResolution="true">
                 </rule>

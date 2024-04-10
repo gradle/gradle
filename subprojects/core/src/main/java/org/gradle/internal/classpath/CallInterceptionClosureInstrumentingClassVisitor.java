@@ -107,10 +107,11 @@ public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisit
          * Renames the Closure's original `doCall` method and adds a wrapper method that invokes the original one.
          */
         RENAME_ORIGINAL_DO_CALL("doCall", null, false, (clazz, methodData) -> {
-            boolean isDoCallMethod = methodData.name.equals("doCall");
-            String methodNameToVisit = isDoCallMethod ? "doCall$original" : methodData.name;
+            // A Closure implementation may have an abstract doCall method. It makes no sense to rewrite that.
+            boolean isValidDoCallMethod = !methodData.isAbstract() && methodData.name.equals("doCall");
+            String methodNameToVisit = isValidDoCallMethod ? "doCall$original" : methodData.name;
             MethodVisitor original = clazz.visitor.visitMethod(methodData.access, methodNameToVisit, methodData.descriptor, methodData.signature, methodData.exceptions);
-            if (isDoCallMethod) {
+            if (isValidDoCallMethod) {
                 @NonNullApi
                 class MethodVisitorScopeImpl extends MethodVisitorScope {
                     public MethodVisitorScopeImpl(MethodVisitor methodVisitor) {
@@ -229,6 +230,10 @@ public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisit
                 this.descriptor = descriptor;
                 this.signature = signature;
                 this.exceptions = exceptions;
+            }
+
+            public boolean isAbstract() {
+                return (access & Opcodes.ACC_ABSTRACT) != 0;
             }
         }
 

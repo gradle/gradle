@@ -16,14 +16,14 @@
 
 package org.gradle.configuration;
 
+import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.code.DefaultUserCodeSource;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.code.UserCodeApplicationId;
 import org.gradle.internal.code.UserCodeSource;
-import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.resource.ResourceLocation;
 import org.gradle.internal.resource.TextResource;
@@ -40,12 +40,12 @@ import java.net.URI;
 public class BuildOperationScriptPlugin implements ScriptPlugin {
 
     private final ScriptPlugin decorated;
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationRunner buildOperationRunner;
     private final UserCodeApplicationContext userCodeApplicationContext;
 
-    public BuildOperationScriptPlugin(ScriptPlugin decorated, BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext) {
+    public BuildOperationScriptPlugin(ScriptPlugin decorated, BuildOperationRunner buildOperationRunner, UserCodeApplicationContext userCodeApplicationContext) {
         this.decorated = decorated;
-        this.buildOperationExecutor = buildOperationExecutor;
+        this.buildOperationRunner = buildOperationRunner;
         this.userCodeApplicationContext = userCodeApplicationContext;
     }
 
@@ -62,7 +62,7 @@ public class BuildOperationScriptPlugin implements ScriptPlugin {
             decorated.apply(target);
         } else {
             UserCodeSource source = new DefaultUserCodeSource(getSource().getShortDisplayName(), null);
-            userCodeApplicationContext.apply(source, userCodeApplicationId -> buildOperationExecutor.run(new RunnableBuildOperation() {
+            userCodeApplicationContext.apply(source, userCodeApplicationId -> buildOperationRunner.run(new RunnableBuildOperation() {
                 @Override
                 public void run(BuildOperationContext context) {
                     decorated.apply(target);

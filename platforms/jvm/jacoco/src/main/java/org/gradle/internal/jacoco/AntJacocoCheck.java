@@ -29,6 +29,7 @@ import org.gradle.testing.jacoco.tasks.rules.JacocoLimit;
 import org.gradle.testing.jacoco.tasks.rules.JacocoViolationRule;
 import org.gradle.testing.jacoco.tasks.rules.JacocoViolationRulesContainer;
 
+import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
@@ -51,14 +52,14 @@ public class AntJacocoCheck extends AbstractAntJacocoReport<JacocoViolationRules
 
     public JacocoCheckResult execute(FileCollection classpath, final String projectName,
                                      final FileCollection allClassesDirs, final FileCollection allSourcesDirs,
-                                     final FileCollection executionData, final JacocoViolationRulesContainer violationRules) {
+                                     @Nullable final String encoding, final FileCollection executionData, final JacocoViolationRulesContainer violationRules) {
         final JacocoCheckResult jacocoCheckResult = new JacocoCheckResult();
 
         configureAntReportTask(classpath, new Action<GroovyObjectSupport>() {
             @Override
             public void execute(GroovyObjectSupport antBuilder) {
                 try {
-                    invokeJacocoReport(antBuilder, projectName, allClassesDirs, allSourcesDirs, executionData, violationRules);
+                    invokeJacocoReport(antBuilder, projectName, allClassesDirs, allSourcesDirs, encoding, executionData, violationRules);
                 } catch (Exception e) {
                     String violations = getViolations(antBuilder);
                     jacocoCheckResult.setSuccess(false);

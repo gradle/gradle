@@ -20,8 +20,8 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
@@ -30,19 +30,19 @@ public class NotifyingBuildLoader implements BuildLoader {
     };
 
     private final BuildLoader buildLoader;
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationRunner buildOperationRunner;
     private final BuildOperationProgressEventEmitter emitter;
 
-    public NotifyingBuildLoader(BuildLoader buildLoader, BuildOperationExecutor buildOperationExecutor, BuildOperationProgressEventEmitter emitter) {
+    public NotifyingBuildLoader(BuildLoader buildLoader, BuildOperationRunner buildOperationRunner, BuildOperationProgressEventEmitter emitter) {
         this.buildLoader = buildLoader;
-        this.buildOperationExecutor = buildOperationExecutor;
+        this.buildOperationRunner = buildOperationRunner;
         this.emitter = emitter;
     }
 
     @Override
     public void load(final SettingsInternal settings, final GradleInternal gradle) {
         final String buildPath = gradle.getIdentityPath().toString();
-        buildOperationExecutor.call(new CallableBuildOperation<Void>() {
+        buildOperationRunner.call(new CallableBuildOperation<Void>() {
             @Override
             public BuildOperationDescriptor.Builder description() {
                 //noinspection Convert2Lambda
@@ -66,7 +66,7 @@ public class NotifyingBuildLoader implements BuildLoader {
                 return null;
             }
         });
-        buildOperationExecutor.run(new RunnableBuildOperation() {
+        buildOperationRunner.run(new RunnableBuildOperation() {
             @Override
             public void run(BuildOperationContext context) {
                 gradle.getBuildListenerBroadcaster().projectsLoaded(gradle);

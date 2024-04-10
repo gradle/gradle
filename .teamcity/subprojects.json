@@ -15,7 +15,7 @@
   },
   {
     "name": "architecture-test",
-    "path": "subprojects/architecture-test",
+    "path": "testing/architecture-test",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
@@ -182,13 +182,6 @@
     "crossVersionTests": false
   },
   {
-    "name": "core-jvm",
-    "path": "platforms/jvm/core-jvm",
-    "unitTests": false,
-    "functionalTests": false,
-    "crossVersionTests": false
-  },
-  {
     "name": "core-platform",
     "path": "subprojects/core-platform",
     "unitTests": false,
@@ -260,7 +253,7 @@
   },
   {
     "name": "distributions-integ-tests",
-    "path": "subprojects/distributions-integ-tests",
+    "path": "testing/distributions-integ-tests",
     "unitTests": false,
     "functionalTests": true,
     "crossVersionTests": false
@@ -456,14 +449,14 @@
   },
   {
     "name": "integ-test",
-    "path": "subprojects/integ-test",
+    "path": "testing/integ-test",
     "unitTests": false,
     "functionalTests": true,
     "crossVersionTests": true
   },
   {
     "name": "internal-architecture-testing",
-    "path": "subprojects/internal-architecture-testing",
+    "path": "testing/internal-architecture-testing",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -491,21 +484,21 @@
   },
   {
     "name": "internal-integ-testing",
-    "path": "subprojects/internal-integ-testing",
+    "path": "testing/internal-integ-testing",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
     "name": "internal-performance-testing",
-    "path": "subprojects/internal-performance-testing",
+    "path": "testing/internal-performance-testing",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
     "name": "internal-testing",
-    "path": "subprojects/internal-testing",
+    "path": "testing/internal-testing",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
@@ -680,7 +673,7 @@
   },
   {
     "name": "performance",
-    "path": "subprojects/performance",
+    "path": "testing/performance",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -806,7 +799,7 @@
   },
   {
     "name": "precondition-tester",
-    "path": "platforms/build-infrastructure/precondition-tester",
+    "path": "testing/precondition-tester",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": true
@@ -911,14 +904,14 @@
   },
   {
     "name": "smoke-ide-test",
-    "path": "subprojects/smoke-ide-test",
+    "path": "testing/smoke-ide-test",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
     "name": "smoke-test",
-    "path": "subprojects/smoke-test",
+    "path": "testing/smoke-test",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -932,7 +925,7 @@
   },
   {
     "name": "soak",
-    "path": "subprojects/soak",
+    "path": "testing/soak",
     "unitTests": false,
     "functionalTests": true,
     "crossVersionTests": false

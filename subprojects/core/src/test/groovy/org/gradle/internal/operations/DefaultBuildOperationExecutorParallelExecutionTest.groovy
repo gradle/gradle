@@ -17,7 +17,7 @@
 package org.gradle.internal.operations
 
 import org.gradle.api.GradleException
-import org.gradle.internal.concurrent.DefaultParallelismConfiguration
+import org.gradle.internal.concurrent.DefaultWorkerLimits
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.work.DefaultWorkerLeaseService
@@ -33,10 +33,10 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
     WorkerLeaseRegistry.WorkerLease outerOperation
 
     def setupBuildOperationExecutor(int maxThreads) {
-        def parallelismConfiguration = new DefaultParallelismConfiguration(true, maxThreads)
-        workerRegistry = new DefaultWorkerLeaseService(new DefaultResourceLockCoordinationService(), parallelismConfiguration)
+        def workerLimits = new DefaultWorkerLimits(maxThreads)
+        workerRegistry = new DefaultWorkerLeaseService(new DefaultResourceLockCoordinationService(), workerLimits)
         workerRegistry.startProjectExecution(true)
-        buildOperationExecutor = BuildOperationExecutorSupport.builder(parallelismConfiguration).withWorkerLeaseService(workerRegistry).build()
+        buildOperationExecutor = BuildOperationExecutorSupport.builder(workerLimits).withWorkerLeaseService(workerRegistry).build()
         outerOperationCompletion = workerRegistry.startWorker()
         outerOperation = workerRegistry.getCurrentWorkerLease()
     }
@@ -187,7 +187,7 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
             create(_, _, _) >> { buildQueue }
         }
 
-        def buildOperationExecutor = BuildOperationExecutorSupport.builder(true, 1).withQueueFactory(buildOperationQueueFactory).build()
+        def buildOperationExecutor = BuildOperationExecutorSupport.builder(1).withQueueFactory(buildOperationQueueFactory).build()
         def worker = Stub(BuildOperationWorker)
         def operation = Mock(DefaultBuildOperationQueueTest.TestBuildOperation)
 
@@ -213,7 +213,7 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
         def buildOperationQueueFactory = Mock(BuildOperationQueueFactory) {
             create(_, _, _) >> { buildQueue }
         }
-        def buildOperationExecutor = BuildOperationExecutorSupport.builder(true, 1).withQueueFactory(buildOperationQueueFactory).build()
+        def buildOperationExecutor = BuildOperationExecutorSupport.builder(1).withQueueFactory(buildOperationQueueFactory).build()
         def worker = Stub(BuildOperationWorker)
         def operation = Mock(DefaultBuildOperationQueueTest.TestBuildOperation)
 

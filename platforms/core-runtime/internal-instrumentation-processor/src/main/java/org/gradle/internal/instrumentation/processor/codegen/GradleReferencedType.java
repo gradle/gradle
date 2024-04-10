@@ -16,6 +16,7 @@
 
 package org.gradle.internal.instrumentation.processor.codegen;
 
+import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.TypeName;
 import org.objectweb.asm.Type;
 
@@ -24,6 +25,8 @@ import org.objectweb.asm.Type;
  * And we don't want to depend on Gradle projects since that way we can't apply this annotation processor to them.
  */
 public enum GradleReferencedType {
+    DEPRECATION_LOGGER("org.gradle.internal.deprecation.DeprecationLogger"),
+    GENERATED_ANNOTATION("org.gradle.api.Generated"),
     LIST_PROPERTY_LIST_VIEW("org.gradle.api.internal.provider.views.ListPropertyListView"),
     SET_PROPERTY_SET_VIEW("org.gradle.api.internal.provider.views.SetPropertySetView"),
     MAP_PROPERTY_MAP_VIEW("org.gradle.api.internal.provider.views.MapPropertyMapView");
@@ -39,6 +42,10 @@ public enum GradleReferencedType {
     }
 
     public TypeName asTypeName() {
-        return TypeUtils.typeName(type);
+        return asClassName();
+    }
+
+    public ClassName asClassName() {
+        return TypeUtils.className(type);
     }
 }

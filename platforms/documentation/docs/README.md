@@ -105,9 +105,9 @@ platforms/documentation/docs/src/snippets/
     ├── customLogger.out
     ├── customLogger.sample.conf
     ├── groovy
-    │   ├── build.gradle
-    │   ├── init.gradle
-    │   └── settings.gradle
+    │   ├── build.gradle
+    │   ├── init.gradle
+    │   └── settings.gradle
     └── kotlin
         ├── build.gradle.kts
         ├── customLogger.init.gradle.kts

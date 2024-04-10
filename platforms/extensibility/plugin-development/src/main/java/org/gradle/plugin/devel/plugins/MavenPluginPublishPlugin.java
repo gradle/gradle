@@ -110,7 +110,8 @@ abstract class MavenPluginPublishPlugin implements Plugin<Project> {
                 version.setTextContent(versionProvider.get());
             }
         });
-        publication.getPom().getName().set(declaration.getDisplayName());
-        publication.getPom().getDescription().set(declaration.getDescription());
+
+        publication.getPom().getName().convention(declaration.getDisplayName());
+        publication.getPom().getDescription().convention(declaration.getDescription());
     }
 }

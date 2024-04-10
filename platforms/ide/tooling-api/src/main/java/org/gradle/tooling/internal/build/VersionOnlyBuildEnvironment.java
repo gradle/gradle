@@ -28,7 +28,7 @@ public class VersionOnlyBuildEnvironment {
         return new VersionOnlyGradleEnvironment();
     }
 
-    private class VersionOnlyGradleEnvironment {
+    public class VersionOnlyGradleEnvironment {
         public String getGradleVersion() {
             return gradleVersion;
         }

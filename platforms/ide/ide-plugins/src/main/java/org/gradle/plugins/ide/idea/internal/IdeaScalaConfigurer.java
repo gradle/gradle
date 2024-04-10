@@ -132,7 +132,7 @@ public class IdeaScalaConfigurer {
         return files;
     }
 
-    @SuppressWarnings("deprecation")
+    @SuppressWarnings({"deprecation", "unused"})
     private static ProjectLibrary createScalaSdkLibrary(Project scalaProject, Iterable<File> files, boolean useScalaSdk, IdeaModule ideaModule) {
         ScalaRuntime runtime = scalaProject.getExtensions().findByType(ScalaRuntime.class);
         if (runtime != null) {

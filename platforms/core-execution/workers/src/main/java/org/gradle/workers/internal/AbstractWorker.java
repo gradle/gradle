@@ -18,27 +18,27 @@ package org.gradle.workers.internal;
 
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
 
 public abstract class AbstractWorker implements BuildOperationAwareWorker {
 
     public static final Result RESULT = new Result();
 
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationRunner buildOperationRunner;
 
-    AbstractWorker(BuildOperationExecutor buildOperationExecutor) {
-        this.buildOperationExecutor = buildOperationExecutor;
+    AbstractWorker(BuildOperationRunner buildOperationRunner) {
+        this.buildOperationRunner = buildOperationRunner;
     }
 
     @Override
     public DefaultWorkResult execute(IsolatedParametersActionExecutionSpec<?> spec) {
-        return execute(spec, buildOperationExecutor.getCurrentOperation());
+        return execute(spec, buildOperationRunner.getCurrentOperation());
     }
 
     DefaultWorkResult executeWrappedInBuildOperation(final IsolatedParametersActionExecutionSpec<?> spec, final BuildOperationRef parentBuildOperation, final Work work) {
-        return buildOperationExecutor.call(new CallableBuildOperation<DefaultWorkResult>() {
+        return buildOperationRunner.call(new CallableBuildOperation<DefaultWorkResult>() {
             @Override
             public DefaultWorkResult call(BuildOperationContext context) {
                 DefaultWorkResult result = work.execute(spec);

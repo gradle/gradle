@@ -168,8 +168,8 @@ class DeclarativeReflectionToObjectConverter(
             ?: error("tried to access a property ${dataProperty.name} on a null receiver")
         val receiverKClass = receiverInstance::class
         return when (val property = propertyResolver.resolvePropertyRead(receiverKClass, dataProperty.name)) {
-            is RuntimePropertyResolver.Resolution.Resolved -> property.property.getValue(receiverInstance)
-            else -> error("cannot get property ${dataProperty.name} from the receiver class $receiverKClass")
+            is RuntimePropertyResolver.ReadResolution.ResolvedRead -> property.getter.getValue(receiverInstance)
+            RuntimePropertyResolver.ReadResolution.UnresolvedRead -> error("cannot get property ${dataProperty.name} from the receiver class $receiverKClass")
         }
     }
 
@@ -179,8 +179,8 @@ class DeclarativeReflectionToObjectConverter(
             ?: error("tried to access a property ${dataProperty.name} on a null receiver")
         val receiverKClass = receiverInstance::class
         when (val property = propertyResolver.resolvePropertyWrite(receiverKClass, dataProperty.name)) {
-            is RuntimePropertyResolver.Resolution.Resolved -> property.property.setValue(receiverInstance, value)
-            RuntimePropertyResolver.Resolution.Unresolved -> error("cannot set property ${dataProperty.name} in the receiver class $receiverKClass")
+            is RuntimePropertyResolver.WriteResolution.ResolvedWrite -> property.setter.setValue(receiverInstance, value)
+            RuntimePropertyResolver.WriteResolution.UnresolvedWrite -> error("cannot set property ${dataProperty.name} in the receiver class $receiverKClass")
         }
     }
 }

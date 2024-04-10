@@ -158,7 +158,8 @@ class BuildActionsFactory implements CommandLineActionCreator {
         BuildActionExecuter<BuildActionParameters, BuildRequestContext> executer = new InProcessUserInputHandlingExecutor(
             globalServices.get(GlobalUserInputReceiver.class),
             globalServices.get(UserInputReader.class),
-            globalServices.get(BuildExecuter.class));
+            globalServices.get(BuildExecuter.class)
+        );
 
         // Force the user home services to be stopped first, the dependencies between the user home services and the global services are not preserved currently
         return runBuildAndCloseServices(startParameter, daemonParameters, executer, globalServices, globalServices.get(GradleUserHomeScopeServiceRegistry.class));

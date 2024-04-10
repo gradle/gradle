@@ -263,7 +263,7 @@ dependencies { implementation 'org.test:test:1.0' }
     }
 
     private String getCachePath() {
-        "caches/${CacheLayout.ROOT.key}/${CacheLayout.FILE_STORE.key}/"
+        "caches/${CacheLayout.MODULES.key}/${CacheLayout.FILE_STORE.key}/"
     }
 
     private void buildWithJavaLibraryAndMavenRepoArtifactOnly() {
@@ -309,7 +309,7 @@ public class Base {}
         def otherHome = executer.gradleUserHomeDir.parentFile.createDir('other-home')
         def otherCacheDir = otherHome.toPath().resolve(DefaultCacheScopeMapping.GLOBAL_CACHE_DIR_NAME)
         Files.createDirectory(otherCacheDir)
-        Files.move(getMetadataCacheDir().toPath(), otherCacheDir.resolve(CacheLayout.ROOT.key))
+        Files.move(getMetadataCacheDir().toPath(), otherCacheDir.resolve(CacheLayout.MODULES.key))
         executer.withGradleUserHomeDir(otherHome)
     }
 }

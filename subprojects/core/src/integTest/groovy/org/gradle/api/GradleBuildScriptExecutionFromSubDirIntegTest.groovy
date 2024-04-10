@@ -23,8 +23,9 @@ class GradleBuildScriptExecutionFromSubDirIntegTest extends AbstractIntegrationS
     def "shouldn't create a gradle directory within the invocation directory"() {
         buildFile """
             tasks.register("checkDir") {
+                def file = file("tmp/gradle")
                 doLast {
-                    println file("tmp/gradle")
+                    println file
                 }
             }
         """

@@ -16,25 +16,34 @@
 
 package org.gradle.tooling.events.problems.internal;
 
+import org.gradle.tooling.events.problems.DocumentationLink;
 import org.gradle.tooling.events.problems.Label;
 import org.gradle.tooling.events.problems.ProblemAggregation;
 import org.gradle.tooling.events.problems.ProblemCategory;
-import org.gradle.tooling.events.problems.ProblemDescriptor;
+import org.gradle.tooling.events.problems.ProblemContext;
+import org.gradle.tooling.events.problems.Severity;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 public class DefaultProblemAggregation implements ProblemAggregation {
 
     private final ProblemCategory problemCategory;
     private final Label problemLabel;
-    private final List<ProblemDescriptor> problemDescriptors;
+    private final Severity severity;
+    private final DocumentationLink documentationLink;
+    private final List<ProblemContext> problemContextDetails;
 
     public DefaultProblemAggregation(
         ProblemCategory problemCategory,
         Label problemLabel,
-        List<ProblemDescriptor> problemDescriptors
+        Severity severity,
+        @Nullable DocumentationLink documentationLink,
+        List<ProblemContext> problemContextDetails
     ) {
-        this.problemDescriptors = problemDescriptors;
+        this.severity = severity;
+        this.documentationLink = documentationLink;
+        this.problemContextDetails = problemContextDetails;
         this.problemCategory = problemCategory;
         this.problemLabel = problemLabel;
     }
@@ -50,7 +59,18 @@ public class DefaultProblemAggregation implements ProblemAggregation {
     }
 
     @Override
-    public List<ProblemDescriptor> getProblemDescriptors() {
-        return problemDescriptors;
+    public Severity getSeverity() {
+        return severity;
+    }
+
+    @Nullable
+    @Override
+    public DocumentationLink getDocumentationLink() {
+        return documentationLink;
+    }
+
+    @Override
+    public List<ProblemContext> getProblemContext() {
+        return problemContextDetails;
     }
 }

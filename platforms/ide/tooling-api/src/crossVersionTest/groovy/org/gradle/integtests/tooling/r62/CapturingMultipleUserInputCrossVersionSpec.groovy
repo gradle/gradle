@@ -19,12 +19,13 @@ package org.gradle.integtests.tooling.r62
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.TestResultHandler
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.test.fixtures.Flaky
 import org.gradle.tooling.ProjectConnection
+import spock.lang.Timeout
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
 @TargetGradleVersion(">=8.7")
+@Timeout(120)
 class CapturingMultipleUserInputCrossVersionSpec extends ToolingApiSpecification {
     private static final String DUMMY_TASK_NAME = 'doSomething'
 
@@ -85,7 +86,6 @@ class CapturingMultipleUserInputCrossVersionSpec extends ToolingApiSpecification
         output.contains(BAR.answerOutput())
     }
 
-    @Flaky(because = "https://github.com/gradle/gradle-private/issues/4145")
     def "can default subsequent user input as default values if standard input was provided"() {
         when:
         withConnection { ProjectConnection connection ->

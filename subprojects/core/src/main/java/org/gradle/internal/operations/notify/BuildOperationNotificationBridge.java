@@ -42,7 +42,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-@ServiceScope(Scope.BuildTree.class)
+@ServiceScope(Scope.CrossBuildSession.class)
 public class BuildOperationNotificationBridge implements BuildOperationNotificationListenerRegistrar {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildOperationNotificationBridge.class);

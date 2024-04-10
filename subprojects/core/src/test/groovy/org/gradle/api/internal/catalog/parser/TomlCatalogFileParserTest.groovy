@@ -227,6 +227,7 @@ class TomlCatalogFileParserTest extends Specification implements VersionCatalogE
 
         then:
         hasPlugin('simple', 'org.example', '1.0')
+        hasPlugin('without.version', 'org.example', '')
         hasPlugin('with.id', 'org.example', '1.1')
         hasPlugin('with.ref') {
             withId 'org.example'

@@ -27,8 +27,8 @@ import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.NonGradleCauseExceptionsHolder;
 import org.gradle.internal.isolated.IsolationScheme;
-import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.work.AbstractConditionalExecution;
 import org.gradle.internal.work.AsyncWorkCompletion;
@@ -64,7 +64,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     private final WorkerFactory noIsolationWorkerFactory;
     private final JavaForkOptionsFactory forkOptionsFactory;
     private final WorkerThreadRegistry workerThreadRegistry;
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationRunner buildOperationRunner;
     private final AsyncWorkTracker asyncWorkTracker;
     private final WorkerDirectoryProvider workerDirectoryProvider;
     private final ClassLoaderStructureProvider classLoaderStructureProvider;
@@ -77,7 +77,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
 
     public DefaultWorkerExecutor(
         WorkerFactory daemonWorkerFactory, WorkerFactory isolatedClassloaderWorkerFactory, WorkerFactory noIsolationWorkerFactory,
-        JavaForkOptionsFactory forkOptionsFactory, WorkerThreadRegistry workerThreadRegistry, BuildOperationExecutor buildOperationExecutor,
+        JavaForkOptionsFactory forkOptionsFactory, WorkerThreadRegistry workerThreadRegistry, BuildOperationRunner buildOperationRunner,
         AsyncWorkTracker asyncWorkTracker, WorkerDirectoryProvider workerDirectoryProvider, WorkerExecutionQueueFactory workerExecutionQueueFactory,
         ClassLoaderStructureProvider classLoaderStructureProvider, ActionExecutionSpecFactory actionExecutionSpecFactory, Instantiator instantiator,
         CachedClasspathTransformer classpathTransformer,
@@ -90,7 +90,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         this.forkOptionsFactory = forkOptionsFactory;
         this.executionQueue = workerExecutionQueueFactory.create();
         this.workerThreadRegistry = workerThreadRegistry;
-        this.buildOperationExecutor = buildOperationExecutor;
+        this.buildOperationRunner = buildOperationRunner;
         this.asyncWorkTracker = asyncWorkTracker;
         this.workerDirectoryProvider = workerDirectoryProvider;
         this.classLoaderStructureProvider = classLoaderStructureProvider;
@@ -167,7 +167,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
 
     private AsyncWorkCompletion submitWork(IsolatedParametersActionExecutionSpec<?> spec, WorkerFactory workerFactory, WorkerRequirement workerRequirement) {
         checkIsManagedThread();
-        final BuildOperationRef currentBuildOperation = buildOperationExecutor.getCurrentOperation();
+        final BuildOperationRef currentBuildOperation = buildOperationRunner.getCurrentOperation();
         WorkItemExecution execution = new WorkItemExecution(spec.getDisplayName(), () -> {
             try {
                 BuildOperationAwareWorker worker = workerFactory.getWorker(workerRequirement);
@@ -195,7 +195,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
      */
     @Override
     public void await() throws WorkerExecutionException {
-        BuildOperationRef currentOperation = buildOperationExecutor.getCurrentOperation();
+        BuildOperationRef currentOperation = buildOperationRunner.getCurrentOperation();
         try {
             if (asyncWorkTracker.hasUncompletedWork(currentOperation)) {
                 executionQueue.expand();
@@ -207,7 +207,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     }
 
     private void await(List<AsyncWorkCompletion> workItems) throws WorkExecutionException {
-        BuildOperationRef currentOperation = buildOperationExecutor.getCurrentOperation();
+        BuildOperationRef currentOperation = buildOperationRunner.getCurrentOperation();
         try {
             if (CollectionUtils.any(workItems, workItem -> !workItem.isComplete())) {
                 executionQueue.expand();

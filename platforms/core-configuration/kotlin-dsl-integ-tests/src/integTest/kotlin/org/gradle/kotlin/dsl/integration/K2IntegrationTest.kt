@@ -49,6 +49,10 @@ class K2IntegrationTest : AbstractKotlinIntegrationTest() {
                     }
                 }
             }
+            // Work around JVM validation issue: https://youtrack.jetbrains.com/issue/KT-66919
+            tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+                jvmTargetValidationMode = org.jetbrains.kotlin.gradle.dsl.jvm.JvmTargetValidationMode.WARNING
+            }
         """)
         withK2BuildLogic()
 
@@ -133,9 +137,8 @@ class K2IntegrationTest : AbstractKotlinIntegrationTest() {
 
     private
     fun assertCanConsumeK2BuildLogic() {
-        build("help").apply {
-            assertOutputContains("ATTENTION: 'kotlin.experimental.tryK2' is an experimental option enabled in the project for trying out the new Kotlin K2 compiler only.")
-            assertOutputContains("w: Language version 2.0 is experimental, there are no backwards compatibility guarantees for new language and library features")
-        }
+        gradleExecuterFor(arrayOf("help"))
+            .expectDeprecationWarning("w: The `kotlin.experimental.tryK2` deprecated property is used in your build.")
+            .run()
     }
 }

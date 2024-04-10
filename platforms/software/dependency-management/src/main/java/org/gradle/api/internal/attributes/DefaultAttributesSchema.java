@@ -45,19 +45,21 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class DefaultAttributesSchema implements AttributesSchemaInternal {
     private final InstantiatorFactory instantiatorFactory;
+    private final IsolatableFactory isolatableFactory;
+    private final ResolutionFailureDescriberRegistry failureDescriberRegistry;
+
     private final Map<Attribute<?>, AttributeMatchingStrategy<?>> strategies = new HashMap<>();
     private final Map<String, Attribute<?>> attributesByName = new HashMap<>();
-
-    private final IsolatableFactory isolatableFactory;
-    private final HashMap<AttributesSchemaInternal, AttributeMatcher> matcherCache = new HashMap<>();
     private final List<AttributeDescriber> consumerAttributeDescribers = new ArrayList<>();
     private final Set<Attribute<?>> precedence = new LinkedHashSet<>();
-    private final ResolutionFailureDescriberRegistry failureDescriberRegistry;
+
+    private final Map<AttributesSchemaInternal, AttributeMatcher> matcherCache = new ConcurrentHashMap<>();
 
     public DefaultAttributesSchema(InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory) {
         this(instantiatorFactory, instantiatorFactory.inject(), isolatableFactory);
@@ -192,7 +194,7 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
         public DefaultAttributeSelectionSchema(AttributesSchemaInternal consumerSchema, AttributesSchemaInternal producerSchema) {
             this.consumerSchema = consumerSchema;
             this.producerSchema = producerSchema;
-            this.extraAttributesCache = new HashMap<>();
+            this.extraAttributesCache = new ConcurrentHashMap<>();
         }
 
         @Override

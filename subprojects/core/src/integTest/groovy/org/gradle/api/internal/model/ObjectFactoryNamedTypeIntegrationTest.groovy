@@ -17,7 +17,6 @@
 package org.gradle.api.internal.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 import static org.hamcrest.CoreMatchers.allOf
 import static org.hamcrest.CoreMatchers.containsString
@@ -102,7 +101,6 @@ class ObjectFactoryNamedTypeIntegrationTest extends AbstractIntegrationSpec {
         outputContains("thing1: thing1")
     }
 
-    @ToBeFixedForConfigurationCache(because = "ClassNotFoundException: Thing\$Impl")
     def "named instance can be used as task input property"() {
         buildFile << """
             interface Thing extends Named { }

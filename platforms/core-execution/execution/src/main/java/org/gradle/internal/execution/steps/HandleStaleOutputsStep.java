@@ -26,7 +26,7 @@ import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +44,7 @@ public class HandleStaleOutputsStep<C extends WorkspaceContext, R extends AfterE
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HandleStaleOutputsStep.class);
 
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationRunner buildOperationRunner;
     private final BuildOutputCleanupRegistry cleanupRegistry;
     private final Deleter deleter;
     private final OutputChangeListener outputChangeListener;
@@ -52,14 +52,14 @@ public class HandleStaleOutputsStep<C extends WorkspaceContext, R extends AfterE
     private final Step<? super C, ? extends R> delegate;
 
     public HandleStaleOutputsStep(
-        BuildOperationExecutor buildOperationExecutor,
+        BuildOperationRunner buildOperationRunner,
         BuildOutputCleanupRegistry cleanupRegistry,
         Deleter deleter,
         OutputChangeListener outputChangeListener,
         OutputFilesRepository outputFilesRepository,
         Step<? super C, ? extends R> delegate
     ) {
-        this.buildOperationExecutor = buildOperationExecutor;
+        this.buildOperationRunner = buildOperationRunner;
         this.cleanupRegistry = cleanupRegistry;
         this.deleter = deleter;
         this.outputChangeListener = outputChangeListener;
@@ -96,7 +96,7 @@ public class HandleStaleOutputsStep<C extends WorkspaceContext, R extends AfterE
                     .map(File::getAbsolutePath)
                     .collect(Collectors.toList())
             );
-            buildOperationExecutor.run(new RunnableBuildOperation() {
+            buildOperationRunner.run(new RunnableBuildOperation() {
                 @Override
                 public void run(BuildOperationContext context) throws IOException {
                     for (File file : filesToDelete) {

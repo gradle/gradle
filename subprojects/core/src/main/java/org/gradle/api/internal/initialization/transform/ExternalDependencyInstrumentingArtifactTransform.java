@@ -42,7 +42,7 @@ public abstract class ExternalDependencyInstrumentingArtifactTransform extends B
         File input = getInput().get().getAsFile();
         InstrumentationInputType inputType = getInputType(input);
         switch (inputType) {
-            case ANALYSIS_DATA:
+            case DEPENDENCY_ANALYSIS_DATA:
                 doOutputTransformedFile(input, outputs);
                 return;
             case ORIGINAL_ARTIFACT:
@@ -53,6 +53,8 @@ public abstract class ExternalDependencyInstrumentingArtifactTransform extends B
             case INSTRUMENTATION_MARKER:
                 // We don't need to do anything with the marker file
                 return;
+            case TYPE_HIERARCHY_ANALYSIS_DATA:
+                // Type hierarchy analysis should never be an input to this transform
             default:
                 throw new IllegalStateException("Unexpected input type: " + inputType);
         }
@@ -67,7 +69,7 @@ public abstract class ExternalDependencyInstrumentingArtifactTransform extends B
 
     private InstrumentationArtifactMetadata readArtifactMetadata(File input) {
         InstrumentationAnalysisSerializer serializer = new InstrumentationAnalysisSerializer(internalServices.get().getStringInterner());
-        return serializer.readOnlyMetadata(input);
+        return serializer.readMetadataOnly(input);
     }
 
     @Override
@@ -78,7 +80,7 @@ public abstract class ExternalDependencyInstrumentingArtifactTransform extends B
                 return PropertiesBackedInstrumentationTypeRegistry.of(() -> {
                     File analysisFile = getInput().get().getAsFile();
                     InstrumentationAnalysisSerializer serializer = new InstrumentationAnalysisSerializer(internalServices.get().getStringInterner());
-                    return serializer.readOnlyTypeHierarchy(analysisFile);
+                    return serializer.readDependencyAnalysis(analysisFile).getDependencies();
                 });
             }
 

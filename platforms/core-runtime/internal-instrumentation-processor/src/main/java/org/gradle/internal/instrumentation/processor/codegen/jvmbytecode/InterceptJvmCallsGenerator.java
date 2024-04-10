@@ -59,7 +59,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.gradle.internal.instrumentation.processor.codegen.SignatureUtils.SUPPRESS_ERROR_PRONE;
+import static org.gradle.internal.instrumentation.processor.codegen.GradleReferencedType.GENERATED_ANNOTATION;
 import static org.gradle.internal.instrumentation.processor.codegen.SignatureUtils.hasCallerClassName;
 import static org.gradle.internal.instrumentation.processor.codegen.SignatureUtils.hasInjectVisitorContext;
 import static org.gradle.internal.instrumentation.processor.codegen.TypeUtils.typeName;
@@ -96,7 +96,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
 
         return builder ->
             builder.addMethod(constructor)
-                .addAnnotation(SUPPRESS_ERROR_PRONE)
+                .addAnnotation(GENERATED_ANNOTATION.asClassName())
                 .addModifiers(Modifier.PUBLIC)
                 // generic stuff not related to the content:
                 .addSuperinterface(JvmBytecodeCallInterceptor.class)

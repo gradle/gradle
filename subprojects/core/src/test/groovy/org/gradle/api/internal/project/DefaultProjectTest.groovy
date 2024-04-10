@@ -85,8 +85,8 @@ import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.management.DependencyResolutionManagementInternal
 import org.gradle.internal.metaobject.BeanDynamicObject
-import org.gradle.internal.operations.BuildOperationExecutor
-import org.gradle.internal.operations.TestBuildOperationExecutor
+import org.gradle.internal.operations.BuildOperationRunner
+import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.resource.StringTextResource
 import org.gradle.internal.resource.TextFileResourceLoader
@@ -160,10 +160,10 @@ class DefaultProjectTest extends Specification {
     AttributesSchema attributesSchema = Stub(AttributesSchema)
     TextFileResourceLoader textResourceLoader = Stub(TextFileResourceLoader)
     ApiTextResourceAdapter.Factory textResourceAdapterFactory = Stub(ApiTextResourceAdapter.Factory)
-    BuildOperationExecutor buildOperationExecutor = new TestBuildOperationExecutor()
+    BuildOperationRunner buildOperationRunner = new TestBuildOperationRunner()
     ListenerBuildOperationDecorator listenerBuildOperationDecorator = new TestListenerBuildOperationDecorator()
     DependencyResolutionManagementInternal dependencyResolutionManagement = Stub(DependencyResolutionManagementInternal)
-    CrossProjectConfigurator crossProjectConfigurator = new BuildOperationCrossProjectConfigurator(buildOperationExecutor)
+    CrossProjectConfigurator crossProjectConfigurator = new BuildOperationCrossProjectConfigurator(buildOperationRunner)
     ClassLoaderScope baseClassLoaderScope = new RootClassLoaderScope("root", getClass().classLoader, getClass().classLoader, new DummyClassLoaderCache(), Stub(ClassLoaderScopeRegistryListener))
     ClassLoaderScope rootProjectClassLoaderScope = baseClassLoaderScope.createChild("root-project", null)
     ObjectFactory objectFactory = new DefaultObjectFactory(instantiatorMock, Stub(NamedObjectInstantiator), Stub(DirectoryFileTreeFactory),  TestFiles.patternSetFactory,  new DefaultPropertyFactory(Stub(PropertyHost)), Stub(FilePropertyFactory), TestFiles.taskDependencyFactory(), Stub(FileCollectionFactory), Stub(DomainObjectCollectionFactory))
@@ -222,7 +222,7 @@ class DefaultProjectTest extends Specification {
         serviceRegistryMock.get((Type) ApiTextResourceAdapter.Factory) >> textResourceAdapterFactory
         serviceRegistryMock.get(ManagedProxyFactory) >> managedProxyFactory
         serviceRegistryMock.get(AttributesSchema) >> attributesSchema
-        serviceRegistryMock.get(BuildOperationExecutor) >> buildOperationExecutor
+        serviceRegistryMock.get(BuildOperationRunner) >> buildOperationRunner
         serviceRegistryMock.get((Type) ListenerBuildOperationDecorator) >> listenerBuildOperationDecorator
         serviceRegistryMock.get((Type) CrossProjectConfigurator) >> crossProjectConfigurator
         serviceRegistryMock.get(DependencyResolutionManagementInternal) >> dependencyResolutionManagement

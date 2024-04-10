@@ -17,7 +17,7 @@
 package gradlebuild.performance
 
 import com.google.common.annotations.VisibleForTesting
-import com.gradle.enterprise.gradleplugin.testretry.TestRetryExtension
+import com.gradle.develocity.agent.gradle.test.DevelocityTestConfiguration
 import gradlebuild.basics.buildBranch
 import gradlebuild.basics.buildCommitId
 import gradlebuild.basics.capitalize
@@ -83,10 +83,10 @@ object Config {
     const val performanceTestResultsJsonName = "perf-results.json"
     const val performanceTestResultsJson = "performance-tests/$performanceTestResultsJsonName"
 
-    // Android Studio Iguana 2023.2.1.16 Canary 16
+    // Android Studio Iguana 2023.2.1 Patch 1
     // Find all references here https://developer.android.com/studio/archive
-    // Update verification-medata.xml
-    const val performanceTestAndroidStudioVersion = "2023.2.1.16"
+    // Update verification-metadata.xml
+    const val performanceTestAndroidStudioVersion = "2023.2.1.24"
     val performanceTestAndroidStudioJvmArgs = listOf("-Xms256m", "-Xmx4096m")
 }
 
@@ -246,7 +246,7 @@ class PerformanceTestPlugin : Plugin<Project> {
             outputs.cacheIf { false }
             outputs.file(outputJson)
 
-            predictiveSelection.enabled = false
+            develocity.predictiveTestSelection.enabled = false
         }
 
     private
@@ -397,7 +397,7 @@ class PerformanceTestExtension(
                 mustRunAfter(currentlyRegisteredTestProjects)
                 testSpecificConfigurator(this)
 
-                extensions.findByType<TestRetryExtension>()?.maxRetries = 0
+                extensions.findByType<DevelocityTestConfiguration>()?.testRetry?.maxRetries = 0
             }
         )
 
@@ -408,7 +408,7 @@ class PerformanceTestExtension(
                 description = "Runs performance tests on $testProject - supposed to be used on CI"
                 channel = "commits$channelSuffix"
 
-                extensions.findByType<TestRetryExtension>()?.maxRetries = 1
+                extensions.findByType<DevelocityTestConfiguration>()?.testRetry?.maxRetries = 1
 
                 if (project.includePerformanceTestScenarios) {
                     val scenariosFromFile = project.loadScenariosFromFile(testProject)
