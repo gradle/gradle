@@ -22,17 +22,13 @@ import org.gradle.tooling.events.internal.BaseProgressEvent;
 import org.gradle.tooling.events.problems.AdditionalData;
 import org.gradle.tooling.events.problems.ContextualLabel;
 import org.gradle.tooling.events.problems.Details;
-import org.gradle.tooling.events.problems.DocumentationLink;
 import org.gradle.tooling.events.problems.FailureContainer;
 import org.gradle.tooling.events.problems.Location;
-import org.gradle.tooling.events.problems.ProblemCategory;
 import org.gradle.tooling.events.problems.ProblemDefinition;
-import org.gradle.tooling.events.problems.Severity;
 import org.gradle.tooling.events.problems.SingleProblemEvent;
 import org.gradle.tooling.events.problems.Solution;
 
 import javax.annotation.Nullable;
-import java.util.Collections;
 import java.util.List;
 
 @NonNullApi
@@ -71,11 +67,6 @@ public class DefaultSingleProblemEvent extends BaseProgressEvent implements Sing
     }
 
     @Override
-    public ProblemCategory getCategory() {
-        return new DefaultCategory("", "", Collections.<String>emptyList());
-    }
-
-    @Override
     public ContextualLabel getContextualLabel() {
         return contextualLabel;
     }
@@ -86,18 +77,8 @@ public class DefaultSingleProblemEvent extends BaseProgressEvent implements Sing
     }
 
     @Override
-    public Severity getSeverity() {
-        return problemDefinition.getSeverity();
-    }
-
-    @Override
     public List<Location> getLocations() {
         return locations;
-    }
-
-    @Override
-    public DocumentationLink getDocumentationLink() {
-        return problemDefinition.getDocumentationLink();
     }
 
     @Override

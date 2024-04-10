@@ -16,15 +16,10 @@
 
 package org.gradle.tooling.events.problems.internal;
 
-import org.gradle.tooling.events.problems.DocumentationLink;
 import org.gradle.tooling.events.problems.ProblemAggregation;
-import org.gradle.tooling.events.problems.ProblemCategory;
 import org.gradle.tooling.events.problems.ProblemContext;
 import org.gradle.tooling.events.problems.ProblemDefinition;
-import org.gradle.tooling.events.problems.Severity;
 
-import javax.annotation.Nullable;
-import java.util.Collections;
 import java.util.List;
 
 public class DefaultProblemAggregation implements ProblemAggregation {
@@ -38,22 +33,6 @@ public class DefaultProblemAggregation implements ProblemAggregation {
     ) {
         this.problemDefinition = problemDefinition;
         this.problemContextDetails = problemContextDetails;
-    }
-
-    @Override
-    public ProblemCategory getCategory() {
-        return new DefaultCategory("", "", Collections.<String>emptyList());
-    }
-
-    @Override
-    public Severity getSeverity() {
-        return problemDefinition.getSeverity();
-    }
-
-    @Nullable
-    @Override
-    public DocumentationLink getDocumentationLink() {
-        return problemDefinition.getDocumentationLink(); // TODO nullability
     }
 
     @Override
