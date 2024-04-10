@@ -15,19 +15,28 @@
 [[ant]]
 = Using Ant from Gradle
 
-Gradle provides excellent integration with Ant.
+Gradle provides integration with Ant.
 
-You can use individual Ant tasks, or entire Ant builds in your Gradle builds. In fact, you will find that it's far easier and more powerful to use Ant tasks in a Gradle build script than to use Ant's XML format. You can even use Gradle simply as a powerful Ant task scripting tool.
+Gradle integrates with Ant, allowing you to use individual Ant tasks or entire Ant builds in your Gradle builds.
+Using Ant tasks in a Gradle build script is often easier and more powerful than using Ant's XML format.
+Gradle can also be used as a powerful Ant task scripting tool.
 
 Ant can be divided into two layers:
 
-1. *The first layer is the Ant language*. It provides the syntax for the `build.xml` file, the handling of the targets, special constructs like macrodefs, and so on. In other words, everything except the Ant tasks and types. Gradle understands this language and lets you import your Ant `build.xml` directly into a Gradle project. You can then use the targets of your Ant build as if they were Gradle tasks.
+1. *Layer 1: The Ant language*. It provides the syntax for the `build.xml` file, the handling of the targets, special constructs like macrodefs, and more. In other words, this layer includes everything except the Ant tasks and types. Gradle understands this language and lets you import your Ant `build.xml` directly into a Gradle project. You can then use the targets of your Ant build as if they were Gradle tasks.
 
-2. *The second layer of Ant is its wealth of Ant tasks and types*, like `javac`, `copy` or `jar`. For this layer, Gradle provides integration using Groovy and the `AntBuilder`.
+2. *Layer 2: The Ant tasks and types*, like `javac`, `copy` or `jar`. For this layer, Gradle provides integration using Groovy and the `AntBuilder`.
 
-Finally, since build scripts are Kotlin or Groovy scripts, you can execute an Ant build as an external process. Your build script may contain statements like: `"ant clean compile".execute()`.footnote:[In Groovy you can execute Strings.]
+Since build scripts are Kotlin or Groovy scripts, you can execute an Ant build as an external process.
+Your build script may contain statements like: `"ant clean compile".execute()`.footnote:[In Groovy you can execute Strings.]
 
-You can use Gradle's Ant integration to migrate your build from Ant to Gradle. You can start by importing your existing Ant build. Then, you can move your dependency declarations from the Ant script to your build file. Finally, you can move your tasks to your build file or replace them with some of Gradle's plugins. This process can be done in parts over time, and you can have a working Gradle build during the entire process.
+Gradle's Ant integration allows you to migrate your build from Ant to Gradle smoothly:
+
+1. Begin by importing your existing Ant build.
+2. Then, transition your dependency declarations from the Ant script to your build file.
+3. Finally, move your tasks to your build file or replace them with Gradle's plugins.
+
+This migration process can be performed incrementally, and you can maintain a functional Gradle build throughout the transition.
 
 WARNING: Ant integration is not fully compatible with the <<configuration_cache.adoc#config_cache,configuration cache>>.
 Using link:{javadocPath}/org/gradle/api/Task.html#getAnt--[Task.ant] to run Ant task in the task action may work, but importing the Ant build is not supported.
@@ -38,12 +47,13 @@ The Ant integration is provided by the link:{javadocPath}/org/gradle/api/AntBuil
 [[sec:using_ant_tasks]]
 == Using Ant tasks and types
 
-Gradle provides a property called `ant` in your build script. This is a reference to an link:{javadocPath}/org/gradle/api/AntBuilder.html[AntBuilder] instance.
+Gradle provides a property called `ant` in your build script.
+This is a reference to an link:{javadocPath}/org/gradle/api/AntBuilder.html[AntBuilder] instance.
 
 `AntBuilder` is used to access Ant tasks, types, and properties from your build script.
 
 You execute an Ant task by calling a method on the `AntBuilder` instance.
-You use the task name as the method name.
+You use the task name as the method name:
 
 .build.gradle
 [source,groovy]
@@ -55,7 +65,8 @@ ant.copy(todir: "$STAGE/bin") {
 ant.gzip(destfile:"build/file-${VERSION}.tar.gz", src: "build/file-${VERSION}.tar")
 ----
 
-For example, you execute the Ant `echo` task by calling the `ant.echo()` method.
+For example, you execute the Ant `echo` task using the `ant.echo()` method.
+
 The attributes of the Ant task are passed as Map parameters to the method.
 Below is an example of the `echo` task:
 
@@ -92,7 +103,7 @@ include::sample[dir="snippets/ant/taskWithNestedElements/kotlin",files="build.gr
 include::sample[dir="snippets/ant/taskWithNestedElements/groovy",files="build.gradle"]
 ====
 
-You can access Ant types in the same way you access tasks, using the name of the type as the method name.
+You can access Ant types the same way you access tasks, using the name of the type as the method name.
 The method call returns the Ant data type, which you can use directly in your build script.
 In the following example, we create an Ant `path` object, then iterate over the contents of it:
 
@@ -102,7 +113,7 @@ include::sample[dir="snippets/ant/useAntType/groovy",files="build.gradle"]
 ====
 
 [[sec:using_custom_ant_tasks]]
-=== Using custom Ant tasks in your build
+=== Using custom Ant tasks
 
 To make custom tasks available in your build, use the `taskdef` (usually easier) or `typedef` Ant task, just as you would in a `build.xml` file.
 You can then refer to the custom Ant task as you would a built-in Ant task:
@@ -112,8 +123,8 @@ include::sample[dir="snippets/ant/useExternalAntTask/kotlin",files="build.gradle
 include::sample[dir="snippets/ant/useExternalAntTask/groovy",files="build.gradle[tags=configure-task]"]
 ====
 
-You can use Gradle's dependency management to assemble the classpath to use for the custom tasks.
-To do this, you need to define a custom configuration for the classpath and then add some dependencies to the configuration.
+You can use Gradle's dependency management to assemble the classpath for the custom tasks.
+To do this, you need to define a custom configuration for the classpath and add some dependencies to it.
 This is described in more detail in link:declaring_dependencies.html[Declaring Dependencies]:
 
 ====
@@ -132,6 +143,7 @@ include::sample[dir="snippets/ant/useExternalAntTaskWithConfig/groovy",files="bu
 == Importing an Ant build
 
 You can use the `ant.importBuild()` method to import an Ant build into your Gradle project.
+
 When you import an Ant build, each Ant target is treated as a Gradle task.
 This means you can manipulate and execute the Ant targets in the same way as Gradle tasks:
 
@@ -209,11 +221,13 @@ include::{snippetsPath}/ant/renameTask/tests/renameAntDelegate.out[]
 NOTE: While the second argument to this method should be a link:{javadocPath}/org/gradle/api/Transformer.html[Transformer], when programming in Groovy you can use a closure instead of an anonymous inner class (or similar) due to http://mrhaki.blogspot.ie/2013/11/groovy-goodness-implicit-closure.html[Groovy's support for automatically coercing closures to single-abstract-method types].
 
 [[sec:ant_properties]]
-== Ant properties and references
+== Using Ant properties and references
 
 There are several ways to set an Ant property so that the property can be used by Ant tasks.
+
 You can set the property directly on the `AntBuilder` instance.
 The Ant properties are also available as a Map, which you can change.
+
 You can also use the Ant `property` task:
 
 ====
@@ -258,7 +272,7 @@ include::sample[dir="snippets/ant/properties/groovy",files="build.gradle[tags=ge
 ====
 
 [[sec:ant_logging]]
-== Ant logging
+== Using Ant logging
 
 Gradle maps Ant message priorities to Gradle log levels so that messages logged from Ant appear in the Gradle output.
 By default, these are mapped as follows:
