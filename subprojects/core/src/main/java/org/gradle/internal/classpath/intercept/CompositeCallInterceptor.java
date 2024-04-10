@@ -17,11 +17,10 @@
 package org.gradle.internal.classpath.intercept;
 
 import org.apache.commons.lang.ArrayUtils;
-import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorType;
 
 import javax.annotation.Nullable;
 
-public class CompositeCallInterceptor extends CallInterceptor implements SignatureAwareCallInterceptor, PropertyAwareCallInterceptor {
+public class CompositeCallInterceptor extends AbstractCallInterceptor implements SignatureAwareCallInterceptor, PropertyAwareCallInterceptor {
 
     private final CallInterceptor first;
     private final CallInterceptor second;
@@ -57,12 +56,7 @@ public class CompositeCallInterceptor extends CallInterceptor implements Signatu
     }
 
     @Override
-    public BytecodeInterceptorType getType() {
-        throw new UnsupportedOperationException("Calling CompositeCallInterceptor.getType() is not supported");
-    }
-
-    @Override
-    InterceptScope[] getInterceptScopes() {
+    public InterceptScope[] getInterceptScopes() {
         return (InterceptScope[]) ArrayUtils.addAll(first.getInterceptScopes(), second.getInterceptScopes());
     }
 

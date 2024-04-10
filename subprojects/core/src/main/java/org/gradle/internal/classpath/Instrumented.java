@@ -23,8 +23,9 @@ import org.codehaus.groovy.runtime.callsite.CallSite;
 import org.codehaus.groovy.runtime.callsite.CallSiteArray;
 import org.codehaus.groovy.vmplugin.v8.IndyInterface;
 import org.gradle.internal.SystemProperties;
-import org.gradle.internal.classpath.intercept.CallInterceptor;
+import org.gradle.internal.classpath.intercept.AbstractCallInterceptor;
 import org.gradle.internal.classpath.intercept.ClassBoundCallInterceptor;
+import org.gradle.internal.classpath.intercept.FilterableCallInterceptor;
 import org.gradle.internal.classpath.intercept.InterceptScope;
 import org.gradle.internal.classpath.intercept.Invocation;
 import org.gradle.internal.configuration.inputs.AccessTrackingEnvMap;
@@ -71,7 +72,7 @@ public class Instrumented {
      */
     @SuppressWarnings("unused")
     @Deprecated
-    public static List<CallInterceptor> getCallInterceptors() {
+    public static List<FilterableCallInterceptor> getCallInterceptors() {
         return Arrays.asList(
             new SystemGetPropertyInterceptor(),
             new SystemSetPropertyInterceptor(),
@@ -483,7 +484,7 @@ public class Instrumented {
     /**
      * The interceptor for {@link Integer#getInteger(String)}, {@link Integer#getInteger(String, int)}, and {@link Integer#getInteger(String, Integer)}.
      */
-    private static class IntegerGetIntegerInterceptor extends ClassBoundCallInterceptor {
+    private static class IntegerGetIntegerInterceptor extends ClassBoundCallInterceptor implements FilterableCallInterceptor, InstrumentationInterceptor {
         public IntegerGetIntegerInterceptor() {
             super(Integer.class, InterceptScope.methodsNamed("getInteger"));
         }
@@ -503,7 +504,7 @@ public class Instrumented {
     /**
      * The interceptor for {@link Long#getLong(String)}, {@link Long#getLong(String, long)}, and {@link Long#getLong(String, Long)}.
      */
-    private static class LongGetLongInterceptor extends ClassBoundCallInterceptor {
+    private static class LongGetLongInterceptor extends ClassBoundCallInterceptor implements FilterableCallInterceptor, InstrumentationInterceptor {
         public LongGetLongInterceptor() {
             super(Long.class, InterceptScope.methodsNamed("getLong"));
         }
@@ -523,7 +524,7 @@ public class Instrumented {
     /**
      * The interceptor for {@link Boolean#getBoolean(String)}.
      */
-    private static class BooleanGetBooleanInterceptor extends ClassBoundCallInterceptor {
+    private static class BooleanGetBooleanInterceptor extends ClassBoundCallInterceptor implements FilterableCallInterceptor, InstrumentationInterceptor {
         public BooleanGetBooleanInterceptor() {
             super(Boolean.class, InterceptScope.methodsNamed("getBoolean"));
         }
@@ -540,7 +541,7 @@ public class Instrumented {
     /**
      * The interceptor for {@link System#getProperty(String)} and {@link System#getProperty(String, String)}.
      */
-    private static class SystemGetPropertyInterceptor extends ClassBoundCallInterceptor {
+    private static class SystemGetPropertyInterceptor extends ClassBoundCallInterceptor implements FilterableCallInterceptor, InstrumentationInterceptor {
         public SystemGetPropertyInterceptor() {
             super(System.class, InterceptScope.methodsNamed("getProperty"));
         }
@@ -560,7 +561,7 @@ public class Instrumented {
     /**
      * The interceptor for {@link System#setProperty(String, String)}.
      */
-    private static class SystemSetPropertyInterceptor extends ClassBoundCallInterceptor {
+    private static class SystemSetPropertyInterceptor extends ClassBoundCallInterceptor implements FilterableCallInterceptor, InstrumentationInterceptor {
         public SystemSetPropertyInterceptor() {
             super(System.class, InterceptScope.methodsNamed("setProperty"));
         }
@@ -577,7 +578,7 @@ public class Instrumented {
     /**
      * The interceptor for {@link System#getProperties()} and {@code System.properties} reads.
      */
-    private static class SystemGetPropertiesInterceptor extends ClassBoundCallInterceptor {
+    private static class SystemGetPropertiesInterceptor extends ClassBoundCallInterceptor implements FilterableCallInterceptor, InstrumentationInterceptor {
         public SystemGetPropertiesInterceptor() {
             super(System.class,
                 InterceptScope.readsOfPropertiesNamed("properties"),
@@ -596,7 +597,7 @@ public class Instrumented {
     /**
      * The interceptor for {@link System#setProperties(Properties)}.
      */
-    private static class SystemSetPropertiesInterceptor extends ClassBoundCallInterceptor {
+    private static class SystemSetPropertiesInterceptor extends ClassBoundCallInterceptor implements FilterableCallInterceptor, InstrumentationInterceptor {
         public SystemSetPropertiesInterceptor() {
             super(System.class, InterceptScope.methodsNamed("setProperties"));
         }
@@ -614,7 +615,7 @@ public class Instrumented {
     /**
      * The interceptor for {@link System#clearProperty(String)}.
      */
-    private static class SystemClearPropertyInterceptor extends ClassBoundCallInterceptor {
+    private static class SystemClearPropertyInterceptor extends ClassBoundCallInterceptor implements FilterableCallInterceptor, InstrumentationInterceptor {
         public SystemClearPropertyInterceptor() {
             super(System.class, InterceptScope.methodsNamed("clearProperty"));
         }
@@ -631,7 +632,7 @@ public class Instrumented {
     /**
      * The interceptor for {@link System#getenv()} and {@link System#getenv(String)}.
      */
-    private static class SystemGetenvInterceptor extends ClassBoundCallInterceptor {
+    private static class SystemGetenvInterceptor extends ClassBoundCallInterceptor implements FilterableCallInterceptor, InstrumentationInterceptor {
         public SystemGetenvInterceptor() {
             super(System.class, InterceptScope.methodsNamed("getenv"));
         }
@@ -651,7 +652,7 @@ public class Instrumented {
     /**
      * The interceptor for all overloads of {@code Runtime.exec}.
      */
-    private static class RuntimeExecInterceptor extends CallInterceptor implements InstrumentationInterceptor {
+    private static class RuntimeExecInterceptor extends AbstractCallInterceptor implements FilterableCallInterceptor, InstrumentationInterceptor {
         public RuntimeExecInterceptor() {
             super(InterceptScope.methodsNamed("exec"));
         }
@@ -695,7 +696,7 @@ public class Instrumented {
     /**
      * The interceptor for Groovy's {@code String.execute}, {@code String[].execute}, and {@code List.execute}. This also handles {@code ProcessGroovyMethods.execute}.
      */
-    private static class ProcessGroovyMethodsExecuteInterceptor extends CallInterceptor implements InstrumentationInterceptor {
+    private static class ProcessGroovyMethodsExecuteInterceptor extends AbstractCallInterceptor implements FilterableCallInterceptor, InstrumentationInterceptor {
         protected ProcessGroovyMethodsExecuteInterceptor() {
             super(InterceptScope.methodsNamed("execute"));
         }
@@ -762,7 +763,7 @@ public class Instrumented {
     /**
      * The interceptor for {@link ProcessBuilder#start()}.
      */
-    private static class ProcessBuilderStartInterceptor extends CallInterceptor implements InstrumentationInterceptor {
+    private static class ProcessBuilderStartInterceptor extends AbstractCallInterceptor implements FilterableCallInterceptor, InstrumentationInterceptor {
         ProcessBuilderStartInterceptor() {
             super(InterceptScope.methodsNamed("start"));
         }
@@ -780,7 +781,7 @@ public class Instrumented {
     /**
      * The interceptor for {@code ProcessBuilder.startPipeline(List)}.
      */
-    private static class ProcessBuilderStartPipelineInterceptor extends ClassBoundCallInterceptor {
+    private static class ProcessBuilderStartPipelineInterceptor extends ClassBoundCallInterceptor implements FilterableCallInterceptor, InstrumentationInterceptor {
         public ProcessBuilderStartPipelineInterceptor() {
             super(ProcessBuilder.class, InterceptScope.methodsNamed("startPipeline"));
         }

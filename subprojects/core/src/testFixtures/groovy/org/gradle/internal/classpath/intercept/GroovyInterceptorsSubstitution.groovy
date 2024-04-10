@@ -47,7 +47,7 @@ class GroovyInterceptorsSubstitution extends TestInterceptorsSubstitution<CallSi
         }
 
         @Override
-        List<CallInterceptor> getCallInterceptors(BytecodeInterceptorFilter filter) {
+        List<AbstractCallInterceptor> getCallInterceptors(BytecodeInterceptorFilter filter) {
             return threadLocalDecorators.get().getCallInterceptors(filter)
         }
     }
