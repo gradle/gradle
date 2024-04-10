@@ -48,14 +48,14 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
  */
 @NonNullApi
 public class AddSoftwareTypesAsExtensionsPluginTarget implements PluginTarget {
-    private final AddSoftwareTypesAsExtensions addSoftwareTypesAsExtensions;
+    private final ExtensionAddingVisitor extensionAddingVisitor;
     private final PluginTarget delegate;
     private final InspectionScheme inspectionScheme;
 
     private final SoftwareTypeRegistry softwareTypeRegistry;
 
     public AddSoftwareTypesAsExtensionsPluginTarget(ProjectInternal target, PluginTarget delegate, InspectionScheme inspectionScheme, SoftwareTypeRegistry softwareTypeRegistry) {
-        this.addSoftwareTypesAsExtensions = new AddSoftwareTypesAsExtensions(target);
+        this.extensionAddingVisitor = new ExtensionAddingVisitor(target);
         this.delegate = delegate;
         this.inspectionScheme = inspectionScheme;
         this.softwareTypeRegistry = softwareTypeRegistry;
@@ -73,7 +73,7 @@ public class AddSoftwareTypesAsExtensionsPluginTarget implements PluginTarget {
             inspectionScheme.getPropertyWalker().visitProperties(
                 plugin,
                 typeValidationContext,
-                addSoftwareTypesAsExtensions
+                extensionAddingVisitor
             );
 
             if (!typeValidationContext.getProblems().isEmpty()) {
@@ -118,10 +118,10 @@ public class AddSoftwareTypesAsExtensionsPluginTarget implements PluginTarget {
     }
 
     @NonNullApi
-    public static class AddSoftwareTypesAsExtensions implements PropertyVisitor {
+    public static class ExtensionAddingVisitor implements PropertyVisitor {
         private final ProjectInternal target;
 
-        public AddSoftwareTypesAsExtensions(ProjectInternal target) {
+        public ExtensionAddingVisitor(ProjectInternal target) {
             this.target = target;
         }
 

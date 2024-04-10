@@ -77,7 +77,7 @@ public class SoftwareTypeRegistrationPluginTarget implements PluginTarget {
         return delegate.toString();
     }
 
-    void registerSoftwareTypes(TypeMetadata typeMetadata) {
+    private void registerSoftwareTypes(TypeMetadata typeMetadata) {
         Optional<RegistersSoftwareTypes> registersSoftwareType = typeMetadata.getTypeAnnotationMetadata().getAnnotation(RegistersSoftwareTypes.class);
         registersSoftwareType.ifPresent(registration -> {
             for (Class<? extends Plugin<Project>> softwareTypeImplClass : registration.value()) {

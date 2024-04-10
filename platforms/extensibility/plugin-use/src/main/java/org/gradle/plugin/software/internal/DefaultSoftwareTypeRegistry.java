@@ -59,7 +59,7 @@ public class DefaultSoftwareTypeRegistry implements SoftwareTypeRegistry {
         pluginClasses.forEach(pluginClass -> {
             TypeToken<?> pluginType = TypeToken.of(pluginClass);
             TypeMetadataWalker.typeWalker(inspectionScheme.getMetadataStore(), SoftwareType.class)
-                .walk(pluginType, new AddSoftwareTypeImplementationForPluginClass(pluginClass, registeredTypes, softwareTypeImplementationsBuilder));
+                .walk(pluginType, new SoftwareTypeImplementationRecordingVisitor(pluginClass, registeredTypes, softwareTypeImplementationsBuilder));
         });
         return softwareTypeImplementationsBuilder.build();
     }
@@ -77,12 +77,12 @@ public class DefaultSoftwareTypeRegistry implements SoftwareTypeRegistry {
         return pluginClasses.stream().anyMatch(registered -> registered.isAssignableFrom(pluginClass));
     }
 
-    private static class AddSoftwareTypeImplementationForPluginClass implements TypeMetadataWalker.StaticMetadataVisitor {
+    private static class SoftwareTypeImplementationRecordingVisitor implements TypeMetadataWalker.StaticMetadataVisitor {
         private final Class<? extends Plugin<Project>> pluginClass;
         private final Map<String, Class<? extends Plugin<Project>>> registeredTypes;
         private final ImmutableSet.Builder<SoftwareTypeImplementation> softwareTypeImplementationsBuilder;
 
-        public AddSoftwareTypeImplementationForPluginClass(Class<? extends Plugin<Project>> pluginClass, Map<String, Class<? extends Plugin<Project>>> registeredTypes, ImmutableSet.Builder<SoftwareTypeImplementation> softwareTypeImplementationsBuilder) {
+        public SoftwareTypeImplementationRecordingVisitor(Class<? extends Plugin<Project>> pluginClass, Map<String, Class<? extends Plugin<Project>>> registeredTypes, ImmutableSet.Builder<SoftwareTypeImplementation> softwareTypeImplementationsBuilder) {
             this.pluginClass = pluginClass;
             this.registeredTypes = registeredTypes;
             this.softwareTypeImplementationsBuilder = softwareTypeImplementationsBuilder;

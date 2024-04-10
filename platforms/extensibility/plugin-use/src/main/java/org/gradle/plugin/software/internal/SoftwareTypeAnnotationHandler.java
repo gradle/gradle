@@ -26,7 +26,6 @@ import org.gradle.internal.properties.annotations.AbstractPropertyAnnotationHand
 import org.gradle.internal.properties.annotations.PropertyMetadata;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.model.internal.type.ModelType;
-import org.gradle.util.internal.TextUtil;
 
 public class SoftwareTypeAnnotationHandler extends AbstractPropertyAnnotationHandler {
 
