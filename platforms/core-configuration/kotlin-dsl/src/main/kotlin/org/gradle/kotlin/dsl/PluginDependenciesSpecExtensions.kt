@@ -17,7 +17,7 @@ package org.gradle.kotlin.dsl
 
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.deprecation.Documentation
-import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
+import org.gradle.plugin.management.internal.autoapply.AutoAppliedDevelocityPlugin
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec
 
@@ -41,7 +41,7 @@ val PluginDependenciesSpec.`gradle-enterprise`: PluginDependencySpec
             .willBeRemovedInGradle9()
             .withDocumentation(Documentation.kotlinDslExtensionReference("gradle-enterprise"))
             .nagUser()
-        return this.id(AutoAppliedGradleEnterprisePlugin.GRADLE_ENTERPRISE_PLUGIN_ID.id).version(AutoAppliedGradleEnterprisePlugin.VERSION)
+        return this.id(AutoAppliedDevelocityPlugin.GRADLE_ENTERPRISE_PLUGIN_ID.id).version(AutoAppliedDevelocityPlugin.VERSION)
     }
 
 
@@ -57,4 +57,4 @@ val PluginDependenciesSpec.`gradle-enterprise`: PluginDependencySpec
  * @since 8.8
  */
 val PluginDependenciesSpec.develocity: PluginDependencySpec
-    get() = this.id(AutoAppliedGradleEnterprisePlugin.ID.id).version(AutoAppliedGradleEnterprisePlugin.VERSION)
+    get() = this.id(AutoAppliedDevelocityPlugin.ID.id).version(AutoAppliedDevelocityPlugin.VERSION)

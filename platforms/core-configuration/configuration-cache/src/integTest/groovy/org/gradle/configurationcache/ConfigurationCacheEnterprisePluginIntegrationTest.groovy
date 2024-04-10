@@ -19,7 +19,7 @@ package org.gradle.configurationcache
 import groovy.test.NotYetImplemented
 import org.gradle.api.initialization.Settings
 import org.gradle.integtests.fixtures.KotlinDslTestUtil
-import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
+import org.gradle.plugin.management.internal.autoapply.AutoAppliedDevelocityPlugin
 import spock.lang.Issue
 
 class ConfigurationCacheEnterprisePluginIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
@@ -136,7 +136,7 @@ class ConfigurationCacheEnterprisePluginIntegrationTest extends AbstractConfigur
     static String getGeConventionsConfig() {
         """
             dependencies {
-                implementation("com.gradle:develocity-gradle-plugin:${AutoAppliedGradleEnterprisePlugin.VERSION}")
+                implementation("com.gradle:develocity-gradle-plugin:${AutoAppliedDevelocityPlugin.VERSION}")
             }
             ${KotlinDslTestUtil.kotlinDslBuildSrcConfig}
             repositories.gradlePluginPortal()

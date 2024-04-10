@@ -16,16 +16,16 @@
 
 package org.gradle.internal.scan.config.fixtures
 
-import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
+import org.gradle.plugin.management.internal.autoapply.AutoAppliedDevelocityPlugin
 
-import static org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin.VERSION
+import static org.gradle.plugin.management.internal.autoapply.AutoAppliedDevelocityPlugin.VERSION
 
 /**
  * Applies the Develocity plugin via the `settings.gradle` script.
  */
 class ApplyGradleEnterprisePluginFixture {
     private static final String APPLY_ENTERPRISE_PLUGIN = """plugins {
-        |    id("${AutoAppliedGradleEnterprisePlugin.ID}") version("${VERSION}")
+        |    id("${AutoAppliedDevelocityPlugin.ID}") version("${VERSION}")
         |}""".stripMargin()
 
     static void applyEnterprisePlugin(File settingsFile) {

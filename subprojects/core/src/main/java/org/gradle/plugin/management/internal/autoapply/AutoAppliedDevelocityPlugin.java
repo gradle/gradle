@@ -24,7 +24,7 @@ import org.gradle.plugin.use.internal.DefaultPluginId;
  *
  * Required by the {@code kotlin-dsl} module.
  */
-public final class AutoAppliedGradleEnterprisePlugin {
+public final class AutoAppliedDevelocityPlugin {
 
     public static final String GROUP = "com.gradle";
     public static final String NAME = "develocity-gradle-plugin";

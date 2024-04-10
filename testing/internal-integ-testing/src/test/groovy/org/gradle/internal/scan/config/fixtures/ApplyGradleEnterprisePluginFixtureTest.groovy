@@ -18,7 +18,7 @@ package org.gradle.internal.scan.config.fixtures
 
 import spock.lang.Specification
 
-import static org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin.VERSION
+import static org.gradle.plugin.management.internal.autoapply.AutoAppliedDevelocityPlugin.VERSION
 
 class ApplyGradleEnterprisePluginFixtureTest extends Specification {
 
