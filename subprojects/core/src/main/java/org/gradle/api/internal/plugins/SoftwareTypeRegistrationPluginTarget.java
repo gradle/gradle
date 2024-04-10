@@ -33,7 +33,7 @@ import javax.annotation.Nullable;
 import java.util.Optional;
 
 /**
- * A {@link PluginTarget} that inspects the plugin for {@link RegistersSoftwareTypes} annotations and registers them
+ * A {@link PluginTarget} that inspects the plugin for {@link RegistersSoftwareTypes} annotations and registers the
  * specified software type plugins with the {@link SoftwareTypeRegistry} prior to applying the plugin via the delegate.
  */
 @NonNullApi

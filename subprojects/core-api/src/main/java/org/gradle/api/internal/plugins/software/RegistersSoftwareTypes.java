@@ -26,7 +26,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Marks a Settings plugin as registering a software type.
+ * Marks a Settings plugin as registering one or more software types.
  *
  * @since 8.9
  */
@@ -35,7 +35,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface RegistersSoftwareTypes {
     /**
-     * The plugin that provides the software type.
+     * The {@link Project} plugins that provide the software types.
      *
      * @since 8.9
      */

@@ -40,7 +40,8 @@ public @interface SoftwareType {
     String name();
 
     /**
-     * The model type used to configure the software type.  Note that the actual return type of the method may be a subtype of this type.
+     * The model type used to configure the software type.  Note that this class should be the same type or a super type of the return type
+     * of the method that this annotation is applied to.
      *
      * @since 8.9
      */
