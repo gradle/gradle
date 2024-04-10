@@ -18,7 +18,7 @@ package org.gradle.configurationcache
 
 
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.internal.scan.config.fixtures.ApplyGradleEnterprisePluginFixture
+import org.gradle.internal.scan.config.fixtures.ApplyDevelocityPluginFixture
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
 
@@ -28,7 +28,7 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
         given:
         def configurationCache = newConfigurationCacheFixture()
         withLibBuild()
-        withEnterprisePlugin(withAppBuild())
+        withDevelocityPlugin(withAppBuild())
 
         when:
         inDirectory 'app'
@@ -260,8 +260,8 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
         order << ['lib', 'util'].permutations()
     }
 
-    private static withEnterprisePlugin(TestFile settingsDir) {
-        ApplyGradleEnterprisePluginFixture.applyEnterprisePlugin(
+    private static withDevelocityPlugin(TestFile settingsDir) {
+        ApplyDevelocityPluginFixture.applyDevelocityPlugin(
             settingsDir.file('settings.gradle')
         )
     }

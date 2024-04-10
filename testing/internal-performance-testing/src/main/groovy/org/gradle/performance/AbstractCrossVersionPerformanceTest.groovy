@@ -19,7 +19,7 @@ package org.gradle.performance
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
-import org.gradle.internal.scan.config.fixtures.ApplyGradleEnterprisePluginFixture
+import org.gradle.internal.scan.config.fixtures.ApplyDevelocityPluginFixture
 import org.gradle.performance.annotations.AllFeaturesShouldBeAnnotated
 import org.gradle.performance.fixture.CrossVersionPerformanceTestRunner
 import org.gradle.performance.fixture.GradleBuildExperimentRunner
@@ -92,6 +92,6 @@ class ApplyGradleEnterprisePluginMutator implements BuildMutator {
     void beforeScenario(ScenarioContext context) {
         def groovySettingsFile = new File(projectDir, "settings.gradle")
         def kotlinSettingsFile = new File(projectDir, "settings.gradle.kts")
-        ApplyGradleEnterprisePluginFixture.applyEnterprisePlugin(groovySettingsFile.exists() ? groovySettingsFile: kotlinSettingsFile)
+        ApplyDevelocityPluginFixture.applyDevelocityPlugin(groovySettingsFile.exists() ? groovySettingsFile: kotlinSettingsFile)
     }
 }
