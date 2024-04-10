@@ -21,5 +21,5 @@ plugins {
 description = "Declarative DSL Tooling Models for IDEs"
 
 dependencies {
-    api(project(":declarative-dsl-api"))
+    implementation(project(":base-annotations"))
 }
