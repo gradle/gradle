@@ -30,7 +30,7 @@ public class CurrentProcess {
     private final JvmOptions effectiveJvmOptions;
 
     public CurrentProcess(FileCollectionFactory fileCollectionFactory) {
-        this(Jvm.current(), inferJvmOptions(fileCollectionFactory));
+        this(Jvm.current(), inferJvmOptions(fileCollectionFactory, ManagementFactory.getRuntimeMXBean().getInputArguments()));
     }
 
     protected CurrentProcess(JavaInfo jvm, JvmOptions effectiveJvmOptions) {
@@ -46,11 +46,10 @@ public class CurrentProcess {
         return jvm;
     }
 
-    static JvmOptions inferJvmOptions(FileCollectionFactory fileCollectionFactory) {
+    static JvmOptions inferJvmOptions(FileCollectionFactory fileCollectionFactory, List<String> arguments) {
         // Try to infer the effective jvm options for the currently running process.
         // We only care about 'managed' jvm args, anything else is unimportant to the running build
         JvmOptions jvmOptions = new JvmOptions(fileCollectionFactory);
-        List<String> arguments = ManagementFactory.getRuntimeMXBean().getInputArguments();
         // TODO(mlopatkin) figure out a nicer way of handling the presence of agent in the foreground daemon.
         //  Currently it is hard to have a proper "-javaagent:/path/to/jar" in clients that start the daemon, so all code deals with a boolean flag shouldApplyAgent instead.
         //  It is also possible to have the agent attached at runtime, without the flag, so flag checking is preferred.

@@ -23,8 +23,6 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.userinput.UserInputReader;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.configuration.GradleLauncherMetaData;
@@ -57,25 +55,22 @@ import org.gradle.launcher.daemon.client.DaemonStopClient;
 import org.gradle.launcher.daemon.client.ReportDaemonStatusClient;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.configuration.ForegroundDaemonConfiguration;
+import org.gradle.launcher.daemon.context.DaemonCompatibilitySpec;
+import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.context.DaemonRequestContext;
+import org.gradle.launcher.daemon.context.DefaultDaemonContext;
 import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildExecuter;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
 import org.gradle.process.internal.CurrentProcess;
-import org.gradle.process.internal.JvmOptions;
 
-import java.io.IOException;
 import java.lang.management.ManagementFactory;
-import java.nio.file.Files;
-import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
 class BuildActionsFactory implements CommandLineActionCreator {
-    private final Logger logger = Logging.getLogger(BuildActionsFactory.class);
-
     private final BuildEnvironmentConfigurationConverter buildEnvironmentConfigurationConverter;
     private final ServiceRegistry loggingServices;
     private final JvmVersionDetector jvmVersionDetector;
@@ -128,7 +123,7 @@ class BuildActionsFactory implements CommandLineActionCreator {
         if (daemonParameters.isEnabled()) {
             return Actions.toAction(runBuildWithDaemon(startParameter, daemonParameters, requestContext));
         }
-        if (canUseCurrentProcess(daemonParameters, requestContext)) {
+        if (canUseCurrentProcess(requestContext)) {
             return Actions.toAction(runBuildInProcess(startParameter, daemonParameters));
         }
 
@@ -174,51 +169,26 @@ class BuildActionsFactory implements CommandLineActionCreator {
         return runBuildAndCloseServices(startParameter, daemonParameters, client, clientSharedServices, clientServices);
     }
 
-    @VisibleForTesting
-    boolean canUseCurrentProcess(DaemonParameters requiredBuildParameters, DaemonRequestContext requestContext) {
-        // TODO: This should reuse the same logic as DaemonCompatibilitySpec
+    protected boolean canUseCurrentProcess(DaemonRequestContext requestContext) {
+        // Pretend like the current process is actually a daemon, and see if it satisfies the compatibility spec
         CurrentProcess currentProcess = new CurrentProcess(fileCollectionFactory);
-        AgentStatus agentStatus = AgentStatus.allowed();
-        boolean compatibleJvm;
-        if (requestContext.getJavaHome() != null) {
-            try {
-                compatibleJvm = Files.isSameFile(currentProcess.getJvm().getJavaHome().toPath(), requestContext.getJavaHome().toPath());
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        } else if (requestContext.getJvmCriteria() != null) {
-            compatibleJvm = requestContext.getJvmCriteria().isCompatibleWith(Jvm.current());
-        } else {
-            compatibleJvm = true;
-        }
-
-        // Even if the agent is applied to this process, it is possible to run the build with the legacy instrumentation mode.
-        boolean javaAgentStateMatch = agentStatus.isAgentInstrumentationEnabled() || !requestContext.shouldApplyInstrumentationAgent();
-
-        boolean immutableJvmArgsMatch = true;
-        if (requiredBuildParameters.hasUserDefinedImmutableJvmArgs()) {
-            List<String> effectiveSingleUseJvmArgs = requiredBuildParameters.getEffectiveSingleUseJvmArgs();
-            logger.info(
-                "Checking if the launcher JVM can be re-used for build. To be re-used, the launcher JVM needs to match the parameters required for the build process: {}",
-                String.join(" ", effectiveSingleUseJvmArgs)
-            );
-            immutableJvmArgsMatch = currentProcess.getJvmOptions().getAllImmutableJvmArgs().equals(effectiveSingleUseJvmArgs);
-        }
-        return compatibleJvm && javaAgentStateMatch && immutableJvmArgsMatch && !isLowDefaultMemory(requiredBuildParameters, currentProcess.getJvmOptions());
+        DaemonContext contextForCurrentProcess = buildDaemonContextForCurrentProcess(requestContext, currentProcess);
+        return new DaemonCompatibilitySpec(requestContext).isSatisfiedBy(contextForCurrentProcess);
     }
 
-    /**
-     * Checks whether the current process is using the default client VM setting of 64m, which is too low to run the majority of builds.
-     */
-    private boolean isLowDefaultMemory(DaemonParameters daemonParameters, JvmOptions jvmOptions) {
-        if (daemonParameters.hasUserDefinedImmutableJvmArgs()) {
-            for (String arg : daemonParameters.getEffectiveSingleUseJvmArgs()) {
-                if (arg.startsWith("-Xmx")) {
-                    return false;
-                }
-            }
-        }
-        return "64m".equals(jvmOptions.getMaxHeapSize());
+    @VisibleForTesting
+    static DaemonContext buildDaemonContextForCurrentProcess(DaemonRequestContext requestContext, CurrentProcess currentProcess) {
+        return new DefaultDaemonContext(
+            UUID.randomUUID().toString(),
+            currentProcess.getJvm().getJavaHome(),
+            JavaVersion.current(),
+            null, 0L, 0,
+            currentProcess.getJvmOptions().getAllImmutableJvmArgs(),
+            AgentStatus.allowed().isAgentInstrumentationEnabled(),
+            // These aren't being properly checked.
+            // We assume the current process is compatible when considering these properties.
+            requestContext.getNativeServicesMode(), requestContext.getPriority()
+        );
     }
 
     private Runnable runBuildInProcess(StartParameterInternal startParameter, DaemonParameters daemonParameters) {
