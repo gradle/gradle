@@ -87,14 +87,14 @@ public class MethodVisitorScope extends MethodVisitor {
         super(ASM_LEVEL, methodVisitor);
     }
 
-    protected void emit(BytecodeFragment bytecode) {
+    public void emit(BytecodeFragment bytecode) {
         bytecode.emit(mv);
     }
 
     /**
      * Unboxes or casts the value at the top of the stack.
      */
-    protected void _UNBOX(Type targetType) {
+    public void _UNBOX(Type targetType) {
         switch (targetType.getSort()) {
             case Type.BOOLEAN:
                 unbox(BOXED_BOOLEAN_TYPE, "booleanValue", RETURN_PRIMITIVE_BOOLEAN);
@@ -134,7 +134,7 @@ public class MethodVisitorScope extends MethodVisitor {
     /**
      * Boxes the value at the top of the stack, if primitive
      */
-    protected void _AUTOBOX(Class<?> valueClass, Type valueType) {
+    public void _AUTOBOX(Class<?> valueClass, Type valueType) {
         if (valueClass.isPrimitive()) {
             // Box value
             Type boxedType = getType(getWrapperTypeForPrimitiveType(valueClass));
@@ -145,91 +145,91 @@ public class MethodVisitorScope extends MethodVisitor {
     /**
      * @see org.objectweb.asm.Opcodes#F_SAME
      */
-    protected void _F_SAME() {
+    public void _F_SAME() {
         super.visitFrame(F_SAME, 0, new Object[0], 0, new Object[0]);
     }
 
-    protected void _INVOKESPECIAL(Type owner, String name, String descriptor) {
+    public void _INVOKESPECIAL(Type owner, String name, String descriptor) {
         _INVOKESPECIAL(owner.getInternalName(), name, descriptor);
     }
 
-    protected void _INVOKESPECIAL(String owner, String name, String descriptor) {
+    public void _INVOKESPECIAL(String owner, String name, String descriptor) {
         _INVOKESPECIAL(owner, name, descriptor, false);
     }
 
-    protected void _INVOKESPECIAL(Type owner, String name, String descriptor, boolean isInterface) {
+    public void _INVOKESPECIAL(Type owner, String name, String descriptor, boolean isInterface) {
         _INVOKESPECIAL(owner.getInternalName(), name, descriptor, isInterface);
     }
 
-    protected void _INVOKESPECIAL(String owner, String name, String descriptor, boolean isInterface) {
+    public void _INVOKESPECIAL(String owner, String name, String descriptor, boolean isInterface) {
         super.visitMethodInsn(INVOKESPECIAL, owner, name, descriptor, isInterface);
     }
 
-    protected void _INVOKEINTERFACE(Type owner, String name, String descriptor) {
+    public void _INVOKEINTERFACE(Type owner, String name, String descriptor) {
         _INVOKEINTERFACE(owner.getInternalName(), name, descriptor);
     }
 
-    protected void _INVOKEINTERFACE(String owner, String name, String descriptor) {
+    public void _INVOKEINTERFACE(String owner, String name, String descriptor) {
         super.visitMethodInsn(INVOKEINTERFACE, owner, name, descriptor, true);
     }
 
-    protected void _INVOKESTATIC(Type owner, String name, String descriptor) {
+    public void _INVOKESTATIC(Type owner, String name, String descriptor) {
         _INVOKESTATIC(owner.getInternalName(), name, descriptor);
     }
 
-    protected void _INVOKESTATIC(String owner, String name, String descriptor) {
+    public void _INVOKESTATIC(String owner, String name, String descriptor) {
         super.visitMethodInsn(INVOKESTATIC, owner, name, descriptor, false);
     }
 
-    protected void _INVOKESTATIC(String owner, String name, String descriptor, boolean targetIsInterface) {
+    public void _INVOKESTATIC(String owner, String name, String descriptor, boolean targetIsInterface) {
         super.visitMethodInsn(INVOKESTATIC, owner, name, descriptor, targetIsInterface);
     }
 
-    protected void _INVOKEVIRTUAL(Type owner, String name, String descriptor) {
+    public void _INVOKEVIRTUAL(Type owner, String name, String descriptor) {
         _INVOKEVIRTUAL(owner.getInternalName(), name, descriptor);
     }
 
-    protected void _INVOKEVIRTUAL(String owner, String name, String descriptor) {
+    public void _INVOKEVIRTUAL(String owner, String name, String descriptor) {
         super.visitMethodInsn(INVOKEVIRTUAL, owner, name, descriptor, false);
     }
 
-    protected void _INVOKEDYNAMIC(String name, String descriptor, Handle bootstrapMethodHandle, List<?> bootstrapMethodArguments) {
+    public void _INVOKEDYNAMIC(String name, String descriptor, Handle bootstrapMethodHandle, List<?> bootstrapMethodArguments) {
         super.visitInvokeDynamicInsn(name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments.toArray());
     }
 
-    protected void _SWAP() {
+    public void _SWAP() {
         super.visitInsn(SWAP);
     }
 
-    protected void _POP() {
+    public void _POP() {
         super.visitInsn(POP);
     }
 
-    protected void _DUP() {
+    public void _DUP() {
         super.visitInsn(DUP);
     }
 
-    protected void _ICONST_0() {
+    public void _ICONST_0() {
         super.visitInsn(ICONST_0);
     }
 
-    protected void _ICONST_1() {
+    public void _ICONST_1() {
         super.visitInsn(ICONST_1);
     }
 
-    protected void _ACONST_NULL() {
+    public void _ACONST_NULL() {
         super.visitInsn(ACONST_NULL);
     }
 
-    protected void _LDC(Object value) {
+    public void _LDC(Object value) {
         super.visitLdcInsn(value);
     }
 
-    protected void _NEW(Type type) {
+    public void _NEW(Type type) {
         super.visitTypeInsn(NEW, type.getInternalName());
     }
 
-    protected void _CHECKCAST(Type type) {
+    public void _CHECKCAST(Type type) {
         _CHECKCAST(type.getInternalName());
     }
 
@@ -237,119 +237,119 @@ public class MethodVisitorScope extends MethodVisitor {
         super.visitTypeInsn(CHECKCAST, internalName);
     }
 
-    protected void _INSTANCEOF(Type type) {
+    public void _INSTANCEOF(Type type) {
         super.visitTypeInsn(INSTANCEOF, type.getInternalName());
     }
 
-    protected void _ILOAD_OF(Type type, int var) {
+    public void _ILOAD_OF(Type type, int var) {
         super.visitVarInsn(type.getOpcode(ILOAD), var);
     }
 
-    protected void _ALOAD(int var) {
+    public void _ALOAD(int var) {
         super.visitVarInsn(ALOAD, var);
     }
 
-    protected void _ASTORE(int var) {
+    public void _ASTORE(int var) {
         super.visitVarInsn(ASTORE, var);
     }
 
-    protected void _ANEWARRAY(Type type) {
+    public void _ANEWARRAY(Type type) {
         super.visitTypeInsn(ANEWARRAY, type.getInternalName());
     }
 
-    protected void _AALOAD() {
+    public void _AALOAD() {
         super.visitInsn(AALOAD);
     }
 
-    protected void _AASTORE() {
+    public void _AASTORE() {
         super.visitInsn(AASTORE);
     }
 
-    protected void _IFNONNULL(Label label) {
+    public void _IFNONNULL(Label label) {
         super.visitJumpInsn(IFNONNULL, label);
     }
 
-    protected void _IFNULL(Label label) {
+    public void _IFNULL(Label label) {
         super.visitJumpInsn(IFNULL, label);
     }
 
-    protected void _IFEQ(Label label) {
+    public void _IFEQ(Label label) {
         super.visitJumpInsn(IFEQ, label);
     }
 
-    protected void _GOTO(Label label) {
+    public void _GOTO(Label label) {
         super.visitJumpInsn(GOTO, label);
     }
 
-    protected void _ARETURN() {
+    public void _ARETURN() {
         super.visitInsn(ARETURN);
     }
 
-    protected void _IRETURN_OF(Type type) {
+    public void _IRETURN_OF(Type type) {
         super.visitInsn(type.getOpcode(IRETURN));
     }
 
-    protected void _IRETURN() {
+    public void _IRETURN() {
         super.visitInsn(IRETURN);
     }
 
-    protected void _RETURN() {
+    public void _RETURN() {
         super.visitInsn(RETURN);
     }
 
-    protected void _PUTFIELD(String owner, String name, String descriptor) {
+    public void _PUTFIELD(String owner, String name, String descriptor) {
         super.visitFieldInsn(PUTFIELD, owner, name, descriptor);
     }
 
-    protected void _PUTFIELD(String owner, String name, Type fieldType) {
+    public void _PUTFIELD(String owner, String name, Type fieldType) {
         _PUTFIELD(owner, name, fieldType.getDescriptor());
     }
 
-    protected void _PUTFIELD(Type owner, String name, Type fieldType) {
+    public void _PUTFIELD(Type owner, String name, Type fieldType) {
         _PUTFIELD(owner, name, fieldType.getDescriptor());
     }
 
-    protected void _PUTFIELD(Type owner, String name, String descriptor) {
+    public void _PUTFIELD(Type owner, String name, String descriptor) {
         _PUTFIELD(owner.getInternalName(), name, descriptor);
     }
 
-    protected void _GETFIELD(String owner, String name, String descriptor) {
+    public void _GETFIELD(String owner, String name, String descriptor) {
         super.visitFieldInsn(GETFIELD, owner, name, descriptor);
     }
 
-    protected void _GETFIELD(String owner, String name, Type fieldType) {
+    public void _GETFIELD(String owner, String name, Type fieldType) {
         _GETFIELD(owner, name, fieldType.getDescriptor());
     }
 
-    protected void _GETFIELD(Type owner, String name, Type fieldType) {
+    public void _GETFIELD(Type owner, String name, Type fieldType) {
         _GETFIELD(owner, name, fieldType.getDescriptor());
     }
 
-    protected void _GETFIELD(Type owner, String name, String descriptor) {
+    public void _GETFIELD(Type owner, String name, String descriptor) {
         _GETFIELD(owner.getInternalName(), name, descriptor);
     }
 
-    protected void _PUTSTATIC(String owner, String name, String descriptor) {
+    public void _PUTSTATIC(String owner, String name, String descriptor) {
         super.visitFieldInsn(PUTSTATIC, owner, name, descriptor);
     }
 
-    protected void _PUTSTATIC(Type owner, String name, Type fieldType) {
+    public void _PUTSTATIC(Type owner, String name, Type fieldType) {
         _PUTSTATIC(owner, name, fieldType.getDescriptor());
     }
 
-    protected void _PUTSTATIC(Type owner, String name, String descriptor) {
+    public void _PUTSTATIC(Type owner, String name, String descriptor) {
         _PUTSTATIC(owner.getInternalName(), name, descriptor);
     }
 
-    protected void _GETSTATIC(String owner, String name, String descriptor) {
+    public void _GETSTATIC(String owner, String name, String descriptor) {
         super.visitFieldInsn(GETSTATIC, owner, name, descriptor);
     }
 
-    protected void _GETSTATIC(Type owner, String name, Type fieldType) {
+    public void _GETSTATIC(Type owner, String name, Type fieldType) {
         _GETSTATIC(owner, name, fieldType.getDescriptor());
     }
 
-    protected void _GETSTATIC(Type owner, String name, String descriptor) {
+    public void _GETSTATIC(Type owner, String name, String descriptor) {
         _GETSTATIC(owner.getInternalName(), name, descriptor);
     }
 }

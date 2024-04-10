@@ -42,6 +42,7 @@ dependencies {
     implementation(libs.jacksonDatabind)
 
     implementation(project(":base-services"))
+    implementation(project(":base-asm"))
 
     testCompileOnly(libs.jetbrainsAnnotations)
 
