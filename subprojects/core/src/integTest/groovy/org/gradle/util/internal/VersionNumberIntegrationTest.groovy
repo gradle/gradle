@@ -54,6 +54,8 @@ class VersionNumberIntegrationTest extends AbstractIntegrationSpec {
             }
 
             tasks.withType<KotlinCompile>().configureEach {
+                // Work around JVM validation issue: https://youtrack.jetbrains.com/issue/KT-66919
+                jvmTargetValidationMode = org.jetbrains.kotlin.gradle.dsl.jvm.JvmTargetValidationMode.WARNING
                 compilerOptions {
                     freeCompilerArgs.add("-Xjsr305=strict")
                 }
