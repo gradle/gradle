@@ -40,6 +40,7 @@ class ProvisionedJdkReuseCrossVersionIntegrationTest extends CrossVersionIntegra
     private def jdkDir = userHome.toPath().resolve("jdks")
 
     def setup() {
+        userHome.deleteDir()
         settingsFile << """
             plugins {
                 id("org.gradle.toolchains.foojay-resolver-convention") version "0.8.0"
@@ -66,16 +67,15 @@ class ProvisionedJdkReuseCrossVersionIntegrationTest extends CrossVersionIntegra
 
     def "current version does not use jdk provisioned by previous version"() {
         given:
-
         when:
-        def result = version previous withGradleUserHomeDir userHome withTasks 'run' withArguments '-i', '-Porg.gradle.java.installations.auto-download=true' run()
+        def result = version previous withGradleUserHomeDir userHome withTasks 'run' withArguments '-Porg.gradle.java.installations.auto-download=true' run()
 
         then:
         def previousJavaHome = getPrintedJavaHome(result)
         previousJavaHome.startsWith(jdkDir)
 
         when:
-        result = version current withGradleUserHomeDir userHome withTasks 'run' withArguments '-i', '-Porg.gradle.java.installations.auto-download=true' run()
+        result = version current withGradleUserHomeDir userHome withTasks 'run' withArguments '-Porg.gradle.java.installations.auto-download=true' run()
 
         then:
         def currentJavaHome = getPrintedJavaHome(result)
@@ -86,14 +86,14 @@ class ProvisionedJdkReuseCrossVersionIntegrationTest extends CrossVersionIntegra
     def "current version's provisioned jdk is used by previous version"() {
         given:
         when:
-        def result = version current withGradleUserHomeDir userHome withTasks 'run' withArguments '-i', '-Porg.gradle.java.installations.auto-download=true' run()
+        def result = version current withGradleUserHomeDir userHome withTasks 'run' withArguments '-Porg.gradle.java.installations.auto-download=true' run()
 
         then:
         def currentJavaHome = getPrintedJavaHome(result)
         currentJavaHome.startsWith(jdkDir)
 
         when:
-        result = version previous withGradleUserHomeDir userHome withTasks 'run' withArguments '-i', '-Porg.gradle.java.installations.auto-download=true' run()
+        result = version previous withGradleUserHomeDir userHome withTasks 'run' withArguments '-Porg.gradle.java.installations.auto-download=true' run()
 
         then:
         getPrintedJavaHome(result) == currentJavaHome
