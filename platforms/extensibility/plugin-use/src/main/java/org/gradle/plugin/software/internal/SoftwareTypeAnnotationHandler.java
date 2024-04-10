@@ -55,7 +55,7 @@ public class SoftwareTypeAnnotationHandler extends AbstractPropertyAnnotationHan
                 validationContext.visitPropertyProblem(problem ->
                     problem
                         .forProperty(propertyMetadata.getPropertyName())
-                        .id(TextUtil.screamingSnakeToKebabCase("mismatched-types-for-software-type"), "has @SoftwareType annotation used on property", GradleCoreProblemGroup.validation().property())
+                        .id("mismatched-types-for-software-type", "has @SoftwareType annotation used on property", GradleCoreProblemGroup.validation().property())
                         .contextualLabel(String.format("has @SoftwareType annotation with public type '%s' used on property of type '%s'", ModelType.of(publicType).getDisplayName(), ModelType.of(valueType).getDisplayName()))
                         .severity(Severity.ERROR)
                         .details("The publicType value of the @SoftwareType annotation (" + ModelType.of(publicType).getDisplayName() + ") must be the same type as or a supertype of '" + ModelType.of(valueType).getDisplayName() + "'")
