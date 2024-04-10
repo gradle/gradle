@@ -19,7 +19,7 @@ package org.gradle.internal.work;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-@ServiceScope(Scope.BuildSession.class)
+@ServiceScope(Scope.CrossBuildSession.class)
 public interface ProjectParallelExecutionController {
     /**
      * Indicate that project execution may happen.
