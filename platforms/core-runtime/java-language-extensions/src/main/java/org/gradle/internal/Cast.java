@@ -66,13 +66,13 @@ public abstract class Cast {
         return cast(outputType, object);
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "TypeParameterUnusedInFormals"})
     @Nullable
     public static <T> T uncheckedCast(@Nullable Object object) {
         return (T) object;
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "TypeParameterUnusedInFormals"})
     public static <T> T uncheckedNonnullCast(Object object) {
         return (T) object;
     }
