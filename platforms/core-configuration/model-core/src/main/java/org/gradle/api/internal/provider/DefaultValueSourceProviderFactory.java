@@ -26,6 +26,7 @@ import org.gradle.api.provider.ValueSource;
 import org.gradle.api.provider.ValueSourceParameters;
 import org.gradle.api.provider.ValueSourceSpec;
 import org.gradle.internal.Cast;
+import org.gradle.internal.Describables;
 import org.gradle.internal.Try;
 import org.gradle.internal.event.AnonymousListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
@@ -34,18 +35,22 @@ import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolated.IsolationScheme;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.logging.text.TreeFormatter;
+import org.gradle.internal.model.CalculatedValue;
+import org.gradle.internal.model.CalculatedValueFactory;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.process.ExecOperations;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class DefaultValueSourceProviderFactory implements ValueSourceProviderFactory {
 
     private final InstantiatorFactory instantiatorFactory;
     private final IsolatableFactory isolatableFactory;
     private final GradleProperties gradleProperties;
+    private final CalculatedValueFactory calculatedValueFactory;
     private final ExecOperations execOperations;
     private final AnonymousListenerBroadcast<ValueListener> valueBroadcaster;
     private final AnonymousListenerBroadcast<ComputationListener> computationBroadcaster;
@@ -58,6 +63,7 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         InstantiatorFactory instantiatorFactory,
         IsolatableFactory isolatableFactory,
         GradleProperties gradleProperties,
+        CalculatedValueFactory calculatedValueFactory,
         ExecOperations execOperations,
         ServiceLookup services
     ) {
@@ -66,6 +72,7 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         this.instantiatorFactory = instantiatorFactory;
         this.isolatableFactory = isolatableFactory;
         this.gradleProperties = gradleProperties;
+        this.calculatedValueFactory = calculatedValueFactory;
         this.execOperations = execOperations;
         // TODO - dedupe logic copied from DefaultBuildServicesRegistry
         this.paramsInstantiator = instantiatorFactory.decorateScheme().withServices(services).instantiator();
@@ -230,9 +237,8 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
             return true;
         }
 
-        @Nullable
-        public Try<@org.jetbrains.annotations.Nullable T> getObtainedValueOrNull() {
-            return value.value;
+        public boolean hasBeenObtained() {
+            return value.hasBeenObtained();
         }
 
         @Nullable
@@ -266,8 +272,11 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         @Nullable
         public final P parameters;
 
-        @Nullable
-        private volatile Try<@org.jetbrains.annotations.Nullable T> value = null;
+        private final CalculatedValue<@org.jetbrains.annotations.Nullable T> value;
+        // A temporary holder for the source used to obtain the value.
+        // This is sent to observers alongside the actual value by a single thread.
+        // The thread then clears the reference to save memory.
+        private final AtomicReference<ValueSource<T, P>> sourceRef = new AtomicReference<>();
 
         private LazilyObtainedValue(
             Class<? extends ValueSource<T, P>> sourceType,
@@ -277,33 +286,31 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
             this.sourceType = sourceType;
             this.parametersType = parametersType;
             this.parameters = parameters;
+            this.value = calculatedValueFactory.create(Describables.of("ValueSource of type", sourceType), () -> {
+                    computationBroadcaster.getSource().beforeValueObtained();
+                    try {
+                        ValueSource<T, P> source = source();
+                        sourceRef.set(source);
+                        return source.obtain();
+                    } finally {
+                        computationBroadcaster.getSource().afterValueObtained();
+                    }
+                }
+            );
         }
 
         public boolean hasBeenObtained() {
-            return value != null;
+            return value.isFinalized();
         }
 
         public Try<@org.jetbrains.annotations.Nullable T> obtain() {
-            ValueSource<T, P> source;
-            // Return value from local to avoid nullability warnings when returning value from the field directly.
-            Try<T> obtained;
-            synchronized (this) {
-                Try<T> cached = value;
-                if (cached != null) {
-                    return cached;
-                }
-                computationBroadcaster.getSource().beforeValueObtained();
-                try {
-                    // TODO - add more information to exceptions
-                    // Fail fast when source can't be instantiated.
-                    source = source();
-                    value = obtained = Try.ofFailable(source::obtain);
-                } finally {
-                    computationBroadcaster.getSource().afterValueObtained();
-                }
+            value.finalizeIfNotAlready();
+            Try<@org.jetbrains.annotations.Nullable T> obtained = value.getValue();
+            ValueSource<T, P> obtainedFrom = sourceRef.getAndSet(null);
+            if (obtainedFrom != null) {
+                // We are the first thread to see the obtained value. Let's tell the interested parties about it.
+                valueBroadcaster.getSource().valueObtained(obtainedValue(obtained), obtainedFrom);
             }
-            // Value obtained for the 1st time, notify listeners.
-            valueBroadcaster.getSource().valueObtained(obtainedValue(obtained), source);
             return obtained;
         }
 
@@ -317,7 +324,7 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         }
 
         @Nonnull
-        private DefaultObtainedValue<T, P> obtainedValue(Try<T> obtained) {
+        private DefaultObtainedValue<T, P> obtainedValue(Try<@org.jetbrains.annotations.Nullable T> obtained) {
             return new DefaultObtainedValue<>(
                 obtained,
                 sourceType,
