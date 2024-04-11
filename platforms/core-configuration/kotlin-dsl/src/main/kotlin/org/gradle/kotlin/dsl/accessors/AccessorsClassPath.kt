@@ -72,7 +72,7 @@ import java.io.File
 import javax.inject.Inject
 
 
-@ServiceScope(Scope.Gradle::class)
+@ServiceScope(Scope.Build::class)
 class ProjectAccessorsClassPathGenerator @Inject internal constructor(
     private val fileCollectionFactory: FileCollectionFactory,
     private val projectSchemaProvider: ProjectSchemaProvider,

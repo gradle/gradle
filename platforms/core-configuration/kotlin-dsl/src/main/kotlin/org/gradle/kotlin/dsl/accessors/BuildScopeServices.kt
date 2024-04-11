@@ -25,7 +25,7 @@ import org.gradle.kotlin.dsl.concurrent.AsyncIOScopeFactory
 
 
 internal
-object GradleScopeServices {
+object BuildScopeServices {
 
     @Suppress("unused")
     fun createStage1BlocksAccessorClassPathGenerator(

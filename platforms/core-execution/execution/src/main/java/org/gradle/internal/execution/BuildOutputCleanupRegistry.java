@@ -23,7 +23,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import java.io.File;
 import java.util.Set;
 
-@ServiceScope(Scope.Gradle.class)
+@ServiceScope(Scope.Build.class)
 public interface BuildOutputCleanupRegistry {
 
     /**
