@@ -24,9 +24,9 @@ import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State
 class LegacyDaemon extends AbstractDaemonFixture {
     private final DaemonLogFileStateProbe logFileProbe
 
-    LegacyDaemon(File daemonLog, String version) {
-        super(daemonLog)
-        if (GradleVersion.version(version).baseVersion >= GradleVersion.version("2.2")) {
+    LegacyDaemon(File daemonLog, GradleVersion version) {
+        super(daemonLog, version)
+        if (version.baseVersion >= GradleVersion.version("2.2")) {
             logFileProbe = new DaemonLogFileStateProbe(daemonLog, context)
         } else {
             logFileProbe = new DaemonLogFileStateProbe(daemonLog, context, "Daemon is busy, sleeping until state changes", "Daemon is idle, sleeping until state change")

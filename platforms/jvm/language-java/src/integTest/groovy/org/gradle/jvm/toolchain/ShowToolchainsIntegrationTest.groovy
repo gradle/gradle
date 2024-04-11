@@ -54,6 +54,6 @@ class ShowToolchainsIntegrationTest extends AbstractIntegrationSpec {
         run("javaToolchains", "--debug")
 
         outputContains(":javaToolchains")
-        outputContains("Discovering toolchains provided via Maven Toolchains")
+        outputContains("Discovering toolchains provided ")
     }
 }

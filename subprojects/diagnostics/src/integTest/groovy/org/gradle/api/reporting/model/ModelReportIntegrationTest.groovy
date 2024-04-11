@@ -388,7 +388,7 @@ model {
           | Rules:
              ⤷ copyToTaskContainer
     + updateDaemonJvm
-          | Type:   \torg.gradle.internal.buildconfiguration.tasks.UpdateDaemonJvmTask
+          | Type:   \torg.gradle.buildconfiguration.tasks.UpdateDaemonJvm
           | Value:  \ttask ':updateDaemonJvm\'
           | Creator: \tProject.<init>.tasks.updateDaemonJvm()
           | Rules:
