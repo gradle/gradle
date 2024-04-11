@@ -42,9 +42,13 @@ class TextPreservingTree internal constructor(
     class SubTreeData(val childTag: ChildTag, val subTreeNode: TextTreeNode)
 
     sealed interface ChildTag {
+        sealed interface ValueNodeChildTag : ChildTag {
+            val valueNode: DeclarativeDocument.ValueNode
+        }
+
         data object Name : ChildTag
-        data object AssignmentRhs : ChildTag
-        data class CallArgument(val index: Int, val valueNode: DeclarativeDocument.ValueNode) : ChildTag
+        data class AssignmentRhs(override val valueNode: DeclarativeDocument.ValueNode) : ValueNodeChildTag
+        data class CallArgument(val index: Int, override val valueNode: DeclarativeDocument.ValueNode) : ValueNodeChildTag
         data class BlockElement(val index: Int, val documentNode: DeclarativeDocument.DocumentNode) : ChildTag
 
         // These do not represent parts of the DOM but serve for preserving the original formatting and comments
@@ -99,7 +103,7 @@ class TextPreservingTreeBuilder {
             is DeclarativeDocument.DocumentNode.PropertyNode -> {
                 listOf(
                     SubTreeData(ChildTag.Name, TextTreeNode(node.sourceData.nameRange(node.name), node.lines, emptyList())),
-                    SubTreeData(ChildTag.AssignmentRhs, nodeForValueNode(node.value))
+                    SubTreeData(ChildTag.AssignmentRhs(node.value), nodeForValueNode(node.value))
                 )
             }
 
