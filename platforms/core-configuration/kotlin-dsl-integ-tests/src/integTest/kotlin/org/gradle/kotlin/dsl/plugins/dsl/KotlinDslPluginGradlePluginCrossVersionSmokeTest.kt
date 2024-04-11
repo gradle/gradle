@@ -119,7 +119,7 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
 
 
         if (kotlinVersion >= VersionNumber.parse("1.6") && kotlinVersion < VersionNumber.parse("1.7")) {
-            executer.expectDocumentedDeprecationWarning("The AbstractCompile.destinationDir property has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the destinationDirectory property instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#compile_task_wiring")
+            executer.expectDocumentedDeprecationWarning("The AbstractCompile.destinationDir property has been deprecated. This is scheduled to be removed in Gradle 9.0. Property was automatically upgraded to the lazy version. Please use the destinationDirectory property instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#compile_task_wiring")
             if (GradleContextualExecuter.isConfigCache()) {
                 executer.expectDocumentedDeprecationWarning(
                     "The BasePluginExtension.archivesBaseName property has been deprecated. " +

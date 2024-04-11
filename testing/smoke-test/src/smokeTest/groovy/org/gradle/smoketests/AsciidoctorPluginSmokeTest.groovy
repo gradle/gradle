@@ -107,6 +107,7 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
                 versionNumber.major < 4,
                 "The JavaExecSpec.main property has been deprecated." +
                     " This is scheduled to be removed in Gradle 9.0." +
+                    " Property was automatically upgraded to the lazy version." +
                     " Please use the mainClass property instead." +
                     " ${String.format(DocumentationRegistry.RECOMMENDATION, "information", "${BASE_URL}/dsl/org.gradle.process.JavaExecSpec.html#org.gradle.process.JavaExecSpec:main")}"
             )
