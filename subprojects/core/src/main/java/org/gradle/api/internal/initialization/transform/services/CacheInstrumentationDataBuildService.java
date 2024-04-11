@@ -47,11 +47,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 public abstract class CacheInstrumentationDataBuildService implements BuildService<BuildServiceParameters.None> {
 
-    /**
-     * Can be removed once we actually have some upgrades, but without upgrades we currently can't test this
-     */
-    public static final String GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY = "org.gradle.internal.instrumentation.generateClassHierarchyWithoutUpgrades";
-
     private final Map<Long, ResolutionData> resolutionData = new ConcurrentHashMap<>();
     private final Lazy<InjectedInstrumentationServices> internalServices = Lazy.locking().of(() -> getObjectFactory().newInstance(InjectedInstrumentationServices.class));
 
@@ -60,7 +55,7 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
 
     public InstrumentationTypeRegistry getInstrumentationTypeRegistry(long contextId) {
         InstrumentationTypeRegistry gradleCoreInstrumentationTypeRegistry = internalServices.get().getGradleCoreInstrumentationTypeRegistry();
-        if (!Boolean.getBoolean(GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY) && gradleCoreInstrumentationTypeRegistry.isEmpty()) {
+        if (gradleCoreInstrumentationTypeRegistry.isEmpty()) {
             // In case core types registry is empty, it means we don't have any upgrades
             // in Gradle core, so we can return empty registry
             return InstrumentationTypeRegistry.empty();
