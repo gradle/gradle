@@ -32,7 +32,7 @@ dependencies {
     api(libs.inject)
     api(libs.jsr305)
 
-    implementation(project(":base-annotations"))
+    implementation(projects.javaLanguageExtensions)
     implementation(project(":file-collections"))
     implementation(project(":logging"))
     implementation(project(":logging-api"))

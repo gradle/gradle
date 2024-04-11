@@ -18,7 +18,7 @@ dependencies {
 
     api(libs.jsr305)
 
-    implementation(project(":base-annotations"))
+    implementation(projects.javaLanguageExtensions)
     implementation(libs.commonsIo)
     api(libs.guava)
     implementation(libs.slf4jApi)

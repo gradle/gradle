@@ -6,7 +6,7 @@ description = "A set of generic services and utilities specific for Groovy."
 
 dependencies {
     api(project(":base-services"))
-    api(project(":base-annotations"))
+    api(projects.javaLanguageExtensions)
 
     api(libs.jsr305)
     api(libs.groovy)

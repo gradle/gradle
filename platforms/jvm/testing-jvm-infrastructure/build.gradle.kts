@@ -27,7 +27,7 @@ various implementations of WorkerTestClassProcessorFactory.
 """
 
 dependencies {
-    api(project(":base-annotations"))
+    api(projects.javaLanguageExtensions)
     api(project(":base-services"))
     api(project(":messaging"))
     api(project(":testing-base"))

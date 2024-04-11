@@ -23,7 +23,7 @@ dependencies {
     compileOnly(libs.jetbrainsAnnotations)
 
     api(project(":process-services"))
-    api(project(":base-annotations"))
+    api(projects.javaLanguageExtensions)
     api(project(":build-cache-spi"))
     api(project(":logging-api"))
     api(project(":base-services"))

@@ -14,7 +14,7 @@ dependencies {
 
     api(libs.guava)
 
-    implementation(project(":base-annotations"))
+    implementation(projects.javaLanguageExtensions)
     implementation(libs.commonsCompress)
     implementation(libs.commonsIo)
     implementation(libs.jsr305)

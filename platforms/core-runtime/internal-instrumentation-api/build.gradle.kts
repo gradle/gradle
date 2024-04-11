@@ -25,7 +25,7 @@ errorprone {
 }
 
 dependencies {
-    api(project(":base-annotations"))
+    api(projects.javaLanguageExtensions)
 
     api(libs.asm)
     api(libs.asmTree)

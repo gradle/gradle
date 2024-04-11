@@ -16,7 +16,7 @@ dependencies {
     api(libs.jsr305)
 
     api(project(":cli"))
-    api(project(":base-annotations"))
+    api(projects.javaLanguageExtensions)
     api(project(":messaging"))
 
     implementation(project(":base-services"))

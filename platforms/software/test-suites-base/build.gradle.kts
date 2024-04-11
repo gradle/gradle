@@ -10,7 +10,7 @@ This project is separate from testing-base to avoid needing to be Java 6 compati
 """
 
 dependencies {
-    api(project(":base-annotations"))
+    api(projects.javaLanguageExtensions)
     api(project(":base-services"))
     api(project(":core-api"))
     api(project(":model-core"))

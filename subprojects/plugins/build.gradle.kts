@@ -13,7 +13,7 @@ dependencies {
     api(project(":base-services"))
     api(project(":core"))
 
-    implementation(project(":base-annotations"))
+    implementation(projects.javaLanguageExtensions)
     implementation(project(":core-api"))
     implementation(project(":hashing"))
     implementation(project(":language-java"))

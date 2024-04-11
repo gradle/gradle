@@ -14,7 +14,7 @@ errorprone {
 }
 
 dependencies {
-    api(project(":base-annotations"))
+    api(projects.javaLanguageExtensions)
     api(project(":files"))
     api(project(":functional"))
     api(project(":hashing"))

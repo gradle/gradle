@@ -7,5 +7,5 @@ description = "A set of generic services and utilities to be used form workers. 
 gradlebuildJava.usedInWorkers()
 
 dependencies {
-    implementation(project(":base-annotations"))
+    implementation(projects.javaLanguageExtensions)
 }
