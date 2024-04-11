@@ -16,9 +16,6 @@
 
 package org.gradle.internal.time;
 
-import com.google.common.annotations.VisibleForTesting;
-
-@VisibleForTesting
 interface TimeSource {
 
     long currentTimeMillis();
