@@ -308,8 +308,7 @@ public class ProviderConnection {
         } else {
             LoggingServiceRegistry requestSpecificLogging = LoggingServiceRegistry.newNestedLogging();
             loggingManager = requestSpecificLogging.getFactory(LoggingManagerInternal.class).create();
-            // TODO: !!!
-            ServiceRegistry clientServices = daemonClientFactory.createBuildClientServices(requestSpecificLogging, params.daemonParams, configureForRequestContext(params.daemonParams), standardInput);
+            ServiceRegistry clientServices = daemonClientFactory.createBuildClientServices(requestSpecificLogging, params.daemonParams, params.requestContext, standardInput);
             executer = clientServices.get(DaemonClient.class);
         }
         return new LoggingBridgingBuildActionExecuter(new DaemonBuildActionExecuter(executer), loggingManager);
@@ -382,6 +381,8 @@ public class ProviderConnection {
             daemonParams.setRequestedJvmBasedOnJavaHome(Jvm.forHome(javaHome));
         }
 
+        DaemonRequestContext requestContext = configureForRequestContext(daemonParams);
+
         if (operationParameters.getDaemonMaxIdleTimeValue() != null && operationParameters.getDaemonMaxIdleTimeUnits() != null) {
             int idleTimeout = (int) operationParameters.getDaemonMaxIdleTimeUnits().toMillis(operationParameters.getDaemonMaxIdleTimeValue());
             daemonParams.setIdleTimeout(idleTimeout);
@@ -396,7 +397,7 @@ public class ProviderConnection {
             GUtil.addToMap(effectiveSystemProperties, System.getProperties());
             effectiveSystemProperties.putAll(daemonParams.getMutableAndImmutableSystemProperties());
         }
-        return new Parameters(daemonParams, buildLayoutResult, properties, effectiveSystemProperties);
+        return new Parameters(daemonParams, buildLayoutResult, properties, effectiveSystemProperties, requestContext);
     }
 
     private static class Parameters {
@@ -404,12 +405,14 @@ public class ProviderConnection {
         final BuildLayoutResult buildLayout;
         final AllProperties properties;
         final Map<String, String> tapiSystemProperties;
+        final DaemonRequestContext requestContext;
 
-        public Parameters(DaemonParameters daemonParams, BuildLayoutResult buildLayout, AllProperties properties, Map<String, String> tapiSystemProperties) {
+        public Parameters(DaemonParameters daemonParams, BuildLayoutResult buildLayout, AllProperties properties, Map<String, String> tapiSystemProperties, DaemonRequestContext requestContext) {
             this.daemonParams = daemonParams;
             this.buildLayout = buildLayout;
             this.properties = properties;
             this.tapiSystemProperties = tapiSystemProperties;
+            this.requestContext = requestContext;
         }
     }
 
