@@ -258,6 +258,22 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
     }
 
     @Override
+    public ExecutionFailure assertThatAllDescriptions(Matcher<? super String> matcher) {
+        Set<String> unmatched = new LinkedHashSet<>();
+        for (Problem problem : problems) {
+            if (matcher.matches(problem.description)) {
+                problemsNotChecked.remove(problem);
+            } else {
+                unmatched.add(problem.description);
+            }
+        }
+        if (!unmatched.isEmpty()) {
+            failureOnUnexpectedOutput(String.format("Not all failure descriptions match\nExpected: All failure descriptions are %s\n     but: unmatched failure descriptions %s", matcher, unmatched));
+        }
+        return this;
+    }
+
+    @Override
     public ExecutionFailure assertHasFailure(String description, Consumer<? super Failure> action) {
         assertHasFailure(startsWith(description), action);
         return this;

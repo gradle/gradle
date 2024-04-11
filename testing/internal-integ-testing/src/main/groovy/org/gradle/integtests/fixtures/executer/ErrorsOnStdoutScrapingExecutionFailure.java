@@ -76,6 +76,12 @@ public class ErrorsOnStdoutScrapingExecutionFailure extends ErrorsOnStdoutScrapi
     }
 
     @Override
+    public ExecutionFailure assertThatAllDescriptions(Matcher<? super String> matcher) {
+        delegate.assertThatDescription(matcher);
+        return this;
+    }
+
+    @Override
     public ExecutionFailure assertHasFailure(String description, Consumer<? super Failure> action) {
         delegate.assertHasFailure(description, action);
         return this;
