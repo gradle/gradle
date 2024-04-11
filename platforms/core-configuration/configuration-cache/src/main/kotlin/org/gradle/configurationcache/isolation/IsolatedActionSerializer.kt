@@ -17,7 +17,6 @@
 package org.gradle.configurationcache.isolation
 
 import org.gradle.api.IsolatedAction
-import org.gradle.api.services.internal.BuildServiceProvider
 import org.gradle.configurationcache.extensions.invert
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.extensions.useToRun
@@ -56,7 +55,7 @@ class SerializedAction(
 
     /**
      * External references that are not serialized directly as part of the [graph].
-     * These include [Class] and [BuildServiceProvider] references.
+     * These might include references to classes, value sources and build services.
      *
      * Maps the integer written to the serialized [graph] to the external reference.
      * See [EnvironmentEncoder] and [EnvironmentDecoder] for details.
@@ -82,7 +81,11 @@ class IsolatedActionSerializer(
     }
 
     private
-    fun serializeTo(outputStream: ByteArrayOutputStream, environmentEncoder: EnvironmentEncoder, action: Any) {
+    fun serializeTo(
+        outputStream: ByteArrayOutputStream,
+        environmentEncoder: EnvironmentEncoder,
+        action: Any
+    ) {
         writeContextFor(outputStream, environmentEncoder).useToRun {
             runWriteOperation {
                 withIsolate(owner) {
@@ -124,7 +127,9 @@ class IsolatedActionDeserializer(
         }
 
     private
-    fun readerContextFor(action: SerializedAction) = DefaultReadContext(
+    fun readerContextFor(
+        action: SerializedAction
+    ) = DefaultReadContext(
         codec = isolatedActionCodecs.isolatedActionCodecs(),
         decoder = KryoBackedDecoder(action.graph.inputStream()),
         beanStateReaderLookup = beanStateReaderLookup,
@@ -166,6 +171,9 @@ class EnvironmentDecoder(
 }
 
 
+/**
+ * TODO: report problems via the Problems API
+ */
 private
 object ThrowingProblemsListener : ProblemsListener {
     override fun onProblem(problem: PropertyProblem) {

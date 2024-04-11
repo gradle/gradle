@@ -83,6 +83,10 @@ class IsolatedActionCodecsFactory(
             }.build()
         )
 
+    /**
+     * Value sources and build services are currently unsupported but could eventually
+     * be captured as part of the serialized action [environment][org.gradle.configurationcache.isolation.SerializedAction.environment]
+     **/
     private
     fun BindingsBuilder.unsupportedProviderTypes() {
         bind(unsupported<ValueSourceProvider<*, *>>())

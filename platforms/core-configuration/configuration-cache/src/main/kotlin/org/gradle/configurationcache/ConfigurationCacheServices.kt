@@ -67,10 +67,10 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
             add(InputTrackingState::class.java)
             add(InstrumentedInputAccessListener::class.java)
             add(InstrumentedExecutionAccessListener::class.java)
+            add(IsolatedActionCodecsFactory::class.java)
             addProvider(IgnoredConfigurationInputsProvider)
             addProvider(RemoteScriptUpToDateCheckerProvider)
             addProvider(ExecutionAccessCheckerProvider)
-            add(IsolatedActionCodecsFactory::class.java)
         }
     }
 
