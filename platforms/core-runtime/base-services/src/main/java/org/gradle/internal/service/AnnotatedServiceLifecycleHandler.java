@@ -26,6 +26,10 @@ import java.util.List;
 public interface AnnotatedServiceLifecycleHandler {
     List<Class<? extends Annotation>> getAnnotations();
 
+    /**
+     * When not null, all services are considered to have the implicit annotation
+     * and the handler should be notified about all registrations.
+     */
     @Nullable
     Class<? extends Annotation> getImplicitAnnotation();
 
