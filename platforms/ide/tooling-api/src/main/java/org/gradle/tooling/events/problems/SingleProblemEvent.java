@@ -38,14 +38,6 @@ public interface SingleProblemEvent extends ProblemEvent {
     ProblemDefinition getDefinition();
 
     /**
-     * Returns the problem category.
-     *
-     * @return the problem category
-     * @since 8.8
-     */
-    ProblemCategory getCategory();
-
-    /**
      * Returns the contextual label.
      *
      * @return the problem label
@@ -62,28 +54,12 @@ public interface SingleProblemEvent extends ProblemEvent {
     Details getDetails();
 
     /**
-     * Returns the problem severity.
-     *
-     * @return the problem severity
-     * @since 8.8
-     */
-    Severity getSeverity();
-
-    /**
      * Returns the locations associated with this problem.
      *
      * @return the locations
      * @since 8.8
      */
     List<Location> getLocations();
-
-    /**
-     * Returns the link to the documentation
-     *
-     * @return the locations
-     * @since 8.8
-     */
-    DocumentationLink getDocumentationLink();
 
     /**
      * Returns the list of solutions.
