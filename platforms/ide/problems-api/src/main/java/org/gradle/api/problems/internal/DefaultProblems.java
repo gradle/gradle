@@ -18,6 +18,7 @@ package org.gradle.api.problems.internal;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Multimaps;
 import org.gradle.api.problems.ProblemReporter;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.service.scopes.Scope;
@@ -35,7 +36,7 @@ public class DefaultProblems implements InternalProblems {
     private final ProblemEmitter emitter;
     private final List<ProblemTransformer> transformers;
     private final InternalProblemReporter internalReporter;
-    private final Multimap<Throwable, Problem>  problems = HashMultimap.create();
+    private final Multimap<Throwable, Problem>  problems = Multimaps.synchronizedMultimap(HashMultimap.<Throwable, Problem>create());
 
     public DefaultProblems(ProblemEmitter emitter, CurrentBuildOperationRef currentBuildOperationRef) {
         this(emitter, Collections.<ProblemTransformer>emptyList(), currentBuildOperationRef);
@@ -48,7 +49,7 @@ public class DefaultProblems implements InternalProblems {
         this.emitter = emitter;
         this.transformers = transformers;
         this.currentBuildOperationRef = currentBuildOperationRef;
-        internalReporter = createReporter(emitter, transformers, problems);
+        internalReporter = createReporter(emitter, transformers, getProblems());
     }
 
     @Override
@@ -56,7 +57,7 @@ public class DefaultProblems implements InternalProblems {
         if (GRADLE_CORE_NAMESPACE.equals(namespace)) {
             throw new IllegalStateException("Cannot use " + GRADLE_CORE_NAMESPACE + " namespace. Reserved for internal use.");
         }
-        return createReporter(emitter, transformers, problems);
+        return createReporter(emitter, transformers, getProblems());
     }
 
     private DefaultProblemReporter createReporter(ProblemEmitter emitter, List<ProblemTransformer> transformers, Multimap<Throwable, Problem> problems) {
@@ -66,5 +67,9 @@ public class DefaultProblems implements InternalProblems {
     @Override
     public InternalProblemReporter getInternalReporter() {
         return internalReporter;
+    }
+
+    public Multimap<Throwable, Problem> getProblems() {
+        return problems;
     }
 }

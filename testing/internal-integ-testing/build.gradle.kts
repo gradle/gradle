@@ -15,6 +15,7 @@ sourceSets {
 }
 
 dependencies {
+    api(project(":build-operations-events"))
     api(libs.jettyWebApp) {
         because("Part of the public API via HttpServer")
     }

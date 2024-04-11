@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,13 +23,19 @@ public final class OperationFinishEvent {
     private final long endTime;
     private final Throwable failure;
     private final Object result;
+//    private final List<Problem> problems;
 
     public OperationFinishEvent(long startTime, long endTime, @Nullable Throwable failure, @Nullable Object result) {
         this.startTime = startTime;
         this.endTime = endTime;
         this.failure = failure;
         this.result = result;
+//        this.problems = problems;
     }
+
+//    public OperationFinishEvent(long startTime, long endTime, @Nullable Throwable failure, @Nullable Object result) {
+//        this(startTime, endTime, failure, result, ImmutableList.<Problem>of());
+//    }
 
     public long getStartTime() {
         return startTime;
@@ -58,4 +64,7 @@ public final class OperationFinishEvent {
             ", result=" + result +
             '}';
     }
+//    public List<Problem> getProblems() {
+//        return problems;
+//    }
 }

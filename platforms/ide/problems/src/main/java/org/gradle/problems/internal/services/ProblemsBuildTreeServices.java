@@ -21,6 +21,7 @@ import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.problems.internal.ProblemTransformer;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
+import org.gradle.internal.operations.notify.BuildOperationNotificationBridge;
 import org.gradle.problems.buildtree.ProblemStream;
 import org.gradle.problems.internal.emitters.BuildOperationBasedProblemEmitter;
 import org.gradle.problems.internal.transformers.ProblemStreamLocationTransformer;
@@ -31,10 +32,13 @@ public class ProblemsBuildTreeServices {
 
     InternalProblems createProblemsService(
         BuildOperationProgressEventEmitter buildOperationProgressEventEmitter,
-        List<ProblemTransformer> transformers
+        List<ProblemTransformer> transformers,
+        BuildOperationNotificationBridge buildOperationNotificationBridge
     ) {
         BuildOperationBasedProblemEmitter emitter = new BuildOperationBasedProblemEmitter(buildOperationProgressEventEmitter);
-        return new DefaultProblems(emitter, transformers, CurrentBuildOperationRef.instance());
+        DefaultProblems problems = new DefaultProblems(emitter, transformers, CurrentBuildOperationRef.instance());
+        buildOperationNotificationBridge.setProblems(problems.getProblems());
+        return problems;
     }
 
     ProblemTransformer createPluginIdLocationTransformer(ProblemStream problemStream) {

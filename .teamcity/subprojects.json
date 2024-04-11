@@ -119,6 +119,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "build-operations-events",
+    "path": "platforms/core-runtime/build-operations-events",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "build-option",
     "path": "platforms/core-runtime/build-option",
     "unitTests": true,

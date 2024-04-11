@@ -72,6 +72,7 @@ val core = platform("core") {
         subproject("base-services")
         subproject("bootstrap")
         subproject("build-operations")
+        subproject("build-operations-events")
         subproject("build-option")
         subproject("build-profile")
         subproject("cli")

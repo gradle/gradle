@@ -75,8 +75,9 @@ public class BuildOperationProgressEventListenerAdapter implements DefaultBuildO
         if (statusProgressLogger != null) {
             statusProgressLogger.completed();
         }
-        progressLogger.completed(context.getStatus(), context.getFailure() != null);
-        buildOperationListener.finished(descriptor, new OperationFinishEvent(operationState.getStartTime(), clock.getCurrentTime(), context.getFailure(), context.getResult()));
+        Throwable failure = context.getFailure();
+        progressLogger.completed(context.getStatus(), failure != null);
+        buildOperationListener.finished(descriptor, new OperationFinishEvent(operationState.getStartTime(), clock.getCurrentTime(), failure, context.getResult()));
     }
 
     @Override

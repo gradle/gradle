@@ -16,6 +16,7 @@ errorprone {
 dependencies {
     api(libs.jsr305)
     api(projects.javaLanguageExtensions)
+//    api(project(":problems-api"))
 
     implementation(libs.slf4jApi)
 

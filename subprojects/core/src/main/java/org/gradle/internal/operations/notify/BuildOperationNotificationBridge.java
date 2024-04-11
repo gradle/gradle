@@ -16,10 +16,13 @@
 
 package org.gradle.internal.operations.notify;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Multimap;
 import org.gradle.BuildListener;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.InternalAction;
 import org.gradle.api.invocation.Gradle;
+import org.gradle.api.problems.internal.Problem;
 import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -34,8 +37,11 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -49,6 +55,11 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
 
     private final BuildOperationListenerManager buildOperationListenerManager;
     private final ListenerManager listenerManager;
+    private Optional<Multimap<Throwable, Problem>> problems = Optional.empty();
+
+    public void setProblems(Multimap<Throwable, Problem> problems) {
+        this.problems = Optional.of(problems);
+    }
 
     private class State {
         private final ReplayAndAttachListener replayAndAttachListener = new ReplayAndAttachListener();
@@ -140,7 +151,7 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
         However, this will require restructuring this type and associated things such as
         OperationStartEvent. This will happen later.
      */
-    private static class Adapter implements BuildOperationListener {
+    private class Adapter implements BuildOperationListener {
 
         private final BuildOperationNotificationListener notificationListener;
 
@@ -221,13 +232,18 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
                 return;
             }
 
-            Finished notification = new Finished(finishEvent.getEndTime(), id, parentId, buildOperation.getDetails(), finishEvent.getResult(), finishEvent.getFailure());
+            Throwable failure = finishEvent.getFailure();
+            Finished notification = new Finished(finishEvent.getEndTime(), id, parentId, buildOperation.getDetails(), finishEvent.getResult(), failure, getProblems(failure));
             try {
                 notificationListener.finished(notification);
             } catch (Throwable e) {
                 LOGGER.debug("Build operation notification listener threw an error on " + notification, e);
                 maybeThrow(e);
             }
+        }
+
+        private @Nonnull List<Problem> getProblems(@Nullable Throwable failure) {
+            return problems.map(p -> ImmutableList.copyOf(p.get(failure))).orElse(ImmutableList.of());
         }
 
     }
@@ -417,14 +433,16 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
         private final Object details;
         private final Object result;
         private final Throwable failure;
+        private final List<Problem> problems;
 
-        private Finished(long timestamp, OperationIdentifier id, OperationIdentifier parentId, Object details, Object result, Throwable failure) {
+        private Finished(long timestamp, OperationIdentifier id, OperationIdentifier parentId, Object details, Object result, @Nullable Throwable failure, List<Problem> problems) {
             this.timestamp = timestamp;
             this.id = id;
             this.parentId = parentId;
             this.details = details;
             this.result = result;
             this.failure = failure;
+            this.problems = problems;
         }
 
         @Override
@@ -453,9 +471,15 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
             return result;
         }
 
+        @Nullable
         @Override
         public Throwable getNotificationOperationFailure() {
             return failure;
+        }
+
+        @Override
+        public List<Problem> getProblems() {
+            return problems;
         }
 
         @Override

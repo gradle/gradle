@@ -19,6 +19,7 @@ dependencies {
     api(project(":core-api"))
     api(project(":messaging"))
     api(project(":tooling-api"))
+    api(project(":build-operations-events"))
 
     implementation(project(":model-core"))
 

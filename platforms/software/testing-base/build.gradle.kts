@@ -27,6 +27,7 @@ dependencies {
     api(projects.time)
     api(project(":base-services"))
     api(project(":build-operations"))
+    api(project(":build-operations-events"))
     api(project(":core"))
     api(project(":core-api"))
     api(project(":enterprise-logging"))

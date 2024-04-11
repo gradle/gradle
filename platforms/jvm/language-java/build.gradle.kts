@@ -23,6 +23,7 @@ dependencies {
     api(project(":base-services"))
     api(project(":build-events"))
     api(project(":build-operations"))
+    api(project(":build-operations-events"))
     api(project(":core"))
     api(project(":core-api"))
     api(project(":dependency-management"))

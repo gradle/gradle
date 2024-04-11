@@ -88,6 +88,7 @@ dependencies {
     api(project(":build-cache-packaging"))
     api(project(":build-cache-spi"))
     api(project(":build-operations"))
+    api(project(":build-operations-events"))
     api(project(":build-option"))
     api(project(":cli"))
     api(project(":core-api"))

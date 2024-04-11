@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,11 @@
 
 package org.gradle.internal.operations.notify;
 
+import org.gradle.api.problems.internal.Problem;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 import javax.annotation.Nullable;
+import java.util.List;
 
 /**
  * A notification that a build operation has finished.
@@ -74,6 +76,12 @@ public interface BuildOperationFinishedNotification {
      * The operation failure.
      * Null if the operation was successful.
      */
+    @Nullable
     Throwable getNotificationOperationFailure();
 
+
+    /**
+     * Returns the problems that are associated with the failure returned by {@link #getNotificationOperationFailure()} ()}
+     */
+    List<Problem> getProblems();
 }
