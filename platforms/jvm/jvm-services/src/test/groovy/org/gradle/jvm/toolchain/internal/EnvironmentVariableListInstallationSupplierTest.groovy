@@ -18,12 +18,18 @@ package org.gradle.jvm.toolchain.internal
 
 
 import org.gradle.api.internal.file.IdentityFileResolver
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
 
 class EnvironmentVariableListInstallationSupplierTest extends Specification {
+    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
+
     final buildOptions = Mock(ToolchainConfiguration)
-    final Map<String, String> environment = [JDK8: "/path/jdk8", JDK9: "/path/jdk9"]
+    final jdk8 = tmpDir.createDir("jdk8")
+    final jdk9 = tmpDir.createDir("jdk9")
+    final Map<String, String> environment = [JDK8: jdk8.absolutePath, JDK9: jdk9.absolutePath]
 
     @Subject
     def supplier =  new EnvironmentVariableListInstallationSupplier(buildOptions, new IdentityFileResolver(), environment)
@@ -44,7 +50,7 @@ class EnvironmentVariableListInstallationSupplierTest extends Specification {
 
         then:
         directories.size() == 1
-        directories[0].location.absolutePath == "/path/jdk8"
+        directories[0].location == jdk8
         directories[0].source == "environment variable 'JDK8'"
     }
 
@@ -55,9 +61,9 @@ class EnvironmentVariableListInstallationSupplierTest extends Specification {
 
         then:
         directories.size() == 2
-        directories[0].location.absolutePath == "/path/jdk8"
+        directories[0].location == jdk8
         directories[0].source == "environment variable 'JDK8'"
-        directories[1].location.absolutePath == "/path/jdk9"
+        directories[1].location == jdk9
         directories[1].source == "environment variable 'JDK9'"
     }
 

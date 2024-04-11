@@ -18,11 +18,13 @@ package org.gradle.jvm.toolchain.internal
 
 
 import org.gradle.api.internal.file.IdentityFileResolver
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
 
 class LocationListInstallationSupplierTest extends Specification {
-
+    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     final buildOptions = Mock(ToolchainConfiguration)
 
     @Subject
@@ -39,23 +41,26 @@ class LocationListInstallationSupplierTest extends Specification {
 
     def "supplies single installations for single path"() {
         when:
-        buildOptions.installationsFromPaths >> ["/foo/bar"]
+        def expectedFile = tmpDir.createDir("foo/bar")
+        buildOptions.installationsFromPaths >> [expectedFile.absolutePath]
         def directories = supplier.get()
 
         then:
         directories.size() == 1
-        directories[0].location == new File("/foo/bar")
+        directories[0].location == expectedFile
         directories[0].source == "Gradle property 'org.gradle.java.installations.paths'"
     }
 
     def "supplies multiple installations for multiple paths"() {
         when:
-        buildOptions.installationsFromPaths >> ["/foo/bar", "/foo/123"]
+        def expectedFile1 = tmpDir.createDir("foo/bar")
+        def expectedFile2 = tmpDir.createDir("foo/123")
+        buildOptions.installationsFromPaths >> [expectedFile1.absolutePath, expectedFile2.absolutePath]
         def directories = supplier.get()
 
         then:
         directories.size() == 2
-        directories*.location.containsAll(new File("/foo/bar"), new File("/foo/123"))
+        directories*.location.containsAll(expectedFile1, expectedFile2)
         directories*.source.unique() == [ "Gradle property 'org.gradle.java.installations.paths'" ]
     }
 }
