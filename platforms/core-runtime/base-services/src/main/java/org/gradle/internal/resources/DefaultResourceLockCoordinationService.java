@@ -99,7 +99,6 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
         synchronized (lock) {
             DefaultResourceLockState resourceLockState = new DefaultResourceLockState();
             DefaultResourceLockState previous = startOperation(resourceLockState);
-            boolean operationFinished = false;
             try {
                 while (true) {
                     ResourceLockState.Disposition disposition;
@@ -109,14 +108,12 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
                             resourceLockState.releaseLocks();
                             maybeNotifyStateChange(resourceLockState);
                             resourceLockState.reset();
-                            operationFinished = true;
                             finishOperation(previous);
                             try {
                                 lock.wait();
                             } catch (InterruptedException e) {
                                 throw UncheckedException.throwAsUncheckedException(e);
                             }
-                            operationFinished = false;
                             startOperation(resourceLockState);
                             break;
                         case FINISHED:
@@ -133,9 +130,7 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
                 resourceLockState.releaseLocks();
                 throw UncheckedException.throwAsUncheckedException(t);
             } finally {
-                if (!operationFinished) {
-                    finishOperation(previous);
-                }
+                finishOperation(previous);
             }
         }
     }
