@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.concurrent;
+package org.gradle.tooling.internal.consumer.async;
 
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.concurrent.AsyncStoppable;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Supplier;
 
 /**
  * Manages the lifecycle of some thread-safe service or resource.
@@ -34,21 +34,14 @@ public class ServiceLifecycle implements AsyncStoppable {
     private final String displayName;
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
+    private final Map<Thread, Integer> usages = new HashMap<>();
     private State state = State.RUNNING;
-    private Map<Thread, Integer> usages = new HashMap<Thread, Integer>();
 
     public ServiceLifecycle(String displayName) {
         this.displayName = displayName;
     }
 
     public void use(Runnable runnable) {
-        use(() -> {
-            runnable.run();
-            return null;
-        });
-    }
-
-    public <T> T use(Supplier<T> factory) {
         lock.lock();
         try {
             switch (state) {
@@ -70,7 +63,7 @@ public class ServiceLifecycle implements AsyncStoppable {
         }
 
         try {
-            return factory.get();
+            runnable.run();
         } finally {
             lock.lock();
             try {

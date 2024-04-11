@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.concurrent
+package org.gradle.tooling.internal.consumer.async
 
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
