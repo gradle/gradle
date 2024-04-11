@@ -19,12 +19,19 @@ package org.gradle.configurationcache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.testing.jacoco.plugins.fixtures.JacocoReportXmlFixture
 import org.gradle.testkit.runner.GradleRunner
+import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
+import spock.lang.TempDir
 
 @Requires(UnitTestPreconditions.NotWindows)
 class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+
+    @TempDir
+    File jacocoDestinationDir
 
     def "reports when a TestKit build runs with a Java agent and configuration caching enabled"() {
         def builder = artifactBuilder()
@@ -118,5 +125,133 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
             ignoringUnexpectedInputs()
         }
         output.contains("Configuration cache entry stored.")
+    }
+
+    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "Testing build using a TestKit")
+    def "running a test that applies Jacoco with TestKit should generate a test report when running without configuration cache"() {
+        given:
+        // Setting Jacoco destination dir to non-ascii location causes some problems,
+        // so let's write to a temporary directory without non-ascii characters
+        def jacocoDestinationFile = TextUtil.normaliseFileSeparators("${jacocoDestinationDir.absolutePath}/jacoco.exec")
+        buildFile << """
+            plugins {
+                id 'java'
+                id 'groovy'
+                id 'jacoco'
+                id 'java-gradle-plugin'
+            }
+
+            ${mavenCentralRepository()}
+
+            configurations.create("jacocoRuntime") {
+                canBeResolved = true
+                canBeConsumed = false
+            }
+
+            dependencies {
+                jacocoRuntime("org.jacoco:org.jacoco.agent:\${JacocoPlugin.DEFAULT_JACOCO_VERSION}:runtime")
+            }
+
+            testing {
+                suites {
+                    test {
+                        useSpock("2.2-groovy-3.0")
+                    }
+                }
+            }
+
+            test {
+                test.extensions.getByType(JacocoTaskExtension).destinationFile = new File("$jacocoDestinationFile")
+                systemProperty "jacocoAgentJar", configurations.jacocoRuntime.singleFile.absolutePath
+                systemProperty "jacocoDestFile", test.extensions.getByType(JacocoTaskExtension).destinationFile.absolutePath
+            }
+
+            gradlePlugin {
+                plugins {
+                    create("my-plugin") {
+                        id = "test.my-plugin"
+                        implementationClass = "test.gradle.MyPlugin"
+                        version = "1.0.0"
+                    }
+                }
+            }
+
+            tasks.jacocoTestReport {
+                reports {
+                    xml.required = true
+                }
+            }
+
+            tasks.jacocoTestCoverageVerification {
+                violationRules {
+                    rule {
+                        limit {
+                            minimum = 1.0
+                        }
+                    }
+                }
+                dependsOn(tasks.test)
+                dependsOn(tasks.jacocoTestReport)
+            }
+        """
+        file("src/main/java/test/gradle/MyPlugin.java") << """
+            package test.gradle;
+            import org.gradle.api.*;
+
+            public class MyPlugin implements Plugin<Project> {
+                @Override
+                public void apply(Project project) {
+                    project.task("testTask").doFirst(task -> {
+                        System.out.println("Test task");
+                    });
+                }
+            }
+        """
+        file("src/test/groovy/Test.groovy") << """
+            import org.gradle.testkit.runner.GradleRunner
+            import static org.gradle.testkit.runner.TaskOutcome.*
+            import spock.lang.Specification
+            import spock.lang.TempDir
+
+            class Test extends Specification {
+                @TempDir
+                File testProjectDir
+                File buildFile
+                File gradleProperties
+
+                def setup() {
+                    new File(testProjectDir, 'settings.gradle') << "rootProject.name = 'test'"
+                    buildFile = new File(testProjectDir, 'build.gradle')
+                    gradleProperties = new File(testProjectDir, 'gradle.properties')
+                }
+
+                def "run Gradle build with Jacoco"() {
+                    given:
+                    def jacocoAgentJar = System.getProperty("jacocoAgentJar")
+                    def jacocoDestFile = System.getProperty("jacocoDestFile")
+                    buildFile << "plugins { id('test.my-plugin') }"
+                    gradleProperties << "org.gradle.jvmargs=\\"-javaagent:\$jacocoAgentJar=destfile=\$jacocoDestFile\\""
+
+                    when:
+                    def result = GradleRunner.create()
+                        .withProjectDir(testProjectDir)
+                        .withArguments("testTask", "--no-configuration-cache")
+                        .withPluginClasspath()
+                        .withDebug(false)
+                        .forwardOutput()
+                        .build()
+
+                    then:
+                    noExceptionThrown()
+                }
+            }
+        """
+
+        when:
+        succeeds("jacocoTestCoverageVerification")
+
+        then:
+        def report = new JacocoReportXmlFixture(file("build/reports/jacoco/test/jacocoTestReport.xml"))
+        report.assertHasClassCoverage("test.gradle.MyPlugin")
     }
 }
