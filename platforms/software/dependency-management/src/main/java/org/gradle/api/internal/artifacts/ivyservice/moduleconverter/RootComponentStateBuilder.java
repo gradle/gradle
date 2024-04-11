@@ -15,15 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 
-import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 
-public interface RootComponentMetadataBuilder {
+public interface RootComponentStateBuilder {
     RootComponentState toRootComponent(String configurationName);
-
-    RootComponentMetadataBuilder withConfigurationsProvider(ConfigurationsProvider provider);
 
     MutationValidator getValidator();
 

@@ -41,10 +41,9 @@ import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.ModelContainer;
 
 import javax.annotation.Nullable;
-import javax.inject.Inject;
 import java.lang.ref.SoftReference;
 
-public class DefaultRootComponentMetadataBuilder implements RootComponentMetadataBuilder, HoldsProjectState {
+public class DefaultRootComponentStateBuilder implements RootComponentStateBuilder, HoldsProjectState {
     private final DependencyMetaDataProvider metadataProvider;
     private final ComponentIdentifierFactory componentIdentifierFactory;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
@@ -54,12 +53,11 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
     private final ProjectStateRegistry projectStateRegistry;
     private final LocalComponentGraphResolveStateFactory localResolveStateFactory;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
-    private final DefaultRootComponentMetadataBuilder.Factory factory;
 
     /**
-     * Use {@link Factory#create} to create instances.
+     * Use {@link RootComponentStateBuilderFactory#create} to create instances.
      */
-    private DefaultRootComponentMetadataBuilder(
+    public DefaultRootComponentStateBuilder(
         DependencyMetaDataProvider metadataProvider,
         ComponentIdentifierFactory componentIdentifierFactory,
         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
@@ -67,8 +65,7 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         ConfigurationsProvider configurationsProvider,
         ProjectStateRegistry projectStateRegistry,
         LocalComponentGraphResolveStateFactory localResolveStateFactory,
-        CalculatedValueContainerFactory calculatedValueContainerFactory,
-        Factory factory
+        CalculatedValueContainerFactory calculatedValueContainerFactory
     ) {
         this.metadataProvider = metadataProvider;
         this.componentIdentifierFactory = componentIdentifierFactory;
@@ -78,7 +75,6 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         this.projectStateRegistry = projectStateRegistry;
         this.localResolveStateFactory = localResolveStateFactory;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
-        this.factory = factory;
         this.holder = new MetadataHolder();
     }
 
@@ -159,11 +155,6 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
     }
 
     @Override
-    public RootComponentMetadataBuilder withConfigurationsProvider(ConfigurationsProvider provider) {
-        return factory.create(provider);
-    }
-
-    @Override
     public MutationValidator getValidator() {
         return holder;
     }
@@ -230,46 +221,4 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         }
     }
 
-    public static class Factory {
-        private final DependencyMetaDataProvider metaDataProvider;
-        private final ComponentIdentifierFactory componentIdentifierFactory;
-        private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
-        private final LocalConfigurationMetadataBuilder configurationMetadataBuilder;
-        private final ProjectStateRegistry projectStateRegistry;
-        private final LocalComponentGraphResolveStateFactory localResolveStateFactory;
-        private final CalculatedValueContainerFactory calculatedValueContainerFactory;
-
-        @Inject
-        public Factory(
-            DependencyMetaDataProvider metaDataProvider,
-            ComponentIdentifierFactory componentIdentifierFactory,
-            ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-            LocalConfigurationMetadataBuilder configurationMetadataBuilder,
-            ProjectStateRegistry projectStateRegistry,
-            LocalComponentGraphResolveStateFactory localResolveStateFactory,
-            CalculatedValueContainerFactory calculatedValueContainerFactory
-        ) {
-            this.metaDataProvider = metaDataProvider;
-            this.componentIdentifierFactory = componentIdentifierFactory;
-            this.moduleIdentifierFactory = moduleIdentifierFactory;
-            this.configurationMetadataBuilder = configurationMetadataBuilder;
-            this.projectStateRegistry = projectStateRegistry;
-            this.localResolveStateFactory = localResolveStateFactory;
-            this.calculatedValueContainerFactory = calculatedValueContainerFactory;
-        }
-
-        public RootComponentMetadataBuilder create(ConfigurationsProvider configurationsProvider) {
-            return new DefaultRootComponentMetadataBuilder(
-                metaDataProvider,
-                componentIdentifierFactory,
-                moduleIdentifierFactory,
-                configurationMetadataBuilder,
-                configurationsProvider,
-                projectStateRegistry,
-                localResolveStateFactory,
-                calculatedValueContainerFactory,
-                this
-            );
-        }
-    }
 }

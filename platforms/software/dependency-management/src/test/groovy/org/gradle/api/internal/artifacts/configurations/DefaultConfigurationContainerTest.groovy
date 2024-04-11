@@ -29,10 +29,10 @@ import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.ResolveExceptionContextualizer
-import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentStateBuilder
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentStateBuilderFactory
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
@@ -53,7 +53,6 @@ class DefaultConfigurationContainerTest extends Specification {
     private ConfigurationResolver resolver = Mock(ConfigurationResolver)
     private ListenerManager listenerManager = Stub(ListenerManager.class)
     private DependencyMetaDataProvider metaDataProvider = Mock(DependencyMetaDataProvider.class)
-    private ComponentIdentifierFactory componentIdentifierFactory = Mock(ComponentIdentifierFactory)
     private BuildOperationRunner buildOperationRunner = Mock(BuildOperationRunner)
     private DependencyLockingProvider lockingProvider = Mock(DependencyLockingProvider)
     private ProjectStateRegistry projectStateRegistry = Mock(ProjectStateRegistry)
@@ -65,18 +64,17 @@ class DefaultConfigurationContainerTest extends Specification {
     private Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
     private ImmutableAttributesFactory immutableAttributesFactory = AttributeTestUtil.attributesFactory()
     private DomainObjectContext domainObjectContext = new RootScriptDomainObjectContext()
-    private DefaultRootComponentMetadataBuilder metadataBuilder = Mock(DefaultRootComponentMetadataBuilder) {
+    private DefaultRootComponentStateBuilder stateBuilder = Mock(DefaultRootComponentStateBuilder) {
         getValidator() >> Mock(MutationValidator)
     }
-    private DefaultRootComponentMetadataBuilder.Factory rootComponentMetadataBuilderFactory = Mock(DefaultRootComponentMetadataBuilder.Factory) {
-        create(_) >> metadataBuilder
+    private RootComponentStateBuilderFactory rootComponentStateBuilderFactory = Mock(RootComponentStateBuilderFactory) {
+        create(_) >> stateBuilder
     }
     private DefaultConfigurationFactory configurationFactory = new DefaultConfigurationFactory(
         instantiator,
         resolver,
         listenerManager,
         metaDataProvider,
-        componentIdentifierFactory,
         lockingProvider,
         domainObjectContext,
         TestFiles.fileCollectionFactory(),
@@ -88,6 +86,7 @@ class DefaultConfigurationContainerTest extends Specification {
                 TestFiles.taskDependencyFactory(),
         ),
         immutableAttributesFactory,
+        rootComponentStateBuilderFactory,
         Stub(ResolveExceptionContextualizer),
         userCodeApplicationContext,
         projectStateRegistry,
@@ -99,7 +98,7 @@ class DefaultConfigurationContainerTest extends Specification {
     private DefaultConfigurationContainer configurationContainer = instantiator.newInstance(DefaultConfigurationContainer.class,
         instantiator,
         callbackActionDecorator,
-        rootComponentMetadataBuilderFactory,
+        rootComponentStateBuilderFactory,
         configurationFactory,
         Mock(ResolutionStrategyFactory)
     )

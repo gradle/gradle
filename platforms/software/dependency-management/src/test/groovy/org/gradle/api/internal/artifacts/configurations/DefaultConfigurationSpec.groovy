@@ -45,11 +45,11 @@ import org.gradle.api.internal.artifacts.DefaultResolverResults
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.api.internal.artifacts.ResolveExceptionContextualizer
 import org.gradle.api.internal.artifacts.ResolverResults
-import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentStateBuilder
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentStateBuilderFactory
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedFileVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet
@@ -100,11 +100,13 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
     def resolver = Mock(ConfigurationResolver)
     def listenerManager = Mock(ListenerManager)
     def metaDataProvider = Mock(DependencyMetaDataProvider)
-    def componentIdentifierFactory = Mock(ComponentIdentifierFactory)
     def dependencyLockingProvider = Mock(DependencyLockingProvider)
     def resolutionStrategy = Mock(ResolutionStrategyInternal)
     def immutableAttributesFactory = AttributeTestUtil.attributesFactory()
-    def rootComponentMetadataBuilder = Mock(RootComponentMetadataBuilder)
+    def rootComponentStateBuilder = Mock(RootComponentStateBuilder)
+    def rootComponentStateBuilderFactory = Mock(RootComponentStateBuilderFactory) {
+        create(_) >> rootComponentStateBuilder
+    }
     def projectStateRegistry = Mock(ProjectStateRegistry)
     def domainObjectCollectioncallbackActionDecorator = Mock(CollectionCallbackActionDecorator)
     def userCodeApplicationContext = Mock(UserCodeApplicationContext)
@@ -115,8 +117,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         _ * resolver.getAllRepositories() >> []
         _ * domainObjectCollectioncallbackActionDecorator.decorate(_) >> { args -> args[0] }
         _ * userCodeApplicationContext.reapplyCurrentLater(_) >> { args -> args[0] }
-        _ * rootComponentMetadataBuilder.getValidator() >> Mock(MutationValidator)
-        _ * rootComponentMetadataBuilder.withConfigurationsProvider(_) >> rootComponentMetadataBuilder
+        _ * rootComponentStateBuilder.getValidator() >> Mock(MutationValidator)
     }
 
     void defaultValues() {
@@ -1812,7 +1813,7 @@ All Artifacts:
     }
 
     private DefaultConfiguration conf(String confName = "conf", String projectPath = ":", String buildPath = ":", ConfigurationRole role = ConfigurationRoles.LEGACY) {
-        return confFactory(projectPath, buildPath).create(confName, configurationsProvider, Factories.constant(resolutionStrategy), rootComponentMetadataBuilder, role)
+        return confFactory(projectPath, buildPath).create(confName, configurationsProvider, Factories.constant(resolutionStrategy), rootComponentStateBuilder, role)
     }
 
     private DefaultConfigurationFactory confFactory(String projectPath, String buildPath) {
@@ -1834,13 +1835,13 @@ All Artifacts:
             resolver,
             listenerManager,
             metaDataProvider,
-            componentIdentifierFactory,
             dependencyLockingProvider,
             domainObjectContext,
             TestFiles.fileCollectionFactory(),
             new TestBuildOperationRunner(),
             publishArtifactNotationParser,
             immutableAttributesFactory,
+            rootComponentStateBuilderFactory,
             new ResolveExceptionContextualizer(Mock(DomainObjectContext), Mock(DocumentationRegistry)),
             userCodeApplicationContext,
             projectStateRegistry,

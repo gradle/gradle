@@ -41,7 +41,7 @@ public interface LocalComponentMetadata extends ComponentResolveMetadata, Compon
      * In the future, we could narrow the number of configurations that need to be re-evaluated, but it would
      * be better to get rid of the behavior that allows configurations to be modified once they've been observed.
      *
-     * @see org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder.MetadataHolder#tryCached(ComponentIdentifier)
+     * @see org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentStateBuilder.MetadataHolder#tryCached(ComponentIdentifier)
      */
     void reevaluate();
 

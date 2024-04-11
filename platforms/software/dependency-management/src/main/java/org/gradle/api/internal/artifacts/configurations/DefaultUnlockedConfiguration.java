@@ -22,9 +22,9 @@ import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.ResolveExceptionContextualizer;
-import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentStateBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentStateBuilderFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -51,7 +51,6 @@ public class DefaultUnlockedConfiguration extends DefaultConfiguration {
         ConfigurationResolver resolver,
         ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners,
         DependencyMetaDataProvider metaDataProvider,
-        ComponentIdentifierFactory componentIdentifierFactory,
         DependencyLockingProvider dependencyLockingProvider,
         Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
         FileCollectionFactory fileCollectionFactory,
@@ -60,7 +59,8 @@ public class DefaultUnlockedConfiguration extends DefaultConfiguration {
         NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
         NotationParser<Object, Capability> capabilityNotationParser,
         ImmutableAttributesFactory attributesFactory,
-        RootComponentMetadataBuilder rootComponentMetadataBuilder,
+        RootComponentStateBuilderFactory rootComponentStateBuilderFactory,
+        RootComponentStateBuilder rootComponentStateBuilder,
         ResolveExceptionContextualizer exceptionContextualizer,
         UserCodeApplicationContext userCodeApplicationContext,
         ProjectStateRegistry projectStateRegistry,
@@ -78,7 +78,6 @@ public class DefaultUnlockedConfiguration extends DefaultConfiguration {
             resolver,
             dependencyResolutionListeners,
             metaDataProvider,
-            componentIdentifierFactory,
             dependencyLockingProvider,
             resolutionStrategyFactory,
             fileCollectionFactory,
@@ -87,7 +86,8 @@ public class DefaultUnlockedConfiguration extends DefaultConfiguration {
             artifactNotationParser,
             capabilityNotationParser,
             attributesFactory,
-            rootComponentMetadataBuilder,
+            rootComponentStateBuilderFactory,
+            rootComponentStateBuilder,
             exceptionContextualizer,
             userCodeApplicationContext,
             projectStateRegistry,

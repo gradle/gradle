@@ -32,7 +32,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentStateBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.ComponentStateFactory;
@@ -96,7 +96,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
 
     public ResolveState(
         ComponentIdGenerator idGenerator,
-        RootComponentMetadataBuilder.RootComponentState root,
+        RootComponentStateBuilder.RootComponentState root,
         DependencyToComponentIdResolver idResolver,
         ComponentMetaDataResolver metaDataResolver,
         Spec<? super DependencyMetadata> edgeFilter,
@@ -351,7 +351,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
      * the graph is, the higher the risk of internal resizes exists, so we try to estimate
      * the size of the graph to avoid maps resizing.
      */
-    private static int estimateGraphSize(RootComponentMetadataBuilder.RootComponentState rootComponentState) {
+    private static int estimateGraphSize(RootComponentStateBuilder.RootComponentState rootComponentState) {
         int numDependencies = rootComponentState.getRootVariant().getMetadata().getDependencies().size();
 
         // TODO #24641: Why are the numbers and operations here the way they are?
