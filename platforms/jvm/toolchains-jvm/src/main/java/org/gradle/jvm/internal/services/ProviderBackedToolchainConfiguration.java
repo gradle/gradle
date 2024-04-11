@@ -27,6 +27,14 @@ import javax.inject.Inject;
 import java.util.Arrays;
 import java.util.Collection;
 
+/**
+ * TODO: This class shouldn't exist.
+ *
+ * Instead of puling from ProviderFactory, the settings for toolchain discovery should come from build options.
+ *
+ * Build options are not exposed to services in the daemon, so this is a temporary solution to keep existing code working.
+ *
+ */
 public class ProviderBackedToolchainConfiguration implements ToolchainConfiguration {
     private final ProviderFactory providerFactory;
 
@@ -42,7 +50,7 @@ public class ProviderBackedToolchainConfiguration implements ToolchainConfigurat
 
     @Override
     public void setJavaInstallationsFromEnvironment(Collection<String> installations) {
-
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -52,7 +60,7 @@ public class ProviderBackedToolchainConfiguration implements ToolchainConfigurat
 
     @Override
     public void setInstallationsFromPaths(Collection<String> installations) {
-
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -62,7 +70,7 @@ public class ProviderBackedToolchainConfiguration implements ToolchainConfigurat
 
     @Override
     public void setAutoDetectEnabled(boolean enabled) {
-
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -72,6 +80,6 @@ public class ProviderBackedToolchainConfiguration implements ToolchainConfigurat
 
     @Override
     public void setDownloadEnabled(boolean enabled) {
-
+        throw new UnsupportedOperationException();
     }
 }
