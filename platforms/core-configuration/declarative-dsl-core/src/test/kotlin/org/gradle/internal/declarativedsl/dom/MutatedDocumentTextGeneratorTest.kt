@@ -76,6 +76,26 @@ object MutatedDocumentTextGeneratorTest {
         }
         """.trimIndent()
 
+    private
+    val codeForAdditionWithProperties = """
+        a = 1
+        b = 2
+
+        f {
+            x = 1
+            y = 2
+        }
+
+        h {
+            x = 1
+            y = 2
+        }
+
+        c = 3
+        d = 4
+        """.trimIndent()
+
+
     @Test
     fun `text from text-preserving tree is equal to the original text`() {
         // TODO: address the blank line in the end
@@ -128,10 +148,10 @@ object MutatedDocumentTextGeneratorTest {
     fun `can mutate document by inserting a node before the first element in a block`() {
         val result = generateCodeFrom(simpleCodeForAddition) { tree ->
             generateText(
-                tree, insertNodeBefore = { childTag ->
+                tree, insertNodesBefore = { childTag ->
                     if (childTag.isNodeMatching { node -> node is PropertyNode && node.name == "x" })
-                        syntheticElement
-                    else null
+                        listOf(syntheticElement)
+                    else emptyList()
                 }
             )
         }
@@ -159,10 +179,10 @@ object MutatedDocumentTextGeneratorTest {
         val result = generateCodeFrom(simpleCodeForAddition) { tree ->
             generateText(
                 tree,
-                insertNodeBefore = { childTag ->
+                insertNodesBefore = { childTag ->
                     if (childTag.isNodeMatching { node -> node is PropertyNode && node.name == "y" })
-                        syntheticElement
-                    else null
+                        listOf(syntheticElement)
+                    else emptyList()
                 }
             )
         }
@@ -190,10 +210,10 @@ object MutatedDocumentTextGeneratorTest {
         val result = generateCodeFrom(simpleCodeForAddition) { tree ->
             generateText(
                 tree,
-                insertNodeAfter = { childTag ->
+                insertNodesAfter = { childTag ->
                     if (childTag.isNodeMatching { node -> node is PropertyNode && node.name == "y" })
-                        syntheticElement
-                    else null
+                        listOf(syntheticElement)
+                    else emptyList()
                 }
             )
         }
@@ -221,10 +241,10 @@ object MutatedDocumentTextGeneratorTest {
         val result = generateCodeFrom(simpleCodeForAddition) { tree ->
             generateText(
                 tree,
-                insertNodeAfter = { childTag ->
+                insertNodesAfter = { childTag ->
                     if (childTag.isNodeMatching { node -> node is PropertyNode && node.name == "x" }) {
-                        syntheticElement
-                    } else null
+                        listOf(syntheticElement)
+                    } else emptyList()
                 }
             )
         }
@@ -243,7 +263,7 @@ object MutatedDocumentTextGeneratorTest {
                 factory(1)
             }
 
-        """.trimIndent(), result
+            """.trimIndent(), result
         )
     }
 
@@ -252,10 +272,10 @@ object MutatedDocumentTextGeneratorTest {
         val result = generateCodeFrom(simpleCodeForAddition) { tree ->
             generateText(
                 tree,
-                insertNodeAfter = { childTag ->
+                insertNodesAfter = { childTag ->
                     if (childTag.isNodeMatching { it is ElementNode && it.name == "myFun" })
-                        syntheticElement
-                    else null
+                        listOf(syntheticElement)
+                    else emptyList()
                 }
             )
         }
@@ -285,10 +305,10 @@ object MutatedDocumentTextGeneratorTest {
         val result = generateCodeFrom(simpleCodeForAddition) { tree ->
             generateText(
                 tree,
-                insertNodeBefore = { childTag ->
+                insertNodesBefore = { childTag ->
                     if (childTag.isNodeMatching { it is ElementNode && it.name == "myFun" })
-                        syntheticElement
-                    else null
+                        listOf(syntheticElement)
+                    else emptyList()
                 }
             )
         }
@@ -308,12 +328,341 @@ object MutatedDocumentTextGeneratorTest {
                 factory(1)
             }
 
+            """.trimIndent(), result
+        )
+    }
+
+    @Test
+    fun `can add multiple statements in a block before the first element with proper formatting`() {
+        val result = generateCodeFrom(codeForAdditionWithProperties) { tree ->
+            generateText(tree, insertNodesBefore = { childTag ->
+                if (childTag.isNodeMatching { node -> node is PropertyNode && node.name == "x" })
+                    multiElements.toList()
+                else emptyList()
+            })
+        }
+
+        assertEquals(
+            """
+            a = 1
+            b = 2
+
+            f {
+                s(1)
+                t(2)
+                x = 1
+                y = 2
+            }
+
+            h {
+                s(1)
+                t(2)
+                x = 1
+                y = 2
+            }
+
+            c = 3
+            d = 4
+
+            """.trimIndent(), result
+        )
+    }
+
+
+    @Test
+    fun `can add multiple statements in a block after non-first element with proper formatting`() {
+        val result = generateCodeFrom(codeForAdditionWithProperties) { tree ->
+            generateText(tree, insertNodesAfter = { childTag ->
+                if (childTag.isNodeMatching { node -> node is PropertyNode && node.name == "x" })
+                    multiElements.toList()
+                else emptyList()
+            })
+        }
+
+        assertEquals(
+            """
+            a = 1
+            b = 2
+
+            f {
+                x = 1
+                s(1)
+                t(2)
+                y = 2
+            }
+
+            h {
+                x = 1
+                s(1)
+                t(2)
+                y = 2
+            }
+
+            c = 3
+            d = 4
+
+            """.trimIndent(), result
+        )
+    }
+
+    @Test
+    fun `can add multiple statements in a block after the last element with proper formatting`() {
+        val result = generateCodeFrom(codeForAdditionWithProperties) { tree ->
+            generateText(tree, insertNodesAfter = { childTag ->
+                if (childTag.isNodeMatching { node -> node is PropertyNode && node.name == "y" })
+                    multiElements.toList()
+                else emptyList()
+            })
+        }
+        assertEquals(
+            """
+            a = 1
+            b = 2
+
+            f {
+                x = 1
+                y = 2
+                s(1)
+                t(2)
+            }
+
+            h {
+                x = 1
+                y = 2
+                s(1)
+                t(2)
+            }
+
+            c = 3
+            d = 4
+
+            """.trimIndent(), result
+        )
+    }
+
+    @Test
+    fun `can add multiple statements on the top level before the first element with proper formatting`() {
+        val result = generateCodeFrom(codeForAdditionWithProperties) { tree ->
+            generateText(tree, insertNodesBefore = { childTag ->
+                if (childTag.isNodeMatching { node -> node is PropertyNode && node.name == "x" })
+                    multiElements.toList()
+                else emptyList()
+            })
+        }
+
+        assertEquals(
+            """
+            a = 1
+            b = 2
+
+            f {
+                s(1)
+                t(2)
+                x = 1
+                y = 2
+            }
+
+            h {
+                s(1)
+                t(2)
+                x = 1
+                y = 2
+            }
+
+            c = 3
+            d = 4
+
+            """.trimIndent(), result
+        )
+    }
+
+
+    @Test
+    fun `can add multiple statements on the top level after non-first element with proper formatting`() {
+        val result = generateCodeFrom(codeForAdditionWithProperties) { tree ->
+            generateText(tree, insertNodesAfter = { childTag ->
+                if (childTag.isNodeMatching { node -> node is PropertyNode && node.name == "x" })
+                    multiElements.toList()
+                else emptyList()
+            })
+        }
+
+        assertEquals(
+            """
+            a = 1
+            b = 2
+
+            f {
+                x = 1
+                s(1)
+                t(2)
+                y = 2
+            }
+
+            h {
+                x = 1
+                s(1)
+                t(2)
+                y = 2
+            }
+
+            c = 3
+            d = 4
+
+            """.trimIndent(), result
+        )
+    }
+
+    @Test
+    fun `when inserting elements after a property and before another property on the top level, blank lines are added around the elements`() {
+        val result = generateCodeFrom(codeForAdditionWithProperties) { tree ->
+            generateText(tree, insertNodesAfter = { childTag ->
+                if (childTag.isNodeMatching { node -> node is PropertyNode && node.name == "a" })
+                    multiElements.toList()
+                else emptyList()
+            })
+        }
+        assertEquals(
+            """
+            a = 1
+
+            s(1)
+
+            t(2)
+
+            b = 2
+
+            f {
+                x = 1
+                y = 2
+            }
+
+            h {
+                x = 1
+                y = 2
+            }
+
+            c = 3
+            d = 4
+
+            """.trimIndent(), result
+        )
+    }
+
+    @Test
+    fun `when inserting properties between a property and an element on the top level, blank line is preserved before the element`() {
+        val result = generateCodeFrom(codeForAdditionWithProperties) { tree ->
+            generateText(tree, insertNodesAfter = { childTag ->
+                if (childTag.isNodeMatching { node -> node is PropertyNode && node.name == "b" })
+                    multiProperties.toList()
+                else emptyList()
+            })
+        }
+        // Having a line break between 'b = 2' and 't = 2' is not perfect but is OK for now.
+        assertEquals(
+            """
+            a = 1
+            b = 2
+
+            s = 1
+            t = 2
+
+            f {
+                x = 1
+                y = 2
+            }
+
+            h {
+                x = 1
+                y = 2
+            }
+
+            c = 3
+            d = 4
+
+            """.trimIndent(), result
+        )
+    }
+
+    @Test
+    fun `when inserting properties after an element and before a property on the top level, a blank line is preserved after the element`() {
+        val result = generateCodeFrom(codeForAdditionWithProperties) { tree ->
+            generateText(tree, insertNodesAfter = { childTag ->
+                if (childTag.isNodeMatching { node -> node is ElementNode && node.name == "h" })
+                    multiProperties.toList()
+                else emptyList()
+            })
+        }
+        // The blank line after t = 2 is OK for now: it seems that we must reuse the original line break before 'c = 3'
+        assertEquals(
+            """
+            a = 1
+            b = 2
+
+            f {
+                x = 1
+                y = 2
+            }
+
+            h {
+                x = 1
+                y = 2
+            }
+
+            s = 1
+            t = 2
+
+            c = 3
+            d = 4
+
         """.trimIndent(), result
         )
     }
 
+    @Test
+    fun `when inserting elements after an element and before a property on the top level, a blank line is preserved after the element`() {
+        val result = generateCodeFrom(codeForAdditionWithProperties) { tree ->
+            generateText(tree, insertNodesAfter = { childTag ->
+                if (childTag.isNodeMatching { node -> node is ElementNode && node.name == "h" })
+                    multiElements.toList()
+                else emptyList()
+            })
+        }
+        assertEquals(
+            """
+            a = 1
+            b = 2
+
+            f {
+                x = 1
+                y = 2
+            }
+
+            h {
+                x = 1
+                y = 2
+            }
+
+            s(1)
+
+            t(2)
+
+            c = 3
+            d = 4
+
+        """.trimIndent(), result
+        )
+    }
+
+
     private
     val syntheticElement = convertBlockToDocument(parseAsTopLevelBlock("f(1, 2, g(3, 4, 5)) { x = \"test\" }")).content.single()
+
+    private
+    val multiElements = convertBlockToDocument(parseAsTopLevelBlock("s(1)\nt(2)")).content
+
+    private
+    val multiProperties = convertBlockToDocument(parseAsTopLevelBlock("s = 1\nt = 2")).content
 
     private
     fun generateCodeFrom(code: String, generate: MutatedDocumentTextGenerator.(TextPreservingTree) -> String): String {
