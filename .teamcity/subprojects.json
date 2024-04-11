@@ -520,7 +520,7 @@
   {
     "name": "java-language-extensions",
     "path": "platforms/core-runtime/java-language-extensions",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
