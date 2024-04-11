@@ -41,15 +41,16 @@ import org.gradle.launcher.daemon.bootstrap.DaemonOutputConsumer;
 import org.gradle.launcher.daemon.bootstrap.GradleDaemon;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
+import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.toolchain.DaemonJavaToolchainQueryService;
 import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria;
-import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.JvmOptions;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.GFileUtils;
+import org.gradle.util.internal.IncubationLogger;
 
 import java.io.File;
 import java.io.IOException;
@@ -84,6 +85,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
         final JavaInfo resolvedJvm;
         // Gradle daemon properties have been defined
         if (daemonParameters.getRequestedJvmCriteria() != null) {
+            IncubationLogger.incubatingFeatureUsed("Daemon JVM discovery");
             DaemonJvmCriteria criteria = daemonParameters.getRequestedJvmCriteria();
             JvmInstallationMetadata jvmInstallationMetadata = daemonJavaToolchainQueryService.findMatchingToolchain(criteria);
             resolvedJvm = Jvm.forHome(jvmInstallationMetadata.getJavaHome().toFile());

@@ -27,6 +27,11 @@ import org.gradle.test.preconditions.IntegTestPreconditions
 import org.junit.Assume
 
 class DaemonToolchainIntegrationTest extends AbstractIntegrationSpec implements BuildPropertiesFixture, JavaToolchainFixture {
+    def setup() {
+        executer.requireIsolatedDaemons()
+        executer.requireDaemon()
+    }
+
     def "Given daemon toolchain version When executing any task Then daemon jvm was set up with expected configuration"() {
         given:
         writeJvmCriteria(Jvm.current())
@@ -35,6 +40,7 @@ class DaemonToolchainIntegrationTest extends AbstractIntegrationSpec implements 
         expect:
         succeeds("help")
         assertDaemonUsedJvm(Jvm.current())
+        outputContains("Daemon JVM discovery is an incubating feature.")
     }
 
     @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)

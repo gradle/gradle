@@ -28,6 +28,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.buildconfiguration.BuildPropertiesDefaults;
 import org.gradle.internal.buildconfiguration.UpdateDaemonJvmModifier;
+import org.gradle.util.internal.IncubationLogger;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
@@ -54,6 +55,7 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
 
     @TaskAction
     void generate() {
+        IncubationLogger.incubatingFeatureUsed("Daemon JVM criteria");
         UpdateDaemonJvmModifier.updateJvmCriteria(
             getPropertiesFile().get().getAsFile(),
             getToolchainVersion().get(),

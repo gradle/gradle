@@ -18,11 +18,11 @@ package org.gradle.interal.buildconfiguration.tasks
 
 import groovy.test.NotYetImplemented
 import org.gradle.api.JavaVersion
+import org.gradle.buildconfiguration.tasks.UpdateDaemonJvm
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.buildconfiguration.BuildPropertiesDefaults
 import org.gradle.internal.buildconfiguration.fixture.BuildPropertiesFixture
-import org.gradle.buildconfiguration.tasks.UpdateDaemonJvm
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
@@ -52,6 +52,7 @@ class UpdateDaemonJvmIntegrationTest extends AbstractIntegrationSpec implements 
 
         then:
         assertJvmCriteria(Jvm.current().javaVersion)
+        outputContains("Daemon JVM criteria is an incubating feature.")
     }
 
     def "When execute updateDaemonJvm for valid version Then build properties are populated with expected values"() {
