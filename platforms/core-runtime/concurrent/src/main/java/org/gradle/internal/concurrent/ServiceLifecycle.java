@@ -16,8 +16,6 @@
 
 package org.gradle.internal.concurrent;
 
-import org.gradle.internal.Factories;
-import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 
 import java.util.HashMap;
@@ -25,6 +23,7 @@ import java.util.Map;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Supplier;
 
 /**
  * Manages the lifecycle of some thread-safe service or resource.
@@ -43,13 +42,18 @@ public class ServiceLifecycle implements AsyncStoppable {
     }
 
     public void use(Runnable runnable) {
-        use(Factories.toFactory(runnable));
+        use(() -> {
+            runnable.run();
+            return null;
+        });
     }
 
-    public <T> T use(Factory<T> factory) {
+    public <T> T use(Supplier<T> factory) {
         lock.lock();
         try {
             switch (state) {
+                case RUNNING:
+                    break;
                 case STOPPING:
                     throw new IllegalStateException(String.format("Cannot use %s as it is currently stopping.", displayName));
                 case STOPPED:
@@ -66,7 +70,7 @@ public class ServiceLifecycle implements AsyncStoppable {
         }
 
         try {
-            return factory.create();
+            return factory.get();
         } finally {
             lock.lock();
             try {
