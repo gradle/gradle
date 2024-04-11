@@ -97,7 +97,7 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec imp
         and:
         verifyAll(receivedProblem) {
             fqid == 'validation:property-validation:unsupported-notation'
-            contextualLabel == 'has unsupported value \'task \':dependencyTask\'\''
+            contextualLabel == 'Property \'input\' has unsupported value \'task \':dependencyTask\'\''
             details == "Type 'DefaultTask' cannot be converted to a $targetType"
             solutions == [
                 'Use a String or CharSequence path, for example \'src/main/java\' or \'/usr/include\'',
@@ -165,7 +165,7 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec imp
         and:
         verifyAll(receivedProblem) {
             fqid == 'validation:property-validation:unsupported-notation'
-            contextualLabel == 'has unsupported value \'task \':dependencyTask\'\''
+            contextualLabel == 'Type \'CustomTask\' property \'input\' has unsupported value \'task \':dependencyTask\'\''
             details == "Type 'DefaultTask' cannot be converted to a $targetType"
             solutions == [
                 'Use a String or CharSequence path, for example \'src/main/java\' or \'/usr/include\'',

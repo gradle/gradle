@@ -61,6 +61,7 @@ dependencies {
     testImplementation(testFixtures(project(":model-core")))
 
     testFixturesImplementation(project(":core"))
+    testFixturesImplementation(testFixtures(project(":core")))
     testFixturesImplementation(project(":core-api"))
     testFixturesImplementation(project(":base-services"))
 

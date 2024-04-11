@@ -18,8 +18,12 @@
 A *precompiled script plugin* is typically a Kotlin script that has been compiled and distributed as Java class files packaged in a library.
 These scripts are intended to be consumed as binary Gradle plugins and are recommended for use as convention plugins.
 
+A *convention plugin* is a plugin that normaly configures existing core and community plugins with your own conventions (i.e. default values) such as setting the Java version by using `java.toolchain.languageVersion = JavaLanguageVersion.of(17)`.
+Convention plugins are also used to enforce project standards and help streamline the build process.
+They can apply and configure plugins, create new tasks and extensions, set dependencies, and much more.
+
 [[sec:the_plugin_id]]
-== The plugin ID
+== Setting the plugin ID
 
 The plugin ID for a precompiled script is derived from its file name and optional package declaration.
 
@@ -44,7 +48,7 @@ plugins {
 [[sec:working_with_files_in_custom_tasks_and_plugins]]
 == Working with files
 
-You should use Gradle's <<custom_gradle_types.adoc#managed_properties,managed properties>> and `project.layout` to select file or directory locations.
+You should use Gradle's <<custom_gradle_types.adoc#managed_properties,managed properties>>.
 This will enable <<lazy_configuration.adoc#lazy_configuration,lazy configuration>> so that the actual location will only be resolved when the file is needed and can be reconfigured at any time during build configuration.
 
 Let's start by creating a convention plugin called `greetings`:
@@ -83,7 +87,12 @@ include::sample[dir="snippets/plugins/greeting/kotlin", files="buildSrc/src/main
 include::sample[dir="snippets/plugins/greeting/groovy", files="buildSrc/src/main/groovy/greetings.gradle[tags=update]"]
 ====
 
-You can find out more about implementing project extensions in <<custom_gradle_types.adoc#custom_gradle_types,Developing Custom Gradle Types>>.
+If you apply the `greetings` plugin, you can set the convention in your build script:
+
+====
+include::sample[dir="snippets/plugins/greeting/kotlin", files="app/build.gradle.kts[]"]
+include::sample[dir="snippets/plugins/greeting/groovy", files="app/build.gradle[]"]
+====
 
 [[sec:plugin_conventions]]
 == Adding default configuration as conventions

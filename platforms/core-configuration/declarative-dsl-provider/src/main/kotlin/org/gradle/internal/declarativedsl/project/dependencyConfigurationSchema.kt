@@ -31,6 +31,7 @@ import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.toDataTypeRef
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.artifacts.dsl.Dependencies
 import org.gradle.api.artifacts.dsl.DependencyCollector
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.internal.declarativedsl.analysis.FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement.NOT_ALLOWED
@@ -62,12 +63,12 @@ class DependencyConfigurationsComponent(
 
     override fun functionExtractors(): List<FunctionExtractor> = listOf(
         DependencyFunctionsExtractor(configurations),
-        ImplicitDependencyCollectorFunctionExtractor(configurations)
+        ImplicitDependencyCollectorFunctionExtractor()
     )
 
     override fun runtimeFunctionResolvers(): List<RuntimeFunctionResolver> = listOf(
         RuntimeDependencyFunctionResolver(configurations),
-        ImplicitDependencyCollectorFunctionResolver(configurations)
+        ImplicitDependencyCollectorFunctionResolver()
     )
 }
 
@@ -99,11 +100,10 @@ class DependencyFunctionsExtractor(val configurations: DependencyConfigurations)
 
 
 private
-class ImplicitDependencyCollectorFunctionExtractor(val configurations: DependencyConfigurations) : FunctionExtractor {
+class ImplicitDependencyCollectorFunctionExtractor : FunctionExtractor {
     override fun memberFunctions(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<SchemaMemberFunction> = kClass.memberFunctions
-        .filter { function -> hasDependencyCollectorGetterSignature(function) }
+        .filter { function -> hasDependencyCollectorGetterSignature(kClass, function) }
         .map { function -> function.name.removePrefix("get").replaceFirstChar { it.lowercase(Locale.getDefault()) } }
-        .filter { confName -> confName in configurations.configurationNames }
         .flatMap { confName ->
             listOf(
                 DataMemberFunction(
@@ -149,50 +149,48 @@ class RuntimeDependencyFunctionResolver(configurations: DependencyConfigurations
 
 
 private
-class ImplicitDependencyCollectorFunctionResolver(configurations: DependencyConfigurations) : RuntimeFunctionResolver {
-    private
-    val configurationNames = configurations.configurationNames.toSet()
-
+class ImplicitDependencyCollectorFunctionResolver : RuntimeFunctionResolver {
     override fun resolve(receiverClass: KClass<*>, name: String, parameterValueBinding: ParameterValueBinding): RuntimeFunctionResolver.Resolution {
-        if (name in configurationNames) {
-            val getterFunction = getDependencyCollectorGetter(receiverClass, name)
-            if (getterFunction != null) {
-                if (parameterValueBinding.bindingMap.containsKey(gavDependencyParam)) {
-                    return RuntimeFunctionResolver.Resolution.Resolved(object : DeclarativeRuntimeFunction {
-                        override fun callBy(receiver: Any, binding: Map<DataParameter, Any?>, hasLambda: Boolean): DeclarativeRuntimeFunction.InvocationResult {
-                            val dependencyNotation = binding.values.single().toString()
-                            val collector: DependencyCollector = getterFunction.call(receiver) as DependencyCollector
-                            collector.add(dependencyNotation)
-                            return DeclarativeRuntimeFunction.InvocationResult(Unit, null)
-                        }
-                    })
-                } else if (parameterValueBinding.bindingMap.containsKey(projectDependencyParam)) {
-                    return RuntimeFunctionResolver.Resolution.Resolved(object : DeclarativeRuntimeFunction {
-                        override fun callBy(receiver: Any, binding: Map<DataParameter, Any?>, hasLambda: Boolean): DeclarativeRuntimeFunction.InvocationResult {
-                            val dependencyNotation = binding.values.single() as ProjectDependency
-                            val collector: DependencyCollector = getterFunction.call(receiver) as DependencyCollector
-                            collector.add(dependencyNotation)
-                            return DeclarativeRuntimeFunction.InvocationResult(Unit, null)
-                        }
-                    })
-                } else {
-                    throw IllegalStateException("Unexpected parameter binding contents: ${parameterValueBinding.bindingMap.keys} for function: $name in: $receiverClass")
-                }
+        val getterFunction = getDependencyCollectorGetter(receiverClass, name)
+        if (getterFunction != null) {
+            if (parameterValueBinding.bindingMap.containsKey(gavDependencyParam)) {
+                return RuntimeFunctionResolver.Resolution.Resolved(object : DeclarativeRuntimeFunction {
+                    override fun callBy(receiver: Any, binding: Map<DataParameter, Any?>, hasLambda: Boolean): DeclarativeRuntimeFunction.InvocationResult {
+                        val dependencyNotation = binding.values.single().toString()
+                        val collector: DependencyCollector = getterFunction.call(receiver) as DependencyCollector
+                        collector.add(dependencyNotation)
+                        return DeclarativeRuntimeFunction.InvocationResult(Unit, null)
+                    }
+                })
+            } else if (parameterValueBinding.bindingMap.containsKey(projectDependencyParam)) {
+                return RuntimeFunctionResolver.Resolution.Resolved(object : DeclarativeRuntimeFunction {
+                    override fun callBy(receiver: Any, binding: Map<DataParameter, Any?>, hasLambda: Boolean): DeclarativeRuntimeFunction.InvocationResult {
+                        val dependencyNotation = binding.values.single() as ProjectDependency
+                        val collector: DependencyCollector = getterFunction.call(receiver) as DependencyCollector
+                        collector.add(dependencyNotation)
+                        return DeclarativeRuntimeFunction.InvocationResult(Unit, null)
+                    }
+                })
+            } else {
+                throw IllegalStateException("Unexpected parameter binding contents: ${parameterValueBinding.bindingMap.keys} for function: $name in: $receiverClass")
             }
         }
         return RuntimeFunctionResolver.Resolution.Unresolved
     }
 
     private
-    fun getDependencyCollectorGetter(receiverClass: KClass<*>, configurationName: String): KFunction<*>? = receiverClass.functions
-        .filter { hasDependencyCollectorGetterSignature(it) }
-        .firstOrNull { function -> function.name == "get${configurationName.replaceFirstChar { it.uppercase(Locale.getDefault()) }}" }
+    fun getDependencyCollectorGetter(receiverClass: KClass<*>, name: String): KFunction<*>? = receiverClass.functions
+        .filter { hasDependencyCollectorGetterSignature(receiverClass, it) }
+        .firstOrNull { function -> function.name == "get${name.replaceFirstChar { it.uppercase(Locale.getDefault()) }}" }
 }
 
 
 @OptIn(ExperimentalStdlibApi::class) // For javaType
 private
-fun hasDependencyCollectorGetterSignature(function: KFunction<*>): Boolean {
+fun hasDependencyCollectorGetterSignature(receiverClass: KClass<*>, function: KFunction<*>): Boolean {
+    if (!hasDependenciesSuperType(receiverClass)) {
+        return false
+    }
     val returnType: Type = try {
         function.returnType.javaType
     } catch (e: Throwable) { // Sometimes reflection fails with an error when the return type is unusual, if it failed then it's not a getter of interest
@@ -200,6 +198,10 @@ fun hasDependencyCollectorGetterSignature(function: KFunction<*>): Boolean {
     }
     return function.name.startsWith("get") && returnType == DependencyCollector::class.java && function.parameters.size == 1
 }
+
+
+private
+fun hasDependenciesSuperType(type: KClass<*>) = type.isSubclassOf(Dependencies::class)
 
 
 private

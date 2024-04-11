@@ -27,7 +27,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Executes build operations via a {@link BuildOperationQueue}.
  */
 @ThreadSafe
-@ServiceScope(Scope.BuildSession.class)
+@ServiceScope(Scope.CrossBuildSession.class)
 public interface BuildOperationExecutor {
     /**
      * Submits an arbitrary number of runnable operations, created synchronously by the scheduling action, to be executed in the global

@@ -27,13 +27,14 @@ import org.gradle.plugin.use.internal.DefaultPluginId;
 public final class AutoAppliedGradleEnterprisePlugin {
 
     public static final String GROUP = "com.gradle";
-    public static final String NAME = "gradle-enterprise-gradle-plugin";
-    public static final String VERSION = "3.16.2";
+    public static final String NAME = "develocity-gradle-plugin";
+    public static final String VERSION = "3.17.1";
 
-    public static final String DEVELOCITY_PLUGIN_ARTIFACT_NAME = "develocity-gradle-plugin";
 
-    public static final PluginId ID = new DefaultPluginId("com.gradle.enterprise");
+    public static final PluginId ID = new DefaultPluginId("com.gradle.develocity");
     public static final PluginId BUILD_SCAN_PLUGIN_ID = new DefaultPluginId("com.gradle.build-scan");
-    public static final PluginId DEVELOCITY_PLUGIN_ID = new DefaultPluginId("com.gradle.develocity");
+
+    public static final PluginId GRADLE_ENTERPRISE_PLUGIN_ID = new DefaultPluginId("com.gradle.enterprise");
+    public static final String GRADLE_ENTERPRISE_PLUGIN_ARTIFACT_NAME = "gradle-enterprise-gradle-plugin";
 
 }

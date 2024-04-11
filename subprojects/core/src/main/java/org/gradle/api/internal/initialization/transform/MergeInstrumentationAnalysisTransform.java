@@ -38,13 +38,12 @@ import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.ANALYSIS_FILE_NAME;
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.DEPENDENCY_ANALYSIS_FILE_NAME;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.MERGE_OUTPUT_DIR;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.createInstrumentationClasspathMarker;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.getInputType;
@@ -79,7 +78,7 @@ public abstract class MergeInstrumentationAnalysisTransform implements Transform
          */
         @InputFiles
         @PathSensitive(PathSensitivity.NAME_ONLY)
-        ConfigurableFileCollection getAnalysisResult();
+        ConfigurableFileCollection getTypeHierarchyAnalysis();
     }
 
     @Inject
@@ -97,14 +96,15 @@ public abstract class MergeInstrumentationAnalysisTransform implements Transform
         File input = getInput().get().getAsFile();
         InstrumentationInputType inputType = getInputType(input);
         switch (inputType) {
-            case ANALYSIS_DATA:
+            case DEPENDENCY_ANALYSIS_DATA:
                 doMergeAndOutputAnalysis(input, outputs);
                 return;
             case ORIGINAL_ARTIFACT:
                 outputOriginalArtifact(outputs, input);
                 return;
             case INSTRUMENTATION_MARKER:
-                // We don't need to do anything with the marker file
+            case TYPE_HIERARCHY_ANALYSIS_DATA:
+                // We don't need to do anything with the marker file and type hierarchy
                 return;
             default:
                 throw new IllegalStateException("Unexpected input type: " + inputType);
@@ -116,9 +116,9 @@ public abstract class MergeInstrumentationAnalysisTransform implements Transform
         InstrumentationAnalysisSerializer serializer = new InstrumentationAnalysisSerializer(services.getStringInterner());
         InstrumentationTypeRegistry registry = getInstrumentationTypeRegistry();
 
-        InstrumentationArtifactAnalysis analysisData = serializer.readAnalysis(input);
+        InstrumentationDependencyAnalysis data = serializer.readDependencyAnalysis(input);
         Map<String, Set<String>> dependenciesSuperTypes = new TreeMap<>();
-        for (String className : analysisData.getDependencies()) {
+        for (String className : data.getDependencies().keySet()) {
             Set<String> superTypes = registry.getSuperTypes(className);
             if (!superTypes.isEmpty()) {
                 dependenciesSuperTypes.put(className, new TreeSet<>(superTypes));
@@ -126,8 +126,8 @@ public abstract class MergeInstrumentationAnalysisTransform implements Transform
         }
 
         createInstrumentationClasspathMarker(outputs);
-        File output = outputs.file(MERGE_OUTPUT_DIR + "/" + ANALYSIS_FILE_NAME);
-        serializer.writeAnalysis(output, analysisData.getMetadata(), dependenciesSuperTypes, Collections.emptySet());
+        File output = outputs.file(MERGE_OUTPUT_DIR + "/" + DEPENDENCY_ANALYSIS_FILE_NAME);
+        serializer.writeDependencyAnalysis(output, data.getMetadata(), dependenciesSuperTypes);
     }
 
     private InstrumentationTypeRegistry getInstrumentationTypeRegistry() {

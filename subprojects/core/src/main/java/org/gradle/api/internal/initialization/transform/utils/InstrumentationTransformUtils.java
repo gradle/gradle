@@ -27,27 +27,35 @@ import static org.gradle.internal.classpath.TransformedClassPath.FileMarker.INST
 public class InstrumentationTransformUtils {
 
     public enum InstrumentationInputType {
-        ANALYSIS_DATA,
+        DEPENDENCY_ANALYSIS_DATA,
+        TYPE_HIERARCHY_ANALYSIS_DATA,
         INSTRUMENTATION_MARKER,
         ORIGINAL_ARTIFACT
     }
 
     public static final String ANALYSIS_OUTPUT_DIR = "analysis";
     public static final String MERGE_OUTPUT_DIR = "merge";
-    public static final String ANALYSIS_FILE_NAME = "instrumentation-analysis.bin";
+    public static final String TYPE_HIERARCHY_ANALYSIS_FILE_NAME = "instrumentation-hierarchy.bin";
+    public static final String DEPENDENCY_ANALYSIS_FILE_NAME = "instrumentation-dependencies.bin";
 
     public static InstrumentationInputType getInputType(File input) {
-        if (isAnalysisFile(input)) {
-            return InstrumentationInputType.ANALYSIS_DATA;
-        } else if (isInstrumentationMarkerFile(input)) {
+        if (isInstrumentationMarkerFile(input)) {
             return InstrumentationInputType.INSTRUMENTATION_MARKER;
+        } else if (isDependencyAnalysisFile(input)) {
+            return InstrumentationInputType.DEPENDENCY_ANALYSIS_DATA;
+        } else if (isTypeHierarchyAnalysisFile(input)) {
+            return InstrumentationInputType.TYPE_HIERARCHY_ANALYSIS_DATA;
         } else {
             return InstrumentationInputType.ORIGINAL_ARTIFACT;
         }
     }
 
-    public static boolean isAnalysisFile(File input) {
-        return input.getName().equals(ANALYSIS_FILE_NAME);
+    public static boolean isDependencyAnalysisFile(File input) {
+        return input.getName().equals(DEPENDENCY_ANALYSIS_FILE_NAME);
+    }
+
+    public static boolean isTypeHierarchyAnalysisFile(File input) {
+        return input.getName().equals(TYPE_HIERARCHY_ANALYSIS_FILE_NAME);
     }
 
     public static boolean isInstrumentationMarkerFile(File input) {

@@ -59,6 +59,20 @@ class PluginDependenciesSpecScopeTest {
     }
 
     @Test
+    fun `given develocity plugin accessor, it should create a single request matching the auto-applied plugin version`() {
+        expecting(plugin(id = "com.gradle.develocity", version = AutoAppliedGradleEnterprisePlugin.VERSION)) {
+            `develocity`
+        }
+    }
+
+    @Test
+    fun `given develocity plugin accessor with version, it should create a single request with given version`() {
+        expecting(plugin(id = "com.gradle.develocity", version = "1.7.1")) {
+            `develocity` version "1.7.1"
+        }
+    }
+
+    @Test
     fun `given kotlin plugin accessor, it should create a single request with no version`() {
         expecting(plugin(id = "org.jetbrains.kotlin.jvm", version = null)) {
             kotlin("jvm")

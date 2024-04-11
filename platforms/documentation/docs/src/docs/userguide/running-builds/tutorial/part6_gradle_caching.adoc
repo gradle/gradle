@@ -71,6 +71,8 @@ BUILD SUCCESSFUL in 1s
 ----
 
 Add `org.gradle.caching=true` to the `gradle.properties` file:
+
+.gradle.properties
 [source,properties]
 ----
 org.gradle.console=verbose

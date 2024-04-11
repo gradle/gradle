@@ -64,7 +64,6 @@ import java.util.function.Supplier;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static java.util.Optional.empty;
-import static java.util.Optional.of;
 import static java.util.stream.Collectors.toMap;
 
 @NonNullApi
@@ -93,7 +92,7 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
     private Optional<InternalProblemEvent> createProblemEvent(OperationIdentifier buildOperationId, @Nullable Object details) {
         if (details instanceof DefaultProblemProgressDetails) {
             Problem problem = ((DefaultProblemProgressDetails) details).getProblem();
-            return of(createProblemEvent(buildOperationId, problem));
+            return Optional.of(createProblemEvent(buildOperationId, problem));
         }
         return empty();
     }

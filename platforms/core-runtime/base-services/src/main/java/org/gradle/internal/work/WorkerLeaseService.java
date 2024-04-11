@@ -24,7 +24,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.Collection;
 
-@ServiceScope(Scope.BuildSession.class)
+@ServiceScope(Scope.CrossBuildSession.class)
 public interface WorkerLeaseService extends WorkerLeaseRegistry, ProjectLeaseRegistry, WorkerThreadRegistry {
     /**
      * Returns the maximum number of worker leases that this service will grant at any given time. Note that the actual limit may vary over time but will never _exceed_ the value returned by this method.

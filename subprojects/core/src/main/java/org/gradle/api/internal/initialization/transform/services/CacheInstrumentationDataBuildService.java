@@ -85,8 +85,8 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
         return getResolutionData(contextId).getArtifactHash(file);
     }
 
-    public FileCollection getAnalysisResult(long contextId) {
-        return getResolutionData(contextId).getAnalysisResult();
+    public FileCollection getTypeHierarchyAnalysis(long contextId) {
+        return getResolutionData(contextId).getTypeHierarchyAnalysisResult();
     }
 
     private ResolutionData getResolutionData(long contextId) {
@@ -100,8 +100,9 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
         });
         return new ResolutionScope() {
             @Override
-            public void setAnalysisResult(FileCollection analysisResult) {
-                resolutionData.getAnalysisResult().setFrom(analysisResult);
+            public void setTypeHierarchyAnalysisResult(FileCollection analysisResult) {
+                FileCollection typeHierarchyAnalysisResult = analysisResult.filter(InstrumentationTransformUtils::isTypeHierarchyAnalysisFile);
+                resolutionData.getTypeHierarchyAnalysisResult().setFrom(typeHierarchyAnalysisResult);
             }
 
             @Override
@@ -118,7 +119,7 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
 
     public interface ResolutionScope extends AutoCloseable {
 
-        void setAnalysisResult(FileCollection analysisResult);
+        void setTypeHierarchyAnalysisResult(FileCollection analysisResult);
         void setOriginalClasspath(FileCollection originalClasspath);
 
         @Override
@@ -147,22 +148,21 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
             });
             this.instrumentationTypeRegistry = Lazy.locking().of(() -> {
                 InstrumentationTypeRegistry gradleCoreInstrumentationTypeRegistry = internalServices.getGradleCoreInstrumentationTypeRegistry();
-                Map<String, Set<String>> directSuperTypes = readDirectSuperTypes();
+                Map<String, Set<String>> directSuperTypes = mergeTypeHierarchyAnalysis();
                 return new ExternalPluginsInstrumentationTypeRegistry(directSuperTypes, gradleCoreInstrumentationTypeRegistry);
             });
             this.internalServices = internalServices;
         }
 
-        abstract ConfigurableFileCollection getAnalysisResult();
-        abstract ConfigurableFileCollection getOriginalClasspath();
-
-        private Map<String, Set<String>> readDirectSuperTypes() {
+        private Map<String, Set<String>> mergeTypeHierarchyAnalysis() {
             InstrumentationAnalysisSerializer serializer = new InstrumentationAnalysisSerializer(internalServices.getStringInterner());
-            return getAnalysisResult().getFiles().stream()
-                .filter(InstrumentationTransformUtils::isAnalysisFile)
-                .flatMap(file -> serializer.readOnlyTypeHierarchy(file).entrySet().stream())
+            return getTypeHierarchyAnalysisResult().getFiles().stream()
+                .flatMap(file -> serializer.readTypeHierarchyAnalysis(file).entrySet().stream())
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, Sets::union));
         }
+
+        abstract ConfigurableFileCollection getTypeHierarchyAnalysisResult();
+        abstract ConfigurableFileCollection getOriginalClasspath();
 
         private InstrumentationTypeRegistry getInstrumentationTypeRegistry() {
             return instrumentationTypeRegistry.get();

@@ -62,10 +62,10 @@ fun performanceTestCommandLine(
 ).map { (key, value) -> os.escapeKeyValuePair(key, value) }
 
 const val individualPerformanceTestArtifactRules = """
-subprojects/*/build/test-results-*.zip => results
-subprojects/*/build/tmp/**/log.txt => failure-logs
-subprojects/*/build/tmp/**/profile.log => failure-logs
-subprojects/*/build/tmp/**/daemon-*.out.log => failure-logs
+testing/*/build/test-results-*.zip => results
+testing/*/build/tmp/**/log.txt => failure-logs
+testing/*/build/tmp/**/profile.log => failure-logs
+testing/*/build/tmp/**/daemon-*.out.log => failure-logs
 """
 
 // to avoid pathname too long error

@@ -24,6 +24,7 @@ import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.scala.ScalaCompilationFixture
+import org.junit.Assume
 
 import static org.gradle.api.JavaVersion.VERSION_11
 import static org.gradle.api.JavaVersion.VERSION_1_8
@@ -36,7 +37,10 @@ class ScalaDocIntegrationTest extends MultiVersionIntegrationSpec implements Dir
 
     def getOtherScalaVersion() {
         def currentScalaVersion = version.toString()
-        return ScalaCoverage.SUPPORTED_BY_JDK.find { it != currentScalaVersion }
+        def otherVersion = ScalaCoverage.SUPPORTED_BY_JDK.find { it != currentScalaVersion }
+        // Occasionally there can be no other version of scala supported by this JDK
+        Assume.assumeNotNull(otherVersion)
+        return otherVersion
     }
 
     def getDocsPath() {

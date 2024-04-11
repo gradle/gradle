@@ -19,7 +19,7 @@ val antVersion = "1.10.13"
 // Don't forget to bump versions in
 // subprojects/base-services/src/main/java/org/gradle/internal/classanalysis/AsmConstants.java
 // when upgrading ASM.
-val asmVersion = "9.6"
+val asmVersion = "9.7"
 val awsS3Version = "1.12.651"
 val bouncycastleVersion = "1.77"
 val jacksonVersion = "2.16.1"
@@ -73,7 +73,7 @@ dependencies {
         api(libs.commonsMath)           { version { strictly("3.6.1") }}
         api(libs.eclipseSisuPlexus)     { version { strictly("0.3.5"); because("transitive dependency of Maven modules to process POM metadata") }}
         api(libs.gradleProfiler)        { version { strictly("0.21.0-alpha-3") }}
-        api(libs.gradleEnterpriseTestAnnotation) { version { strictly("1.0") }}
+        api(libs.develocityTestAnnotation) { version { strictly("2.0.1") }}
         api(libs.gcs)                   { version { strictly("v1-rev20220705-1.32.1") }}
         api(libs.googleApiClient)       { version { strictly("1.34.0"); because("our GCS version requires 1.34.0") }}
         api(libs.guava)                 { version { strictly("32.1.2-jre"); because("our Google API Client version requires at least 31.1-jre")  }}

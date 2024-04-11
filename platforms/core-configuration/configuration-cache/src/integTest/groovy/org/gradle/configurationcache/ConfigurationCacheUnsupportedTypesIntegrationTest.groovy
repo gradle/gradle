@@ -317,7 +317,7 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
     }
 
     private static executorServiceTypeOnCurrentJvm() {
-        def shortName = Jvm.current().javaVersion == JavaVersion.VERSION_21 ? 'AutoShutdownDelegatedExecutorService' : 'FinalizableDelegatedExecutorService'
+        def shortName = Jvm.current().javaVersion.isCompatibleWith(JavaVersion.VERSION_21) ? 'AutoShutdownDelegatedExecutorService' : 'FinalizableDelegatedExecutorService'
         return 'java.util.concurrent.Executors$' + shortName
     }
 

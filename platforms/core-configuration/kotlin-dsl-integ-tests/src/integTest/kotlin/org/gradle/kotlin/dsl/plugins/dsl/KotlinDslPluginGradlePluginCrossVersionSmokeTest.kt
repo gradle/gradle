@@ -101,6 +101,17 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
                 implementation(kotlin("stdlib"))
             }
 
+            ${if (kotlinVersion >= VersionNumber.parse("1.9.0")) {
+                """
+                // Work around JVM validation issue: https://youtrack.jetbrains.com/issue/KT-66919
+                tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+                    jvmTargetValidationMode = org.jetbrains.kotlin.gradle.dsl.jvm.JvmTargetValidationMode.WARNING
+                }
+                """
+            } else {
+                ""
+            }}
+
             println("root build script classpath kotlin compiler version " + KotlinCompilerVersion.VERSION)
             """
         )

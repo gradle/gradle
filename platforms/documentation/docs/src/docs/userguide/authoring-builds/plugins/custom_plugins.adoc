@@ -43,7 +43,6 @@ They are always available.
 
 === Community Plugins
 The term *community plugin* refers to a plugin published to the Gradle Plugin Portal (or another public repository) such as the link:https://plugins.gradle.org/plugin/com.diffplug.gradle.spotless[Spotless Plugin].
-In order for Gradle to find the plugin, you must declare the repository that provides the plugin.
 
 === Local or Custom Plugins
 The term *local or custom plugin* refers to a plugin you write yourself for your own build.
@@ -57,14 +56,14 @@ There are three types of *custom plugins*:
 |# |Type |Location: |Most likely: |Benefit:
 
 |<<sec:build_script_plugins,1>>
-|<<sec:build_script_plugins,Build script plugins>>
-|Build script
+|<<sec:build_script_plugins,Build script and Script plugins>>
+|Build script or script
 |A local plugin
 |Plugin is automatically compiled and included in the classpath of the build script.
 
 |<<sec:precompile_script_plugin,2>>
 |<<sec:precompile_script_plugin,Precompiled script plugins>>
-|<<sharing_build_logic_between_subprojects.adoc#sec:using_buildsrc,`buildSrc`>> folder
+|<<sharing_build_logic_between_subprojects.adoc#sec:using_buildsrc,`buildSrc`>> folder or <<composite_builds.adoc#composite_builds,composite>> build
 |A convention plugin
 |Plugin is automatically compiled, tested, and available on the classpath of the build script. The plugin is visible to every build script used by the build.
 
@@ -76,9 +75,10 @@ There are three types of *custom plugins*:
 |===
 
 [[sec:build_script_plugins]]
-== Build script plugins
+== Build script and Script plugins
 
 *Build script plugins* are typically small, local plugins written in build files for tasks specific to a single build or project and do not need to be reused across multiple projects.
+Build script plugins are not recommended but many other forms of plugins evolve from build script plugins.
 
 To create a Gradle plugin, you need to write a class that implements the link:{javadocPath}/org/gradle/api/Plugin.html[Plugin] interface in one of your build files.
 
@@ -86,8 +86,8 @@ To create a Gradle plugin, you need to write a class that implements the link:{j
 The following sample creates a `GreetingPlugin`, which adds a `hello` task to a project:
 
 ====
-include::sample[dir="snippets/customPlugins/customPlugin/kotlin",files="build.gradle.kts[]"]
-include::sample[dir="snippets/customPlugins/customPlugin/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/customPlugins/customPlugin/kotlin",files="build.gradle.kts[tag=no-script-plugin]"]
+include::sample[dir="snippets/customPlugins/customPlugin/groovy",files="build.gradle[tag=no-script-plugin]"]
 ====
 
 ----
@@ -97,23 +97,41 @@ include::{snippetsPath}/customPlugins/customPlugin/tests/customPlugin.out[]
 
 The `Project` object is passed as a parameter in `apply()`, which the plugin can use to configure the project however it needs to (such as adding tasks, configuring dependencies, etc.)
 
+*Script plugins* are similar to build script plugin, however, the plugin definition is simply done in a separate script which is then applied to the build file using `apply(from = " ")` or `apply from: ''`:
+Script plugins are not recommended.
+
+====
+include::sample[dir="snippets/customPlugins/customPlugin/kotlin",files="other.gradle.kts[]"]
+include::sample[dir="snippets/customPlugins/customPlugin/groovy",files="other.gradle[]"]
+====
+
+====
+include::sample[dir="snippets/customPlugins/customPlugin/kotlin",files="build.gradle.kts[tag=script-plugin]"]
+include::sample[dir="snippets/customPlugins/customPlugin/groovy",files="build.gradle[tag=script-plugin]"]
+====
+
+----
+$ gradle -q hi
+include::{snippetsPath}/customPlugins/customPlugin/tests/customPluginScript.out[]
+----
+
 [[sec:precompile_script_plugin]]
 == Precompiled script plugins
 
 *Precompiled script plugins* are compiled into class files and packaged into a JAR before they are executed.
+These plugins use the Groovy or Kotlin DSL instead of pure Java, Kotlin, or Groovy.
 They are best used as *convention plugins* that share build logic across projects or as a way to neatly organize build logic.
 
 To create a precompiled script plugin, you can:
 
 1. Use Gradle's Kotlin DSL - The plugin is a `.gradle.kts` file, and apply `id("kotlin-dsl")`.
 2. Use Gradle's Groovy DSL - The plugin is a `.gradle` file, and apply `id("groovy-gradle-plugin")`.
-3. Write a Java, Scala, Kotlin, or Groovy class - The plugin is an abstract class that implements the `Plugin<Project>` interface, and apply `id("java-gradle-plugin")`.
 
 To apply a precompiled script plugin, you need to know its ID.
 The ID is derived from the plugin script's filename and its (optional) package declaration.
 
-For example, the script `src/main/\*/java-library-convention.gradle(.kts)` has a plugin ID of `java-library-convention` (assuming it has no package declaration).
-Likewise, `src/main/*/my/java-library-convention.gradle(.kts)` has a plugin ID of `my.java-library-convention` as long as it has a package declaration of `my`.
+For example, the script `src/main/\*/java-library.gradle(.kts)` has a plugin ID of `java-library` (assuming it has no package declaration).
+Likewise, `src/main/*/my/java-library.gradle(.kts)` has a plugin ID of `my.java-library` as long as it has a package declaration of `my`.
 
 Precompiled script plugin names have two important limitations:
 
@@ -146,9 +164,9 @@ include::{snippetsPath}/plugins/greetingPlugin/tests/greeting.out[]
 ----
 
 [[sec:convention_plugins]]
-== Convention Plugins
+== Convention plugins
 
-A *convention plugin* is typically a plugin that configures existing core and community plugins with your own conventions (i.e. default values) such as setting the Java version by using `java.toolchain.languageVersion.set(JavaLanguageVersion.of(17))`.
+A *convention plugin* is typically a precompiled script plugin that configures existing core and community plugins with your own conventions (i.e. default values) such as setting the Java version by using `java.toolchain.languageVersion = JavaLanguageVersion.of(17)`.
 Convention plugins are also used to enforce project standards and help streamline the build process.
 They can apply and configure plugins, create new tasks and extensions, set dependencies, and much more.
 

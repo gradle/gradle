@@ -551,7 +551,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         and:
         verifyAll(receivedProblem(0)) {
             fqid == 'validation:property-validation:unknown-implementation-nested'
-            contextualLabel == 'was loaded with an unknown classloader (class \'A\').'
+            contextualLabel == "Property 'bean' was loaded with an unknown classloader (class 'A')."
             details == 'Gradle cannot track the implementation for classes loaded with an unknown classloader.'
             solutions == [ 'Load your class by using one of Gradle\'s built-in ways.' ]
             additionalData == [
