@@ -20,6 +20,7 @@ import org.codehaus.groovy.runtime.callsite.CallSite;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
+import java.util.Set;
 
 /**
  * Intercepts method and constructor calls as well as property reads in dynamic Groovy bytecode.
@@ -46,5 +47,5 @@ public interface CallInterceptor {
 
     MethodHandle decorateMethodHandle(MethodHandle original, MethodHandles.Lookup caller, int flags);
 
-    InterceptScope[] getInterceptScopes();
+    Set<InterceptScope> getInterceptScopes();
 }
