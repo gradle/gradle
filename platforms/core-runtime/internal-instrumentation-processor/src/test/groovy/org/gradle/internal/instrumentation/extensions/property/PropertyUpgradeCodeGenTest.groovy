@@ -361,7 +361,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
     private static String getDefaultDeprecation(String className, String propertyName) {
         return "DeprecationLogger.deprecateProperty(" + className + ".class, \"" + propertyName + "\")\n" +
             ".withContext(\"Property was automatically upgraded to the lazy version.\")\n" +
-            ".startingWithGradle9(\"Property is replaced with lazy version.\")\n" +
+            ".startingWithGradle9(\"this property is replaced with a lazy version\")\n" +
             ".undocumented()\n" +
             ".nagUser();";
     }
