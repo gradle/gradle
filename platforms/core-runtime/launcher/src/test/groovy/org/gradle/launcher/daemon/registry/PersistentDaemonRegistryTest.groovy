@@ -156,7 +156,7 @@ class PersistentDaemonRegistryTest extends Specification {
     }
 
     DaemonContext daemonContext() {
-        new DefaultDaemonContext(UUID.randomUUID().toString(), Jvm.current().javaHome, JavaVersion.current(), tmp.createDir("daemons", ), 1L, 600, [], false, NativeServicesMode.ENABLED, DaemonParameters.Priority.NORMAL)
+        new DefaultDaemonContext(UUID.randomUUID().toString(), Jvm.current().javaHome, JavaVersion.current(), tmp.createDir("daemons"), 1L, 600, [], false, NativeServicesMode.ENABLED, DaemonParameters.Priority.NORMAL)
     }
 
     Address address(int i = addressCounter++) {
