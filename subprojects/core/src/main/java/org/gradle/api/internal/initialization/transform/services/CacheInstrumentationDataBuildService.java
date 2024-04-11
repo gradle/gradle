@@ -103,11 +103,13 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
             public void setTypeHierarchyAnalysisResult(FileCollection analysisResult) {
                 FileCollection typeHierarchyAnalysisResult = analysisResult.filter(InstrumentationTransformUtils::isTypeHierarchyAnalysisFile);
                 resolutionData.getTypeHierarchyAnalysisResult().setFrom(typeHierarchyAnalysisResult);
+                resolutionData.getTypeHierarchyAnalysisResult().finalizeValueOnRead();
             }
 
             @Override
             public void setOriginalClasspath(FileCollection originalClasspath) {
                 resolutionData.getOriginalClasspath().setFrom(originalClasspath);
+                resolutionData.getOriginalClasspath().finalizeValueOnRead();
             }
 
             @Override
