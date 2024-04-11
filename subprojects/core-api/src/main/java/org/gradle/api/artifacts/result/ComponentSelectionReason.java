@@ -17,7 +17,6 @@
 package org.gradle.api.artifacts.result;
 
 import org.gradle.internal.HasInternalProtocol;
-import org.gradle.internal.scan.UsedByScanPlugin;
 
 import java.util.List;
 
@@ -26,7 +25,6 @@ import java.util.List;
  *
  * @since 1.3
  */
-@UsedByScanPlugin
 @HasInternalProtocol
 public interface ComponentSelectionReason {
 

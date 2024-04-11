@@ -18,7 +18,6 @@ package org.gradle.api.attributes;
 
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.HasInternalProtocol;
-import org.gradle.internal.scan.UsedByScanPlugin;
 
 import javax.annotation.Nullable;
 import java.util.Set;
@@ -39,7 +38,6 @@ import java.util.Set;
  * @since 3.3
  */
 @HasInternalProtocol
-@UsedByScanPlugin
 public interface AttributeContainer extends HasAttributes {
 
     /**

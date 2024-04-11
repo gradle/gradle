@@ -16,14 +16,12 @@
 package org.gradle.api.artifacts.component;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
  * An identifier for a component instance which is available as a module version.
  *
  * @since 1.10
  */
-@UsedByScanPlugin
 public interface ModuleComponentIdentifier extends ComponentIdentifier {
     /**
      * The module group of the component.

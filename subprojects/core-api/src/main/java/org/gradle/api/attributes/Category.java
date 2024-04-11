@@ -18,7 +18,6 @@ package org.gradle.api.attributes;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
-import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
  * This attribute describes the categories of variants for a given module.
@@ -35,7 +34,6 @@ import org.gradle.internal.scan.UsedByScanPlugin;
  *
  * @since 5.3
  */
-@UsedByScanPlugin
 public interface Category extends Named {
 
     Attribute<Category> CATEGORY_ATTRIBUTE = Attribute.of("org.gradle.category", Category.class);

@@ -15,15 +15,12 @@
  */
 package org.gradle.api.artifacts.result;
 
-import org.gradle.internal.scan.UsedByScanPlugin;
-
 /**
  * The possible component selection causes. There are a limited number of causes, but each of them
  * can be provided with a custom description, via {@link ComponentSelectionDescriptor}.
  *
  * @since 4.6
  */
-@UsedByScanPlugin
 public enum ComponentSelectionCause {
     /**
      * This component was selected because it's the root component.

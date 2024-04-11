@@ -17,14 +17,12 @@
 package org.gradle.api.artifacts.result;
 
 import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
  * An edge in the dependency graph. Provides information about the origin of the dependency and the requested component.
  *
  * @see ResolutionResult
  */
-@UsedByScanPlugin
 public interface DependencyResult {
     /**
      * <p>Returns the requested component.

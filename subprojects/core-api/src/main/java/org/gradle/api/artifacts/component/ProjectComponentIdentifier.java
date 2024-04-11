@@ -17,14 +17,12 @@ package org.gradle.api.artifacts.component;
 
 import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
-import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
  * An identifier for a component instance that is built as part of the current build.
  *
  * @since 1.10
  */
-@UsedByScanPlugin
 @HasInternalProtocol
 public interface ProjectComponentIdentifier extends ComponentIdentifier {
     /**
