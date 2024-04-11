@@ -31,6 +31,8 @@ dependencies {
 
     implementation(project(":resources"))
     implementation(project(":model-core"))
+
+    implementation(libs.guava)
     implementation(libs.futureKotlin("compiler-embeddable"))
     implementation(libs.futureKotlin("reflect"))
 
