@@ -50,6 +50,7 @@ dependencies {
     api(libs.inject)
 
     implementation(projects.concurrent)
+    implementation(projects.time)
     implementation(project(":file-temp"))
     implementation(project(":logging-api"))
     implementation(project(":model-core"))
