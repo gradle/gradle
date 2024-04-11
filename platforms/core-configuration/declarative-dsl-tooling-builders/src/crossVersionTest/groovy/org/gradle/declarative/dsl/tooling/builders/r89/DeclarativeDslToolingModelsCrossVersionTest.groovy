@@ -66,7 +66,7 @@ class DeclarativeDslToolingModelsCrossVersionTest extends ToolingApiSpecificatio
         then:
         model != null
 
-        def schema = model.schema()
+        def schema = model.getProjectSchema()
         !schema.dataClassesByFqName.isEmpty()
     }
 

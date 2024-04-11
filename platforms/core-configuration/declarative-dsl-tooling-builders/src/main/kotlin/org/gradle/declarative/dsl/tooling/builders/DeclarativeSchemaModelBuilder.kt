@@ -34,9 +34,9 @@ class DeclarativeSchemaModelBuilder(private val registry: DeclarativeSchemaRegis
 
 
 private
-class DefaultDeclarativeSchemaModel(val projectSchema: AnalysisSchema) : DeclarativeSchemaModel, Serializable {
+class DefaultDeclarativeSchemaModel(private val projectSchema: AnalysisSchema) : DeclarativeSchemaModel, Serializable {
 
-    override fun schema(): AnalysisSchema {
+    override fun getProjectSchema(): AnalysisSchema {
         return projectSchema
     }
 }
