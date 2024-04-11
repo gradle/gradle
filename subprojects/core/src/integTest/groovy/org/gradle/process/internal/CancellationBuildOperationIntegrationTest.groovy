@@ -18,6 +18,8 @@ package org.gradle.process.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
 import static org.hamcrest.CoreMatchers.anyOf
 import static org.hamcrest.CoreMatchers.equalTo
@@ -26,6 +28,7 @@ class CancellationBuildOperationIntegrationTest extends AbstractIntegrationSpec 
 
     BuildOperationsFixture operations = new BuildOperationsFixture(executer, temporaryFolder)
 
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
     def "task operations are closed even when interrupting the execution workers"() {
         def parallelTaskCount = 5
         buildFile << """
@@ -39,6 +42,8 @@ class CancellationBuildOperationIntegrationTest extends AbstractIntegrationSpec 
                   it.interrupt()
                 }
               }
+              // We fail this task so the build fails consistently
+              throw new RuntimeException("Interrupting done")
             }
           }
         """
