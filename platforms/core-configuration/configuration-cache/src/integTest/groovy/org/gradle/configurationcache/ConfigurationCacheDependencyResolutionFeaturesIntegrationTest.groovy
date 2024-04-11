@@ -706,7 +706,7 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
 
         then:
         configurationCache.assertStateStored()
-        outputContains("Calculating task graph as configuration cache cannot be reused because file '${lockFile}' has changed.")
+        outputContains("Calculating task graph as configuration cache cannot be reused because file '${lockFile}' has been removed.")
         outputContains("result = [lib-1.4.jar]")
     }
 
@@ -795,7 +795,7 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
         configurationCacheRun("resolve1")
 
         then:
-        outputContains("Calculating task graph as configuration cache cannot be reused because file 'gradle/verification-metadata.xml' has changed.".replace('/', File.separator))
+        outputContains("Calculating task graph as configuration cache cannot be reused because file 'gradle/verification-metadata.xml' has been removed.".replace('/', File.separator))
         configurationCache.assertStateStored()
     }
 
