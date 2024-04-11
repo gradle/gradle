@@ -27,6 +27,7 @@ import org.gradle.configurationcache.serialization.codecs.jos.JavaSerializationE
 import org.gradle.configurationcache.services.IsolatedActionCodecsFactory
 import org.gradle.internal.isolation.IsolatedActionsForTesting.isolatedActionLambdaWith
 import org.gradle.util.TestUtil.objectFactory
+import org.gradle.util.TestUtil.propertyFactory
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.equalTo
 import org.junit.Ignore
@@ -55,7 +56,6 @@ class IsolatedActionSerializerTest {
         )
     }
 
-    @Ignore("wip")
     @Test
     fun `can serialize Kotlin action with Gradle property`() {
         val loaded = replay(roundtripOf(isolatedActionCarrying(propertyOf("42"))))
@@ -65,7 +65,6 @@ class IsolatedActionSerializerTest {
         )
     }
 
-    @Ignore("wip")
     @Test
     fun `can serialize Java lambda with Gradle property`() {
         val loaded = replay(roundtripOf(isolatedActionLambdaWith(propertyOf("42"))))
@@ -132,5 +131,8 @@ class IsolatedActionSerializerTest {
 
     private
     fun isolatedActionCodecsFactory(): IsolatedActionCodecsFactory =
-        IsolatedActionCodecsFactory(JavaSerializationEncodingLookup())
+        IsolatedActionCodecsFactory(
+            javaSerializationEncodingLookup = JavaSerializationEncodingLookup(),
+            propertyFactory = propertyFactory()
+        )
 }

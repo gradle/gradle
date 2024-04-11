@@ -16,13 +16,24 @@
 
 package org.gradle.configurationcache.services
 
+import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory.ValueSourceProvider
+import org.gradle.api.internal.provider.PropertyFactory
+import org.gradle.api.services.internal.BuildServiceProvider
 import org.gradle.configurationcache.serialization.codecs.BeanCodec
 import org.gradle.configurationcache.serialization.codecs.Bindings
+import org.gradle.configurationcache.serialization.codecs.BindingsBuilder
+import org.gradle.configurationcache.serialization.codecs.FixedValueReplacingProviderCodec
+import org.gradle.configurationcache.serialization.codecs.PropertyCodec
+import org.gradle.configurationcache.serialization.codecs.ProviderCodec
+import org.gradle.configurationcache.serialization.codecs.ServicesCodec
 import org.gradle.configurationcache.serialization.codecs.baseTypes
+import org.gradle.configurationcache.serialization.codecs.groovyCodecs
 import org.gradle.configurationcache.serialization.codecs.jos.ExternalizableCodec
 import org.gradle.configurationcache.serialization.codecs.jos.JavaObjectSerializationCodec
 import org.gradle.configurationcache.serialization.codecs.jos.JavaSerializationEncodingLookup
 import org.gradle.configurationcache.serialization.codecs.unsupportedTypes
+import org.gradle.configurationcache.serialization.unsupported
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 
@@ -30,13 +41,51 @@ import org.gradle.internal.service.scopes.ServiceScope
 @ServiceScope(Scope.BuildTree::class)
 internal
 class IsolatedActionCodecsFactory(
-    private val javaSerializationEncodingLookup: JavaSerializationEncodingLookup
+
+    private
+    val javaSerializationEncodingLookup: JavaSerializationEncodingLookup,
+
+    private
+    val propertyFactory: PropertyFactory
+
 ) {
     fun isolatedActionCodecs() = Bindings.of {
-        unsupportedTypes()
+        allUnsupportedTypes()
         baseTypes()
+        supportedPropertyTypes()
+        groovyCodecs()
         bind(ExternalizableCodec)
+        bind(ServicesCodec)
         bind(JavaObjectSerializationCodec(javaSerializationEncodingLookup))
         bind(BeanCodec)
     }.build()
+
+    private
+    fun BindingsBuilder.allUnsupportedTypes() {
+        unsupportedTypes()
+        unsupportedProviderTypes()
+        unsupported<FileCollection>()
+    }
+
+    private
+    fun BindingsBuilder.supportedPropertyTypes() {
+        val valueReplacingProviderCodec = fixedValueReplacingProviderCodec()
+        bind(PropertyCodec(propertyFactory, valueReplacingProviderCodec))
+        bind(ProviderCodec(valueReplacingProviderCodec))
+    }
+
+    private
+    fun fixedValueReplacingProviderCodec() =
+        FixedValueReplacingProviderCodec(
+            Bindings.of {
+                unsupportedProviderTypes()
+                bind(BeanCodec)
+            }.build()
+        )
+
+    private
+    fun BindingsBuilder.unsupportedProviderTypes() {
+        bind(unsupported<ValueSourceProvider<*, *>>())
+        bind(unsupported<BuildServiceProvider<*, *>>())
+    }
 }

@@ -128,8 +128,7 @@ class Codecs(
 
             bind(ApiTextResourceAdapterCodec)
 
-            bind(ClosureCodec)
-            bind(GroovyMetaClassCodec)
+            groovyCodecs()
             bind(SerializedLambdaParametersCheckingCodec)
 
             // Dependency management types
@@ -179,7 +178,7 @@ class Codecs(
             bind(BooleanValueSnapshotCodec)
             bind(NullValueSnapshotCodec)
 
-            bind(ServicesCodec())
+            bind(ServicesCodec)
 
             bind(ProxyCodec)
 
@@ -274,9 +273,11 @@ class Codecs(
         buildStateRegistry: BuildStateRegistry,
         flowProviders: FlowProviders
     ) = FixedValueReplacingProviderCodec(
-        ValueSourceProviderCodec(valueSourceProviderFactory),
-        BuildServiceProviderCodec(buildStateRegistry),
-        FlowProvidersCodec(flowProviders)
+        defaultCodecForProviderWithChangingValue(
+            ValueSourceProviderCodec(valueSourceProviderFactory),
+            BuildServiceProviderCodec(buildStateRegistry),
+            FlowProvidersCodec(flowProviders)
+        )
     )
 
     /**
@@ -286,9 +287,11 @@ class Codecs(
     fun nestedProviderCodecForFingerprint(
         valueSourceProviderFactory: ValueSourceProviderFactory
     ) = FixedValueReplacingProviderCodec(
-        ValueSourceProviderCodec(valueSourceProviderFactory),
-        UnsupportedFingerprintBuildServiceProviderCodec,
-        UnsupportedFingerprintFlowProviders
+        defaultCodecForProviderWithChangingValue(
+            ValueSourceProviderCodec(valueSourceProviderFactory),
+            UnsupportedFingerprintBuildServiceProviderCodec,
+            UnsupportedFingerprintFlowProviders
+        )
     )
 
     private

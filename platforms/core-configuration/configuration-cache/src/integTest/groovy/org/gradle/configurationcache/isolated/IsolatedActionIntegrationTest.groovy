@@ -17,7 +17,6 @@
 package org.gradle.configurationcache.isolated
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Ignore
 
 import static org.gradle.integtests.fixtures.KotlinDslTestUtil.getKotlinDslBuildSrcConfig
 
@@ -43,7 +42,6 @@ class IsolatedActionIntegrationTest extends AbstractIntegrationSpec {
         true
     }
 
-    @Ignore("wip")
     def 'isolated action given as Kotlin lambda can capture managed value'() {
         given:
         createDir('build-logic') {
@@ -84,7 +82,6 @@ class IsolatedActionIntegrationTest extends AbstractIntegrationSpec {
         configuredTaskRunsCorrectly()
     }
 
-    @Ignore("wip")
     def 'isolated action given as Java lambda can capture managed value'() {
         given:
         createDir('build-logic') {
