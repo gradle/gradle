@@ -189,7 +189,7 @@ public class BuildOperationTrace implements Stoppable {
                 }
 
                 if (outputTree) {
-                    List<BuildOperationRecord> roots = readLogToTreeRoots(logFile(basePath), true);
+                    List<BuildOperationRecord> roots = readLogToTreeRoots(logFile(basePath), false);
                     writeDetailTree(roots);
                     writeSummaryTree(roots);
                 }
