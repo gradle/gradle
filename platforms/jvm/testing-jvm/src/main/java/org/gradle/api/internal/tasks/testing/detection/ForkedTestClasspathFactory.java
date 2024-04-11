@@ -172,6 +172,7 @@ public class ForkedTestClasspathFactory {
             moduleRegistry.getModule("gradle-file-temp").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-hashing").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-base-services").getImplementationClasspath().getAsURLs(),
+            moduleRegistry.getModule("gradle-java-language-extensions").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-enterprise-logging").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-enterprise-workers").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-cli").getImplementationClasspath().getAsURLs(),
