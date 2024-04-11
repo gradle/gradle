@@ -20,6 +20,6 @@ import org.gradle.declarative.dsl.schema.AnalysisSchema;
 
 public interface DeclarativeSchemaModel {
 
-    AnalysisSchema schema();
+    AnalysisSchema getProjectSchema();
 
 }
