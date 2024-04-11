@@ -21,6 +21,8 @@ plugins {
 
 description = "Tools to work with managed executors"
 
+gradlebuildJava.usedInWorkers()
+
 dependencies {
     api(libs.jsr305)
     api(projects.javaLanguageExtensions)
