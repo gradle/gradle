@@ -27,7 +27,7 @@ import org.gradle.internal.typeconversion.TypeConversionException;
 import java.io.File;
 import java.util.concurrent.Callable;
 
-import static org.gradle.util.internal.GUtil.uncheckedCall;
+import static org.gradle.internal.UncheckedException.uncheckedCall;
 
 public class PathNotationConverter implements NotationConverter<Object, String> {
 
