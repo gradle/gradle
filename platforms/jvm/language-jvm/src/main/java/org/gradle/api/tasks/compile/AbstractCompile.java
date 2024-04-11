@@ -25,6 +25,8 @@ import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.UpgradedAccessor;
+import org.gradle.internal.instrumentation.api.annotations.UpgradedDeprecation;
+import org.gradle.internal.instrumentation.api.annotations.UpgradedDeprecation.RemovedIn;
 import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty;
 import org.gradle.work.DisableCachingByDefault;
 
@@ -74,10 +76,14 @@ public abstract class AbstractCompile extends SourceTask {
      * @since 6.1
      */
     @OutputDirectory
-    @UpgradedProperty(originalAccessors = {
-        @UpgradedAccessor(value = GETTER, methodName = "getDestinationDir"),
-        @UpgradedAccessor(value = SETTER, methodName = "setDestinationDir")
-    }, binaryCompatibility = ACCESSORS_KEPT)
+    @UpgradedProperty(
+        originalAccessors = {
+            @UpgradedAccessor(value = GETTER, methodName = "getDestinationDir"),
+            @UpgradedAccessor(value = SETTER, methodName = "setDestinationDir")
+        },
+        binaryCompatibility = ACCESSORS_KEPT,
+        deprecation = @UpgradedDeprecation(removedIn = RemovedIn.GRADLE9, withUpgradeGuideMajorVersion = 7, withUpgradeGuideSection = "compile_task_wiring")
+    )
     public DirectoryProperty getDestinationDirectory() {
         return destinationDirectory;
     }

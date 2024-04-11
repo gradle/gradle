@@ -35,6 +35,8 @@ import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.UpgradedAccessor;
+import org.gradle.internal.instrumentation.api.annotations.UpgradedDeprecation;
+import org.gradle.internal.instrumentation.api.annotations.UpgradedDeprecation.RemovedIn;
 import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRunner;
@@ -109,10 +111,14 @@ public abstract class TestReport extends DefaultTask {
      * @since 7.4
      */
     @OutputDirectory
-    @UpgradedProperty(originalAccessors = {
-        @UpgradedAccessor(value = GETTER, methodName = "getDestinationDir"),
-        @UpgradedAccessor(value = SETTER, methodName = "setDestinationDir")
-    }, binaryCompatibility = ACCESSORS_KEPT)
+    @UpgradedProperty(
+        originalAccessors = {
+            @UpgradedAccessor(value = GETTER, methodName = "getDestinationDir"),
+            @UpgradedAccessor(value = SETTER, methodName = "setDestinationDir")
+        },
+        binaryCompatibility = ACCESSORS_KEPT,
+        deprecation = @UpgradedDeprecation(removedIn = RemovedIn.GRADLE9, withDslReference = true)
+    )
     public DirectoryProperty getDestinationDirectory() {
         return this.destinationDir;
     }

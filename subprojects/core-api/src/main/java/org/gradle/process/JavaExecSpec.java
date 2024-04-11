@@ -29,6 +29,8 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.UpgradedAccessor;
 import org.gradle.internal.instrumentation.api.annotations.UpgradedAccessor.AccessorType;
+import org.gradle.internal.instrumentation.api.annotations.UpgradedDeprecation;
+import org.gradle.internal.instrumentation.api.annotations.UpgradedDeprecation.RemovedIn;
 import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty;
 
 import javax.annotation.Nullable;
@@ -72,9 +74,11 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
      */
     @Optional
     @Input
-    @UpgradedProperty(originalAccessors = {
-        @UpgradedAccessor(value = AccessorType.SETTER, methodName = "setMain", fluentSetter = true)
-    }, binaryCompatibility = ACCESSORS_KEPT)
+    @UpgradedProperty(
+        originalAccessors = @UpgradedAccessor(value = AccessorType.SETTER, methodName = "setMain", fluentSetter = true),
+        binaryCompatibility = ACCESSORS_KEPT,
+        deprecation = @UpgradedDeprecation(removedIn = RemovedIn.GRADLE9, withDslReference = true)
+    )
     Property<String> getMainClass();
 
     /**
