@@ -105,6 +105,27 @@ object MutatedDocumentTextGeneratorTest {
     }
 
     @Test
+    fun `can replace values`() {
+        val result = generateCodeFrom(simpleCodeForAddition) { tree ->
+            generateText(tree, replaceValue = { tag -> tag.valueNode.let { if (it is DeclarativeDocument.ValueNode.LiteralValueNode && it.value == 1) parseAsValue("test()") else null } })
+        }
+
+        assertEquals(
+            """
+            myFun {
+                a = test()
+                nested {
+                    x = "y"
+                    y = test()
+                }
+                factory(test())
+            }
+
+            """.trimIndent(), result
+        )
+    }
+
+    @Test
     fun `can mutate document by renaming and removing nodes`() {
         val result = generateCodeFrom(simpleCodeWithComments) { tree ->
             generateText(tree, mapNames = { _, name -> name + "1" }, removeNodeIf = {
@@ -671,6 +692,9 @@ object MutatedDocumentTextGeneratorTest {
         val textTree = TextPreservingTreeBuilder().build(dom)
         return MutatedDocumentTextGenerator().generate(textTree)
     }
+
+    private
+    fun parseAsValue(code: String) = (convertBlockToDocument(parseAsTopLevelBlock("f($code)")).content.single() as ElementNode).elementValues.single()
 
     private
     fun TextPreservingTree.ChildTag.isNodeMatching(predicate: (DeclarativeDocument.DocumentNode) -> Boolean): Boolean =

@@ -33,7 +33,8 @@ class MutatedDocumentTextGenerator {
         mapNames: (ownerTag: ChildTag, name: String) -> String = { _, name -> name },
         removeNodeIf: (ownerTag: ChildTag) -> Boolean = { false },
         insertNodesBefore: (ownerTag: ChildTag) -> List<DeclarativeDocument.DocumentNode> = { emptyList() },
-        insertNodesAfter: (ownerTag: ChildTag) -> List<DeclarativeDocument.DocumentNode> = { emptyList() }
+        insertNodesAfter: (ownerTag: ChildTag) -> List<DeclarativeDocument.DocumentNode> = { emptyList() },
+        replaceValue: (ownerTag: ChildTag.ValueNodeChildTag) -> DeclarativeDocument.ValueNode? = { null },
     ): String {
         val textBuilder = TrackingCodeTextBuilder()
 
@@ -47,12 +48,15 @@ class MutatedDocumentTextGenerator {
                     ChildTag.Indentation -> textBuilder.appendIndent(tree.originalText.slice(textTreeNode.range))
                     ChildTag.UnstructuredText, ChildTag.LineBreak -> textBuilder.append(tree.originalText.substring(textTreeNode.range), textTreeNode.lineRange.last)
 
-                    ChildTag.AssignmentRhs,
+                    is ChildTag.AssignmentRhs,
                     is ChildTag.BlockElement,
                     is ChildTag.CallArgument -> {
-                        for (child in textTreeNode.children) {
-                            visit(child.childTag, child.subTreeNode, false)
-                        }
+                        (ownerTag as? ChildTag.ValueNodeChildTag)?.let(replaceValue)?.let { insertSyntheticValue(textBuilder, it, textTreeNode.lineRange.last) }
+                            ?: run {
+                                for (child in textTreeNode.children) {
+                                    visit(child.childTag, child.subTreeNode, false)
+                                }
+                            }
                     }
                 }
             }
@@ -108,6 +112,15 @@ class MutatedDocumentTextGenerator {
         if (needsSeparationAfter) {
             lineBreakIndent()
         }
+    }
+
+    private
+    fun insertSyntheticValue(
+        textBuilder: TrackingCodeTextBuilder,
+        syntheticValue: DeclarativeDocument.ValueNode,
+        endAtOriginalLine: Int
+    ) {
+        textBuilder.append(canonicalCodeGenerator.valueNodeString(syntheticValue), endAtOriginalLine)
     }
 
     private

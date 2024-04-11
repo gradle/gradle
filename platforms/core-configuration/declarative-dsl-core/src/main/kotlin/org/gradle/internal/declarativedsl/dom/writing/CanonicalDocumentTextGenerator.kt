@@ -29,20 +29,20 @@ class CanonicalDocumentTextGenerator {
 
 internal
 class CanonicalCodeGenerator {
+    fun valueNodeString(node: ValueNode): String = when (node) {
+        is ValueNode.LiteralValueNode -> when (val value = node.value) {
+            is String -> "\"$value\""
+            else -> value.toString()
+        }
+
+        is ValueNode.ValueFactoryNode -> "${node.factoryName}(${node.values.joinToString { valueNodeString(it) }})"
+    }
+
     fun generateCode(
         nodes: List<DocumentNode>,
         indentProvider: (Int) -> String,
         isTopLevel: Boolean,
     ) = buildString {
-        fun valueNodeString(node: ValueNode): String = when (node) {
-            is ValueNode.LiteralValueNode -> when (val value = node.value) {
-                is String -> "\"$value\""
-                else -> value.toString()
-            }
-
-            is ValueNode.ValueFactoryNode -> "${node.factoryName}(${node.values.joinToString { valueNodeString(it) }})"
-        }
-
         fun visitNode(node: DocumentNode, depth: Int = 0) {
             fun indent() = indentProvider(depth)
 
