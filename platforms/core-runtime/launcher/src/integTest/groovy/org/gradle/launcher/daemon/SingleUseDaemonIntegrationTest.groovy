@@ -178,7 +178,6 @@ assert System.getProperty('some-prop') == 'some-value'
 """
 
         then:
-        executer.startLauncherInDebugger(true)
         succeeds()
 
         and:

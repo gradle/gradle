@@ -45,7 +45,6 @@ class DaemonToolchainIntegrationTest extends AbstractIntegrationSpec implements 
         captureJavaHome()
 
         expect:
-//        executer.startLauncherInDebugger(true)
         withInstallations(otherJvm).succeeds("help")
         assertDaemonUsedJvm(otherJvm)
     }
