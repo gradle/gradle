@@ -26,7 +26,7 @@ Gradle supports different ways of declaring a version string:
 ** An upper bound exclude acts as a prefix exclude.
 This means that `[1.0, 2.0[` will also exclude all versions starting with `2.0` that are smaller than `2.0`.
 For example versions like `2.0-dev1` or `2.0-SNAPSHOT` are no longer included in the range.
-* A _prefix_ version range: e.g. `1.+`, `1.3.+`
+* A _prefix_ version range: e.g. `1.\+`, `1.3.+`
 ** Only versions exactly matching the portion before the `+` are included.
 ** The range `+` on its own will include any version.
 * A `latest-status` version: e.g. `latest.integration`, `latest.release`
