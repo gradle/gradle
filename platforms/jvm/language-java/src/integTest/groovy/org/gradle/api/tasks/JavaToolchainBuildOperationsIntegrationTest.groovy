@@ -400,7 +400,12 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
     @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
     @UnsupportedWithConfigurationCache(because = "See KotlinGradlePluginVersions#hasConfigurationCacheWarnings()", iterationMatchers = [/.* 1\.6 Kotlin plugin .*/, /.* 1\.7 Kotlin plugin .*/])
     def "emits toolchain usages when configuring toolchains for #kotlinPlugin Kotlin plugin '#kotlinPluginVersion'"() {
-        JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
+        // Kotlin <1.9 doesn't support JDK21
+        // e: Unknown JVM target version: 21
+        // Supported versions: 1.6, 1.8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18
+        JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.getDifferentVersion({
+            it.languageVersion.majorVersion.toInteger() <= 17
+        }))
 
         given:
         // override setup
