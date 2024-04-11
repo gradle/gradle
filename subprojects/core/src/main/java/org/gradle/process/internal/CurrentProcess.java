@@ -46,6 +46,10 @@ public class CurrentProcess {
         return jvm;
     }
 
+    public boolean isLowMemoryProcess() {
+        return Runtime.getRuntime().maxMemory() <= 64L * 1024 * 1024; // 64MB is our default for a launcher process
+    }
+
     static JvmOptions inferJvmOptions(FileCollectionFactory fileCollectionFactory, List<String> arguments) {
         // Try to infer the effective jvm options for the currently running process.
         // We only care about 'managed' jvm args, anything else is unimportant to the running build

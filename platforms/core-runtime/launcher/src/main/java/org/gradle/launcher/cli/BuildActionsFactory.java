@@ -123,7 +123,7 @@ class BuildActionsFactory implements CommandLineActionCreator {
         if (daemonParameters.isEnabled()) {
             return Actions.toAction(runBuildWithDaemon(startParameter, daemonParameters, requestContext));
         }
-        if (canUseCurrentProcess(requestContext)) {
+        if (canUseCurrentProcess(daemonParameters, requestContext)) {
             return Actions.toAction(runBuildInProcess(startParameter, daemonParameters));
         }
 
@@ -169,11 +169,22 @@ class BuildActionsFactory implements CommandLineActionCreator {
         return runBuildAndCloseServices(startParameter, daemonParameters, client, clientSharedServices, clientServices);
     }
 
-    protected boolean canUseCurrentProcess(DaemonRequestContext requestContext) {
+    protected boolean canUseCurrentProcess(DaemonParameters daemonParameters, DaemonRequestContext requestContext) {
         // Pretend like the current process is actually a daemon, and see if it satisfies the compatibility spec
         CurrentProcess currentProcess = new CurrentProcess(fileCollectionFactory);
         DaemonContext contextForCurrentProcess = buildDaemonContextForCurrentProcess(requestContext, currentProcess);
-        return new DaemonCompatibilitySpec(requestContext).isSatisfiedBy(contextForCurrentProcess);
+
+        DaemonCompatibilitySpec comparison = new DaemonCompatibilitySpec(requestContext);
+        if (!currentProcess.isLowMemoryProcess()) {
+            if (comparison.isSatisfiedBy(contextForCurrentProcess)) {
+                if (daemonParameters.hasUserDefinedImmutableJvmArgs()) {
+                    return currentProcess.getJvmOptions().getAllImmutableJvmArgs().equals(daemonParameters.getEffectiveSingleUseJvmArgs());
+                } else {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     @VisibleForTesting
@@ -183,11 +194,13 @@ class BuildActionsFactory implements CommandLineActionCreator {
             currentProcess.getJvm().getJavaHome(),
             JavaVersion.current(),
             null, 0L, 0,
-            currentProcess.getJvmOptions().getAllImmutableJvmArgs(),
+            // The gradle options aren't being properly checked.
+            requestContext.getDaemonOpts(),
             AgentStatus.allowed().isAgentInstrumentationEnabled(),
             // These aren't being properly checked.
             // We assume the current process is compatible when considering these properties.
-            requestContext.getNativeServicesMode(), requestContext.getPriority()
+            requestContext.getNativeServicesMode(),
+            requestContext.getPriority()
         );
     }
 

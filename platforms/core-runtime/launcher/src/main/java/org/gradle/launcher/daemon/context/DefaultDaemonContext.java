@@ -25,6 +25,7 @@ import org.gradle.launcher.daemon.configuration.DaemonParameters;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -39,7 +40,7 @@ public class DefaultDaemonContext implements DaemonContext {
     private final File daemonRegistryDir;
     private final Long pid;
     private final Integer idleTimeout;
-    private final List<String> daemonOpts;
+    private final Collection<String> daemonOpts;
     private final boolean applyInstrumentationAgent;
     private final DaemonParameters.Priority priority;
     private final NativeServicesMode nativeServicesMode;
@@ -52,7 +53,7 @@ public class DefaultDaemonContext implements DaemonContext {
         File daemonRegistryDir,
         Long pid,
         Integer idleTimeout,
-        List<String> daemonOpts,
+        Collection<String> daemonOpts,
         boolean applyInstrumentationAgent,
         NativeServicesMode nativeServicesMode,
         DaemonParameters.Priority priority
@@ -107,7 +108,7 @@ public class DefaultDaemonContext implements DaemonContext {
     }
 
     @Override
-    public List<String> getDaemonOpts() {
+    public Collection<String> getDaemonOpts() {
         return daemonOpts;
     }
 
@@ -131,7 +132,7 @@ public class DefaultDaemonContext implements DaemonContext {
         return new DaemonRequestContext(Jvm.forHome(javaHome), null, this.getDaemonOpts(), this.shouldApplyInstrumentationAgent(), this.getNativeServicesMode(), this.getPriority());
     }
 
-    private static class Serializer implements org.gradle.internal.serialize.Serializer<DefaultDaemonContext> {
+    static class Serializer implements org.gradle.internal.serialize.Serializer<DefaultDaemonContext> {
 
         @Override
         public DefaultDaemonContext read(Decoder decoder) throws Exception {

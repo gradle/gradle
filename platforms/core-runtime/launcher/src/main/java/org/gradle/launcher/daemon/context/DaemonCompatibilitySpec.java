@@ -69,7 +69,7 @@ public class DaemonCompatibilitySpec implements ExplainingSpec<DaemonContext> {
                 File potentialJavaHome = potentialContext.getJavaHome();
                 if (potentialJavaHome.exists()) {
                     File potentialJava = Jvm.forHome(potentialJavaHome).getJavaExecutable();
-                    File desiredJava = Jvm.forHome(desiredContext.getJavaHome()).getJavaExecutable();
+                    File desiredJava = desiredContext.getJavaHome().getJavaExecutable();
                     return Files.isSameFile(potentialJava.toPath(), desiredJava.toPath());
                 }
             } catch (IOException e) {

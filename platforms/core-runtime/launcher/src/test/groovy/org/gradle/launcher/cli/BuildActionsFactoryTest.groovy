@@ -68,7 +68,7 @@ class BuildActionsFactoryTest extends Specification {
         })
 
         factory = new BuildActionsFactory(loggingServices) {
-            boolean canUseCurrentProcess(DaemonRequestContext requestContext) {
+            boolean canUseCurrentProcess(DaemonParameters daemonParameters, DaemonRequestContext requestContext) {
                 return useCurrentProcess
             }
         }
@@ -163,7 +163,7 @@ class BuildActionsFactoryTest extends Specification {
         !daemon.shouldApplyInstrumentationAgent()
         daemon.nativeServicesMode == request.nativeServicesMode
         daemon.priority == request.priority
-        daemon.daemonOpts == ["-Dfile.encoding=UTF-8", "-Duser.country=US", "-Duser.language=en", "-Duser.variant"]
+        daemon.daemonOpts == request.daemonOpts
     }
 
     private DaemonRequestContext createDaemonRequest(Collection<String> daemonOpts=[]) {

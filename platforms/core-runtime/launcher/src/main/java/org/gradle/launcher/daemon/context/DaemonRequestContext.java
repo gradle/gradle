@@ -22,7 +22,6 @@ import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria;
 
 import javax.annotation.Nullable;
-import java.io.File;
 import java.util.Collection;
 
 /**
@@ -33,12 +32,9 @@ import java.util.Collection;
 public class DaemonRequestContext {
     private final JavaInfo requestedJvm;
     private final DaemonJvmCriteria jvmCriteria;
-
     private final Collection<String> daemonOpts;
-
     private final boolean applyInstrumentationAgent;
     private final NativeServices.NativeServicesMode nativeServicesMode;
-
     private final DaemonParameters.Priority priority;
 
     public DaemonRequestContext(@Nullable JavaInfo requestedJvm, @Nullable DaemonJvmCriteria jvmCriteria, Collection<String> daemonOpts, boolean applyInstrumentationAgent, NativeServices.NativeServicesMode nativeServicesMode, DaemonParameters.Priority priority) {
@@ -50,13 +46,11 @@ public class DaemonRequestContext {
         this.priority = priority;
     }
 
-    public File getJavaHome() {
-        if (requestedJvm == null) {
-            return null;
-        }
-        return requestedJvm.getJavaHome();
+    @Nullable
+    public JavaInfo getJavaHome() {
+        return requestedJvm;
     }
-
+    @Nullable
     public DaemonJvmCriteria getJvmCriteria() {
         return jvmCriteria;
     }
@@ -75,5 +69,17 @@ public class DaemonRequestContext {
 
     public DaemonParameters.Priority getPriority() {
         return priority;
+    }
+
+    @Override
+    public String toString() {
+        return "DaemonRequestContext{" +
+            "requestedJvm=" + requestedJvm +
+            ", jvmCriteria=" + jvmCriteria +
+            ", daemonOpts=" + daemonOpts +
+            ", applyInstrumentationAgent=" + applyInstrumentationAgent +
+            ", nativeServicesMode=" + nativeServicesMode +
+            ", priority=" + priority +
+            '}';
     }
 }
