@@ -68,6 +68,10 @@ class GitAttributesGeneratorTest extends Specification {
 *.bat           text eol=crlf
 '''
         builder << '\n'
+        builder << '''# Binary files should be left untouched
+*.jar           binary
+'''
+        builder << '\n'
 
         return builder.toString()
     }
