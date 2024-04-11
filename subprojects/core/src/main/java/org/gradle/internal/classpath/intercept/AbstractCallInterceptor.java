@@ -51,7 +51,7 @@ public abstract class AbstractCallInterceptor implements CallInterceptor {
 
     private Object interceptMethodHandle(MethodHandle original, int flags, String consumer, Object[] args) throws Throwable {
         boolean isSpread = (flags & IndyInterface.SPREAD_CALL) != 0;
-        return doIntercept(new MethodHandleInvocation(original, args, isSpread), consumer);
+        return intercept(new MethodHandleInvocation(original, args, isSpread), consumer);
     }
 
     @Override

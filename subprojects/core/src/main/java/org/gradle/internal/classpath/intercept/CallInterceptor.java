@@ -42,7 +42,7 @@ public interface CallInterceptor {
      * @return the value to return to the caller
      * @throws Throwable if necessary to propagate it to the caller
      */
-    Object doIntercept(Invocation invocation, String consumer) throws Throwable;
+    Object intercept(Invocation invocation, String consumer) throws Throwable;
 
     MethodHandle decorateMethodHandle(MethodHandle original, MethodHandles.Lookup caller, int flags);
 
