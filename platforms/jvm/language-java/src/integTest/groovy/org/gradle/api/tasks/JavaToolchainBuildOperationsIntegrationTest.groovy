@@ -486,10 +486,10 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         // KGP performed convention registration at config time until 1.9.20
         if (kotlinVersionNumber <= VersionNumber.parse("1.9.20")) {
             executer.expectDocumentedDeprecationWarning(
-                    "The org.gradle.api.plugins.Convention type has been deprecated. " +
-                            "This is scheduled to be removed in Gradle 9.0. " +
-                            "Consult the upgrading guide for further information: " +
-                            "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions")
+                "The org.gradle.api.plugins.Convention type has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 9.0. " +
+                    "Consult the upgrading guide for further information: " +
+                    "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions")
         }
         withInstallations(jdkMetadata).run(":compileKotlin", ":test")
         def eventsOnCompile = toolchainEvents(":compileKotlin")
@@ -538,12 +538,12 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         assertToolchainUsages(eventsOnTest, jdkMetadata, "JavaLauncher")
 
         where:
-        kotlinPlugin    | _
-        "1.6"           | _
-        "1.7"           | _
-        "1.8"           | _
-        "1.9"           | _
-        "latest"        | _
+        kotlinPlugin | _
+        "1.6"        | _
+        "1.7"        | _
+        "1.8"        | _
+        "1.9"        | _
+        "latest"     | _
 
         kotlinPluginVersion = kotlinPlugin == "latest" ? kgpLatestVersions.last() : latestStableKotlinPluginVersion(kotlinPlugin)
     }
@@ -666,11 +666,16 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         """
     }
 
-    private static String latestStableKotlinPluginVersion(String major) {
+    private static String latestStableKotlinPluginVersion(String kotlinMajorMinor) {
+        def stable = kgpLatestVersions.findAll { it.startsWith(kotlinMajorMinor) && !it.contains("-") }
         println("================")
         println(kgpLatestVersions)
-        println(major)
-        println(kgpLatestVersions.findAll { it.startsWith(major) && !it.contains("-") })
-        return kgpLatestVersions.findAll { it.startsWith(major) && !it.contains("-") }.last()
+        println(kotlinMajorMinor)
+        if (stable.isEmpty()) {
+            throw new IllegalStateException("No stable Kotlin plugin version found for version $kotlinMajorMinor. " +
+                "Please, use major.minor version in the test and make sure it has corresponding version in kotlin-versions.properties.")
+        }
+        println(stable)
+        return stable.last()
     }
 }
