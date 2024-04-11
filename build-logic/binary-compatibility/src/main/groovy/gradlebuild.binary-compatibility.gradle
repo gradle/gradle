@@ -111,10 +111,6 @@ dependencies {
     dependencies.registerTransform(FindGradleJars) {
         from.attribute(ARTIFACT_TYPE, 'gradle-libs-dir')
         to.attribute(ARTIFACT_TYPE, 'gradle-baseline-jars')
-        parameters {
-            currentJars.from(currentDistroJars)
-            currentVersion.set(baseVersion)
-        }
     }
 }
 
