@@ -18,6 +18,7 @@ dependencies {
     api(libs.gcs)
     api(libs.jsr305)
 
+    implementation(projects.javaLanguageExtensions)
     implementation(project(":hashing"))
     implementation(project(":logging-api"))
 
