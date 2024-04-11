@@ -542,7 +542,8 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         "1.6"           | _
         "1.7"           | _
         "1.8"           | _
-        "1.9"           | _
+        "1.9.0"         | _
+        "1.9.22"        | _
         "latest"        | _
 
         kotlinPluginVersion = kotlinPlugin == "latest" ? kgpLatestVersions.last() : latestStableKotlinPluginVersion(kotlinPlugin)
@@ -666,11 +667,16 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         """
     }
 
-    private static String latestStableKotlinPluginVersion(String major) {
+    private static String latestStableKotlinPluginVersion(String minorVersion) {
+        def stable = kgpLatestVersions.findAll { it.startsWith(minorVersion) && !it.contains("-") }
         println("================")
         println(kgpLatestVersions)
-        println(major)
-        println(kgpLatestVersions.findAll { it.startsWith(major) && !it.contains("-") })
-        return kgpLatestVersions.findAll { it.startsWith(major) && !it.contains("-") }.last()
+        println(minorVersion)
+        if (stable.isEmpty()) {
+            throw new IllegalStateException("No stable Kotlin plugin version found for minor version $minorVersion. " +
+                "Please, use major.minor version in the test and make sure it has corresponding version in kotlin-versions.properties.")
+        }
+        println(stable)
+        return stable.last()
     }
 }

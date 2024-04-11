@@ -101,7 +101,6 @@ class K2IntegrationTest : AbstractKotlinIntegrationTest() {
 
     private
     fun withK2BuildLogic() {
-        withFile("build-logic/gradle.properties", "kotlin.experimental.tryK2=true")
         withFile("build-logic/src/main/kotlin/MyTask.kt", """
             import org.gradle.api.DefaultTask
             import org.gradle.api.tasks.TaskAction
@@ -137,8 +136,6 @@ class K2IntegrationTest : AbstractKotlinIntegrationTest() {
 
     private
     fun assertCanConsumeK2BuildLogic() {
-        gradleExecuterFor(arrayOf("help"))
-            .expectDeprecationWarning("w: The `kotlin.experimental.tryK2` deprecated property is used in your build.")
-            .run()
+        build("help")
     }
 }
