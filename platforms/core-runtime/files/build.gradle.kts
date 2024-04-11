@@ -18,7 +18,7 @@ errorprone {
 
 dependencies {
     api(project(":functional"))
-    api(project(":base-annotations"))
+    api(projects.javaLanguageExtensions)
 
     api(libs.jsr305)
 

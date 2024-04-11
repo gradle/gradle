@@ -18,6 +18,7 @@ package org.gradle.internal;
 
 import org.gradle.api.UncheckedIOException;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.Callable;
@@ -87,5 +88,21 @@ public final class UncheckedException extends RuntimeException {
      */
     public static RuntimeException unwrapAndRethrow(InvocationTargetException e) {
         return UncheckedException.throwAsUncheckedException(e.getTargetException());
+    }
+
+    /**
+     * Calls the given callable converting any thrown exception to an unchecked exception via {@link UncheckedException#throwAsUncheckedException(Throwable)}
+     *
+     * @param callable The callable to call
+     * @param <T> Callable's return type
+     * @return The value returned by {@link Callable#call()}
+     */
+    @Nullable
+    public static <T> T uncheckedCall(Callable<T> callable) {
+        try {
+            return callable.call();
+        } catch (Exception e) {
+            throw throwAsUncheckedException(e);
+        }
     }
 }

@@ -3,7 +3,7 @@ plugins {
     id("gradlebuild.publish-public-libraries")
 }
 
-description = "Common shared annotations"
+description = "Extensions to the Java language that are used across the Gradle codebase"
 
 gradlebuildJava.usedInWorkers()
 

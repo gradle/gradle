@@ -29,7 +29,7 @@ dependencies {
     api(project(":base-services"))
     api(project(":file-temp"))
 
-    implementation(project(":base-annotations"))
+    implementation(projects.javaLanguageExtensions)
 
     implementation(libs.nativePlatformFileEvents)
     implementation(libs.slf4jApi)

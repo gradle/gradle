@@ -14,7 +14,7 @@ errorprone {
 }
 
 dependencies {
-    api(project(":base-annotations"))
+    api(projects.javaLanguageExtensions)
 
     implementation(libs.guava)
     api(libs.jsr305)

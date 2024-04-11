@@ -42,7 +42,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-import static org.gradle.util.internal.GUtil.uncheckedCall;
+import static org.gradle.internal.UncheckedException.uncheckedCall;
 
 @SuppressWarnings({"deprecation", "FieldNamingConvention"})
 public class ConventionAwareHelper implements ConventionMapping, org.gradle.api.internal.HasConvention {
