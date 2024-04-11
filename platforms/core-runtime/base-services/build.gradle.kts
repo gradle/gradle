@@ -52,6 +52,7 @@ errorprone {
 dependencies {
     api(projects.concurrent)
     api(projects.javaLanguageExtensions)
+    api(projects.time)
     api(project(":hashing"))
     api(project(":build-operations"))
     api(libs.jsr305)

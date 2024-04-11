@@ -93,6 +93,7 @@ val core = platform("core") {
         subproject("messaging")
         subproject("native")
         subproject("process-services")
+        subproject("time")
         subproject("worker-services")
         subproject("wrapper")
         subproject("wrapper-shared")
