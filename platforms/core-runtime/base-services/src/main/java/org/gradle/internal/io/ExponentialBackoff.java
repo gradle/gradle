@@ -66,9 +66,9 @@ public class ExponentialBackoff<S extends ExponentialBackoff.Signal> {
      * @throws IOException thrown by the query.
      * @throws InterruptedException if interrupted while waiting.
      */
-    public <T> T retryUntil(IOQuery<T> query) throws IOException, InterruptedException {
+    public <T> T retryUntil(Query<T> query) throws IOException, InterruptedException {
         int iteration = 0;
-        IOQuery.Result<T> result;
+        Result<T> result;
         while (!(result = query.run()).isSuccessful()) {
             if (timer.hasExpired()) {
                 break;
@@ -103,5 +103,55 @@ public class ExponentialBackoff<S extends ExponentialBackoff.Signal> {
         };
 
         boolean await(long period) throws InterruptedException;
+    }
+
+    public interface Query<T> {
+        Result<T> run() throws IOException, InterruptedException;
+    }
+
+    public abstract static class Result<T> {
+        public abstract boolean isSuccessful();
+
+        public abstract T getValue();
+
+        /**
+         * Creates a result that indicates that the operation was successful and should not be repeated.
+         */
+        public static <T> Result<T> successful(final T value) {
+            if (value == null) {
+                throw new IllegalArgumentException();
+            }
+            return new Result<T>() {
+                @Override
+                public boolean isSuccessful() {
+                    return true;
+                }
+
+                @Override
+                public T getValue() {
+                    return value;
+                }
+            };
+        }
+
+        /**
+         * Creates a result that indicates that the operation was not successful and should be repeated.
+         */
+        public static <T> Result<T> notSuccessful(final T value) {
+            if (value == null) {
+                throw new IllegalArgumentException();
+            }
+            return new Result<T>() {
+                @Override
+                public boolean isSuccessful() {
+                    return false;
+                }
+
+                @Override
+                public T getValue() {
+                    return value;
+                }
+            };
+        }
     }
 }

@@ -40,7 +40,6 @@ import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.RandomLongIdGenerator;
 import org.gradle.internal.io.ExponentialBackoff;
-import org.gradle.internal.io.IOQuery;
 import org.gradle.util.internal.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -391,15 +390,15 @@ public class DefaultFileLockManager implements FileLockManager {
          */
         private FileLockOutcome lockStateRegion(final LockMode lockMode) throws IOException, InterruptedException {
             final ExponentialBackoff<AwaitableFileLockReleasedSignal> backoff = newExponentialBackoff(lockTimeoutMs);
-            return backoff.retryUntil(new IOQuery<FileLockOutcome>() {
+            return backoff.retryUntil(new ExponentialBackoff.Query<FileLockOutcome>() {
                 private long lastPingTime;
                 private int lastLockHolderPort;
 
                 @Override
-                public IOQuery.Result<FileLockOutcome> run() throws IOException, InterruptedException {
+                public ExponentialBackoff.Result<FileLockOutcome> run() throws IOException, InterruptedException {
                     FileLockOutcome lockOutcome = lockFileAccess.tryLockState(lockMode == LockMode.Shared);
                     if (lockOutcome.isLockWasAcquired()) {
-                        return IOQuery.Result.successful(lockOutcome);
+                        return ExponentialBackoff.Result.successful(lockOutcome);
                     }
                     if (port != -1) { //we don't like the assumption about the port very much
                         LockInfo lockInfo = readInformationRegion(backoff);
@@ -417,7 +416,7 @@ public class DefaultFileLockManager implements FileLockManager {
                             LOGGER.debug("The file lock for {} is held by a different Gradle process. I was unable to read on which port the owner listens for lock access requests.", displayName);
                         }
                     }
-                    return IOQuery.Result.notSuccessful(lockOutcome);
+                    return ExponentialBackoff.Result.notSuccessful(lockOutcome);
                 }
             });
         }
@@ -426,9 +425,9 @@ public class DefaultFileLockManager implements FileLockManager {
             return backoff.retryUntil(() -> {
                 FileLockOutcome lockOutcome = lockFileAccess.tryLockInfo(lockMode == LockMode.Shared);
                 if (lockOutcome.isLockWasAcquired()) {
-                    return IOQuery.Result.successful(lockOutcome);
+                    return ExponentialBackoff.Result.successful(lockOutcome);
                 } else {
-                    return IOQuery.Result.notSuccessful(lockOutcome);
+                    return ExponentialBackoff.Result.notSuccessful(lockOutcome);
                 }
             });
         }
