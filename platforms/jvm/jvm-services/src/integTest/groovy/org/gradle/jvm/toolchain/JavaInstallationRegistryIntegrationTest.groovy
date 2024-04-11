@@ -72,8 +72,8 @@ class JavaInstallationRegistryIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         result = executer
-            .withEnvironmentVars([JDK1: "/unknown/env", JDK2: firstJavaHome])
-            .withArgument("-Porg.gradle.java.installations.paths=/unknown/path," + secondJavaHome)
+            .withEnvironmentVars([JDK1: new File("/unknown/env").absolutePath, JDK2: firstJavaHome])
+            .withArgument("-Porg.gradle.java.installations.paths=${new File("/unknown/path").absolutePath}," + secondJavaHome)
             .withArgument("-Porg.gradle.java.installations.fromEnv=JDK1,JDK2")
             .withArgument("--info")
             .withTasks("show")
@@ -86,8 +86,8 @@ class JavaInstallationRegistryIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         result = executer
-            .withEnvironmentVars([JDK1: "/unknown/env", JDK2: firstJavaHome])
-            .withArgument("-Porg.gradle.java.installations.paths=/other/path," + secondJavaHome)
+            .withEnvironmentVars([JDK1: new File("/unknown/env").absolutePath, JDK2: firstJavaHome])
+            .withArgument("-Porg.gradle.java.installations.paths=${new File("/other/path").absolutePath}," + secondJavaHome)
             .withArgument("-Porg.gradle.java.installations.fromEnv=JDK1,JDK2")
             .withTasks("show")
             .run()
