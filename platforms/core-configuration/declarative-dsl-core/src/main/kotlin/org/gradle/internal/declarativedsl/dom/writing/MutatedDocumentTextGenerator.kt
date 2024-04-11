@@ -17,6 +17,7 @@
 package org.gradle.internal.declarativedsl.dom.writing
 
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument
+import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.ElementNode
 import org.gradle.internal.declarativedsl.dom.writing.TextPreservingTree.ChildTag
 import org.gradle.internal.declarativedsl.dom.writing.TextPreservingTree.TextTreeNode
 import org.jetbrains.kotlin.it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap
@@ -31,14 +32,14 @@ class MutatedDocumentTextGenerator {
         tree: TextPreservingTree,
         mapNames: (ownerTag: ChildTag, name: String) -> String = { _, name -> name },
         removeNodeIf: (ownerTag: ChildTag) -> Boolean = { false },
-        insertNodeBefore: (ownerTag: ChildTag) -> DeclarativeDocument.DocumentNode? = { null },
-        insertNodeAfter: (ownerTag: ChildTag) -> DeclarativeDocument.DocumentNode? = { null }
+        insertNodesBefore: (ownerTag: ChildTag) -> List<DeclarativeDocument.DocumentNode> = { emptyList() },
+        insertNodesAfter: (ownerTag: ChildTag) -> List<DeclarativeDocument.DocumentNode> = { emptyList() }
     ): String {
         val textBuilder = TrackingCodeTextBuilder()
 
         fun visit(ownerTag: ChildTag, textTreeNode: TextTreeNode, isTopLevel: Boolean) {
-            insertNodeBefore(ownerTag)?.let { nodeBefore ->
-                insertSyntheticNode(textBuilder, nodeBefore, isTopLevel, textTreeNode.lineRange.first, needsSeparationBefore = false, needsSeparationAfter = true)
+            insertNodesBefore(ownerTag).takeIf(List<*>::isNotEmpty)?.let { nodesBefore ->
+                insertSyntheticNodes(textBuilder, nodesBefore, isTopLevel, textTreeNode.lineRange.first, needsSeparationBefore = false, needsSeparationAfter = true)
             }
             if (!removeNodeIf(ownerTag)) {
                 when (ownerTag) {
@@ -55,8 +56,13 @@ class MutatedDocumentTextGenerator {
                     }
                 }
             }
-            insertNodeAfter(ownerTag)?.let { nodeAfter ->
-                insertSyntheticNode(textBuilder, nodeAfter, isTopLevel, textTreeNode.lineRange.last, needsSeparationBefore = true, needsSeparationAfter = false)
+            insertNodesAfter(ownerTag).takeIf(List<*>::isNotEmpty)?.let { nodesAfter ->
+                val needsSeparationAfter = isTopLevel && nodesAfter.last() is ElementNode
+                insertSyntheticNodes(
+                    textBuilder, nodesAfter, isTopLevel, textTreeNode.lineRange.last,
+                    needsSeparationBefore = true,
+                    needsSeparationAfter
+                )
             }
         }
 
@@ -64,27 +70,30 @@ class MutatedDocumentTextGenerator {
             visit(it.childTag, it.subTreeNode, isTopLevel = true)
         }
 
-        return killEmptyLinesBasedOnLineMappingToOriginalLines(
+        return fixLineBreaksAndBlankLines(
             tree.originalText,
             textBuilder.text(),
-            textBuilder.originalLinesMappedToResultLines
+            textBuilder.originalLinesMappedToResultLines,
+            textBuilder.flexibleLineBreaksBeforeLines
         )
     }
 
     private
-    fun insertSyntheticNode(
+    fun insertSyntheticNodes(
         textBuilder: TrackingCodeTextBuilder,
-        syntheticNode: DeclarativeDocument.DocumentNode,
+        syntheticNodes: List<DeclarativeDocument.DocumentNode>,
         isTopLevel: Boolean,
         endAtOriginalLine: Int,
         needsSeparationBefore: Boolean,
-        needsSeparationAfter: Boolean
+        needsSeparationAfter: Boolean,
     ) {
         fun lineBreakIndent() {
-            repeat(if (isTopLevel) 2 else 1) {
+            if (isTopLevel) {
+                textBuilder.appendFlexibleLinebreak()
+            } else {
                 textBuilder.append("\n", endAtOriginalLine)
-                textBuilder.appendIndent(" ".repeat(textBuilder.indentLength))
             }
+            textBuilder.appendIndent(" ".repeat(textBuilder.indentLength))
         }
 
         val indents: (Int) -> String = indentationProviderForSyntheticCode(textBuilder.indentLength)
@@ -93,7 +102,7 @@ class MutatedDocumentTextGenerator {
             lineBreakIndent()
         }
         textBuilder.append(
-            canonicalCodeGenerator.generateCode(listOf(syntheticNode), indentProvider = indents, isTopLevel = isTopLevel),
+            canonicalCodeGenerator.generateCode(syntheticNodes, indents, isTopLevel),
             endAtOriginalLine
         )
         if (needsSeparationAfter) {
@@ -102,21 +111,43 @@ class MutatedDocumentTextGenerator {
     }
 
     private
-    fun killEmptyLinesBasedOnLineMappingToOriginalLines(
+    fun fixLineBreaksAndBlankLines(
         originalText: String,
         builtText: String,
-        lineMapping: Map<Int, Int>
+        lineMapping: Map<Int, Int>,
+        flexibleLineBreaksBeforeLines: Set<Int>
     ): String {
         /** For each of the result lines, tells which original lines contributed to it */
         val reverseLineMapping = lineMapping.entries.groupBy({ it.value }, valueTransform = { it.key })
         val originalLines = originalText.lines()
 
-        return builtText.lines().filterIndexed { index, it ->
-            it.isNotBlank() ||
-                // If the result line is blank, we keep it only if it corresponds to a blank line (or more than one) in the original text;
-                // otherwise, it corresponds to some original content that we intend to "kill", so no need to keep the blank line either:
-                reverseLineMapping[index]?.let { originalLineIndices -> originalLineIndices.all { originalLines[it].isBlank() } } ?: true
-        }.joinToString("\n")
+        return buildString {
+            var blankLinesCount = 0
+            var hasFlexibleLineBreak = false
+
+            builtText.lines().forEachIndexed { index, line ->
+                if (index in flexibleLineBreaksBeforeLines) {
+                    hasFlexibleLineBreak = true
+                }
+                if (line.isBlank()) {
+                    // If the result line is blank, we keep it only if it corresponds to a blank line (or more than one) in the original text;
+                    // otherwise, it corresponds to some original content that we intend to "kill", so no need to keep the blank line either:
+                    val isLineToPreserve = reverseLineMapping[index]?.let { originalLineIndices -> originalLineIndices.all { originalLines[it].isBlank() } } != false
+
+                    if (isLineToPreserve) {
+                        blankLinesCount++
+                    }
+                } else {
+                    if (hasFlexibleLineBreak && blankLinesCount != 1) {
+                        blankLinesCount = 1
+                    }
+                    append("\n".repeat(blankLinesCount))
+                    blankLinesCount = 0
+                    hasFlexibleLineBreak = false
+                    appendLine(line)
+                }
+            }
+        }
     }
 
     private
@@ -149,6 +180,9 @@ class TrackingCodeTextBuilder {
     private
     var currentResultLine = 0
 
+    private
+    var flexibleLineBreaks = HashSet<Int>()
+
     // endregion
     // region API
 
@@ -157,6 +191,8 @@ class TrackingCodeTextBuilder {
      * Assumes that original lines are not split into multiple lines.
      */
     val originalLinesMappedToResultLines: Map<Int, Int> get() = lineMapping
+
+    val flexibleLineBreaksBeforeLines: Set<Int> get() = flexibleLineBreaks
 
     fun appendIndent(string: String) {
         require(string.isBlank() && string.indexOf('\n') == -1)
@@ -172,6 +208,12 @@ class TrackingCodeTextBuilder {
             lineMapping.put(endAtOriginalLine - 1, currentResultLine)
         }
         currentResultLine += string.count { it == '\n' }
+    }
+
+    fun appendFlexibleLinebreak() {
+        builder.append('\n')
+        currentResultLine++
+        flexibleLineBreaks.add(currentResultLine)
     }
 
     val indentLength: Int get() = lastIndentLength

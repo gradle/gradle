@@ -32,7 +32,7 @@ class CanonicalCodeGenerator {
     fun generateCode(
         nodes: List<DocumentNode>,
         indentProvider: (Int) -> String,
-        isTopLevel: Boolean
+        isTopLevel: Boolean,
     ) = buildString {
         fun valueNodeString(node: ValueNode): String = when (node) {
             is ValueNode.LiteralValueNode -> when (val value = node.value) {
@@ -71,11 +71,13 @@ class CanonicalCodeGenerator {
         }
 
         nodes.forEachIndexed { index, it ->
-            visitNode(it)
-            if (isTopLevel && index != nodes.lastIndex) {
-                // At the top level, each block must be separated by an empty line from everything else, but property assignments can go in a row on the top level.
-                appendLine(if (it is DocumentNode.ElementNode || nodes.getOrNull(index + 1) is DocumentNode.ElementNode) "\n" else "")
+            if (index > 0) {
+                appendLine()
+                if (isTopLevel && (nodes[index - 1] is DocumentNode.ElementNode || it is DocumentNode.ElementNode)) {
+                    appendLine()
+                }
             }
+            visitNode(it)
         }
     }
 }
