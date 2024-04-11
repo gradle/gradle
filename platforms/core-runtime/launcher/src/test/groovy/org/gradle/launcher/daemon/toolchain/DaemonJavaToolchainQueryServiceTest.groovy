@@ -18,7 +18,6 @@ package org.gradle.launcher.daemon.toolchain
 
 import org.gradle.api.GradleException
 import org.gradle.api.JavaVersion
-import org.gradle.api.internal.file.IdentityFileResolver
 import org.gradle.api.logging.Logging
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.inspection.JavaInstallationRegistry

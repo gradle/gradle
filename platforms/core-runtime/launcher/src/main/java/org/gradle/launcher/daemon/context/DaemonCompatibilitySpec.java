@@ -15,6 +15,7 @@
  */
 package org.gradle.launcher.daemon.context;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.specs.ExplainingSpec;
 import org.gradle.internal.jvm.Jvm;
 
@@ -29,7 +30,6 @@ import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
 
 public class DaemonCompatibilitySpec implements ExplainingSpec<DaemonContext> {
-
     private final DaemonRequestContext request;
     private final DaemonOpts parsedArgs;
 
@@ -145,6 +145,7 @@ public class DaemonCompatibilitySpec implements ExplainingSpec<DaemonContext> {
         return 0;
     }
 
+    @NonNullApi
     private final static class DaemonOpts {
         private final long minMemory;
         private final long maxMemory;

@@ -225,9 +225,7 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
      * Returns the set of implicit task names expected for any project for the target Gradle version.
      */
     Set<String> getImplicitTasks() {
-        if (targetVersion >= GradleVersion.version("8.8")) {
-            return ['buildEnvironment', 'components', 'dependencies', 'dependencyInsight', 'dependentComponents', 'help', 'javaToolchains', 'projects', 'properties', 'tasks', 'model', 'outgoingVariants', 'resolvableConfigurations', 'updateDaemonJvm']
-        } else if (targetVersion >= GradleVersion.version("7.5")) {
+        if (targetVersion >= GradleVersion.version("7.5")) {
             return ['buildEnvironment', 'components', 'dependencies', 'dependencyInsight', 'dependentComponents', 'help', 'javaToolchains', 'projects', 'properties', 'tasks', 'model', 'outgoingVariants', 'resolvableConfigurations']
         } else if (targetVersion >= GradleVersion.version("6.8")) {
             return ['buildEnvironment', 'components', 'dependencies', 'dependencyInsight', 'dependentComponents', 'help', 'javaToolchains', 'projects', 'properties', 'tasks', 'model', 'outgoingVariants']
@@ -282,7 +280,13 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
      * Returns the set of implicit task names expected for a root project for the target Gradle version.
      */
     Set<String> getRootProjectImplicitTasks() {
-        return implicitTasks + ['init', 'wrapper'] + rootProjectImplicitInvisibleTasks
+        final rootOnlyTasks
+        if (targetVersion >= GradleVersion.version("8.8")) {
+            rootOnlyTasks = ['init', 'wrapper', 'updateDaemonJvm']
+        } else {
+            rootOnlyTasks = ['init', 'wrapper']
+        }
+        return implicitTasks + rootOnlyTasks + rootProjectImplicitInvisibleTasks
     }
 
     /**

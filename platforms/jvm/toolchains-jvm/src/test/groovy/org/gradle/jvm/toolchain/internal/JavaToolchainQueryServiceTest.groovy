@@ -18,8 +18,8 @@ package org.gradle.jvm.toolchain.internal
 
 import org.gradle.api.GradleException
 import org.gradle.api.JavaVersion
-import org.gradle.api.internal.file.IdentityFileResolver
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.logging.Logging
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.inspection.JavaInstallationRegistry
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
@@ -488,7 +488,7 @@ class JavaToolchainQueryServiceTest extends Specification {
             }
         }
 
-        def registry = new JavaInstallationRegistry(new DefaultToolchainConfiguration(), [supplier], detector, new TestBuildOperationRunner(), OperatingSystem.current(), new NoOpProgressLoggerFactory(), new IdentityFileResolver(), new JvmInstallationProblemReporter()) {
+        def registry = new JavaInstallationRegistry(new DefaultToolchainConfiguration(), [supplier], [], detector, Logging.getLogger(JavaInstallationRegistry.class), new TestBuildOperationRunner(), OperatingSystem.current(), new NoOpProgressLoggerFactory(), new JvmInstallationProblemReporter()) {
             @Override
             boolean installationExists(InstallationLocation installationLocation) {
                 return true

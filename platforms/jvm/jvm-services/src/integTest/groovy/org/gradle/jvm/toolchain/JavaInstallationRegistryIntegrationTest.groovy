@@ -79,8 +79,8 @@ class JavaInstallationRegistryIntegrationTest extends AbstractIntegrationSpec {
             .withTasks("show")
             .run()
         then:
-        outputContains("Directory '${new File("/unknown/path")}' (Gradle property 'org.gradle.java.installations.paths') used for java installations does not exist")
-        outputContains("Directory '${new File("/unknown/env")}' (environment variable 'JDK1') used for java installations does not exist")
+        outputContains("Directory '${new File("/unknown/path").absolutePath}' (Gradle property 'org.gradle.java.installations.paths') used for java installations does not exist")
+        outputContains("Directory '${new File("/unknown/env").absolutePath}' (environment variable 'JDK1') used for java installations does not exist")
         outputContains(firstJavaHome)
         outputContains(secondJavaHome)
 
@@ -92,8 +92,8 @@ class JavaInstallationRegistryIntegrationTest extends AbstractIntegrationSpec {
             .withTasks("show")
             .run()
         then:
-        outputContains("Directory '${new File("/other/path")}' (Gradle property 'org.gradle.java.installations.paths') used for java installations does not exist")
-        outputContains("Directory '${new File("/unknown/env")}' (environment variable 'JDK1') used for java installations does not exist")
+        outputContains("Directory '${new File("/other/path").absolutePath}' (Gradle property 'org.gradle.java.installations.paths') used for java installations does not exist")
+        outputContains("Directory '${new File("/unknown/env").absolutePath}' (environment variable 'JDK1') used for java installations does not exist")
         outputContains(firstJavaHome)
         outputContains(secondJavaHome)
     }
