@@ -27,7 +27,7 @@ import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.buildconfiguration.BuildPropertiesDefaults;
-import org.gradle.internal.buildconfiguration.UpdateDaemonJvmModifier;
+import org.gradle.internal.buildconfiguration.tasks.UpdateDaemonJvmModifier;
 import org.gradle.util.internal.IncubationLogger;
 import org.gradle.work.DisableCachingByDefault;
 

@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.buildconfiguration;
+package org.gradle.internal.buildconfiguration.tasks;
 
 import org.gradle.api.JavaVersion;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.buildconfiguration.BuildPropertiesDefaults;
+import org.gradle.internal.buildconfiguration.BuildPropertiesPlugin;
 import org.gradle.internal.jvm.inspection.JvmVendor;
 import org.gradle.internal.util.PropertiesUtils;
 import org.gradle.jvm.toolchain.JvmImplementation;

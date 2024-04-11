@@ -32,6 +32,7 @@ import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.InstallationLocation;
+import org.gradle.jvm.toolchain.internal.JdkCacheDirectory;
 import org.gradle.jvm.toolchain.internal.JvmInstallationMetadataMatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,9 +49,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class JdkCacheDirectory {
+public class DefaultJdkCacheDirectory implements JdkCacheDirectory {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(JdkCacheDirectory.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultJdkCacheDirectory.class);
     private static final String MARKER_FILE = "provisioned.ok";
     private static final String MAC_OS_JAVA_HOME_FOLDER = "Contents/Home";
 
@@ -61,7 +62,7 @@ public class JdkCacheDirectory {
     private final JvmMetadataDetector detector;
 
     @Inject
-    public JdkCacheDirectory(GradleUserHomeDirProvider homeDirProvider, FileOperations operations, FileLockManager lockManager, JvmMetadataDetector detector) {
+    public DefaultJdkCacheDirectory(GradleUserHomeDirProvider homeDirProvider, FileOperations operations, FileLockManager lockManager, JvmMetadataDetector detector) {
         this.operations = operations;
         this.jdkDirectory = new File(homeDirProvider.getGradleUserHomeDirectory(), "jdks");
         this.lockManager = lockManager;
@@ -69,6 +70,7 @@ public class JdkCacheDirectory {
         jdkDirectory.mkdir();
     }
 
+    @Override
     public Set<File> listJavaHomes() {
         final File[] candidates = jdkDirectory.listFiles();
         if (candidates != null) {

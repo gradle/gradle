@@ -22,6 +22,7 @@ import org.gradle.internal.buildoption.BuildOptionSet;
 import org.gradle.internal.buildoption.Origin;
 import org.gradle.internal.buildoption.StringBuildOption;
 import org.gradle.jvm.toolchain.internal.AutoDetectingInstallationSupplier;
+import org.gradle.jvm.toolchain.internal.AutoInstalledInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.EnvironmentVariableListInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.LocationListInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.ToolchainConfiguration;
@@ -33,7 +34,8 @@ public class ToolchainBuildOptions extends BuildOptionSet<ToolchainConfiguration
     private final List<? extends BuildOption<? super ToolchainConfiguration>> options = Arrays.asList(
         new JavaInstallationPathsOption(),
         new JavaInstallationEnvironmentPathsOption(),
-        new AutoDetectionOption()
+        new AutoDetectionOption(),
+        new AutoDownloadOption()
     );
 
     @Override
@@ -76,6 +78,18 @@ public class ToolchainBuildOptions extends BuildOptionSet<ToolchainConfiguration
         @Override
         public void applyTo(boolean value, ToolchainConfiguration settings, Origin origin) {
             settings.setAutoDetectEnabled(value);
+        }
+    }
+    private static class AutoDownloadOption extends BooleanBuildOption<ToolchainConfiguration> {
+        private static final String GRADLE_PROPERTY = AutoInstalledInstallationSupplier.AUTO_DOWNLOAD;
+
+        public AutoDownloadOption() {
+            super(GRADLE_PROPERTY);
+        }
+
+        @Override
+        public void applyTo(boolean value, ToolchainConfiguration settings, Origin origin) {
+            settings.setDownloadEnabled(value);
         }
     }
 }

@@ -35,6 +35,7 @@ import org.gradle.jvm.toolchain.JavaToolchainResolverRegistry;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainRequest;
 import org.gradle.jvm.toolchain.internal.JavaToolchainResolverRegistryInternal;
+import org.gradle.jvm.toolchain.internal.JdkCacheDirectory;
 import org.gradle.jvm.toolchain.internal.RealizedJavaToolchainRepository;
 import org.gradle.jvm.toolchain.internal.ToolchainDownloadFailedException;
 import org.gradle.platform.BuildPlatform;
@@ -71,7 +72,7 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
 
     private final JavaToolchainResolverRegistryInternal toolchainResolverRegistry;
     private final SecureFileDownloader downloader;
-    private final JdkCacheDirectory cacheDirProvider;
+    private final DefaultJdkCacheDirectory cacheDirProvider;
     private final Provider<Boolean> downloadEnabled;
     private final BuildOperationRunner buildOperationRunner;
     private final BuildPlatform buildPlatform;
@@ -87,7 +88,7 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
     ) {
         this.toolchainResolverRegistry = (JavaToolchainResolverRegistryInternal) toolchainResolverRegistry;
         this.downloader = downloader;
-        this.cacheDirProvider = cacheDirProvider;
+        this.cacheDirProvider = (DefaultJdkCacheDirectory)cacheDirProvider;
         this.downloadEnabled = factory.gradleProperty(AUTO_DOWNLOAD).map(Boolean::parseBoolean);
         this.buildOperationRunner = executor;
         this.buildPlatform = buildPlatform;

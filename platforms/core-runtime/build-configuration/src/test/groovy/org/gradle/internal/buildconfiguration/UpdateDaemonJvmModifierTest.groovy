@@ -17,6 +17,7 @@
 package org.gradle.internal.buildconfiguration
 
 import org.gradle.api.JavaVersion
+import org.gradle.internal.buildconfiguration.tasks.UpdateDaemonJvmModifier
 import org.gradle.internal.jvm.inspection.JvmVendor
 import org.gradle.jvm.toolchain.JvmImplementation
 import org.gradle.test.fixtures.file.TestFile

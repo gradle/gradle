@@ -16,13 +16,9 @@
 
 package org.gradle.jvm.toolchain.internal
 
-import org.gradle.api.internal.file.FileOperations
+
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.ProviderFactory
-import org.gradle.cache.FileLockManager
-import org.gradle.initialization.GradleUserHomeDirProvider
-import org.gradle.internal.jvm.inspection.JvmMetadataDetector
-import org.gradle.jvm.toolchain.internal.install.JdkCacheDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -45,7 +41,6 @@ class AutoInstalledInstallationSupplierTest extends Specification {
         directories.isEmpty()
     }
 
-    @SuppressWarnings('GroovyAccessibility')
     def "supplies single installations for single candidate"() {
         def jdk = temporaryFolder.createDir("11.0.6.hs-adpt")
         given:
@@ -59,7 +54,6 @@ class AutoInstalledInstallationSupplierTest extends Specification {
         directories*.source == ["Auto-provisioned by Gradle"]
     }
 
-    @SuppressWarnings('GroovyAccessibility')
     def "supplies multiple installations for multiple paths"() {
         given:
         def jdk1 = temporaryFolder.createDir("11.0.6.hs-adpt")
@@ -87,7 +81,7 @@ class AutoInstalledInstallationSupplierTest extends Specification {
         def providerFactory = Mock(ProviderFactory)
         providerFactory.gradleProperty("org.gradle.java.installations.auto-detect") >> Providers.ofNullable("false")
         providerFactory.gradleProperty("org.gradle.java.installations.auto-download") >> Providers.ofNullable("true")
-        def supplier = new AutoInstalledInstallationSupplier(cacheDir)
+        def supplier = new AutoInstalledInstallationSupplier(new DefaultToolchainConfiguration(), cacheDir)
 
 
         when:
@@ -106,7 +100,7 @@ class AutoInstalledInstallationSupplierTest extends Specification {
         def providerFactory = Mock(ProviderFactory)
         providerFactory.gradleProperty("org.gradle.java.installations.auto-detect") >> Providers.ofNullable("false")
         providerFactory.gradleProperty("org.gradle.java.installations.auto-download") >> Providers.ofNullable(null)
-        def supplier = new AutoInstalledInstallationSupplier(cacheDir)
+        def supplier = new AutoInstalledInstallationSupplier(new DefaultToolchainConfiguration(), cacheDir)
 
 
         when:
@@ -129,24 +123,15 @@ class AutoInstalledInstallationSupplierTest extends Specification {
 
     def createSupplier(Set<File> javaHomes) {
         def cacheDir = newCacheDirProvider(javaHomes)
-        new AutoInstalledInstallationSupplier(cacheDir)
+        new AutoInstalledInstallationSupplier(new DefaultToolchainConfiguration(), cacheDir)
     }
 
     private JdkCacheDirectory newCacheDirProvider(javaHomes) {
-        new JdkCacheDirectory(Mock(GradleUserHomeDirProvider), Mock(FileOperations), Mock(FileLockManager), Mock(JvmMetadataDetector)) {
+        new JdkCacheDirectory() {
             @Override
             Set<File> listJavaHomes() {
                 return javaHomes
             }
         }
     }
-
-    ProviderFactory createProviderFactory() {
-        def providerFactory = Mock(ProviderFactory)
-        providerFactory.gradleProperty("org.gradle.java.installations.auto-detect") >> Providers.ofNullable(null)
-        providerFactory.gradleProperty("org.gradle.java.installations.auto-download") >> Providers.ofNullable(null)
-        providerFactory
-    }
-
-
 }

@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.buildconfiguration.tasks;
+package org.gradle.internal.buildconfiguration;
 
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.configuration.project.ProjectConfigureAction;
-import org.gradle.internal.buildconfiguration.BuildPropertiesPlugin;
 
-public class UpdateDaemonJvmTaskConfigurator implements ProjectConfigureAction {
+public class BuildPropertiesConfigurator implements ProjectConfigureAction {
 
     @Override
     public void execute(ProjectInternal project) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,9 @@
 
 package org.gradle.jvm.toolchain.internal;
 
-import org.gradle.jvm.toolchain.internal.install.JdkCacheDirectory;
-
 import javax.inject.Inject;
 import java.io.File;
+import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -27,10 +26,12 @@ public class AutoInstalledInstallationSupplier implements InstallationSupplier {
 
     public static final String AUTO_DOWNLOAD = "org.gradle.java.installations.auto-download";
 
+    private final ToolchainConfiguration configuration;
     private final JdkCacheDirectory cacheDirProvider;
 
     @Inject
-    public AutoInstalledInstallationSupplier(JdkCacheDirectory cacheDirProvider) {
+    public AutoInstalledInstallationSupplier(ToolchainConfiguration configuration, JdkCacheDirectory cacheDirProvider) {
+        this.configuration = configuration;
         this.cacheDirProvider = cacheDirProvider;
     }
 
@@ -41,9 +42,13 @@ public class AutoInstalledInstallationSupplier implements InstallationSupplier {
 
     @Override
     public Set<InstallationLocation> get() {
-        return cacheDirProvider.listJavaHomes().stream()
-            .map(this::asInstallation)
-            .collect(Collectors.toSet());
+        if (configuration.isAutoDetectEnabled() || configuration.isDownloadEnabled()) {
+            return cacheDirProvider.listJavaHomes().stream()
+                .map(this::asInstallation)
+                .collect(Collectors.toSet());
+        } else {
+            return Collections.emptySet();
+        }
     }
 
     private InstallationLocation asInstallation(File javaHome) {

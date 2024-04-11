@@ -30,10 +30,12 @@ import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.jvm.toolchain.internal.AutoInstalledInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.CurrentInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.EnvironmentVariableListInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.InstallationLocation;
 import org.gradle.jvm.toolchain.internal.InstallationSupplier;
+import org.gradle.jvm.toolchain.internal.JdkCacheDirectory;
 import org.gradle.jvm.toolchain.internal.LocationListInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.ToolchainConfiguration;
 
@@ -57,7 +59,6 @@ public class JavaInstallationRegistry {
     private final JvmMetadataDetector metadataDetector;
     private final Logger logger;
     private final OperatingSystem os;
-
     private final ProgressLoggerFactory progressLoggerFactory;
     private final JvmInstallationProblemReporter problemReporter;
 
@@ -70,9 +71,9 @@ public class JavaInstallationRegistry {
         OperatingSystem os,
         ProgressLoggerFactory progressLoggerFactory,
         FileResolver fileResolver,
-        JvmInstallationProblemReporter problemReporter
+        JdkCacheDirectory jdkCacheDirectory, JvmInstallationProblemReporter problemReporter
     ) {
-        this(toolchainConfiguration, suppliers, metadataDetector, Logging.getLogger(JavaInstallationRegistry.class), buildOperationRunner, os, progressLoggerFactory, fileResolver, problemReporter);
+        this(toolchainConfiguration, suppliers, metadataDetector, Logging.getLogger(JavaInstallationRegistry.class), buildOperationRunner, os, progressLoggerFactory, fileResolver, jdkCacheDirectory, problemReporter);
     }
 
     private JavaInstallationRegistry(
@@ -84,9 +85,9 @@ public class JavaInstallationRegistry {
         OperatingSystem os,
         ProgressLoggerFactory progressLoggerFactory,
         FileResolver fileResolver,
-        JvmInstallationProblemReporter problemReporter
+        JdkCacheDirectory jdkCacheDirectory, JvmInstallationProblemReporter problemReporter
     ) {
-        this(toolchainConfiguration, builtInSuppliers(toolchainConfiguration, fileResolver), suppliers, metadataDetector, logger, buildOperationRunner, os, progressLoggerFactory, problemReporter);
+        this(toolchainConfiguration, builtInSuppliers(toolchainConfiguration, fileResolver, jdkCacheDirectory), suppliers, metadataDetector, logger, buildOperationRunner, os, progressLoggerFactory, problemReporter);
     }
 
     @VisibleForTesting
@@ -114,11 +115,12 @@ public class JavaInstallationRegistry {
         this.problemReporter = problemReporter;
     }
 
-    private static List<InstallationSupplier> builtInSuppliers(ToolchainConfiguration toolchainConfiguration, FileResolver fileResolver) {
+    private static List<InstallationSupplier> builtInSuppliers(ToolchainConfiguration toolchainConfiguration, FileResolver fileResolver, JdkCacheDirectory jdkCacheDirectory) {
         List<InstallationSupplier> allSuppliers = new ArrayList<>();
         allSuppliers.add(new EnvironmentVariableListInstallationSupplier(toolchainConfiguration, fileResolver, System.getenv()));
         allSuppliers.add(new LocationListInstallationSupplier(toolchainConfiguration, fileResolver));
         allSuppliers.add(new CurrentInstallationSupplier());
+        allSuppliers.add(new AutoInstalledInstallationSupplier(toolchainConfiguration, jdkCacheDirectory));
         return allSuppliers;
     }
 

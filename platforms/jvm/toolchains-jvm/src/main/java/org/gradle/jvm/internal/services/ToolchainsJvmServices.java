@@ -18,6 +18,7 @@ package org.gradle.jvm.internal.services;
 
 import net.rubygrapefruit.platform.SystemInfo;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
@@ -27,6 +28,7 @@ import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.jvm.inspection.JavaInstallationRegistry;
 import org.gradle.internal.jvm.inspection.JvmInstallationProblemReporter;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
+import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.Instantiator;
@@ -34,7 +36,6 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.jvm.toolchain.JavaToolchainResolverRegistry;
 import org.gradle.jvm.toolchain.internal.AsdfInstallationSupplier;
-import org.gradle.jvm.toolchain.internal.AutoInstalledInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainResolverRegistry;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainService;
 import org.gradle.jvm.toolchain.internal.DefaultJvmToolchainManagement;
@@ -43,6 +44,7 @@ import org.gradle.jvm.toolchain.internal.InstallationSupplier;
 import org.gradle.jvm.toolchain.internal.IntellijInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.JabbaInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService;
+import org.gradle.jvm.toolchain.internal.JdkCacheDirectory;
 import org.gradle.jvm.toolchain.internal.LinuxInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.MavenToolchainsInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.OsXInstallationSupplier;
@@ -50,7 +52,7 @@ import org.gradle.jvm.toolchain.internal.SdkmanInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.ToolchainConfiguration;
 import org.gradle.jvm.toolchain.internal.WindowsInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.install.DefaultJavaToolchainProvisioningService;
-import org.gradle.jvm.toolchain.internal.install.JdkCacheDirectory;
+import org.gradle.jvm.toolchain.internal.install.DefaultJdkCacheDirectory;
 import org.gradle.jvm.toolchain.internal.install.SecureFileDownloader;
 import org.gradle.platform.internal.DefaultBuildPlatform;
 
@@ -77,18 +79,15 @@ public class ToolchainsJvmServices extends AbstractPluginServiceRegistry {
         }
 
         protected JdkCacheDirectory createJdkCacheDirectory(ObjectFactory objectFactory, GradleUserHomeDirProvider homeDirProvider, FileOperations operations, FileLockManager lockManager, JvmMetadataDetector detector) {
-            return objectFactory.newInstance(JdkCacheDirectory.class, homeDirProvider, operations, lockManager, detector);
+            return objectFactory.newInstance(DefaultJdkCacheDirectory.class, homeDirProvider, operations, lockManager, detector);
         }
-
-        protected JavaInstallationRegistry createJavaInstallationRegistry(ObjectFactory objectFactory, ToolchainConfiguration toolchainConfiguration, List<InstallationSupplier> suppliers, BuildOperationRunner buildOperationRunner, OperatingSystem os) {
-            return objectFactory.newInstance(JavaInstallationRegistry.class, toolchainConfiguration, suppliers, buildOperationRunner, os);
+        protected JavaInstallationRegistry createJavaInstallationRegistry(ToolchainConfiguration toolchainConfiguration, List<InstallationSupplier> installationSuppliers, JvmMetadataDetector jvmMetadataDetector, BuildOperationRunner buildOperationRunner, ProgressLoggerFactory progressLoggerFactory, FileResolver fileResolver, JdkCacheDirectory jdkCacheDirectory) {
+            return new JavaInstallationRegistry(toolchainConfiguration, installationSuppliers, jvmMetadataDetector, buildOperationRunner, OperatingSystem.current(), progressLoggerFactory, fileResolver, jdkCacheDirectory, new JvmInstallationProblemReporter());
         }
 
         public void configure(ServiceRegistration registration) {
             registration.add(ProviderBackedToolchainConfiguration.class);
             registration.add(DefaultOsXJavaHomeCommand.class);
-
-            registration.add(AutoInstalledInstallationSupplier.class);
 
             registration.add(AsdfInstallationSupplier.class);
             registration.add(IntellijInstallationSupplier.class);
