@@ -22,6 +22,7 @@ import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationFactory
+import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyFactory
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentStateBuilder
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentStateBuilderFactory
@@ -49,13 +50,13 @@ class NameValidatorTest extends Specification {
     static invalidNames = forbiddenCharacters.collect { "a${it}b" } + ["${forbiddenLeadingAndTrailingCharacter}ab", "ab${forbiddenLeadingAndTrailingCharacter}", '']
     @Shared
     def rootComponentStateBuilderFactory = Mock(RootComponentStateBuilderFactory) {
-        create(_) >> Mock(DefaultRootComponentStateBuilder)
+        create(_, _) >> Mock(DefaultRootComponentStateBuilder)
     }
 
     @Shared
     def domainObjectContainersWithValidation = [
         ["artifact types", new DefaultArtifactTypeContainer(TestUtil.instantiatorFactory().decorateLenient(), AttributeTestUtil.attributesFactory(), CollectionCallbackActionDecorator.NOOP)],
-        ["configurations", new DefaultConfigurationContainer(TestUtil.instantiatorFactory().decorateLenient(), CollectionCallbackActionDecorator.NOOP, rootComponentStateBuilderFactory, Mock(DefaultConfigurationFactory), Mock(ResolutionStrategyFactory))],
+        ["configurations", new DefaultConfigurationContainer(TestUtil.instantiatorFactory().decorateLenient(), CollectionCallbackActionDecorator.NOOP, Mock(DependencyMetaDataProvider), rootComponentStateBuilderFactory, Mock(DefaultConfigurationFactory), Mock(ResolutionStrategyFactory))],
         ["flavors", new DefaultFlavorContainer(TestUtil.instantiatorFactory().decorateLenient(), CollectionCallbackActionDecorator.NOOP)],
         ["source sets", new DefaultSourceSetContainer(TestFiles.resolver(), TestFiles.taskDependencyFactory(), null, TestUtil.instantiatorFactory().decorateLenient(), TestUtil.objectFactory(), CollectionCallbackActionDecorator.NOOP)]
     ]

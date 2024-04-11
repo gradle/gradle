@@ -65,13 +65,12 @@ class DefaultConfigurationContainerSpec extends Specification {
         getValidator() >> Mock(MutationValidator)
     }
     private RootComponentStateBuilderFactory rootComponentStateBuilderFactory = Mock(RootComponentStateBuilderFactory) {
-        create(_) >> stateBuilder
+        create(_, _) >> stateBuilder
     }
     private DefaultConfigurationFactory configurationFactory = new DefaultConfigurationFactory(
         instantiator,
         resolver,
         listenerManager,
-        metaDataProvider,
         dependencyLockingProvider,
         domainObjectContext,
         fileCollectionFactory,
@@ -90,6 +89,7 @@ class DefaultConfigurationContainerSpec extends Specification {
     private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(
         instantiator,
         domainObjectCollectionCallbackActionDecorator,
+        metaDataProvider,
         rootComponentStateBuilderFactory,
         configurationFactory,
         Mock(ResolutionStrategyFactory)

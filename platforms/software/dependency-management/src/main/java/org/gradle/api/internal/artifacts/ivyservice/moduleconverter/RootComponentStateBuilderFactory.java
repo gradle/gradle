@@ -31,7 +31,6 @@ import javax.inject.Inject;
  * Creates {@link RootComponentStateBuilder} instances.
  */
 public class RootComponentStateBuilderFactory {
-    private final DependencyMetaDataProvider metaDataProvider;
     private final ComponentIdentifierFactory componentIdentifierFactory;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final LocalConfigurationMetadataBuilder configurationMetadataBuilder;
@@ -41,7 +40,6 @@ public class RootComponentStateBuilderFactory {
 
     @Inject
     public RootComponentStateBuilderFactory(
-        DependencyMetaDataProvider metaDataProvider,
         ComponentIdentifierFactory componentIdentifierFactory,
         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
         LocalConfigurationMetadataBuilder configurationMetadataBuilder,
@@ -49,7 +47,6 @@ public class RootComponentStateBuilderFactory {
         LocalComponentGraphResolveStateFactory localResolveStateFactory,
         CalculatedValueContainerFactory calculatedValueContainerFactory
     ) {
-        this.metaDataProvider = metaDataProvider;
         this.componentIdentifierFactory = componentIdentifierFactory;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.configurationMetadataBuilder = configurationMetadataBuilder;
@@ -58,9 +55,9 @@ public class RootComponentStateBuilderFactory {
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
     }
 
-    public RootComponentStateBuilder create(ConfigurationsProvider configurationsProvider) {
+    public RootComponentStateBuilder create(ConfigurationsProvider configurationsProvider, DependencyMetaDataProvider metadataProvider) {
         return new DefaultRootComponentStateBuilder(
-            metaDataProvider,
+            metadataProvider,
             componentIdentifierFactory,
             moduleIdentifierFactory,
             configurationMetadataBuilder,

@@ -105,7 +105,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
     def immutableAttributesFactory = AttributeTestUtil.attributesFactory()
     def rootComponentStateBuilder = Mock(RootComponentStateBuilder)
     def rootComponentStateBuilderFactory = Mock(RootComponentStateBuilderFactory) {
-        create(_) >> rootComponentStateBuilder
+        create(_, _) >> rootComponentStateBuilder
     }
     def projectStateRegistry = Mock(ProjectStateRegistry)
     def domainObjectCollectioncallbackActionDecorator = Mock(CollectionCallbackActionDecorator)
@@ -1834,7 +1834,6 @@ All Artifacts:
             DirectInstantiator.INSTANCE,
             resolver,
             listenerManager,
-            metaDataProvider,
             dependencyLockingProvider,
             domainObjectContext,
             TestFiles.fileCollectionFactory(),

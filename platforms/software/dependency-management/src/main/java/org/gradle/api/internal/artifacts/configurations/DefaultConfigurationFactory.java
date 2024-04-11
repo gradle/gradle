@@ -54,7 +54,6 @@ public class DefaultConfigurationFactory {
     private final Instantiator instantiator;
     private final ConfigurationResolver resolver;
     private final ListenerManager listenerManager;
-    private final DependencyMetaDataProvider metaDataProvider;
     private final DependencyLockingProvider dependencyLockingProvider;
     private final DomainObjectContext domainObjectContext;
     private final FileCollectionFactory fileCollectionFactory;
@@ -76,7 +75,6 @@ public class DefaultConfigurationFactory {
         Instantiator instantiator,
         ConfigurationResolver resolver,
         ListenerManager listenerManager,
-        DependencyMetaDataProvider metaDataProvider,
         DependencyLockingProvider dependencyLockingProvider,
         DomainObjectContext domainObjectContext,
         FileCollectionFactory fileCollectionFactory,
@@ -95,7 +93,6 @@ public class DefaultConfigurationFactory {
         this.instantiator = instantiator;
         this.resolver = resolver;
         this.listenerManager = listenerManager;
-        this.metaDataProvider = metaDataProvider;
         this.dependencyLockingProvider = dependencyLockingProvider;
         this.domainObjectContext = domainObjectContext;
         this.fileCollectionFactory = fileCollectionFactory;
@@ -132,7 +129,6 @@ public class DefaultConfigurationFactory {
             configurationsProvider,
             resolver,
             dependencyResolutionListeners,
-            metaDataProvider,
             dependencyLockingProvider,
             resolutionStrategyFactory,
             fileCollectionFactory,
@@ -175,7 +171,6 @@ public class DefaultConfigurationFactory {
             configurationsProvider,
             resolver,
             dependencyResolutionListeners,
-            metaDataProvider,
             dependencyLockingProvider,
             resolutionStrategyFactory,
             fileCollectionFactory,
@@ -217,7 +212,6 @@ public class DefaultConfigurationFactory {
             configurationsProvider,
             resolver,
             dependencyResolutionListeners,
-            metaDataProvider,
             dependencyLockingProvider,
             resolutionStrategyFactory,
             fileCollectionFactory,
@@ -259,7 +253,6 @@ public class DefaultConfigurationFactory {
             configurationsProvider,
             resolver,
             dependencyResolutionListeners,
-            metaDataProvider,
             dependencyLockingProvider,
             resolutionStrategyFactory,
             fileCollectionFactory,

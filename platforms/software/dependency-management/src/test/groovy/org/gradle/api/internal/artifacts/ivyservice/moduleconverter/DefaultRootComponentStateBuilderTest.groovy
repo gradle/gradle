@@ -50,7 +50,6 @@ class DefaultRootComponentStateBuilderTest extends Specification {
     def mid = DefaultModuleIdentifier.newId('foo', 'bar')
 
     def builderFactory = new RootComponentStateBuilderFactory(
-        metaDataProvider,
         componentIdentifierFactory,
         moduleIdentifierFactory,
         configurationMetadataBuilder,
@@ -59,7 +58,7 @@ class DefaultRootComponentStateBuilderTest extends Specification {
         TestUtil.calculatedValueContainerFactory()
     )
 
-    def builder = builderFactory.create(configurationsProvider)
+    def builder = builderFactory.create(configurationsProvider, metaDataProvider)
 
     def "caches root component resolve state and metadata"() {
         componentIdentifierFactory.createComponentIdentifier(_) >> {

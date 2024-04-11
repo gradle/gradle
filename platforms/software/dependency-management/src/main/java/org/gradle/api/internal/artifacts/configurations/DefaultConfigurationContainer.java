@@ -39,10 +39,10 @@ import org.gradle.internal.artifacts.configurations.AbstractRoleBasedConfigurati
 import org.gradle.internal.artifacts.configurations.NoContextRoleBasedConfigurationCreationRequest;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.scopes.DetachedDependencyMetadataProvider;
 import org.gradle.util.GradleVersion;
 
 import javax.annotation.Nullable;
-import javax.inject.Inject;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -61,14 +61,15 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     private final RootComponentStateBuilderFactory rootComponentStateBuilderFactory;
     private final DefaultConfigurationFactory defaultConfigurationFactory;
     private final ResolutionStrategyFactory resolutionStrategyFactory;
+    private final DependencyMetaDataProvider rootComponentIdentity;
 
     private final AtomicInteger detachedConfigurationDefaultNameCounter = new AtomicInteger(1);
     private final RootComponentStateBuilder rootComponentStateBuilder;
 
-    @Inject
     public DefaultConfigurationContainer(
         Instantiator instantiator,
         CollectionCallbackActionDecorator callbackDecorator,
+        DependencyMetaDataProvider metadataProvider,
         RootComponentStateBuilderFactory rootComponentStateBuilderFactory,
         DefaultConfigurationFactory defaultConfigurationFactory,
         ResolutionStrategyFactory resolutionStrategyFactory
@@ -78,8 +79,9 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         this.rootComponentStateBuilderFactory = rootComponentStateBuilderFactory;
         this.defaultConfigurationFactory = defaultConfigurationFactory;
         this.resolutionStrategyFactory = resolutionStrategyFactory;
+        this.rootComponentIdentity = metadataProvider;
 
-        this.rootComponentStateBuilder = rootComponentStateBuilderFactory.create(this);
+        this.rootComponentStateBuilder = rootComponentStateBuilderFactory.create(this, metadataProvider);
         this.getEventRegister().registerLazyAddAction(x -> rootComponentStateBuilder.getValidator().validateMutation(MutationValidator.MutationType.HIERARCHY));
         this.whenObjectRemoved(x -> rootComponentStateBuilder.getValidator().validateMutation(MutationValidator.MutationType.HIERARCHY));
     }
@@ -134,7 +136,9 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     public ConfigurationInternal detachedConfiguration(Dependency... dependencies) {
         String name = nextDetachedConfigurationName();
         DetachedConfigurationsProvider detachedConfigurationsProvider = new DetachedConfigurationsProvider();
-        RootComponentStateBuilder componentStateBuilder = rootComponentStateBuilderFactory.create(detachedConfigurationsProvider);
+
+        DependencyMetaDataProvider identity = new DetachedDependencyMetadataProvider(rootComponentIdentity, name);
+        RootComponentStateBuilder componentStateBuilder = rootComponentStateBuilderFactory.create(detachedConfigurationsProvider, identity);
 
         @SuppressWarnings("deprecation")
         DefaultUnlockedConfiguration detachedConfiguration = defaultConfigurationFactory.create(

@@ -128,66 +128,36 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         run "checkDependencies"
     }
 
-    // This behavior will be removed in Gradle 9.0
-    @Deprecated
-    def "detached configurations can contain artifacts and resolve them during a self-dependency scenario"() {
-        given:
-        settingsFile """
-            rootProject.name = 'test'
-        """
-
-        buildFile """
-            plugins {
-                id 'java-library'
+    def "detached configuration can resolve project dependency targeting current project"() {
+        buildFile << """
+            task zip(type: Zip) {
+                destinationDirectory = layout.buildDirectory.dir('dist')
+                archiveBaseName = "foo"
             }
 
-            def detached = project.configurations.detachedConfiguration()
-            detached.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
-            detached.dependencies.add(project.dependencies.create(project))
-
-            task makeArtifact(type: Zip) {
-                archiveFileName = "artifact.zip"
-                from "artifact.txt"
+            configurations {
+                consumable("foo") {
+                    attributes {
+                        attribute(Attribute.of("attr", String), "value")
+                    }
+                    outgoing.artifact(tasks.zip)
+                }
             }
 
-            detached.outgoing.artifact(tasks.makeArtifact)
+            def detached = configurations.detachedConfiguration()
+            detached.attributes.attribute(Attribute.of("attr", String), "value")
+            detached.dependencies.add(dependencies.create(project(":")))
 
-            task checkDependencies {
-                def result = detached.incoming.resolutionResult.rootComponent
-                def artifacts = detached.incoming.artifacts
-
+            task resolve {
+                def files = detached
                 doLast {
-                    def depModuleNames = result.get().dependencies*.selected*.moduleVersion*.name
-                    def artifactNames = artifacts.artifacts.collect { it.file.name }
-                    assert depModuleNames.contains('test')
-                    assert artifactNames.contains("artifact.zip")
+                    assert files.files*.name == ["foo.zip"]
                 }
             }
         """
 
-        file("artifact.txt") << "sample artifact"
-
         expect:
-        executer.expectDocumentedDeprecationWarning("The detachedConfiguration1 configuration has been deprecated for consumption. " +
-            "This will fail with an error in Gradle 9.0. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
-        executer.expectDocumentedDeprecationWarning("While resolving configuration 'detachedConfiguration1', it was also selected as a variant. " +
-            "Configurations should not act as both a resolution root and a variant simultaneously. Depending on the resolved configuration in this manner has been deprecated. " +
-            "This will fail with an error in Gradle 9.0. Be sure to mark configurations meant for resolution as canBeConsumed=false or use the 'resolvable(String)' configuration factory method to create them. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#depending_on_root_configuration")
-
-        when:
-        run "checkDependencies"
-
-        then:
-        verifyAll(receivedProblem(0)) {
-            fqid == 'deprecation:configurations-acting-as-both-root-and-variant'
-            contextualLabel == 'While resolving configuration \'detachedConfiguration1\', it was also selected as a variant. Configurations should not act as both a resolution root and a variant simultaneously. Depending on the resolved configuration in this manner has been deprecated.'
-            solutions == [ 'Be sure to mark configurations meant for resolution as canBeConsumed=false or use the \'resolvable(String)\' configuration factory method to create them.' ]
-        }
-        verifyAll(receivedProblem(1)) {
-            fqid == 'deprecation:the-detachedconfiguration-configuration-has-been-deprecated-for-consumption'
-            contextualLabel == 'The detachedConfiguration1 configuration has been deprecated for consumption.'
-        }
+        succeeds("resolve")
     }
 
     def "configurations container reserves name #name for detached configurations"() {

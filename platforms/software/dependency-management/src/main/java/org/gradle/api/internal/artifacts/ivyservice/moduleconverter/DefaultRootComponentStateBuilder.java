@@ -107,6 +107,11 @@ public class DefaultRootComponentStateBuilder implements RootComponentStateBuild
         };
     }
 
+    @Override
+    public DependencyMetaDataProvider getIdentity() {
+        return metadataProvider;
+    }
+
     private LocalComponentGraphResolveState getComponentState(Module module, ComponentIdentifier componentIdentifier) {
         LocalComponentGraphResolveState state = holder.tryCached(componentIdentifier);
         if (state == null) {
