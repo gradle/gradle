@@ -292,7 +292,13 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
         super.assertResultVisited();
         // Ensure that exceptions are not unintentionally introduced.
         if (problems.size() > 1 && !problemsNotChecked.isEmpty()) {
-            throw new AssertionFailedError("The build failed with multiple exceptions, however not all exceptions where checked during the test. This can be done using assertHasFailures(n), assertHasDescription() or assertHasCause() or one of the variants of these methods.");
+            String nonCheckedProblems = problemsNotChecked.stream().map(p -> "- " + p.description).collect(joining("\n"));
+            throw new AssertionFailedError(String.format(
+                "The build failed with multiple exceptions, however not all exceptions where checked during the test. " +
+                    "This can be done using assertHasFailures(n), assertHasDescription() or assertHasCause() or one of the variants of these methods.%n" +
+                    "Unchecked problems:%n%s",
+                nonCheckedProblems
+            ));
         }
     }
 
