@@ -100,7 +100,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
             package $GENERATED_CLASSES_PACKAGE_NAME;
 
             @Generated
-            public class InterceptorDeclaration_PropertyUpgradesJvmBytecode_TestProject implements JvmBytecodeCallInterceptor, org.gradle.internal.instrumentation.api.types.BytecodeInterceptor.BytecodeUpgradeInterceptor {
+            public class InterceptorDeclaration_PropertyUpgradesJvmBytecode_TestProject implements JvmBytecodeCallInterceptor, FilterableBytecodeInterceptor.BytecodeUpgradeInterceptor {
                 @Override
                 public boolean visitMethodInsn(String className, int opcode, String owner, String name,
                                                String descriptor, boolean isInterface, Supplier<MethodNode> readMethodNode) {
@@ -233,7 +233,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
             package $GENERATED_CLASSES_PACKAGE_NAME;
 
             @Generated
-            public class InterceptorDeclaration_PropertyUpgradesJvmBytecode_TestProject implements JvmBytecodeCallInterceptor, org.gradle.internal.instrumentation.api.types.BytecodeInterceptor.BytecodeUpgradeInterceptor {
+            public class InterceptorDeclaration_PropertyUpgradesJvmBytecode_TestProject implements JvmBytecodeCallInterceptor, FilterableBytecodeInterceptor.BytecodeUpgradeInterceptor {
                 @Override
                 public boolean visitMethodInsn(String className, int opcode, String owner, String name,
                                                String descriptor, boolean isInterface, Supplier<MethodNode> readMethodNode) {
@@ -330,7 +330,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
             package $GENERATED_CLASSES_PACKAGE_NAME;
 
             @Generated
-            public class InterceptorDeclaration_PropertyUpgradesJvmBytecode_TestProject implements JvmBytecodeCallInterceptor, org.gradle.internal.instrumentation.api.types.BytecodeInterceptor.BytecodeUpgradeInterceptor {
+            public class InterceptorDeclaration_PropertyUpgradesJvmBytecode_TestProject implements JvmBytecodeCallInterceptor, FilterableBytecodeInterceptor.BytecodeUpgradeInterceptor {
                 @Override
                 public boolean visitMethodInsn(String className, int opcode, String owner, String name,
                                                String descriptor, boolean isInterface, Supplier<MethodNode> readMethodNode) {

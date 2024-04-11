@@ -53,7 +53,7 @@ class InterceptJvmCallsGeneratorTest extends InstrumentationCodeGenTest {
             package my;
 
             @Generated
-            public class InterceptorDeclaration_JvmBytecodeImpl implements JvmBytecodeCallInterceptor, org.gradle.internal.instrumentation.api.types.BytecodeInterceptor.InstrumentationInterceptor {
+            public class InterceptorDeclaration_JvmBytecodeImpl implements JvmBytecodeCallInterceptor, FilterableBytecodeInterceptor.InstrumentationInterceptor {
                 @Override
                 public boolean visitMethodInsn(String className, int opcode, String owner, String name,
                         String descriptor, boolean isInterface, Supplier<MethodNode> readMethodNode) {
@@ -124,8 +124,8 @@ class InterceptJvmCallsGeneratorTest extends InstrumentationCodeGenTest {
         Compilation compilation = compile(givenSource)
 
         then:
-        def capability = type.getInterceptorMarkerInterface().getCanonicalName()
-        def factoryCapability = type.getInterceptorFactoryMarkerInterface().getCanonicalName()
+        def capability = type.getInterceptorMarkerInterface().getCanonicalName() - (type.getInterceptorMarkerInterface().package.name + ".")
+        def factoryCapability = type.getInterceptorFactoryMarkerInterface().getCanonicalName() - (type.getInterceptorFactoryMarkerInterface().package.name + ".")
         def expectedJvmInterceptors = source """
             package my;
 
@@ -188,7 +188,7 @@ class InterceptJvmCallsGeneratorTest extends InstrumentationCodeGenTest {
             package my;
 
             @Generated
-            public class InterceptorDeclaration_JvmBytecodeImpl implements JvmBytecodeCallInterceptor, org.gradle.internal.instrumentation.api.types.BytecodeInterceptor.InstrumentationInterceptor {
+            public class InterceptorDeclaration_JvmBytecodeImpl implements JvmBytecodeCallInterceptor, FilterableBytecodeInterceptor.InstrumentationInterceptor {
                 @Override
                 public boolean visitMethodInsn(String className, int opcode, String owner, String name,
                         String descriptor, boolean isInterface, Supplier<MethodNode> readMethodNode) {
@@ -240,7 +240,7 @@ class InterceptJvmCallsGeneratorTest extends InstrumentationCodeGenTest {
             package my;
 
             @Generated
-            public class InterceptorDeclaration_JvmBytecodeImpl implements JvmBytecodeCallInterceptor, org.gradle.internal.instrumentation.api.types.BytecodeInterceptor.InstrumentationInterceptor {
+            public class InterceptorDeclaration_JvmBytecodeImpl implements JvmBytecodeCallInterceptor, FilterableBytecodeInterceptor.InstrumentationInterceptor {
                 @Override
                 public boolean visitMethodInsn(String className, int opcode, String owner, String name,
                         String descriptor, boolean isInterface, Supplier<MethodNode> readMethodNode) {

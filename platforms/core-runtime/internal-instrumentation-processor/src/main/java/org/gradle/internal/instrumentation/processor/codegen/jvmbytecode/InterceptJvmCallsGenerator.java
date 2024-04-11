@@ -99,8 +99,8 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
                 .addAnnotation(GENERATED_ANNOTATION.asClassName())
                 .addModifiers(Modifier.PUBLIC)
                 // generic stuff not related to the content:
-                .addSuperinterface(JvmBytecodeCallInterceptor.class)
-                .addSuperinterface(interceptorType.getInterceptorMarkerInterface())
+                .addSuperinterface(ClassName.get(JvmBytecodeCallInterceptor.class))
+                .addSuperinterface(ClassName.get(interceptorType.getInterceptorMarkerInterface()))
                 .addMethod(BINARY_CLASS_NAME_OF)
                 .addMethod(LOAD_BINARY_CLASS_NAME)
                 .addField(INTERCEPTORS_REQUEST_TYPE)
@@ -125,8 +125,8 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
             .build();
         return TypeSpec.classBuilder("Factory")
             .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
-            .addSuperinterface(JvmBytecodeCallInterceptor.Factory.class)
-            .addSuperinterface(interceptorType.getInterceptorFactoryMarkerInterface())
+            .addSuperinterface(ClassName.get(JvmBytecodeCallInterceptor.Factory.class))
+            .addSuperinterface(ClassName.get(interceptorType.getInterceptorFactoryMarkerInterface()))
             .addMethod(method)
             .build();
     }
