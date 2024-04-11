@@ -13,10 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.io;
-
-import org.gradle.internal.time.CountdownTimer;
-import org.gradle.internal.time.Time;
+package org.gradle.internal.time;
 
 import java.io.IOException;
 import java.util.Random;

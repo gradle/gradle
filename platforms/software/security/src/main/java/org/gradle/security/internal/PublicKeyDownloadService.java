@@ -24,7 +24,7 @@ import org.bouncycastle.openpgp.operator.bc.BcKeyFingerprintCalculator;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.io.ExponentialBackoff;
+import org.gradle.internal.time.ExponentialBackoff;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ExternalResourceReadResult;
 import org.gradle.internal.resource.ExternalResourceRepository;

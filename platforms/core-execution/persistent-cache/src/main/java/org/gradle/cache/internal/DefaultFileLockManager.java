@@ -39,7 +39,7 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.RandomLongIdGenerator;
-import org.gradle.internal.io.ExponentialBackoff;
+import org.gradle.internal.time.ExponentialBackoff;
 import org.gradle.util.internal.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
