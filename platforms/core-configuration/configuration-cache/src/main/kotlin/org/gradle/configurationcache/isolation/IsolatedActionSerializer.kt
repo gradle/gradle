@@ -16,9 +16,9 @@
 
 package org.gradle.configurationcache.isolation
 
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import org.gradle.api.IsolatedAction
 import org.gradle.api.services.internal.BuildServiceProvider
+import org.gradle.configurationcache.extensions.invert
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.extensions.useToRun
 import org.gradle.configurationcache.logger
@@ -57,6 +57,9 @@ class SerializedAction(
     /**
      * External references that are not serialized directly as part of the [graph].
      * These include [Class] and [BuildServiceProvider] references.
+     *
+     * Maps the integer written to the serialized [graph] to the external reference.
+     * See [EnvironmentEncoder] and [EnvironmentDecoder] for details.
      */
     val environment: Map<Int, Any>,
 )
@@ -70,17 +73,17 @@ class IsolatedActionSerializer(
 ) {
     fun serialize(action: Any): SerializedAction {
         val outputStream = ByteArrayOutputStream()
-        val classCollector = ClassCollector()
-        serializeTo(outputStream, classCollector, action)
+        val environmentEncoder = EnvironmentEncoder()
+        serializeTo(outputStream, environmentEncoder, action)
         return SerializedAction(
             outputStream.toByteArray(),
-            classCollector.toLookup()
+            environmentEncoder.toLookup()
         )
     }
 
     private
-    fun serializeTo(outputStream: ByteArrayOutputStream, classCollector: ClassCollector, action: Any) {
-        writeContextFor(outputStream, classCollector).useToRun {
+    fun serializeTo(outputStream: ByteArrayOutputStream, environmentEncoder: EnvironmentEncoder, action: Any) {
+        writeContextFor(outputStream, environmentEncoder).useToRun {
             runWriteOperation {
                 withIsolate(owner) {
                     write(action)
@@ -127,38 +130,39 @@ class IsolatedActionDeserializer(
         beanStateReaderLookup = beanStateReaderLookup,
         logger = logger,
         problemsListener = ThrowingProblemsListener,
-        classDecoder = object : ClassDecoder {
-            override fun ReadContext.decodeClass(): Class<*> =
-                action.environment[readSmallInt()]?.uncheckedCast()!!
-        }
+        classDecoder = EnvironmentDecoder(action.environment)
     )
 }
 
 
 private
-class ClassCollector : ClassEncoder {
+class EnvironmentEncoder : ClassEncoder {
 
     private
-    val classes = IdentityHashMap<Class<*>, Int>()
+    val refs = IdentityHashMap<Class<*>, Int>()
 
     override fun WriteContext.encodeClass(type: Class<*>) {
-        val existing = classes[type]
+        val existing = refs[type]
         if (existing != null) {
             writeSmallInt(existing)
         } else {
-            val id = classes.size
-            classes[type] = id
+            val id = refs.size
+            refs[type] = id
             writeSmallInt(id)
         }
     }
 
-    fun toLookup(): Map<Int, Any> = classes.run {
-        Int2ObjectOpenHashMap<Any>(size).also { result ->
-            forEach { (obj, id) ->
-                result.put(id, obj)
-            }
-        }
-    }
+    fun toLookup(): Map<Int, Any> =
+        refs.invert()
+}
+
+
+private
+class EnvironmentDecoder(
+    val environment: Map<Int, Any>
+) : ClassDecoder {
+    override fun ReadContext.decodeClass(): Class<*> =
+        environment[readSmallInt()]?.uncheckedCast()!!
 }
 
 
@@ -168,5 +172,3 @@ object ThrowingProblemsListener : ProblemsListener {
         TODO("Not yet implemented: $problem")
     }
 }
-
-

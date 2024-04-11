@@ -20,3 +20,14 @@ package org.gradle.configurationcache.extensions
 internal
 fun <V> Map<String, V>.filterKeysByPrefix(prefix: String): Map<String, V?> =
     filterKeys { key -> key.length > prefix.length && key.startsWith(prefix) }
+
+
+/**
+ * Returns a map with the values mapped to the keys.
+ */
+internal
+fun <K, V> Map<K, V>.invert() = HashMap<V, K>(size).also { result ->
+    forEach { (k, v) ->
+        result[v] = k
+    }
+}
