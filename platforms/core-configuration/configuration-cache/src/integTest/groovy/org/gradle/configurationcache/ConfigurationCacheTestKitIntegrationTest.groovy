@@ -127,6 +127,13 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
         output.contains("Configuration cache entry stored.")
     }
 
+    /**
+     * This test check that Jacoco works with TestKit when configuration cache is DISABLED.
+     * We don't have support for that case when configuration cache is enabled yet.
+     *
+     * But we broke --no-configuration-cache case already twice in the past, so it's worth testing it.
+     */
+    @Issue(["https://github.com/gradle/gradle/issues/13614", "https://github.com/gradle/gradle/issues/28729"])
     @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "Testing build using a TestKit")
     def "running a test that applies Jacoco with TestKit should generate a test report when running without configuration cache"() {
         given:
