@@ -31,7 +31,7 @@ import static org.gradle.internal.enterprise.GradleEnterprisePluginConfig.BuildS
 // Note: most of the other tests are structure to implicitly also exercise configuration caching
 // This tests some specific aspects, and serves as an early smoke test.
 @Requires(IntegTestPreconditions.NotConfigCached)
-class GradleEnterprisePluginConfigurationCachingIntegrationTest extends AbstractIntegrationSpec {
+class DevelocityPluginConfigurationCachingIntegrationTest extends AbstractIntegrationSpec {
 
     def plugin = new DevelocityPluginCheckInFixture(testDirectory, mavenRepo, createExecuter())
 
