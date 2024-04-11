@@ -22,9 +22,9 @@ dependencies {
     implementation(project(":module-identity"))
     implementation("net.ltgt.gradle:gradle-errorprone-plugin:3.1.0")
 
-    implementation("org.gradle.kotlin.kotlin-dsl:org.gradle.kotlin.kotlin-dsl.gradle.plugin:4.3.1")
+    implementation("org.gradle.kotlin.kotlin-dsl:org.gradle.kotlin.kotlin-dsl.gradle.plugin:4.4.0")
     // This Kotlin version should only be updated when updating the above kotlin-dsl version
-    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.22")
+    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.23")
     implementation("org.gradle.kotlin:gradle-kotlin-dsl-conventions")
     implementation("org.gradle:test-retry-gradle-plugin:1.5.2")
 }
