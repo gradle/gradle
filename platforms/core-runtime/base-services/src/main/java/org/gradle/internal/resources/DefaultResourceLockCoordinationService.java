@@ -109,10 +109,16 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
                             maybeNotifyStateChange(resourceLockState);
                             resourceLockState.reset();
                             finishOperation(previous);
-                            try {
-                                lock.wait();
-                            } catch (InterruptedException e) {
-                                throw UncheckedException.throwAsUncheckedException(e);
+                            while (true) {
+                                try {
+                                    lock.wait();
+                                    break;
+                                } catch (InterruptedException e) {
+                                    // Interrupting the state lock thread means something changed,
+                                    // so let's retry obtaining the lock.
+                                    // Clear the interrupted flag.
+                                    boolean ignored = Thread.interrupted();
+                                }
                             }
                             startOperation(resourceLockState);
                             break;

@@ -62,19 +62,17 @@ class CancellationBuildOperationIntegrationTest extends AbstractIntegrationSpec 
         }
 
         when:
-        // Need to try a few times, the build doesn't always fail as expected
-        for (int i in 0..5) {
-            fails('parallelTask', '--parallel', ':interrupting', "--console=plain", "--max-workers=${(parallelTaskCount / 2) + 2 as int}", '--continue')
-            if (!operations.danglingChildren.empty) {
-                break
-            }
-        }
-
+        fails('parallelTask', '--parallel', ':interrupting', "--console=plain", "--max-workers=${(parallelTaskCount / 2) + 2 as int}", '--continue')
 
         then:
-        // Should be fixed: There shouldn't be any dangling build operations
-        !operations.danglingChildren.empty
-        failure.assertHasDescription("Another thread holds the state lock.")
-        failure.assertThatDescription(anyOf(equalTo("Not all work has completed."), equalTo("Some project locks have not been unlocked.")))
+        operations.danglingChildren.empty
+        failure.assertThatAllDescriptions(anyOf(
+            equalTo("Execution failed for task ':interrupting'."),
+            equalTo("Execution failed for task ':a0:parallelTask'."),
+            equalTo("Execution failed for task ':a1:parallelTask'."),
+            equalTo("Execution failed for task ':a2:parallelTask'."),
+            equalTo("Execution failed for task ':a3:parallelTask'."),
+            equalTo("Execution failed for task ':a4:parallelTask'.")
+        ))
     }
 }
