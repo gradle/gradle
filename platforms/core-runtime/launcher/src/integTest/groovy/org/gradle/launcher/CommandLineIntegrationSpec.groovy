@@ -85,7 +85,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
 
     @Issue('https://github.com/gradle/gradle/issues/18084')
     @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
-    @Flaky(because = "Sometimes it hangs for hours")
+    @Flaky(because = "https://github.com/gradle/gradle-private/issues/3636")
     def "can debug on selected port with org.gradle.debug.port"() {
         given:
         executer.requireDaemon().requireIsolatedDaemons()
@@ -144,6 +144,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
             .start()
     }
 
+    @Flaky(because = "https://github.com/gradle/gradle-private/issues/3636")
     @Requires(UnitTestPreconditions.Jdk9OrLater)
     def "can debug on explicitly any host"() {
         given:
