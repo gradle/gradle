@@ -26,6 +26,7 @@ import org.gradle.configurationcache.serialization.codecs.BindingsBuilder
 import org.gradle.configurationcache.serialization.codecs.FixedValueReplacingProviderCodec
 import org.gradle.configurationcache.serialization.codecs.PropertyCodec
 import org.gradle.configurationcache.serialization.codecs.ProviderCodec
+import org.gradle.configurationcache.serialization.codecs.ProxyCodec
 import org.gradle.configurationcache.serialization.codecs.ServicesCodec
 import org.gradle.configurationcache.serialization.codecs.baseTypes
 import org.gradle.configurationcache.serialization.codecs.groovyCodecs
@@ -56,6 +57,7 @@ class IsolatedActionCodecsFactory(
         groovyCodecs()
         bind(ExternalizableCodec)
         bind(ServicesCodec)
+        bind(ProxyCodec)
         bind(JavaObjectSerializationCodec(javaSerializationEncodingLookup))
         bind(BeanCodec)
     }.build()
