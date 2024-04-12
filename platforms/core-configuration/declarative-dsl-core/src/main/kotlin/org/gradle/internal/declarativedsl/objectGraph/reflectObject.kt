@@ -39,7 +39,7 @@ sealed interface ObjectReflection {
     ) : ObjectReflection
 
     data class ConstantValue(
-        override val type: DataType.ConstantType<*>,
+        override val type: DataType,
         override val objectOrigin: ObjectOrigin.ConstantOrigin,
         val value: Any
     ) : ObjectReflection
@@ -91,7 +91,7 @@ fun reflect(
     }
     return when (objectOrigin) {
         is ObjectOrigin.ConstantOrigin -> ObjectReflection.ConstantValue(
-            type as DataType.ConstantType<*>,
+            type,
             objectOrigin,
             objectOrigin.literal.value
         )
@@ -109,7 +109,7 @@ fun reflect(
             val semantics = objectOrigin.function.semantics
             when (semantics) {
                 is AddAndConfigureFunctionSemantics -> {
-                    if (type is DataType.UnitType) {
+                    if (type.isUnit) {
                         ObjectReflection.AddedByUnitInvocation(objectOrigin)
                     } else {
                         reflectData(
@@ -152,12 +152,12 @@ fun reflectDefaultValue(
     objectOrigin: ObjectOrigin.PropertyDefaultValue,
     context: ReflectionContext
 ): ObjectReflection {
-    return when (val type = context.typeRefContext.getDataType(objectOrigin)) {
-        is DataType.ConstantType<*> -> ObjectReflection.DefaultValue(type, objectOrigin)
-        is DataClass -> reflectData(-1L, type, objectOrigin, context)
-        is DataType.NullType -> error("Null type can't appear in property types")
-        is DataType.UnitType -> error("Unit can't appear in property types")
-        else -> { error("Unhandled data type: ${type.javaClass.simpleName}") }
+    val type = context.typeRefContext.getDataType(objectOrigin)
+    return when {
+        type is DataClass -> reflectData(-1L, type, objectOrigin, context)
+        type.isNull -> error("Null type can't appear in property types")
+        type.isUnit -> error("Unit can't appear in property types")
+        else -> ObjectReflection.DefaultValue(type, objectOrigin)
     }
 }
 
