@@ -30,34 +30,10 @@ Gradle represents lazy properties with two interfaces:
 Properties and providers manage values and configurations in a build script.
 In this example, we define a custom task (`CustomTask`) and a custom plugin (`CustomPlugin`):
 
-[source,kotlin]
-----
-// Define a custom task that prints a message
-open class CustomTask : DefaultTask() {
-    init {
-        // Configure the task to print a message when executed
-        doLast {
-            println("Executing custom task")
-        }
-    }
-}
-
-// Define a custom plugin that adds the custom task to the project
-open class CustomPlugin : Plugin<Project> {
-    override fun apply(project: Project) {
-        // Create a lazy property (provider) for the custom task
-        val customTaskProvider: Provider<CustomTask> = project.tasks.register("customTask", CustomTask::class.java)
-
-        // Configure a task to depend on the lazy property
-        project.tasks.register("dependentTask") {
-            dependsOn(customTaskProvider)
-            doLast {
-                println("Dependent task executed after custom task")
-            }
-        }
-    }
-}
-----
+====
+include::sample[dir="snippets/providers/property/kotlin",files="build.gradle.kts[tags=introduction]"]
+include::sample[dir="snippets/providers/property/groovy",files="build.gradle[tags=introduction]"]
+====
 
 The plugin adds the custom task to the project and also defines a dependent task that relies on the custom task.
 The custom task is defined as a lazy property (`customTaskProvider`) using `Provider`, which ensures that the task is only created and configured when it is needed.
@@ -69,14 +45,10 @@ They can be defined and accessed within the build script to store information li
 
 Properties can be set and retrieved using the `project` object:
 
-[source,kotlin]
-----
-// Setting a property
-val messageProperty: Property<String> = project.objects.property(String::class.java)
-messageProperty.set("Hello, World!")
-// Accessing a property
-println(messageProperty.get())
-----
+====
+include::sample[dir="snippets/providers/property/kotlin",files="build.gradle.kts[tags=set-prop]"]
+include::sample[dir="snippets/providers/property/groovy",files="build.gradle[tags=set-prop]"]
+====
 
 Properties:
 
@@ -90,13 +62,10 @@ Properties:
 Providers are objects that represent a value that may not be immediately available.
 Providers are useful for lazy evaluation and can be used to model values that may change over time or depend on other tasks or inputs:
 
-[source,kotlin]
-----
-// Setting a provider
-val messageProvider: Provider<String> = project.providers.provider { "Hello, world!" }
-// Accessing a provider
-println(messageProvider.get())
-----
+====
+include::sample[dir="snippets/providers/property/kotlin",files="build.gradle.kts[tags=set-prov]"]
+include::sample[dir="snippets/providers/property/groovy",files="build.gradle[tags=set-prov]"]
+====
 
 Providers:
 
@@ -116,33 +85,18 @@ Gradle then automatically provides the implementation for these properties, mana
 
 A property may be _mutable_, meaning that it has both a `get()` method and `set()` method:
 
-[source, groovy]
-----
-abstract class MyTask extends DefaultTask {
-    @Input
-    abstract Property<String> getMessage() // message property
-
-    @TaskAction
-    void printMessage() {
-        println(message().get())
-    }
-}
-----
+====
+include::sample[dir="snippets/providers/property/kotlin",files="build.gradle.kts[tags=prop-managed]"]
+include::sample[dir="snippets/providers/property/groovy",files="build.gradle[tags=prop-managed]"]
+====
 
 Or _read-only_, meaning that it has only a `get()` method.
 The _read-only_ properties are _providers_:
 
-[source, groovy]
-----
-abstract class MyTask extends DefaultTask {
-    abstract Provider<String> getMessage() // message provider
-
-    @TaskAction
-    void printMessage() {
-        println(message().get())
-    }
-}
-----
+====
+include::sample[dir="snippets/providers/property/kotlin",files="build.gradle.kts[tags=prov-managed]"]
+include::sample[dir="snippets/providers/property/groovy",files="build.gradle[tags=prov-managed]"]
+====
 
 === Mutable Managed Properties
 
@@ -269,21 +223,10 @@ include::{snippetsPath}/plugins/readOnlyNestedProperty/groovy/buildSrc/src/main/
 A _named managed type_ is a managed type that additionally has an abstract property "name" of type `String`.
 Named managed types are especially useful as the element type of link:{javadocPath}/org/gradle/api/NamedDomainObjectContainer.html[NamedDomainObjectContainer]:
 
-[source, kotlin]
-----
-interface MyNamedType {
-    val name: String
-}
-
-class MyNamedTypeImpl(override val name: String) : MyNamedType
-
-class MyPluginExtension(project: Project) {
-    val myNamedContainer: NamedDomainObjectContainer<MyNamedType> =
-        project.container(MyNamedType::class.java) { name ->
-            project.objects.newInstance(MyNamedTypeImpl::class.java, name)
-        }
-}
-----
+====
+include::sample[dir="snippets/providers/property/kotlin",files="build.gradle.kts[tags=named]"]
+include::sample[dir="snippets/providers/property/groovy",files="build.gradle[tags=named]"]
+====
 
 == Using Java Bean Properties
 
