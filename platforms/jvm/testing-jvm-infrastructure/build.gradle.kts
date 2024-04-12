@@ -27,7 +27,7 @@ various implementations of WorkerTestClassProcessorFactory.
 """
 
 dependencies {
-    api(project(":base-annotations"))
+    api(projects.javaLanguageExtensions)
     api(project(":base-services"))
     api(project(":messaging"))
     api(project(":testing-base"))
@@ -45,6 +45,8 @@ dependencies {
             we don't do this, we get 2.0b4, which is not present in our verification-metadata.xml file and causes a build failure.
         """.trimMargin())
     }
+
+    implementation(projects.concurrent)
 
     implementation(libs.commonsLang)
     implementation(libs.slf4jApi)

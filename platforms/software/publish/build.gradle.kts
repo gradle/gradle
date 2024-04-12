@@ -27,7 +27,7 @@ dependencies {
     api(libs.inject)
     api(libs.jsr305)
 
-    implementation(project(":base-annotations"))
+    implementation(projects.javaLanguageExtensions)
     implementation(project(":base-services-groovy")) {
         because("Required for Specs")
     }

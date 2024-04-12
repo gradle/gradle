@@ -23,7 +23,8 @@ dependencies {
     api(libs.jsr305)
     api(libs.slf4jApi)
 
-    api(project(":base-annotations"))
+    api(projects.concurrent)
+    api(projects.javaLanguageExtensions)
     api(project(":base-services"))
     api(project(":build-cache"))
     api(project(":build-cache-base"))

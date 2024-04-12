@@ -50,7 +50,8 @@ errorprone {
 }
 
 dependencies {
-    api(project(":base-annotations"))
+    api(projects.concurrent)
+    api(projects.javaLanguageExtensions)
     api(project(":hashing"))
     api(project(":build-operations"))
     api(libs.jsr305)

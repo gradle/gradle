@@ -29,7 +29,7 @@ errorprone {
 }
 
 dependencies {
-    api(project(":base-annotations"))
+    api(projects.javaLanguageExtensions)
     api(project(":base-services"))
     api(project(":build-operations"))
     api(project(":build-option"))
@@ -46,6 +46,7 @@ dependencies {
     api(libs.jsr305)
     api(libs.slf4jApi)
 
+    implementation(projects.concurrent)
 
     implementation(libs.julToSlf4j)
     implementation(libs.ant)

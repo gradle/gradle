@@ -22,7 +22,8 @@ errorprone {
 }
 
 dependencies {
-    api(project(":base-annotations"))
+    api(projects.concurrent)
+    api(projects.javaLanguageExtensions)
     api(project(":hashing"))
     api(project(":base-services"))
 

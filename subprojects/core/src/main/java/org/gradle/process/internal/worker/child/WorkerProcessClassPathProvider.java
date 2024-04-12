@@ -86,6 +86,7 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider {
         "gradle-enterprise-logging",
         "gradle-enterprise-workers",
         "gradle-cli",
+        "gradle-concurrent",
         "gradle-wrapper-shared",
         "gradle-native",
         "gradle-dependency-management",
@@ -101,7 +102,7 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider {
         "gradle-file-temp",
         "gradle-hashing",
         "gradle-snapshots",
-        "gradle-base-annotations",
+        "gradle-java-language-extensions",
         "gradle-build-operations"
     };
 

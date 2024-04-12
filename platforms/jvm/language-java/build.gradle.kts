@@ -19,7 +19,7 @@ errorprone {
 }
 
 dependencies {
-    api(project(":base-annotations"))
+    api(projects.javaLanguageExtensions)
     api(project(":base-services"))
     api(project(":build-events"))
     api(project(":build-operations"))
@@ -49,6 +49,7 @@ dependencies {
     api(libs.jsr305)
     api(libs.inject)
 
+    implementation(projects.concurrent)
     implementation(project(":file-temp"))
     implementation(project(":logging-api"))
     implementation(project(":model-core"))

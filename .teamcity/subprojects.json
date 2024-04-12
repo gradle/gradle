@@ -21,13 +21,6 @@
     "crossVersionTests": false
   },
   {
-    "name": "base-annotations",
-    "path": "platforms/core-runtime/base-annotations",
-    "unitTests": false,
-    "functionalTests": false,
-    "crossVersionTests": false
-  },
-  {
     "name": "base-asm",
     "path": "platforms/core-runtime/base-asm",
     "unitTests": false,
@@ -158,6 +151,13 @@
     "path": "subprojects/composite-builds",
     "unitTests": true,
     "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "concurrent",
+    "path": "platforms/core-runtime/concurrent",
+    "unitTests": true,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {
@@ -520,6 +520,13 @@
   {
     "name": "java-compiler-plugin",
     "path": "platforms/jvm/java-compiler-plugin",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "java-language-extensions",
+    "path": "platforms/core-runtime/java-language-extensions",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false

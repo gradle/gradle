@@ -13,6 +13,7 @@ errorprone {
 }
 
 dependencies {
+    api(projects.concurrent)
     api(project(":base-services"))
     api(project(":core"))
     api(project(":core-api"))
@@ -24,6 +25,7 @@ dependencies {
     api(libs.inject)
     api(libs.jsr305)
 
+    implementation(projects.javaLanguageExtensions)
     implementation(project(":files"))
     implementation(project(":functional"))
     implementation(project(":hashing"))

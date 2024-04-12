@@ -154,6 +154,7 @@ class ObjectFactoryNamedTypeIntegrationTest extends AbstractIntegrationSpec {
         result.assertTaskSkipped(":a")
     }
 
+    @Flaky(because = "https://github.com/gradle/gradle-private/issues/4172")
     def "cannot mutate named instance from groovy"() {
         buildFile << """
             interface Thing extends Named { }

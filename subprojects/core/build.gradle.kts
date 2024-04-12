@@ -77,7 +77,8 @@ errorprone {
 }
 
 dependencies {
-    api(project(":base-annotations"))
+    api(projects.concurrent)
+    api(projects.javaLanguageExtensions)
     api(project(":base-services"))
     api(project(":base-services-groovy"))
     api(project(":build-cache"))
