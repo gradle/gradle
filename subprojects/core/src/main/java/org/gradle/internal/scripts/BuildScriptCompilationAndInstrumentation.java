@@ -24,6 +24,9 @@ import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
 import org.gradle.internal.execution.ImmutableUnitOfWork;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.caching.CachingDisabledReason;
+import org.gradle.internal.execution.caching.CachingDisabledReasonCategory;
+import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -35,6 +38,7 @@ import javax.annotation.Nullable;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.io.File;
 import java.util.Map;
+import java.util.Optional;
 
 import static java.util.Objects.requireNonNull;
 
@@ -43,6 +47,8 @@ import static java.util.Objects.requireNonNull;
  * This work unit first compiles the build script to a directory, and then instruments the directory for configuration cache and returns instrumented output.
  */
 public abstract class BuildScriptCompilationAndInstrumentation implements ImmutableUnitOfWork {
+
+    private static final CachingDisabledReason CACHING_DISABLED_REASON = new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Caching not enabled.");
 
     private final ImmutableWorkspaceProvider workspaceProvider;
     private final InputFingerprinter inputFingerprinter;
@@ -132,4 +138,9 @@ public abstract class BuildScriptCompilationAndInstrumentation implements Immuta
 
     @Override
     public abstract String getDisplayName();
+
+    @Override
+    public Optional<CachingDisabledReason> shouldDisableCaching(@Nullable OverlappingOutputs detectedOverlappingOutputs) {
+        return Optional.of(CACHING_DISABLED_REASON);
+    }
 }
