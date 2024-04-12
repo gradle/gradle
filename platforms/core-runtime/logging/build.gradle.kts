@@ -30,6 +30,7 @@ errorprone {
 
 dependencies {
     api(projects.javaLanguageExtensions)
+    api(projects.time)
     api(project(":base-services"))
     api(project(":build-operations"))
     api(project(":build-option"))

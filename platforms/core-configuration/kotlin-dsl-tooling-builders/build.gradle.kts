@@ -9,6 +9,7 @@ dependencies {
     api(project(":core"))
     api(libs.futureKotlin("stdlib"))
 
+    implementation(projects.time)
     implementation(project(":kotlin-dsl"))
     implementation(project(":base-services"))
     implementation(project(":resources"))

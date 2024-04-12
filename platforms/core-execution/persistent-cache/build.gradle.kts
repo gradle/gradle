@@ -32,6 +32,8 @@ dependencies {
 
     api(libs.jsr305)
 
+    implementation(projects.time)
+
     implementation(libs.guava)
     implementation(libs.slf4jApi)
     implementation(libs.commonsIo)

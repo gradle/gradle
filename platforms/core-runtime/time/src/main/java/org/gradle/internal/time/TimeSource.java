@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.io;
+package org.gradle.internal.time;
 
-import org.gradle.internal.InternalTransformer;
-import org.gradle.internal.concurrent.CompositeStoppable;
+interface TimeSource {
 
-import java.io.Closeable;
+    long currentTimeMillis();
 
-public abstract class IoUtils {
+    long nanoTime();
 
-    // TODO merge in IoActions
-
-    public static <T, C extends Closeable> T get(C resource, InternalTransformer<T, ? super C> transformer) {
-        try {
-            return transformer.transform(resource);
-        } finally {
-            CompositeStoppable.stoppable(resource).stop();
+    TimeSource SYSTEM = new TimeSource() {
+        @Override
+        public long currentTimeMillis() {
+            return System.currentTimeMillis();
         }
-    }
+
+        @Override
+        public long nanoTime() {
+            return System.nanoTime();
+        }
+    };
+
 }

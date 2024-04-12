@@ -57,6 +57,8 @@ dependencies {
     api(libs.jsr305)
     api(libs.guava)
 
+    implementation(projects.time)
+
     implementation(libs.asm)
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)

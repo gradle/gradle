@@ -40,6 +40,7 @@ dependencies {
     api(project(":problems-api"))
     api(project(":snapshots"))
 
+    implementation(projects.time)
     implementation(project(":logging"))
     implementation(projects.enterpriseOperations) {
         because("Adds generic build operations for the execution engine")

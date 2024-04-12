@@ -16,8 +16,6 @@
 
 package org.gradle.internal.time;
 
-import com.google.common.annotations.VisibleForTesting;
-
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -63,7 +61,6 @@ class MonotonicClock implements Clock {
         this(TimeSource.SYSTEM, SYNC_INTERVAL_MILLIS);
     }
 
-    @VisibleForTesting
     MonotonicClock(TimeSource timeSource, long syncIntervalMillis) {
         long nanoTime = timeSource.nanoTime();
         long currentTimeMillis = timeSource.currentTimeMillis();
