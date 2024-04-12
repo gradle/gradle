@@ -24,24 +24,12 @@ on:
 
 automations:
 
-  # If someone adds a TODO, remind them about it by requesting removal
-  includes_todos:
+  # If someone is a primary author of the files in a change, but NOT the pr author, automatically add them as a reviewer.
+  add_usual_expert:
     if:
-      - {{ ('includes_todos' | isEnabledAutomation(pr)) }}
-      - {{ source.diff.files | matchDiffLines(regex=r/(TODO)|(todo)/) | some }}
+      - {{ ('add_usual_expert' | isEnabledAutomation(pr)) }}
+      - {{ repo | codeExperts(gt=50) | match(branch.author) | nope }}
     run:
-      - action: add-label@v1
+      - action: add-reviewers@v1
         args:
-          label: "⚠️ Includes TODOs"
-          color: {{ colors.yellow }}
-      - action: add-comment@v1
-        args:
-          comment: |
-            :warning: 'There are new TODOs present in this change.  Should any be removed?'
-
-# To simplify the automations section, some calculations are placed under unique YAML keys defined here.
-# Read the "|" not as "or", but as a "pipe", taking the output of the previous command and passing it to the next command.
-# This section could also appear ahead of the automations section.
-
-colors:
-  yellow: 'ffb300'
+          reviewers: {{ repo | codeExperts(gt=50) }}

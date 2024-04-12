@@ -20,14 +20,14 @@ manifest:
 on:
   - pr_created
   - commit
+  - comment_added
 
 automations:
 
   # If a PR contains non-trivial source changes and no tests, add a comment to the PR
-  no_tests:
+  lacks_tests:
     if:
-      - {{ is.requested or not pr.author_is_org_member }}
-      - {{ author.using_gitstream or not pr.author_is_org_member }}
+      - {{ ('lacks_tests' | isEnabledAutomation(pr)) }}
       - {{ includes_src_changes }}
       - {{ not (includes_test_changes) }}
       - {{ not (is_docs_only_change) }}
@@ -40,7 +40,7 @@ automations:
       - action: add-comment@v1
         args:
           comment: |
-            This PR appears to be lacking tests.  Consider adding tests to cover the new functionality.
+            :warning: This PR appears to be lacking tests.  Consider adding tests to cover the new functionality.
 
 # To simplify the automations section, some calculations are placed under unique YAML keys defined here.
 # Read the "|" not as "or", but as a "pipe", taking the output of the previous command and passing it to the next command.
@@ -53,9 +53,3 @@ includes_src_changes: {{ files | match(regex=r/.*\/src\//) | some }}
 includes_test_changes: {{ files | match(regex=r/.*\/(test|integTest|crossVersionTest|docsTest|smokeTest)\//) | some }}
 is_docs_only_change: {{ (files | allDocs) or (files | match(regex=r/\.adoc$/) | every) }} # This won't catch a mix of .adoc and non .adoc changes, see: https://github.com/linear-b/gitstream/issues/93
 is_formatting_only_change: {{ source.diff.files | isFormattingChange }}
-
-is:
-  requested: {{ (pr.comments | match(attr='content', term='@bot-gitstream check all') | some) or (pr.comments | match(attr='content', term='@bot-gitstream check tests') | some) }}
-
-author:
-  using_gitstream: {{ (pr.author | isEnabledUser ) }}
