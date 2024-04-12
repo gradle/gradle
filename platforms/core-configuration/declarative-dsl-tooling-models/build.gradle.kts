@@ -21,5 +21,5 @@ plugins {
 description = "Declarative DSL Tooling Models for IDEs"
 
 dependencies {
-    implementation(project(":base-annotations"))
+    implementation(project(":java-language-extensions"))
 }
