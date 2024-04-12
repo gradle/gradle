@@ -44,7 +44,8 @@ public interface CalculatedValue<T> {
     Try<T> getValue() throws IllegalStateException;
 
     /**
-     * Returns true if this value is already calculated. Note that some other thread may currently be calculating the value.
+     * Returns true if this value is already calculated.
+     * Note that some other thread may currently be calculating the value even if this method returns false.
      */
     boolean isFinalized();
 
