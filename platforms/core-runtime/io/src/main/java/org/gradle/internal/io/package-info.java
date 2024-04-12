@@ -13,18 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@NonNullApi
+package org.gradle.internal.io;
 
-plugins {
-    id("gradlebuild.distribution.implementation-java")
-    id("gradlebuild.publish-public-libraries")
-}
-
-description = "I/O utilities"
-
-gradlebuildJava.usedInWorkers()
-
-dependencies {
-    api(libs.jsr305)
-
-    implementation(projects.javaLanguageExtensions)
-}
+import org.gradle.api.NonNullApi;
