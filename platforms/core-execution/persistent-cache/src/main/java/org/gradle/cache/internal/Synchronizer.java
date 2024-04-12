@@ -14,21 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.concurrent;
+package org.gradle.cache.internal;
 
-import org.gradle.internal.Factory;
+import org.gradle.api.NonNullApi;
 
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Supplier;
 
+// TODO Replace the use of this with synchronized caches from Guava
+@NonNullApi
 public class Synchronizer {
 
     private final Lock lock = new ReentrantLock();
 
-    public <T> T synchronize(Factory<T> factory) {
+    public <T> T synchronize(Supplier<T> factory) {
         lock.lock();
         try {
-            return factory.create();
+            return factory.get();
         } finally {
             lock.unlock();
         }

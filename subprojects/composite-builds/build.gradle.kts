@@ -14,6 +14,7 @@ errorprone {
 }
 
 dependencies {
+    api(projects.concurrent)
     api(projects.javaLanguageExtensions)
     api(project(":build-operations"))
     api(project(":base-services"))

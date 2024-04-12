@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.concurrent;
+package org.gradle.tooling.internal.consumer.async;
 
-import org.gradle.internal.Factories;
-import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.concurrent.AsyncStoppable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -35,21 +34,19 @@ public class ServiceLifecycle implements AsyncStoppable {
     private final String displayName;
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
+    private final Map<Thread, Integer> usages = new HashMap<>();
     private State state = State.RUNNING;
-    private Map<Thread, Integer> usages = new HashMap<Thread, Integer>();
 
     public ServiceLifecycle(String displayName) {
         this.displayName = displayName;
     }
 
     public void use(Runnable runnable) {
-        use(Factories.toFactory(runnable));
-    }
-
-    public <T> T use(Factory<T> factory) {
         lock.lock();
         try {
             switch (state) {
+                case RUNNING:
+                    break;
                 case STOPPING:
                     throw new IllegalStateException(String.format("Cannot use %s as it is currently stopping.", displayName));
                 case STOPPED:
@@ -66,7 +63,7 @@ public class ServiceLifecycle implements AsyncStoppable {
         }
 
         try {
-            return factory.create();
+            runnable.run();
         } finally {
             lock.lock();
             try {

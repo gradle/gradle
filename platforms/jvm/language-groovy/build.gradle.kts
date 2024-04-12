@@ -32,6 +32,7 @@ dependencies {
     api(libs.inject)
     api(libs.jsr305)
 
+    implementation(projects.concurrent)
     implementation(projects.javaLanguageExtensions)
     implementation(project(":file-collections"))
     implementation(project(":logging"))

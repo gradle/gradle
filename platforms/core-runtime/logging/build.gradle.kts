@@ -46,6 +46,7 @@ dependencies {
     api(libs.jsr305)
     api(libs.slf4jApi)
 
+    implementation(projects.concurrent)
 
     implementation(libs.julToSlf4j)
     implementation(libs.ant)

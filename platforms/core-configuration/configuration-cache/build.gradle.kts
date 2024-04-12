@@ -38,6 +38,7 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach 
 }
 
 dependencies {
+    api(projects.concurrent)
     api(projects.javaLanguageExtensions)
     api(project(":base-services"))
     api(project(":build-operations"))

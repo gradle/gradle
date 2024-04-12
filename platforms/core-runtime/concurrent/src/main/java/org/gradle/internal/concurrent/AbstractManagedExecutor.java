@@ -25,6 +25,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public abstract class AbstractManagedExecutor<S extends ExecutorService> extends AbstractDelegatingExecutorService<S> implements ManagedExecutor {
+    @SuppressWarnings("ThreadLocalUsage")
     private final ThreadLocal<Object> executing = new ThreadLocal<Object>();
     private final ExecutorPolicy executorPolicy;
 
