@@ -23,47 +23,65 @@ import org.gradle.declarative.dsl.schema.DataType
 
 @Serializable
 @SerialName("int")
-data object IntDataType : DataType.ConstantType<Int> {
+data object IntDataType : DataType {
+
+    override fun isConstant(): Boolean = true
+
+    override fun getConstantType(): Class<Int> = Int::class.java
+
     override fun toString(): String = "Int"
-    override fun getType(): Class<Int> = Int::class.java
 }
 
 
 @Serializable
 @SerialName("long")
-data object LongDataType : DataType.ConstantType<Long> {
-    override fun toString(): String = "Long"
+data object LongDataType : DataType {
 
-    override fun getType(): Class<Long> = Long::class.java
+    override fun isConstant(): Boolean = true
+
+    override fun getConstantType(): Class<Long> = Long::class.java
+
+    override fun toString(): String = "Long"
 }
 
 
 @Serializable
 @SerialName("string")
-data object StringDataType : DataType.ConstantType<String> {
-    override fun toString(): String = "String"
+data object StringDataType : DataType {
 
-    override fun getType(): Class<String> = String::class.java
+    override fun isConstant(): Boolean = true
+
+    override fun getConstantType(): Class<String> = String::class.java
+
+    override fun toString(): String = "String"
 }
 
 
 @Serializable
 @SerialName("boolean")
-data object BooleanDataType : DataType.ConstantType<Boolean> {
-    override fun toString(): String = "Boolean"
+data object BooleanDataType : DataType {
 
-    override fun getType(): Class<Boolean> = Boolean::class.java
+    override fun isConstant(): Boolean = true
+    override fun getConstantType(): Class<Boolean> = Boolean::class.java
+
+    override fun toString(): String = "Boolean"
 }
 
 
 @Serializable
 @SerialName("null")
-data object NullDataType : DataType.NullType // TODO: implement nulls?
+data object NullDataType : DataType { // TODO: implement nulls?
+
+    override fun isNull(): Boolean = true
+}
 
 
 @Serializable
 @SerialName("unit")
-data object UnitDataType : DataType.UnitType
+data object UnitDataType : DataType {
+
+    override fun isUnit(): Boolean = true
+}
 
 // TODO: `Any` type?
 // TODO: Support subtyping of some sort in the schema rather than via reflection?

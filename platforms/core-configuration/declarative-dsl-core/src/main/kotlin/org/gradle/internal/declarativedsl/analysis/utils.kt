@@ -26,12 +26,11 @@ inline fun AnalysisContext.withScope(scope: AnalysisScope, action: () -> Unit) {
 
 
 internal
-fun checkIsAssignable(valueType: DataType, isAssignableTo: DataType): Boolean = when (isAssignableTo) {
-    is DataType.ConstantType<*> -> valueType == isAssignableTo
-    is DataClass -> valueType is DataClass && (isAssignableTo == valueType || isAssignableTo.name in valueType.supertypes)
-    is DataType.NullType -> false // TODO: proper null type support
-    is DataType.UnitType -> valueType == UnitDataType
-    else -> error("Unhandled data type: ${isAssignableTo.javaClass.simpleName}")
+fun checkIsAssignable(valueType: DataType, isAssignableTo: DataType): Boolean = when {
+    isAssignableTo is DataClass -> valueType is DataClass && (isAssignableTo == valueType || isAssignableTo.name in valueType.supertypes)
+    isAssignableTo.isNull -> false // TODO: proper null type support
+    isAssignableTo.isUnit -> valueType == UnitDataType
+    else -> valueType == isAssignableTo
 }
 
 

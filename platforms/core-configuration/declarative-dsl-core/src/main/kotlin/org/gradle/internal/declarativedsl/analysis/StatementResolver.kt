@@ -16,7 +16,6 @@
 
 package org.gradle.internal.declarativedsl.analysis
 
-import org.gradle.declarative.dsl.schema.DataType
 import org.gradle.internal.declarativedsl.language.Assignment
 import org.gradle.internal.declarativedsl.language.Expr
 import org.gradle.internal.declarativedsl.language.FunctionCall
@@ -73,7 +72,7 @@ class StatementResolverImpl(
             } else {
                 val rhsType = getDataType(rhsResolution)
                 val lhsExpectedType = resolveRef(lhsResolution.property.type)
-                if (rhsType is DataType.UnitType) {
+                if (rhsType.isUnit) {
                     errorCollector.collect(ResolutionError(assignment, ErrorReason.UnitAssignment))
                     hasErrors = true
                 }
@@ -97,7 +96,7 @@ class StatementResolverImpl(
         if (rhs == null) {
             errorCollector.collect(ResolutionError(localValue, ErrorReason.UnresolvedAssignmentRhs))
         } else {
-            if (getDataType(rhs) is DataType.UnitType) {
+            if (getDataType(rhs).isUnit) {
                 errorCollector.collect(ResolutionError(localValue, ErrorReason.UnitAssignment))
             }
             currentScopes.last().declareLocal(localValue, rhs, errorCollector)

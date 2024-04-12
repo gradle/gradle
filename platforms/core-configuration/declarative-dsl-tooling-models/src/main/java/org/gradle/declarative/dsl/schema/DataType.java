@@ -18,16 +18,31 @@ package org.gradle.declarative.dsl.schema;
 
 import java.io.Serializable;
 
+@SuppressWarnings("rawtypes")
 public interface DataType extends Serializable {
 
-    interface ConstantType<T> extends DataType {
-
-        Class<T> getType();
-
+    default boolean isNull() {
+        return false;
     }
 
-    interface NullType extends DataType {}
+    default boolean isUnit() {
+        return false;
+    }
 
-    interface UnitType extends DataType {}
+    default boolean isConstant() {
+        return false;
+    }
+
+    default Class getConstantType() {
+        throw new UnsupportedOperationException("Not constant type");
+    }
+
+    default boolean isClass() {
+        return false;
+    }
+
+    default DataClass getDataClass() {
+        throw new UnsupportedOperationException("Not data class");
+    }
 
 }

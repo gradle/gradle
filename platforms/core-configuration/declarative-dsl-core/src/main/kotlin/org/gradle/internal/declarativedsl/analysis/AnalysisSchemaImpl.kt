@@ -49,6 +49,10 @@ data class DataClassImpl(
     private val constructors: List<DataConstructor>
 ) : DataClass, DataType {
 
+    override fun isClass(): Boolean = true
+
+    override fun getDataClass(): DataClass = this
+
     override fun getName(): FqName = name
 
     override fun getSupertypes(): Set<FqName> = supertypes
