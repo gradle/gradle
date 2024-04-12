@@ -17,12 +17,11 @@
 package org.gradle.internal.io
 
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
-import org.gradle.util.internal.TextUtil
 
 class LinePerThreadBufferingOutputStreamTest extends ConcurrentSpec {
     def interleavesLinesFromEachThread() {
         def output = [].asSynchronized()
-        TextStream action = { String line -> output << line.replace(TextUtil.platformLineSeparator, "<EOL>") } as TextStream
+        TextStream action = { String line -> output << line.replace(System.lineSeparator(), "<EOL>") } as TextStream
         def outstr = new LinePerThreadBufferingOutputStream(action)
 
         when:
