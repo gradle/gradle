@@ -20,6 +20,8 @@ import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
 import org.gradle.performance.fixture.CrossVersionPerformanceTestRunner
 import org.gradle.performance.fixture.JavaTestProject
+import org.gradle.performance.mutator.ApplyAbiChangeToGroovySourceFileMutator
+import org.gradle.performance.regression.inception.BuildSrcApiChangePerformanceTest
 import org.gradle.profiler.mutations.ApplyAbiChangeToJavaSourceFileMutator
 import org.gradle.profiler.mutations.ApplyNonAbiChangeToJavaSourceFileMutator
 import org.gradle.test.fixtures.keystore.TestKeyStore
@@ -47,6 +49,64 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerf
         runner.warmUpRuns = 2
         runner.runs = 8
         runner.addBuildMutator { cleanLocalCache() }
+
+        when:
+        def result = runner.run()
+
+        then:
+        result.assertCurrentVersionHasNotRegressed()
+    }
+
+    @RunFor(
+        @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject", "largeJavaMultiProjectKotlinDsl"])
+    )
+    def "buildSrc abi change with remote https cache"() {
+        given:
+        runner.cleanTasks = []
+        runner.tasksToRun = ['help']
+        runner.warmUpRuns = 3
+        runner.runs = BuildSrcApiChangePerformanceTest.determineNumberOfRuns(runner.testProject)
+
+        // Setup Build cache
+        protocol = "https"
+        pushToRemote = true
+        runner.useDaemon = false
+        runner.addBuildMutator { cleanLocalCache() }
+        def keyStore = TestKeyStore.init(temporaryFolder.file('ssl-keystore'))
+        keyStore.enableSslWithServerCert(buildCacheServer)
+        runner.gradleOpts.addAll(keyStore.serverAndClientCertArgs)
+
+        and:
+        def changingClassFilePath = "buildSrc/src/main/groovy/ChangingClass.groovy"
+        runner.addBuildMutator { new BuildSrcApiChangePerformanceTest.CreateChangingClassMutator(it, changingClassFilePath) }
+        runner.addBuildMutator { new ApplyAbiChangeToGroovySourceFileMutator(new File(it.projectDir, changingClassFilePath)) }
+
+        when:
+        def result = runner.run()
+
+        then:
+        result.assertCurrentVersionHasNotRegressed()
+    }
+
+    @RunFor(
+        @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject", "largeJavaMultiProjectKotlinDsl"])
+    )
+    def "buildSrc abi change with empty local cache"() {
+        given:
+        runner.cleanTasks = []
+        runner.tasksToRun = ['help']
+        runner.warmUpRuns = 3
+        runner.runs = BuildSrcApiChangePerformanceTest.determineNumberOfRuns(runner.testProject)
+
+        // Setup Build cache
+        pushToRemote = false
+        runner.useDaemon = false
+        runner.addBuildMutator { cleanLocalCache() }
+
+        and:
+        def changingClassFilePath = "buildSrc/src/main/groovy/ChangingClass.groovy"
+        runner.addBuildMutator { new BuildSrcApiChangePerformanceTest.CreateChangingClassMutator(it, changingClassFilePath) }
+        runner.addBuildMutator { new ApplyAbiChangeToGroovySourceFileMutator(new File(it.projectDir, changingClassFilePath)) }
 
         when:
         def result = runner.run()

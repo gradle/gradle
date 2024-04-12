@@ -77,7 +77,7 @@ class BuildSrcApiChangePerformanceTest extends AbstractCrossVersionPerformanceTe
         result.assertCurrentVersionHasNotRegressed()
     }
 
-    private static int determineNumberOfRuns(String testProject) {
+    static int determineNumberOfRuns(String testProject) {
         switch (testProject) {
             case 'mediumMonolithicJavaProject':
                 return 40
@@ -96,7 +96,7 @@ class BuildSrcApiChangePerformanceTest extends AbstractCrossVersionPerformanceTe
         }
     }
 
-    private static class CreateChangingClassMutator implements BuildMutator {
+    static class CreateChangingClassMutator implements BuildMutator {
 
         CreateChangingClassMutator(InvocationSettings settings, String filePath) {
             new File(settings.projectDir, filePath).with {
