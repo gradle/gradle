@@ -13,16 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@NonNullApi
+package org.gradle.internal.time;
 
-plugins {
-    id("gradlebuild.distribution.implementation-java")
-    id("gradlebuild.publish-public-libraries")
-}
-
-description = "Monotonic clock implementation"
-
-gradlebuildJava.usedInWorkers()
-
-dependencies {
-    implementation(projects.javaLanguageExtensions)
-}
+import org.gradle.api.NonNullApi;
