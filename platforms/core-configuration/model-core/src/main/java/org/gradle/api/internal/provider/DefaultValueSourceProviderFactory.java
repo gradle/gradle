@@ -191,10 +191,9 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
     }
 
     public static class ValueSourceProvider<T, P extends ValueSourceParameters> extends AbstractMinimalProvider<T> {
+        private final LazilyObtainedValue<T, P> value;
 
-        protected final LazilyObtainedValue<T, P> value;
-
-        public ValueSourceProvider(LazilyObtainedValue<T, P> value) {
+        private ValueSourceProvider(LazilyObtainedValue<T, P> value) {
             this.value = value;
         }
 
@@ -232,7 +231,7 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         }
 
         @Nullable
-        public Try<T> getObtainedValueOrNull() {
+        public Try<@org.jetbrains.annotations.Nullable T> getObtainedValueOrNull() {
             return value.value;
         }
 
@@ -268,7 +267,7 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         public final P parameters;
 
         @Nullable
-        private volatile Try<T> value = null;
+        private volatile Try<@org.jetbrains.annotations.Nullable T> value = null;
 
         private LazilyObtainedValue(
             Class<? extends ValueSource<T, P>> sourceType,
@@ -284,7 +283,7 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
             return value != null;
         }
 
-        public Try<T> obtain() {
+        public Try<@org.jetbrains.annotations.Nullable T> obtain() {
             ValueSource<T, P> source;
             // Return value from local to avoid nullability warnings when returning value from the field directly.
             Try<T> obtained;
@@ -330,14 +329,14 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
 
     private static class DefaultObtainedValue<T, P extends ValueSourceParameters> implements ValueListener.ObtainedValue<T, P> {
 
-        private final Try<T> value;
+        private final Try<@org.jetbrains.annotations.Nullable T> value;
         private final Class<? extends ValueSource<T, P>> valueSourceType;
         private final Class<P> parametersType;
         @Nullable
         private final P parameters;
 
         public DefaultObtainedValue(
-            Try<T> value,
+            Try<@org.jetbrains.annotations.Nullable T> value,
             Class<? extends ValueSource<T, P>> valueSourceType,
             Class<P> parametersType,
             @Nullable P parameters
@@ -349,7 +348,7 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         }
 
         @Override
-        public Try<T> getValue() {
+        public Try<@org.jetbrains.annotations.Nullable T> getValue() {
             return value;
         }
 

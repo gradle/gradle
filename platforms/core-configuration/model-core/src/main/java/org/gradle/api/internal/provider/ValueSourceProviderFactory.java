@@ -77,7 +77,7 @@ public interface ValueSourceProviderFactory {
 
         interface ObtainedValue<T, P extends ValueSourceParameters> {
 
-            Try<T> getValue();
+            Try<@org.jetbrains.annotations.Nullable T> getValue();
 
             Class<? extends ValueSource<T, P>> getValueSourceType();
 
