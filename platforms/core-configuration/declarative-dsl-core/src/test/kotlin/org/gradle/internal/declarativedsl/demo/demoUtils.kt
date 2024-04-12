@@ -1,9 +1,6 @@
 package org.gradle.internal.declarativedsl.demo
 
 import org.gradle.declarative.dsl.schema.AnalysisSchema
-import org.gradle.declarative.dsl.schema.DataTypeRef
-import org.gradle.internal.declarativedsl.analysis.FqNameImpl
-import org.gradle.internal.declarativedsl.analysis.DataTypeRefNameImpl
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 import org.gradle.internal.declarativedsl.analysis.Resolver
 import org.gradle.internal.declarativedsl.analysis.ref
@@ -105,12 +102,6 @@ fun printAssignmentTrace(trace: AssignmentTrace) {
 fun printResolvedAssignments(result: ResolutionResult) {
     println("\nResolved assignments:")
     printAssignmentTrace(assignmentTrace(result))
-}
-
-
-inline fun <reified T> typeRef(): DataTypeRef.Name {
-    val parts = T::class.qualifiedName!!.split(".")
-    return DataTypeRefNameImpl(FqNameImpl(parts.dropLast(1).joinToString("."), parts.last()))
 }
 
 

@@ -19,15 +19,15 @@ package org.gradle.declarative.dsl.schema;
 import java.io.Serializable;
 
 public interface DataTypeRef extends Serializable {
-    interface Type extends DataTypeRef {
 
-        DataType getDataType();
+    boolean isNamed();
 
+    default boolean isTyped() {
+        return !isNamed();
     }
 
-    interface Name extends DataTypeRef {
+    DataType getDataType();
 
-        FqName getFqName();
+    FqName getFqName();
 
-    }
 }
