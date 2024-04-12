@@ -24,7 +24,7 @@ import java.nio.charset.StandardCharsets
 
 import static com.google.testing.compile.CompilationSubject.assertThat
 import static javax.tools.StandardLocation.CLASS_OUTPUT
-import static org.gradle.internal.instrumentation.api.annotations.UpgradedProperty.BinaryCompatibility.ACCESSORS_REMOVED
+import static org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility.ACCESSORS_REMOVED
 import static org.gradle.internal.instrumentation.extensions.property.InstrumentedPropertiesResourceGenerator.PropertyEntry
 import static org.gradle.internal.instrumentation.extensions.property.InstrumentedPropertiesResourceGenerator.UpgradedAccessor
 
@@ -39,14 +39,14 @@ class InstrumentedPropertiesResourceGeneratorTest extends InstrumentationCodeGen
 
             import org.gradle.api.provider.Property;
             import org.gradle.internal.instrumentation.api.annotations.VisitForInstrumentation;
-            import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty;
+            import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
             public abstract class Task {
-                @UpgradedProperty(fluentSetter = true)
+                @ReplacesEagerProperty(fluentSetter = true)
                 public abstract Property<String> getTargetCompatibility();
-                @UpgradedProperty
+                @ReplacesEagerProperty
                 public abstract Property<String> getSourceCompatibility();
-                @UpgradedProperty(originalType = int.class)
+                @ReplacesEagerProperty(originalType = int.class)
                 public abstract Property<Integer> getMaxErrors();
             }
         """
@@ -89,10 +89,10 @@ class InstrumentedPropertiesResourceGeneratorTest extends InstrumentationCodeGen
 
             import org.gradle.api.provider.Property;
             import org.gradle.internal.instrumentation.api.annotations.VisitForInstrumentation;
-            import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty;
+            import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
             public abstract class Task {
-                @UpgradedProperty
+                @ReplacesEagerProperty
                 public abstract Property<String> getSourceCompatibility();
             }
         """

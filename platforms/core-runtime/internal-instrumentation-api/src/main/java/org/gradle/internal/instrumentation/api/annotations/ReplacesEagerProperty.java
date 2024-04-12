@@ -21,14 +21,14 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import static org.gradle.internal.instrumentation.api.annotations.UpgradedProperty.BinaryCompatibility.ACCESSORS_REMOVED;
+import static org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility.ACCESSORS_REMOVED;
 
 /**
- * Marks that a property is upgraded
+ * Marks that a property replaces an eager property.
  */
 @Retention(RetentionPolicy.CLASS)
 @Target({ElementType.METHOD})
-public @interface UpgradedProperty {
+public @interface ReplacesEagerProperty {
     /**
      * Overrides original type that will be used for generated code.
      * By default, the original type is determined from the lazy property type, e.g.:

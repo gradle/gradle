@@ -37,7 +37,7 @@ import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.UpgradedAccessor;
 import org.gradle.internal.instrumentation.api.annotations.UpgradedDeprecation;
 import org.gradle.internal.instrumentation.api.annotations.UpgradedDeprecation.RemovedIn;
-import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.work.DisableCachingByDefault;
@@ -50,7 +50,7 @@ import java.util.List;
 import static org.gradle.internal.concurrent.CompositeStoppable.stoppable;
 import static org.gradle.internal.instrumentation.api.annotations.UpgradedAccessor.AccessorType.GETTER;
 import static org.gradle.internal.instrumentation.api.annotations.UpgradedAccessor.AccessorType.SETTER;
-import static org.gradle.internal.instrumentation.api.annotations.UpgradedProperty.BinaryCompatibility.ACCESSORS_KEPT;
+import static org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility.ACCESSORS_KEPT;
 import static org.gradle.util.internal.CollectionUtils.collect;
 
 /**
@@ -111,7 +111,7 @@ public abstract class TestReport extends DefaultTask {
      * @since 7.4
      */
     @OutputDirectory
-    @UpgradedProperty(
+    @ReplacesEagerProperty(
         originalAccessors = {
             @UpgradedAccessor(value = GETTER, methodName = "getDestinationDir"),
             @UpgradedAccessor(value = SETTER, methodName = "setDestinationDir")

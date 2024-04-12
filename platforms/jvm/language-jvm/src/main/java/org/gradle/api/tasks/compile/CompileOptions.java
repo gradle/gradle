@@ -40,7 +40,7 @@ import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.UpgradedAccessor;
 import org.gradle.internal.instrumentation.api.annotations.UpgradedDeprecation;
 import org.gradle.internal.instrumentation.api.annotations.UpgradedDeprecation.RemovedIn;
-import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.util.internal.CollectionUtils;
 
@@ -53,7 +53,7 @@ import java.util.Map;
 
 import static org.gradle.internal.instrumentation.api.annotations.UpgradedAccessor.AccessorType.GETTER;
 import static org.gradle.internal.instrumentation.api.annotations.UpgradedAccessor.AccessorType.SETTER;
-import static org.gradle.internal.instrumentation.api.annotations.UpgradedProperty.BinaryCompatibility.ACCESSORS_KEPT;
+import static org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility.ACCESSORS_KEPT;
 
 /**
  * Main options for Java compilation.
@@ -520,7 +520,7 @@ public abstract class CompileOptions extends AbstractOptions {
      */
     @Optional
     @OutputDirectory
-    @UpgradedProperty(
+    @ReplacesEagerProperty(
         originalAccessors = {
             @UpgradedAccessor(value = GETTER, methodName = "getAnnotationProcessorGeneratedSourcesDirectory"),
             @UpgradedAccessor(value = SETTER, methodName = "setAnnotationProcessorGeneratedSourcesDirectory")

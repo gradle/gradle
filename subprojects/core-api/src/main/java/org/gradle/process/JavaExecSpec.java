@@ -31,12 +31,12 @@ import org.gradle.internal.instrumentation.api.annotations.UpgradedAccessor;
 import org.gradle.internal.instrumentation.api.annotations.UpgradedAccessor.AccessorType;
 import org.gradle.internal.instrumentation.api.annotations.UpgradedDeprecation;
 import org.gradle.internal.instrumentation.api.annotations.UpgradedDeprecation.RemovedIn;
-import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
 import javax.annotation.Nullable;
 import java.util.List;
 
-import static org.gradle.internal.instrumentation.api.annotations.UpgradedProperty.BinaryCompatibility.ACCESSORS_KEPT;
+import static org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility.ACCESSORS_KEPT;
 
 /**
  * Specifies the options for executing a Java application.
@@ -74,7 +74,7 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
      */
     @Optional
     @Input
-    @UpgradedProperty(
+    @ReplacesEagerProperty(
         originalAccessors = @UpgradedAccessor(value = AccessorType.SETTER, methodName = "setMain", fluentSetter = true),
         binaryCompatibility = ACCESSORS_KEPT,
         deprecation = @UpgradedDeprecation(removedIn = RemovedIn.GRADLE9, withDslReference = true)

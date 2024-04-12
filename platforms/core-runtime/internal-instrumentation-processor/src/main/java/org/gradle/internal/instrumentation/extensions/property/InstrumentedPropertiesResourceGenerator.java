@@ -19,7 +19,7 @@ package org.gradle.internal.instrumentation.extensions.property;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty.BinaryCompatibility;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 import org.gradle.internal.instrumentation.model.CallableInfo;
 import org.gradle.internal.instrumentation.model.ParameterInfo;

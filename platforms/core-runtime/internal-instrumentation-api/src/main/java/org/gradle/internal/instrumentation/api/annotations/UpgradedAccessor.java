@@ -16,7 +16,7 @@
 
 package org.gradle.internal.instrumentation.api.annotations;
 
-import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty.DefaultValue;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.DefaultValue;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

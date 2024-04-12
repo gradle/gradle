@@ -27,14 +27,14 @@ import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.UpgradedAccessor;
 import org.gradle.internal.instrumentation.api.annotations.UpgradedDeprecation;
 import org.gradle.internal.instrumentation.api.annotations.UpgradedDeprecation.RemovedIn;
-import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.work.DisableCachingByDefault;
 
 import java.io.File;
 
 import static org.gradle.internal.instrumentation.api.annotations.UpgradedAccessor.AccessorType.GETTER;
 import static org.gradle.internal.instrumentation.api.annotations.UpgradedAccessor.AccessorType.SETTER;
-import static org.gradle.internal.instrumentation.api.annotations.UpgradedProperty.BinaryCompatibility.ACCESSORS_KEPT;
+import static org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility.ACCESSORS_KEPT;
 
 /**
  * The base class for all JVM-based language compilation tasks.
@@ -76,7 +76,7 @@ public abstract class AbstractCompile extends SourceTask {
      * @since 6.1
      */
     @OutputDirectory
-    @UpgradedProperty(
+    @ReplacesEagerProperty(
         originalAccessors = {
             @UpgradedAccessor(value = GETTER, methodName = "getDestinationDir"),
             @UpgradedAccessor(value = SETTER, methodName = "setDestinationDir")

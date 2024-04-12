@@ -17,8 +17,8 @@
 package org.gradle.internal.instrumentation.extensions.property;
 
 import org.gradle.internal.instrumentation.api.annotations.UpgradedDeprecation.RemovedIn;
-import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty;
-import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty.BinaryCompatibility;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequestImpl;
 import org.gradle.internal.instrumentation.model.CallableInfo;
@@ -73,7 +73,7 @@ import static org.gradle.internal.instrumentation.processor.modelreader.impl.Typ
 
 public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodReaderExtension {
 
-    private static final Type DEFAULT_TYPE = Type.getType(UpgradedProperty.DefaultValue.class);
+    private static final Type DEFAULT_TYPE = Type.getType(ReplacesEagerProperty.DefaultValue.class);
 
     private final String projectName;
     private final Elements elements;
@@ -103,21 +103,21 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
 
     @Override
     public Collection<Result> readRequest(ExecutableElement method) {
-        Optional<? extends AnnotationMirror> annotation = AnnotationUtils.findAnnotationMirror(method, UpgradedProperty.class);
+        Optional<? extends AnnotationMirror> annotation = AnnotationUtils.findAnnotationMirror(method, ReplacesEagerProperty.class);
         if (!annotation.isPresent()) {
             return Collections.emptySet();
         }
 
         if (projectName == null) {
-            // We validate project name here because we want to fail only if there is an @UpgradedProperty annotation used in the project
+            // We validate project name here because we want to fail only if there is an @ReplacesEagerProperty annotation used in the project
             return Collections.singletonList(new InvalidRequest("Project name is not specified or is empty. Use -A" + PROJECT_NAME_OPTIONS + "=<projectName> compiler option to set the project name."));
         } else if (!method.getParameters().isEmpty() || !method.getSimpleName().toString().startsWith("get")) {
-            return Collections.singletonList(new InvalidRequest(String.format("Method '%s.%s' annotated with @UpgradedProperty should be a simple getter: name should start with 'get' and method should not have any parameters.", method.getEnclosingElement(), method)));
+            return Collections.singletonList(new InvalidRequest(String.format("Method '%s.%s' annotated with @ReplacesEagerProperty should be a simple getter: name should start with 'get' and method should not have any parameters.", method.getEnclosingElement(), method)));
         }
 
         try {
             AnnotationMirror annotationMirror = annotation.get();
-            List<AccessorSpec> accessorSpecs = readAccessorSpecsFromUpgradedProperty(method, annotationMirror);
+            List<AccessorSpec> accessorSpecs = readAccessorSpecsFromReplacesEagerProperty(method, annotationMirror);
             List<CallInterceptionRequest> requests = new ArrayList<>();
             for (AccessorSpec accessorSpec : accessorSpecs) {
                 switch (accessorSpec.accessorType) {
@@ -144,7 +144,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
     }
 
     @SuppressWarnings("unchecked")
-    private List<AccessorSpec> readAccessorSpecsFromUpgradedProperty(ExecutableElement method, AnnotationMirror annotationMirror) {
+    private List<AccessorSpec> readAccessorSpecsFromReplacesEagerProperty(ExecutableElement method, AnnotationMirror annotationMirror) {
         List<AnnotationMirror> originalAccessors = AnnotationUtils.findAnnotationValue(annotationMirror, "originalAccessors")
             .map(v -> (List<AnnotationMirror>) v.getValue())
             .orElse(Collections.emptyList());
@@ -164,7 +164,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
     private DeprecationSpec readDeprecationSpec(AnnotationMirror annotation) {
         AnnotationMirror deprecation = AnnotationUtils.findAnnotationValueWithDefaults(elements, annotation, "deprecation")
             .map(v -> (AnnotationMirror) v.getValue())
-            .orElseThrow(() -> new AnnotationReadFailure("Missing 'deprecation' attribute in @UpgradedProperty"));
+            .orElseThrow(() -> new AnnotationReadFailure(String.format("Missing 'deprecation' attribute in @%s", ReplacesEagerProperty.class.getSimpleName())));
         boolean enabled = AnnotationUtils.findAnnotationValueWithDefaults(elements, deprecation, "enabled")
             .map(annotationValue -> (Boolean) annotationValue.getValue())
             .orElseThrow(() -> new AnnotationReadFailure("Missing 'enabled' attribute in @UpgradedDeprecation"));
@@ -266,7 +266,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
             case PROPERTY:
                 return extractType(((DeclaredType) typeMirror).getTypeArguments().get(0));
             default:
-                throw new AnnotationReadFailure(String.format("Cannot extract original type for method '%s.%s: %s'. Use explicit @UpgradedProperty#originalType instead.", method.getEnclosingElement(), method, typeMirror));
+                throw new AnnotationReadFailure(String.format("Cannot extract original type for method '%s.%s: %s'. Use explicit @%s#originalType instead.", method.getEnclosingElement(), method, typeMirror, ReplacesEagerProperty.class.getSimpleName()));
         }
     }
 
