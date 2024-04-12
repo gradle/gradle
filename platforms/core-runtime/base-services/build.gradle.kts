@@ -51,13 +51,13 @@ errorprone {
 
 dependencies {
     api(projects.concurrent)
-    api(projects.io)
     api(projects.javaLanguageExtensions)
     api(project(":hashing"))
     api(project(":build-operations"))
     api(libs.jsr305)
     api(libs.guava)
 
+    implementation(projects.io)
     implementation(projects.time)
 
     implementation(libs.asm)

@@ -17,6 +17,7 @@
 package org.gradle.caching.internal
 
 import com.google.common.collect.Iterables
+import org.apache.commons.io.output.NullOutputStream
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 import org.gradle.caching.BuildCacheException
 import org.gradle.caching.internal.operations.BuildCacheArchivePackBuildOperationType
@@ -30,7 +31,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildCacheOperationFixtures
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.TestBuildCache
-import org.gradle.internal.io.NullOutputStream
 import org.gradle.util.internal.TextUtil
 import spock.lang.Shared
 
@@ -178,7 +178,7 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << localCache.localCacheConfiguration()
 
         when:
-        remote("throw new ${exceptionType.name}('!')", "writer.writeTo(new ${NullOutputStream.name}())")
+        remote("throw new ${exceptionType.name}('!')", "writer.writeTo(${NullOutputStream.name}.INSTANCE)")
         settingsFile << """
             buildCache { remote($remoteCacheClass) }
         """
@@ -290,7 +290,7 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << localCache.localCacheConfiguration()
 
         given:
-        remote("", "writer.writeTo(new ${NullOutputStream.name}())")
+        remote("", "writer.writeTo(${NullOutputStream.name}.INSTANCE)")
 
         settingsFile << """
             buildCache {
@@ -354,7 +354,7 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
             tasks.create("t", CustomTask).paths << "out1" << "out2"
         """
         succeeds("t")
-        remote("", "writer.writeTo(new ${NullOutputStream.name}())")
+        remote("", "writer.writeTo(${NullOutputStream.name}.INSTANCE)")
         def initialPackOp = operations.only(BuildCacheArchivePackBuildOperationType)
         def artifactFileCopy = file("artifact")
         // move it out of the local for us to use
@@ -364,7 +364,7 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         settingsFile.text = ""
-        remote("reader.readFrom(new File('${TextUtil.normaliseFileSeparators(artifactFileCopy.absolutePath)}').newInputStream())", "writer.writeTo(new ${NullOutputStream.name}())")
+        remote("reader.readFrom(new File('${TextUtil.normaliseFileSeparators(artifactFileCopy.absolutePath)}').newInputStream())", "writer.writeTo(${NullOutputStream.name}.INSTANCE)")
         settingsFile << """
             buildCache {
                 ${buildCache.localCacheConfiguration()}

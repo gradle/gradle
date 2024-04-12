@@ -96,6 +96,7 @@ dependencies {
 
     runtimeOnly(libs.futureKotlin("reflect"))
 
+    testImplementation(projects.io)
     testImplementation(testFixtures(project(":core")))
     testImplementation(libs.mockitoKotlin2)
     testImplementation(libs.kotlinCoroutinesDebug)
