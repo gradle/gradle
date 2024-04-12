@@ -95,7 +95,9 @@ class DependencyCollectorFunctionExtractorAndRuntimeResolver(
             })
 
         val declarationsBySchemaFunctions = discoveredCollectorDeclarations.associate { it.addingSchemaFunction to it.runtimeFunction }
-        collectorDeclarationsByClass[kClass] = declarationsBySchemaFunctions
+        if (!declarationsBySchemaFunctions.isEmpty()) {
+            collectorDeclarationsByClass[kClass] = declarationsBySchemaFunctions
+        }
 
         return declarationsBySchemaFunctions.keys
     }

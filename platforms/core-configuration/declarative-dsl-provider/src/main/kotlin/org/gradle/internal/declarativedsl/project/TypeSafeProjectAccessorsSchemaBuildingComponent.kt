@@ -122,7 +122,7 @@ class TypesafeProjectAccessorTypeDiscovery : TypeDiscovery {
         fun visit(type: KType) {
             val classifier = type.classifier
             if (classifier is KClass<*> && add(classifier)) {
-                classifier.supertypes.forEach(::visit)
+                (classifier.supertypes - Any::class.createType()).forEach(::visit) // No need to visit Any, it only clutters the extracted functions
             }
         }
         add(kClass)
