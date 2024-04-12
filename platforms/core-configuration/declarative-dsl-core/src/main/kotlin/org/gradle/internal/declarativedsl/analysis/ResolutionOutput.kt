@@ -241,11 +241,10 @@ private
 fun functionInvocationString(function: SchemaFunction, receiver: ObjectOrigin?, invocationId: Long, parameterBindings: ParameterValueBinding) =
     receiver?.toString()?.plus(".").orEmpty() + buildString {
         if (function is DataConstructor) {
-            val fqn = when (val ref = function.dataClass) {
-                is DataTypeRef.Name -> ref.fqName.toString()
-                is DataTypeRef.Type -> (ref.dataType as? DataClass)?.name?.qualifiedName
-                    ?: ref.dataType.toString()
-                else -> error("Unhandled data type reference type: $ref")
+            val ref = function.dataClass
+            val fqn = when (ref.isNamed) {
+                true -> ref.fqName.toString()
+                false -> (ref.dataType as? DataClass)?.name?.qualifiedName ?: ref.dataType.toString()
             }
             append(fqn)
             append(".")

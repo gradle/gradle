@@ -336,14 +336,26 @@ data class ExternalObjectProviderKeyImpl(
 
 
 @Serializable
-data class DataTypeRefTypeImpl(private val dataType: DataType) : DataTypeRef.Type {
+data class DataTypeRefTypeImpl(private val dataType: DataType) : DataTypeRef {
+    override fun isNamed(): Boolean = false
+
     override fun getDataType(): DataType = dataType
+
+    override fun getFqName(): FqName {
+        throw UnsupportedOperationException("Not a reference to a named data type")
+    }
 }
 
 
 @Serializable
-data class DataTypeRefNameImpl(private val fqName: FqName) : DataTypeRef.Name {
+data class DataTypeRefNameImpl(private val fqName: FqName) : DataTypeRef {
+    override fun isNamed(): Boolean = true
+
     override fun getFqName(): FqName = fqName
+
+    override fun getDataType(): DataType {
+        throw UnsupportedOperationException("Data type only available as a name")
+    }
 }
 
 
