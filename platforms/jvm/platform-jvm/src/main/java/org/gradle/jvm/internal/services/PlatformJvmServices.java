@@ -22,37 +22,11 @@ import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
-import org.gradle.jvm.toolchain.internal.AsdfInstallationSupplier;
-import org.gradle.jvm.toolchain.internal.CurrentInstallationSupplier;
-import org.gradle.jvm.toolchain.internal.EnvironmentVariableListInstallationSupplier;
-import org.gradle.jvm.toolchain.internal.IntellijInstallationSupplier;
-import org.gradle.jvm.toolchain.internal.JabbaInstallationSupplier;
-import org.gradle.jvm.toolchain.internal.LinuxInstallationSupplier;
-import org.gradle.jvm.toolchain.internal.LocationListInstallationSupplier;
-import org.gradle.jvm.toolchain.internal.MavenToolchainsInstallationSupplier;
-import org.gradle.jvm.toolchain.internal.OsXInstallationSupplier;
-import org.gradle.jvm.toolchain.internal.SdkmanInstallationSupplier;
-import org.gradle.jvm.toolchain.internal.WindowsInstallationSupplier;
 
 public class PlatformJvmServices extends AbstractPluginServiceRegistry {
     @Override
     public void registerBuildServices(ServiceRegistration registration) {
-        registerJavaInstallationSuppliers(registration);
         registerInvalidJavaInstallationsCacheInvalidator(registration);
-    }
-
-    private void registerJavaInstallationSuppliers(ServiceRegistration registration) {
-        registration.add(AsdfInstallationSupplier.class);
-        registration.add(CurrentInstallationSupplier.class);
-        registration.add(EnvironmentVariableListInstallationSupplier.class);
-        registration.add(IntellijInstallationSupplier.class);
-        registration.add(JabbaInstallationSupplier.class);
-        registration.add(LinuxInstallationSupplier.class);
-        registration.add(LocationListInstallationSupplier.class);
-        registration.add(MavenToolchainsInstallationSupplier.class);
-        registration.add(OsXInstallationSupplier.class);
-        registration.add(SdkmanInstallationSupplier.class);
-        registration.add(WindowsInstallationSupplier.class);
     }
 
     private void registerInvalidJavaInstallationsCacheInvalidator(ServiceRegistration registration) {

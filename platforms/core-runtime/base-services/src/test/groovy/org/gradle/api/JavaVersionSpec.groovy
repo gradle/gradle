@@ -185,7 +185,7 @@ class JavaVersionSpec extends Specification {
             JavaVersion.toVersion(value)
             org.junit.Assert.fail()
         } catch (IllegalArgumentException e) {
-            assert e.getMessage() == "Could not determine java version from '" + value + "'."
+            assert e.getMessage() == "Could not determine Java version from '" + value + "'."
         }
     }
 

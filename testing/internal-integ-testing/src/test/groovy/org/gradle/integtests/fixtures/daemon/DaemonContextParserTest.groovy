@@ -16,11 +16,13 @@
 
 package org.gradle.integtests.fixtures.daemon
 
+import org.gradle.api.JavaVersion
 import org.gradle.launcher.daemon.context.DaemonContext
+import org.gradle.util.GradleVersion
 import spock.lang.Specification
 
 class DaemonContextParserTest extends Specification {
-    def "parses entries without agent"() {
+    def "parses entries for older versions of Gradle"() {
         def contextString = "DefaultDaemonContext[" +
             "uid=4224e700-9e7c-4964-ad43-d6950d561cc0," +
             "javaHome=/usr/bin/java/," +
@@ -46,16 +48,51 @@ class DaemonContextParserTest extends Specification {
                     "-Duser.variant"
             ) + "]"
         when:
-        DaemonContext parsedContext = DaemonContextParser.parseFromString(contextString)
+        DaemonContext parsedContext = DaemonContextParser.parseFromString(contextString, GradleVersion.version("8.7"))
+        then:
+        parsedContext != null
+        parsedContext.javaVersion == JavaVersion.VERSION_1_8 // hardcoded in fixture
+    }
+
+    def "parses entries without agent"() {
+        def contextString = "DefaultDaemonContext[" +
+            "uid=4224e700-9e7c-4964-ad43-d6950d561cc0," +
+            "javaHome=/usr/bin/java/," +
+            "javaVersion=11," +
+            "daemonRegistryDir=/home/user/.gradle/daemon," +
+            "pid=1115013," +
+            "idleTimeout=10800000," +
+            "priority=NORMAL," +
+            "daemonOpts=" +
+            (
+                "--add-opens=java.base/java.util=ALL-UNNAMED," +
+                    "--add-opens=java.base/java.lang=ALL-UNNAMED," +
+                    "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED," +
+                    "--add-opens=java.prefs/java.util.prefs=ALL-UNNAMED," +
+                    "--add-opens=java.base/java.nio.charset=ALL-UNNAMED," +
+                    "--add-opens=java.base/java.net=ALL-UNNAMED," +
+                    "--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED," +
+                    "-XX:MaxMetaspaceSize=256m," +
+                    "-XX:+HeapDumpOnOutOfMemoryError," +
+                    "-Xms256m,-Xmx512m," +
+                    "-Dfile.encoding=UTF-8," +
+                    "-Duser.country=US," +
+                    "-Duser.language=en," +
+                    "-Duser.variant"
+            ) + "]"
+        when:
+        DaemonContext parsedContext = DaemonContextParser.parseFromString(contextString, GradleVersion.current())
         then:
         parsedContext != null
         !parsedContext.shouldApplyInstrumentationAgent()
+        parsedContext.javaVersion == JavaVersion.VERSION_11
     }
 
     def "parses entries with agent"() {
         def contextString = "DefaultDaemonContext[" +
             "uid=40b63fc1-2506-4fa8-bf48-1bfbfc6a457f," +
             "javaHome=/home/mlopatkin/.asdf/installs/java/temurin-11.0.16+101," +
+            "javaVersion=11," +
             "daemonRegistryDir=/home/mlopatkin/gradle/local/.gradle/daemon," +
             "pid=1120028," +
             "idleTimeout=10800000," +
@@ -80,7 +117,7 @@ class DaemonContextParserTest extends Specification {
                     "-Duser.variant"
             ) + "]"
         when:
-        DaemonContext parsedContext = DaemonContextParser.parseFromString(contextString)
+        DaemonContext parsedContext = DaemonContextParser.parseFromString(contextString, GradleVersion.current())
 
         then:
         parsedContext != null

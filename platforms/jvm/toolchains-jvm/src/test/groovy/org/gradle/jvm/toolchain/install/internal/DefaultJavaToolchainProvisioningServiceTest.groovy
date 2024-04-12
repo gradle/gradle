@@ -33,7 +33,7 @@ import org.gradle.jvm.toolchain.internal.JavaToolchainResolverRegistryInternal
 import org.gradle.jvm.toolchain.internal.RealizedJavaToolchainRepository
 import org.gradle.jvm.toolchain.internal.ToolchainDownloadFailedException
 import org.gradle.jvm.toolchain.internal.install.DefaultJavaToolchainProvisioningService
-import org.gradle.jvm.toolchain.internal.install.JdkCacheDirectory
+import org.gradle.jvm.toolchain.internal.install.DefaultJdkCacheDirectory
 import org.gradle.jvm.toolchain.internal.install.SecureFileDownloader
 import org.gradle.platform.BuildPlatform
 import spock.lang.Specification
@@ -53,7 +53,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
 
     def registry = Mock(JavaToolchainResolverRegistryInternal)
     def downloader = Mock(SecureFileDownloader)
-    def cache = Mock(JdkCacheDirectory)
+    def cache = Mock(DefaultJdkCacheDirectory)
     def archiveFileLock = Mock(FileLock)
     def buildPlatform = Mock(BuildPlatform)
     def buildOperationRunner = new TestBuildOperationRunner()

@@ -28,20 +28,24 @@ import java.util.Map;
  */
 public abstract class StringBuildOption<T> extends AbstractBuildOption<T, CommandLineOptionConfiguration> {
 
-    public StringBuildOption(String gradleProperty) {
-        super(gradleProperty);
+    public StringBuildOption(String property) {
+        super(property);
     }
 
-    public StringBuildOption(String gradleProperty, CommandLineOptionConfiguration... commandLineOptionConfigurations) {
-        super(gradleProperty, commandLineOptionConfigurations);
+    public StringBuildOption(String property, PropertyOrigin propertyOrigin) {
+        super(property, propertyOrigin);
+    }
+
+    public StringBuildOption(String property, CommandLineOptionConfiguration... commandLineOptionConfigurations) {
+        super(property, commandLineOptionConfigurations);
     }
 
     @Override
     public void applyFromProperty(Map<String, String> properties, T settings) {
-        String value = properties.get(gradleProperty);
+        String value = properties.get(property);
 
         if (value != null) {
-            applyTo(value, settings, Origin.forGradleProperty(gradleProperty));
+            applyTo(value, settings, propertyOrigin.toOrigin(property));
         }
     }
 
