@@ -22,10 +22,13 @@ import org.gradle.internal.jvm.inspection.JvmVendor
 import org.gradle.jvm.toolchain.JvmImplementation
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Rule
 import spock.lang.Specification
 
 class UpdateDaemonJvmModifierTest extends Specification {
+    @Rule
     final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
+    
     final TestFile buildPropertiesFile = tmpDir.file(BuildPropertiesDefaults.BUILD_PROPERTIES_FILE)
 
     def "writes expected properties into file"() {
