@@ -67,7 +67,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet;
 import org.gradle.api.internal.artifacts.ExcludeRuleNotationConverter;
 import org.gradle.api.internal.artifacts.Module;
-import org.gradle.api.internal.artifacts.ResolveExceptionContextualizer;
+import org.gradle.api.internal.artifacts.ResolveExceptionMapper;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyConstraint;
@@ -183,7 +183,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private Factory<ResolutionStrategyInternal> resolutionStrategyFactory;
     private ResolutionStrategyInternal resolutionStrategy;
     private final FileCollectionFactory fileCollectionFactory;
-    private final ResolveExceptionContextualizer exceptionMapper;
+    private final ResolveExceptionMapper exceptionMapper;
 
     private final Set<MutationValidator> childMutationValidators = new HashSet<>();
     private final MutationValidator parentMutationValidator = DefaultConfiguration.this::validateParentMutation;
@@ -261,7 +261,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         NotationParser<Object, Capability> capabilityNotationParser,
         ImmutableAttributesFactory attributesFactory,
         RootComponentMetadataBuilder rootComponentMetadataBuilder,
-        ResolveExceptionContextualizer exceptionMapper,
+        ResolveExceptionMapper exceptionMapper,
         UserCodeApplicationContext userCodeApplicationContext,
         ProjectStateRegistry projectStateRegistry,
         WorkerThreadRegistry workerThreadRegistry,
@@ -2108,21 +2108,21 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
         @Override
         public Optional<? extends ResolveException> mapFailure(String type, Collection<Throwable> failures) {
-            return Optional.ofNullable(exceptionMapper.mapFailures(failures, DefaultConfiguration.this.getDisplayName(), type));
+            return Optional.ofNullable(exceptionMapper.mapFailures(failures, type, DefaultConfiguration.this.getDisplayName()));
         }
     }
 
     @Override
-    public FailureContext getFailureContext() {
-        return new ConfigurationFailureContext(domainObjectContext, name);
+    public FailureResolutions getFailureResolutions() {
+        return new ConfigurationFailureResolutions(domainObjectContext, name);
     }
 
-    private static class ConfigurationFailureContext implements FailureContext {
+    private static class ConfigurationFailureResolutions implements FailureResolutions {
 
         private final DomainObjectContext domainObjectContext;
         private final String configurationName;
 
-        public ConfigurationFailureContext(
+        public ConfigurationFailureResolutions(
             DomainObjectContext domainObjectContext,
             String configurationName
         ) {
@@ -2131,7 +2131,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         }
 
         @Override
-        public List<String> getResolutionsForVersionConflict(Set<Conflict> conflicts) {
+        public List<String> forVersionConflict(Set<Conflict> conflicts) {
             Path projectPath = domainObjectContext.getProjectPath();
             if (projectPath == null) {
                 // projectPath is null for settings execution

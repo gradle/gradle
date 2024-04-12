@@ -43,7 +43,7 @@ import org.gradle.api.internal.artifacts.DefaultExcludeRule
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultResolverResults
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
-import org.gradle.api.internal.artifacts.ResolveExceptionContextualizer
+import org.gradle.api.internal.artifacts.ResolveExceptionMapper
 import org.gradle.api.internal.artifacts.ResolverResults
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
@@ -1841,7 +1841,7 @@ All Artifacts:
             new TestBuildOperationRunner(),
             publishArtifactNotationParser,
             immutableAttributesFactory,
-            new ResolveExceptionContextualizer(Mock(DomainObjectContext), Mock(DocumentationRegistry)),
+            new ResolveExceptionMapper(Mock(DomainObjectContext), Mock(DocumentationRegistry)),
             userCodeApplicationContext,
             projectStateRegistry,
             Stub(WorkerThreadRegistry),

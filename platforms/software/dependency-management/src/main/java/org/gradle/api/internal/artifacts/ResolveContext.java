@@ -79,17 +79,17 @@ public interface ResolveContext extends DependencyMetaDataProvider {
      */
     void markAsObserved();
 
+    FailureResolutions getFailureResolutions();
+
     /**
      * Details about this resolve context to provide additional context during failure cases.
      */
-    FailureContext getFailureContext();
-
-    interface FailureContext {
+    interface FailureResolutions {
 
         /**
          * Provide resolutions to add to a failure to assist the user on resolving the provided
          * version conflicts.
          */
-        List<String> getResolutionsForVersionConflict(Set<Conflict> conflicts);
+        List<String> forVersionConflict(Set<Conflict> conflicts);
     }
 }

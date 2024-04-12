@@ -17,6 +17,7 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.Incubating;
+import org.gradle.internal.HasInternalProtocol;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
@@ -24,9 +25,10 @@ import org.gradle.internal.exceptions.DefaultMultiCauseException;
 /**
  * <p>An opaque exception, thrown when dependency resolution fails for some reason.</p>
  *
- * <strong>Even though this type is part of the public API, it is only meant to be thrown by Gradle.</strong>
+ * <strong>This type should only be extended and/or thrown by Gradle internal code.</strong>
  */
 @Contextual
+@HasInternalProtocol
 public class ResolveException extends DefaultMultiCauseException {
 
     /**
@@ -40,7 +42,7 @@ public class ResolveException extends DefaultMultiCauseException {
 
         DeprecationLogger.deprecateAction("Directly instantiating a ResolveException")
             .withContext("Instantiating this exception is reserved for Gradle internal use only.")
-            .willBecomeAnErrorInGradle9()
+            .willBeRemovedInGradle9()
             .undocumented()
             .nagUser();
     }
@@ -56,7 +58,7 @@ public class ResolveException extends DefaultMultiCauseException {
 
         DeprecationLogger.deprecateAction("Directly instantiating a ResolveException")
             .withContext("Instantiating this exception is reserved for Gradle internal use only.")
-            .willBecomeAnErrorInGradle9()
+            .willBeRemovedInGradle9()
             .undocumented()
             .nagUser();
     }
@@ -72,7 +74,7 @@ public class ResolveException extends DefaultMultiCauseException {
      * @since 8.9
      */
     @Incubating
-    protected ResolveException(String message, Iterable<? extends Throwable> causes, boolean dummy) {
+    protected ResolveException(String message, Iterable<? extends Throwable> causes, @SuppressWarnings("unused") boolean dummy) {
         super(message, causes);
     }
 }

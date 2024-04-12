@@ -33,9 +33,7 @@ public class TypedResolveException extends ResolveException {
      * Creates a new instance without resolutions.
      */
     public TypedResolveException(String type, String displayName, Iterable<? extends Throwable> failures) {
-        super(buildMessage(type, displayName), failures, false);
-        this.type = type;
-        this.resolutions = ImmutableList.of();
+        this(type, displayName, failures, ImmutableList.of());
     }
 
     /**

@@ -295,7 +295,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         if (versionConflictVisitor != null) {
             Set<Conflict> versionConflicts = versionConflictVisitor.getAllConflicts();
             if (!versionConflicts.isEmpty()) {
-                List<String> resolutions = resolveContext.getFailureContext().getResolutionsForVersionConflict(versionConflicts);
+                List<String> resolutions = resolveContext.getFailureResolutions().forVersionConflict(versionConflicts);
                 nonFatalFailuresBuilder.add(new VersionConflictException(versionConflicts, resolutions));
             }
         }
