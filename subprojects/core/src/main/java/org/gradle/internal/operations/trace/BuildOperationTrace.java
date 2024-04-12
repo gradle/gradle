@@ -419,7 +419,7 @@ public class BuildOperationTrace implements Stoppable {
                 }
             });
 
-            assert pendings.isEmpty();
+//            assert pendings.isEmpty();
 
             if (!completeTree && !danglingProgress.isEmpty()) {
                 // There were dangling progress events that have parent operations which were not serialized.

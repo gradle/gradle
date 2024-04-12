@@ -45,4 +45,26 @@ class TestLauncherCancellationCrossVersionSpec extends CancellationSpec {
         then:
         buildWasCancelled(resultHandler, 'Could not execute tests using')
     }
+
+    def "can cancel test execution request during configuration phase"() {
+
+        def cancel = GradleConnector.newCancellationTokenSource()
+        def sync = server.expectAndBlock("registered")
+        def resultHandler = new TestResultHandler()
+
+        when:
+        withConnection { ProjectConnection connection ->
+            def build = connection.newTestLauncher()
+            build.withJvmTestClasses("Broken")
+            build.withCancellationToken(cancel.token())
+            build.run(resultHandler)
+            sync.waitForAllPendingCalls(resultHandler)
+            cancel.cancel()
+            sync.releaseAll()
+            resultHandler.finished()
+        }
+
+        then:
+        buildWasCancelled(resultHandler, 'Could not execute tests using')
+    }
 }
