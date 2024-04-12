@@ -522,8 +522,8 @@ public abstract class CompileOptions extends AbstractOptions {
     @OutputDirectory
     @ReplacesEagerProperty(
         originalAccessors = {
-            @UpgradedAccessor(value = GETTER, methodName = "getAnnotationProcessorGeneratedSourcesDirectory"),
-            @UpgradedAccessor(value = SETTER, methodName = "setAnnotationProcessorGeneratedSourcesDirectory")
+            @UpgradedAccessor(value = GETTER, name = "getAnnotationProcessorGeneratedSourcesDirectory"),
+            @UpgradedAccessor(value = SETTER, name = "setAnnotationProcessorGeneratedSourcesDirectory")
         },
         binaryCompatibility = ACCESSORS_KEPT,
         deprecation = @UpgradedDeprecation(removedIn = RemovedIn.GRADLE9, withDslReference = true)

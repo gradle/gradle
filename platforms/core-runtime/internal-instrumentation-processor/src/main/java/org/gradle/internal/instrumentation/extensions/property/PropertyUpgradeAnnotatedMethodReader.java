@@ -190,9 +190,9 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
     }
 
     private AccessorSpec getAccessorSpec(ExecutableElement method, AnnotationMirror annotation, DeprecationSpec parentDeprecationSpec, BinaryCompatibility binaryCompatibility) {
-        String methodName = AnnotationUtils.findAnnotationValue(annotation, "methodName")
+        String methodName = AnnotationUtils.findAnnotationValue(annotation, "name")
             .map(v -> (String) v.getValue())
-            .orElseThrow(() -> new AnnotationReadFailure("Missing 'methodName' attribute in @UpgradedAccessor"));
+            .orElseThrow(() -> new AnnotationReadFailure("Missing 'name' attribute in @UpgradedAccessor"));
         AccessorType accessorType = AnnotationUtils.findAnnotationValue(annotation, "value")
             .map(v -> AccessorType.valueOf(v.getValue().toString()))
             .orElseThrow(() -> new AnnotationReadFailure("Missing 'value' attribute in @UpgradedAccessor"));

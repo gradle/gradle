@@ -113,8 +113,8 @@ public abstract class TestReport extends DefaultTask {
     @OutputDirectory
     @ReplacesEagerProperty(
         originalAccessors = {
-            @UpgradedAccessor(value = GETTER, methodName = "getDestinationDir"),
-            @UpgradedAccessor(value = SETTER, methodName = "setDestinationDir")
+            @UpgradedAccessor(value = GETTER, name = "getDestinationDir"),
+            @UpgradedAccessor(value = SETTER, name = "setDestinationDir")
         },
         binaryCompatibility = ACCESSORS_KEPT,
         deprecation = @UpgradedDeprecation(removedIn = RemovedIn.GRADLE9, withDslReference = true)

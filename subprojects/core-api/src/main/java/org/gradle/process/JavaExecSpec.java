@@ -75,7 +75,7 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
     @Optional
     @Input
     @ReplacesEagerProperty(
-        originalAccessors = @UpgradedAccessor(value = AccessorType.SETTER, methodName = "setMain", fluentSetter = true),
+        originalAccessors = @UpgradedAccessor(value = AccessorType.SETTER, name = "setMain", fluentSetter = true),
         binaryCompatibility = ACCESSORS_KEPT,
         deprecation = @UpgradedDeprecation(removedIn = RemovedIn.GRADLE9, withDslReference = true)
     )

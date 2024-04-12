@@ -34,7 +34,10 @@ public @interface UpgradedAccessor {
 
     AccessorType value();
 
-    String methodName();
+    /**
+     * The name of the accessor, e.g. `getDestinationDir` or `setDestinationDir`
+     */
+    String name();
 
     Class<?> originalType() default DefaultValue.class;
 

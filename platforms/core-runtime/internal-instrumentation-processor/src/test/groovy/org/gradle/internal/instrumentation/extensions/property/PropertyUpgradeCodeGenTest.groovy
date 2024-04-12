@@ -314,9 +314,9 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
 
             public abstract class Task {
                 @ReplacesEagerProperty(originalAccessors = {
-                    @UpgradedAccessor(value = AccessorType.GETTER, methodName = "getDestinationDir"),
-                    @UpgradedAccessor(value = AccessorType.SETTER, methodName = "setDestinationDir"),
-                    @UpgradedAccessor(value = AccessorType.SETTER, methodName = "destinationDir", originalType = File.class)
+                    @UpgradedAccessor(value = AccessorType.GETTER, name = "getDestinationDir"),
+                    @UpgradedAccessor(value = AccessorType.SETTER, name = "setDestinationDir"),
+                    @UpgradedAccessor(value = AccessorType.SETTER, name = "destinationDir", originalType = File.class)
                 })
                 public abstract DirectoryProperty getDestinationDirectory();
             }
