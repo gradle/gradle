@@ -21,6 +21,7 @@ import org.gradle.caching.internal.services.BuildCacheControllerFactory
 
 import java.util.concurrent.atomic.AtomicInteger
 
+import static java.util.concurrent.TimeUnit.SECONDS
 import static org.gradle.internal.resource.transport.http.JavaSystemPropertiesHttpTimeoutSettings.SOCKET_TIMEOUT_SYSTEM_PROPERTY
 
 class HttpBuildCacheServiceErrorHandlingIntegrationTest extends HttpBuildCacheFixture {
@@ -157,7 +158,7 @@ class HttpBuildCacheServiceErrorHandlingIntegrationTest extends HttpBuildCacheFi
     }
 
     def "build cache is deactivated for the build if the connection times out"() {
-        httpBuildCacheServer.blockIncomingConnectionsForSeconds = 10
+        httpBuildCacheServer.blockIncomingConnectionsForMilliseconds = SECONDS.toMillis(10)
         settingsFile << withHttpBuildCacheServer()
 
         when:

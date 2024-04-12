@@ -34,7 +34,7 @@ class AbstractTaskOutputCachingPerformanceTest extends AbstractCrossVersionPerfo
     boolean checkIfCacheUsed = true
 
     @Rule
-    HttpBuildCacheServer buildCacheServer = new HttpBuildCacheServer(temporaryFolder)
+    HttpBuildCacheServer buildCacheServer = new HttpBuildCacheServer(temporaryFolder, 50)
 
     def setup() {
         runner.cleanTasks = ["clean"]

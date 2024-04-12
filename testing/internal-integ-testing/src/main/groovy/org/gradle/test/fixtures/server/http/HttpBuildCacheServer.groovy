@@ -38,7 +38,7 @@ class HttpBuildCacheServer extends ExternalResource implements HttpServerFixture
     private final TestDirectoryProvider provider
     private final WebAppContext webapp
     private TestFile cacheDir
-    private int blockIncomingConnectionsForSeconds = 0
+    private int blockIncomingConnectionsForMilliseconds = 0
     private final List<Responder> responders = []
 
     HttpBuildCacheServer(TestDirectoryProvider provider) {
@@ -47,6 +47,11 @@ class HttpBuildCacheServer extends ExternalResource implements HttpServerFixture
         // The following code is because of a problem under Windows: the file descriptors are kept open under JDK 11
         // even after server shutdown, which prevents from deleting the test directory
         this.webapp.setInitParameter("org.eclipse.jetty.servlet.Default.useFileMappedBuffer", "false")
+    }
+
+    HttpBuildCacheServer(TestDirectoryProvider provider, blockIncomingConnectionsForMilliseconds) {
+        this(provider)
+        this.blockIncomingConnectionsForMilliseconds = blockIncomingConnectionsForMilliseconds
     }
 
     TestFile getCacheDir() {
@@ -67,8 +72,8 @@ class HttpBuildCacheServer extends ExternalResource implements HttpServerFixture
     }
 
     private void addFilters() {
-        if (blockIncomingConnectionsForSeconds > 0) {
-            this.webapp.addFilter(new FilterHolder(new BlockFilter(blockIncomingConnectionsForSeconds)), "/*", EnumSet.of(DispatcherType.REQUEST))
+        if (blockIncomingConnectionsForMilliseconds > 0) {
+            this.webapp.addFilter(new FilterHolder(new BlockFilter(blockIncomingConnectionsForMilliseconds)), "/*", EnumSet.of(DispatcherType.REQUEST))
         }
         def filter = new Filter() {
             @Override

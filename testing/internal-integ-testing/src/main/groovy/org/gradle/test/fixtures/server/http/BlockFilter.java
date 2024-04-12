@@ -28,10 +28,10 @@ import java.util.concurrent.TimeUnit;
 
 public class BlockFilter implements Filter {
 
-    private final int blockForSeconds;
+    private final int blockForMilliseconds;
 
-    public BlockFilter(int blockForSeconds) {
-        this.blockForSeconds = blockForSeconds;
+    public BlockFilter(int blockForMilliseconds) {
+        this.blockForMilliseconds = blockForMilliseconds;
     }
 
     @Override
@@ -42,7 +42,7 @@ public class BlockFilter implements Filter {
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         CountDownLatch latch = new CountDownLatch(1);
         try {
-            latch.await(blockForSeconds, TimeUnit.SECONDS);
+            latch.await(blockForMilliseconds, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             // ignore
         }
