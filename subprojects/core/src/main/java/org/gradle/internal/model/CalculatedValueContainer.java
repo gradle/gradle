@@ -24,6 +24,7 @@ import org.gradle.api.internal.tasks.WorkNodeAction;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.Try;
 import org.gradle.internal.resources.ProjectLeaseRegistry;
+import org.gradle.internal.service.ServiceLookupException;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -224,7 +225,7 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
                 Try<T> result = Try.ofFailable(() -> {
                     NodeExecutionContext effectiveContext = context;
                     if (effectiveContext == null) {
-                        effectiveContext = defaultContext;
+                        effectiveContext = new FallbackContext(defaultContext);
                     }
                     T value = supplier.calculateValue(effectiveContext);
                     if (value == null) {
@@ -252,6 +253,24 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
 
         private void releaseLock() {
             lock.unlock();
+        }
+    }
+
+    private static class FallbackContext implements NodeExecutionContext {
+        private final NodeExecutionContext delegate;
+
+        public FallbackContext(NodeExecutionContext delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public <T> T getService(Class<T> type) throws ServiceLookupException {
+            return delegate.getService(type);
+        }
+
+        @Override
+        public boolean isFallbackContext() {
+            return true;
         }
     }
 }
