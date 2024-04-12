@@ -387,7 +387,7 @@ fun gradleKotlinDslLanguageVersionSettingsFor(compilerOptions: KotlinCompilerOpt
         AnalysisFlags.skipMetadataVersionCheck to compilerOptions.skipMetadataVersionCheck,
         AnalysisFlags.skipPrereleaseCheck to true,
         AnalysisFlags.allowUnstableDependencies to true,
-        JvmAnalysisFlags.jvmDefaultMode to JvmDefaultMode.ENABLE,
+        JvmAnalysisFlags.jvmDefaultMode to JvmDefaultMode.ALL,
     ),
     specificFeatures = mapOf(
         LanguageFeature.DisableCompatibilityModeForNewInference to LanguageFeature.State.ENABLED,
