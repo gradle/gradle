@@ -37,6 +37,7 @@ import org.gradle.util.Path;
 
 import java.io.File;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -139,7 +140,7 @@ public class DefaultBuildTreeLocalComponentProvider implements BuildTreeLocalCom
 
         private LocalComponentGraphResolveState computeIfAbsent(ProjectComponentIdentifier projectIdentifier, Factory<LocalComponentGraphResolveState> factory) {
             CalculatedValueContainer<LocalComponentGraphResolveState, ?> valueContainer = cache.computeIfAbsent(projectIdentifier, projectComponentIdentifier ->
-                calculatedValueContainerFactory.create(Describables.of("metadata of", projectIdentifier), context -> factory.create()));
+                calculatedValueContainerFactory.create(Describables.of("metadata of", projectIdentifier), context -> Objects.requireNonNull(factory.create())));
             // Calculate the value after adding the entry to the map, so that the value container can take care of thread synchronization
             valueContainer.finalizeIfNotAlready();
             return valueContainer.get();
