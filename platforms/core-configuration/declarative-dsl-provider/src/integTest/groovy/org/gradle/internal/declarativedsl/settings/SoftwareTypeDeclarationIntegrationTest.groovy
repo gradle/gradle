@@ -43,13 +43,17 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        file("build.gradle.something") << declarativeScriptThatConfiguresSoftwareType
+        file("build.gradle.something") << declarativeScriptThatConfiguresOnlyTestSoftwareType
 
         when:
         run(":printConfiguration")
 
         then:
         assertThatDeclaredValuesAreSetProperly()
+
+        and:
+        outputContains("Applying SoftwareTypeImplPlugin")
+        outputDoesNotContain("Applying AnotherSoftwareTypeImplPlugin")
     }
 
     def 'can declare and configure a custom software type from published plugin'() {
@@ -63,13 +67,17 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        file("build.gradle.something") << declarativeScriptThatConfiguresSoftwareType
+        file("build.gradle.something") << declarativeScriptThatConfiguresOnlyTestSoftwareType
 
         when:
         run(":printConfiguration")
 
         then:
         assertThatDeclaredValuesAreSetProperly()
+
+        and:
+        outputContains("Applying SoftwareTypeImplPlugin")
+        outputDoesNotContain("Applying AnotherSoftwareTypeImplPlugin")
     }
 
     /**
@@ -92,16 +100,20 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        file("build.gradle.something") << declarativeScriptThatConfiguresSoftwareType
+        file("build.gradle.something") << declarativeScriptThatConfiguresOnlyTestSoftwareType
 
         when:
         run(":printConfiguration")
 
         then:
         assertThatDeclaredValuesAreSetProperly()
+
+        and:
+        outputContains("Applying SoftwareTypeImplPlugin")
+        outputDoesNotContain("Applying AnotherSoftwareTypeImplPlugin")
     }
 
-    static String getDeclarativeScriptThatConfiguresSoftwareType() {
+    static String getDeclarativeScriptThatConfiguresOnlyTestSoftwareType() {
         return """
             testSoftwareType {
                 id = "test"
@@ -120,6 +132,7 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec {
     PluginBuilder withSoftwareTypePlugins() {
         def pluginBuilder = new PluginBuilder(file("plugins"))
         pluginBuilder.addPluginId("com.example.test-software-type-impl", "SoftwareTypeImplPlugin")
+        pluginBuilder.addPluginId("com.example.another-software-type-impl", "AnotherSoftwareTypeImplPlugin")
         pluginBuilder.addPluginId("com.example.test-software-type", "SoftwareTypeRegistrationPlugin")
 
         pluginBuilder.file("src/main/java/org/gradle/test/TestSoftwareTypeExtension.java") << """
@@ -170,6 +183,28 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
+        pluginBuilder.file("src/main/java/org/gradle/test/AnotherSoftwareTypeExtension.java") << """
+            package org.gradle.test;
+
+            import org.gradle.declarative.dsl.model.annotations.Adding;
+            import org.gradle.declarative.dsl.model.annotations.Configuring;
+            import org.gradle.declarative.dsl.model.annotations.Restricted;
+            import org.gradle.api.Action;
+            import org.gradle.api.model.ObjectFactory;
+            import org.gradle.api.provider.ListProperty;
+            import org.gradle.api.provider.Property;
+
+            import javax.inject.Inject;
+
+            @Restricted
+            public abstract class AnotherSoftwareTypeExtension extends TestSoftwareTypeExtension {
+                @Inject
+                public AnotherSoftwareTypeExtension(ObjectFactory objects) {
+                    super(objects);
+                }
+            }
+        """
+
         pluginBuilder.file("src/main/java/org/gradle/test/SoftwareTypeImplPlugin.java") << """
             package org.gradle.test;
 
@@ -192,6 +227,7 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec {
 
                 @Override
                 public void apply(Project target) {
+                    System.out.println("Applying " + getClass().getSimpleName());
                     TestSoftwareTypeExtension extension = getTestSoftwareTypeExtension();
                     target.getTasks().register("printConfiguration", DefaultTask.class, task -> {
                         task.doLast("print restricted extension content", t -> {
@@ -199,6 +235,33 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec {
                             System.out.println("bar = " + extension.getFoo().getBar().get());
                         });
                     });
+                }
+            }
+        """
+        pluginBuilder.file("src/main/java/org/gradle/test/AnotherSoftwareTypeImplPlugin.java") << """
+            package org.gradle.test;
+
+            import org.gradle.api.DefaultTask;
+            import org.gradle.api.Plugin;
+            import org.gradle.api.Project;
+            import org.gradle.api.provider.ListProperty;
+            import org.gradle.api.provider.Property;
+            import ${SoftwareType.class.name};
+            import org.gradle.api.model.ObjectFactory;
+            import org.gradle.api.tasks.Nested;
+            import javax.inject.Inject;
+
+            abstract public class AnotherSoftwareTypeImplPlugin implements Plugin<Project> {
+                @Inject
+                abstract protected ObjectFactory getObjectFactory();
+
+                @SoftwareType(name="anotherSoftwareType", modelPublicType=AnotherSoftwareTypeExtension.class)
+                abstract public AnotherSoftwareTypeExtension getTestSoftwareTypeExtension();
+
+                @Override
+                public void apply(Project target) {
+                    System.out.println("Applying " + getClass().getSimpleName());
+                    AnotherSoftwareTypeExtension extension = getTestSoftwareTypeExtension();
                 }
             }
         """
@@ -216,6 +279,7 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec {
                 @Override
                 public void apply(Settings target) {
                     ((SettingsInternal)target).getServices().get(SoftwareTypeRegistry.class).register(SoftwareTypeImplPlugin.class);
+                    ((SettingsInternal)target).getServices().get(SoftwareTypeRegistry.class).register(AnotherSoftwareTypeImplPlugin.class);
                 }
             }
         """

@@ -41,7 +41,9 @@ dependencies {
     implementation(libs.jacksonAnnotations)
     implementation(libs.jacksonDatabind)
 
+    implementation(projects.javaLanguageExtensions)
     implementation(project(":base-services"))
+    implementation(project(":base-asm"))
 
     testCompileOnly(libs.jetbrainsAnnotations)
 

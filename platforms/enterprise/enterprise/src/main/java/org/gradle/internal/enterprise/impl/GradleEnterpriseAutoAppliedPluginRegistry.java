@@ -50,17 +50,17 @@ public class GradleEnterpriseAutoAppliedPluginRegistry implements AutoAppliedPlu
         if (((StartParameterInternal) target.getStartParameter()).isUseEmptySettings() || !shouldApplyGradleEnterprisePlugin(target)) {
             return PluginRequests.EMPTY;
         } else {
-            return PluginRequests.of(createGradleEnterprisePluginRequest());
+            return PluginRequests.of(createDevelocityPluginRequest());
         }
     }
 
-    private boolean shouldApplyGradleEnterprisePlugin(Settings settings) {
+    private static boolean shouldApplyGradleEnterprisePlugin(Settings settings) {
         Gradle gradle = settings.getGradle();
         StartParameter startParameter = gradle.getStartParameter();
         return startParameter.isBuildScan() && gradle.getParent() == null;
     }
 
-    private PluginRequestInternal createGradleEnterprisePluginRequest() {
+    private static PluginRequestInternal createDevelocityPluginRequest() {
         ModuleIdentifier moduleIdentifier = DefaultModuleIdentifier.newId(AutoAppliedGradleEnterprisePlugin.GROUP, AutoAppliedGradleEnterprisePlugin.NAME);
         ModuleVersionSelector artifact = DefaultModuleVersionSelector.newSelector(moduleIdentifier, AutoAppliedGradleEnterprisePlugin.VERSION);
         return new DefaultPluginRequest(
@@ -72,14 +72,14 @@ public class GradleEnterpriseAutoAppliedPluginRegistry implements AutoAppliedPlu
             AutoAppliedGradleEnterprisePlugin.VERSION,
             artifact,
             null,
-            develocityPluginCoordinates()
+            gradleEnterprisePluginCoordinates()
         );
     }
 
-    private static PluginCoordinates develocityPluginCoordinates() {
-        ModuleIdentifier moduleIdentifier = DefaultModuleIdentifier.newId(AutoAppliedGradleEnterprisePlugin.GROUP, AutoAppliedGradleEnterprisePlugin.DEVELOCITY_PLUGIN_ARTIFACT_NAME);
+    private static PluginCoordinates gradleEnterprisePluginCoordinates() {
+        ModuleIdentifier moduleIdentifier = DefaultModuleIdentifier.newId(AutoAppliedGradleEnterprisePlugin.GROUP, AutoAppliedGradleEnterprisePlugin.GRADLE_ENTERPRISE_PLUGIN_ARTIFACT_NAME);
         ModuleVersionSelector artifact = DefaultModuleVersionSelector.newSelector(moduleIdentifier, AutoAppliedGradleEnterprisePlugin.VERSION);
-        return new PluginCoordinates(AutoAppliedGradleEnterprisePlugin.DEVELOCITY_PLUGIN_ID, artifact);
+        return new PluginCoordinates(AutoAppliedGradleEnterprisePlugin.GRADLE_ENTERPRISE_PLUGIN_ID, artifact);
     }
 
     private static String getScriptDisplayName() {

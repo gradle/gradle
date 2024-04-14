@@ -104,7 +104,7 @@ class SimpleClassMetaDataRepositoryTest extends Specification {
 
         when:
         repository.store(file)
-        def newRepo = new SimpleClassMetaDataRepository<String>()
+        def newRepo = new SimpleClassMetaDataRepository<TestDomainObject>()
         newRepo.load(file)
 
         then:

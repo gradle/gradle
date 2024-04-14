@@ -28,10 +28,10 @@ class DevelocityPluginCheckInFixture extends BaseBuildScanPluginCheckInFixture {
             projectDir,
             mavenRepo,
             pluginBuildExecuter,
-            AutoAppliedGradleEnterprisePlugin.DEVELOCITY_PLUGIN_ID.id,
+            AutoAppliedGradleEnterprisePlugin.ID.id,
             'com.gradle.develocity.agent.gradle',
             'DevelocityPlugin',
-            AutoAppliedGradleEnterprisePlugin.DEVELOCITY_PLUGIN_ARTIFACT_NAME
+            AutoAppliedGradleEnterprisePlugin.NAME
         )
     }
 

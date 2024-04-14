@@ -57,7 +57,7 @@ import java.io.InputStream
 import java.io.OutputStream
 
 
-@ServiceScope(Scope.Gradle::class)
+@ServiceScope(Scope.Build::class)
 class ConfigurationCacheIO internal constructor(
     private val startParameter: ConfigurationCacheStartParameter,
     private val host: DefaultConfigurationCache.Host,

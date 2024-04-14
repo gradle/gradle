@@ -11,7 +11,8 @@ We make sure to include this subproject as a runtime dependency in :distribution
 """
 
 dependencies {
-    api(project(":base-annotations"))
+    api(projects.javaLanguageExtensions)
+    api(projects.time)
     api(project(":base-services"))
     api(project(":messaging"))
     api(project(":testing-base"))

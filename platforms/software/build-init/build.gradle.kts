@@ -27,7 +27,7 @@ dependencies {
     api(libs.jsr305)
     api(libs.maven3Settings)
 
-    api(project(":base-annotations"))
+    api(projects.javaLanguageExtensions)
     api(project(":base-services"))
     api(project(":core"))
     api(project(":core-api"))

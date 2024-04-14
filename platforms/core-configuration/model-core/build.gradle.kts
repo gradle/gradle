@@ -35,7 +35,7 @@ errorprone {
 dependencies {
     api(project(":core-api"))
     api(project(":problems-api"))
-    api(project(":base-annotations"))
+    api(projects.javaLanguageExtensions)
     api(project(":hashing"))
     api(project(":process-services"))
     api(project(":base-services"))
@@ -53,6 +53,7 @@ dependencies {
     api(libs.guava)
 
     implementation(project(":base-services-groovy"))
+    implementation(project(":base-asm"))
 
     implementation(libs.futureKotlin("stdlib"))
     implementation(libs.slf4jApi)

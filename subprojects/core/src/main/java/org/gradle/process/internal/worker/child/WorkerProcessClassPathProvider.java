@@ -81,10 +81,12 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider {
         "gradle-logging",
         "gradle-logging-api",
         "gradle-messaging",
+        "gradle-base-asm",
         "gradle-base-services",
         "gradle-enterprise-logging",
         "gradle-enterprise-workers",
         "gradle-cli",
+        "gradle-concurrent",
         "gradle-wrapper-shared",
         "gradle-native",
         "gradle-dependency-management",
@@ -100,7 +102,8 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider {
         "gradle-file-temp",
         "gradle-hashing",
         "gradle-snapshots",
-        "gradle-base-annotations",
+        "gradle-time",
+        "gradle-java-language-extensions",
         "gradle-build-operations"
     };
 
@@ -121,6 +124,7 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider {
 
     // This list is ordered by the number of classes we load from each jar descending
     private static final String[] WORKER_OPTIMIZED_LOADING_ORDER = new String[]{
+        "gradle-base-asm",
         "gradle-base-services",
         "guava",
         "gradle-messaging",

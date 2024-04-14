@@ -271,7 +271,7 @@ fun configureTests() {
             // Dogfooding TD against ge-td-dogfooding in order to test new features and benefit from bug fixes before they are released
             server = uri("https://ge-td-dogfooding.grdev.net")
 
-            if (project.testDistributionEnabled && !isUnitTest() && !isPerformanceProject()) {
+            if (project.testDistributionEnabled && !isUnitTest() && !isPerformanceProject() && !isNativeProject()) {
                 enabled = true
                 project.maxTestDistributionPartitionSecond?.apply {
                     preferredMaxDuration = Duration.ofSeconds(this)
@@ -313,6 +313,8 @@ fun removeTeamcityTempProperty() {
 }
 
 fun Project.isPerformanceProject() = setOf("build-scan-performance", "performance").contains(name)
+
+fun Project.isNativeProject() = name.contains("native")
 
 /**
  * Whether the project supports running with predictive test selection.

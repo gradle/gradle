@@ -15,6 +15,8 @@
  */
 package org.gradle.kotlin.dsl
 
+import org.gradle.internal.deprecation.DeprecationLogger
+import org.gradle.internal.deprecation.Documentation
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec
@@ -23,7 +25,7 @@ import org.gradle.plugin.use.PluginDependencySpec
 /**
  * The `gradle-enterprise` plugin.
  *
- * Visit the [Build Scan Plugin User Manual](https://docs.gradle.com/build-scan-plugin/) for additional information.
+ * Visit the [Develocity Plugin User Manual](https://docs.gradle.com/enterprise/gradle-plugin/) for additional information.
  *
  * By default, the applied plugin version will be the same as the one used by the `--scan` command line option.
  *
@@ -31,5 +33,28 @@ import org.gradle.plugin.use.PluginDependencySpec
  *
  * @since 6.0
  */
+@Deprecated("Gradle Enterprise has been renamed to Develocity", replaceWith = ReplaceWith("develocity"))
 val PluginDependenciesSpec.`gradle-enterprise`: PluginDependencySpec
+    get() {
+        DeprecationLogger.deprecateProperty(PluginDependencySpec::class.java, "`gradle-enterprise`")
+            .replaceWith("develocity")
+            .willBeRemovedInGradle9()
+            .withDocumentation(Documentation.kotlinDslExtensionReference("gradle-enterprise"))
+            .nagUser()
+        return this.id(AutoAppliedGradleEnterprisePlugin.GRADLE_ENTERPRISE_PLUGIN_ID.id).version(AutoAppliedGradleEnterprisePlugin.VERSION)
+    }
+
+
+/**
+ * The `develocity` plugin.
+ *
+ * Visit the [Develocity Plugin User Manual](https://docs.gradle.com/enterprise/gradle-plugin/) for additional information.
+ *
+ * By default, the applied plugin version will be the same as the one used by the `--scan` command line option.
+ *
+ * You can also use e.g. `develocity version "3.17"` to request a different version.
+ *
+ * @since 8.8
+ */
+val PluginDependenciesSpec.develocity: PluginDependencySpec
     get() = this.id(AutoAppliedGradleEnterprisePlugin.ID.id).version(AutoAppliedGradleEnterprisePlugin.VERSION)

@@ -17,6 +17,7 @@
 package gradlebuild.binarycompatibility.upgrades;
 
 import com.google.common.collect.ImmutableList;
+import com.google.gson.annotations.SerializedName;
 import japicmp.model.JApiMethod;
 
 import java.util.List;
@@ -27,14 +28,20 @@ public class UpgradedProperty {
     private final String methodName;
     private final String methodDescriptor;
     private final String containingType;
-    private final List<UpgradedMethod> upgradedMethods;
 
-    public UpgradedProperty(String containingType, String propertyName, String methodName, String methodDescriptor, List<UpgradedMethod> upgradedMethods) {
+    /**
+     * Was upgradedMethods originally, but got renamed to upgradedAccessors,
+     * can be removed once base version will be the one that also uses 'upgradedAccessors'
+     */
+    @SerializedName(value = "upgradedAccessors", alternate = "upgradedMethods")
+    private final List<UpgradedAccessor> upgradedAccessors;
+
+    public UpgradedProperty(String containingType, String propertyName, String methodName, String methodDescriptor, List<UpgradedAccessor> upgradedAccessors) {
         this.containingType = containingType;
         this.propertyName = propertyName;
         this.methodName = methodName;
         this.methodDescriptor = methodDescriptor;
-        this.upgradedMethods = ImmutableList.copyOf(upgradedMethods);
+        this.upgradedAccessors = ImmutableList.copyOf(upgradedAccessors);
     }
 
     public String getContainingType() {
@@ -53,8 +60,8 @@ public class UpgradedProperty {
         return methodDescriptor;
     }
 
-    public List<UpgradedMethod> getUpgradedMethods() {
-        return upgradedMethods;
+    public List<UpgradedAccessor> getUpgradedAccessors() {
+        return upgradedAccessors;
     }
 
     @Override
@@ -64,17 +71,19 @@ public class UpgradedProperty {
             ", methodName='" + methodName + '\'' +
             ", methodDescriptor='" + methodDescriptor + '\'' +
             ", containingType='" + containingType + '\'' +
-            ", upgradedMethods=" + upgradedMethods +
+            ", upgradedAccessors=" + upgradedAccessors +
             '}';
     }
 
-    public static class UpgradedMethod {
+    public static class UpgradedAccessor {
         private final String name;
         private final String descriptor;
+        private final BinaryCompatibility binaryCompatibility;
 
-        public UpgradedMethod(String name, String descriptor) {
+        public UpgradedAccessor(String name, String descriptor, BinaryCompatibility binaryCompatibility) {
             this.name = name;
             this.descriptor = descriptor;
+            this.binaryCompatibility = binaryCompatibility;
         }
 
         public String getName() {
@@ -85,50 +94,60 @@ public class UpgradedProperty {
             return descriptor;
         }
 
+        public BinaryCompatibility getBinaryCompatibility() {
+            return binaryCompatibility;
+        }
+
         @Override
         public String toString() {
-            return "UpgradedMethod{" +
+            return "UpgradedAccessor{" +
                 "name='" + name + '\'' +
                 ", descriptor='" + descriptor + '\'' +
+                ", binaryCompatibility='" + binaryCompatibility + '\'' +
                 '}';
         }
     }
 
-    public static class UpgradedMethodKey {
+    public enum BinaryCompatibility {
+        ACCESSORS_REMOVED,
+        ACCESSORS_KEPT
+    }
+
+    public static class UpgradedAccessorKey {
         private final String containingType;
         private final String methodName;
         private final String descriptor;
 
-        private UpgradedMethodKey(String containingType, String methodName, String descriptor) {
+        private UpgradedAccessorKey(String containingType, String methodName, String descriptor) {
             this.containingType = containingType;
             this.methodName = methodName;
             this.descriptor = descriptor;
         }
 
-        public static UpgradedMethodKey of(String containingType, String methodName, String descriptor) {
-            return new UpgradedMethodKey(containingType, methodName, descriptor);
+        public static UpgradedAccessorKey of(String containingType, String methodName, String descriptor) {
+            return new UpgradedAccessorKey(containingType, methodName, descriptor);
         }
 
-        public static UpgradedMethodKey ofUpgradedProperty(UpgradedProperty upgradedProperty) {
-            return new UpgradedMethodKey(upgradedProperty.getContainingType(), upgradedProperty.getMethodName(), upgradedProperty.getMethodDescriptor());
+        public static UpgradedAccessorKey ofUpgradedProperty(UpgradedProperty upgradedProperty) {
+            return new UpgradedAccessorKey(upgradedProperty.getContainingType(), upgradedProperty.getMethodName(), upgradedProperty.getMethodDescriptor());
         }
 
-        public static UpgradedMethodKey ofUpgradedMethod(String containingType, UpgradedMethod upgradedMethod) {
-            return new UpgradedMethodKey(containingType, upgradedMethod.getName(), upgradedMethod.getDescriptor());
+        public static UpgradedAccessorKey ofUpgradedAccessor(String containingType, UpgradedAccessor upgradedAccessor) {
+            return new UpgradedAccessorKey(containingType, upgradedAccessor.getName(), upgradedAccessor.getDescriptor());
         }
 
-        public static UpgradedMethodKey ofNewMethod(JApiMethod jApiMethod) {
+        public static UpgradedAccessorKey ofNewMethod(JApiMethod jApiMethod) {
             String name = jApiMethod.getName();
             String descriptor = jApiMethod.getNewMethod().get().getSignature();
             String containingType = jApiMethod.getjApiClass().getFullyQualifiedName();
-            return new UpgradedMethodKey(containingType, name, descriptor);
+            return new UpgradedAccessorKey(containingType, name, descriptor);
         }
 
-        public static UpgradedMethodKey ofOldMethod(JApiMethod jApiMethod) {
+        public static UpgradedAccessorKey ofOldMethod(JApiMethod jApiMethod) {
             String name = jApiMethod.getName();
             String descriptor = jApiMethod.getOldMethod().get().getSignature();
             String containingType = jApiMethod.getjApiClass().getFullyQualifiedName();
-            return new UpgradedMethodKey(containingType, name, descriptor);
+            return new UpgradedAccessorKey(containingType, name, descriptor);
         }
 
         @Override
@@ -144,7 +163,7 @@ public class UpgradedProperty {
             if (o == null || getClass() != o.getClass()) {
                 return false;
             }
-            UpgradedMethodKey that = (UpgradedMethodKey) o;
+            UpgradedAccessorKey that = (UpgradedAccessorKey) o;
             return Objects.equals(containingType, that.containingType)
                 && Objects.equals(methodName, that.methodName)
                 && Objects.equals(descriptor, that.descriptor);

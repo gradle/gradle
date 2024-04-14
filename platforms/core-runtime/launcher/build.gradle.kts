@@ -63,6 +63,7 @@ dependencies {
     runtimeOnly(libs.slf4jApi)
 
     manifestClasspath(project(":bootstrap"))
+    manifestClasspath(projects.javaLanguageExtensions)
     manifestClasspath(project(":base-services"))
     manifestClasspath(project(":worker-services"))
     manifestClasspath(project(":core-api"))

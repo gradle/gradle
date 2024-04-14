@@ -48,13 +48,14 @@ See the table below for the Java version supported by a specific Gradle release:
 | 19| 7.6 | 7.6
 | 20| 8.1 | 8.3
 | 21| 8.4 | 8.5
-| 22| 8.7 | N/A
+| 22| 8.7 | 8.8
 | 23| N/A | N/A
 |===
 
 [[kotlin]]
 == Kotlin
-Gradle is tested with Kotlin 1.6.10 through 2.0.0-Beta4.
+
+Gradle is tested with Kotlin 1.6.10 through 2.0.0-RC1.
 Beta and RC versions may or may not work.
 
 .Embedded Kotlin version
@@ -84,6 +85,7 @@ Beta and RC versions may or may not work.
 | 8.4 | 1.9.10 | 1.8
 | 8.5 | 1.9.20 | 1.8
 | 8.7 | 1.9.22 | 1.8
+| 8.9 | 1.9.23 | 1.8
 |===
 
 == Groovy
@@ -92,5 +94,6 @@ Gradle is tested with Groovy 1.5.8 through 4.0.0.
 Gradle plugins written in Groovy must use Groovy 3.x for compatibility with Gradle and Groovy DSL build scripts.
 
 == Android
+
 Gradle is tested with Android Gradle Plugin 7.3 through 8.3.
 Alpha and beta versions may or may not work.

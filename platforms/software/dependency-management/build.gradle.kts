@@ -50,7 +50,8 @@ errorprone {
 
 
 dependencies {
-    api(project(":base-annotations"))
+    api(projects.concurrent)
+    api(projects.javaLanguageExtensions)
     api(project(":base-services"))
     api(project(":build-operations"))
     api(project(":build-option"))
@@ -83,6 +84,7 @@ dependencies {
     api(libs.maven3SettingsBuilder)
     api(libs.slf4jApi)
 
+    implementation(projects.time)
     implementation(project(":base-services-groovy"))
     implementation(project(":logging-api"))
     implementation(project(":resources-http"))

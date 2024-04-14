@@ -45,6 +45,7 @@ class PluginDependenciesSpecScopeTest {
     }
 
     @Test
+    @Suppress("DEPRECATION")
     fun `given gradle-enterprise plugin accessor, it should create a single request matching the auto-applied plugin version`() {
         expecting(plugin(id = "com.gradle.enterprise", version = AutoAppliedGradleEnterprisePlugin.VERSION)) {
             `gradle-enterprise`
@@ -52,9 +53,24 @@ class PluginDependenciesSpecScopeTest {
     }
 
     @Test
+    @Suppress("DEPRECATION")
     fun `given gradle-enterprise plugin accessor with version, it should create a single request with given version`() {
         expecting(plugin(id = "com.gradle.enterprise", version = "1.7.1")) {
             `gradle-enterprise` version "1.7.1"
+        }
+    }
+
+    @Test
+    fun `given develocity plugin accessor, it should create a single request matching the auto-applied plugin version`() {
+        expecting(plugin(id = "com.gradle.develocity", version = AutoAppliedGradleEnterprisePlugin.VERSION)) {
+            develocity
+        }
+    }
+
+    @Test
+    fun `given develocity plugin accessor with version, it should create a single request with given version`() {
+        expecting(plugin(id = "com.gradle.develocity", version = "1.7.1")) {
+            develocity version "1.7.1"
         }
     }
 

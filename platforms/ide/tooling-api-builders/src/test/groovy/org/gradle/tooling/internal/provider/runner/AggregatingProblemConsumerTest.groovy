@@ -16,11 +16,14 @@
 
 package org.gradle.tooling.internal.provider.runner
 
-import org.gradle.internal.build.event.types.DefaultLabel
-import org.gradle.internal.build.event.types.DefaultProblemCategory
+import org.gradle.internal.build.event.types.DefaultDocumentationLink
+import org.gradle.internal.build.event.types.DefaultProblemDefinition
+import org.gradle.internal.build.event.types.DefaultProblemGroup
+import org.gradle.internal.build.event.types.DefaultProblemId
+import org.gradle.internal.build.event.types.DefaultSeverity
 import org.gradle.internal.operations.OperationIdentifier
-import org.gradle.tooling.internal.protocol.InternalProblemEvent
-import org.gradle.tooling.internal.protocol.problem.InternalBasicProblemDetailsVersion2
+import org.gradle.tooling.internal.protocol.InternalBasicProblemDetailsVersion3
+import org.gradle.tooling.internal.protocol.InternalProblemEventVersion2
 import spock.lang.Specification
 
 class AggregatingProblemConsumerTest extends Specification {
@@ -52,7 +55,7 @@ class AggregatingProblemConsumerTest extends Specification {
         emitter.sendProblemSummaries()
 
         then:
-        2 * eventConsumer.progress(_ as InternalProblemEvent)
+        2 * eventConsumer.progress(_ as InternalProblemEventVersion2)
     }
 
     def "single unique events are not aggregated"() {
@@ -66,7 +69,7 @@ class AggregatingProblemConsumerTest extends Specification {
         emitter.sendProblemSummaries()
 
         then:
-        1 * eventConsumer.progress(_ as InternalProblemEvent)
+        1 * eventConsumer.progress(_ as InternalProblemEventVersion2)
     }
 
     static thresholdForIntermediateSummary = 20
@@ -78,12 +81,12 @@ class AggregatingProblemConsumerTest extends Specification {
         emitter.setThresholdForIntermediateSummary(thresholdForIntermediateSummary)
 
         when:
-        for (int i = 0; i < thresholdForIntermediateSummary+1; i++) {
+        for (int i = 0; i < thresholdForIntermediateSummary + 1; i++) {
             emitter.emit(createMockProblem("foo"))
         }
 
         then:
-        2 * eventConsumer.progress(_ as InternalProblemEvent)
+        2 * eventConsumer.progress(_ as InternalProblemEventVersion2)
     }
 
     def "send no intermediate event when only unique events where sent"() {
@@ -94,19 +97,22 @@ class AggregatingProblemConsumerTest extends Specification {
         emitter.setThresholdForIntermediateSummary(thresholdForIntermediateSummary)
 
         when:
-        for (int i = 0; i < thresholdForIntermediateSummary+1; i++) {
+        for (int i = 0; i < thresholdForIntermediateSummary + 1; i++) {
             emitter.emit(createMockProblem("foo$i"))
         }
 
         then:
-        (thresholdForIntermediateSummary+1) * eventConsumer.progress(_ as InternalProblemEvent)
+        (thresholdForIntermediateSummary + 1) * eventConsumer.progress(_ as InternalProblemEventVersion2)
     }
 
     private createMockProblem(String categoryName) {
-        def problem = Mock(InternalProblemEvent)
-        def details = Mock(InternalBasicProblemDetailsVersion2)
-        details.category >> new DefaultProblemCategory(categoryName, categoryName, [categoryName])
-        details.label >> new DefaultLabel("label")
+        def problem = Mock(InternalProblemEventVersion2)
+        def details = Mock(InternalBasicProblemDetailsVersion3)
+        details.definition >> new DefaultProblemDefinition(
+            new DefaultProblemId(categoryName, categoryName,
+                new DefaultProblemGroup("group", "group", null)),
+            new DefaultSeverity(0),
+            new DefaultDocumentationLink("https://docs.example.org"))
         problem.details >> details
         problem
     }

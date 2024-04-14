@@ -47,8 +47,8 @@ public class JavaLanguagePluginServiceRegistry extends AbstractPluginServiceRegi
     }
 
     @Override
-    public void registerGradleServices(ServiceRegistration registration) {
-        registration.addProvider(new JavaGradleScopeServices());
+    public void registerBuildServices(ServiceRegistration registration) {
+        registration.addProvider(new JavaBuildScopeServices());
     }
 
     @Override
@@ -73,7 +73,7 @@ public class JavaLanguagePluginServiceRegistry extends AbstractPluginServiceRegi
         }
     }
 
-    private static class JavaGradleScopeServices {
+    private static class JavaBuildScopeServices {
         public void configure(ServiceRegistration registration, ComponentTypeRegistry componentTypeRegistry) {
             componentTypeRegistry.maybeRegisterComponentType(JvmLibrary.class)
                 .registerArtifactType(JavadocArtifact.class, ArtifactType.JAVADOC);

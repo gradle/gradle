@@ -35,6 +35,15 @@ The previous step will help you identify potential problems by issuing deprecati
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_8.9]]
+== Upgrading from 8.8 and earlier
+
+=== Potential breaking changes
+
+==== Upgrade to Kotlin 1.9.23
+
+The embedded Kotlin has been updated from 1.9.22 to link:https://github.com/JetBrains/kotlin/releases/tag/v1.9.23[Kotlin 1.9.23].
+
 [[changes_8.8]]
 == Upgrading from 8.7 and earlier
 
@@ -238,7 +247,7 @@ The new API has now been promoted to stable and the old methods have been deprec
 ==== Deprecated setting retention period directly on local build cache ====
 
 In previous versions, cleanup of the local build cache entries ran every 24 hours, and this interval could not be configured.
-The retention period was configured using `buildCache.local.removeUnusedEntriesAfterDays`. 
+The retention period was configured using `buildCache.local.removeUnusedEntriesAfterDays`.
 
 In Gradle 8.0, link:directory_layout.html#dir:gradle_user_home:configure_cache_cleanup[a new mechanism] was added to configure the cleanup and retention periods for various resources in Gradle User Home.
 In Gradle 8.8, this mechanism was extended to permit configuration of retention of local build cache entries, providing improved control and consistency.
@@ -277,6 +286,14 @@ The complete design specification can be found [here](https://docs.google.com/do
 
 In implementing this spec, we have introduced the following breaking changes to the `ProblemSpec` interface:
 - The `label(String)` and `description(String)` methods have been replaced with the `id(String, String)` method and its overloaded variants.
+
+In addition, the corresponding Tooling API events are changed to reflect the new design.
+
+==== Upgrade to Groovy 3.0.21
+
+Groovy has been updated to https://groovy-lang.org/changelogs/changelog-3.0.21.html[Groovy 3.0.21].
+
+Since the previous version was 3.0.17, the https://groovy-lang.org/changelogs/changelog-3.0.18.html[3.0.18] and https://groovy-lang.org/changelogs/changelog-3.0.19.html[3.0.19], and https://groovy-lang.org/changelogs/changelog-3.0.20.html[3.0.20] changes are also included.
 
 ==== Upgrade to ASM 9.7
 

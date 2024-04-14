@@ -38,10 +38,9 @@ import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.internal.vfs.FileSystemAccess;
 
 public class CompileServices extends AbstractPluginServiceRegistry {
-
     @Override
-    public void registerGradleServices(ServiceRegistration registration) {
-        registration.addProvider(new GradleScopeCompileServices());
+    public void registerBuildServices(ServiceRegistration registration) {
+        registration.addProvider(new BuildScopeCompileServices());
     }
 
     @Override
@@ -49,7 +48,7 @@ public class CompileServices extends AbstractPluginServiceRegistry {
         registration.addProvider(new UserHomeScopeServices());
     }
 
-    private static class GradleScopeCompileServices {
+    private static class BuildScopeCompileServices {
         void configure(ServiceRegistration registration, JdkToolsInitializer initializer) {
             // Hackery
             initializer.initializeJdkTools();

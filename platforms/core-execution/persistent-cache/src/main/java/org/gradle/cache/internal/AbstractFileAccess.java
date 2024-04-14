@@ -22,7 +22,7 @@ import org.gradle.internal.Factory;
 
 import java.util.concurrent.Callable;
 
-import static org.gradle.util.internal.GUtil.uncheckedCall;
+import static org.gradle.internal.UncheckedException.uncheckedCall;
 
 public abstract class AbstractFileAccess implements FileAccess {
     @Override

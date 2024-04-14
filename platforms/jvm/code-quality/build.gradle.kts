@@ -28,7 +28,7 @@ sourceSets {
 }
 
 dependencies {
-    api(project(":base-annotations"))
+    api(projects.javaLanguageExtensions)
     api(project(":base-services"))
     api(project(":core"))
     api(project(":core-api"))
@@ -60,6 +60,7 @@ dependencies {
     testImplementation(testFixtures(project(":model-core")))
 
     testFixturesImplementation(project(":core"))
+    testFixturesImplementation(testFixtures(project(":core")))
     testFixturesImplementation(project(":core-api"))
     testFixturesImplementation(project(":base-services"))
 

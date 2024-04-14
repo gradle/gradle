@@ -93,15 +93,15 @@ class ConfigurationCacheEnterprisePluginIntegrationTest extends AbstractConfigur
     }
 
     @Issue("https://github.com/gradle/gradle/issues/19047")
-    def "precompiled script plugin can use lambda expression with enterprise plugin"() {
+    def "precompiled script plugin can use lambda expression with develocity plugin"() {
         given:
         createDir('ge-conventions') {
             file('src/main/kotlin/ge-conventions.settings.gradle.kts') << '''
                 plugins {
-                    com.gradle.enterprise
+                    com.gradle.develocity
                 }
 
-                gradleEnterprise {
+                develocity {
                     buildScan.obfuscation.hostname {
                         // lambda expression
                         "unset"
@@ -136,7 +136,7 @@ class ConfigurationCacheEnterprisePluginIntegrationTest extends AbstractConfigur
     static String getGeConventionsConfig() {
         """
             dependencies {
-                implementation("com.gradle:gradle-enterprise-gradle-plugin:${AutoAppliedGradleEnterprisePlugin.VERSION}")
+                implementation("com.gradle:develocity-gradle-plugin:${AutoAppliedGradleEnterprisePlugin.VERSION}")
             }
             ${KotlinDslTestUtil.kotlinDslBuildSrcConfig}
             repositories.gradlePluginPortal()

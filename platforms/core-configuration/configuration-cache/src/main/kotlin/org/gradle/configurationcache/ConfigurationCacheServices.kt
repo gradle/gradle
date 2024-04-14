@@ -76,11 +76,6 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
         registration.run {
             add(RelevantProjectsRegistry::class.java)
             addProvider(TaskExecutionAccessCheckerProvider)
-        }
-    }
-
-    override fun registerGradleServices(registration: ServiceRegistration) {
-        registration.run {
             add(ConfigurationCacheHost::class.java)
             add(ConfigurationCacheIO::class.java)
             addProvider(IsolatedProjectEvaluationListenerProvider)
