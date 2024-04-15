@@ -21,23 +21,24 @@ import com.google.common.cache.RemovalCause;
 import com.google.common.cache.RemovalListener;
 import com.google.common.cache.RemovalNotification;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
 class LoggingEvictionListener implements RemovalListener<Object, Object> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(LoggingEvictionListener.class);
     private static final String EVICTION_MITIGATION_MESSAGE = "\nPerformance may suffer from in-memory cache misses. Increase max heap size of Gradle build process to reduce cache misses.";
+
     private final AtomicInteger evictionCounter = new AtomicInteger(0);
     private final String cacheId;
-    private Cache<Object, Object> cache;
     private final int maxSize;
     private final int logInterval;
+    private final Logger logger;
+    private Cache<Object, Object> cache;
 
-    LoggingEvictionListener(String cacheId, int maxSize) {
+    LoggingEvictionListener(String cacheId, int maxSize, Logger logger) {
         this.cacheId = cacheId;
         this.maxSize = maxSize;
         this.logInterval = maxSize / 10;
+        this.logger = logger;
     }
 
     public void setCache(Cache<Object, Object> cache) {
@@ -48,7 +49,7 @@ class LoggingEvictionListener implements RemovalListener<Object, Object> {
     public void onRemoval(RemovalNotification<Object, Object> notification) {
         if (notification.getCause() == RemovalCause.SIZE) {
             if (evictionCounter.get() % logInterval == 0) {
-                LOGGER.info("Cache entries evicted. In-memory cache of {}: Size{{}} MaxSize{{}}, {} {}", cacheId, cache.size(), maxSize, cache.stats(), EVICTION_MITIGATION_MESSAGE);
+                logger.info("Cache entries evicted. In-memory cache of {}: Size{{}} MaxSize{{}}, {} {}", cacheId, cache.size(), maxSize, cache.stats(), EVICTION_MITIGATION_MESSAGE);
             }
             evictionCounter.incrementAndGet();
         }
