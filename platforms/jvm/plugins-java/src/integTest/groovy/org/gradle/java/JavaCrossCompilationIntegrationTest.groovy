@@ -88,8 +88,8 @@ class JavaCrossCompilationIntegrationTest extends AbstractIntegrationSpec {
             executer.expectDeprecationWarning("Running tests on Java versions earlier than 8 has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#minimum_test_jvm_version")
         }
         succeeds 'test'
-        getClassMajorVersion(javaClassFile("Thing.class")) == getClassMajorVersion(toJavaVersion(version))
-        getClassMajorVersion(classFile("java", "test", "ThingTest.class")) == getClassMajorVersion(toJavaVersion(version))
+        getClassMajorVersion(javaClassFile("Thing.class")) == toJavaVersion(version).getClassVersion()
+        getClassMajorVersion(classFile ( "java", "test", "ThingTest.class")) == toJavaVersion(version).getClassVersion()
 
         where:
         version << javaVersionsToCrossCompileAgainst()

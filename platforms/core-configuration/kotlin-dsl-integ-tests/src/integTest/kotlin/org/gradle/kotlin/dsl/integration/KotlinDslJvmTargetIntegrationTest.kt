@@ -256,7 +256,7 @@ class KotlinDslJvmTargetIntegrationTest : AbstractKotlinIntegrationTest() {
 
     private
     fun outputFor(javaVersion: JavaVersion) =
-        "Java Class Major Version = ${JavaClassUtil.getClassMajorVersion(javaVersion)}"
+        "Java Class Major Version = ${javaVersion.classVersion}"
 
     private
     fun supportedKotlinJavaVersion(version: JavaVersion = JavaVersion.current()): JavaVersion {

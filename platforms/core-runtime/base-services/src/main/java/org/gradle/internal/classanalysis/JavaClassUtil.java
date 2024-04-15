@@ -16,8 +16,6 @@
 
 package org.gradle.internal.classanalysis;
 
-import org.gradle.api.JavaVersion;
-
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -30,7 +28,6 @@ import java.io.InputStream;
 public class JavaClassUtil {
 
     private static final int MAGIC_BYTES = 0xCAFEBABE;
-    private static final int CLASS_MAJOR_VERSION_OFFSET = 44;
 
     private JavaClassUtil() {
         // Private to prevent instantiation.
@@ -87,16 +84,5 @@ public class JavaClassUtil {
         } finally {
             data.close();
         }
-    }
-
-    // TODO: Should this method live in `JavaVersion`? It already provides a JavaVersion.forClassVersion(int)
-    /**
-     * Given a {@link JavaVersion}, determine the corresponding class file major version number.
-     */
-    public static int getClassMajorVersion(JavaVersion javaVersion) {
-        if (javaVersion == JavaVersion.VERSION_HIGHER) {
-            throw new UnsupportedOperationException("Unable to provide class file major version for '" + javaVersion + "'");
-        }
-        return Integer.valueOf(javaVersion.getMajorVersion()) + CLASS_MAJOR_VERSION_OFFSET;
     }
 }

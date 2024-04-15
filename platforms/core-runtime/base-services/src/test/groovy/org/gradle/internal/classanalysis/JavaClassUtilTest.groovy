@@ -16,40 +16,9 @@
 
 package org.gradle.internal.classanalysis
 
-import org.gradle.api.JavaVersion
 import spock.lang.Specification
 
 class JavaClassUtilTest extends Specification {
-
-    def "can map java version to class file major version"() {
-        expect:
-        JavaClassUtil.getClassMajorVersion(javaVersion) == classFileVersion
-
-        where:
-        javaVersion             | classFileVersion
-        JavaVersion.VERSION_1_1 | 45
-        JavaVersion.VERSION_1_4 | 48
-        JavaVersion.VERSION_1_5 | 49
-        JavaVersion.VERSION_1_6 | 50
-        JavaVersion.VERSION_1_7 | 51
-        JavaVersion.VERSION_1_8 | 52
-        JavaVersion.VERSION_11  | 55
-        JavaVersion.VERSION_17  | 61
-        JavaVersion.VERSION_18  | 62
-        JavaVersion.VERSION_19  | 63
-        JavaVersion.VERSION_20  | 64
-        JavaVersion.VERSION_21  | 65
-        JavaVersion.VERSION_22  | 66
-    }
-
-    def "cannot map higher java version to class file major version"() {
-        when:
-        JavaClassUtil.getClassMajorVersion(JavaVersion.VERSION_HIGHER)
-
-        then:
-        def ex = thrown(UnsupportedOperationException)
-        ex.message == "Unable to provide class file major version for '${JavaVersion.VERSION_HIGHER}'"
-    }
 
     def "can extract java class file major version"() {
         expect:

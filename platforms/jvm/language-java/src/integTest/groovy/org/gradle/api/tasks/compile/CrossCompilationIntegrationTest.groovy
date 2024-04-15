@@ -96,8 +96,8 @@ class CrossCompilationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         new JarTestFixture(file("build/libs/oldjava.jar")).javaVersion == version
-        getClassMajorVersion(file("build/classes/java/main/Thing.class")) == getClassMajorVersion(version)
-        getClassMajorVersion(file("build/classes/java/test/ThingTest.class")) == getClassMajorVersion(version)
+        getClassMajorVersion(file ( "build/classes/java/main/Thing.class")) == version.getClassVersion()
+        getClassMajorVersion(file("build/classes/java/test/ThingTest.class")) == version.getClassVersion()
         new DefaultTestExecutionResult(testDirectory).assertTestClassesExecuted("ThingTest")
 
         where:

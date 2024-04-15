@@ -156,6 +156,8 @@ public enum JavaVersion {
     VERSION_HIGHER;
     // Since Java 9, version should be X instead of 1.X
     private static final int FIRST_MAJOR_VERSION_ORDINAL = 9 - 1;
+    // Class file versions: 1.1 == 45, 1.2 == 46...
+    private static final int CLASS_MAJOR_VERSION_OFFSET = 44;
     private static JavaVersion currentJavaVersion;
     private final String versionName;
 
@@ -214,7 +216,7 @@ public enum JavaVersion {
     }
 
     public static JavaVersion forClassVersion(int classVersion) {
-        return getVersionForMajor(classVersion - 44); //class file versions: 1.1 == 45, 1.2 == 46...
+        return getVersionForMajor(classVersion - CLASS_MAJOR_VERSION_OFFSET);
     }
 
     public static JavaVersion forClass(byte[] classData) {
@@ -222,6 +224,19 @@ public enum JavaVersion {
             throw new IllegalArgumentException("Invalid class format. Should contain at least 8 bytes");
         }
         return forClassVersion(classData[7] & 0xFF);
+    }
+
+    /**
+     * Given a {@link JavaVersion}, determine the corresponding class file version number.
+     *
+     * @since 8.9
+     */
+    @Incubating
+    public int getClassVersion() {
+        if (this == VERSION_HIGHER) {
+            throw new UnsupportedOperationException("Unable to provide class file major version for '" + this + "'");
+        }
+        return Integer.valueOf(getMajorVersion()) + CLASS_MAJOR_VERSION_OFFSET;
     }
 
     public boolean isJava5() {
