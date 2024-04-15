@@ -6,7 +6,6 @@ description = "Execution engine that takes a unit of work and makes it happen"
 
 errorprone {
     disabledChecks.addAll(
-        "AnnotateFormatMethod", // 1 occurrences
         "BadImport", // 2 occurrences
         "Finally", // 2 occurrences
         "ReferenceEquality", // 1 occurrences
@@ -26,6 +25,7 @@ dependencies {
     api(projects.concurrent)
     api(projects.javaLanguageExtensions)
     api(projects.serialization)
+    api(libs.errorProneAnnotations)
     api(project(":base-services"))
     api(project(":build-cache"))
     api(project(":build-cache-base"))
