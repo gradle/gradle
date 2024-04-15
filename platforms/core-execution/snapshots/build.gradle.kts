@@ -7,7 +7,6 @@ description = "Tools to take immutable, comparable snapshots of files and other 
 
 errorprone {
     disabledChecks.addAll(
-        "ImmutableEnumChecker", // 1 occurrences
         "LockNotBeforeTry", // 1 occurrences
         "ReferenceEquality", // 2 occurrences
     )
