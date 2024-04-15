@@ -176,6 +176,7 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         return loggingManagerInternal;
     }
 
+    @SuppressWarnings("UnusedMethod")
     private static class WorkerServices extends DefaultServiceRegistry {
         public WorkerServices(ServiceRegistry parent, final File gradleUserHomeDir) {
             super(parent);

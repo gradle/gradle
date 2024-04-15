@@ -6,12 +6,6 @@ description = "Infrastructure that bootstraps a worker process"
 
 gradlebuildJava.usedInWorkers()
 
-errorprone {
-    disabledChecks.addAll(
-        "UnusedMethod", // 6 occurrences
-    )
-}
-
 dependencies {
     api(projects.javaLanguageExtensions)
     api(project(":base-services"))
