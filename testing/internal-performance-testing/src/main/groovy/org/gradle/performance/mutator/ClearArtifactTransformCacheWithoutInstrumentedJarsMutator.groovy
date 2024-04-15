@@ -16,12 +16,8 @@
 
 package org.gradle.performance.mutator
 
-import com.google.common.collect.Lists
-import groovy.io.FileType
-import org.apache.commons.io.FilenameUtils
 import org.apache.commons.io.file.PathUtils
 import org.gradle.profiler.BuildMutator
-import org.gradle.profiler.CompositeBuildMutator
 import org.gradle.profiler.mutations.AbstractCleanupMutator
 
 import java.nio.file.FileVisitResult
@@ -47,6 +43,11 @@ import static org.gradle.internal.classpath.TransformedClassPath.FileMarker.INST
  * TODO Refactor gradle-profiler `AbstractCacheCleanupMutator` so that it can clean up files in `caches/<gradle-version>/<cache-dir>`
  */
 class ClearArtifactTransformCacheWithoutInstrumentedJarsMutator extends AbstractCleanupMutator {
+
+    /**
+     * This marker was used in Gradle 8.7 and earlier.
+     */
+    private static final String GRADLE_PRE_8_8_CLASSPATH_MAKER = ".gradle-instrumented.marker"
 
     private final File gradleUserHome;
 
@@ -88,7 +89,8 @@ class ClearArtifactTransformCacheWithoutInstrumentedJarsMutator extends Abstract
             }
 
             private boolean hasInstrumentationClasspathMarkerFile(Path transformedDir) {
-                return Files.exists(transformedDir.resolve("transformed/${INSTRUMENTATION_CLASSPATH_MARKER.fileName}")) ||
+                return Files.exists(transformedDir.resolve("transformed/$GRADLE_PRE_8_8_CLASSPATH_MAKER")) ||
+                    Files.exists(transformedDir.resolve("transformed/${INSTRUMENTATION_CLASSPATH_MARKER.fileName}")) ||
                     Files.exists(transformedDir.resolve("transformed/$ANALYSIS_OUTPUT_DIR/${INSTRUMENTATION_CLASSPATH_MARKER.fileName}")) ||
                     Files.exists(transformedDir.resolve("transformed/$MERGE_OUTPUT_DIR/${INSTRUMENTATION_CLASSPATH_MARKER.fileName}"))
             }
