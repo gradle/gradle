@@ -3,7 +3,6 @@ package org.gradle.internal.declarativedsl.analysis
 import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.DataParameter
 import org.gradle.declarative.dsl.schema.DataType
-import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.declarative.dsl.schema.ParameterSemantics
 import org.gradle.declarative.dsl.schema.SchemaFunction
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
@@ -149,10 +148,10 @@ class FunctionCallResolverImpl(
         argResolutions: Map<FunctionArgument.ValueArgument, ObjectOrigin>,
         functionCall: FunctionCall,
         receiver: ObjectOrigin?
-    ): ObjectOrigin.FunctionOrigin? {
+    ): ObjectOrigin.FunctionOrigin {
         val newFunctionCallId = nextInstant()
         val valueBinding = function.binding.toValueBinding(argResolutions, functionCall.args.lastOrNull() is FunctionArgument.Lambda)
-        val semantics = function.schemaFunction.semantics
+        val semantics = function.schemaFunction.semantics as FunctionSemanticsImpl
 
         checkBuilderSemantics(semantics, receiver, function)
 
@@ -169,13 +168,13 @@ class FunctionCallResolverImpl(
     private
     fun AnalysisContext.doAnalyzeAndCheckConfiguringSemantics(
         call: FunctionCall,
-        semantics: FunctionSemantics,
+        semantics: FunctionSemanticsImpl,
         function: FunctionResolutionAndBinding,
         result: ObjectOrigin.FunctionOrigin,
         newFunctionCallId: Long,
         valueBinding: ParameterValueBinding
     ) {
-        if (semantics !is FunctionSemantics.ConfigureSemantics)
+        if (semantics !is FunctionSemanticsImpl.ConfigureSemantics)
             return
 
         val (expectsConfigureLambda, requiresConfigureLambda) = semantics.configureBlockRequirement.run { allows() to requires() }
@@ -184,7 +183,7 @@ class FunctionCallResolverImpl(
         if (expectsConfigureLambda) {
             if (lambda != null) {
                 val configureReceiver = when (semantics) {
-                    is AccessAndConfigureFunctionSemantics -> configureReceiverObject(
+                    is FunctionSemanticsImpl.AccessAndConfigure -> configureReceiverObject(
                         semantics,
                         function,
                         call,
@@ -192,8 +191,7 @@ class FunctionCallResolverImpl(
                         newFunctionCallId
                     )
 
-                    is AddAndConfigureFunctionSemantics -> ObjectOrigin.AddAndConfigureReceiver(result)
-                    else -> error("Unhandled function semantics type: $semantics")
+                    is FunctionSemanticsImpl.AddAndConfigure -> ObjectOrigin.AddAndConfigureReceiver(result)
                 }
                 withScope(AnalysisScope(currentScopes.last(), configureReceiver, lambda)) {
                     codeAnalyzer.analyzeStatementsInProgramOrder(this, lambda.block.statements)
@@ -210,18 +208,18 @@ class FunctionCallResolverImpl(
     private
     fun AnalysisContext.doRecordSemanticsSideEffects(
         call: FunctionCall,
-        semantics: FunctionSemantics,
+        semantics: FunctionSemanticsImpl,
         receiver: ObjectOrigin?,
         result: ObjectOrigin.FunctionOrigin,
         function: FunctionResolutionAndBinding,
         argResolutions: Map<FunctionArgument.ValueArgument, ObjectOrigin>
     ) {
-        if (semantics is AddAndConfigureFunctionSemantics) {
+        if (semantics is FunctionSemanticsImpl.AddAndConfigure) {
             require(receiver != null)
             recordAddition(receiver, result)
         }
         val assignmentMethod = when (semantics) {
-            is BuilderFunctionSemantics -> AssignmentMethod.BuilderFunction(function.schemaFunction as DataBuilderFunction)
+            is FunctionSemanticsImpl.Builder -> AssignmentMethod.BuilderFunction(function.schemaFunction as DataBuilderFunction)
             else -> AssignmentMethod.AsConstructed
         }
         function.binding.binding.forEach { (param, arg) ->
@@ -235,11 +233,11 @@ class FunctionCallResolverImpl(
 
     private
     fun checkBuilderSemantics(
-        semantics: FunctionSemantics,
+        semantics: FunctionSemanticsImpl,
         receiver: ObjectOrigin?,
         function: FunctionResolutionAndBinding
     ) {
-        if (semantics is BuilderFunctionSemantics) {
+        if (semantics is FunctionSemanticsImpl.Builder) {
             require(receiver != null)
 
             val parameter = function.schemaFunction.parameters.singleOrNull()
@@ -251,13 +249,13 @@ class FunctionCallResolverImpl(
 
     private
     fun invocationResultObjectOrigin(
-        semantics: FunctionSemantics,
+        semantics: FunctionSemanticsImpl,
         function: FunctionResolutionAndBinding,
         functionCall: FunctionCall,
         valueBinding: ParameterValueBinding,
         newFunctionCallId: Long
     ) = when (semantics) {
-        is BuilderFunctionSemantics -> ObjectOrigin.BuilderReturnedReceiver(
+        is FunctionSemanticsImpl.Builder -> ObjectOrigin.BuilderReturnedReceiver(
             function.schemaFunction,
             checkNotNull(function.receiver),
             functionCall,
@@ -265,11 +263,11 @@ class FunctionCallResolverImpl(
             newFunctionCallId
         )
 
-        is AccessAndConfigureFunctionSemantics -> when (semantics.returnType) {
-            AccessAndConfigureFunctionSemantics.ReturnType.UNIT ->
+        is FunctionSemanticsImpl.AccessAndConfigure -> when (semantics.returnType) {
+            FunctionSemanticsImpl.AccessAndConfigure.ReturnType.UNIT ->
                 newObjectInvocationResult(function, valueBinding, functionCall, newFunctionCallId)
 
-            AccessAndConfigureFunctionSemantics.ReturnType.CONFIGURED_OBJECT ->
+            FunctionSemanticsImpl.AccessAndConfigure.ReturnType.CONFIGURED_OBJECT ->
                 configureReceiverObject(semantics, function, functionCall, valueBinding, newFunctionCallId)
         }
 
@@ -278,7 +276,7 @@ class FunctionCallResolverImpl(
 
     private
     fun configureReceiverObject(
-        semantics: AccessAndConfigureFunctionSemantics,
+        semantics: FunctionSemanticsImpl.AccessAndConfigure,
         function: FunctionResolutionAndBinding,
         functionCall: FunctionCall,
         binding: ParameterValueBinding,
@@ -407,7 +405,7 @@ class FunctionCallResolverImpl(
             args.filterIsInstance<FunctionArgument.ValueArgument>()
         ) ?: return@mapNotNull null
 
-        (candidate.semantics as? FunctionSemantics.ConfigureSemantics)?.let { configureSemantics ->
+        (candidate.semantics as? FunctionSemanticsImpl.ConfigureSemantics)?.let { configureSemantics ->
             if (!configureSemantics.configureBlockRequirement.isValidIfLambdaIsPresent(args.lastOrNull() is FunctionArgument.Lambda)) {
                 return@mapNotNull null
             }

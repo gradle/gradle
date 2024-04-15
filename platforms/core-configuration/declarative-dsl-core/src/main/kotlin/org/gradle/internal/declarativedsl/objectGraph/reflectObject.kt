@@ -1,9 +1,6 @@
 package org.gradle.internal.declarativedsl.objectGraph
 
-import org.gradle.internal.declarativedsl.analysis.AccessAndConfigureFunctionSemantics
-import org.gradle.internal.declarativedsl.analysis.AddAndConfigureFunctionSemantics
 import org.gradle.internal.declarativedsl.analysis.AssignmentMethod
-import org.gradle.internal.declarativedsl.analysis.BuilderFunctionSemantics
 import org.gradle.internal.declarativedsl.analysis.DataAddition
 import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.internal.declarativedsl.analysis.DataClassImpl
@@ -11,9 +8,9 @@ import org.gradle.declarative.dsl.schema.DataParameter
 import org.gradle.declarative.dsl.schema.DataProperty
 import org.gradle.declarative.dsl.schema.DataType
 import org.gradle.declarative.dsl.schema.ExternalObjectProviderKey
+import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsImpl
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
 import org.gradle.internal.declarativedsl.analysis.PropertyReferenceResolution
-import org.gradle.internal.declarativedsl.analysis.PureFunctionSemantics
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 import org.gradle.internal.declarativedsl.analysis.TypeRefContext
 import org.gradle.internal.declarativedsl.analysis.getDataType
@@ -107,8 +104,8 @@ fun reflect(
         is ObjectOrigin.PropertyDefaultValue -> reflectDefaultValue(objectOrigin, context)
         is ObjectOrigin.FunctionInvocationOrigin -> context.functionCall(objectOrigin.invocationId) {
             val semantics = objectOrigin.function.semantics
-            when (semantics) {
-                is AddAndConfigureFunctionSemantics -> {
+            when (semantics as FunctionSemanticsImpl) {
+                is FunctionSemanticsImpl.AddAndConfigure -> {
                     if (type.isUnit) {
                         ObjectReflection.AddedByUnitInvocation(objectOrigin)
                     } else {
@@ -121,20 +118,19 @@ fun reflect(
                     }
                 }
 
-                is PureFunctionSemantics -> ObjectReflection.PureFunctionInvocation(
+                is FunctionSemanticsImpl.Pure -> ObjectReflection.PureFunctionInvocation(
                     type,
                     objectOrigin,
                     objectOrigin.parameterBindings.bindingMap.mapValues { reflect(it.value, context) }
                 )
 
-                is AccessAndConfigureFunctionSemantics -> {
+                is FunctionSemanticsImpl.AccessAndConfigure -> {
                     when (objectOrigin) {
                         is ObjectOrigin.AccessAndConfigureReceiver -> reflect(objectOrigin.delegate, context)
                         else -> error("unexpected origin type")
                     }
                 }
-                is BuilderFunctionSemantics -> error("can't appear here")
-                else -> error("Unhandled function semantics type: $semantics")
+                is FunctionSemanticsImpl.Builder -> error("can't appear here")
             }
         }
 

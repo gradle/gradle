@@ -21,11 +21,8 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
-import org.gradle.internal.declarativedsl.analysis.AccessAndConfigureFunctionSemantics
-import org.gradle.internal.declarativedsl.analysis.AddAndConfigureFunctionSemantics
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.internal.declarativedsl.analysis.AnalysisSchemaImpl
-import org.gradle.internal.declarativedsl.analysis.BuilderFunctionSemantics
 import org.gradle.internal.declarativedsl.analysis.DataBuilderFunction
 import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.internal.declarativedsl.analysis.DataClassImpl
@@ -39,11 +36,11 @@ import org.gradle.internal.declarativedsl.analysis.DataTypeRefTypeImpl
 import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.declarative.dsl.schema.DataType
 import org.gradle.declarative.dsl.schema.FqName
-import org.gradle.internal.declarativedsl.analysis.FqNameImpl
 import org.gradle.declarative.dsl.schema.FunctionSemantics
+import org.gradle.internal.declarativedsl.analysis.FqNameImpl
 import org.gradle.declarative.dsl.schema.ParameterSemantics
-import org.gradle.internal.declarativedsl.analysis.PureFunctionSemantics
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
+import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsImpl
 import org.gradle.internal.declarativedsl.analysis.StoreValueInPropertyParameterSemantics
 import org.gradle.internal.declarativedsl.analysis.UnknownParameterSemantics
 import org.gradle.internal.declarativedsl.language.BooleanDataType
@@ -83,11 +80,11 @@ object SchemaSerialization {
             polymorphic(FqName::class) {
                 subclass(FqNameImpl::class)
             }
-            polymorphic(FunctionSemantics::class) {
-                subclass(AccessAndConfigureFunctionSemantics::class)
-                subclass(AddAndConfigureFunctionSemantics::class)
-                subclass(PureFunctionSemantics::class)
-                subclass(BuilderFunctionSemantics::class)
+            polymorphic(FunctionSemantics::class) { // TODO: this should not be needed
+                subclass(FunctionSemanticsImpl.AccessAndConfigure::class)
+                subclass(FunctionSemanticsImpl.AddAndConfigure::class)
+                subclass(FunctionSemanticsImpl.Pure::class)
+                subclass(FunctionSemanticsImpl.Builder::class)
             }
             polymorphic(ParameterSemantics::class) {
                 subclass(StoreValueInPropertyParameterSemantics::class)

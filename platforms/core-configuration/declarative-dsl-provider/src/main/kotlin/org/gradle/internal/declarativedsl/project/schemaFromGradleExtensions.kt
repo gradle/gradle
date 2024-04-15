@@ -24,10 +24,10 @@ import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.toDataTypeRef
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.declarative.dsl.model.annotations.Restricted
-import org.gradle.internal.declarativedsl.analysis.AccessAndConfigureFunctionSemantics
 import org.gradle.declarative.dsl.schema.DataConstructor
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.analysis.ConfigureAccessorImpl
+import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsImpl
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaComponent
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
@@ -92,9 +92,9 @@ data class ExtensionInfo(
         name,
         emptyList(),
         isDirectAccessOnly = true,
-        semantics = AccessAndConfigureFunctionSemantics(
+        semantics = FunctionSemanticsImpl.AccessAndConfigure(
             accessor = ConfigureAccessorImpl.Custom(type.toDataTypeRef(), customAccessorId),
-            AccessAndConfigureFunctionSemantics.ReturnType.UNIT
+            FunctionSemanticsImpl.AccessAndConfigure.ReturnType.UNIT
         )
     )
 }
