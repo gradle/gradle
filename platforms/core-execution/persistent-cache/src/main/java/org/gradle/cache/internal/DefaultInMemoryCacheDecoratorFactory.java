@@ -75,7 +75,7 @@ public class DefaultInMemoryCacheDecoratorFactory implements InMemoryCacheDecora
     }
 
     private static Cache<Object, Object> createInMemoryCache(String cacheId, int maxSize) {
-        LoggingEvictionListener evictionListener = new LoggingEvictionListener(cacheId, maxSize);
+        LoggingEvictionListener evictionListener = new LoggingEvictionListener(cacheId, maxSize, LOG);
         final CacheBuilder<Object, Object> cacheBuilder = CacheBuilder.newBuilder().maximumSize(maxSize).recordStats().removalListener(evictionListener);
         Cache<Object, Object> inMemoryCache = cacheBuilder.build();
         evictionListener.setCache(inMemoryCache);
