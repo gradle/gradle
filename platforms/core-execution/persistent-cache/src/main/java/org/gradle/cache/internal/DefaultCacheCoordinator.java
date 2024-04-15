@@ -59,9 +59,6 @@ import static org.gradle.cache.FileLockManager.LockMode.Exclusive;
 @ThreadSafe
 public class DefaultCacheCoordinator implements CacheCreationCoordinator, ExclusiveCacheAccessCoordinator {
     private final static Logger LOG = LoggerFactory.getLogger(DefaultCacheCoordinator.class);
-    private final static Runnable NO_OP = () -> {
-        // Empty initial operation to trigger onStartWork calls
-    };
 
     private final String cacheDisplayName;
     private final File baseDir;
@@ -321,7 +318,9 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
                 if (decorator != null) {
                     indexedCache = decorator.decorate(cacheFile.getAbsolutePath(), parameters.getCacheName(), indexedCache, crossProcessCacheAccess, getCacheAccessWorker());
                     if (fileLock == null) {
-                        useCache(NO_OP);
+                        useCache(() -> {
+                            // Empty initial operation to trigger onStartWork calls
+                        });
                     }
                 }
                 entry = new IndexedCacheEntry<>(parameters, indexedCache);
