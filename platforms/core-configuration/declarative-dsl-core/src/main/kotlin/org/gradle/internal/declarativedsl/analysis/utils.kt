@@ -1,6 +1,5 @@
 package org.gradle.internal.declarativedsl.analysis
 
-import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.internal.declarativedsl.language.DataTypeImpl
 import org.gradle.internal.declarativedsl.language.LanguageTreeElement
 import kotlin.contracts.ExperimentalContracts
@@ -27,7 +26,7 @@ internal
 fun checkIsAssignable(valueType: DataTypeImpl, isAssignableTo: DataTypeImpl): Boolean {
     return when (isAssignableTo) {
         is DataTypeImpl.ConstantType<*> -> valueType == isAssignableTo
-        is DataClass -> valueType is DataClass && (isAssignableTo == valueType || isAssignableTo.name in valueType.supertypes)
+        is DataClassImpl -> valueType is DataClassImpl && (isAssignableTo == valueType || isAssignableTo.name in valueType.supertypes)
         DataTypeImpl.NullType -> false // TODO: proper null type support
         DataTypeImpl.UnitType -> valueType == DataTypeImpl.UnitType
         else -> error("Unhandled data type: ${isAssignableTo.javaClass.simpleName}")

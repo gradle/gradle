@@ -28,7 +28,6 @@ import org.gradle.declarative.dsl.schema.DataParameter
 import org.gradle.internal.declarativedsl.analysis.DataParameterImpl
 import org.gradle.declarative.dsl.schema.DataTopLevelFunction
 import org.gradle.internal.declarativedsl.analysis.DataTopLevelFunctionImpl
-import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.declarative.dsl.schema.FunctionSemantics.ConfigureBlockRequirement.NOT_ALLOWED
 import org.gradle.declarative.dsl.schema.FunctionSemantics.ConfigureBlockRequirement.OPTIONAL
 import org.gradle.declarative.dsl.schema.FunctionSemantics.ConfigureBlockRequirement.REQUIRED
@@ -195,7 +194,7 @@ class DefaultFunctionExtractor(
         function: KFunction<*>,
         fnParam: KParameter,
         returnClass: KClass<*>,
-        functionSemantics: FunctionSemantics,
+        functionSemantics: FunctionSemanticsImpl,
         preIndex: DataSchemaBuilder.PreIndex
     ): DataParameter {
         val paramType = fnParam.type
@@ -206,7 +205,7 @@ class DefaultFunctionExtractor(
 
     private
     fun getParameterSemantics(
-        functionSemantics: FunctionSemantics,
+        functionSemantics: FunctionSemanticsImpl,
         function: KFunction<*>,
         fnParam: KParameter,
         returnClass: KClass<*>,

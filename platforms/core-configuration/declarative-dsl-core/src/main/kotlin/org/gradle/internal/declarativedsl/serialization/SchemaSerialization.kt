@@ -24,20 +24,14 @@ import kotlinx.serialization.modules.subclass
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.internal.declarativedsl.analysis.AnalysisSchemaImpl
 import org.gradle.internal.declarativedsl.analysis.DataBuilderFunction
-import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.internal.declarativedsl.analysis.DataMemberFunction
 import org.gradle.declarative.dsl.schema.DataParameter
 import org.gradle.internal.declarativedsl.analysis.DataParameterImpl
 import org.gradle.declarative.dsl.schema.DataProperty
 import org.gradle.internal.declarativedsl.analysis.DataPropertyImpl
-import org.gradle.declarative.dsl.schema.DataTypeRef
-import org.gradle.declarative.dsl.schema.DataType
 import org.gradle.declarative.dsl.schema.FqName
-import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.internal.declarativedsl.analysis.FqNameImpl
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
-import org.gradle.internal.declarativedsl.analysis.DataTypeRefImpl
-import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsImpl
 import org.gradle.internal.declarativedsl.language.DataTypeImpl
 
 
@@ -46,20 +40,13 @@ object SchemaSerialization {
     private
     val json = Json {
         serializersModule = SerializersModule {
-            polymorphic(DataType::class) { // TODO: this should not be needed
+            polymorphic(DataTypeImpl::class) {
                 subclass(DataTypeImpl.IntType::class)
                 subclass(DataTypeImpl.LongType::class)
                 subclass(DataTypeImpl.StringType::class)
                 subclass(DataTypeImpl.BooleanType::class)
                 subclass(DataTypeImpl.NullType::class)
                 subclass(DataTypeImpl.UnitType::class)
-            }
-            polymorphic(DataTypeRef::class) { // TODO: this should not be needed
-                subclass(DataTypeRefImpl.Name::class)
-                subclass(DataTypeRefImpl.Type::class)
-            }
-            polymorphic(DataClass::class) { // TODO: this should not be needed
-                subclass(DataTypeImpl.DataClassImpl::class)
             }
             polymorphic(DataParameter::class) {
                 subclass(DataParameterImpl::class)
@@ -69,12 +56,6 @@ object SchemaSerialization {
             }
             polymorphic(FqName::class) {
                 subclass(FqNameImpl::class)
-            }
-            polymorphic(FunctionSemantics::class) { // TODO: this should not be needed
-                subclass(FunctionSemanticsImpl.AccessAndConfigure::class)
-                subclass(FunctionSemanticsImpl.AddAndConfigure::class)
-                subclass(FunctionSemanticsImpl.Pure::class)
-                subclass(FunctionSemanticsImpl.Builder::class)
             }
             polymorphic(SchemaMemberFunction::class) {
                 subclass(DataMemberFunction::class)

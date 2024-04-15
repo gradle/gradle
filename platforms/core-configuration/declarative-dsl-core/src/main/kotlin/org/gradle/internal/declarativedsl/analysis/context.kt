@@ -65,7 +65,7 @@ interface AnalysisContextView : TypeRefContext {
 class SchemaTypeRefContext(val schema: AnalysisSchema) : TypeRefContext {
     override fun resolveRef(dataTypeRef: DataTypeRef): DataTypeImpl =
         when (dataTypeRef.isNamed) {
-            true -> schema.dataClassesByFqName.getValue(dataTypeRef.fqName) as DataTypeImpl.DataClassImpl
+            true -> schema.dataClassesByFqName.getValue(dataTypeRef.fqName) as DataClassImpl
             false -> dataTypeRef.dataType as DataTypeImpl
         }
 }

@@ -1,6 +1,5 @@
 package org.gradle.internal.declarativedsl.analysis
 
-import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.DataParameter
 import org.gradle.declarative.dsl.schema.SchemaFunction
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
@@ -298,7 +297,7 @@ class FunctionCallResolverImpl(
         functionCall: FunctionCall,
         argResolution: Map<FunctionArgument.ValueArgument, ObjectOrigin>,
     ): List<FunctionResolutionAndBinding> {
-        val receiverType = getDataType(receiver) as? DataClass
+        val receiverType = getDataType(receiver) as? DataClassImpl
             ?: return emptyList()
         val functionName = functionCall.name
         val matchingMembers = receiverType.memberFunctions.filter { it.simpleName == functionName }
@@ -373,20 +372,20 @@ class FunctionCallResolverImpl(
                 val fqn = FqNameImpl(receiverAsChain.nameParts.joinToString("."), functionCall.name)
                 val typeByFqn = schema.dataClassesByFqName[fqn]
                 if (typeByFqn != null) {
-                    add(typeByFqn as DataTypeImpl.DataClassImpl)
+                    add(typeByFqn as DataClassImpl)
                 }
             } else if (functionCall.receiver == null) {
                 val importedName = imports[functionCall.name]
                 if (importedName != null) {
                     val maybeType = schema.dataClassesByFqName[importedName]
                     if (maybeType != null) {
-                        add(maybeType as DataTypeImpl.DataClassImpl)
+                        add(maybeType as DataClassImpl)
                     }
                 }
             }
         }
         val constructors = candidateTypes
-            .flatMap { (it as? DataClass)?.constructors.orEmpty() }
+            .flatMap { (it as? DataClassImpl)?.constructors.orEmpty() }
             .filter { it.parameters.size == functionCall.args.size }
 
         return chooseMatchingOverloads(null, constructors, functionCall.args, argResolution)
@@ -429,7 +428,7 @@ class FunctionCallResolverImpl(
         }
         checkIsAssignable(
             getDataType(argResolution.getValue(arg)),
-            resolveRef(param.type as DataTypeRefImpl)
+            resolveRef(param.type)
         )
     }
 

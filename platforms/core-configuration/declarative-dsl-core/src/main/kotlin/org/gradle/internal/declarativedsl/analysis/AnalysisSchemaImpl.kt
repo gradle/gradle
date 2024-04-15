@@ -9,7 +9,6 @@ import org.gradle.declarative.dsl.schema.DataConstructor
 import org.gradle.declarative.dsl.schema.DataParameter
 import org.gradle.declarative.dsl.schema.DataProperty
 import org.gradle.declarative.dsl.schema.DataTopLevelFunction
-import org.gradle.declarative.dsl.schema.DataType
 import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.declarative.dsl.schema.ExternalObjectProviderKey
 import org.gradle.declarative.dsl.schema.FqName
@@ -21,21 +20,49 @@ import org.gradle.internal.declarativedsl.language.DataTypeImpl
 
 @Serializable
 data class AnalysisSchemaImpl(
-    private val topLevelReceiverType: DataClass,
-    private val dataClassesByFqName: Map<FqName, DataClass>,
+    private val topLevelReceiverType: DataClassImpl,
+    private val dataClassesByFqName: Map<FqName, DataClassImpl>,
     private val externalFunctionsByFqName: Map<FqName, DataTopLevelFunction>,
     private val externalObjectsByFqName: Map<FqName, ExternalObjectProviderKey>,
     private val defaultImports: Set<FqName>
 ) : AnalysisSchema {
-    override fun getTopLevelReceiverType(): DataClass = topLevelReceiverType
+    override fun getTopLevelReceiverType(): DataClassImpl = topLevelReceiverType
 
-    override fun getDataClassesByFqName(): Map<FqName, DataClass> = dataClassesByFqName
+    override fun getDataClassesByFqName(): Map<FqName, DataClassImpl> = dataClassesByFqName
 
     override fun getExternalFunctionsByFqName(): Map<FqName, DataTopLevelFunction> = externalFunctionsByFqName
 
     override fun getExternalObjectsByFqName(): Map<FqName, ExternalObjectProviderKey> = externalObjectsByFqName
 
     override fun getDefaultImports(): Set<FqName> = defaultImports
+}
+
+
+@Serializable
+@SerialName("data")
+data class DataClassImpl(
+    private val name: FqName,
+    private val supertypes: Set<FqName>,
+    private val properties: List<DataProperty>,
+    private val memberFunctions: List<SchemaMemberFunction>,
+    private val constructors: List<DataConstructor>
+) : DataClass, DataTypeImpl {
+
+    override fun isClass(): Boolean = true
+
+    override fun getDataClass(): DataClassImpl = this
+
+    override fun getName(): FqName = name
+
+    override fun getSupertypes(): Set<FqName> = supertypes
+
+    override fun getProperties(): List<DataProperty> = properties
+
+    override fun getMemberFunctions(): List<SchemaMemberFunction> = memberFunctions
+
+    override fun getConstructors(): List<DataConstructor> = constructors
+
+    override fun toString(): String = name.simpleName
 }
 
 
@@ -51,7 +78,7 @@ data class DataPropertyImpl(
 ) : DataProperty {
     override fun getName(): String = name
 
-    override fun getType(): DataTypeRef = type
+    override fun getType(): DataTypeRefImpl = type
 
     override fun getMode(): DataProperty.PropertyMode = mode
 
@@ -83,11 +110,11 @@ data class DataBuilderFunction(
 
     override fun getParameters(): List<DataParameter> = internalParameters
 
-    override fun getSemantics(): FunctionSemantics = internalSemantics
+    override fun getSemantics(): FunctionSemanticsImpl = internalSemantics
 
-    override fun getReturnValueType(): DataTypeRef = internalSemantics.returnValueType
+    override fun getReturnValueType(): DataTypeRefImpl = internalSemantics.returnValueType as DataTypeRefImpl
 
-    override fun getReceiver(): DataTypeRef = receiver
+    override fun getReceiver(): DataTypeRefImpl = receiver
 
     override fun isDirectAccessOnly(): Boolean = isDirectAccessOnly
 }
@@ -106,9 +133,9 @@ data class DataTopLevelFunctionImpl(
 
     override fun getParameters(): List<DataParameter> = parameters
 
-    override fun getSemantics(): FunctionSemantics = semantics
+    override fun getSemantics(): FunctionSemanticsImpl = semantics
 
-    override fun getReturnValueType(): DataTypeRef = semantics.returnValueType
+    override fun getReturnValueType(): DataTypeRefImpl = semantics.returnValueType
 }
 
 
@@ -118,17 +145,17 @@ data class DataMemberFunction(
     private val simpleName: String,
     private val parameters: List<DataParameter>,
     private val isDirectAccessOnly: Boolean,
-    private val semantics: FunctionSemantics,
+    private val semantics: FunctionSemanticsImpl,
 ) : SchemaMemberFunction {
     override fun getSimpleName(): String = simpleName
 
     override fun getParameters(): List<DataParameter> = parameters
 
-    override fun getSemantics(): FunctionSemantics = semantics
+    override fun getSemantics(): FunctionSemanticsImpl = semantics
 
-    override fun getReturnValueType(): DataTypeRef = semantics.returnValueType
+    override fun getReturnValueType(): DataTypeRefImpl = semantics.returnValueType as DataTypeRefImpl
 
-    override fun getReceiver(): DataTypeRef = receiver
+    override fun getReceiver(): DataTypeRefImpl = receiver
 
     override fun isDirectAccessOnly(): Boolean = isDirectAccessOnly
 }
@@ -146,11 +173,11 @@ data class DataConstructorImpl(
 
     override fun getParameters(): List<DataParameter> = parameters
 
-    override fun getSemantics(): FunctionSemantics = internalSemantics
+    override fun getSemantics(): FunctionSemanticsImpl = internalSemantics
 
-    override fun getReturnValueType(): DataTypeRef = internalSemantics.returnValueType
+    override fun getReturnValueType(): DataTypeRefImpl = internalSemantics.returnValueType as DataTypeRefImpl
 
-    override fun getDataClass(): DataTypeRef = dataClass
+    override fun getDataClass(): DataTypeRefImpl = dataClass
 }
 
 
@@ -164,7 +191,7 @@ data class DataParameterImpl(
 ) : DataParameter {
     override fun getName(): String? = name
 
-    override fun getType(): DataTypeRef = type
+    override fun getType(): DataTypeRefImpl = type
 
     override fun isDefault(): Boolean = isDefault
 
@@ -201,7 +228,7 @@ sealed interface FunctionSemanticsImpl : FunctionSemantics {
 
     @Serializable
     class Builder(private val objectType: DataTypeRefImpl) : FunctionSemanticsImpl {
-        override fun getReturnValueType(): DataTypeRef = objectType
+        override fun getReturnValueType(): DataTypeRefImpl = objectType
     }
 
     @Serializable
@@ -213,14 +240,14 @@ sealed interface FunctionSemanticsImpl : FunctionSemantics {
             UNIT, CONFIGURED_OBJECT
         }
 
-        override fun getReturnValueType(): DataTypeRef =
+        override fun getReturnValueType(): DataTypeRefImpl =
             when (returnType) {
                 ReturnType.UNIT -> DataTypeImpl.UnitType.ref
-                ReturnType.CONFIGURED_OBJECT -> accessor.objectType
+                ReturnType.CONFIGURED_OBJECT -> accessor.objectType as DataTypeRefImpl
             }
 
-        override fun getConfiguredType(): DataTypeRef =
-            if (returnType == ReturnType.CONFIGURED_OBJECT) returnValueType else accessor.objectType
+        override fun getConfiguredType(): DataTypeRefImpl =
+            if (returnType == ReturnType.CONFIGURED_OBJECT) returnValueType else accessor.objectType as DataTypeRefImpl
 
         override fun getConfigureBlockRequirement(): FunctionSemantics.ConfigureBlockRequirement =
             FunctionSemantics.ConfigureBlockRequirement.REQUIRED
@@ -231,16 +258,16 @@ sealed interface FunctionSemanticsImpl : FunctionSemantics {
         private val objectType: DataTypeRefImpl,
         private val configureBlockRequirement: FunctionSemantics.ConfigureBlockRequirement
     ) : NewObjectFunctionSemantics, ConfigureSemantics {
-        override fun getReturnValueType(): DataTypeRef = objectType
+        override fun getReturnValueType(): DataTypeRefImpl = objectType
 
-        override fun getConfiguredType(): DataTypeRef = objectType
+        override fun getConfiguredType(): DataTypeRefImpl = objectType
 
         override fun getConfigureBlockRequirement(): FunctionSemantics.ConfigureBlockRequirement = configureBlockRequirement
     }
 
     @Serializable
     class Pure(private val returnValueType: DataTypeRefImpl) : NewObjectFunctionSemantics {
-        override fun getReturnValueType(): DataTypeRef = returnValueType
+        override fun getReturnValueType(): DataTypeRefImpl = returnValueType
     }
 }
 
@@ -255,7 +282,7 @@ sealed interface ConfigureAccessorImpl : ConfigureAccessor {
         private val dataProperty: DataProperty
     ) : ConfigureAccessorImpl {
 
-        override fun getObjectType(): DataTypeRef = dataProperty.type
+        override fun getObjectType(): DataTypeRefImpl = dataProperty.type as DataTypeRefImpl
 
         override fun access(objectOrigin: ObjectOrigin, inFunction: ObjectOrigin.AccessAndConfigureReceiver): ObjectOrigin =
             ObjectOrigin.PropertyReference(objectOrigin, dataProperty, objectOrigin.originElement)
@@ -267,7 +294,7 @@ sealed interface ConfigureAccessorImpl : ConfigureAccessor {
         val customAccessorIdentifier: String
     ) : ConfigureAccessorImpl {
 
-        override fun getObjectType(): DataTypeRef = objectType
+        override fun getObjectType(): DataTypeRefImpl = objectType
 
         override fun access(objectOrigin: ObjectOrigin, inFunction: ObjectOrigin.AccessAndConfigureReceiver): ObjectOrigin =
             ObjectOrigin.CustomConfigureAccessor(objectOrigin, this, objectOrigin.originElement)
@@ -278,7 +305,7 @@ sealed interface ConfigureAccessorImpl : ConfigureAccessor {
         private val objectType: DataTypeRefImpl
     ) : ConfigureAccessorImpl {
 
-        override fun getObjectType(): DataTypeRef = objectType
+        override fun getObjectType(): DataTypeRefImpl = objectType
 
         override fun access(objectOrigin: ObjectOrigin, inFunction: ObjectOrigin.AccessAndConfigureReceiver): ObjectOrigin =
             ObjectOrigin.ConfiguringLambdaReceiver(inFunction.function, inFunction.parameterBindings, inFunction.invocationId, objectType, inFunction.originElement, inFunction.receiver)
@@ -320,17 +347,17 @@ val DataTopLevelFunction.fqName: FqName
 data class ExternalObjectProviderKeyImpl(
     private val type: DataTypeRefImpl
 ) : ExternalObjectProviderKey {
-    override fun getType(): DataTypeRef = type
+    override fun getType(): DataTypeRefImpl = type
 }
 
 
 @Serializable
 sealed interface DataTypeRefImpl : DataTypeRef {
     @Serializable
-    data class Type(private val dataType: DataType) : DataTypeRefImpl {
+    data class Type(private val dataType: DataTypeImpl) : DataTypeRefImpl {
         override fun isNamed(): Boolean = false
 
-        override fun getDataType(): DataType = dataType
+        override fun getDataType(): DataTypeImpl = dataType
 
         override fun getFqName(): FqName {
             throw UnsupportedOperationException("Not a reference to a named data type")
@@ -343,7 +370,7 @@ sealed interface DataTypeRefImpl : DataTypeRef {
 
         override fun getFqName(): FqName = fqName
 
-        override fun getDataType(): DataType {
+        override fun getDataType(): DataTypeImpl {
             throw UnsupportedOperationException("Data type only available as a name")
         }
     }
