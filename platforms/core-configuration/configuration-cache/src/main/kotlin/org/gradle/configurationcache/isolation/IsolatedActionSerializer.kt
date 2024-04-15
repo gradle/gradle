@@ -17,6 +17,7 @@
 package org.gradle.configurationcache.isolation
 
 import org.gradle.api.IsolatedAction
+import org.gradle.configurationcache.ConfigurationCacheError
 import org.gradle.configurationcache.extensions.invert
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.extensions.useToRun
@@ -177,6 +178,7 @@ class EnvironmentDecoder(
 private
 object ThrowingProblemsListener : ProblemsListener {
     override fun onProblem(problem: PropertyProblem) {
-        TODO("Not yet implemented: $problem")
+        // TODO: consider throwing more specific exception
+        throw ConfigurationCacheError("Failed to isolate 'GradleLifecycle' action: ${problem.message}")
     }
 }

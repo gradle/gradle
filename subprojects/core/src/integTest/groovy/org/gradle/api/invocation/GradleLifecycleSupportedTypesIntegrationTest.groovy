@@ -31,7 +31,7 @@ import java.util.logging.Level
 
 class GradleLifecycleSupportedTypesIntegrationTest extends AbstractIntegrationSpec {
 
-    def "lifecycle callback can carry instances of #type"() {
+    def "lifecycle action can carry instances of #type"() {
         given:
         settingsFile << """
             import java.util.concurrent.*
@@ -122,7 +122,7 @@ class GradleLifecycleSupportedTypesIntegrationTest extends AbstractIntegrationSp
         "RegularFile"                        | "layout.rootDirectory.file('bar.txt')"    | { it.file("bar.txt") }
     }
 
-    def "lifecycle callback can carry service of type #type"() {
+    def "lifecycle action can carry service of type #type"() {
         settingsFile << """
             class SomeBean {
                 ${type} value
@@ -159,7 +159,7 @@ class GradleLifecycleSupportedTypesIntegrationTest extends AbstractIntegrationSp
         ListenerManager.name             | "services.get(${ListenerManager.name})"             | "toString()"
     }
 
-    def "lifecycle callback can carry provider of type #type"() {
+    def "lifecycle action can carry provider of type #type"() {
         settingsFile << """
             import ${Inject.name}
 
@@ -199,7 +199,7 @@ class GradleLifecycleSupportedTypesIntegrationTest extends AbstractIntegrationSp
         "Provider<String>" | "objects.property(String)"                | "null"
     }
 
-    def "lifecycle callback can carry property of type #type"() {
+    def "lifecycle action can carry property of type #type"() {
         settingsFile << """
             import ${Inject.name}
 
