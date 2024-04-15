@@ -18,6 +18,7 @@ dependencies {
     api(libs.jsr305)
     api(libs.groovy)
 
+    implementation(projects.javaLanguageExtensions)
     implementation(project(":core-api"))
 
     implementation(libs.guava)
