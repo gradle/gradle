@@ -29,6 +29,7 @@ dependencies {
 
     testImplementation(libs.mockitoKotlin2)
 
+    implementation(projects.javaLanguageExtensions)
     implementation(project(":resources"))
     implementation(project(":model-core"))
 

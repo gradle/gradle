@@ -13,6 +13,7 @@ dependencies {
 
     api(libs.inject)
 
+    implementation(projects.javaLanguageExtensions)
     implementation(project(":base-services"))
     implementation(project(":diagnostics"))
     implementation(project(":execution"))

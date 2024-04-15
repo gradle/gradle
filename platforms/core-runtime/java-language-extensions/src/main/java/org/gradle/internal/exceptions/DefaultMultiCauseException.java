@@ -18,10 +18,14 @@ package org.gradle.internal.exceptions;
 import org.gradle.api.GradleException;
 import org.gradle.internal.Factory;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.io.PrintWriter;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -70,7 +74,8 @@ public class DefaultMultiCauseException extends GradleException implements Multi
     }
 
     private void writeObject(java.io.ObjectOutputStream out) throws IOException {
-        getMessage();
+        // Ensure fields are initialized before serialization
+        String ignored = getMessage();
         out.defaultWriteObject();
     }
 
@@ -102,7 +107,7 @@ public class DefaultMultiCauseException extends GradleException implements Multi
     }
 
     @Override
-    public Throwable initCause(Throwable throwable) {
+    public synchronized Throwable initCause(Throwable throwable) {
         causes.clear();
         causes.add(throwable);
         return null;
@@ -116,13 +121,14 @@ public class DefaultMultiCauseException extends GradleException implements Multi
     }
 
     @Override
-    public Throwable getCause() {
+    public synchronized Throwable getCause() {
         if (hideCause.get()) {
             return null;
         }
         return causes.isEmpty() ? null : causes.get(0);
     }
 
+    @SuppressWarnings("DefaultCharset")
     @Override
     public void printStackTrace(PrintStream printStream) {
         PrintWriter writer = new PrintWriter(printStream);
