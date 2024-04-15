@@ -17,7 +17,7 @@
 package org.gradle.internal.enterprise
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
+import org.gradle.plugin.management.internal.autoapply.AutoAppliedDevelocityPlugin
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.internal.ToBeImplemented
@@ -29,7 +29,7 @@ import static org.gradle.internal.enterprise.GradleEnterprisePluginConfig.BuildS
 import static org.gradle.internal.enterprise.GradleEnterprisePluginConfig.BuildScanRequest.REQUESTED
 import static org.gradle.internal.enterprise.GradleEnterprisePluginConfig.BuildScanRequest.SUPPRESSED
 
-class GradleEnterprisePluginConfigIntegrationTest extends AbstractIntegrationSpec {
+class DevelocityPluginConfigIntegrationTest extends AbstractIntegrationSpec {
 
     def plugin = new DevelocityPluginCheckInFixture(testDirectory, mavenRepo, createExecuter())
 
@@ -107,7 +107,7 @@ class GradleEnterprisePluginConfigIntegrationTest extends AbstractIntegrationSpe
         where:
         groupId                                 | artifactId
         'com.gradle'                            | 'develocity-gradle-plugin'
-        AutoAppliedGradleEnterprisePlugin.ID.id | "${AutoAppliedGradleEnterprisePlugin.ID.id}.gradle.plugin"
+        AutoAppliedDevelocityPlugin.ID.id | "${AutoAppliedDevelocityPlugin.ID.id}.gradle.plugin"
     }
 
     def "is auto-applied when --scan is used despite init script"() {

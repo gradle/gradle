@@ -24,7 +24,7 @@ import org.gradle.internal.scopeids.id.UserScopeId
 import org.gradle.internal.scopeids.id.WorkspaceScopeId
 import org.gradle.internal.time.Clock
 
-class GradleEnterprisePluginBuildStateIntegrationTest extends AbstractIntegrationSpec {
+class DevelocityPluginBuildStateIntegrationTest extends AbstractIntegrationSpec {
 
     def plugin = new DevelocityPluginCheckInFixture(testDirectory, mavenRepo, createExecuter())
 

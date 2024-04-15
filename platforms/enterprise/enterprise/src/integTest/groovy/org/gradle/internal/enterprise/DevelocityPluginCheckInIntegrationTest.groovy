@@ -30,7 +30,7 @@ import static org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginC
 import static org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE
 import static org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE_MESSAGE
 
-class GradleEnterprisePluginCheckInIntegrationTest extends AbstractIntegrationSpec {
+class DevelocityPluginCheckInIntegrationTest extends AbstractIntegrationSpec {
 
     def plugin = new DevelocityPluginCheckInFixture(testDirectory, mavenRepo, createExecuter())
 

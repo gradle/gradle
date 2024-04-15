@@ -18,9 +18,9 @@ package org.gradle.internal.scan.config.fixtures
 
 import spock.lang.Specification
 
-import static org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin.VERSION
+import static org.gradle.plugin.management.internal.autoapply.AutoAppliedDevelocityPlugin.VERSION
 
-class ApplyGradleEnterprisePluginFixtureTest extends Specification {
+class ApplyDevelocityPluginFixtureTest extends Specification {
 
     def "no special blocks"() {
         given:
@@ -29,7 +29,7 @@ class ApplyGradleEnterprisePluginFixtureTest extends Specification {
         file.deleteOnExit()
 
         when:
-        ApplyGradleEnterprisePluginFixture.applyEnterprisePlugin(file)
+        ApplyDevelocityPluginFixture.applyDevelocityPlugin(file)
 
 
         then:
@@ -53,7 +53,7 @@ class ApplyGradleEnterprisePluginFixtureTest extends Specification {
         file.deleteOnExit()
 
         when:
-        ApplyGradleEnterprisePluginFixture.applyEnterprisePlugin(file)
+        ApplyDevelocityPluginFixture.applyDevelocityPlugin(file)
 
 
         then:

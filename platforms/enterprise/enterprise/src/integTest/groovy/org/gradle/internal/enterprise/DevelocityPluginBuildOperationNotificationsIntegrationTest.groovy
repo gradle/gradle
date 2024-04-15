@@ -16,46 +16,32 @@
 
 package org.gradle.internal.enterprise
 
-import org.gradle.api.internal.tasks.userinput.UserInputHandler
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.logging.text.StyledTextOutputFactory
 
-class GradleEnterprisePluginRequiredServicesIntegrationTest extends AbstractIntegrationSpec {
+class DevelocityPluginBuildOperationNotificationsIntegrationTest extends AbstractIntegrationSpec {
 
     def plugin = new DevelocityPluginCheckInFixture(testDirectory, mavenRepo, createExecuter())
 
     def setup() {
         settingsFile << plugin.pluginManagement() << plugin.plugins()
         plugin.publishDummyPlugin(executer)
+        buildFile << """
+            task t
+        """
     }
 
-    def "required services are correct"() {
-        given:
-        buildFile << """
-            def serviceRef = gradle.extensions.serviceRef
-            task check {
-                doLast {
-                    def service = serviceRef.get()
-                    def requiredServices = service._requiredServices
-
-                    assert requiredServices.userInputHandler.is(services.get(${UserInputHandler.name}))
-                    assert requiredServices.styledTextOutputFactory.is(services.get(${StyledTextOutputFactory.name}))
-                    assert requiredServices.backgroundJobExecutors.is(services.get(${GradleEnterprisePluginBackgroundJobExecutors.name}))
-                }
-            }
-        """
-
+    def "receives build operation notifications"() {
         when:
-        succeeds("check")
+        succeeds "t"
 
         then:
-        executed(":check")
+        plugin.receivedBuildOperationNotifications(output)
 
         when:
-        succeeds("check")
+        succeeds "t"
 
         then:
-        executed(":check")
+        plugin.receivedBuildOperationNotifications(output)
     }
 
 }
