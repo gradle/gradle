@@ -1,9 +1,9 @@
 package org.gradle.internal.declarativedsl.analysis
 
 import org.gradle.declarative.dsl.schema.AnalysisSchema
-import org.gradle.declarative.dsl.schema.DataType
 import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.declarative.dsl.schema.FqName
+import org.gradle.internal.declarativedsl.language.DataTypeImpl
 import org.gradle.internal.declarativedsl.language.LanguageTreeElement
 import org.gradle.internal.declarativedsl.language.LocalValue
 import java.util.concurrent.atomic.AtomicLong
@@ -50,7 +50,7 @@ class AnalysisScope(
 
 
 interface TypeRefContext {
-    fun resolveRef(dataTypeRef: DataTypeRef): DataType
+    fun resolveRef(dataTypeRef: DataTypeRef): DataTypeImpl
 }
 
 
@@ -63,10 +63,11 @@ interface AnalysisContextView : TypeRefContext {
 
 
 class SchemaTypeRefContext(val schema: AnalysisSchema) : TypeRefContext {
-    override fun resolveRef(dataTypeRef: DataTypeRef): DataType = when (dataTypeRef.isNamed) {
-        true -> schema.dataClassesByFqName.getValue(dataTypeRef.fqName) as DataClassImpl
-        false -> dataTypeRef.dataType
-    }
+    override fun resolveRef(dataTypeRef: DataTypeRef): DataTypeImpl =
+        when (dataTypeRef.isNamed) {
+            true -> schema.dataClassesByFqName.getValue(dataTypeRef.fqName) as DataTypeImpl.DataClassImpl
+            false -> dataTypeRef.dataType as DataTypeImpl
+        }
 }
 
 
@@ -98,7 +99,7 @@ class AnalysisContext(
     private
     val typeRefContext = SchemaTypeRefContext(schema)
 
-    override fun resolveRef(dataTypeRef: DataTypeRef): DataType = typeRefContext.resolveRef(dataTypeRef)
+    override fun resolveRef(dataTypeRef: DataTypeRef): DataTypeImpl = typeRefContext.resolveRef(dataTypeRef)
 
     fun enterScope(newScope: AnalysisScope) {
         mutableScopes.add(newScope)

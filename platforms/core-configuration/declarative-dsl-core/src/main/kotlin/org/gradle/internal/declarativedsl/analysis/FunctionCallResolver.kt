@@ -2,11 +2,11 @@ package org.gradle.internal.declarativedsl.analysis
 
 import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.DataParameter
-import org.gradle.declarative.dsl.schema.DataType
 import org.gradle.declarative.dsl.schema.ParameterSemantics
 import org.gradle.declarative.dsl.schema.SchemaFunction
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.analysis.FunctionCallResolver.FunctionResolutionAndBinding
+import org.gradle.internal.declarativedsl.language.DataTypeImpl
 import org.gradle.internal.declarativedsl.language.Expr
 import org.gradle.internal.declarativedsl.language.FunctionArgument
 import org.gradle.internal.declarativedsl.language.FunctionCall
@@ -368,20 +368,20 @@ class FunctionCallResolverImpl(
         argResolution: Map<FunctionArgument.ValueArgument, ObjectOrigin>
     ): List<FunctionResolutionAndBinding> {
         // TODO: no nested types for now
-        val candidateTypes = buildList<DataType> {
+        val candidateTypes = buildList<DataTypeImpl> {
             val receiverAsChain = functionCall.receiver?.asChainOrNull()
             if (receiverAsChain != null) {
                 val fqn = FqNameImpl(receiverAsChain.nameParts.joinToString("."), functionCall.name)
                 val typeByFqn = schema.dataClassesByFqName[fqn]
                 if (typeByFqn != null) {
-                    add(typeByFqn as DataClassImpl)
+                    add(typeByFqn as DataTypeImpl.DataClassImpl)
                 }
             } else if (functionCall.receiver == null) {
                 val importedName = imports[functionCall.name]
                 if (importedName != null) {
                     val maybeType = schema.dataClassesByFqName[importedName]
                     if (maybeType != null) {
-                        add(maybeType as DataClassImpl)
+                        add(maybeType as DataTypeImpl.DataClassImpl)
                     }
                 }
             }

@@ -4,11 +4,11 @@ import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.DataConstructor
 import org.gradle.declarative.dsl.schema.DataParameter
 import org.gradle.declarative.dsl.schema.DataProperty
-import org.gradle.declarative.dsl.schema.DataType
 import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.declarative.dsl.schema.ExternalObjectProviderKey
 import org.gradle.declarative.dsl.schema.SchemaFunction
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
+import org.gradle.internal.declarativedsl.language.DataTypeImpl
 import org.gradle.internal.declarativedsl.language.FunctionCall
 import org.gradle.internal.declarativedsl.language.LanguageTreeElement
 import org.gradle.internal.declarativedsl.language.Literal
@@ -66,7 +66,7 @@ sealed interface ObjectOrigin {
 
     sealed interface ReceiverOrigin : ObjectOrigin
 
-    data class TopLevelReceiver(val type: DataType, override val originElement: LanguageTreeElement) : ReceiverOrigin {
+    data class TopLevelReceiver(val type: DataTypeImpl, override val originElement: LanguageTreeElement) : ReceiverOrigin {
         override fun toString(): String = "(top-level-object)"
     }
 

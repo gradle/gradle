@@ -25,7 +25,6 @@ import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.internal.declarativedsl.analysis.AnalysisSchemaImpl
 import org.gradle.internal.declarativedsl.analysis.DataBuilderFunction
 import org.gradle.declarative.dsl.schema.DataClass
-import org.gradle.internal.declarativedsl.analysis.DataClassImpl
 import org.gradle.internal.declarativedsl.analysis.DataMemberFunction
 import org.gradle.declarative.dsl.schema.DataParameter
 import org.gradle.internal.declarativedsl.analysis.DataParameterImpl
@@ -43,12 +42,7 @@ import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsImpl
 import org.gradle.internal.declarativedsl.analysis.StoreValueInPropertyParameterSemantics
 import org.gradle.internal.declarativedsl.analysis.UnknownParameterSemantics
-import org.gradle.internal.declarativedsl.language.BooleanDataType
-import org.gradle.internal.declarativedsl.language.IntDataType
-import org.gradle.internal.declarativedsl.language.LongDataType
-import org.gradle.internal.declarativedsl.language.NullDataType
-import org.gradle.internal.declarativedsl.language.StringDataType
-import org.gradle.internal.declarativedsl.language.UnitDataType
+import org.gradle.internal.declarativedsl.language.DataTypeImpl
 
 
 object SchemaSerialization {
@@ -56,20 +50,20 @@ object SchemaSerialization {
     private
     val json = Json {
         serializersModule = SerializersModule {
-            polymorphic(DataType::class) {
-                subclass(IntDataType::class)
-                subclass(LongDataType::class)
-                subclass(StringDataType::class)
-                subclass(BooleanDataType::class)
-                subclass(NullDataType::class)
-                subclass(UnitDataType::class)
+            polymorphic(DataType::class) { // TODO: this should not be needed
+                subclass(DataTypeImpl.IntType::class)
+                subclass(DataTypeImpl.LongType::class)
+                subclass(DataTypeImpl.StringType::class)
+                subclass(DataTypeImpl.BooleanType::class)
+                subclass(DataTypeImpl.NullType::class)
+                subclass(DataTypeImpl.UnitType::class)
             }
             polymorphic(DataTypeRef::class) {
                 subclass(DataTypeRefNameImpl::class)
                 subclass(DataTypeRefTypeImpl::class)
             }
-            polymorphic(DataClass::class) {
-                subclass(DataClassImpl::class)
+            polymorphic(DataClass::class) { // TODO: this should not be needed
+                subclass(DataTypeImpl.DataClassImpl::class)
             }
             polymorphic(DataParameter::class) {
                 subclass(DataParameterImpl::class)
