@@ -16,12 +16,12 @@
 
 package org.gradle.internal.serialize;
 
-import org.gradle.api.internal.cache.StringInterner;
+import com.google.common.collect.Interner;
 
 public class InterningStringSerializer extends AbstractSerializer<String> {
-    private final StringInterner stringInterner;
+    private final Interner<String> stringInterner;
 
-    public InterningStringSerializer(StringInterner stringInterner) {
+    public InterningStringSerializer(Interner<String> stringInterner) {
         this.stringInterner = stringInterner;
     }
 
