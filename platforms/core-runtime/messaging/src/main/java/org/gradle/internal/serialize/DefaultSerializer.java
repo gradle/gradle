@@ -17,7 +17,6 @@ package org.gradle.internal.serialize;
 
 import com.google.common.base.Objects;
 import org.gradle.internal.Cast;
-import org.gradle.internal.io.ClassLoaderObjectInputStream;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;

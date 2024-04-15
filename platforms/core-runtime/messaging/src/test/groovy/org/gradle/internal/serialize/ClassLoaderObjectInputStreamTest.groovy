@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.io
+package org.gradle.internal.serialize
 
 import spock.lang.Specification
 
 import java.lang.reflect.Array
-
 
 class ClassLoaderObjectInputStreamTest extends Specification {
 

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.io;
+package org.gradle.internal.serialize;
 
 import org.gradle.api.JavaVersion;
 import org.gradle.internal.classanalysis.JavaClassUtil;

@@ -18,7 +18,6 @@ package org.gradle.internal.serialize;
 
 import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.io.ClassLoaderObjectInputStream;
 
 import java.io.IOException;
 import java.io.InputStream;
