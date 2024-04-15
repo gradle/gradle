@@ -35,11 +35,11 @@ public class CachedInstrumentationAnalysisSerializer implements InstrumentationA
     public CachedInstrumentationAnalysisSerializer(InstrumentationAnalysisSerializer delegate) {
         this.delegate = delegate;
         dependencyAnalysisCache = CacheBuilder.newBuilder()
-            .concurrencyLevel(4)
+            .concurrencyLevel(1)
             .maximumSize(20_000)
             .build();
         typeHierarchyCache = CacheBuilder.newBuilder()
-            .concurrencyLevel(4)
+            .concurrencyLevel(1)
             .maximumSize(20_000)
             .build();
     }

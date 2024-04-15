@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.initialization.transform.services;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -42,6 +44,7 @@ import java.io.File;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -52,6 +55,10 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
     private final Map<Long, ResolutionData> resolutionData = new ConcurrentHashMap<>();
     private final Lazy<InjectedInstrumentationServices> internalServices = Lazy.locking().of(() -> getObjectFactory().newInstance(InjectedInstrumentationServices.class));
     private final Lazy<InstrumentationAnalysisSerializer> serializer = Lazy.locking().of(() -> new CachedInstrumentationAnalysisSerializer(new DefaultInstrumentationAnalysisSerializer(internalServices.get().getStringInterner())));
+    private final Lazy<Cache<Set<File>, ExternalPluginsInstrumentationTypeRegistry>> typeRegistryCache = Lazy.locking().of(() -> CacheBuilder.newBuilder()
+        .concurrencyLevel(1)
+        .maximumSize(100)
+        .build());
 
     @Inject
     protected abstract ObjectFactory getObjectFactory();
@@ -98,7 +105,7 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
     public ResolutionScope newResolutionScope(long contextId) {
         ResolutionData resolutionData = this.resolutionData.compute(contextId, (__, value) -> {
             checkArgument(value == null, "Resolution data for id %s already exists! Was previous resolution scope closed properly?", contextId);
-            return getObjectFactory().newInstance(ResolutionData.class, internalServices.get(), serializer.get());
+            return getObjectFactory().newInstance(ResolutionData.class, internalServices.get(), serializer.get(), typeRegistryCache.get());
         });
         return new ResolutionScope() {
             @Override
@@ -136,11 +143,13 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
         private final Map<File, String> hashCache;
         private final InjectedInstrumentationServices internalServices;
         private final InstrumentationAnalysisSerializer serializer;
+        private final Cache<Set<File>, ExternalPluginsInstrumentationTypeRegistry> typeRegistryCache;
 
         @Inject
-        public ResolutionData(InjectedInstrumentationServices internalServices, InstrumentationAnalysisSerializer serializer) {
+        public ResolutionData(InjectedInstrumentationServices internalServices, InstrumentationAnalysisSerializer serializer, Cache<Set<File>, ExternalPluginsInstrumentationTypeRegistry> typeRegistryCache) {
             this.serializer = serializer;
             this.hashCache = new ConcurrentHashMap<>();
+            this.typeRegistryCache = typeRegistryCache;
             this.hashToOriginalFile = Lazy.locking().of(() -> {
                 Set<File> originalClasspath = getOriginalClasspath().getFiles();
                 Map<String, File> originalFiles = Maps.newHashMapWithExpectedSize(originalClasspath.size());
@@ -153,15 +162,26 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
                 return originalFiles;
             });
             this.instrumentationTypeRegistry = Lazy.locking().of(() -> {
-                InstrumentationTypeRegistry gradleCoreInstrumentationTypeRegistry = internalServices.getGradleCoreInstrumentationTypeRegistry();
-                Map<String, Set<String>> directSuperTypes = mergeTypeHierarchyAnalysis();
-                return new ExternalPluginsInstrumentationTypeRegistry(directSuperTypes, gradleCoreInstrumentationTypeRegistry);
+                Set<File> typeHierarchyAnalysis = getTypeHierarchyAnalysisResult().getFiles();
+                return getInstrumentationTypeRegistryFromCache(typeHierarchyAnalysis);
             });
             this.internalServices = internalServices;
         }
 
-        private Map<String, Set<String>> mergeTypeHierarchyAnalysis() {
-            return getTypeHierarchyAnalysisResult().getFiles().stream()
+        private ExternalPluginsInstrumentationTypeRegistry getInstrumentationTypeRegistryFromCache(Set<File> typeHierarchyAnalysis) {
+            try {
+                return typeRegistryCache.get(typeHierarchyAnalysis, () -> {
+                    InstrumentationTypeRegistry gradleCoreInstrumentationTypeRegistry = internalServices.getGradleCoreInstrumentationTypeRegistry();
+                    Map<String, Set<String>> directSuperTypes = mergeTypeHierarchyAnalysis(typeHierarchyAnalysis);
+                    return new ExternalPluginsInstrumentationTypeRegistry(directSuperTypes, gradleCoreInstrumentationTypeRegistry);
+                });
+            } catch (ExecutionException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        private Map<String, Set<String>> mergeTypeHierarchyAnalysis(Set<File> typeHierarchyAnalysis) {
+            return typeHierarchyAnalysis.stream()
                 .flatMap(file -> serializer.readTypeHierarchyAnalysis(file).entrySet().stream())
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, Sets::union));
         }
