@@ -17,18 +17,25 @@
 package org.gradle.configurationcache.services
 
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.file.FileFactory
+import org.gradle.api.internal.file.FilePropertyFactory
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory.ValueSourceProvider
 import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.api.services.internal.BuildServiceProvider
 import org.gradle.configurationcache.serialization.codecs.BeanCodec
 import org.gradle.configurationcache.serialization.codecs.Bindings
 import org.gradle.configurationcache.serialization.codecs.BindingsBuilder
+import org.gradle.configurationcache.serialization.codecs.DirectoryCodec
+import org.gradle.configurationcache.serialization.codecs.DirectoryPropertyCodec
 import org.gradle.configurationcache.serialization.codecs.FixedValueReplacingProviderCodec
 import org.gradle.configurationcache.serialization.codecs.ListPropertyCodec
+import org.gradle.configurationcache.serialization.codecs.LoggerCodec
 import org.gradle.configurationcache.serialization.codecs.MapPropertyCodec
 import org.gradle.configurationcache.serialization.codecs.PropertyCodec
 import org.gradle.configurationcache.serialization.codecs.ProviderCodec
 import org.gradle.configurationcache.serialization.codecs.ProxyCodec
+import org.gradle.configurationcache.serialization.codecs.RegularFileCodec
+import org.gradle.configurationcache.serialization.codecs.RegularFilePropertyCodec
 import org.gradle.configurationcache.serialization.codecs.ServicesCodec
 import org.gradle.configurationcache.serialization.codecs.SetPropertyCodec
 import org.gradle.configurationcache.serialization.codecs.baseTypes
@@ -50,7 +57,13 @@ class IsolatedActionCodecsFactory(
     val javaSerializationEncodingLookup: JavaSerializationEncodingLookup,
 
     private
-    val propertyFactory: PropertyFactory
+    val propertyFactory: PropertyFactory,
+
+    private
+    val filePropertyFactory: FilePropertyFactory,
+
+    private
+    val fileFactory: FileFactory
 
 ) {
     fun isolatedActionCodecs() = Bindings.of {
@@ -59,8 +72,15 @@ class IsolatedActionCodecsFactory(
         supportedPropertyTypes()
         groovyCodecs()
         bind(ExternalizableCodec)
-        bind(ServicesCodec)
+
+        bind(RegularFileCodec(fileFactory))
+        bind(DirectoryCodec(fileFactory))
+
+        bind(LoggerCodec)
         bind(ProxyCodec)
+
+        bind(ServicesCodec)
+
         bind(JavaObjectSerializationCodec(javaSerializationEncodingLookup))
         bind(BeanCodec)
     }.build()
@@ -75,6 +95,8 @@ class IsolatedActionCodecsFactory(
     private
     fun BindingsBuilder.supportedPropertyTypes() {
         val valueReplacingProviderCodec = fixedValueReplacingProviderCodec()
+        bind(RegularFilePropertyCodec(filePropertyFactory, valueReplacingProviderCodec))
+        bind(DirectoryPropertyCodec(filePropertyFactory, valueReplacingProviderCodec))
         bind(SetPropertyCodec(propertyFactory, valueReplacingProviderCodec))
         bind(MapPropertyCodec(propertyFactory, valueReplacingProviderCodec))
         bind(ListPropertyCodec(propertyFactory, valueReplacingProviderCodec))

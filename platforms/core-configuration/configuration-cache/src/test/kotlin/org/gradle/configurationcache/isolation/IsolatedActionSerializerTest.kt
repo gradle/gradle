@@ -16,8 +16,11 @@
 
 package org.gradle.configurationcache.isolation
 
+import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import org.gradle.api.IsolatedAction
+import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.configurationcache.extensions.uncheckedCast
@@ -27,11 +30,11 @@ import org.gradle.configurationcache.serialization.codecs.beanStateReaderLookupF
 import org.gradle.configurationcache.serialization.codecs.jos.JavaSerializationEncodingLookup
 import org.gradle.configurationcache.services.IsolatedActionCodecsFactory
 import org.gradle.internal.isolation.IsolatedActionsForTesting.isolatedActionLambdaWith
+import org.gradle.util.TestUtil
 import org.gradle.util.TestUtil.objectFactory
 import org.gradle.util.TestUtil.propertyFactory
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.equalTo
-import org.junit.Ignore
 import org.junit.Test
 import java.util.function.Consumer
 
@@ -98,17 +101,10 @@ class IsolatedActionSerializerTest {
         )
     }
 
-    private
-    fun <T : Any> assertProviderRoundtrip(property: Provider<out T>, expectedValue: T) {
-        val loaded = valueCarriedBy(roundtripOf(isolatedActionLambdaWith(property)))
-        assertThat(loaded.get(), equalTo(expectedValue))
-    }
-
     interface Dsl {
         val property: Property<String>
     }
 
-    @Ignore("wip")
     @Test
     fun `can serialize Java lambda with Gradle model`() {
         val stored = newInstance<Dsl>().apply {
@@ -119,6 +115,12 @@ class IsolatedActionSerializerTest {
             loaded.property.get(),
             equalTo("42")
         )
+    }
+
+    private
+    fun <T : Any> assertProviderRoundtrip(property: Provider<out T>, expectedValue: T) {
+        val loaded = valueCarriedBy(roundtripOf(isolatedActionLambdaWith(property)))
+        assertThat(loaded.get(), equalTo(expectedValue))
     }
 
     private
@@ -170,14 +172,21 @@ class IsolatedActionSerializerTest {
 
     private
     fun <T> serialize(action: TestableIsolatedAction<T>): SerializedAction =
-        IsolatedActionSerializer(IsolateOwner.OwnerGradle(mock()), BeanStateWriterLookup(), isolatedActionCodecsFactory())
+        IsolatedActionSerializer(ownerGradle(), BeanStateWriterLookup(), isolatedActionCodecsFactory())
             .serialize(action)
 
     private
     fun <T> deserialize(serialized: SerializedAction): TestableIsolatedAction<T> =
-        IsolatedActionDeserializer(IsolateOwner.OwnerGradle(mock()), beanStateReaderLookupForTesting(), isolatedActionCodecsFactory())
+        IsolatedActionDeserializer(ownerGradle(), beanStateReaderLookupForTesting(), isolatedActionCodecsFactory())
             .deserialize(serialized)
             .uncheckedCast()
+
+    private
+    fun ownerGradle() = IsolateOwner.OwnerGradle(
+        mock<GradleInternal> {
+            on { services } doReturn TestUtil.services()
+        }
+    )
 
     private
     fun <T> isolatedActionCarrying(value: T): TestableIsolatedAction<T> =
@@ -187,6 +196,8 @@ class IsolatedActionSerializerTest {
     fun isolatedActionCodecsFactory(): IsolatedActionCodecsFactory =
         IsolatedActionCodecsFactory(
             javaSerializationEncodingLookup = JavaSerializationEncodingLookup(),
-            propertyFactory = propertyFactory()
+            propertyFactory = propertyFactory(),
+            fileFactory = TestFiles.fileFactory(),
+            filePropertyFactory = TestFiles.filePropertyFactory()
         )
 }
