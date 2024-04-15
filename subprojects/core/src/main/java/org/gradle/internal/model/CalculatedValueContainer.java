@@ -86,6 +86,7 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
     }
 
     @Override
+    @Nullable
     public T getOrNull() {
         Try<T> result = this.result;
         if (result != null) {
