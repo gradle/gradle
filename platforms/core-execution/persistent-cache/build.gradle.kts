@@ -10,7 +10,6 @@ description = """Persistent caches on disk and cross process locking.
 
 errorprone {
     disabledChecks.addAll(
-        "UnusedMethod", // 2 occurrences
         "UnusedVariable", // 1 occurrences
         "WaitNotInLoop", // 1 occurrences
     )

@@ -497,10 +497,6 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
             return cache;
         }
 
-        public IndexedCacheParameters<K, V> getParameters() {
-            return parameters;
-        }
-
         void assertCompatibleCacheParameters(IndexedCacheParameters<K, V> parameters) {
             List<String> faultMessages = new ArrayList<>();
 
