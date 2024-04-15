@@ -12,7 +12,7 @@ dependencies {
     api(projects.concurrent)
     api(projects.javaLanguageExtensions)
     api(projects.serialization)
-    api(libs.errorProneAnnotations)
+    compileOnly(libs.errorProneAnnotations)
     api(project(":base-services"))
     api(project(":build-cache"))
     api(project(":build-cache-base"))
