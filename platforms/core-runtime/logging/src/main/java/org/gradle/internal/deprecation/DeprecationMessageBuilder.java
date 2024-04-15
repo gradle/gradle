@@ -20,14 +20,9 @@ import com.google.common.base.Joiner;
 import org.gradle.api.problems.internal.DocLink;
 import org.gradle.api.problems.internal.Problem;
 import org.gradle.util.GradleVersion;
-import org.gradle.util.internal.TextUtil;
 
 import javax.annotation.CheckReturnValue;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import static org.apache.commons.lang.StringUtils.removeEnd;
 
 @CheckReturnValue
 public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
@@ -392,21 +387,47 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         }
     }
 
-    static final Pattern ID_CLEAN_PATTERN = Pattern.compile("[A-Za-z]+");
+    public static final char DASH = '-';
 
     public static String createDefaultDeprecationId(String... ids) {
         StringBuilder sb = new StringBuilder();
         for (String id : ids) {
-            if(id == null){
+            if (id == null) {
                 continue;
             }
-            Matcher matcher = ID_CLEAN_PATTERN.matcher(id);
-            while (matcher.find()) {
-                sb.append(TextUtil.toLowerCaseLocaleSafe(matcher.group()));
-                sb.append("-");
+            CharSequence cleanId = createDashedId(id);
+            if (cleanId.length() > 0) {
+                sb.append(cleanId);
+                sb.append(DASH);
             }
         }
-        return removeEnd(sb.toString(), "-");
+        removeTrailingDashes(sb);
+        return sb.toString();
+    }
+
+    private static void removeTrailingDashes(StringBuilder sb) {
+        while (sb.length() > 0 && sb.charAt(sb.length() - 1) == DASH) {
+            sb.setLength(sb.length() - 1);
+        }
+    }
+
+    private static CharSequence createDashedId(String id) {
+        StringBuilder cleanId = new StringBuilder();
+        boolean previousWasDash = false;
+        for (int i = 0; i < id.length(); i++) {
+            char c = id.charAt(i);
+            if (Character.isLetter(c)) {
+                previousWasDash = false;
+                cleanId.append(Character.toLowerCase(c));
+            } else {
+                if (previousWasDash) {
+                    continue;
+                }
+                cleanId.append(DASH);
+                previousWasDash = true;
+            }
+        }
+        return cleanId;
     }
 
     public static class DeprecateMethod extends WithReplacement<String, DeprecateMethod> {
