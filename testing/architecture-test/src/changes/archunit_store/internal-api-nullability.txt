@@ -2727,6 +2727,8 @@ Class <org.gradle.internal.serialize.BaseSerializerFactory$StringMapSerializer> 
 Class <org.gradle.internal.serialize.BaseSerializerFactory$StringSerializer> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (BaseSerializerFactory.java:0)
 Class <org.gradle.internal.serialize.BaseSerializerFactory$ThrowableSerializer> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (BaseSerializerFactory.java:0)
 Class <org.gradle.internal.serialize.BaseSerializerFactory> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (BaseSerializerFactory.java:0)
+Class <org.gradle.internal.serialize.ClassLoaderObjectInputStream$UnsupportedClassVersionErrorWithJavaVersion> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ClassLoaderObjectInputStream.java:0)
+Class <org.gradle.internal.serialize.ClassLoaderObjectInputStream> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ClassLoaderObjectInputStream.java:0)
 Class <org.gradle.internal.serialize.ContextualPlaceholderException> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ContextualPlaceholderException.java:0)
 Class <org.gradle.internal.serialize.Decoder$DecodeAction> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (Decoder.java:0)
 Class <org.gradle.internal.serialize.Decoder> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (Decoder.java:0)
