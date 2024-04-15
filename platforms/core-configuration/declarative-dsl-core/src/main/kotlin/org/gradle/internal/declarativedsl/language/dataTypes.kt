@@ -18,70 +18,110 @@ package org.gradle.internal.declarativedsl.language
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import org.gradle.declarative.dsl.schema.DataClass
+import org.gradle.declarative.dsl.schema.DataConstructor
+import org.gradle.declarative.dsl.schema.DataProperty
 import org.gradle.declarative.dsl.schema.DataType
+import org.gradle.declarative.dsl.schema.FqName
+import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 
 
-@Serializable
-@SerialName("int")
-data object IntDataType : DataType {
-
-    override fun isConstant(): Boolean = true
-
-    override fun getConstantType(): Class<Int> = Int::class.java
-
-    override fun toString(): String = "Int"
-}
+// TODO: rename file
 
 
-@Serializable
-@SerialName("long")
-data object LongDataType : DataType {
+sealed interface DataTypeImpl : DataType {
 
-    override fun isConstant(): Boolean = true
+    sealed interface ConstantType<JvmType> : DataTypeImpl
 
-    override fun getConstantType(): Class<Long> = Long::class.java
+    @Serializable
+    @SerialName("int")
+    data object IntType : ConstantType<Int> {
 
-    override fun toString(): String = "Long"
-}
+        override fun isConstant(): Boolean = true
 
+        override fun getConstantType(): Class<Int> = Int::class.java
 
-@Serializable
-@SerialName("string")
-data object StringDataType : DataType {
-
-    override fun isConstant(): Boolean = true
-
-    override fun getConstantType(): Class<String> = String::class.java
-
-    override fun toString(): String = "String"
-}
+        override fun toString(): String = "Int"
+    }
 
 
-@Serializable
-@SerialName("boolean")
-data object BooleanDataType : DataType {
+    @Serializable
+    @SerialName("long")
+    data object LongType : ConstantType<Long> {
 
-    override fun isConstant(): Boolean = true
-    override fun getConstantType(): Class<Boolean> = Boolean::class.java
+        override fun isConstant(): Boolean = true
 
-    override fun toString(): String = "Boolean"
-}
+        override fun getConstantType(): Class<Long> = Long::class.java
 
-
-@Serializable
-@SerialName("null")
-data object NullDataType : DataType { // TODO: implement nulls?
-
-    override fun isNull(): Boolean = true
-}
+        override fun toString(): String = "Long"
+    }
 
 
-@Serializable
-@SerialName("unit")
-data object UnitDataType : DataType {
+    @Serializable
+    @SerialName("string")
+    data object StringType : ConstantType<String> {
 
-    override fun isUnit(): Boolean = true
-}
+        override fun isConstant(): Boolean = true
+
+        override fun getConstantType(): Class<String> = String::class.java
+
+        override fun toString(): String = "String"
+    }
+
+
+    @Serializable
+    @SerialName("boolean")
+    data object BooleanType : ConstantType<Boolean> {
+
+        override fun isConstant(): Boolean = true
+        override fun getConstantType(): Class<Boolean> = Boolean::class.java
+
+        override fun toString(): String = "Boolean"
+    }
+
+    @Serializable
+    @SerialName("null")
+    data object NullType : DataTypeImpl { // TODO: implement nulls?
+
+        override fun isNull(): Boolean = true
+    }
+
+
+    @Serializable
+    @SerialName("unit")
+    data object UnitType : DataTypeImpl {
+
+        override fun isUnit(): Boolean = true
+    }
 
 // TODO: `Any` type?
 // TODO: Support subtyping of some sort in the schema rather than via reflection?
+
+
+    @Serializable
+    @SerialName("data")
+    data class DataClassImpl(
+        private val name: FqName,
+        private val supertypes: Set<FqName>,
+        private val properties: List<DataProperty>,
+        private val memberFunctions: List<SchemaMemberFunction>,
+        private val constructors: List<DataConstructor>
+    ) : DataClass, DataTypeImpl {
+
+        override fun isClass(): Boolean = true
+
+        override fun getDataClass(): DataClass = this
+
+        override fun getName(): FqName = name
+
+        override fun getSupertypes(): Set<FqName> = supertypes
+
+        override fun getProperties(): List<DataProperty> = properties
+
+        override fun getMemberFunctions(): List<SchemaMemberFunction> = memberFunctions
+
+        override fun getConstructors(): List<DataConstructor> = constructors
+
+        override fun toString(): String = name.simpleName
+    }
+}

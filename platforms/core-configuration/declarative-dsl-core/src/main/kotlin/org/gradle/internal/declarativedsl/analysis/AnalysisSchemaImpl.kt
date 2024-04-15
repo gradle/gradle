@@ -16,7 +16,7 @@ import org.gradle.declarative.dsl.schema.FqName
 import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.declarative.dsl.schema.ParameterSemantics
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
-import org.gradle.internal.declarativedsl.language.UnitDataType
+import org.gradle.internal.declarativedsl.language.DataTypeImpl
 
 
 @Serializable
@@ -36,34 +36,6 @@ data class AnalysisSchemaImpl(
     override fun getExternalObjectsByFqName(): Map<FqName, ExternalObjectProviderKey> = externalObjectsByFqName
 
     override fun getDefaultImports(): Set<FqName> = defaultImports
-}
-
-
-@Serializable
-@SerialName("data")
-data class DataClassImpl(
-    private val name: FqName,
-    private val supertypes: Set<FqName>,
-    private val properties: List<DataProperty>,
-    private val memberFunctions: List<SchemaMemberFunction>,
-    private val constructors: List<DataConstructor>
-) : DataClass, DataType {
-
-    override fun isClass(): Boolean = true
-
-    override fun getDataClass(): DataClass = this
-
-    override fun getName(): FqName = name
-
-    override fun getSupertypes(): Set<FqName> = supertypes
-
-    override fun getProperties(): List<DataProperty> = properties
-
-    override fun getMemberFunctions(): List<SchemaMemberFunction> = memberFunctions
-
-    override fun getConstructors(): List<DataConstructor> = constructors
-
-    override fun toString(): String = name.simpleName
 }
 
 
@@ -239,7 +211,7 @@ sealed interface FunctionSemanticsImpl : FunctionSemantics {
 
         override fun getReturnValueType(): DataTypeRef =
             when (returnType) {
-                ReturnType.UNIT -> UnitDataType.ref
+                ReturnType.UNIT -> DataTypeImpl.UnitType.ref
                 ReturnType.CONFIGURED_OBJECT -> accessor.objectType
             }
 
@@ -372,5 +344,5 @@ data class DataTypeRefNameImpl(private val fqName: FqName) : DataTypeRef {
 }
 
 
-val DataType.ref: DataTypeRef
+val DataTypeImpl.ref: DataTypeRef
     get() = DataTypeRefTypeImpl(this)

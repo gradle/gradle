@@ -1,7 +1,5 @@
 package org.gradle.internal.declarativedsl.language
 
-import org.gradle.declarative.dsl.schema.DataType
-
 
 sealed interface LanguageTreeElement {
     val sourceData: SourceData
@@ -63,38 +61,38 @@ data class LocalValue(val name: String, val rhs: Expr, override val sourceData: 
 
 sealed interface Literal<T : Any> : Expr {
     val value: T
-    val type: DataType
+    val type: DataTypeImpl.ConstantType<T>
 
     data class StringLiteral(
         override val value: String,
         override val sourceData: SourceData
     ) : Literal<String> {
-        override val type: DataType
-            get() = StringDataType
+        override val type: DataTypeImpl.StringType
+            get() = DataTypeImpl.StringType
     }
 
     data class IntLiteral(
         override val value: Int,
         override val sourceData: SourceData
     ) : Literal<Int> {
-        override val type: DataType
-            get() = IntDataType
+        override val type: DataTypeImpl.IntType
+            get() = DataTypeImpl.IntType
     }
 
     data class LongLiteral(
         override val value: Long,
         override val sourceData: SourceData
     ) : Literal<Long> {
-        override val type: DataType
-            get() = LongDataType
+        override val type: DataTypeImpl.LongType
+            get() = DataTypeImpl.LongType
     }
 
     data class BooleanLiteral(
         override val value: Boolean,
         override val sourceData: SourceData
     ) : Literal<Boolean> {
-        override val type: DataType
-            get() = BooleanDataType
+        override val type: DataTypeImpl.BooleanType
+            get() = DataTypeImpl.BooleanType
     }
 }
 

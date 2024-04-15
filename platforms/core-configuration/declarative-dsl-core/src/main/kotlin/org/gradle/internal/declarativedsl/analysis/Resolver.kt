@@ -3,6 +3,7 @@ package org.gradle.internal.declarativedsl.analysis
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.declarative.dsl.schema.FqName
 import org.gradle.internal.declarativedsl.language.Block
+import org.gradle.internal.declarativedsl.language.DataTypeImpl
 import org.gradle.internal.declarativedsl.language.Import
 
 
@@ -19,7 +20,7 @@ class ResolverImpl(
         val importContext = AnalysisContext(schema, emptyMap(), errorCollector)
         val importFqnBySimpleName = collectImports(imports, importContext) + schema.defaultImports.associateBy { it.simpleName }
 
-        val topLevelReceiver = ObjectOrigin.TopLevelReceiver(schema.topLevelReceiverType as DataClassImpl, topLevelBlock)
+        val topLevelReceiver = ObjectOrigin.TopLevelReceiver(schema.topLevelReceiverType as DataTypeImpl.DataClassImpl, topLevelBlock)
         val topLevelScope = AnalysisScope(null, topLevelReceiver, topLevelBlock)
 
         val context = AnalysisContext(schema, importFqnBySimpleName, errorCollector)

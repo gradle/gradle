@@ -5,13 +5,11 @@ import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 import org.gradle.internal.declarativedsl.analysis.Resolver
 import org.gradle.internal.declarativedsl.analysis.ref
 import org.gradle.internal.declarativedsl.analysis.tracingCodeResolver
-import org.gradle.internal.declarativedsl.language.BooleanDataType
+import org.gradle.internal.declarativedsl.language.DataTypeImpl
 import org.gradle.internal.declarativedsl.language.FailingResult
-import org.gradle.internal.declarativedsl.language.IntDataType
 import org.gradle.internal.declarativedsl.language.MultipleFailuresResult
 import org.gradle.internal.declarativedsl.language.ParsingError
 import org.gradle.internal.declarativedsl.language.SourceIdentifier
-import org.gradle.internal.declarativedsl.language.StringDataType
 import org.gradle.internal.declarativedsl.language.UnsupportedConstruct
 import org.gradle.internal.declarativedsl.objectGraph.AssignmentResolver
 import org.gradle.internal.declarativedsl.objectGraph.AssignmentResolver.AssignmentAdditionResult.AssignmentAdded
@@ -24,13 +22,13 @@ import org.gradle.internal.declarativedsl.parsing.DefaultLanguageTreeBuilder
 import org.gradle.internal.declarativedsl.parsing.parse
 
 
-val int = IntDataType.ref
+val int = DataTypeImpl.IntType.ref
 
 
-val string = StringDataType.ref
+val string = DataTypeImpl.StringType.ref
 
 
-val boolean = BooleanDataType.ref
+val boolean = DataTypeImpl.BooleanType.ref
 
 
 fun AnalysisSchema.resolve(
@@ -113,7 +111,7 @@ fun prettyStringFromReflection(objectReflection: ObjectReflection): String {
         fun nextIndent() = "    ".repeat(depth + 1)
         when (current) {
             is ObjectReflection.ConstantValue -> append(
-                if (current.type == StringDataType)
+                if (current.type == DataTypeImpl.StringType)
                     "\"${current.value}\""
                 else current.value.toString()
             )

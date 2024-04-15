@@ -19,7 +19,6 @@ package org.gradle.internal.declarativedsl.dom
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter
 import org.gradle.declarative.dsl.schema.DataClass
-import org.gradle.internal.declarativedsl.analysis.DataClassImpl
 import org.gradle.internal.declarativedsl.analysis.ErrorReason
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
 import org.gradle.internal.declarativedsl.analysis.ResolutionError
@@ -31,6 +30,7 @@ import org.gradle.internal.declarativedsl.analysis.getDataType
 import org.gradle.internal.declarativedsl.analysis.tracingCodeResolver
 import org.gradle.internal.declarativedsl.dom.DocumentResolution.ValueResolution.ValueFactoryResolution
 import org.gradle.internal.declarativedsl.language.Assignment
+import org.gradle.internal.declarativedsl.language.DataTypeImpl
 import org.gradle.internal.declarativedsl.language.FunctionCall
 import org.gradle.internal.declarativedsl.language.LanguageTreeResult
 import org.gradle.internal.declarativedsl.language.SourceData
@@ -89,7 +89,7 @@ class DocumentResolver(
                 when (val semantics = function.semantics) {
                     is FunctionSemanticsImpl.AccessAndConfigure -> {
                         val configuredType = typeRefContext.resolveRef(semantics.accessor.objectType) as DataClass
-                        DocumentResolution.ElementResolution.SuccessfulElementResolution.PropertyConfiguringElementResolved(configuredType as DataClassImpl)
+                        DocumentResolution.ElementResolution.SuccessfulElementResolution.PropertyConfiguringElementResolved(configuredType as DataTypeImpl.DataClassImpl)
                     }
 
                     is FunctionSemanticsImpl.NewObjectFunctionSemantics -> {
