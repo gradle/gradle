@@ -81,6 +81,7 @@ public interface ValueSourceProviderFactory {
 
             Class<? extends ValueSource<T, P>> getValueSourceType();
 
+            @Nullable
             Class<P> getValueSourceParametersType();
 
             @Nullable

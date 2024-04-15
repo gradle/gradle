@@ -345,7 +345,7 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         public DefaultObtainedValue(
             Try<@org.jetbrains.annotations.Nullable T> value,
             Class<? extends ValueSource<T, P>> valueSourceType,
-            Class<P> parametersType,
+            @Nullable Class<P> parametersType,
             @Nullable P parameters
         ) {
             this.value = value;
@@ -365,6 +365,7 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         }
 
         @Override
+        @Nullable
         public Class<P> getValueSourceParametersType() {
             return parametersType;
         }
