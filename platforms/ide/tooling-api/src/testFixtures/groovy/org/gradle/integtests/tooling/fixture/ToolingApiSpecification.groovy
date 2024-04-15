@@ -280,7 +280,13 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
      * Returns the set of implicit task names expected for a root project for the target Gradle version.
      */
     Set<String> getRootProjectImplicitTasks() {
-        return implicitTasks + ['init', 'wrapper'] + rootProjectImplicitInvisibleTasks
+        final rootOnlyTasks
+        if (targetVersion >= GradleVersion.version("8.8")) {
+            rootOnlyTasks = ['init', 'wrapper', 'updateDaemonJvm']
+        } else {
+            rootOnlyTasks = ['init', 'wrapper']
+        }
+        return implicitTasks + rootOnlyTasks + rootProjectImplicitInvisibleTasks
     }
 
     /**

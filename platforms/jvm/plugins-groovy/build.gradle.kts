@@ -24,6 +24,7 @@ dependencies {
     implementation(project(":plugins-java-base"))
     implementation(project(":reporting"))
     implementation(project(":toolchains-jvm"))
+    implementation(project(":toolchains-jvm-shared"))
 
     implementation(libs.guava)
 

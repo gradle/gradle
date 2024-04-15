@@ -19,6 +19,7 @@ package org.gradle.launcher.cli;
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.userinput.UserInputReader;
@@ -34,6 +35,7 @@ import org.gradle.internal.agents.AgentStatus;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.console.GlobalUserInputReceiver;
 import org.gradle.internal.nativeintegration.services.NativeServices;
@@ -44,32 +46,39 @@ import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.launcher.bootstrap.ExecutionListener;
+import org.gradle.launcher.configuration.AllProperties;
 import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonAction;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.DaemonClientFactory;
 import org.gradle.launcher.daemon.client.DaemonClientGlobalServices;
 import org.gradle.launcher.daemon.client.DaemonStopClient;
 import org.gradle.launcher.daemon.client.ReportDaemonStatusClient;
-import org.gradle.launcher.daemon.configuration.BuildProcess;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.configuration.ForegroundDaemonConfiguration;
+import org.gradle.launcher.daemon.context.DaemonCompatibilitySpec;
+import org.gradle.launcher.daemon.context.DaemonContext;
+import org.gradle.launcher.daemon.context.DaemonRequestContext;
+import org.gradle.launcher.daemon.context.DefaultDaemonContext;
+import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildExecuter;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
+import org.gradle.process.internal.CurrentProcess;
 
 import java.lang.management.ManagementFactory;
+import java.util.Properties;
 import java.util.UUID;
 
 class BuildActionsFactory implements CommandLineActionCreator {
-    private final ParametersConverter parametersConverter;
+    private final BuildEnvironmentConfigurationConverter buildEnvironmentConfigurationConverter;
     private final ServiceRegistry loggingServices;
     private final JvmVersionDetector jvmVersionDetector;
     private final FileCollectionFactory fileCollectionFactory;
     private final ServiceRegistry basicServices;
 
     public BuildActionsFactory(ServiceRegistry loggingServices) {
-        basicServices = ServiceRegistryBuilder.builder()
+        this.basicServices = ServiceRegistryBuilder.builder()
             .scope(Scope.Global.class)
             .displayName("Basic global services")
             .parent(loggingServices)
@@ -77,43 +86,65 @@ class BuildActionsFactory implements CommandLineActionCreator {
             .provider(new BasicGlobalScopeServices())
             .build();
         this.loggingServices = loggingServices;
-        fileCollectionFactory = basicServices.get(FileCollectionFactory.class);
-        parametersConverter = new ParametersConverter(new BuildLayoutFactory(), basicServices.get(FileCollectionFactory.class));
-        jvmVersionDetector = basicServices.get(JvmVersionDetector.class);
+        this.fileCollectionFactory = basicServices.get(FileCollectionFactory.class);
+        this.buildEnvironmentConfigurationConverter = new BuildEnvironmentConfigurationConverter(
+            new BuildLayoutFactory(),
+            fileCollectionFactory);
+        this.jvmVersionDetector = basicServices.get(JvmVersionDetector.class);
     }
 
     @Override
     public void configureCommandLineParser(CommandLineParser parser) {
-        parametersConverter.configure(parser);
+        buildEnvironmentConfigurationConverter.configure(parser);
     }
 
     @Override
     public Action<? super ExecutionListener> createAction(CommandLineParser parser, ParsedCommandLine commandLine) {
-        Parameters parameters = parametersConverter.convert(commandLine, null);
+        Parameters parameters = buildEnvironmentConfigurationConverter.convertParameters(commandLine, null);
 
-        parameters.getDaemonParameters().applyDefaultsFor(jvmVersionDetector.getJavaVersion(parameters.getDaemonParameters().getEffectiveJvm()));
+        StartParameterInternal startParameter = parameters.getStartParameter();
+        DaemonParameters daemonParameters = parameters.getDaemonParameters();
+        AllProperties allProperties = parameters.getProperties();
 
-        if (parameters.getDaemonParameters().isStop()) {
-            return Actions.toAction(stopAllDaemons(parameters.getDaemonParameters()));
+        if (daemonParameters.isStop()) {
+            return Actions.toAction(stopAllDaemons(daemonParameters));
         }
-        if (parameters.getDaemonParameters().isStatus()) {
-            return Actions.toAction(showDaemonStatus(parameters.getDaemonParameters()));
+        if (daemonParameters.isStatus()) {
+            return Actions.toAction(showDaemonStatus(daemonParameters));
         }
-        if (parameters.getDaemonParameters().isForeground()) {
-            DaemonParameters daemonParameters = parameters.getDaemonParameters();
+        if (daemonParameters.isForeground()) {
             ForegroundDaemonConfiguration conf = new ForegroundDaemonConfiguration(
                 UUID.randomUUID().toString(), daemonParameters.getBaseDir(), daemonParameters.getIdleTimeout(), daemonParameters.getPeriodicCheckInterval(), fileCollectionFactory,
                 daemonParameters.shouldApplyInstrumentationAgent(), daemonParameters.getNativeServicesMode());
             return Actions.toAction(new ForegroundDaemonAction(loggingServices, conf));
         }
-        if (parameters.getDaemonParameters().isEnabled()) {
-            return Actions.toAction(runBuildWithDaemon(parameters.getStartParameter(), parameters.getDaemonParameters()));
+
+        DaemonRequestContext requestContext = configureForRequestContext(daemonParameters);
+        if (daemonParameters.isEnabled()) {
+            return Actions.toAction(runBuildWithDaemon(startParameter, daemonParameters, requestContext));
         }
-        if (canUseCurrentProcess(parameters.getDaemonParameters())) {
-            return Actions.toAction(runBuildInProcess(parameters.getStartParameter(), parameters.getDaemonParameters()));
+        if (canUseCurrentProcess(daemonParameters, requestContext)) {
+            return Actions.toAction(runBuildInProcess(startParameter, daemonParameters));
         }
 
-        return Actions.toAction(runBuildInSingleUseDaemon(parameters.getStartParameter(), parameters.getDaemonParameters()));
+        return Actions.toAction(runBuildInSingleUseDaemon(startParameter, daemonParameters, requestContext));
+    }
+
+    private DaemonRequestContext configureForRequestContext(DaemonParameters daemonParameters) {
+        // Gradle daemon properties have been defined
+        if (daemonParameters.getRequestedJvmCriteria() != null) {
+            DaemonJvmCriteria criteria = daemonParameters.getRequestedJvmCriteria();
+            daemonParameters.applyDefaultsFor(JavaVersion.toVersion(criteria.getJavaVersion()));
+            return new DaemonRequestContext(daemonParameters.getRequestedJvmBasedOnJavaHome(), daemonParameters.getRequestedJvmCriteria(), daemonParameters.getEffectiveJvmArgs(), daemonParameters.shouldApplyInstrumentationAgent(), daemonParameters.getNativeServicesMode(), daemonParameters.getPriority());
+        } else if (daemonParameters.getRequestedJvmBasedOnJavaHome() != null && daemonParameters.getRequestedJvmBasedOnJavaHome() != Jvm.current()) {
+            // Either the TAPI client or org.gradle.java.home has been provided
+            JavaVersion detectedVersion = jvmVersionDetector.getJavaVersion(daemonParameters.getRequestedJvmBasedOnJavaHome());
+            daemonParameters.applyDefaultsFor(detectedVersion);
+            return new DaemonRequestContext(daemonParameters.getRequestedJvmBasedOnJavaHome(), daemonParameters.getRequestedJvmCriteria(), daemonParameters.getEffectiveJvmArgs(), daemonParameters.shouldApplyInstrumentationAgent(), daemonParameters.getNativeServicesMode(), daemonParameters.getPriority());
+        } else {
+            daemonParameters.applyDefaultsFor(JavaVersion.current());
+            return new DaemonRequestContext(Jvm.current(), daemonParameters.getRequestedJvmCriteria(), daemonParameters.getEffectiveJvmArgs(), daemonParameters.shouldApplyInstrumentationAgent(), daemonParameters.getNativeServicesMode(), daemonParameters.getPriority());
+        }
     }
 
     private Runnable stopAllDaemons(DaemonParameters daemonParameters) {
@@ -130,21 +161,55 @@ class BuildActionsFactory implements CommandLineActionCreator {
         return new ReportDaemonStatusAction(statusClient);
     }
 
-    private Runnable runBuildWithDaemon(StartParameterInternal startParameter, DaemonParameters daemonParameters) {
+    private Runnable runBuildWithDaemon(StartParameterInternal startParameter, DaemonParameters daemonParameters, DaemonRequestContext requestContext) {
         // Create a client that will match based on the daemon startup parameters.
         ServiceRegistry clientSharedServices = createGlobalClientServices(true);
-        ServiceRegistry clientServices = clientSharedServices.get(DaemonClientFactory.class).createBuildClientServices(loggingServices, daemonParameters, System.in);
+        ServiceRegistry clientServices = clientSharedServices.get(DaemonClientFactory.class).createBuildClientServices(loggingServices, daemonParameters, requestContext, System.in);
         DaemonClient client = clientServices.get(DaemonClient.class);
         return runBuildAndCloseServices(startParameter, daemonParameters, client, clientSharedServices, clientServices);
     }
 
+    protected boolean canUseCurrentProcess(DaemonParameters daemonParameters, DaemonRequestContext requestContext) {
+        // Pretend like the current process is actually a daemon, and see if it satisfies the compatibility spec
+        CurrentProcess currentProcess = new CurrentProcess(fileCollectionFactory);
+        DaemonContext contextForCurrentProcess = buildDaemonContextForCurrentProcess(requestContext, currentProcess);
+
+        DaemonCompatibilitySpec comparison = new DaemonCompatibilitySpec(requestContext);
+        if (!currentProcess.isLowMemoryProcess()) {
+            if (comparison.isSatisfiedBy(contextForCurrentProcess)) {
+                if (daemonParameters.hasUserDefinedImmutableJvmArgs()) {
+                    return currentProcess.getJvmOptions().getAllImmutableJvmArgs().equals(daemonParameters.getEffectiveSingleUseJvmArgs());
+                } else {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     @VisibleForTesting
-    boolean canUseCurrentProcess(DaemonParameters requiredBuildParameters) {
-        BuildProcess currentProcess = new BuildProcess(fileCollectionFactory);
-        return currentProcess.configureForBuild(requiredBuildParameters);
+    static DaemonContext buildDaemonContextForCurrentProcess(DaemonRequestContext requestContext, CurrentProcess currentProcess) {
+        return new DefaultDaemonContext(
+            UUID.randomUUID().toString(),
+            currentProcess.getJvm().getJavaHome(),
+            JavaVersion.current(),
+            null, 0L, 0,
+            // The gradle options aren't being properly checked.
+            requestContext.getDaemonOpts(),
+            AgentStatus.allowed().isAgentInstrumentationEnabled(),
+            // These aren't being properly checked.
+            // We assume the current process is compatible when considering these properties.
+            requestContext.getNativeServicesMode(),
+            requestContext.getPriority()
+        );
     }
 
     private Runnable runBuildInProcess(StartParameterInternal startParameter, DaemonParameters daemonParameters) {
+        // Set the system properties and use this process
+        Properties properties = new Properties();
+        properties.putAll(daemonParameters.getEffectiveSystemProperties());
+        System.setProperties(properties);
+
         ServiceRegistry globalServices = ServiceRegistryBuilder.builder()
             .scope(Scope.Global.class)
             .displayName("Global services")
@@ -165,7 +230,7 @@ class BuildActionsFactory implements CommandLineActionCreator {
         return runBuildAndCloseServices(startParameter, daemonParameters, executer, globalServices, globalServices.get(GradleUserHomeScopeServiceRegistry.class));
     }
 
-    private Runnable runBuildInSingleUseDaemon(StartParameterInternal startParameter, DaemonParameters daemonParameters) {
+    private Runnable runBuildInSingleUseDaemon(StartParameterInternal startParameter, DaemonParameters daemonParameters, DaemonRequestContext requestContext) {
         //(SF) this is a workaround until this story is completed. I'm hardcoding setting the idle timeout to be max X mins.
         //this way we avoid potential runaway daemons that steal resources on linux and break builds on windows.
         //We might leave that in if we decide it's a good idea for an extra safety net.
@@ -177,7 +242,7 @@ class BuildActionsFactory implements CommandLineActionCreator {
 
         // Create a client that will not match any existing daemons, so it will always start a new one
         ServiceRegistry clientSharedServices = createGlobalClientServices(true);
-        ServiceRegistry clientServices = clientSharedServices.get(DaemonClientFactory.class).createSingleUseDaemonClientServices(clientSharedServices, daemonParameters, System.in);
+        ServiceRegistry clientServices = clientSharedServices.get(DaemonClientFactory.class).createSingleUseDaemonClientServices(clientSharedServices, daemonParameters, requestContext, System.in);
         DaemonClient client = clientServices.get(DaemonClient.class);
         return runBuildAndCloseServices(startParameter, daemonParameters, client, clientSharedServices, clientServices);
     }

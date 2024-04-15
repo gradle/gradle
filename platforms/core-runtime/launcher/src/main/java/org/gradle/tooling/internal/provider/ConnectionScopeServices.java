@@ -64,11 +64,11 @@ public class ConnectionScopeServices {
                                                 DaemonClientFactory daemonClientFactory,
                                                 BuildLayoutFactory buildLayoutFactory,
                                                 ServiceRegistry serviceRegistry,
-                                                JvmVersionDetector jvmVersionDetector,
                                                 FileCollectionFactory fileCollectionFactory,
                                                 GlobalUserInputReceiver userInput,
                                                 UserInputReader userInputReader,
                                                 ExecutorFactory executorFactory,
+                                                JvmVersionDetector jvmVersionDetector,
                                                 // This is here to trigger creation of the ShutdownCoordinator. Could do this in a nicer way
                                                 ShutdownCoordinator shutdownCoordinator) {
         ClassLoaderCache classLoaderCache = new ClassLoaderCache();

@@ -163,7 +163,7 @@ class CrossVersionToolingApiSpecificationRetryTest extends ToolingApiSpecificati
         def logDir = new File(daemonsFixture.daemonBaseDir, daemonsFixture.getVersion())
         logDir.mkdirs()
         def log = new File(logDir, "daemon-fake.log")
-        log << "DefaultDaemonContext[uid=0000,javaHome=javaHome,daemonRegistryDir=daemonRegistryDir,pid=-9999,idleTimeout=120000,daemonOpts=daemonOpts]\n"
+        log << "DefaultDaemonContext[uid=0000,javaHome=javaHome,javaVersion=11,daemonRegistryDir=daemonRegistryDir,pid=-9999,idleTimeout=120000,daemonOpts=daemonOpts]\n"
         log << exceptionInDaemon
     }
 }

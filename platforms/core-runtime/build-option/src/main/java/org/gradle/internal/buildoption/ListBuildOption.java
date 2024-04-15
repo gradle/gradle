@@ -30,21 +30,21 @@ import java.util.Map;
  */
 public abstract class ListBuildOption<T> extends AbstractBuildOption<T, CommandLineOptionConfiguration> {
 
-    public ListBuildOption(String gradleProperty) {
-        super(gradleProperty);
+    public ListBuildOption(String property) {
+        super(property);
     }
 
-    public ListBuildOption(String gradleProperty, CommandLineOptionConfiguration... commandLineOptionConfigurations) {
-        super(gradleProperty, commandLineOptionConfigurations);
+    public ListBuildOption(String property, CommandLineOptionConfiguration... commandLineOptionConfigurations) {
+        super(property, commandLineOptionConfigurations);
     }
 
     @Override
     public void applyFromProperty(Map<String, String> properties, T settings) {
-        String value = properties.get(gradleProperty);
+        String value = properties.get(property);
 
         if (value != null) {
             String[] splitValues = value.split("\\s*,\\s*");
-            applyTo(Arrays.asList(splitValues), settings, Origin.forGradleProperty(gradleProperty));
+            applyTo(Arrays.asList(splitValues), settings, propertyOrigin.toOrigin(property));
         }
     }
 

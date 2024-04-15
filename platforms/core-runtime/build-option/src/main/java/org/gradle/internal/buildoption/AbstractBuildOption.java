@@ -31,36 +31,50 @@ import java.util.Map;
  */
 public abstract class AbstractBuildOption<T, V extends CommandLineOptionConfiguration> implements BuildOption<T> {
 
-    protected final String gradleProperty;
+    protected final PropertyOrigin propertyOrigin;
+    protected final String property;
     protected final List<V> commandLineOptionConfigurations;
-    protected final String deprecatedGradleProperty;
+    protected final String deprecatedProperty;
 
-    public AbstractBuildOption(String gradleProperty) {
-        this(gradleProperty, null, Collections.<V>emptyList());
+    public AbstractBuildOption(String property) {
+        this(property, null, PropertyOrigin.GRADLE_PROPERTIES, Collections.<V>emptyList());
     }
 
-    public AbstractBuildOption(String gradleProperty, String deprecatedGradleProperty, V... commandLineOptionConfiguration) {
-        this(gradleProperty, deprecatedGradleProperty, commandLineOptionConfiguration != null ? Arrays.asList(commandLineOptionConfiguration) : Collections.<V>emptyList());
+    public AbstractBuildOption(String property, String deprecatedProperty, V... commandLineOptionConfiguration) {
+        this(property, deprecatedProperty, PropertyOrigin.GRADLE_PROPERTIES, commandLineOptionConfiguration != null ? Arrays.asList(commandLineOptionConfiguration) : Collections.<V>emptyList());
     }
 
-    public AbstractBuildOption(String gradleProperty, V... commandLineOptionConfiguration) {
-        this(gradleProperty, null, commandLineOptionConfiguration != null ? Arrays.asList(commandLineOptionConfiguration) : Collections.<V>emptyList());
+    public AbstractBuildOption(String property, V... commandLineOptionConfiguration) {
+        this(property, null, PropertyOrigin.GRADLE_PROPERTIES, commandLineOptionConfiguration != null ? Arrays.asList(commandLineOptionConfiguration) : Collections.<V>emptyList());
     }
 
-    private AbstractBuildOption(String gradleProperty, String deprecatedGradleProperty, List<V> commandLineOptionConfigurations) {
-        this.gradleProperty = gradleProperty;
-        this.deprecatedGradleProperty = deprecatedGradleProperty;
+    public AbstractBuildOption(String property, PropertyOrigin propertyOrigin) {
+        this(property, null, propertyOrigin, Collections.<V>emptyList());
+    }
+
+    public AbstractBuildOption(String property, String deprecatedProperty, PropertyOrigin propertyOrigin, V... commandLineOptionConfiguration) {
+        this(property, deprecatedProperty, propertyOrigin, commandLineOptionConfiguration != null ? Arrays.asList(commandLineOptionConfiguration) : Collections.<V>emptyList());
+    }
+
+    public AbstractBuildOption(String property, PropertyOrigin propertyOrigin, V... commandLineOptionConfiguration) {
+        this(property, null, propertyOrigin, commandLineOptionConfiguration != null ? Arrays.asList(commandLineOptionConfiguration) : Collections.<V>emptyList());
+    }
+
+    private AbstractBuildOption(String property, String deprecatedProperty, PropertyOrigin propertyOrigin, List<V> commandLineOptionConfigurations) {
+        this.property = property;
+        this.deprecatedProperty = deprecatedProperty;
+        this.propertyOrigin = propertyOrigin;
         this.commandLineOptionConfigurations = commandLineOptionConfigurations;
     }
 
     @Override
-    public String getGradleProperty() {
-        return gradleProperty;
+    public String getProperty() {
+        return property;
     }
 
     @Override
-    public String getDeprecatedGradleProperty() {
-        return deprecatedGradleProperty;
+    public String getDeprecatedProperty() {
+        return deprecatedProperty;
     }
 
     protected boolean isTrue(String value) {
@@ -83,27 +97,28 @@ public abstract class AbstractBuildOption<T, V extends CommandLineOptionConfigur
     }
 
     protected OptionValue<String> getFromProperties(Map<String, String> properties) {
-        String value = properties.get(gradleProperty);
+        String value = properties.get(property);
         if (value != null) {
-            return new OptionValue<String>(value, Origin.forGradleProperty(gradleProperty));
+            return new OptionValue<String>(value, property, propertyOrigin);
         }
-        if (deprecatedGradleProperty != null) {
-            value = properties.get(deprecatedGradleProperty);
+        if (deprecatedProperty != null) {
+            value = properties.get(deprecatedProperty);
             if (value != null) {
-                return new OptionValue<String>(value, Origin.forGradleProperty(deprecatedGradleProperty));
+                return new OptionValue<String>(value, deprecatedProperty, propertyOrigin);
             }
         }
-        return new OptionValue<String>(null, null);
+        return new OptionValue<String>(null, null, propertyOrigin);
     }
 
     protected static class OptionValue<T> {
         private final T value;
         private final Origin origin;
 
-        public OptionValue(T value, Origin origin) {
+        public OptionValue(T value, String property, PropertyOrigin propertyOrigin) {
             this.value = value;
-            this.origin = origin;
+            this.origin = propertyOrigin.toOrigin(property);
         }
+
         public T getValue() {
             return value;
         }
