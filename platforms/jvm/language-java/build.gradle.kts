@@ -73,6 +73,7 @@ dependencies {
         because("Required for SystemInfo")
     }
 
+    integTestImplementation(projects.messaging)
     // TODO: Make these available for all integration tests? Maybe all tests?
     integTestImplementation(libs.jetbrainsAnnotations)
 

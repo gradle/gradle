@@ -25,7 +25,7 @@ import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 import org.gradle.util.GradleVersion
 import org.junit.Assume
 
-import static org.gradle.internal.classanalysis.JavaClassUtil.getClassMajorVersion
+import static org.gradle.internal.serialize.JavaClassUtil.getClassMajorVersion
 
 @DoesNotSupportNonAsciiPaths(reason = "Java 6 seems to have issues with non-ascii paths")
 @Flaky(because = "https://github.com/gradle/gradle-private/issues/3901")

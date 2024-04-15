@@ -16,7 +16,6 @@
 package org.gradle.internal.serialize;
 
 import org.gradle.api.JavaVersion;
-import org.gradle.internal.classanalysis.JavaClassUtil;
 
 import java.io.IOException;
 import java.io.InputStream;

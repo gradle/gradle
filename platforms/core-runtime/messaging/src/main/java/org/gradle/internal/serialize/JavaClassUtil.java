@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.classanalysis;
+package org.gradle.internal.serialize;
 
 import java.io.DataInputStream;
 import java.io.File;
