@@ -68,6 +68,7 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 
+@SuppressWarnings("UnusedMethod")
 public class WorkerDaemonServer implements RequestHandler<TransportableActionExecutionSpec, DefaultWorkResult> {
     private final ServiceRegistry internalServices;
     private final LegacyTypesSupport legacyTypesSupport;
