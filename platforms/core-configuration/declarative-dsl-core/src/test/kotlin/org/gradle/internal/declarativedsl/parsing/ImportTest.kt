@@ -2,13 +2,13 @@ package org.gradle.internal.declarativedsl.parsing
 
 import org.gradle.internal.declarativedsl.analysis.AnalysisContext
 import org.gradle.internal.declarativedsl.analysis.AnalysisSchemaImpl
+import org.gradle.internal.declarativedsl.analysis.DataClassImpl
 import org.gradle.internal.declarativedsl.analysis.ErrorCollectorImpl
 import org.gradle.internal.declarativedsl.analysis.ErrorReason
 import org.gradle.internal.declarativedsl.analysis.FqNameImpl
 import org.gradle.internal.declarativedsl.analysis.ResolutionError
 import org.gradle.internal.declarativedsl.analysis.defaultCodeResolver
 import org.gradle.internal.declarativedsl.language.AccessChain
-import org.gradle.internal.declarativedsl.language.DataTypeImpl
 import org.gradle.internal.declarativedsl.language.Import
 import org.gradle.internal.declarativedsl.language.SourceIdentifier
 import org.jetbrains.kotlin.KtNodeTypes
@@ -29,7 +29,7 @@ class ImportTest {
     fun testContext(): AnalysisContext {
         return AnalysisContext(
             AnalysisSchemaImpl(
-                DataTypeImpl.DataClassImpl(FqNameImpl("", ""), emptySet(), emptyList(), emptyList(), emptyList()),
+                DataClassImpl(FqNameImpl("", ""), emptySet(), emptyList(), emptyList(), emptyList()),
                 emptyMap(),
                 emptyMap(),
                 emptyMap(),

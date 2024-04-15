@@ -1,10 +1,8 @@
 package org.gradle.internal.declarativedsl.analysis
 
-import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.DataConstructor
 import org.gradle.declarative.dsl.schema.DataParameter
 import org.gradle.declarative.dsl.schema.DataProperty
-import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.declarative.dsl.schema.ExternalObjectProviderKey
 import org.gradle.declarative.dsl.schema.SchemaFunction
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
@@ -178,7 +176,7 @@ sealed interface ObjectOrigin {
         override val originElement: LanguageTreeElement
     ) : ObjectOrigin, HasReceiver {
         override fun toString(): String = "$receiver${'.'}${accessor.customAccessorIdentifier}"
-        val accessedType: DataTypeRef
+        val accessedType: DataTypeRefImpl
             get() = accessor.objectType
     }
 
@@ -186,7 +184,7 @@ sealed interface ObjectOrigin {
         override val function: SchemaFunction,
         override val parameterBindings: ParameterValueBinding,
         override val invocationId: Long,
-        val lambdaReceiverType: DataTypeRef,
+        val lambdaReceiverType: DataTypeRefImpl,
         override val originElement: LanguageTreeElement,
         override val receiver: ObjectOrigin,
     ) : FunctionInvocationOrigin, HasReceiver, ReceiverOrigin {
@@ -244,7 +242,7 @@ fun functionInvocationString(function: SchemaFunction, receiver: ObjectOrigin?, 
             val ref = function.dataClass
             val fqn = when (ref.isNamed) {
                 true -> ref.fqName.toString()
-                false -> (ref.dataType as? DataClass)?.name?.qualifiedName ?: ref.dataType.toString()
+                false -> (ref.dataType as? DataClassImpl)?.name?.qualifiedName ?: ref.dataType.toString()
             }
             append(fqn)
             append(".")

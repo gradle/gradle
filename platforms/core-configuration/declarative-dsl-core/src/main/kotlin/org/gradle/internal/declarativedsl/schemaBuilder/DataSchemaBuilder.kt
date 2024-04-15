@@ -18,14 +18,13 @@ package org.gradle.internal.declarativedsl.schemaBuilder
 
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.internal.declarativedsl.analysis.AnalysisSchemaImpl
-import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.DataProperty
 import org.gradle.internal.declarativedsl.analysis.DataPropertyImpl
 import org.gradle.internal.declarativedsl.analysis.ExternalObjectProviderKeyImpl
 import org.gradle.declarative.dsl.schema.FqName
+import org.gradle.internal.declarativedsl.analysis.DataClassImpl
 import org.gradle.internal.declarativedsl.analysis.FqNameImpl
 import org.gradle.internal.declarativedsl.analysis.fqName
-import org.gradle.internal.declarativedsl.language.DataTypeImpl
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KType
@@ -133,13 +132,13 @@ class DataSchemaBuilder(
     fun createDataType(
         kClass: KClass<*>,
         preIndex: PreIndex,
-    ): DataClass {
+    ): DataClassImpl {
         val properties = preIndex.getAllProperties(kClass)
 
         val functions = functionExtractor.memberFunctions(kClass, preIndex)
         val constructors = functionExtractor.constructors(kClass, preIndex)
         val name = kClass.fqName
-        return DataTypeImpl.DataClassImpl(name, supertypesOf(kClass), properties, functions.toList(), constructors.toList())
+        return DataClassImpl(name, supertypesOf(kClass), properties, functions.toList(), constructors.toList())
     }
 
     private

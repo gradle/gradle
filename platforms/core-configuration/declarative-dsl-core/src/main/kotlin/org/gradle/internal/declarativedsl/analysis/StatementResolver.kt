@@ -71,7 +71,7 @@ class StatementResolverImpl(
                 null
             } else {
                 val rhsType = getDataType(rhsResolution)
-                val lhsExpectedType = resolveRef(lhsResolution.property.type as DataTypeRefImpl)
+                val lhsExpectedType = resolveRef(lhsResolution.property.type)
                 if (rhsType.isUnit) {
                     errorCollector.collect(ResolutionError(assignment, ErrorReason.UnitAssignment))
                     hasErrors = true

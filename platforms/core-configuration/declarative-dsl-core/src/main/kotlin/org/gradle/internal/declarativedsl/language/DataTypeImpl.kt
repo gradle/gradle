@@ -18,18 +18,10 @@ package org.gradle.internal.declarativedsl.language
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.gradle.declarative.dsl.schema.DataClass
-import org.gradle.declarative.dsl.schema.DataConstructor
-import org.gradle.declarative.dsl.schema.DataProperty
 import org.gradle.declarative.dsl.schema.DataType
-import org.gradle.declarative.dsl.schema.FqName
-import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 
 
-// TODO: rename file
-
-
-sealed interface DataTypeImpl : DataType {
+interface DataTypeImpl : DataType {
 
     sealed interface ConstantType<JvmType> : DataTypeImpl
 
@@ -96,32 +88,4 @@ sealed interface DataTypeImpl : DataType {
 
 // TODO: `Any` type?
 // TODO: Support subtyping of some sort in the schema rather than via reflection?
-
-
-    @Serializable
-    @SerialName("data")
-    data class DataClassImpl(
-        private val name: FqName,
-        private val supertypes: Set<FqName>,
-        private val properties: List<DataProperty>,
-        private val memberFunctions: List<SchemaMemberFunction>,
-        private val constructors: List<DataConstructor>
-    ) : DataClass, DataTypeImpl {
-
-        override fun isClass(): Boolean = true
-
-        override fun getDataClass(): DataClass = this
-
-        override fun getName(): FqName = name
-
-        override fun getSupertypes(): Set<FqName> = supertypes
-
-        override fun getProperties(): List<DataProperty> = properties
-
-        override fun getMemberFunctions(): List<SchemaMemberFunction> = memberFunctions
-
-        override fun getConstructors(): List<DataConstructor> = constructors
-
-        override fun toString(): String = name.simpleName
-    }
 }
