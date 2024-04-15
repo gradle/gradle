@@ -6,7 +6,6 @@ description = "Execution engine that takes a unit of work and makes it happen"
 
 errorprone {
     disabledChecks.addAll(
-        "StringCaseLocaleUsage", // 8 occurrences
         "SuperCallToObjectMethod", // 2 occurrences
         "UndefinedEquals", // 1 occurrences
         "UnusedVariable", // 1 occurrences
