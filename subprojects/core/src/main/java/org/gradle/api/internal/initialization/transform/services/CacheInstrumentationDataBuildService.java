@@ -21,6 +21,8 @@ import com.google.common.collect.Sets;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.initialization.transform.InstrumentationArtifactMetadata;
+import org.gradle.api.internal.initialization.transform.utils.CachedInstrumentationAnalysisSerializer;
+import org.gradle.api.internal.initialization.transform.utils.DefaultInstrumentationAnalysisSerializer;
 import org.gradle.api.internal.initialization.transform.utils.InstrumentationAnalysisSerializer;
 import org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils;
 import org.gradle.api.model.ObjectFactory;
@@ -49,9 +51,14 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
 
     private final Map<Long, ResolutionData> resolutionData = new ConcurrentHashMap<>();
     private final Lazy<InjectedInstrumentationServices> internalServices = Lazy.locking().of(() -> getObjectFactory().newInstance(InjectedInstrumentationServices.class));
+    private final Lazy<InstrumentationAnalysisSerializer> serializer = Lazy.locking().of(() -> new CachedInstrumentationAnalysisSerializer(new DefaultInstrumentationAnalysisSerializer(internalServices.get().getStringInterner())));
 
     @Inject
     protected abstract ObjectFactory getObjectFactory();
+
+    public InstrumentationAnalysisSerializer getCachedInstrumentationAnalysisSerializer() {
+        return serializer.get();
+    }
 
     public InstrumentationTypeRegistry getInstrumentationTypeRegistry(long contextId) {
         InstrumentationTypeRegistry gradleCoreInstrumentationTypeRegistry = internalServices.get().getGradleCoreInstrumentationTypeRegistry();
@@ -91,7 +98,7 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
     public ResolutionScope newResolutionScope(long contextId) {
         ResolutionData resolutionData = this.resolutionData.compute(contextId, (__, value) -> {
             checkArgument(value == null, "Resolution data for id %s already exists! Was previous resolution scope closed properly?", contextId);
-            return getObjectFactory().newInstance(ResolutionData.class, internalServices.get());
+            return getObjectFactory().newInstance(ResolutionData.class, internalServices.get(), serializer.get());
         });
         return new ResolutionScope() {
             @Override
@@ -128,9 +135,11 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
         private final Lazy<Map<String, File>> hashToOriginalFile;
         private final Map<File, String> hashCache;
         private final InjectedInstrumentationServices internalServices;
+        private final InstrumentationAnalysisSerializer serializer;
 
         @Inject
-        public ResolutionData(InjectedInstrumentationServices internalServices) {
+        public ResolutionData(InjectedInstrumentationServices internalServices, InstrumentationAnalysisSerializer serializer) {
+            this.serializer = serializer;
             this.hashCache = new ConcurrentHashMap<>();
             this.hashToOriginalFile = Lazy.locking().of(() -> {
                 Set<File> originalClasspath = getOriginalClasspath().getFiles();
@@ -152,7 +161,6 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
         }
 
         private Map<String, Set<String>> mergeTypeHierarchyAnalysis() {
-            InstrumentationAnalysisSerializer serializer = new InstrumentationAnalysisSerializer(internalServices.getStringInterner());
             return getTypeHierarchyAnalysisResult().getFiles().stream()
                 .flatMap(file -> serializer.readTypeHierarchyAnalysis(file).entrySet().stream())
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, Sets::union));

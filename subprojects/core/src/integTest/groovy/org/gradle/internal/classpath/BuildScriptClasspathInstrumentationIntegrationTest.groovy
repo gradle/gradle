@@ -19,7 +19,7 @@ package org.gradle.internal.classpath
 import org.gradle.api.Action
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.api.internal.cache.StringInterner
-import org.gradle.api.internal.initialization.transform.utils.InstrumentationAnalysisSerializer
+import org.gradle.api.internal.initialization.transform.utils.DefaultInstrumentationAnalysisSerializer
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
 import org.gradle.test.fixtures.HttpRepository
@@ -48,7 +48,7 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
     @Rule
     public final RepositoryHttpServer server = new RepositoryHttpServer(temporaryFolder)
 
-    def serializer = new InstrumentationAnalysisSerializer(new StringInterner())
+    def serializer = new DefaultInstrumentationAnalysisSerializer(new StringInterner())
 
     def setup() {
         requireOwnGradleUserHomeDir("We test content in the global cache")
