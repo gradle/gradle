@@ -49,28 +49,30 @@ import static org.gradle.internal.classpath.TransformedClassPath.FileMarker.INST
 class ClearArtifactTransformCacheWithoutInstrumentedJarsMutator extends AbstractCleanupMutator {
 
     private final File gradleUserHome;
-    private final String cacheDirPattern;
 
-    ClearArtifactTransformCacheWithoutInstrumentedJarsMutator(File gradleUserHome, CleanupSchedule schedule, String cacheDirPattern) {
+    ClearArtifactTransformCacheWithoutInstrumentedJarsMutator(File gradleUserHome, CleanupSchedule schedule) {
         super(schedule);
         this.gradleUserHome = gradleUserHome
-        this.cacheDirPattern = cacheDirPattern
     }
 
     @Override
     protected void cleanup() {
-        System.out.println("> Cleaning '" + cacheDirPattern + "' caches in " + gradleUserHome)
+        System.out.println("> Cleaning '<gradle-home>/caches/transforms-*/' and '<gradle-home>/caches/<gradle-version>/transforms/*' caches in " + gradleUserHome)
+        File caches = new File(gradleUserHome, "caches")
 
-        List<File> cacheDirsToClean = []
-        gradleUserHome.eachFileRecurse(FileType.DIRECTORIES) {
-            def relativePath = gradleUserHome.toPath().relativize(it.toPath())
-            def normalizedPath = FilenameUtils.separatorsToUnix(relativePath.toString())
-            if (normalizedPath.toString().matches(cacheDirPattern)) {
-                cacheDirsToClean << it
-            }
+        // <gradle-home>/caches/transforms-*
+        List<File> oldCaches = caches.listFiles().findAll {
+            it.isDirectory() && it.name.startsWith("transforms-")
         }
 
-        cacheDirsToClean.forEach {
+        // <gradle-home>/caches/<gradle-version>/transforms/*
+        List<File> newCaches = caches.listFiles().findAll {
+            it.isDirectory() && it.name.matches("\\d.*") && new File(it, "transforms").isDirectory()
+        }.collect {
+            new File(it, "transforms")
+        }
+
+        (oldCaches + newCaches).forEach {
             cleanupCacheDir(it)
         }
     }
@@ -113,14 +115,6 @@ class ClearArtifactTransformCacheWithoutInstrumentedJarsMutator extends Abstract
     }
 
     static BuildMutator create(File gradleUserHome, CleanupSchedule schedule) {
-        def clearOldTransformsDir = new ClearArtifactTransformCacheWithoutInstrumentedJarsMutator(
-            gradleUserHome, schedule, "caches/transforms-[\\d+]")
-
-        def clearNewTransformsDir = new ClearArtifactTransformCacheWithoutInstrumentedJarsMutator(
-            gradleUserHome, schedule, "caches/[\\d].*/transforms")
-
-        return new CompositeBuildMutator(
-            Lists.asList(clearOldTransformsDir, clearNewTransformsDir)
-        )
+        return new ClearArtifactTransformCacheWithoutInstrumentedJarsMutator(gradleUserHome, schedule)
     }
 }
