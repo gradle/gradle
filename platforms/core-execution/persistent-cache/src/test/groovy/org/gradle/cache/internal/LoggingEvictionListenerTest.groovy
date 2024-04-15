@@ -27,7 +27,7 @@ class LoggingEvictionListenerTest extends Specification {
         LoggingEvictionListener evictionListener = new LoggingEvictionListener("cacheId", 1000)
         def logger = Mock(Logger)
         if (replaceLogger) {
-            evictionListener.logger = logger
+            evictionListener.LOGGER = logger
         }
         def cache = CacheBuilder.newBuilder().maximumSize(1000).removalListener(evictionListener).build()
         evictionListener.setCache(cache)

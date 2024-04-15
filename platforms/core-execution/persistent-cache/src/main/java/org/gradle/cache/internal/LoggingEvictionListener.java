@@ -23,10 +23,12 @@ import com.google.common.cache.RemovalNotification;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 class LoggingEvictionListener implements RemovalListener<Object, Object> {
-    private static Logger logger = LoggerFactory.getLogger(LoggingEvictionListener.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(LoggingEvictionListener.class);
     private static final String EVICTION_MITIGATION_MESSAGE = "\nPerformance may suffer from in-memory cache misses. Increase max heap size of Gradle build process to reduce cache misses.";
-    volatile int evictionCounter;
+    private final AtomicInteger evictionCounter = new AtomicInteger(0);
     private final String cacheId;
     private Cache<Object, Object> cache;
     private final int maxSize;
@@ -45,10 +47,10 @@ class LoggingEvictionListener implements RemovalListener<Object, Object> {
     @Override
     public void onRemoval(RemovalNotification<Object, Object> notification) {
         if (notification.getCause() == RemovalCause.SIZE) {
-            if (evictionCounter % logInterval == 0) {
-                logger.info("Cache entries evicted. In-memory cache of {}: Size{{}} MaxSize{{}}, {} {}", cacheId, cache.size(), maxSize, cache.stats(), EVICTION_MITIGATION_MESSAGE);
+            if (evictionCounter.get() % logInterval == 0) {
+                LOGGER.info("Cache entries evicted. In-memory cache of {}: Size{{}} MaxSize{{}}, {} {}", cacheId, cache.size(), maxSize, cache.stats(), EVICTION_MITIGATION_MESSAGE);
             }
-            evictionCounter++;
+            evictionCounter.incrementAndGet();
         }
     }
 }
