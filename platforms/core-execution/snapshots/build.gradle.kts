@@ -5,12 +5,6 @@ plugins {
 
 description = "Tools to take immutable, comparable snapshots of files and other things"
 
-errorprone {
-    disabledChecks.addAll(
-        "ReferenceEquality", // 2 occurrences
-    )
-}
-
 dependencies {
     api(projects.javaLanguageExtensions)
     api(project(":files"))
