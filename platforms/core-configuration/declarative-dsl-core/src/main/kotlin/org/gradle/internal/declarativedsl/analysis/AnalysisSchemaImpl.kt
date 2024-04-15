@@ -43,7 +43,7 @@ data class AnalysisSchemaImpl(
 data class DataPropertyImpl(
     private val name: String,
     @SerialName("privateType") // TODO: is this ok?
-    private val type: DataTypeRef,
+    private val type: DataTypeRefImpl,
     private val mode: DataProperty.PropertyMode,
     private val hasDefaultValue: Boolean,
     private val isHiddenInDsl: Boolean = false,
@@ -69,7 +69,7 @@ data class DataPropertyImpl(
 
 @Serializable
 data class DataBuilderFunction(
-    private val receiver: DataTypeRef,
+    private val receiver: DataTypeRefImpl,
     private val simpleName: String,
     private val isDirectAccessOnly: Boolean,
     val dataParameter: DataParameter,
@@ -114,7 +114,7 @@ data class DataTopLevelFunctionImpl(
 
 @Serializable
 data class DataMemberFunction(
-    private val receiver: DataTypeRef,
+    private val receiver: DataTypeRefImpl,
     private val simpleName: String,
     private val parameters: List<DataParameter>,
     private val isDirectAccessOnly: Boolean,
@@ -137,7 +137,7 @@ data class DataMemberFunction(
 @Serializable
 data class DataConstructorImpl(
     private val parameters: List<DataParameter>,
-    private val dataClass: DataTypeRef
+    private val dataClass: DataTypeRefImpl
 ) : DataConstructor {
     private
     val internalSemantics: FunctionSemanticsImpl by lazy { FunctionSemanticsImpl.Pure(dataClass) }
@@ -158,7 +158,7 @@ data class DataConstructorImpl(
 data class DataParameterImpl(
     private val name: String?,
     @SerialName("privateType") // TODO: is this ok?
-    private val type: DataTypeRef,
+    private val type: DataTypeRefImpl,
     private val isDefault: Boolean,
     private val semantics: ParameterSemantics
 ) : DataParameter {
@@ -196,7 +196,7 @@ sealed interface FunctionSemanticsImpl : FunctionSemantics {
     }
 
     @Serializable
-    class Builder(private val objectType: DataTypeRef) : FunctionSemanticsImpl {
+    class Builder(private val objectType: DataTypeRefImpl) : FunctionSemanticsImpl {
         override fun getReturnValueType(): DataTypeRef = objectType
     }
 
@@ -224,7 +224,7 @@ sealed interface FunctionSemanticsImpl : FunctionSemantics {
 
     @Serializable
     class AddAndConfigure(
-        private val objectType: DataTypeRef,
+        private val objectType: DataTypeRefImpl,
         private val configureBlockRequirement: FunctionSemantics.ConfigureBlockRequirement
     ) : NewObjectFunctionSemantics, ConfigureSemantics {
         override fun getReturnValueType(): DataTypeRef = objectType
@@ -235,7 +235,7 @@ sealed interface FunctionSemanticsImpl : FunctionSemantics {
     }
 
     @Serializable
-    class Pure(private val returnValueType: DataTypeRef) : NewObjectFunctionSemantics {
+    class Pure(private val returnValueType: DataTypeRefImpl) : NewObjectFunctionSemantics {
         override fun getReturnValueType(): DataTypeRef = returnValueType
     }
 }
@@ -259,7 +259,7 @@ sealed interface ConfigureAccessorImpl : ConfigureAccessor {
 
     @Serializable
     data class Custom(
-        private val objectType: DataTypeRef,
+        private val objectType: DataTypeRefImpl,
         val customAccessorIdentifier: String
     ) : ConfigureAccessorImpl {
 
@@ -271,7 +271,7 @@ sealed interface ConfigureAccessorImpl : ConfigureAccessor {
 
     @Serializable
     data class ConfiguringLambdaArgument(
-        private val objectType: DataTypeRef
+        private val objectType: DataTypeRefImpl
     ) : ConfigureAccessorImpl {
 
         override fun getObjectType(): DataTypeRef = objectType
@@ -314,35 +314,37 @@ val DataTopLevelFunction.fqName: FqName
 
 @Serializable
 data class ExternalObjectProviderKeyImpl(
-    private val type: DataTypeRef
+    private val type: DataTypeRefImpl
 ) : ExternalObjectProviderKey {
     override fun getType(): DataTypeRef = type
 }
 
 
 @Serializable
-data class DataTypeRefTypeImpl(private val dataType: DataType) : DataTypeRef {
-    override fun isNamed(): Boolean = false
+sealed interface DataTypeRefImpl : DataTypeRef {
+    @Serializable
+    data class Type(private val dataType: DataType) : DataTypeRefImpl {
+        override fun isNamed(): Boolean = false
 
-    override fun getDataType(): DataType = dataType
+        override fun getDataType(): DataType = dataType
 
-    override fun getFqName(): FqName {
-        throw UnsupportedOperationException("Not a reference to a named data type")
+        override fun getFqName(): FqName {
+            throw UnsupportedOperationException("Not a reference to a named data type")
+        }
+    }
+
+    @Serializable
+    data class Name(private val fqName: FqName) : DataTypeRefImpl {
+        override fun isNamed(): Boolean = true
+
+        override fun getFqName(): FqName = fqName
+
+        override fun getDataType(): DataType {
+            throw UnsupportedOperationException("Data type only available as a name")
+        }
     }
 }
 
 
-@Serializable
-data class DataTypeRefNameImpl(private val fqName: FqName) : DataTypeRef {
-    override fun isNamed(): Boolean = true
-
-    override fun getFqName(): FqName = fqName
-
-    override fun getDataType(): DataType {
-        throw UnsupportedOperationException("Data type only available as a name")
-    }
-}
-
-
-val DataTypeImpl.ref: DataTypeRef
-    get() = DataTypeRefTypeImpl(this)
+val DataTypeImpl.ref: DataTypeRefImpl
+    get() = DataTypeRefImpl.Type(this)
