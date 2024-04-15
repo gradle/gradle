@@ -24,10 +24,13 @@ import org.gradle.configurationcache.serialization.codecs.BeanCodec
 import org.gradle.configurationcache.serialization.codecs.Bindings
 import org.gradle.configurationcache.serialization.codecs.BindingsBuilder
 import org.gradle.configurationcache.serialization.codecs.FixedValueReplacingProviderCodec
+import org.gradle.configurationcache.serialization.codecs.ListPropertyCodec
+import org.gradle.configurationcache.serialization.codecs.MapPropertyCodec
 import org.gradle.configurationcache.serialization.codecs.PropertyCodec
 import org.gradle.configurationcache.serialization.codecs.ProviderCodec
 import org.gradle.configurationcache.serialization.codecs.ProxyCodec
 import org.gradle.configurationcache.serialization.codecs.ServicesCodec
+import org.gradle.configurationcache.serialization.codecs.SetPropertyCodec
 import org.gradle.configurationcache.serialization.codecs.baseTypes
 import org.gradle.configurationcache.serialization.codecs.groovyCodecs
 import org.gradle.configurationcache.serialization.codecs.jos.ExternalizableCodec
@@ -72,6 +75,9 @@ class IsolatedActionCodecsFactory(
     private
     fun BindingsBuilder.supportedPropertyTypes() {
         val valueReplacingProviderCodec = fixedValueReplacingProviderCodec()
+        bind(SetPropertyCodec(propertyFactory, valueReplacingProviderCodec))
+        bind(MapPropertyCodec(propertyFactory, valueReplacingProviderCodec))
+        bind(ListPropertyCodec(propertyFactory, valueReplacingProviderCodec))
         bind(PropertyCodec(propertyFactory, valueReplacingProviderCodec))
         bind(ProviderCodec(valueReplacingProviderCodec))
     }

@@ -19,6 +19,7 @@ package org.gradle.configurationcache.isolation
 import com.nhaarman.mockitokotlin2.mock
 import org.gradle.api.IsolatedAction
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.serialization.IsolateOwner
 import org.gradle.configurationcache.serialization.beans.BeanStateWriterLookup
@@ -43,7 +44,7 @@ class IsolatedActionSerializerTest {
     @Test
     fun `can serialize Kotlin action`() {
         assertThat(
-            replay(roundtripOf(isolatedActionCarrying(42))),
+            valueCarriedBy(roundtripOf(isolatedActionCarrying(42))),
             equalTo(42)
         )
     }
@@ -51,14 +52,14 @@ class IsolatedActionSerializerTest {
     @Test
     fun `can serialize Java lambda`() {
         assertThat(
-            replay(roundtripOf(isolatedActionLambdaWith(42))),
+            valueCarriedBy(roundtripOf(isolatedActionLambdaWith(42))),
             equalTo(42)
         )
     }
 
     @Test
-    fun `can serialize Kotlin action with Gradle property`() {
-        val loaded = replay(roundtripOf(isolatedActionCarrying(propertyOf("42"))))
+    fun `can serialize Kotlin action with Property`() {
+        val loaded = valueCarriedBy(roundtripOf(isolatedActionCarrying(propertyOf("42"))))
         assertThat(
             loaded.get(),
             equalTo("42")
@@ -66,12 +67,41 @@ class IsolatedActionSerializerTest {
     }
 
     @Test
-    fun `can serialize Java lambda with Gradle property`() {
-        val loaded = replay(roundtripOf(isolatedActionLambdaWith(propertyOf("42"))))
-        assertThat(
-            loaded.get(),
-            equalTo("42")
+    fun `can serialize Java lambda with Property`() {
+        assertProviderRoundtrip(
+            propertyOf("42"),
+            "42"
         )
+    }
+
+    @Test
+    fun `can serialize Java lambda with ListProperty`() {
+        assertProviderRoundtrip(
+            listPropertyOf(1, 2, 3),
+            listOf(1, 2, 3)
+        )
+    }
+
+    @Test
+    fun `can serialize Java lambda with MapProperty`() {
+        assertProviderRoundtrip(
+            mapPropertyOf("foo" to 1, "bar" to 2),
+            mapOf("foo" to 1, "bar" to 2)
+        )
+    }
+
+    @Test
+    fun `can serialize Java lambda with SetProperty`() {
+        assertProviderRoundtrip(
+            setPropertyOf(1, 2, 3),
+            setOf(1, 2, 3)
+        )
+    }
+
+    private
+    fun <T : Any> assertProviderRoundtrip(property: Provider<out T>, expectedValue: T) {
+        val loaded = valueCarriedBy(roundtripOf(isolatedActionLambdaWith(property)))
+        assertThat(loaded.get(), equalTo(expectedValue))
     }
 
     interface Dsl {
@@ -84,7 +114,7 @@ class IsolatedActionSerializerTest {
         val stored = newInstance<Dsl>().apply {
             property.set("42")
         }
-        val loaded = replay(roundtripOf(isolatedActionLambdaWith(stored)))
+        val loaded = valueCarriedBy(roundtripOf(isolatedActionLambdaWith(stored)))
         assertThat(
             loaded.property.get(),
             equalTo("42")
@@ -92,7 +122,31 @@ class IsolatedActionSerializerTest {
     }
 
     private
-    inline fun <reified T> propertyOf(value: T) =
+    inline fun <reified K : Any> setPropertyOf(vararg values: K) =
+        objectFactory().setProperty(K::class.java).apply {
+            if (values.isNotEmpty()) {
+                addAll(*values)
+            }
+        }
+
+    private
+    inline fun <reified K : Any, reified V : Any> mapPropertyOf(vararg values: Pair<K, V>) =
+        objectFactory().mapProperty(K::class.java, V::class.java).apply {
+            values.forEach { (k, v) ->
+                put(k, v)
+            }
+        }
+
+    private
+    inline fun <reified T : Any> listPropertyOf(vararg values: T) =
+        objectFactory().listProperty(T::class.java).apply {
+            if (values.isNotEmpty()) {
+                appendAll(*values)
+            }
+        }
+
+    private
+    inline fun <reified T : Any> propertyOf(value: T) =
         objectFactory().property(T::class.java).apply {
             set(value)
         }
@@ -102,16 +156,12 @@ class IsolatedActionSerializerTest {
         objectFactory().newInstance(T::class.java)
 
     private
-    fun <T> isolatedActionCarrying(value: T): TestableIsolatedAction<T> =
-        TestableIsolatedAction { accept(value) }
-
-    private
-    fun <T : Any> replay(isolatedAction: TestableIsolatedAction<T>): T {
-        lateinit var loaded: T
+    fun <T : Any> valueCarriedBy(isolatedAction: TestableIsolatedAction<T>): T {
+        lateinit var value: T
         isolatedAction.execute {
-            loaded = it
+            value = it
         }
-        return loaded
+        return value
     }
 
     private
@@ -128,6 +178,10 @@ class IsolatedActionSerializerTest {
         IsolatedActionDeserializer(IsolateOwner.OwnerGradle(mock()), beanStateReaderLookupForTesting(), isolatedActionCodecsFactory())
             .deserialize(serialized)
             .uncheckedCast()
+
+    private
+    fun <T> isolatedActionCarrying(value: T): TestableIsolatedAction<T> =
+        TestableIsolatedAction { accept(value) }
 
     private
     fun isolatedActionCodecsFactory(): IsolatedActionCodecsFactory =
