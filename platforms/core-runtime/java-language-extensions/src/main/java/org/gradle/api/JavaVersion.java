@@ -15,8 +15,6 @@
  */
 package org.gradle.api;
 
-import com.google.common.annotations.VisibleForTesting;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -210,7 +208,6 @@ public enum JavaVersion {
         return currentJavaVersion;
     }
 
-    @VisibleForTesting
     static void resetCurrent() {
         currentJavaVersion = null;
     }
@@ -334,11 +331,6 @@ public enum JavaVersion {
 
     @Override
     public String toString() {
-        return versionName;
-    }
-
-    // We have to keep this for a while: https://github.com/gradle/gradle/issues/4856
-    private String getName() {
         return versionName;
     }
 
