@@ -35,6 +35,7 @@ import org.gradle.internal.execution.WorkValidationException
 import org.gradle.internal.execution.WorkValidationExceptionChecker
 import org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory
 import org.gradle.internal.properties.annotations.DefaultTypeMetadataStore
+import org.gradle.internal.properties.annotations.MissingPropertyAnnotationHandler
 import org.gradle.internal.properties.annotations.PropertyAnnotationHandler
 import org.gradle.internal.properties.annotations.TestPropertyTypeResolver
 import org.gradle.internal.properties.bean.DefaultPropertyWalker
@@ -115,7 +116,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         cacheFactory
     )
     def propertyHandlers = services.getAll(PropertyAnnotationHandler)
-    def typeMetadataStore = new DefaultTypeMetadataStore([], propertyHandlers, [Optional, SkipWhenEmpty], typeAnnotationMetadataStore, TestPropertyTypeResolver.INSTANCE, cacheFactory)
+    def typeMetadataStore = new DefaultTypeMetadataStore([], propertyHandlers, [Optional, SkipWhenEmpty], typeAnnotationMetadataStore, TestPropertyTypeResolver.INSTANCE, cacheFactory, MissingPropertyAnnotationHandler.DO_NOTHING)
     def propertyWalker = new DefaultPropertyWalker(typeMetadataStore, new TestImplementationResolver(), propertyHandlers)
 
     @SuppressWarnings("GroovyUnusedDeclaration")

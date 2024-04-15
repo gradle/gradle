@@ -17,6 +17,8 @@
 package org.gradle.api.internal.plugins.software;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -24,26 +26,18 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Marks a method as exposing a software type.  This should be used in plugin classes to communicate which software types they provide.
+ * Marks a Settings plugin as registering one or more software types.
  *
  * @since 8.9
  */
 @Incubating
-@Target({ElementType.METHOD})
+@Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface SoftwareType {
+public @interface RegistersSoftwareTypes {
     /**
-     * The name of the software type.  This will correspond to the DSL element that is exposed to configure the software type.
+     * The {@link Project} plugins that provide the software types.
      *
      * @since 8.9
      */
-    String name();
-
-    /**
-     * The model type used to configure the software type.  Note that this class should be the same type or a super type of the return type
-     * of the method that this annotation is applied to.
-     *
-     * @since 8.9
-     */
-    Class<?> modelPublicType();
+    Class<? extends Plugin<Project>>[] value();
 }

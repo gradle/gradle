@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.transform;
+package org.gradle.plugin.software.internal;
 
-import org.gradle.api.artifacts.transform.TransformAction;
+import org.gradle.api.Plugin;
 import org.gradle.api.internal.tasks.properties.AbstractTypeScheme;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.internal.instantiation.InstantiationScheme;
 
-public class TransformActionScheme extends AbstractTypeScheme {
-    public TransformActionScheme(InstantiationScheme instantiationScheme, InspectionScheme inspectionScheme) {
+/**
+ * Scheme for instantiating and inspecting plugin classes.
+ */
+public class PluginScheme extends AbstractTypeScheme {
+
+    public PluginScheme(InstantiationScheme instantiationScheme, InspectionScheme inspectionScheme) {
         super(instantiationScheme, inspectionScheme);
     }
 
     @Override
     public boolean appliesTo(Class<?> type) {
-        return TransformAction.class.isAssignableFrom(type);
+        return Plugin.class.isAssignableFrom(type);
     }
 }
-
-
