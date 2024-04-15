@@ -179,6 +179,7 @@ public class ForkedTestClasspathFactory {
             moduleRegistry.getModule("gradle-concurrent").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-io").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-native").getImplementationClasspath().getAsURLs(),
+            moduleRegistry.getModule("gradle-serialization").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-time").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-testing-base").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-testing-jvm-infrastructure").getImplementationClasspath().getAsURLs(),
