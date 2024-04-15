@@ -20,12 +20,12 @@ import java.io.Serializable;
 
 public interface ParameterSemantics extends Serializable {
 
-    interface StoreValueInProperty extends ParameterSemantics {
-
-        DataProperty getDataProperty();
-
+    default boolean isStoreValueInProperty() {
+        return false;
     }
 
-    interface Unknown extends ParameterSemantics {}
+    default DataProperty getDataProperty() {
+        throw new UnsupportedOperationException("Not store value in property semantics");
+    }
 
 }

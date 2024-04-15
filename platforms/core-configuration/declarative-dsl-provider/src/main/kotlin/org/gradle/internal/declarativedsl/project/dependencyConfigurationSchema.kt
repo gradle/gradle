@@ -28,8 +28,8 @@ import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.analysis.DataMemberFunction
 import org.gradle.internal.declarativedsl.analysis.DataParameterImpl
 import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsImpl
+import org.gradle.internal.declarativedsl.analysis.ParameterSemanticsImpl
 import org.gradle.internal.declarativedsl.analysis.ParameterValueBinding
-import org.gradle.internal.declarativedsl.analysis.UnknownParameterSemantics
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaComponent
 import org.gradle.internal.declarativedsl.mappingToJvm.DeclarativeRuntimeFunction
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeFunctionResolver
@@ -57,10 +57,10 @@ class DependencyConfigurationsComponent(
     val configurations = DependencyConfigurations(project.configurations.names.toList())
 
     private
-    val gavDependencyParam = DataParameterImpl("dependency", String::class.toDataTypeRef(), false, UnknownParameterSemantics)
+    val gavDependencyParam = DataParameterImpl("dependency", String::class.toDataTypeRef(), false, ParameterSemanticsImpl.Unknown)
 
     private
-    val projectDependencyParam = DataParameterImpl("dependency", ProjectDependency::class.toDataTypeRef(), false, UnknownParameterSemantics)
+    val projectDependencyParam = DataParameterImpl("dependency", ProjectDependency::class.toDataTypeRef(), false, ParameterSemanticsImpl.Unknown)
 
     private
     val dependencyCollectorFunctionExtractorAndRuntimeResolver = DependencyCollectorFunctionExtractorAndRuntimeResolver(gavDependencyParam, projectDependencyParam)

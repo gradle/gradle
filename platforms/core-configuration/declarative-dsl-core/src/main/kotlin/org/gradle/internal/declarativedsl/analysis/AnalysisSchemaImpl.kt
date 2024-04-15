@@ -160,7 +160,7 @@ data class DataParameterImpl(
     @SerialName("privateType") // TODO: is this ok?
     private val type: DataTypeRefImpl,
     private val isDefault: Boolean,
-    private val semantics: ParameterSemantics
+    private val semantics: ParameterSemanticsImpl
 ) : DataParameter {
     override fun getName(): String? = name
 
@@ -168,18 +168,22 @@ data class DataParameterImpl(
 
     override fun isDefault(): Boolean = isDefault
 
-    override fun getSemantics(): ParameterSemantics = semantics
+    override fun getSemantics(): ParameterSemanticsImpl = semantics
 }
 
 
 @Serializable
-data class StoreValueInPropertyParameterSemantics(private val dataProperty: DataProperty) : ParameterSemantics.StoreValueInProperty {
-    override fun getDataProperty(): DataProperty = dataProperty
+sealed interface ParameterSemanticsImpl : ParameterSemantics {
+    @Serializable
+    data class StoreValueInProperty(private val dataProperty: DataProperty) : ParameterSemanticsImpl {
+        override fun isStoreValueInProperty(): Boolean = true
+
+        override fun getDataProperty(): DataProperty = dataProperty
+    }
+
+    @Serializable
+    data object Unknown : ParameterSemanticsImpl
 }
-
-
-@Serializable
-data object UnknownParameterSemantics : ParameterSemantics.Unknown
 
 
 @Serializable

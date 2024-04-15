@@ -32,12 +32,10 @@ import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.declarative.dsl.schema.FunctionSemantics.ConfigureBlockRequirement.NOT_ALLOWED
 import org.gradle.declarative.dsl.schema.FunctionSemantics.ConfigureBlockRequirement.OPTIONAL
 import org.gradle.declarative.dsl.schema.FunctionSemantics.ConfigureBlockRequirement.REQUIRED
-import org.gradle.declarative.dsl.schema.ParameterSemantics
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.analysis.ConfigureAccessorImpl
 import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsImpl
-import org.gradle.internal.declarativedsl.analysis.StoreValueInPropertyParameterSemantics
-import org.gradle.internal.declarativedsl.analysis.UnknownParameterSemantics
+import org.gradle.internal.declarativedsl.analysis.ParameterSemanticsImpl
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
@@ -213,7 +211,7 @@ class DefaultFunctionExtractor(
         fnParam: KParameter,
         returnClass: KClass<*>,
         preIndex: DataSchemaBuilder.PreIndex
-    ): ParameterSemantics {
+    ): ParameterSemanticsImpl {
         val propertyNamesToCheck = buildList {
             if (functionSemantics is FunctionSemanticsImpl.Builder) add(function.name)
             if (functionSemantics is FunctionSemanticsImpl.NewObjectFunctionSemantics) fnParam.name?.let(::add)
@@ -223,10 +221,10 @@ class DefaultFunctionExtractor(
                 preIndex.getAllProperties(returnClass).any { it.name == propertyName }
             if (isPropertyLike) {
                 val storeProperty = checkNotNull(preIndex.getProperty(returnClass, propertyName))
-                return StoreValueInPropertyParameterSemantics(storeProperty)
+                return ParameterSemanticsImpl.StoreValueInProperty(storeProperty)
             }
         }
-        return UnknownParameterSemantics
+        return ParameterSemanticsImpl.Unknown
     }
 
     private
