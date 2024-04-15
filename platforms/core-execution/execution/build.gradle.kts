@@ -4,12 +4,6 @@ plugins {
 
 description = "Execution engine that takes a unit of work and makes it happen"
 
-errorprone {
-    disabledChecks.addAll(
-        "UnusedVariable", // 1 occurrences
-    )
-}
-
 dependencies {
     api(libs.guava)
     api(libs.jsr305)
