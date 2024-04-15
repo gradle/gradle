@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.isolated
+package org.gradle.api.isolated
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
