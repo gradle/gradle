@@ -445,6 +445,7 @@ public class DefaultFileLockManager implements FileLockManager {
         private final Condition condition = lock.newCondition();
         private int waiting;
 
+        @SuppressWarnings("WaitNotInLoop")
         @Override
         public boolean await(long millis) throws InterruptedException {
             lock.lock();
