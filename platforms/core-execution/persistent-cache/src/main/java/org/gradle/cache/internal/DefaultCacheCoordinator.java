@@ -304,8 +304,8 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
 
     @Override
     public <K, V> MultiProcessSafeIndexedCache<K, V> newCache(final IndexedCacheParameters<K, V> parameters) {
-        stateLock.lock();
         IndexedCacheEntry<K, V> entry = Cast.uncheckedCast(caches.get(parameters.getCacheName()));
+        stateLock.lock();
         try {
             if (entry == null) {
                 File cacheFile = findCacheFile(parameters);
