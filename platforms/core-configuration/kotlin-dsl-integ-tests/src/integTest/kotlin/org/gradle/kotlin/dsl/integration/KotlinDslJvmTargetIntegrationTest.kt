@@ -221,11 +221,12 @@ class KotlinDslJvmTargetIntegrationTest : AbstractKotlinIntegrationTest() {
         """)
         withFile("plugin/src/main/kotlin/some.gradle.kts", printScriptJavaClassFileMajorVersion)
 
-        val pluginCompile = gradleExecuterFor(arrayOf("check", "publish"), rootDir = file("plugin"))
+        gradleExecuterFor(arrayOf("check", "publish"), rootDir = file("plugin"))
             .withJavaHome(currentJvm.javaHome)
             .withArgument("-Porg.gradle.java.installations.paths=$installationPaths")
             .run()
-        assertThat(pluginCompile.output, containsString("w: Inconsistent JVM-target compatibility detected for tasks 'compileJava' (22) and 'compileKotlin' (21)."))
+        // TODO test with Java 23 now that Kotlin 2.0 supports Java 22
+        // assertThat(pluginCompile.output, containsString("w: Inconsistent JVM-target compatibility detected for tasks 'compileJava' (22) and 'compileKotlin' (21)."))
 
         withSettingsIn("consumer", """
             pluginManagement {
