@@ -168,7 +168,7 @@ public class Hashing {
             }
             int hashBits = prototype.getDigestLength() * 8;
             try {
-                prototype.clone();
+                Object ignored = prototype.clone();
                 return new CloningMessageDigestHashFunction(prototype, hashBits);
             } catch (CloneNotSupportedException e) {
                 return new RegularMessageDigestHashFunction(algorithm, hashBits);
