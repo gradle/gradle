@@ -243,8 +243,8 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
 
         public <V> V guardByKey(T key, Supplier<V> supplier) {
             Lock lock = locks.get(key);
+            lock.lock();
             try {
-                lock.lock();
                 return supplier.get();
             } finally {
                 lock.unlock();
