@@ -2,7 +2,6 @@ package org.gradle.internal.declarativedsl.analysis
 
 import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.DataParameter
-import org.gradle.declarative.dsl.schema.ParameterSemantics
 import org.gradle.declarative.dsl.schema.SchemaFunction
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.analysis.FunctionCallResolver.FunctionResolutionAndBinding
@@ -224,7 +223,7 @@ class FunctionCallResolverImpl(
         }
         function.binding.binding.forEach { (param, arg) ->
             val paramSemantics = param.semantics
-            if (paramSemantics is ParameterSemantics.StoreValueInProperty) {
+            if (paramSemantics is ParameterSemanticsImpl.StoreValueInProperty) {
                 val property = paramSemantics.dataProperty
                 recordAssignment(PropertyReferenceResolution(result, property), argResolutions.getValue(arg), assignmentMethod, call)
             }
@@ -242,7 +241,7 @@ class FunctionCallResolverImpl(
 
             val parameter = function.schemaFunction.parameters.singleOrNull()
                 ?: error("builder functions must have a single parameter")
-            parameter.semantics as? ParameterSemantics.StoreValueInProperty
+            parameter.semantics as? ParameterSemanticsImpl.StoreValueInProperty
                 ?: error("a builder function must assign its parameter to a property")
         }
     }

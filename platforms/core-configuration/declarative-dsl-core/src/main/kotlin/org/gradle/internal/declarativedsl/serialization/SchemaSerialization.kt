@@ -35,12 +35,9 @@ import org.gradle.declarative.dsl.schema.DataType
 import org.gradle.declarative.dsl.schema.FqName
 import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.internal.declarativedsl.analysis.FqNameImpl
-import org.gradle.declarative.dsl.schema.ParameterSemantics
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.analysis.DataTypeRefImpl
 import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsImpl
-import org.gradle.internal.declarativedsl.analysis.StoreValueInPropertyParameterSemantics
-import org.gradle.internal.declarativedsl.analysis.UnknownParameterSemantics
 import org.gradle.internal.declarativedsl.language.DataTypeImpl
 
 
@@ -78,10 +75,6 @@ object SchemaSerialization {
                 subclass(FunctionSemanticsImpl.AddAndConfigure::class)
                 subclass(FunctionSemanticsImpl.Pure::class)
                 subclass(FunctionSemanticsImpl.Builder::class)
-            }
-            polymorphic(ParameterSemantics::class) {
-                subclass(StoreValueInPropertyParameterSemantics::class)
-                subclass(UnknownParameterSemantics::class)
             }
             polymorphic(SchemaMemberFunction::class) {
                 subclass(DataMemberFunction::class)
