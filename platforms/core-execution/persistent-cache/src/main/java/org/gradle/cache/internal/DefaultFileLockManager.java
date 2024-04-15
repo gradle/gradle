@@ -42,6 +42,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.Locale;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -325,7 +326,7 @@ public class DefaultFileLockManager implements FileLockManager {
          * Note: In the implementation we use {@link java.nio.channels.FileLock} that is tight to a JVM process, not a thread.
          */
         private LockState lock(LockMode lockMode) throws Throwable {
-            LOGGER.debug("Waiting to acquire {} lock on {}.", lockMode.toString().toLowerCase(), displayName);
+            LOGGER.debug("Waiting to acquire {} lock on {}.", lockMode.toString().toLowerCase(Locale.ROOT), displayName);
 
             // Lock the state region, with the requested mode
             FileLockOutcome lockOutcome = lockStateRegion(lockMode);
