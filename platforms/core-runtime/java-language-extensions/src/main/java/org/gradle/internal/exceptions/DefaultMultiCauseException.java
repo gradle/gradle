@@ -18,14 +18,10 @@ package org.gradle.internal.exceptions;
 import org.gradle.api.GradleException;
 import org.gradle.internal.Factory;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.io.PrintWriter;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
