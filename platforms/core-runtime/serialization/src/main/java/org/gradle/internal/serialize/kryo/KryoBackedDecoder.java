@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,20 +30,25 @@ import java.io.InputStream;
  * Note that this decoder uses buffering, so will attempt to read beyond the end of the encoded data. This means you should use this type only when this decoder will be used to decode the entire
  * stream.
  */
-public class StringDeduplicatingKryoBackedDecoder extends AbstractDecoder implements Decoder, Closeable {
-    public static final int INITIAL_CAPACITY = 32;
+public class KryoBackedDecoder extends AbstractDecoder implements Decoder, Closeable {
     private final Input input;
-    private final InputStream inputStream;
-    private String[] strings;
+    private InputStream inputStream;
     private long extraSkipped;
+    private KryoBackedDecoder nested;
 
-    public StringDeduplicatingKryoBackedDecoder(InputStream inputStream) {
+    public KryoBackedDecoder(InputStream inputStream) {
         this(inputStream, 4096);
     }
 
-    public StringDeduplicatingKryoBackedDecoder(InputStream inputStream, int bufferSize) {
+    public KryoBackedDecoder(InputStream inputStream, int bufferSize) {
         this.inputStream = inputStream;
         input = new Input(this.inputStream, bufferSize);
+    }
+
+    public void restart(InputStream inputStream) {
+        this.inputStream = inputStream;
+        input.setInputStream(inputStream);
+        extraSkipped = 0;
     }
 
     @Override
@@ -72,7 +77,7 @@ public class StringDeduplicatingKryoBackedDecoder extends AbstractDecoder implem
 
     private RuntimeException maybeEndOfStream(KryoException e) throws EOFException {
         if (e.getMessage().equals("Buffer underflow.")) {
-            throw (EOFException) (new EOFException().initCause(e));
+            throw (EOFException) new EOFException().initCause(e);
         }
         throw e;
     }
@@ -175,29 +180,62 @@ public class StringDeduplicatingKryoBackedDecoder extends AbstractDecoder implem
     @Override
     public String readNullableString() throws EOFException {
         try {
-            int idx = readInt();
-            if (idx == -1) {
-                return null;
-            }
-            if (strings == null) {
-                strings = new String[INITIAL_CAPACITY];
-            }
-            String string = null;
-            if (idx >= strings.length) {
-                String[] grow = new String[strings.length * 3 / 2];
-                System.arraycopy(strings, 0, grow, 0, strings.length);
-                strings = grow;
-            } else {
-                string = strings[idx];
-            }
-            if (string == null) {
-                string = input.readString();
-                strings[idx] = string;
-            }
-            return string;
+            return input.readString();
         } catch (KryoException e) {
             throw maybeEndOfStream(e);
         }
+    }
+
+    @Override
+    public void skipChunked() throws EOFException, IOException {
+        while (true) {
+            int count = readSmallInt();
+            if (count == 0) {
+                break;
+            }
+            skipBytes(count);
+        }
+    }
+
+    @Override
+    public <T> T decodeChunked(DecodeAction<Decoder, T> decodeAction) throws EOFException, Exception {
+        if (nested == null) {
+            nested = new KryoBackedDecoder(new InputStream() {
+                private int leftover = 0;
+
+                @Override
+                public int read() throws IOException {
+                    throw new UnsupportedOperationException();
+                }
+
+                @Override
+                public int read(byte[] buffer, int offset, int length) throws IOException {
+                    if (leftover > 0) {
+                        int count = Math.min(leftover, length);
+                        leftover -= count;
+                        readBytes(buffer, offset, count);
+                        return count;
+                    }
+
+                    int count = readSmallInt();
+                    if (count == 0) {
+                        // End of stream has been reached
+                        return -1;
+                    }
+                    if (count > length) {
+                        leftover = count - length;
+                        count = length;
+                    }
+                    readBytes(buffer, offset, count);
+                    return count;
+                }
+            });
+        }
+        T value = decodeAction.read(nested);
+        if (readSmallInt() != 0) {
+            throw new IllegalStateException("Expecting the end of nested stream.");
+        }
+        return value;
     }
 
     /**
@@ -209,7 +247,6 @@ public class StringDeduplicatingKryoBackedDecoder extends AbstractDecoder implem
 
     @Override
     public void close() throws IOException {
-        strings = null;
         input.close();
     }
 }

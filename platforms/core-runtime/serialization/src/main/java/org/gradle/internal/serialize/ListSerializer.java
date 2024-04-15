@@ -26,6 +26,8 @@ public class ListSerializer<T> extends AbstractCollectionSerializer<T, List<T>> 
         super(entrySerializer);
     }
 
+    @SuppressWarnings("MixedMutabilityReturnType")
+    // TODO Deserialize using immutable collections
     @Override
     protected List<T> createCollection(int size) {
         if (size == 0) {

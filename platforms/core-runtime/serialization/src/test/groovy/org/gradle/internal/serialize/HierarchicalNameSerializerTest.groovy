@@ -16,14 +16,14 @@
 
 package org.gradle.internal.serialize
 
-import org.gradle.api.internal.cache.StringInterner
+import com.google.common.collect.Interners
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import spock.lang.Specification
 
 class HierarchicalNameSerializerTest extends Specification {
-    HierarchicalNameSerializer serializer = new HierarchicalNameSerializer(new StringInterner())
-    HierarchicalNameSerializer deserializer = new HierarchicalNameSerializer(new StringInterner())
+    HierarchicalNameSerializer serializer = new HierarchicalNameSerializer(Interners.newWeakInterner())
+    HierarchicalNameSerializer deserializer = new HierarchicalNameSerializer(Interners.newWeakInterner())
 
     def "can deserialize serialized form"() {
         given:

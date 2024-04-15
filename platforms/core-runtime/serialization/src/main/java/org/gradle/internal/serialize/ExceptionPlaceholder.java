@@ -44,6 +44,8 @@ import java.util.List;
 import java.util.Set;
 
 class ExceptionPlaceholder implements Serializable {
+    @SuppressWarnings("DoubleBraceInitialization")
+    // TODO Use Guava's immutable collections here
     private static final Set<String> CANDIDATE_GET_CAUSES = Collections.unmodifiableSet(
         new HashSet<String>() {{
             add("getCauses");
@@ -167,6 +169,8 @@ class ExceptionPlaceholder implements Serializable {
         return Collections.emptyList();
     }
 
+    @SuppressWarnings("MixedMutabilityReturnType")
+    // TODO Use only immutable collections
     private static List<ExceptionPlaceholder> convertToExceptionPlaceholderList(List<? extends Throwable> throwables, InternalTransformer<ExceptionReplacingObjectOutputStream, OutputStream> objectOutputStreamCreator, Set<Throwable> dejaVu) {
         if (throwables.isEmpty()) {
             return Collections.emptyList();
@@ -339,6 +343,8 @@ class ExceptionPlaceholder implements Serializable {
         return null;
     }
 
+    @SuppressWarnings("MixedMutabilityReturnType")
+    // TODO Use only immutable collections
     private static List<Throwable> recreateExceptions(List<ExceptionPlaceholder> exceptions, InternalTransformer<Class<?>, String> classNameTransformer, InternalTransformer<ExceptionReplacingObjectInputStream, InputStream> objectInputStreamCreator) throws IOException {
         if (exceptions.isEmpty()) {
             return Collections.emptyList();

@@ -31,6 +31,7 @@ public class StackTraceElementPlaceholder implements Serializable {
     private final String fileName;
     private final int lineNumber;
 
+    @SuppressWarnings("Since15")
     public StackTraceElementPlaceholder(StackTraceElement ste) {
         if (JavaVersion.current().isJava9Compatible()) {
             classLoaderName = ste.getClassLoaderName();

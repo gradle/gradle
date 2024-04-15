@@ -26,7 +26,7 @@ import java.io.OutputStream;
  */
 public interface Encoder {
     /**
-     * Returns an {@link OutputStream) that can be used to write raw bytes to the stream.
+     * Returns an {@link OutputStream} that can be used to write raw bytes to the stream.
      */
     OutputStream getOutputStream();
 

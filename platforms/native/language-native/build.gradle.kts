@@ -58,6 +58,7 @@ dependencies {
     testImplementation(project(":resources"))
     testImplementation(project(":base-services-groovy"))
     testImplementation(libs.commonsIo)
+    testImplementation(testFixtures(projects.serialization))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":version-control")))
     testImplementation(testFixtures(project(":platform-native")))
