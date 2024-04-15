@@ -430,7 +430,7 @@ class FunctionCallResolverImpl(
         }
         checkIsAssignable(
             getDataType(argResolution.getValue(arg)),
-            resolveRef(param.type)
+            resolveRef(param.type as DataTypeRefImpl)
         )
     }
 

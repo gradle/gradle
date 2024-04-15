@@ -30,8 +30,6 @@ import org.gradle.declarative.dsl.schema.DataParameter
 import org.gradle.internal.declarativedsl.analysis.DataParameterImpl
 import org.gradle.declarative.dsl.schema.DataProperty
 import org.gradle.internal.declarativedsl.analysis.DataPropertyImpl
-import org.gradle.internal.declarativedsl.analysis.DataTypeRefNameImpl
-import org.gradle.internal.declarativedsl.analysis.DataTypeRefTypeImpl
 import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.declarative.dsl.schema.DataType
 import org.gradle.declarative.dsl.schema.FqName
@@ -39,6 +37,7 @@ import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.internal.declarativedsl.analysis.FqNameImpl
 import org.gradle.declarative.dsl.schema.ParameterSemantics
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
+import org.gradle.internal.declarativedsl.analysis.DataTypeRefImpl
 import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsImpl
 import org.gradle.internal.declarativedsl.analysis.StoreValueInPropertyParameterSemantics
 import org.gradle.internal.declarativedsl.analysis.UnknownParameterSemantics
@@ -58,9 +57,9 @@ object SchemaSerialization {
                 subclass(DataTypeImpl.NullType::class)
                 subclass(DataTypeImpl.UnitType::class)
             }
-            polymorphic(DataTypeRef::class) {
-                subclass(DataTypeRefNameImpl::class)
-                subclass(DataTypeRefTypeImpl::class)
+            polymorphic(DataTypeRef::class) { // TODO: this should not be needed
+                subclass(DataTypeRefImpl.Name::class)
+                subclass(DataTypeRefImpl.Type::class)
             }
             polymorphic(DataClass::class) { // TODO: this should not be needed
                 subclass(DataTypeImpl.DataClassImpl::class)
