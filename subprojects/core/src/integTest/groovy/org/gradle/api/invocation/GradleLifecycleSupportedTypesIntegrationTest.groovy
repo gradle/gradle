@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.isolated
+package org.gradle.api.invocation
 
 import org.gradle.api.file.ArchiveOperations
 import org.gradle.api.file.FileSystemOperations
@@ -29,9 +29,9 @@ import javax.inject.Inject
 import java.nio.charset.Charset
 import java.util.logging.Level
 
-class IsolatedActionSupportedTypesIntegrationTest extends AbstractIntegrationSpec {
+class GradleLifecycleSupportedTypesIntegrationTest extends AbstractIntegrationSpec {
 
-    def "can carry instances of #type"() {
+    def "lifecycle callback can carry instances of #type"() {
         given:
         settingsFile << """
             import java.util.concurrent.*
@@ -122,7 +122,7 @@ class IsolatedActionSupportedTypesIntegrationTest extends AbstractIntegrationSpe
         "RegularFile"                        | "layout.rootDirectory.file('bar.txt')"    | { it.file("bar.txt") }
     }
 
-    def "can carry service of type #type"() {
+    def "lifecycle callback can carry service of type #type"() {
         settingsFile << """
             class SomeBean {
                 ${type} value
@@ -159,7 +159,7 @@ class IsolatedActionSupportedTypesIntegrationTest extends AbstractIntegrationSpe
         ListenerManager.name             | "services.get(${ListenerManager.name})"             | "toString()"
     }
 
-    def "can carry provider of type #type"() {
+    def "lifecycle callback can carry provider of type #type"() {
         settingsFile << """
             import ${Inject.name}
 
@@ -199,7 +199,7 @@ class IsolatedActionSupportedTypesIntegrationTest extends AbstractIntegrationSpe
         "Provider<String>" | "objects.property(String)"                | "null"
     }
 
-    def "can carry property of type #type"() {
+    def "lifecycle callback can carry property of type #type"() {
         settingsFile << """
             import ${Inject.name}
 

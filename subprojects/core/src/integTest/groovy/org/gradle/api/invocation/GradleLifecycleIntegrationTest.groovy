@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.isolated
+package org.gradle.api.invocation
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 import static org.gradle.integtests.fixtures.KotlinDslTestUtil.getKotlinDslBuildSrcConfig
 
-class IsolatedActionIntegrationTest extends AbstractIntegrationSpec {
+class GradleLifecycleIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         settingsFile '''
@@ -42,7 +42,7 @@ class IsolatedActionIntegrationTest extends AbstractIntegrationSpec {
         true
     }
 
-    def 'isolated action given as Kotlin lambda can capture managed value'() {
+    def 'isolated beforeProject action given as Kotlin lambda can capture managed value'() {
         given:
         createDir('build-logic') {
             file('settings.gradle.kts') << ''
@@ -82,7 +82,7 @@ class IsolatedActionIntegrationTest extends AbstractIntegrationSpec {
         configuredTaskRunsCorrectly()
     }
 
-    def 'isolated action given as Java lambda can capture managed value'() {
+    def 'isolated beforeProject action given as Java lambda can capture managed value'() {
         given:
         createDir('build-logic') {
             groovyFile file('build.gradle'), '''
