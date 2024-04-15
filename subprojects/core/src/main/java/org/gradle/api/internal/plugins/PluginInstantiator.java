@@ -18,9 +18,7 @@ package org.gradle.api.internal.plugins;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.reflect.ObjectInstantiationException;
-import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.service.ServiceLookup;
 
 import java.lang.reflect.Modifier;
 
@@ -34,9 +32,9 @@ public class PluginInstantiator implements Instantiator {
     private final Instantiator injectedInstantiator;
     private final Instantiator decoratedInstantiator;
 
-    public PluginInstantiator(InstantiatorFactory instantiatorFactory, ServiceLookup services) {
-        this.injectedInstantiator = instantiatorFactory.inject(services);
-        this.decoratedInstantiator = instantiatorFactory.decorate(services);
+    public PluginInstantiator(Instantiator injectionInstantiator, Instantiator decoratingInstantiator) {
+        this.injectedInstantiator = injectionInstantiator;
+        this.decoratedInstantiator = decoratingInstantiator;
     }
 
     @Override

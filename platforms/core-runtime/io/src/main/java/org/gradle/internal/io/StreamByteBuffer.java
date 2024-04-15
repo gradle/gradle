@@ -47,7 +47,6 @@ public class StreamByteBuffer {
     private LinkedList<StreamByteBufferChunk> chunks = new LinkedList<StreamByteBufferChunk>();
     private StreamByteBufferChunk currentWriteChunk;
     private StreamByteBufferChunk currentReadChunk;
-    private int chunkSize;
     private int nextChunkSize;
     private int maxChunkSize;
     private StreamByteBufferOutputStream output;
@@ -59,7 +58,6 @@ public class StreamByteBuffer {
     }
 
     public StreamByteBuffer(int chunkSize) {
-        this.chunkSize = chunkSize;
         this.nextChunkSize = chunkSize;
         this.maxChunkSize = Math.max(chunkSize, MAX_CHUNK_SIZE);
         currentWriteChunk = new StreamByteBufferChunk(nextChunkSize);

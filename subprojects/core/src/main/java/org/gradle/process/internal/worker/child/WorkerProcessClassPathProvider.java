@@ -87,6 +87,7 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider {
         "gradle-enterprise-workers",
         "gradle-cli",
         "gradle-concurrent",
+        "gradle-io",
         "gradle-wrapper-shared",
         "gradle-native",
         "gradle-dependency-management",

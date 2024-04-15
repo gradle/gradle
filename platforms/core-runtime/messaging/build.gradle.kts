@@ -32,6 +32,7 @@ dependencies {
     api(libs.slf4jApi)
     api(libs.guava)
 
+    implementation(projects.io)
     implementation(project(":build-operations"))
 
     implementation(libs.kryo)

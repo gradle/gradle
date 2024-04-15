@@ -17,6 +17,7 @@ package org.gradle.internal.io;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 
 /**
  * An OutputStream which separates bytes written into lines of text. Uses the platform default encoding. Is not thread safe.
@@ -44,7 +45,7 @@ public class LineBufferingOutputStream extends OutputStream {
         buffer = new StreamByteBuffer(bufferLength);
         this.lineMaxLength = lineMaxLength;
         output = buffer.getOutputStream();
-        byte[] lineSeparatorBytes = lineSeparator.getBytes();
+        byte[] lineSeparatorBytes = lineSeparator.getBytes(StandardCharsets.UTF_8);
         lastLineSeparatorByte = lineSeparatorBytes[lineSeparatorBytes.length - 1];
     }
 
