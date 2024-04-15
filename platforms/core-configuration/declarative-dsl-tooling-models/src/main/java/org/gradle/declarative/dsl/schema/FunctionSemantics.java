@@ -22,32 +22,37 @@ public interface FunctionSemantics extends Serializable {
 
     DataTypeRef getReturnValueType();
 
-    interface ConfigureSemantics extends FunctionSemantics {
-
-        DataTypeRef getConfiguredType();
-
-        ConfigureBlockRequirement getConfigureBlockRequirement();
-
-        enum ConfigureBlockRequirement {
-            NOT_ALLOWED, OPTIONAL, REQUIRED;
-
-            public boolean allows() {
-                return this != NOT_ALLOWED;
-            }
-
-            public boolean requires() {
-                return this == REQUIRED;
-            }
-
-            public boolean isValidIfLambdaIsPresent(boolean isPresent) {
-                return isPresent ? allows() : !requires();
-            }
-
-        }
-
+    default boolean isNewObjectFunctionSemantics() {
+        return false;
     }
 
-    interface NewObjectFunctionSemantics extends FunctionSemantics {
+    default boolean isConfigureSemantics() {
+        return false;
+    }
+
+    default DataTypeRef getConfiguredType() {
+        throw new UnsupportedOperationException("Not configure semantics");
+    }
+
+    default ConfigureBlockRequirement getConfigureBlockRequirement() {
+        throw new UnsupportedOperationException("Not configure semantics");
+    }
+
+    enum ConfigureBlockRequirement {
+        NOT_ALLOWED, OPTIONAL, REQUIRED;
+
+        public boolean allows() {
+            return this != NOT_ALLOWED;
+        }
+
+        public boolean requires() {
+            return this == REQUIRED;
+        }
+
+        public boolean isValidIfLambdaIsPresent(boolean isPresent) {
+            return isPresent ? allows() : !requires();
+        }
+
     }
 
 }

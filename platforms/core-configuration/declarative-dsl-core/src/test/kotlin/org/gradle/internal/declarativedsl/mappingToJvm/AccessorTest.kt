@@ -18,13 +18,13 @@ package org.gradle.internal.declarativedsl.mappingToJvm
 
 import org.gradle.declarative.dsl.model.annotations.Configuring
 import org.gradle.declarative.dsl.model.annotations.Restricted
-import org.gradle.internal.declarativedsl.analysis.AccessAndConfigureFunctionSemantics
-import org.gradle.internal.declarativedsl.analysis.AccessAndConfigureFunctionSemantics.ReturnType.UNIT
 import org.gradle.declarative.dsl.schema.DataConstructor
 import org.gradle.internal.declarativedsl.analysis.DataMemberFunction
 import org.gradle.declarative.dsl.schema.DataTopLevelFunction
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.analysis.ConfigureAccessorImpl
+import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsImpl
+import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsImpl.AccessAndConfigure.ReturnType.UNIT
 import org.gradle.internal.declarativedsl.demo.resolve
 import org.gradle.internal.declarativedsl.schemaBuilder.DataSchemaBuilder
 import org.gradle.internal.declarativedsl.schemaBuilder.DefaultFunctionExtractor
@@ -87,7 +87,7 @@ object AccessorTest {
                         "configureCustomInstance",
                         emptyList(),
                         false,
-                        AccessAndConfigureFunctionSemantics(ConfigureAccessorImpl.Custom(Configured::class.toDataTypeRef(), "test"), UNIT)
+                        FunctionSemanticsImpl.AccessAndConfigure(ConfigureAccessorImpl.Custom(Configured::class.toDataTypeRef(), "test"), UNIT)
                     )
                 )
             } else emptyList()
