@@ -17,6 +17,7 @@
 package org.gradle.internal.model;
 
 import org.gradle.api.internal.tasks.NodeExecutionContext;
+import org.gradle.internal.Cast;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.resources.ProjectLeaseRegistry;
 import org.gradle.internal.service.ServiceRegistry;
@@ -30,7 +31,7 @@ import java.util.function.Supplier;
  * Factory for {@link CalculatedValueContainer}.
  */
 @ServiceScope(Scope.BuildSession.class)
-public class CalculatedValueContainerFactory {
+public class CalculatedValueContainerFactory implements CalculatedValueFactory {
     private final ProjectLeaseRegistry projectLeaseRegistry;
     private final NodeExecutionContext globalContext;
 
@@ -46,27 +47,21 @@ public class CalculatedValueContainerFactory {
         return new CalculatedValueContainer<>(displayName, supplier, projectLeaseRegistry, globalContext);
     }
 
-    /**
-     * A convenience to create a calculated value that has no dependencies and that does not access any mutable model state.
-     */
-    public <T> CalculatedValueContainer<T, ?> create(DisplayName displayName, Supplier<? extends T> supplier) {
+    @Override
+    public <T> CalculatedValueContainer<T, ValueCalculator<T>> create(DisplayName displayName, Supplier<? extends T> supplier) {
         return new CalculatedValueContainer<>(displayName, new SupplierBackedCalculator<>(supplier), projectLeaseRegistry, globalContext);
     }
 
-    /**
-     * A convenience to create a calculated value that has already been produced.
-     * <p>
-     * For example, the value might have been restored from the configuration cache.
-     */
-    public <T, S extends ValueCalculator<? extends T>> CalculatedValueContainer<T, S> create(DisplayName displayName, T value) {
+    @Override
+    public <T> CalculatedValueContainer<T, ValueCalculator<T>> create(DisplayName displayName, T value) {
         return new CalculatedValueContainer<>(displayName, value);
     }
 
     private static class SupplierBackedCalculator<T> implements ValueCalculator<T> {
         private final Supplier<T> supplier;
 
-        public SupplierBackedCalculator(Supplier<T> supplier) {
-            this.supplier = supplier;
+        public SupplierBackedCalculator(Supplier<? extends T> supplier) {
+            this.supplier = Cast.uncheckedCast(supplier);
         }
 
         @Override

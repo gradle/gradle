@@ -49,7 +49,7 @@ import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.model.CalculatedValueContainerFactory;
+import org.gradle.internal.model.CalculatedValueFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
@@ -79,7 +79,7 @@ public class ExternalModuleComponentResolverFactory {
     private final RepositoryDisabler repositoryBlacklister;
     private final VersionParser versionParser;
     private final ModuleComponentGraphResolveStateFactory moduleResolveStateFactory;
-    private final CalculatedValueContainerFactory calculatedValueContainerFactory;
+    private final CalculatedValueFactory calculatedValueFactory;
     private final ImmutableAttributesFactory attributesFactory;
     private final ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor;
 
@@ -97,7 +97,7 @@ public class ExternalModuleComponentResolverFactory {
         VersionParser versionParser,
         ListenerManager listenerManager,
         ModuleComponentGraphResolveStateFactory moduleResolveStateFactory,
-        CalculatedValueContainerFactory calculatedValueContainerFactory,
+        CalculatedValueFactory calculatedValueFactory,
         ImmutableAttributesFactory attributesFactory,
         ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor
     ) {
@@ -111,7 +111,7 @@ public class ExternalModuleComponentResolverFactory {
         this.dependencyVerificationOverride = dependencyVerificationOverride;
         this.listener = listenerManager.getBroadcaster(ChangingValueDependencyResolutionListener.class);
         this.moduleResolveStateFactory = moduleResolveStateFactory;
-        this.calculatedValueContainerFactory = calculatedValueContainerFactory;
+        this.calculatedValueFactory = calculatedValueFactory;
         this.attributesFactory = attributesFactory;
         this.componentMetadataSupplierRuleExecutor = componentMetadataSupplierRuleExecutor;
     }
@@ -132,8 +132,8 @@ public class ExternalModuleComponentResolverFactory {
             return new NoRepositoriesResolver();
         }
 
-        UserResolverChain moduleResolver = new UserResolverChain(versionComparator, componentSelectionRules, versionParser, consumerAttributes, consumerSchema, attributesFactory, metadataProcessor, componentMetadataSupplierRuleExecutor, calculatedValueContainerFactory, cachePolicy);
-        ParentModuleLookupResolver parentModuleResolver = new ParentModuleLookupResolver(versionComparator, moduleIdentifierFactory, versionParser, consumerAttributes, consumerSchema, attributesFactory, metadataProcessor, componentMetadataSupplierRuleExecutor, calculatedValueContainerFactory, cachePolicy);
+        UserResolverChain moduleResolver = new UserResolverChain(versionComparator, componentSelectionRules, versionParser, consumerAttributes, consumerSchema, attributesFactory, metadataProcessor, componentMetadataSupplierRuleExecutor, calculatedValueFactory, cachePolicy);
+        ParentModuleLookupResolver parentModuleResolver = new ParentModuleLookupResolver(versionComparator, moduleIdentifierFactory, versionParser, consumerAttributes, consumerSchema, attributesFactory, metadataProcessor, componentMetadataSupplierRuleExecutor, calculatedValueFactory, cachePolicy);
 
         for (ResolutionAwareRepository repository : repositories) {
             ConfiguredModuleComponentRepository baseRepository = repository.createResolver();
@@ -215,10 +215,10 @@ public class ExternalModuleComponentResolverFactory {
             ImmutableAttributesFactory attributesFactory,
             ComponentMetadataProcessorFactory componentMetadataProcessorFactory,
             ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor,
-            CalculatedValueContainerFactory calculatedValueContainerFactory,
+            CalculatedValueFactory calculatedValueFactory,
             CachePolicy cachePolicy
         ) {
-            this.delegate = new UserResolverChain(versionComparator, new DefaultComponentSelectionRules(moduleIdentifierFactory), versionParser, consumerAttributes, attributesSchema, attributesFactory, componentMetadataProcessorFactory, componentMetadataSupplierRuleExecutor, calculatedValueContainerFactory, cachePolicy);
+            this.delegate = new UserResolverChain(versionComparator, new DefaultComponentSelectionRules(moduleIdentifierFactory), versionParser, consumerAttributes, attributesSchema, attributesFactory, componentMetadataProcessorFactory, componentMetadataSupplierRuleExecutor, calculatedValueFactory, cachePolicy);
         }
 
         public void add(ModuleComponentRepository<ModuleComponentGraphResolveState> moduleComponentRepository) {
