@@ -60,6 +60,9 @@ import static org.gradle.internal.properties.InputBehavior.NON_INCREMENTAL;
 
 abstract class AbstractTransformExecution implements UnitOfWork {
     private static final CachingDisabledReason NOT_CACHEABLE = new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Caching not enabled.");
+    private static final String CACHING_DISABLED_PROPERTY = "org.gradle.experimental.transform-caching-disabled";
+    private static final CachingDisabledReason CACHING_DISABLED_REASON = new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Caching of transforms disabled by property (experimental)");
+
     protected static final String INPUT_ARTIFACT_PROPERTY_NAME = "inputArtifact";
     private static final String OUTPUT_DIRECTORY_PROPERTY_NAME = "outputDirectory";
     private static final String RESULTS_FILE_PROPERTY_NAME = "resultsFile";
@@ -291,6 +294,10 @@ abstract class AbstractTransformExecution implements UnitOfWork {
 
     @Override
     public Optional<CachingDisabledReason> shouldDisableCaching(@Nullable OverlappingOutputs detectedOverlappingOutputs) {
+        if (System.getProperty(CACHING_DISABLED_PROPERTY) != null) {
+            return Optional.of(CACHING_DISABLED_REASON);
+        }
+
         return transform.isCacheable()
             ? Optional.empty()
             : Optional.of(NOT_CACHEABLE);
