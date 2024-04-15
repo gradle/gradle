@@ -272,8 +272,8 @@ You can also access the configurations of a test suite in a top-level `dependenc
 === Example of using version catalogs with test suites
 
 ====
-include::sample[dir="snippets/testing/test-suite-version-catalogs/kotlin",files="build.gradle.kts[tags=version-catalog-deps]"]
-include::sample[dir="snippets/testing/test-suite-version-catalogs/groovy",files="build.gradle[tags=version-catalog-deps]"]
+include::sample[dir="snippets/testing/test-suite-version-catalogs/kotlin",files="build.gradle.kts[tags=version-catalogs-deps]"]
+include::sample[dir="snippets/testing/test-suite-version-catalogs/groovy",files="build.gradle[tags=version-catalogs-deps]"]
 ====
 
 == Differences between similar methods on link:{groovyDslPath}/org.gradle.api.plugins.jvm.JvmTestSuite.html[JvmTestSuite] and link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] task types
