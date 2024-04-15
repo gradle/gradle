@@ -28,6 +28,7 @@ import org.gradle.internal.service.scopes.ListenerService;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.StatefulListener;
 
+import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -64,6 +65,12 @@ public class DefaultListenerManager implements ListenerManager, AnnotatedService
     @Override
     public List<Class<? extends Annotation>> getAnnotations() {
         return ANNOTATIONS;
+    }
+
+    @Nullable
+    @Override
+    public Class<? extends Annotation> getImplicitAnnotation() {
+        return null;
     }
 
     @Override
