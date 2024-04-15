@@ -504,6 +504,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "io",
+    "path": "platforms/core-runtime/io",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "ivy",
     "path": "platforms/software/ivy",
     "unitTests": true,

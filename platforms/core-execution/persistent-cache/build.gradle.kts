@@ -32,6 +32,7 @@ dependencies {
 
     api(libs.jsr305)
 
+    implementation(projects.io)
     implementation(projects.time)
 
     implementation(libs.guava)

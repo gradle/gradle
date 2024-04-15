@@ -323,7 +323,7 @@ class StreamByteBufferTest extends Specification {
         when:
         def buffer = StreamByteBuffer.createWithChunkSizeInDefaultRange(1)
         then:
-        buffer.chunkSize == StreamByteBuffer.DEFAULT_CHUNK_SIZE
+        buffer.nextChunkSize == StreamByteBuffer.DEFAULT_CHUNK_SIZE
     }
 
     def "reads available unicode characters in buffer and pushes in-progress ones back"() {
