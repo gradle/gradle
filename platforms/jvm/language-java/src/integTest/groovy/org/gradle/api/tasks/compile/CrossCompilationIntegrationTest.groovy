@@ -20,6 +20,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.jvm.TestJavaClassUtil
 import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.util.GradleVersion
@@ -96,8 +97,8 @@ class CrossCompilationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         new JarTestFixture(file("build/libs/oldjava.jar")).javaVersion == version
-        getClassMajorVersion(file ( "build/classes/java/main/Thing.class")) == version.getClassVersion()
-        getClassMajorVersion(file("build/classes/java/test/ThingTest.class")) == version.getClassVersion()
+        getClassMajorVersion(file ( "build/classes/java/main/Thing.class")) == TestJavaClassUtil.getClassVersion(version)
+        getClassMajorVersion(file("build/classes/java/test/ThingTest.class")) == TestJavaClassUtil.getClassVersion(version)
         new DefaultTestExecutionResult(testDirectory).assertTestClassesExecuted("ThingTest")
 
         where:

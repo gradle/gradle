@@ -18,6 +18,7 @@ package org.gradle.kotlin.dsl.integration
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.jvm.TestJavaClassUtil
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.serialize.JavaClassUtil
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
@@ -256,7 +257,7 @@ class KotlinDslJvmTargetIntegrationTest : AbstractKotlinIntegrationTest() {
 
     private
     fun outputFor(javaVersion: JavaVersion) =
-        "Java Class Major Version = ${javaVersion.classVersion}"
+        "Java Class Major Version = ${TestJavaClassUtil.getClassVersion(javaVersion)}"
 
     private
     fun supportedKotlinJavaVersion(version: JavaVersion = JavaVersion.current()): JavaVersion {

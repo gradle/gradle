@@ -19,6 +19,7 @@ package org.gradle.java
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.jvm.TestJavaClassUtil
 import org.gradle.internal.FileUtils
 import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
@@ -88,8 +89,8 @@ class JavaCrossCompilationIntegrationTest extends AbstractIntegrationSpec {
             executer.expectDeprecationWarning("Running tests on Java versions earlier than 8 has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#minimum_test_jvm_version")
         }
         succeeds 'test'
-        getClassMajorVersion(javaClassFile("Thing.class")) == toJavaVersion(version).getClassVersion()
-        getClassMajorVersion(classFile ( "java", "test", "ThingTest.class")) == toJavaVersion(version).getClassVersion()
+        getClassMajorVersion(javaClassFile("Thing.class")) == TestJavaClassUtil.getClassVersion(toJavaVersion(version))
+        getClassMajorVersion(classFile ( "java", "test", "ThingTest.class")) == TestJavaClassUtil.getClassVersion(toJavaVersion(version))
 
         where:
         version << javaVersionsToCrossCompileAgainst()

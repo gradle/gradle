@@ -223,18 +223,6 @@ public enum JavaVersion {
         return forClassVersion(classData[7] & 0xFF);
     }
 
-    /**
-     * Given a {@link JavaVersion}, determine the corresponding class file version number.
-     *
-     * @since 8.9
-     */
-    @Incubating
-    public int getClassVersion() {
-        if (this == VERSION_HIGHER) {
-            throw new UnsupportedOperationException("Unable to provide class file major version for '" + this + "'");
-        }
-        return Integer.valueOf(getMajorVersion()) + CLASS_MAJOR_VERSION_OFFSET;
-    }
 
     public boolean isJava5() {
         return this == VERSION_1_5;
