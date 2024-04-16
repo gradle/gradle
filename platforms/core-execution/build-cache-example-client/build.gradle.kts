@@ -29,13 +29,9 @@ errorprone {
 }
 
 dependencies {
-    implementation(projects.javaLanguageExtensions)
     implementation(projects.buildCache)
-    implementation(projects.buildCacheLocal)
-    implementation(projects.snapshots)
-
-    implementation(projects.baseServices)
     implementation(projects.buildCacheBase)
+    implementation(projects.buildCacheLocal)
     implementation(projects.buildCachePackaging)
     implementation(projects.buildCacheSpi)
     implementation(projects.buildOperations)
@@ -44,8 +40,9 @@ dependencies {
     implementation(projects.files)
     implementation(projects.functional)
     implementation(projects.hashing)
-    implementation(projects.messaging)
+    implementation(projects.javaLanguageExtensions)
     implementation(projects.persistentCache)
+    implementation(projects.snapshots)
 
     implementation(libs.jsr305)
     implementation(libs.guava)

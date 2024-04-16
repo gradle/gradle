@@ -90,8 +90,6 @@ import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
-import org.gradle.internal.os.OperatingSystem;
-import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
@@ -115,6 +113,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -309,21 +309,20 @@ public class ExampleBuildCacheClient {
         }
 
         @Provides
-        InetAddressFactory createInetAddressFactory() {
-            return new InetAddressFactory();
-        }
-
-        @Provides
-        FileLockContentionHandler createFileLockContentionHandler(ExecutorFactory executorFactory, InetAddressFactory inetAddressFactory) {
+        FileLockContentionHandler createFileLockContentionHandler(ExecutorFactory executorFactory) {
             return new DefaultFileLockContentionHandler(executorFactory, new InetAddressProvider() {
                 @Override
                 public InetAddress getWildcardBindingAddress() {
-                    return inetAddressFactory.getWildcardBindingAddress();
+                    return new InetSocketAddress(0).getAddress();
                 }
 
                 @Override
                 public Iterable<InetAddress> getCommunicationAddresses() {
-                    return inetAddressFactory.getCommunicationAddresses();
+                    try {
+                        return Collections.singleton(InetAddress.getByName(null));
+                    } catch (UnknownHostException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
             });
         }
@@ -572,11 +571,6 @@ public class ExampleBuildCacheClient {
         @Provides
         FileHasher createFileHasher(StreamHasher streamHasher) {
             return new DefaultFileHasher(streamHasher);
-        }
-
-        @Provides
-        OperatingSystem createOperatingSystem() {
-            return OperatingSystem.current();
         }
 
         @Provides
