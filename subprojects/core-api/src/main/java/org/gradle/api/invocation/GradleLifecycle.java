@@ -33,7 +33,8 @@ public interface GradleLifecycle {
      * Adds an {@link IsolatedAction isolated action} to be called immediately before a project is evaluated.
      *
      * The isolated action is recreated before being applied to each configured {@code Project}, thus, carrying
-     * shared mutable state across projects is impossible except via {@link org.gradle.api.services.BuildService shared build services}.
+     * shared mutable state across projects is impossible (not even via
+     * {@link org.gradle.api.services.BuildService shared build services} which also not currently supported).
      *
      * Any extensions added to the {@code Project} model will be available to build scripts.
      *
