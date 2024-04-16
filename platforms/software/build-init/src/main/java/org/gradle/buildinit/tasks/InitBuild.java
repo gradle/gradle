@@ -109,8 +109,9 @@ public abstract class InitBuild extends DefaultTask {
     *
     * This property can be set via command-line option '--overwrite'. Defaults to false.
     *
-    * @since ?.?
+    * @since 8.9
     */
+    @Incubating
     @Input
     @Optional
     @Option(option = "overwrite", description = "Allow existing files in the build directory to be overwritten?")
