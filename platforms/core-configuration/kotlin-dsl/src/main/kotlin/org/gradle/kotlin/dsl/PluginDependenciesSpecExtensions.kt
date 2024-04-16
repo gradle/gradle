@@ -33,28 +33,13 @@ import org.gradle.plugin.use.PluginDependencySpec
  *
  * @since 6.0
  */
-@Deprecated("Gradle Enterprise has been renamed to Develocity", replaceWith = ReplaceWith("develocity"))
+@Deprecated("Gradle Enterprise has been renamed to Develocity", replaceWith = ReplaceWith("id(\"com.gradle.develocity\") version \"${AutoAppliedGradleEnterprisePlugin.VERSION}\""))
 val PluginDependenciesSpec.`gradle-enterprise`: PluginDependencySpec
     get() {
-        DeprecationLogger.deprecateProperty(PluginDependencySpec::class.java, "`gradle-enterprise`")
-            .replaceWith("develocity")
+        DeprecationLogger.deprecate("The ${PluginDependencySpec::class.simpleName}.`gradle-enterprise` property")
+            .withAdvice("Please use 'id(\"com.gradle.develocity\") version \"${AutoAppliedGradleEnterprisePlugin.VERSION}\"' instead.")
             .willBeRemovedInGradle9()
             .withDocumentation(Documentation.kotlinDslExtensionReference("gradle-enterprise"))
             .nagUser()
         return this.id(AutoAppliedGradleEnterprisePlugin.GRADLE_ENTERPRISE_PLUGIN_ID.id).version(AutoAppliedGradleEnterprisePlugin.VERSION)
     }
-
-
-/**
- * The `develocity` plugin.
- *
- * Visit the [Develocity Plugin User Manual](https://docs.gradle.com/enterprise/gradle-plugin/) for additional information.
- *
- * By default, the applied plugin version will be the same as the one used by the `--scan` command line option.
- *
- * You can also use e.g. `develocity version "3.17"` to request a different version.
- *
- * @since 8.8
- */
-val PluginDependenciesSpec.develocity: PluginDependencySpec
-    get() = this.id(AutoAppliedGradleEnterprisePlugin.ID.id).version(AutoAppliedGradleEnterprisePlugin.VERSION)
