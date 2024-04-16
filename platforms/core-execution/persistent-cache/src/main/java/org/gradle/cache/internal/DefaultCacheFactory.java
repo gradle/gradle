@@ -22,7 +22,6 @@ import org.gradle.cache.IndexedCache;
 import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.LockOptions;
 import org.gradle.cache.PersistentCache;
-import org.gradle.internal.FileUtils;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.operations.BuildOperationRunner;
@@ -31,6 +30,8 @@ import org.gradle.internal.serialize.Serializer;
 import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -94,7 +95,12 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
         @Nullable Consumer<? super PersistentCache> initializer,
         @Nullable CacheCleanupStrategy cacheCleanupStrategy
     ) {
-        File canonicalDir = FileUtils.canonicalize(cacheDir);
+        File canonicalDir;
+        try {
+            canonicalDir = cacheDir.getCanonicalFile();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
         DirCacheReference dirCacheReference = dirCaches.get(canonicalDir);
         if (dirCacheReference == null) {
             ReferencablePersistentCache cache;

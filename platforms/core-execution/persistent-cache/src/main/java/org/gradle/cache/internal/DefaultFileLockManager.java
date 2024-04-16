@@ -32,7 +32,6 @@ import org.gradle.cache.internal.filelock.LockStateAccess;
 import org.gradle.cache.internal.filelock.LockStateSerializer;
 import org.gradle.cache.internal.filelock.Version1LockStateSerializer;
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler;
-import org.gradle.internal.FileUtils;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.time.ExponentialBackoff;
@@ -42,6 +41,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -110,7 +110,12 @@ public class DefaultFileLockManager implements FileLockManager {
         if (options.getMode() == LockMode.OnDemand) {
             throw new UnsupportedOperationException(String.format("No %s mode lock implementation available.", options));
         }
-        File canonicalTarget = FileUtils.canonicalize(target);
+        File canonicalTarget;
+        try {
+            canonicalTarget = target.getCanonicalFile();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
         if (!lockedFiles.add(canonicalTarget)) {
             throw new IllegalStateException(String.format("Cannot lock %s as it has already been locked by this process.", targetDisplayName));
         }
