@@ -39,6 +39,7 @@ import org.gradle.api.tasks.wrapper.internal.WrapperGenerator;
 import org.gradle.buildinit.InsecureProtocolOption;
 import org.gradle.buildinit.plugins.internal.BuildConverter;
 import org.gradle.buildinit.plugins.internal.BuildGenerator;
+import org.gradle.buildinit.plugins.internal.BuildInitException;
 import org.gradle.buildinit.plugins.internal.BuildInitializer;
 import org.gradle.buildinit.plugins.internal.GenerationSettings;
 import org.gradle.buildinit.plugins.internal.InitSettings;
@@ -57,6 +58,7 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.lang.model.SourceVersion;
 import java.io.File;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -357,20 +359,26 @@ public abstract class InitBuild extends DefaultTask {
     private void validateBuildDirectory(UserQuestions userQuestions) {
         File projectDirFile = projectDir.getAsFile();
         File[] existingProjectFiles = projectDirFile.listFiles();
+
         boolean isNotEmptyDirectory = existingProjectFiles != null && existingProjectFiles.length != 0;
         if (isNotEmptyDirectory) {
             boolean fileOverwriteAllowed;
             if (getAllowFileOverwrite().isPresent()) {
                 fileOverwriteAllowed = getAllowFileOverwrite().get();
             } else {
-                fileOverwriteAllowed = userQuestions.askBooleanQuestion("Found existing files in the current directory: '" + projectDirFile +
+                fileOverwriteAllowed = userQuestions.askBooleanQuestion("Found existing files in the project directory: '" + projectDirFile +
                 "'. Allow these files to be overwritten?", true);
             }
 
             if (!fileOverwriteAllowed) {
-                throw new GradleException("Existing files found in the current directory: '" + projectDirFile + "'. Unable to initialize build.");
+                abortBuildDueToExistingFiles(projectDirFile);
             }
         }
+    }
+
+    private void abortBuildDueToExistingFiles(File projectDirFile) {
+        List<String> resolutions = Arrays.asList("Remove any existing files in the project directory and run the init task again.", "Enable the --overwrite option to allow existing files to be overwritten.");
+        throw new BuildInitException("Aborting build initialization due to existing files in the project directory: '" + projectDirFile + "'.", resolutions);
     }
 
     private static void validatePackageName(String packageName) {
