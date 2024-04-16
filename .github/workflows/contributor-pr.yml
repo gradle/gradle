@@ -47,16 +47,11 @@ jobs:
             } else {
                 core.setOutput('sys-prop-args', '-DcacheNode=us')
             }
-      - name: assemble
-        id: gradle
-        uses: gradle/gradle-build-action@v3
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/master' }}
-          arguments: |
-              compileAll
-              --no-configuration-cache
-              -DdisableLocalCache=true
-              ${{ steps.determine-sys-prop-args.outputs.sys-prop-args }}
+      - run: ./gradlew compileAll --no-configuration-cache -DdisableLocalCache=true ${{ steps.determine-sys-prop-args.outputs.sys-prop-args }}
       - uses: actions/upload-artifact@v4
         with:
           name: build-receipt.properties
@@ -81,16 +76,11 @@ jobs:
         with:
           name: build-receipt.properties
           path: incoming-distributions/build-receipt.properties
-      - name: ./gradlew sanityCheck
-        id: gradle
-        uses: gradle/gradle-build-action@v3
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/master' }}
-          arguments: |
-              sanityCheck
-              --no-configuration-cache
-              -DdisableLocalCache=true
-              ${{ needs.build.outputs.sys-prop-args }}
+      - run: ./gradlew sanityCheck --no-configuration-cache -DdisableLocalCache=true ${{ needs.build.outputs.sys-prop-args }}
 
   unit-test:
     name: "${{ matrix.bucket.name }} (Unit Test)"
@@ -112,14 +102,8 @@ jobs:
         with:
           name: build-receipt.properties
           path: incoming-distributions/build-receipt.properties
-      - name: ./gradlew test
-        id: gradle
-        uses: gradle/gradle-build-action@v3
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/master' }}
-          arguments: |
-              ${{ matrix.bucket.tasks }}
-              --no-configuration-cache
-              -DdisableLocalCache=true
-              -PflakyTests=exclude
-              ${{ needs.build.outputs.sys-prop-args }}
+      - run: ./gradlew ${{ matrix.bucket.tasks }} --no-configuration-cache -DdisableLocalCache=true -PflakyTests=exclude ${{ needs.build.outputs.sys-prop-args }}
