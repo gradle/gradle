@@ -41,8 +41,8 @@ import org.gradle.cache.internal.locklistener.DefaultFileLockContentionHandler;
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler;
 import org.gradle.cache.internal.locklistener.InetAddressProvider;
 import org.gradle.caching.BuildCacheKey;
-import org.gradle.caching.internal.BuildCacheKeyInternal;
 import org.gradle.caching.internal.CacheableEntity;
+import org.gradle.caching.internal.SimpleBuildCacheKey;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.controller.DefaultBuildCacheController;
 import org.gradle.caching.internal.controller.service.BuildCacheLoadResult;
@@ -190,40 +190,6 @@ public class ExampleBuildCacheClient {
                 }
             });
         });
-    }
-
-    // TODO Add a SimpleBuildCacheKey to the library
-    private static class SimpleBuildCacheKey implements BuildCacheKeyInternal {
-        private final HashCode hashCode;
-
-        public SimpleBuildCacheKey(HashCode hashCode) {
-            this.hashCode = hashCode;
-        }
-
-        @Override
-        public HashCode getHashCodeInternal() {
-            return hashCode;
-        }
-
-        @Override
-        public String getHashCode() {
-            return hashCode.toString();
-        }
-
-        // TODO Provide default implementation
-        // TODO Deprecate and move this to BuildCacheKeyInternal
-        @Override
-        public byte[] toByteArray() {
-            return hashCode.toByteArray();
-        }
-
-        // TODO Provide default implementation
-        @Override
-        @Deprecated
-        @SuppressWarnings("InlineMeSuggester")
-        public String getDisplayName() {
-            return getHashCode();
-        }
     }
 
     private static class ExampleEntity implements CacheableEntity {
