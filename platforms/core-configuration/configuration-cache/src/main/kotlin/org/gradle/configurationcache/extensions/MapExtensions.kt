@@ -23,7 +23,10 @@ fun <V> Map<String, V>.filterKeysByPrefix(prefix: String): Map<String, V?> =
 
 
 /**
- * Returns a map with the values mapped to the keys.
+ * Inverts the given map by swapping its keys with their corresponding values and returns the resulting map.
+ *
+ * If the original map contains duplicate values, the resulting map will map each value to the key associated
+ * with the last occurrence of that value in the original map's iteration order.
  */
 internal
 fun <K, V> Map<K, V>.invert() = HashMap<V, K>(size).also { result ->
