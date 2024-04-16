@@ -485,7 +485,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         }
 
         if (JavaVersion.current().isJava7Compatible()) {
-            return newInstanceOrFallback("org.gradle.internal.nativeintegration.filesystem.jdk7.NioFileMetadataAccessor", NativeServices.class.getClassLoader(), FallbackFileMetadataAccessor.class);
+            return newInstanceOrFallback("org.gradle.internal.file.nio.NioFileMetadataAccessor", NativeServices.class.getClassLoader(), FallbackFileMetadataAccessor.class);
         }
 
         return new FallbackFileMetadataAccessor();

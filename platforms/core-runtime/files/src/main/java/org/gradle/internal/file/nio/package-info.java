@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,23 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@NonNullApi
+package org.gradle.internal.file.nio;
 
-package org.gradle.internal.nativeintegration.filesystem.services;
-
-import net.rubygrapefruit.platform.file.PosixFiles;
-import org.gradle.internal.file.FileModeMutator;
-
-import java.io.File;
-
-class NativePlatformBackedChmod implements FileModeMutator {
-    private final PosixFiles posixFiles;
-
-    public NativePlatformBackedChmod(PosixFiles posixFiles) {
-        this.posixFiles = posixFiles;
-    }
-
-    @Override
-    public void chmod(File file, int mode) {
-        posixFiles.setMode(file, mode);
-    }
-}
+import org.gradle.api.NonNullApi;

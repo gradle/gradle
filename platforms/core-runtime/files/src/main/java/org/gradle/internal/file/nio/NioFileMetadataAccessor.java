@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.nativeintegration.filesystem.jdk7;
+package org.gradle.internal.file.nio;
 
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.file.FileMetadata;

@@ -14,14 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.nativeintegration.filesystem;
+package org.gradle.internal.file;
 
 import java.io.File;
 
-public interface FileModeAccessor {
-    /**
-     * @param f The file to get the mode for. Note that all symlinks are followed.
-     * @return The unix mode of the file
-     */
-    public int getUnixMode(File f) throws Exception;
+public interface FileCanonicalizer {
+    File canonicalize(File file) throws FileException;
 }

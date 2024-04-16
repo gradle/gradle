@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.nativeintegration.filesystem;
-
-import org.gradle.internal.file.FileException;
+package org.gradle.internal.file;
 
 import java.io.File;
 
-public interface FileCanonicalizer {
-    File canonicalize(File file) throws FileException;
+public interface FileModeMutator {
+    void chmod(File file, int mode) throws Exception;
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.nativeintegration.filesystem.services
 
+import org.gradle.internal.file.AbstractFileMetadataAccessorTest
 import org.gradle.internal.file.FileMetadata
 import org.gradle.internal.file.FileMetadataAccessor
 import org.gradle.util.UsesNativeServices

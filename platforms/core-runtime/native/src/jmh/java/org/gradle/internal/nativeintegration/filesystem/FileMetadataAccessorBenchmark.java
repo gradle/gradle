@@ -22,7 +22,7 @@ import org.gradle.internal.file.FileMetadata;
 import org.gradle.internal.file.FileMetadata.AccessType;
 import org.gradle.internal.file.FileMetadataAccessor;
 import org.gradle.internal.file.impl.DefaultFileMetadata;
-import org.gradle.internal.nativeintegration.filesystem.jdk7.NioFileMetadataAccessor;
+import org.gradle.internal.file.nio.NioFileMetadataAccessor;
 import org.gradle.internal.nativeintegration.filesystem.services.FallbackFileMetadataAccessor;
 import org.gradle.internal.nativeintegration.filesystem.services.NativePlatformBackedFileMetadataAccessor;
 import org.openjdk.jmh.annotations.Benchmark;
