@@ -630,8 +630,8 @@ public class ExampleBuildCacheClient {
         }
     }
 
-    public static Class<?> workaround() {
+    static {
         // Workaround to make sure the dependency checker doesn't complain about slf4j-simple being unused
-        return org.slf4j.impl.SimpleLoggerFactory.class;
+        Class<?> ignored = org.slf4j.impl.SimpleLoggerFactory.class;
     }
 }
