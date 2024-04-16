@@ -15,7 +15,7 @@ dependencies {
     api(project(":hashing"))
     api(project(":persistent-cache"))
 
-    implementation(projects.baseServices)
+    implementation(libs.commonsIo)
     implementation(libs.guava)
     implementation(libs.h2Database) {
         because("Used in BuildCacheNG")
