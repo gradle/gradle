@@ -184,7 +184,7 @@ class RepoScriptBlockUtil {
             @CompileStatic
             class MirrorPlugin implements Plugin<Gradle> {
                 void apply(Gradle gradle) {
-                    gradle.allprojects { Project project ->
+                    gradle.lifecycle.beforeProject { Project project ->
                         project.buildscript.configurations["classpath"].incoming.beforeResolve {
                             withMirrors(project.buildscript.repositories)
                         }
