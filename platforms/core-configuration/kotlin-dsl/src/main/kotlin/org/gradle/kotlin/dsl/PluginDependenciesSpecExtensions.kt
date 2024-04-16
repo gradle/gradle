@@ -33,11 +33,11 @@ import org.gradle.plugin.use.PluginDependencySpec
  *
  * @since 6.0
  */
-@Deprecated("Gradle Enterprise has been renamed to Develocity", replaceWith = ReplaceWith("id(\"com.gradle.develocity\")"))
+@Deprecated("Gradle Enterprise has been renamed to Develocity", replaceWith = ReplaceWith("id(\"com.gradle.develocity\").version(\"${AutoAppliedGradleEnterprisePlugin.VERSION}\")"))
 val PluginDependenciesSpec.`gradle-enterprise`: PluginDependencySpec
     get() {
         DeprecationLogger.deprecate("The ${PluginDependencySpec::class.simpleName}.`gradle-enterprise` property")
-            .withAdvice("Please use id(\"com.gradle.develocity\") instead.")
+            .withAdvice("Please use id(\"com.gradle.develocity\").version(\"${AutoAppliedGradleEnterprisePlugin.VERSION}\") instead.")
             .willBeRemovedInGradle9()
             .withDocumentation(Documentation.kotlinDslExtensionReference("gradle-enterprise"))
             .nagUser()
