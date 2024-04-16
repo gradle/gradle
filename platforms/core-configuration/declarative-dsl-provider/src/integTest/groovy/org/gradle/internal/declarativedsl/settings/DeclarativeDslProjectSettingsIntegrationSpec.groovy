@@ -62,7 +62,7 @@ class DeclarativeDslProjectSettingsIntegrationSpec extends AbstractIntegrationSp
         run(":help")
 
         then:
-        def schemaFile = file(".gradle/restricted-schema/settings.something.schema")
+        def schemaFile = file(".gradle/declarative-schema/settings.dcl.schema")
         schemaFile.isFile() && schemaFile.text != ""
     }
 

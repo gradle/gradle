@@ -99,10 +99,10 @@ class DeclarativeDslProjectBuildFileIntegrationSpec extends AbstractIntegrationS
 
         then:
         [
-            file(".gradle/restricted-schema/plugins.something.schema"),
-            file(".gradle/restricted-schema/project.something.schema"),
-            file("sub/.gradle/restricted-schema/plugins.something.schema"),
-            file("sub/.gradle/restricted-schema/project.something.schema")
+            file(".gradle/declarative-schema/plugins.dcl.schema"),
+            file(".gradle/declarative-schema/project.dcl.schema"),
+            file("sub/.gradle/declarative-schema/plugins.dcl.schema"),
+            file("sub/.gradle/declarative-schema/project.dcl.schema")
         ].every { it.isFile() && it.text != "" }
     }
 
