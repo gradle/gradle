@@ -9,7 +9,7 @@ gradlebuildJava.usedInWorkers()
 
 dependencies {
     api(libs.jsr305)
-    api(project(":base-annotations"))
     api(project(":build-operations"))
     api(project(":problems-api"))
+    api(project(":java-language-extensions"))
 }
