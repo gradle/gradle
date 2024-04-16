@@ -22,7 +22,8 @@ import java.io.Serializable;
  * Performs some action against objects of type {@link T}.
  *
  * <p>
- * <b>IMPORTANT: </b> Isolated action instances are never reused. TBD
+ * <b>IMPORTANT: </b> Isolated action instances are always isolated via Configuration Cache serialization
+ * and thus carry the same limitations as any object serialized to the Configuration Cache.
  * </p>
  *
  * @param <T> The type of object which the action expects.
