@@ -30,7 +30,6 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
@@ -90,27 +89,24 @@ public class ExampleBuildCacheClient {
         LOGGER.info("Loaded from cache:");
         loadResult.getResultingSnapshots().forEach((name, snapshot) -> {
             LOGGER.info(" - Output property '{}':", name);
-            snapshot.accept(new FileSystemSnapshotHierarchyVisitor() {
-                @Override
-                public SnapshotVisitResult visitEntry(FileSystemLocationSnapshot snapshot) {
-                    snapshot.accept(new FileSystemLocationSnapshot.FileSystemLocationSnapshotVisitor() {
-                        @Override
-                        public void visitDirectory(DirectorySnapshot directorySnapshot) {
-                            LOGGER.info("   - {}/", snapshot.getAbsolutePath());
-                        }
+            snapshot.accept(locationSnapshot -> {
+                locationSnapshot.accept(new FileSystemLocationSnapshot.FileSystemLocationSnapshotVisitor() {
+                    @Override
+                    public void visitDirectory(DirectorySnapshot directorySnapshot) {
+                        LOGGER.info("   - {}/", locationSnapshot.getAbsolutePath());
+                    }
 
-                        @Override
-                        public void visitRegularFile(RegularFileSnapshot fileSnapshot) {
-                            LOGGER.info("   - {}", snapshot.getAbsolutePath());
-                        }
+                    @Override
+                    public void visitRegularFile(RegularFileSnapshot fileSnapshot) {
+                        LOGGER.info("   - {}", locationSnapshot.getAbsolutePath());
+                    }
 
-                        @Override
-                        public void visitMissing(MissingFileSnapshot missingSnapshot) {
-                            LOGGER.info("   - {} (?)", snapshot.getAbsolutePath());
-                        }
-                    });
-                    return SnapshotVisitResult.CONTINUE;
-                }
+                    @Override
+                    public void visitMissing(MissingFileSnapshot missingSnapshot) {
+                        LOGGER.info("   - {} (?)", locationSnapshot.getAbsolutePath());
+                    }
+                });
+                return SnapshotVisitResult.CONTINUE;
             });
         });
     }
