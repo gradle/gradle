@@ -52,6 +52,7 @@ errorprone {
 dependencies {
     api(projects.concurrent)
     api(projects.javaLanguageExtensions)
+    api(projects.serialization)
     api(project(":base-services"))
     api(project(":build-operations"))
     api(project(":build-option"))
@@ -106,6 +107,7 @@ dependencies {
     testImplementation(libs.commonsHttpclient)
     testImplementation(libs.groovyXml)
     testImplementation(libs.jsoup)
+    testImplementation(testFixtures(projects.serialization))
     testImplementation(testFixtures(project(":base-services")))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":core-api")))

@@ -917,6 +917,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "serialization",
+    "path": "platforms/core-runtime/serialization",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "signing",
     "path": "platforms/software/signing",
     "unitTests": true,

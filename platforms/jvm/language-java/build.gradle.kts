@@ -20,6 +20,7 @@ errorprone {
 
 dependencies {
     api(projects.javaLanguageExtensions)
+    api(projects.serialization)
     api(project(":base-services"))
     api(project(":build-events"))
     api(project(":build-operations"))
@@ -30,7 +31,6 @@ dependencies {
     api(project(":files"))
     api(project(":hashing"))
     api(project(":language-jvm"))
-    api(project(":messaging"))
     api(project(":persistent-cache"))
     api(project(":platform-base"))
     api(project(":platform-jvm"))
@@ -74,6 +74,7 @@ dependencies {
         because("Required for SystemInfo")
     }
 
+    integTestImplementation(projects.messaging)
     // TODO: Make these available for all integration tests? Maybe all tests?
     integTestImplementation(libs.jetbrainsAnnotations)
 

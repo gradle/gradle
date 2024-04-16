@@ -24,6 +24,7 @@ errorprone {
 dependencies {
     api(projects.concurrent)
     api(projects.javaLanguageExtensions)
+    api(projects.serialization)
     api(projects.time)
     api(project(":base-services"))
     api(project(":build-operations"))
@@ -57,6 +58,7 @@ dependencies {
     testImplementation(project(":file-collections"))
     testImplementation(project(":enterprise-operations"))
     testImplementation(libs.commonsIo)
+    testImplementation(testFixtures(projects.serialization))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":messaging")))
     testImplementation(testFixtures(project(":platform-base")))

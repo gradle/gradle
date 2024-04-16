@@ -25,6 +25,7 @@ dependencies {
 
     api(projects.concurrent)
     api(projects.javaLanguageExtensions)
+    api(projects.serialization)
     api(project(":base-services"))
     api(project(":build-cache"))
     api(project(":build-cache-base"))
@@ -34,7 +35,6 @@ dependencies {
     api(project(":files"))
     api(project(":functional"))
     api(project(":hashing"))
-    api(project(":messaging"))
     api(project(":model-core"))
     api(project(":persistent-cache"))
     api(project(":problems-api"))
@@ -55,6 +55,7 @@ dependencies {
     testImplementation(project(":base-services-groovy"))
     testImplementation(project(":resources"))
     testImplementation(libs.commonsIo)
+    testImplementation(testFixtures(projects.serialization))
     testImplementation(testFixtures(project(":base-services")))
     testImplementation(testFixtures(project(":build-operations")))
     testImplementation(testFixtures(project(":file-collections")))
