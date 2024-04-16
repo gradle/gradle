@@ -19,7 +19,7 @@ package org.gradle.internal.declarativedsl.analysis
 import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.declarative.dsl.schema.DataProperty
 import org.gradle.internal.declarativedsl.demo.resolve
-import org.gradle.internal.declarativedsl.language.DataTypeImpl
+import org.gradle.internal.declarativedsl.language.DataTypeInternal
 import org.gradle.internal.declarativedsl.schemaBuilder.CollectedPropertyInformation
 import org.gradle.internal.declarativedsl.schemaBuilder.DefaultPropertyExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.PropertyExtractor
@@ -62,9 +62,9 @@ object PropertyTest {
             propertyExtractor = testPropertyContributor(expectedName, typeOf<Int>()) + testPropertyContributor(expectedName, typeOf<String>())
         )
 
-        val property = schema.dataClassesByFqName[FqNameImpl.parse(MyReceiver::class.qualifiedName!!)]!!.properties.single()
+        val property = schema.dataClassesByFqName[DefaultFqName.parse(MyReceiver::class.qualifiedName!!)]!!.properties.single()
         assertEquals(expectedName, property.name)
-        assertEquals(DataTypeImpl.IntType.ref, property.type)
+        assertEquals(DataTypeInternal.IntType.ref, property.type)
     }
 
     private
@@ -84,7 +84,7 @@ object PropertyTest {
                     CollectedPropertyInformation(
                         "z",
                         typeOf<Int>(),
-                        DataTypeImpl.IntType.ref,
+                        DataTypeInternal.IntType.ref,
                         DataProperty.PropertyMode.WRITE_ONLY,
                         hasDefaultValue = false,
                         isHiddenInDeclarativeDsl = false,

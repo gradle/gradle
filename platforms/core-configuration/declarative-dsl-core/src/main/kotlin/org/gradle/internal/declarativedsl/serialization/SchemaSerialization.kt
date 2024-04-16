@@ -22,17 +22,17 @@ import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
 import org.gradle.declarative.dsl.schema.AnalysisSchema
-import org.gradle.internal.declarativedsl.analysis.AnalysisSchemaImpl
+import org.gradle.internal.declarativedsl.analysis.DefaultAnalysisSchema
 import org.gradle.internal.declarativedsl.analysis.DataBuilderFunction
 import org.gradle.internal.declarativedsl.analysis.DataMemberFunction
 import org.gradle.declarative.dsl.schema.DataParameter
-import org.gradle.internal.declarativedsl.analysis.DataParameterImpl
+import org.gradle.internal.declarativedsl.analysis.DefaultDataParameter
 import org.gradle.declarative.dsl.schema.DataProperty
-import org.gradle.internal.declarativedsl.analysis.DataPropertyImpl
+import org.gradle.internal.declarativedsl.analysis.DefaultDataProperty
 import org.gradle.declarative.dsl.schema.FqName
-import org.gradle.internal.declarativedsl.analysis.FqNameImpl
+import org.gradle.internal.declarativedsl.analysis.DefaultFqName
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
-import org.gradle.internal.declarativedsl.language.DataTypeImpl
+import org.gradle.internal.declarativedsl.language.DataTypeInternal
 
 
 object SchemaSerialization {
@@ -40,22 +40,22 @@ object SchemaSerialization {
     private
     val json = Json {
         serializersModule = SerializersModule {
-            polymorphic(DataTypeImpl::class) {
-                subclass(DataTypeImpl.IntType::class)
-                subclass(DataTypeImpl.LongType::class)
-                subclass(DataTypeImpl.StringType::class)
-                subclass(DataTypeImpl.BooleanType::class)
-                subclass(DataTypeImpl.NullType::class)
-                subclass(DataTypeImpl.UnitType::class)
+            polymorphic(DataTypeInternal::class) {
+                subclass(DataTypeInternal.IntType::class)
+                subclass(DataTypeInternal.LongType::class)
+                subclass(DataTypeInternal.StringType::class)
+                subclass(DataTypeInternal.BooleanType::class)
+                subclass(DataTypeInternal.NullType::class)
+                subclass(DataTypeInternal.UnitType::class)
             }
             polymorphic(DataParameter::class) {
-                subclass(DataParameterImpl::class)
+                subclass(DefaultDataParameter::class)
             }
             polymorphic(DataProperty::class) {
-                subclass(DataPropertyImpl::class)
+                subclass(DefaultDataProperty::class)
             }
             polymorphic(FqName::class) {
-                subclass(FqNameImpl::class)
+                subclass(DefaultFqName::class)
             }
             polymorphic(SchemaMemberFunction::class) {
                 subclass(DataMemberFunction::class)
@@ -66,7 +66,7 @@ object SchemaSerialization {
         allowStructuredMapKeys = true
     }
 
-    fun schemaToJsonString(analysisSchema: AnalysisSchema) = json.encodeToString(analysisSchema as AnalysisSchemaImpl)
+    fun schemaToJsonString(analysisSchema: AnalysisSchema) = json.encodeToString(analysisSchema as DefaultAnalysisSchema)
 
-    fun schemaFromJsonString(schemaString: String) = json.decodeFromString<AnalysisSchemaImpl>(schemaString)
+    fun schemaFromJsonString(schemaString: String) = json.decodeFromString<DefaultAnalysisSchema>(schemaString)
 }

@@ -6,7 +6,7 @@ import org.gradle.declarative.dsl.schema.DataProperty
 import org.gradle.declarative.dsl.schema.ExternalObjectProviderKey
 import org.gradle.declarative.dsl.schema.SchemaFunction
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
-import org.gradle.internal.declarativedsl.language.DataTypeImpl
+import org.gradle.internal.declarativedsl.language.DataTypeInternal
 import org.gradle.internal.declarativedsl.language.FunctionCall
 import org.gradle.internal.declarativedsl.language.LanguageTreeElement
 import org.gradle.internal.declarativedsl.language.Literal
@@ -64,7 +64,7 @@ sealed interface ObjectOrigin {
 
     sealed interface ReceiverOrigin : ObjectOrigin
 
-    data class TopLevelReceiver(val type: DataTypeImpl, override val originElement: LanguageTreeElement) : ReceiverOrigin {
+    data class TopLevelReceiver(val type: DataTypeInternal, override val originElement: LanguageTreeElement) : ReceiverOrigin {
         override fun toString(): String = "(top-level-object)"
     }
 
@@ -139,7 +139,7 @@ sealed interface ObjectOrigin {
         override val originElement: FunctionCall,
         override val parameterBindings: ParameterValueBinding,
         override val invocationId: Long,
-        val accessor: ConfigureAccessorImpl,
+        val accessor: ConfigureAccessorInternal,
     ) : FunctionInvocationOrigin, ReceiverOrigin, DelegatingObjectOrigin {
         override fun toString(): String = accessor.access(receiver, this).toString()
 
@@ -172,11 +172,11 @@ sealed interface ObjectOrigin {
 
     data class CustomConfigureAccessor(
         override val receiver: ObjectOrigin,
-        val accessor: ConfigureAccessorImpl.Custom,
+        val accessor: ConfigureAccessorInternal.Custom,
         override val originElement: LanguageTreeElement
     ) : ObjectOrigin, HasReceiver {
         override fun toString(): String = "$receiver${'.'}${accessor.customAccessorIdentifier}"
-        val accessedType: DataTypeRefImpl
+        val accessedType: DataTypeRefInternal
             get() = accessor.objectType
     }
 
@@ -184,13 +184,13 @@ sealed interface ObjectOrigin {
         override val function: SchemaFunction,
         override val parameterBindings: ParameterValueBinding,
         override val invocationId: Long,
-        val lambdaReceiverType: DataTypeRefImpl,
+        val lambdaReceiverType: DataTypeRefInternal,
         override val originElement: LanguageTreeElement,
         override val receiver: ObjectOrigin,
     ) : FunctionInvocationOrigin, HasReceiver, ReceiverOrigin {
         init {
             val semantics = function.semantics
-            require(semantics is FunctionSemanticsImpl.AccessAndConfigure && semantics.accessor is ConfigureAccessorImpl.ConfiguringLambdaArgument)
+            require(semantics is FunctionSemanticsInternal.AccessAndConfigure && semantics.accessor is ConfigureAccessorInternal.ConfiguringLambdaArgument)
         }
 
         override fun toString(): String {
@@ -242,7 +242,7 @@ fun functionInvocationString(function: SchemaFunction, receiver: ObjectOrigin?, 
             val ref = function.dataClass
             val fqn = when (ref.isNamed) {
                 true -> ref.fqName.toString()
-                false -> (ref.dataType as? DataClassImpl)?.name?.qualifiedName ?: ref.dataType.toString()
+                false -> (ref.dataType as? DefaultDataClass)?.name?.qualifiedName ?: ref.dataType.toString()
             }
             append(fqn)
             append(".")

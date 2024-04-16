@@ -17,13 +17,13 @@
 package org.gradle.internal.declarativedsl.schemaBuilder
 
 import org.gradle.declarative.dsl.schema.AnalysisSchema
-import org.gradle.internal.declarativedsl.analysis.AnalysisSchemaImpl
+import org.gradle.internal.declarativedsl.analysis.DefaultAnalysisSchema
 import org.gradle.declarative.dsl.schema.DataProperty
-import org.gradle.internal.declarativedsl.analysis.DataPropertyImpl
-import org.gradle.internal.declarativedsl.analysis.ExternalObjectProviderKeyImpl
+import org.gradle.internal.declarativedsl.analysis.DefaultDataProperty
+import org.gradle.internal.declarativedsl.analysis.DefaultExternalObjectProviderKey
 import org.gradle.declarative.dsl.schema.FqName
-import org.gradle.internal.declarativedsl.analysis.DataClassImpl
-import org.gradle.internal.declarativedsl.analysis.FqNameImpl
+import org.gradle.internal.declarativedsl.analysis.DefaultDataClass
+import org.gradle.internal.declarativedsl.analysis.DefaultFqName
 import org.gradle.internal.declarativedsl.analysis.fqName
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
@@ -47,11 +47,11 @@ class DataSchemaBuilder(
         val dataTypes = preIndex.types.map { createDataType(it, preIndex) }
 
         val extFunctions = externalFunctions.mapNotNull { functionExtractor.topLevelFunction(it, preIndex) }.associateBy { it.fqName }
-        val extObjects = externalObjects.map { (key, value) -> key to ExternalObjectProviderKeyImpl(value.toDataTypeRef()) }.toMap()
+        val extObjects = externalObjects.map { (key, value) -> key to DefaultExternalObjectProviderKey(value.toDataTypeRef()) }.toMap()
 
         val topLevelReceiverName = topLevelReceiver.fqName
 
-        return AnalysisSchemaImpl(
+        return DefaultAnalysisSchema(
             dataTypes.single { it.name == topLevelReceiverName },
             dataTypes.associateBy { it.name },
             extFunctions,
@@ -62,7 +62,7 @@ class DataSchemaBuilder(
 
     private
     val KClass<*>.fqName
-        get() = FqNameImpl.parse(qualifiedName!!)
+        get() = DefaultFqName.parse(qualifiedName!!)
 
     class PreIndex {
         private
@@ -120,7 +120,7 @@ class DataSchemaBuilder(
                     it.claimedFunctions.forEach { claimFunction(type, it) }
                     addProperty(
                         type,
-                        DataPropertyImpl(it.name, it.returnType, it.propertyMode, it.hasDefaultValue, it.isHiddenInDeclarativeDsl, it.isDirectAccessOnly),
+                        DefaultDataProperty(it.name, it.returnType, it.propertyMode, it.hasDefaultValue, it.isHiddenInDeclarativeDsl, it.isDirectAccessOnly),
                         it.originalReturnType
                     )
                 }
@@ -132,13 +132,13 @@ class DataSchemaBuilder(
     fun createDataType(
         kClass: KClass<*>,
         preIndex: PreIndex,
-    ): DataClassImpl {
+    ): DefaultDataClass {
         val properties = preIndex.getAllProperties(kClass)
 
         val functions = functionExtractor.memberFunctions(kClass, preIndex)
         val constructors = functionExtractor.constructors(kClass, preIndex)
         val name = kClass.fqName
-        return DataClassImpl(name, supertypesOf(kClass), properties, functions.toList(), constructors.toList())
+        return DefaultDataClass(name, supertypesOf(kClass), properties, functions.toList(), constructors.toList())
     }
 
     private

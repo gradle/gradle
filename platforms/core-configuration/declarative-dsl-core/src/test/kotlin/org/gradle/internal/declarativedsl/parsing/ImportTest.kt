@@ -1,11 +1,11 @@
 package org.gradle.internal.declarativedsl.parsing
 
 import org.gradle.internal.declarativedsl.analysis.AnalysisContext
-import org.gradle.internal.declarativedsl.analysis.AnalysisSchemaImpl
-import org.gradle.internal.declarativedsl.analysis.DataClassImpl
+import org.gradle.internal.declarativedsl.analysis.DefaultAnalysisSchema
+import org.gradle.internal.declarativedsl.analysis.DefaultDataClass
 import org.gradle.internal.declarativedsl.analysis.ErrorCollectorImpl
 import org.gradle.internal.declarativedsl.analysis.ErrorReason
-import org.gradle.internal.declarativedsl.analysis.FqNameImpl
+import org.gradle.internal.declarativedsl.analysis.DefaultFqName
 import org.gradle.internal.declarativedsl.analysis.ResolutionError
 import org.gradle.internal.declarativedsl.analysis.defaultCodeResolver
 import org.gradle.internal.declarativedsl.language.AccessChain
@@ -28,8 +28,8 @@ class ImportTest {
     private
     fun testContext(): AnalysisContext {
         return AnalysisContext(
-            AnalysisSchemaImpl(
-                DataClassImpl(FqNameImpl("", ""), emptySet(), emptyList(), emptyList(), emptyList()),
+            DefaultAnalysisSchema(
+                DefaultDataClass(DefaultFqName("", ""), emptySet(), emptyList(), emptyList(), emptyList()),
                 emptyMap(),
                 emptyMap(),
                 emptyMap(),
@@ -51,8 +51,8 @@ class ImportTest {
 
         assertEquals(
             mapOf(
-                "C" to FqNameImpl("a.b", "C"),
-                "d" to FqNameImpl("a.b.c", "d")
+                "C" to DefaultFqName("a.b", "C"),
+                "d" to DefaultFqName("a.b.c", "d")
             ),
             result
         )
@@ -71,13 +71,13 @@ class ImportTest {
 
         assertEquals(
             mapOf(
-                "C" to FqNameImpl("a.b", "C"),
-                "D" to FqNameImpl("a.b", "D"),
+                "C" to DefaultFqName("a.b", "C"),
+                "D" to DefaultFqName("a.b", "D"),
             ),
             result
         )
         assertEquals(
-            listOf(ResolutionError(imports[1], ErrorReason.AmbiguousImport(FqNameImpl("a.c", "C")))),
+            listOf(ResolutionError(imports[1], ErrorReason.AmbiguousImport(DefaultFqName("a.c", "C")))),
             analysisContext.errorCollector.errors
         )
     }
@@ -94,7 +94,7 @@ class ImportTest {
 
         assertEquals(
             mapOf(
-                "C" to FqNameImpl("a.b", "C"),
+                "C" to DefaultFqName("a.b", "C"),
             ),
             result
         )

@@ -114,11 +114,11 @@ class StatementResolverImpl(
             is ObjectOrigin.ConstantOrigin -> false
             is ObjectOrigin.External -> true
             is ObjectOrigin.FunctionOrigin -> {
-                when (objectOrigin.function.semantics as FunctionSemanticsImpl) {
-                    is FunctionSemanticsImpl.Builder -> error("should be impossible?")
-                    is FunctionSemanticsImpl.AccessAndConfigure -> true
-                    is FunctionSemanticsImpl.AddAndConfigure -> true
-                    is FunctionSemanticsImpl.Pure -> false
+                when (objectOrigin.function.semantics as FunctionSemanticsInternal) {
+                    is FunctionSemanticsInternal.Builder -> error("should be impossible?")
+                    is FunctionSemanticsInternal.AccessAndConfigure -> true
+                    is FunctionSemanticsInternal.AddAndConfigure -> true
+                    is FunctionSemanticsInternal.Pure -> false
                 }
             }
 
@@ -130,7 +130,7 @@ class StatementResolverImpl(
         }
 
         return when {
-            obj.function.semantics is FunctionSemanticsImpl.Pure -> true
+            obj.function.semantics is FunctionSemanticsInternal.Pure -> true
             obj is ObjectOrigin.BuilderReturnedReceiver -> !isPotentiallyPersistentReceiver(obj.receiver)
             else -> false
         }
