@@ -24,6 +24,11 @@ import com.google.common.base.Objects;
  * as cache parameter which need to be compared to determine compatible cache.
  */
 public abstract class AbstractSerializer<T> implements Serializer<T> {
+    public AbstractSerializer() {
+        // Tets if this works on Java 6 or 7
+        int ignored = Objects.hashCode(this);
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (obj == null) {
