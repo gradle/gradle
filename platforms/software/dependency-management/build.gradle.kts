@@ -85,7 +85,6 @@ dependencies {
     api(libs.maven3SettingsBuilder)
     api(libs.slf4jApi)
 
-    implementation(projects.io)
     implementation(projects.time)
     implementation(project(":base-services-groovy"))
     implementation(project(":logging-api"))
