@@ -20,7 +20,6 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.lambdas.SerializableLambdas;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
@@ -32,7 +31,6 @@ import org.gradle.internal.file.RelativeFilePathResolver;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.concurrent.Callable;
 
 /**
  * The build init plugin.
@@ -61,7 +59,6 @@ public abstract class BuildInitPlugin implements Plugin<Project> {
                     "There is no build script or settings script",
                     new InitBuildOnlyIfSpec(buildFileDetails, settingsFileDetails, initBuild.getLogger())
                 );
-                initBuild.finalizedBy(new InitBuildDependsOnCallable(buildFileDetails, settingsFileDetails));
 
                 ProjectInternal.DetachedResolver detachedResolver = projectInternal.newDetachedResolver();
                 initBuild.getProjectLayoutRegistry().getBuildConverter().configureClasspath(
@@ -98,26 +95,6 @@ public abstract class BuildInitPlugin implements Plugin<Project> {
                 return false;
             }
             return true;
-        }
-    }
-
-    private static class InitBuildDependsOnCallable implements Callable<String> {
-
-        private final FileDetails buildFile;
-        private final FileDetails settingsFile;
-
-        private InitBuildDependsOnCallable(FileDetails buildFile, FileDetails settingsFile) {
-            this.buildFile = buildFile;
-            this.settingsFile = settingsFile;
-        }
-
-        @Override
-        public String call() {
-            if (reasonToSkip(buildFile, settingsFile) == null) {
-                return "wrapper";
-            } else {
-                return null;
-            }
         }
     }
 

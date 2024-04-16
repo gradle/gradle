@@ -21,9 +21,6 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.testing.base.TestingExtension;
 import org.gradle.testing.base.internal.DefaultTestingExtension;
-import org.gradle.api.Task;
-import org.gradle.api.specs.Spec;
-import org.gradle.api.tasks.wrapper.Wrapper;
 
 /**
  * Base test suite functionality. Makes an extension named "testing" available to the project.
@@ -35,33 +32,6 @@ public abstract class TestSuiteBasePlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
         project.getExtensions().create(TestingExtension.class, "testing", DefaultTestingExtension.class);
-        if (project.getParent() == null) {
-            project.getTasks().register("wrapper", Wrapper.class, wrapper -> {
-                wrapper.setGroup("Build Setup");
-                wrapper.setDescription("Generates Gradle wrapper files.");
-                wrapper.getNetworkTimeout().convention(10000);
-
-                Task initTask = project.getTasks().findByName("init");
-                wrapper.onlyIf("The init task did not fail if it was executed", new WrapperOnlyIfSpec(initTask));
-            });
-        }
-    }
-
-    private static class WrapperOnlyIfSpec implements Spec<Task> {
-
-        private final Task initTask;
-
-        private WrapperOnlyIfSpec(Task initTask) {
-            this.initTask = initTask;
-        }
-
-        @Override
-        public boolean isSatisfiedBy(Task element) {
-            if (initTask != null && initTask.getState().getExecuted()) {
-                return initTask.getState().getFailure() == null;
-            }
-            return true;
-        }
     }
 
     private static class WrapperOnlyIfSpec implements Spec<Task> {
