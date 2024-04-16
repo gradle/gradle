@@ -48,7 +48,7 @@ import java.util.IdentityHashMap
 /**
  * Serialized state of an object graph containing one or more [IsolatedAction]s.
  */
-class SerializedAction(
+class SerializedIsolatedActionGraph(
     /**
      * The serialized graph.
      */
@@ -71,11 +71,11 @@ class IsolatedActionSerializer(
     private val beanStateWriterLookup: BeanStateWriterLookup,
     private val isolatedActionCodecs: IsolatedActionCodecsFactory
 ) {
-    fun serialize(action: Any): SerializedAction {
+    fun serialize(action: Any): SerializedIsolatedActionGraph {
         val outputStream = ByteArrayOutputStream()
         val environmentEncoder = EnvironmentEncoder()
         serializeTo(outputStream, environmentEncoder, action)
-        return SerializedAction(
+        return SerializedIsolatedActionGraph(
             outputStream.toByteArray(),
             environmentEncoder.toLookup()
         )
@@ -118,7 +118,7 @@ class IsolatedActionDeserializer(
     private val beanStateReaderLookup: BeanStateReaderLookup,
     private val isolatedActionCodecs: IsolatedActionCodecsFactory
 ) {
-    fun deserialize(action: SerializedAction): Any =
+    fun deserialize(action: SerializedIsolatedActionGraph): Any =
         readerContextFor(action).useToRun {
             runReadOperation {
                 withIsolate(owner) {
@@ -129,7 +129,7 @@ class IsolatedActionDeserializer(
 
     private
     fun readerContextFor(
-        action: SerializedAction
+        action: SerializedIsolatedActionGraph
     ) = DefaultReadContext(
         codec = isolatedActionCodecs.isolatedActionCodecs(),
         decoder = KryoBackedDecoder(action.graph.inputStream()),

@@ -24,7 +24,7 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.isolation.IsolatedActionDeserializer
 import org.gradle.configurationcache.isolation.IsolatedActionSerializer
-import org.gradle.configurationcache.isolation.SerializedAction
+import org.gradle.configurationcache.isolation.SerializedIsolatedActionGraph
 import org.gradle.configurationcache.serialization.IsolateOwner
 import org.gradle.configurationcache.serialization.serviceOf
 import org.gradle.invocation.IsolatedProjectEvaluationListenerProvider
@@ -72,7 +72,7 @@ class DefaultIsolatedProjectEvaluationListenerProvider : IsolatedProjectEvaluati
 private
 class IsolatedProjectEvaluationListener(
     private val gradle: Gradle,
-    private val isolated: SerializedAction
+    private val isolated: SerializedIsolatedActionGraph
 ) : ProjectEvaluationListener {
 
     override fun beforeEvaluate(project: Project) {

@@ -115,7 +115,7 @@ class IsolatedActionCodecsFactory(
 
     /**
      * Value sources and build services are currently unsupported but could eventually
-     * be captured as part of the serialized action [environment][org.gradle.configurationcache.isolation.SerializedAction.environment]
+     * be captured as part of the serialized action [environment][org.gradle.configurationcache.isolation.SerializedIsolatedActionGraph.environment]
      **/
     private
     fun BindingsBuilder.unsupportedProviderTypes() {

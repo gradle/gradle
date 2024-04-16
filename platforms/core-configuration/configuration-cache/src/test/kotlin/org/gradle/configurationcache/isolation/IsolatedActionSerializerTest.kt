@@ -171,12 +171,12 @@ class IsolatedActionSerializerTest {
         deserialize(serialize(action))
 
     private
-    fun <T> serialize(action: TestableIsolatedAction<T>): SerializedAction =
+    fun <T> serialize(action: TestableIsolatedAction<T>): SerializedIsolatedActionGraph =
         IsolatedActionSerializer(ownerGradle(), BeanStateWriterLookup(), isolatedActionCodecsFactory())
             .serialize(action)
 
     private
-    fun <T> deserialize(serialized: SerializedAction): TestableIsolatedAction<T> =
+    fun <T> deserialize(serialized: SerializedIsolatedActionGraph): TestableIsolatedAction<T> =
         IsolatedActionDeserializer(ownerGradle(), beanStateReaderLookupForTesting(), isolatedActionCodecsFactory())
             .deserialize(serialized)
             .uncheckedCast()
