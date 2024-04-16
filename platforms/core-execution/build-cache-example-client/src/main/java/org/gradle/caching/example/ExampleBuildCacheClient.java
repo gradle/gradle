@@ -29,7 +29,6 @@ import org.gradle.internal.file.TreeType;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
-import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
@@ -45,7 +44,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Collections;
-import java.util.Map;
 
 public class ExampleBuildCacheClient {
     private static final Logger LOGGER = LoggerFactory.getLogger(DirectoryBuildCache.class);
@@ -68,24 +66,41 @@ public class ExampleBuildCacheClient {
 
     private void useBuildCache() throws IOException {
         BuildCacheKey cacheKey = new SimpleBuildCacheKey(HashCode.fromString("b9800f9130db9efa58f6ec8c744f1cc7"));
+        String identity = "test-entity";
+        Path targetOutputDirectory = Files.createTempDirectory("target-output");
+        ExampleEntity targetEntity = new ExampleEntity(identity, targetOutputDirectory.toFile());
 
-        Path originalOutputDirectory = Files.createTempDirectory("cache-entity-original");
-        Path originalOutputTxt = originalOutputDirectory.resolve("output.txt");
-        Files.write(originalOutputTxt, Collections.singleton("contents"));
+        // Try to load a non-existent entity
+        buildCacheController.load(cacheKey, targetEntity)
+            .ifPresent(__ -> {
+                throw new RuntimeException("Should have been a miss");
+            });
 
-        // TODO Should we switch to using Path instead of File?
-        CacheableEntity originalEntity = new ExampleEntity("test-entity", originalOutputDirectory.toFile());
+        // Produce some example output (simulate executing cacheable work in a temporary sandbox)
+        Path sandboxOutputDirectory = Files.createTempDirectory("sandbox-output");
+        Path sandboxOutputTxt = sandboxOutputDirectory.resolve("output.txt");
+        Files.write(sandboxOutputTxt, Collections.singleton("contents"));
 
-        FileSystemLocationSnapshot outputDirectorySnapshot = fileSystemAccess.read(originalOutputDirectory.toAbsolutePath().toString());
-        Map<String, FileSystemSnapshot> outputSnapshots = ImmutableMap.of("output", outputDirectorySnapshot);
-        buildCacheController.store(cacheKey, originalEntity, outputSnapshots, Duration.ofSeconds(10));
+        // Capture the snapshot of the produced output
+        FileSystemLocationSnapshot producedOutputSnapshot = fileSystemAccess.read(sandboxOutputDirectory.toAbsolutePath().toString());
 
-        Path loadedFromCacheDirectory = Files.createTempDirectory("cache-entity-loaded");
-        CacheableEntity loadedEntity = new ExampleEntity("test-entity", loadedFromCacheDirectory.toFile());
+        // Store the entity in the cache
+        ExampleEntity sandboxEntity = new ExampleEntity("test-entity", sandboxOutputDirectory.toFile());
+        buildCacheController.store(
+            cacheKey,
+            sandboxEntity,
+            ImmutableMap.of("output", producedOutputSnapshot),
+            Duration.ofSeconds(10));
 
-        BuildCacheLoadResult loadResult = buildCacheController.load(cacheKey, loadedEntity)
-            .orElseThrow(() -> new RuntimeException("Couldn't load from cache"));
+        // Load the entity from the cache
+        BuildCacheLoadResult loadResult = buildCacheController.load(cacheKey, targetEntity)
+            .orElseThrow(() -> new RuntimeException("Should have been a hit"));
 
+        // Show what we did
+        printLoadedResult(loadResult);
+    }
+
+    private static void printLoadedResult(BuildCacheLoadResult loadResult) {
         LOGGER.info("Loaded from cache:");
         loadResult.getResultingSnapshots().forEach((name, snapshot) -> {
             LOGGER.info(" - Output property '{}':", name);
