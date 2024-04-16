@@ -355,21 +355,20 @@ public abstract class InitBuild extends DefaultTask {
     }
 
     private void validateBuildDirectory(UserQuestions userQuestions) {
-        File[] existingProjectFiles = projectDir.getAsFile().listFiles();
+        File projectDirFile = projectDir.getAsFile();
+        File[] existingProjectFiles = projectDirFile.listFiles();
         boolean isNotEmptyDirectory = existingProjectFiles != null && existingProjectFiles.length != 0;
         if (isNotEmptyDirectory) {
-            String projectDirPath = projectDir.getAsFile().getPath();
-
             boolean fileOverwriteAllowed;
             if (getAllowFileOverwrite().isPresent()) {
                 fileOverwriteAllowed = getAllowFileOverwrite().get();
             } else {
-                fileOverwriteAllowed = userQuestions.askBooleanQuestion("Found existing files in the current directory: '" + projectDirPath +
+                fileOverwriteAllowed = userQuestions.askBooleanQuestion("Found existing files in the current directory: '" + projectDirFile +
                 "'. Allow these files to be overwritten?", true);
             }
 
             if (!fileOverwriteAllowed) {
-                throw new GradleException("Existing files found in the current directory: '" + projectDirPath + "'. Unable to initialize build.");
+                throw new GradleException("Existing files found in the current directory: '" + projectDirFile + "'. Unable to initialize build.");
             }
         }
     }
