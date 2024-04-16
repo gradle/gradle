@@ -15,17 +15,22 @@
  */
 package org.gradle.groovy.scripts.internal;
 
+import com.google.common.collect.Sets;
 import groovy.lang.Script;
 import org.codehaus.groovy.ast.ClassNode;
 import org.gradle.api.Action;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.api.internal.initialization.loadercache.DefaultClasspathHasher;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.internal.GroovyScriptClassCompiler.GroovyScriptCompilationAndInstrumentation.GroovyScriptCompilationOutput;
+import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.internal.Pair;
 import org.gradle.internal.classanalysis.AsmConstants;
+import org.gradle.internal.classloader.ClassLoaderVisitor;
+import org.gradle.internal.classloader.ClasspathHasher;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassData;
 import org.gradle.internal.classpath.ClassPath;
@@ -38,6 +43,7 @@ import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
 import org.gradle.internal.file.TreeType;
+import org.gradle.internal.fingerprint.classpath.CompileClasspathFingerprinter;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
@@ -56,7 +62,14 @@ import org.objectweb.asm.Type;
 
 import java.io.Closeable;
 import java.io.File;
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -76,6 +89,9 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
     private final InputFingerprinter inputFingerprinter;
     private final ImmutableWorkspaceProvider workspaceProvider;
     private final ClasspathElementTransformFactoryForLegacy transformFactoryForLegacy;
+    private final ClassLoaderClassPathCache classLoaderClassPathCache;
+    private final ClasspathHasher classpathHasher;
+    private final ClassLoaderScopeRegistry classLoaderScopeRegistry;
 
     public GroovyScriptClassCompiler(
         ScriptCompilationHandler scriptCompilationHandler,
@@ -85,7 +101,9 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
         FileCollectionFactory fileCollectionFactory,
         InputFingerprinter inputFingerprinter,
         ImmutableWorkspaceProvider workspaceProvider,
-        ClasspathElementTransformFactoryForLegacy transformFactoryForLegacy
+        ClasspathElementTransformFactoryForLegacy transformFactoryForLegacy,
+        CompileClasspathFingerprinter compileClasspathFingerprinter,
+        ClassLoaderScopeRegistry classLoaderScopeRegistry
     ) {
         this.scriptCompilationHandler = scriptCompilationHandler;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
@@ -95,6 +113,9 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
         this.inputFingerprinter = inputFingerprinter;
         this.workspaceProvider = workspaceProvider;
         this.transformFactoryForLegacy = transformFactoryForLegacy;
+        this.classLoaderClassPathCache = new ClassLoaderClassPathCache();
+        this.classpathHasher = new DefaultClasspathHasher(compileClasspathFingerprinter, fileCollectionFactory);
+        this.classLoaderScopeRegistry = classLoaderScopeRegistry;
     }
 
     @Override
@@ -146,7 +167,10 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
             fileCollectionFactory,
             inputFingerprinter,
             transformFactoryForLegacy,
-            scriptCompilationHandler
+            scriptCompilationHandler,
+            classLoaderClassPathCache,
+            classpathHasher,
+            classLoaderScopeRegistry
         );
         return getExecutionEngine(target)
             .createRequest(unitOfWork)
@@ -206,13 +230,16 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
 
         private final String templateId;
         private final HashCode sourceHashCode;
-        private final ClassLoader classLoader;
         private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
         private final RemappingScriptSource source;
         private final CompileOperation<?> operation;
         private final Class<? extends Script> scriptBaseClass;
         private final ScriptCompilationHandler scriptCompilationHandler;
         private final Action<? super ClassNode> verifier;
+        private final ClassLoader classLoader;
+        private final ClasspathHasher classpathHasher;
+        private final ClassLoaderClassPathCache classLoaderClassPathCache;
+        private final ClassLoaderScopeRegistry classLoaderScopeRegistry;
 
         public GroovyScriptCompilationAndInstrumentation(
             String templateId,
@@ -227,25 +254,35 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
             FileCollectionFactory fileCollectionFactory,
             InputFingerprinter inputFingerprinter,
             ClasspathElementTransformFactoryForLegacy transformFactoryForLegacy,
-            ScriptCompilationHandler scriptCompilationHandler
+            ScriptCompilationHandler scriptCompilationHandler,
+            ClassLoaderClassPathCache classLoaderClassPathCache,
+            ClasspathHasher classpathHasher,
+            ClassLoaderScopeRegistry classLoaderScopeRegistry
         ) {
             super(workspaceProvider, fileCollectionFactory, inputFingerprinter, transformFactoryForLegacy);
             this.templateId = templateId;
             this.sourceHashCode = sourceHashCode;
             this.classLoader = classLoader;
+            this.classLoaderClassPathCache = classLoaderClassPathCache;
+            this.classpathHasher = classpathHasher;
             this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
             this.source = source;
             this.operation = operation;
             this.verifier = verifier;
             this.scriptBaseClass = scriptBaseClass;
             this.scriptCompilationHandler = scriptCompilationHandler;
+            this.classLoaderScopeRegistry = classLoaderScopeRegistry;
         }
 
         @Override
         public void visitIdentityInputs(InputVisitor visitor) {
             visitor.visitInputProperty(TEMPLATE_ID_PROPERTY_NAME, () -> templateId);
             visitor.visitInputProperty(SOURCE_HASH_PROPERTY_NAME, () -> sourceHashCode);
-            visitor.visitInputProperty(CLASSPATH_PROPERTY_NAME, () -> classLoaderHierarchyHasher.getClassLoaderHash(classLoader));
+            visitor.visitInputProperty(CLASSPATH_PROPERTY_NAME, () -> {
+                Set<File> coreAndPlugins = classLoaderClassPathCache.of(classLoaderScopeRegistry.getCoreAndPluginsScope().getExportClassLoader());
+                Set<File> classPath = classLoaderClassPathCache.of(classLoader);
+                return classpathHasher.hash(DefaultClassPath.of(Sets.difference(classPath, coreAndPlugins)));
+            });
         }
 
         @Override
@@ -304,6 +341,63 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
 
             public File getMetadataDir() {
                 return metadataDir;
+            }
+        }
+    }
+
+    /**
+     * Based on Kotlin implementation
+     */
+    static class ClassLoaderClassPathCache {
+        private final Map<ClassLoader, Set<File>> cachedClassPaths = new HashMap<>();
+
+        public Set<File> of(ClassLoader classLoader) {
+            Set<File> classPath = cachedClassPaths.get(classLoader);
+            if (classPath == null) {
+                classPath = classPathOf(classLoader);
+                cachedClassPaths.put(classLoader, classPath);
+            }
+            return classPath;
+        }
+
+        private Set<File> classPathOf(ClassLoader classLoader) {
+            Set<File> classPathFiles = new LinkedHashSet<>();
+            new ClassLoaderVisitor() {
+                @Override
+                public void visitClassPath(URL[] classPath) {
+                    for (URL url : classPath) {
+                        if (url.getProtocol().equals("file")) {
+                            classPathFiles.add(fileFrom(url));
+                        }
+                    }
+                }
+
+                @Override
+                public void visitParent(ClassLoader classLoader) {
+                    classPathFiles.addAll(of(classLoader));
+                }
+            }.visit(classLoader);
+            return classPathFiles;
+        }
+
+        private static File fileFrom(URL url) {
+            return new File(toURI(url));
+        }
+
+        private static URI toURI(URL url) {
+            try {
+                return url.toURI();
+            } catch (URISyntaxException e) {
+                try {
+                    return new URL(
+                        url.getProtocol(),
+                        url.getHost(),
+                        url.getPort(),
+                        url.getFile().replace(" ", "%20")
+                    ).toURI();
+                } catch (URISyntaxException | MalformedURLException ex) {
+                    throw new RuntimeException(ex);
+                }
             }
         }
     }

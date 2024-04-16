@@ -32,6 +32,8 @@ import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.artifacts.DefaultModule;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
+import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
@@ -190,11 +192,13 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.ExecutionEngine;
+import org.gradle.internal.execution.FileCollectionSnapshotter;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.WorkExecutionTracker;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.file.Stat;
+import org.gradle.internal.fingerprint.classpath.impl.DefaultCompileClasspathFingerprinter;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.invocation.DefaultBuildInvocationDetails;
@@ -477,7 +481,11 @@ public class BuildScopeServices extends ScopedServiceRegistry {
         FileCollectionFactory fileCollectionFactory,
         InputFingerprinter inputFingerprinter,
         GroovyDslWorkspaceProvider groovyDslWorkspaceProvider,
-        ClasspathElementTransformFactoryForLegacy transformFactoryForLegacy
+        ClasspathElementTransformFactoryForLegacy transformFactoryForLegacy,
+        ResourceSnapshotterCacheService resourceSnapshotterCacheService,
+        FileCollectionSnapshotter fileCollectionSnapshotter,
+        StringInterner stringInterner,
+        ClassLoaderScopeRegistry classLoaderScopeRegistry
     ) {
         return new GroovyScriptClassCompiler(
             new BuildOperationBackedScriptCompilationHandler(scriptCompilationHandler, buildOperationRunner),
@@ -487,7 +495,13 @@ public class BuildScopeServices extends ScopedServiceRegistry {
             fileCollectionFactory,
             inputFingerprinter,
             groovyDslWorkspaceProvider.getWorkspace(),
-            transformFactoryForLegacy
+            transformFactoryForLegacy,
+            new DefaultCompileClasspathFingerprinter(
+                resourceSnapshotterCacheService,
+                fileCollectionSnapshotter,
+                stringInterner
+            ),
+            classLoaderScopeRegistry
         );
     }
 
