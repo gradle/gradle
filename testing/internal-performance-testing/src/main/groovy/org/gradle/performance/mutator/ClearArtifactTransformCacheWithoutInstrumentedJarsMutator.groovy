@@ -47,7 +47,7 @@ class ClearArtifactTransformCacheWithoutInstrumentedJarsMutator extends Abstract
     /**
      * This marker was used in Gradle 8.7 and earlier.
      */
-    private static final String GRADLE_PRE_8_8_CLASSPATH_MAKER = ".gradle-instrumented.marker"
+    static final String GRADLE_PRE_8_8_CLASSPATH_MAKER = ".gradle-instrumented.marker"
 
     private final File gradleUserHome;
 
