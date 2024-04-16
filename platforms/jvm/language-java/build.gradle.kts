@@ -39,6 +39,7 @@ dependencies {
     api(project(":snapshots"))
     api(project(":test-suites-base"))
     api(project(":toolchains-jvm"))
+    api(project(":toolchains-jvm-shared"))
     api(project(":worker-processes"))
     api(project(":workers"))
 

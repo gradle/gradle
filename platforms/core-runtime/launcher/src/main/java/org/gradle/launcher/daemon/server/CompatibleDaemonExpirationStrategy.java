@@ -40,7 +40,7 @@ public class CompatibleDaemonExpirationStrategy implements DaemonExpirationStrat
     }
 
     CompatibleDaemonExpirationStrategy(Daemon daemon) {
-        this(daemon, new DaemonCompatibilitySpec(daemon.getDaemonContext()));
+        this(daemon, new DaemonCompatibilitySpec(daemon.getDaemonContext().toRequest()));
     }
 
     @Override
