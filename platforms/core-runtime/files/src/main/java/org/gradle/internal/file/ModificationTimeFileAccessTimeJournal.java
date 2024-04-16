@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.resource.local;
+package org.gradle.internal.file;
 
-import org.gradle.internal.file.FileAccessTimeJournal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
