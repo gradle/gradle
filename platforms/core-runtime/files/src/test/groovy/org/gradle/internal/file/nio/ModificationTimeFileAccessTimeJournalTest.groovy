@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.file
+package org.gradle.internal.file.nio
 
 
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
