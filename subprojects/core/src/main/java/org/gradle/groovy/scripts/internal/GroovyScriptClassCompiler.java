@@ -250,6 +250,9 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
 
         @Override
         public Optional<CachingDisabledReason> shouldDisableCaching(@Nullable OverlappingOutputs detectedOverlappingOutputs) {
+            // Disabled since enabling it introduced negative savings to Groovy script compilation.
+            // It's not disabled for Kotlin since Kotlin has better compile avoidance, additionally
+            // Kotlin has build cache from the beginning and there was no report of a problem with it.
             return Optional.of(NOT_CACHEABLE);
         }
 
