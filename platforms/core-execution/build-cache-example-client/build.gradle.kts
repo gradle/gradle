@@ -37,14 +37,12 @@ dependencies {
     implementation(projects.persistentCache)
     implementation(projects.snapshots)
 
-    implementation(libs.jsr305)
+    implementation(libs.commonsIo)
     implementation(libs.guava)
     implementation(libs.guice)
+    implementation(libs.jsr305)
     implementation(libs.slf4jApi)
-    implementation(libs.commonsIo)
-
-    // TODO Add this to the global version catalog
-    implementation("org.slf4j:slf4j-simple:1.7.36")
+    implementation(libs.slf4jSimple)
 }
 
 application {
