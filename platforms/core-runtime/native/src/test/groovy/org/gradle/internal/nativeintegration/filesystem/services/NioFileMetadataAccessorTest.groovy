@@ -17,7 +17,7 @@
 package org.gradle.internal.nativeintegration.filesystem.services
 
 import org.gradle.internal.file.FileMetadata
-import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor
+import org.gradle.internal.file.FileMetadataAccessor
 import org.gradle.internal.nativeintegration.filesystem.jdk7.NioFileMetadataAccessor
 import org.gradle.util.UsesNativeServices
 
