@@ -1126,7 +1126,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
     private boolean hasSettingsFile(TestFile dir) {
         if (dir.isDirectory()) {
-            return dir.file("settings.gradle").isFile() || dir.file("settings.gradle.kts").isFile() || dir.file("settings.gradle.something").isFile();
+            return dir.file("settings.gradle").isFile() || dir.file("settings.gradle.kts").isFile() || dir.file("settings.gradle.dcl").isFile();
         }
         return false;
     }

@@ -48,7 +48,7 @@ class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractIntegration
         file("buildSrc/build.gradle") << defineRestrictedPluginBuild()
 
         and: "a build script that adds dependencies using the custom extension"
-        file("build.gradle.something") << defineDeclarativeDSLBuildScript()
+        file("build.gradle.dcl") << defineDeclarativeDSLBuildScript()
         file("settings.gradle") << defineSettings(typeSafeProjectAccessors)
 
         expect: "a dependency has been added to the api configuration"
@@ -141,7 +141,7 @@ class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractIntegration
         """
         file("buildSrc/build.gradle") << defineRestrictedPluginBuild()
 
-        file("build.gradle.something") << """
+        file("build.gradle.dcl") << """
             plugins {
                 id("com.example.restricted")
             }
@@ -204,7 +204,7 @@ class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractIntegration
         file("buildSrc/build.gradle") << defineRestrictedPluginBuild()
 
         and: "a build script that adds dependencies using the custom extension"
-        file("build.gradle.something") << """
+        file("build.gradle.dcl") << """
             plugins {
                 id("com.example.restricted")
             }
@@ -255,12 +255,12 @@ class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractIntegration
         file("buildSrc/build.gradle") << defineRestrictedPluginBuild()
 
         and: "a build script that adds dependencies using the custom extension"
-        file("build.gradle.something") << defineDeclarativeDSLBuildScript()
+        file("build.gradle.dcl") << defineDeclarativeDSLBuildScript()
         file("settings.gradle") << defineSettings()
 
         expect: "the build fails"
         fails("dependencies", "--configuration", "api")
-        failure.assertHasCause("Failed to interpret the declarative DSL file '${testDirectory.file("build.gradle.something").path}'")
+        failure.assertHasCause("Failed to interpret the declarative DSL file '${testDirectory.file("build.gradle.dcl").path}'")
     }
 
     def 'can configure an extension using DependencyCollector in declarative DSL and build a java plugin'() {
@@ -291,7 +291,7 @@ class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractIntegration
 
         and: "a build script that adds dependencies using the custom extension, and defines a source file requiring the dependencies to compile"
         file("src/main/java/com/example/Lib.java") << defineExampleJavaClass()
-        file("build.gradle.something") << defineDeclarativeDSLBuildScript()
+        file("build.gradle.dcl") << defineDeclarativeDSLBuildScript()
         file("settings.gradle") << defineSettings()
 
         expect: "the library can be built successfully"
@@ -338,7 +338,7 @@ class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractIntegration
         file("buildSrc/build.gradle") << defineRestrictedPluginBuild(true)
 
         and: "a build script that adds dependencies using the custom extension"
-        file("build.gradle.something") << """
+        file("build.gradle.dcl") << """
             plugins {
                 id("com.example.restricted")
             }
@@ -390,11 +390,11 @@ class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractIntegration
 
         and: "a producer build that defines a required class"
         file("producer/src/main/java/com/example/Producer.java") << defineExampleProducerJavaClass()
-        file("producer/build.gradle.something") << defineDeclarativeDSLProducerBuildScript()
+        file("producer/build.gradle.dcl") << defineDeclarativeDSLProducerBuildScript()
 
         and: "a consumer build that requires the class in the producer project"
         file("consumer/src/main/java/com/example/Consumer.java") << defineExampleConsumerJavaClass()
-        file("consumer/build.gradle.something") << defineDeclarativeDSLConsumerBuildScript()
+        file("consumer/build.gradle.dcl") << defineDeclarativeDSLConsumerBuildScript()
 
         and: "a project including both the producer and consumer projects"
         file("settings.gradle") << defineSettings() + 'include("consumer", "producer")'

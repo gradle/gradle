@@ -23,7 +23,7 @@ import org.intellij.lang.annotations.Language
 class DeclarativeDslProjectBuildFileIntegrationSpec extends AbstractIntegrationSpec {
 
     def 'can apply plugins in declarative DSL'() {
-        file("build.gradle.something") << """
+        file("build.gradle.dcl") << """
             plugins {
                 id("java")
             }
@@ -38,7 +38,7 @@ class DeclarativeDslProjectBuildFileIntegrationSpec extends AbstractIntegrationS
 
     def 'can declare dependencies on other projects with #kind notation'() {
         given:
-        file("settings.gradle.something") << """
+        file("settings.gradle.dcl") << """
             rootProject.name = "test"
             include(":a")
             include(":b")
@@ -46,13 +46,13 @@ class DeclarativeDslProjectBuildFileIntegrationSpec extends AbstractIntegrationS
             $settingsFlags
         """
 
-        file("a/build.gradle.something") << """
+        file("a/build.gradle.dcl") << """
             plugins {
                 id("java")
             }
         """
 
-        file("b/build.gradle.something") << """
+        file("b/build.gradle.dcl") << """
             plugins {
                 id("java-library")
             }
@@ -84,12 +84,12 @@ class DeclarativeDslProjectBuildFileIntegrationSpec extends AbstractIntegrationS
             include(":sub")
         """)
 
-        file("build.gradle.something") << """
+        file("build.gradle.dcl") << """
         plugins {
         }
         """
 
-        file("sub/build.gradle.something") << """
+        file("sub/build.gradle.dcl") << """
         plugins {
         }
         """
@@ -164,7 +164,7 @@ class DeclarativeDslProjectBuildFileIntegrationSpec extends AbstractIntegrationS
             }
         """
 
-        file("build.gradle.something") << """
+        file("build.gradle.dcl") << """
             plugins {
                 id("com.example.restricted")
             }
@@ -382,7 +382,7 @@ secondaryAccess { three, true, true}"""
 
     def 'reports #kind errors in project file #part'() {
         given:
-        file("build.gradle.something") << """
+        file("build.gradle.dcl") << """
         plugins {
             id("java")
             $pluginsCode
