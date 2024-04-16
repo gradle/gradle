@@ -109,8 +109,6 @@ If the `--overwrite` option is provided, Gradle will overwrite any existing file
 
 All build types also set up <<gradle_wrapper.adoc#gradle_wrapper_reference, Gradle Wrapper>> in the build.
 
-All build types also setup the Gradle wrapper.
-
 [[sec:build_init_types]]
 == Build init types
 
