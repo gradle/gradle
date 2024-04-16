@@ -24,6 +24,7 @@ import org.gradle.cache.LockTimeoutException
 import org.gradle.cache.internal.filelock.DefaultLockOptions
 import org.gradle.cache.internal.locklistener.DefaultFileLockContentionHandler
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler
+import org.gradle.cache.internal.locklistener.InetAddressProvider
 import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.id.LongIdGenerator
 import org.gradle.internal.remote.internal.inet.InetAddressFactory
@@ -37,8 +38,20 @@ import static org.gradle.cache.FileLockManager.LockMode.Shared
 class DefaultFileLockManagerContentionTest extends ConcurrentSpec {
     @Rule
     final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
-    FileLockContentionHandler contentionHandler = new DefaultFileLockContentionHandler(executorFactory, new InetAddressFactory())
-    FileLockContentionHandler contentionHandler2 = new DefaultFileLockContentionHandler(executorFactory, new InetAddressFactory())
+    def addressFactory = new InetAddressFactory()
+    def addressProvider = new InetAddressProvider() {
+        @Override
+        InetAddress getWildcardBindingAddress() {
+            return addressFactory.wildcardBindingAddress
+        }
+
+        @Override
+        Iterable<InetAddress> getCommunicationAddresses() {
+            return addressFactory.communicationAddresses
+        }
+    }
+    FileLockContentionHandler contentionHandler = new DefaultFileLockContentionHandler(executorFactory, addressProvider)
+    FileLockContentionHandler contentionHandler2 = new DefaultFileLockContentionHandler(executorFactory, addressProvider)
     FileLockManager manager = new DefaultFileLockManager(Stub(ProcessMetaDataProvider), 2000, contentionHandler, new LongIdGenerator())
     FileLockManager manager2 = new DefaultFileLockManager(Stub(ProcessMetaDataProvider), 2000, contentionHandler2, new LongIdGenerator())
 

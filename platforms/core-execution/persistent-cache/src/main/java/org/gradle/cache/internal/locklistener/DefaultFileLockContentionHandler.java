@@ -21,7 +21,6 @@ import org.gradle.cache.FileLockReleasedSignal;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -84,16 +83,16 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
     private final Map<Long, Integer> unlocksConfirmedFrom = new HashMap<Long, Integer>();
 
     private final ExecutorFactory executorFactory;
-    private final InetAddressFactory addressFactory;
+    private final InetAddressProvider inetAddressProvider;
 
     private FileLockCommunicator communicator;
     private ManagedExecutor fileLockRequestListener;
     private ManagedExecutor unlockActionExecutor;
     private boolean stopped;
 
-    public DefaultFileLockContentionHandler(ExecutorFactory executorFactory, InetAddressFactory addressFactory) {
+    public DefaultFileLockContentionHandler(ExecutorFactory executorFactory, InetAddressProvider inetAddressProvider) {
         this.executorFactory = executorFactory;
-        this.addressFactory = addressFactory;
+        this.inetAddressProvider = inetAddressProvider;
     }
 
     private Runnable listener() {
@@ -260,7 +259,7 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
         try {
             assertNotStopped();
             if (communicator == null) {
-                communicator = new FileLockCommunicator(addressFactory);
+                communicator = new FileLockCommunicator(inetAddressProvider);
             }
             return communicator;
         } finally {

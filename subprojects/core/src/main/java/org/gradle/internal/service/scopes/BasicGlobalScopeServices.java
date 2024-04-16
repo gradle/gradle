@@ -35,6 +35,7 @@ import org.gradle.cache.internal.DefaultFileLockManager;
 import org.gradle.cache.internal.DefaultProcessMetaDataProvider;
 import org.gradle.cache.internal.locklistener.DefaultFileLockContentionHandler;
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler;
+import org.gradle.cache.internal.locklistener.InetAddressProvider;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -59,6 +60,8 @@ import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.process.internal.ExecFactory;
 import org.gradle.process.internal.ExecHandleFactory;
 
+import java.net.InetAddress;
+
 /**
  * Defines the basic global services of a given process. This includes the Gradle CLI, daemon and tooling API provider. These services
  * should be as few as possible to keep the CLI startup fast. Global services that are only needed for the process running the build should go in
@@ -80,7 +83,17 @@ public class BasicGlobalScopeServices {
     DefaultFileLockContentionHandler createFileLockContentionHandler(ExecutorFactory executorFactory, InetAddressFactory inetAddressFactory) {
         return new DefaultFileLockContentionHandler(
             executorFactory,
-            inetAddressFactory);
+            new InetAddressProvider() {
+                @Override
+                public InetAddress getWildcardBindingAddress() {
+                    return inetAddressFactory.getWildcardBindingAddress();
+                }
+
+                @Override
+                public Iterable<InetAddress> getCommunicationAddresses() {
+                    return inetAddressFactory.getCommunicationAddresses();
+                }
+            });
     }
 
     ExecutorFactory createExecutorFactory() {
