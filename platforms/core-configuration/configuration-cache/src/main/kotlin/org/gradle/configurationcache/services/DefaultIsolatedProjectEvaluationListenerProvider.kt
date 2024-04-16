@@ -21,7 +21,6 @@ import org.gradle.api.Project
 import org.gradle.api.ProjectEvaluationListener
 import org.gradle.api.ProjectState
 import org.gradle.api.invocation.Gradle
-import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.isolation.IsolatedActionDeserializer
 import org.gradle.configurationcache.isolation.IsolatedActionSerializer
 import org.gradle.configurationcache.isolation.SerializedIsolatedActionGraph
@@ -34,11 +33,10 @@ private
 typealias IsolatedProjectAction = IsolatedAction<in Project>
 
 
-/**
- * TODO:
- *   - save isolated listener to the build scoped configuration cache when isolated projects is enabled
- *   - report cc problems that happen during isolation
- */
+private
+typealias IsolatedProjectActionList = Collection<IsolatedProjectAction>
+
+
 internal
 class DefaultIsolatedProjectEvaluationListenerProvider : IsolatedProjectEvaluationListenerProvider {
 
@@ -72,7 +70,7 @@ class DefaultIsolatedProjectEvaluationListenerProvider : IsolatedProjectEvaluati
 private
 class IsolatedProjectEvaluationListener(
     private val gradle: Gradle,
-    private val isolated: SerializedIsolatedActionGraph
+    private val isolated: SerializedIsolatedActionGraph<IsolatedProjectActionList>
 ) : ProjectEvaluationListener {
 
     override fun beforeEvaluate(project: Project) {
@@ -88,6 +86,5 @@ class IsolatedProjectEvaluationListener(
     fun isolatedActions() = IsolateOwner.OwnerGradle(gradle).let { owner ->
         IsolatedActionDeserializer(owner, owner.serviceOf(), owner.serviceOf())
             .deserialize(isolated)
-            .uncheckedCast<Collection<IsolatedProjectAction>>()
     }
 }

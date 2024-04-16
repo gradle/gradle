@@ -23,7 +23,6 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
-import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.serialization.IsolateOwner
 import org.gradle.configurationcache.serialization.beans.BeanStateWriterLookup
 import org.gradle.configurationcache.serialization.codecs.beanStateReaderLookupForTesting
@@ -171,15 +170,14 @@ class IsolatedActionSerializerTest {
         deserialize(serialize(action))
 
     private
-    fun <T> serialize(action: TestableIsolatedAction<T>): SerializedIsolatedActionGraph =
+    fun <T> serialize(action: TestableIsolatedAction<T>) =
         IsolatedActionSerializer(ownerGradle(), BeanStateWriterLookup(), isolatedActionCodecsFactory())
             .serialize(action)
 
     private
-    fun <T> deserialize(serialized: SerializedIsolatedActionGraph): TestableIsolatedAction<T> =
+    fun <T> deserialize(serialized: SerializedIsolatedActionGraph<TestableIsolatedAction<T>>) =
         IsolatedActionDeserializer(ownerGradle(), beanStateReaderLookupForTesting(), isolatedActionCodecsFactory())
             .deserialize(serialized)
-            .uncheckedCast()
 
     private
     fun ownerGradle() = IsolateOwner.OwnerGradle(
