@@ -20,7 +20,7 @@ import org.gradle.declarative.dsl.model.annotations.AccessFromCurrentReceiverOnl
 import org.gradle.declarative.dsl.model.annotations.HasDefaultValue
 import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl
 import org.gradle.declarative.dsl.schema.DataProperty.PropertyMode
-import org.gradle.internal.declarativedsl.analysis.DataTypeRefImpl
+import org.gradle.internal.declarativedsl.analysis.DataTypeRefInternal
 import java.util.Locale
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
@@ -71,7 +71,7 @@ operator fun PropertyExtractor.plus(other: PropertyExtractor): CompositeProperty
 data class CollectedPropertyInformation(
     val name: String,
     val originalReturnType: KType,
-    val returnType: DataTypeRefImpl,
+    val returnType: DataTypeRefInternal,
     val propertyMode: PropertyMode,
     val hasDefaultValue: Boolean,
     val isHiddenInDeclarativeDsl: Boolean,

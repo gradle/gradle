@@ -61,38 +61,38 @@ data class LocalValue(val name: String, val rhs: Expr, override val sourceData: 
 
 sealed interface Literal<T : Any> : Expr {
     val value: T
-    val type: DataTypeImpl.ConstantType<T>
+    val type: DataTypeInternal.ConstantType<T>
 
     data class StringLiteral(
         override val value: String,
         override val sourceData: SourceData
     ) : Literal<String> {
-        override val type: DataTypeImpl.StringType
-            get() = DataTypeImpl.StringType
+        override val type: DataTypeInternal.StringType
+            get() = DataTypeInternal.StringType
     }
 
     data class IntLiteral(
         override val value: Int,
         override val sourceData: SourceData
     ) : Literal<Int> {
-        override val type: DataTypeImpl.IntType
-            get() = DataTypeImpl.IntType
+        override val type: DataTypeInternal.IntType
+            get() = DataTypeInternal.IntType
     }
 
     data class LongLiteral(
         override val value: Long,
         override val sourceData: SourceData
     ) : Literal<Long> {
-        override val type: DataTypeImpl.LongType
-            get() = DataTypeImpl.LongType
+        override val type: DataTypeInternal.LongType
+            get() = DataTypeInternal.LongType
     }
 
     data class BooleanLiteral(
         override val value: Boolean,
         override val sourceData: SourceData
     ) : Literal<Boolean> {
-        override val type: DataTypeImpl.BooleanType
-            get() = DataTypeImpl.BooleanType
+        override val type: DataTypeInternal.BooleanType
+            get() = DataTypeInternal.BooleanType
     }
 }
 

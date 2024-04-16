@@ -26,7 +26,7 @@ import org.gradle.declarative.dsl.schema.DataTopLevelFunction
 import org.gradle.declarative.dsl.schema.FunctionSemantics.ConfigureBlockRequirement.NOT_ALLOWED
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.analysis.DataMemberFunction
-import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsImpl
+import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsInternal
 import org.gradle.internal.declarativedsl.analysis.ParameterValueBinding
 import org.gradle.internal.declarativedsl.mappingToJvm.DeclarativeRuntimeFunction
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeFunctionResolver
@@ -114,7 +114,7 @@ class DependencyCollectorFunctionExtractorAndRuntimeResolver(
         name,
         listOf(dependencyParam),
         false,
-        FunctionSemanticsImpl.AddAndConfigure(ProjectDependency::class.toDataTypeRef(), NOT_ALLOWED)
+        FunctionSemanticsInternal.AddAndConfigure(ProjectDependency::class.toDataTypeRef(), NOT_ALLOWED)
     )
 
     private

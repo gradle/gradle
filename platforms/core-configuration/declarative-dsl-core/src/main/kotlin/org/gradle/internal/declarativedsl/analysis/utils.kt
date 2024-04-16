@@ -1,6 +1,6 @@
 package org.gradle.internal.declarativedsl.analysis
 
-import org.gradle.internal.declarativedsl.language.DataTypeImpl
+import org.gradle.internal.declarativedsl.language.DataTypeInternal
 import org.gradle.internal.declarativedsl.language.LanguageTreeElement
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
@@ -23,19 +23,19 @@ inline fun AnalysisContext.withScope(scope: AnalysisScope, action: () -> Unit) {
 
 
 internal
-fun checkIsAssignable(valueType: DataTypeImpl, isAssignableTo: DataTypeImpl): Boolean {
+fun checkIsAssignable(valueType: DataTypeInternal, isAssignableTo: DataTypeInternal): Boolean {
     return when (isAssignableTo) {
-        is DataTypeImpl.ConstantType<*> -> valueType == isAssignableTo
-        is DataClassImpl -> valueType is DataClassImpl && (isAssignableTo == valueType || isAssignableTo.name in valueType.supertypes)
-        DataTypeImpl.NullType -> false // TODO: proper null type support
-        DataTypeImpl.UnitType -> valueType == DataTypeImpl.UnitType
+        is DataTypeInternal.ConstantType<*> -> valueType == isAssignableTo
+        is DefaultDataClass -> valueType is DefaultDataClass && (isAssignableTo == valueType || isAssignableTo.name in valueType.supertypes)
+        DataTypeInternal.NullType -> false // TODO: proper null type support
+        DataTypeInternal.UnitType -> valueType == DataTypeInternal.UnitType
         else -> error("Unhandled data type: ${isAssignableTo.javaClass.simpleName}")
     }
 }
 
 
 internal
-fun TypeRefContext.getDataType(objectOrigin: ObjectOrigin): DataTypeImpl = when (objectOrigin) {
+fun TypeRefContext.getDataType(objectOrigin: ObjectOrigin): DataTypeInternal = when (objectOrigin) {
     is ObjectOrigin.DelegatingObjectOrigin -> getDataType(objectOrigin.delegate)
     is ObjectOrigin.ConstantOrigin -> objectOrigin.literal.type
     is ObjectOrigin.External -> resolveRef(objectOrigin.key.type)
@@ -44,7 +44,7 @@ fun TypeRefContext.getDataType(objectOrigin: ObjectOrigin): DataTypeImpl = when 
     is ObjectOrigin.PropertyReference -> resolveRef(objectOrigin.property.type)
     is ObjectOrigin.PropertyDefaultValue -> resolveRef(objectOrigin.property.type)
     is ObjectOrigin.TopLevelReceiver -> objectOrigin.type
-    is ObjectOrigin.NullObjectOrigin -> DataTypeImpl.NullType
+    is ObjectOrigin.NullObjectOrigin -> DataTypeInternal.NullType
     is ObjectOrigin.CustomConfigureAccessor -> resolveRef(objectOrigin.accessedType)
     is ObjectOrigin.ConfiguringLambdaReceiver -> resolveRef(objectOrigin.lambdaReceiverType)
 }

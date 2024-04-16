@@ -22,9 +22,9 @@ import org.gradle.declarative.dsl.schema.DataConstructor
 import org.gradle.internal.declarativedsl.analysis.DataMemberFunction
 import org.gradle.declarative.dsl.schema.DataTopLevelFunction
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
-import org.gradle.internal.declarativedsl.analysis.ConfigureAccessorImpl
-import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsImpl
-import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsImpl.AccessAndConfigure.ReturnType.UNIT
+import org.gradle.internal.declarativedsl.analysis.ConfigureAccessorInternal
+import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsInternal
+import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsInternal.AccessAndConfigure.ReturnType.UNIT
 import org.gradle.internal.declarativedsl.demo.resolve
 import org.gradle.internal.declarativedsl.schemaBuilder.DataSchemaBuilder
 import org.gradle.internal.declarativedsl.schemaBuilder.DefaultFunctionExtractor
@@ -71,7 +71,7 @@ object AccessorTest {
 
     // don't make this private, will produce failures on Java 8 (due to https://youtrack.jetbrains.com/issue/KT-37660)
     val runtimeCustomAccessors = object : RuntimeCustomAccessors {
-        override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessorImpl.Custom): Any? =
+        override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessorInternal.Custom): Any? =
             if (receiverObject is MyReceiver && accessor.customAccessorIdentifier == "test")
                 receiverObject.myHiddenInstance
             else null
@@ -87,7 +87,7 @@ object AccessorTest {
                         "configureCustomInstance",
                         emptyList(),
                         false,
-                        FunctionSemanticsImpl.AccessAndConfigure(ConfigureAccessorImpl.Custom(Configured::class.toDataTypeRef(), "test"), UNIT)
+                        FunctionSemanticsInternal.AccessAndConfigure(ConfigureAccessorInternal.Custom(Configured::class.toDataTypeRef(), "test"), UNIT)
                     )
                 )
             } else emptyList()

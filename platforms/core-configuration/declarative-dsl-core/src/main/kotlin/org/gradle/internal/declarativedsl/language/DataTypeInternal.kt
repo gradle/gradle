@@ -21,9 +21,9 @@ import kotlinx.serialization.Serializable
 import org.gradle.declarative.dsl.schema.DataType
 
 
-interface DataTypeImpl : DataType {
+interface DataTypeInternal : DataType {
 
-    sealed interface ConstantType<JvmType> : DataTypeImpl
+    sealed interface ConstantType<JvmType> : DataTypeInternal
 
     @Serializable
     @SerialName("int")
@@ -73,7 +73,7 @@ interface DataTypeImpl : DataType {
 
     @Serializable
     @SerialName("null")
-    data object NullType : DataTypeImpl { // TODO: implement nulls?
+    data object NullType : DataTypeInternal { // TODO: implement nulls?
 
         override fun isNull(): Boolean = true
     }
@@ -81,7 +81,7 @@ interface DataTypeImpl : DataType {
 
     @Serializable
     @SerialName("unit")
-    data object UnitType : DataTypeImpl {
+    data object UnitType : DataTypeInternal {
 
         override fun isUnit(): Boolean = true
     }

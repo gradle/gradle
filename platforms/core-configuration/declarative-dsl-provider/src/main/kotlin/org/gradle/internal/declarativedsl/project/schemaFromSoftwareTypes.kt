@@ -19,9 +19,9 @@ package org.gradle.internal.declarativedsl.project
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.declarative.dsl.schema.DataConstructor
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
-import org.gradle.internal.declarativedsl.analysis.ConfigureAccessorImpl
+import org.gradle.internal.declarativedsl.analysis.ConfigureAccessorInternal
 import org.gradle.internal.declarativedsl.analysis.DataMemberFunction
-import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsImpl
+import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsInternal
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaComponent
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeCustomAccessors
 import org.gradle.internal.declarativedsl.schemaBuilder.DataSchemaBuilder
@@ -76,9 +76,9 @@ data class SoftwareTypeInfo(
         delegate.softwareType,
         emptyList(),
         isDirectAccessOnly = true,
-        semantics = FunctionSemanticsImpl.AccessAndConfigure(
-            accessor = ConfigureAccessorImpl.Custom(delegate.modelPublicType.kotlin.toDataTypeRef(), customAccessorId),
-            FunctionSemanticsImpl.AccessAndConfigure.ReturnType.UNIT
+        semantics = FunctionSemanticsInternal.AccessAndConfigure(
+            accessor = ConfigureAccessorInternal.Custom(delegate.modelPublicType.kotlin.toDataTypeRef(), customAccessorId),
+            FunctionSemanticsInternal.AccessAndConfigure.ReturnType.UNIT
         )
     )
 }
@@ -100,6 +100,6 @@ class RuntimeModelTypeAccessors(info: List<SoftwareTypeInfo>) : RuntimeCustomAcc
 
     val modelTypeById = info.associate { it.customAccessorId to it.extensionProvider }
 
-    override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessorImpl.Custom): Any? =
+    override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessorInternal.Custom): Any? =
         modelTypeById[accessor.customAccessorIdentifier]?.invoke(receiverObject)
 }
