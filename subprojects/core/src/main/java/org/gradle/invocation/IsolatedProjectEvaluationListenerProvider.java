@@ -24,7 +24,7 @@ import org.gradle.api.invocation.Gradle;
 import javax.annotation.Nullable;
 
 /**
- * Provides support for isolated Project callbacks to Gradle.
+ * Collects and isolates the actions provided via the {@link org.gradle.api.invocation.GradleLifecycle GradleLifecycle} API.
  */
 public interface IsolatedProjectEvaluationListenerProvider {
 
@@ -35,7 +35,7 @@ public interface IsolatedProjectEvaluationListenerProvider {
 
     /**
      * Returns an isolated listener for the registered actions, if any. The listener makes it impossible for
-     * the actions to carry any shared mutable state across projects.
+     * the actions to carry any shared mutable state across projects and can be safely executed in parallel.
      */
     @Nullable
     ProjectEvaluationListener isolateFor(Gradle owner);
