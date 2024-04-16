@@ -17,7 +17,7 @@
 package org.gradle.smoketests
 
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
-import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
+import org.gradle.plugin.management.internal.autoapply.AutoAppliedDevelocityPlugin
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
@@ -163,7 +163,7 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
 
     def "coverage at least up to auto-applied version"() {
         expect:
-        VersionNumber.parse(AutoAppliedGradleEnterprisePlugin.VERSION) <= VersionNumber.parse(SUPPORTED.last())
+        VersionNumber.parse(AutoAppliedDevelocityPlugin.VERSION) <= VersionNumber.parse(SUPPORTED.last())
     }
 
     @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "Usage with Configuration Cache is tested separately, because not all versions are supported")

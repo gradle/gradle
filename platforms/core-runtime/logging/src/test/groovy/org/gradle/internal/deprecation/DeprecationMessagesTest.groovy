@@ -71,6 +71,7 @@ class DeprecationMessagesTest extends Specification {
 
 
     def summary = "Summary is deprecated."
+
     def "logs deprecation message with default problem id"() {
         given:
         def builder = new DeprecationMessageBuilder()
@@ -407,6 +408,16 @@ class DeprecationMessagesTest extends Specification {
             "This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. " +
             "Please use the archiveFileName property instead. " +
             String.format(RECOMMENDATION, "information", dslReference)
+    }
+
+    def "createDefaultDeprecationId should return cleaned id"() {
+        expect:
+        createDefaultDeprecationId(input) == expected
+
+        where:
+        input                                                                           | expected
+        "summary"                                                                       | "summary"
+        "The detachedConfiguration1 configuration has been deprecated for consumption." | "the-detachedconfiguration-configuration-has-been-deprecated-for-consumption"
     }
 
     private void expectMessage(String expectedMessage) {

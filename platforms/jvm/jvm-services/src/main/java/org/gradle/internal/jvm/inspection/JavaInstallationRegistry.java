@@ -18,6 +18,7 @@ package org.gradle.internal.jvm.inspection;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.GradleException;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.logging.progress.ProgressLogger;
@@ -29,12 +30,19 @@ import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.jvm.toolchain.internal.AutoInstalledInstallationSupplier;
+import org.gradle.jvm.toolchain.internal.CurrentInstallationSupplier;
+import org.gradle.jvm.toolchain.internal.EnvironmentVariableListInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.InstallationLocation;
 import org.gradle.jvm.toolchain.internal.InstallationSupplier;
+import org.gradle.jvm.toolchain.internal.JdkCacheDirectory;
+import org.gradle.jvm.toolchain.internal.LocationListInstallationSupplier;
+import org.gradle.jvm.toolchain.internal.ToolchainConfiguration;
 
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -44,31 +52,49 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-@ServiceScope(Scope.Build.class)
+@ServiceScope({ Scope.Build.class, Scope.Global.class })
 public class JavaInstallationRegistry {
     private final BuildOperationRunner buildOperationRunner;
     private final Installations installations;
     private final JvmMetadataDetector metadataDetector;
     private final Logger logger;
     private final OperatingSystem os;
-
     private final ProgressLoggerFactory progressLoggerFactory;
     private final JvmInstallationProblemReporter problemReporter;
 
     @Inject
     public JavaInstallationRegistry(
+        ToolchainConfiguration toolchainConfiguration,
         List<InstallationSupplier> suppliers,
         JvmMetadataDetector metadataDetector,
         BuildOperationRunner buildOperationRunner,
         OperatingSystem os,
         ProgressLoggerFactory progressLoggerFactory,
-        JvmInstallationProblemReporter problemReporter
+        FileResolver fileResolver,
+        JdkCacheDirectory jdkCacheDirectory, JvmInstallationProblemReporter problemReporter
     ) {
-        this(suppliers, metadataDetector, Logging.getLogger(JavaInstallationRegistry.class), buildOperationRunner, os, progressLoggerFactory, problemReporter);
+        this(toolchainConfiguration, suppliers, metadataDetector, Logging.getLogger(JavaInstallationRegistry.class), buildOperationRunner, os, progressLoggerFactory, fileResolver, jdkCacheDirectory, problemReporter);
     }
 
     private JavaInstallationRegistry(
+        ToolchainConfiguration toolchainConfiguration,
         List<InstallationSupplier> suppliers,
+        JvmMetadataDetector metadataDetector,
+        Logger logger,
+        BuildOperationRunner buildOperationRunner,
+        OperatingSystem os,
+        ProgressLoggerFactory progressLoggerFactory,
+        FileResolver fileResolver,
+        JdkCacheDirectory jdkCacheDirectory, JvmInstallationProblemReporter problemReporter
+    ) {
+        this(toolchainConfiguration, builtInSuppliers(toolchainConfiguration, fileResolver, jdkCacheDirectory), suppliers, metadataDetector, logger, buildOperationRunner, os, progressLoggerFactory, problemReporter);
+    }
+
+    @VisibleForTesting
+    protected JavaInstallationRegistry(
+        ToolchainConfiguration toolchainConfiguration,
+        List<InstallationSupplier> suppliers,
+        List<InstallationSupplier> optionalSuppliers,
         JvmMetadataDetector metadataDetector,
         Logger logger,
         BuildOperationRunner buildOperationRunner,
@@ -79,28 +105,33 @@ public class JavaInstallationRegistry {
         this.logger = logger;
         this.buildOperationRunner = buildOperationRunner;
         this.metadataDetector = metadataDetector;
-        this.installations = new Installations(() -> maybeCollectInBuildOperation(suppliers));
+        List<InstallationSupplier> allSuppliers = new ArrayList<>(suppliers);
+        if (toolchainConfiguration.isAutoDetectEnabled()) {
+            allSuppliers.addAll(optionalSuppliers);
+        }
+        this.installations = new Installations(() -> maybeCollectInBuildOperation(allSuppliers));
         this.os = os;
         this.progressLoggerFactory = progressLoggerFactory;
         this.problemReporter = problemReporter;
     }
 
-    @VisibleForTesting
-    public static JavaInstallationRegistry withLogger(
-        List<InstallationSupplier> suppliers,
-        JvmMetadataDetector metadataDetector,
-        Logger logger,
-        BuildOperationRunner buildOperationRunner,
-        ProgressLoggerFactory progressLoggerFactory,
-        JvmInstallationProblemReporter problemDeduplicator
-    ) {
-        return new JavaInstallationRegistry(suppliers, metadataDetector, logger, buildOperationRunner, OperatingSystem.current(), progressLoggerFactory, problemDeduplicator);
+    private static List<InstallationSupplier> builtInSuppliers(ToolchainConfiguration toolchainConfiguration, FileResolver fileResolver, JdkCacheDirectory jdkCacheDirectory) {
+        List<InstallationSupplier> allSuppliers = new ArrayList<>();
+        allSuppliers.add(new EnvironmentVariableListInstallationSupplier(toolchainConfiguration, fileResolver, System.getenv()));
+        allSuppliers.add(new LocationListInstallationSupplier(toolchainConfiguration, fileResolver));
+        allSuppliers.add(new CurrentInstallationSupplier());
+        allSuppliers.add(new AutoInstalledInstallationSupplier(toolchainConfiguration, jdkCacheDirectory));
+        return allSuppliers;
     }
 
     private Set<InstallationLocation> maybeCollectInBuildOperation(List<InstallationSupplier> suppliers) {
+        if (buildOperationRunner == null) {
+            return collectInstallations(suppliers);
+        }
         return buildOperationRunner.call(new ToolchainDetectionBuildOperation(() -> collectInstallations(suppliers)));
     }
 
+    @VisibleForTesting
     protected Set<InstallationLocation> listInstallations() {
         return installations.get();
     }

@@ -17,15 +17,17 @@
 package org.gradle.internal.deprecation;
 
 import com.google.common.base.Joiner;
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.problems.internal.DocLink;
 import org.gradle.api.problems.internal.Problem;
 import org.gradle.util.GradleVersion;
+import org.gradle.util.internal.TextUtil;
 
 import javax.annotation.CheckReturnValue;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import static org.gradle.util.internal.TextUtil.screamingSnakeToKebabCase;
+import static org.apache.commons.lang.StringUtils.removeEnd;
 
 @CheckReturnValue
 public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
@@ -218,7 +220,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
             if (problemIdDisplayName == null) {
                 setProblemIdDisplayName(summary);
             }
-            if(problemId == null) {
+            if (problemId == null) {
                 setProblemId(DeprecationMessageBuilder.createDefaultDeprecationId(createDefaultDeprecationIdDisplayName()));
             }
 
@@ -390,13 +392,21 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         }
     }
 
+    static final Pattern ID_CLEAN_PATTERN = Pattern.compile("[A-Za-z]+");
+
     public static String createDefaultDeprecationId(String... ids) {
-        // the replaceAll calls are to ensure that the id is a valid identifier.
-        // it removes all whitespace and non-alphanumeric characters, and replaces multiple dashes with a single dash.
-        return screamingSnakeToKebabCase(StringUtils.join(ids, "-"))
-            .replaceAll("[^a-z-]", "-")
-            .replaceAll("-+", "-")
-            .replaceAll("^-+|-+$", "");
+        StringBuilder sb = new StringBuilder();
+        for (String id : ids) {
+            if(id == null){
+                continue;
+            }
+            Matcher matcher = ID_CLEAN_PATTERN.matcher(id);
+            while (matcher.find()) {
+                sb.append(TextUtil.toLowerCaseLocaleSafe(matcher.group()));
+                sb.append("-");
+            }
+        }
+        return removeEnd(sb.toString(), "-");
     }
 
     public static class DeprecateMethod extends WithReplacement<String, DeprecateMethod> {

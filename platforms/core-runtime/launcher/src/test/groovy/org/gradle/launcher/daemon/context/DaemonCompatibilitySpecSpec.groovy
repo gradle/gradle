@@ -15,13 +15,19 @@
  */
 package org.gradle.launcher.daemon.context
 
-import org.gradle.internal.nativeintegration.ProcessEnvironment
+import org.gradle.api.JavaVersion
+import org.gradle.internal.jvm.JavaInfo
+import org.gradle.internal.jvm.Jvm
+import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.jvm.toolchain.JvmImplementation
+import org.gradle.jvm.toolchain.JvmVendorSpec
 import org.gradle.launcher.daemon.configuration.DaemonParameters
+import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
-import org.gradle.util.internal.ConfigureUtil
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -30,75 +36,86 @@ class DaemonCompatibilitySpecSpec extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider(getClass())
 
-    def clientConfigure = {}
-    def serverConfigure = {}
+    private DaemonRequestContext request
+    private DaemonContext candidate = Mock(DaemonContext)
 
-    def client(@DelegatesTo(DaemonContextBuilder) Closure c) {
-        clientConfigure = c
+    private TestFile javaHome = tmp.createDir("jdk")
+
+    def setup() {
+        javaHome.file("bin", OperatingSystem.current().getExecutableName("java")).touch()
     }
 
-    def server(@DelegatesTo(DaemonContextBuilder) Closure c) {
-        serverConfigure = c
+    DaemonRequestContext clientWants(Map args) {
+        clientWants(args.requestedJvm,
+            args.daemonOpts ?: [],
+            args.applyInstrumentationAgent ?: false,
+            args.nativeServicesMode ?: NativeServices.NativeServicesMode.NOT_SET,
+            args.priority?:DaemonParameters.Priority.NORMAL)
     }
 
-    def createContext(Closure config) {
-        def builder = new DaemonContextBuilder({ 12L } as ProcessEnvironment)
-        builder.daemonRegistryDir = new File("dir")
-        ConfigureUtil.configure(config, builder).create()
+    DaemonRequestContext clientWants(JavaInfo requestedJvm,
+                                     Collection<String> daemonOpts = Collections.emptyList(),
+                                     boolean applyInstrumentationAgent = false,
+                                     NativeServices.NativeServicesMode nativeServicesMode = NativeServices.NativeServicesMode.NOT_SET,
+                                     DaemonParameters.Priority priority = DaemonParameters.Priority.NORMAL) {
+        request = new DaemonRequestContext(requestedJvm, null, daemonOpts, applyInstrumentationAgent, nativeServicesMode, priority)
     }
 
-    def getClientContext() {
-        createContext(clientConfigure)
-    }
-
-    def getServerContext() {
-        createContext(serverConfigure)
+    DaemonRequestContext clientWants(DaemonJvmCriteria jvmCriteria,
+                                     Collection<String> daemonOpts = Collections.emptyList(),
+                                     boolean applyInstrumentationAgent = false,
+                                     NativeServices.NativeServicesMode nativeServicesMode = NativeServices.NativeServicesMode.NOT_SET,
+                                     DaemonParameters.Priority priority = DaemonParameters.Priority.NORMAL) {
+        request = new DaemonRequestContext(null, jvmCriteria, daemonOpts, applyInstrumentationAgent, nativeServicesMode, priority)
     }
 
     private boolean isCompatible() {
-        new DaemonCompatibilitySpec(clientContext).isSatisfiedBy(serverContext)
+        new DaemonCompatibilitySpec(request).isSatisfiedBy(candidate)
     }
 
     private String getUnsatisfiedReason() {
-        new DaemonCompatibilitySpec(clientContext).whyUnsatisfied(serverContext)
-    }
-
-    def "default contexts are compatible"() {
-        expect:
-        compatible
-        !unsatisfiedReason
+        new DaemonCompatibilitySpec(request).whyUnsatisfied(candidate)
     }
 
     def "contexts with different java homes are incompatible"() {
-        client {
-            javaHome = tmp.createDir("client")
-            javaHome.file("bin", OperatingSystem.current().getExecutableName("java")).touch()
-        }
-        server {
-            javaHome = tmp.createDir("server")
-            javaHome.file("bin", OperatingSystem.current().getExecutableName("java")).touch()
-        }
+        clientWants(Jvm.forHome(javaHome))
+
+        def daemonJdkHome = tmp.createDir("daemon-jdk")
+        daemonJdkHome.file("bin", OperatingSystem.current().getExecutableName("java")).touch()
+
+        candidate.javaHome >> daemonJdkHome
 
         expect:
         !compatible
-        unsatisfiedReason.contains "Java home is different"
+        unsatisfiedReason.contains "JVM is incompatible"
+    }
+
+    def "contexts with different jvm criteria are incompatible"() {
+        clientWants(new DaemonJvmCriteria(JavaVersion.VERSION_11, JvmVendorSpec.ADOPTIUM, JvmImplementation.VENDOR_SPECIFIC))
+
+        candidate.javaVersion >> JavaVersion.VERSION_15
+
+        expect:
+        !compatible
+        unsatisfiedReason.contains "JVM is incompatible"
     }
 
     @Requires(UnitTestPreconditions.Symlinks)
     def "contexts with symlinked javaHome are compatible"() {
-        // Make something that looks like a Java installation
-        def jdk = tmp.testDirectory.file("jdk").createDir()
-        jdk.file("bin/java").touch()
-
         def linkToJdk = tmp.testDirectory.file("link")
-        linkToJdk.createLink(jdk)
+        linkToJdk.createLink(javaHome)
 
-        assert jdk != linkToJdk
+        assert javaHome != linkToJdk
         assert linkToJdk.exists()
-        assert jdk.canonicalFile == linkToJdk.canonicalFile
+        assert javaHome.canonicalFile == linkToJdk.canonicalFile
 
-        client { javaHome = jdk }
-        server { javaHome = linkToJdk }
+        clientWants(Jvm.forHome(javaHome))
+
+        candidate.javaHome >> linkToJdk
+        candidate.daemonOpts >> []
+        candidate.priority >> DaemonParameters.Priority.NORMAL
+        candidate.shouldApplyInstrumentationAgent() >> false
+        candidate.nativeServicesMode >> NativeServices.NativeServicesMode.NOT_SET
 
         expect:
         compatible
@@ -108,24 +125,35 @@ class DaemonCompatibilitySpecSpec extends Specification {
     }
 
     def "contexts with same daemon opts are compatible"() {
-        client { daemonOpts = ["-Xmx256m", "-Dfoo=foo"] }
-        server { daemonOpts = ["-Xmx256m", "-Dfoo=foo"] }
+        clientWants(Jvm.forHome(javaHome), ["-Xmx256m", "-Dfoo=foo"])
+
+        candidate.javaHome >> javaHome
+        candidate.daemonOpts >> ["-Xmx256m", "-Dfoo=foo"]
+        candidate.priority >> DaemonParameters.Priority.NORMAL
+        candidate.shouldApplyInstrumentationAgent() >> false
+        candidate.nativeServicesMode >> NativeServices.NativeServicesMode.NOT_SET
 
         expect:
         compatible
     }
 
     def "contexts with same daemon opts but different order are compatible"() {
-        client { daemonOpts = ["-Xmx256m", "-Dfoo=foo"] }
-        server { daemonOpts = ["-Dfoo=foo", "-Xmx256m"] }
+        clientWants(Jvm.forHome(javaHome), ["-Xmx256m", "-Dfoo=foo"])
+
+        candidate.javaHome >> javaHome
+        candidate.daemonOpts >> ["-Dfoo=foo", "-Xmx256m"]
+        candidate.priority >> DaemonParameters.Priority.NORMAL
+        candidate.shouldApplyInstrumentationAgent() >> false
+        candidate.nativeServicesMode >> NativeServices.NativeServicesMode.NOT_SET
 
         expect:
         compatible
     }
 
     def "contexts with different quantity of opts are not compatible"() {
-        client { daemonOpts = ["-Xmx256m", "-Dfoo=foo"] }
-        server { daemonOpts = ["-Xmx256m"] }
+        clientWants(Jvm.forHome(javaHome), ["-Xmx256m", "-Dfoo=foo"])
+        candidate.javaHome >> javaHome
+        candidate.daemonOpts >> ["-Xmx256m"]
 
         expect:
         !compatible
@@ -133,16 +161,20 @@ class DaemonCompatibilitySpecSpec extends Specification {
     }
 
     def "contexts with different daemon opts are incompatible"() {
-        client { daemonOpts = ["-Xmx256m", "-Dfoo=foo"] }
-        server { daemonOpts = ["-Xmx256m", "-Dfoo=bar"] }
+        clientWants(Jvm.forHome(javaHome), ["-Xmx256m", "-Dfoo=foo"])
+        candidate.javaHome >> javaHome
+        candidate.daemonOpts >> ["-Xmx256m", "-Dfoo=bar"]
 
         expect:
         !compatible
+        unsatisfiedReason.contains "At least one daemon option is different"
     }
 
     def "contexts with different priority"() {
-        client { priority = DaemonParameters.Priority.LOW }
-        server { priority = DaemonParameters.Priority.NORMAL }
+        clientWants(requestedJvm: Jvm.forHome(javaHome), priority: DaemonParameters.Priority.LOW)
+        candidate.javaHome >> javaHome
+        candidate.daemonOpts >> []
+        candidate.priority >> DaemonParameters.Priority.NORMAL
 
         expect:
         !compatible
@@ -150,8 +182,11 @@ class DaemonCompatibilitySpecSpec extends Specification {
     }
 
     def "context with different agent status"() {
-        client { applyInstrumentationAgent = clientStatus }
-        server { applyInstrumentationAgent = !clientStatus }
+        clientWants(requestedJvm: Jvm.forHome(javaHome), applyInstrumentationAgent: clientStatus)
+        candidate.javaHome >> javaHome
+        candidate.daemonOpts >> []
+        candidate.priority >> DaemonParameters.Priority.NORMAL
+        candidate.shouldApplyInstrumentationAgent() >> !clientStatus
 
         expect:
         !compatible
@@ -162,13 +197,17 @@ class DaemonCompatibilitySpecSpec extends Specification {
     }
 
     def "context with same agent status"() {
-        client { applyInstrumentationAgent = status }
-        server { applyInstrumentationAgent = status }
+        clientWants(requestedJvm: Jvm.forHome(javaHome), applyInstrumentationAgent: clientStatus)
+        candidate.javaHome >> javaHome
+        candidate.daemonOpts >> []
+        candidate.priority >> DaemonParameters.Priority.NORMAL
+        candidate.shouldApplyInstrumentationAgent() >> clientStatus
+        candidate.nativeServicesMode >> NativeServices.NativeServicesMode.NOT_SET
 
         expect:
         compatible
 
         where:
-        status << [true, false]
+        clientStatus << [true, false]
     }
 }

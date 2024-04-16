@@ -332,7 +332,7 @@ public enum JavaVersion {
 
     private static void assertTrue(String value, boolean condition) {
         if (!condition) {
-            throw new IllegalArgumentException("Could not determine java version from '" + value + "'.");
+            throw new IllegalArgumentException("Could not determine Java version from '" + value + "'.");
         }
     }
 
