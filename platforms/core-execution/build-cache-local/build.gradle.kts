@@ -1,5 +1,6 @@
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.publish-public-libraries")
     id("gradlebuild.jmh")
 }
 
