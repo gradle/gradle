@@ -123,7 +123,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         ScriptDslFixture.of(BuildInitDsl.KOTLIN, targetDir, null).assertGradleFilesGenerated()
     }
 
-    def "prompts to overwrite files if any exist and defaults to yes"() {
+    def "prompts to overwrite files if any exist and defaults to no"() {
         given: "a file exists in the build directory"
         targetDir.file(defaultFileName).touch()
 
@@ -139,12 +139,39 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         ConcurrentTestUtil.poll(60) {
             assertPromptedToOverwriteExistingFiles(handle)
         }
+        handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes) // Select 'no'
+
+        def result = handle.waitForFailure()
+
+        then:
+        result.assertHasDescription("Execution failed for task ':init'")
+        assertPromptedToOverwriteExistingFiles(handle)
+        assertSuggestedResolutionsToExistingFilesProblem(handle)
+    }
+
+    def "prompts to overwrite files if any exist and honors yes"() {
+        given: "a file exists in the build directory"
+        targetDir.file(defaultFileName).touch()
+
+        when:
+        def handle = startInteractiveExecutorWithTasks(
+            "init",
+            "--incubating",
+            "--dsl", "groovy",
+            "--type", "basic",
+            "--project-name", defaultProjectName
+        )
+
+        ConcurrentTestUtil.poll(60) {
+            assertPromptedToOverwriteExistingFiles(handle)
+        }
+        handle.stdinPipe.write("yes".bytes) // Select 'yes'
         handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
 
         closeInteractiveExecutor(handle)
 
         then:
-        ScriptDslFixture.of(BuildInitDsl.GROOVY, targetDir, null).assertGradleFilesGenerated()
+        rootProjectDslFixtureFor(BuildInitDsl.GROOVY).assertGradleFilesGenerated()
     }
 
     def "prompts to overwrite files if any exist and does not creates gradle files for no option"() {
@@ -352,7 +379,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         ConcurrentTestUtil.poll(60) {
             assertPromptedToOverwriteExistingFiles(handle)
         }
-        handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
+        handle.stdinPipe.write(("yes" + TextUtil.platformLineSeparator).bytes)
 
         // Select 'yes'
         ConcurrentTestUtil.poll(60) {
@@ -403,7 +430,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         ConcurrentTestUtil.poll(60) {
             assertPromptedToOverwriteExistingFiles(handle)
         }
-        handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
+        handle.stdinPipe.write(("yes" + TextUtil.platformLineSeparator).bytes)
 
         // Select 'yes'
         ConcurrentTestUtil.poll(60) {
@@ -511,7 +538,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
     private void assertPromptedToOverwriteExistingFiles(GradleHandle handle) {
-        assert handle.standardOutput.contains("Found existing files in the project directory: '${testDirectory.file(defaultProjectName)}'. Allow these files to be overwritten? (default: yes)")
+        assert handle.standardOutput.contains("Found existing files in the project directory: '${testDirectory.file(defaultProjectName)}'. Allow these files to be overwritten? (default: no)")
     }
 
     private void assertBuildAborted(GradleHandle handle) {

@@ -107,7 +107,7 @@ public abstract class InitBuild extends DefaultTask {
     /**
     * Should we allow existing files in the build directory to be overwritten?
     *
-    * This property can be set via command-line option '--overwrite'. Defaults to true.
+    * This property can be set via command-line option '--overwrite'. Defaults to false.
     *
     * @since ?.?
     */
@@ -367,7 +367,7 @@ public abstract class InitBuild extends DefaultTask {
                 fileOverwriteAllowed = getAllowFileOverwrite().get();
             } else {
                 fileOverwriteAllowed = userQuestions.askBooleanQuestion("Found existing files in the project directory: '" + projectDirFile +
-                "'. Allow these files to be overwritten?", true);
+                "'. Allow these files to be overwritten?", false);
             }
 
             if (!fileOverwriteAllowed) {

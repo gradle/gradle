@@ -63,7 +63,7 @@ class InitBuildSpec extends Specification {
         init.insecureProtocol.convention(InsecureProtocolOption.WARN)
         init.useDefaults.convention(false)
         init.comments.convention(true)
-        init.allowFileOverwrite.convention(true)
+        init.allowFileOverwrite.convention(false)
     }
 
     def "creates project with all defaults"() {
