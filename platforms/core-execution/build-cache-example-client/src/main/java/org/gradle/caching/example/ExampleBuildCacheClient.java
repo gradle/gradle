@@ -220,6 +220,7 @@ public class ExampleBuildCacheClient {
         // TODO Provide default implementation
         @Override
         @Deprecated
+        @SuppressWarnings("InlineMeSuggester")
         public String getDisplayName() {
             return getHashCode();
         }
@@ -267,7 +268,7 @@ public class ExampleBuildCacheClient {
         }
     }
 
-    @SuppressWarnings("MethodMayBeStatic")
+    @SuppressWarnings("CloseableProvides")
     static class ApplicationModule extends AbstractModule {
         private final String buildInvocationId;
 

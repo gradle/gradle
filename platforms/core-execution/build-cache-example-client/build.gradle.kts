@@ -21,13 +21,6 @@ plugins {
 
 description = "Example client application using the build-cache library"
 
-errorprone {
-    disabledChecks.addAll(
-        "InlineMeSuggester",
-        "CloseableProvides",
-    )
-}
-
 dependencies {
     implementation(projects.buildCache)
     implementation(projects.buildCacheBase)
