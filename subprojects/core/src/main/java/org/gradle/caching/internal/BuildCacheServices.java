@@ -16,7 +16,6 @@
 
 package org.gradle.caching.internal;
 
-import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
@@ -37,6 +36,9 @@ import org.gradle.caching.internal.services.BuildCacheControllerFactory;
 import org.gradle.caching.internal.services.DefaultBuildCacheControllerFactory;
 import org.gradle.caching.local.DirectoryBuildCache;
 import org.gradle.caching.local.internal.DirectoryBuildCacheServiceFactory;
+import org.gradle.internal.build.BuildState;
+import org.gradle.internal.build.IncludedBuildState;
+import org.gradle.internal.build.StandAloneNestedBuild;
 import org.gradle.internal.file.BufferProvider;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.FileException;
@@ -130,30 +132,31 @@ public final class BuildCacheServices extends AbstractPluginServiceRegistry {
             BuildCacheController createBuildCacheController(
                 ServiceRegistry serviceRegistry,
                 InstantiatorFactory instantiatorFactory,
-                GradleInternal gradle,
+                BuildState build,
                 BuildCacheConfigurationInternal buildCacheConfiguration,
                 RootBuildCacheControllerRef rootControllerRef,
                 BuildCacheControllerFactory buildCacheControllerFactory
             ) {
-                if (isRoot(gradle) || isGradleBuildTaskRoot(rootControllerRef)) {
-                    return buildCacheControllerFactory.createController(gradle.getIdentityPath(), buildCacheConfiguration, instantiatorFactory.inject(serviceRegistry));
+                if (requiresOwnBuildCacheController(build)) {
+                    return buildCacheControllerFactory.createController(build.getIdentityPath(), buildCacheConfiguration, instantiatorFactory.inject(serviceRegistry));
                 } else {
-                    // must be an included build or buildSrc
                     return rootControllerRef.getForNonRootBuild();
                 }
             }
 
-            private boolean isGradleBuildTaskRoot(RootBuildCacheControllerRef rootControllerRef) {
-                // GradleBuild tasks operate with their own build session and tree scope.
-                // Therefore, they have their own RootBuildCacheControllerRef.
-                // This prevents them from reusing the build cache configuration defined by the root.
-                // There is no way to detect that a Gradle instance represents a GradleBuild invocation.
-                // If there were, that would be a better heuristic than this.
-                return !rootControllerRef.isSet();
-            }
-
-            private boolean isRoot(GradleInternal gradle) {
-                return gradle.isRootBuild();
+            private boolean requiresOwnBuildCacheController(BuildState build) {
+                if (build instanceof IncludedBuildState) {
+                    // "early" included builds should their own configuration, and so their own controller.
+                    // Other included build should use the configuration from the root build, and so reuse the "shared" controller
+                    IncludedBuildState includedBuildState = (IncludedBuildState) build;
+                    return includedBuildState.isPluginBuild();
+                } else if (build instanceof StandAloneNestedBuild) {
+                    // BuildSrc should use the shared controller
+                    return false;
+                } else {
+                    // Other builds - root build, or the root build for `GradleBuild` task - should use their own configuration, and so their own controller.
+                    return true;
+                }
             }
 
             BuildCacheControllerFactory createBuildCacheControllerFactory(
