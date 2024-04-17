@@ -53,7 +53,7 @@ class JavaCrossCompilationIntegrationTest extends AbstractIntegrationSpec {
             ${mavenCentralRepository()}
             java {
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of($javaVersion.majorVersion)
+                    languageVersion = JavaLanguageVersion.of(${jvm.javaVersion.majorVersion})
                 }
             }
             tasks.withType(Javadoc) {
@@ -65,7 +65,7 @@ class JavaCrossCompilationIntegrationTest extends AbstractIntegrationSpec {
             /** Some thing. */
             public class Thing { }
         """
-        executer.withArgument("-Porg.gradle.java.installations.paths=" + target.javaHome.absolutePath)
+        executer.withArgument("-Porg.gradle.java.installations.paths=" + jvm.javaHome.absolutePath)
     }
 
     def "can compile source and run JUnit tests using target Java version"() {
