@@ -20,12 +20,15 @@ import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.CacheableEntity;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.controller.service.BuildCacheLoadResult;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
 
+@ServiceScope(Scope.BuildTree.class)
 public class RootBuildCacheControllerRef {
 
     private BuildCacheController buildCacheController;
