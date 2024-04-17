@@ -16,16 +16,16 @@
 
 package org.gradle.configurationcache.isolated
 
-class IsolatedProjectsAbsoluteTaskPathDependencyIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
+class IsolatedProjectsTaskPathDependencyIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
 
-    def "absolute task dependency is not an IP violation"() {
+    def "#type task path dependency is not an IP violation"() {
         given:
         settingsFile << """
             include(":a")
         """
         buildFile << """
             tasks.register("foo") {
-                dependsOn(":a:bar")
+                dependsOn("$path")
             }
         """
         file("a/build.gradle") << """
@@ -39,9 +39,14 @@ class IsolatedProjectsAbsoluteTaskPathDependencyIntegrationTest extends Abstract
         fixture.assertStateStored {
             projectsConfigured(":", ":a")
         }
+
+        where:
+        type       | path
+        "absolute" | ':a:bar'
+        "relative" | 'a:bar'
     }
 
-    def "absolute root project task dependency is not an IP violation"() {
+    def "root project task path dependency is not an IP violation"() {
         given:
         settingsFile << """
             include(":a")
@@ -64,7 +69,7 @@ class IsolatedProjectsAbsoluteTaskPathDependencyIntegrationTest extends Abstract
         }
     }
 
-    def "direct project task dependency still is an IP violation"() {
+    def "direct task dependency still is an IP violation"() {
         given:
         settingsFile << """
             include(":a")
