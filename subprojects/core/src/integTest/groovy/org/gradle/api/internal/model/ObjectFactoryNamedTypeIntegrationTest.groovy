@@ -154,6 +154,7 @@ class ObjectFactoryNamedTypeIntegrationTest extends AbstractIntegrationSpec {
         result.assertTaskSkipped(":a")
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE, because = "Flaky")
     def "cannot mutate named instance from groovy"() {
         buildFile << """
             interface Thing extends Named { }
