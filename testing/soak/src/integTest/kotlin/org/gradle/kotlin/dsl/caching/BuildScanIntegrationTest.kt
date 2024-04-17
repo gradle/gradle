@@ -17,13 +17,10 @@
 package org.gradle.kotlin.dsl.caching
 
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
-import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
-
+import org.gradle.plugin.management.internal.autoapply.AutoAppliedDevelocityPlugin
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
-
 import org.junit.Test
-
 import java.io.File
 
 
@@ -52,7 +49,7 @@ class BuildScanIntegrationTest : AbstractScriptCachingIntegrationTest() {
 
         executer.expectDocumentedDeprecationWarning(
             "The PluginDependencySpec.`gradle-enterprise` property has been deprecated. " +
-                "This is scheduled to be removed in Gradle 9.0. Please use 'id(\"com.gradle.develocity\") version \"${AutoAppliedGradleEnterprisePlugin.VERSION}\"' instead. " +
+                "This is scheduled to be removed in Gradle 9.0. Please use 'id(\"com.gradle.develocity\") version \"${AutoAppliedDevelocityPlugin.VERSION}\"' instead. " +
                 "For more information, please refer to https://docs.gradle.org/current/kotlin-dsl/gradle/org.gradle.kotlin.dsl/gradle-enterprise.html in the Gradle documentation.")
         executer.expectDeprecationWarning("WARNING: The following functionality has been deprecated and will be removed in the next major release of the Develocity Gradle plugin. For assistance with migration, see https://gradle.com/help/gradle-plugin-develocity-migration.")
         executer.expectDeprecationWarning("""- The deprecated "gradleEnterprise.buildScan.termsOfServiceUrl" API has been replaced by "develocity.buildScan.termsOfUseUrl"""")
