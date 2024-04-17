@@ -59,7 +59,7 @@ class NativeComponentModelPluginTest extends AbstractProjectBuilderSpec {
 
     def "can apply plugin by id"() {
         given:
-        def project = TestUtil.createRootProject()
+        def project = TestUtil.createRootProject(null)
         project.apply plugin: 'native-component-model'
 
         expect:
