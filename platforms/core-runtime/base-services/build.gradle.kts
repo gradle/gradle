@@ -52,8 +52,10 @@ errorprone {
 dependencies {
     api(projects.concurrent)
     api(projects.javaLanguageExtensions)
+    api(projects.fileTemp)
     api(project(":hashing"))
     api(project(":build-operations"))
+    api(libs.inject)
     api(libs.jsr305)
     api(libs.guava)
 
@@ -63,7 +65,6 @@ dependencies {
     implementation(libs.asm)
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
-    implementation(libs.inject)
     implementation(libs.slf4jApi)
 
     integTestImplementation(project(":logging"))

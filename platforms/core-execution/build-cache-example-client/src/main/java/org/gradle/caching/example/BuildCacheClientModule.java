@@ -17,10 +17,10 @@
 package org.gradle.caching.example;
 
 import com.google.common.collect.Interner;
+import com.google.common.collect.Interners;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import org.apache.commons.io.FileUtils;
-import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.temp.DefaultTemporaryFileProvider;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.cache.CacheCleanupStrategy;
@@ -438,7 +438,7 @@ class BuildCacheClientModule extends AbstractModule {
 
     @Provides
     Interner<String> createStringInterner() {
-        return new StringInterner();
+        return Interners.newWeakInterner();
     }
 
     @Provides

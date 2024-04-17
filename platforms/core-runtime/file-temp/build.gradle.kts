@@ -24,8 +24,8 @@ gradlebuildJava.usedInWorkers()
 
 dependencies {
     api(projects.javaLanguageExtensions)
-    api(project(":base-services"))
 
-    api(libs.inject)
     api(libs.jsr305)
+
+    implementation(libs.commonsIo)
 }

@@ -16,15 +16,15 @@
 
 package org.gradle.api.internal.file.temp;
 
-import org.gradle.api.UncheckedIOException;
+import org.apache.commons.io.FileUtils;
 import org.gradle.internal.Factory;
-import org.gradle.util.internal.CollectionUtils;
-import org.gradle.util.internal.GFileUtils;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 
+@SuppressWarnings("Since15")
 public class DefaultTemporaryFileProvider implements TemporaryFileProvider {
     private final Factory<File> baseDirFactory;
 
@@ -34,13 +34,17 @@ public class DefaultTemporaryFileProvider implements TemporaryFileProvider {
 
     @Override
     public File newTemporaryFile(String... path) {
-        return new File(baseDirFactory.create(), CollectionUtils.join("/", path)).toPath().normalize().toFile();
+        return new File(baseDirFactory.create(), String.join("/", path)).toPath().normalize().toFile();
     }
 
     @Override
     public File newTemporaryDirectory(String... path) {
         File dir = newTemporaryFile(path);
-        GFileUtils.mkdirs(dir);
+        try {
+            FileUtils.forceMkdir(dir);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
         return dir;
     }
 
@@ -58,8 +62,8 @@ public class DefaultTemporaryFileProvider implements TemporaryFileProvider {
     @Override
     public File createTemporaryFile(String prefix, @Nullable String suffix, String... path) {
         File dir = newTemporaryFile(path);
-        GFileUtils.mkdirs(dir);
         try {
+            FileUtils.forceMkdir(dir);
             return TempFiles.createTempFile(prefix, suffix, dir);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
@@ -69,16 +73,16 @@ public class DefaultTemporaryFileProvider implements TemporaryFileProvider {
     @Override
     public File createTemporaryDirectory(String prefix, @Nullable String suffix, String... path) {
         File dir = newTemporaryFile(path);
-        GFileUtils.mkdirs(dir);
         try {
+            FileUtils.forceMkdir(dir);
             // TODO: This is not a great paradigm for creating a temporary directory.
             // See http://guava-libraries.googlecode.com/svn/tags/release08/javadoc/com/google/common/io/Files.html#createTempDir%28%29 for an alternative.
             File tmpDir = TempFiles.createTempFile(prefix, suffix, dir);
             if (!tmpDir.delete()) {
-                throw new UncheckedIOException("Failed to delete file: " + tmpDir);
+                throw new IOException("Failed to delete file: " + tmpDir);
             }
             if (!tmpDir.mkdir()) {
-                throw new UncheckedIOException("Failed to make directory: " + tmpDir);
+                throw new IOException("Failed to make directory: " + tmpDir);
             }
             return tmpDir;
         } catch (IOException e) {
