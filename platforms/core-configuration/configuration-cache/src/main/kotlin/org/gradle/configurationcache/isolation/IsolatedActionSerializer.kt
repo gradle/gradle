@@ -50,6 +50,7 @@ import java.util.IdentityHashMap
  *
  * @param G type of the root object stored in [graph]
  */
+internal
 class SerializedIsolatedActionGraph<G>(
     /**
      * The serialized graph.
@@ -79,7 +80,7 @@ class IsolatedActionSerializer(
         serializeTo(outputStream, environmentEncoder, action)
         return SerializedIsolatedActionGraph(
             outputStream.toByteArray(),
-            environmentEncoder.toLookup()
+            environmentEncoder.getResultingEnvironment()
         )
     }
 
@@ -150,17 +151,10 @@ class EnvironmentEncoder : ClassEncoder {
     val refs = IdentityHashMap<Class<*>, Int>()
 
     override fun WriteContext.encodeClass(type: Class<*>) {
-        val existing = refs[type]
-        if (existing != null) {
-            writeSmallInt(existing)
-        } else {
-            val id = refs.size
-            refs[type] = id
-            writeSmallInt(id)
-        }
+        writeSmallInt(refs.computeIfAbsent(type) { refs.size })
     }
 
-    fun toLookup(): Map<Int, Any> =
+    fun getResultingEnvironment(): Map<Int, Any> =
         refs.invert()
 }
 
