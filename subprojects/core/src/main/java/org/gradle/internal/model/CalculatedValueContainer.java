@@ -226,7 +226,7 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
                 Try<T> result = Try.ofFailable(() -> {
                     NodeExecutionContext effectiveContext = context;
                     if (effectiveContext == null) {
-                        effectiveContext = new FallbackContext(defaultContext);
+                        effectiveContext = new GlobalContext(defaultContext);
                     }
                     T value = supplier.calculateValue(effectiveContext);
                     if (value == null) {
@@ -257,10 +257,16 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
         }
     }
 
-    private static class FallbackContext implements NodeExecutionContext {
+    /**
+     * Used when calculating the value outside of an execution graph.
+     * <p>
+     * In that case we need to use the global context and not the context that would be created as
+     * part of executing the execution graph.
+     */
+    private static class GlobalContext implements NodeExecutionContext {
         private final NodeExecutionContext delegate;
 
-        public FallbackContext(NodeExecutionContext delegate) {
+        public GlobalContext(NodeExecutionContext delegate) {
             this.delegate = delegate;
         }
 
@@ -270,8 +276,8 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
         }
 
         @Override
-        public boolean isFallbackContext() {
-            return true;
+        public boolean isPartOfExecutionGraph() {
+            return false;
         }
     }
 }
