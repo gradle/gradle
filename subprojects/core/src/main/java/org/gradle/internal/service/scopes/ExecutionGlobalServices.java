@@ -317,6 +317,7 @@ public class ExecutionGlobalServices {
         Collection<Class<? extends Annotation>> getAnnotations();
     }
 
+    @ServiceScope(Scope.Global.class)
     interface AnnotationHandlerRegistar {
         void registerPropertyTypeAnnotations(ImmutableSet.Builder<Class<? extends Annotation>> builder);
     }

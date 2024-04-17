@@ -24,5 +24,5 @@ description = "Monotonic clock implementation"
 gradlebuildJava.usedInWorkers()
 
 dependencies {
-    implementation(projects.javaLanguageExtensions)
+    api(projects.javaLanguageExtensions)
 }

@@ -106,7 +106,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     private static final String ALLOW_INSTRUMENTATION_AGENT_SYSPROP = "org.gradle.integtest.agent.allowed";
 
     protected static final ServiceRegistry GLOBAL_SERVICES = ServiceRegistryBuilder.builder()
-        .scope(Scope.Global.class)
+        .scopeStrictly(Scope.Global.class)
         .displayName("Global services")
         .parent(newCommandLineProcessLogging())
         .parent(NativeServicesTestFixture.getInstance())

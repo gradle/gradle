@@ -20,7 +20,10 @@ import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.internal.tasks.properties.AbstractTypeScheme;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.internal.instantiation.InstantiationScheme;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
+@ServiceScope(Scope.Global.class)
 public class TransformParameterScheme extends AbstractTypeScheme {
 
     public TransformParameterScheme(InstantiationScheme instantiationScheme, InspectionScheme inspectionScheme) {

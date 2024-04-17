@@ -16,6 +16,10 @@
 
 package org.gradle.initialization;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
+@ServiceScope(Scope.Global.class)
 public interface JdkToolsInitializer {
     /**
      * Ensures that the JDK tools are visible on the system ClassLoader. Not really a great idea, but here for backwards

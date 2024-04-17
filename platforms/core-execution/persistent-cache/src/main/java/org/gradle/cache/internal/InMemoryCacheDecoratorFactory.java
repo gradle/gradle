@@ -16,7 +16,10 @@
 package org.gradle.cache.internal;
 
 import org.gradle.cache.CacheDecorator;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
+@ServiceScope(Scope.Global.class)
 public interface InMemoryCacheDecoratorFactory {
     CacheDecorator decorator(int maxEntriesToKeepInMemory, boolean cacheInMemoryForShortLivedProcesses);
 }
