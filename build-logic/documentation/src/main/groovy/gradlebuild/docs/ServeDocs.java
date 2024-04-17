@@ -22,12 +22,15 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.deployment.internal.DeploymentRegistry;
 import org.gradle.internal.deployment.JavaApplicationHandle;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.JavaExecHandleFactory;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.util.Arrays;
@@ -35,8 +38,10 @@ import java.util.Arrays;
 /**
  * Serves the given directory with a simple HTTP server.
  */
+@DisableCachingByDefault(because = "This task starts a HTTP server and should not be cached.")
 public abstract class ServeDocs extends DefaultTask {
     @InputFiles
+    @PathSensitive(PathSensitivity.RELATIVE)
     protected abstract DirectoryProperty getDocsDirectory();
 
     @Input
