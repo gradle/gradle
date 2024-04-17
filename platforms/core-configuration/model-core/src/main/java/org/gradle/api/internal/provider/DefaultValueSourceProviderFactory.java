@@ -304,9 +304,15 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         }
 
         public Try<@org.jetbrains.annotations.Nullable T> obtain() {
-            value.finalizeIfNotAlready();
+            final @Nullable ValueSource<T, P> obtainedFrom;
+            try {
+                value.finalizeIfNotAlready();
+            } finally {
+                // Don't leak the source implementation even if obtaining its value throws.
+                // This is mostly a theoretical possibility, but the call above is blocking, so it can be interrupted.
+                obtainedFrom = sourceRef.getAndSet(null);
+            }
             Try<@org.jetbrains.annotations.Nullable T> obtained = value.getValue();
-            ValueSource<T, P> obtainedFrom = sourceRef.getAndSet(null);
             if (obtainedFrom != null) {
                 // We are the first thread to see the obtained value. Let's tell the interested parties about it.
                 valueBroadcaster.getSource().valueObtained(obtainedValue(obtained), obtainedFrom);
