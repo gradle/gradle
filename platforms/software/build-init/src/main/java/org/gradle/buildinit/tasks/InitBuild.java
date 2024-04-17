@@ -62,6 +62,7 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 
@@ -357,24 +358,37 @@ public abstract class InitBuild extends DefaultTask {
         return getUserInputHandler();
     }
 
+    /**
+     * If not converting an existing Maven build, then validate the build directory is either
+     * empty, or overwritable before generating the project.
+     *
+     * @param userQuestions the user questions to ask if {@link #getAllowFileOverwrite()} is not set and the directory is non-empty
+     * @throws BuildInitException if the build directory is non-empty, this isn't a POM conversion and the user does not allow overwriting
+     */
     private void validateBuildDirectory(UserQuestions userQuestions) {
-        File projectDirFile = projectDir.getAsFile();
-        File[] existingProjectFiles = projectDirFile.listFiles();
+        if (!isPomConversion()) {
+            File projectDirFile = projectDir.getAsFile();
+            File[] existingProjectFiles = projectDirFile.listFiles();
 
-        boolean isNotEmptyDirectory = existingProjectFiles != null && existingProjectFiles.length != 0;
-        if (isNotEmptyDirectory) {
-            boolean fileOverwriteAllowed;
-            if (getAllowFileOverwrite().isPresent()) {
-                fileOverwriteAllowed = getAllowFileOverwrite().get();
-            } else {
-                fileOverwriteAllowed = userQuestions.askBooleanQuestion("Found existing files in the project directory: '" + projectDirFile +
-                "'. Allow these files to be overwritten?", false);
-            }
+            boolean isNotEmptyDirectory = existingProjectFiles != null && existingProjectFiles.length != 0;
+            if (isNotEmptyDirectory) {
+                boolean fileOverwriteAllowed;
+                if (getAllowFileOverwrite().isPresent()) {
+                    fileOverwriteAllowed = getAllowFileOverwrite().get();
+                } else {
+                    fileOverwriteAllowed = userQuestions.askBooleanQuestion("Found existing files in the project directory: '" + projectDirFile +
+                        "'. Allow these files to be overwritten?", false);
+                }
 
-            if (!fileOverwriteAllowed) {
-                abortBuildDueToExistingFiles(projectDirFile);
+                if (!fileOverwriteAllowed) {
+                    abortBuildDueToExistingFiles(projectDirFile);
+                }
             }
         }
+    }
+
+    private boolean isPomConversion() {
+        return Objects.equals(getType(), "pom");
     }
 
     private void abortBuildDueToExistingFiles(File projectDirFile) {

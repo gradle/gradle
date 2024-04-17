@@ -212,7 +212,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         pom()
 
         when:
-        succeeds('init', '--type', 'java-application', '--dsl', scriptDsl.id)
+        succeeds('init', '--type', 'java-application', '--dsl', scriptDsl.id, '--overwrite')
 
         then:
         pomValuesNotUsed(dslFixtureFor(scriptDsl))
@@ -445,7 +445,7 @@ Description""") // include the next header to make sure all options are listed
         executer.withArguments("--project-cache-dir", dotGradleDir.path)
 
         then:
-        succeeds "init"
+        succeeds "init", '--overwrite'
         targetDir.file("gradlew").assertIsFile()
         targetDir.file("settings.gradle.kts").assertIsFile()
         targetDir.file("build.gradle.kts").assertIsFile()
@@ -460,7 +460,7 @@ Description""") // include the next header to make sure all options are listed
         executer.withGradleUserHomeDir(dotGradleDir)
 
         then:
-        succeeds "init"
+        succeeds "init", '--overwrite'
         targetDir.file("gradlew").assertIsFile()
         targetDir.file("settings.gradle.kts").assertIsFile()
         targetDir.file("build.gradle.kts").assertIsFile()
