@@ -52,10 +52,12 @@ include::sample[dir="snippets/providers/property/groovy",files="build.gradle[tag
 
 Properties:
 
-* Properties with these types are read-only.
-* The method link:{javadocPath}/org/gradle/api/provider/Provider.html#get--[Provider.get()] returns the current value of the property.
-* A `Provider` can be created from another `Provider` using link:{javadocPath}/org/gradle/api/provider/Provider.html#map-org.gradle.api.Transformer-[Provider.map(Transformer)].
-* Many other types extend `Provider` and can be used wherever a `Provider` is required.
+* Properties with these types are configurable.
+* `Property` extends the `Provider` interface.
+* The method link:{javadocPath}/org/gradle/api/provider/Property.html#set-T-[Property.set(T)] specifies a value for the property, overwriting whatever value may have been present.
+* The method link:{javadocPath}/org/gradle/api/provider/Property.html#set-org.gradle.api.provider.Provider-[Property.set(Provider)] specifies a `Provider` for the value for the property, overwriting whatever value may have been present.
+This allows you to wire together `Provider` and `Property` instances before the values are configured.
+* A `Property` can be created by the factory method link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#property-java.lang.Class-[ObjectFactory.property(Class)].
 
 == Understanding Providers
 
@@ -69,12 +71,10 @@ include::sample[dir="snippets/providers/property/groovy",files="build.gradle[tag
 
 Providers:
 
-* Properties with these types are configurable.
-* `Property` extends the `Provider` interface.
-* The method link:{javadocPath}/org/gradle/api/provider/Property.html#set-T-[Property.set(T)] specifies a value for the property, overwriting whatever value may have been present.
-* The method link:{javadocPath}/org/gradle/api/provider/Property.html#set-org.gradle.api.provider.Provider-[Property.set(Provider)] specifies a `Provider` for the value for the property, overwriting whatever value may have been present.
-This allows you to wire together `Provider` and `Property` instances before the values are configured.
-* A `Property` can be created by the factory method link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#property-java.lang.Class-[ObjectFactory.property(Class)].
+* Properties with these types are read-only.
+* The method link:{javadocPath}/org/gradle/api/provider/Provider.html#get--[Provider.get()] returns the current value of the property.
+* A `Provider` can be created from another `Provider` using link:{javadocPath}/org/gradle/api/provider/Provider.html#map-org.gradle.api.Transformer-[Provider.map(Transformer)].
+* Many other types extend `Provider` and can be used wherever a `Provider` is required.
 
 [[managed_properties]]
 == Using Gradle Managed Properties
@@ -117,7 +117,7 @@ The property type must be one of the following:
 
 [cols="1,1"]
 |===
-|Property Type |Cell in column 2, header row
+|Property Type |Note
 
 |`Property<T>`
 |Where `T` is typically `Double`, `Integer`, `Long`, `String`, or `Bool`
