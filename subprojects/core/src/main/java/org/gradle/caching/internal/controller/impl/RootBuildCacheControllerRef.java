@@ -17,47 +17,54 @@
 package org.gradle.caching.internal.controller.impl;
 
 import org.gradle.caching.BuildCacheKey;
+import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
 import org.gradle.caching.internal.CacheableEntity;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.controller.NoOpBuildCacheController;
 import org.gradle.caching.internal.controller.service.BuildCacheLoadResult;
+import org.gradle.caching.internal.services.BuildCacheControllerFactory;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
+import org.gradle.util.Path;
 
 import java.io.IOException;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Supplier;
 
+/**
+ * This service manages the state of the {@link BuildCacheController} instances in the build tree.
+ * A separate instance is created for each build in the tree. This instance delegates to another immutable controller based on the state of the root build.
+ *
+ * <p>The implementation provides the following behavior:
+ *
+ * <ul>
+ *     <li>All builds in the tree use the root build's cache configuration, once that configuration is available (ie the root build's settings have been evaluated).</li>
+ *     <li>If caching is required in non-root build before the root build's configuration is available, that build's own cache configuration will be used.
+ *      Once the root build's configuration is available, the build-specific configuration is discarded.
+ *     </li>
+ *     <li>If caching is required in any build before either the root build's configuration or the build-specific configuration is available, caching is disabled.
+ *       Once configuration is available, it will be used, as per the above.
+ *     </li>
+ * </ul>
+ */
 @ServiceScope(Scope.BuildTree.class)
 public class RootBuildCacheControllerRef {
     private final RootBuildCacheController rootController = new RootBuildCacheController();
 
-    public BuildCacheController getForRootBuild() {
-        return rootController;
+    public LifecycleAwareBuildCacheController createForRootBuild(Path identityPath, BuildCacheControllerFactory buildCacheControllerFactory, InstanceGenerator instanceGenerator) {
+        return rootController.init(identityPath, buildCacheControllerFactory, instanceGenerator);
     }
 
-    public BuildCacheController getForNonRootBuild() {
-        return new NonRootBuildCacheController(rootController);
+    public LifecycleAwareBuildCacheController createForNonRootBuild(Path identityPath, BuildCacheControllerFactory buildCacheControllerFactory, InstanceGenerator instanceGenerator) {
+        return rootController.createChild(identityPath, buildCacheControllerFactory, instanceGenerator);
     }
 
-    public void effectiveControllerAvailable(BuildCacheController buildCacheController, Supplier<BuildCacheController> factory) {
-        ((DelegatingBuildCacheController) buildCacheController).effectiveControllerAvailable(factory);
-    }
-
-    public void resetState() {
-        try {
-            rootController.close();
-        } catch (IOException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
-    }
-
-    private static abstract class DelegatingBuildCacheController implements BuildCacheController {
+    private static abstract class DelegatingBuildCacheController implements LifecycleAwareBuildCacheController {
         @Override
         public boolean isEnabled() {
             return getDelegate().isEnabled();
@@ -73,23 +80,55 @@ public class RootBuildCacheControllerRef {
             getDelegate().store(cacheKey, entity, snapshots, executionTime);
         }
 
-        protected abstract BuildCacheController getDelegate();
+        @Override
+        public void close() {
+            resetState();
+        }
 
-        public abstract void effectiveControllerAvailable(Supplier<BuildCacheController> factory);
+        protected static void createDelegate(BuildCacheConfigurationInternal configuration, AtomicReference<BuildCacheController> delegate, BuildCacheControllerFactory buildCacheControllerFactory, Path identityPath, InstanceGenerator instanceGenerator) {
+            BuildCacheController controller = buildCacheControllerFactory.createController(identityPath, configuration, instanceGenerator);
+            if (!delegate.compareAndSet(NoOpBuildCacheController.INSTANCE, controller)) {
+                try {
+                    controller.close();
+                } catch (IOException e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
+                throw new IllegalStateException("Build cache controller already set");
+            }
+        }
+
+        protected static void discardDelegate(AtomicReference<BuildCacheController> delegate) {
+            BuildCacheController controller = delegate.getAndSet(NoOpBuildCacheController.INSTANCE);
+            try {
+                controller.close();
+            } catch (IOException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        }
+
+        protected abstract BuildCacheController getDelegate();
     }
 
     private static class RootBuildCacheController extends DelegatingBuildCacheController {
         private final AtomicReference<BuildCacheController> delegate = new AtomicReference<>();
+        private Path identityPath;
+        private BuildCacheControllerFactory buildCacheControllerFactory;
+        private InstanceGenerator instanceGenerator;
 
         private RootBuildCacheController() {
             this.delegate.set(NoOpBuildCacheController.INSTANCE);
         }
 
+        public RootBuildCacheController init(Path identityPath, BuildCacheControllerFactory buildCacheControllerFactory, InstanceGenerator instanceGenerator) {
+            this.identityPath = identityPath;
+            this.buildCacheControllerFactory = buildCacheControllerFactory;
+            this.instanceGenerator = instanceGenerator;
+            return this;
+        }
+
         @Override
-        public void effectiveControllerAvailable(Supplier<BuildCacheController> factory) {
-            if (!this.delegate.compareAndSet(NoOpBuildCacheController.INSTANCE, factory.get())) {
-                throw new IllegalStateException("Build cache controller already set");
-            }
+        public void configurationAvailable(BuildCacheConfigurationInternal configuration) {
+            createDelegate(configuration, this.delegate, buildCacheControllerFactory, identityPath, instanceGenerator);
         }
 
         @Override
@@ -98,48 +137,59 @@ public class RootBuildCacheControllerRef {
         }
 
         @Override
-        public void close() throws IOException {
-            BuildCacheController controller = delegate.getAndSet(NoOpBuildCacheController.INSTANCE);
-            controller.close();
+        public void resetState() {
+            discardDelegate(delegate);
+        }
+
+        public LifecycleAwareBuildCacheController createChild(Path identityPath, BuildCacheControllerFactory buildCacheControllerFactory, InstanceGenerator instanceGenerator) {
+            return new NonRootBuildCacheController(this, identityPath, buildCacheControllerFactory, instanceGenerator);
         }
     }
 
     private static class NonRootBuildCacheController extends DelegatingBuildCacheController {
         private final RootBuildCacheController rootController;
         private final AtomicReference<BuildCacheController> delegate = new AtomicReference<>();
+        private final Path identityPath;
+        private final BuildCacheControllerFactory buildCacheControllerFactory;
+        private final InstanceGenerator instanceGenerator;
 
-        private NonRootBuildCacheController(RootBuildCacheController rootController) {
+        private NonRootBuildCacheController(
+            RootBuildCacheController rootController,
+            Path identityPath,
+            BuildCacheControllerFactory buildCacheControllerFactory,
+            InstanceGenerator instanceGenerator
+        ) {
             this.rootController = rootController;
+            this.identityPath = identityPath;
+            this.buildCacheControllerFactory = buildCacheControllerFactory;
+            this.instanceGenerator = instanceGenerator;
             this.delegate.set(NoOpBuildCacheController.INSTANCE);
         }
 
         @Override
-        public void effectiveControllerAvailable(Supplier<BuildCacheController> factory) {
+        public void configurationAvailable(BuildCacheConfigurationInternal configuration) {
             BuildCacheController rootController = this.rootController.getDelegate();
             if (rootController != NoOpBuildCacheController.INSTANCE) {
                 // The root controller is available, so don't use the build specific controller
                 return;
             }
             // Use the build specific controller
-            if (!this.delegate.compareAndSet(NoOpBuildCacheController.INSTANCE, factory.get())) {
-                throw new IllegalStateException("Build cache controller already set");
-            }
+            createDelegate(configuration, this.delegate, buildCacheControllerFactory, identityPath, instanceGenerator);
         }
 
         @Override
         protected BuildCacheController getDelegate() {
-            BuildCacheController controller = delegate.get();
-            if (controller != NoOpBuildCacheController.INSTANCE) {
-                return controller;
+            BuildCacheController rootController = this.rootController.getDelegate();
+            if (rootController != NoOpBuildCacheController.INSTANCE) {
+                // The root controller is available, so don't use the build specific controller
+                return rootController;
             }
-            return rootController.delegate.get();
+            return delegate.get();
         }
 
         @Override
-        public void close() throws IOException {
-            BuildCacheController controller = delegate.getAndSet(NoOpBuildCacheController.INSTANCE);
-            controller.close();
+        public void resetState() {
+            discardDelegate(delegate);
         }
     }
-
 }

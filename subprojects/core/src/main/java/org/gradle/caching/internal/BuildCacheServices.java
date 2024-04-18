@@ -23,7 +23,7 @@ import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal
 import org.gradle.caching.configuration.internal.BuildCacheServiceRegistration;
 import org.gradle.caching.configuration.internal.DefaultBuildCacheConfiguration;
 import org.gradle.caching.configuration.internal.DefaultBuildCacheServiceRegistration;
-import org.gradle.caching.internal.controller.BuildCacheController;
+import org.gradle.caching.internal.controller.impl.LifecycleAwareBuildCacheController;
 import org.gradle.caching.internal.controller.impl.RootBuildCacheControllerRef;
 import org.gradle.caching.internal.origin.OriginMetadataFactory;
 import org.gradle.caching.internal.packaging.BuildCacheEntryPacker;
@@ -43,12 +43,15 @@ import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.FileException;
 import org.gradle.internal.file.ThreadLocalBufferProvider;
 import org.gradle.internal.hash.StreamHasher;
+import org.gradle.internal.instantiation.InstanceGenerator;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.util.GradleVersion;
 
@@ -126,14 +129,18 @@ public final class BuildCacheServices extends AbstractPluginServiceRegistry {
                     new TarBuildCacheEntryPacker(fileSystemSupport, new FilePermissionsAccessAdapter(fileSystem), fileHasher, stringInterner, bufferProvider));
             }
 
-            BuildCacheController createBuildCacheController(
+            LifecycleAwareBuildCacheController createBuildCacheController(
                 BuildState build,
-                RootBuildCacheControllerRef rootControllerRef
+                RootBuildCacheControllerRef rootControllerRef,
+                BuildCacheControllerFactory buildCacheControllerFactory,
+                InstantiatorFactory instantiatorFactory,
+                ServiceRegistry services
             ) {
+                InstanceGenerator injectingGenerator = instantiatorFactory.inject(services);
                 if (build instanceof RootBuildState) {
-                    return rootControllerRef.getForRootBuild();
+                    return rootControllerRef.createForRootBuild(build.getIdentityPath(), buildCacheControllerFactory, injectingGenerator);
                 } else {
-                    return rootControllerRef.getForNonRootBuild();
+                    return rootControllerRef.createForNonRootBuild(build.getIdentityPath(), buildCacheControllerFactory, injectingGenerator);
                 }
             }
 
