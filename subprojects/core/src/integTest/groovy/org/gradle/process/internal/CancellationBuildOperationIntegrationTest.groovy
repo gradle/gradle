@@ -18,6 +18,7 @@ package org.gradle.process.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
@@ -33,6 +34,7 @@ class CancellationBuildOperationIntegrationTest extends AbstractIntegrationSpec 
     BuildOperationsFixture operations = new BuildOperationsFixture(executer, temporaryFolder)
 
     @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+    @UnsupportedWithConfigurationCache(because = "captures worker threads in shared state")
     def "task operations are closed even when interrupting the execution workers"() {
         server.start()
         executer.withStackTraceChecksDisabled()
