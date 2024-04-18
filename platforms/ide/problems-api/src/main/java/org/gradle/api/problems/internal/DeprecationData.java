@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.reflect.validation;
+package org.gradle.api.problems.internal;
 
-import org.gradle.api.NonNullApi;
-import org.gradle.api.problems.internal.InternalProblemSpec;
+/**
+ * Additional data type that can be used to attach deprecation information to a problem.
+ */
+public interface DeprecationData extends AdditionalData {
 
-import javax.annotation.Nullable;
+    enum Type {
+        USER_CODE_DIRECT,
+        USER_CODE_INDIRECT,
+        BUILD_INVOCATION
+    }
 
-@NonNullApi
-public interface TypeAwareProblemBuilder extends InternalProblemSpec {
-    TypeAwareProblemBuilder withAnnotationType(@Nullable Class<?> classWithAnnotationAttached);
-
-    TypeAwareProblemBuilder forProperty(String propertyName);
-
-    TypeAwareProblemBuilder parentProperty(@Nullable String parentProperty);
+    Type getType();
 }

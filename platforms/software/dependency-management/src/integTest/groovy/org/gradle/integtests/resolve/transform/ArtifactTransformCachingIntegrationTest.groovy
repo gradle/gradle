@@ -221,7 +221,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                     contextualLabel == "Property \'output\' points to \'${reserved.absolutePath}\' which is managed by Gradle"
                     details == 'Trying to write an output to a read-only location which is for Gradle internal use only'
                     solutions == ['Select a different output location']
-                    additionalData == [
+                    additionalData.asMap == [
                         'typeName': 'org.gradle.api.DefaultTask',
                         'propertyName': 'output',
                     ]

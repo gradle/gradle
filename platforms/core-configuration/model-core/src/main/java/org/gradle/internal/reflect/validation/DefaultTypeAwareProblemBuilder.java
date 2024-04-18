@@ -17,25 +17,20 @@
 package org.gradle.internal.reflect.validation;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.api.problems.ProblemId;
+import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblemBuilder;
 import org.gradle.api.problems.internal.Problem;
+import org.gradle.api.problems.internal.TypeValidationData;
+import org.gradle.api.problems.internal.TypeValidationDataSpec;
 
 import javax.annotation.Nullable;
-import java.util.Map;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
-
-import static java.lang.Boolean.TRUE;
-import static java.lang.Boolean.parseBoolean;
-import static java.util.Optional.ofNullable;
 
 @NonNullApi
 public class DefaultTypeAwareProblemBuilder extends DelegatingProblemBuilder implements TypeAwareProblemBuilder {
-
-    public static final String TYPE_NAME = "typeName";
-    public static final String PLUGIN_ID = "pluginId";
-    public static final String PARENT_PROPERTY_NAME = "parentPropertyName";
-    public static final String PROPERTY_NAME = "propertyName";
-    public static final String TYPE_IS_IRRELEVANT_IN_ERROR_MESSAGE = "typeIsIrrelevantInErrorMessage";
 
     public DefaultTypeAwareProblemBuilder(InternalProblemBuilder problemBuilder) {
         super(problemBuilder);
@@ -44,20 +39,14 @@ public class DefaultTypeAwareProblemBuilder extends DelegatingProblemBuilder imp
     @Override
     public TypeAwareProblemBuilder withAnnotationType(@Nullable Class<?> classWithAnnotationAttached) {
         if (classWithAnnotationAttached != null) {
-            additionalData(TYPE_NAME, classWithAnnotationAttached.getName().replaceAll("\\$", "."));
+            additionalData(TypeValidationDataSpec.class, data -> data.typeName(classWithAnnotationAttached.getName().replaceAll("\\$", ".")));
         }
         return this;
     }
 
     @Override
-    public TypeAwareProblemBuilder typeIsIrrelevantInErrorMessage() {
-        additionalData(TYPE_IS_IRRELEVANT_IN_ERROR_MESSAGE, TRUE.toString());
-        return this;
-    }
-
-    @Override
     public TypeAwareProblemBuilder forProperty(String propertyName) {
-        additionalData(PROPERTY_NAME, propertyName);
+        additionalData(TypeValidationDataSpec.class, data -> data.propertyName(propertyName));
         return this;
     }
 
@@ -67,7 +56,7 @@ public class DefaultTypeAwareProblemBuilder extends DelegatingProblemBuilder imp
             return this;
         }
         String pp = getParentProperty(parentProperty);
-        additionalData(PARENT_PROPERTY_NAME, pp);
+        additionalData(TypeValidationDataSpec.class, data -> data.parentPropertyName(pp));
         parentPropertyAdditionalData = pp;
         return this;
     }
@@ -75,21 +64,31 @@ public class DefaultTypeAwareProblemBuilder extends DelegatingProblemBuilder imp
     @Override
     public Problem build() {
         Problem problem = super.build();
-        String prefix = introductionFor(problem.getAdditionalData());
+        Optional<TypeValidationData> additionalData = Optional.ofNullable((TypeValidationData) problem.getAdditionalData());
+        String prefix = introductionFor(additionalData, isTypeIrrelevantInErrorMessage(problem.getDefinition().getId()));
         String text = Optional.ofNullable(problem.getContextualLabel()).orElseGet(() -> problem.getDefinition().getId().getDisplayName());
         return problem.toBuilder().contextualLabel(prefix + text).build();
     }
 
-    public static String introductionFor(Map<String, Object> additionalMetadata) {
-        Optional<String> rootType = ofNullable(additionalMetadata.get(TYPE_NAME))
+    private static boolean isTypeIrrelevantInErrorMessage(ProblemId problemId) {
+        if (!problemId.getGroup().equals(GradleCoreProblemGroup.validation().property())) {
+            return false;
+        } else {
+            List<String> candidates = Arrays.asList("unknown-implementation", "unknown-implementation-nested", "implicit-dependency");
+            return candidates.contains(problemId.getName());
+        }
+    }
+
+    public static String introductionFor(Optional<TypeValidationData> additionalData, boolean typeIrrelevantInErrorMessage) {
+        Optional<String> rootType = additionalData.map(TypeValidationData::getTypeName)
             .map(Object::toString)
             .filter(DefaultTypeAwareProblemBuilder::shouldRenderType);
-        Optional<DefaultPluginId> pluginId = ofNullable(additionalMetadata.get(PLUGIN_ID))
+        Optional<DefaultPluginId> pluginId = additionalData.map(TypeValidationData::getPluginId)
             .map(Object::toString)
             .map(DefaultPluginId::new);
 
         StringBuilder builder = new StringBuilder();
-        boolean typeRelevant = rootType.isPresent() && !parseBoolean(additionalMetadata.getOrDefault(TYPE_IS_IRRELEVANT_IN_ERROR_MESSAGE, "").toString());
+        boolean typeRelevant = rootType.isPresent() && !typeIrrelevantInErrorMessage;
         if (typeRelevant) {
             if (pluginId.isPresent()) {
                 builder.append("In plugin '")
@@ -101,7 +100,7 @@ public class DefaultTypeAwareProblemBuilder extends DelegatingProblemBuilder imp
             builder.append(rootType.get()).append("' ");
         }
 
-        Object property = additionalMetadata.get(PROPERTY_NAME);
+        Object property = additionalData.map(TypeValidationData::getPropertyName).orElse(null);
         if (property != null) {
             if (typeRelevant) {
                 builder.append("property '");
@@ -114,7 +113,7 @@ public class DefaultTypeAwareProblemBuilder extends DelegatingProblemBuilder imp
                     builder.append("Property '");
                 }
             }
-            ofNullable(additionalMetadata.get(PARENT_PROPERTY_NAME)).ifPresent(parentProperty -> {
+            additionalData.map(TypeValidationData::getParentPropertyName).ifPresent(parentProperty -> {
                 builder.append(parentProperty);
                 builder.append('.');
             });

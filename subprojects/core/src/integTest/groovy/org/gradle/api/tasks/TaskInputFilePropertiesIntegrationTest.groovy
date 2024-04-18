@@ -109,7 +109,7 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec imp
                 'Use a URI or URL instance',
                 'Use a TextResource instance',
             ]
-            additionalData == [
+            additionalData.asMap == [
                 'typeName' : 'org.gradle.api.DefaultTask',
                 'propertyName' : 'input',
             ]
@@ -177,7 +177,7 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec imp
                 'Use a URI or URL instance',
                 'Use a TextResource instance',
             ]
-            additionalData == [
+            additionalData.asMap == [
                 'typeName' : 'CustomTask',
                 'propertyName' : 'input',
             ]
@@ -270,7 +270,7 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec imp
                 'Assign a value to \'bar\'',
                 'Mark property \'bar\' as optional',
             ]
-            additionalData == [
+            additionalData.asMap == [
                 'typeName' : 'FooTask',
                 'propertyName' : 'bar',
             ]

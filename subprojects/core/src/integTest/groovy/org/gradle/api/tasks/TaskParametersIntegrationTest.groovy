@@ -705,7 +705,7 @@ task someTask(type: SomeTask) {
                 "Use a $fileType as an input",
                 "Declare the input as a ${getOppositeKind(fileType)} instead",
             ].collect { it.toString() }
-            additionalData == [
+            additionalData.asMap == [
                 'typeName': 'org.gradle.api.DefaultTask',
                 'propertyName': 'input',
             ]
@@ -746,7 +746,7 @@ task someTask(type: SomeTask) {
                 'Configure \'output\' to point to a file, not a directory',
                 'Annotate \'output\' with @OutputDirectory instead of @OutputFiles',
             ]
-            additionalData == [
+            additionalData.asMap == [
                 'typeName' : 'org.gradle.api.DefaultTask',
                 'propertyName' : 'output',
             ]
@@ -783,7 +783,7 @@ task someTask(type: SomeTask) {
             contextualLabel == "Property \'output\' is not writable because \'${outputFile.absolutePath}\' is not a directory"
             details == "Expected \'${outputFile.absolutePath}\' to be a directory but it\'s a file"
             solutions == [ 'Make sure that the \'output\' is configured to a directory' ]
-            additionalData == [
+            additionalData.asMap == [
                 'typeName' : 'org.gradle.api.DefaultTask',
                 'propertyName' : 'output',
             ]
@@ -826,7 +826,7 @@ task someTask(type: SomeTask) {
             contextualLabel == "Property \'output\' is not writable because \'${outputFile.absolutePath}\' is not a directory"
             details == "Expected the root of the file tree \'${outputFile.absolutePath}\' to be a directory but it\'s a file"
             solutions == [ 'Make sure that the root of the file tree \'output\' is configured to a directory' ]
-            additionalData == [
+            additionalData.asMap == [
                 'typeName' : 'org.gradle.api.DefaultTask',
                 'propertyName' : 'output',
             ]

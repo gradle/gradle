@@ -60,7 +60,7 @@ class KnownProblemIds {
 
     private static final def KNOWN_DEFINITIONS = [
         'problems-api:missing-id' : 'Problem id must be specified',
-        'problems-api:invalid-additional-data' : 'ProblemBuilder.additionalData() only supports values of type String',
+        'problems-api:unsupported-additional-data' : 'Unsupported additional data type',
         'compilation:groovy-dsl:compilation-failed' : 'Groovy DSL script compilation problem',
         'compilation:java:java-compilation-error' : 'Java compilation error',
         'compilation:java:java-compilation-failed' : 'Java compilation error',

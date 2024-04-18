@@ -22,11 +22,11 @@ import org.gradle.tooling.events.problems.AdditionalData;
 import java.io.Serializable;
 import java.util.Map;
 
-public class DefaultAdditionalData implements AdditionalData, Serializable {
+public class GeneralData implements AdditionalData, Serializable {
 
     private final Map<String, Object> additionalData;
 
-    public DefaultAdditionalData(Map<String, Object> additionalData) {
+    public GeneralData(Map<String, Object> additionalData) {
         this.additionalData = ImmutableMap.copyOf(additionalData);
     }
 
