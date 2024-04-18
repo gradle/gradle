@@ -19,8 +19,12 @@ package org.gradle.initialization;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.controller.impl.RootBuildCacheControllerRef;
+import org.gradle.caching.internal.services.BuildCacheControllerFactory;
+import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.service.ServiceRegistry;
 
 public class RootBuildCacheControllerSettingsProcessor implements SettingsProcessor {
 
@@ -28,11 +32,16 @@ public class RootBuildCacheControllerSettingsProcessor implements SettingsProces
         // The strategy for sharing build cache configuration across included builds in a composite,
         // requires that the cache configuration be finalized (and cache controller available)
         // before configuring them. This achieves that.
-        if (gradle.isRootBuild()) {
-            BuildCacheController rootController = gradle.getServices().get(BuildCacheController.class);
-            RootBuildCacheControllerRef rootControllerRef = gradle.getServices().get(RootBuildCacheControllerRef.class);
-            rootControllerRef.set(rootController);
-        }
+
+        ServiceRegistry services = gradle.getServices();
+        BuildCacheController cacheController = services.get(BuildCacheController.class);
+        RootBuildCacheControllerRef rootControllerRef = services.get(RootBuildCacheControllerRef.class);
+        rootControllerRef.effectiveControllerAvailable(cacheController, () -> {
+            BuildCacheControllerFactory buildCacheControllerFactory = services.get(BuildCacheControllerFactory.class);
+            BuildCacheConfigurationInternal buildCacheConfiguration = services.get(BuildCacheConfigurationInternal.class);
+            InstantiatorFactory instantiatorFactory = services.get(InstantiatorFactory.class);
+            return buildCacheControllerFactory.createController(gradle.getIdentityPath(), buildCacheConfiguration, instantiatorFactory.inject(services));
+        });
     }
 
     private final SettingsProcessor delegate;

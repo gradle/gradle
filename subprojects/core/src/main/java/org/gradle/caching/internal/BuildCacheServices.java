@@ -37,21 +37,18 @@ import org.gradle.caching.internal.services.DefaultBuildCacheControllerFactory;
 import org.gradle.caching.local.DirectoryBuildCache;
 import org.gradle.caching.local.internal.DirectoryBuildCacheServiceFactory;
 import org.gradle.internal.build.BuildState;
-import org.gradle.internal.build.IncludedBuildState;
-import org.gradle.internal.build.StandAloneNestedBuild;
+import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.file.BufferProvider;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.FileException;
 import org.gradle.internal.file.ThreadLocalBufferProvider;
 import org.gradle.internal.hash.StreamHasher;
-import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.util.GradleVersion;
 
@@ -130,32 +127,13 @@ public final class BuildCacheServices extends AbstractPluginServiceRegistry {
             }
 
             BuildCacheController createBuildCacheController(
-                ServiceRegistry serviceRegistry,
-                InstantiatorFactory instantiatorFactory,
                 BuildState build,
-                BuildCacheConfigurationInternal buildCacheConfiguration,
-                RootBuildCacheControllerRef rootControllerRef,
-                BuildCacheControllerFactory buildCacheControllerFactory
+                RootBuildCacheControllerRef rootControllerRef
             ) {
-                if (requiresOwnBuildCacheController(build)) {
-                    return buildCacheControllerFactory.createController(build.getIdentityPath(), buildCacheConfiguration, instantiatorFactory.inject(serviceRegistry));
+                if (build instanceof RootBuildState) {
+                    return rootControllerRef.getForRootBuild();
                 } else {
                     return rootControllerRef.getForNonRootBuild();
-                }
-            }
-
-            private boolean requiresOwnBuildCacheController(BuildState build) {
-                if (build instanceof IncludedBuildState) {
-                    // "early" included builds should their own configuration, and so their own controller.
-                    // Other included build should use the configuration from the root build, and so reuse the "shared" controller
-                    IncludedBuildState includedBuildState = (IncludedBuildState) build;
-                    return includedBuildState.isPluginBuild();
-                } else if (build instanceof StandAloneNestedBuild) {
-                    // BuildSrc should use the shared controller
-                    return false;
-                } else {
-                    // Other builds - root build, or the root build for `GradleBuild` task - should use their own configuration, and so their own controller.
-                    return true;
                 }
             }
 
