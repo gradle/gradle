@@ -28,27 +28,37 @@ class GradleLifecycleIsolationIntegrationTest extends AbstractIntegrationSpec {
 
             def log = []
             gradle.lifecycle.beforeProject { p ->
-                log << "1: before $p.name with version $p.version"
+                log << "1: before $p.name $p.version"
+                p.version = 'from action'
             }
             gradle.lifecycle.beforeProject { p ->
-                log << "2: before $p.name with version $p.version"
+                log << "2: before $p.name $p.version"
             }
-            gradle.lifecycle.beforeProject {
-                print log
+            gradle.lifecycle.afterProject { p ->
+                log << "1: after $p.name $p.version"
+            }
+            gradle.lifecycle.afterProject { p ->
+                log << "2: after $p.name $p.version"
+            }
+            gradle.lifecycle.afterProject {
+                println log
             }
         '''
-        buildFile '''
-            version = '1.0'
+
+        def script = '''
+            println "$name with version $version"
+            version = 'from script'
         '''
-        groovyFile 'sub/build.gradle', '''
-            version = '2.0'
-        '''
+        buildFile script
+        groovyFile 'sub/build.gradle', script
 
         when:
         succeeds 'help'
 
         then:
-        outputContains '[1: before root with version unspecified, 2: before root with version unspecified]'
-        outputContains '[1: before sub with version unspecified, 2: before sub with version unspecified]'
+        outputContains 'root with version from action'
+        outputContains 'sub with version from action'
+        outputContains '[1: before root unspecified, 2: before root from action, 1: after root from script, 2: after root from script]'
+        outputContains '[1: before sub unspecified, 2: before sub from action, 1: after sub from script, 2: after sub from script]'
     }
 }

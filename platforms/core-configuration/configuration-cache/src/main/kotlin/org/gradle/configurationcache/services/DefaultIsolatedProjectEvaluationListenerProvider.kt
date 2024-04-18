@@ -21,6 +21,8 @@ import org.gradle.api.Project
 import org.gradle.api.ProjectEvaluationListener
 import org.gradle.api.ProjectState
 import org.gradle.api.invocation.Gradle
+import org.gradle.api.plugins.ExtraPropertiesExtension
+import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.isolation.IsolatedActionDeserializer
 import org.gradle.configurationcache.isolation.IsolatedActionSerializer
 import org.gradle.configurationcache.isolation.SerializedIsolatedActionGraph
@@ -41,45 +43,76 @@ internal
 class DefaultIsolatedProjectEvaluationListenerProvider : IsolatedProjectEvaluationListenerProvider {
 
     private
-    val actions = mutableListOf<IsolatedProjectAction>()
+    val beforeProject = mutableListOf<IsolatedProjectAction>()
+
+    private
+    val afterProject = mutableListOf<IsolatedProjectAction>()
 
     override fun beforeProject(action: IsolatedProjectAction) {
-        actions.add(action)
+        beforeProject.add(action)
+    }
+
+    override fun afterProject(action: IsolatedProjectAction) {
+        afterProject.add(action)
     }
 
     override fun isolateFor(gradle: Gradle): ProjectEvaluationListener? = when {
-        actions.isEmpty() -> null
+        beforeProject.isEmpty() && afterProject.isEmpty() -> null
         else -> {
-            val isolate = isolate(actions, IsolateOwner.OwnerGradle(gradle))
+            val isolate = isolate(
+                IsolatedProjectActions(beforeProject, afterProject),
+                IsolateOwner.OwnerGradle(gradle)
+            )
             clear()
             IsolatedProjectEvaluationListener(gradle, isolate)
         }
     }
 
     override fun clear() {
-        actions.clear()
+        beforeProject.clear()
+        afterProject.clear()
     }
 
     private
-    fun isolate(actions: Collection<IsolatedProjectAction>, owner: IsolateOwner) =
+    fun isolate(actions: IsolatedProjectActions, owner: IsolateOwner) =
         IsolatedActionSerializer(owner, owner.serviceOf(), owner.serviceOf())
             .serialize(actions)
 }
 
 
 private
+data class IsolatedProjectActions(
+    val beforeProject: IsolatedProjectActionList,
+    val afterProject: IsolatedProjectActionList
+)
+
+
+private
 class IsolatedProjectEvaluationListener(
     private val gradle: Gradle,
-    private val isolated: SerializedIsolatedActionGraph<IsolatedProjectActionList>
+    private val isolated: SerializedIsolatedActionGraph<IsolatedProjectActions>
 ) : ProjectEvaluationListener {
 
     override fun beforeEvaluate(project: Project) {
-        for (action in isolatedActions()) {
-            action.execute(project)
-        }
+        val actions = isolatedActions()
+        // preserve isolate semantics between `beforeProject` and `afterProject`
+        project.setSingletonProperty(actions)
+        executeAll(actions.beforeProject, project)
     }
 
     override fun afterEvaluate(project: Project, state: ProjectState) {
+        val actions = project.popSingletonProperty<IsolatedProjectActions>()
+        require(actions != null) {
+            "afterEvaluate action cannot execute before beforeEvaluate"
+        }
+        executeAll(actions.afterProject, project)
+    }
+
+    private
+    fun executeAll(actions: IsolatedProjectActionList, project: Project) {
+        for (action in actions) {
+            action.execute(project)
+        }
     }
 
     private
@@ -88,3 +121,26 @@ class IsolatedProjectEvaluationListener(
             .deserialize(isolated)
     }
 }
+
+
+private
+inline fun <reified T : Any> Project.setSingletonProperty(value: T) {
+    extra[T::class.java.name] = value
+}
+
+
+private
+inline fun <reified T> Project.popSingletonProperty(): T? {
+    val key = T::class.java.name
+    val extra = extra
+    val value = extra[key]
+    return value?.run {
+        extra[key] = null
+        uncheckedCast()
+    }
+}
+
+
+private
+val Project.extra: ExtraPropertiesExtension
+    get() = extensions.extraProperties

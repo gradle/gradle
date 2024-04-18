@@ -40,4 +40,14 @@ public interface GradleLifecycle {
      */
     @Incubating
     void beforeProject(IsolatedAction<? super Project> action);
+
+    /**
+     * Adds an {@link IsolatedAction isolated action} to be called immediately after a project is evaluated.
+     *
+     * @param action The action to execute.
+     * @see IsolatedAction for the requirements to isolated actions
+     * @since 8.8
+     */
+    @Incubating
+    void afterProject(IsolatedAction<? super Project> action);
 }
