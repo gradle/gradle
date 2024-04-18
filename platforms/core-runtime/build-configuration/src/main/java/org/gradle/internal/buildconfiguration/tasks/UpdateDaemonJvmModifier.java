@@ -65,7 +65,7 @@ public class UpdateDaemonJvmModifier {
         // TODO: Need to consider how to handle future versions of Java that are not yet known. This currently allows any version of Java above the minimum.
         JavaVersion minimumSupportedVersion = JavaVersion.VERSION_1_8;
         if (version.compareTo(minimumSupportedVersion) < 0) {
-            String exceptionMessage = String.format("Unsupported Java version '%s' provided for the 'toolchain-version' option. Gradle can only run with Java %s and above.",
+            String exceptionMessage = String.format("Unsupported Java version '%s' provided for the 'jvm-version' option. Gradle can only run with Java %s and above.",
                 version.getMajorVersion(), minimumSupportedVersion.getMajorVersion());
             throw new IllegalArgumentException(exceptionMessage);
         }
