@@ -138,6 +138,7 @@ trait SoftwareTypeFixture {
 
             import org.gradle.declarative.dsl.model.annotations.Configuring;
             import org.gradle.declarative.dsl.model.annotations.Restricted;
+            import org.gradle.declarative.dsl.model.annotations.RestrictedNested;
             import org.gradle.api.Action;
             import org.gradle.api.model.ObjectFactory;
             import org.gradle.api.provider.ListProperty;
@@ -152,7 +153,7 @@ trait SoftwareTypeFixture {
                 @Inject
                 public TestSoftwareTypeExtension(ObjectFactory objects) {
                     this.foo = objects.newInstance(Foo.class);
-                    this.foo.getBar().set("bar");
+                    this.foo.getBar().convention("bar");
 
                     getId().convention("<no id>");
                 }
@@ -160,6 +161,7 @@ trait SoftwareTypeFixture {
                 @Restricted
                 public abstract Property<String> getId();
 
+                @RestrictedNested
                 public Foo getFoo() {
                     return foo;
                 }

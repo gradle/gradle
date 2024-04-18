@@ -66,6 +66,8 @@ import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.UntrackedTask;
 import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
+import org.gradle.declarative.dsl.model.annotations.Restricted;
+import org.gradle.declarative.dsl.model.annotations.RestrictedNested;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.DefaultWorkExecutionTracker;
 import org.gradle.internal.execution.WorkExecutionTracker;
@@ -120,7 +122,9 @@ public class ExecutionGlobalServices {
         OutputFile.class,
         OutputFiles.class,
         ServiceReference.class,
-        SoftwareType.class
+        SoftwareType.class,
+        Restricted.class,
+        RestrictedNested.class
     );
 
     @VisibleForTesting

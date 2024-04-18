@@ -14,31 +14,35 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.plugins;
+package org.gradle.api.internal.plugins.software;
 
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.Plugin;
-import org.gradle.api.internal.plugins.software.SoftwareType;
+import org.gradle.api.internal.plugins.DslObject;
+import org.gradle.api.internal.plugins.PluginTarget;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
+import org.gradle.declarative.dsl.model.annotations.RestrictedNested;
 import org.gradle.internal.Cast;
+import org.gradle.internal.Pair;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
+import org.gradle.internal.properties.annotations.InstancePairTypeMetadataWalker;
+import org.gradle.internal.properties.annotations.PropertyMetadata;
+import org.gradle.internal.properties.annotations.TypeMetadata;
+import org.gradle.internal.properties.annotations.TypeMetadataStore;
 import org.gradle.internal.reflect.DefaultTypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
-import org.gradle.plugin.use.PluginId;
-import org.gradle.plugin.use.internal.DefaultPluginId;
 
 import javax.annotation.Nullable;
-import java.util.Optional;
-import java.util.function.Supplier;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 
@@ -46,7 +50,6 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
  * A {@link PluginTarget} that inspects the plugin for {@link SoftwareType} properties and adds them as extensions on the target prior to
  * applying the plugin via the delegate.
  */
-@NonNullApi
 public class AddSoftwareTypesAsExtensionsPluginTarget implements PluginTarget {
     private final ExtensionAddingVisitor extensionAddingVisitor;
     private final PluginTarget delegate;
@@ -55,7 +58,7 @@ public class AddSoftwareTypesAsExtensionsPluginTarget implements PluginTarget {
     private final SoftwareTypeRegistry softwareTypeRegistry;
 
     public AddSoftwareTypesAsExtensionsPluginTarget(ProjectInternal target, PluginTarget delegate, InspectionScheme inspectionScheme, SoftwareTypeRegistry softwareTypeRegistry) {
-        this.extensionAddingVisitor = new ExtensionAddingVisitor(target);
+        this.extensionAddingVisitor = new ExtensionAddingVisitor(target, inspectionScheme.getMetadataStore());
         this.delegate = delegate;
         this.inspectionScheme = inspectionScheme;
         this.softwareTypeRegistry = softwareTypeRegistry;
@@ -103,10 +106,6 @@ public class AddSoftwareTypesAsExtensionsPluginTarget implements PluginTarget {
         return ModelType.of(new DslObject(parameterObject).getDeclaredType()).getDisplayName();
     }
 
-    private static Supplier<Optional<PluginId>> getOptionalSupplier(@Nullable String pluginId) {
-        return () -> Optional.ofNullable(pluginId).map(DefaultPluginId::of);
-    }
-
     @Override
     public void applyRules(@Nullable String pluginId, Class<?> clazz) {
         delegate.applyRules(pluginId, clazz);
@@ -117,19 +116,65 @@ public class AddSoftwareTypesAsExtensionsPluginTarget implements PluginTarget {
         delegate.applyImperativeRulesHybrid(pluginId, plugin, declaringClass);
     }
 
-    @NonNullApi
     public static class ExtensionAddingVisitor implements PropertyVisitor {
         private final ProjectInternal target;
+        private final TypeMetadataStore typeMetadataStore;
 
-        public ExtensionAddingVisitor(ProjectInternal target) {
+        public ExtensionAddingVisitor(ProjectInternal target, TypeMetadataStore typeMetadataStore) {
             this.target = target;
+            this.typeMetadataStore = typeMetadataStore;
         }
 
         @Override
-        public void visitSoftwareTypeProperty(String propertyName, PropertyValue value, SoftwareType softwareType) {
+        public void visitSoftwareTypeProperty(String propertyName, PropertyValue propertyValue, SoftwareType softwareType) {
+            // Add software type as an extension
             ExtensionContainer extensions = ((ExtensionAware) target).getExtensions();
             Class<?> returnType = softwareType.modelPublicType();
-            extensions.add(returnType, softwareType.name(), Cast.uncheckedNonnullCast(value.call()));
+            Object value = propertyValue.call();
+            extensions.add(returnType, softwareType.name(), Cast.uncheckedNonnullCast(value));
+
+            // Apply any build-level conventions
+            Object convention = target.getGradle().getSettings().getExtensions().getByType(softwareType.modelPublicType());
+            InstancePairTypeMetadataWalker.instancePairWalker(typeMetadataStore, RestrictedNested.class).walk(Pair.of(value, convention), new PairVisitor() {
+                @Override
+                <T> void visitProperty(Property<T> model, Provider<T> convention) {
+                    model.convention(convention);
+                }
+            });
+        }
+    }
+
+    private abstract static class PairVisitor implements InstancePairTypeMetadataWalker.InstancePairMetadataVisitor {
+        @Override
+        public void visitNested(TypeMetadata typeMetadata, String qualifiedName, PropertyMetadata propertyMetadata, @Nullable Pair<Object, Object> pair) {
+
+        }
+
+        @Override
+        public void visitNestedUnpackingError(String qualifiedName, Exception e) {
+            throw new RuntimeException("Failed to query value for nested property: " + qualifiedName, e);
+        }
+
+        @Override
+        public void visitLeaf(Pair<Object, Object> parent, String qualifiedName, PropertyMetadata propertyMetadata) {
+            Class<?> type = propertyMetadata.getDeclaredType().getRawType();
+            if (parent.getLeft() != null && parent.getRight() != null) {
+                if (Property.class.isAssignableFrom(type)) {
+                    Property<?> modelProperty = Cast.uncheckedCast(propertyMetadata.getPropertyValue(parent.getLeft()));
+                    Provider<?> conventionProvider = Cast.uncheckedCast(propertyMetadata.getPropertyValue(parent.getRight()));
+                    if (modelProperty != null && conventionProvider != null) {
+                        visitProperty(modelProperty, Cast.uncheckedCast(conventionProvider));
+                    }
+                }
+            }
+        }
+
+
+        abstract <T> void visitProperty(Property<T> model, Provider<T> convention);
+
+        @Override
+        public void visitRoot(TypeMetadata typeMetadata, Pair<Object, Object> value) {
+
         }
     }
 }

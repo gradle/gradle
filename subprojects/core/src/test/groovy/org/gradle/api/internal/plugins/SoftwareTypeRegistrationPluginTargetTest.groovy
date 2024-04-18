@@ -21,6 +21,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
 import org.gradle.api.internal.plugins.software.SoftwareType
+import org.gradle.api.internal.plugins.software.SoftwareTypeRegistrationPluginTarget
 import org.gradle.api.internal.tasks.properties.InspectionScheme
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.properties.annotations.PropertyMetadata

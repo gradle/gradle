@@ -280,7 +280,7 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
         fails(":printTestSoftwareTypeExtensionConfiguration")
 
         then:
-        failure.assertHasCause("Failed to apply plugin class 'org.gradle.test.SoftwareTypeImplPlugin'.")
+        failure.assertHasCause("Failed to apply plugin 'com.example.test-software-type'.")
         failure.assertHasCause("Could not create an instance of type org.gradle.test.SoftwareTypeImplPlugin\$AnotherSoftwareTypeExtension.")
         failure.assertHasCause("Class SoftwareTypeImplPlugin.AnotherSoftwareTypeExtension is private.")
     }

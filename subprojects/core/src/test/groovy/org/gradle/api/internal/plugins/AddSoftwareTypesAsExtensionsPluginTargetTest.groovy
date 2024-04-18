@@ -17,6 +17,7 @@
 package org.gradle.api.internal.plugins
 
 import org.gradle.api.Plugin
+import org.gradle.api.internal.plugins.software.AddSoftwareTypesAsExtensionsPluginTarget
 import org.gradle.api.internal.plugins.software.SoftwareType
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.properties.InspectionScheme

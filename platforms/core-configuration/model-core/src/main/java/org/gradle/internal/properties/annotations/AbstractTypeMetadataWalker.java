@@ -37,7 +37,7 @@ abstract class AbstractTypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMe
     private final Class<? extends Annotation> nestedAnnotation;
     private final Supplier<Map<T, String>> nestedNodeToQualifiedNameMapFactory;
 
-    private AbstractTypeMetadataWalker(TypeMetadataStore typeMetadataStore, Class<? extends Annotation> nestedAnnotation, Supplier<Map<T, String>> nestedNodeToQualifiedNameMapFactory) {
+    protected AbstractTypeMetadataWalker(TypeMetadataStore typeMetadataStore, Class<? extends Annotation> nestedAnnotation, Supplier<Map<T, String>> nestedNodeToQualifiedNameMapFactory) {
         this.typeMetadataStore = typeMetadataStore;
         this.nestedAnnotation = nestedAnnotation;
         this.nestedNodeToQualifiedNameMapFactory = nestedNodeToQualifiedNameMapFactory;
@@ -109,7 +109,7 @@ abstract class AbstractTypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMe
         return typeMetadataStore.getTypeMetadata(type);
     }
 
-    private static String getQualifiedName(@Nullable String parentPropertyName, String childPropertyName) {
+    protected static String getQualifiedName(@Nullable String parentPropertyName, String childPropertyName) {
         return parentPropertyName == null
             ? childPropertyName
             : parentPropertyName + "." + childPropertyName;
