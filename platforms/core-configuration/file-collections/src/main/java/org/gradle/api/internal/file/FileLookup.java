@@ -17,12 +17,15 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.File;
 
 /**
  * Provides access to various services to resolve and locate files.
  */
+@ServiceScope(Scope.Global.class)
 public interface FileLookup {
     /**
      * Returns a file resolver with no base directory.

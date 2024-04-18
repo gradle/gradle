@@ -287,6 +287,8 @@ The complete design specification can be found [here](https://docs.google.com/do
 In implementing this spec, we have introduced the following breaking changes to the `ProblemSpec` interface:
 - The `label(String)` and `description(String)` methods have been replaced with the `id(String, String)` method and its overloaded variants.
 
+In addition, the corresponding Tooling API events are changed to reflect the new design.
+
 ==== Upgrade to Groovy 3.0.21
 
 Groovy has been updated to https://groovy-lang.org/changelogs/changelog-3.0.21.html[Groovy 3.0.21].

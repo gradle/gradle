@@ -16,9 +16,10 @@
 
 package org.gradle.internal.classpath.intercept;
 
-import org.apache.commons.lang.ArrayUtils;
+import com.google.common.collect.Sets;
 
 import javax.annotation.Nullable;
+import java.util.Set;
 
 public class CompositeCallInterceptor extends AbstractCallInterceptor implements SignatureAwareCallInterceptor, PropertyAwareCallInterceptor {
 
@@ -31,8 +32,8 @@ public class CompositeCallInterceptor extends AbstractCallInterceptor implements
     }
 
     @Override
-    public Object doIntercept(Invocation invocation, String consumer) throws Throwable {
-        return first.doIntercept(new Invocation() {
+    public Object intercept(Invocation invocation, String consumer) throws Throwable {
+        return first.intercept(new Invocation() {
             @Override
             public Object getReceiver() {
                 return invocation.getReceiver();
@@ -50,14 +51,14 @@ public class CompositeCallInterceptor extends AbstractCallInterceptor implements
 
             @Override
             public Object callOriginal() throws Throwable {
-                return second.doIntercept(invocation, consumer);
+                return second.intercept(invocation, consumer);
             }
         }, consumer);
     }
 
     @Override
-    public InterceptScope[] getInterceptScopes() {
-        return (InterceptScope[]) ArrayUtils.addAll(first.getInterceptScopes(), second.getInterceptScopes());
+    public Set<InterceptScope> getInterceptScopes() {
+        return Sets.union(first.getInterceptScopes(), second.getInterceptScopes());
     }
 
     @Nullable

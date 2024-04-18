@@ -17,15 +17,12 @@
 package org.gradle.internal.deprecation;
 
 import com.google.common.base.Joiner;
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.problems.internal.DocLink;
 import org.gradle.api.problems.internal.Problem;
 import org.gradle.util.GradleVersion;
 
 import javax.annotation.CheckReturnValue;
 import java.util.List;
-
-import static org.gradle.util.internal.TextUtil.screamingSnakeToKebabCase;
 
 @CheckReturnValue
 public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
@@ -218,7 +215,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
             if (problemIdDisplayName == null) {
                 setProblemIdDisplayName(summary);
             }
-            if(problemId == null) {
+            if (problemId == null) {
                 setProblemId(DeprecationMessageBuilder.createDefaultDeprecationId(createDefaultDeprecationIdDisplayName()));
             }
 
@@ -390,13 +387,47 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         }
     }
 
+    public static final char DASH = '-';
+
     public static String createDefaultDeprecationId(String... ids) {
-        // the replaceAll calls are to ensure that the id is a valid identifier.
-        // it removes all whitespace and non-alphanumeric characters, and replaces multiple dashes with a single dash.
-        return screamingSnakeToKebabCase(StringUtils.join(ids, "-"))
-            .replaceAll("[^a-z-]", "-")
-            .replaceAll("-+", "-")
-            .replaceAll("^-+|-+$", "");
+        StringBuilder sb = new StringBuilder();
+        for (String id : ids) {
+            if (id == null) {
+                continue;
+            }
+            CharSequence cleanId = createDashedId(id);
+            if (cleanId.length() > 0) {
+                sb.append(cleanId);
+                sb.append(DASH);
+            }
+        }
+        removeTrailingDashes(sb);
+        return sb.toString();
+    }
+
+    private static void removeTrailingDashes(StringBuilder sb) {
+        while (sb.length() > 0 && sb.charAt(sb.length() - 1) == DASH) {
+            sb.setLength(sb.length() - 1);
+        }
+    }
+
+    private static CharSequence createDashedId(String id) {
+        StringBuilder cleanId = new StringBuilder();
+        boolean previousWasDash = false;
+        for (int i = 0; i < id.length(); i++) {
+            char c = id.charAt(i);
+            if (Character.isLetter(c)) {
+                previousWasDash = false;
+                cleanId.append(Character.toLowerCase(c));
+            } else {
+                if (previousWasDash) {
+                    continue;
+                }
+                cleanId.append(DASH);
+                previousWasDash = true;
+            }
+        }
+        return cleanId;
     }
 
     public static class DeprecateMethod extends WithReplacement<String, DeprecateMethod> {

@@ -26,7 +26,7 @@ pluginManagement {
 }
 
 plugins {
-    id("com.gradle.develocity").version("3.17") // Sync with `build-logic-commons/build-platform/build.gradle.kts`
+    id("com.gradle.develocity").version("3.17.1") // Sync with `build-logic-commons/build-platform/build.gradle.kts`
     id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.9.1")
     id("org.gradle.toolchains.foojay-resolver-convention") version ("0.8.0")
 //    id("net.ltgt.errorprone").version("3.1.0")
@@ -68,14 +68,15 @@ val core = platform("core") {
 
     // Core Runtime Module
     module("core-runtime") {
-        subproject("base-annotations")
         subproject("base-asm")
         subproject("base-services")
         subproject("bootstrap")
+        subproject("build-configuration")
         subproject("build-operations")
         subproject("build-option")
         subproject("build-profile")
         subproject("cli")
+        subproject("concurrent")
         subproject("distributions-basics")
         subproject("distributions-core")
         subproject("file-temp")
@@ -86,12 +87,16 @@ val core = platform("core") {
         subproject("instrumentation-declarations")
         subproject("internal-instrumentation-api")
         subproject("internal-instrumentation-processor")
+        subproject("io")
+        subproject("java-language-extensions")
         subproject("launcher")
         subproject("logging")
         subproject("logging-api")
         subproject("messaging")
         subproject("native")
         subproject("process-services")
+        subproject("serialization")
+        subproject("time")
         subproject("worker-services")
         subproject("wrapper")
         subproject("wrapper-shared")
@@ -195,6 +200,7 @@ val jvm = platform("jvm") {
     subproject("language-java")
     subproject("language-jvm")
     subproject("toolchains-jvm")
+    subproject("toolchains-jvm-shared")
     subproject("java-compiler-plugin")
     subproject("java-platform")
     subproject("normalization-java")

@@ -17,15 +17,18 @@
 package org.gradle.plugin.software.internal;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.reflect.TypeToken;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.internal.plugins.software.SoftwareType;
 import org.gradle.internal.Cast;
+import org.gradle.internal.properties.annotations.PropertyMetadata;
+import org.gradle.internal.properties.annotations.TypeMetadata;
+import org.gradle.internal.properties.annotations.TypeMetadataWalker;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -33,8 +36,15 @@ import java.util.Set;
  * Default implementation of {@link SoftwareTypeRegistry} that registers software types.
  */
 public class DefaultSoftwareTypeRegistry implements SoftwareTypeRegistry {
-    private final List<Class<? extends Plugin<Project>>> pluginClasses = new ArrayList<>();
+    private final Set<Class<? extends Plugin<Project>>> pluginClasses = new LinkedHashSet<>();
+    private final Map<String, Class<? extends Plugin<Project>>> registeredTypes = new HashMap<>();
     private Set<SoftwareTypeImplementation> softwareTypeImplementations;
+
+    private final InspectionScheme inspectionScheme;
+
+    public DefaultSoftwareTypeRegistry(InspectionScheme inspectionScheme) {
+        this.inspectionScheme = inspectionScheme;
+    }
 
     @Override
     public void register(Class<? extends Plugin<Project>> pluginClass) {
@@ -45,28 +55,13 @@ public class DefaultSoftwareTypeRegistry implements SoftwareTypeRegistry {
     }
 
     private Set<SoftwareTypeImplementation> discoverSoftwareTypeImplementations() {
-        Map<String, Class<? extends Plugin<Project>>> registeredTypes = new HashMap<>();
-        ImmutableSet.Builder<SoftwareTypeImplementation> softwareTypeImplementations = ImmutableSet.builder();
+        final ImmutableSet.Builder<SoftwareTypeImplementation> softwareTypeImplementationsBuilder = ImmutableSet.builder();
         pluginClasses.forEach(pluginClass -> {
-            Arrays.stream(pluginClass.getDeclaredMethods()).filter(method -> method.isAnnotationPresent(SoftwareType.class)).forEach(method -> {
-                SoftwareType softwareType = method.getAnnotation(SoftwareType.class);
-                if (registeredTypes.get(softwareType.name()) != pluginClass) {
-                    if (registeredTypes.containsKey(softwareType.name())) {
-                        throw new IllegalArgumentException("Software type '" + softwareType.name() + "' is registered by both '" + pluginClass.getName() + "' and '" + registeredTypes.get(softwareType.name()).getName() + "'");
-                    }
-                    registeredTypes.put(softwareType.name(), pluginClass);
-                    softwareTypeImplementations.add(
-                        new DefaultSoftwareTypeImplementation(
-                            softwareType.name(),
-                            softwareType.modelPublicType(),
-                            Cast.uncheckedNonnullCast(pluginClass)
-                        )
-                    );
-                }
-            });
-
+            TypeToken<?> pluginType = TypeToken.of(pluginClass);
+            TypeMetadataWalker.typeWalker(inspectionScheme.getMetadataStore(), SoftwareType.class)
+                .walk(pluginType, new SoftwareTypeImplementationRecordingVisitor(pluginClass, registeredTypes, softwareTypeImplementationsBuilder));
         });
-        return softwareTypeImplementations.build();
+        return softwareTypeImplementationsBuilder.build();
     }
 
     @Override
@@ -75,5 +70,44 @@ public class DefaultSoftwareTypeRegistry implements SoftwareTypeRegistry {
             softwareTypeImplementations = discoverSoftwareTypeImplementations();
         }
         return softwareTypeImplementations;
+    }
+
+    @Override
+    public boolean isRegistered(Class<? extends Plugin<?>> pluginClass) {
+        return pluginClasses.stream().anyMatch(registered -> registered.isAssignableFrom(pluginClass));
+    }
+
+    private static class SoftwareTypeImplementationRecordingVisitor implements TypeMetadataWalker.StaticMetadataVisitor {
+        private final Class<? extends Plugin<Project>> pluginClass;
+        private final Map<String, Class<? extends Plugin<Project>>> registeredTypes;
+        private final ImmutableSet.Builder<SoftwareTypeImplementation> softwareTypeImplementationsBuilder;
+
+        public SoftwareTypeImplementationRecordingVisitor(Class<? extends Plugin<Project>> pluginClass, Map<String, Class<? extends Plugin<Project>>> registeredTypes, ImmutableSet.Builder<SoftwareTypeImplementation> softwareTypeImplementationsBuilder) {
+            this.pluginClass = pluginClass;
+            this.registeredTypes = registeredTypes;
+            this.softwareTypeImplementationsBuilder = softwareTypeImplementationsBuilder;
+        }
+
+        @Override
+        public void visitRoot(TypeMetadata typeMetadata, TypeToken<?> value) {
+        }
+
+        @Override
+        public void visitNested(TypeMetadata typeMetadata, String qualifiedName, PropertyMetadata propertyMetadata, TypeToken<?> value) {
+            propertyMetadata.getAnnotation(SoftwareType.class).ifPresent(softwareType -> {
+                Class<? extends Plugin<Project>> existingPluginClass = registeredTypes.put(softwareType.name(), pluginClass);
+                if (existingPluginClass != null && existingPluginClass != pluginClass) {
+                    throw new IllegalArgumentException("Software type '" + softwareType.name() + "' is registered by both '" + pluginClass.getName() + "' and '" + existingPluginClass.getName() + "'");
+                }
+
+                softwareTypeImplementationsBuilder.add(
+                    new DefaultSoftwareTypeImplementation(
+                        softwareType.name(),
+                        softwareType.modelPublicType(),
+                        Cast.uncheckedNonnullCast(pluginClass)
+                    )
+                );
+            });
+        }
     }
 }

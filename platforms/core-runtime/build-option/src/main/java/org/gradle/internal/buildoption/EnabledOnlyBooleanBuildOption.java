@@ -28,18 +28,18 @@ import java.util.Map;
  */
 public abstract class EnabledOnlyBooleanBuildOption<T> extends AbstractBuildOption<T, CommandLineOptionConfiguration> {
 
-    public EnabledOnlyBooleanBuildOption(String gradleProperty) {
-        super(gradleProperty, new CommandLineOptionConfiguration[] {});
+    public EnabledOnlyBooleanBuildOption(String property) {
+        super(property, new CommandLineOptionConfiguration[] {});
     }
 
-    public EnabledOnlyBooleanBuildOption(String gradleProperty, CommandLineOptionConfiguration... commandLineOptionConfigurations) {
-        super(gradleProperty, commandLineOptionConfigurations);
+    public EnabledOnlyBooleanBuildOption(String property, CommandLineOptionConfiguration... commandLineOptionConfigurations) {
+        super(property, commandLineOptionConfigurations);
     }
 
     @Override
     public void applyFromProperty(Map<String, String> properties, T settings) {
-        if (properties.get(gradleProperty) != null) {
-            applyTo(settings, Origin.forGradleProperty(gradleProperty));
+        if (properties.get(property) != null) {
+            applyTo(settings, propertyOrigin.toOrigin(property));
         }
     }
 

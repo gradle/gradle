@@ -27,7 +27,7 @@ errorprone {
 }
 
 dependencies {
-    api(project(":base-annotations"))
+    api(projects.javaLanguageExtensions)
     api(project(":base-services"))
     api(project(":core"))
     api(project(":core-api"))
@@ -36,7 +36,7 @@ dependencies {
     api(project(":language-jvm"))
     api(project(":model-core"))
     api(project(":platform-jvm"))
-    api(project(":toolchains-jvm"))
+    api(project(":toolchains-jvm-shared"))
 
     api(libs.groovy)
     api(libs.inject)
@@ -48,6 +48,7 @@ dependencies {
     implementation(project(":reporting"))
     implementation(project(":testing-base"))
     implementation(project(":testing-jvm"))
+    implementation(project(":toolchains-jvm"))
 
     implementation(libs.commonsLang)
     implementation(libs.guava)

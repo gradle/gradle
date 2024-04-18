@@ -16,7 +16,7 @@ errorprone {
 
 dependencies {
 
-    api(project(":base-annotations"))
+    api(projects.javaLanguageExtensions)
 
     implementation(project(":files")) {
         because("We need org.gradle.internal.file.PathTraversalChecker")

@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.InputArtifactDependencies;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
+import org.gradle.api.internal.plugins.software.SoftwareType;
 import org.gradle.api.internal.project.taskfactory.DefaultTaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
@@ -39,6 +40,7 @@ import org.gradle.api.internal.tasks.properties.annotations.OutputFilePropertyAn
 import org.gradle.api.internal.tasks.properties.annotations.OutputFilesPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.UntrackedTaskTypeAnnotationHandler;
 import org.gradle.api.model.ReplacedBy;
+import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes;
 import org.gradle.api.provider.Property;
 import org.gradle.api.services.ServiceReference;
 import org.gradle.api.tasks.CacheableTask;
@@ -117,7 +119,8 @@ public class ExecutionGlobalServices {
         OutputDirectory.class,
         OutputFile.class,
         OutputFiles.class,
-        ServiceReference.class
+        ServiceReference.class,
+        SoftwareType.class
     );
 
     @VisibleForTesting
@@ -143,7 +146,8 @@ public class ExecutionGlobalServices {
                 CacheableTask.class,
                 CacheableTransform.class,
                 DisableCachingByDefault.class,
-                UntrackedTask.class
+                UntrackedTask.class,
+                RegistersSoftwareTypes.class
             ),
             ModifierAnnotationCategory.asMap(builder.build()),
             ImmutableSet.of(
@@ -313,6 +317,7 @@ public class ExecutionGlobalServices {
         Collection<Class<? extends Annotation>> getAnnotations();
     }
 
+    @ServiceScope(Scope.Global.class)
     interface AnnotationHandlerRegistar {
         void registerPropertyTypeAnnotations(ImmutableSet.Builder<Class<? extends Annotation>> builder);
     }

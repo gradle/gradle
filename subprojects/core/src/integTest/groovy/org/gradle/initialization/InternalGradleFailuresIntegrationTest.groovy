@@ -58,7 +58,7 @@ class InternalGradleFailuresIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         cachesDir.isFile()
-        assertHasStartupFailure(failure, "Cannot create parent directory '${executer.gradleUserHomeDir.file("caches")}")
+        assertHasStartupFailure(failure, "Cannot create directory '${executer.gradleUserHomeDir.file("caches")}")
     }
 
     def "Error message due to unwritable Gradle daemon directory is not scary"() {

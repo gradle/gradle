@@ -124,7 +124,7 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
 
         SignatureTree signatureTree = signatureTreeFromRequests(requests);
 
-        MethodSpec doIntercept = MethodSpec.methodBuilder("doIntercept")
+        MethodSpec interceptMethod = MethodSpec.methodBuilder("intercept")
             .addAnnotation(Override.class)
             .addModifiers(Modifier.PUBLIC)
             .returns(Object.class)
@@ -145,7 +145,7 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
             .addCode(generateMatchesSignatureCodeFromInterceptorSignatureTree(signatureTree))
             .build();
 
-        generatedClass.addMethod(doIntercept);
+        generatedClass.addMethod(interceptMethod);
         generatedClass.addMethod(matchesSignature);
 
         if (hasGroovyPropertyRequests(requests)) {

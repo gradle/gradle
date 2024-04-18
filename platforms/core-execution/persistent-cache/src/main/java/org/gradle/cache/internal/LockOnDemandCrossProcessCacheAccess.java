@@ -16,18 +16,18 @@
 
 package org.gradle.cache.internal;
 
-import org.gradle.api.Action;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.FileLockReleasedSignal;
 import org.gradle.cache.LockOptions;
-import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.concurrent.locks.Lock;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public class LockOnDemandCrossProcessCacheAccess extends AbstractCrossProcessCacheAccess {
     private static final Logger LOGGER = LoggerFactory.getLogger(LockOnDemandCrossProcessCacheAccess.class);
@@ -36,13 +36,13 @@ public class LockOnDemandCrossProcessCacheAccess extends AbstractCrossProcessCac
     private final LockOptions lockOptions;
     private final FileLockManager lockManager;
     private final Lock stateLock;
-    private final Action<FileLock> onOpen;
-    private final Action<FileLock> onClose;
+    private final Consumer<FileLock> onOpen;
+    private final Consumer<FileLock> onClose;
     private final Runnable unlocker;
-    private final Action<FileLockReleasedSignal> whenContended;
+    private final Consumer<FileLockReleasedSignal> whenContended;
     private int lockCount;
     private FileLock fileLock;
-    private CacheInitializationAction initAction;
+    private final CacheInitializationAction initAction;
     private FileLockReleasedSignal lockReleaseSignal;
 
     /**
@@ -52,7 +52,7 @@ public class LockOnDemandCrossProcessCacheAccess extends AbstractCrossProcessCac
      * @param onOpen Action to run when the lock is opened. Action is called while holding state lock
      * @param onClose Action to run when the lock is closed. Action is called while holding state lock
      */
-    public LockOnDemandCrossProcessCacheAccess(String cacheDisplayName, File lockTarget, LockOptions lockOptions, FileLockManager lockManager, Lock stateLock, CacheInitializationAction initAction, Action<FileLock> onOpen, Action<FileLock> onClose) {
+    public LockOnDemandCrossProcessCacheAccess(String cacheDisplayName, File lockTarget, LockOptions lockOptions, FileLockManager lockManager, Lock stateLock, CacheInitializationAction initAction, Consumer<FileLock> onOpen, Consumer<FileLock> onClose) {
         this.cacheDisplayName = cacheDisplayName;
         this.lockTarget = lockTarget;
         this.lockOptions = lockOptions;
@@ -84,10 +84,10 @@ public class LockOnDemandCrossProcessCacheAccess extends AbstractCrossProcessCac
     }
 
     @Override
-    public <T> T withFileLock(Factory<T> factory) {
+    public <T> T withFileLock(Supplier<T> factory) {
         incrementLockCount();
         try {
-            return factory.create();
+            return factory.get();
         } finally {
             decrementLockCount();
         }
@@ -106,14 +106,9 @@ public class LockOnDemandCrossProcessCacheAccess extends AbstractCrossProcessCac
                 fileLock = lockManager.lock(lockTarget, lockOptions, cacheDisplayName, "", whenContended);
                 try {
                     if (initAction.requiresInitialization(fileLock)) {
-                        fileLock.writeFile(new Runnable() {
-                            @Override
-                            public void run() {
-                                initAction.initialize(fileLock);
-                            }
-                        });
+                        fileLock.writeFile(() -> initAction.initialize(fileLock));
                     }
-                    onOpen.execute(fileLock);
+                    onOpen.accept(fileLock);
                 } catch (Exception e) {
                     fileLock.close();
                     fileLock = null;
@@ -149,7 +144,7 @@ public class LockOnDemandCrossProcessCacheAccess extends AbstractCrossProcessCac
             LOGGER.debug("Releasing file lock for {}", cacheDisplayName);
         }
         try {
-            onClose.execute(fileLock);
+            onClose.accept(fileLock);
         } finally {
             try {
                 fileLock.close();
@@ -169,9 +164,9 @@ public class LockOnDemandCrossProcessCacheAccess extends AbstractCrossProcessCac
         return unlocker;
     }
 
-    private class ContendedAction implements Action<FileLockReleasedSignal> {
+    private class ContendedAction implements Consumer<FileLockReleasedSignal> {
         @Override
-        public void execute(FileLockReleasedSignal signal) {
+        public void accept(FileLockReleasedSignal signal) {
             stateLock.lock();
             try {
                 if (lockCount == 0) {

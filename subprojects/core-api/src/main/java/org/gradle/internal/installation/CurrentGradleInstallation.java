@@ -16,11 +16,15 @@
 
 package org.gradle.internal.installation;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 import javax.annotation.Nullable;
 
 /**
  * Provides access to the current Gradle installation associated with the runtime.
  */
+@ServiceScope({Scope.Global.class, Scope.Build.class})
 public class CurrentGradleInstallation {
 
     private static CurrentGradleInstallation instance;

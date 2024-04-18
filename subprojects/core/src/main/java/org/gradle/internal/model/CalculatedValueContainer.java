@@ -24,6 +24,7 @@ import org.gradle.api.internal.tasks.WorkNodeAction;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.Try;
 import org.gradle.internal.resources.ProjectLeaseRegistry;
+import org.gradle.internal.service.ServiceLookupException;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -85,6 +86,7 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
     }
 
     @Override
+    @Nullable
     public T getOrNull() {
         Try<T> result = this.result;
         if (result != null) {
@@ -224,7 +226,7 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
                 Try<T> result = Try.ofFailable(() -> {
                     NodeExecutionContext effectiveContext = context;
                     if (effectiveContext == null) {
-                        effectiveContext = defaultContext;
+                        effectiveContext = new GlobalContext(defaultContext);
                     }
                     T value = supplier.calculateValue(effectiveContext);
                     if (value == null) {
@@ -252,6 +254,30 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
 
         private void releaseLock() {
             lock.unlock();
+        }
+    }
+
+    /**
+     * Used when calculating the value outside of an execution graph.
+     * <p>
+     * In that case we need to use the global context and not the context that would be created as
+     * part of executing the execution graph.
+     */
+    private static class GlobalContext implements NodeExecutionContext {
+        private final NodeExecutionContext delegate;
+
+        public GlobalContext(NodeExecutionContext delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public <T> T getService(Class<T> type) throws ServiceLookupException {
+            return delegate.getService(type);
+        }
+
+        @Override
+        public boolean isPartOfExecutionGraph() {
+            return false;
         }
     }
 }

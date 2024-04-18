@@ -11,7 +11,7 @@ errorprone {
 }
 
 dependencies {
-    api(project(":base-annotations"))
+    api(projects.javaLanguageExtensions)
     api(project(":base-services"))
     api(project(":core"))
     api(project(":core-api"))
@@ -24,12 +24,14 @@ dependencies {
     api(project(":platform-base"))
     api(project(":platform-jvm"))
     api(project(":toolchains-jvm"))
+    api(project(":toolchains-jvm-shared"))
     api(project(":workers"))
 
     api(libs.groovy)
     api(libs.inject)
     api(libs.jsr305)
 
+    implementation(projects.time)
     implementation(project(":dependency-management"))
     implementation(project(":file-collections"))
     implementation(project(":logging"))

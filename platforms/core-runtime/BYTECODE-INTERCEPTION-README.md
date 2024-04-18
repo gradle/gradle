@@ -211,7 +211,7 @@ public static class SetSourceCompatibilityCallInterceptor extends CallIntercepto
     }
 
     @Override
-    public Object doIntercept(Invocation invocation, String consumer) throws Throwable {
+    public Object intercept(Invocation invocation, String consumer) throws Throwable {
         Object receiver = invocation.getReceiver();
         if (receiver instanceof JavaCompile) {
             File receiverTyped = (JavaCompile) receiver;

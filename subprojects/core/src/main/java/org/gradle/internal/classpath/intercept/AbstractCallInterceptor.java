@@ -16,12 +16,14 @@
 
 package org.gradle.internal.classpath.intercept;
 
+import com.google.common.collect.ImmutableSet;
 import org.codehaus.groovy.vmplugin.v8.IndyInterface;
 import org.gradle.api.GradleException;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
+import java.util.Set;
 
 public abstract class AbstractCallInterceptor implements CallInterceptor {
     private static final MethodHandles.Lookup LOOKUP = MethodHandles.lookup();
@@ -36,10 +38,10 @@ public abstract class AbstractCallInterceptor implements CallInterceptor {
         }
     }
 
-    private final InterceptScope[] interceptScopes;
+    private final Set<InterceptScope> interceptScopes;
 
     protected AbstractCallInterceptor(InterceptScope... interceptScopes) {
-        this.interceptScopes = interceptScopes;
+        this.interceptScopes = ImmutableSet.copyOf(interceptScopes);
     }
 
     @Override
@@ -51,11 +53,11 @@ public abstract class AbstractCallInterceptor implements CallInterceptor {
 
     private Object interceptMethodHandle(MethodHandle original, int flags, String consumer, Object[] args) throws Throwable {
         boolean isSpread = (flags & IndyInterface.SPREAD_CALL) != 0;
-        return doIntercept(new MethodHandleInvocation(original, args, isSpread), consumer);
+        return intercept(new MethodHandleInvocation(original, args, isSpread), consumer);
     }
 
     @Override
-    public InterceptScope[] getInterceptScopes() {
+    public Set<InterceptScope> getInterceptScopes() {
         return interceptScopes;
     }
 }

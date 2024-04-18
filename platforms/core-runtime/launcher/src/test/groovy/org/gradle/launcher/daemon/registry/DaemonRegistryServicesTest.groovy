@@ -15,6 +15,7 @@
  */
 package org.gradle.launcher.daemon.registry
 
+import org.gradle.api.JavaVersion
 import org.gradle.cache.FileLockManager
 import org.gradle.cache.internal.DefaultFileLockManager
 import org.gradle.cache.internal.ProcessMetaDataProvider
@@ -63,6 +64,7 @@ class DaemonRegistryServicesTest extends Specification {
                 def context = new DefaultDaemonContext(
                     "$idx",
                     new File("$idx"),
+                    JavaVersion.current(),
                     new File("$idx"),
                     idx,
                     5000,

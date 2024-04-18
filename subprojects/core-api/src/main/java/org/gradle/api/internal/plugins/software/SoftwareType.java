@@ -26,7 +26,7 @@ import java.lang.annotation.Target;
 /**
  * Marks a method as exposing a software type.  This should be used in plugin classes to communicate which software types they provide.
  *
- * @since 8.8
+ * @since 8.9
  */
 @Incubating
 @Target({ElementType.METHOD})
@@ -35,14 +35,15 @@ public @interface SoftwareType {
     /**
      * The name of the software type.  This will correspond to the DSL element that is exposed to configure the software type.
      *
-     * @since 8.8
+     * @since 8.9
      */
     String name();
 
     /**
-     * The model type used to configure the software type.  Note that the actual return type of the method may be a subtype of this type.
+     * The model type used to configure the software type.  Note that this class should be the same type or a super type of the return type
+     * of the method that this annotation is applied to.
      *
-     * @since 8.8
+     * @since 8.9
      */
     Class<?> modelPublicType();
 }

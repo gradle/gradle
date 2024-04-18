@@ -14,6 +14,7 @@ object PublicApi {
         "org/gradle/api/**",
         "org/gradle/authentication/**",
         "org/gradle/build/**",
+        "org/gradle/buildconfiguration/**",
         "org/gradle/buildinit/**",
         "org/gradle/caching/**",
         "org/gradle/concurrent/**",

@@ -33,15 +33,15 @@ public abstract class ClassBoundCallInterceptor extends AbstractCallInterceptor 
     }
 
     @Override
-    public final Object doIntercept(Invocation invocation, String consumer) throws Throwable {
+    public final Object intercept(Invocation invocation, String consumer) throws Throwable {
         if (!expectedReceiver.equals(invocation.getReceiver())) {
             return invocation.callOriginal();
         }
-        return doInterceptSafe(invocation, consumer);
+        return interceptSafe(invocation, consumer);
     }
 
     /**
-     * Same as the {@link AbstractCallInterceptor#doIntercept(Invocation, String)} but the {@code invocation.getReceiver()} is guaranteed
+     * Same as the {@link AbstractCallInterceptor#intercept(Invocation, String)} but the {@code invocation.getReceiver()} is guaranteed
      * to be the {@code expectedReceiver} passed to the constructor.
      *
      * @param invocation the arguments supplied by the caller
@@ -49,5 +49,5 @@ public abstract class ClassBoundCallInterceptor extends AbstractCallInterceptor 
      * @return the value to return to the caller
      * @throws Throwable if necessary to propagate it to the caller
      */
-    protected abstract Object doInterceptSafe(Invocation invocation, String consumer) throws Throwable;
+    protected abstract Object interceptSafe(Invocation invocation, String consumer) throws Throwable;
 }

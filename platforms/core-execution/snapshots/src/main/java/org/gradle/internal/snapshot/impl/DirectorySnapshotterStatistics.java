@@ -16,6 +16,9 @@
 
 package org.gradle.internal.snapshot.impl;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
@@ -45,6 +48,7 @@ public interface DirectorySnapshotterStatistics {
      */
     long getFailedFiles();
 
+    @ServiceScope(Scope.Global.class)
     class Collector {
         private final AtomicLong hierarchyCount = new AtomicLong();
         private final AtomicLong directoryCount = new AtomicLong();

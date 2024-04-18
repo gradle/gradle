@@ -35,11 +35,13 @@ import org.gradle.cache.internal.DefaultFileLockManager;
 import org.gradle.cache.internal.DefaultProcessMetaDataProvider;
 import org.gradle.cache.internal.locklistener.DefaultFileLockContentionHandler;
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler;
+import org.gradle.cache.internal.locklistener.InetAddressProvider;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.event.ScopedListenerManager;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.jvm.inspection.CachingJvmMetadataDetector;
 import org.gradle.internal.jvm.inspection.DefaultJvmMetadataDetector;
@@ -58,6 +60,8 @@ import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.process.internal.ExecFactory;
 import org.gradle.process.internal.ExecHandleFactory;
 
+import java.net.InetAddress;
+
 /**
  * Defines the basic global services of a given process. This includes the Gradle CLI, daemon and tooling API provider. These services
  * should be as few as possible to keep the CLI startup fast. Global services that are only needed for the process running the build should go in
@@ -65,7 +69,7 @@ import org.gradle.process.internal.ExecHandleFactory;
  */
 public class BasicGlobalScopeServices {
     void configure(ServiceRegistration serviceRegistration) {
-        serviceRegistration.add(DefaultFileLookup.class);
+        serviceRegistration.add(FileLookup.class, DefaultFileLookup.class);
         serviceRegistration.addProvider(new MessagingServices());
     }
 
@@ -76,11 +80,20 @@ public class BasicGlobalScopeServices {
             fileLockContentionHandler);
     }
 
-
-    DefaultFileLockContentionHandler createFileLockContentionHandler(ExecutorFactory executorFactory, InetAddressFactory inetAddressFactory) {
+    FileLockContentionHandler createFileLockContentionHandler(ExecutorFactory executorFactory, InetAddressFactory inetAddressFactory) {
         return new DefaultFileLockContentionHandler(
             executorFactory,
-            inetAddressFactory);
+            new InetAddressProvider() {
+                @Override
+                public InetAddress getWildcardBindingAddress() {
+                    return inetAddressFactory.getWildcardBindingAddress();
+                }
+
+                @Override
+                public Iterable<InetAddress> getCommunicationAddresses() {
+                    return inetAddressFactory.getCommunicationAddresses();
+                }
+            });
     }
 
     ExecutorFactory createExecutorFactory() {
@@ -130,11 +143,11 @@ public class BasicGlobalScopeServices {
         return patternSpecFactory;
     }
 
-    protected Factory<PatternSet> createPatternSetFactory(final PatternSpecFactory patternSpecFactory) {
+    Factory<PatternSet> createPatternSetFactory(final PatternSpecFactory patternSpecFactory) {
         return PatternSets.getPatternSetFactory(patternSpecFactory);
     }
 
-    DefaultListenerManager createListenerManager() {
+    ScopedListenerManager createListenerManager() {
         return new DefaultListenerManager(Global.class);
     }
 }

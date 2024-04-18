@@ -111,10 +111,6 @@ dependencies {
     dependencies.registerTransform(FindGradleJars) {
         from.attribute(ARTIFACT_TYPE, 'gradle-libs-dir')
         to.attribute(ARTIFACT_TYPE, 'gradle-baseline-jars')
-        parameters {
-            currentJars.from(currentDistroJars)
-            currentVersion.set(baseVersion)
-        }
     }
 }
 
@@ -155,7 +151,7 @@ def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", gradle
         it.destinationDir = file("$buildDir/reports/binary-compatibility")
         it.reportName = "report.html"
         it.description = """
-            <p>See the <a href="https://docs.google.com/document/d/1KA5yI4HL18qOeXjXLTMMD_upkDbNUzTDGNfBGYdQlYw/edit#heading=h.9yqcmqviz47z">documentation</a> for more details.</p>
+            <p>See the <a href="https://bt-internal-docs.grdev.net/gbt/how-to/release/release-troubleshooting/#binary-compatibility-check-failed-">documentation</a> for more details.</p>
             <p>
             We check the binary compatibility by comparing the current code’s binary interfaces
             against THE LATEST VERSION WHICH IS RELEASED FROM RELEASE BRANCH (from `released-version.json` on this branch)

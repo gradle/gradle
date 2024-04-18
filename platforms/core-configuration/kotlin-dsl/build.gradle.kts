@@ -13,6 +13,7 @@ dependencies {
     api(libs.futureKotlin("stdlib"))
     api(libs.futureKotlin("reflect"))
 
+    implementation(projects.io)
     implementation(project(":base-services"))
     implementation(project(":enterprise-operations"))
     implementation(project(":functional"))

@@ -27,7 +27,7 @@ dependencies {
     api(libs.inject)
     api(libs.jsr305)
 
-    implementation(project(":base-annotations"))
+    implementation(projects.javaLanguageExtensions)
     implementation(project(":base-services"))
     implementation(project(":language-java"))
     implementation(project(":language-jvm"))
@@ -39,6 +39,7 @@ dependencies {
     implementation(project(":plugins-java-base"))
     implementation(project(":process-services"))
     implementation(project(":toolchains-jvm"))
+    implementation(project(":toolchains-jvm-shared"))
 
     implementation(libs.ant)
     implementation(libs.commonsLang)

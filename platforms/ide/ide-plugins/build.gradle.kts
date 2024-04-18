@@ -29,7 +29,7 @@ errorprone {
 }
 
 dependencies {
-    api(project(":base-annotations"))
+    api(projects.javaLanguageExtensions)
     api(project(":base-ide-plugins"))
     api(project(":base-services"))
     api(project(":core"))

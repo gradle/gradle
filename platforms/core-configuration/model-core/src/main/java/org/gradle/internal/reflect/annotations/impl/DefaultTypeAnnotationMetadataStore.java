@@ -54,6 +54,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -85,6 +86,11 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
 
         @Override
         public void visitValidationFailures(TypeValidationContext validationContext) {
+        }
+
+        @Override
+        public <T extends Annotation> Optional<T> getAnnotation(Class<T> annotationType) {
+            return Optional.empty();
         }
     };
 

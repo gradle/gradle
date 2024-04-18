@@ -29,7 +29,7 @@ errorprone {
 }
 
 dependencies {
-    api(project(":base-annotations"))
+    api(projects.javaLanguageExtensions)
     api(project(":base-services"))
     api(project(":build-operations"))
     api(project(":core"))
@@ -45,6 +45,7 @@ dependencies {
     api(project(":platform-base"))
     api(project(":platform-jvm"))
     api(project(":resources"))
+    api(project(":toolchains-jvm-shared"))
 
     api(libs.futureKotlin("stdlib"))
     api(libs.inject)
@@ -56,7 +57,6 @@ dependencies {
     implementation(project(":logging"))
 
     implementation(libs.commonsIo)
-    implementation(libs.commonsLang)
     implementation(libs.guava)
     implementation(libs.slf4jApi)
 
@@ -78,7 +78,6 @@ dependencies {
 
 packageCycles {
     // Needed for the factory methods in the interface
-    excludePatterns.add("org/gradle/jvm/toolchain/JavaLanguageVersion**")
     excludePatterns.add("org/gradle/jvm/toolchain/**")
 }
 

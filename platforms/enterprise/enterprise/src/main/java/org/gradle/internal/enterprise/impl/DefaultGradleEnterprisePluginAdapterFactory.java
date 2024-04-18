@@ -23,7 +23,7 @@ import org.gradle.internal.operations.notify.BuildOperationNotificationListenerR
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-@ServiceScope(Scope.Gradle.class)
+@ServiceScope(Scope.Build.class)
 public class DefaultGradleEnterprisePluginAdapterFactory {
 
     private final GradleEnterprisePluginConfig config;
