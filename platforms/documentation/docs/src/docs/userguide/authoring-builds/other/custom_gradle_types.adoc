@@ -367,7 +367,7 @@ NOTE: You can also extend link:{groovyDslPath}/org.gradle.api.artifacts.dsl.Grad
 [source.multi-language-sample,java]
 .ExampleDependencies.java
 ----
-include::{snippetsPath}/plugins/dependenciesBlock/kotlin/buildSrc/src/main/java/com/example/ExampleDependencies.java[tags=custom-dependencies-type]
+include::{snippetsPath}/plugins/dependenciesBlock/common/buildSrc/src/main/java/com/example/ExampleDependencies.java[tags=custom-dependencies-type]
 ----
 ====
 
@@ -380,7 +380,7 @@ For each dependency scope your plugin wants to support, add a getter method that
 [source.multi-language-sample,java]
 .ExampleDependencies.java
 ----
-include::{snippetsPath}/plugins/dependenciesBlock/kotlin/buildSrc/src/main/java/com/example/ExampleDependencies.java[tags=custom-dependencies-scopes]
+include::{snippetsPath}/plugins/dependenciesBlock/common/buildSrc/src/main/java/com/example/ExampleDependencies.java[tags=custom-dependencies-scopes]
 ----
 ====
 
@@ -396,7 +396,7 @@ This method could be named something else, but users would need to know that a d
 [source.multi-language-sample,java]
 .ExampleExtension.java
 ----
-include::{snippetsPath}/plugins/dependenciesBlock/kotlin/buildSrc/src/main/java/com/example/ExampleExtension.java[tags=dependencies-accessors]
+include::{snippetsPath}/plugins/dependenciesBlock/common/buildSrc/src/main/java/com/example/ExampleExtension.java[tags=dependencies-accessors]
 ----
 ====
 
@@ -410,7 +410,7 @@ be available to dependency resolution.
 [source.multi-language-sample,java]
 .ExamplePlugin.java
 ----
-include::{snippetsPath}/plugins/dependenciesBlock/kotlin/buildSrc/src/main/java/com/example/ExamplePlugin.java[tags=wire-dependencies]
+include::{snippetsPath}/plugins/dependenciesBlock/common/buildSrc/src/main/java/com/example/ExamplePlugin.java[tags=wire-dependencies]
 ----
 ====
 
