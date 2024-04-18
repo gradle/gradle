@@ -341,7 +341,7 @@ Compared to `NamedDomainObjectContainer`, a `DomainObjectSet` doesn't manage the
 You can create an instance using the link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#domainObjectSet-java.lang.Class-[ObjectFactory.domainObjectSet()] method.
 
 [[custom_dependencies_blocks]]
-== Plugin provided `dependencies` block
+== Custom plugin provided `dependencies` block
 
 NOTE: Custom `dependencies` blocks are based on incubating APIs.
 
@@ -353,12 +353,12 @@ can be used consistently.
 === Adding a custom `dependencies` block
 
 To add a custom `dependencies` block, you need to create a new type that will represent the set of dependency scopes available to users.
-That new type needs to be accessible from a part of your plugin (a domain object or extension).
+That new type needs to be accessible from a part of your plugin (from a domain object or extension).
 Finally, the dependency scopes need to be wired back to underlying `Configuration` objects that will be used during dependency resolution.
 
 See link:{groovyDslPath}/org.gradle.api.plugins.jvm.JvmComponentDependencies.html[JvmComponentDependencies] and link:{groovyDslPath}/org.gradle.api.plugins.jvm.JvmTestSuite.html[JvmTestSuite] for an example of how this is used in a Gradle core plugin.
 
-==== Create an interface that extends `Dependencies`
+==== 1. Create an interface that extends `Dependencies`
 
 NOTE: You can also extend link:{groovyDslPath}/org.gradle.api.artifacts.dsl.GradleDependencies.html[GradleDependencies] to get access to Gradle-provided dependencies like `gradleApi()`.
 
@@ -371,7 +371,7 @@ include::{snippetsPath}/plugins/dependenciesBlock/kotlin/buildSrc/src/main/java/
 ----
 ====
 
-==== Add accessors for dependency scopes
+==== 2. Add accessors for dependency scopes
 
 For each dependency scope your plugin wants to support, add a getter method that returns a `DependencyCollector`.
 
@@ -384,7 +384,7 @@ include::{snippetsPath}/plugins/dependenciesBlock/kotlin/buildSrc/src/main/java/
 ----
 ====
 
-==== Add accessors for custom `dependencies` block
+==== 3. Add accessors for custom `dependencies` block
 
 To make the custom `dependencies` block configurable, the plugin needs to add a `getDependencies` method that returns the new type from above and a configurable block method named `dependencies`.
 
@@ -397,26 +397,35 @@ include::{snippetsPath}/plugins/dependenciesBlock/kotlin/buildSrc/src/main/java/
 ----
 ====
 
-==== Wire dependency scopes to `Configuration`s
+==== 4. Wire dependency scope to `Configuration`
 
 Finally, the plugin needs to wire the custom `dependencies` block to some underlying `Configuration` objects. If this is not done, none of the dependencies declared in the custom block will
 be available to dependency resolution.
 
 .Wire custom `dependencies`
 ====
-[source.multi-language-sample,kotlin]
-.com.example.custom-dependencies.gradle.kts
+[source.multi-language-sample,java]
+.ExamplePlugin.java
 ----
-include::{snippetsPath}/plugins/dependenciesBlock/kotlin/buildSrc/src/main/kotlin/com.example.custom-dependencies.gradle.kts[tags=wire-dependencies]
-----
-[source.multi-language-sample,groovy]
-.com.example.custom-dependencies.gradle
-----
-include::{snippetsPath}/plugins/dependenciesBlock/groovy/buildSrc/src/main/groovy/com.example.custom-dependencies.gradle[tags=wire-dependencies]
+include::{snippetsPath}/plugins/dependenciesBlock/kotlin/buildSrc/src/main/java/com/example/ExamplePlugin.java[tags=wire-dependencies]
 ----
 ====
 
 NOTE: In this example, the name users will use to add dependencies is "implementation", but the underlying `Configuration` is named `exampleImplementation`.
+
+.Declare dependencies
+====
+[source.multi-language-sample,kotlin]
+.build.gradle.kts
+----
+include::{snippetsPath}/plugins/dependenciesBlock/kotlin/build.gradle.kts[tags=dependencies]
+----
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{snippetsPath}/plugins/dependenciesBlock/groovy/build.gradle[tags=dependencies]
+----
+====
 
 [[sec:differences_with_top_level_dependencies]]
 === Differences between the custom `dependencies` and the top-level `dependencies` blocks

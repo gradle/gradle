@@ -1,9 +1,1 @@
-def example = extensions.create("example", com.example.ExampleExtension)
-
-// tag::wire-dependencies[]
-configurations {
-    dependencyScope("exampleImplementation") {
-        fromDependencyCollector(example.dependencies.implementation)
-    }
-}
-// end::wire-dependencies[]
+pluginManager.apply(com.example.ExamplePlugin)
