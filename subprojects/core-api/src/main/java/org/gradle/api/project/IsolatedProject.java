@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api;
+package org.gradle.api.project;
 
+import org.gradle.api.Incubating;
+import org.gradle.api.Project;
 import org.gradle.api.file.Directory;
 
 /**
