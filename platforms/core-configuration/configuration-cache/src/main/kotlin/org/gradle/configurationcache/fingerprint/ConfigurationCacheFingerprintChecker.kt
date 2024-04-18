@@ -161,10 +161,10 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
             }
             is ConfigurationCacheFingerprint.InputFile -> input.run {
                 return when (checkFileUpToDateStatus(file, hash)) {
-                    UpToDateStatus.FileChanged -> "file '${displayNameOf(file)}' has changed"
-                    UpToDateStatus.Removed -> "file '${displayNameOf(file)}' has been removed"
-                    UpToDateStatus.TypeChanged -> "file '${displayNameOf(file)}' has been replaced by a directory"
-                    UpToDateStatus.Unchanged -> null
+                    FileUpToDateStatus.ContentsChanged -> "file '${displayNameOf(file)}' has changed"
+                    FileUpToDateStatus.Removed -> "file '${displayNameOf(file)}' has been removed"
+                    FileUpToDateStatus.TypeChanged -> "file '${displayNameOf(file)}' has been replaced by a directory"
+                    FileUpToDateStatus.Unchanged -> null
                 }
             }
             is ConfigurationCacheFingerprint.DirectoryChildren -> input.run {
@@ -320,35 +320,26 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
 
     private
     fun isFileUpToDate(file: File, originalHash: HashCode) =
-        checkFileUpToDateStatus(file, originalHash) == UpToDateStatus.Unchanged
+        checkFileUpToDateStatus(file, originalHash) == FileUpToDateStatus.Unchanged
 
-    enum class UpToDateStatus {
+    private
+    enum class FileUpToDateStatus {
         Unchanged,
-        FileChanged,
+        ContentsChanged,
         TypeChanged,
         Removed
     }
 
     private
-    fun checkFileUpToDateStatus(file: File, originalHash: HashCode): UpToDateStatus {
-        val (hashCode, fileType) = host.hashCodeAndTypeOf(file)
-        return doCheckFileUpToDateStatus(originalHash, hashCode, fileType)
-    }
-
-    private
-    fun doCheckFileUpToDateStatus(
-        originalHash: HashCode,
-        snapshotHash: HashCode,
-        snapshotType: FileType
-    ): UpToDateStatus {
+    fun checkFileUpToDateStatus(file: File, originalHash: HashCode): FileUpToDateStatus {
+        val (snapshotHash, snapshotType) = host.hashCodeAndTypeOf(file)
         if (snapshotHash == originalHash) {
-            return UpToDateStatus.Unchanged
+            return FileUpToDateStatus.Unchanged
         }
-
         return when (snapshotType) {
-            FileType.RegularFile -> UpToDateStatus.FileChanged
-            FileType.Directory -> UpToDateStatus.TypeChanged
-            FileType.Missing -> UpToDateStatus.Removed
+            FileType.RegularFile -> FileUpToDateStatus.ContentsChanged
+            FileType.Directory -> FileUpToDateStatus.TypeChanged
+            FileType.Missing -> FileUpToDateStatus.Removed
         }
     }
 
