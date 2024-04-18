@@ -450,6 +450,13 @@ plugins {
 }
 ```
 
+#### Groovy build script compilation build cache support is disabled
+In Gradle 8.7 we announced that [Groovy build script](userguide/groovy_build_script_primer.html) compilation benefits from the remote build cache.
+Due to reports from users about slower compile times with a remote cache, we did further investigation and found that the cache was not providing the expected performance improvements.
+
+We disabled the remote build cache for Groovy build script compilation in this release.
+
+
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================
