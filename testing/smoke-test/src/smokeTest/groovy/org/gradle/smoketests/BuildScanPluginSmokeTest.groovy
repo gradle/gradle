@@ -311,7 +311,7 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         where:
         // isolated projects requires configuration cache support
         version << SUPPORTED_WITH_GRADLE_8_CONFIGURATION_CACHE
-            .findAll { FIRST_VERSION_SUPPORTING_ISOLATED_PROJECTS_FOR_TEST_ACCELERATION <= VersionNumber.parse(it) }
+            .findAll { VersionNumber.parse(it) >= FIRST_VERSION_SUPPORTING_ISOLATED_PROJECTS_FOR_TEST_ACCELERATION }
     }
 
     @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "Isolated projects implies config cache")
