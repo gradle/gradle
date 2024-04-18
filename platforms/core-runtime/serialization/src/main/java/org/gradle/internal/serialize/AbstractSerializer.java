@@ -18,6 +18,9 @@ package org.gradle.internal.serialize;
 
 import com.google.common.base.Objects;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 /**
  * This abstract class provide a sensible default implementation for {@code Serializer} equality. This equality
  * implementation is required to enable cache instance reuse within the same Gradle runtime. Serializers are used
@@ -26,7 +29,7 @@ import com.google.common.base.Objects;
 public abstract class AbstractSerializer<T> implements Serializer<T> {
     public AbstractSerializer() {
         // Tets if this works on Java 6 or 7
-        int ignored = Objects.hashCode(this);
+        Path ignored = Paths.get("ignored");
     }
 
     @Override
