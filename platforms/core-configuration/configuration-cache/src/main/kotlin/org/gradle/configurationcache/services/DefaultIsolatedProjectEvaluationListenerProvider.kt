@@ -16,16 +16,25 @@
 
 package org.gradle.configurationcache.services
 
-import com.google.common.collect.ImmutableList
 import org.gradle.api.IsolatedAction
 import org.gradle.api.Project
 import org.gradle.api.ProjectEvaluationListener
 import org.gradle.api.ProjectState
+import org.gradle.api.invocation.Gradle
+import org.gradle.configurationcache.isolation.IsolatedActionDeserializer
+import org.gradle.configurationcache.isolation.IsolatedActionSerializer
+import org.gradle.configurationcache.isolation.SerializedIsolatedActionGraph
+import org.gradle.configurationcache.serialization.IsolateOwner
+import org.gradle.configurationcache.serialization.serviceOf
 import org.gradle.invocation.IsolatedProjectEvaluationListenerProvider
 
 
 private
 typealias IsolatedProjectAction = IsolatedAction<in Project>
+
+
+private
+typealias IsolatedProjectActionList = Collection<IsolatedProjectAction>
 
 
 internal
@@ -38,25 +47,44 @@ class DefaultIsolatedProjectEvaluationListenerProvider : IsolatedProjectEvaluati
         actions.add(action)
     }
 
-    override fun isolate(): ProjectEvaluationListener? = when {
+    override fun isolateFor(gradle: Gradle): ProjectEvaluationListener? = when {
         actions.isEmpty() -> null
-        else -> IsolatedProjectEvaluationListener(ImmutableList.copyOf(actions).also { actions.clear() })
+        else -> {
+            val isolate = isolate(actions, IsolateOwner.OwnerGradle(gradle))
+            clear()
+            IsolatedProjectEvaluationListener(gradle, isolate)
+        }
     }
 
     override fun clear() {
         actions.clear()
     }
+
+    private
+    fun isolate(actions: Collection<IsolatedProjectAction>, owner: IsolateOwner) =
+        IsolatedActionSerializer(owner, owner.serviceOf(), owner.serviceOf())
+            .serialize(actions)
 }
 
 
 private
-class IsolatedProjectEvaluationListener(private val isolated: ImmutableList<IsolatedProjectAction>) : ProjectEvaluationListener {
+class IsolatedProjectEvaluationListener(
+    private val gradle: Gradle,
+    private val isolated: SerializedIsolatedActionGraph<IsolatedProjectActionList>
+) : ProjectEvaluationListener {
+
     override fun beforeEvaluate(project: Project) {
-        for (action in isolated) {
+        for (action in isolatedActions()) {
             action.execute(project)
         }
     }
 
     override fun afterEvaluate(project: Project, state: ProjectState) {
+    }
+
+    private
+    fun isolatedActions() = IsolateOwner.OwnerGradle(gradle).let { owner ->
+        IsolatedActionDeserializer(owner, owner.serviceOf(), owner.serviceOf())
+            .deserialize(isolated)
     }
 }
