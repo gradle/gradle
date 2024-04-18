@@ -96,6 +96,9 @@ beforeSettings {
 }
 ```
 
+The `buildCache.local.removeUnusedEntriesAfterDays` method is now deprecated.
+If set to a non-default value, this deprecated setting will take precedence over `Settings.caches.buildCache.setRemoveUnusedEntriesAfterDays()`.
+
 <a name="config-cache"></a>
 ### Configuration cache improvements
 
@@ -446,9 +449,6 @@ plugins {
     alias(libs.plugins.myPlugin)
 }
 ```
-
-The `buildCache.local.removeUnusedEntriesAfterDays` method is now deprecated.
-If set to a non-default value, this deprecated setting will take precedence over `Settings.caches.buildCache.setRemoveUnusedEntriesAfterDays()`.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
