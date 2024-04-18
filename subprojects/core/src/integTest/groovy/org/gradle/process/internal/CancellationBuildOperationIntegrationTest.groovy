@@ -18,27 +18,33 @@ package org.gradle.process.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
+import org.junit.Rule
 
 import static org.hamcrest.CoreMatchers.anyOf
 import static org.hamcrest.CoreMatchers.equalTo
 
 class CancellationBuildOperationIntegrationTest extends AbstractIntegrationSpec {
 
+    @Rule
+    BlockingHttpServer server = new BlockingHttpServer()
     BuildOperationsFixture operations = new BuildOperationsFixture(executer, temporaryFolder)
 
     @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
     def "task operations are closed even when interrupting the execution workers"() {
+        server.start()
+        executer.withStackTraceChecksDisabled()
         def parallelTaskCount = 5
         buildFile << """
           ext.workerThreads = new HashSet<>()
           ext.latch = new java.util.concurrent.CountDownLatch(${parallelTaskCount} )
           tasks.register('interrupting') {
             doFirst {
-              rootProject.ext.latch.await()
+              ${server.callFromBuild("before-interrupt")}
               rootProject.ext.workerThreads.each {
-                if (it.name.contains('included builds')) {
+                if (it.stackTrace.any { it.toString().contains("DefaultResourceLockCoordinationService.withStateLock") }) {
                   it.interrupt()
                 }
               }
@@ -54,15 +60,16 @@ class CancellationBuildOperationIntegrationTest extends AbstractIntegrationSpec 
                     doFirst {
                         println 'executing a parallelTask in thread ' + Thread.currentThread()
                         rootProject.ext.workerThreads << Thread.currentThread()
-                        rootProject.ext.latch.countDown()
-                        Thread.sleep(1000)
+                        ${server.callFromBuild("parallel-task-done")}
                     }
                 }
             """
         }
+        def numWorkers = (parallelTaskCount / 2) + 2 as int
 
         when:
-        fails('parallelTask', '--parallel', ':interrupting', "--console=plain", "--max-workers=${(parallelTaskCount / 2) + 2 as int}", '--continue')
+        server.expectConcurrent(numWorkers, ["parallel-task-done"] * parallelTaskCount + ["before-interrupt"] as String[])
+        fails('parallelTask', '--parallel', ':interrupting', "--console=plain", "--max-workers=${numWorkers}", '--continue')
 
         then:
         operations.danglingChildren.empty
