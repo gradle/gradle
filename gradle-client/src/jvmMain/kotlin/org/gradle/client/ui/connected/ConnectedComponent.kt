@@ -11,10 +11,7 @@ import kotlinx.coroutines.withContext
 import org.gradle.client.core.gradle.GradleConnectionParameters
 import org.gradle.client.core.gradle.GradleDistribution
 import org.gradle.client.ui.AppDispatchers
-import org.gradle.client.ui.connected.actions.GetBuildEnvironment
-import org.gradle.client.ui.connected.actions.GetGradleBuild
-import org.gradle.client.ui.connected.actions.GetGradleProject
-import org.gradle.client.ui.connected.actions.GetModelAction
+import org.gradle.client.ui.connected.actions.*
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
@@ -61,7 +58,8 @@ class ConnectedComponent(
     val modelActions = listOf(
         GetBuildEnvironment(),
         GetGradleBuild(),
-        GetGradleProject()
+        GetGradleProject(),
+        GetProjectSchema()
     )
 
     private val scope = coroutineScope(appDispatchers.main + SupervisorJob())

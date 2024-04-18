@@ -64,6 +64,8 @@ kotlin {
             implementation(libs.slf4j.api)
             implementation(libs.logback.classic)
 
+            implementation(files("libs/gradle-declarative-dsl-tooling-models-8.9.jar"))
+
             runtimeOnly(libs.kotlinx.coroutines.swing)
         }
 
