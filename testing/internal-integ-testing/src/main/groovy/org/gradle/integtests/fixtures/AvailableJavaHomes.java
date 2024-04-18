@@ -42,6 +42,8 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.progress.NoOpProgressLoggerFactory;
 import org.gradle.jvm.toolchain.internal.AsdfInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.CurrentInstallationSupplier;
+import org.gradle.jvm.toolchain.internal.DefaultOsXJavaHomeCommand;
+import org.gradle.jvm.toolchain.internal.DefaultToolchainConfiguration;
 import org.gradle.jvm.toolchain.internal.InstallationLocation;
 import org.gradle.jvm.toolchain.internal.InstallationSupplier;
 import org.gradle.jvm.toolchain.internal.IntellijInstallationSupplier;
@@ -284,7 +286,7 @@ public abstract class AvailableJavaHomes {
         DefaultJvmMetadataDetector defaultJvmMetadataDetector =
             new DefaultJvmMetadataDetector(execHandleFactory, temporaryFileProvider);
         JvmMetadataDetector metadataDetector = new CachingJvmMetadataDetector(defaultJvmMetadataDetector);
-        final List<JvmInstallationMetadata> jvms = new JavaInstallationRegistry(defaultInstallationSuppliers(), metadataDetector, new TestBuildOperationRunner(), OperatingSystem.current(), new NoOpProgressLoggerFactory(), new JvmInstallationProblemReporter())
+        final List<JvmInstallationMetadata> jvms = new JavaInstallationRegistry(new DefaultToolchainConfiguration(), defaultInstallationSuppliers(), metadataDetector, new TestBuildOperationRunner(), OperatingSystem.current(), new NoOpProgressLoggerFactory(), new IdentityFileResolver(), Collections::emptySet, new JvmInstallationProblemReporter())
             .toolchains()
             .stream()
             .map(x -> x.metadata)
@@ -308,15 +310,15 @@ public abstract class AvailableJavaHomes {
             new BaseDirJvmLocator("/opt/jdk"),
             new BaseDirJvmLocator("C:\\Program Files\\Java\\"),
             new BaseDirJvmLocator(SystemProperties.getInstance().getUserHome()),
-            new CurrentInstallationSupplier(providerFactory()),
+            new CurrentInstallationSupplier(),
             new EnvVariableJvmLocator(),
             new IntellijInstallationSupplier(providerFactory(), new IdentityFileResolver()),
             new JabbaInstallationSupplier(providerFactory()),
-            new LinuxInstallationSupplier(providerFactory()),
+            new LinuxInstallationSupplier(),
             new MavenToolchainsInstallationSupplier(providerFactory(), new IdentityFileResolver()),
-            new OsXInstallationSupplier(TestFiles.execHandleFactory(), providerFactory(), OperatingSystem.current()),
+            new OsXInstallationSupplier(OperatingSystem.current(), new DefaultOsXJavaHomeCommand(TestFiles.execHandleFactory())),
             new SdkmanInstallationSupplier(providerFactory()),
-            new WindowsInstallationSupplier(windowsRegistry, OperatingSystem.current(), providerFactory())
+            new WindowsInstallationSupplier(windowsRegistry, OperatingSystem.current())
         );
     }
 

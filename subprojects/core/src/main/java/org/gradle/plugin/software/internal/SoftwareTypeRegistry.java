@@ -26,12 +26,19 @@ import java.util.Set;
  */
 public interface SoftwareTypeRegistry {
     /**
-     * Registers a plugin as providing a software type.
+     * Registers a plugin as providing a software type.  Cannot be called again once the list of software types has been
+     * queried via {@link #getSoftwareTypeImplementations()}.
      */
     void register(Class<? extends Plugin<Project>> pluginClass);
 
     /**
-     * Returns a set of the software types available along with their model types and associated plugins.
+     * Returns a set of the software types available along with their model types and associated plugins.  Note that once
+     * method is called, calling {@link #register(Class)} will result in an error.
      */
     Set<SoftwareTypeImplementation> getSoftwareTypeImplementations();
+
+    /**
+     * Returns whether a plugin is registered as providing a software type or not.
+     */
+    boolean isRegistered(Class<? extends Plugin<?>> pluginClass);
 }

@@ -18,11 +18,16 @@ package org.gradle.launcher.daemon.configuration;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.internal.buildconfiguration.BuildPropertiesDefaults;
 import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.JpmsConfiguration;
-import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
+import org.gradle.jvm.toolchain.JvmImplementation;
+import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec;
+import org.gradle.jvm.toolchain.internal.DefaultToolchainConfiguration;
+import org.gradle.jvm.toolchain.internal.ToolchainConfiguration;
 import org.gradle.launcher.configuration.BuildLayoutResult;
+import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria;
 import org.gradle.util.internal.GUtil;
 
 import javax.annotation.Nullable;
@@ -38,10 +43,10 @@ public class DaemonParameters {
     static final int DEFAULT_IDLE_TIMEOUT = 3 * 60 * 60 * 1000;
     public static final int DEFAULT_PERIODIC_CHECK_INTERVAL_MILLIS = 10 * 1000;
 
-    public static final List<String> DEFAULT_JVM_ARGS = ImmutableList.of("-Xmx512m", "-Xms256m", "-XX:MaxPermSize=384m", "-XX:+HeapDumpOnOutOfMemoryError");
-    public static final List<String> DEFAULT_JVM_8_ARGS = ImmutableList.of("-Xmx512m", "-Xms256m", "-XX:MaxMetaspaceSize=384m", "-XX:+HeapDumpOnOutOfMemoryError");
+    public static final List<String> DEFAULT_JVM_ARGS = ImmutableList.of("-Xmx512m", "-Xms256m", "-XX:MaxMetaspaceSize=384m", "-XX:+HeapDumpOnOutOfMemoryError");
     public static final List<String> ALLOW_ENVIRONMENT_VARIABLE_OVERWRITE = ImmutableList.of("--add-opens=java.base/java.util=ALL-UNNAMED");
 
+    private final ToolchainConfiguration toolchainConfiguration = new DefaultToolchainConfiguration();
     private final File gradleUserHomeDir;
 
     private File baseDir;
@@ -59,7 +64,8 @@ public class DaemonParameters {
     private boolean stop;
     private boolean status;
     private Priority priority = Priority.NORMAL;
-    private JavaInfo jvm = Jvm.current();
+    private JavaInfo requestedJvmBasedOnJavaHome;
+    private DaemonJvmCriteria requestedJvmCriteria;
 
     public DaemonParameters(BuildLayoutResult layout, FileCollectionFactory fileCollectionFactory) {
         this(layout, fileCollectionFactory, Collections.<String, String>emptyMap());
@@ -117,15 +123,31 @@ public class DaemonParameters {
     public List<String> getEffectiveSingleUseJvmArgs() {
         return jvmOptions.getAllSingleUseImmutableJvmArgs();
     }
+    @Nullable
+    public DaemonJvmCriteria getRequestedJvmCriteria() {
+        return requestedJvmCriteria;
+    }
 
-    public JavaInfo getEffectiveJvm() {
-        return jvm;
+    public void setRequestedJvmCriteria(@Nullable Map<String, String> buildProperties) {
+        String requestedVersion = buildProperties.get(BuildPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY);
+        if (requestedVersion != null) {
+            try {
+                JavaVersion javaVersion = JavaVersion.toVersion(requestedVersion);
+                this.requestedJvmCriteria = new DaemonJvmCriteria(javaVersion, DefaultJvmVendorSpec.any(), JvmImplementation.VENDOR_SPECIFIC);
+            } catch (Exception e) {
+                // TODO: This should be pushed somewhere else so we consistently report this message in the right context.
+                throw new IllegalArgumentException(String.format("Value '%s' given for %s is an invalid Java version", requestedVersion, BuildPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY));
+            }
+        }
     }
 
     @Nullable
-    public DaemonParameters setJvm(JavaInfo jvm) {
-        this.jvm = jvm == null ? Jvm.current() : jvm;
-        return this;
+    public JavaInfo getRequestedJvmBasedOnJavaHome() {
+        return requestedJvmBasedOnJavaHome;
+    }
+
+    public void setRequestedJvmBasedOnJavaHome(@Nullable JavaInfo requestedJvmBasedOnJavaHome) {
+        this.requestedJvmBasedOnJavaHome = requestedJvmBasedOnJavaHome;
     }
 
     public void applyDefaultsFor(JavaVersion javaVersion) {
@@ -137,11 +159,7 @@ public class DaemonParameters {
         if (hasJvmArgs) {
             return;
         }
-        if (javaVersion.compareTo(JavaVersion.VERSION_1_8) >= 0) {
-            jvmOptions.jvmArgs(DEFAULT_JVM_8_ARGS);
-        } else {
-            jvmOptions.jvmArgs(DEFAULT_JVM_ARGS);
-        }
+        jvmOptions.jvmArgs(DEFAULT_JVM_ARGS);
     }
 
     public Map<String, String> getSystemProperties() {
@@ -255,6 +273,10 @@ public class DaemonParameters {
 
     public Map<String, String> getEnvironmentVariables() {
         return envVariables;
+    }
+
+    public ToolchainConfiguration getToolchainConfiguration() {
+        return toolchainConfiguration;
     }
 
     public Priority getPriority() {

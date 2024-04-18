@@ -54,6 +54,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
     private final TypeAnnotationMetadataStore typeAnnotationMetadataStore;
     private final PropertyTypeResolver propertyTypeResolver;
     private final String displayName;
+    private final MissingPropertyAnnotationHandler missingPropertyAnnotationHandler;
 
     public DefaultTypeMetadataStore(
         Collection<? extends TypeAnnotationHandler> typeAnnotationHandlers,
@@ -61,7 +62,8 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
         Collection<Class<? extends Annotation>> allowedPropertyModifiers,
         TypeAnnotationMetadataStore typeAnnotationMetadataStore,
         PropertyTypeResolver propertyTypeResolver,
-        CrossBuildInMemoryCacheFactory cacheFactory
+        CrossBuildInMemoryCacheFactory cacheFactory,
+        MissingPropertyAnnotationHandler missingPropertyAnnotationHandler
     ) {
         this.typeAnnotationHandlers = ImmutableSet.copyOf(typeAnnotationHandlers);
         this.propertyAnnotationHandlers = Maps.uniqueIndex(propertyAnnotationHandlers, PropertyAnnotationHandler::getAnnotationType);
@@ -70,6 +72,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
         this.displayName = calculateDisplayName(propertyAnnotationHandlers);
         this.propertyTypeResolver = propertyTypeResolver;
         this.cache = cacheFactory.newClassCache();
+        this.missingPropertyAnnotationHandler = missingPropertyAnnotationHandler;
     }
 
     private static String calculateDisplayName(Collection<? extends PropertyAnnotationHandler> annotationHandlers) {
@@ -87,7 +90,6 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
 
 
     private static final String ANNOTATION_INVALID_IN_CONTEXT = "ANNOTATION_INVALID_IN_CONTEXT";
-    private static final String MISSING_ANNOTATION = "MISSING_ANNOTATION";
     private static final String INCOMPATIBLE_ANNOTATIONS = "INCOMPATIBLE_ANNOTATIONS";
 
     private <T> TypeMetadata createTypeMetadata(Class<T> type) {
@@ -107,17 +109,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
             Map<AnnotationCategory, Annotation> propertyAnnotations = propertyAnnotationMetadata.getAnnotations();
             Class<? extends Annotation> propertyType = propertyTypeResolver.resolveAnnotationType(propertyAnnotations);
             if (propertyType == null) {
-                validationContext.visitPropertyProblem(problem ->
-                    problem
-                        .forProperty(propertyAnnotationMetadata.getPropertyName())
-                        .id(TextUtil.screamingSnakeToKebabCase(MISSING_ANNOTATION), "Missing annotation", GradleCoreProblemGroup.validation().property())
-                        .contextualLabel("is missing " + displayName)
-                        .documentedAt(userManual("validation_problems", MISSING_ANNOTATION.toLowerCase()))
-                        .severity(ERROR)
-                        .details("A property without annotation isn't considered during up-to-date checking")
-                        .solution("Add " + displayName)
-                        .solution("Mark it as @Internal")
-                );
+                missingPropertyAnnotationHandler.handleMissingPropertyAnnotation(validationContext, propertyAnnotationMetadata, displayName);
                 continue;
             }
 
@@ -176,7 +168,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                 effectiveProperties.add(property);
             }
         }
-        return new DefaultTypeMetadata(publicType, effectiveProperties.build(), validationContext, propertyAnnotationHandlers);
+        return new DefaultTypeMetadata(publicType, effectiveProperties.build(), validationContext, propertyAnnotationHandlers, annotationMetadata);
     }
 
     private static String toListOfAnnotations(ImmutableSet<Class<? extends Annotation>> classes) {
@@ -192,17 +184,20 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
         private final ImmutableSet<PropertyMetadata> propertiesMetadata;
         private final ReplayingTypeValidationContext validationProblems;
         private final ImmutableMap<Class<? extends Annotation>, ? extends PropertyAnnotationHandler> annotationHandlers;
+        private final TypeAnnotationMetadata typeAnnotationMetadata;
 
         DefaultTypeMetadata(
             Class<?> type,
             ImmutableSet<PropertyMetadata> propertiesMetadata,
             ReplayingTypeValidationContext validationProblems,
-            ImmutableMap<Class<? extends Annotation>, ? extends PropertyAnnotationHandler> annotationHandlers
+            ImmutableMap<Class<? extends Annotation>, ? extends PropertyAnnotationHandler> annotationHandlers,
+            TypeAnnotationMetadata typeAnnotationMetadata
         ) {
             this.type = type;
             this.propertiesMetadata = propertiesMetadata;
             this.validationProblems = validationProblems;
             this.annotationHandlers = annotationHandlers;
+            this.typeAnnotationMetadata = typeAnnotationMetadata;
         }
 
         @Override
@@ -228,6 +223,11 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
         @Override
         public Class<?> getType() {
             return type;
+        }
+
+        @Override
+        public TypeAnnotationMetadata getTypeAnnotationMetadata() {
+            return typeAnnotationMetadata;
         }
     }
 

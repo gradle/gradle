@@ -1,5 +1,6 @@
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.jmh")
 }
 
 description = "Logging infrastructure"
@@ -30,6 +31,7 @@ errorprone {
 
 dependencies {
     api(projects.javaLanguageExtensions)
+    api(projects.serialization)
     api(projects.time)
     api(project(":base-services"))
     api(project(":build-operations"))
@@ -38,7 +40,6 @@ dependencies {
     api(project(":enterprise-logging"))
     api(project(":enterprise-workers"))
     api(project(":logging-api"))
-    api(project(":messaging"))
     api(project(":native"))
     api(project(":problems-api"))
     api(project(":functional"))
@@ -49,6 +50,7 @@ dependencies {
 
     implementation(projects.concurrent)
     implementation(projects.io)
+    implementation(projects.messaging)
 
     implementation(libs.julToSlf4j)
     implementation(libs.ant)

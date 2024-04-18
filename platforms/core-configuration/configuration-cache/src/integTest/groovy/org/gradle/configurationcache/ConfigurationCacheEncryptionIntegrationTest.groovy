@@ -204,7 +204,7 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
         fails(*(["help", "--configuration-cache"] + encryptionOptions))
 
         then:
-        failureDescriptionStartsWith "Error loading encryption key from custom Java keystore at ${keyStoreDir}"
+        failureDescriptionStartsWith "Could not open Gradle Configuration Cache keystore (${keyStoreDir}"
 
         cleanup:
         fs.chmod(keyStoreDir, 0666)

@@ -24,6 +24,8 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
+import java.util.function.Consumer
+
 class WorkerProcessClassPathProviderTest extends Specification {
     @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     final GlobalScopedCacheBuilderFactory cacheBuilderFactory = Mock()
@@ -40,16 +42,16 @@ class WorkerProcessClassPathProviderTest extends Specification {
         def jarFile = cacheDir.file('gradle-worker.jar')
         CacheBuilder cacheBuilder = Mock()
         PersistentCache cache = Mock()
-        def initializer = null
+        Consumer initializer = null
 
         when:
         def classpath = provider.findClassPath('WORKER_MAIN')
 
         then:
         1 * cacheBuilderFactory.createCacheBuilder('workerMain') >> cacheBuilder
-        1 * cacheBuilder.withInitializer(!null) >> { args -> initializer = args[0]; return cacheBuilder }
+        1 * cacheBuilder.withInitializer(_) >> { Consumer it -> initializer = it; return cacheBuilder }
         1 * cacheBuilder.withInitialLockMode(_) >> cacheBuilder
-        1 * cacheBuilder.open() >> { initializer.execute(cache); return cache }
+        1 * cacheBuilder.open() >> { initializer.accept(cache); return cache }
         _ * cache.getBaseDir() >> cacheDir
         1 * cache.close()
         0 * cache._

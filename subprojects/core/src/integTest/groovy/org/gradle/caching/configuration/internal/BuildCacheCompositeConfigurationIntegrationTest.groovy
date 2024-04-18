@@ -105,8 +105,8 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
         i1BuildSrcCache.empty
         i2Cache.empty
         buildSrcCache.empty
-        mainCache.listCacheFiles().size() == 15 // 10 (plugins block and script body block for every project) + 5 (root, i1, i1BuildSrc, i2, buildSrc tasks) = 15
-        isConfigCache() || i3Cache.listCacheFiles().size() == 3
+        mainCache.listCacheFiles().size() == 5 // 5 (root, i1, i1BuildSrc, i2, buildSrc tasks)
+        isConfigCache() || i3Cache.listCacheFiles().size() == 1
 
         and:
         if (isNotConfigCache()) {

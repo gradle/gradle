@@ -17,11 +17,14 @@
 package org.gradle.kotlin.dsl.support
 
 import org.gradle.configuration.ImportsReader
+import org.gradle.internal.service.scopes.Scope
+import org.gradle.internal.service.scopes.ServiceScope
 
 
 /**
  * Holds the list of imports implicitly added to every Kotlin build script.
  */
+@ServiceScope(Scope.Global::class)
 class ImplicitImports internal constructor(
     @Transient
     private val importsReader: ImportsReader

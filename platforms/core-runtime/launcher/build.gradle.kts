@@ -29,6 +29,7 @@ dependencies {
     implementation(project(":enterprise-workers"))
     implementation(project(":cli"))
     implementation(project(":messaging"))
+    implementation(project(":build-configuration"))
     implementation(project(":build-option"))
     implementation(project(":native"))
     implementation(project(":logging"))
@@ -48,6 +49,7 @@ dependencies {
     implementation(project(":file-watching"))
     implementation(project(":problems-api"))
     implementation(project(":problems"))
+    implementation(project(":toolchains-jvm-shared"))
     implementation(project(":declarative-dsl-provider"))
 
     implementation(libs.groovy) // for 'ReleaseInfo.getVersion()'
@@ -83,6 +85,7 @@ dependencies {
     testImplementation(project(":snapshots"))
     testImplementation(project(":base-services-groovy")) // for 'Specs'
 
+    testImplementation(testFixtures(projects.serialization))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":language-java")))
     testImplementation(testFixtures(project(":messaging")))
@@ -94,6 +97,7 @@ dependencies {
     integTestImplementation(libs.guava)
     integTestImplementation(libs.commonsLang)
     integTestImplementation(libs.commonsIo)
+    integTestImplementation(testFixtures(project(":build-configuration")))
 
     testRuntimeOnly(project(":distributions-core")) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")

@@ -132,7 +132,7 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
             return new BuildLoggerFactory(styledTextOutputFactory, workValidationWarningReporter, Time.clock(), null);
         }
 
-        ExecuteBuildActionRunner createExecuteBuildActionRunner() {
+        BuildActionRunner createExecuteBuildActionRunner() {
             return new ExecuteBuildActionRunner();
         }
 

@@ -16,6 +16,7 @@ dependencies {
     pluginsRuntimeOnly(platform(project(":distributions-native")))
 
     pluginsRuntimeOnly(project(":plugin-development"))
+    pluginsRuntimeOnly(project(":build-configuration"))
     pluginsRuntimeOnly(project(":build-init"))
     pluginsRuntimeOnly(project(":build-profile"))
     pluginsRuntimeOnly(project(":antlr"))

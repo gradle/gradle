@@ -1,5 +1,6 @@
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.publish-public-libraries")
 }
 
 description = """Persistent caches on disk and cross process locking.
@@ -10,10 +11,8 @@ description = """Persistent caches on disk and cross process locking.
 dependencies {
     api(projects.concurrent)
     api(projects.javaLanguageExtensions)
+    api(projects.serialization)
     api(project(":build-operations"))
-    api(project(":base-services"))
-    api(project(":messaging"))
-    api(project(":native"))
     api(project(":files"))
 
     api(libs.jsr305)
@@ -26,6 +25,7 @@ dependencies {
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
 
+    testImplementation(projects.messaging)
     testImplementation(project(":core-api"))
     testImplementation(project(":functional"))
     testImplementation(testFixtures(project(":core")))
@@ -33,5 +33,8 @@ dependencies {
     testRuntimeOnly(project(":distributions-core")) {
         because("DefaultPersistentDirectoryCacheTest instantiates DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
+
+    integTestImplementation(projects.messaging)
+
     integTestDistributionRuntimeOnly(project(":distributions-core"))
 }

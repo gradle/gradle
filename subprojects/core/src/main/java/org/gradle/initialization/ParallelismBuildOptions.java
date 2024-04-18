@@ -25,24 +25,14 @@ import org.gradle.internal.buildoption.CommandLineOptionConfiguration;
 import org.gradle.internal.buildoption.Origin;
 import org.gradle.internal.buildoption.StringBuildOption;
 
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 
 public class ParallelismBuildOptions extends BuildOptionSet<ParallelismConfiguration> {
 
-    private static List<BuildOption<ParallelismConfiguration>> options;
-
-    static {
-        List<BuildOption<ParallelismConfiguration>> options = new ArrayList<BuildOption<ParallelismConfiguration>>();
-        options.add(new ParallelOption());
-        options.add(new MaxWorkersOption());
-        ParallelismBuildOptions.options = Collections.unmodifiableList(options);
-    }
-
-    public static List<BuildOption<ParallelismConfiguration>> get() {
-        return options;
-    }
+    private static List<BuildOption<ParallelismConfiguration>> options = Arrays.asList(
+        new ParallelOption(),
+        new MaxWorkersOption());
 
     @Override
     public List<? extends BuildOption<? super ParallelismConfiguration>> getAllOptions() {

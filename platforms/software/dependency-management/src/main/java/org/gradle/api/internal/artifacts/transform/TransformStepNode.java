@@ -358,7 +358,7 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
         public TransformStepSubject calculateValue(NodeExecutionContext context) {
             TransformStepBuildOperation buildOperation = createBuildOperation(context);
             ProjectInternal owningProject = transformStep.getOwningProject();
-            return owningProject == null
+            return (owningProject == null || !context.isPartOfExecutionGraph())
                 ? buildOperation.transform()
                 : buildOperationRunner.call(buildOperation);
         }

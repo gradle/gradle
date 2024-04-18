@@ -53,8 +53,8 @@ import org.gradle.internal.buildoption.DefaultFeatureFlags;
 import org.gradle.internal.buildoption.DefaultInternalOptions;
 import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
-import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.event.ScopedListenerManager;
 import org.gradle.internal.id.ConfigurationCacheableIdFactory;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.problems.DefaultProblemDiagnosticsFactory;
@@ -130,7 +130,7 @@ public class BuildTreeScopeServices {
         return objectFactory.newInstance(DefaultTaskSelector.class, new TaskNameResolver(), projectConfigurer);
     }
 
-    protected DefaultListenerManager createListenerManager(DefaultListenerManager parent) {
+    protected ScopedListenerManager createListenerManager(ScopedListenerManager parent) {
         return parent.createChild(Scope.BuildTree.class);
     }
 

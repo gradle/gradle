@@ -49,7 +49,7 @@ class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractIntegration
 
         and: "a build script that adds dependencies using the custom extension"
         file("build.gradle.something") << defineDeclarativeDSLBuildScript()
-        file("settings.gradle") << defineSettings()
+        file("settings.gradle") << defineSettings(typeSafeProjectAccessors)
 
         expect: "a dependency has been added to the api configuration"
         succeeds("dependencies", "--configuration", "api")
@@ -58,6 +58,110 @@ class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractIntegration
         and: "a dependency has been added to the implementation configuration"
         succeeds("dependencies", "--configuration", "implementation")
         outputContains("org.apache.commons:commons-lang3:3.12.0")
+
+        where:
+        typeSafeProjectAccessors << [true, false]
+    }
+
+    def 'can configure an extension using DependencyCollector in declarative DSL with @Restricted methods available on supertype'() {
+        given:
+        file("buildSrc/src/main/java/com/example/restricted/LibraryExtension.java") << """
+            package com.example.restricted;
+
+            import org.gradle.api.Action;
+            import org.gradle.api.model.ObjectFactory;
+            import org.gradle.declarative.dsl.model.annotations.Configuring;
+            import org.gradle.declarative.dsl.model.annotations.Restricted;
+
+            import javax.inject.Inject;
+
+            @Restricted
+            public abstract class LibraryExtension {
+                private final SubDependencies sub;
+
+                @Inject
+                public LibraryExtension(ObjectFactory objectFactory) {
+                    this.sub = objectFactory.newInstance(SubDependencies.class);
+                }
+
+                public SubDependencies getSub() {
+                    return sub;
+                }
+
+                @Configuring
+                public void sub(Action<? super SubDependencies> configure) {
+                    configure.execute(getSub());
+                }
+            }
+        """
+        file("buildSrc/src/main/java/com/example/restricted/BaseDependencies.java") << """
+            package com.example.restricted;
+
+            import org.gradle.api.artifacts.dsl.Dependencies;
+            import org.gradle.declarative.dsl.model.annotations.Restricted;
+
+            @Restricted
+            public interface BaseDependencies extends Dependencies {
+                @Restricted
+                default String baseMethod(String arg) {
+                    System.out.println(arg);
+                    return arg;
+                }
+            }
+        """
+        file("buildSrc/src/main/java/com/example/restricted/SubDependencies.java") << """
+            package com.example.restricted;
+
+            import org.gradle.declarative.dsl.model.annotations.Restricted;
+            import org.gradle.api.artifacts.dsl.DependencyCollector;
+
+            @Restricted
+            public interface SubDependencies extends BaseDependencies {
+                @Restricted
+                default String subMethod(String arg) {
+                    System.out.println(arg);
+                    return arg;
+                }
+
+                DependencyCollector getConf();
+            }
+        """
+        file("buildSrc/src/main/java/com/example/restricted/RestrictedPlugin.java") << """
+            package com.example.restricted;
+
+            import org.gradle.api.Plugin;
+            import org.gradle.api.Project;
+
+            public class RestrictedPlugin implements Plugin<Project> {
+                @Override
+                public void apply(Project project) {
+                    project.getExtensions().create("library", LibraryExtension.class);
+                }
+            }
+        """
+        file("buildSrc/build.gradle") << defineRestrictedPluginBuild()
+
+        file("build.gradle.something") << """
+            plugins {
+                id("com.example.restricted")
+            }
+
+            library {
+                sub {
+                    conf(baseMethod("base:name:1.0"))
+                    conf(subMethod("sub:name:1.0"))
+                }
+            }
+        """
+        file("settings.gradle") << defineSettings(typeSafeProjectAccessors)
+
+        expect:
+        succeeds("build")
+        outputContains("base:name:1.0")
+        outputContains("sub:name:1.0")
+
+        where:
+        typeSafeProjectAccessors << [true, false]
     }
 
     def 'can configure an extension using DependencyCollector in declarative DSL with a getter name NOT associated with an expected configuration name'() {
@@ -257,6 +361,52 @@ class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractIntegration
         outputContains("org.apache.commons:commons-lang3:3.12.0")
     }
 
+    def 'can configure an extension using DependencyCollector in declarative DSL using project() from the Dependencies class to add dependencies'() {
+        given: "a plugin that creates a custom extension using a DependencyCollector"
+        file("buildSrc/src/main/java/com/example/restricted/DependenciesExtension.java") << defineDependenciesExtension()
+        file("buildSrc/src/main/java/com/example/restricted/LibraryExtension.java") << defineLibraryExtension()
+        file("buildSrc/src/main/java/com/example/restricted/RestrictedPlugin.java") << """
+            package com.example.restricted;
+
+            import org.gradle.api.Plugin;
+            import org.gradle.api.Project;
+            import org.gradle.api.artifacts.DependencyScopeConfiguration;
+
+            public class RestrictedPlugin implements Plugin<Project> {
+                @Override
+                public void apply(Project project) {
+                    // no plugin application, must create configurations manually
+                    DependencyScopeConfiguration api = project.getConfigurations().dependencyScope("api").get();
+                    DependencyScopeConfiguration implementation = project.getConfigurations().dependencyScope("implementation").get();
+
+                    // create and wire the custom dependencies extension's dependencies to these global configurations
+                    LibraryExtension restricted = project.getExtensions().create("library", LibraryExtension.class);
+                    api.fromDependencyCollector(restricted.getDependencies().getApi());
+                    implementation.fromDependencyCollector(restricted.getDependencies().getImplementation());
+                }
+            }
+        """
+        file("buildSrc/build.gradle") << defineRestrictedPluginBuild()
+
+        and: "a producer build that defines a required class"
+        file("producer/src/main/java/com/example/Producer.java") << defineExampleProducerJavaClass()
+        file("producer/build.gradle.something") << defineDeclarativeDSLProducerBuildScript()
+
+        and: "a consumer build that requires the class in the producer project"
+        file("consumer/src/main/java/com/example/Consumer.java") << defineExampleConsumerJavaClass()
+        file("consumer/build.gradle.something") << defineDeclarativeDSLConsumerBuildScript()
+
+        and: "a project including both the producer and consumer projects"
+        file("settings.gradle") << defineSettings() + 'include("consumer", "producer")'
+
+        expect: "the project dependency has been added to the api configuration"
+        succeeds(":consumer:dependencies", "--configuration", "api")
+        outputContains("\\--- project producer (n)")
+
+        and: "the producer project can be built successfully"
+        succeeds(":producer:build")
+    }
+
     private String defineDependenciesExtension(boolean extendDependencies = true) {
         return """
             package com.example.restricted;
@@ -368,6 +518,42 @@ class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractIntegration
         """
     }
 
+    private String defineExampleProducerJavaClass() {
+        return """
+            package com.example;
+
+            public class Producer {
+                private final String name;
+
+                public Producer(String name) {
+                    this.name = name;
+                }
+
+                public String getName() {
+                    return name;
+                }
+            }
+        """
+    }
+
+    private String defineExampleConsumerJavaClass() {
+        return """
+            package com.example;
+
+            public class Consumer {
+                private final Producer producer;
+
+                public Consumer(String name) {
+                    producer = new Producer(name);
+                }
+
+                public Producer getProducer() {
+                    return producer;
+                }
+            }
+        """
+    }
+
     private String defineDeclarativeDSLBuildScript() {
         return """
             plugins {
@@ -383,7 +569,31 @@ class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractIntegration
         """
     }
 
-    private String defineSettings() {
+    private String defineDeclarativeDSLProducerBuildScript() {
+        return """
+            plugins {
+                id("com.example.restricted")
+            }
+
+            library {}
+        """
+    }
+
+    private String defineDeclarativeDSLConsumerBuildScript() {
+        return """
+            plugins {
+                id("com.example.restricted")
+            }
+
+            library {
+                dependencies {
+                    api(project(":producer"))
+                }
+            }
+        """
+    }
+
+    private String defineSettings(boolean typeSafeProjectAccessors = false) {
         return """
             dependencyResolutionManagement {
                 repositories {
@@ -392,6 +602,7 @@ class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractIntegration
             }
 
             rootProject.name = 'example'
+            ${ if (typeSafeProjectAccessors) { 'enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")' }  }
         """
     }
 }

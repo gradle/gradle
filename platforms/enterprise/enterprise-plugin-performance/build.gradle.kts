@@ -71,10 +71,10 @@ tasks.withType<gradlebuild.performance.tasks.PerformanceTest>().configureEach {
         .map { projectRootDir.resolve(it) }
 
     // Provides a system property required by `AbstractBuildScanPluginPerformanceTest`
-    jvmArgumentProviders += GradleEnterprisePluginInfoDirPropertyProvider(pluginInfoDir)
+    jvmArgumentProviders += DevelocityPluginInfoDirPropertyProvider(pluginInfoDir)
 }
 
 internal
-class GradleEnterprisePluginInfoDirPropertyProvider(@InputFiles @PathSensitive(PathSensitivity.RELATIVE) val pluginInfoDir: Provider<File>) : CommandLineArgumentProvider {
-    override fun asArguments() = listOf("-Dorg.gradle.performance.enterprise.plugin.infoDir=${pluginInfoDir.get().path}")
+class DevelocityPluginInfoDirPropertyProvider(@InputFiles @PathSensitive(PathSensitivity.RELATIVE) val pluginInfoDir: Provider<File>) : CommandLineArgumentProvider {
+    override fun asArguments() = listOf("-Dorg.gradle.performance.develocity.plugin.infoDir=${pluginInfoDir.get().path}")
 }

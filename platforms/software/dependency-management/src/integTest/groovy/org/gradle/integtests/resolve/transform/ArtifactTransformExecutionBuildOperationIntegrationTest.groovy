@@ -46,7 +46,7 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
     public final ScopeIdsFixture scopeIds = new ScopeIdsFixture(executer, temporaryFolder)
 
     def setup() {
-        requireOwnGradleUserHomeDir()
+        requireOwnGradleUserHomeDir("Artifact transforms should run every time and not be shared between tests")
 
         // group name is included in the capabilities of components, which are part of the transform identity
         buildFile << """

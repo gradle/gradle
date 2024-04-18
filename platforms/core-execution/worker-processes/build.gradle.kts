@@ -8,6 +8,7 @@ gradlebuildJava.usedInWorkers()
 
 dependencies {
     api(projects.javaLanguageExtensions)
+    api(projects.serialization)
     api(project(":base-services"))
     api(project(":build-operations"))
     api(project(":logging"))

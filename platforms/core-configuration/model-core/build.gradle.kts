@@ -33,9 +33,10 @@ errorprone {
 }
 
 dependencies {
+    api(projects.javaLanguageExtensions)
+    api(projects.serialization)
     api(project(":core-api"))
     api(project(":problems-api"))
-    api(projects.javaLanguageExtensions)
     api(project(":hashing"))
     api(project(":process-services"))
     api(project(":base-services"))

@@ -19,6 +19,7 @@ package org.gradle.integtests.fixtures.daemon
 import org.gradle.integtests.fixtures.ProcessFixture
 import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.daemon.server.api.DaemonStateControl.State
+import org.gradle.util.GradleVersion
 
 import java.nio.file.Files
 
@@ -31,8 +32,8 @@ abstract class AbstractDaemonFixture implements DaemonFixture {
     public static final int STATE_CHANGE_TIMEOUT = 20000
     final DaemonContext context
 
-    AbstractDaemonFixture(File daemonLog) {
-        this.context = DaemonContextParser.parseFromFile(daemonLog)
+    AbstractDaemonFixture(File daemonLog, GradleVersion version) {
+        this.context = DaemonContextParser.parseFromFile(daemonLog, version)
         if (!this.context) {
             println "Could not parse daemon log: \n$daemonLog.text"
             throw new IllegalStateException("unable to parse DefaultDaemonContext from source: [${daemonLog.absolutePath}].")

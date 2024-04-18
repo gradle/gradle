@@ -18,10 +18,13 @@ package org.gradle.internal.properties.bean;
 
 import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * Walks properties declared by the type.
  */
+@ServiceScope(Scope.Global.class)
 public interface PropertyWalker {
     void visitProperties(Object instance, TypeValidationContext validationContext, PropertyVisitor visitor);
 }
