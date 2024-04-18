@@ -25,11 +25,15 @@ import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.jvm.toolchain.internal.AsdfInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.DefaultOsXJavaHomeCommand;
 import org.gradle.jvm.toolchain.internal.InstallationSupplier;
+import org.gradle.jvm.toolchain.internal.IntellijInstallationSupplier;
+import org.gradle.jvm.toolchain.internal.JabbaInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.JdkCacheDirectory;
 import org.gradle.jvm.toolchain.internal.LinuxInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.OsXInstallationSupplier;
+import org.gradle.jvm.toolchain.internal.SdkmanInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.ToolchainConfiguration;
 import org.gradle.jvm.toolchain.internal.WindowsInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.install.DefaultJdkCacheDirectory;
@@ -48,11 +52,13 @@ public class DaemonClientToolchainServices {
         registration.add(ToolchainConfiguration.class, toolchainConfiguration);
         registration.add(DefaultOsXJavaHomeCommand.class);
 
-//        registration.add(AsdfInstallationSupplier.class);
-//        registration.add(IntellijInstallationSupplier.class);
-//        registration.add(JabbaInstallationSupplier.class);
+        // NOTE: These need to be kept in sync with ToolchainsJvmServices
+        registration.add(AsdfInstallationSupplier.class);
+        registration.add(IntellijInstallationSupplier.class);
+        registration.add(JabbaInstallationSupplier.class);
+        registration.add(SdkmanInstallationSupplier.class);
+
 //        registration.add(MavenToolchainsInstallationSupplier.class);
-//        registration.add(SdkmanInstallationSupplier.class);
 
         registration.add(LinuxInstallationSupplier.class);
         registration.add(OsXInstallationSupplier.class);

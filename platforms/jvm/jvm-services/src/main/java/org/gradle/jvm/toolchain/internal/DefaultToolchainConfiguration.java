@@ -16,14 +16,41 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import com.google.common.annotations.VisibleForTesting;
+import org.gradle.internal.SystemProperties;
+import org.gradle.internal.os.OperatingSystem;
+
+import javax.inject.Inject;
+import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
 
 public class DefaultToolchainConfiguration implements ToolchainConfiguration {
-    private Collection<String> javaInstallationsFromEnvironment = Collections.emptyList();
-    private Collection<String> installationsFromPaths = Collections.emptyList();
-    private boolean autoDetectEnabled = true;
-    private boolean downloadEnabled = true;
+    private Collection<String> javaInstallationsFromEnvironment;
+    private Collection<String> installationsFromPaths;
+    private boolean autoDetectEnabled;
+    private boolean downloadEnabled;
+    private File intellijInstallationDirectory;
+
+    private final SystemProperties systemProperties;
+    private final Map<String, String> environment;
+
+    @Inject
+    public DefaultToolchainConfiguration() {
+        this(OperatingSystem.current(), SystemProperties.getInstance(), System.getenv());
+    }
+
+    @VisibleForTesting
+    DefaultToolchainConfiguration(OperatingSystem os, SystemProperties systemProperties, Map<String, String> environment) {
+        this.systemProperties = systemProperties;
+        this.environment = environment;
+        this.autoDetectEnabled = true;
+        this.downloadEnabled = true;
+        this.intellijInstallationDirectory = defaultJdksDirectory(os);
+        this.javaInstallationsFromEnvironment = Collections.emptyList();
+        this.installationsFromPaths = Collections.emptyList();
+    }
 
     @Override
     public Collection<String> getJavaInstallationsFromEnvironment() {
@@ -63,5 +90,49 @@ public class DefaultToolchainConfiguration implements ToolchainConfiguration {
     @Override
     public void setDownloadEnabled(boolean enabled) {
         this.downloadEnabled = enabled;
+    }
+
+    @Override
+    public File getAsdfDataDirectory() {
+        String asdfEnvVar = environment.get("ASDF_DATA_DIR");
+        if (asdfEnvVar != null) {
+            return new File(asdfEnvVar);
+        }
+        return new File(systemProperties.getUserHome(), ".asdf");
+    }
+
+    @Override
+    public File getIntelliJdkDirectory() {
+        return intellijInstallationDirectory;
+    }
+
+    @Override
+    public void setIntelliJdkDirectory(File intellijInstallationDirectory) {
+        this.intellijInstallationDirectory = intellijInstallationDirectory;
+    }
+
+    private File defaultJdksDirectory(OperatingSystem os) {
+        if (os.isMacOsX()) {
+            return new File(systemProperties.getUserHome(), "Library/Java/JavaVirtualMachines");
+        }
+        return new File(systemProperties.getUserHome(), ".jdks");
+    }
+
+    @Override
+    public File getJabbaHomeDirectory() {
+        String jabbaHome = environment.get("JABBA_HOME");
+        if (jabbaHome != null) {
+            return new File(jabbaHome);
+        }
+        return null;
+    }
+
+    @Override
+    public File getSdkmanCandidatesDirectory() {
+        String asdfEnvVar = environment.get("SDKMAN_CANDIDATES_DIR");
+        if (asdfEnvVar != null) {
+            return new File(asdfEnvVar);
+        }
+        return new File(systemProperties.getUserHome(), ".sdkman/candidates");
     }
 }

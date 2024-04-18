@@ -89,11 +89,12 @@ public class ToolchainsJvmServices extends AbstractPluginServiceRegistry {
             registration.add(ProviderBackedToolchainConfiguration.class);
             registration.add(DefaultOsXJavaHomeCommand.class);
 
+            // NOTE: These need to be kept in sync with DaemonClientToolchainServices
             registration.add(AsdfInstallationSupplier.class);
             registration.add(IntellijInstallationSupplier.class);
             registration.add(JabbaInstallationSupplier.class);
-            registration.add(MavenToolchainsInstallationSupplier.class);
             registration.add(SdkmanInstallationSupplier.class);
+            registration.add(MavenToolchainsInstallationSupplier.class);
 
             registration.add(LinuxInstallationSupplier.class);
             registration.add(OsXInstallationSupplier.class);

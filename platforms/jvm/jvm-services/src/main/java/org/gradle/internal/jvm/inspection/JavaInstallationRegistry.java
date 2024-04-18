@@ -71,7 +71,8 @@ public class JavaInstallationRegistry {
         OperatingSystem os,
         ProgressLoggerFactory progressLoggerFactory,
         FileResolver fileResolver,
-        JdkCacheDirectory jdkCacheDirectory, JvmInstallationProblemReporter problemReporter
+        JdkCacheDirectory jdkCacheDirectory,
+        JvmInstallationProblemReporter problemReporter
     ) {
         this(toolchainConfiguration, suppliers, metadataDetector, Logging.getLogger(JavaInstallationRegistry.class), buildOperationRunner, os, progressLoggerFactory, fileResolver, jdkCacheDirectory, problemReporter);
     }
@@ -85,7 +86,8 @@ public class JavaInstallationRegistry {
         OperatingSystem os,
         ProgressLoggerFactory progressLoggerFactory,
         FileResolver fileResolver,
-        JdkCacheDirectory jdkCacheDirectory, JvmInstallationProblemReporter problemReporter
+        JdkCacheDirectory jdkCacheDirectory,
+        JvmInstallationProblemReporter problemReporter
     ) {
         this(toolchainConfiguration, builtInSuppliers(toolchainConfiguration, fileResolver, jdkCacheDirectory), suppliers, metadataDetector, logger, buildOperationRunner, os, progressLoggerFactory, problemReporter);
     }

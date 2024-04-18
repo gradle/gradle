@@ -21,12 +21,12 @@ import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.buildoption.BuildOptionSet;
 import org.gradle.internal.buildoption.Origin;
 import org.gradle.internal.buildoption.StringBuildOption;
-import org.gradle.jvm.toolchain.internal.AutoDetectingInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.AutoInstalledInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.EnvironmentVariableListInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.LocationListInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.ToolchainConfiguration;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
@@ -35,7 +35,8 @@ public class ToolchainBuildOptions extends BuildOptionSet<ToolchainConfiguration
         new JavaInstallationPathsOption(),
         new JavaInstallationEnvironmentPathsOption(),
         new AutoDetectionOption(),
-        new AutoDownloadOption()
+        new AutoDownloadOption(),
+        new IntellijJdkBuildOption()
     );
 
     @Override
@@ -69,7 +70,7 @@ public class ToolchainBuildOptions extends BuildOptionSet<ToolchainConfiguration
         }
     }
     private static class AutoDetectionOption extends BooleanBuildOption<ToolchainConfiguration> {
-        private static final String GRADLE_PROPERTY = AutoDetectingInstallationSupplier.AUTO_DETECT;
+        private static final String GRADLE_PROPERTY = ToolchainConfiguration.AUTO_DETECT;
 
         public AutoDetectionOption() {
             super(GRADLE_PROPERTY);
@@ -90,6 +91,18 @@ public class ToolchainBuildOptions extends BuildOptionSet<ToolchainConfiguration
         @Override
         public void applyTo(boolean value, ToolchainConfiguration settings, Origin origin) {
             settings.setDownloadEnabled(value);
+        }
+    }
+    private static class IntellijJdkBuildOption extends StringBuildOption<ToolchainConfiguration> {
+        private static final String GRADLE_PROPERTY = "org.gradle.java.installations.idea-jdks-directory";
+
+        public IntellijJdkBuildOption() {
+            super(GRADLE_PROPERTY);
+        }
+
+        @Override
+        public void applyTo(String value, ToolchainConfiguration settings, Origin origin) {
+            settings.setIntelliJdkDirectory(new File(value));
         }
     }
 }
