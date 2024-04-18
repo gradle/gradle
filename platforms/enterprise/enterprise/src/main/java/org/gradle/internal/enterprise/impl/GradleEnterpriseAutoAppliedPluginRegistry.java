@@ -31,7 +31,7 @@ import org.gradle.plugin.management.internal.DefaultPluginRequest;
 import org.gradle.plugin.management.internal.PluginCoordinates;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.PluginRequests;
-import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin;
+import org.gradle.plugin.management.internal.autoapply.AutoAppliedDevelocityPlugin;
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginRegistry;
 
 import static org.gradle.initialization.StartParameterBuildOptions.BuildScanOption;
@@ -50,36 +50,36 @@ public class GradleEnterpriseAutoAppliedPluginRegistry implements AutoAppliedPlu
         if (((StartParameterInternal) target.getStartParameter()).isUseEmptySettings() || !shouldApplyGradleEnterprisePlugin(target)) {
             return PluginRequests.EMPTY;
         } else {
-            return PluginRequests.of(createGradleEnterprisePluginRequest());
+            return PluginRequests.of(createDevelocityPluginRequest());
         }
     }
 
-    private boolean shouldApplyGradleEnterprisePlugin(Settings settings) {
+    private static boolean shouldApplyGradleEnterprisePlugin(Settings settings) {
         Gradle gradle = settings.getGradle();
         StartParameter startParameter = gradle.getStartParameter();
         return startParameter.isBuildScan() && gradle.getParent() == null;
     }
 
-    private PluginRequestInternal createGradleEnterprisePluginRequest() {
-        ModuleIdentifier moduleIdentifier = DefaultModuleIdentifier.newId(AutoAppliedGradleEnterprisePlugin.GROUP, AutoAppliedGradleEnterprisePlugin.NAME);
-        ModuleVersionSelector artifact = DefaultModuleVersionSelector.newSelector(moduleIdentifier, AutoAppliedGradleEnterprisePlugin.VERSION);
+    private static PluginRequestInternal createDevelocityPluginRequest() {
+        ModuleIdentifier moduleIdentifier = DefaultModuleIdentifier.newId(AutoAppliedDevelocityPlugin.GROUP, AutoAppliedDevelocityPlugin.NAME);
+        ModuleVersionSelector artifact = DefaultModuleVersionSelector.newSelector(moduleIdentifier, AutoAppliedDevelocityPlugin.VERSION);
         return new DefaultPluginRequest(
-            AutoAppliedGradleEnterprisePlugin.ID,
+            AutoAppliedDevelocityPlugin.ID,
             true,
             AUTO_APPLIED,
             getScriptDisplayName(),
             null,
-            AutoAppliedGradleEnterprisePlugin.VERSION,
+            AutoAppliedDevelocityPlugin.VERSION,
             artifact,
             null,
-            develocityPluginCoordinates()
+            gradleEnterprisePluginCoordinates()
         );
     }
 
-    private static PluginCoordinates develocityPluginCoordinates() {
-        ModuleIdentifier moduleIdentifier = DefaultModuleIdentifier.newId(AutoAppliedGradleEnterprisePlugin.GROUP, AutoAppliedGradleEnterprisePlugin.DEVELOCITY_PLUGIN_ARTIFACT_NAME);
-        ModuleVersionSelector artifact = DefaultModuleVersionSelector.newSelector(moduleIdentifier, AutoAppliedGradleEnterprisePlugin.VERSION);
-        return new PluginCoordinates(AutoAppliedGradleEnterprisePlugin.DEVELOCITY_PLUGIN_ID, artifact);
+    private static PluginCoordinates gradleEnterprisePluginCoordinates() {
+        ModuleIdentifier moduleIdentifier = DefaultModuleIdentifier.newId(AutoAppliedDevelocityPlugin.GROUP, AutoAppliedDevelocityPlugin.GRADLE_ENTERPRISE_PLUGIN_ARTIFACT_NAME);
+        ModuleVersionSelector artifact = DefaultModuleVersionSelector.newSelector(moduleIdentifier, AutoAppliedDevelocityPlugin.VERSION);
+        return new PluginCoordinates(AutoAppliedDevelocityPlugin.GRADLE_ENTERPRISE_PLUGIN_ID, artifact);
     }
 
     private static String getScriptDisplayName() {

@@ -18,18 +18,18 @@ package org.gradle.workers.internal;
 
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.ClassPathRegistry;
-import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.concurrent.WorkerLimits;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
@@ -69,8 +69,8 @@ public class WorkersServices extends AbstractPluginServiceRegistry {
             return new DefaultWorkerDirectoryProvider(gradleUserHomeDirProvider);
         }
 
-        ConditionalExecutionQueueFactory createConditionalExecutionQueueFactory(ExecutorFactory executorFactory, ParallelismConfiguration parallelismConfiguration, WorkerLeaseService workerLeaseService) {
-            return new DefaultConditionalExecutionQueueFactory(parallelismConfiguration, executorFactory, workerLeaseService);
+        ConditionalExecutionQueueFactory createConditionalExecutionQueueFactory(ExecutorFactory executorFactory, WorkerLimits workerLimits, WorkerLeaseService workerLeaseService) {
+            return new DefaultConditionalExecutionQueueFactory(workerLimits, executorFactory, workerLeaseService);
         }
 
         WorkerExecutionQueueFactory createWorkerExecutionQueueFactory(ConditionalExecutionQueueFactory conditionalExecutionQueueFactory) {
@@ -108,7 +108,7 @@ public class WorkersServices extends AbstractPluginServiceRegistry {
                                             IsolatedClassloaderWorkerFactory isolatedClassloaderWorkerFactory,
                                             JavaForkOptionsFactory forkOptionsFactory,
                                             WorkerLeaseRegistry workerLeaseRegistry,
-                                            BuildOperationExecutor buildOperationExecutor,
+                                            BuildOperationRunner buildOperationRunner,
                                             AsyncWorkTracker asyncWorkTracker,
                                             WorkerDirectoryProvider workerDirectoryProvider,
                                             ClassLoaderStructureProvider classLoaderStructureProvider,
@@ -119,7 +119,7 @@ public class WorkersServices extends AbstractPluginServiceRegistry {
                                             ProjectLayout projectLayout,
                                             ProjectCacheDir projectCacheDir
                                             ) {
-            NoIsolationWorkerFactory noIsolationWorkerFactory = new NoIsolationWorkerFactory(buildOperationExecutor, instantiatorFactory, actionExecutionSpecFactory, projectServices);
+            NoIsolationWorkerFactory noIsolationWorkerFactory = new NoIsolationWorkerFactory(buildOperationRunner, instantiatorFactory, actionExecutionSpecFactory, projectServices);
 
             DefaultWorkerExecutor workerExecutor = instantiatorFactory.decorateLenient().newInstance(
                 DefaultWorkerExecutor.class,
@@ -128,7 +128,7 @@ public class WorkersServices extends AbstractPluginServiceRegistry {
                 noIsolationWorkerFactory,
                 forkOptionsFactory,
                 workerLeaseRegistry,
-                buildOperationExecutor,
+                buildOperationRunner,
                 asyncWorkTracker,
                 workerDirectoryProvider,
                 workerExecutionQueueFactory,
@@ -142,8 +142,8 @@ public class WorkersServices extends AbstractPluginServiceRegistry {
             return workerExecutor;
         }
 
-        WorkerDaemonFactory createWorkerDaemonFactory(WorkerDaemonClientsManager workerDaemonClientsManager, BuildOperationExecutor buildOperationExecutor) {
-            return new WorkerDaemonFactory(workerDaemonClientsManager, buildOperationExecutor);
+        WorkerDaemonFactory createWorkerDaemonFactory(WorkerDaemonClientsManager workerDaemonClientsManager, BuildOperationRunner buildOperationRunner) {
+            return new WorkerDaemonFactory(workerDaemonClientsManager, buildOperationRunner);
         }
     }
 }

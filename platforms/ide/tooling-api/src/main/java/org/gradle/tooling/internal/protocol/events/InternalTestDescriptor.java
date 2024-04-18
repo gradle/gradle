@@ -16,11 +16,14 @@
 
 package org.gradle.tooling.internal.protocol.events;
 
+import org.gradle.api.NonNullApi;
+
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  *
  * @since 2.4
  */
+@NonNullApi
 public interface InternalTestDescriptor extends InternalOperationDescriptor {
     /**
      * Returns the display name of the test.

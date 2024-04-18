@@ -16,7 +16,7 @@
 
 package org.gradle.internal.operations
 
-import org.gradle.internal.concurrent.DefaultParallelismConfiguration
+import org.gradle.internal.concurrent.DefaultWorkerLimits
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.work.DefaultWorkerLeaseService
 import org.gradle.internal.work.WorkerLeaseService
@@ -68,7 +68,7 @@ class MaxWorkersTest extends ConcurrentSpec {
     }
 
     private createProcessor(WorkerLeaseService workerLeaseService, int maxWorkers) {
-        return BuildOperationExecutorSupport.builder(true, maxWorkers)
+        return BuildOperationExecutorSupport.builder(maxWorkers)
             .withWorkerLeaseService(workerLeaseService)
             .build()
     }
@@ -209,7 +209,7 @@ class MaxWorkersTest extends ConcurrentSpec {
     }
 
     WorkerLeaseService workerLeaseService(int maxWorkers) {
-        def service = new DefaultWorkerLeaseService(new DefaultResourceLockCoordinationService(), new DefaultParallelismConfiguration(true, maxWorkers))
+        def service = new DefaultWorkerLeaseService(new DefaultResourceLockCoordinationService(), new DefaultWorkerLimits(maxWorkers))
         service.startProjectExecution(true)
         return service
     }

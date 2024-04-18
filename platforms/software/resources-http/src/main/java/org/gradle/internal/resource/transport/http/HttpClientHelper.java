@@ -30,6 +30,8 @@ import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -304,6 +306,7 @@ public class HttpClientHelper implements Closeable {
      * Factory for creating the {@link HttpClientHelper}
      */
     @FunctionalInterface
+    @ServiceScope(Scope.Global.class)
     public interface Factory {
         HttpClientHelper create(HttpSettings settings);
 

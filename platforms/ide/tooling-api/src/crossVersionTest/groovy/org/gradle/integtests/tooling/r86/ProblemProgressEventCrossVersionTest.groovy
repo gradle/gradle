@@ -69,6 +69,11 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
     }
 
     static def assertProblemDetailsForTAPIProblemEvent(List<?> problems, String expectedDetails = null, String expectedDocumentation = null) {
+        assertProblemDetailsForTAPIProblemEventWithoutSolution(problems, expectedDetails, expectedDocumentation)
+        problems[0].solutions[0].solution == 'try this instead'
+    }
+
+    static void assertProblemDetailsForTAPIProblemEventWithoutSolution(List<?> problems, String expectedDetails, String expectedDocumentation) {
         problems.size() == 1
         problems[0].category.namespace == 'org.example.plugin'
         problems[0].category.category == 'main'
@@ -87,7 +92,6 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         problems[0].locations[1] instanceof TaskPathLocation
         problems[0].documentationLink.url == expectedDocumentation
         problems[0].solutions.size() == 1
-        problems[0].solutions[0].solution == 'try this instead'
     }
 
     @TargetGradleVersion("=8.3")
@@ -147,13 +151,6 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         def firstProblem = problems[0].getDescriptor()
         firstProblem.label.label == "The 'standard-plugin' is deprecated"
         firstProblem.details.details == null
-
-        def aggregatedProblems = problems[1].getDescriptor()
-
-        def aggregations = aggregatedProblems.aggregations
-        aggregations.size() == 1
-        aggregations[0].label.label == "The 'standard-plugin' is deprecated"
-        aggregations[0].problemDescriptors.size() == 10
     }
 
     def "Problems expose details via Tooling API events"() {

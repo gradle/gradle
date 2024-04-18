@@ -11,7 +11,7 @@ errorprone {
 }
 
 dependencies {
-    api(project(":base-annotations"))
+    api(projects.javaLanguageExtensions)
     api(project(":base-services"))
     api(project(":core"))
     api(project(":core-api"))
@@ -21,19 +21,21 @@ dependencies {
     api(project(":language-jvm"))
     api(project(":logging-api"))
     api(project(":model-core"))
-    api(project(":persistent-cache"))
     api(project(":platform-base"))
     api(project(":platform-jvm"))
     api(project(":toolchains-jvm"))
+    api(project(":toolchains-jvm-shared"))
     api(project(":workers"))
 
     api(libs.groovy)
     api(libs.inject)
     api(libs.jsr305)
 
+    implementation(projects.time)
     implementation(project(":dependency-management"))
     implementation(project(":file-collections"))
     implementation(project(":logging"))
+    implementation(project(":persistent-cache"))
     implementation(project(":plugins-java"))
     implementation(project(":plugins-java-base"))
     implementation(project(":reporting"))
@@ -41,7 +43,7 @@ dependencies {
 
     implementation(libs.guava)
 
-    compileOnly("org.scala-sbt:zinc_2.13:1.9.3") {
+    compileOnly(libs.zinc) {
         // Because not needed and was vulnerable
         exclude(module="log4j-core")
         exclude(module="log4j-api")

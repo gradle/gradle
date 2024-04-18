@@ -17,8 +17,12 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.rep
 
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.RepositoryAwareVerificationFailure;
+import org.gradle.api.internal.artifacts.verification.verifier.ChecksumVerificationFailure;
 import org.gradle.api.internal.artifacts.verification.verifier.DeletedArtifact;
+import org.gradle.api.internal.artifacts.verification.verifier.InvalidSignature;
 import org.gradle.api.internal.artifacts.verification.verifier.MissingChecksums;
+import org.gradle.api.internal.artifacts.verification.verifier.MissingSignature;
+import org.gradle.api.internal.artifacts.verification.verifier.OnlyIgnoredKeys;
 import org.gradle.api.internal.artifacts.verification.verifier.SignatureVerificationFailure;
 import org.gradle.api.internal.artifacts.verification.verifier.VerificationFailure;
 import org.gradle.api.internal.properties.GradleProperties;
@@ -147,8 +151,8 @@ public class DependencyVerificationReportWriter {
 
     private String extractFailedFilePaths(VerificationFailure f) {
         String shortenPath = shortenPath(f.getFilePath());
-        if (f instanceof SignatureVerificationFailure) {
-            File signatureFile = ((SignatureVerificationFailure) f).getSignatureFile();
+        File signatureFile = f.getSignatureFile();
+        if (signatureFile != null) {
             return shortenPath + " (signature: " + shortenPath(signatureFile) + ")";
         }
         return shortenPath;
@@ -177,17 +181,21 @@ public class DependencyVerificationReportWriter {
         VerificationFailure failure = wrapper.getFailure();
         if (failure instanceof MissingChecksums) {
             state.hasMissing();
-        } else {
-            if (failure instanceof SignatureVerificationFailure) {
-                state.failedSignatures();
-                if (((SignatureVerificationFailure) failure).getErrors().values().stream().map(SignatureVerificationFailure.SignatureError::getKind).noneMatch(kind -> kind == SignatureVerificationFailure.FailureKind.PASSED_NOT_TRUSTED)) {
-                    state.maybeCompromised();
-                } else {
-                    state.hasUntrustedKeys();
-                }
-            } else {
+        } else if (failure instanceof SignatureVerificationFailure) {
+            state.failedSignatures();
+            if (((SignatureVerificationFailure) failure).getErrors().values().stream().map(SignatureVerificationFailure.SignatureError::getKind).noneMatch(kind -> kind == SignatureVerificationFailure.FailureKind.PASSED_NOT_TRUSTED)) {
                 state.maybeCompromised();
+            } else {
+                state.hasUntrustedKeys();
             }
+        } else if (failure instanceof InvalidSignature) {
+            state.failedSignatures();
+            state.maybeCompromised();
+        } else if (failure instanceof DeletedArtifact || failure instanceof ChecksumVerificationFailure || failure instanceof OnlyIgnoredKeys || failure instanceof MissingSignature) {
+            state.maybeCompromised();
+        } else {
+            // should never happen, just to make sure we don't miss any new failure type
+            throw new IllegalArgumentException("Unknown failure type: " + failure.getClass());
         }
         renderer.reportFailure(wrapper);
     }

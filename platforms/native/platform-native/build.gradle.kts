@@ -25,6 +25,7 @@ errorprone {
 }
 
 dependencies {
+    implementation(projects.io)
     implementation(project(":base-services"))
     implementation(project(":logging"))
     implementation(project(":native"))

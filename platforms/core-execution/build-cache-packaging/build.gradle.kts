@@ -12,10 +12,11 @@ dependencies {
     api(project(":hashing"))
     api(project(":snapshots"))
 
-    implementation(project(":base-annotations"))
+    api(libs.guava)
+
+    implementation(projects.javaLanguageExtensions)
     implementation(libs.commonsCompress)
     implementation(libs.commonsIo)
-    implementation(libs.guava)
     implementation(libs.jsr305)
 
     testImplementation(project(":file-collections"))

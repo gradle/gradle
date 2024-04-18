@@ -31,7 +31,6 @@ import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.model.AbstractRealisedModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.AdditionalVariant;
 import org.gradle.internal.component.external.model.ComponentVariant;
-import org.gradle.internal.component.external.model.ConfigurationBoundExternalDependencyMetadata;
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.external.model.LazyToRealisedModuleComponentResolveMetadataHelper;
@@ -222,10 +221,6 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
                     metadata.artifact("jar", "jar", null)));
             }
         }
-    }
-
-    static ModuleDependencyMetadata contextualize(ConfigurationMetadata config, ModuleComponentIdentifier componentId, MavenDependencyDescriptor incoming) {
-        return new ConfigurationBoundExternalDependencyMetadata(config, componentId, incoming, true);
     }
 
     private final NamedObjectInstantiator objectInstantiator;

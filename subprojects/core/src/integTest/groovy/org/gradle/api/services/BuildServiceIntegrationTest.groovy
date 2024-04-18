@@ -37,6 +37,7 @@ import org.gradle.api.tasks.OutputDirectories
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.process.ExecOperations
 import org.gradle.test.fixtures.file.TestFile
@@ -47,6 +48,7 @@ import spock.lang.Issue
 
 import javax.inject.Inject
 
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 import static org.hamcrest.CoreMatchers.containsString
 
 class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
@@ -93,6 +95,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/configuration-cache/issues/97")
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "does nag when service is used indirectly via another service even if task declares service reference and feature preview is enabled"() {
         given:
         serviceImplementation()
@@ -141,6 +144,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/configuration-cache/issues/156")
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "does nag when service is used by artifact transform parameters and feature preview is enabled"() {
         given:
         serviceImplementation()
@@ -342,6 +346,7 @@ service: closed with value 11
         ""        | "SubCountingService"
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "cannot inject shared build service without a name when multiple services exist"() {
         given:
         serviceImplementation()
@@ -450,6 +455,7 @@ service: closed with value 10001
         """
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "injection by name works at configuration time"() {
         given:
         serviceImplementation()

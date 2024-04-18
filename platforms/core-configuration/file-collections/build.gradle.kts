@@ -12,7 +12,7 @@ errorprone {
 }
 
 dependencies {
-    api(project(":base-annotations"))
+    api(projects.javaLanguageExtensions)
     api(project(":base-services"))
     api(project(":core-api"))
     api(project(":files"))
@@ -25,6 +25,7 @@ dependencies {
     api(libs.inject)
     api(libs.jsr305)
 
+    implementation(projects.io)
     implementation(project(":base-services-groovy"))
 
     implementation(libs.slf4jApi)

@@ -153,7 +153,7 @@ public abstract class InterceptScope {
 
         @Override
         public int hashCode() {
-            return Objects.hash(constructorClass);
+            return Objects.hash(callType, constructorClass);
         }
 
         @Override

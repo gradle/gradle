@@ -15,7 +15,7 @@
  */
 package org.gradle.tooling.internal.consumer.parameters;
 
-import com.google.common.collect.ImmutableList.Builder;
+import com.google.common.collect.ImmutableList;
 import org.gradle.internal.Cast;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.tooling.Failure;
@@ -66,30 +66,33 @@ import org.gradle.tooling.events.lifecycle.internal.DefaultBuildPhaseFinishEvent
 import org.gradle.tooling.events.lifecycle.internal.DefaultBuildPhaseOperationDescriptor;
 import org.gradle.tooling.events.lifecycle.internal.DefaultBuildPhaseStartEvent;
 import org.gradle.tooling.events.problems.AdditionalData;
+import org.gradle.tooling.events.problems.ContextualLabel;
 import org.gradle.tooling.events.problems.Details;
 import org.gradle.tooling.events.problems.DocumentationLink;
 import org.gradle.tooling.events.problems.FailureContainer;
-import org.gradle.tooling.events.problems.Label;
 import org.gradle.tooling.events.problems.Location;
-import org.gradle.tooling.events.problems.ProblemAggregation;
-import org.gradle.tooling.events.problems.ProblemCategory;
-import org.gradle.tooling.events.problems.ProblemDescriptor;
+import org.gradle.tooling.events.problems.ProblemContext;
+import org.gradle.tooling.events.problems.ProblemDefinition;
 import org.gradle.tooling.events.problems.ProblemEvent;
+import org.gradle.tooling.events.problems.ProblemGroup;
+import org.gradle.tooling.events.problems.ProblemId;
 import org.gradle.tooling.events.problems.Severity;
 import org.gradle.tooling.events.problems.Solution;
 import org.gradle.tooling.events.problems.internal.DefaultAdditionalData;
-import org.gradle.tooling.events.problems.internal.DefaultCategory;
+import org.gradle.tooling.events.problems.internal.DefaultContextualLabel;
 import org.gradle.tooling.events.problems.internal.DefaultDetails;
 import org.gradle.tooling.events.problems.internal.DefaultDocumentationLink;
 import org.gradle.tooling.events.problems.internal.DefaultFailureContainer;
 import org.gradle.tooling.events.problems.internal.DefaultFileLocation;
-import org.gradle.tooling.events.problems.internal.DefaultLabel;
 import org.gradle.tooling.events.problems.internal.DefaultLineInFileLocation;
 import org.gradle.tooling.events.problems.internal.DefaultOffsetInFileLocation;
 import org.gradle.tooling.events.problems.internal.DefaultPluginIdLocation;
 import org.gradle.tooling.events.problems.internal.DefaultProblemAggregation;
 import org.gradle.tooling.events.problems.internal.DefaultProblemAggregationEvent;
-import org.gradle.tooling.events.problems.internal.DefaultProblemsOperationDescriptor;
+import org.gradle.tooling.events.problems.internal.DefaultProblemDefinition;
+import org.gradle.tooling.events.problems.internal.DefaultProblemGroup;
+import org.gradle.tooling.events.problems.internal.DefaultProblemId;
+import org.gradle.tooling.events.problems.internal.DefaultProblemsOperationContext;
 import org.gradle.tooling.events.problems.internal.DefaultSeverity;
 import org.gradle.tooling.events.problems.internal.DefaultSingleProblemEvent;
 import org.gradle.tooling.events.problems.internal.DefaultSolution;
@@ -151,13 +154,19 @@ import org.gradle.tooling.internal.consumer.DefaultFailure;
 import org.gradle.tooling.internal.consumer.DefaultFileComparisonTestAssertionFailure;
 import org.gradle.tooling.internal.consumer.DefaultTestAssertionFailure;
 import org.gradle.tooling.internal.consumer.DefaultTestFrameworkFailure;
+import org.gradle.tooling.internal.protocol.InternalBasicProblemDetailsVersion3;
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 import org.gradle.tooling.internal.protocol.InternalFailure;
 import org.gradle.tooling.internal.protocol.InternalFileComparisonTestAssertionFailure;
-import org.gradle.tooling.internal.protocol.InternalProblemAggregation;
-import org.gradle.tooling.internal.protocol.InternalProblemAggregationDetails;
+import org.gradle.tooling.internal.protocol.InternalProblemAggregationDetailsV2;
+import org.gradle.tooling.internal.protocol.InternalProblemAggregationDetailsVersion3;
+import org.gradle.tooling.internal.protocol.InternalProblemContextDetails;
+import org.gradle.tooling.internal.protocol.InternalProblemDefinition;
 import org.gradle.tooling.internal.protocol.InternalProblemDetails;
 import org.gradle.tooling.internal.protocol.InternalProblemEvent;
+import org.gradle.tooling.internal.protocol.InternalProblemEventVersion2;
+import org.gradle.tooling.internal.protocol.InternalProblemGroup;
+import org.gradle.tooling.internal.protocol.InternalProblemId;
 import org.gradle.tooling.internal.protocol.InternalTestAssertionFailure;
 import org.gradle.tooling.internal.protocol.InternalTestFrameworkFailure;
 import org.gradle.tooling.internal.protocol.events.InternalBinaryPluginIdentifier;
@@ -205,6 +214,7 @@ import org.gradle.tooling.internal.protocol.events.InternalWorkItemDescriptor;
 import org.gradle.tooling.internal.protocol.problem.InternalAdditionalData;
 import org.gradle.tooling.internal.protocol.problem.InternalBasicProblemDetails;
 import org.gradle.tooling.internal.protocol.problem.InternalBasicProblemDetailsVersion2;
+import org.gradle.tooling.internal.protocol.problem.InternalContextualLabel;
 import org.gradle.tooling.internal.protocol.problem.InternalDetails;
 import org.gradle.tooling.internal.protocol.problem.InternalDocumentationLink;
 import org.gradle.tooling.internal.protocol.problem.InternalFileLocation;
@@ -214,6 +224,7 @@ import org.gradle.tooling.internal.protocol.problem.InternalLocation;
 import org.gradle.tooling.internal.protocol.problem.InternalOffsetInFileLocation;
 import org.gradle.tooling.internal.protocol.problem.InternalPluginIdLocation;
 import org.gradle.tooling.internal.protocol.problem.InternalProblemCategory;
+import org.gradle.tooling.internal.protocol.problem.InternalProblemDetailsVersion2;
 import org.gradle.tooling.internal.protocol.problem.InternalSeverity;
 import org.gradle.tooling.internal.protocol.problem.InternalSolution;
 import org.gradle.tooling.internal.protocol.problem.InternalTaskPathLocation;
@@ -221,12 +232,10 @@ import org.gradle.tooling.internal.protocol.problem.InternalTaskPathLocation;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
 import static com.google.common.collect.ImmutableList.builderWithExpectedSize;
@@ -563,78 +572,91 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         if (progressEvent instanceof InternalProblemEvent) {
             InternalProblemEvent problemEvent = (InternalProblemEvent) progressEvent;
             return createProblemEvent(problemEvent, descriptor);
+        } else if (progressEvent instanceof InternalProblemEventVersion2) {
+            InternalProblemEventVersion2 problemEvent = (InternalProblemEventVersion2) progressEvent;
+            return createProblemEvent(problemEvent, descriptor);
         }
         return null;
     }
 
-    private ProblemEvent createProblemEvent(InternalProblemEvent problemEvent, InternalProblemDescriptor descriptor) {
+    private @Nullable ProblemEvent createProblemEvent(InternalProblemEvent problemEvent, InternalProblemDescriptor descriptor) {
         InternalProblemDetails details = problemEvent.getDetails();
         OperationDescriptor parentDescriptor = getParentDescriptor(descriptor.getParentId());
 
-        if(details instanceof InternalBasicProblemDetails){
+        if (details instanceof InternalBasicProblemDetails) {
             InternalBasicProblemDetails basicProblemDetails = (InternalBasicProblemDetails) details;
             return new DefaultSingleProblemEvent(
                 problemEvent.getEventTime(),
                 parentDescriptor,
-                toProblemCategory(basicProblemDetails.getCategory()),
-                toProblemSeverity(basicProblemDetails.getSeverity()),
-                toProblemLabel(basicProblemDetails.getLabel()),
+                toProblemDefinition(basicProblemDetails.getLabel(), basicProblemDetails.getCategory(), basicProblemDetails.getSeverity(), basicProblemDetails.getDocumentationLink()),
+                toContextualLabel(basicProblemDetails.getLabel().getLabel()),
                 toProblemDetails(basicProblemDetails.getDetails()),
                 toLocations(basicProblemDetails.getLocations()),
-                toDocumentationLink(basicProblemDetails.getDocumentationLink()),
                 toSolutions(basicProblemDetails.getSolutions()),
                 toAdditionalData(basicProblemDetails.getAdditionalData()),
                 toFailureContainer(basicProblemDetails)
             );
-        } else if(details instanceof InternalProblemAggregationDetails){
+        } else if (details instanceof InternalProblemAggregationDetailsV2) {
+            InternalProblemAggregationDetailsV2 problemAggregationDetails = (InternalProblemAggregationDetailsV2) details;
             return new DefaultProblemAggregationEvent(
                 problemEvent.getEventTime(),
                 parentDescriptor,
-                toSummaries((InternalProblemAggregationDetails) details)
-            );
-        }
+                new DefaultProblemAggregation(
+                    toProblemDefinition(problemAggregationDetails.getLabel(), problemAggregationDetails.getCategory(), problemAggregationDetails.getSeverity(), problemAggregationDetails.getDocumentationLink()),
+                    toProblemContextDetails(problemAggregationDetails.getProblems())));
 
+        }
+        return null;
+    }
+
+    private @Nullable ProblemEvent createProblemEvent(InternalProblemEventVersion2 problemEvent, InternalProblemDescriptor descriptor) {
+        InternalProblemDetailsVersion2 details = problemEvent.getDetails();
+        OperationDescriptor parentDescriptor = getParentDescriptor(descriptor.getParentId());
+
+        if (details instanceof InternalBasicProblemDetailsVersion3) {
+            InternalBasicProblemDetailsVersion3 basicProblemDetails = (InternalBasicProblemDetailsVersion3) details;
+            return new DefaultSingleProblemEvent(
+                problemEvent.getEventTime(),
+                parentDescriptor,
+                toProblemDefinition(basicProblemDetails.getDefinition()),
+                toContextualLabel(basicProblemDetails.getContextualLabel()),
+                toProblemDetails(basicProblemDetails.getDetails()),
+                toLocations(basicProblemDetails.getLocations()),
+                toSolutions(basicProblemDetails.getSolutions()),
+                toAdditionalData(basicProblemDetails.getAdditionalData()),
+                toFailureContainer(basicProblemDetails)
+            );
+        } else if (details instanceof InternalProblemAggregationDetailsVersion3) {
+            InternalProblemAggregationDetailsVersion3 problemAggregationDetails = (InternalProblemAggregationDetailsVersion3) details;
+            return new DefaultProblemAggregationEvent(
+                problemEvent.getEventTime(),
+                parentDescriptor,
+                new DefaultProblemAggregation(
+                    toProblemDefinition(problemAggregationDetails.getDefinition()),
+                    toProblemContextDetails(problemAggregationDetails.getProblems())));
+
+        }
         return null;
     }
 
     @Nonnull
-    private static DefaultProblemsOperationDescriptor toSingleProblemDescriptor(InternalBasicProblemDetails details) {
-        return new DefaultProblemsOperationDescriptor(
-            toProblemCategory(details.getCategory()),
-            toProblemLabel(details.getLabel()),
+    private static DefaultProblemsOperationContext toSingleProblemContextDetail(InternalProblemContextDetails details) {
+        return new DefaultProblemsOperationContext(
             toProblemDetails(details.getDetails()),
-            toProblemSeverity(details.getSeverity()),
             toLocations(details.getLocations()),
-            toDocumentationLink(details.getDocumentationLink()),
             toSolutions(details.getSolutions()),
             toAdditionalData(details.getAdditionalData()),
-            toFailureContainer(details)
+            toFailureContainer(details.getFailure())
         );
     }
 
-    private static List<ProblemAggregation> toSummaries(InternalProblemAggregationDetails details) {
-        Builder<ProblemAggregation> summaries = builderWithExpectedSize(details.getSummaries().size());
-        for (InternalProblemAggregation summary : details.getSummaries()) {
-            summaries.add(toSummary(summary));
-        }
-        return summaries.build();
-    }
-
-    private static ProblemAggregation toSummary(InternalProblemAggregation basicDetails) {
-        return new DefaultProblemAggregation(
-            toProblemCategory(basicDetails.getCategory()),
-            toProblemLabel(basicDetails.getLabel()),
-            toProblemDescriptors(basicDetails.getProblems()));
-    }
-
-    private static List<ProblemDescriptor> toProblemDescriptors(Collection<InternalProblemEvent> problems) {
-        Builder<ProblemDescriptor> result = builderWithExpectedSize(problems.size());
-        for (InternalProblemEvent problem : problems) {
-            result.add(toSingleProblemDescriptor((InternalBasicProblemDetails) problem.getDetails()));
+    private static List<ProblemContext> toProblemContextDetails(List<InternalProblemContextDetails> problems) {
+        ImmutableList.Builder<ProblemContext> result = builderWithExpectedSize(problems.size());
+        for (InternalProblemContextDetails problem : problems) {
+            result.add(toSingleProblemContextDetail(problem));
         }
         return result.build();
     }
-
 
 
     private @Nullable ProgressEvent toGenericProgressEvent(InternalProgressEvent event) {
@@ -802,31 +824,79 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         return new DefaultTestOutputOperationDescriptor(descriptor, parent, destination, message);
     }
 
-    private static @Nullable FailureContainer toFailureContainer(@Nullable InternalBasicProblemDetails problemDetails) {
+    private static FailureContainer toFailureContainer(@Nullable InternalBasicProblemDetails problemDetails) {
         if (!(problemDetails instanceof InternalBasicProblemDetailsVersion2)) {
-            return null;
+            return new DefaultFailureContainer(null);
         }
-        InternalFailure failure = ((InternalBasicProblemDetailsVersion2) problemDetails).getFailure();
+        return toFailureContainer(((InternalBasicProblemDetailsVersion2) problemDetails).getFailure());
+    }
+
+    private static FailureContainer toFailureContainer(@Nullable InternalBasicProblemDetailsVersion3 problemDetails) {
+        return toFailureContainer(problemDetails == null ? null : problemDetails.getFailure());
+    }
+
+    private static FailureContainer toFailureContainer(@Nullable InternalFailure failure) {
         if (failure == null) {
-            return null;
+            return new DefaultFailureContainer(null);
         }
         return new DefaultFailureContainer(toFailure(failure));
+    }
+
+    private static ProblemDefinition toProblemDefinition(InternalProblemDefinition problemDefinition) {
+        return new DefaultProblemDefinition(
+            toProblemId(problemDefinition.getId()),
+            toProblemSeverity(problemDefinition.getSeverity()),
+            toDocumentationLink(problemDefinition.getDocumentationLink())
+        );
+    }
+
+    private static ProblemDefinition toProblemDefinition(InternalLabel label, InternalProblemCategory category, InternalSeverity severity, @Nullable InternalDocumentationLink documentationLink) {
+        return new DefaultProblemDefinition(
+            toProblemId(label, category),
+            toProblemSeverity(severity),
+            toDocumentationLink(documentationLink)
+        );
+    }
+
+    private static ProblemId toProblemId(InternalProblemId problemId) {
+        return new DefaultProblemId(problemId.getName(), problemId.getDisplayName(), toProblemGroup(problemId.getGroup()));
+    }
+
+    private static ProblemId toProblemId(InternalLabel label, InternalProblemCategory category) {
+        List<String> categories = new ArrayList<>();
+        categories.add(category.getCategory());
+        categories.addAll(category.getSubcategories());
+
+        return new DefaultProblemId(categories.remove(categories.size() - 1), label.getLabel(), toProblemGroup(categories));
+    }
+
+    private static @Nullable ProblemGroup toProblemGroup(List<String> groupNames) {
+        if (groupNames.isEmpty()) {
+            return null;
+        } else {
+            String groupName = groupNames.remove(groupNames.size() - 1);
+            return new DefaultProblemGroup(groupName, groupName, toProblemGroup(groupNames));
+        }
+    }
+
+    private static ProblemGroup toProblemGroup(InternalProblemGroup problemGroup) {
+        return new DefaultProblemGroup(problemGroup.getName(), problemGroup.getDisplayName(), problemGroup.getParent() == null ? null : toProblemGroup(problemGroup.getParent()));
     }
 
     private static AdditionalData toAdditionalData(InternalAdditionalData additionalData) {
         return new DefaultAdditionalData(additionalData.getAsMap());
     }
 
-    private static ProblemCategory toProblemCategory(InternalProblemCategory category) {
-        return new DefaultCategory(category.getNamespace(), category.getCategory(), category.getSubcategories());
+    private static ContextualLabel toContextualLabel(@Nullable InternalContextualLabel contextualLabel) {
+        return new DefaultContextualLabel(contextualLabel == null ? null : contextualLabel.getContextualLabel());
     }
 
-    private static Label toProblemLabel(InternalLabel label) {
-        return new DefaultLabel(label.getLabel());
+    private static ContextualLabel toContextualLabel(@Nullable String contextualLabel) {
+        return new DefaultContextualLabel(contextualLabel);
     }
 
     private static Severity toProblemSeverity(InternalSeverity severity) {
-        return DefaultSeverity.from(severity.getSeverity());
+        return DefaultSeverity.from(severity != null ? severity.getSeverity() : Severity.WARNING.getSeverity());
     }
 
     private static List<Location> toLocations(List<InternalLocation> locations) {
@@ -834,10 +904,10 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         for (InternalLocation location : locations) {
             if (location instanceof InternalLineInFileLocation) {
                 InternalLineInFileLocation l = (InternalLineInFileLocation) location;
-                result.add(new DefaultLineInFileLocation(l.getPath(), Objects.requireNonNull(l.getLine()), l.getColumn(), l.getLength()));
+                result.add(new DefaultLineInFileLocation(l.getPath(), l.getLine(), l.getColumn(), l.getLength()));
             } else if (location instanceof InternalOffsetInFileLocation) {
                 InternalOffsetInFileLocation l = (InternalOffsetInFileLocation) location;
-                result.add(new DefaultOffsetInFileLocation(l.getPath(), l.getOffset(), Objects.requireNonNull(l.getLength())));
+                result.add(new DefaultOffsetInFileLocation(l.getPath(), l.getOffset(), l.getLength()));
             } else if (location instanceof InternalFileLocation) {
                 InternalFileLocation l = (InternalFileLocation) location;
                 result.add(new DefaultFileLocation(l.getPath()));

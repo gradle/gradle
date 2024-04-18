@@ -19,9 +19,9 @@ package org.gradle.integtests.tooling.r43
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.TestResultHandler
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.test.fixtures.Flaky
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.ProjectConnection
+import spock.lang.Timeout
 
 import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.DUMMY_TASK_NAME
 import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.PROMPT
@@ -32,6 +32,7 @@ import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.buildScan
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
 @TargetGradleVersion(">=4.3")
+@Timeout(120)
 class CapturingUserInputCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
         if (!dist.toolingApiStdinInEmbeddedModeSupported) {
@@ -43,7 +44,6 @@ class CapturingUserInputCrossVersionSpec extends ToolingApiSpecification {
         file('build.gradle') << buildScanPluginApplication()
     }
 
-    @Flaky(because = "https://github.com/gradle/gradle-private/issues/4145")
     def "can capture user input if standard input was provided"() {
         when:
         withConnection { ProjectConnection connection ->

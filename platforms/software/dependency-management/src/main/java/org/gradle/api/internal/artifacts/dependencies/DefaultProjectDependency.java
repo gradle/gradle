@@ -23,12 +23,11 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ProjectDependency;
-import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
-import org.gradle.internal.component.resolution.failure.describer.ConfigurationNotConsumableFailureDescriber;
+import org.gradle.internal.component.resolution.failure.exception.ConfigurationSelectionException;
 import org.gradle.internal.component.resolution.failure.type.ConfigurationNotConsumableFailure;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.deprecation.DeprecationLogger;
@@ -38,7 +37,6 @@ import org.gradle.util.internal.GUtil;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collections;
-import java.util.Optional;
 import java.util.Set;
 
 public class DefaultProjectDependency extends AbstractModuleDependency implements ProjectDependencyInternal {
@@ -112,14 +110,11 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
      */
     private void failDueToNonConsumableConfigurationSelection(Configuration selectedConfiguration) {
         ConfigurationNotConsumableFailure failure = new ConfigurationNotConsumableFailure(selectedConfiguration.getName(), dependencyProject.getDisplayName());
-        ConfigurationNotConsumableFailureDescriber describer = new ConfigurationNotConsumableFailureDescriber() {
-            @SuppressWarnings("OverridesJavaxInjectableMethod")
-            @Override
-            protected DocumentationRegistry getDocumentationRegistry() {
-                return new DocumentationRegistry();
-            }
-        };
-        throw describer.describeFailure(failure, Optional.empty());
+        String message = String.format(
+            "Selected configuration '" + failure.getRequestedName() + "' on '" + failure.getRequestedComponentDisplayName() +
+            "' but it can't be used as a project dependency because it isn't intended for consumption by other components."
+        );
+        throw new ConfigurationSelectionException(message, failure, Collections.emptyList());
     }
 
     @Override

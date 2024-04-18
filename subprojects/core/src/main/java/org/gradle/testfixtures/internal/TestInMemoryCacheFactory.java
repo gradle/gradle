@@ -15,7 +15,6 @@
  */
 package org.gradle.testfixtures.internal;
 
-import org.gradle.api.Action;
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.CleanupAction;
@@ -27,7 +26,6 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.CacheVisitor;
 import org.gradle.internal.Cast;
-import org.gradle.internal.Factory;
 import org.gradle.internal.Pair;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.util.internal.GFileUtils;
@@ -38,6 +36,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public class TestInMemoryCacheFactory implements CacheFactory {
     /*
@@ -47,11 +47,11 @@ public class TestInMemoryCacheFactory implements CacheFactory {
     final Map<Pair<File, String>, IndexedCache<?, ?>> caches = Collections.synchronizedMap(new LinkedHashMap<>());
 
     @Override
-    public PersistentCache open(File cacheDir, String displayName, Map<String, ?> properties, LockOptions lockOptions, @Nullable Action<? super PersistentCache> initializer, @Nullable CacheCleanupStrategy cacheCleanupStrategy) throws CacheOpenException {
+    public PersistentCache open(File cacheDir, String displayName, Map<String, ?> properties, LockOptions lockOptions, @Nullable Consumer<? super PersistentCache> initializer, @Nullable CacheCleanupStrategy cacheCleanupStrategy) throws CacheOpenException {
         GFileUtils.mkdirs(cacheDir);
         InMemoryCache cache = new InMemoryCache(cacheDir, displayName, cacheCleanupStrategy != null ? cacheCleanupStrategy.getCleanupAction() : null);
         if (initializer != null) {
-            initializer.execute(cache);
+            initializer.accept(cache);
         }
         return cache;
     }
@@ -140,8 +140,8 @@ public class TestInMemoryCacheFactory implements CacheFactory {
         }
 
         @Override
-        public <T> T withFileLock(Factory<? extends T> action) {
-            return action.create();
+        public <T> T withFileLock(Supplier<? extends T> action) {
+            return action.get();
         }
 
         @Override
@@ -150,11 +150,11 @@ public class TestInMemoryCacheFactory implements CacheFactory {
         }
 
         @Override
-        public <T> T useCache(Factory<? extends T> action) {
+        public <T> T useCache(Supplier<? extends T> action) {
             assertNotClosed();
             // The contract of useCache() means we have to provide some basic synchronization.
             synchronized (this) {
-                return action.create();
+                return action.get();
             }
         }
 

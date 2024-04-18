@@ -32,6 +32,8 @@ import spock.lang.Issue
 
 import java.util.regex.Pattern
 
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
+
 class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
 
     FileTreeBuilder root
@@ -505,6 +507,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         getCompileBuildFileOperationsCount() == 8 // classpath and body for the common script + identical script x 3 targets
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "remapped classes have script origin"() {
         root {
             'build.gradle'('''

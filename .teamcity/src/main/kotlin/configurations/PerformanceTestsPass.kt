@@ -61,7 +61,7 @@ class PerformanceTestsPass(model: CIBuildModel, performanceTestProject: Performa
             "performanceTestReport"
 
         artifactRules = """
-subprojects/$performanceProjectName/build/performance-test-results.zip
+testing/$performanceProjectName/build/performance-test-results.zip
 """
         if (performanceTestProject.performanceTests.any { it.testProjects.isNotEmpty() }) {
             val dependencyBuildIds = performanceTestProject.performanceTests

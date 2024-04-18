@@ -92,13 +92,7 @@ public class DeprecationLogger {
     @CheckReturnValue
     @SuppressWarnings("rawtypes")
     public static DeprecationMessageBuilder<?> deprecate(final String feature) {
-        return new DeprecationMessageBuilder() {
-            @Override
-            DeprecationMessage build() {
-                setSummary(feature + " has been deprecated.");
-                return super.build();
-            }
-        };
+        return new ExplicitDeprecationMessageBuilder(feature);
     }
 
     /**
@@ -141,7 +135,7 @@ public class DeprecationLogger {
         return new DeprecationMessageBuilder.WithDeprecationTimeline(new DeprecationMessageBuilder() {
             @Override
             DeprecationMessage build() {
-                return new DeprecationMessage(behaviour + ". This behavior is deprecated.", "", advice, null, null, DeprecatedFeatureUsage.Type.USER_CODE_INDIRECT);
+                return new DeprecationMessage(behaviour + ". This behavior is deprecated.", "", advice, null, null, DeprecatedFeatureUsage.Type.USER_CODE_INDIRECT, problemIdDisplayName, problemId);
             }
         }); // TODO: it is not ok that NO_DOCUMENTATION is hardcoded here
     }
@@ -346,5 +340,22 @@ public class DeprecationLogger {
 
     private synchronized static void nagUserWith(DeprecatedFeatureUsage usage) {
         DEPRECATED_FEATURE_HANDLER.featureUsed(usage);
+    }
+
+    private static class ExplicitDeprecationMessageBuilder extends DeprecationMessageBuilder<ExplicitDeprecationMessageBuilder> {
+        private final String feature;
+
+        public ExplicitDeprecationMessageBuilder(String feature) {
+            this.feature = feature;
+            setSummary(feature + " has been deprecated.");
+        }
+
+        @Override
+        DeprecationMessage build() {
+            if(problemId == null) {
+                setProblemId(createDefaultDeprecationId(feature));
+            }
+            return super.build();
+        }
     }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.initialization.transform.services;
 
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
@@ -36,7 +37,6 @@ import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -85,8 +85,8 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
         return getResolutionData(contextId).getArtifactHash(file);
     }
 
-    public FileCollection getAnalysisResult(long contextId) {
-        return getResolutionData(contextId).getAnalysisResult();
+    public FileCollection getTypeHierarchyAnalysis(long contextId) {
+        return getResolutionData(contextId).getTypeHierarchyAnalysisResult();
     }
 
     private ResolutionData getResolutionData(long contextId) {
@@ -100,8 +100,9 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
         });
         return new ResolutionScope() {
             @Override
-            public void setAnalysisResult(FileCollection analysisResult) {
-                resolutionData.getAnalysisResult().setFrom(analysisResult);
+            public void setTypeHierarchyAnalysisResult(FileCollection analysisResult) {
+                FileCollection typeHierarchyAnalysisResult = analysisResult.filter(InstrumentationTransformUtils::isTypeHierarchyAnalysisFile);
+                resolutionData.getTypeHierarchyAnalysisResult().setFrom(typeHierarchyAnalysisResult);
             }
 
             @Override
@@ -118,7 +119,7 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
 
     public interface ResolutionScope extends AutoCloseable {
 
-        void setAnalysisResult(FileCollection analysisResult);
+        void setTypeHierarchyAnalysisResult(FileCollection analysisResult);
         void setOriginalClasspath(FileCollection originalClasspath);
 
         @Override
@@ -136,7 +137,7 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
             this.hashCache = new ConcurrentHashMap<>();
             this.hashToOriginalFile = Lazy.locking().of(() -> {
                 Set<File> originalClasspath = getOriginalClasspath().getFiles();
-                Map<String, File> originalFiles = new HashMap<>(originalClasspath.size());
+                Map<String, File> originalFiles = Maps.newHashMapWithExpectedSize(originalClasspath.size());
                 originalClasspath.forEach(file -> {
                     String fileHash = getArtifactHash(file);
                     if (fileHash != null) {
@@ -147,22 +148,21 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
             });
             this.instrumentationTypeRegistry = Lazy.locking().of(() -> {
                 InstrumentationTypeRegistry gradleCoreInstrumentationTypeRegistry = internalServices.getGradleCoreInstrumentationTypeRegistry();
-                Map<String, Set<String>> directSuperTypes = readDirectSuperTypes();
+                Map<String, Set<String>> directSuperTypes = mergeTypeHierarchyAnalysis();
                 return new ExternalPluginsInstrumentationTypeRegistry(directSuperTypes, gradleCoreInstrumentationTypeRegistry);
             });
             this.internalServices = internalServices;
         }
 
-        abstract ConfigurableFileCollection getAnalysisResult();
-        abstract ConfigurableFileCollection getOriginalClasspath();
-
-        private Map<String, Set<String>> readDirectSuperTypes() {
+        private Map<String, Set<String>> mergeTypeHierarchyAnalysis() {
             InstrumentationAnalysisSerializer serializer = new InstrumentationAnalysisSerializer(internalServices.getStringInterner());
-            return getAnalysisResult().getFiles().stream()
-                .filter(InstrumentationTransformUtils::isAnalysisFile)
-                .flatMap(file -> serializer.readOnlyTypeHierarchy(file).entrySet().stream())
+            return getTypeHierarchyAnalysisResult().getFiles().stream()
+                .flatMap(file -> serializer.readTypeHierarchyAnalysis(file).entrySet().stream())
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, Sets::union));
         }
+
+        abstract ConfigurableFileCollection getTypeHierarchyAnalysisResult();
+        abstract ConfigurableFileCollection getOriginalClasspath();
 
         private InstrumentationTypeRegistry getInstrumentationTypeRegistry() {
             return instrumentationTypeRegistry.get();

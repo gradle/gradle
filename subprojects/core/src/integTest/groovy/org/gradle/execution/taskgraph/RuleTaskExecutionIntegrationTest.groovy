@@ -17,8 +17,11 @@
 package org.gradle.execution.taskgraph
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.model.internal.core.ModelNode
+
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
 class RuleTaskExecutionIntegrationTest extends AbstractIntegrationSpec implements WithRuleBasedTasks {
 
@@ -195,6 +198,7 @@ class RuleTaskExecutionIntegrationTest extends AbstractIntegrationSpec implement
         executed(":b:dependency")
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "can use getTasksByName() to get task defined in rules only script plugin after configuration"() {
         when:
         buildScript """

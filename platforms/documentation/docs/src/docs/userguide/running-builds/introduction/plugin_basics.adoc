@@ -15,23 +15,19 @@
 [[plugin_basics]]
 = Plugin Basics
 
-Plugins are used to *extend build capabilities and customize Gradle*.
+Gradle is built on a plugin system.
+Gradle itself is primarily composed of infrastructure, such as a sophisticated dependency resolution engine.
+The rest of its functionality comes from plugins.
+
+A plugin is a piece of software that *provides additional functionality to the Gradle build system*.
 
 image::gradle-basic-6.png[]
 
-Most features, like the ability to compile Java code, are added by _plugins_.
+Plugins can be applied to a Gradle build script to *add new tasks, configurations, or other build-related capabilities*:
 
-Using plugins is also the primary mechanism for organizing build logic.
-
-Plugins can provide useful tasks with capabilities such as running code, creating documentation, setting up source files, publishing archives, etc.
-
-*Applying* a plugin to a project allows the plugin to extend the project's and Gradle's capabilities.
-
-For example:
-
-- The Spring Boot Gradle Plugin, `org.springframework.boot`, provides Spring Boot support.
-- The Google Services Gradle Plugin, `com.google.gms:google-services`, enables Google APIs and Firebase services in your Android application.
-- The Gradle Shadow Plugin, `com.github.johnrengelman.shadow`, is a plugin that generates fat/uber JARs with support for package relocation.
+The Java Library Plugin - `java-library` :: Used to define and build Java libraries. It compiles Java source code with the `compileJava` task, generates Javadoc with the `javadoc` task, and packages the compiled classes into a JAR file with the `jar` task.
+The Google Services Gradle Plugin - `com.google.gms:google-services` :: Enables Google APIs and Firebase services in your Android application with a configuration block called `googleServices{}` and a task called `generateReleaseAssets`.
+The Gradle Bintray Plugin - `com.jfrog.bintray` :: Allows you to publish artifacts to Bintray by configuring the plugin using the `bintray{}` block.
 
 == Plugin distribution
 
@@ -41,83 +37,119 @@ Plugins are distributed in three ways:
 2. **Community plugins** - Gradle's community shares plugins via the https://plugins.gradle.org[Gradle Plugin Portal].
 3. **Local plugins** - Gradle enables users to create custom plugins using link:{javadocPath}/org/gradle/api/Plugin.html[APIs].
 
-You apply plugins in the build script using their *plugin id*, a globally unique identifier, or a name:
+== Applying plugins
+
+*Applying* a plugin to a project allows the plugin to extend the project's capabilities.
+
+You apply plugins in the build script using a *plugin id* (a globally unique identifier / name) and a version:
 
 [source,text]
 ----
 plugins {
-    id «plugin id» version «plugin version» [apply «false»]
+    id «plugin id» version «plugin version»
 }
 ----
 
-== Core plugins
+== 1. Core plugins
 
-Core Gradle plugins are unique in that they provide short names, such as `java` for the core link:{javadocPath}/org/gradle/api/plugins/JavaPlugin.html[JavaPlugin].
+Gradle Core plugins are a set of plugins that are included in the Gradle distribution itself.
+These plugins provide essential functionality for building and managing projects.
 
+Some examples of core plugins include:
+
+- *java*: Provides support for building Java projects.
+- *groovy*: Adds support for compiling and testing Groovy source files.
+- *ear*: Adds support for building EAR files for enterprise applications.
+
+Core plugins are unique in that they provide short names, such as `java` for the core link:{javadocPath}/org/gradle/api/plugins/JavaPlugin.html[JavaPlugin], when applied in build scripts.
+They also do not require versions.
 To apply the `java` plugin to a project:
 
-[source,build.gradle.kts]
+.build.gradle.kts
+[source,kotlin]
 ----
 plugins {
     id("java")
 }
 ----
 
-The <<java_plugin.adoc#java_plugin,Java plugin>> adds Java compilation along with testing and bundling capabilities to a project.
+There are many <<plugin_reference#plugin_reference,Gradle Core Plugins>> users can take advantage of.
 
-There are many more <<plugin_reference#plugin_reference,Gradle core plugins>> users can take advantage of.
+== 2. Community plugins
 
-== Community plugins
+Community plugins are plugins developed by the Gradle community, rather than being part of the core Gradle distribution.
+These plugins provide additional functionality that may be specific to certain use cases or technologies.
 
-Gradle has a vibrant community of plugin developers who contribute plugins for various capabilities, such as the link:https://plugins.gradle.org/plugin/org.springframework.boot[Spring Boot Gradle plugin].
+The link:https://plugins.gradle.org/plugin/org.springframework.boot[Spring Boot Gradle plugin] packages executable JAR or WAR archives, and runs link:https://spring.io/[Spring Boot] Java applications.
 
 To apply the `org.springframework.boot` plugin to a project:
 
-[source,build.gradle.kts]
+.build.gradle.kts
+[source,kotlin]
 ----
 plugins {
     id("org.springframework.boot") version "3.1.5"
 }
 ----
 
-The Spring Boot plugin provides Spring Boot support in Gradle.
-It packages executable JAR or WAR archives and runs link:https://spring.io/[Spring Boot] Java applications.
+Community plugins can be published at the link:http://plugins.gradle.org/[Gradle Plugin Portal], where other Gradle users can easily discover and use them.
 
-The link:http://plugins.gradle.org/[Gradle plugin portal] provides an interface for searching and exploring community plugins.
+== 3. Local plugins
 
-== Plugin tasks
+Custom or local plugins are developed and used within a specific project or organization.
+These plugins are not shared publicly and are tailored to the specific needs of the project or organization.
 
-link:https://plugins.gradle.org/plugin/com.google.cloud.tools.jib[Jib] is a Gradle plugin for building Docker and OCI images of Java applications.
+Local plugins can encapsulate common build logic, provide integrations with internal systems or tools, or abstract complex functionality into reusable components.
 
-The Google Jib Gradle plugin is applied as follows:
+Gradle provides users with the ability to develop custom plugins using APIs.
+To create your own plugin, you'll typically follow these steps:
 
-[source,build.gradle.kts]
+1. *Define the plugin class:* create a new class that implements the `Plugin<Project>` interface.
++
+[source,kotlin]
 ----
-plugins {
-  id("com.google.cloud.tools.jib") version "3.4.0"
+// Define a 'HelloPlugin' plugin
+class HelloPlugin : Plugin<Project> {
+    override fun apply(project: Project) {
+        // Define the 'hello' task
+        val helloTask = project.tasks.register("hello") {
+            doLast {
+                println("Hello, Gradle!")
+            }
+        }
+    }
 }
 ----
 
-Since plugins add tasks to your project when applied, you can view the tasks added by the Jib plugin by running `./gradlew tasks`:
-
-[source,text]
+2. *Build and optionally publish your plugin:* generate a JAR file containing your plugin code and optionally publish this JAR to a repository (local or remote) to be used in other projects.
++
+[source,kotlin]
 ----
-$ ./gradlew tasks
+// Publish the plugin
+plugins {
+    `maven-publish`
+}
 
-> Task :tasks
-
-------------------------------------------------------------
-Tasks runnable from root project 'plugins'
-------------------------------------------------------------
-
-Jib tasks
----------
-jib - Builds a container image to a registry.
-jibBuildTar - Builds a container image to a tarball.
-jibDockerBuild - Builds a container image to a Docker daemon.
+publishing {
+    publications {
+        create<MavenPublication>("mavenJava") {
+            from(components["java"])
+        }
+    }
+    repositories {
+        mavenLocal()
+    }
+}
 ----
-
-As we can see, the `jib`, `jibBuildTar`, and `jibDockerBuild` tasks from the Jib plugin have been added to the project and may be executed.
+3. *Apply your plugin:* when you want to use the plugin, include the plugin ID and version in the `plugins{}` block of the build file.
++
+[source,kotlin]
+----
+// Apply the plugin
+plugins {
+    id("com.example.hello") version "1.0"
+}
+----
 
 Consult the <<custom_plugins.adoc#custom_plugins,Plugin development chapter>> to learn more.
 

@@ -37,6 +37,9 @@ abstract class SubprojectsInfo : DefaultTask() {
     private
     val subprojectsFolder = project.layout.projectDirectory.dir("subprojects")
 
+    private
+    val testingFolder = project.layout.projectDirectory.dir("testing")
+
     @get:Internal
     protected
     val subprojectsJson = project.layout.projectDirectory.file(".teamcity/subprojects.json")
@@ -50,7 +53,7 @@ abstract class SubprojectsInfo : DefaultTask() {
 
     private
     fun generateSubprojectsDirectories(): List<File> {
-        val subprojectRoots = platformsFolder.asFile.listFiles(File::isDirectory).plus(subprojectsFolder.asFile)
+        val subprojectRoots = platformsFolder.asFile.listFiles(File::isDirectory).plus(subprojectsFolder.asFile).plus(testingFolder.asFile)
         return subprojectRoots.map { it.listFiles(File::isDirectory).asList() }.flatten()
     }
 

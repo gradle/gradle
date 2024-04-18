@@ -51,6 +51,7 @@ import java.util.stream.Collectors;
 
 import static org.gradle.internal.instrumentation.model.CallableKindInfo.GROOVY_PROPERTY_GETTER;
 import static org.gradle.internal.instrumentation.model.CallableKindInfo.GROOVY_PROPERTY_SETTER;
+import static org.gradle.internal.instrumentation.processor.codegen.GradleReferencedType.GENERATED_ANNOTATION;
 import static org.gradle.internal.instrumentation.processor.codegen.JavadocUtils.callableKindForJavadoc;
 import static org.gradle.internal.instrumentation.processor.codegen.JavadocUtils.interceptedCallableLink;
 import static org.gradle.internal.instrumentation.processor.codegen.JavadocUtils.interceptorImplementationLink;
@@ -110,9 +111,11 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
 
     private static TypeSpec.Builder generateInterceptorClass(String className, BytecodeInterceptorType interceptorType, CodeBlock scopes, List<CallInterceptionRequest> requests) {
         TypeSpec.Builder generatedClass = TypeSpec.classBuilder(className)
+            .addAnnotation(GENERATED_ANNOTATION.asClassName())
             .superclass(CALL_INTERCEPTOR_CLASS)
             .addSuperinterface(SIGNATURE_AWARE_CALL_INTERCEPTOR_CLASS)
-            .addSuperinterface(interceptorType.getInterceptorMarkerInterface())
+            .addSuperinterface(FILTERABLE_CALL_INTERCEPTOR)
+            .addSuperinterface(ClassName.get(interceptorType.getInterceptorMarkerInterface()))
             .addJavadoc(interceptorClassJavadoc(requests))
             .addModifiers(Modifier.PUBLIC, Modifier.STATIC);
 
@@ -121,7 +124,7 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
 
         SignatureTree signatureTree = signatureTreeFromRequests(requests);
 
-        MethodSpec doIntercept = MethodSpec.methodBuilder("doIntercept")
+        MethodSpec interceptMethod = MethodSpec.methodBuilder("intercept")
             .addAnnotation(Override.class)
             .addModifiers(Modifier.PUBLIC)
             .returns(Object.class)
@@ -142,7 +145,7 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
             .addCode(generateMatchesSignatureCodeFromInterceptorSignatureTree(signatureTree))
             .build();
 
-        generatedClass.addMethod(doIntercept);
+        generatedClass.addMethod(interceptMethod);
         generatedClass.addMethod(matchesSignature);
 
         if (hasGroovyPropertyRequests(requests)) {
@@ -270,7 +273,8 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
             .orElseThrow(() -> new IllegalArgumentException("a property interception request must have a receiver parameter")).getParameterType();
     }
 
-    static final ClassName CALL_INTERCEPTOR_CLASS = ClassName.bestGuess("org.gradle.internal.classpath.intercept.CallInterceptor");
+    static final ClassName FILTERABLE_CALL_INTERCEPTOR = ClassName.bestGuess("org.gradle.internal.classpath.intercept.FilterableCallInterceptor");
+    private static final ClassName CALL_INTERCEPTOR_CLASS = ClassName.bestGuess("org.gradle.internal.classpath.intercept.AbstractCallInterceptor");
     private static final ClassName SIGNATURE_AWARE_CALL_INTERCEPTOR_CLASS = ClassName.bestGuess("org.gradle.internal.classpath.intercept.SignatureAwareCallInterceptor");
     private static final ClassName SIGNATURE_AWARE_CALL_INTERCEPTOR_SIGNATURE_MATCH =
         ClassName.bestGuess("org.gradle.internal.classpath.intercept.SignatureAwareCallInterceptor.SignatureMatch");

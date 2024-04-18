@@ -16,7 +16,6 @@
 package org.gradle.cache.internal;
 
 import org.gradle.cache.Cache;
-import org.gradle.internal.concurrent.Synchronizer;
 
 import java.util.function.Function;
 

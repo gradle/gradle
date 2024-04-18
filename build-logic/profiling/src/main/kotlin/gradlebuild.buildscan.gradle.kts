@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-import com.gradle.scan.plugin.BuildScanExtension
+import com.gradle.develocity.agent.gradle.DevelocityConfiguration
+import com.gradle.develocity.agent.gradle.scan.BuildScanConfiguration
 import gradlebuild.basics.BuildEnvironment.isCiServer
 import gradlebuild.basics.BuildEnvironment.isCodeQl
 import gradlebuild.basics.BuildEnvironment.isGhActions
@@ -55,8 +56,8 @@ val tcBuildTypeName = "tcBuildType"
 // We can not use plugin {} because this is registered by a settings plugin.
 // We do 'findByType' to make this script compile in pre-compiled script compilation.
 // TODO to avoid the above, turn this into a settings plugin
-val buildScan = extensions.findByType<BuildScanExtension>()
-inline fun buildScan(configure: BuildScanExtension.() -> Unit) {
+val buildScan = extensions.findByType<DevelocityConfiguration>()?.buildScan
+inline fun buildScan(configure: BuildScanConfiguration.() -> Unit) {
     buildScan?.apply(configure)
 }
 
@@ -113,7 +114,7 @@ fun Project.extractCiData() {
             }
             buildFinished {
                 println("##teamcity[setParameter name='env.GRADLE_RUNNER_FINISHED' value='true']")
-                if (failure == null) {
+                if (failures.isEmpty()) {
                     println("##teamcity[buildStatus status='SUCCESS' text='Retried build succeeds']")
                 }
             }
@@ -121,7 +122,7 @@ fun Project.extractCiData() {
     }
 }
 
-fun BuildScanExtension.whenEnvIsSet(envName: String, action: BuildScanExtension.(envValue: String) -> Unit) {
+fun BuildScanConfiguration.whenEnvIsSet(envName: String, action: BuildScanConfiguration.(envValue: String) -> Unit) {
     val envValue: String? = environmentVariable(envName).orNull
     if (!envValue.isNullOrEmpty()) {
         action(envValue)
@@ -135,7 +136,7 @@ fun Project.extractWatchFsData() {
     }
 }
 
-open class FileSystemWatchingBuildOperationListener(private val buildOperationListenerManager: BuildOperationListenerManager, private val buildScan: BuildScanExtension) : BuildOperationListener {
+open class FileSystemWatchingBuildOperationListener(private val buildOperationListenerManager: BuildOperationListenerManager, private val buildScan: BuildScanConfiguration) : BuildOperationListener {
 
     override fun started(buildOperation: BuildOperationDescriptor, startEvent: OperationStartEvent) {
     }
@@ -163,7 +164,7 @@ open class FileSystemWatchingBuildOperationListener(private val buildOperationLi
     }
 }
 
-fun BuildScanExtension.setCompileAllScanSearch(commitId: String) {
+fun BuildScanConfiguration.setCompileAllScanSearch(commitId: String) {
     if (!isTravis) {
         link("CI CompileAll Scan", customValueSearchUrl(mapOf(gitCommitName to commitId)) + "&search.tags=CompileAll")
     }

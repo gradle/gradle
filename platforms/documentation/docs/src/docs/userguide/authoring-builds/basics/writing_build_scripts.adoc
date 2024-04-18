@@ -34,7 +34,7 @@ On the other hand, it might represent a thing to be done, such as deploying your
 
 Gradle scripts are written in either Groovy DSL or Kotlin DSL (domain-specific language).
 
-A *build script* configures a *project* and is associated with an object of type link:{javadocPath}org/gradle/api/Project.html[`Project`].
+A *build script* configures a *project* and is associated with an object of type link:{javadocPath}/org/gradle/api/Project.html[`Project`].
 
 image::author-gradle-4.png[Build,500,63,align="left"]
 
@@ -46,7 +46,7 @@ IMPORTANT: _Build scripts_ configure `Project` objects and their children.
 
 == The `Project` object
 
-The `Project` object is part of the link:{javadocPath}/org/gradle/api/Project.html[Gradle API].
+The `Project` object is part of the link:{javadocPath}/org/gradle/api/Project.html[Gradle API]:
 
 - In the Groovy DSL, the `Project` object documentation is found link:{groovyDslPath}/org.gradle.api.Project.html[here].
 - In the Kotlin DSL, the `Project` object documentation is found link:{kotlinDslPath}/gradle/org.gradle.api/-project/index.html[here].

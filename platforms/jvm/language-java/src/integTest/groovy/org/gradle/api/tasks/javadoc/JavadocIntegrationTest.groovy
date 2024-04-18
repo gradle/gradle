@@ -534,6 +534,14 @@ Joe!""")
             " Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#file_collection_to_classpath")
     }
 
+    private def stylesheetFileRelativePath(String name) {
+        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_22)) {
+            return "resource-files/$name"
+        } else {
+            return name
+        }
+    }
+
     def "can use custom stylesheet file"() {
         buildFile << """
             plugins {
@@ -554,7 +562,7 @@ Joe!""")
         when:
         succeeds "javadoc"
         then:
-        file("build/docs/javadoc/custom.css").assertContents(containsNormalizedString("/* This is a custom stylesheet */"))
+        file("build/docs/javadoc/${stylesheetFileRelativePath("custom.css")}").assertContents(containsNormalizedString("/* This is a custom stylesheet */"))
 
         when:
         succeeds("javadoc")
@@ -592,7 +600,7 @@ Joe!""")
         when:
         succeeds "javadoc"
         then:
-        file("build/docs/javadoc/custom.css").assertContents(containsNormalizedString("/* This is a custom stylesheet */"))
+        file("build/docs/javadoc/${stylesheetFileRelativePath("custom.css")}").assertContents(containsNormalizedString("/* This is a custom stylesheet */"))
 
         when:
         succeeds("javadoc")

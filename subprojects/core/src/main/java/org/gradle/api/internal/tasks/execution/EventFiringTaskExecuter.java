@@ -28,20 +28,20 @@ import org.gradle.internal.logging.slf4j.ContextAwareTaskLogger;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
 
 @SuppressWarnings("deprecation")
 public class EventFiringTaskExecuter implements TaskExecuter {
 
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationRunner buildOperationRunner;
     private final org.gradle.api.execution.TaskExecutionListener taskExecutionListener;
     private final TaskListenerInternal taskListener;
     private final TaskExecuter delegate;
 
-    public EventFiringTaskExecuter(BuildOperationExecutor buildOperationExecutor, org.gradle.api.execution.TaskExecutionListener taskExecutionListener, TaskListenerInternal taskListener, TaskExecuter delegate) {
-        this.buildOperationExecutor = buildOperationExecutor;
+    public EventFiringTaskExecuter(BuildOperationRunner buildOperationRunner, org.gradle.api.execution.TaskExecutionListener taskExecutionListener, TaskListenerInternal taskListener, TaskExecuter delegate) {
+        this.buildOperationRunner = buildOperationRunner;
         this.taskExecutionListener = taskExecutionListener;
         this.taskListener = taskListener;
         this.delegate = delegate;
@@ -49,7 +49,7 @@ public class EventFiringTaskExecuter implements TaskExecuter {
 
     @Override
     public TaskExecuterResult execute(final TaskInternal task, final TaskStateInternal state, final TaskExecutionContext context) {
-        return buildOperationExecutor.call(new CallableBuildOperation<TaskExecuterResult>() {
+        return buildOperationRunner.call(new CallableBuildOperation<TaskExecuterResult>() {
             @Override
             public TaskExecuterResult call(BuildOperationContext operationContext) {
                 TaskExecuterResult result = executeTask(operationContext);
@@ -66,7 +66,7 @@ public class EventFiringTaskExecuter implements TaskExecuter {
                     taskExecutionListener.beforeExecute(task);
                     if (logger instanceof ContextAwareTaskLogger) {
                         contextAwareTaskLogger = (ContextAwareTaskLogger) logger;
-                        BuildOperationRef currentOperation = buildOperationExecutor.getCurrentOperation();
+                        BuildOperationRef currentOperation = buildOperationRunner.getCurrentOperation();
                         contextAwareTaskLogger.setFallbackBuildOperationId(currentOperation.getId());
                     }
                 } catch (Throwable t) {

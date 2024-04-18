@@ -303,7 +303,7 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
         try {
             if (consumerClass.equals(callsTracker.findCallerForCurrentCallIfNotIntercepted(name, kind))) {
                 Invocation invocation = callOriginalReportingInvocation(receiver, arguments, doCallOriginal, invokedOriginal);
-                return interceptor.doIntercept(invocation, consumerClass);
+                return interceptor.intercept(invocation, consumerClass);
             } else {
                 invokedOriginal.run();
                 return doCallOriginal.call();

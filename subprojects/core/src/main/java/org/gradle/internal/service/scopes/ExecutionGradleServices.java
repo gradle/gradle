@@ -18,7 +18,6 @@ package org.gradle.internal.service.scopes;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.DefaultExecutionHistoryCacheAccess;
-import org.gradle.api.problems.Problems;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
@@ -81,8 +80,8 @@ import org.gradle.internal.execution.timeout.TimeoutHandler;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.id.UniqueId;
-import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.vfs.FileSystemAccess;
@@ -131,7 +130,7 @@ public class ExecutionGradleServices {
         BuildCacheController buildCacheController,
         BuildCancellationToken cancellationToken,
         BuildInvocationScopeId buildInvocationScopeId,
-        BuildOperationExecutor buildOperationExecutor,
+        BuildOperationRunner buildOperationRunner,
         BuildOperationProgressEventEmitter buildOperationProgressEventEmitter,
         BuildOutputCleanupRegistry buildOutputCleanupRegistry,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
@@ -147,8 +146,7 @@ public class ExecutionGradleServices {
         StartParameter startParameter,
         TimeoutHandler timeoutHandler,
         ValidateStep.ValidationWarningRecorder validationWarningRecorder,
-        VirtualFileSystem virtualFileSystem,
-        Problems problems
+        VirtualFileSystem virtualFileSystem
     ) {
         UniqueId buildId = buildInvocationScopeId.getId();
         Supplier<OutputsCleaner> skipEmptyWorkOutputsCleanerSupplier = () -> new OutputsCleaner(deleter, buildOutputCleanupRegistry::isOutputOwnedByBuild, buildOutputCleanupRegistry::isOutputOwnedByBuild);
@@ -160,19 +158,19 @@ public class ExecutionGradleServices {
             new PreCreateOutputParentsStep<>(
             new TimeoutStep<>(timeoutHandler, currentBuildOperationRef,
             new CancelExecutionStep<>(cancellationToken,
-            new ExecuteStep<>(buildOperationExecutor
+            new ExecuteStep<>(buildOperationRunner
         ))));
 
         Step<IdentityContext,WorkspaceResult> immutablePipeline =
             new AssignImmutableWorkspaceStep<>(deleter, fileSystemAccess, immutableWorkspaceMetadataStore, outputSnapshotter,
             new MarkSnapshottingInputsStartedStep<>(
-            new CaptureNonIncrementalStateBeforeExecutionStep<>(buildOperationExecutor, classLoaderHierarchyHasher,
+            new CaptureNonIncrementalStateBeforeExecutionStep<>(buildOperationRunner, classLoaderHierarchyHasher,
             new ValidateStep<>(virtualFileSystem, validationWarningRecorder,
             new ResolveNonIncrementalCachingStateStep<>(buildCacheController, emitBuildCacheDebugLogging,
             new MarkSnapshottingInputsFinishedStep<>(
             new NeverUpToDateStep<>(
             new BuildCacheStep<>(buildCacheController, deleter, fileSystemAccess, outputChangeListener,
-            new CaptureOutputsAfterExecutionStep<>(buildOperationExecutor, buildId, outputSnapshotter, NO_FILTER,
+            new CaptureOutputsAfterExecutionStep<>(buildOperationRunner, buildId, outputSnapshotter, NO_FILTER,
             new NoInputChangesStep<>(
             new BroadcastChangingOutputsStep<>(outputChangeListener,
             sharedExecutionPipeline
@@ -180,11 +178,11 @@ public class ExecutionGradleServices {
 
         Step<IdentityContext,WorkspaceResult> mutablePipeline =
             new AssignMutableWorkspaceStep<>(
-            new HandleStaleOutputsStep<>(buildOperationExecutor, buildOutputCleanupRegistry,  deleter, outputChangeListener, outputFilesRepository,
+            new HandleStaleOutputsStep<>(buildOperationRunner, buildOutputCleanupRegistry,  deleter, outputChangeListener, outputFilesRepository,
             new LoadPreviousExecutionStateStep<>(
             new MarkSnapshottingInputsStartedStep<>(
             new SkipEmptyIncrementalWorkStep(outputChangeListener, workInputListeners, skipEmptyWorkOutputsCleanerSupplier,
-            new CaptureIncrementalStateBeforeExecutionStep<>(buildOperationExecutor, classLoaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
+            new CaptureIncrementalStateBeforeExecutionStep<>(buildOperationRunner, classLoaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
             new ValidateStep<>(virtualFileSystem, validationWarningRecorder,
             new ResolveChangesStep<>(changeDetector,
             new ResolveIncrementalCachingStateStep<>(buildCacheController, emitBuildCacheDebugLogging,
@@ -193,16 +191,16 @@ public class ExecutionGradleServices {
             new StoreExecutionStateStep<>(
             new BuildCacheStep<>(buildCacheController, deleter, fileSystemAccess, outputChangeListener,
             new ResolveInputChangesStep<>(
-            new CaptureOutputsAfterExecutionStep<>(buildOperationExecutor, buildId, outputSnapshotter, new OverlappingOutputsFilter(),
+            new CaptureOutputsAfterExecutionStep<>(buildOperationRunner, buildId, outputSnapshotter, new OverlappingOutputsFilter(),
             new BroadcastChangingOutputsStep<>(outputChangeListener,
             new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
             sharedExecutionPipeline
         )))))))))))))))));
 
         return new DefaultExecutionEngine(
-            new IdentifyStep<>(buildOperationExecutor,
+            new IdentifyStep<>(buildOperationRunner,
             new IdentityCacheStep<>(buildOperationProgressEventEmitter,
-            new ExecuteWorkBuildOperationFiringStep<>(buildOperationExecutor,
+            new ExecuteWorkBuildOperationFiringStep<>(buildOperationRunner,
             new ChoosePipelineStep<>(
                 immutablePipeline,
                 mutablePipeline

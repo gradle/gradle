@@ -38,8 +38,11 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach 
 }
 
 dependencies {
-    api(project(":base-annotations"))
+    api(projects.concurrent)
+    api(projects.javaLanguageExtensions)
+    api(projects.serialization)
     api(project(":base-services"))
+    api(project(":build-operations"))
     // TODO - it might be good to allow projects to contribute state to save and restore, rather than have this project know about everything
     api(project(":build-option"))
     api(project(":core"))
@@ -71,7 +74,6 @@ dependencies {
     implementation(project(":base-services-groovy"))
     // TODO - it might be good to allow projects to contribute state to save and restore, rather than have this project know about everything
     implementation(project(":build-events"))
-    implementation(project(":build-operations"))
     implementation(project(":execution"))
     implementation(project(":file-watching"))
     implementation(project(":input-tracking"))
@@ -95,6 +97,7 @@ dependencies {
 
     runtimeOnly(libs.futureKotlin("reflect"))
 
+    testImplementation(projects.io)
     testImplementation(testFixtures(project(":core")))
     testImplementation(libs.mockitoKotlin2)
     testImplementation(libs.kotlinCoroutinesDebug)

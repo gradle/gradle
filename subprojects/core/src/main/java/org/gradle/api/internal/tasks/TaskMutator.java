@@ -22,7 +22,7 @@ import org.gradle.api.internal.TaskInternal;
 import java.beans.PropertyChangeEvent;
 import java.util.concurrent.Callable;
 
-import static org.gradle.util.internal.GUtil.uncheckedCall;
+import static org.gradle.internal.UncheckedException.uncheckedCall;
 
 public class TaskMutator {
     private final TaskInternal task;

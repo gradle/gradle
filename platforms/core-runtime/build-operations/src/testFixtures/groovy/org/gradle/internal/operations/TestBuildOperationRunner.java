@@ -63,6 +63,21 @@ public class TestBuildOperationRunner implements BuildOperationRunner {
         return log.start(descriptor);
     }
 
+    @Override
+    public BuildOperationRef getCurrentOperation() {
+        return new BuildOperationRef() {
+            @Override
+            public OperationIdentifier getId() {
+                return new OperationIdentifier(1L);
+            }
+
+            @Override
+            public OperationIdentifier getParentId() {
+                return null;
+            }
+        };
+    }
+
     private static class TestBuildOperationContext implements BuildOperationContext {
 
         private final Log.Record record;

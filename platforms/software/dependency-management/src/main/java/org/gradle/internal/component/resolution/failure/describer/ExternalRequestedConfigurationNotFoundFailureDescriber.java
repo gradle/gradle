@@ -16,7 +16,6 @@
 
 package org.gradle.internal.component.resolution.failure.describer;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.component.resolution.failure.exception.ConfigurationSelectionException;
 import org.gradle.internal.component.resolution.failure.type.ExternalRequestedConfigurationNotFoundFailure;
@@ -36,6 +35,6 @@ public abstract class ExternalRequestedConfigurationNotFoundFailureDescriber ext
     }
 
     private String buildExternalConfigurationNotFoundFailureMsg(ExternalRequestedConfigurationNotFoundFailure failure) {
-        return String.format("%s declares a dependency from configuration '%s' to configuration '%s' which is not declared in the descriptor for %s.", StringUtils.capitalize(failure.getFromComponent().getDisplayName()), failure.getFromConfigurationName(), failure.getRequestedName(), failure.getRequestedComponentDisplayName());
+        return String.format("A dependency was declared from configuration '%s' to configuration '%s' which is not declared in the descriptor for %s.", failure.getFromConfigurationName(), failure.getRequestedName(), failure.getRequestedComponentDisplayName());
     }
 }

@@ -19,7 +19,7 @@ package org.gradle.internal.model
 import org.gradle.internal.Describables
 import org.gradle.internal.Factory
 import org.gradle.internal.build.ExecutionResult
-import org.gradle.internal.concurrent.DefaultParallelismConfiguration
+import org.gradle.internal.concurrent.DefaultWorkerLimits
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.work.DefaultWorkerLeaseService
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
@@ -32,7 +32,7 @@ class StateTransitionControllerTest extends ConcurrentSpec {
         A, B, C
     }
 
-    final def workerLeaseService = new DefaultWorkerLeaseService(new DefaultResourceLockCoordinationService(), new DefaultParallelismConfiguration(true, 20))
+    final def workerLeaseService = new DefaultWorkerLeaseService(new DefaultResourceLockCoordinationService(), new DefaultWorkerLimits(20))
 
     def setup() {
         workerLeaseService.startProjectExecution(true)

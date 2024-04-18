@@ -488,7 +488,7 @@ Such projects need to ensure that the projects they depend on have produced thei
 +
 Ensuring the production of the required artifacts typically means calling into other projects' builds via the `<ant>` task.
 This unfortunately bypasses the Gradle build, negating any changes you make to the Gradle build scripts.
-You will need to replace targets that use `<ant>` tasks with Gradle <<more_about_tasks#sec:adding_dependencies_to_tasks,task dependencies>>.
+You will need to replace targets that use `<ant>` tasks with Gradle <<controlling_task_execution.adoc#sec:adding_dependencies_to_tasks,task dependencies>>.
 +
 For example, your web project depends on a "util" library that's part of the same build. The Ant build file for "web" might have a target like this:
 +

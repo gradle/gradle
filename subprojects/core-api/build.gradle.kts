@@ -23,7 +23,7 @@ dependencies {
     compileOnly(libs.jetbrainsAnnotations)
 
     api(project(":process-services"))
-    api(project(":base-annotations"))
+    api(projects.javaLanguageExtensions)
     api(project(":build-cache-spi"))
     api(project(":logging-api"))
     api(project(":base-services"))
@@ -38,6 +38,7 @@ dependencies {
     api(libs.ant)
     api(libs.inject)
 
+    implementation(projects.io)
     implementation(project(":base-services-groovy"))
     implementation(project(":logging"))
     implementation(libs.commonsLang)
@@ -47,6 +48,7 @@ dependencies {
 
     testImplementation(libs.asm)
     testImplementation(libs.asmCommons)
+    testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":logging")))
 
     testFixturesImplementation(project(":base-services"))

@@ -15,7 +15,10 @@ dependencies {
     api(project(":resources"))
 
     api(libs.bouncycastlePgp)
+    api(libs.jsr305)
 
+    implementation(projects.javaLanguageExtensions)
+    implementation(projects.time)
     implementation(project(":base-services"))
     implementation(project(":functional"))
     implementation(project(":logging-api"))
@@ -24,7 +27,6 @@ dependencies {
     implementation(libs.bouncycastleProvider)
     implementation(libs.guava)
     implementation(libs.inject)
-    implementation(libs.jsr305)
 
     testImplementation(testFixtures(project(":core")))
 

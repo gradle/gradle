@@ -34,7 +34,7 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.taskgraph.CalculateTreeTaskGraphBuildOperationType;
 import org.gradle.internal.work.WorkerLeaseService;
@@ -55,7 +55,7 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
     }
 
     private static final int MONITORING_POLL_TIME = 30;
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationRunner buildOperationRunner;
     private final BuildStateRegistry buildRegistry;
     private final WorkerLeaseService workerLeaseService;
     private final PlanExecutor planExecutor;
@@ -68,19 +68,19 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
     @Inject
     public DefaultIncludedBuildTaskGraph(
         ExecutorFactory executorFactory,
-        BuildOperationExecutor buildOperationExecutor,
+        BuildOperationRunner buildOperationRunner,
         BuildStateRegistry buildRegistry,
         WorkerLeaseService workerLeaseService,
         PlanExecutor planExecutor,
         BuildTreeWorkGraphPreparer workGraphPreparer
     ) {
-        this(executorFactory, buildOperationExecutor, buildRegistry, workerLeaseService, planExecutor, workGraphPreparer, MONITORING_POLL_TIME, TimeUnit.SECONDS);
+        this(executorFactory, buildOperationRunner, buildRegistry, workerLeaseService, planExecutor, workGraphPreparer, MONITORING_POLL_TIME, TimeUnit.SECONDS);
     }
 
     @VisibleForTesting
     DefaultIncludedBuildTaskGraph(
         ExecutorFactory executorFactory,
-        BuildOperationExecutor buildOperationExecutor,
+        BuildOperationRunner buildOperationRunner,
         BuildStateRegistry buildRegistry,
         WorkerLeaseService workerLeaseService,
         PlanExecutor planExecutor,
@@ -88,7 +88,7 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
         int monitoringPollTime,
         TimeUnit monitoringPollTimeUnit
     ) {
-        this.buildOperationExecutor = buildOperationExecutor;
+        this.buildOperationRunner = buildOperationRunner;
         this.buildRegistry = buildRegistry;
         this.executorService = executorFactory.create("included builds");
         this.workerLeaseService = workerLeaseService;
@@ -201,7 +201,7 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
             assertIsOwner();
             expectInState(State.NotPrepared);
             state = State.Preparing;
-            buildOperationExecutor.run(new RunnableBuildOperation() {
+            buildOperationRunner.run(new RunnableBuildOperation() {
                 @Override
                 public void run(BuildOperationContext context) {
                     DefaultBuildTreeWorkGraphBuilder graphBuilder = new DefaultBuildTreeWorkGraphBuilder(DefaultBuildTreeWorkGraph.this);

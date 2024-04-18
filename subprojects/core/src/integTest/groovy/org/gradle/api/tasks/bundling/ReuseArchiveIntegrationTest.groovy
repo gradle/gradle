@@ -17,9 +17,12 @@
 package org.gradle.api.tasks.bundling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.hash.DefaultFileHasher
 import org.gradle.internal.hash.DefaultStreamHasher
 import org.gradle.internal.hash.FileHasher
+
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
 class ReuseArchiveIntegrationTest  extends AbstractIntegrationSpec {
 
@@ -28,6 +31,7 @@ class ReuseArchiveIntegrationTest  extends AbstractIntegrationSpec {
      * happens to contain content with the same name as content you're trying to cache?  The content used
      * by the cache no longer agrees with the content coming from the zip itself.
      */
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "pre-existing content in cache dir with same hash is okay"() {
         file("contents/hello.txt") << "hello"
         file("contents").zipTo(file("hello.zip"))

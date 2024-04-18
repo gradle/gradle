@@ -17,39 +17,32 @@
 package org.gradle.internal.build.event.types;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.tooling.internal.protocol.InternalProblemAggregation;
-import org.gradle.tooling.internal.protocol.InternalProblemEvent;
-import org.gradle.tooling.internal.protocol.problem.InternalLabel;
-import org.gradle.tooling.internal.protocol.problem.InternalProblemCategory;
+import org.gradle.tooling.internal.protocol.InternalProblemAggregationVersion3;
+import org.gradle.tooling.internal.protocol.InternalProblemContextDetails;
+import org.gradle.tooling.internal.protocol.InternalProblemDefinition;
 
 import java.io.Serializable;
 import java.util.List;
 
 @NonNullApi
-public class DefaultInternalProblemAggregation implements InternalProblemAggregation, Serializable {
+public class DefaultInternalProblemAggregation implements InternalProblemAggregationVersion3, Serializable {
 
-    private final InternalProblemCategory category;
-    private final InternalLabel label;
-    private final List<InternalProblemEvent> problemEvents;
+    private final InternalProblemDefinition definition;
+    private final List<InternalProblemContextDetails> problemEvents;
 
-    public DefaultInternalProblemAggregation(InternalProblemCategory category, InternalLabel label, List<InternalProblemEvent> problemEvents) {
-        this.category = category;
-        this.label = label;
+    public DefaultInternalProblemAggregation(InternalProblemDefinition definition,
+                                             List<InternalProblemContextDetails> problemEvents) {
+        this.definition = definition;
         this.problemEvents = problemEvents;
     }
 
     @Override
-    public InternalProblemCategory getCategory() {
-        return category;
+    public InternalProblemDefinition getProblemDefinition() {
+        return definition;
     }
 
     @Override
-    public InternalLabel getLabel() {
-        return label;
-    }
-
-    @Override
-    public List<InternalProblemEvent> getProblems() {
+    public List<InternalProblemContextDetails> getProblemContextDetails() {
         return problemEvents;
     }
 }

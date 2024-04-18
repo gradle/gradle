@@ -16,8 +16,6 @@
 
 package org.gradle.internal.classpath.intercept;
 
-import org.gradle.internal.instrumentation.api.types.BytecodeInterceptor.InstrumentationInterceptor;
-
 /**
  * A special case of the CallInterceptor for static methods and static properties.
  * It only intercepts the calls where the receiver is the class of interest.
@@ -26,7 +24,7 @@ import org.gradle.internal.instrumentation.api.types.BytecodeInterceptor.Instrum
  * Due to the way constructor interception works, having an {@link InterceptScope#constructorsOf(Class)
  * as a scope already guarantees that the invocation would have the given class object as the receiver.
  */
-public abstract class ClassBoundCallInterceptor extends CallInterceptor implements InstrumentationInterceptor {
+public abstract class ClassBoundCallInterceptor extends AbstractCallInterceptor {
     private final Class<?> expectedReceiver;
 
     public ClassBoundCallInterceptor(Class<?> expectedReceiver, InterceptScope... scopes) {
@@ -35,15 +33,15 @@ public abstract class ClassBoundCallInterceptor extends CallInterceptor implemen
     }
 
     @Override
-    public final Object doIntercept(Invocation invocation, String consumer) throws Throwable {
+    public final Object intercept(Invocation invocation, String consumer) throws Throwable {
         if (!expectedReceiver.equals(invocation.getReceiver())) {
             return invocation.callOriginal();
         }
-        return doInterceptSafe(invocation, consumer);
+        return interceptSafe(invocation, consumer);
     }
 
     /**
-     * Same as the {@link CallInterceptor#doIntercept(Invocation, String)} but the {@code invocation.getReceiver()} is guaranteed
+     * Same as the {@link AbstractCallInterceptor#intercept(Invocation, String)} but the {@code invocation.getReceiver()} is guaranteed
      * to be the {@code expectedReceiver} passed to the constructor.
      *
      * @param invocation the arguments supplied by the caller
@@ -51,5 +49,5 @@ public abstract class ClassBoundCallInterceptor extends CallInterceptor implemen
      * @return the value to return to the caller
      * @throws Throwable if necessary to propagate it to the caller
      */
-    protected abstract Object doInterceptSafe(Invocation invocation, String consumer) throws Throwable;
+    protected abstract Object interceptSafe(Invocation invocation, String consumer) throws Throwable;
 }

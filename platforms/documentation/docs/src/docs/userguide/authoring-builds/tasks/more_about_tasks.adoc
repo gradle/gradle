@@ -13,11 +13,13 @@
 // limitations under the License.
 
 [[more_about_tasks]]
-= Tasks
+= Understanding Tasks
 
 A task represents some *independent unit of work* that a build performs, such as compiling classes, creating a JAR, generating Javadoc, or publishing archives to a repository.
 
 image::writing-tasks-1.png[]
+
+Before reading this chapter, it's recommended that you first read the <<gradle_directories.adoc#gradle_directories,Learning The Basics>> and complete the <<partr1_gradle_init.adoc#partr1_gradle_init,Tutorial>>.
 
 [[sec:more_listing_tasks]]
 == Listing tasks
@@ -185,17 +187,6 @@ Verification tasks
 check - Runs all checks.
 ----
 
-If we run the `build` task, we see that not much happens:
-
-[source,text]
-----
-$ ./gradlew :app:build
-
-> Task :app:assemble UP-TO-DATE
-> Task :app:check UP-TO-DATE
-> Task :app:build UP-TO-DATE
-----
-
 [[sec:task_outcomes]]
 == Task outcomes
 
@@ -208,12 +199,12 @@ Actions include, but are not limited to, compiling code, zipping files, and publ
 
 `(no label)` or `EXECUTED`:: *Task executed its actions.*
 * Task has actions and Gradle executed them.
-* Task has no actions and some dependencies, and Gradle executed one or more of the dependencies. See also <<lifecycle_tasks.adoc#sec:lifecycle_tasks,Lifecycle Tasks>>.
+* Task has no actions and some dependencies, and Gradle executed one or more of the dependencies. See also <<organizing_tasks.adoc#sec:lifecycle_tasks,Lifecycle Tasks>>.
 
 `UP-TO-DATE`:: *Task's outputs did not change.*
 * Task has outputs and inputs but they have not changed. See <<incremental_build.adoc#incremental_build,Incremental Build>>.
 * Task has actions, but the task tells Gradle it did not change its outputs.
-* Task has no actions and some dependencies, but all the dependencies are `UP-TO-DATE`, `SKIPPED` or `FROM-CACHE`. See <<lifecycle_tasks.adoc#sec:lifecycle_tasks,Lifecycle Tasks>>.
+* Task has no actions and some dependencies, but all the dependencies are `UP-TO-DATE`, `SKIPPED` or `FROM-CACHE`. See <<organizing_tasks.adoc#sec:lifecycle_tasks,Lifecycle Tasks>>.
 * Task has no actions and no dependencies.
 
 `FROM-CACHE`:: *Task's outputs could be found from a previous execution.*
@@ -221,10 +212,370 @@ Actions include, but are not limited to, compiling code, zipping files, and publ
 
 `SKIPPED`:: *Task did not execute its actions.*
 * Task has been explicitly excluded from the command-line. See <<command_line_interface.adoc#sec:excluding_tasks_from_the_command_line,Excluding tasks from execution>>.
-* Task has an `onlyIf` predicate return false. See <<#sec:using_a_predicate,Using a predicate>>.
+* Task has an `onlyIf` predicate return false. See <<controlling_task_execution.adoc#sec:using_a_predicate,Using a predicate>>.
 
 `NO-SOURCE`:: *Task did not need to execute its actions.*
 * Task has inputs and outputs, but <<incremental_build.adoc#skip-when-empty,no sources>> (i.e., inputs were not found).
+
+[[sec:task_groups]]
+== Task group and description
+
+Task groups and descriptions are used to organize and describe tasks.
+
+Groups :: Task groups are used to categorize tasks. When you run `./gradlew tasks`, tasks are listed under their respective groups, making it easier to understand their purpose and relationship to other tasks. Groups are set using the `group` property.
+
+Descriptions :: Descriptions provide a brief explanation of what a task does. When you run `./gradlew tasks`, the descriptions are shown next to each task, helping you understand its purpose and how to use it. Descriptions are set using the `description` property.
+
+Let's consider a basic Java application as an example.
+The build contains a subproject called `app`.
+
+Let's list the available tasks in `app` at the moment:
+
+[source, text]
+----
+$ ./gradlew :app:tasks
+
+> Task :app:tasks
+
+------------------------------------------------------------
+Tasks runnable from project ':app'
+------------------------------------------------------------
+
+Application tasks
+-----------------
+run - Runs this project as a JVM application.
+
+Build tasks
+-----------
+assemble - Assembles the outputs of this project.
+----
+
+Here, the `:run` task is part of the `Application` group with the description `Runs this project as a JVM application`.
+In code, it would look something like this:
+
+====
+[.multi-language-sample]
+=====
+.app/build.gradle.kts
+[source,kotlin]
+----
+tasks.register("run") {
+    group = "Application"
+    description = "Runs this project as a JVM application."
+}
+----
+=====
+[.multi-language-sample]
+=====
+.app/build.gradle
+[source,groovy]
+----
+tasks.register("run") {
+    group = "Application"
+    description = "Runs this project as a JVM application."
+}
+----
+=====
+====
+
+[[sec:hidden_tasks]]
+== Private and hidden tasks
+
+Gradle doesn't support marking a task as _private_.
+
+However, tasks will only show up when running `:tasks` if `task.group` is set or no other task depends on it.
+
+For instance, the following task will not appear when running `./gradlew :app:tasks` because it does not have a group; it is called a _hidden_ task:
+
+====
+[.multi-language-sample]
+=====
+.app/build.gradle.kts
+[source,kotlin]
+----
+tasks.register("helloTask") {
+    println("Hello")
+}
+----
+=====
+[.multi-language-sample]
+=====
+.app/build.gradle
+[source,groovy]
+----
+tasks.register("helloTask") {
+    println("Hello")
+}
+----
+=====
+====
+
+Although `helloTask` is not listed, it can still be executed by Gradle:
+
+[source, text]
+----
+$ ./gradlew :app:tasks
+
+> Task :app:tasks
+
+------------------------------------------------------------
+Tasks runnable from project ':app'
+------------------------------------------------------------
+
+Application tasks
+-----------------
+run - Runs this project as a JVM application
+
+Build tasks
+-----------
+assemble - Assembles the outputs of this project.
+----
+
+Let's add a group to the same task:
+
+====
+[.multi-language-sample]
+=====
+.app/build.gradle.kts
+[source,kotlin]
+----
+tasks.register("helloTask") {
+    group = "Other"
+    description = "Hello task"
+    println("Hello")
+}
+----
+=====
+[.multi-language-sample]
+=====
+.app/build.gradle
+[source,groovy]
+----
+tasks.register("helloTask") {
+    group = "Other"
+    description = "Hello task"
+    println("Hello")
+}
+----
+=====
+====
+
+Now that the group is added, the task is visible:
+
+[source, text]
+----
+$ ./gradlew :app:tasks
+
+> Task :app:tasks
+
+------------------------------------------------------------
+Tasks runnable from project ':app'
+------------------------------------------------------------
+
+Application tasks
+-----------------
+run - Runs this project as a JVM application
+
+Build tasks
+-----------
+assemble - Assembles the outputs of this project.
+
+Other tasks
+-----------
+helloTask - Hello task
+----
+
+In contrast, `./gradlew tasks --all` will show all tasks; _hidden_ and _visible_ tasks are listed.
+
+[[sec:grouping_tasks]]
+== Grouping tasks
+
+If you want to customize which tasks are shown to users when listed, you can group tasks and set the visibility of each group.
+
+NOTE: Remember, even if you _hide_ tasks, they are still available, and Gradle can still run them.
+
+Let's start with an example built by Gradle `init` for a Java application with multiple subprojects.
+The project structure is as follows:
+
+====
+[.multi-language-sample]
+=====
+[source,kotlin]
+----
+gradle-project
+├── app
+│   ├── build.gradle.kts
+│   └── src                 // some java code
+│       └── ...
+├── utilities
+│   ├── build.gradle.kts
+│   └── src                 // some java code
+│       └── ...
+├── list
+│   ├── build.gradle.kts
+│   └── src                 // some java code
+│       └── ...
+├── buildSrc
+│   ├── build.gradle.kts
+│   ├── settings.gradle.kts
+│   └── src                 // common build logic
+│       └── ...
+├── settings.gradle.kts
+├── gradle
+├── gradlew
+└── gradlew.bat
+----
+=====
+[.multi-language-sample]
+=====
+[source,groovy]
+----
+gradle-project
+├── app
+│   ├── build.gradle
+│   └── src             // some java code
+│       └── ...
+├── utilities
+│   ├── build.gradle
+│   └── src             // some java code
+│       └── ...
+├── list
+│   ├── build.gradle
+│   └── src             // some java code
+│       └── ...
+├── buildSrc
+│   ├── build.gradle
+│   ├── settings.gradle
+│   └── src             // common build logic
+│       └── ...
+├── settings.gradle
+├── gradle
+├── gradlew
+└── gradlew.bat
+----
+=====
+====
+
+Run `app:tasks` to see available tasks in the `app` subproject:
+
+[source,text]
+----
+$ ./gradlew :app:tasks
+
+> Task :app:tasks
+
+------------------------------------------------------------
+Tasks runnable from project ':app'
+------------------------------------------------------------
+
+Application tasks
+-----------------
+run - Runs this project as a JVM application
+
+Build tasks
+-----------
+assemble - Assembles the outputs of this project.
+build - Assembles and tests this project.
+buildDependents - Assembles and tests this project and all projects that depend on it.
+buildNeeded - Assembles and tests this project and all projects it depends on.
+classes - Assembles main classes.
+clean - Deletes the build directory.
+jar - Assembles a jar archive containing the classes of the 'main' feature.
+testClasses - Assembles test classes.
+
+Distribution tasks
+------------------
+assembleDist - Assembles the main distributions
+distTar - Bundles the project as a distribution.
+distZip - Bundles the project as a distribution.
+installDist - Installs the project as a distribution as-is.
+
+Documentation tasks
+-------------------
+javadoc - Generates Javadoc API documentation for the 'main' feature.
+
+Help tasks
+----------
+buildEnvironment - Displays all buildscript dependencies declared in project ':app'.
+dependencies - Displays all dependencies declared in project ':app'.
+dependencyInsight - Displays the insight into a specific dependency in project ':app'.
+help - Displays a help message.
+javaToolchains - Displays the detected java toolchains.
+kotlinDslAccessorsReport - Prints the Kotlin code for accessing the currently available project extensions and conventions.
+outgoingVariants - Displays the outgoing variants of project ':app'.
+projects - Displays the sub-projects of project ':app'.
+properties - Displays the properties of project ':app'.
+resolvableConfigurations - Displays the configurations that can be resolved in project ':app'.
+tasks - Displays the tasks runnable from project ':app'.
+
+Verification tasks
+------------------
+check - Runs all checks.
+test - Runs the test suite.
+----
+
+If we look at the list of tasks available, even for a standard Java project, it's extensive.
+Many of these tasks are rarely required directly by developers using the build.
+
+We can configure the `:tasks` task and limit the tasks shown to a certain group.
+
+Let's create our own group so that all tasks are hidden by default by updating the `app` build script:
+
+====
+[.multi-language-sample]
+=====
+.app/build.gradle.kts
+[source,kotlin]
+----
+val myBuildGroup = "my app build"               // Create a group name
+
+tasks.register<TaskReportTask>("tasksAll") {    // Register the tasksAll task
+    group = myBuildGroup
+    description = "Show additional tasks."
+    setShowDetail(true)
+}
+
+tasks.named<TaskReportTask>("tasks") {          // Move all existing tasks to the group
+    displayGroup = myBuildGroup
+}
+----
+=====
+[.multi-language-sample]
+=====
+.app/build.gradle
+[source,groovy]
+----
+def myBuildGroup = "my app build"               // Create a group name
+
+tasks.register(TaskReportTask, "tasksAll") {    // Register the tasksAll task
+    group = myBuildGroup
+    description = "Show additional tasks."
+    setShowDetail(true)
+}
+
+tasks.named(TaskReportTask, "tasks") {          // Move all existing tasks to the group
+    displayGroup = myBuildGroup
+}
+----
+=====
+====
+
+Now, when we list tasks available in `app`, the list is shorter:
+
+[source, text]
+----
+$ ./gradlew :app:tasks
+
+> Task :app:tasks
+
+------------------------------------------------------------
+Tasks runnable from project ':app'
+------------------------------------------------------------
+
+My app build tasks
+------------------
+tasksAll - Show additional tasks.
+----
 
 [[sec:task_categories]]
 == Task categories
@@ -398,108 +749,6 @@ When Gradle can fetch outputs of a task from the cache, it labels the task with 
 The build cache is handy if you switch between branches regularly.
 Gradle supports both local and remote build caches.
 
-[[sec:more_task_dependencies]]
-== Task dependencies
-
-Gradle inherently understands the dependencies among tasks.
-Consequently, it can determine the tasks that need execution when you target a specific task.
-
-Let's add a dependency to our example `app` subproject and turn it into an application by modifying the settings file and the file script of our example:
-
-====
-[.multi-language-sample]
-=====
-.settings.gradle.kts
-[source,kotlin]
-----
-rootProject.name = "gradle-project"
-include("app")
-include("some-logic")
-----
-=====
-[.multi-language-sample]
-=====
-.settings.gradle
-[source,groovy]
-----
-rootProject.name = 'gradle-project'
-include('app')
-include('some-logic')
-----
-=====
-====
-
-Let's imagine that the `app` subproject now depends on another subproject called `some-logic`, which contains some Java code.
-We then add this dependency in the `app` build script:
-
-====
-[.multi-language-sample]
-=====
-.app/build.gradle.kts
-[source,kotlin]
-----
-plugins {
-    id("application")                       // app is now a java application
-}
-
-application {
-    mainClass.set("hello.HelloWorld")       // main class name required by the application plugin
-}
-
-dependencies {
-    implementation(project(":some-logic"))  // dependency on some-logic
-}
-----
-=====
-[.multi-language-sample]
-=====
-.app/build.gradle
-[source,groovy]
-----
-plugins {
-    id('application')                       // app is now a java application
-}
-
-application {
-    mainClass = 'hello.HelloWorld'          // main class name required by the application plugin
-}
-
-dependencies {
-    implementation(project(':some-logic'))  // dependency on some-logic
-}
-----
-=====
-====
-
-If we run `:app:build` again, we see the Java code of `some-logic` is also compiled by Gradle automatically:
-
-[source,text]
-----
-$./gradlew :app:build
-
-> Task :app:processResources NO-SOURCE
-> Task :app:processTestResources NO-SOURCE
-> Task :some-logic:compileJava UP-TO-DATE
-> Task :some-logic:processResources NO-SOURCE
-> Task :some-logic:classes UP-TO-DATE
-> Task :some-logic:jar UP-TO-DATE
-> Task :app:compileJava
-> Task :app:classes
-> Task :app:jar UP-TO-DATE
-> Task :app:startScripts
-> Task :app:distTar
-> Task :app:distZip
-> Task :app:assemble
-> Task :app:compileTestJava UP-TO-DATE
-> Task :app:testClasses UP-TO-DATE
-> Task :app:test
-> Task :app:check
-> Task :app:build
-
-BUILD SUCCESSFUL in 430ms
-9 actionable tasks: 5 executed, 4 up-to-date
-----
-
 [[sec:developing_tasks]]
 == Developing tasks
 
@@ -510,15 +759,15 @@ When developing Gradle tasks, you have two choices:
 
 Task types are simply subclasses of the Gradle link:{javadocPath}/org/gradle/api/Task.html[`Task`] class.
 
-We refer to item (2) as *implementing* a Gradle task which involves extending Gradle's link:{javadocPath}/org/gradle/api/DefaultTask.html[`DefaultTask`] class.
-
-When using Gradle tasks, there are two states to consider:
+With Gradle tasks, there are three states to consider:
 
 1. *Registering* a task - using a task (implemented by you or provided by Gradle) in your build logic.
 2. *Configuring* a task - defining inputs and outputs for a registered task.
+3. *Implementing* a task - creating a custom task class (i.e., custom class type).
 
-Registration is commonly done with the link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#register-java.lang.String-java.lang.Class-[`register()`] method.
-Configuring a task is commonly done with the link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#named-java.lang.String-java.lang.Class-[`named()`] method:
+*Registration* is commonly done with the link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#register-java.lang.String-java.lang.Class-[`register()`] method. +
+*Configuring* a task is commonly done with the link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#named-java.lang.String-java.lang.Class-[`named()`] method. +
+*Implementing* a task is commonly done by extending Gradle's link:{javadocPath}/org/gradle/api/DefaultTask.html[`DefaultTask`] class:
 
 ====
 [.multi-language-sample]
@@ -532,9 +781,23 @@ tasks.named<Copy>("myCopy") {                               // <2>
     into("target")
     include("**/*.txt", "**/*.xml", "**/*.properties")
 }
+
+abstract class MyCopyTask : DefaultTask() {                 // <3>
+    @TaskAction
+    fun copyFiles() {
+        val sourceDir = File("sourceDir")
+        val destinationDir = File("destinationDir")
+        sourceDir.listFiles()?.forEach { file ->
+            if (file.isFile && file.extension == "txt") {
+                file.copyTo(File(destinationDir, file.name))
+            }
+        }
+    }
+}
 ----
 <1> Register the `myCopy` task of type `Copy` to let Gradle know we intend to use it in our build logic.
 <2> Configure the registered `myCopy` task with the inputs and outputs it needs according to its link:{javadocPath}/org/gradle/api/tasks/Copy.html[API].
+<3> Implement a custom task type called `MyCopyTask` which extends `DefaultTask` and defines the `copyFiles` task action.
 =====
 [.multi-language-sample]
 =====
@@ -547,14 +810,26 @@ tasks.named(Copy, "myCopy") {                               // <2>
     into "target"
     include "**/*.txt", "**/*.xml", "**/*.properties"
 }
+
+abstract class MyCopyTask extends DefaultTask {             // <3>
+    @TaskAction
+    void copyFiles() {
+        fileTree('sourceDir').matching {
+            include '**/*.txt'
+        }.forEach { file ->
+            file.copyTo(file.path.replace('sourceDir', 'destinationDir'))
+        }
+    }
+}
 ----
 <1> Register the `myCopy` task of type `Copy` to let Gradle know we intend to use it in our build logic.
 <2> Configure the registered `myCopy` task with the inputs and outputs it needs according to its link:{javadocPath}/org/gradle/api/tasks/Copy.html[API].
+<3> Implement a custom task type called `MyCopyTask` which extends `DefaultTask` and defines the `copyFiles` task action.
 =====
 ====
 
 [[sec:defining_tasks]]
-== Registering tasks
+=== 1. Registering tasks
 
 You define actions for Gradle to take by registering tasks in build scripts or plugins.
 
@@ -568,7 +843,7 @@ include::sample[dir="snippets/tasks/defineUsingStringTaskNames/groovy",files="bu
 In the example above, the task is added to the link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html[`TasksCollection`] using the link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#register-java.lang.String-java.lang.Class-[`register()`] method in link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html[`TaskContainer`].
 
 [[sec:configuring_tasks]]
-== Configuring tasks
+=== 2. Configuring tasks
 
 Gradle tasks must be configured to complete their action(s) successfully.
 If a task needs to ZIP a file, it must be configured with the file name and location.
@@ -587,7 +862,7 @@ Since the task is of type `Copy`, a Gradle supported task type, it can be config
 
 The following examples show several ways to achieve the same configuration:
 
-=== 1. Using the `named()` method:
+==== 1. Using the `named()` method:
 
 Use `named()` to configure an existing task registered elsewhere:
 
@@ -596,7 +871,7 @@ include::sample[dir="snippets/tasks/configureUsingVar/kotlin",files="build.gradl
 include::sample[dir="snippets/tasks/configureUsingVar/groovy",files="build.gradle[tags=configure]"]
 ====
 
-=== 2. Using a configuration block:
+==== 2. Using a configuration block:
 
 Use a block to configure the task immediately upon registering it:
 
@@ -605,7 +880,7 @@ include::sample[dir="snippets/tasks/defineAndConfigure/kotlin",files="build.grad
 include::sample[dir="snippets/tasks/defineAndConfigure/groovy",files="build.gradle[tags=no-description]"]
 ====
 
-=== 3. Name method as call:
+==== 3. Name method as call:
 
 A popular option that is only supported in Groovy is the shorthand notation:
 
@@ -623,7 +898,7 @@ NOTE: This option breaks task configuration avoidance and is not recommended!
 Regardless of the method chosen, the task is configured with the name of the files to be copied and the location of the files.
 
 [[sec:implementing_tasks]]
-== Implementing tasks
+=== 3. Implementing tasks
 
 Gradle provides many task types including `Delete`, `Javadoc`, `Copy`, `Exec`, `Tar`, and `Pmd`.
 You can implement a custom task type if Gradle does not provide a task type that meets your build logic needs.
@@ -631,303 +906,26 @@ You can implement a custom task type if Gradle does not provide a task type that
 To create a custom task class, you extend link:{javadocPath}/org/gradle/api/DefaultTask.html[`DefaultTask`] and make the extending class abstract:
 
 ====
-include::sample[dir="snippets/tasks/customTask/kotlin",files="build.gradle.kts[tags=define-task]"]
-include::sample[dir="snippets/tasks/customTask/groovy",files="build.gradle[tags=define-task]"]
+[.multi-language-sample]
+=====
+.app/build.gradle.kts
+[source,kotlin]
+----
+abstract class MyCopyTask extends DefaultTask {
+
+}
+----
+=====
+[.multi-language-sample]
+=====
+.app/build.gradle
+[source,groovy]
+----
+abstract class MyCopyTask : DefaultTask() {
+
+}
+----
+=====
 ====
 
 You can learn more about developing custom task types in <<more_about_tasks.adoc#sec:implementing_tasks,Implementing Tasks>>.
-
-[[sec:configuration_avoidance]]
-== Task configuration avoidance
-
-To significantly reduce build time, Gradle provides the configuration avoidance API.
-
-The configuration avoidance API avoids configuring tasks if they are not used for a build.
-For example, when running a `compile` task (with the `java` plugin applied), other unrelated tasks (such as `clean`, `test`, `javadocs`), will not be executed.
-
-To avoid creating and configuring a task not needed for a build, you should use the link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#register-java.lang.String-java.lang.Class-[`register()`] method instead of the `create()` method in link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html[TaskContainer].
-
-When a task is registered using the link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#register-java.lang.String-java.lang.Class-[`register()`] method, it is known to the build.
-The method provides a link:{javadocPath}/org/gradle/api/tasks/TaskProvider.html[`TaskProvider`].
-It can be configured, and references to it can be passed around, but the task object itself has not been created, and its actions have not been executed.
-The registered task will remain in this state until something in the build needs the instantiated task object.
-If the task object is never needed, the task will remain registered, and the cost of creating and configuring the task will be avoided.
-
-You can learn more about best practices for task configuration avoidance in <<task_configuration_avoidance.adoc#task_configuration_avoidance,Avoiding Unnecessary Task Configuration>>.
-
-[[sec:adding_dependencies_to_tasks]]
-== Adding dependencies
-
-There are several ways you can define the dependencies of a task.
-
-Defining dependencies using task names and the link:{javadocPath}/org/gradle/api/DefaultTask.html#dependsOn-java.lang.Object...-[dependsOn()`] method is simplest.
-
-The following is an example which adds a dependency from `taskX` to `taskY`:
-
-====
-[.multi-language-sample]
-=====
-[source,kotlin]
-----
-tasks.register("taskX") {
-    dependsOn("taskY")
-}
-----
-=====
-[.multi-language-sample]
-=====
-[source,groovy]
-----
-tasks.register("taskX") {
-    dependsOn "taskY"
-}
-----
-=====
-====
-
-====
-----
-$ gradle -q taskX
-include::{snippetsPath}/tasks/addDependencyUsingPath/tests/addDependencyUsingPath.out[]
-----
-====
-
-For more information about task dependencies, see the link:{javadocPath}/org/gradle/api/Task.html[Task] API.
-
-[[sec:ordering_tasks]]
-== Ordering tasks
-
-In some cases, it is useful to control the _order_ in which two tasks will execute, without introducing an explicit dependency between those tasks.
-
-The primary difference between a task _ordering_ and a task _dependency_ is that an ordering rule does not influence which tasks will be executed, only the order in which they will be executed.
-
-Task ordering can be useful in a number of scenarios:
-
-* Enforce sequential ordering of tasks (e.g., `build` never runs before `clean`).
-* Run build validations early in the build (e.g., validate I have the correct credentials before starting the work for a release build).
-* Get feedback faster by running quick verification tasks before long verification tasks (e.g., unit tests should run before integration tests).
-* A task that aggregates the results of all tasks of a particular type (e.g., test report task combines the outputs of all executed test tasks).
-
-Two ordering rules are available: "_must run after_" and "_should run after_".
-
-To specify a "must run after" or "should run after" ordering between 2 tasks, you use the link:{javadocPath}/org/gradle/api/Task.html#mustRunAfter-java.lang.Object...-[Task.mustRunAfter(java.lang.Object++...++)] and link:{javadocPath}/org/gradle/api/Task.html#shouldRunAfter-java.lang.Object...-[Task.shouldRunAfter(java.lang.Object++...++)] methods.
-These methods accept a task instance, a task name, or any other input accepted by link:{javadocPath}/org/gradle/api/Task.html#dependsOn-java.lang.Object...-[Task.dependsOn(java.lang.Object++...++)].
-
-When you use "must run after", you specify that `taskY` must always run after `taskX` when the build requires the execution of `taskX` and `taskY`.
-So if you only run `taskY` with `mustRunAfter`, you won't cause `taskX` to run.
-This is expressed as `taskY.mustRunAfter(taskX)`.
-
-====
-include::sample[dir="snippets/tasks/mustRunAfter/kotlin",files="build.gradle.kts[]"]
-include::sample[dir="snippets/tasks/mustRunAfter/groovy",files="build.gradle[]"]
-
-----
-$ gradle -q taskY taskX
-include::{snippetsPath}/tasks/mustRunAfter/tests/mustRunAfter.out[]
-----
-====
-
-The "should run after" ordering rule is similar but less strict, as it will be ignored in two situations:
-
-1. If using that rule introduces an ordering cycle.
-2. When using parallel execution and all task dependencies have been satisfied apart from the "should run after" task, then this task will be run regardless of whether or not its "should run after" dependencies have been run.
-
-You should use "should run after" where the ordering is helpful but not strictly required:
-
-====
-include::sample[dir="snippets/tasks/shouldRunAfter/kotlin",files="build.gradle.kts[]"]
-include::sample[dir="snippets/tasks/shouldRunAfter/groovy",files="build.gradle[]"]
-
-----
-$ gradle -q taskY taskX
-include::{snippetsPath}/tasks/shouldRunAfter/tests/shouldRunAfter.out[]
-----
-====
-
-In the examples above, it is still possible to execute `taskY` without causing `taskX` to run:
-
-====
-----
-$ gradle -q taskY
-include::{snippetsPath}/tasks/mustRunAfter/tests/mustRunAfterSingleTask.out[]
-----
-====
-
-The “should run after” ordering rule will be ignored if it introduces an ordering cycle:
-
-====
-include::sample[dir="snippets/tasks/shouldRunAfterWithCycle/kotlin",files="build.gradle.kts[]"]
-include::sample[dir="snippets/tasks/shouldRunAfterWithCycle/groovy",files="build.gradle[]"]
-
-----
-$ gradle -q taskX
-include::{snippetsPath}/tasks/shouldRunAfterWithCycle/tests/shouldRunAfterWithCycle.out[]
-----
-====
-
-Note that `taskY.mustRunAfter(taskX)` or `taskY.shouldRunAfter(taskX)` does not imply any execution dependency between the tasks:
-
-* It is possible to execute `taskX` and `taskY` independently. The ordering rule only has an effect when both tasks are scheduled for execution.
-* When run with `--continue`, it is possible for `taskY` to execute if `taskX` fails.
-
-[[sec:finalizer_tasks]]
-== Finalizer tasks
-
-Finalizer tasks are automatically added to the task graph when the finalized task is scheduled to run.
-
-To specify a finalizer task, you use the link:{javadocPath}/org/gradle/api/Task.html#finalizedBy-java.lang.Object...-[Task.finalizedBy(java.lang.Object...)] method.
-This method accepts a task instance, a task name, or any other input accepted by link:{javadocPath}/org/gradle/api/Task.html#dependsOn-java.lang.Object...-[Task.dependsOn(java.lang.Object...)]:
-
-====
-include::sample[dir="snippets/tasks/finalizers/kotlin",files="build.gradle.kts[]"]
-include::sample[dir="snippets/tasks/finalizers/groovy",files="build.gradle[]"]
-
-----
-$ gradle -q taskX
-include::{snippetsPath}/tasks/finalizers/tests/taskFinalizers.out[]
-----
-====
-
-Finalizer tasks are executed even if the finalized task fails or if the finalized task is considered `UP-TO-DATE`:
-
-====
-include::sample[dir="snippets/tasks/finalizersWithFailure/kotlin",files="build.gradle.kts[]"]
-include::sample[dir="snippets/tasks/finalizersWithFailure/groovy",files="build.gradle[]"]
-
-----
-$ gradle -q taskX
-include::{snippetsPath}/tasks/finalizersWithFailure/tests-groovy/taskFinalizersWithFailureGroovy.out[]
-----
-====
-
-Finalizer tasks are useful when the build creates a resource that must be cleaned up, regardless of whether the build fails or succeeds.
-An example of such a resource is a web container that is started before an integration test task and must be shut down, even if some tests fail.
-
-[[sec:skipping_tasks]]
-== Skipping tasks
-
-Gradle offers multiple ways to skip the execution of a task.
-
-[[sec:using_a_predicate]]
-=== 1. Using a predicate
-
-You can use link:{javadocPath}/org/gradle/api/Task.html#onlyIf-org.gradle.api.specs.Spec-[`Task.onlyIf`] to attach a predicate to a task.
-The task's actions will only be executed if the predicate is evaluated to be `true`.
-
-The predicate is passed to the task as a parameter and returns `true` if the task will execute and `false` if the task will be skipped.
-The predicate is evaluated just before the task is executed.
-
-Passing an optional reason string to `onlyIf()` is useful for explaining why the task is skipped:
-
-====
-include::sample[dir="snippets/tutorial/taskOnlyIf/kotlin",files="build.gradle.kts[]"]
-include::sample[dir="snippets/tutorial/taskOnlyIf/groovy",files="build.gradle[]"]
-
-----
-$ gradle hello -PskipHello
-include::{snippetsPath}/tutorial/taskOnlyIf/tests/taskOnlyIf.out[]
-----
-====
-
-To find why a task was skipped, run the build with the `--info` logging level.
-
-====
-----
-$ gradle hello -PskipHello --info
-include::{snippetsPath}/tutorial/taskOnlyIf/tests/taskOnlyIf-info.out[]
-----
-====
-
-[[sec:using_stopexecutionexception]]
-=== 2. Using `StopExecutionException`
-
-If the logic for skipping a task can't be expressed with a predicate, you can use the link:{javadocPath}/org/gradle/api/tasks/StopExecutionException.html[`StopExecutionException`].
-
-If this exception is thrown by an action, the task action as well as the execution of any following action is skipped.
-The build continues by executing the next task:
-
-====
-include::sample[dir="snippets/tutorial/stopExecutionException/kotlin",files="build.gradle.kts[]"]
-include::sample[dir="snippets/tutorial/stopExecutionException/groovy",files="build.gradle[]"]
-
-----
-$ gradle -q myTask
-include::{snippetsPath}/tutorial/stopExecutionException/tests/stopExecutionException.out[]
-----
-====
-
-This feature is helpful if you work with tasks provided by Gradle.
-It allows you to add _conditional_ execution of the built-in actions of such a task.footnote:[You might be wondering why there is neither an import for the `StopExecutionException` nor do we access it via its fully qualified name. The reason is that Gradle adds a set of default imports to your script (see <<writing_build_scripts.adoc#script-default-imports,Default imports>>).]
-
-[[sec:enabling_and_disabling_tasks]]
-=== 3. Enabling and Disabling tasks
-
-Every task has an `enabled` flag, which defaults to `true`.
-Setting it to `false` prevents executing the task's actions.
-
-A disabled task will be labeled `SKIPPED`:
-
-====
-include::sample[dir="snippets/tutorial/disableTask/kotlin",files="build.gradle.kts[]"]
-include::sample[dir="snippets/tutorial/disableTask/groovy",files="build.gradle[]"]
-
-----
-$ gradle disableMe
-include::{snippetsPath}/tutorial/disableTask/tests/disableTask.out[]
-----
-====
-
-[[sec:task_timeouts]]
-=== 4. Task timeouts
-
-Every task has a `timeout` property, which can be used to limit its execution time.
-When a task reaches its timeout, its task execution thread is interrupted.
-The task will be marked as `FAILED`.
-
-<<sec:finalizer_tasks,Finalizer tasks>> are executed.
-If `--continue` is used, other tasks continue running.
-
-Tasks that don't respond to interrupts can't be timed out.
-All of Gradle's built-in tasks respond to timeouts.
-
-====
-include::sample[dir="snippets/tasks/timeout/kotlin",files="build.gradle.kts[tags=without-import]"]
-include::sample[dir="snippets/tasks/timeout/groovy",files="build.gradle[]"]
-====
-
-[[sec:defining_tasks]]
-[[sec:locating_tasks]]
-[[sec:configuring_tasks]]
-[[sec:adding_dependencies_to_tasks]]
-[[sec:adding_a_description_to_a_task]]
-
-[[sec:task_rules]]
-[[sec:passing_arguments_to_a_task_constructor]]
-[[sec:the_idea_behind_gradle_tasks]]
-[[sec:more_up_to_date_checks]]
-[[sec:more_task_inputs_outputs]]
-[[sec:more_task_input_output_annotations]]
-[[sec:more_task_input_using_dependency_resolution_results]]
-[[sec:more_task_input_using_classpath_annotations]]
-[[sec:more_task_input_nested_inputs]]
-[[sec:more_task_input_validation]]
-[[sec:more_task_input_output_runtime_api]]
-[[sec:more_runtime_api_for_adhoc]]
-[[sec:more_runtime_api_configuration]]
-[[sec:more_runtime_api_for_custom_tasks]]
-[[sec:more_task_input_output_side_effects]]
-[[sec:more_inferred_task_dependencies]]
-[[sec:more_task_input_output_validation]]
-[[sec:more_task_input_output_continuous_build]]
-[[sec:more_task_input_output_parallelism]]
-[[sec:more_how_does_it_work]]
-[[sec:more_advanced_inc_build]]
-[[sec:more_add_cached_input_output_methods]]
-[[sec:more_link_output_dir_to_input_files]]
-[[sec:more_disable-state-tracking]]
-[[sec:more_untracked_external_tool]]
-[[sec:more_configure_input_normalization]]
-[[sec:more_property_file_normalization]]
-[[sec:more_meta_inf_normalization]]
-[[sec:more_custom_up_to_date_logic]]
-[[sec:more_stale_task_outputs]]

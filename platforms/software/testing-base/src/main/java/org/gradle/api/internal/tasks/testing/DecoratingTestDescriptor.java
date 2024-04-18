@@ -16,6 +16,11 @@
 
 package org.gradle.api.internal.tasks.testing;
 
+import org.gradle.api.NonNullApi;
+
+import javax.annotation.Nullable;
+
+@NonNullApi
 public class DecoratingTestDescriptor implements TestDescriptorInternal {
     private final TestDescriptorInternal descriptor;
     private final TestDescriptorInternal parent;
@@ -59,9 +64,13 @@ public class DecoratingTestDescriptor implements TestDescriptorInternal {
         return descriptor.getClassName();
     }
 
-    @Override
+    @Nullable
     public String getMethodName() {
-        return descriptor.getMethodName();
+        if (descriptor instanceof AbstractTestDescriptor) {
+            return ((AbstractTestDescriptor) descriptor).getMethodName();
+        } else {
+            return null;
+        }
     }
 
     @Override

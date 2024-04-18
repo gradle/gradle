@@ -7,6 +7,6 @@ description = "Java 6-compatible entry point of the Gradle launcher. See :launch
 gradlebuildJava.usedForStartup()
 
 dependencies {
-    implementation(project(":base-annotations"))
+    implementation(projects.javaLanguageExtensions)
     implementation(project(":worker-services"))
 }

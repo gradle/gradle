@@ -22,4 +22,6 @@ public interface SignatureVerificationResultBuilder {
     void verified(PGPPublicKey key, boolean trusted);
     void failed(PGPPublicKey pgpPublicKey);
     void ignored(String keyId);
+
+    void noSignatures();
 }

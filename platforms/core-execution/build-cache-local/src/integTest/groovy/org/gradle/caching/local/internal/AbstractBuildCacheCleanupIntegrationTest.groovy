@@ -29,9 +29,10 @@ import org.gradle.test.fixtures.file.TestFile
 import java.util.concurrent.TimeUnit
 
 abstract class AbstractBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture, FileAccessTimeJournalFixture, GradleUserHomeCleanupFixture {
-    private final static int MAX_CACHE_AGE_IN_DAYS = 7
+    private final static int DEFAULT_RETENTION_PERIOD_DAYS = 7
 
     def operations = new BuildOperationsFixture(executer, testDirectoryProvider)
+    def hashStringLength = Hashing.defaultFunction().hexDigits
 
     abstract String getBuildCacheName();
     abstract void createBuildCacheEntry(String key, File value, long timestamp);
@@ -39,7 +40,6 @@ abstract class AbstractBuildCacheCleanupIntegrationTest extends AbstractIntegrat
     abstract AbstractIntegrationSpec withEnabledBuildCache();
 
     def setup() {
-        settingsFile << configureCacheEviction()
         def bytes = new byte[1024 * 1024]
         new Random().nextBytes(bytes)
         file("output.txt").bytes = bytes
@@ -66,65 +66,32 @@ abstract class AbstractBuildCacheCleanupIntegrationTest extends AbstractIntegrat
         """
     }
 
-    static def configureCacheEviction() {
-        """
+    def withDeprecatedBuildCacheRetentionInDays(long period) {
+        settingsFile << """
             buildCache {
                 local {
-                    removeUnusedEntriesAfterDays = ${MAX_CACHE_AGE_IN_DAYS}
+                    removeUnusedEntriesAfterDays = ${period}
                 }
             }
         """
     }
 
-    def "cleans up entries"() {
-        executer.requireIsolatedDaemons() // needs to stop daemon
-        requireOwnGradleUserHomeDir() // needs its own journal
-        run() // Make sure cache directory is initialized
-        run '--stop' // ensure daemon does not cache file access times in memory
-        def lastCleanupCheck = gcFile().makeOlder().lastModified()
-
-        def hashStringLength = Hashing.defaultFunction().hexDigits
-
-        when:
-        def newTrashFile = temporaryFolder.file("0" * hashStringLength).createFile()
-        def oldTrashFile = temporaryFolder.file("1" * hashStringLength).createFile()
-        createBuildCacheEntry("0" * hashStringLength, newTrashFile, System.currentTimeMillis())
-        createBuildCacheEntry("1" * hashStringLength, oldTrashFile, daysAgo(MAX_CACHE_AGE_IN_DAYS + 1))
-        run()
-
-        then:
-        existsBuildCacheEntry("0" * hashStringLength)
-        existsBuildCacheEntry("1" * hashStringLength)
-        assertCacheWasNotCleanedUpSince(lastCleanupCheck)
-
-        when:
-        lastCleanupCheck = markCacheForCleanup()
-        run()
-
-        then:
-        existsBuildCacheEntry("0" * hashStringLength)
-        !existsBuildCacheEntry("1" * hashStringLength)
-        assertCacheWasCleanedUpSince(lastCleanupCheck)
+    def expectRetentionMethodDeprecationWarning() {
+        executer.expectDocumentedDeprecationWarning(
+            "The DirectoryBuildCache.removeEntriesAfterDays property has been deprecated. " +
+                "This is scheduled to be removed in Gradle 9.0. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#directory_build_cache_retention_deprecated"
+        )
     }
 
-    def "cleans up entries even if gradle user home cache cleanup is disabled via #cleanupMethod"() {
-        executer.requireIsolatedDaemons() // needs to stop daemon
-        requireOwnGradleUserHomeDir() // needs its own journal
-        disableCacheCleanup(cleanupMethod)
-        cleanupMethod.maybeExpectDeprecationWarning(executer)
-        run() // Make sure cache directory is initialized
-        executer.noDeprecationChecks()
-        run '--stop' // ensure daemon does not cache file access times in memory
-        def lastCleanupCheck = gcFile().makeOlder().lastModified()
-
-        def hashStringLength = Hashing.defaultFunction().hexDigits
+    def "cleans up entries when #cleanupTrigger"() {
+        long lastCleanupCheck = initializeHome()
 
         when:
         def newTrashFile = temporaryFolder.file("0" * hashStringLength).createFile()
         def oldTrashFile = temporaryFolder.file("1" * hashStringLength).createFile()
         createBuildCacheEntry("0" * hashStringLength, newTrashFile, System.currentTimeMillis())
-        createBuildCacheEntry("1" * hashStringLength, oldTrashFile, daysAgo(MAX_CACHE_AGE_IN_DAYS + 1))
-        executer.noDeprecationChecks()
+        createBuildCacheEntry("1" * hashStringLength, oldTrashFile, daysAgo(DEFAULT_RETENTION_PERIOD_DAYS + 1))
         run()
 
         then:
@@ -133,8 +100,11 @@ abstract class AbstractBuildCacheCleanupIntegrationTest extends AbstractIntegrat
         assertCacheWasNotCleanedUpSince(lastCleanupCheck)
 
         when:
-        lastCleanupCheck = markCacheForCleanup()
-        executer.noDeprecationChecks()
+        if (alwaysCleanup) {
+            alwaysCleanupCaches()
+        } else {
+            markCacheLastCleaned(twoDaysAgo())
+        }
         run()
 
         then:
@@ -143,24 +113,22 @@ abstract class AbstractBuildCacheCleanupIntegrationTest extends AbstractIntegrat
         assertCacheWasCleanedUpSince(lastCleanupCheck)
 
         where:
-        cleanupMethod << CleanupMethod.values()
+        cleanupTrigger              | alwaysCleanup
+        "check interval has passed" | false
+        "explicitly enabled"        | true
     }
 
-    def "cleans up entries even if created resource cache cleanup is configured later than the default"() {
-        executer.requireIsolatedDaemons() // needs to stop daemon
-        requireOwnGradleUserHomeDir() // needs its own journal
-        withCreatedResourcesRetentionInDays(MAX_CACHE_AGE_IN_DAYS * 2)
-        run() // Make sure cache directory is initialized
-        run '--stop' // ensure daemon does not cache file access times in memory
-        def lastCleanupCheck = gcFile().makeOlder().lastModified()
+    def "cleans up entries even if gradle user home cache cleanup is disabled via #cleanupMethod"() {
+        def lastCleanupCheck = initializeHome()
 
-        def hashStringLength = Hashing.defaultFunction().hexDigits
+        disableCacheCleanup(cleanupMethod)
 
         when:
         def newTrashFile = temporaryFolder.file("0" * hashStringLength).createFile()
         def oldTrashFile = temporaryFolder.file("1" * hashStringLength).createFile()
         createBuildCacheEntry("0" * hashStringLength, newTrashFile, System.currentTimeMillis())
-        createBuildCacheEntry("1" * hashStringLength, oldTrashFile, daysAgo((MAX_CACHE_AGE_IN_DAYS * 2) - 1))
+        createBuildCacheEntry("1" * hashStringLength, oldTrashFile, daysAgo(DEFAULT_RETENTION_PERIOD_DAYS + 1))
+        cleanupMethod.maybeExpectDeprecationWarning(executer)
         run()
 
         then:
@@ -169,13 +137,63 @@ abstract class AbstractBuildCacheCleanupIntegrationTest extends AbstractIntegrat
         assertCacheWasNotCleanedUpSince(lastCleanupCheck)
 
         when:
-        lastCleanupCheck = markCacheForCleanup()
+        lastCleanupCheck = markCacheLastCleaned(twoDaysAgo())
+        executer.noDeprecationChecks()
         run()
 
         then:
         existsBuildCacheEntry("0" * hashStringLength)
-        !existsBuildCacheEntry("1" * hashStringLength)
+        existsBuildCacheEntry("1" * hashStringLength)
+        assertCacheWasNotCleanedUpSince(lastCleanupCheck)
+
+        where:
+        cleanupMethod << CleanupMethod.values()
+    }
+
+    def "cleans up entries after #scenario"() {
+        def lastCleanupCheck = initializeHome()
+
+        if (buildCacheCleanup != null) {
+            withBuildCacheRetentionInDays(buildCacheCleanup)
+        }
+        if (deprecatedCacheCleanup != null) {
+            withDeprecatedBuildCacheRetentionInDays(deprecatedCacheCleanup)
+        }
+
+        when:
+        def newTrashFile = temporaryFolder.file("0" * hashStringLength).createFile()
+        def oldTrashFile = temporaryFolder.file("1" * hashStringLength).createFile()
+        createBuildCacheEntry("0" * hashStringLength, newTrashFile, System.currentTimeMillis())
+        createBuildCacheEntry("1" * hashStringLength, oldTrashFile, daysAgo(effectiveCleanup - 1))
+        createBuildCacheEntry("2" * hashStringLength, oldTrashFile, daysAgo(effectiveCleanup + 1))
+        if (deprecatedCacheCleanup != null) {
+            expectRetentionMethodDeprecationWarning()
+        }
+        run()
+
+        then:
+        existsBuildCacheEntry("0" * hashStringLength)
+        existsBuildCacheEntry("1" * hashStringLength)
+        existsBuildCacheEntry("2" * hashStringLength)
+        assertCacheWasNotCleanedUpSince(lastCleanupCheck)
+
+        when:
+        lastCleanupCheck = markCacheLastCleaned(twoDaysAgo())
+        executer.noDeprecationChecks()
+        run()
+
+        then:
+        existsBuildCacheEntry("0" * hashStringLength)
+        existsBuildCacheEntry("1" * hashStringLength)
+        !existsBuildCacheEntry("2" * hashStringLength)
         assertCacheWasCleanedUpSince(lastCleanupCheck)
+
+        where:
+        buildCacheCleanup | deprecatedCacheCleanup | effectiveCleanup | scenario
+        null              | null                   | 7                | "default period when not explicitly configured"
+        2                 | null                   | 2                | "configured period for build cache cleanup"
+        null              | 2                      | 2                | "configured period for deprecated build cache cleanup"
+        1                 | 10                     | 10               | "configured period for deprecated build cache cleanup when both are configured"
     }
 
     def "produces reasonable message when cache retention is too short (#days days)"() {
@@ -195,15 +213,13 @@ abstract class AbstractBuildCacheCleanupIntegrationTest extends AbstractIntegrat
         days << [-1, 0]
     }
 
-    def "build cache cleanup is triggered after max number of hours expires"() {
-        run()
-        def originalCheckTime = gcFile().lastModified()
+    def "cleanup is triggered after max number of hours expires"() {
+        def originalCheckTime = initializeHome()
 
         // One hour isn't enough to trigger
         when:
         // Set the time back 1 hour
-        gcFile().setLastModified(originalCheckTime - TimeUnit.HOURS.toMillis(1))
-        def lastCleanupCheck = gcFile().lastModified()
+        def lastCleanupCheck = markCacheLastCleaned(originalCheckTime - TimeUnit.HOURS.toMillis(1))
         run()
 
         then:
@@ -211,22 +227,24 @@ abstract class AbstractBuildCacheCleanupIntegrationTest extends AbstractIntegrat
 
         // checkInterval-1 hours is not enough to trigger
         when:
-        gcFile().setLastModified(originalCheckTime - TimeUnit.HOURS.toMillis(DefaultPersistentDirectoryStore.CLEANUP_INTERVAL_IN_HOURS - 1))
-        lastCleanupCheck = gcFile().lastModified()
+        def twentyThreeHoursAgo = originalCheckTime - TimeUnit.HOURS.toMillis(DefaultPersistentDirectoryStore.CLEANUP_INTERVAL_IN_HOURS - 1)
+        lastCleanupCheck = markCacheLastCleaned(twentyThreeHoursAgo)
         run()
         then:
         assertCacheWasNotCleanedUpSince(lastCleanupCheck)
 
         // checkInterval hours is enough to trigger
         when:
-        gcFile().setLastModified(originalCheckTime - TimeUnit.HOURS.toMillis(DefaultPersistentDirectoryStore.CLEANUP_INTERVAL_IN_HOURS))
+        def twentyFourHoursAgo = originalCheckTime - TimeUnit.HOURS.toMillis(DefaultPersistentDirectoryStore.CLEANUP_INTERVAL_IN_HOURS)
+        lastCleanupCheck = markCacheLastCleaned(twentyFourHoursAgo)
         run()
         then:
         assertCacheWasCleanedUpSince(lastCleanupCheck)
 
         // More than checkInterval hours is enough to trigger
         when:
-        gcFile().setLastModified(originalCheckTime - TimeUnit.HOURS.toMillis(DefaultPersistentDirectoryStore.CLEANUP_INTERVAL_IN_HOURS * 10))
+        def twentyFiveHoursAgo = originalCheckTime - TimeUnit.HOURS.toMillis(DefaultPersistentDirectoryStore.CLEANUP_INTERVAL_IN_HOURS + 1)
+        lastCleanupCheck = markCacheLastCleaned(twentyFiveHoursAgo)
         run()
         then:
         assertCacheWasCleanedUpSince(lastCleanupCheck)
@@ -235,9 +253,7 @@ abstract class AbstractBuildCacheCleanupIntegrationTest extends AbstractIntegrat
     def "buildSrc does not try to clean build cache"() {
         // Copy cache configuration
         file("buildSrc/settings.gradle").text = settingsFile.text
-
-        run()
-        def lastCleanupCheck = gcFile().makeOlder().lastModified()
+        def lastCleanupCheck = initializeHome()
 
         when:
         run()
@@ -245,7 +261,7 @@ abstract class AbstractBuildCacheCleanupIntegrationTest extends AbstractIntegrat
         assertCacheWasNotCleanedUpSince(lastCleanupCheck)
 
         when:
-        lastCleanupCheck = markCacheForCleanup()
+        lastCleanupCheck = markCacheLastCleaned(twoDaysAgo())
         run()
         then:
         assertCacheWasCleanedUpSince(lastCleanupCheck)
@@ -270,17 +286,23 @@ abstract class AbstractBuildCacheCleanupIntegrationTest extends AbstractIntegrat
             }
         """
 
-        run()
-        def lastCleanupCheck = gcFile().makeOlder().lastModified()
+        def lastCleanupCheck = initializeHome()
 
         expect:
         run()
         assertCacheWasNotCleanedUpSince(lastCleanupCheck)
     }
 
-    long markCacheForCleanup() {
-        gcFile().touch()
-        gcFile().lastModified = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(MAX_CACHE_AGE_IN_DAYS) * 2
+    private long initializeHome() {
+        executer.requireIsolatedDaemons() // needs to stop daemon
+        requireOwnGradleUserHomeDir() // needs its own journal
+        run() // Make sure cache directory is initialized
+        run '--stop' // ensure daemon does not cache file access times in memory
+        return gcFile().makeOlder().lastModified()
+    }
+
+    long markCacheLastCleaned(long timeMillis) {
+        gcFile().lastModified = timeMillis
         return gcFile().lastModified()
     }
 

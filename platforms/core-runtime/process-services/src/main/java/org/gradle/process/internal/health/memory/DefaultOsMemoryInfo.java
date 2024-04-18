@@ -30,7 +30,7 @@ public class DefaultOsMemoryInfo implements OsMemoryInfo {
         } else if (operatingSystem.isWindows()) {
             delegate = new WindowsOsMemoryInfo();
         } else {
-            delegate = new MBeanOsMemoryInfo();
+            delegate = new MBeanOsMemoryInfo(new DefaultMBeanAttributeProvider());
         }
     }
 

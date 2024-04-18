@@ -16,19 +16,20 @@
 
 package org.gradle.cache.internal
 
-import org.gradle.api.Action
 import org.gradle.cache.FileLock
 import org.gradle.cache.FileLockManager
 import org.gradle.cache.internal.filelock.DefaultLockOptions
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Specification
 
+import java.util.function.Consumer
+
 class FixedSharedModeCrossProcessCacheAccessTest extends Specification {
     def file = new TestFile("some-file.lock")
     def lockManager = Mock(FileLockManager)
     def initAction = Mock(CacheInitializationAction)
-    def onOpenAction = Mock(Action)
-    def onCloseAction = Mock(Action)
+    def onOpenAction = Mock(Consumer)
+    def onCloseAction = Mock(Consumer)
     def lockOptions = DefaultLockOptions.mode(FileLockManager.LockMode.Shared)
     def cacheAccess = new FixedSharedModeCrossProcessCacheAccess("<cache>", file, lockOptions, lockManager, initAction, onOpenAction, onCloseAction)
 
@@ -45,7 +46,7 @@ class FixedSharedModeCrossProcessCacheAccessTest extends Specification {
         1 * initAction.requiresInitialization(lock) >> false
 
         then:
-        1 * onOpenAction.execute(lock)
+        1 * onOpenAction.accept(lock)
         0 * _
     }
 
@@ -76,14 +77,14 @@ class FixedSharedModeCrossProcessCacheAccessTest extends Specification {
         1 * initAction.requiresInitialization(sharedLock) >> false
 
         then:
-        1 * onOpenAction.execute(sharedLock)
+        1 * onOpenAction.accept(sharedLock)
         0 * _
 
         when:
         cacheAccess.close()
 
         then:
-        1 * onCloseAction.execute(sharedLock)
+        1 * onCloseAction.accept(sharedLock)
         1 * sharedLock.close()
         0 * _
     }
@@ -150,7 +151,7 @@ class FixedSharedModeCrossProcessCacheAccessTest extends Specification {
         1 * initAction.requiresInitialization(sharedLock) >> false
 
         then:
-        1 * onOpenAction.execute(sharedLock) >> { throw failure }
+        1 * onOpenAction.accept(sharedLock) >> { throw failure }
         1 * sharedLock.close()
         0 * _
 
@@ -172,7 +173,7 @@ class FixedSharedModeCrossProcessCacheAccessTest extends Specification {
         cacheAccess.close()
 
         then:
-        1 * onCloseAction.execute(lock)
+        1 * onCloseAction.accept(lock)
 
         then:
         1 * lock.close()

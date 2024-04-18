@@ -16,6 +16,9 @@
 
 package org.gradle.api.problems
 
+import org.gradle.api.problems.internal.LineInFileLocation
+import org.gradle.api.problems.internal.OffsetInFileLocation
+import org.gradle.api.problems.internal.PluginIdLocation
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
 
@@ -43,18 +46,17 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         run('reportProblem')
 
         then:
-        def problem = collectedProblem
-        problem['definition']['id'] == [
-            name: 'missing-id',
-            displayName: 'Problem id must be specified',
-            group: [
-                'name': 'problems-api',
-                'displayName': 'Problems API',
-                'parent': null
-            ]
-        ]
-        problem['locations'] == [
-            [length: -1, column: -1, line: 11, path: "build file '$buildFile.absolutePath'"]]
+        verifyAll(receivedProblem) {
+            definition.id.fqid == 'problems-api:missing-id'
+            definition.id.displayName == 'Problem id must be specified'
+            locations.size() == 1
+            with(oneLocation(LineInFileLocation)) {
+                length == -1
+                column == -1
+                line == 11
+                path == "build file '$buildFile.absolutePath'"
+            }
+        }
     }
 
     def "can emit a problem with minimal configuration"() {
@@ -69,18 +71,16 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         run('reportProblem')
 
         then:
-        def problem = collectedProblem
-        problem['definition']['id'] == [
-            name: 'type',
-            displayName: 'label',
-            group: [
-                name: 'generic',
-                displayName: 'Generic',
-                parent: null
-            ]
-        ]
-        problem['locations'] == [
-            [length: -1, column: -1, line: 11, path: "build file '$buildFile.absolutePath'"]]
+        verifyAll(receivedProblem) {
+            definition.id.fqid == 'generic:type'
+            definition.id.displayName == 'label'
+            with(oneLocation(LineInFileLocation)) {
+                length == -1
+                column == -1
+                line == 11
+                path == "build file '$buildFile.absolutePath'"
+            }
+        }
     }
 
     def "can emit a problem with stack location"() {
@@ -97,17 +97,17 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
 
         then:
-        def problem = collectedProblem
-        problem['definition']['id'] == [
-            name: 'type',
-            displayName: 'label',
-            group: [
-                name: 'generic',
-                displayName: 'Generic',
-                parent: null
-            ]
-        ]
-        problem['locations'] == [[length: -1, column: -1, line: 11, path: "build file '$buildFile.absolutePath'"]]
+        verifyAll(receivedProblem) {
+            definition.id.fqid == 'generic:type'
+            definition.id.displayName == 'label'
+            with(oneLocation(LineInFileLocation)) {
+                length == -1
+                column == -1
+                line == 11
+                path == "build file '$buildFile.absolutePath'"
+            }
+        }
+
     }
 
     def "can emit a problem with documentation"() {
@@ -123,7 +123,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         run('reportProblem')
 
         then:
-        collectedProblem['definition']['documentationLink']['url'] == 'https://example.org/doc'
+        receivedProblem.definition.documentationLink.url == 'https://example.org/doc'
     }
 
     def "can emit a problem with offset location"() {
@@ -139,8 +139,20 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         run('reportProblem')
 
         then:
-        collectedProblem["locations"] == [['path': 'test-location', 'offset': 1, 'length': 2],
-                                          [length: -1, column: -1, line: 11, path: "build file '$buildFile.absolutePath'"]]
+        verifyAll (receivedProblem.locations) {
+            size() == 2
+            with(get(0) as OffsetInFileLocation) {
+                path == 'test-location'
+                offset == 1
+                length == 2
+            }
+            with(get(1) as LineInFileLocation) {
+                length == -1
+                column == -1
+                line == 11
+                path == "build file '$buildFile.absolutePath'"
+            }
+        }
     }
 
     def "can emit a problem with file and line number"() {
@@ -156,8 +168,21 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         run('reportProblem')
 
         then:
-        collectedProblem["locations"] == [["path": "test-location", "line": 1, "column": 2, 'length': -1],
-                                          [length: -1, column: -1, line: 11, path: "build file '$buildFile.absolutePath'"]]
+        verifyAll (receivedProblem.locations) {
+            size() == 2
+            with(get(0) as LineInFileLocation) {
+                length == -1
+                column == 2
+                line == 1
+                path == 'test-location'
+            }
+            with(get(1) as LineInFileLocation) {
+                length == -1
+                column == -1
+                line == 11
+                path == "build file '$buildFile.absolutePath'"
+            }
+        }
     }
 
     def "can emit a problem with plugin location specified"() {
@@ -173,9 +198,18 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         run('reportProblem')
 
         then:
-        collectedProblem["locations"] == [
-            ["pluginId": "org.example.pluginid"],
-            [length: -1, column: -1, line: 11, path: "build file '$buildFile.absolutePath'"]]
+        verifyAll (receivedProblem.locations) {
+            size() == 2
+            with(get(0) as PluginIdLocation) {
+                pluginId == 'org.example.pluginid'
+            }
+            with(get(1) as LineInFileLocation) {
+                length == -1
+                column == -1
+                line == 11
+                path == "build file '$buildFile.absolutePath'"
+            }
+        }
     }
 
     def "can emit a problem with a severity"(Severity severity) {
@@ -191,7 +225,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         run('reportProblem')
 
         then:
-        collectedProblem['definition']['severity'] == severity.name()
+        receivedProblem.definition.severity == severity
 
         where:
         severity << Severity.values()
@@ -210,7 +244,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         run('reportProblem')
 
         then:
-        collectedProblem['solutions'] == ['solution']
+        receivedProblem.solutions == ['solution']
     }
 
     def "can emit a problem with exception cause"() {
@@ -226,9 +260,10 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         run('reportProblem')
 
         then:
-        def problem = collectedProblem
-        problem["exception"]["message"] == "test"
-        !(problem["exception"]["stackTrace"] as List<String>).isEmpty()
+        verifyAll(receivedProblem) {
+            exception.message == 'test'
+            exception.stacktrace.length() > 0
+        }
     }
 
     def "can emit a problem with additional data"() {
@@ -244,7 +279,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         run('reportProblem')
 
         then:
-        collectedProblem['additionalData'] == ['key': 'value']
+        receivedProblem.additionalData == ['key': 'value']
     }
 
     def "cannot emit a problem with invalid additional data"() {
@@ -259,19 +294,17 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         when:
         run('reportProblem')
 
-
         then:
-        def problem = collectedProblem
-        problem['definition']['id'] == [
-            name: 'invalid-additional-data',
-            displayName: 'ProblemBuilder.additionalData() only supports values of type String',
-            group: [
-                name: 'problems-api',
-                displayName: 'Problems API',
-                parent: null
-            ]
-        ]
-        problem['locations'] == [[length: -1, column: -1, line: 11, path: "build file '$buildFile.absolutePath'"]]
+        verifyAll(receivedProblem) {
+            definition.id.fqid == 'problems-api:invalid-additional-data'
+            definition.id.displayName == 'ProblemBuilder.additionalData() only supports values of type String'
+            with(oneLocation(LineInFileLocation)) {
+                length == -1
+                column == -1
+                line == 11
+                path == "build file '$buildFile.absolutePath'"
+            }
+        }
     }
 
     def "can throw a problem with a wrapper exception"() {
@@ -287,7 +320,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         fails('reportProblem')
 
         then:
-        collectedProblem['exception']['message'] == 'test'
+        receivedProblem.exception.message == 'test'
     }
 
     def "can rethrow an exception"() {
@@ -302,7 +335,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         fails('reportProblem')
 
         then:
-        collectedProblem['exception']['message'] == 'test'
+        receivedProblem.exception.message == 'test'
     }
 
     def "can rethrow a caught exception"() {
@@ -310,12 +343,12 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         withReportProblemTask """
             try {
                 problems.forNamespace("org.example.plugin").throwing {
-                    it.id('type', 'inner')
+                    it.id('type1', 'inner')
                     .withException(new RuntimeException("test"))
                 }
             } catch (RuntimeException ex) {
                 problems.forNamespace("org.example.plugin").rethrowing(ex) {
-                    it.id('type', 'outer')
+                    it.id('type2', 'outer')
                 }
             }
         """
@@ -324,9 +357,8 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         fails('reportProblem')
 
         then:
-        this.collectedProblems.size() == 2
-        this.collectedProblems[0]['definition']['id']['displayName'] == "inner"
-        this.collectedProblems[1]['definition']['id']['displayName'] == "outer"
+        receivedProblem(0).definition.id.displayName == 'inner'
+        receivedProblem(1).definition.id.displayName == 'outer'
     }
 
     def "problem progress events are not aggregated"() {
@@ -345,13 +377,13 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         run("reportProblem")
 
         then:
-        def problems = this.collectedProblems
-        problems.size() == 10
-        problems.every {
-            it['definition']['id']["displayName"] == "label" &&
-            it['definition']["id"]['name'] == 'type' &&
-            it['definition']["severity"] == "WARNING" &&
-            it['solutions'] == ["solution"]
+        10.times {
+            verifyAll(receivedProblem(it)) {
+                definition.id.displayName == 'label'
+                definition.id.name == 'type'
+                definition.severity == Severity.WARNING
+                solutions == ["solution"]
+            }
         }
     }
 }

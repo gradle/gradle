@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.project;
 
+import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.tasks.TaskDependencyUsageTracker;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
@@ -24,6 +25,7 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -44,6 +46,11 @@ public interface CrossProjectModelAccess {
      * @param referrer The project from which the return value will be used.
      */
     ProjectInternal access(ProjectInternal referrer, ProjectInternal project);
+
+    /**
+     * @param referrer The project from which the return value will be used.
+     */
+    Map<String, Project> getChildProjects(ProjectInternal referrer, ProjectInternal relativeTo);
 
     /**
      * @param referrer The project from which the return value will be used.

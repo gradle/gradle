@@ -17,25 +17,22 @@
 package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ProviderFactory;
 
 import javax.inject.Inject;
-import java.util.Arrays;
-import java.util.Collections;
+import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 public class LocationListInstallationSupplier implements InstallationSupplier {
 
-    private static final String JAVA_INSTALLATIONS_PATHS_PROPERTY = "org.gradle.java.installations.paths";
+    public static final String JAVA_INSTALLATIONS_PATHS_PROPERTY = "org.gradle.java.installations.paths";
 
-    private final ProviderFactory factory;
+    private final ToolchainConfiguration buildOptions;
     private final FileResolver fileResolver;
 
     @Inject
-    public LocationListInstallationSupplier(ProviderFactory factory, FileResolver fileResolver) {
-        this.factory = factory;
+    public LocationListInstallationSupplier(ToolchainConfiguration buildOptions, FileResolver fileResolver) {
+        this.buildOptions = buildOptions;
         this.fileResolver = fileResolver;
     }
 
@@ -46,15 +43,14 @@ public class LocationListInstallationSupplier implements InstallationSupplier {
 
     @Override
     public Set<InstallationLocation> get() {
-        final Provider<String> property = factory.gradleProperty(JAVA_INSTALLATIONS_PATHS_PROPERTY);
-        return property.map(this::asInstallations).getOrElse(Collections.emptySet());
+        final Collection<String> property = buildOptions.getInstallationsFromPaths();
+        return property.stream()
+            .filter(path -> !path.trim().isEmpty())
+            .map(this::asInstallations).collect(Collectors.toSet());
     }
 
-    private Set<InstallationLocation> asInstallations(String listOfDirectories) {
-        return Arrays.stream(listOfDirectories.split(","))
-            .filter(path -> !path.trim().isEmpty())
-            .map(path -> InstallationLocation.userDefined(fileResolver.resolve(path), getSourceName()))
-            .collect(Collectors.toSet());
+    private InstallationLocation asInstallations(String candidate) {
+        return InstallationLocation.userDefined(fileResolver.resolve(candidate), getSourceName());
     }
 
 }

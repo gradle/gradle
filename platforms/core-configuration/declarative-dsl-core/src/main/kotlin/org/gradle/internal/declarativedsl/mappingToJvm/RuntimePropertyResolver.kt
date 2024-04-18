@@ -16,54 +16,85 @@
 
 package org.gradle.internal.declarativedsl.mappingToJvm
 
-import org.gradle.internal.declarativedsl.mappingToJvm.RuntimePropertyResolver.Resolution.Resolved
-import org.gradle.internal.declarativedsl.mappingToJvm.RuntimePropertyResolver.Resolution.Unresolved
+import org.gradle.internal.declarativedsl.mappingToJvm.RuntimePropertyResolver.ReadResolution
+import org.gradle.internal.declarativedsl.mappingToJvm.RuntimePropertyResolver.ReadResolution.ResolvedRead
+import org.gradle.internal.declarativedsl.mappingToJvm.RuntimePropertyResolver.ReadResolution.UnresolvedRead
+import org.gradle.internal.declarativedsl.mappingToJvm.RuntimePropertyResolver.WriteResolution
+import org.gradle.internal.declarativedsl.mappingToJvm.RuntimePropertyResolver.WriteResolution.ResolvedWrite
+import org.gradle.internal.declarativedsl.mappingToJvm.RuntimePropertyResolver.WriteResolution.UnresolvedWrite
+import java.lang.reflect.Modifier
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty
+import kotlin.reflect.KProperty
 import kotlin.reflect.KVisibility
 import kotlin.reflect.full.memberFunctions
 import kotlin.reflect.full.memberProperties
 
 
 interface RuntimePropertyResolver {
-    fun resolvePropertyRead(receiverClass: KClass<*>, name: String): Resolution
-    fun resolvePropertyWrite(receiverClass: KClass<*>, name: String): Resolution
+    fun resolvePropertyRead(receiverClass: KClass<*>, name: String): ReadResolution
+    fun resolvePropertyWrite(receiverClass: KClass<*>, name: String): WriteResolution
 
-    sealed interface Resolution {
-        data class Resolved(val property: DeclarativeRuntimeProperty) : Resolution
-        data object Unresolved : Resolution
+    sealed interface ReadResolution {
+        data class ResolvedRead(val getter: DeclarativeRuntimePropertyGetter) : ReadResolution
+        data object UnresolvedRead : ReadResolution
+    }
+
+    sealed interface WriteResolution {
+        data class ResolvedWrite(val setter: DeclarativeRuntimePropertySetter) : WriteResolution
+        data object UnresolvedWrite : WriteResolution
     }
 }
 
 
 object ReflectionRuntimePropertyResolver : RuntimePropertyResolver {
-    override fun resolvePropertyRead(receiverClass: KClass<*>, name: String): RuntimePropertyResolver.Resolution {
-        val callable = receiverClass.memberProperties.find { it.name == name && it.visibility == KVisibility.PUBLIC }
-            ?: receiverClass.memberFunctions.find { it.name == getterName(name) && it.parameters.size == 1 && it.visibility == KVisibility.PUBLIC }
+    override fun resolvePropertyRead(receiverClass: KClass<*>, name: String): ReadResolution {
+        val getter = findKotlinProperty(receiverClass, name)?.let(::kotlinPropertyGetter)
+            ?: findKotlinFunctionGetter(receiverClass, name)
+            ?: findJavaGetter(receiverClass, name)
 
-        return when (callable) {
-            null -> Unresolved
-            else -> Resolved(object : DeclarativeRuntimeProperty {
-                override fun getValue(receiver: Any): Any? = callable.call(receiver)
-                override fun setValue(receiver: Any, value: Any?) = throw UnsupportedOperationException()
-            })
-        }
+        return getter?.let(::ResolvedRead) ?: UnresolvedRead
     }
 
-    override fun resolvePropertyWrite(receiverClass: KClass<*>, name: String): RuntimePropertyResolver.Resolution {
-        val setter = (receiverClass.memberProperties.find { it.name == name && it.visibility == KVisibility.PUBLIC } as? KMutableProperty<*>)?.setter
-            ?: receiverClass.memberFunctions.find { it.name == setterName(name) && it.visibility == KVisibility.PUBLIC }
+    override fun resolvePropertyWrite(receiverClass: KClass<*>, name: String): WriteResolution {
+        val setter = (findKotlinProperty(receiverClass, name) as? KMutableProperty<*>)?.let(::kotlinPropertySetter)
+            ?: findKotlinFunctionSetter(receiverClass, name)
+            ?: findJavaSetter(receiverClass, name)
 
-        return when (setter) {
-            null -> Unresolved
-            else -> Resolved(object : DeclarativeRuntimeProperty {
-                override fun getValue(receiver: Any): Any = throw UnsupportedOperationException()
-                override fun setValue(receiver: Any, value: Any?) {
-                    setter.call(receiver, value)
-                }
-            })
-        }
+        return setter?.let(::ResolvedWrite) ?: UnresolvedWrite
     }
+
+    private
+    fun findKotlinProperty(receiverClass: KClass<*>, name: String) =
+        receiverClass.memberProperties.find { it.name == name && it.visibility == KVisibility.PUBLIC }
+
+    private
+    fun kotlinPropertyGetter(property: KProperty<*>) =
+        DeclarativeRuntimePropertyGetter { property.call(it) }
+
+    private
+    fun kotlinPropertySetter(property: KMutableProperty<*>) =
+        DeclarativeRuntimePropertySetter { receiver, value -> property.setter.call(receiver, value) }
+
+    private
+    fun findKotlinFunctionGetter(receiverClass: KClass<*>, name: String) =
+        receiverClass.memberFunctions.find { it.name == getterName(name) && it.parameters.size == 1 && it.visibility == KVisibility.PUBLIC }
+            ?.let { property -> DeclarativeRuntimePropertyGetter { property.call(it) } }
+
+    private
+    fun findKotlinFunctionSetter(receiverClass: KClass<*>, name: String) =
+        receiverClass.memberFunctions.find { it.name == setterName(name) && it.visibility == KVisibility.PUBLIC }
+            ?.let { function -> DeclarativeRuntimePropertySetter { receiver: Any, value: Any? -> function.call(receiver, value) } }
+
+    private
+    fun findJavaGetter(receiverClass: KClass<*>, name: String) =
+        receiverClass.java.methods.find { it.name == getterName(name) && it.parameters.isEmpty() && it.modifiers.and(Modifier.PUBLIC) != 0 }
+            ?.let { method -> DeclarativeRuntimePropertyGetter { method.invoke(it) } }
+
+    private
+    fun findJavaSetter(receiverClass: KClass<*>, name: String) =
+        receiverClass.java.methods.find { it.name == setterName(name) && it.parameters.size == 1 && it.modifiers.and(Modifier.PUBLIC) != 0 }
+            ?.let { method -> DeclarativeRuntimePropertySetter { receiver: Any, value: Any? -> method.invoke(receiver, value) } }
 
     private
     fun getterName(propertyName: String) = "get" + capitalize(propertyName)
@@ -79,21 +110,21 @@ object ReflectionRuntimePropertyResolver : RuntimePropertyResolver {
 
 
 class CompositePropertyResolver(private val resolvers: List<RuntimePropertyResolver>) : RuntimePropertyResolver {
-    override fun resolvePropertyRead(receiverClass: KClass<*>, name: String): RuntimePropertyResolver.Resolution {
+    override fun resolvePropertyRead(receiverClass: KClass<*>, name: String): ReadResolution {
         resolvers.forEach {
             val resolution = it.resolvePropertyRead(receiverClass, name)
-            if (resolution is Resolved)
+            if (resolution !is UnresolvedRead)
                 return resolution
         }
-        return Unresolved
+        return UnresolvedRead
     }
 
-    override fun resolvePropertyWrite(receiverClass: KClass<*>, name: String): RuntimePropertyResolver.Resolution {
+    override fun resolvePropertyWrite(receiverClass: KClass<*>, name: String): WriteResolution {
         resolvers.forEach {
             val resolution = it.resolvePropertyWrite(receiverClass, name)
-            if (resolution is Resolved)
+            if (resolution !is UnresolvedWrite)
                 return resolution
         }
-        return Unresolved
+        return UnresolvedWrite
     }
 }

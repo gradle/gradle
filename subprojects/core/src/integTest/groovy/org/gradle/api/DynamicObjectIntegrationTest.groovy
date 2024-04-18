@@ -19,6 +19,8 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Issue
 
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
+
 class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         file('settings.gradle') << "rootProject.name = 'test'"
@@ -485,6 +487,7 @@ assert 'overridden value' == global
         succeeds()
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def canInjectMethodsFromParentProject() {
         createDirs("child1", "child2")
         file("settings.gradle").writelns("include 'child1', 'child2'");
@@ -832,6 +835,7 @@ task print(type: MyTask) {
     }
 
     @Issue("GRADLE-2163")
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def canDecorateBooleanPrimitiveProperties() {
 
         buildFile """

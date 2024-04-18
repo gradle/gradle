@@ -59,7 +59,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  *
  * @since 4.7
  */
-@ServiceScope(Scope.BuildSession.class)
+@ServiceScope(Scope.CrossBuildSession.class)
 public class LoggingBuildOperationProgressBroadcaster implements Stoppable, OutputEventListener {
 
     private final OutputEventListenerManager outputEventListenerManager;

@@ -25,13 +25,11 @@ errorprone {
         "MixedMutabilityReturnType", // 2 occurrences
         "ShortCircuitBoolean", // 2 occurrences
         "UnnecessaryParentheses", // 1 occurrences
-        "UnusedMethod", // 2 occurrences
-        "UnusedVariable", // 1 occurrences
     )
 }
 
 dependencies {
-    api(project(":base-annotations"))
+    api(projects.javaLanguageExtensions)
     api(project(":base-ide-plugins"))
     api(project(":base-services"))
     api(project(":core"))

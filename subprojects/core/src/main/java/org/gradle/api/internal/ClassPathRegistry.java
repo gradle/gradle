@@ -17,7 +17,10 @@
 package org.gradle.api.internal;
 
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
+@ServiceScope({Scope.Global.class, Scope.UserHome.class, Scope.Build.class})
 public interface ClassPathRegistry {
     ClassPath getClassPath(String name);
 }

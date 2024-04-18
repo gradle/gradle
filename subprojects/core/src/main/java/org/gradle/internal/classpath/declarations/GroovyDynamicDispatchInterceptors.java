@@ -90,7 +90,7 @@ public class GroovyDynamicDispatchInterceptors {
                     return null;
                 }
             }
-            interceptor.doIntercept(new SetPropertyInvocationImpl(receiver, new Object[]{messageArgument}), consumer);
+            interceptor.intercept(new SetPropertyInvocationImpl(receiver, new Object[]{messageArgument}), consumer);
         } else {
             ScriptBytecodeAdapter.setProperty(messageArgument, senderClass, receiver, messageName);
         }

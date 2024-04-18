@@ -28,7 +28,7 @@ import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.PatternSets;
-import org.gradle.cache.internal.TestCaches;
+import org.gradle.cache.internal.TestDecompressionCoordinators;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.event.DefaultListenerManager;
@@ -174,7 +174,7 @@ public class TestFiles {
             documentationRegistry(),
             taskDependencyFactory(),
             providerFactory(),
-            TestCaches.decompressionCache(temporaryFileProvider.newTemporaryDirectory("cache-dir")),
+            TestDecompressionCoordinators.decompressionCoordinator(temporaryFileProvider.newTemporaryDirectory("cache-dir")),
             temporaryFileProvider
         );
     }

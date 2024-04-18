@@ -45,9 +45,9 @@ import org.gradle.process.CommandLineArgumentProvider
 import java.util.concurrent.Callable
 
 
-// Android Studio Iguana 2023.2.1.16 Canary 16
+// Android Studio Iguana 2023.2.1 Patch 1
 private
-const val defaultAndroidStudioVersion = "2023.2.1.16"
+const val defaultAndroidStudioVersion = "2023.2.1.24"
 
 
 class AndroidStudioProvisioningPlugin : Plugin<Project> {

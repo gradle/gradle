@@ -39,10 +39,12 @@ public class ToolingModelServices extends AbstractPluginServiceRegistry {
 
     private static class BuildScopeToolingServices {
 
+        @SuppressWarnings("unused")
         protected UniqueProjectNameProvider createBuildProjectRegistry(ProjectStateRegistry projectRegistry) {
             return new DefaultUniqueProjectNameProvider(projectRegistry);
         }
 
+        @SuppressWarnings("unused")
         protected BuildScopeToolingModelBuilderRegistryAction createIdeBuildScopeToolingModelBuilderRegistryAction(
             final ProjectTaskLister taskLister,
             final ProjectPublicationRegistry projectPublicationRegistry,

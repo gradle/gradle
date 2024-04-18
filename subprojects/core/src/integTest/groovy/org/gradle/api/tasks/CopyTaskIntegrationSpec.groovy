@@ -27,6 +27,8 @@ import org.gradle.util.internal.ToBeImplemented
 import org.junit.Rule
 import spock.lang.Issue
 
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
+
 class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
 
     @Rule
@@ -655,6 +657,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         )
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "rename"() {
         given:
         buildScript '''
@@ -685,6 +688,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         )
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "copy action"() {
         given:
         buildScript '''
@@ -716,6 +720,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         )
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "copy single files"() {
         given:
         buildScript '''
@@ -1029,6 +1034,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         )
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "copy from file tree"() {
         given:
         buildScript '''
@@ -1058,6 +1064,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         )
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "copy from file collection"() {
         given:
         buildScript '''
@@ -1089,6 +1096,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         )
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "copy from composite file collection"() {
         given:
         file('a.jar').touch()
@@ -1121,6 +1129,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         )
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "copy from task"() {
         given:
         buildScript '''
@@ -1158,6 +1167,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         )
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "copy from task outputs"() {
         given:
         buildScript '''
@@ -1195,6 +1205,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         )
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "copy from task provider"() {
         given:
         buildScript '''
@@ -1927,10 +1938,14 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         file("res/foo.txt") << "bar"
 
         buildScript """
+            interface Services {
+                @Inject FileSystemOperations getFs()
+            }
             task copyAction {
-                ext.source = 'res'
+                def fs = objects.newInstance(Services).fs
+                def source = 'res'
                 doLast {
-                    copy {
+                    fs.copy {
                         from source
                         into 'action'
                     }

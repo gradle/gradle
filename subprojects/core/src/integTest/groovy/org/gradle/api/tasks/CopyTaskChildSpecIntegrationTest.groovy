@@ -18,10 +18,14 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Issue
+
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
 class CopyTaskChildSpecIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "changing child specs of the copy task while executing is disallowed"() {
         given:
         file("some-dir/input.txt") << "Data"

@@ -16,7 +16,6 @@
 package org.gradle.integtests
 
 import groovy.io.FileType
-import org.gradle.launcher.daemon.configuration.DaemonBuildOptions
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 
@@ -29,18 +28,11 @@ class WrapperIntegrationTest extends AbstractWrapperIntegrationSpec {
         prepareWrapper()
         def gradleUserHome = testDirectory.file('some-custom-user-home')
         when:
-        def executer = wrapperExecuter.withGradleUserHomeDir(null)
-        // We can't use a daemon since on Windows the distribution jars will be kept open by the daemon
-        executer.withArguments(
-            "-Dgradle.user.home=$gradleUserHome.absolutePath",
-            // TODO(https://github.com/gradle/gradle/issues/24057) having agent enabled forces the single-use daemon to spawn,
-            //  because the wrapper process has no agent applied. Even the short-lived daemon causes a race between its shutdown and
-            //  the deletion code below.
-            "-D${DaemonBuildOptions.ApplyInstrumentationAgentOption.GRADLE_PROPERTY}=false",
-            "--no-daemon")
+        def executer = wrapperExecuter.withGradleUserHomeDir(gradleUserHome)
         result = executer.withTasks("hello").run()
         then:
         result.assertTaskExecuted(":hello")
+        executer.stop()
 
         when:
         // Delete important file in distribution
@@ -53,7 +45,6 @@ class WrapperIntegrationTest extends AbstractWrapperIntegrationSpec {
             }
         }
         and:
-        executer.withArguments("-Dgradle.user.home=$gradleUserHome.absolutePath", "--no-daemon")
         result = executer.withTasks("hello").run()
         then:
         deletedSomething

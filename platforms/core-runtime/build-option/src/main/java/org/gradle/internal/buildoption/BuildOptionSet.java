@@ -59,9 +59,9 @@ public abstract class BuildOptionSet<T> {
     public PropertiesConverter<T> propertiesConverter() {
         return new PropertiesConverter<T>() {
             @Override
-            public T convert(Map<String, String> args, T target) throws CommandLineArgumentException {
+            public T convert(Map<String, String> properties, T target) throws CommandLineArgumentException {
                 for (BuildOption<? super T> option : getAllOptions()) {
-                    option.applyFromProperty(args, target);
+                    option.applyFromProperty(properties, target);
                 }
                 return target;
             }

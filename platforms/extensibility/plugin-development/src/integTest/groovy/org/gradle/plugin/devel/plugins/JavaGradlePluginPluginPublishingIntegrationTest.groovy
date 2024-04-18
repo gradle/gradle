@@ -260,6 +260,68 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
         ivyRepo.module('com.example.foo', 'com.example.foo' + PLUGIN_MARKER_SUFFIX, 'unspecified').assertPublished()
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/12259")
+    def "when publishing to maven then name and description from plugin block can be overriden by the publishing block when writing pom"() {
+        given:
+        plugin('foo', 'com.example.foo', 'pluginName', 'pluginDesc')
+        publishToMaven()
+
+        and:
+        buildFile << """
+            publishing {
+                publications.withType(MavenPublication) {
+                    pom {
+                        name = "publishingName"
+                        description = "publishingDesc"
+                    }
+                }
+            }
+        """.stripIndent()
+
+        when:
+        succeeds 'publish'
+
+        then:
+        mavenRepo.module('com.example', 'plugins', '1.0').assertPublished()
+
+        def module = mavenRepo.module('com.example.foo', 'com.example.foo' + PLUGIN_MARKER_SUFFIX, '1.0')
+        module.assertPublished()
+
+        module.parsedPom.name == 'publishingName'
+        module.parsedPom.description == 'publishingDesc'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/12259")
+    def "when publishing to maven then name and description from publishing block are used if not defined in plugin block when writing pom"() {
+        given:
+        plugin('foo', 'com.example.foo')
+        publishToMaven()
+
+        and:
+        buildFile << """
+            publishing {
+                publications.withType(MavenPublication) {
+                    pom {
+                        name = "publishingName"
+                        description = "publishingDesc"
+                    }
+                }
+            }
+        """.stripIndent()
+
+        when:
+        succeeds 'publish'
+
+        then:
+        mavenRepo.module('com.example', 'plugins', '1.0').assertPublished()
+
+        def module = mavenRepo.module('com.example.foo', 'com.example.foo' + PLUGIN_MARKER_SUFFIX, '1.0')
+        module.assertPublished()
+
+        module.parsedPom.name == 'publishingName'
+        module.parsedPom.description == 'publishingDesc'
+    }
+
     def publishToMaven() {
         buildFile << """
             apply plugin: 'maven-publish'

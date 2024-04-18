@@ -85,7 +85,7 @@ public class InstrumentationTransformRegisterer {
                 spec.parameters(params -> {
                     params.getBuildService().set(service);
                     params.getContextId().set(contextId);
-                    params.getAnalysisResult().setFrom(service.map(it -> it.getAnalysisResult(contextId)));
+                    params.getTypeHierarchyAnalysis().setFrom(service.map(it -> it.getTypeHierarchyAnalysis(contextId)));
                 });
             }
         );

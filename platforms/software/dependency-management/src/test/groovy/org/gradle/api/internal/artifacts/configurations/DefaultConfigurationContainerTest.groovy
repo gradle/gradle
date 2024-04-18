@@ -41,7 +41,7 @@ import org.gradle.internal.artifacts.configurations.NoContextRoleBasedConfigurat
 import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.model.CalculatedValueContainerFactory
-import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.work.WorkerThreadRegistry
 import org.gradle.util.AttributeTestUtil
@@ -54,7 +54,7 @@ class DefaultConfigurationContainerTest extends Specification {
     private ListenerManager listenerManager = Stub(ListenerManager.class)
     private DependencyMetaDataProvider metaDataProvider = Mock(DependencyMetaDataProvider.class)
     private ComponentIdentifierFactory componentIdentifierFactory = Mock(ComponentIdentifierFactory)
-    private BuildOperationExecutor buildOperationExecutor = Mock(BuildOperationExecutor)
+    private BuildOperationRunner buildOperationRunner = Mock(BuildOperationRunner)
     private DependencyLockingProvider lockingProvider = Mock(DependencyLockingProvider)
     private ProjectStateRegistry projectStateRegistry = Mock(ProjectStateRegistry)
     private CollectionCallbackActionDecorator callbackActionDecorator = Mock(CollectionCallbackActionDecorator) {
@@ -80,7 +80,7 @@ class DefaultConfigurationContainerTest extends Specification {
         lockingProvider,
         domainObjectContext,
         TestFiles.fileCollectionFactory(),
-        buildOperationExecutor,
+        buildOperationRunner,
         new PublishArtifactNotationParserFactory(
                 instantiator,
                 metaDataProvider,

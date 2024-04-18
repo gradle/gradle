@@ -96,11 +96,11 @@ public class ModuleDependency implements Dependency {
         return Objects.equal(name, that.name) && scopeEquals(scope, that.scope);
     }
 
-    private boolean scopeEquals(String lhs, String rhs) {
+    private static boolean scopeEquals(String lhs, String rhs) {
         if ("COMPILE".equals(lhs)) {
             return Strings.isNullOrEmpty(rhs) || "COMPILE".equals(rhs);
         } else if ("COMPILE".equals(rhs)) {
-            return Strings.isNullOrEmpty(lhs) || "COMPILE".equals(lhs);
+            return Strings.isNullOrEmpty(lhs);
         } else {
             return Objects.equal(lhs, rhs);
         }

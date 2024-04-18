@@ -46,7 +46,7 @@ class FileBackedObjectHolderTest extends Specification {
 
         then:
         result == null
-        1 * fileAccess.readFile(!null) >> { it[0].create() }
+        1 * fileAccess.readFile(!null) >> { it[0].get() }
     }
 
     def "get returns last value written to file"() {
@@ -62,7 +62,7 @@ class FileBackedObjectHolderTest extends Specification {
 
         then:
         result == 'some value'
-        1 * fileAccess.readFile(!null) >> { it[0].create() }
+        1 * fileAccess.readFile(!null) >> { it[0].get() }
     }
 
     def "makes file accessable only to user on write"() {
@@ -96,7 +96,7 @@ class FileBackedObjectHolderTest extends Specification {
 
         then:
         result == "foo bar"
-        1 * fileAccess.readFile(!null) >> { it[0].create() }
+        1 * fileAccess.readFile(!null) >> { it[0].get() }
     }
 
     def "update does not explode when no existing value"() {
@@ -114,7 +114,7 @@ class FileBackedObjectHolderTest extends Specification {
 
         then:
         result == "bar"
-        1 * fileAccess.readFile(!null) >> { it[0].create() }
+        1 * fileAccess.readFile(!null) >> { it[0].get() }
     }
 
     def "can set value when file integrity is violated"() {

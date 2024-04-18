@@ -15,8 +15,12 @@
  */
 package org.gradle.internal.operations;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 import javax.annotation.Nullable;
 
+@ServiceScope(Scope.Global.class)
 public class CurrentBuildOperationRef {
 
     private static final CurrentBuildOperationRef INSTANCE = new CurrentBuildOperationRef();

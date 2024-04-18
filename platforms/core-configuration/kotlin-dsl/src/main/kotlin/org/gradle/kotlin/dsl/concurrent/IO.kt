@@ -76,7 +76,13 @@ internal
 fun <T> withAsynchronousIO(
     project: Project,
     action: IO.() -> T
-): T = project.serviceOf<AsyncIOScopeFactory>().newScope().useToRun(action)
+): T = project.serviceOf<AsyncIOScopeFactory>().runBlocking(action)
+
+
+internal
+fun <T> AsyncIOScopeFactory.runBlocking(
+    action: IO.() -> T
+): T = newScope().useToRun(action)
 
 
 internal

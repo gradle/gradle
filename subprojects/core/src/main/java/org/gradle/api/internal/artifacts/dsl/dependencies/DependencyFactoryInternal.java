@@ -31,7 +31,8 @@ public interface DependencyFactoryInternal extends DependencyFactory {
         GRADLE_API("Gradle API"),
         GRADLE_KOTLIN_DSL("Gradle Kotlin DSL"),
         GRADLE_TEST_KIT("Gradle TestKit"),
-        LOCAL_GROOVY("Local Groovy");
+        LOCAL_GROOVY("Local Groovy"),
+        LOCAL_PROJECT_AS_OPAQUE_DEPENDENCY("Local project as an opaque dependency");
 
         public final String displayName;
 

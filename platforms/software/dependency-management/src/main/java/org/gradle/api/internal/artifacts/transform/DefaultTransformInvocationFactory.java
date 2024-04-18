@@ -31,8 +31,8 @@ import org.gradle.internal.execution.ExecutionEngine.IdentityCacheResult;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UnitOfWork.Identity;
-import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.vfs.FileSystemAccess;
 
 import javax.annotation.Nullable;
@@ -46,7 +46,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
     private final ImmutableTransformWorkspaceServices immutableWorkspaceServices;
     private final FileCollectionFactory fileCollectionFactory;
     private final ProjectStateRegistry projectStateRegistry;
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationRunner buildOperationRunner;
     private final BuildOperationProgressEventEmitter progressEventEmitter;
 
     public DefaultTransformInvocationFactory(
@@ -56,7 +56,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
         ImmutableTransformWorkspaceServices immutableWorkspaceServices,
         FileCollectionFactory fileCollectionFactory,
         ProjectStateRegistry projectStateRegistry,
-        BuildOperationExecutor buildOperationExecutor,
+        BuildOperationRunner buildOperationRunner,
         BuildOperationProgressEventEmitter progressEventEmitter
     ) {
         this.executionEngine = executionEngine;
@@ -65,7 +65,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
         this.immutableWorkspaceServices = immutableWorkspaceServices;
         this.fileCollectionFactory = fileCollectionFactory;
         this.projectStateRegistry = projectStateRegistry;
-        this.buildOperationExecutor = buildOperationExecutor;
+        this.buildOperationRunner = buildOperationRunner;
         this.progressEventEmitter = progressEventEmitter;
     }
 
@@ -98,7 +98,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
                 subject,
 
                 transformExecutionListener,
-                buildOperationExecutor,
+                buildOperationRunner,
                 progressEventEmitter,
                 fileCollectionFactory,
                 inputFingerprinter,
@@ -118,7 +118,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
                     subject,
 
                     transformExecutionListener,
-                    buildOperationExecutor,
+                    buildOperationRunner,
                     progressEventEmitter,
                     fileCollectionFactory,
                     inputFingerprinter,
@@ -136,7 +136,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
                     producerProject,
 
                     transformExecutionListener,
-                    buildOperationExecutor,
+                    buildOperationRunner,
                     progressEventEmitter,
                     fileCollectionFactory,
                     inputFingerprinter,

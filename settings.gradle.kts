@@ -9,9 +9,9 @@ pluginManagement {
             content {
                 val rcAndMilestonesPattern = "\\d{1,2}?\\.\\d{1,2}?(\\.\\d{1,2}?)?-((rc-\\d{1,2}?)|(milestone-\\d{1,2}?))"
                 // GE plugin marker artifact
-                includeVersionByRegex("com.gradle.enterprise", "com.gradle.enterprise.gradle.plugin", rcAndMilestonesPattern)
+                includeVersionByRegex("com.gradle.develocity", "com.gradle.develocity.gradle.plugin", rcAndMilestonesPattern)
                 // GE plugin jar
-                includeVersionByRegex("com.gradle", "gradle-enterprise-gradle-plugin", rcAndMilestonesPattern)
+                includeVersionByRegex("com.gradle", "develocity-gradle-plugin", rcAndMilestonesPattern)
             }
         }
         maven {
@@ -26,8 +26,8 @@ pluginManagement {
 }
 
 plugins {
-    id("com.gradle.enterprise").version("3.16.2") // Sync with `build-logic-commons/build-platform/build.gradle.kts`
-    id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.7.6")
+    id("com.gradle.develocity").version("3.17.1") // Sync with `build-logic-commons/build-platform/build.gradle.kts`
+    id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.9.1")
     id("org.gradle.toolchains.foojay-resolver-convention") version ("0.8.0")
 //    id("net.ltgt.errorprone").version("3.1.0")
 }
@@ -68,13 +68,15 @@ val core = platform("core") {
 
     // Core Runtime Module
     module("core-runtime") {
-        subproject("base-annotations")
+        subproject("base-asm")
         subproject("base-services")
         subproject("bootstrap")
+        subproject("build-configuration")
         subproject("build-operations")
         subproject("build-option")
         subproject("build-profile")
         subproject("cli")
+        subproject("concurrent")
         subproject("distributions-basics")
         subproject("distributions-core")
         subproject("file-temp")
@@ -85,12 +87,16 @@ val core = platform("core") {
         subproject("instrumentation-declarations")
         subproject("internal-instrumentation-api")
         subproject("internal-instrumentation-processor")
+        subproject("io")
+        subproject("java-language-extensions")
         subproject("launcher")
         subproject("logging")
         subproject("logging-api")
         subproject("messaging")
         subproject("native")
         subproject("process-services")
+        subproject("serialization")
+        subproject("time")
         subproject("worker-services")
         subproject("wrapper")
         subproject("wrapper-shared")
@@ -186,7 +192,6 @@ val jvm = platform("jvm") {
     uses(core)
     uses(software)
     subproject("code-quality")
-    subproject("core-jvm")
     subproject("distributions-jvm")
     subproject("ear")
     subproject("jacoco")
@@ -195,6 +200,7 @@ val jvm = platform("jvm") {
     subproject("language-java")
     subproject("language-jvm")
     subproject("toolchains-jvm")
+    subproject("toolchains-jvm-shared")
     subproject("java-compiler-plugin")
     subproject("java-platform")
     subproject("normalization-java")
@@ -244,24 +250,24 @@ module("enterprise") {
     subproject("enterprise-workers")
 }
 
-module("build-infrastructure") {
+testing {
+    subproject("architecture-test")
+    subproject("distributions-integ-tests")
+    subproject("integ-test")
+    subproject("internal-architecture-testing")
+    subproject("internal-integ-testing")
+    subproject("internal-performance-testing")
+    subproject("internal-testing")
+    subproject("performance")
     subproject("precondition-tester")
+    subproject("soak")
+    subproject("smoke-ide-test") // eventually should be owned by IDEX team
+    subproject("smoke-test")
 }
 
 // Internal utility and verification projects
 unassigned {
-    subproject("architecture-test")
-    subproject("internal-testing")
-    subproject("internal-integ-testing")
-    subproject("internal-performance-testing")
-    subproject("internal-architecture-testing")
     subproject("internal-build-reports")
-    subproject("integ-test")
-    subproject("distributions-integ-tests")
-    subproject("soak")
-    subproject("smoke-test")
-    subproject("performance")
-    subproject("smoke-ide-test") // eventually should be owned by IDEX team
 }
 
 rootProject.name = "gradle"
@@ -406,6 +412,12 @@ fun platform(platformName: String, platformConfiguration: PlatformBuilder.() -> 
     platform.platformConfiguration()
     return platform
 }
+
+/**
+ * Defines the testing module, for project helping test Gradle.
+ */
+fun testing(moduleConfiguration: ProjectScope.() -> Unit) =
+    ProjectScope("testing").moduleConfiguration()
 
 /**
  * Defines a bucket of unassigned projects.

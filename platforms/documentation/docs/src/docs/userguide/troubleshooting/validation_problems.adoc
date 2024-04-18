@@ -281,7 +281,7 @@ someTask {
 ```
 
 In some cases, adding a dependency on the producing task is not desired, for example when the consumer generates reports for possible multiple tasks.
-In this case you can introduce an <<more_about_tasks.adoc#sec:ordering_tasks,ordering>> between the two tasks by using link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:mustRunAfter(java.lang.Object++[]++)[Task.mustRunAfter()].
+In this case you can introduce an <<controlling_task_execution.adoc#sec:ordering_tasks,ordering>> between the two tasks by using link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:mustRunAfter(java.lang.Object++[]++)[Task.mustRunAfter()].
 
 [[input_file_does_not_exist]]
 == Input file doesn't exist

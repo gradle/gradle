@@ -224,4 +224,48 @@ Test suite '$testSuiteName' -> afterTest out
 Test suite '$testSuiteName' -> afterTest err
 """
     }
+
+    def "can configure logging output inclusion in xml reports"() {
+        given:
+        buildFile.text = buildFile.text.replace("reports.junitXml.outputPerTestCase = true", """reports.junitXml {
+            outputPerTestCase = true
+            $includeSystemOutConf
+            $includeSystemErrConf
+        }""".stripIndent())
+
+        expect:
+        executer.withTestConsoleAttached()
+        succeeds("test")
+
+        and: "all output is included/excluded in the xml report as configured"
+        def junitResult = new JUnitXmlTestExecutionResult(testDirectory)
+        if (standardOutIncluded) {
+            assert junitResult.getSuiteStandardOutput("FooTest").isPresent()
+            assert junitResult.getTestCaseStandardOutput("FooTest", "m1").isPresent()
+        } else {
+            assert !junitResult.getSuiteStandardOutput("FooTest").isPresent() // isEmpty not available in Java 8
+            assert !junitResult.getTestCaseStandardOutput("FooTest", "m1").isPresent()
+        }
+        if (standardErrIncluded) {
+            assert junitResult.getSuiteStandardError("FooTest").isPresent()
+            assert junitResult.getTestCaseStandardError("FooTest", "m1").isPresent()
+        } else {
+            assert !junitResult.getSuiteStandardError("FooTest").isPresent()
+            assert !junitResult.getTestCaseStandardError("FooTest", "m1").isPresent()
+        }
+
+        and: "all output appeared in the console when running tests"
+        outputContains("beforeClass out")
+        outputContains("m1: α</html>")
+        result.assertHasErrorOutput("beforeClass err")
+        result.assertHasErrorOutput("m1 err")
+
+        where:
+        includeSystemOutConf                | includeSystemErrConf              || standardOutIncluded || standardErrIncluded
+        "// default includeSystemOutLog"    | "// default includeSystemErrLog"  || true                || true
+        "includeSystemOutLog = true"        | "includeSystemErrLog = true"      || true                || true
+        "includeSystemOutLog = false"       | "includeSystemErrLog = true"      || false               || true
+        "includeSystemOutLog = true"        | "includeSystemErrLog = false"     || true                || false
+        "includeSystemOutLog = false"       | "includeSystemErrLog = false"     || false               || false
+    }
 }

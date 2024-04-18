@@ -28,6 +28,8 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.GroovyMethods;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.RuleInput;
 import org.gradle.model.RuleSource;
@@ -71,6 +73,7 @@ import java.util.TreeSet;
 import java.util.concurrent.ExecutionException;
 
 @ThreadSafe
+@ServiceScope(Scope.Global.class)
 public class ModelRuleExtractor {
     private final LoadingCache<Class<?>, CachedRuleSource> cache = CacheBuilder.newBuilder()
             .weakKeys()

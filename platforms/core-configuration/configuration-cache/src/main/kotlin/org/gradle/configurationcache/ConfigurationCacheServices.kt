@@ -25,6 +25,7 @@ import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.configurationcache.problems.ConfigurationCacheReport
 import org.gradle.configurationcache.serialization.beans.BeanConstructors
+import org.gradle.configurationcache.services.DefaultIsolatedProjectEvaluationListenerProvider
 import org.gradle.configurationcache.services.RemoteScriptUpToDateChecker
 import org.gradle.execution.ExecutionAccessChecker
 import org.gradle.execution.ExecutionAccessListener
@@ -75,13 +76,9 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
         registration.run {
             add(RelevantProjectsRegistry::class.java)
             addProvider(TaskExecutionAccessCheckerProvider)
-        }
-    }
-
-    override fun registerGradleServices(registration: ServiceRegistration) {
-        registration.run {
             add(ConfigurationCacheHost::class.java)
             add(ConfigurationCacheIO::class.java)
+            addProvider(IsolatedProjectEvaluationListenerProvider)
         }
     }
 
@@ -163,5 +160,10 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
         private
         fun hasIgnoredPaths(configurationCacheStartParameter: ConfigurationCacheStartParameter): Boolean =
             !configurationCacheStartParameter.ignoredFileSystemCheckInputs.isNullOrEmpty()
+    }
+
+    private
+    object IsolatedProjectEvaluationListenerProvider {
+        fun createIsolatedProjectEvaluationListenerProvider() = DefaultIsolatedProjectEvaluationListenerProvider()
     }
 }

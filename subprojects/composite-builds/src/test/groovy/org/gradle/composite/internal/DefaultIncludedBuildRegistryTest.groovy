@@ -41,7 +41,7 @@ import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.BuildTreeLifecycleControllerFactory
 import org.gradle.internal.buildtree.BuildTreeState
 import org.gradle.internal.event.ListenerManager
-import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry
@@ -82,7 +82,7 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         services.add(Stub(WorkerLeaseService))
         services.add(Stub(BuildTreeWorkGraphController))
         services.add(Stub(ExceptionAnalyser))
-        services.add(Stub(BuildOperationExecutor))
+        services.add(Stub(BuildOperationRunner))
         services.add(Stub(BuildStateRegistry))
         services.add(Stub(BuildTreeLifecycleControllerFactory))
         services.add(Stub(BuildModelParameters))
