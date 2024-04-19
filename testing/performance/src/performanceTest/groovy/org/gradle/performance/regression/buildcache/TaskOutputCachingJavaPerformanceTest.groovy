@@ -20,8 +20,11 @@ import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
 import org.gradle.performance.fixture.CrossVersionPerformanceTestRunner
 import org.gradle.performance.fixture.JavaTestProject
+import org.gradle.profiler.mutations.AbstractCleanupMutator
 import org.gradle.profiler.mutations.ApplyAbiChangeToJavaSourceFileMutator
 import org.gradle.profiler.mutations.ApplyNonAbiChangeToJavaSourceFileMutator
+import org.gradle.profiler.mutations.ClearGradleUserHomeMutator
+import org.gradle.profiler.mutations.ClearProjectCacheMutator
 import org.gradle.test.fixtures.keystore.TestKeyStore
 
 import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
@@ -47,6 +50,35 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerf
         runner.warmUpRuns = 2
         runner.runs = 8
         runner.addBuildMutator { cleanLocalCache() }
+
+        when:
+        def result = runner.run()
+
+        then:
+        result.assertCurrentVersionHasNotRegressed()
+    }
+
+    @RunFor(
+        @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["smallJavaMultiProjectManyExternalDependencies"])
+    )
+    /*
+     * Similar to the "first use" scenario, because ephemeral agents have no local caches, but we do have a well-populated remote
+     * cache. This scenario measures how much overhead Gradle's startup and input fingerprinting add on top of the cache hits.
+     */
+    def "clean check on ephemeral ci with remote http cache"() {
+        runner.cleanTasks = ["clean"]
+        runner.tasksToRun = ["check"]
+        protocol = "http"
+        pushToRemote = true
+        runner.useDaemon = false
+        runner.warmUpRuns = 1
+        runner.runs = 3
+        runner.addBuildMutator { invocationSettings ->
+            new ClearGradleUserHomeMutator(invocationSettings.gradleUserHome, AbstractCleanupMutator.CleanupSchedule.BUILD)
+        }
+        runner.addBuildMutator { invocationSettings ->
+            new ClearProjectCacheMutator(invocationSettings.projectDir, AbstractCleanupMutator.CleanupSchedule.BUILD)
+        }
 
         when:
         def result = runner.run()
