@@ -16,9 +16,7 @@
 
 package org.gradle.kotlin.dsl.accessors
 
-import kotlinx.metadata.Flag
 import kotlinx.metadata.KmType
-import kotlinx.metadata.flagsOf
 import org.gradle.api.Project
 import org.gradle.api.internal.catalog.ExternalModuleDependencyFactory
 import org.gradle.api.internal.file.FileCollectionFactory
@@ -199,7 +197,3 @@ fun IO.writeClassFileTo(binDir: File, internalClassName: InternalName, classByte
     val classFile = binDir.resolve("$internalClassName.class")
     writeFile(classFile, classBytes)
 }
-
-
-internal
-val nonInlineGetterFlags = flagsOf(Flag.IS_PUBLIC, Flag.PropertyAccessor.IS_NOT_DEFAULT)

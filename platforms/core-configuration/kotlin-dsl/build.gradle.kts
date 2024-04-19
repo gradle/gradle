@@ -62,7 +62,7 @@ dependencies {
     implementation(libs.futureKotlin("assignment-compiler-plugin-embeddable")) {
         isTransitive = false
     }
-    implementation("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.5.0") {
+    implementation("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.7.0") {
         isTransitive = false
     }
 

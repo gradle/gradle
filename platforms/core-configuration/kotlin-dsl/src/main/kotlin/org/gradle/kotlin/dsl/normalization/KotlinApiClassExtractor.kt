@@ -16,11 +16,13 @@
 
 package org.gradle.kotlin.dsl.normalization
 
-import kotlinx.metadata.Flag
 import kotlinx.metadata.KmDeclarationContainer
-import kotlinx.metadata.jvm.KotlinClassHeader
+import kotlinx.metadata.Visibility
+import kotlinx.metadata.isInline
 import kotlinx.metadata.jvm.KotlinClassMetadata
+import kotlinx.metadata.jvm.Metadata
 import kotlinx.metadata.jvm.signature
+import kotlinx.metadata.visibility
 import org.gradle.api.GradleException
 import org.gradle.internal.normalization.java.ApiClassExtractor
 import org.gradle.internal.normalization.java.impl.AnnotationMember
@@ -66,21 +68,24 @@ class KotlinApiMemberWriter(apiMemberAdapter: ClassVisitor) : ApiMemberWriter(ap
         classMember.annotations.firstOrNull {
             it.name == kotlinMetadataAnnotationSignature
         }?.let {
-            when (val kotlinMetadata = KotlinClassMetadata.read(parseKotlinClassHeader(it))) {
-                is KotlinClassMetadata.Class -> kotlinMetadata.toKmClass().extractFunctionMetadata()
-                is KotlinClassMetadata.FileFacade -> kotlinMetadata.toKmPackage().extractFunctionMetadata()
-                is KotlinClassMetadata.MultiFileClassPart -> kotlinMetadata.toKmPackage().extractFunctionMetadata()
+            val classHeader = parseKotlinClassHeader(it)
+            when (val kotlinMetadata = KotlinClassMetadata.read(classHeader)) {
+                is KotlinClassMetadata.Class -> kotlinMetadata.kmClass.extractFunctionMetadata()
+                is KotlinClassMetadata.FileFacade -> kotlinMetadata.kmPackage.extractFunctionMetadata()
+                is KotlinClassMetadata.MultiFileClassPart -> kotlinMetadata.kmPackage.extractFunctionMetadata()
                 is KotlinClassMetadata.MultiFileClassFacade -> {
                     // This metadata appears on a generated Java class resulting from @file:JvmName("ClassName") + @file:JvmMultiFileClass annotations in Kotlin scripts.
                     // The resulting facade class contains references to classes generated from each script pointing to this class.
                     // Each of those classes is visited separately and have KotlinClassMetadata.MultiFileClassPart on them
                 }
+
                 is KotlinClassMetadata.SyntheticClass -> {
                 }
+
                 is KotlinClassMetadata.Unknown -> {
-                    throw CompileAvoidanceException("Unknown Kotlin metadata with kind: ${kotlinMetadata.header.kind} on class ${classMember.name} - this can happen if this class is compiled with a later Kotlin version than the Kotlin compiler used by Gradle")
+                    // TODO: consider including kotlinMetadata.version in the message
+                    throw CompileAvoidanceException("Unknown Kotlin metadata with kind: ${classHeader.kind} on class ${classMember.name} - this can happen if this class is compiled with a later Kotlin version than the Kotlin compiler used by Gradle")
                 }
-                null -> Unit
             }
         }
 
@@ -109,8 +114,8 @@ class KotlinApiMemberWriter(apiMemberAdapter: ClassVisitor) : ApiMemberWriter(ap
     fun KmDeclarationContainer.extractInlineFunctions() {
         inlineFunctions.addAll(
             this.functions.asSequence()
-                .filter { Flag.Function.IS_INLINE(it.flags) }
-                .mapNotNull { it.signature?.asString() }
+                .filter { it.isInline }
+                .mapNotNull { it.signature?.toString() }
         )
     }
 
@@ -118,13 +123,13 @@ class KotlinApiMemberWriter(apiMemberAdapter: ClassVisitor) : ApiMemberWriter(ap
     fun KmDeclarationContainer.extractInternalFunctions() {
         internalFunctions.addAll(
             this.functions.asSequence()
-                .filter { Flag.Common.IS_INTERNAL(it.flags) }
-                .mapNotNull { it.signature?.asString() }
+                .filter { it.visibility == Visibility.INTERNAL }
+                .mapNotNull { it.signature?.toString() }
         )
     }
 
     private
-    fun parseKotlinClassHeader(kotlinMetadataAnnotation: AnnotationMember): KotlinClassHeader {
+    fun parseKotlinClassHeader(kotlinMetadataAnnotation: AnnotationMember): Metadata {
         var kind: Int? = null
         var metadataVersion: IntArray? = null
         var data1: Array<String>? = null
@@ -143,6 +148,7 @@ class KotlinApiMemberWriter(apiMemberAdapter: ClassVisitor) : ApiMemberWriter(ap
                         "pn" -> packageName = it.value as String
                         "xi" -> extraInt = it.value as Int
                     }
+
                 is ArrayAnnotationValue ->
                     when (it.name) {
                         "d1" -> data1 = it.value.map { arrayItem -> arrayItem.value as String }.toTypedArray()
@@ -150,7 +156,7 @@ class KotlinApiMemberWriter(apiMemberAdapter: ClassVisitor) : ApiMemberWriter(ap
                     }
             }
         }
-        return KotlinClassHeader(kind, metadataVersion, data1, data2, extraString, packageName, extraInt)
+        return Metadata(kind, metadataVersion, data1, data2, extraString, packageName, extraInt)
     }
 
     private

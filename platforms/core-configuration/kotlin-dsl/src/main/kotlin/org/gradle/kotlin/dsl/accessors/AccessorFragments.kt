@@ -16,10 +16,9 @@
 
 package org.gradle.kotlin.dsl.accessors
 
-import kotlinx.metadata.Flag
 import kotlinx.metadata.KmType
 import kotlinx.metadata.KmVariance
-import kotlinx.metadata.flagsOf
+import kotlinx.metadata.hasAnnotations
 import kotlinx.metadata.jvm.JvmMethodSignature
 import org.gradle.api.reflect.TypeOf
 import org.gradle.internal.deprecation.ConfigurationDeprecationType
@@ -48,11 +47,8 @@ import org.gradle.kotlin.dsl.support.bytecode.newValueParameterOf
 import org.gradle.kotlin.dsl.support.bytecode.nullable
 import org.gradle.kotlin.dsl.support.bytecode.providerConvertibleOfStar
 import org.gradle.kotlin.dsl.support.bytecode.providerOfStar
-import org.gradle.kotlin.dsl.support.bytecode.publicFunctionFlags
-import org.gradle.kotlin.dsl.support.bytecode.publicFunctionWithAnnotationsFlags
 import org.gradle.kotlin.dsl.support.bytecode.publicStaticMethod
 import org.gradle.kotlin.dsl.support.bytecode.publicStaticSyntheticMethod
-import org.gradle.kotlin.dsl.support.bytecode.readOnlyPropertyFlags
 import org.gradle.kotlin.dsl.support.uppercaseFirstChar
 import org.jetbrains.org.objectweb.asm.MethodVisitor
 
@@ -73,9 +69,9 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
     val name = config.target
     val propertyName = name.original
     val className = "${propertyName.uppercaseFirstChar()}ConfigurationAccessorsKt"
-    val (functionFlags, deprecationBlock) =
-        if (config.hasDeclarationDeprecations()) publicFunctionWithAnnotationsFlags to config.getDeclarationDeprecationBlock()
-        else publicFunctionFlags to ""
+    val (functionHasAnnotations, deprecationBlock) =
+        if (config.hasDeclarationDeprecations()) true to config.getDeclarationDeprecationBlock()
+        else false to ""
 
     className to sequenceOf(
         AccessorFragment(
@@ -104,7 +100,6 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
             },
             metadata = {
                 kmPackage.functions += newFunctionOf(
-                    flags = functionFlags,
                     receiverType = GradleType.dependencyHandler,
                     returnType = nullable(GradleType.dependency),
                     name = signature.name,
@@ -112,7 +107,9 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
                         newValueParameterOf("dependencyNotation", KotlinType.any),
                     ),
                     signature = signature
-                )
+                ).apply {
+                    hasAnnotations = functionHasAnnotations
+                }
             },
             signature = JvmMethodSignature(
                 name.original,
@@ -155,7 +152,6 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
             },
             metadata = {
                 kmPackage.functions += newFunctionOf(
-                    flags = functionFlags,
                     receiverType = GradleType.dependencyHandler,
                     returnType = GradleType.externalModuleDependency,
                     name = propertyName,
@@ -164,7 +160,9 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
                         newValueParameterOf("dependencyConfiguration", actionTypeOf(GradleType.externalModuleDependency))
                     ),
                     signature = signature
-                )
+                ).apply {
+                    hasAnnotations = functionHasAnnotations
+                }
             },
             signature = JvmMethodSignature(
                 propertyName,
@@ -206,7 +204,6 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
             },
             metadata = {
                 kmPackage.functions += newFunctionOf(
-                    flags = functionFlags,
                     receiverType = GradleType.dependencyHandler,
                     returnType = KotlinType.unit,
                     name = propertyName,
@@ -215,7 +212,9 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
                         newValueParameterOf("dependencyConfiguration", actionTypeOf(GradleType.externalModuleDependency))
                     ),
                     signature = signature
-                )
+                ).apply {
+                    hasAnnotations = functionHasAnnotations
+                }
             },
             signature = JvmMethodSignature(
                 propertyName,
@@ -257,7 +256,6 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
             },
             metadata = {
                 kmPackage.functions += newFunctionOf(
-                    flags = functionFlags,
                     receiverType = GradleType.dependencyHandler,
                     returnType = KotlinType.unit,
                     name = propertyName,
@@ -266,7 +264,9 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
                         newValueParameterOf("dependencyConfiguration", actionTypeOf(GradleType.externalModuleDependency))
                     ),
                     signature = signature
-                )
+                ).apply {
+                    hasAnnotations = functionHasAnnotations
+                }
             },
             signature = JvmMethodSignature(
                 propertyName,
@@ -345,7 +345,6 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
             },
             metadata = {
                 kmPackage.functions += newFunctionOf(
-                    flags = functionFlags,
                     receiverType = GradleType.dependencyHandler,
                     returnType = GradleType.externalModuleDependency,
                     name = propertyName,
@@ -359,7 +358,9 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
                         newOptionalValueParameterOf("dependencyConfiguration", actionTypeOf(GradleType.externalModuleDependency)),
                     ),
                     signature = signature
-                )
+                ).apply {
+                    hasAnnotations = functionHasAnnotations
+                }
             },
             signature = JvmMethodSignature(
                 propertyName,
@@ -398,7 +399,6 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
             },
             metadata = {
                 kmPackage.functions += newFunctionOf(
-                    flags = functionFlags,
                     receiverType = GradleType.dependencyHandler,
                     returnType = KotlinType.typeParameter,
                     name = propertyName,
@@ -410,7 +410,9 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
                         newTypeParameterOf(name = "T", variance = KmVariance.INVARIANT, upperBound = GradleType.dependency)
                     ),
                     signature = signature
-                )
+                ).apply {
+                    hasAnnotations = functionHasAnnotations
+                }
             },
             signature = JvmMethodSignature(
                 propertyName,
@@ -448,7 +450,6 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
             },
             metadata = {
                 kmPackage.functions += newFunctionOf(
-                    flags = functionFlags,
                     receiverType = GradleType.dependencyConstraintHandler,
                     returnType = GradleType.dependencyConstraint,
                     name = propertyName,
@@ -456,7 +457,9 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
                         newValueParameterOf("constraintNotation", KotlinType.any),
                     ),
                     signature = signature
-                )
+                ).apply {
+                    hasAnnotations = functionHasAnnotations
+                }
             },
             signature = JvmMethodSignature(
                 propertyName,
@@ -492,7 +495,6 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
             },
             metadata = {
                 kmPackage.functions += newFunctionOf(
-                    flags = functionFlags,
                     receiverType = GradleType.dependencyConstraintHandler,
                     returnType = GradleType.dependencyConstraint,
                     name = propertyName,
@@ -501,7 +503,9 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
                         newValueParameterOf("block", actionTypeOf(GradleType.dependencyConstraint))
                     ),
                     signature = signature
-                )
+                ).apply {
+                    hasAnnotations = functionHasAnnotations
+                }
             },
             signature = JvmMethodSignature(
                 propertyName,
@@ -660,7 +664,7 @@ fun fragmentsForContainerElementOf(
                 kmPackage.properties += newPropertyOf(
                     name = propertyName,
                     receiverType = receiverType,
-                    returnType = genericTypeOf(classOf(providerType), kotlinReturnType),
+                    propertyType = genericTypeOf(classOf(providerType), kotlinReturnType),
                     getterSignature = signature
                 )
             },
@@ -670,13 +674,6 @@ fun fragmentsForContainerElementOf(
             )
         )
     )
-}
-
-
-private
-fun MetadataFragmentScope.maybeHasAnnotations(flags: Int): Int = when {
-    useLowPriorityInOverloadResolution -> flags + flagsOf(Flag.HAS_ANNOTATIONS)
-    else -> flags
 }
 
 
@@ -717,12 +714,13 @@ fun fragmentsForExtension(accessor: Accessor.ForExtension): Fragments {
             },
             metadata = {
                 kmPackage.properties += newPropertyOf(
-                    flags = maybeHasAnnotations(readOnlyPropertyFlags),
                     name = propertyName,
                     receiverType = receiverType,
-                    returnType = kotlinExtensionType,
+                    propertyType = kotlinExtensionType,
                     getterSignature = signature
-                )
+                ).apply {
+                    getter.hasAnnotations = useLowPriorityInOverloadResolution
+                }
             }
         ),
 
@@ -756,7 +754,6 @@ fun fragmentsForExtension(accessor: Accessor.ForExtension): Fragments {
             },
             metadata = {
                 kmPackage.functions += newFunctionOf(
-                    flags = maybeHasAnnotations(publicFunctionFlags),
                     receiverType = receiverType,
                     returnType = KotlinType.unit,
                     name = propertyName,
@@ -764,7 +761,9 @@ fun fragmentsForExtension(accessor: Accessor.ForExtension): Fragments {
                         newValueParameterOf("configure", actionTypeOf(kotlinExtensionType))
                     ),
                     signature = signature
-                )
+                ).apply {
+                    hasAnnotations = useLowPriorityInOverloadResolution
+                }
             }
         )
     )
@@ -806,7 +805,7 @@ fun fragmentsForConvention(accessor: Accessor.ForConvention): Fragments {
                 kmPackage.properties += newPropertyOf(
                     name = propertyName,
                     receiverType = receiverType,
-                    returnType = kotlinConventionType,
+                    propertyType = kotlinConventionType,
                     getterSignature = signature
                 )
             }
