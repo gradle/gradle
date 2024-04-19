@@ -11,7 +11,6 @@ errorprone {
         "GetClassOnEnum", // 4 occurrences
         "ImmutableEnumChecker", // 1 occurrences
         "MixedMutabilityReturnType", // 4 occurrences
-        "MutablePublicArray", // 1 occurrences
         "OperatorPrecedence", // 5 occurrences
         "ReferenceEquality", // 3 occurrences
         "UndefinedEquals", // 2 occurrences
