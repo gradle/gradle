@@ -29,7 +29,7 @@ import java.nio.file.Paths;
 public abstract class AbstractSerializer<T> implements Serializer<T> {
     public AbstractSerializer() {
         // Tets if this works on Java 6 or 7
-        Path ignored = Paths.get("ignored");
+        Path ignored = Paths.get("ignored-2");
     }
 
     @Override
