@@ -47,11 +47,14 @@ class NonNormalizedIdentityImmutableTransformExecution extends AbstractTransform
         FileCollectionFactory fileCollectionFactory,
         InputFingerprinter inputFingerprinter,
         FileSystemAccess fileSystemAccess,
-        ImmutableWorkspaceProvider workspaceProvider
+        ImmutableWorkspaceProvider workspaceProvider,
+
+        boolean disableCachingByProperty
     ) {
         super(
             transform, inputArtifact, dependencies, subject,
-            transformExecutionListener, buildOperationRunner, progressEventEmitter, fileCollectionFactory, inputFingerprinter
+            transformExecutionListener, buildOperationRunner, progressEventEmitter, fileCollectionFactory, inputFingerprinter,
+            disableCachingByProperty
         );
         this.fileSystemAccess = fileSystemAccess;
         this.workspaceProvider = workspaceProvider;

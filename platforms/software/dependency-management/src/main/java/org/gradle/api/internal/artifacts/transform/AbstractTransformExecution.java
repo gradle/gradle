@@ -50,8 +50,6 @@ import org.gradle.operations.dependencies.transforms.SnapshotTransformInputsBuil
 import javax.annotation.Nullable;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.io.File;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -62,7 +60,6 @@ import static org.gradle.internal.properties.InputBehavior.NON_INCREMENTAL;
 
 abstract class AbstractTransformExecution implements UnitOfWork {
     private static final CachingDisabledReason NOT_CACHEABLE = new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Caching not enabled.");
-    private static final String CACHING_DISABLED_PROPERTY = "org.gradle.internal.transform-caching-disabled";
     private static final CachingDisabledReason CACHING_DISABLED_REASON = new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Caching disabled by property (experimental)");
 
     protected static final String INPUT_ARTIFACT_PROPERTY_NAME = "inputArtifact";
@@ -86,6 +83,7 @@ abstract class AbstractTransformExecution implements UnitOfWork {
 
     private final Provider<FileSystemLocation> inputArtifactProvider;
     protected final InputFingerprinter inputFingerprinter;
+    private final boolean disableCachingByProeprty;
 
     private BuildOperationContext operationContext;
 
@@ -99,7 +97,9 @@ abstract class AbstractTransformExecution implements UnitOfWork {
         BuildOperationRunner buildOperationRunner,
         BuildOperationProgressEventEmitter progressEventEmitter,
         FileCollectionFactory fileCollectionFactory,
-        InputFingerprinter inputFingerprinter
+        InputFingerprinter inputFingerprinter,
+
+        boolean disableCachingByProeprty
     ) {
         this.transform = transform;
         this.inputArtifact = inputArtifact;
@@ -112,6 +112,7 @@ abstract class AbstractTransformExecution implements UnitOfWork {
         this.progressEventEmitter = progressEventEmitter;
         this.fileCollectionFactory = fileCollectionFactory;
         this.inputFingerprinter = inputFingerprinter;
+        this.disableCachingByProeprty = disableCachingByProeprty;
     }
 
     @Override
@@ -302,24 +303,11 @@ abstract class AbstractTransformExecution implements UnitOfWork {
     }
 
     private Optional<CachingDisabledReason> maybeDisableCachingByProperty() {
-        if (isCachingDisabledByProperty()) {
+        if (disableCachingByProeprty) {
             return Optional.of(CACHING_DISABLED_REASON);
         }
 
         return Optional.empty();
-    }
-
-    private boolean isCachingDisabledByProperty() {
-        String experimentalProperty = System.getProperty(CACHING_DISABLED_PROPERTY);
-        if (experimentalProperty != null) {
-            if (experimentalProperty.isEmpty()) {
-                return true;
-            }
-            List<String> disabledTransformClasses = Arrays.asList(experimentalProperty.split(","));
-            return disabledTransformClasses.contains(transform.getImplementationClass().getName());
-        }
-
-        return false;
     }
 
     @Override
