@@ -69,7 +69,7 @@ class KotlinApiMemberWriter(apiMemberAdapter: ClassVisitor) : ApiMemberWriter(ap
             it.name == kotlinMetadataAnnotationSignature
         }?.let {
             val classHeader = parseKotlinClassHeader(it)
-            when (val kotlinMetadata = KotlinClassMetadata.read(classHeader)) {
+            when (val kotlinMetadata = KotlinClassMetadata.readLenient(classHeader)) {
                 is KotlinClassMetadata.Class -> kotlinMetadata.kmClass.extractFunctionMetadata()
                 is KotlinClassMetadata.FileFacade -> kotlinMetadata.kmPackage.extractFunctionMetadata()
                 is KotlinClassMetadata.MultiFileClassPart -> kotlinMetadata.kmPackage.extractFunctionMetadata()

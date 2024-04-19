@@ -27,10 +27,10 @@ import kotlinx.metadata.KmValueParameter
 import kotlinx.metadata.KmVariance
 import kotlinx.metadata.Visibility
 import kotlinx.metadata.declaresDefaultValue
-import kotlinx.metadata.hasGetter
 import kotlinx.metadata.isInline
 import kotlinx.metadata.isNotDefault
 import kotlinx.metadata.isNullable
+import kotlinx.metadata.jvm.JvmMetadataVersion
 import kotlinx.metadata.jvm.JvmMethodSignature
 import kotlinx.metadata.jvm.KmModule
 import kotlinx.metadata.jvm.KmPackageParts
@@ -79,7 +79,8 @@ fun beginFileFacadeClassHeader() = KmPackage()
 internal
 fun KmPackage.closeHeader(moduleName: String): Metadata {
     this.moduleName = moduleName
-    return KotlinClassMetadata.writeFileFacade(this)
+    return KotlinClassMetadata.FileFacade(this, JvmMetadataVersion.LATEST_STABLE_SUPPORTED, 0)
+        .write()
 }
 
 
@@ -91,7 +92,7 @@ fun moduleMetadataBytesFor(fileFacades: List<InternalName>): ByteArray {
         fileFacades.map { it.value }.toMutableList(),
         emptyMap<String, String>().toMutableMap()
     )
-    return KotlinModuleMetadata.write(kmModule)
+    return KotlinModuleMetadata(kmModule, JvmMetadataVersion.LATEST_STABLE_SUPPORTED).write()
 }
 
 
@@ -255,7 +256,6 @@ fun newPropertyOf(
     visibility = Visibility.PUBLIC
     receiverParameterType = receiverType
     returnType = propertyType
-    hasGetter = true
     getter.isInline = true
     getter.visibility = Visibility.PUBLIC
     syntheticMethodForAnnotations = getterSignature
