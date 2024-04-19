@@ -18,8 +18,7 @@ package org.gradle.internal.serialize;
 
 import com.google.common.base.Objects;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.stream.Stream;
 
 /**
  * This abstract class provide a sensible default implementation for {@code Serializer} equality. This equality
@@ -27,9 +26,10 @@ import java.nio.file.Paths;
  * as cache parameter which need to be compared to determine compatible cache.
  */
 public abstract class AbstractSerializer<T> implements Serializer<T> {
+    @SuppressWarnings("Since15")
     public AbstractSerializer() {
-        // Tets if this works on Java 6 or 7
-        Path ignored = Paths.get("ignored-2");
+        // Tets if this works on Java 7
+        String ignored = Stream.class.getCanonicalName();
     }
 
     @Override
