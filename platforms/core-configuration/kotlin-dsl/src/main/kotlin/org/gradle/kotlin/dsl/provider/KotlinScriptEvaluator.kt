@@ -29,6 +29,7 @@ import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher
 import org.gradle.initialization.ClassLoaderScopeOrigin
 import org.gradle.initialization.GradlePropertiesController
+import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.CachedClasspathTransformer
 import org.gradle.internal.classpath.ClassPath
@@ -100,6 +101,7 @@ class StandardKotlinScriptEvaluator(
     private val workspaceProvider: KotlinDslWorkspaceProvider,
     private val fileCollectionFactory: FileCollectionFactory,
     private val inputFingerprinter: InputFingerprinter,
+    private val internalOptions: InternalOptions,
     private val gradlePropertiesController: GradlePropertiesController,
     private val transformFactoryForLegacy: ClasspathElementTransformFactoryForLegacy
 ) : KotlinScriptEvaluator {
@@ -264,6 +266,7 @@ class StandardKotlinScriptEvaluator(
                         workspaceProvider,
                         fileCollectionFactory,
                         inputFingerprinter,
+                        internalOptions,
                         transformFactoryForLegacy
                     )
                 )
@@ -354,8 +357,9 @@ class StandardKotlinScriptEvaluator(
         workspaceProvider: KotlinDslWorkspaceProvider,
         fileCollectionFactory: FileCollectionFactory,
         inputFingerprinter: InputFingerprinter,
+        internalOptions: InternalOptions,
         transformFactory: ClasspathElementTransformFactoryForLegacy
-    ) : BuildScriptCompilationAndInstrumentation(workspaceProvider.scripts, fileCollectionFactory, inputFingerprinter, transformFactory) {
+    ) : BuildScriptCompilationAndInstrumentation(workspaceProvider.scripts, fileCollectionFactory, inputFingerprinter, internalOptions, transformFactory) {
 
         companion object {
             const val JVM_TARGET = "jvmTarget"

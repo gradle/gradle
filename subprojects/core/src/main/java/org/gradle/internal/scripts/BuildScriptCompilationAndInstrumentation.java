@@ -17,6 +17,8 @@
 package org.gradle.internal.scripts;
 
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.internal.buildoption.InternalFlag;
+import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransform;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForLegacy;
 import org.gradle.internal.classpath.transforms.InstrumentingClassTransform;
@@ -47,29 +49,32 @@ import static java.util.Objects.requireNonNull;
  * This work unit first compiles the build script to a directory, and then instruments the directory for configuration cache and returns instrumented output.
  */
 public abstract class BuildScriptCompilationAndInstrumentation implements ImmutableUnitOfWork {
-    private static final String CACHING_DISABLED_PROPERTY = "org.gradle.internal.script-caching-disabled";
+    private static final InternalFlag CACHING_DISABLED_PROPERTY = new InternalFlag("org.gradle.internal.script-caching-disabled");
     private static final CachingDisabledReason CACHING_DISABLED_REASON = new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Caching of script compilation disabled by property (experimental)");
 
     private final ImmutableWorkspaceProvider workspaceProvider;
     private final InputFingerprinter inputFingerprinter;
     private final ClasspathElementTransformFactoryForLegacy transformFactory;
+    private final boolean cachingDisabledByProperty;
     protected final FileCollectionFactory fileCollectionFactory;
 
     public BuildScriptCompilationAndInstrumentation(
         ImmutableWorkspaceProvider workspaceProvider,
         FileCollectionFactory fileCollectionFactory,
         InputFingerprinter inputFingerprinter,
+        InternalOptions internalOptions,
         ClasspathElementTransformFactoryForLegacy transformFactory
     ) {
         this.workspaceProvider = workspaceProvider;
         this.fileCollectionFactory = fileCollectionFactory;
         this.inputFingerprinter = inputFingerprinter;
         this.transformFactory = transformFactory;
+        this.cachingDisabledByProperty = internalOptions.getOption(CACHING_DISABLED_PROPERTY).get();
     }
 
     @Override
     public Optional<CachingDisabledReason> shouldDisableCaching(@Nullable OverlappingOutputs detectedOverlappingOutputs) {
-        if (System.getProperty(CACHING_DISABLED_PROPERTY) != null) {
+        if (cachingDisabledByProperty) {
             return Optional.of(CACHING_DISABLED_REASON);
         }
 

@@ -25,6 +25,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.internal.GroovyScriptClassCompiler.GroovyScriptCompilationAndInstrumentation.GroovyScriptCompilationOutput;
 import org.gradle.internal.Pair;
+import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassData;
@@ -79,6 +80,7 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
     private final ExecutionEngine earlyExecutionEngine;
     private final FileCollectionFactory fileCollectionFactory;
     private final InputFingerprinter inputFingerprinter;
+    private final InternalOptions internalOptions;
     private final ImmutableWorkspaceProvider workspaceProvider;
     private final ClasspathElementTransformFactoryForLegacy transformFactoryForLegacy;
 
@@ -89,6 +91,7 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
         ExecutionEngine earlyExecutionEngine,
         FileCollectionFactory fileCollectionFactory,
         InputFingerprinter inputFingerprinter,
+        InternalOptions internalOptions,
         ImmutableWorkspaceProvider workspaceProvider,
         ClasspathElementTransformFactoryForLegacy transformFactoryForLegacy
     ) {
@@ -98,6 +101,7 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
         this.earlyExecutionEngine = earlyExecutionEngine;
         this.fileCollectionFactory = fileCollectionFactory;
         this.inputFingerprinter = inputFingerprinter;
+        this.internalOptions = internalOptions;
         this.workspaceProvider = workspaceProvider;
         this.transformFactoryForLegacy = transformFactoryForLegacy;
     }
@@ -150,6 +154,7 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
             workspaceProvider,
             fileCollectionFactory,
             inputFingerprinter,
+            internalOptions,
             transformFactoryForLegacy,
             scriptCompilationHandler
         );
@@ -233,10 +238,11 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
             ImmutableWorkspaceProvider workspaceProvider,
             FileCollectionFactory fileCollectionFactory,
             InputFingerprinter inputFingerprinter,
+            InternalOptions internalOptions,
             ClasspathElementTransformFactoryForLegacy transformFactoryForLegacy,
             ScriptCompilationHandler scriptCompilationHandler
         ) {
-            super(workspaceProvider, fileCollectionFactory, inputFingerprinter, transformFactoryForLegacy);
+            super(workspaceProvider, fileCollectionFactory, inputFingerprinter, internalOptions, transformFactoryForLegacy);
             this.templateId = templateId;
             this.sourceHashCode = sourceHashCode;
             this.classLoader = classLoader;
