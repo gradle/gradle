@@ -15,14 +15,14 @@
  */
 package org.gradle.api.internal.plugins
 
-import java.nio.file.Files
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.internal.VersionNumber
+import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.TempDir
 
 class GroovyJarFileTest extends Specification {
-    @TempDir
-    def tempDir
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def "parse non-Groovy file"() {
         expect:
@@ -91,15 +91,8 @@ class GroovyJarFileTest extends Specification {
     }
 
     def "parse symlinked Jar"(String symlinkName, String fileName, String version, String dependencyNotation) {
-        File symlinkFile = new File(tempDir.toFile(), symlinkName)
-        File actualFile = new File(tempDir.toRealPath().toFile(), fileName)
-
-        if (!actualFile.exists()) {
-            actualFile.createNewFile()
-        }
-        if (!symlinkFile.exists()) {
-            Files.createSymbolicLink(symlinkFile.toPath(), actualFile.toPath())
-        }
+        def actualFile = tmpDir.file(fileName).touch()
+        def symlinkFile = tmpDir.file(symlinkName).createLink(actualFile)
 
         def jar = GroovyJarFile.parse(symlinkFile)
 
