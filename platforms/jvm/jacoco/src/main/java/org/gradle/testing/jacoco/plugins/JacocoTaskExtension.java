@@ -344,7 +344,7 @@ public abstract class JacocoTaskExtension {
         public void append(String name, @Nullable Object value) {
             if (value != null
                 && !((value instanceof Collection) && ((Collection) value).isEmpty())
-                && !((value instanceof String) && (StringUtils.isEmpty((String) value)))
+                && !((value instanceof String) && StringUtils.isEmpty((String) value))
                 && !((value instanceof Integer) && ((Integer) value == 0))) {
                 if (anyArgs) {
                     builder.append(',');

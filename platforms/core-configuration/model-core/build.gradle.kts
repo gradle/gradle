@@ -24,7 +24,6 @@ errorprone {
         "TypeParameterShadowing", // 2 occurrences
         "UndefinedEquals", // 2 occurrences
         "UnnecessaryLambda", // 1 occurrences
-        "UnnecessaryParentheses", // 1 occurrences
         "UnnecessaryStringBuilder", // 1 occurrences
         "UnusedMethod", // 8 occurrences
         "UnusedTypeParameter", // 1 occurrences
