@@ -167,8 +167,8 @@ public class IsolationScheme<IMPLEMENTATION, PARAMS> {
     }
 
     private static boolean isAssignableFromType(Class<?> clazz, Type type) {
-        return type instanceof Class && clazz.isAssignableFrom((Class<?>) type)
-            || type instanceof ParameterizedType && clazz.isAssignableFrom((Class<?>) ((ParameterizedType) type).getRawType());
+        return (type instanceof Class && clazz.isAssignableFrom((Class<?>) type))
+            || (type instanceof ParameterizedType && clazz.isAssignableFrom((Class<?>) ((ParameterizedType) type).getRawType()));
     }
 
     /**

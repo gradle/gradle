@@ -10,7 +10,6 @@ errorprone {
         "AnnotateFormatMethod", // 1 occurrence, needs errorprone annotations
         "GetClassOnEnum", // 4 occurrences
         "ImmutableEnumChecker", // 1 occurrences
-        "OperatorPrecedence", // 5 occurrences
         "ReferenceEquality", // 3 occurrences
         "UndefinedEquals", // 2 occurrences
         "UnusedMethod", // 8 occurrences
