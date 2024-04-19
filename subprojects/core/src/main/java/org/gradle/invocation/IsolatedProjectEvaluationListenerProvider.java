@@ -19,16 +19,34 @@ package org.gradle.invocation;
 import org.gradle.api.IsolatedAction;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
+import org.gradle.api.invocation.Gradle;
 
 import javax.annotation.Nullable;
 
+/**
+ * Collects and isolates the actions provided via the {@link org.gradle.api.invocation.GradleLifecycle GradleLifecycle} API.
+ */
 public interface IsolatedProjectEvaluationListenerProvider {
 
+    /**
+     * @see org.gradle.api.invocation.GradleLifecycle#beforeProject(IsolatedAction)
+     */
     void beforeProject(IsolatedAction<? super Project> action);
 
+    /**
+     * @see org.gradle.api.invocation.GradleLifecycle#afterProject(IsolatedAction)
+     */
+    void afterProject(IsolatedAction<? super Project> action);
+
+    /**
+     * Returns an isolated listener for the registered actions, if any. The listener makes it impossible for
+     * the actions to carry any shared mutable state across projects and can be safely executed in parallel.
+     */
     @Nullable
-    ProjectEvaluationListener isolate();
+    ProjectEvaluationListener isolateFor(Gradle owner);
 
+    /**
+     * Discards any registered actions. This doesn't affect any {@link #isolate() previously returned isolated listeners}.
+     */
     void clear();
-
 }

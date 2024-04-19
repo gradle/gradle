@@ -18,6 +18,7 @@ package org.gradle.configurationcache.serialization.codecs
 
 import groovy.lang.Closure
 import groovy.lang.GroovyObjectSupport
+import groovy.lang.MetaClass
 import groovy.lang.MissingMethodException
 import groovy.lang.MissingPropertyException
 import groovy.lang.Script
@@ -36,6 +37,14 @@ import org.gradle.groovy.scripts.BasicScript
 import org.gradle.internal.metaobject.ConfigureDelegate
 
 
+internal
+fun BindingsBuilder.groovyCodecs() {
+    bind(ClosureCodec)
+    bind(GroovyMetaClassCodec)
+}
+
+
+internal
 object ClosureCodec : Codec<Closure<*>> {
     override suspend fun WriteContext.encode(value: Closure<*>) {
         // Write the owning script for the closure
@@ -139,5 +148,17 @@ object ClosureCodec : Codec<Closure<*>> {
         fun scriptReferenced(): Nothing {
             throw IllegalStateException("Cannot reference a Gradle script object from a Groovy closure as these are not supported with the configuration cache.")
         }
+    }
+}
+
+
+internal
+object GroovyMetaClassCodec : Codec<MetaClass> {
+    override suspend fun WriteContext.encode(value: MetaClass) {
+        writeClass(value.theClass)
+    }
+
+    override suspend fun ReadContext.decode(): MetaClass? {
+        return InvokerHelper.getMetaClass(readClass())
     }
 }

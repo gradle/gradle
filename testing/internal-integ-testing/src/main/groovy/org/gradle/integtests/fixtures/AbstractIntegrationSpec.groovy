@@ -207,8 +207,16 @@ abstract class AbstractIntegrationSpec extends Specification {
      * Provides best-effort groovy script syntax highlighting.
      * The highlighting is imperfect since {@link GroovyBuildScriptLanguage} uses stub methods to create a simulated script target environment.
      */
+    void groovyFile(String targetBuildFile, @GroovyBuildScriptLanguage String script) {
+        groovyFile(file(targetBuildFile), script)
+    }
+
     void groovyFile(TestFile targetBuildFile, @GroovyBuildScriptLanguage String script) {
         targetBuildFile << script
+    }
+
+    void javaFile(String targetBuildFile, @Language('JAVA') String code) {
+        javaFile(file(targetBuildFile), code)
     }
 
     void javaFile(TestFile targetBuildFile, @Language('JAVA') String code) {
