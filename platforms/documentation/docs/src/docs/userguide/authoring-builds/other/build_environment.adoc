@@ -482,7 +482,7 @@ Daemon JVM criteria is a new feature to express the build's JVM requirements.
 Similar to the `wrapper` task, which captures the current Gradle version, the built-in `updateDaemonJvm` task records the JVM requirements for the build based on the current JVM installation.
 Gradle currently only considers the major JVM version when checking compatibility.
 
-Gradle will use the JVM requirements on subsequent builds to locate a compatible JVM installation using the same underlying mechanisms as <<toolchains.adoc, Java Toolchains>>.
+Gradle will use the JVM requirements on subsequent builds to locate a compatible JVM installation using the same underlying mechanisms as <<toolchains.adoc#toolchains, Java Toolchains>>.
 This ensures every person who starts the build will use the same JVM version.
 
 Daemon JVM discovery does not currently support auto-provisioning of new JVM installations.
