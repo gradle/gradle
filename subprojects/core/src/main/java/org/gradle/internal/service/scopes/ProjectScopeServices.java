@@ -54,6 +54,7 @@ import org.gradle.api.internal.project.CrossProjectModelAccess;
 import org.gradle.api.internal.project.DefaultAntBuilderFactory;
 import org.gradle.api.internal.project.DeferredProjectConfiguration;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.project.ant.DefaultAntLoggingAdapterFactory;
@@ -229,7 +230,13 @@ public class ProjectScopeServices extends ScopedServiceRegistry {
         return new TaskInstantiator(taskIdentityFactory, taskFactory, project);
     }
 
-    protected TaskContainerInternal createTaskContainerInternal(TaskStatistics taskStatistics, BuildOperationRunner buildOperationRunner, CrossProjectConfigurator crossProjectConfigurator, CollectionCallbackActionDecorator decorator) {
+    protected TaskContainerInternal createTaskContainerInternal(
+        TaskStatistics taskStatistics,
+        BuildOperationRunner buildOperationRunner,
+        CrossProjectConfigurator crossProjectConfigurator,
+        CollectionCallbackActionDecorator decorator,
+        ProjectRegistry<ProjectInternal> projectRegistry
+    ) {
         return new DefaultTaskContainerFactory(
             get(Instantiator.class),
             get(TaskIdentityFactory.class),
@@ -238,7 +245,8 @@ public class ProjectScopeServices extends ScopedServiceRegistry {
             taskStatistics,
             buildOperationRunner,
             crossProjectConfigurator,
-            decorator
+            decorator,
+            projectRegistry
         ).create();
     }
 

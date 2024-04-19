@@ -22,6 +22,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.project.taskfactory.TaskIdentityFactory;
 import org.gradle.api.tasks.TaskContainer;
@@ -62,6 +63,7 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
     private final TaskStatistics statistics;
     private final BuildOperationRunner buildOperationRunner;
     private final CrossProjectConfigurator crossProjectConfigurator;
+    private final ProjectRegistry<ProjectInternal> projectRegistry;
 
     public DefaultTaskContainerFactory(
         Instantiator instantiator,
@@ -71,7 +73,8 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
         TaskStatistics statistics,
         BuildOperationRunner buildOperationRunner,
         CrossProjectConfigurator crossProjectConfigurator,
-        CollectionCallbackActionDecorator callbackDecorator
+        CollectionCallbackActionDecorator callbackDecorator,
+        ProjectRegistry<ProjectInternal> projectRegistry
     ) {
         this.instantiator = instantiator;
         this.taskIdentityFactory = taskIdentityFactory;
@@ -81,11 +84,23 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
         this.buildOperationRunner = buildOperationRunner;
         this.crossProjectConfigurator = crossProjectConfigurator;
         this.callbackDecorator = callbackDecorator;
+        this.projectRegistry = projectRegistry;
     }
 
     @Override
     public TaskContainerInternal create() {
-        DefaultTaskContainer tasks = instantiator.newInstance(DefaultTaskContainer.class, project, instantiator, taskIdentityFactory, taskFactory, statistics, buildOperationRunner, crossProjectConfigurator, callbackDecorator);
+        DefaultTaskContainer tasks = instantiator.newInstance(
+            DefaultTaskContainer.class,
+            project,
+            instantiator,
+            taskIdentityFactory,
+            taskFactory,
+            statistics,
+            buildOperationRunner,
+            crossProjectConfigurator,
+            callbackDecorator,
+            projectRegistry
+        );
         bridgeIntoSoftwareModelWhenNeeded(tasks);
         return tasks;
     }
