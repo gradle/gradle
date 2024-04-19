@@ -77,4 +77,8 @@ public class CompileServices extends AbstractPluginServiceRegistry {
             return new UserHomeScopedCompileCaches(cacheBuilderFactory, inMemoryCacheDecoratorFactory, interner);
         }
     }
+
+    private static int sampleChange() {
+        return 1;
+    }
 }
