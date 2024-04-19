@@ -19,13 +19,15 @@ manifest:
 
 on:
   - pr_created
+  - commit
+  - comment_added
 
 automations:
 
   # Add a label that indicates how many minutes it will take to review the PR and categorizes it
   estimated_time_to_review:
     if:
-      - {{ author.using_gitstream }}
+      - {{ ('estimated_time_to_review' | isEnabledAutomation(pr)) }}
     run:
       - action: add-label@v1
         # etr is defined in the last section of this example
@@ -41,9 +43,3 @@ automations:
 # The name `calc`, and the nesting is arbitrary.
 calc:
   etr: {{ branch | estimatedReviewTime }}
-
-is:
-  requested: {{ (pr.comments | match(attr='content', term='@bot-gitstream check all') | some) or (pr.comments | match(attr='content', term='@bot-gitstream check all') | some) }}
-
-author:
-  using_gitstream: {{ (pr.author | isEnabledUser ) }}

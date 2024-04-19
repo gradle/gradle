@@ -38,6 +38,8 @@ jobs:
     steps:
       - name: Evaluate Rules
         uses: linear-b/gitstream-github-action@v1
+        env:
+          REPO_READ_TOKEN: ${{ secrets.GITSTREAM_TESTING_TOKEN }}
         id: rules-engine
         with:
           full_repository: ${{ github.event.inputs.full_repository }}
