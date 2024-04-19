@@ -34,7 +34,6 @@ import static org.gradle.cache.FileLockManager.LockMode.Exclusive;
  * A {@link CrossProcessCacheAccess} implementation used when a cache is opened with an exclusive lock that is held until the cache is closed. This implementation is simply a no-op for these methods.
  */
 public class FixedExclusiveModeCrossProcessCacheAccess extends AbstractCrossProcessCacheAccess {
-    private final static Consumer<FileLockReleasedSignal> NO_OP_CONTENDED_ACTION = __ -> {};
 
     private final String cacheDisplayName;
     private final File lockTarget;
@@ -57,12 +56,14 @@ public class FixedExclusiveModeCrossProcessCacheAccess extends AbstractCrossProc
         this.lockManager = lockManager;
     }
 
+    private static void noOpContentAction(FileLockReleasedSignal unused) {}
+
     @Override
     public void open() {
         if (fileLock != null) {
             throw new IllegalStateException("File lock " + lockTarget + " is already open.");
         }
-        final FileLock fileLock = lockManager.lock(lockTarget, lockOptions, cacheDisplayName, "", NO_OP_CONTENDED_ACTION);
+        final FileLock fileLock = lockManager.lock(lockTarget, lockOptions, cacheDisplayName, "", FixedExclusiveModeCrossProcessCacheAccess::noOpContentAction);
         try {
             boolean rebuild = initializationAction.requiresInitialization(fileLock);
             if (rebuild) {
