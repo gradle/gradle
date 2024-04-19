@@ -16,7 +16,6 @@ errorprone {
         "OperatorPrecedence", // 5 occurrences
         "ReferenceEquality", // 3 occurrences
         "StringCaseLocaleUsage", // 13 occurrences
-        "TypeParameterShadowing", // 2 occurrences
         "UndefinedEquals", // 2 occurrences
         "UnusedMethod", // 8 occurrences
         "UnusedTypeParameter", // 1 occurrences
