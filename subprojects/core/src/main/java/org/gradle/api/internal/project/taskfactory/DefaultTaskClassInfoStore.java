@@ -35,12 +35,10 @@ import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
 
 @NonNullApi
 public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
     private final CrossBuildInMemoryCache<Class<?>, TaskClassInfo> classInfos;
-    private final Function<Class<?>, TaskClassInfo> taskClassInfoFactory = aClass -> createTaskClassInfo(aClass.asSubclass(Task.class));
 
     public DefaultTaskClassInfoStore(CrossBuildInMemoryCacheFactory cacheFactory) {
         this.classInfos = cacheFactory.newClassCache();
@@ -48,10 +46,10 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
 
     @Override
     public TaskClassInfo getTaskClassInfo(Class<? extends Task> type) {
-        return classInfos.get(type, taskClassInfoFactory);
+        return classInfos.get(type, DefaultTaskClassInfoStore::taskClassInfoFactory);
     }
 
-    private TaskClassInfo createTaskClassInfo(Class<? extends Task> type) {
+    private static TaskClassInfo createTaskClassInfo(Class<? extends Task> type) {
         boolean cacheable = type.isAnnotationPresent(CacheableTask.class);
         Optional<String> reasonNotToTrackState = Optional.ofNullable(type.getAnnotation(UntrackedTask.class))
             .map(UntrackedTask::because);
@@ -132,6 +130,10 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
         }
 
         return taskActionFactory;
+    }
+
+    private static TaskClassInfo taskClassInfoFactory(Class<?> aClass) {
+        return createTaskClassInfo(aClass.asSubclass(Task.class));
     }
 
     private static class StandardTaskActionFactory implements TaskActionFactory {

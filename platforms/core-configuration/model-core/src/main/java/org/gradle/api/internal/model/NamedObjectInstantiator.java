@@ -43,7 +43,6 @@ import org.objectweb.asm.Type;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.function.Function;
 
 import static org.gradle.internal.Cast.uncheckedCast;
 import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
@@ -76,7 +75,6 @@ public class NamedObjectInstantiator implements ManagedFactory {
     private final CrossBuildInMemoryCache<Class<?>, LoadingCache<String, Object>> generatedTypes;
     private final String implSuffix;
     private final String factorySuffix;
-    private final Function<Class<?>, LoadingCache<String, Object>> cacheFactory = type -> CacheBuilder.newBuilder().build(loaderFor(type));
 
     public NamedObjectInstantiator(CrossBuildInMemoryCacheFactory cacheFactory) {
         implSuffix = ClassGeneratorSuffixRegistry.assign("$Impl");
@@ -98,7 +96,7 @@ public class NamedObjectInstantiator implements ManagedFactory {
 
     public <T extends Named> T named(final Class<T> type, final String name) throws ObjectInstantiationException {
         try {
-            return type.cast(generatedTypes.get(type, cacheFactory).getUnchecked(name));
+            return type.cast(generatedTypes.get(type, this::cacheFactory).getUnchecked(name));
         } catch (UncheckedExecutionException e) {
             throw new ObjectInstantiationException(type, e.getCause());
         } catch (Exception e) {
@@ -280,6 +278,10 @@ public class NamedObjectInstantiator implements ManagedFactory {
             }
             collector.add(field, "A Named implementation class must not define any instance fields.");
         }
+    }
+
+    private LoadingCache<String, Object> cacheFactory(Class<?> type) {
+        return CacheBuilder.newBuilder().build(loaderFor(type));
     }
 
     protected abstract static class ClassGeneratingLoader extends CacheLoader<String, Object> {
