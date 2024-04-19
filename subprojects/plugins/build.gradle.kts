@@ -4,7 +4,7 @@ plugins {
 
 errorprone {
     disabledChecks.addAll(
-        "UnusedMethod", // 7 occurrences
+//        "UnusedMethod", // 7 occurrences
         "UnusedVariable", // 1 occurrences
     )
 }
