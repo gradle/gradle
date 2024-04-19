@@ -64,6 +64,7 @@ public class WorkersServices extends AbstractPluginServiceRegistry {
         registration.add(IsolatedClassloaderWorkerFactory.class);
     }
 
+    @SuppressWarnings("unused") // Used by reflection
     private static class BuildSessionScopeServices {
         WorkerDirectoryProvider createWorkerDirectoryProvider(GradleUserHomeDirProvider gradleUserHomeDirProvider) {
             return new DefaultWorkerDirectoryProvider(gradleUserHomeDirProvider);
@@ -78,6 +79,7 @@ public class WorkersServices extends AbstractPluginServiceRegistry {
         }
     }
 
+    @SuppressWarnings("unused") // Used by reflection
     private static class GradleUserHomeServices {
         WorkerDaemonClientsManager createWorkerDaemonClientsManager(WorkerProcessFactory workerFactory,
                                                                     LoggingManagerInternal loggingManager,
@@ -102,6 +104,7 @@ public class WorkersServices extends AbstractPluginServiceRegistry {
         }
     }
 
+    @SuppressWarnings("unused") // Used by reflection
     private static class ProjectScopeServices {
         WorkerExecutor createWorkerExecutor(InstantiatorFactory instantiatorFactory,
                                             WorkerDaemonFactory daemonWorkerFactory,

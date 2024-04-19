@@ -126,6 +126,7 @@ public class WorkerDaemonServer implements RequestHandler<TransportableActionExe
         return "WorkerDaemonServer{}";
     }
 
+    @SuppressWarnings("unused") // Used by reflection
     private static class WorkerDaemonServices extends WorkerSharedUserHomeScopeServices {
 
         // TODO:configuration-cache - deprecate workers access to ProviderFactory?

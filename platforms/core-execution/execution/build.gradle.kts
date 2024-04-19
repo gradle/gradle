@@ -7,7 +7,6 @@ description = "Execution engine that takes a unit of work and makes it happen"
 errorprone {
     disabledChecks.addAll(
         "AnnotateFormatMethod", // 1 occurrences
-        "BadImport", // 2 occurrences
         "Finally", // 2 occurrences
         "ReferenceEquality", // 1 occurrences
         "SameNameButDifferent", // 5 occurrences
