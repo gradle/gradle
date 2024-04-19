@@ -62,7 +62,7 @@ import static org.gradle.internal.properties.InputBehavior.NON_INCREMENTAL;
 
 abstract class AbstractTransformExecution implements UnitOfWork {
     private static final CachingDisabledReason NOT_CACHEABLE = new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Caching not enabled.");
-    private static final String CACHING_DISABLED_PROPERTY = "org.gradle.experimental.transform-caching-disabled";
+    private static final String CACHING_DISABLED_PROPERTY = "org.gradle.internal.transform-caching-disabled";
     private static final CachingDisabledReason CACHING_DISABLED_REASON = new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Caching disabled by property (experimental)");
 
     protected static final String INPUT_ARTIFACT_PROPERTY_NAME = "inputArtifact";

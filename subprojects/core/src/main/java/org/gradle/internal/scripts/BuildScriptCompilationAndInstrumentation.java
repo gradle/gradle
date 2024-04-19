@@ -47,7 +47,7 @@ import static java.util.Objects.requireNonNull;
  * This work unit first compiles the build script to a directory, and then instruments the directory for configuration cache and returns instrumented output.
  */
 public abstract class BuildScriptCompilationAndInstrumentation implements ImmutableUnitOfWork {
-    private static final String CACHING_DISABLED_PROPERTY = "org.gradle.experimental.script-caching-disabled";
+    private static final String CACHING_DISABLED_PROPERTY = "org.gradle.internal.script-caching-disabled";
     private static final CachingDisabledReason CACHING_DISABLED_REASON = new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Caching of script compilation disabled by property (experimental)");
 
     private final ImmutableWorkspaceProvider workspaceProvider;
