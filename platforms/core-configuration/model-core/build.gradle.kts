@@ -22,7 +22,6 @@ errorprone {
         "StringCaseLocaleUsage", // 13 occurrences
         "TypeParameterShadowing", // 2 occurrences
         "UndefinedEquals", // 2 occurrences
-        "UnnecessaryStringBuilder", // 1 occurrences
         "UnusedMethod", // 8 occurrences
         "UnusedTypeParameter", // 1 occurrences
         "UnusedVariable", // 20 occurrences
