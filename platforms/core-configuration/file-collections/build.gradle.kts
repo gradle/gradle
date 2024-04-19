@@ -4,12 +4,6 @@ plugins {
 
 description = "Implementation of types that represent containers of files"
 
-errorprone {
-    disabledChecks.addAll(
-        "InlineMeSuggester", // 1 occurrences
-    )
-}
-
 dependencies {
     api(projects.javaLanguageExtensions)
     api(project(":base-services"))
