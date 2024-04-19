@@ -631,7 +631,7 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
      * Some abstract goal to be achieve for a particular node in the model graph.
      */
     private abstract class ModelNodeGoal extends ModelGoal {
-        public final ModelPath target;
+        private final ModelPath target;
         public ModelNodeInternal node;
 
         protected ModelNodeGoal(ModelPath target) {
