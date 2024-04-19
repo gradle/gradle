@@ -17,7 +17,6 @@ errorprone {
         "InvalidParam", // 1 occurrences
         "MixedMutabilityReturnType", // 4 occurrences
         "MutablePublicArray", // 1 occurrences
-        "NullableOptional", // 2 occurrences
         "OperatorPrecedence", // 5 occurrences
         "ReferenceEquality", // 3 occurrences
         "StringCaseLocaleUsage", // 13 occurrences
