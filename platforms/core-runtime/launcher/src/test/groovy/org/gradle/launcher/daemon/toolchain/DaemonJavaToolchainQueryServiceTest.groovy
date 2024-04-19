@@ -18,22 +18,17 @@ package org.gradle.launcher.daemon.toolchain
 
 import org.gradle.api.GradleException
 import org.gradle.api.JavaVersion
-import org.gradle.api.logging.Logging
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.inspection.JavaInstallationRegistry
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
-import org.gradle.internal.jvm.inspection.JvmInstallationProblemReporter
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector
+import org.gradle.internal.jvm.inspection.JvmToolchainMetadata
 import org.gradle.internal.jvm.inspection.JvmVendor
-import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.internal.progress.NoOpProgressLoggerFactory
 import org.gradle.jvm.toolchain.JvmImplementation
 import org.gradle.jvm.toolchain.JvmVendorSpec
 import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec
-import org.gradle.jvm.toolchain.internal.DefaultToolchainConfiguration
 import org.gradle.jvm.toolchain.internal.InstallationLocation
-import org.gradle.jvm.toolchain.internal.InstallationSupplier
 import spock.lang.Specification
 
 import java.util.function.Function
@@ -192,29 +187,14 @@ class DaemonJavaToolchainQueryServiceTest extends Specification {
         return new DaemonJavaToolchainQueryService(createInstallationRegistry(installations, detector), currentJavaHomePath)
     }
 
-    private def createInstallationRegistry(Collection<String> installations, JvmMetadataDetector detector) {
-        def supplier = new InstallationSupplier() {
-            @Override
-            String getSourceName() {
-                "test"
-            }
-
-            @Override
-            Set<InstallationLocation> get() {
-                installations.collect{ locationFor(it) } as Set<InstallationLocation>
-            }
+    private def createInstallationRegistry(Collection<String> locations, JvmMetadataDetector detector) {
+        def installations = locations.collect {
+            def location = locationFor(it)
+            new JvmToolchainMetadata(detector.getMetadata(location), location)
         }
-        def registry = new JavaInstallationRegistry(new DefaultToolchainConfiguration(), [supplier], [], detector, Logging.getLogger(JavaInstallationRegistry.class), new TestBuildOperationRunner(), OperatingSystem.current(), new NoOpProgressLoggerFactory(), new JvmInstallationProblemReporter()) {
-            @Override
-            boolean installationExists(InstallationLocation installationLocation) {
-                return true
-            }
 
-            @Override
-            boolean installationHasExecutable(InstallationLocation installationLocation) {
-                return true
-            }
-        }
+        def registry = Stub(JavaInstallationRegistry)
+        registry.toolchains() >> installations
         registry
     }
 

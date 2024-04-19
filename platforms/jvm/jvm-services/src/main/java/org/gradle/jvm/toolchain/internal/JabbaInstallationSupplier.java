@@ -16,23 +16,18 @@
 
 package org.gradle.jvm.toolchain.internal;
 
-import org.gradle.api.Transformer;
-import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ProviderFactory;
-
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Collections;
 import java.util.Set;
 
-public class JabbaInstallationSupplier extends AutoDetectingInstallationSupplier {
-
-    private Provider<String> jabbaHomeDir;
+public class JabbaInstallationSupplier implements InstallationSupplier {
+    private final ToolchainConfiguration toolchainConfiguration;
 
     @Inject
-    public JabbaInstallationSupplier(ProviderFactory factory) {
-        super(factory);
-        jabbaHomeDir = getEnvironmentProperty("JABBA_HOME");
+    public JabbaInstallationSupplier(ToolchainConfiguration toolchainConfiguration) {
+        this.toolchainConfiguration = toolchainConfiguration;
     }
 
     @Override
@@ -41,15 +36,16 @@ public class JabbaInstallationSupplier extends AutoDetectingInstallationSupplier
     }
 
     @Override
-    protected Set<InstallationLocation> findCandidates() {
-        return jabbaHomeDir.map(findJavaCandidates()).getOrElse(Collections.emptySet());
+    public Set<InstallationLocation> get() {
+        return findJavaCandidates(toolchainConfiguration.getJabbaHomeDirectory());
     }
 
-    private Transformer<Set<InstallationLocation>, String> findJavaCandidates() {
-        return jabbaHome -> {
-            final File root = new File(jabbaHome, "jdk");
+    private Set<InstallationLocation> findJavaCandidates(@Nullable File candidatesDir) {
+        if (candidatesDir != null) {
+            final File root = new File(candidatesDir, "jdk");
             return FileBasedInstallationFactory.fromDirectory(root, getSourceName(), InstallationLocation::autoDetected);
-        };
+        } else {
+            return Collections.emptySet();
+        }
     }
-
 }

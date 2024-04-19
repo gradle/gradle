@@ -237,36 +237,7 @@ include::sample[dir="snippets/testing/test-suite-multi-configure-each-extracted/
 [[sec:differences_with_top_level_dependencies]]
 == Differences between the test suite `dependencies` and the top-level `dependencies` blocks
 
-Gradle 7.6 changed the API of the test suite's `dependencies` block to be more strongly-typed.
-
-Each dependency scope returns a link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyCollector.html[`DependencyCollector`] that provides strongly-typed methods to add and configure dependencies.
-
-There is also a link:{javadocPath}/org/gradle/api/artifacts/dsl/DependencyFactory.html[`DependencyFactory`] with factory methods to create new dependencies from different notations.
-Dependencies can be created lazily using these factory methods, as shown below.
-
-This API differs from the top-level `dependencies` block in the following ways:
-
-* Dependencies must be declared using a `String`, an instance of `Dependency`, a `FileCollection`, a `Provider` of `Dependency`, or a `ProviderConvertible` of `MinimalExternalModuleDependency`.
-* Outside of Gradle build scripts, you must explicitly call a getter for the `DependencyCollector` and `add`.
-    ** `dependencies.add("implementation", x)` becomes `getImplementation().add(x)`
-* You cannot declare dependencies with the `Map` notation from Kotlin and Java.
-  Use multi-argument methods instead in Kotlin and Java.
-    ** Kotlin: `compileOnly(mapOf("group" to "foo", "name" to "bar"))` becomes `compileOnly(module(group = "foo", name = "bar"))`
-    ** Java: `compileOnly(Map.of("group", "foo", "name", "bar"))` becomes `getCompileOnly().add(module("foo", "bar", null))`
-* You cannot add a dependency with an instance of `Project`. You must turn it into a `ProjectDependency` first.
-* You cannot add version catalog bundles directly.
-  Instead, use the `bundle` method on each configuration.
-    ** Kotlin and Groovy: `implementation(libs.bundles.testing)` becomes `implementation.bundle(libs.bundles.testing)`
-* You cannot use providers for non-`Dependency` types directly.
-  Instead, map them to a `Dependency` using the `DependencyFactory`.
-    ** Kotlin and Groovy: `implementation(myStringProvider)` becomes `implementation(myStringProvider.map { dependencyFactory.create(it) })`
-    ** Java: `implementation(myStringProvider)` becomes `getImplementation().add(myStringProvider.map(getDependencyFactory()::create)`
-
-The `dependencies` block within a test suite may not provide access to the same methods as the link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html[top-level `dependencies` block].
-To access these methods, you need to use the top-level `dependencies` block.
-
-NOTE: Adding dependencies via the test suite's own `dependencies` block is the preferred and recommended way.
-You can also access the configurations of a test suite in a top-level `dependencies` block after creating the test suite, but the exact names of the configurations used by test suites should be considered an implementation detail subject to change.
+See <<custom_gradle_types.adoc#sec:differences_with_top_level_dependencies,differences with custom `dependencies` blocks>>.
 
 [[sec:using_version_catalog_with_test_suites]]
 === Example of using version catalogs with test suites
@@ -287,7 +258,7 @@ Unlike the methods on the link:{groovyDslPath}/org.gradle.api.tasks.testing.Test
 
 An example of this behavior is shown in the first configuration example above, <<#sec:configuring_the_built_in_test_suite,Configuring the built-in `test` suite>>.
 
-Note that unlike the link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] task, the aforementioned methods on link:{groovyDslPath}/org.gradle.api.plugins.jvm.JvmTestSuite.html[JvmTestSuite] do not accept a closure or action for configuring the framework.  These framework configuration options can be set on the individual targets.
+NOTE: Unlike the link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] task, the aforementioned methods on link:{groovyDslPath}/org.gradle.api.plugins.jvm.JvmTestSuite.html[JvmTestSuite] do not accept a closure or action for configuring the framework.  These framework configuration options can be set on the individual targets.
 
 [[sec:outgoing_variants]]
 == Outgoing Variants

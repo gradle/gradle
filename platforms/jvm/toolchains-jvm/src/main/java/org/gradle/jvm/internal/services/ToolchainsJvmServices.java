@@ -25,6 +25,7 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.cache.FileLockManager;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
+import org.gradle.internal.jvm.inspection.DefaultJavaInstallationRegistry;
 import org.gradle.internal.jvm.inspection.JavaInstallationRegistry;
 import org.gradle.internal.jvm.inspection.JvmInstallationProblemReporter;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
@@ -82,18 +83,19 @@ public class ToolchainsJvmServices extends AbstractPluginServiceRegistry {
             return objectFactory.newInstance(DefaultJdkCacheDirectory.class, homeDirProvider, operations, lockManager, detector);
         }
         protected JavaInstallationRegistry createJavaInstallationRegistry(ToolchainConfiguration toolchainConfiguration, List<InstallationSupplier> installationSuppliers, JvmMetadataDetector jvmMetadataDetector, BuildOperationRunner buildOperationRunner, ProgressLoggerFactory progressLoggerFactory, FileResolver fileResolver, JdkCacheDirectory jdkCacheDirectory) {
-            return new JavaInstallationRegistry(toolchainConfiguration, installationSuppliers, jvmMetadataDetector, buildOperationRunner, OperatingSystem.current(), progressLoggerFactory, fileResolver, jdkCacheDirectory, new JvmInstallationProblemReporter());
+            return new DefaultJavaInstallationRegistry(toolchainConfiguration, installationSuppliers, jvmMetadataDetector, buildOperationRunner, OperatingSystem.current(), progressLoggerFactory, fileResolver, jdkCacheDirectory, new JvmInstallationProblemReporter());
         }
 
         public void configure(ServiceRegistration registration) {
             registration.add(ProviderBackedToolchainConfiguration.class);
             registration.add(DefaultOsXJavaHomeCommand.class);
 
+            // NOTE: These need to be kept in sync with DaemonClientToolchainServices
             registration.add(AsdfInstallationSupplier.class);
             registration.add(IntellijInstallationSupplier.class);
             registration.add(JabbaInstallationSupplier.class);
-            registration.add(MavenToolchainsInstallationSupplier.class);
             registration.add(SdkmanInstallationSupplier.class);
+            registration.add(MavenToolchainsInstallationSupplier.class);
 
             registration.add(LinuxInstallationSupplier.class);
             registration.add(OsXInstallationSupplier.class);
