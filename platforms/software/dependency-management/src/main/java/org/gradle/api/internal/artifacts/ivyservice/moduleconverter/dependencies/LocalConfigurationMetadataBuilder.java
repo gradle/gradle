@@ -26,6 +26,8 @@ import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.ModelContainer;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -35,6 +37,7 @@ import java.util.function.Function;
  * Builds {@link LocalConfigurationMetadata} instances from {@link ConfigurationInternal}s, while
  * caching intermediary dependency and exclude state.
  */
+@ServiceScope(Scope.Global.class)
 public interface LocalConfigurationMetadataBuilder {
 
     /**

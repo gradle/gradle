@@ -15,6 +15,8 @@
  */
 package org.gradle.internal.remote.internal.inet;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,6 +30,7 @@ import java.util.List;
 /**
  * Provides information on how two processes on this machine can communicate via IP addresses
  */
+@ServiceScope(Scope.Global.class)
 public class InetAddressFactory {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final Object lock = new Object();

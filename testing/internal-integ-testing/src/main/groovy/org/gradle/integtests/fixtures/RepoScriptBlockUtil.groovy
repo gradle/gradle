@@ -184,7 +184,7 @@ class RepoScriptBlockUtil {
             @CompileStatic
             class MirrorPlugin implements Plugin<Gradle> {
                 void apply(Gradle gradle) {
-                    gradle.allprojects { Project project ->
+                    def mirrorClosure = { Project project ->
                         project.buildscript.configurations["classpath"].incoming.beforeResolve {
                             withMirrors(project.buildscript.repositories)
                         }
@@ -192,7 +192,17 @@ class RepoScriptBlockUtil {
                             withMirrors(project.repositories)
                         }
                     }
+                    applyToAllProjects(gradle, mirrorClosure)
                     maybeConfigurePluginManagement(gradle)
+                }
+
+                @CompileDynamic
+                void applyToAllProjects(Gradle gradle, Closure projectClosure) {
+                    if (gradle.gradleVersion >= "8.8") {
+                        gradle.lifecycle.beforeProject(projectClosure)
+                    } else {
+                        gradle.allprojects(projectClosure)
+                    }
                 }
 
                 @CompileDynamic

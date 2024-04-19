@@ -17,10 +17,13 @@
 package org.gradle.buildinit.plugins.internal.action;
 
 import org.gradle.configuration.project.BuiltInCommand;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.Collections;
 import java.util.List;
 
+@ServiceScope(Scope.Global.class)
 public class InitBuiltInCommand implements BuiltInCommand {
     @Override
     public List<String> asDefaultTask() {

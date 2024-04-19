@@ -18,10 +18,13 @@ package org.gradle.internal.logging;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.logging.StandardOutputListener;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * Provides access to and control over the logging system. Log manager represents some 'scope', and log managers can be nested in a stack.
  */
+@ServiceScope({Scope.Global.class, Scope.Project.class})
 public interface LoggingManagerInternal extends LoggingManager, StandardOutputCapture, LoggingOutputInternal {
     /**
      * Makes this log manager active, replacing the currently active log manager, if any. Applies any settings defined by this log manager. Initialises the logging system when there is no log manager currently active.

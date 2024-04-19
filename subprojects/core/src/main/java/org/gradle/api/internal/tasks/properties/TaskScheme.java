@@ -18,7 +18,10 @@ package org.gradle.api.internal.tasks.properties;
 
 import org.gradle.api.Task;
 import org.gradle.internal.instantiation.InstantiationScheme;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
+@ServiceScope(Scope.Global.class)
 public class TaskScheme extends AbstractTypeScheme {
 
     public TaskScheme(InstantiationScheme instantiationScheme, InspectionScheme inspectionScheme) {
