@@ -192,7 +192,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     /**
      * Adds the given supplier as the new root supplier for this collection.
      *
-     * @param collector
+     * @param collector the collector to add
      * @param ignoreAbsent whether elements that are missing values should be ignored
      */
     private void addExplicitCollector(Collector<T> collector, boolean ignoreAbsent) {
