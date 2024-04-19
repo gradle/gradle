@@ -26,6 +26,4 @@ dependencies {
     api(projects.javaLanguageExtensions)
 
     api(libs.jsr305)
-
-    implementation(libs.commonsIo)
 }
