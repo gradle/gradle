@@ -9,7 +9,6 @@ errorprone {
     disabledChecks.addAll(
         "AnnotateFormatMethod", // 1 occurrence, needs errorprone annotations
         "GetClassOnEnum", // 4 occurrences
-        "IdentityHashMapUsage", // 1 occurrences
         "ImmutableEnumChecker", // 1 occurrences
         "MixedMutabilityReturnType", // 4 occurrences
         "MutablePublicArray", // 1 occurrences

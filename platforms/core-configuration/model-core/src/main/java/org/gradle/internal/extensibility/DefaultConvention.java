@@ -54,7 +54,7 @@ public class DefaultConvention implements org.gradle.api.plugins.Convention, Ext
     private final InstanceGenerator instanceGenerator;
 
     private Map<String, Object> plugins;
-    private Map<Object, BeanDynamicObject> dynamicObjects;
+    private IdentityHashMap<Object, BeanDynamicObject> dynamicObjects;
 
     public DefaultConvention(InstanceGenerator instanceGenerator) {
         this.instanceGenerator = instanceGenerator;
