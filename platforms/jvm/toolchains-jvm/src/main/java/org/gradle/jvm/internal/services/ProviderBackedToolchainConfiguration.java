@@ -17,13 +17,15 @@
 package org.gradle.jvm.internal.services;
 
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.jvm.toolchain.internal.AutoDetectingInstallationSupplier;
+import org.gradle.internal.SystemProperties;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.jvm.toolchain.internal.AutoInstalledInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.EnvironmentVariableListInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.LocationListInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.ToolchainConfiguration;
 
 import javax.inject.Inject;
+import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -37,10 +39,16 @@ import java.util.Collection;
  */
 public class ProviderBackedToolchainConfiguration implements ToolchainConfiguration {
     private final ProviderFactory providerFactory;
+    private final SystemProperties systemProperties;
 
     @Inject
     public ProviderBackedToolchainConfiguration(ProviderFactory providerFactory) {
+        this(providerFactory, SystemProperties.getInstance());
+    }
+
+    ProviderBackedToolchainConfiguration(ProviderFactory providerFactory, SystemProperties systemProperties) {
         this.providerFactory = providerFactory;
+        this.systemProperties = systemProperties;
     }
 
     @Override
@@ -65,7 +73,7 @@ public class ProviderBackedToolchainConfiguration implements ToolchainConfigurat
 
     @Override
     public boolean isAutoDetectEnabled() {
-        return providerFactory.gradleProperty(AutoDetectingInstallationSupplier.AUTO_DETECT).map(Boolean::parseBoolean).getOrElse(Boolean.TRUE);
+        return providerFactory.gradleProperty(ToolchainConfiguration.AUTO_DETECT).map(Boolean::parseBoolean).getOrElse(Boolean.TRUE);
     }
 
     @Override
@@ -81,5 +89,49 @@ public class ProviderBackedToolchainConfiguration implements ToolchainConfigurat
     @Override
     public void setDownloadEnabled(boolean enabled) {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public File getAsdfDataDirectory() {
+        String asdfEnvVar = providerFactory.environmentVariable("ASDF_DATA_DIR").getOrNull();
+        if (asdfEnvVar != null) {
+            return new File(asdfEnvVar);
+        }
+        return new File(systemProperties.getUserHome(), ".asdf");
+    }
+
+    @Override
+    public File getIntelliJdkDirectory() {
+        return providerFactory.gradleProperty("org.gradle.java.installations.idea-jdks-directory").map(File::new).getOrElse(defaultJdksDirectory(OperatingSystem.current()));
+    }
+
+    @Override
+    public void setIntelliJdkDirectory(File intellijInstallationDirectory) {
+        throw new UnsupportedOperationException();
+    }
+
+    private File defaultJdksDirectory(OperatingSystem os) {
+        if (os.isMacOsX()) {
+            return new File(systemProperties.getUserHome(), "Library/Java/JavaVirtualMachines");
+        }
+        return new File(systemProperties.getUserHome(), ".jdks");
+    }
+
+    @Override
+    public File getJabbaHomeDirectory() {
+        String jabbaHome = providerFactory.environmentVariable("JABBA_HOME").getOrNull();
+        if (jabbaHome != null) {
+            return new File(jabbaHome);
+        }
+        return null;
+    }
+
+    @Override
+    public File getSdkmanCandidatesDirectory() {
+        String asdfEnvVar = providerFactory.environmentVariable("SDKMAN_CANDIDATES_DIR").getOrNull();
+        if (asdfEnvVar != null) {
+            return new File(asdfEnvVar);
+        }
+        return new File(systemProperties.getUserHome(), ".sdkman/candidates");
     }
 }

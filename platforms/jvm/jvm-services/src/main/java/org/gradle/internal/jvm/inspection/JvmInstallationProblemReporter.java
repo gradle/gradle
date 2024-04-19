@@ -31,7 +31,7 @@ import java.util.Set;
  * A BuildSession-scoped service that reports JVM installation problems.
  *
  * <p>
- * This cannot be merged in to {@link JavaInstallationRegistry} as we must rediscover JVM installations on each build invocation,
+ * This cannot be merged in to {@link DefaultJavaInstallationRegistry} as we must rediscover JVM installations on each build invocation,
  * as e.g. the {@code GradleBuild} task could be used to change the system properties and environment variables that affect the JVM installation.
  * </p>
  */
