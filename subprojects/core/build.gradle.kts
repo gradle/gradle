@@ -47,7 +47,6 @@ errorprone {
         "InlineMeSuggester", // 1 occurrences
         "InvalidBlockTag", // 1 occurrences
         "InvalidInlineTag", // 1 occurrences
-        "InvalidLink", // 2 occurrences
         "MissingCasesInEnumSwitch", // 1 occurrences
         "MixedMutabilityReturnType", // 1 occurrences
         "ModifyCollectionInEnhancedForLoop", // 1 occurrences
