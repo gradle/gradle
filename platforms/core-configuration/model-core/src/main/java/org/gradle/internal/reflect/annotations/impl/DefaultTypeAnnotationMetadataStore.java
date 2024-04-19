@@ -108,7 +108,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
      * Constructs the store.
      *
      * @param recordedTypeAnnotations Annotations on the type itself that should be gathered.
-     * @param propertyAnnotationCategories Annotations on the properties that should be gathered. They are mapped to {@linkplain AnnotationCategory annotation categories}. The {@code ignoreMethodAnnotation} and the {@literal @}{@link Inject} annotations are automatically mapped to the {@link AnnotationCategory#TYPE TYPE} category.
+     * @param propertyAnnotationCategories Annotations on the properties that should be gathered. They are mapped to {@linkplain AnnotationCategory annotation categories}. The {@code ignoredMethodAnnotations} and the {@literal @}{@link Inject} annotations are automatically mapped to the {@link AnnotationCategory#TYPE TYPE} category.
      * @param ignoredPackagePrefixes Packages to ignore. Types from ignored packages are considered having no type annotations nor any annotated properties.
      * @param ignoredSuperTypes Super-types to ignore. Ignored super-types are considered having no type annotations nor any annotated properties.
      * @param ignoreMethodsFromTypes Methods to ignore: any methods declared by these types are ignored even when overridden by a given type. This is to avoid detecting methods like {@code Object.equals()} or {@code GroovyObject.getMetaClass()}.

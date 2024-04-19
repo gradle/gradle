@@ -11,7 +11,6 @@ errorprone {
         "GetClassOnEnum", // 4 occurrences
         "IdentityHashMapUsage", // 1 occurrences
         "ImmutableEnumChecker", // 1 occurrences
-        "InvalidParam", // 1 occurrences
         "MixedMutabilityReturnType", // 4 occurrences
         "MutablePublicArray", // 1 occurrences
         "OperatorPrecedence", // 5 occurrences
