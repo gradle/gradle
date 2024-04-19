@@ -62,11 +62,11 @@ public class DefaultJavaDebugOptions implements JavaDebugOptions {
             return false;
         }
         DefaultJavaDebugOptions that = (DefaultJavaDebugOptions) o;
-        return enabled.get() == that.enabled.get()
+        return Objects.equals(enabled.get(),that.enabled.get())
             && Objects.equals(host.getOrNull(), that.host.getOrNull())
             && port.get().equals(that.port.get())
-            && server.get() == that.server.get()
-            && suspend.get() == that.suspend.get();
+            && Objects.equals(server.get(),that.server.get())
+            && Objects.equals(suspend.get(), that.suspend.get());
     }
 
     @Override

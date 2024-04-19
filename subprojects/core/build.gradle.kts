@@ -36,7 +36,6 @@ val testInterceptorsImplementation: Configuration by configurations.getting {
 errorprone {
     disabledChecks.addAll(
         "BadInstanceof", // 6 occurrences (this is from generated code)
-        "BoxedPrimitiveEquality", // 3 occurrences
         "DefaultCharset", // 4 occurrences
         "EmptyBlockTag", // 4 occurrences
         "Finally", // 1 occurrences
