@@ -30,6 +30,7 @@ import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.SupportsConvention;
 import org.gradle.internal.Cast;
+import org.gradle.util.internal.TextUtil;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -338,7 +339,8 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     protected String describeContents() {
-        return String.format("%s(%s, %s)", collectionType.getSimpleName().toLowerCase(), elementType, describeValue());
+        String typeDisplayName = TextUtil.toLowerCaseLocaleSafe(collectionType.getSimpleName());
+        return String.format("%s(%s, %s)", typeDisplayName, elementType, describeValue());
     }
 
     class NoValueSupplier implements CollectionSupplier<T, C> {

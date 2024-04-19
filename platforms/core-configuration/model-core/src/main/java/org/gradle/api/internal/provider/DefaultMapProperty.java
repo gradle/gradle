@@ -29,6 +29,7 @@ import org.gradle.api.internal.provider.MapCollectors.EntryWithValueFromProvider
 import org.gradle.api.internal.provider.MapCollectors.SingleEntry;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Provider;
+import org.gradle.util.internal.TextUtil;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -324,7 +325,9 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
     @Override
     protected String describeContents() {
-        return String.format("Map(%s->%s, %s)", keyType.getSimpleName().toLowerCase(), valueType.getSimpleName(), describeValue());
+        String keyTypeDisplayName = TextUtil.toLowerCaseLocaleSafe(keyType.getSimpleName());
+        // TODO(mlopatkin) why do we lowercase key type, but not the value type? Also, as these are user-provided types, they might have non-english names. Can we keep the key type as is too?
+        return String.format("Map(%s->%s, %s)", keyTypeDisplayName, valueType.getSimpleName(), describeValue());
     }
 
     @Override
