@@ -97,7 +97,7 @@ beforeSettings {
 ```
 
 The `buildCache.local.removeUnusedEntriesAfterDays` method is now deprecated.
-If set to a non-default value, this deprecated setting will take precedence over `Settings.caches.buildCache.setRemoveUnusedEntriesAfterDays()`.
+If this setting is configured with a non-default value, it will take precedence over `Settings.caches.buildCache.setRemoveUnusedEntriesAfterDays()`.
 
 <a name="config-cache"></a>
 ### Configuration cache improvements
@@ -451,10 +451,11 @@ plugins {
 ```
 
 #### Groovy build script compilation build cache support is disabled
-In Gradle 8.7 we announced that [Groovy build script](userguide/groovy_build_script_primer.html) compilation benefits from the remote build cache.
-Due to reports from users about slower compile times with a remote cache, we did further investigation and found that the cache was not providing the expected performance improvements.
+In Gradle 8.7, we introduced support for using the remote build cache with [Groovy build script](userguide/groovy_build_script_primer.html) compilation.
+However, after receiving reports of slower compile times with the remote cache, we conducted further investigation. 
+Our findings showed that the cache was not delivering the expected performance improvements.
 
-We disabled the remote build cache for Groovy build script compilation in this release.
+As a result, we have disabled the remote build cache for Groovy build script compilation in this release.
 
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
