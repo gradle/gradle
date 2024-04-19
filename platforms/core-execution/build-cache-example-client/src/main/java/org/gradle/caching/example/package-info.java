@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@NonNullApi
+package org.gradle.caching.example;
 
-package org.gradle.internal.nativeintegration.filesystem;
-
-import java.io.File;
-
-public interface FileModeAccessor {
-    /**
-     * @param f The file to get the mode for. Note that all symlinks are followed.
-     * @return The unix mode of the file
-     */
-    public int getUnixMode(File f) throws Exception;
-}
+import org.gradle.api.NonNullApi;

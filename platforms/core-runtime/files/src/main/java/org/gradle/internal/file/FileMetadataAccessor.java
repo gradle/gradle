@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.nativeintegration.filesystem;
-
-import org.gradle.internal.file.FileMetadata;
+package org.gradle.internal.file;
 
 import java.io.File;
 

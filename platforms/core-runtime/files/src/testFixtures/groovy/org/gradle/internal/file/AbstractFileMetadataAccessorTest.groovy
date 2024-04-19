@@ -14,13 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.nativeintegration.filesystem.services
+package org.gradle.internal.file
 
 import org.gradle.api.UncheckedIOException
-import org.gradle.internal.file.FileMetadata
 import org.gradle.internal.file.FileMetadata.AccessType
-import org.gradle.internal.file.FileType
-import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions

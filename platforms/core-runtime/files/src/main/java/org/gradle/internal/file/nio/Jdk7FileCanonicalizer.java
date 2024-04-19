@@ -14,12 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.nativeintegration.filesystem;
+package org.gradle.internal.file.nio;
 
+import org.gradle.internal.file.FileCanonicalizer;
 import org.gradle.internal.file.FileException;
 
 import java.io.File;
+import java.io.IOException;
 
-public interface FileCanonicalizer {
-    File canonicalize(File file) throws FileException;
+// Used via FQCN
+@SuppressWarnings("unused")
+public class Jdk7FileCanonicalizer implements FileCanonicalizer {
+    @SuppressWarnings("Since15")
+    @Override
+    public File canonicalize(File file) throws FileException {
+        try {
+            return file.toPath().toRealPath().toFile();
+        } catch (IOException e) {
+            throw new FileException(String.format("Could not canonicalize file %s.", file), e);
+        }
+    }
 }

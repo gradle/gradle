@@ -141,6 +141,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val pmavenCommon = "org.sonatype.pmaven:pmaven-common"
     val pmavenGroovy = "org.sonatype.pmaven:pmaven-groovy"
     val slf4jApi = "org.slf4j:slf4j-api"
+    val slf4jSimple = "org.slf4j:slf4j-simple"
     val snakeyaml = "org.yaml:snakeyaml"
     val testng = "org.testng:testng"
     val tomlj = "org.tomlj:tomlj"

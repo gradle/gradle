@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.nativeintegration.filesystem.services
+package org.gradle.internal.file.nio
 
+import org.gradle.internal.file.AbstractFileMetadataAccessorTest
 import org.gradle.internal.file.FileMetadata
-import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor
-import org.gradle.internal.nativeintegration.filesystem.jdk7.NioFileMetadataAccessor
+import org.gradle.internal.file.FileMetadataAccessor
 import org.gradle.util.UsesNativeServices
 
 import java.nio.file.Files

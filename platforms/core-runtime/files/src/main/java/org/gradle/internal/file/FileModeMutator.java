@@ -14,21 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.nativeintegration.filesystem.jdk7;
-
-import org.gradle.internal.file.FileException;
-import org.gradle.internal.nativeintegration.filesystem.FileCanonicalizer;
+package org.gradle.internal.file;
 
 import java.io.File;
-import java.io.IOException;
 
-public class Jdk7FileCanonicalizer implements FileCanonicalizer {
-    @Override
-    public File canonicalize(File file) throws FileException {
-        try {
-            return file.toPath().toRealPath().toFile();
-        } catch (IOException e) {
-            throw new FileException(String.format("Could not canonicalize file %s.", file), e);
-        }
-    }
+public interface FileModeMutator {
+    void chmod(File file, int mode) throws Exception;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@NonNullApi
+package org.gradle.internal.file.nio;
 
-plugins {
-    id("gradlebuild.distribution.api-java")
-}
-
-description = "Utilities for working with temporary files & directories"
-
-gradlebuildJava.usedInWorkers()
-
-dependencies {
-    api(projects.javaLanguageExtensions)
-
-    api(libs.jsr305)
-}
+import org.gradle.api.NonNullApi;

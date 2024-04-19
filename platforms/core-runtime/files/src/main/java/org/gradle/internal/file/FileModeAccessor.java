@@ -14,21 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.nativeintegration.filesystem.services;
-
-import org.gradle.internal.file.FileCanonicalizer;
-import org.gradle.internal.file.FileException;
+package org.gradle.internal.file;
 
 import java.io.File;
-import java.io.IOException;
 
-class FallbackFileCanonicalizer implements FileCanonicalizer {
-    @Override
-    public File canonicalize(File file) throws FileException {
-        try {
-            return file.getCanonicalFile();
-        } catch (IOException e) {
-            throw new FileException(String.format("Could not canonicalize file %s.", file), e);
-        }
-    }
+public interface FileModeAccessor {
+    /**
+     * @param f The file to get the mode for. Note that all symlinks are followed.
+     * @return The unix mode of the file
+     */
+    int getUnixMode(File f) throws Exception;
 }

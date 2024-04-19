@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.nativeintegration.filesystem.jdk7;
+package org.gradle.internal.file.nio;
 
-import org.gradle.internal.nativeintegration.filesystem.FileModeAccessor;
-import org.gradle.internal.nativeintegration.filesystem.FileModeMutator;
+import org.gradle.internal.file.FileModeAccessor;
+import org.gradle.internal.file.FileModeMutator;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,9 +25,10 @@ import java.nio.file.Files;
 import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.PosixFileAttributes;
 
-import static org.gradle.internal.nativeintegration.filesystem.jdk7.PosixFilePermissionConverter.convertToInt;
-import static org.gradle.internal.nativeintegration.filesystem.jdk7.PosixFilePermissionConverter.convertToPermissionsSet;
+import static org.gradle.internal.file.nio.PosixFilePermissionConverter.convertToInt;
+import static org.gradle.internal.file.nio.PosixFilePermissionConverter.convertToPermissionsSet;
 
+@SuppressWarnings("Since15")
 public class PosixJdk7FilePermissionHandler implements FileModeAccessor, FileModeMutator {
 
     @Override
