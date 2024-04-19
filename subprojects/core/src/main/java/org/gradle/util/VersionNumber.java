@@ -204,15 +204,14 @@ public class VersionNumber implements Comparable<VersionNumber> {
             }
             Scanner scanner = new Scanner(versionString);
 
-            int major = 0;
-            int minor = 0;
-            int micro = 0;
-            int patch = 0;
 
             if (!scanner.hasDigit()) {
                 return UNKNOWN;
             }
-            major = scanner.scanDigit();
+            int minor = 0;
+            int micro = 0;
+            int patch = 0;
+            int major = scanner.scanDigit();
             if (scanner.isSeparatorAndDigit('.')) {
                 scanner.skipSeparator();
                 minor = scanner.scanDigit();

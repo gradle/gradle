@@ -16,7 +16,6 @@ errorprone {
         "StringCaseLocaleUsage", // 1 occurrences
         "ThreadLocalUsage", // 1 occurrences
         "UnusedMethod", // 2 occurrences
-        "UnusedVariable", // 1 occurrences
         "WaitNotInLoop", // 1 occurrences
     )
 }

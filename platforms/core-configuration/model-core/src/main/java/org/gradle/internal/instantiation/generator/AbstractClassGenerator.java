@@ -43,6 +43,7 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.IConventionAware;
+import org.gradle.api.internal.plugins.software.SoftwareType;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.ListProperty;
@@ -54,7 +55,6 @@ import org.gradle.api.provider.SupportsConvention;
 import org.gradle.api.reflect.InjectionPointQualifier;
 import org.gradle.api.tasks.Nested;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
-import org.gradle.api.internal.plugins.software.SoftwareType;
 import org.gradle.internal.Cast;
 import org.gradle.internal.extensibility.NoConventionMapping;
 import org.gradle.internal.instantiation.ClassGenerationException;
@@ -777,18 +777,21 @@ abstract class AbstractClassGenerator implements ClassGenerator {
     }
 
     private static class ClassGenerationHandler {
+        @SuppressWarnings("UnusedVariable") // used in subclasses
         void startType(Class<?> type) {
         }
 
         /**
          * Collect information about an instance method. This is called for all instance methods that are not property getter or setter methods.
          */
+        @SuppressWarnings("UnusedVariable") // used in subclasses
         void visitInstanceMethod(Method method) {
         }
 
         /**
          * Collect information about a property. This is called for all properties of a type.
          */
+        @SuppressWarnings("UnusedVariable") // used in subclasses
         void visitProperty(PropertyMetadata property) {
         }
 
@@ -802,6 +805,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
          * Handler can claim the property, taking responsibility for generating whatever is required to make the property work.
          * Handler is also expected to take care of validation.
          */
+        @SuppressWarnings("UnusedVariable") // used in subclasses
         boolean claimPropertyImplementation(PropertyMetadata property) {
             return false;
         }
@@ -814,9 +818,11 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             throw new UnsupportedOperationException("Multiple matches for " + property.getName());
         }
 
+        @SuppressWarnings("UnusedVariable") // used in subclasses
         void applyTo(ClassInspectionVisitor visitor) {
         }
 
+        @SuppressWarnings("UnusedVariable") // used in subclasses
         void applyTo(ClassGenerationVisitor visitor) {
         }
     }

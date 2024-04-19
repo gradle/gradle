@@ -12,7 +12,6 @@ errorprone {
         "NonApiType", // 5 occurrences
         "ProtectedMembersInFinalClass", // 1 occurrences
         "StringCaseLocaleUsage", // 3 occurrences
-        "UnusedVariable", // 1 occurrences
     )
 }
 

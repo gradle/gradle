@@ -64,7 +64,7 @@ public class DefaultInMemoryCacheDecoratorFactory implements InMemoryCacheDecora
     private CacheDetails getCache(final String cacheId, final int maxSize) {
         CacheDetails cacheDetails = caches.get(cacheId, () -> {
             Cache<Object, Object> entries = createInMemoryCache(cacheId, maxSize);
-            CacheDetails details = new CacheDetails(cacheId, maxSize, entries, new AtomicReference<>());
+            CacheDetails details = new CacheDetails(maxSize, entries, new AtomicReference<>());
             LOG.debug("Creating in-memory store for cache {} (max size: {})", cacheId, maxSize);
             return details;
         });
@@ -117,13 +117,11 @@ public class DefaultInMemoryCacheDecoratorFactory implements InMemoryCacheDecora
     }
 
     private static class CacheDetails {
-        private final String cacheId;
         private final int maxEntries;
         private final Cache<Object, Object> entries;
         private final AtomicReference<FileLock.State> lockState;
 
-        CacheDetails(String cacheId, int maxEntries, Cache<Object, Object> entries, AtomicReference<FileLock.State> lockState) {
-            this.cacheId = cacheId;
+        CacheDetails(int maxEntries, Cache<Object, Object> entries, AtomicReference<FileLock.State> lockState) {
             this.maxEntries = maxEntries;
             this.entries = entries;
             this.lockState = lockState;

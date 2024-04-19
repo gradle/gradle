@@ -157,6 +157,7 @@ public class TransformReplacer implements Closeable {
     }
 
     private static class Loader implements Closeable {
+        @SuppressWarnings("UnusedVariable")  // used in subclasses
         @Nullable
         public byte[] loadTransformedClass(String className) throws IOException {
             return null;
