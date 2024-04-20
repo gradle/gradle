@@ -75,7 +75,7 @@ class GradleClientUiTest : AbstractUiTest() {
                 val buildList = uiComponent.childStack.items.single().instance as UiComponent.Child.BuildList
                 buildList.component.onNewBuildRootDirChosen(buildRootDir)
                 advanceUntilIdle()
-                takeScreenshot("01_build_list")
+                takeScreenshot("build_list")
 
                 // Open build
                 onNodeWithText("some-build").performClick()
@@ -88,7 +88,7 @@ class GradleClientUiTest : AbstractUiTest() {
                 )
                 advanceUntilIdle()
                 onNodeWithText(buildRootDir.absolutePath).assertIsDisplayed()
-                takeScreenshot("02_build")
+                takeScreenshot("build")
 
                 // Connects to build
                 onNodeWithText("Connect").performClick()
@@ -108,7 +108,7 @@ class GradleClientUiTest : AbstractUiTest() {
                 connected.component.modelActions.map { it.displayName }.forEach { actionName ->
                     onNodeWithText(actionName).assertIsDisplayed()
                 }
-                takeScreenshot("03_connected")
+                takeScreenshot("connected")
 
                 // Triggers action
                 assertThat(
@@ -122,7 +122,7 @@ class GradleClientUiTest : AbstractUiTest() {
                 // Displays model
                 advanceUntilIdle()
                 onNodeWithText("Root Project Name: some-root").assertIsDisplayed()
-                takeScreenshot("04_model")
+                takeScreenshot("model")
 
             } finally {
                 lifecycle.destroy()
