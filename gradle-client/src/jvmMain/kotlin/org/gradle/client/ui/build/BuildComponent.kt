@@ -17,7 +17,9 @@ import org.gradle.client.core.database.Build
 import org.gradle.client.core.database.BuildsRepository
 import org.gradle.client.core.files.AppDirs
 import org.gradle.client.core.gradle.GradleConnectionParameters
+import org.gradle.client.core.gradle.GradleDistribution
 import org.gradle.client.ui.AppDispatchers
+import java.io.File
 import java.lang.Exception
 
 sealed interface BuildModel {
@@ -79,6 +81,42 @@ class BuildComponent(
                     versionsFile.writeText(versionsJson)
                 }
             }
+        }
+    }
+
+    fun onJavaHomeChanged(javaHomeDir: File?) {
+        when (val current = model.value) {
+            is BuildModel.Loaded -> scope.launch {
+                buildsRepository.update(build = current.build.copy(javaHomeDir = javaHomeDir))
+            }
+
+            else -> mutableModel.value = BuildModel.Failed(
+                IllegalStateException("Cannot change Java Home when the Build is not loaded")
+            )
+        }
+    }
+
+    fun onGradleUserHomeChanged(gradleUserHomeDir: File?) {
+        when (val current = model.value) {
+            is BuildModel.Loaded -> scope.launch {
+                buildsRepository.update(build = current.build.copy(gradleUserHomeDir = gradleUserHomeDir))
+            }
+
+            else -> mutableModel.value = BuildModel.Failed(
+                IllegalStateException("Cannot change Gradle User Home when the Build is not loaded")
+            )
+        }
+    }
+
+    fun onGradleDistributionChanged(gradleDistribution: GradleDistribution) {
+        when (val current = model.value) {
+            is BuildModel.Loaded -> scope.launch {
+                buildsRepository.update(build = current.build.copy(gradleDistribution = gradleDistribution))
+            }
+
+            else -> mutableModel.value = BuildModel.Failed(
+                IllegalStateException("Cannot change Gradle Distribution when the Build is not loaded")
+            )
         }
     }
 
