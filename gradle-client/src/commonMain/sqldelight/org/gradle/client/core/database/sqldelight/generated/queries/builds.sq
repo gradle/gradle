@@ -9,11 +9,25 @@ SELECT DbBuild.* FROM DbBuild WHERE id = :id;
 insert:
 INSERT INTO DbBuild (
     id,
-    rootDir
+    rootDir,
+    javaHomeDir,
+    gradleUserHomeDir,
+    gradleDistributionJson
 ) VALUES (
     :id,
-    :rootDir
+    :rootDir,
+    :javaHomeDir,
+    :gradleUserHomeDir,
+    :gradleDistributionJson
 );
 
 delete:
 DELETE FROM DbBuild WHERE id = :id;
+
+update:
+UPDATE DbBuild SET
+    rootDir = :rootDir,
+    javaHomeDir = :javaHomeDir,
+    gradleUserHomeDir = :gradleUserHomeDir,
+    gradleDistributionJson = :gradleDistributionJson
+WHERE id = :id;
