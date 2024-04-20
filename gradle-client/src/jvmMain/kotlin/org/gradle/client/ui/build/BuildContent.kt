@@ -38,6 +38,7 @@ fun BuildContent(component: BuildComponent) {
                 title = {
                     when (val current = model) {
                         BuildModel.Loading -> Text("Build")
+                        is BuildModel.Failed -> Text("Failed")
                         is BuildModel.Loaded -> Text(current.build.rootDir.name)
                     }
                 }
@@ -49,6 +50,7 @@ fun BuildContent(component: BuildComponent) {
             when (val current = model) {
                 BuildModel.Loading -> Loading()
                 is BuildModel.Loaded -> BuildMainContent(component, current, snackbarState)
+                is BuildModel.Failed -> FailureContent(current.exception)
             }
         }
     }

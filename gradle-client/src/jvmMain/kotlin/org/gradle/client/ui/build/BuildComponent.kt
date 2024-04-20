@@ -18,9 +18,11 @@ import org.gradle.client.core.database.BuildsRepository
 import org.gradle.client.core.files.AppDirs
 import org.gradle.client.core.gradle.GradleConnectionParameters
 import org.gradle.client.ui.AppDispatchers
+import java.lang.Exception
 
 sealed interface BuildModel {
     data object Loading : BuildModel
+    data class Failed(val exception: Exception) : BuildModel
     data class Loaded(val build: Build) : BuildModel
 }
 
@@ -46,8 +48,8 @@ class BuildComponent(
         val fetch = scope.launch {
             buildsRepository.fetch(id).cancellable().collect { build ->
                 mutableModel.value = when (val state = model.value) {
-                    BuildModel.Loading -> BuildModel.Loaded(build)
                     is BuildModel.Loaded -> state.copy(build = build)
+                    else -> BuildModel.Loaded(build)
                 }
             }
         }
