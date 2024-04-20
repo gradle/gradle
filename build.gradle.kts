@@ -1,3 +1,42 @@
+{
+  "project_info": {
+    "project_number": "845087703750",
+    "project_id": "my-proyect-rm",
+    "storage_bucket": "my-proyect-rm.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:845087703750:android:6d5d45d6060f9733b7cdc7",
+        "android_client_info": {
+          "package_name": "com.example.rmsports1902"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "845087703750-c3ok2k210c9g0fhng0jso3udus7ipdpg.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD-nUG-jIA_IPtWvmGEVyRmdjgXlNceZyM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "845087703750-c3ok2k210c9g0fhng0jso3udus7ipdpg.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
 plugins {
     id("gradlebuild.build-environment")
     id("gradlebuild.root-build")
