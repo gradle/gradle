@@ -67,7 +67,7 @@ import org.gradle.api.tasks.UntrackedTask;
 import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.declarative.dsl.model.annotations.Restricted;
-import org.gradle.declarative.dsl.model.annotations.RestrictedNested;
+import org.gradle.declarative.dsl.model.annotations.NestedRestricted;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.DefaultWorkExecutionTracker;
 import org.gradle.internal.execution.WorkExecutionTracker;
@@ -124,7 +124,7 @@ public class ExecutionGlobalServices {
         ServiceReference.class,
         SoftwareType.class,
         Restricted.class,
-        RestrictedNested.class
+        NestedRestricted.class
     );
 
     @VisibleForTesting

@@ -55,6 +55,8 @@ import org.gradle.api.provider.SupportsConvention;
 import org.gradle.api.reflect.InjectionPointQualifier;
 import org.gradle.api.tasks.Nested;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
+import org.gradle.declarative.dsl.model.annotations.NestedRestricted;
+
 import org.gradle.internal.Cast;
 import org.gradle.internal.extensibility.NoConventionMapping;
 import org.gradle.internal.instantiation.ClassGenerationException;
@@ -130,7 +132,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
     private static final ImmutableSet<Class<? extends Annotation>> NESTED_ANNOTATION_TYPES = ImmutableSet.of(
         Nested.class,
-        SoftwareType.class
+        SoftwareType.class,
+        NestedRestricted.class
     );
 
     private static final Object[] NO_PARAMS = new Object[0];

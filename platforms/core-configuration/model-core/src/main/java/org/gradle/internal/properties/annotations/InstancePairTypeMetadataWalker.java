@@ -27,12 +27,13 @@ import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public class InstancePairTypeMetadataWalker extends AbstractTypeMetadataWalker<Pair<Object, Object>, InstancePairTypeMetadataWalker.InstancePairMetadataVisitor> {
-    private InstancePairTypeMetadataWalker(TypeMetadataStore typeMetadataStore, Class<? extends Annotation> nestedAnnotation, Supplier<Map<Pair<Object, Object>, String>> nestedNodeToQualifiedNameMapFactory) {
+public class InstancePairTypeMetadataWalker extends AbstractTypeMetadataWalker<InstancePairTypeMetadataWalker.InstancePair<?>, InstancePairTypeMetadataWalker.InstancePairMetadataVisitor> {
+    private InstancePairTypeMetadataWalker(TypeMetadataStore typeMetadataStore, Class<? extends Annotation> nestedAnnotation, Supplier<Map<InstancePair<?>, String>> nestedNodeToQualifiedNameMapFactory) {
         super(typeMetadataStore, nestedAnnotation, nestedNodeToQualifiedNameMapFactory);
     }
 
@@ -41,7 +42,7 @@ public class InstancePairTypeMetadataWalker extends AbstractTypeMetadataWalker<P
     }
 
     @Override
-    protected void walkLeaf(Pair<Object, Object> node, @Nullable String parentQualifiedName, InstancePairMetadataVisitor visitor, PropertyMetadata propertyMetadata) {
+    protected void walkLeaf(InstancePair<?> node, @Nullable String parentQualifiedName, InstancePairMetadataVisitor visitor, PropertyMetadata propertyMetadata) {
         visitor.visitLeaf(node, getQualifiedName(parentQualifiedName, propertyMetadata.getPropertyName()), propertyMetadata);
     }
 
@@ -51,23 +52,23 @@ public class InstancePairTypeMetadataWalker extends AbstractTypeMetadataWalker<P
     }
 
     @Override
-    protected void walkNestedProvider(Pair<Object, Object> node, String qualifiedName, PropertyMetadata propertyMetadata, InstancePairMetadataVisitor visitor, boolean isElementOfCollection, Consumer<Pair<Object, Object>> handler) {
+    protected void walkNestedProvider(InstancePair<?> node, String qualifiedName, PropertyMetadata propertyMetadata, InstancePairMetadataVisitor visitor, boolean isElementOfCollection, Consumer<InstancePair<?>> handler) {
         throw new UnsupportedOperationException("Nested providers are not supported.");
     }
 
     @Override
-    protected void walkNestedMap(Pair<Object, Object> node, String qualifiedName, BiConsumer<String, Pair<Object, Object>> handler) {
+    protected void walkNestedMap(InstancePair<?> node, String qualifiedName, BiConsumer<String, InstancePair<?>> handler) {
         throw new UnsupportedOperationException("Nested maps are not supported.");
     }
 
     @Override
-    protected void walkNestedIterable(Pair<Object, Object> node, String qualifiedName, BiConsumer<String, Pair<Object, Object>> handler) {
+    protected void walkNestedIterable(InstancePair<?> node, String qualifiedName, BiConsumer<String, InstancePair<?>> handler) {
         throw new UnsupportedOperationException("Nested iterables are not supported.");
     }
 
     @Override
-    protected void walkNestedChild(Pair<Object, Object> parent, String childQualifiedName, PropertyMetadata propertyMetadata, InstancePairMetadataVisitor visitor, Consumer<Pair<Object, Object>> handler) {
-        Pair<Object, Object> child;
+    protected void walkNestedChild(InstancePair<?> parent, String childQualifiedName, PropertyMetadata propertyMetadata, InstancePairMetadataVisitor visitor, Consumer<InstancePair<?>> handler) {
+        InstancePair<?> child;
         try {
             child = getChild(parent, propertyMetadata);
         } catch (Exception ex) {
@@ -85,20 +86,69 @@ public class InstancePairTypeMetadataWalker extends AbstractTypeMetadataWalker<P
 
     @Override
     @Nonnull
-    protected Pair<Object, Object> getChild(Pair<Object, Object> parent, PropertyMetadata property) {
-        return Pair.of(property.getPropertyValue(parent.getLeft()), property.getPropertyValue(parent.getRight()));
+    protected InstancePair<?> getChild(InstancePair<?> parent, PropertyMetadata property) {
+        return InstancePair.of(
+            property.getDeclaredType().getRawType(),
+            Cast.uncheckedCast(property.getPropertyValue(parent.getLeft())),
+            Cast.uncheckedCast(property.getPropertyValue(parent.getRight()))
+        );
     }
 
     @Override
-    protected Class<?> resolveType(Pair<Object, Object> pair) {
-        return pair.getLeft().getClass();
+    protected Class<?> resolveType(InstancePair<?> pair) {
+        return pair.getCommonType();
     }
 
-    public interface InstancePairMetadataVisitor extends TypeMetadataVisitor<Pair<Object, Object>> {
+    public static class InstancePair<T> {
+        final Pair<? extends T, ? extends T> pair;
+        final Class<T> commonType;
+
+        private InstancePair(Class<T> commonType, Pair<? extends T, ? extends T> pair) {
+            this.pair = pair;
+            this.commonType = commonType;
+        }
+
+        public static <T, L extends T, R extends T> InstancePair<T> of(Class<T> commonType, @Nullable L left, @Nullable R right) {
+            return new InstancePair<>(commonType, Pair.of(left, right));
+        }
+
+        @Nullable
+        public Object getLeft() {
+            return pair.getLeft();
+        }
+
+        @Nullable
+        public Object getRight() {
+            return pair.getRight();
+        }
+
+        public Class<T> getCommonType() {
+            return commonType;
+        }
+
         @Override
-        void visitNested(TypeMetadata typeMetadata, String qualifiedName, PropertyMetadata propertyMetadata, @Nullable Pair<Object, Object> pair);
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            InstancePair<?> that = (InstancePair<?>) o;
+            return Objects.equals(pair, that.pair) && Objects.equals(commonType, that.commonType);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(pair, commonType);
+        }
+    }
+
+    public interface InstancePairMetadataVisitor extends TypeMetadataVisitor<InstancePair<?>> {
+        @Override
+        void visitNested(TypeMetadata typeMetadata, String qualifiedName, PropertyMetadata propertyMetadata, @Nullable InstancePair<?> pair);
         void visitNestedUnpackingError(String qualifiedName, Exception e);
-        void visitLeaf(Pair<Object, Object> parent, String qualifiedName, PropertyMetadata propertyMetadata);
+        void visitLeaf(InstancePair<?> parent, String qualifiedName, PropertyMetadata propertyMetadata);
     }
 
     private static TypeToken<?> unpackType(TypeToken<?> type) {

@@ -138,7 +138,7 @@ trait SoftwareTypeFixture {
 
             import org.gradle.declarative.dsl.model.annotations.Configuring;
             import org.gradle.declarative.dsl.model.annotations.Restricted;
-            import org.gradle.declarative.dsl.model.annotations.RestrictedNested;
+            import org.gradle.declarative.dsl.model.annotations.NestedRestricted;
             import org.gradle.api.Action;
             import org.gradle.api.model.ObjectFactory;
             import org.gradle.api.provider.ListProperty;
@@ -161,7 +161,7 @@ trait SoftwareTypeFixture {
                 @Restricted
                 public abstract Property<String> getId();
 
-                @RestrictedNested
+                @NestedRestricted
                 public Foo getFoo() {
                     return foo;
                 }
@@ -189,6 +189,7 @@ trait SoftwareTypeFixture {
 
             import org.gradle.declarative.dsl.model.annotations.Configuring;
             import org.gradle.declarative.dsl.model.annotations.Restricted;
+            import org.gradle.declarative.dsl.model.annotations.NestedRestricted;
             import org.gradle.api.provider.Property;
             import org.gradle.api.Action;
 
@@ -197,10 +198,13 @@ trait SoftwareTypeFixture {
                 @Restricted
                 Property<String> getId();
 
+                @NestedRestricted
                 Foo getFoo();
 
                 @Configuring
-                void foo(Action<? super Foo> action);
+                default void foo(Action<? super Foo> action) {
+                    action.execute(getFoo());
+                }
 
                 public abstract static class Foo {
                     public Foo() {
@@ -241,11 +245,6 @@ trait SoftwareTypeFixture {
                 @Override
                 public Foo getFoo() {
                     return foo;
-                }
-
-                @Override
-                public void foo(Action<? super Foo> action) {
-                    action.execute(foo);
                 }
 
                 @Restricted
@@ -355,6 +354,7 @@ trait SoftwareTypeFixture {
             import org.gradle.declarative.dsl.model.annotations.Adding;
             import org.gradle.declarative.dsl.model.annotations.Configuring;
             import org.gradle.declarative.dsl.model.annotations.Restricted;
+            import org.gradle.declarative.dsl.model.annotations.NestedRestricted;
             import org.gradle.api.Action;
             import org.gradle.api.model.ObjectFactory;
             import org.gradle.api.provider.ListProperty;
@@ -377,6 +377,7 @@ trait SoftwareTypeFixture {
                 @Restricted
                 public abstract Property<String> getId();
 
+                @NestedRestricted
                 public Foo getFoo() {
                     return foo;
                 }

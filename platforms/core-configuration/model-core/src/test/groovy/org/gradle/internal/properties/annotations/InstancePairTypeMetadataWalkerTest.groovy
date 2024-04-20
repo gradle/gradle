@@ -18,7 +18,6 @@ package org.gradle.internal.properties.annotations
 
 import groovy.transform.EqualsAndHashCode
 import org.gradle.api.provider.Property
-import org.gradle.internal.Pair
 import org.gradle.internal.reflect.annotations.TestAnnotationHandlingSupport
 import org.gradle.internal.reflect.annotations.TestNested
 import org.gradle.internal.reflect.annotations.ThisIsAThing
@@ -29,7 +28,7 @@ import org.jetbrains.annotations.Nullable
 import spock.lang.Specification
 
 class InstancePairTypeMetadataWalkerTest extends Specification implements TestAnnotationHandlingSupport {
-    private static final def NULL_PAIR = Pair.of(null, null)
+    private static final def NULL_PAIR = instancePair(Property.class, null, null)
 
     def "pair walker should visit all nested nodes"() {
         given:
@@ -39,18 +38,18 @@ class InstancePairTypeMetadataWalkerTest extends Specification implements TestAn
         populateAllValues(left, right)
 
         when:
-        InstancePairTypeMetadataWalker.instancePairWalker(typeMetadataStore, TestNested.class).walk(Pair.of(left, right), visitor)
+        InstancePairTypeMetadataWalker.instancePairWalker(typeMetadataStore, TestNested.class).walk(instancePair(TestDataObject, left, right), visitor)
 
         then:
         visitor.roots.size() == 1
-        visitor.roots[0].pair.left() == left
-        visitor.roots[0].pair.right() == right
+        visitor.roots[0].pair.left == left
+        visitor.roots[0].pair.right == right
         visitor.nested.collect { it.qualifiedName }.sort() == [ "anotherNestedThing", "nestedThing" ]
         visitor.leaves.collect { it.qualifiedName }.sort() == [ "anotherNestedThing.nestedShortThing", "longThing", "nestedThing.nestedLongThing", "shortThing" ]
-        visitor.leaves.find { it.qualifiedName == "longThing" }?.pair == Pair.of(left.longThing, right.longThing)
-        visitor.leaves.find { it.qualifiedName == "shortThing" }?.pair == Pair.of(left.shortThing, right.shortThing)
-        visitor.leaves.find { it.qualifiedName == "nestedThing.nestedLongThing" }?.pair == Pair.of(left.nestedThing.nestedLongThing, right.nestedThing.nestedLongThing)
-        visitor.leaves.find { it.qualifiedName == "anotherNestedThing.nestedShortThing" }?.pair == Pair.of(left.anotherNestedThing.nestedShortThing, right.anotherNestedThing.nestedShortThing)
+        visitor.leaves.find { it.qualifiedName == "longThing" }?.pair == instancePair(Property.class, left.longThing, right.longThing)
+        visitor.leaves.find { it.qualifiedName == "shortThing" }?.pair == instancePair(Property.class, left.shortThing, right.shortThing)
+        visitor.leaves.find { it.qualifiedName == "nestedThing.nestedLongThing" }?.pair == instancePair(Property.class, left.nestedThing.nestedLongThing, right.nestedThing.nestedLongThing)
+        visitor.leaves.find { it.qualifiedName == "anotherNestedThing.nestedShortThing" }?.pair == instancePair(Property.class, left.anotherNestedThing.nestedShortThing, right.anotherNestedThing.nestedShortThing)
     }
 
     def "pair walker handles empty leaf nodes"() {
@@ -61,7 +60,7 @@ class InstancePairTypeMetadataWalkerTest extends Specification implements TestAn
         populateTopLevelNestedValues(left, right)
 
         when:
-        InstancePairTypeMetadataWalker.instancePairWalker(typeMetadataStore, TestNested.class).walk(Pair.of(left, right), visitor)
+        InstancePairTypeMetadataWalker.instancePairWalker(typeMetadataStore, TestNested.class).walk(instancePair(TestDataObject, left, right), visitor)
 
         then:
         visitor.roots.size() == 1
@@ -79,7 +78,7 @@ class InstancePairTypeMetadataWalkerTest extends Specification implements TestAn
         populateTopLevelValues(left, right)
 
         when:
-        InstancePairTypeMetadataWalker.instancePairWalker(typeMetadataStore, TestNested.class).walk(Pair.of(left, right), visitor)
+        InstancePairTypeMetadataWalker.instancePairWalker(typeMetadataStore, TestNested.class).walk(instancePair(TestDataObject, left, right), visitor)
 
         then:
         visitor.roots.size() == 1
@@ -102,7 +101,7 @@ class InstancePairTypeMetadataWalkerTest extends Specification implements TestAn
         right.anotherNestedThing.cycleDataObject = right.nestedThing
 
         when:
-        InstancePairTypeMetadataWalker.instancePairWalker(typeMetadataStore, TestNested.class).walk(Pair.of(left, right), visitor)
+        InstancePairTypeMetadataWalker.instancePairWalker(typeMetadataStore, TestNested.class).walk(instancePair(CycleDataObject, left, right), visitor)
 
         then:
         def e = thrown(IllegalStateException)
@@ -115,7 +114,7 @@ class InstancePairTypeMetadataWalkerTest extends Specification implements TestAn
         def right = new ErrorDataObject()
 
         when:
-        InstancePairTypeMetadataWalker.instancePairWalker(typeMetadataStore, TestNested.class).walk(Pair.of(left, right), visitor)
+        InstancePairTypeMetadataWalker.instancePairWalker(typeMetadataStore, TestNested.class).walk(instancePair(ErrorDataObject, left, right), visitor)
 
         then:
         visitor.errors.size() == 1
@@ -149,6 +148,10 @@ class InstancePairTypeMetadataWalkerTest extends Specification implements TestAn
         right.anotherNestedThing.nestedShortThing = TestUtil.objectFactory().property(Short).value(8 as Short)
     }
 
+    private static InstancePairTypeMetadataWalker.InstancePair<?> instancePair(Class<?> commonType, Object left, Object right) {
+        return InstancePairTypeMetadataWalker.InstancePair.of(commonType, left, right)
+    }
+
     private class TestVisitor implements InstancePairTypeMetadataWalker.InstancePairMetadataVisitor {
         private final List<CollectedNode> all = []
         private final List<CollectedNode> roots = []
@@ -161,7 +164,7 @@ class InstancePairTypeMetadataWalkerTest extends Specification implements TestAn
         }
 
         @Override
-        void visitNested(TypeMetadata typeMetadata, String qualifiedName, PropertyMetadata propertyMetadata, @Nullable Pair<Object, Object> pair) {
+        void visitNested(TypeMetadata typeMetadata, String qualifiedName, PropertyMetadata propertyMetadata, @Nullable InstancePairTypeMetadataWalker.InstancePair<?> pair) {
             CollectedNode node = new CollectedNode(typeMetadata, qualifiedName, pair)
             addNode(node)
             nested.add(node)
@@ -173,15 +176,15 @@ class InstancePairTypeMetadataWalkerTest extends Specification implements TestAn
         }
 
         @Override
-        void visitLeaf(Pair<Object, Object> parent, String qualifiedName, PropertyMetadata propertyMetadata) {
-            CollectedNode node = new CollectedNode(null, qualifiedName, Pair.of(propertyMetadata.getPropertyValue(parent.getLeft()), propertyMetadata.getPropertyValue(parent.getRight())))
+        void visitLeaf(InstancePairTypeMetadataWalker.InstancePair<?> parent, String qualifiedName, PropertyMetadata propertyMetadata) {
+            CollectedNode node = new CollectedNode(null, qualifiedName, instancePair(propertyMetadata.declaredType.rawType, propertyMetadata.getPropertyValue(parent.getLeft()), propertyMetadata.getPropertyValue(parent.getRight())))
             addNode(node)
             leaves.add(node)
         }
 
         @Override
-        void visitRoot(TypeMetadata typeMetadata, Pair<Object, Object> value) {
-            CollectedNode node = new CollectedNode(typeMetadata, null, value)
+        void visitRoot(TypeMetadata typeMetadata, InstancePairTypeMetadataWalker.InstancePair<?> pair) {
+            CollectedNode node = new CollectedNode(typeMetadata, null, pair)
             addNode(node)
             roots.add(node)
         }
@@ -191,9 +194,9 @@ class InstancePairTypeMetadataWalkerTest extends Specification implements TestAn
     static class CollectedNode {
         TypeMetadata typeMetadata
         String qualifiedName
-        Pair<Object, Object> pair
+        InstancePairTypeMetadataWalker.InstancePair<?> pair
 
-        CollectedNode(TypeMetadata typeMetadata, String qualifiedName, Pair<Object, Object> pair) {
+        CollectedNode(TypeMetadata typeMetadata, String qualifiedName, InstancePairTypeMetadataWalker.InstancePair<?> pair) {
             this.typeMetadata = typeMetadata
             this.qualifiedName = qualifiedName
             this.pair = pair

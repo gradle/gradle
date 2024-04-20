@@ -23,6 +23,7 @@ import org.gradle.api.Project;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.plugins.PluginTarget;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
+import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
@@ -30,8 +31,6 @@ import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.properties.annotations.TypeMetadata;
 import org.gradle.internal.reflect.DefaultTypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
-import org.gradle.api.plugins.ExtensionContainer;
-import org.gradle.internal.Cast;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
 import org.gradle.internal.properties.annotations.TypeMetadataWalker;
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
@@ -166,7 +165,7 @@ public class SoftwareTypeRegistrationPluginTarget implements PluginTarget {
         @Override
         public void visitNested(TypeMetadata typeMetadata, String qualifiedName, PropertyMetadata propertyMetadata, TypeToken<?> value) {
             propertyMetadata.getAnnotation(SoftwareType.class).ifPresent(softwareType -> {
-                extensionContainer.create(softwareType.modelPublicType(), softwareType.name(), Cast.uncheckedCast(value.getRawType()));
+                extensionContainer.create(softwareType.name(), softwareType.modelPublicType());
             });
         }
     }

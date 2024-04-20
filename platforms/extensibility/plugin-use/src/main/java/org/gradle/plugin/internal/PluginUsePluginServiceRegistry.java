@@ -33,7 +33,7 @@ import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory;
 import org.gradle.api.internal.plugins.software.SoftwareType;
 import org.gradle.declarative.dsl.model.annotations.Restricted;
-import org.gradle.declarative.dsl.model.annotations.RestrictedNested;
+import org.gradle.declarative.dsl.model.annotations.NestedRestricted;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.internal.Factory;
 import org.gradle.internal.build.BuildIncluder;
@@ -133,7 +133,7 @@ public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistr
             allPropertyTypes.addAll(ImmutableSet.of(
                 SoftwareType.class,
                 Restricted.class,
-                RestrictedNested.class
+                NestedRestricted.class
             ));
             InspectionScheme inspectionScheme = inspectionSchemeFactory.inspectionScheme(
                 allPropertyTypes.build(),

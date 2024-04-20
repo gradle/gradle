@@ -39,6 +39,7 @@ dependencies {
 
     implementation(project(":base-services-groovy"))
     implementation(project(":base-asm"))
+    implementation(project(":declarative-dsl-api"))
 
     implementation(libs.futureKotlin("stdlib"))
     implementation(libs.slf4jApi)

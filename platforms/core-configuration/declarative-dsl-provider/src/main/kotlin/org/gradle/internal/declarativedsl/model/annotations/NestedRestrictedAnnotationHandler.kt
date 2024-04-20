@@ -17,7 +17,7 @@
 package org.gradle.internal.declarativedsl.model.annotations
 
 import com.google.common.collect.ImmutableSet
-import org.gradle.declarative.dsl.model.annotations.RestrictedNested
+import org.gradle.declarative.dsl.model.annotations.NestedRestricted
 import org.gradle.internal.properties.PropertyValue
 import org.gradle.internal.properties.PropertyVisitor
 import org.gradle.internal.properties.annotations.AbstractPropertyAnnotationHandler
@@ -25,7 +25,7 @@ import org.gradle.internal.properties.annotations.PropertyAnnotationHandler
 import org.gradle.internal.properties.annotations.PropertyMetadata
 
 
-class RestrictedNestedAnnotationHandler : AbstractPropertyAnnotationHandler(RestrictedNested::class.java, PropertyAnnotationHandler.Kind.OTHER, ImmutableSet.of()) {
+class NestedRestrictedAnnotationHandler : AbstractPropertyAnnotationHandler(NestedRestricted::class.java, PropertyAnnotationHandler.Kind.OTHER, ImmutableSet.of()) {
     override fun isPropertyRelevant(): Boolean {
         return true
     }
