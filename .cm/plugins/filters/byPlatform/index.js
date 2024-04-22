@@ -27,7 +27,7 @@ function getPlatform(file) {
 
     if (file.startsWith('platforms/')) {
         const parts = file.split('/');
-        result = parts[2];
+        result = parts[1];
     }
 
     console.log(file + " = " + result);
