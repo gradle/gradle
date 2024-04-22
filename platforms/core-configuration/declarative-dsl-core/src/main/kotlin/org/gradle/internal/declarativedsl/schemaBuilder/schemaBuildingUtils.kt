@@ -16,10 +16,11 @@
 
 package org.gradle.internal.declarativedsl.schemaBuilder
 
-import org.gradle.internal.declarativedsl.language.DataType
-import org.gradle.internal.declarativedsl.analysis.DataTypeRef
-import org.gradle.internal.declarativedsl.analysis.FqName
+import org.gradle.internal.declarativedsl.analysis.DataTypeRefImpl
+import org.gradle.internal.declarativedsl.analysis.FqNameImpl
 import org.gradle.internal.declarativedsl.analysis.ref
+import org.gradle.internal.declarativedsl.schema.DataType
+import org.gradle.internal.declarativedsl.schema.DataTypeRef
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
 import kotlin.reflect.KClassifier
@@ -34,7 +35,7 @@ fun KClassifier.toDataTypeRef(): DataTypeRef =
         String::class -> DataType.StringDataType.ref
         Boolean::class -> DataType.BooleanDataType.ref
         Long::class -> DataType.LongDataType.ref
-        is KClass<*> -> DataTypeRef.Name(FqName.parse(checkNotNull(qualifiedName)))
+        is KClass<*> -> DataTypeRefImpl.NameImpl(FqNameImpl.parse(checkNotNull(qualifiedName)))
         else -> error("unexpected type")
     }
 
@@ -67,7 +68,7 @@ val KCallable<*>.annotationsWithGetters: List<Annotation>
     get() = this.annotations + if (this is KProperty) this.getter.annotations else emptyList()
 
 
-fun KType.toDataTypeRefOrError() =
+fun KType.toDataTypeRefOrError(): DataTypeRef =
     toDataTypeRef() ?: error("failed to convert type $this to data type")
 
 

@@ -16,7 +16,6 @@
 
 package org.gradle.internal.declarativedsl.project
 
-import org.gradle.internal.declarativedsl.analysis.DataProperty
 import org.gradle.internal.declarativedsl.schemaBuilder.CollectedPropertyInformation
 import org.gradle.internal.declarativedsl.schemaBuilder.PropertyExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
@@ -26,6 +25,7 @@ import org.gradle.api.provider.Property
 import org.gradle.declarative.dsl.model.annotations.AccessFromCurrentReceiverOnly
 import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaComponent
+import org.gradle.internal.declarativedsl.schema.DataProperty
 import org.gradle.internal.declarativedsl.schemaBuilder.MemberFilter
 import org.gradle.internal.declarativedsl.schemaBuilder.isPublicAndRestricted
 import java.util.Locale
@@ -74,7 +74,7 @@ class GradlePropertyApiPropertyExtractor(
                 property.name,
                 property.returnType,
                 propertyValueType(property.returnType).toDataTypeRefOrError(),
-                DataProperty.PropertyMode.WRITE_ONLY,
+                DataProperty.PropertyMode.WriteOnly,
                 hasDefaultValue = false,
                 isHiddenInDeclarativeDsl = isHidden,
                 isDirectAccessOnly = isDirectAccessOnly,
@@ -97,7 +97,7 @@ class GradlePropertyApiPropertyExtractor(
             val isHidden = getter.annotations.any { it is HiddenInDeclarativeDsl }
             val isDirectAccessOnly = getter.annotations.any { it is AccessFromCurrentReceiverOnly }
             CollectedPropertyInformation(
-                propertyName, getter.returnType, type, DataProperty.PropertyMode.WRITE_ONLY, false, isHidden, isDirectAccessOnly,
+                propertyName, getter.returnType, type, DataProperty.PropertyMode.WriteOnly, false, isHidden, isDirectAccessOnly,
                 claimedFunctions = listOf(getter)
             )
         }.filter { propertyNamePredicate(it.name) }

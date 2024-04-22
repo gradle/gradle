@@ -1,7 +1,8 @@
 package org.gradle.internal.declarativedsl.analysis
 
-import org.gradle.internal.declarativedsl.language.DataType
 import org.gradle.internal.declarativedsl.language.LanguageTreeElement
+import org.gradle.internal.declarativedsl.schema.DataClass
+import org.gradle.internal.declarativedsl.schema.DataType
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract

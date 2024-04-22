@@ -16,7 +16,6 @@
 
 package org.gradle.internal.declarativedsl.evaluationSchema
 
-import org.gradle.internal.declarativedsl.analysis.AnalysisSchema
 import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter
 import org.gradle.internal.declarativedsl.analysis.analyzeEverything
 import org.gradle.internal.declarativedsl.mappingToJvm.MemberFunctionResolver
@@ -24,6 +23,7 @@ import org.gradle.internal.declarativedsl.mappingToJvm.ReflectionRuntimeProperty
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeCustomAccessors
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeFunctionResolver
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimePropertyResolver
+import org.gradle.internal.declarativedsl.schema.AnalysisSchema
 
 
 class EvaluationSchema(

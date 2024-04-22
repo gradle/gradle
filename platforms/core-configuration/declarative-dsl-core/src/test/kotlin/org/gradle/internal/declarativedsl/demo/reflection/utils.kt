@@ -1,12 +1,12 @@
 package org.gradle.internal.declarativedsl.demo.reflection
 
-import org.gradle.internal.declarativedsl.analysis.AnalysisSchema
 import org.gradle.internal.declarativedsl.analysis.SchemaTypeRefContext
 import org.gradle.internal.declarativedsl.demo.assignmentTrace
 import org.gradle.internal.declarativedsl.demo.prettyStringFromReflection
 import org.gradle.internal.declarativedsl.demo.resolve
 import org.gradle.internal.declarativedsl.objectGraph.ObjectReflection
 import org.gradle.internal.declarativedsl.objectGraph.ReflectionContext
+import org.gradle.internal.declarativedsl.schema.AnalysisSchema
 
 
 fun AnalysisSchema.reflect(code: String): ObjectReflection {

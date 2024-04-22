@@ -18,14 +18,15 @@ package org.gradle.internal.declarativedsl.mappingToJvm
 
 import org.gradle.declarative.dsl.model.annotations.Configuring
 import org.gradle.declarative.dsl.model.annotations.Restricted
-import org.gradle.internal.declarativedsl.analysis.ConfigureAccessor
-import org.gradle.internal.declarativedsl.analysis.DataConstructor
-import org.gradle.internal.declarativedsl.analysis.DataMemberFunction
-import org.gradle.internal.declarativedsl.analysis.DataTopLevelFunction
-import org.gradle.internal.declarativedsl.analysis.FunctionSemantics
-import org.gradle.internal.declarativedsl.analysis.FunctionSemantics.AccessAndConfigure.ReturnType.UNIT
-import org.gradle.internal.declarativedsl.analysis.SchemaMemberFunction
+import org.gradle.internal.declarativedsl.analysis.ConfigureAccessorImpl
+import org.gradle.internal.declarativedsl.analysis.DataMemberFunctionImpl
+import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsImpl
 import org.gradle.internal.declarativedsl.demo.resolve
+import org.gradle.internal.declarativedsl.schema.ConfigureAccessor
+import org.gradle.internal.declarativedsl.schema.DataConstructor
+import org.gradle.internal.declarativedsl.schema.DataTopLevelFunction
+import org.gradle.internal.declarativedsl.schema.FunctionSemantics
+import org.gradle.internal.declarativedsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.schemaBuilder.DataSchemaBuilder
 import org.gradle.internal.declarativedsl.schemaBuilder.DefaultFunctionExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
@@ -82,12 +83,12 @@ object AccessorTest {
         override fun memberFunctions(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<SchemaMemberFunction> =
             if (kClass == MyReceiver::class) {
                 listOf(
-                    DataMemberFunction(
+                    DataMemberFunctionImpl(
                         MyReceiver::class.toDataTypeRef(),
                         "configureCustomInstance",
                         emptyList(),
                         false,
-                        FunctionSemantics.AccessAndConfigure(ConfigureAccessor.Custom(Configured::class.toDataTypeRef(), "test"), UNIT)
+                        FunctionSemanticsImpl.AccessAndConfigureImpl(ConfigureAccessorImpl.CustomImpl(Configured::class.toDataTypeRef(), "test"), FunctionSemantics.AccessAndConfigure.ReturnType.Unit)
                     )
                 )
             } else emptyList()

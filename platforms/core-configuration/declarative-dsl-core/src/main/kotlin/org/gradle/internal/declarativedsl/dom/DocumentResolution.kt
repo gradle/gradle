@@ -16,11 +16,11 @@
 
 package org.gradle.internal.declarativedsl.dom
 
-import org.gradle.internal.declarativedsl.analysis.DataClass
-import org.gradle.internal.declarativedsl.analysis.DataProperty
-import org.gradle.internal.declarativedsl.language.DataType
-import org.gradle.internal.declarativedsl.analysis.SchemaFunction
-import org.gradle.internal.declarativedsl.analysis.SchemaMemberFunction
+import org.gradle.internal.declarativedsl.schema.DataClass
+import org.gradle.internal.declarativedsl.schema.DataProperty
+import org.gradle.internal.declarativedsl.schema.DataType
+import org.gradle.internal.declarativedsl.schema.SchemaFunction
+import org.gradle.internal.declarativedsl.schema.SchemaMemberFunction
 
 
 sealed interface DocumentResolution {

@@ -118,6 +118,7 @@ val core = platform("core") {
         subproject("model-core")
         subproject("model-groovy")
         subproject("declarative-dsl-api")
+        subproject("declarative-dsl-schema-api")
         subproject("declarative-dsl-provider")
         subproject("declarative-dsl-core")
     }

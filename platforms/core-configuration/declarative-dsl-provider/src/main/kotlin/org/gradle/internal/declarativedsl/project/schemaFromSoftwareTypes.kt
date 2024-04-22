@@ -17,13 +17,15 @@
 package org.gradle.internal.declarativedsl.project
 
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.internal.declarativedsl.analysis.ConfigureAccessor
-import org.gradle.internal.declarativedsl.analysis.DataConstructor
-import org.gradle.internal.declarativedsl.analysis.DataMemberFunction
-import org.gradle.internal.declarativedsl.analysis.FunctionSemantics
-import org.gradle.internal.declarativedsl.analysis.SchemaMemberFunction
+import org.gradle.internal.declarativedsl.analysis.ConfigureAccessorImpl
+import org.gradle.internal.declarativedsl.analysis.DataMemberFunctionImpl
+import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsImpl
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaComponent
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeCustomAccessors
+import org.gradle.internal.declarativedsl.schema.ConfigureAccessor
+import org.gradle.internal.declarativedsl.schema.DataConstructor
+import org.gradle.internal.declarativedsl.schema.FunctionSemantics
+import org.gradle.internal.declarativedsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.schemaBuilder.DataSchemaBuilder
 import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
@@ -73,14 +75,14 @@ data class SoftwareTypeInfo(
 ) : SoftwareTypeImplementation by delegate {
     val customAccessorId = "$accessorIdPrefix:${delegate.softwareType}"
 
-    val schemaFunction = DataMemberFunction(
+    val schemaFunction = DataMemberFunctionImpl(
         ProjectTopLevelReceiver::class.toDataTypeRef(),
         delegate.softwareType,
         emptyList(),
         isDirectAccessOnly = true,
-        semantics = FunctionSemantics.AccessAndConfigure(
-            accessor = ConfigureAccessor.Custom(delegate.modelPublicType.kotlin.toDataTypeRef(), customAccessorId),
-            FunctionSemantics.AccessAndConfigure.ReturnType.UNIT
+        semantics = FunctionSemanticsImpl.AccessAndConfigureImpl(
+            accessor = ConfigureAccessorImpl.CustomImpl(delegate.modelPublicType.kotlin.toDataTypeRef(), customAccessorId),
+            FunctionSemantics.AccessAndConfigure.ReturnType.Unit
         )
     )
 }

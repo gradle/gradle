@@ -1,9 +1,7 @@
 package org.gradle.internal.declarativedsl.demo
 
-import org.gradle.internal.declarativedsl.analysis.AnalysisSchema
-import org.gradle.internal.declarativedsl.language.DataType
-import org.gradle.internal.declarativedsl.analysis.DataTypeRef
-import org.gradle.internal.declarativedsl.analysis.FqName
+import org.gradle.internal.declarativedsl.analysis.DataTypeRefImpl
+import org.gradle.internal.declarativedsl.analysis.FqNameImpl
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 import org.gradle.internal.declarativedsl.analysis.Resolver
 import org.gradle.internal.declarativedsl.analysis.ref
@@ -22,6 +20,9 @@ import org.gradle.internal.declarativedsl.objectGraph.AssignmentTracer
 import org.gradle.internal.declarativedsl.objectGraph.ObjectReflection
 import org.gradle.internal.declarativedsl.parsing.DefaultLanguageTreeBuilder
 import org.gradle.internal.declarativedsl.parsing.parse
+import org.gradle.internal.declarativedsl.schema.AnalysisSchema
+import org.gradle.internal.declarativedsl.schema.DataType
+import org.gradle.internal.declarativedsl.schema.DataTypeRef
 
 
 val int = DataType.IntDataType.ref
@@ -107,7 +108,7 @@ fun printResolvedAssignments(result: ResolutionResult) {
 
 inline fun <reified T> typeRef(): DataTypeRef.Name {
     val parts = T::class.qualifiedName!!.split(".")
-    return DataTypeRef.Name(FqName(parts.dropLast(1).joinToString("."), parts.last()))
+    return DataTypeRefImpl.NameImpl(FqNameImpl(parts.dropLast(1).joinToString("."), parts.last()))
 }
 
 

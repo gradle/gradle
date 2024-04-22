@@ -14,42 +14,27 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.language
-
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
+package org.gradle.internal.declarativedsl.schema
 
 
-interface DataType {
+sealed interface DataType {
     sealed interface ConstantType<JvmType> : DataType
-    @Serializable
-    @SerialName("int")
     data object IntDataType : ConstantType<Int> {
         override fun toString(): String = "Int"
     }
-    @Serializable
-    @SerialName("long")
     data object LongDataType : ConstantType<Long> {
         override fun toString(): String = "Long"
     }
-    @Serializable
-    @SerialName("string")
     data object StringDataType : ConstantType<String> {
         override fun toString(): String = "String"
     }
-    @Serializable
-    @SerialName("boolean")
     data object BooleanDataType : ConstantType<Boolean> {
         override fun toString(): String = "Boolean"
     }
 
     // TODO: implement nulls?
-    @Serializable
-    @SerialName("null")
     data object NullType : DataType
 
-    @Serializable
-    @SerialName("unit")
     data object UnitType : DataType
 
     // TODO: `Any` type?

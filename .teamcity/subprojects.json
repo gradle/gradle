@@ -224,6 +224,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "declarative-dsl-schema-api",
+    "path": "platforms/core-configuration/declarative-dsl-schema-api",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "dependency-management",
     "path": "platforms/software/dependency-management",
     "unitTests": true,

@@ -1,12 +1,19 @@
 package org.gradle.internal.declarativedsl.analysis
 
 import org.gradle.internal.declarativedsl.analysis.FunctionCallResolver.FunctionResolutionAndBinding
-import org.gradle.internal.declarativedsl.language.DataType
 import org.gradle.internal.declarativedsl.language.Expr
 import org.gradle.internal.declarativedsl.language.FunctionArgument
 import org.gradle.internal.declarativedsl.language.FunctionCall
 import org.gradle.internal.declarativedsl.language.PropertyAccess
 import org.gradle.internal.declarativedsl.language.asChainOrNull
+import org.gradle.internal.declarativedsl.schema.DataClass
+import org.gradle.internal.declarativedsl.schema.DataMemberFunction
+import org.gradle.internal.declarativedsl.schema.DataParameter
+import org.gradle.internal.declarativedsl.schema.DataType
+import org.gradle.internal.declarativedsl.schema.FunctionSemantics
+import org.gradle.internal.declarativedsl.schema.ParameterSemantics
+import org.gradle.internal.declarativedsl.schema.SchemaFunction
+import org.gradle.internal.declarativedsl.schema.SchemaMemberFunction
 
 
 interface FunctionCallResolver {
@@ -259,10 +266,10 @@ class FunctionCallResolverImpl(
         )
 
         is FunctionSemantics.AccessAndConfigure -> when (semantics.returnType) {
-            FunctionSemantics.AccessAndConfigure.ReturnType.UNIT ->
+            FunctionSemantics.AccessAndConfigure.ReturnType.Unit ->
                 newObjectInvocationResult(function, valueBinding, functionCall, newFunctionCallId)
 
-            FunctionSemantics.AccessAndConfigure.ReturnType.CONFIGURED_OBJECT ->
+            FunctionSemantics.AccessAndConfigure.ReturnType.ConfiguredObject ->
                 configureReceiverObject(semantics, function, functionCall, valueBinding, newFunctionCallId)
         }
 
@@ -320,7 +327,7 @@ class FunctionCallResolverImpl(
         if (receiver is PropertyAccess && receiver.asChainOrNull() != null || receiver == null) {
             val packageNameParts = (receiver as? PropertyAccess)?.asChainOrNull()?.nameParts.orEmpty()
             val candidates = buildList {
-                val fqn = FqName(packageNameParts.joinToString("."), functionCall.name)
+                val fqn = FqNameImpl(packageNameParts.joinToString("."), functionCall.name)
                 schema.externalFunctionsByFqName[fqn]?.let { add(it) }
 
                 if (receiver == null) {
@@ -366,7 +373,7 @@ class FunctionCallResolverImpl(
         val candidateTypes = buildList<DataType> {
             val receiverAsChain = functionCall.receiver?.asChainOrNull()
             if (receiverAsChain != null) {
-                val fqn = FqName(receiverAsChain.nameParts.joinToString("."), functionCall.name)
+                val fqn = FqNameImpl(receiverAsChain.nameParts.joinToString("."), functionCall.name)
                 val typeByFqn = schema.dataClassesByFqName[fqn]
                 if (typeByFqn != null) {
                     add(typeByFqn)

@@ -18,7 +18,8 @@ package org.gradle.internal.declarativedsl.analysis
 
 import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.internal.declarativedsl.demo.resolve
-import org.gradle.internal.declarativedsl.language.DataType
+import org.gradle.internal.declarativedsl.schema.DataProperty
+import org.gradle.internal.declarativedsl.schema.DataType
 import org.gradle.internal.declarativedsl.schemaBuilder.CollectedPropertyInformation
 import org.gradle.internal.declarativedsl.schemaBuilder.DefaultPropertyExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.PropertyExtractor
@@ -61,7 +62,7 @@ object PropertyTest {
             propertyExtractor = testPropertyContributor(expectedName, typeOf<Int>()) + testPropertyContributor(expectedName, typeOf<String>())
         )
 
-        val property = schema.dataClassesByFqName[FqName.parse(MyReceiver::class.qualifiedName!!)]!!.properties.single()
+        val property = schema.dataClassesByFqName[FqNameImpl.parse(MyReceiver::class.qualifiedName!!)]!!.properties.single()
         assertEquals(expectedName, property.name)
         assertEquals(DataType.IntDataType.ref, property.type)
     }
@@ -84,7 +85,7 @@ object PropertyTest {
                         "z",
                         typeOf<Int>(),
                         DataType.IntDataType.ref,
-                        DataProperty.PropertyMode.WRITE_ONLY,
+                        DataProperty.PropertyMode.WriteOnly,
                         hasDefaultValue = false,
                         isHiddenInDeclarativeDsl = false,
                         isDirectAccessOnly = false,
@@ -98,7 +99,7 @@ object PropertyTest {
     private
     fun testPropertyContributor(name: String, type: KType) = object : PropertyExtractor {
         override fun extractProperties(kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): Iterable<CollectedPropertyInformation> =
-            listOf(CollectedPropertyInformation(name, type, type.toDataTypeRefOrError(), DataProperty.PropertyMode.READ_WRITE, false, false, false, emptyList()))
+            listOf(CollectedPropertyInformation(name, type, type.toDataTypeRefOrError(), DataProperty.PropertyMode.ReadWrite, false, false, false, emptyList()))
                 .filter { propertyNamePredicate(it.name) }
     }
 

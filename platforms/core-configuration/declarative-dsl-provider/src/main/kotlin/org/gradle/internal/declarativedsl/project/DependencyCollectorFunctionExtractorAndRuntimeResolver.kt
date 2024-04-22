@@ -20,16 +20,17 @@ import com.google.common.graph.Traverser
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.dsl.Dependencies
 import org.gradle.api.artifacts.dsl.DependencyCollector
-import org.gradle.internal.declarativedsl.analysis.DataConstructor
-import org.gradle.internal.declarativedsl.analysis.DataMemberFunction
-import org.gradle.internal.declarativedsl.analysis.DataParameter
-import org.gradle.internal.declarativedsl.analysis.DataTopLevelFunction
-import org.gradle.internal.declarativedsl.analysis.FunctionSemantics
-import org.gradle.internal.declarativedsl.analysis.FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement.NOT_ALLOWED
+import org.gradle.internal.declarativedsl.analysis.DataMemberFunctionImpl
+import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsImpl
 import org.gradle.internal.declarativedsl.analysis.ParameterValueBinding
-import org.gradle.internal.declarativedsl.analysis.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.mappingToJvm.DeclarativeRuntimeFunction
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeFunctionResolver
+import org.gradle.internal.declarativedsl.schema.DataConstructor
+import org.gradle.internal.declarativedsl.schema.DataMemberFunction
+import org.gradle.internal.declarativedsl.schema.DataParameter
+import org.gradle.internal.declarativedsl.schema.DataTopLevelFunction
+import org.gradle.internal.declarativedsl.schema.FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement.NotAllowed
+import org.gradle.internal.declarativedsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.schemaBuilder.DataSchemaBuilder
 import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.toDataTypeRef
@@ -109,12 +110,12 @@ class DependencyCollectorFunctionExtractorAndRuntimeResolver(
     fun dependencyCollectorNameFromGetterName(getterName: String) = getterName.removePrefix("get").replaceFirstChar { it.lowercase(Locale.getDefault()) }
 
     private
-    fun buildDataMemberFunction(kClass: KClass<*>, name: String, dependencyParam: DataParameter) = DataMemberFunction(
+    fun buildDataMemberFunction(kClass: KClass<*>, name: String, dependencyParam: DataParameter) = DataMemberFunctionImpl(
         kClass.toDataTypeRef(),
         name,
         listOf(dependencyParam),
         false,
-        FunctionSemantics.AddAndConfigure(ProjectDependency::class.toDataTypeRef(), NOT_ALLOWED)
+        FunctionSemanticsImpl.AddAndConfigureImpl(ProjectDependency::class.toDataTypeRef(), NotAllowed)
     )
 
     private

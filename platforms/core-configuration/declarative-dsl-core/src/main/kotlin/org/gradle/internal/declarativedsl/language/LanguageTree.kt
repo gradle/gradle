@@ -1,5 +1,7 @@
 package org.gradle.internal.declarativedsl.language
 
+import org.gradle.internal.declarativedsl.schema.DataType
+
 
 sealed interface LanguageTreeElement {
     val sourceData: SourceData

@@ -16,14 +16,14 @@
 
 package org.gradle.internal.declarativedsl.serialization
 
-import org.gradle.internal.declarativedsl.analysis.AnalysisSchema
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
-import org.gradle.internal.declarativedsl.analysis.DataClass
-import org.gradle.internal.declarativedsl.language.DataType
+import org.gradle.internal.declarativedsl.schema.AnalysisSchema
+import org.gradle.internal.declarativedsl.schema.DataClass
+import org.gradle.internal.declarativedsl.schema.DataType
 
 
 object SchemaSerialization {

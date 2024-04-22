@@ -20,18 +20,23 @@ import org.gradle.declarative.dsl.model.annotations.AccessFromCurrentReceiverOnl
 import org.gradle.declarative.dsl.model.annotations.Adding
 import org.gradle.declarative.dsl.model.annotations.Builder
 import org.gradle.declarative.dsl.model.annotations.Configuring
-import org.gradle.internal.declarativedsl.analysis.ConfigureAccessor
+import org.gradle.internal.declarativedsl.analysis.ConfigureAccessorImpl
 import org.gradle.internal.declarativedsl.analysis.DataBuilderFunction
-import org.gradle.internal.declarativedsl.analysis.DataConstructor
-import org.gradle.internal.declarativedsl.analysis.DataMemberFunction
-import org.gradle.internal.declarativedsl.analysis.DataParameter
-import org.gradle.internal.declarativedsl.analysis.DataTopLevelFunction
-import org.gradle.internal.declarativedsl.analysis.FunctionSemantics
-import org.gradle.internal.declarativedsl.analysis.FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement.NOT_ALLOWED
-import org.gradle.internal.declarativedsl.analysis.FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement.OPTIONAL
-import org.gradle.internal.declarativedsl.analysis.FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement.REQUIRED
-import org.gradle.internal.declarativedsl.analysis.ParameterSemantics
-import org.gradle.internal.declarativedsl.analysis.SchemaMemberFunction
+import org.gradle.internal.declarativedsl.analysis.DataConstructorImpl
+import org.gradle.internal.declarativedsl.analysis.DataMemberFunctionImpl
+import org.gradle.internal.declarativedsl.analysis.DataParameterImpl
+import org.gradle.internal.declarativedsl.analysis.DataTopLevelFunctionImpl
+import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsImpl
+import org.gradle.internal.declarativedsl.analysis.ParameterSemanticsImpl
+import org.gradle.internal.declarativedsl.schema.DataConstructor
+import org.gradle.internal.declarativedsl.schema.DataParameter
+import org.gradle.internal.declarativedsl.schema.DataTopLevelFunction
+import org.gradle.internal.declarativedsl.schema.FunctionSemantics
+import org.gradle.internal.declarativedsl.schema.FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement.NotAllowed
+import org.gradle.internal.declarativedsl.schema.FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement.Optional
+import org.gradle.internal.declarativedsl.schema.FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement.Required
+import org.gradle.internal.declarativedsl.schema.ParameterSemantics
+import org.gradle.internal.declarativedsl.schema.SchemaMemberFunction
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
@@ -137,7 +142,7 @@ class DefaultFunctionExtractor(
                 params.single(),
             )
         } else {
-            DataMemberFunction(
+            DataMemberFunctionImpl(
                 thisTypeRef,
                 function.name,
                 params,
@@ -155,9 +160,9 @@ class DefaultFunctionExtractor(
     ): DataConstructor {
         val params = constructor.parameters
         val dataParams = params.map { param ->
-            dataParameter(constructor, param, kClass, FunctionSemantics.Pure(kClass.toDataTypeRef()), preIndex)
+            dataParameter(constructor, param, kClass, FunctionSemanticsImpl.PureImpl(kClass.toDataTypeRef()), preIndex)
         }
-        return DataConstructor(dataParams, kClass.toDataTypeRef())
+        return DataConstructorImpl(dataParams, kClass.toDataTypeRef())
     }
 
     private
@@ -171,14 +176,14 @@ class DefaultFunctionExtractor(
         checkInScope(returnType, preIndex)
 
         val returnTypeClassifier = function.returnType
-        val semanticsFromSignature = FunctionSemantics.Pure(returnTypeClassifier.toDataTypeRefOrError())
+        val semanticsFromSignature = FunctionSemanticsImpl.PureImpl(returnTypeClassifier.toDataTypeRefOrError())
 
         val fnParams = function.parameters
         val params = fnParams.filterIndexed { index, _ ->
             index != fnParams.lastIndex || configureLambdas.getTypeConfiguredByLambda(returnTypeClassifier) == null
         }.map { dataParameter(function, it, function.returnType.toKClass(), semanticsFromSignature, preIndex) }
 
-        return DataTopLevelFunction(
+        return DataTopLevelFunctionImpl(
             function.javaMethod!!.declaringClass.`package`.name,
             function.name,
             params,
@@ -197,7 +202,7 @@ class DefaultFunctionExtractor(
         val paramType = fnParam.type
         checkInScope(paramType, preIndex)
         val paramSemantics = getParameterSemantics(functionSemantics, function, fnParam, returnClass, preIndex)
-        return DataParameter(fnParam.name, paramType.toDataTypeRefOrError(), fnParam.isOptional, paramSemantics)
+        return DataParameterImpl(fnParam.name, paramType.toDataTypeRefOrError(), fnParam.isOptional, paramSemantics)
     }
 
     private
@@ -217,7 +222,7 @@ class DefaultFunctionExtractor(
                 preIndex.getAllProperties(returnClass).any { it.name == propertyName }
             if (isPropertyLike) {
                 val storeProperty = checkNotNull(preIndex.getProperty(returnClass, propertyName))
-                return ParameterSemantics.StoreValueInProperty(storeProperty)
+                return ParameterSemanticsImpl.StoreValueInPropertyImpl(storeProperty)
             }
         }
         return ParameterSemantics.Unknown
@@ -234,7 +239,7 @@ class DefaultFunctionExtractor(
         return when {
             function.annotations.any { it is Builder } -> {
                 check(inType != null)
-                FunctionSemantics.Builder(returnTypeClassifier.toDataTypeRefOrError())
+                FunctionSemanticsImpl.BuilderImpl(returnTypeClassifier.toDataTypeRefOrError())
             }
 
             function.annotations.any { it is Adding } -> {
@@ -248,11 +253,11 @@ class DefaultFunctionExtractor(
                 val hasConfigureLambda =
                     configureLambdas.isConfigureLambdaForType(function.returnType, lastParam.type)
                 val blockRequirement = when {
-                    !hasConfigureLambda -> NOT_ALLOWED
-                    hasConfigureLambda && lastParam.isOptional -> OPTIONAL
-                    else -> REQUIRED
+                    !hasConfigureLambda -> NotAllowed
+                    hasConfigureLambda && lastParam.isOptional -> Optional
+                    else -> Required
                 }
-                FunctionSemantics.AddAndConfigure(returnTypeClassifier.toDataTypeRefOrError(), blockRequirement)
+                FunctionSemanticsImpl.AddAndConfigureImpl(returnTypeClassifier.toDataTypeRefOrError(), blockRequirement)
             }
 
             function.annotations.any { it is Configuring } -> {
@@ -273,16 +278,16 @@ class DefaultFunctionExtractor(
                 check(annotationPropertyName.isEmpty() || propertyType != null) { "a property name '$annotationPropertyName' is specified for @Configuring function but no such property was found" }
 
                 val returnType = when (function.returnType) {
-                    typeOf<Unit>() -> FunctionSemantics.AccessAndConfigure.ReturnType.UNIT
-                    propertyType, configuredType -> FunctionSemantics.AccessAndConfigure.ReturnType.CONFIGURED_OBJECT
+                    typeOf<Unit>() -> FunctionSemantics.AccessAndConfigure.ReturnType.Unit
+                    propertyType, configuredType -> FunctionSemantics.AccessAndConfigure.ReturnType.ConfiguredObject
                     else -> error("cannot infer the return type of a configuring function; it must be Unit or the configured object type")
                 }
                 check(function.parameters.filter { it != function.instanceParameter }.size == 1) { "a configuring function may not accept any other parameters" }
-                val accessor = if (property != null) ConfigureAccessor.Property(property) else ConfigureAccessor.ConfiguringLambdaArgument(configuredType.toDataTypeRefOrError())
-                FunctionSemantics.AccessAndConfigure(accessor, returnType)
+                val accessor = if (property != null) ConfigureAccessorImpl.PropertyImpl(property) else ConfigureAccessorImpl.ConfiguringLambdaArgumentImpl(configuredType.toDataTypeRefOrError())
+                FunctionSemanticsImpl.AccessAndConfigureImpl(accessor, returnType)
             }
 
-            else -> FunctionSemantics.Pure(returnTypeClassifier.toDataTypeRefOrError())
+            else -> FunctionSemanticsImpl.PureImpl(returnTypeClassifier.toDataTypeRefOrError())
         }
     }
 

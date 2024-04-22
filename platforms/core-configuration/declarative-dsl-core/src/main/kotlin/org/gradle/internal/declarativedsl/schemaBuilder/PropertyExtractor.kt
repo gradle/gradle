@@ -19,8 +19,8 @@ package org.gradle.internal.declarativedsl.schemaBuilder
 import org.gradle.declarative.dsl.model.annotations.AccessFromCurrentReceiverOnly
 import org.gradle.declarative.dsl.model.annotations.HasDefaultValue
 import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl
-import org.gradle.internal.declarativedsl.analysis.DataProperty
-import org.gradle.internal.declarativedsl.analysis.DataTypeRef
+import org.gradle.internal.declarativedsl.schema.DataProperty
+import org.gradle.internal.declarativedsl.schema.DataTypeRef
 import java.util.Locale
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
@@ -103,7 +103,7 @@ class DefaultPropertyExtractor(private val includeMemberFilter: MemberFilter = i
             val isDirectAccessOnly = getter.annotations.any { it is AccessFromCurrentReceiverOnly }
             val setter = functionsByName["set$nameAfterGet"]?.find { fn -> fn.parameters.singleOrNull { it != fn.instanceParameter }?.type == getter.returnType }
             val mode = run {
-                if (setter != null) DataProperty.PropertyMode.READ_WRITE else DataProperty.PropertyMode.READ_ONLY
+                if (setter != null) DataProperty.PropertyMode.ReadWrite else DataProperty.PropertyMode.ReadOnly
             }
             CollectedPropertyInformation(propertyName, getter.returnType, type, mode, true, isHidden, isDirectAccessOnly, listOfNotNull(getter, setter))
         }
@@ -127,7 +127,7 @@ class DefaultPropertyExtractor(private val includeMemberFilter: MemberFilter = i
             property.name,
             property.returnType,
             property.returnType.toDataTypeRefOrError(),
-            if (isReadOnly) DataProperty.PropertyMode.READ_ONLY else DataProperty.PropertyMode.READ_WRITE,
+            if (isReadOnly) DataProperty.PropertyMode.ReadOnly else DataProperty.PropertyMode.ReadWrite,
             hasDefaultValue = run {
                 isReadOnly || property.annotationsWithGetters.any { it is HasDefaultValue }
             },

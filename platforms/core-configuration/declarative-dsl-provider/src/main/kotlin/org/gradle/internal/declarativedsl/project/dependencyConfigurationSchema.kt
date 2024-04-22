@@ -20,18 +20,19 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.dsl.DependencyCollector
 import org.gradle.api.artifacts.dsl.DependencyHandler
-import org.gradle.internal.declarativedsl.analysis.DataConstructor
-import org.gradle.internal.declarativedsl.analysis.DataMemberFunction
-import org.gradle.internal.declarativedsl.analysis.DataParameter
-import org.gradle.internal.declarativedsl.analysis.DataTopLevelFunction
-import org.gradle.internal.declarativedsl.analysis.FunctionSemantics
-import org.gradle.internal.declarativedsl.analysis.FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement.NOT_ALLOWED
-import org.gradle.internal.declarativedsl.analysis.ParameterSemantics
+import org.gradle.internal.declarativedsl.analysis.DataMemberFunctionImpl
+import org.gradle.internal.declarativedsl.analysis.DataParameterImpl
+import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsImpl
 import org.gradle.internal.declarativedsl.analysis.ParameterValueBinding
-import org.gradle.internal.declarativedsl.analysis.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaComponent
 import org.gradle.internal.declarativedsl.mappingToJvm.DeclarativeRuntimeFunction
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeFunctionResolver
+import org.gradle.internal.declarativedsl.schema.DataConstructor
+import org.gradle.internal.declarativedsl.schema.DataParameter
+import org.gradle.internal.declarativedsl.schema.DataTopLevelFunction
+import org.gradle.internal.declarativedsl.schema.FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement.NotAllowed
+import org.gradle.internal.declarativedsl.schema.ParameterSemantics
+import org.gradle.internal.declarativedsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.schemaBuilder.DataSchemaBuilder
 import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.toDataTypeRef
@@ -56,10 +57,10 @@ class DependencyConfigurationsComponent(
     val configurations = DependencyConfigurations(project.configurations.names.toList())
 
     private
-    val gavDependencyParam = DataParameter("dependency", String::class.toDataTypeRef(), false, ParameterSemantics.Unknown)
+    val gavDependencyParam = DataParameterImpl("dependency", String::class.toDataTypeRef(), false, ParameterSemantics.Unknown)
 
     private
-    val projectDependencyParam = DataParameter("dependency", ProjectDependency::class.toDataTypeRef(), false, ParameterSemantics.Unknown)
+    val projectDependencyParam = DataParameterImpl("dependency", ProjectDependency::class.toDataTypeRef(), false, ParameterSemantics.Unknown)
 
     private
     val dependencyCollectorFunctionExtractorAndRuntimeResolver = DependencyCollectorFunctionExtractorAndRuntimeResolver(gavDependencyParam, projectDependencyParam)
@@ -87,12 +88,12 @@ class DependencyFunctionsExtractor(private val configurations: DependencyConfigu
     override fun memberFunctions(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<SchemaMemberFunction> =
         if (kClass == RestrictedDependenciesHandler::class) {
             configurations.configurationNames.map { configurationName ->
-                DataMemberFunction(
+                DataMemberFunctionImpl(
                     kClass.toDataTypeRef(),
                     configurationName,
                     listOf(projectDependencyParam),
                     false,
-                    FunctionSemantics.AddAndConfigure(ProjectDependency::class.toDataTypeRef(), NOT_ALLOWED)
+                    FunctionSemanticsImpl.AddAndConfigureImpl(ProjectDependency::class.toDataTypeRef(), NotAllowed)
                 )
             }
         } else emptyList()

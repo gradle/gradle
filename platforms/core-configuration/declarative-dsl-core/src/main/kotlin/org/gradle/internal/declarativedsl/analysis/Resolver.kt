@@ -2,6 +2,8 @@ package org.gradle.internal.declarativedsl.analysis
 
 import org.gradle.internal.declarativedsl.language.Block
 import org.gradle.internal.declarativedsl.language.Import
+import org.gradle.internal.declarativedsl.schema.AnalysisSchema
+import org.gradle.internal.declarativedsl.schema.FqName
 
 
 interface Resolver {
@@ -31,7 +33,7 @@ class ResolverImpl(
         analysisContext: AnalysisContext
     ): Map<String, FqName> = buildMap {
         trees.forEach { import ->
-            val fqn = FqName(
+            val fqn = FqNameImpl(
                 import.name.nameParts.dropLast(1).joinToString("."), import.name.nameParts.last()
             )
 

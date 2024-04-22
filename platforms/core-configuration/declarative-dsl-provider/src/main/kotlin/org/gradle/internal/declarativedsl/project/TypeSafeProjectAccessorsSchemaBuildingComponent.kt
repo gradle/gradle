@@ -18,11 +18,11 @@ package org.gradle.internal.declarativedsl.project
 
 import org.gradle.api.Project
 import org.gradle.api.internal.initialization.ClassLoaderScope
-import org.gradle.internal.declarativedsl.analysis.DataProperty
-import org.gradle.internal.declarativedsl.analysis.DataTypeRef
-import org.gradle.internal.declarativedsl.analysis.FqName
+import org.gradle.internal.declarativedsl.analysis.DataTypeRefImpl
+import org.gradle.internal.declarativedsl.analysis.FqNameImpl
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaComponent
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimePropertyResolver
+import org.gradle.internal.declarativedsl.schema.DataProperty
 import org.gradle.internal.declarativedsl.schemaBuilder.CollectedPropertyInformation
 import org.gradle.internal.declarativedsl.schemaBuilder.DefaultPropertyExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.PropertyExtractor
@@ -55,8 +55,8 @@ class TypesafeProjectAccessorsComponent(targetScope: ClassLoaderScope) : Evaluat
         CollectedPropertyInformation(
             "projects",
             projectAccessorsClass.createType(),
-            returnType = DataTypeRef.Name(FqName.parse(projectAccessorsClass.qualifiedName!!)),
-            propertyMode = DataProperty.PropertyMode.READ_ONLY,
+            returnType = DataTypeRefImpl.NameImpl(FqNameImpl.parse(projectAccessorsClass.qualifiedName!!)),
+            propertyMode = DataProperty.PropertyMode.ReadOnly,
             hasDefaultValue = true,
             isHiddenInDeclarativeDsl = false,
             isDirectAccessOnly = false,

@@ -24,6 +24,7 @@ dependencies {
     api(project(":core-api"))
     api(project(":declarative-dsl-api"))
     api(project(":declarative-dsl-core"))
+    api(project(":declarative-dsl-schema-api"))
     api(libs.futureKotlin("stdlib"))
     api(libs.inject)
 
