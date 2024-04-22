@@ -26,6 +26,7 @@ dependencies {
     api(project(":problems-api"))
     api(project(":platform-base"))
     api(project(":toolchains-jvm"))
+    api(project(":toolchains-jvm-shared"))
     api(project(":workers"))
     api(project(":worker-processes"))
 
@@ -65,7 +66,7 @@ dependencies {
     testRuntimeOnly(project(":distributions-core")) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-core"))
+    integTestDistributionRuntimeOnly(project(":distributions-jvm"))
 }
 
 packageCycles {

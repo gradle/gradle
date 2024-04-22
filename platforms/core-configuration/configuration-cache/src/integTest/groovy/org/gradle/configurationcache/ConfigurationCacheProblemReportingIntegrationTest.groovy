@@ -22,6 +22,7 @@ import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.invocation.Gradle
 import org.gradle.invocation.DefaultGradle
 import spock.lang.Ignore
+import spock.lang.Issue
 
 import static org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheProblemsFixture.resolveConfigurationCacheReport
 import static org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheProblemsFixture.resolveConfigurationCacheReportDirectory
@@ -251,8 +252,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         failure.assertHasLineNumber(4)
         failure.assertHasDescription("Configuration cache state could not be cached: field `prop` of task `:broken` of type `BrokenTaskType`: error writing value of type 'BrokenSerializable'")
         failure.assertHasCause("BOOM")
-        problems.assertResultHasProblems(failure) {
-        }
+        problems.assertResultHasProblems(failure)
 
         when:
         configurationCacheFails WARN_PROBLEMS_CLI_OPT, 'broken'
@@ -268,8 +268,57 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         failure.assertHasLineNumber(4)
         failure.assertHasDescription("Configuration cache state could not be cached: field `prop` of task `:broken` of type `BrokenTaskType`: error writing value of type 'BrokenSerializable'")
         failure.assertHasCause("BOOM")
-        problems.assertResultHasProblems(failure) {
-        }
+        problems.assertResultHasProblems(failure)
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/13862")
+    def "state deserialization errors always halt the build and includes the cause"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+
+        buildFile << """
+            class BrokenSerializable implements java.io.Serializable {
+                private Object readResolve() {
+                    throw new RuntimeException("BOOM")
+                }
+            }
+
+            class BrokenTaskType extends DefaultTask {
+                final prop = new BrokenSerializable()
+            }
+
+            task broken(type: BrokenTaskType)
+        """
+
+        when:
+        configurationCacheFails 'broken'
+
+        then:
+        failure.assertTasksExecuted()
+
+        and:
+        configurationCache.assertStateStored()
+        failure.assertHasFailures(1)
+        failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
+        failure.assertHasLineNumber(4)
+        failure.assertHasDescription("Could not load the value of field `prop` of task `:broken` of type `BrokenTaskType`.")
+        failure.assertHasCause("BOOM")
+        problems.assertResultHasProblems(failure)
+
+        when:
+        configurationCacheFails WARN_PROBLEMS_CLI_OPT, 'broken'
+
+        then:
+        failure.assertTasksExecuted()
+
+        and:
+        configurationCache.assertStateLoadFailed()
+        failure.assertHasFailures(1)
+        failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
+        failure.assertHasLineNumber(4)
+        failure.assertHasDescription("Could not load the value of field `prop` of task `:broken` of type `BrokenTaskType`.")
+        failure.assertHasCause("BOOM")
+        problems.assertResultHasProblems(failure)
     }
 
     def "state serialization errors always halts the build and earlier problems reported"() {
@@ -1058,9 +1107,9 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCacheFails("ok", "-DPROP=12")
 
         then:
-        outputContains("Configuration cache entry discarded with 17 problems")
+        outputContains("Configuration cache entry discarded with 18 problems")
         problems.assertFailureHasProblems(failure) {
-            totalProblemsCount = 17
+            totalProblemsCount = 18
             withInput("Script 'script.gradle': system property 'PROP'")
             withProblem("Script 'script.gradle': line 4: registration of listener on 'Gradle.buildFinished' is unsupported")
         }

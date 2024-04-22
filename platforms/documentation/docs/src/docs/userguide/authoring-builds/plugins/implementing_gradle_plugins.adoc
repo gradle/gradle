@@ -40,35 +40,35 @@ Here is a breakdown of all options for implementing Gradle plugins:
 
 |1
 |Kotlin DSL
-|Script
+|Script plugin
 |in a `.gradle.kts` file as an abstract class that implements the `apply(Project project)` method of the `Plugin<Project>` interface.
-|
+|`apply(from = "name-of-script")`
 |Nofootnote:1[<<custom_plugins#sec:build_script_plugins,*Script plugins*>> are hard to maintain, test, and do not support defining new reusable types. They are not recommended.]
 
 |2
 |Groovy DSL
-|Script
+|Script plugin
 |in a `.gradle` file as an abstract class that implements the `apply(Project project)` method of the `Plugin<Project>` interface.
-|
+|`apply from: 'name-of-script'`
 |Nofootnote:1[]
 
 |3
 |Kotlin DSL
-|Pre-compiled script
+|Pre-compiled script plugin
 |a `.gradle.kts` file
 |`id("kotlin-dsl")`
 |Yesfootnote:3[It is recommended to use a statically-typed language like *Java* or *Kotlin* for implementing plugins to reduce the likelihood of binary incompatibilities. If using Groovy, consider using `@groovy.transform.CompileStatic`.]
 
 |4
 |Groovy DSL
-|Pre-compiled script
+|Pre-compiled script plugin
 |a `.gradle` file
 |`id("groovy-gradle-plugin")`
 |Nofootnote:2[<<custom_plugins#sec:precompile_script_plugin,*Pre-compiled script*>> plugins are best used as <<custom_plugins#sec:convention_plugins,*convention plugins*>> written in Kotlin DSL or Java.]
 
 |5
 |Kotlin DSL
-|Binary
+|Binary plugin
 |a `.gradle.kts` file
 |`id("kotlin-dsl")` +
 `id("com.gradle.plugin-publish")`
@@ -76,7 +76,7 @@ Here is a breakdown of all options for implementing Gradle plugins:
 
 |6
 |Groovy DSL
-|Binary
+|Binary plugin
 |a `.gradle` file
 |`id("groovy-gradle-plugin")` +
 `id("com.gradle.plugin-publish")`
@@ -84,7 +84,7 @@ Here is a breakdown of all options for implementing Gradle plugins:
 
 |7
 |Java
-|Binary
+|Binary plugin
 |an abstract class that implements the `apply(Project project)` method of the `Plugin<Project>` interface.
 |`id("java-gradle-plugin")` +
 `id("com.gradle.plugin-publish")`
@@ -92,7 +92,7 @@ Here is a breakdown of all options for implementing Gradle plugins:
 
 |8
 |Kotlin
-|Binary
+|Binary plugin
 |an abstract class that implements the `apply(Project project)` method of the `Plugin<Project>` interface.
 |`id("java-gradle-plugin")` +
 `id("org.jetbrains.kotlin.jvm")` +
@@ -101,7 +101,7 @@ Here is a breakdown of all options for implementing Gradle plugins:
 
 |9
 |Groovy
-|Binary
+|Binary plugin
 |an abstract class that implements the `apply(Project project)` method of the `Plugin<Project>` interface.
 |`id("java-gradle-plugin")` +
 `id("groovy")` +
@@ -110,7 +110,7 @@ Here is a breakdown of all options for implementing Gradle plugins:
 
 |10
 |Scala
-|Binary
+|Binary plugin
 |an abstract class that implements the `apply(Project project)` method of the `Plugin<Project>` interface.
 |`id("java-gradle-plugin")` +
 `id("scala")` +

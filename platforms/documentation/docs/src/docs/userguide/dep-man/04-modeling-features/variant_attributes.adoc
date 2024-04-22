@@ -20,7 +20,7 @@ As explained in the section on <<variant_model.adoc#sec:variant-aware-matching,v
 As a user of Gradle, attributes are often hidden as implementation details.
 But it might be useful to understand the _standard attributes_ defined by Gradle and its core plugins.
 
-As a plugin author, these attributes, and the way they are defined, can serve as a basis for <<#sec:declaring_attributes,building your own set of attributes>> in your eco system plugin.
+As a plugin author, these attributes, and the way they are defined, can serve as a basis for <<#sec:declaring_attributes,building your own set of attributes>> in your ecosystem plugin.
 
 [[sec:standard_attributes]]
 == Standard attributes defined by Gradle
@@ -193,7 +193,7 @@ include::sample[dir="snippets/dependencyManagement/attributeMatching/groovy",fil
 ====
 
 Attribute types support most Java primitive classes; such as `String` and `Integer`; Or anything extending `org.gradle.api.Named`.
-Attributes must be declared in the _attribute schema_ found on the `dependencies` handler:
+Attributes should always be declared in the _attribute schema_ found on the `dependencies` handler:
 
 .Registering attributes on the attributes schema
 ====
@@ -201,7 +201,9 @@ include::sample[dir="snippets/dependencyManagement/attributeMatching/kotlin",fil
 include::sample[dir="snippets/dependencyManagement/attributeMatching/groovy",files="build.gradle[tags=register-attributes]"]
 ====
 
-Then configurations can be configured to set values for attributes:
+Registering an attribute with the schema is required in order to use Compatibility and Disambiguation rules that can resolve ambiguity between multiple selectable variants during <<#sec:attribute_matching,Attribute Matching>>.
+
+Each configuration has a container of attributes.  Attributes can be configured to set values:
 
 .Setting attributes on configurations
 ====
@@ -217,6 +219,7 @@ include::sample[dir="snippets/dependencyManagement/attributeMatching/kotlin",fil
 include::sample[dir="snippets/dependencyManagement/attributeMatching/groovy",files="build.gradle[tags=named-attributes]"]
 ====
 
+[[sec:attribute_matching]]
 == Attribute matching
 
 [[sec:abm_compatibility_rules]]

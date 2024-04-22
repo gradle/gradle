@@ -22,7 +22,7 @@ import org.gradle.api.internal.file.MaybeCompressedFileResource;
 import org.gradle.api.internal.file.TestFiles;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.resources.internal.LocalResourceAdapter;
-import org.gradle.cache.internal.TestCaches;
+import org.gradle.cache.internal.TestDecompressionCoordinators;
 import org.gradle.test.fixtures.file.TestFile;
 import org.junit.Test;
 
@@ -52,7 +52,7 @@ public class TarFileTreeTest extends AbstractArchiveFileTreeTest {
             fileSystem(),
             directoryFileTreeFactory(),
             fileHasher(),
-            TestCaches.decompressionCache(tempDirProvider.getTestDirectory().createDir("cache-dir")),
+            TestDecompressionCoordinators.decompressionCoordinator(tempDirProvider.getTestDirectory().createDir("cache-dir")),
             TestFiles.tmpDirTemporaryFileProvider(tempDirProvider.getTestDirectory()));
     }
 

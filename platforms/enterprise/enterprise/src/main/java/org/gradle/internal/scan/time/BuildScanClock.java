@@ -16,6 +16,9 @@
 
 package org.gradle.internal.scan.time;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 /**
  * A view of the Gradle runtime's clock used by build scans.
  *
@@ -23,6 +26,7 @@ package org.gradle.internal.scan.time;
  *
  * @since 4.2
  */
+@ServiceScope(Scope.BuildTree.class)
 public interface BuildScanClock {
 
     /**

@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.external.descriptor.Artifact;
-import org.gradle.internal.component.external.model.ConfigurationBoundExternalDependencyMetadata;
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
@@ -89,14 +88,10 @@ class IvyConfigurationHelper {
         ImmutableList.Builder<ModuleDependencyMetadata> filteredDependencies = ImmutableList.builder();
         for (IvyDependencyDescriptor dependency : dependencies) {
             if (include(dependency, config.getName(), config.getHierarchy())) {
-                filteredDependencies.add(contextualize(config, componentId, dependency));
+                filteredDependencies.add(new IvyDependencyMetadata(config, dependency));
             }
         }
         return filteredDependencies.build();
-    }
-
-    ModuleDependencyMetadata contextualize(ConfigurationMetadata config, ModuleComponentIdentifier componentId, IvyDependencyDescriptor incoming) {
-        return new ConfigurationBoundExternalDependencyMetadata(config, componentId, incoming);
     }
 
     private boolean include(IvyDependencyDescriptor dependency, String configName, Collection<String> hierarchy) {

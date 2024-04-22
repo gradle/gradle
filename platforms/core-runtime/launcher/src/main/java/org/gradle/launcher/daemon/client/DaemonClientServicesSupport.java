@@ -16,7 +16,6 @@
 package org.gradle.launcher.daemon.client;
 
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.UUIDGenerator;
@@ -25,7 +24,6 @@ import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.progress.DefaultProgressLoggerFactory;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.services.ProgressLoggingBridge;
-import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.DefaultBuildOperationIdFactory;
 import org.gradle.internal.remote.internal.OutgoingConnector;
@@ -35,11 +33,14 @@ import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.time.Time;
-import org.gradle.launcher.daemon.context.DaemonCompatibilitySpec;
-import org.gradle.launcher.daemon.context.DaemonContext;
-import org.gradle.launcher.daemon.context.DaemonContextBuilder;
+import org.gradle.launcher.daemon.configuration.DaemonParameters;
+import org.gradle.launcher.daemon.context.DaemonRequestContext;
 import org.gradle.launcher.daemon.protocol.DaemonMessageSerializer;
+import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
+import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
+import org.gradle.launcher.daemon.toolchain.DaemonClientToolchainServices;
+import org.gradle.launcher.daemon.toolchain.DaemonJavaToolchainQueryService;
 
 import java.io.InputStream;
 import java.util.UUID;
@@ -52,9 +53,13 @@ import java.util.UUID;
 public abstract class DaemonClientServicesSupport extends DefaultServiceRegistry {
     private final InputStream buildStandardInput;
 
-    public DaemonClientServicesSupport(ServiceRegistry parent, InputStream buildStandardInput) {
+    public DaemonClientServicesSupport(ServiceRegistry parent, DaemonParameters daemonParameters, DaemonRequestContext requestContext, InputStream buildStandardInput) {
         super(parent);
         this.buildStandardInput = buildStandardInput;
+        add(daemonParameters);
+        add(requestContext);
+        addProvider(new DaemonRegistryServices(daemonParameters.getBaseDir()));
+        addProvider(new DaemonClientToolchainServices(daemonParameters.getToolchainConfiguration()));
     }
 
     protected InputStream getBuildStandardInput() {
@@ -73,29 +78,6 @@ public abstract class DaemonClientServicesSupport extends DefaultServiceRegistry
         return new ReportDaemonStatusClient(registry, connector, idGenerator, documentationRegistry);
     }
 
-    protected DaemonClient createDaemonClient(IdGenerator<UUID> idGenerator) {
-        DaemonCompatibilitySpec matchingContextSpec = new DaemonCompatibilitySpec(get(DaemonContext.class));
-        return new DaemonClient(
-                get(DaemonConnector.class),
-                get(OutputEventListener.class),
-                matchingContextSpec,
-                buildStandardInput,
-                get(ExecutorFactory.class),
-                idGenerator,
-                get(ProcessEnvironment.class));
-    }
-
-    DaemonContext createDaemonContext(ProcessEnvironment processEnvironment) {
-        DaemonContextBuilder builder = new DaemonContextBuilder(processEnvironment);
-        configureDaemonContextBuilder(builder);
-        return builder.create();
-    }
-
-    // subclass hook, allowing us to fake the context for testing
-    protected void configureDaemonContextBuilder(DaemonContextBuilder builder) {
-
-    }
-
     IdGenerator<UUID> createIdGenerator() {
         return new UUIDGenerator();
     }
@@ -112,11 +94,15 @@ public abstract class DaemonClientServicesSupport extends DefaultServiceRegistry
         return new DefaultBuildOperationIdFactory();
     }
 
-    ProgressLoggerFactory createProgressLoggerFactory(Clock clock, BuildOperationIdFactory buildOperationIdFactory) {
-        return new DefaultProgressLoggerFactory(new ProgressLoggingBridge(get(OutputEventListener.class)), clock, buildOperationIdFactory);
+    ProgressLoggerFactory createProgressLoggerFactory(Clock clock, BuildOperationIdFactory buildOperationIdFactory, OutputEventListener outputEventListener) {
+        return new DefaultProgressLoggerFactory(new ProgressLoggingBridge(outputEventListener), clock, buildOperationIdFactory);
     }
 
     DaemonConnector createDaemonConnector(DaemonRegistry daemonRegistry, OutgoingConnector outgoingConnector, DaemonStarter daemonStarter, ListenerManager listenerManager, ProgressLoggerFactory progressLoggerFactory, Serializer<BuildAction> buildActionSerializer) {
         return new DefaultDaemonConnector(daemonRegistry, outgoingConnector, daemonStarter, listenerManager.getBroadcaster(DaemonStartListener.class), progressLoggerFactory, DaemonMessageSerializer.create(buildActionSerializer));
+    }
+
+    DaemonStarter createDaemonStarter(DaemonDir daemonDir, DaemonParameters daemonParameters, DaemonGreeter daemonGreeter, JvmVersionValidator jvmVersionValidator, DaemonJavaToolchainQueryService daemonJavaToolchainQueryService) {
+        return new DefaultDaemonStarter(daemonDir, daemonParameters, daemonGreeter, jvmVersionValidator, daemonJavaToolchainQueryService);
     }
 }

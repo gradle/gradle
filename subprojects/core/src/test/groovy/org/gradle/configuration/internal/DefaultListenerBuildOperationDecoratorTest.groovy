@@ -35,8 +35,8 @@ import org.gradle.internal.code.DefaultUserCodeApplicationContext
 import org.gradle.internal.code.UserCodeApplicationId
 import org.gradle.internal.code.UserCodeSource
 import org.gradle.internal.event.DefaultListenerManager
-import org.gradle.internal.operations.TestBuildOperationExecutor
-import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.operations.TestBuildOperationRunner
+import org.gradle.internal.service.scopes.Scope
 import spock.lang.Specification
 
 class DefaultListenerBuildOperationDecoratorTest extends Specification {
@@ -51,9 +51,9 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
 
     private static interface ComboListener extends BuildListener, ProjectEvaluationListener, TaskExecutionGraphListener, Other {}
 
-    def buildOperationExecutor = new TestBuildOperationExecutor()
+    def buildOperationRunner = new TestBuildOperationRunner()
     def context = new DefaultUserCodeApplicationContext()
-    def decorator = new DefaultListenerBuildOperationDecorator(buildOperationExecutor, context)
+    def decorator = new DefaultListenerBuildOperationDecorator(buildOperationRunner, context)
 
     def 'ignores implementers of InternalListener'() {
         given:
@@ -569,7 +569,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
 
     def 'decorated listeners can be removed from listener manager'() {
         given:
-        def listenerManager = new DefaultListenerManager(Scopes.Build)
+        def listenerManager = new DefaultListenerManager(Scope.Build)
         def gradle = Mock(Gradle)
         boolean called = false
         def undecorated = new BuildAdapter() {
@@ -601,16 +601,16 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
     }
 
     private void resetOps() {
-        buildOperationExecutor.reset()
+        buildOperationRunner.reset()
     }
 
     private void verifyNoOp() {
-        assert buildOperationExecutor.operations.empty
+        assert buildOperationRunner.operations.empty
     }
 
     private void verifyExpectedOp(String expectedRegistrationPoint, UserCodeApplicationId id, Throwable failure = null) {
-        assert buildOperationExecutor.log.records.size() == 1
-        def record = buildOperationExecutor.log.records.first()
+        assert buildOperationRunner.log.records.size() == 1
+        def record = buildOperationRunner.log.records.first()
         def op = record.descriptor
         assert op.displayName == "Execute $expectedRegistrationPoint listener"
         assert (op.details as ExecuteListenerBuildOperationType.Details).applicationId == id.longValue()

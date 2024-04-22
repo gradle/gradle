@@ -25,14 +25,20 @@ import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.ConfigurableFileTree
 import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.file.DefaultFilePropertyFactory
+import org.gradle.api.internal.file.DefaultProjectLayout
+import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileOperations
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.temp.DefaultTemporaryFileProvider
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.provider.DefaultPropertyFactory
 import org.gradle.api.internal.provider.PropertyHost
+import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.tasks.util.internal.PatternSets
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator
 import org.gradle.internal.Factory
 import org.gradle.internal.instantiation.InstantiatorFactory
@@ -48,6 +54,8 @@ import org.gradle.util.TestUtil
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
+
+import javax.annotation.Nullable
 
 @UsesNativeServices
 class DefaultProjectSpec extends Specification {
@@ -98,6 +106,20 @@ class DefaultProjectSpec extends Specification {
 
         then:
         1 * project.artifacts.add('foo', 'bar')
+    }
+
+    def "can view as an IsolatedProject"() {
+        given:
+        def project = project('root', null, Stub(GradleInternal))
+
+        when:
+        def isolatedProject = project.isolated
+
+        then:
+        isolatedProject.name == 'root'
+        isolatedProject.path == ':'
+        isolatedProject.projectDirectory === project.layout.projectDirectory
+        isolatedProject.rootProject === isolatedProject
     }
 
     def "has useful toString and displayName and paths"() {
@@ -157,7 +179,7 @@ class DefaultProjectSpec extends Specification {
         nestedChild2.identityPath == Path.path(":nested:child1:child2")
     }
 
-    ProjectInternal project(String name, ProjectInternal parent, GradleInternal build) {
+    ProjectInternal project(String name, @Nullable ProjectInternal parent, GradleInternal build) {
         def fileOperations = Stub(FileOperations) {
             fileTree(_) >> TestFiles.fileOperations(tmpDir.testDirectory, new DefaultTemporaryFileProvider(() -> new File(tmpDir.testDirectory, "cache"))).fileTree('tree')
         }
@@ -182,11 +204,20 @@ class DefaultProjectSpec extends Specification {
         serviceRegistry.add(CrossProjectConfigurator, Mock(CrossProjectConfigurator))
         serviceRegistry.add(ListenerBuildOperationDecorator, Mock(ListenerBuildOperationDecorator))
         serviceRegistry.add(ArtifactHandler, Mock(ArtifactHandler))
+        serviceRegistry.add(FileResolver, Stub(FileResolver))
+        serviceRegistry.add(FileCollectionFactory, Stub(FileCollectionFactory))
 
         def antBuilder = Mock(AntBuilder)
         serviceRegistry.addProvider(new Object() {
             Factory<AntBuilder> createAntBuilder() {
                 return () -> antBuilder
+            }
+        })
+
+        serviceRegistry.addProvider(new Object() {
+            DefaultProjectLayout createProjectLayout(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
+                def filePropertyFactory = new DefaultFilePropertyFactory(PropertyHost.NO_OP, fileResolver, fileCollectionFactory)
+                return new DefaultProjectLayout(fileResolver.resolve("."), fileResolver, DefaultTaskDependencyFactory.withNoAssociatedProject(), PatternSets.getNonCachingPatternSetFactory(), PropertyHost.NO_OP, fileCollectionFactory, filePropertyFactory, filePropertyFactory)
             }
         })
 

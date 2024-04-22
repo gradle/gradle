@@ -89,6 +89,7 @@ dependencies {
     api(project(":build-option"))
     api(project(":cli"))
     api(project(":core-api"))
+    api(project(":declarative-dsl-api"))
     api(project(":enterprise-logging"))
     api(project(":enterprise-operations"))
     api(project(":execution"))
@@ -201,6 +202,9 @@ dependencies {
     testFixturesApi(project(":resources")) {
         because("test fixtures expose file resource types")
     }
+    testFixturesApi(testFixtures(project(":build-operations"))) {
+        because("test fixtures expose test build operations runner")
+    }
     testFixturesApi(testFixtures(project(":persistent-cache"))) {
         because("test fixtures expose cross-build cache factory")
     }
@@ -299,7 +303,3 @@ tasks.compileTestGroovy {
 integTest.usesJavadocCodeSnippets = true
 testFilesCleanup.reportOnly = true
 
-// Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
-tasks.configCacheIntegTest {
-    systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
-}

@@ -36,6 +36,67 @@ trait AbstractTaskContainerIntegrationTest {
 
 class TaskContainerIntegrationTest extends AbstractDomainObjectContainerIntegrationTest implements AbstractTaskContainerIntegrationTest {
 
+    @Issue("https://github.com/gradle/gradle/issues/28347")
+    def "filtering is lazy (`#filtering` + `#configAction`)"() {
+        given:
+        buildFile """
+            tasks.configureEach { println("configured \$path") }
+
+            tasks.$filtering.$configAction
+
+            tasks.register("foo", Copy)
+            tasks.register("bar", Delete)
+        """
+
+        when:
+        succeeds "help"
+
+        then:
+        // help task is realized and configured
+        outputContains("configured :help")
+
+        // are "built-in" tasks realized and configured?
+        if (realizesBuiltInTasks) {
+            outputContains("configured :tasks")
+            outputContains("configured :projects")
+        } else {
+            outputDoesNotContain("configured :tasks")
+            outputDoesNotContain("configured :projects")
+        }
+
+        // are explicitly registered tasks realized and configured?
+        if (realizesExplicitTasks) {
+            outputContains("configured :foo")
+            outputContains("configured :bar")
+        } else {
+            outputDoesNotContain("configured :foo")
+            outputDoesNotContain("configured :bar")
+        }
+
+        where:
+        filtering                           | configAction        | realizesBuiltInTasks  | realizesExplicitTasks
+
+        "named { it == \"help\" }"          | "all {}"            | true                  | true
+        "named { it == \"help\" }"          | "forEach {}"        | true                  | false
+        "named { it == \"help\" }"          | "configureEach {}"  | false                 | false
+        "named { it == \"help\" }"          | "toList()"          | true                  | false
+        "named { it == \"help\" }"          | "iterator()"        | true                  | false
+        // TODO: no other tasks should be realized, that was the intent of having the new `named()` method
+
+        "matching { it.name == \"help\" }"  | "all {}"            | true                  | true
+        "matching { it.name == \"help\" }"  | "forEach {}"        | true                  | false
+        "matching { it.name == \"help\" }"  | "configureEach {}"  | false                 | false
+        "matching { it.name == \"help\" }"  | "toList()"          | true                  | false
+        "matching { it.name == \"help\" }"  | "iterator()"        | true                  | false
+
+        "matching { it.group == \"help\" }" | "all {}"            | true                  | true
+        "matching { it.group == \"help\" }" | "forEach {}"        | true                  | false
+        "matching { it.group == \"help\" }" | "configureEach {}"  | false                 | false
+        "matching { it.group == \"help\" }" | "toList()"          | true                  | false
+        "matching { it.group == \"help\" }" | "iterator()"        | true                  | false
+
+    }
+
     def "chained lookup of tasks.withType.matching"() {
         buildFile """
             tasks.withType(Copy).matching({ it.name.endsWith("foo") }).all { task ->

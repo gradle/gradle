@@ -37,8 +37,8 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.operations.UncategorizedBuildOperations;
 import org.gradle.internal.properties.PropertyValue;
@@ -75,7 +75,7 @@ abstract class AbstractTransformExecution implements UnitOfWork {
     private final TransformStepSubject subject;
 
     private final TransformExecutionListener transformExecutionListener;
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationRunner buildOperationRunner;
     private final BuildOperationProgressEventEmitter progressEventEmitter;
     private final FileCollectionFactory fileCollectionFactory;
 
@@ -91,7 +91,7 @@ abstract class AbstractTransformExecution implements UnitOfWork {
         TransformStepSubject subject,
 
         TransformExecutionListener transformExecutionListener,
-        BuildOperationExecutor buildOperationExecutor,
+        BuildOperationRunner buildOperationRunner,
         BuildOperationProgressEventEmitter progressEventEmitter,
         FileCollectionFactory fileCollectionFactory,
         InputFingerprinter inputFingerprinter
@@ -103,7 +103,7 @@ abstract class AbstractTransformExecution implements UnitOfWork {
         this.subject = subject;
         this.transformExecutionListener = transformExecutionListener;
 
-        this.buildOperationExecutor = buildOperationExecutor;
+        this.buildOperationRunner = buildOperationRunner;
         this.progressEventEmitter = progressEventEmitter;
         this.fileCollectionFactory = fileCollectionFactory;
         this.inputFingerprinter = inputFingerprinter;
@@ -134,7 +134,7 @@ abstract class AbstractTransformExecution implements UnitOfWork {
     }
 
     private WorkOutput executeWithinTransformerListener(ExecutionRequest executionRequest) {
-        TransformExecutionResult result = buildOperationExecutor.call(new CallableBuildOperation<TransformExecutionResult>() {
+        TransformExecutionResult result = buildOperationRunner.call(new CallableBuildOperation<TransformExecutionResult>() {
             @Override
             public TransformExecutionResult call(BuildOperationContext context) {
                 try {
@@ -256,7 +256,7 @@ abstract class AbstractTransformExecution implements UnitOfWork {
 
     @Override
     public void markLegacySnapshottingInputsStarted() {
-        this.operationContext = buildOperationExecutor.start(BuildOperationDescriptor
+        this.operationContext = buildOperationRunner.start(BuildOperationDescriptor
             .displayName("Snapshot transform inputs")
             .name("Snapshot transform inputs")
             .details(SNAPSHOT_TRANSFORM_INPUTS_DETAILS));

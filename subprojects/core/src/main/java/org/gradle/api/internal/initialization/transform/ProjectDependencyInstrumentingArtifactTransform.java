@@ -17,13 +17,18 @@
 package org.gradle.api.internal.initialization.transform;
 
 import org.gradle.api.artifacts.transform.InputArtifact;
+import org.gradle.api.artifacts.transform.TransformOutputs;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Classpath;
+import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
+import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
 import org.gradle.work.DisableCachingByDefault;
 
+import java.io.File;
+
 /**
- * Artifact transform that instruments project based plugins with Gradle instrumentation.
+ * Artifact transform that instruments project based artifacts with Gradle instrumentation.
  */
 @DisableCachingByDefault(because = "Instrumented jars are too big to cache.")
 public abstract class ProjectDependencyInstrumentingArtifactTransform extends BaseInstrumentingArtifactTransform {
@@ -32,4 +37,28 @@ public abstract class ProjectDependencyInstrumentingArtifactTransform extends Ba
     @Classpath
     @InputArtifact
     public abstract Provider<FileSystemLocation> getInput();
+
+    @Override
+    public void transform(TransformOutputs outputs) {
+        File input = getInput().get().getAsFile();
+        doTransform(input, outputs);
+        if (getParameters().getAgentSupported().get()) {
+            doOutputOriginalArtifact(input, outputs);
+        }
+    }
+
+    @Override
+    protected InterceptorTypeRegistryAndFilter provideInterceptorTypeRegistryAndFilter() {
+        return new InterceptorTypeRegistryAndFilter() {
+            @Override
+            public InstrumentationTypeRegistry getRegistry() {
+                return InstrumentationTypeRegistry.EMPTY;
+            }
+
+            @Override
+            public BytecodeInterceptorFilter getFilter() {
+                return BytecodeInterceptorFilter.INSTRUMENTATION_ONLY;
+            }
+        };
+    }
 }

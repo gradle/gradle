@@ -16,9 +16,8 @@
 
 package org.gradle.internal.component.resolution.failure.type;
 
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
-import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
 
 import java.util.List;
@@ -28,14 +27,14 @@ import java.util.List;
  * available that would satisfy a dependency selection request during a variant-aware matching scenario.
  */
 public final class VariantAwareAmbiguousResolutionFailure extends AmbiguousResolutionFailure {
-    private final ComponentGraphResolveMetadata targetComponent;
+    private final ModuleVersionIdentifier targetComponentId;
 
-    public VariantAwareAmbiguousResolutionFailure(AttributesSchemaInternal schema, String requestedName, AttributeContainerInternal requestedAttributes, List<ResolutionCandidateAssessor.AssessedCandidate> candidates, ComponentGraphResolveMetadata targetComponent) {
-        super(schema, requestedName, requestedAttributes, candidates);
-        this.targetComponent = targetComponent;
+    public VariantAwareAmbiguousResolutionFailure(String requestedName, AttributeContainerInternal requestedAttributes, List<ResolutionCandidateAssessor.AssessedCandidate> candidates, ModuleVersionIdentifier targetComponentId) {
+        super(requestedName, requestedAttributes, candidates);
+        this.targetComponentId = targetComponentId;
     }
 
-    public ComponentGraphResolveMetadata getTargetComponent() {
-        return targetComponent;
+    public ModuleVersionIdentifier getTargetComponentId() {
+        return targetComponentId;
     }
 }

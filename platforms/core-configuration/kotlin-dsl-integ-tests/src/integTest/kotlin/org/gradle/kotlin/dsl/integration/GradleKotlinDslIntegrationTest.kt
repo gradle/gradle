@@ -22,7 +22,7 @@ import okhttp3.mockwebserver.MockWebServer
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.kotlin.dsl.embeddedKotlinVersion
+import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.DeepThought
 import org.gradle.kotlin.dsl.fixtures.LightThought
@@ -30,11 +30,14 @@ import org.gradle.kotlin.dsl.fixtures.ZeroThought
 import org.gradle.kotlin.dsl.fixtures.clickableUrlFor
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.kotlin.dsl.support.normaliseLineSeparators
+import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.equalTo
@@ -251,7 +254,8 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
         executer.expectDocumentedDeprecationWarning(
             "The org.gradle.api.plugins.JavaPluginConvention type has been deprecated. " +
                 "This is scheduled to be removed in Gradle 9.0. " +
-                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#java_convention_deprecation")
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#java_convention_deprecation"
+        )
         executer.expectDocumentedDeprecationWarning(
             "The org.gradle.util.WrapUtil type has been deprecated. " +
                 "This is scheduled to be removed in Gradle 9.0. " +
@@ -270,7 +274,8 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
                     "This is scheduled to be removed in Gradle 9.0. " +
                     "Simply remove the call. " +
                     "Consult the upgrading guide for further information: " +
-                    "https://docs.gradle.org/current/userguide/upgrading_version_7.html#for_use_at_configuration_time_deprecation")
+                    "https://docs.gradle.org/current/userguide/upgrading_version_7.html#for_use_at_configuration_time_deprecation"
+            )
         }
 
         assertThat(
@@ -1033,6 +1038,261 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
         assertThat(
             build("-q", "ok").output.trim(),
             equalTo("ok!")
+        )
+    }
+
+    @Test
+    fun `can run a simple task`() {
+        withBuildScript(
+            """
+            import org.gradle.api.*
+            import org.gradle.api.tasks.*
+
+            open class SimpleTask : DefaultTask() {
+                @TaskAction fun run() = println("it works!")
+            }
+
+            task<SimpleTask>("build")
+            """
+        )
+
+        assertThat(
+            build("-q", "build").output,
+            containsString("it works!")
+        )
+    }
+
+    @Test
+    @LeaksFileHandles
+    fun `can apply Groovy script from url`() {
+        withOwnGradleUserHomeDir("we need an empty external resource cache") {
+            val server = HttpServer()
+            server.start()
+
+            val scriptFile = withFile(
+                "script.gradle",
+                """
+                task hello {
+                    doLast {
+                        println "Hello!"
+                    }
+                }
+                """
+            )
+
+            withBuildScript(
+                """
+                apply {
+                    from("${server.uri}/script.gradle")
+                }
+                """
+            )
+
+            server.expectGet("/script.gradle", scriptFile)
+
+            assertThat(
+                build("-q", "hello").output,
+                containsString("Hello!")
+            )
+
+            server.stop()
+
+            assertThat(
+                build("--offline", "-q", "hello").output,
+                containsString("Hello!")
+            )
+        }
+    }
+
+    @Test
+    @LeaksFileHandles
+    fun `can apply Kotlin script from url`() {
+        withOwnGradleUserHomeDir("we need an empty external resource cache") {
+            val server = HttpServer()
+            server.start()
+
+            val scriptFile = withFile(
+
+                "script.gradle.kts",
+                """
+                tasks {
+                    register("hello") {
+                        doLast {
+                            println("Hello!")
+                        }
+                    }
+                }
+                """
+            )
+
+            withBuildScript(
+                """
+            apply {
+                from("${server.uri}/script.gradle.kts")
+            }
+            """
+            )
+
+            server.expectGet("/script.gradle.kts", scriptFile)
+
+            assertThat(
+                build("-q", "hello").output,
+                containsString("Hello!")
+            )
+
+            server.stop()
+
+            assertThat(
+                build("--offline", "-q", "hello").output,
+                containsString("Hello!")
+            )
+        }
+    }
+
+    @Test
+    @ToBeFixedForConfigurationCache(because = "No builders are available to build a model of type 'org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel'")
+    fun `can query KotlinBuildScriptModel`() {
+
+        // This test breaks encapsulation a bit in the interest of ensuring Gradle Kotlin DSL use
+        // of internal APIs is not broken by refactorings on the Gradle side
+        withBuildScript(
+            """
+            import ${KotlinBuildScriptModel::class.qualifiedName}
+            import ${ToolingModelBuilderRegistry::class.qualifiedName}
+
+            abstract class DumpModelTask : DefaultTask() {
+                @get:Inject
+                abstract val builderRegistry: ToolingModelBuilderRegistry
+
+                @TaskAction
+                fun action() {
+                    val modelName = KotlinBuildScriptModel::class.qualifiedName
+                    val builder = builderRegistry.getBuilder(modelName)
+                    val model = builder.buildAll(modelName, project) as KotlinBuildScriptModel
+                    if (model.classPath.any { it.name.startsWith("gradle-kotlin-dsl") }) {
+                        println("gradle-kotlin-dsl!")
+                    }
+                }
+            }
+
+            tasks.register<DumpModelTask>("dumpKotlinBuildScriptModelClassPath")
+            """
+        )
+
+        assertThat(
+            build("-q", "dumpKotlinBuildScriptModelClassPath").output,
+            containsString("gradle-kotlin-dsl!")
+        )
+    }
+
+    @Test
+    fun `can use Kotlin lambda as path notation`() {
+
+        withBuildScript(
+            """
+            task("listFiles") {
+                // via FileResolver
+                val f = file { "cathedral" }
+                // on FileCollection
+                val collection = layout.files(
+                    // single lambda
+                    { "foo" },
+                    // nested deferred
+                    { { "bar" } },
+                    // nested unpacking
+                    { file({ "baz" }) },
+                    // nested both
+                    { { file({ { "bazaar" } }) } }
+                )
+                doLast {
+                    println(f.name)
+                    println(collection.files.map { it.name })
+                }
+            }
+            """
+        )
+
+        assertThat(
+            build("-q", "listFiles").output,
+            allOf(
+                containsString("cathedral"),
+                containsString("[foo, bar, baz, bazaar]")
+            )
+        )
+    }
+
+    @Test
+    fun `can use Kotlin lambda as input property`() {
+
+        withBuildScript(
+            """
+            import org.gradle.api.*
+            import org.gradle.api.tasks.*
+
+            abstract class PrintInputToFile : DefaultTask() {
+                @get:Internal
+                abstract val inputSource: Property<String>
+                @get:Input
+                val input = { inputSource.get() }
+                @get:OutputFile
+                abstract val outputFile: RegularFileProperty
+
+                @TaskAction fun run() {
+                    outputFile.get().asFile.writeText(input() as String)
+                }
+            }
+
+            task<PrintInputToFile>("writeInputToFile") {
+                inputSource = providers.gradleProperty("inputString")
+                outputFile = project.layout.buildDirectory.file("output.txt")
+            }
+            """
+        )
+
+        val taskName = ":writeInputToFile"
+
+        build(taskName, "-PinputString=string1").assertTasksExecutedAndNotSkipped(taskName)
+
+        build(taskName, "-PinputString=string1").assertTasksSkipped(taskName)
+
+        build(taskName, "-PinputString=string2").assertTasksExecutedAndNotSkipped(taskName)
+    }
+
+    @Test
+    @Issue("https://youtrack.jetbrains.com/issue/KT-36297")
+    fun `can use Kotlin lambda as provider`() {
+        val S = '$' // Workaround for a multi-line string that contains raw $ symbols.
+        withBuildScript(
+            """
+            tasks {
+                register<Task>("broken") {
+                    val prop = objects.property(String::class.java)
+                    // broken by https://youtrack.jetbrains.com/issue/KT-36297
+                    prop.set(provider { "abc" })
+                    doLast { println("$S{name} -> value = $S{prop.get()}") }
+                }
+                register<Task>("ok1") {
+                    val prop = objects.property(String::class.java)
+                    val function = { "abc" }
+                    prop.set(provider(function))
+                    doLast { println("$S{name} -> value = $S{prop.get()}") }
+                }
+            }
+            tasks.register<Task>("ok2") {
+                val prop = objects.property(String::class.java)
+                prop.set(provider { "abc" })
+                doLast { println("$S{name} -> value = $S{prop.get()}") }
+            }
+            """
+        )
+
+        assertThat(
+            build("broken", "ok1", "ok2").output,
+            allOf(
+                containsString("broken -> value = abc"),
+                containsString("ok1 -> value = abc"),
+                containsString("ok2 -> value = abc"),
+            )
         )
     }
 }

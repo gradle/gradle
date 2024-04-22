@@ -21,21 +21,24 @@ import org.gradle.api.internal.specs.ExplainingSpec;
 import org.gradle.api.internal.specs.ExplainingSpecs;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.id.IdGenerator;
+import org.gradle.internal.logging.console.GlobalUserInputReceiver;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.context.DaemonContext;
+import org.gradle.launcher.daemon.context.DaemonRequestContext;
 
 import java.io.InputStream;
 import java.util.UUID;
 
-public class SingleUseDaemonClientServices extends DaemonClientServices {
-    public SingleUseDaemonClientServices(ServiceRegistry loggingServices, DaemonParameters daemonParameters, InputStream buildStandardInput) {
-        super(loggingServices, daemonParameters, buildStandardInput);
+/**
+ * Takes care of instantiating and wiring together the services required by the single-use daemon client.
+ */
+public class SingleUseDaemonClientServices extends DaemonClientServicesSupport {
+    public SingleUseDaemonClientServices(ServiceRegistry loggingServices, DaemonParameters daemonParameters, DaemonRequestContext requestContext, InputStream buildStandardInput) {
+        super(loggingServices, daemonParameters, requestContext, buildStandardInput);
     }
-
-    @Override
     protected DaemonClient createDaemonClient(IdGenerator<UUID> idGenerator) {
         ExplainingSpec<DaemonContext> matchNone = ExplainingSpecs.satisfyNone();
         return new SingleUseDaemonClient(
@@ -43,6 +46,7 @@ public class SingleUseDaemonClientServices extends DaemonClientServices {
                 get(OutputEventListener.class),
                 matchNone,
                 getBuildStandardInput(),
+                get(GlobalUserInputReceiver.class),
                 get(ExecutorFactory.class),
                 idGenerator,
                 get(DocumentationRegistry.class),

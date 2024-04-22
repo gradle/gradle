@@ -41,7 +41,12 @@ import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.util.internal.GUtil;
 
+import javax.annotation.Nonnull;
+import java.util.ArrayDeque;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Queue;
+import java.util.Set;
 import java.util.function.Consumer;
 
 import static com.google.common.collect.ImmutableList.builder;
@@ -98,7 +103,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
     }
 
     @Override
-    public void execute(Throwable failure) {
+    public void execute(@Nonnull Throwable failure) {
         if (failure instanceof MultipleBuildFailures) {
             renderMultipleBuildExceptions((MultipleBuildFailures) failure);
         } else {
@@ -186,7 +191,9 @@ public class BuildExceptionReporter implements Action<Throwable> {
     private static class ExceptionFormattingVisitor extends ExceptionContextVisitor {
         private final FailureDetails failureDetails;
 
+        private final Set<Throwable> printedNodes = new HashSet<>();
         private int depth;
+        private int suppressedDuplicateBranchCount;
 
         private ExceptionFormattingVisitor(FailureDetails failureDetails) {
             this.failureDetails = failureDetails;
@@ -205,11 +212,57 @@ public class BuildExceptionReporter implements Action<Throwable> {
 
         @Override
         public void node(Throwable node) {
-            String message = getMessage(node);
-            if (null == node.getCause() || (StringUtils.isNotBlank(message) && !message.endsWith(NO_ERROR_MESSAGE_INDICATOR))) {
-                LinePrefixingStyledTextOutput output = getLinePrefixingStyledTextOutput(failureDetails);
-                renderStyledError(node, output);
+            if (shouldBePrinted(node)) {
+                printedNodes.add(node);
+                if (null == node.getCause() || isUsefulMessage(getMessage(node))) {
+                    LinePrefixingStyledTextOutput output = getLinePrefixingStyledTextOutput(failureDetails);
+                    renderStyledError(node, output);
+                }
+            } else {
+                // Only increment the suppressed branch count for the ultimate cause of the failure, which has no cause itself
+                if (node.getCause() == null) {
+                    suppressedDuplicateBranchCount++;
+                }
             }
+        }
+
+        /**
+         * Determines if the given node should be printed.
+         *
+         * A node should be printed iff it is not in the {@link #printedNodes} set, and it is not a
+         * transitive cause of a node that is in the set.  Direct causes will be checked, as well
+         * as each branch of {@link ContextAwareException#getReportableCauses()}s for nodes of that type.
+         *
+         * @param node the node to check
+         * @return {@code true} if the node should be printed; {@code false} otherwise
+         */
+        private boolean shouldBePrinted(Throwable node) {
+            if (printedNodes.isEmpty()) {
+                return true;
+            }
+
+            Queue<Throwable> next = new ArrayDeque<>();
+            next.add(node);
+
+            while (!next.isEmpty()) {
+                Throwable curr = next.poll();
+                if (printedNodes.contains(curr)) {
+                    return false;
+                } else {
+                    if (curr.getCause() != null) {
+                        next.add(curr.getCause());
+                    }
+                    if (curr instanceof ContextAwareException) {
+                        next.addAll(((ContextAwareException) curr).getReportableCauses());
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        private boolean isUsefulMessage(String message) {
+            return StringUtils.isNotBlank(message) && !message.endsWith(NO_ERROR_MESSAGE_INDICATOR);
         }
 
         @Override
@@ -231,6 +284,19 @@ public class BuildExceptionReporter implements Action<Throwable> {
 
             return new LinePrefixingStyledTextOutput(details.details, prefix, false);
         }
+
+        @Override
+        protected void endVisiting() {
+            if (suppressedDuplicateBranchCount > 0) {
+                LinePrefixingStyledTextOutput output = getLinePrefixingStyledTextOutput(failureDetails);
+                boolean plural = suppressedDuplicateBranchCount > 1;
+                if (plural) {
+                    output.append(String.format("There are %d more failures with identical causes.", suppressedDuplicateBranchCount));
+                } else {
+                    output.append("There is 1 more failure with an identical cause.");
+                }
+            }
+        }
     }
 
     private void fillInFailureResolution(FailureDetails details) {
@@ -247,7 +313,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
         boolean hasNonGradleSpecificCauseInAncestry = hasCauseAncestry(details.failure, NonGradleCause.class);
         if (details.exceptionStyle == ExceptionStyle.NONE && !hasNonGradleSpecificCauseInAncestry) {
             context.appendResolution(output ->
-                runtWithOption(output, STACKTRACE_LONG_OPTION, " option to get the stack trace.")
+                runWithOption(output, STACKTRACE_LONG_OPTION, " option to get the stack trace.")
             );
         }
 
@@ -257,7 +323,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
         boolean isLessThanInfo = logLevel.ordinal() > INFO.ordinal();
         if (hasCompileError && isLessThanInfo) {
             context.appendResolution(output ->
-                runtWithOption(output, INFO_LONG_OPTION, " option to get more log output.")
+                runWithOption(output, INFO_LONG_OPTION, " option to get more log output.")
             );
         } else if (logLevel != DEBUG && !hasNonGradleSpecificCauseInAncestry) {
             context.appendResolution(output -> {
@@ -280,7 +346,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
         }
     }
 
-    private static void runtWithOption(StyledTextOutput output, String optionName, String text) {
+    private static void runWithOption(StyledTextOutput output, String optionName, String text) {
         output.text("Run with ");
         output.withStyle(UserInput).format("--%s", optionName);
         output.text(text);
@@ -309,9 +375,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
     }
 
     private void addBuildScanMessage(ContextImpl context) {
-        context.appendResolution(output -> {
-            runtWithOption(output, LONG_OPTION, " to get full insights.");
-        });
+        context.appendResolution(output -> runWithOption(output, LONG_OPTION, " to get full insights."));
     }
 
     private boolean isGradleEnterprisePluginApplied() {

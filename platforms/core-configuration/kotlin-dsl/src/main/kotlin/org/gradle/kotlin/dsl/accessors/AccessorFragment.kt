@@ -41,7 +41,8 @@ typealias BytecodeWriter = BytecodeFragmentScope.() -> Unit
 internal
 class BytecodeFragmentScope(
     val signature: JvmMethodSignature,
-    writer: ClassWriter
+    writer: ClassWriter,
+    val useLowPriorityInOverloadResolution: Boolean
 ) : ClassVisitor(ASM_LEVEL, writer)
 
 
@@ -52,7 +53,8 @@ typealias MetadataWriter = MetadataFragmentScope.() -> Unit
 internal
 data class MetadataFragmentScope(
     val signature: JvmMethodSignature,
-    val kmPackage: KmPackage
+    val kmPackage: KmPackage,
+    val useLowPriorityInOverloadResolution: Boolean
 )
 
 

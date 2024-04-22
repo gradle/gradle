@@ -20,13 +20,13 @@ import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.configuration.BuildCache;
 import org.gradle.caching.configuration.BuildCacheConfiguration;
 import org.gradle.caching.local.DirectoryBuildCache;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import java.util.Set;
 import javax.annotation.Nullable;
+import java.util.Set;
 
-@ServiceScope(Scopes.Build.class)
+@ServiceScope(Scope.Build.class)
 public interface BuildCacheConfigurationInternal extends BuildCacheConfiguration {
     /**
      * Finds a build cache implementation factory class for the given configuration type.

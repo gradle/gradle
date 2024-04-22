@@ -37,6 +37,8 @@
     <suppress checks="JavadocPackage"
               files=".*[/\\]plugins[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]jvm[/\\][^/\\]+"/>
     <suppress checks="JavadocPackage"
+              files=".*[/\\]publish[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]tasks[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
               files=".*[/\\]scala[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]tasks[/\\][^/\\]+"/>
     <suppress checks="JavadocPackage"
               files=".*[/\\]base-services[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\][^/\\]+"/>

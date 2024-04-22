@@ -38,7 +38,6 @@ import org.gradle.internal.properties.InputBehavior
 import org.gradle.internal.service.scopes.DefaultFileChangeListeners
 import org.gradle.internal.service.scopes.DefaultWorkInputListeners
 import org.gradle.internal.service.scopes.Scope
-import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.session.BuildSessionActionExecutor
 import org.gradle.internal.session.BuildSessionContext
 import org.gradle.internal.snapshot.CaseSensitivity
@@ -69,7 +68,7 @@ class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
         getStartParameter() >> startParameter
     }
     def globalListenerManager = new DefaultListenerManager(Scope.Global)
-    def userHomeListenerManager = globalListenerManager.createChild(Scopes.UserHome)
+    def userHomeListenerManager = globalListenerManager.createChild(Scope.UserHome)
     def inputListeners = new DefaultWorkInputListeners(globalListenerManager)
     def changeListeners = new DefaultFileChangeListeners(userHomeListenerManager)
     List<Deployment> deployments = []
@@ -404,7 +403,7 @@ class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
             requestContext,
             cancellationToken,
             deploymentRegistry,
-            userHomeListenerManager.createChild(Scopes.BuildSession),
+            userHomeListenerManager.createChild(Scope.BuildSession),
             buildExecutionTimer,
             Time.clock(),
             TestFiles.fileSystem(),

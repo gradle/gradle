@@ -152,7 +152,15 @@ class DependencyVerificationFixture {
         def function = Hashing.defaultFunction()
         switch (algo) {
             case ["sha1", "md5"]:
-                return module.getArtifact([type: "${artifactType}.${algo}", classifier: classifier]).file.text.trim()
+                def artifact = module.getArtifact([type: "${artifactType}.${algo}", classifier: classifier])
+                if (artifact.file.exists()) {
+                    return artifact.file.text.trim()
+                } else if (algo == "sha1") { // fallback for signature files
+                    function = Hashing.sha1()
+                } else if (algo == "md5") {
+                    function = Hashing.md5()
+                }
+                break
             case "sha256":
                 function = Hashing.sha256()
                 break

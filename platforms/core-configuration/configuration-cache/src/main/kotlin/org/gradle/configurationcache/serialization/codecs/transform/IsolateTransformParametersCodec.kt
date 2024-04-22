@@ -28,13 +28,13 @@ import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.isolation.IsolatableFactory
-import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.operations.BuildOperationRunner
 
 
 class IsolateTransformParametersCodec(
     val parameterScheme: TransformParameterScheme,
     val isolatableFactory: IsolatableFactory,
-    val buildOperationExecutor: BuildOperationExecutor,
+    val buildOperationRunner: BuildOperationRunner,
     val classLoaderHierarchyHasher: ClassLoaderHierarchyHasher,
     val fileCollectionFactory: FileCollectionFactory,
     val documentationRegistry: DocumentationRegistry
@@ -57,7 +57,7 @@ class IsolateTransformParametersCodec(
             RootScriptDomainObjectContext.INSTANCE,
             parameterScheme.inspectionScheme.propertyWalker,
             isolatableFactory,
-            buildOperationExecutor,
+            buildOperationRunner,
             classLoaderHierarchyHasher,
             fileCollectionFactory
         )

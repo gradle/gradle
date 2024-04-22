@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import gradlebuild.basics.accessors.groovy
 import gradlebuild.basics.accessors.kotlinMainSourceSet
 import gradlebuild.basics.capitalize
 import gradlebuild.basics.releasedVersionsFile
@@ -23,6 +22,7 @@ import gradlebuild.incubation.tasks.IncubatingApiReportTask
 
 plugins {
     java
+    groovy
 }
 
 val reportTask = tasks.register<IncubatingApiReportTask>("incubationReport") {

@@ -24,6 +24,8 @@ import org.gradle.configurationcache.cacheentry.ModelKey
 import org.gradle.configurationcache.extensions.useToRun
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.configurationcache.problems.ConfigurationCacheProblems
+import org.gradle.configurationcache.serialization.Codec
+import org.gradle.configurationcache.serialization.DefaultClassEncoder
 import org.gradle.configurationcache.serialization.DefaultReadContext
 import org.gradle.configurationcache.serialization.DefaultWriteContext
 import org.gradle.configurationcache.serialization.LoggingTracer
@@ -48,7 +50,7 @@ import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
-import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.util.Path
 import java.io.File
@@ -56,7 +58,7 @@ import java.io.InputStream
 import java.io.OutputStream
 
 
-@ServiceScope(Scopes.Gradle::class)
+@ServiceScope(Scope.Gradle::class)
 class ConfigurationCacheIO internal constructor(
     private val startParameter: ConfigurationCacheStartParameter,
     private val host: DefaultConfigurationCache.Host,
@@ -154,7 +156,12 @@ class ConfigurationCacheIO internal constructor(
         }
 
     internal
-    fun readRootBuildStateFrom(stateFile: ConfigurationCacheStateFile, loadAfterStore: Boolean, graph: BuildTreeWorkGraph, graphBuilder: BuildTreeWorkGraphBuilder?): Pair<String, BuildTreeWorkGraph.FinalizedGraph> {
+    fun readRootBuildStateFrom(
+        stateFile: ConfigurationCacheStateFile,
+        loadAfterStore: Boolean,
+        graph: BuildTreeWorkGraph,
+        graphBuilder: BuildTreeWorkGraphBuilder?
+    ): Pair<String, BuildTreeWorkGraph.FinalizedGraph> {
         return readConfigurationCacheState(stateFile) { state ->
             state.run {
                 readRootBuildState(graph, graphBuilder, loadAfterStore)
@@ -294,22 +301,39 @@ class ConfigurationCacheIO internal constructor(
         encoder: Encoder,
         tracer: Tracer?,
         codecs: Codecs
-    ) = DefaultWriteContext(
-        codecs.userTypesCodec(),
+    ) = writeContextFor(
         encoder,
-        scopeRegistryListener,
+        tracer,
+        codecs.userTypesCodec()
+    )
+
+    private
+    fun writeContextFor(
+        encoder: Encoder,
+        tracer: Tracer?,
+        codec: Codec<Any?>
+    ) = DefaultWriteContext(
+        codec,
+        encoder,
         beanStateWriterLookup,
         logger,
         tracer,
-        problems
+        problems,
+        DefaultClassEncoder(scopeRegistryListener),
     )
 
     private
     fun readContextFor(
         decoder: Decoder,
         codecs: Codecs
+    ) = readContextFor(decoder, codecs.userTypesCodec())
+
+    private
+    fun readContextFor(
+        decoder: Decoder,
+        codec: Codec<Any?>
     ) = DefaultReadContext(
-        codecs.userTypesCodec(),
+        codec,
         decoder,
         beanStateReaderLookup,
         logger,
@@ -332,7 +356,7 @@ class ConfigurationCacheIO internal constructor(
             taskNodeFactory = service(),
             ordinalGroupFactory = service(),
             inputFingerprinter = service(),
-            buildOperationExecutor = service(),
+            buildOperationRunner = service(),
             classLoaderHierarchyHasher = service(),
             isolatableFactory = service(),
             managedFactoryRegistry = service(),

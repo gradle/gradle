@@ -21,6 +21,7 @@ class SimpleTestDescriptor implements TestDescriptorInternal {
     String name = "testName"
     String displayName = "testName"
     String className = "ClassName"
+    String methodName = null
     String classDisplayName = "ClassName"
     boolean composite = false
     TestDescriptorInternal parent = null

@@ -36,7 +36,7 @@ import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.file.FileAccessTimeJournal
 import org.gradle.internal.file.impl.SingleDepthFileAccessTracker
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
-import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.internal.time.TimestampSuppliers
 import java.io.File
@@ -46,7 +46,7 @@ import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 
 
-@ServiceScope(Scopes.BuildTree::class)
+@ServiceScope(Scope.BuildTree::class)
 internal
 class ConfigurationCacheRepository(
     cacheBuilderFactory: BuildTreeScopedCacheBuilderFactory,

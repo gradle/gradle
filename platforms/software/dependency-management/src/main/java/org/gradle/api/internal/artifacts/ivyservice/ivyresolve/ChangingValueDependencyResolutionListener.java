@@ -21,14 +21,14 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.Expiry;
 import org.gradle.internal.service.scopes.EventScope;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 
 import java.util.Set;
 
 /**
  * Notified of the use of changing values during dependency resolution, so this can be noted in the configuration cache inputs
  */
-@EventScope(Scopes.Build.class)
+@EventScope(Scope.Build.class)
 public interface ChangingValueDependencyResolutionListener {
     ChangingValueDependencyResolutionListener NO_OP = new ChangingValueDependencyResolutionListener() {
         @Override

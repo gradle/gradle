@@ -194,9 +194,11 @@ class BasicProjectConfigurationProgressCrossVersionSpec extends ToolingApiSpecif
         then:
         events.tests.size() == events.operations.size()
         if (targetDist.runsBuildSrcTests) {
-            events.operation("Gradle Test Run :buildSrc:a:test").descendant("Test ok(ATest)")
+            def event = events.operation("Gradle Test Run :buildSrc:a:test").descendant("Test ok(ATest)")
+            event.parent.descriptor.name == "ATest"
         }
-        events.operation("Gradle Test Run :test").descendant("Test ok(ThingTest)")
+        def event = events.operation("Gradle Test Run :test").descendant("Test ok(ThingTest)")
+        event.parent.descriptor.name == "ThingTest"
     }
 
     def javaProjectWithTests() {

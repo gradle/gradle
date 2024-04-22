@@ -251,7 +251,7 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
         }
         scalaCompile.getAnalysisFiles().from(incrementalAnalysis.getIncoming().artifactView(viewConfiguration -> {
             viewConfiguration.lenient(true);
-            viewConfiguration.componentFilter(element -> element instanceof ProjectComponentIdentifier);
+            viewConfiguration.componentFilter(spec(element -> element instanceof ProjectComponentIdentifier));
         }).getFiles());
 
         // See https://github.com/gradle/gradle/issues/14434.  We do this so that the incrementalScalaAnalysisForXXX configuration

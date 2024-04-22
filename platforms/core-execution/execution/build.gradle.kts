@@ -54,6 +54,7 @@ dependencies {
     testImplementation(project(":resources"))
     testImplementation(libs.commonsIo)
     testImplementation(testFixtures(project(":base-services")))
+    testImplementation(testFixtures(project(":build-operations")))
     testImplementation(testFixtures(project(":file-collections")))
     testImplementation(testFixtures(project(":messaging")))
     testImplementation(testFixtures(project(":snapshots")))

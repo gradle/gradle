@@ -41,7 +41,7 @@ import org.gradle.internal.buildtree.DefaultBuildTreeWorkExecutor;
 import org.gradle.internal.composite.IncludedBuildInternal;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.BuildScopeServices;
@@ -130,8 +130,8 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
     public <T> T run(Function<? super BuildTreeLifecycleController, T> action) {
         final GradleInternal gradle = getBuildController().getGradle();
         ServiceRegistry services = gradle.getServices();
-        BuildOperationExecutor executor = services.get(BuildOperationExecutor.class);
-        return executor.call(new CallableBuildOperation<T>() {
+        BuildOperationRunner buildOperationRunner = services.get(BuildOperationRunner.class);
+        return buildOperationRunner.call(new CallableBuildOperation<T>() {
             @Override
             public T call(BuildOperationContext context) {
                 T result = action.apply(buildTreeLifecycleController);

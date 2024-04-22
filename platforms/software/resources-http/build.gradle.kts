@@ -13,21 +13,27 @@ errorprone {
 }
 
 dependencies {
+    api(project(":base-annotations"))
+    api(project(":base-services"))
+    api(project(":core-api"))
+    api(project(":core"))
+    api(project(":logging"))
     api(project(":resources"))
-    implementation(project(":base-services"))
-    implementation(project(":core-api"))
-    implementation(project(":core"))
-    implementation(project(":model-core"))
-    implementation(project(":logging"))
 
-    implementation(libs.commonsHttpclient)
-    implementation(libs.slf4jApi)
-    implementation(libs.jclToSlf4j)
-    implementation(libs.jcifs)
-    implementation(libs.guava)
-    implementation(libs.commonsLang)
+    api(libs.commonsHttpclient)
+    api(libs.httpcore)
+    api(libs.jsr305)
+
+    implementation(project(":hashing"))
+    implementation(project(":logging-api"))
+    implementation(project(":model-core"))
+
     implementation(libs.commonsIo)
+    implementation(libs.commonsLang)
+    implementation(libs.guava)
+    implementation(libs.jcifs)
     implementation(libs.jsoup)
+    implementation(libs.slf4jApi)
 
     testImplementation(project(":internal-integ-testing"))
     testImplementation(libs.jettyWebApp)

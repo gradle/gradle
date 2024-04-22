@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.api.internal.initialization.ScriptClassPathResolutionContext;
 import org.gradle.api.internal.initialization.ScriptClassPathResolver;
 import org.gradle.api.internal.plugins.DefaultPluginRegistry;
 import org.gradle.api.internal.plugins.PluginImplementation;
@@ -30,6 +31,7 @@ import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.internal.Factory;
+import org.gradle.internal.classpath.CachedClasspathTransformer.StandardTransform;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
@@ -66,31 +68,50 @@ public class DefaultInjectedClasspathPluginResolver implements ClientInjectedCla
         this.injectedClasspath = injectedClasspath;
         this.fileCollectionFactory = fileCollectionFactory;
         this.scriptClassPathResolver = scriptClassPathResolver;
-        this.pluginRegistry = Lazy.locking().of(() -> createPluginRegistry(dependencyResolutionServicesFactory));
-        maybeReportAgentUsageWithTestKitProblem(instrumentationStrategy);
+        this.pluginRegistry = createPluginRegistry(instrumentationStrategy, dependencyResolutionServicesFactory);
     }
 
-    private PluginRegistry createPluginRegistry(Factory<DependencyResolutionServices> dependencyResolutionServicesFactory) {
+    private Lazy<PluginRegistry> createPluginRegistry(
+        InjectedClasspathInstrumentationStrategy instrumentationStrategy,
+        Factory<DependencyResolutionServices> dependencyResolutionServicesFactory
+    ) {
+
+        // One wanted side effect of calling InstrumentationStrategy.getTransform() is also to report
+        // a configuration cache problem if third-party agent is used with TestKit with configuration cache,
+        // see ConfigurationCacheInjectedClasspathInstrumentationStrategy implementation.
+        StandardTransform transform = instrumentationStrategy.getTransform();
+        switch (transform) {
+            case None:
+                return Lazy.locking().of(this::createUninstrumentedPluginRegistry);
+            case BuildLogic:
+                return Lazy.locking().of(() -> createInstrumentedPluginRegistry(dependencyResolutionServicesFactory));
+            default:
+                throw new IllegalArgumentException("Unknown instrumentation strategy: " + transform);
+        }
+    }
+
+    private PluginRegistry createUninstrumentedPluginRegistry() {
+        return newPluginRegistryOf(injectedClasspath);
+    }
+
+    private PluginRegistry createInstrumentedPluginRegistry(Factory<DependencyResolutionServices> dependencyResolutionServicesFactory) {
         DependencyResolutionServices dependencyResolutionServices = dependencyResolutionServicesFactory.create();
         DependencyHandler dependencies = dependencyResolutionServices.getDependencyHandler();
         ConfigurationContainer configurations = dependencyResolutionServices.getConfigurationContainer();
         Dependency injectedClasspathDependency = dependencies.create(fileCollectionFactory.fixed(injectedClasspath.getAsFiles()));
         Configuration configuration = configurations.detachedConfiguration(injectedClasspathDependency);
-        scriptClassPathResolver.prepareDependencyHandler(dependencies);
-        scriptClassPathResolver.prepareClassPath(configuration, dependencies);
-        ClassPath instrumentedClassPath = scriptClassPathResolver.resolveClassPath(configuration);
-        return new DefaultPluginRegistry(pluginInspector,
-            parentScope.createChild("injected-plugin", null)
-                .local(instrumentedClassPath)
-                .lock()
-        );
+        ScriptClassPathResolutionContext resolutionContext = scriptClassPathResolver.prepareDependencyHandler(dependencies);
+        scriptClassPathResolver.prepareClassPath(configuration, resolutionContext);
+        ClassPath instrumentedClassPath = scriptClassPathResolver.resolveClassPath(configuration, resolutionContext);
+        return newPluginRegistryOf(instrumentedClassPath);
     }
 
-    /**
-     * InstrumentationStrategy will report a problem if the agent is used with TestKit, see ConfigurationCacheInjectedClasspathInstrumentationStrategy class.
-     */
-    private static void maybeReportAgentUsageWithTestKitProblem(InjectedClasspathInstrumentationStrategy instrumentationStrategy) {
-        instrumentationStrategy.getTransform();
+    private PluginRegistry newPluginRegistryOf(ClassPath classPath) {
+        return new DefaultPluginRegistry(pluginInspector,
+            parentScope.createChild("injected-plugin", null)
+                .local(classPath)
+                .lock()
+        );
     }
 
     @Override

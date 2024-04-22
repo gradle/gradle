@@ -17,8 +17,6 @@
 package org.gradle.api.file;
 
 
-import org.gradle.api.Incubating;
-
 /**
  * Describes file and directory access permissions for all classes of system users.
  * <p>
@@ -42,7 +40,6 @@ import org.gradle.api.Incubating;
  *
  * @since 8.3
  */
-@Incubating
 public interface FilePermissions {
 
     /**

@@ -135,4 +135,37 @@ class InPlaceClasspathBuilderTest extends Specification {
         zip.hasCompression("undefined.txt", ZipEntry.DEFLATED)
         zip.hasCompression("dir/deflated.txt", ZipEntry.DEFLATED)
     }
+
+    def "can construct a directory"() {
+        def dir = tmpDir.file("things")
+
+        when:
+        builder.directory(dir) {
+            it.put("file.txt", "bytes".bytes)
+            it.put("dir/other.txt", "otherBytes".bytes)
+        }
+
+        then:
+        dir.assertHasDescendants("file.txt", "dir/other.txt")
+        dir.file("file.txt").text == "bytes"
+        dir.file("dir", "other.txt").text == "otherBytes"
+    }
+
+    def "clears existing directory before building"() {
+        def dir = tmpDir.createDir("things")
+        dir.create {
+            file("old.txt").text = "old file"
+        }
+
+        when:
+        builder.directory(dir) {
+            it.put("file.txt", "bytes".bytes)
+            it.put("dir/other.txt", "otherBytes".bytes)
+        }
+
+        then:
+        dir.assertHasDescendants("file.txt", "dir/other.txt")
+        dir.file("file.txt").text == "bytes"
+        dir.file("dir", "other.txt").text == "otherBytes"
+    }
 }

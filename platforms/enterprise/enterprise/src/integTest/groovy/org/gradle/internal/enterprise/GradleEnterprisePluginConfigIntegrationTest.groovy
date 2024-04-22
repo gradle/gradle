@@ -31,7 +31,7 @@ import static org.gradle.internal.enterprise.GradleEnterprisePluginConfig.BuildS
 
 class GradleEnterprisePluginConfigIntegrationTest extends AbstractIntegrationSpec {
 
-    def plugin = new GradleEnterprisePluginCheckInFixture(testDirectory, mavenRepo, createExecuter())
+    def plugin = new DevelocityPluginCheckInFixture(testDirectory, mavenRepo, createExecuter())
 
     def setup() {
         settingsFile << plugin.pluginManagement()
@@ -95,7 +95,7 @@ class GradleEnterprisePluginConfigIntegrationTest extends AbstractIntegrationSpe
                 }
             }
 
-            apply plugin: 'com.gradle.enterprise'
+            apply plugin: 'com.gradle.develocity'
         """
 
         when:
@@ -106,13 +106,13 @@ class GradleEnterprisePluginConfigIntegrationTest extends AbstractIntegrationSpe
 
         where:
         groupId                                 | artifactId
-        'com.gradle'                            | 'gradle-enterprise-gradle-plugin'
+        'com.gradle'                            | 'develocity-gradle-plugin'
         AutoAppliedGradleEnterprisePlugin.ID.id | "${AutoAppliedGradleEnterprisePlugin.ID.id}.gradle.plugin"
     }
 
     def "is auto-applied when --scan is used despite init script"() {
         given:
-        def pluginArtifactId = "com.gradle:gradle-enterprise-gradle-plugin:${plugin.runtimeVersion}"
+        def pluginArtifactId = "com.gradle:develocity-gradle-plugin:${plugin.runtimeVersion}"
         def initScript = file("build-scan-init.gradle") << """
             initscript {
                 repositories {
@@ -143,7 +143,7 @@ class GradleEnterprisePluginConfigIntegrationTest extends AbstractIntegrationSpe
     @ToBeImplemented("https://github.com/gradle/gradle/issues/24884")
     def "is not auto-applied when --scan is used and applied via init script in beforeSettings"() {
         given:
-        def pluginArtifactId = "com.gradle:gradle-enterprise-gradle-plugin:${plugin.runtimeVersion}"
+        def pluginArtifactId = "com.gradle:develocity-gradle-plugin:${plugin.runtimeVersion}"
         def initScript = file("build-scan-init.gradle") << """
             initscript {
                 repositories {
@@ -155,14 +155,14 @@ class GradleEnterprisePluginConfigIntegrationTest extends AbstractIntegrationSpe
             }
             gradle.beforeSettings { settings ->
                 settings.buildscript.repositories { maven { url '${mavenRepo.uri}' } }
-                settings.buildscript.dependencies.classpath("com.gradle:gradle-enterprise-gradle-plugin:${plugin.runtimeVersion}")
+                settings.buildscript.dependencies.classpath("com.gradle:develocity-gradle-plugin:${plugin.runtimeVersion}")
             }
             gradle.settingsEvaluated { settings ->
                 if (settings.pluginManager.hasPlugin('${plugin.id}')) {
                     logger.lifecycle("${plugin.id} is already applied")
                 } else {
                     logger.lifecycle("Applying ${plugin.id} via init script")
-                    settings.pluginManager.apply("com.gradle.enterprise")
+                    settings.pluginManager.apply("com.gradle.develocity")
                 }
             }
         """

@@ -17,8 +17,12 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
 class ExecutionTimeTaskConfigurationIntegrationTest extends AbstractIntegrationSpec {
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "fails when task is configured using #config during execution time"() {
         buildFile.text = """
             def anAction = {} as Action

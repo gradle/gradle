@@ -900,6 +900,8 @@ project.extensions.create("some", SomeExtension)
     }
 
     def "can use a filtered value provider"() {
+        enableProblemsApiCheck()
+
         buildFile """
             abstract class MyTask extends DefaultTask {
                 @Input
@@ -942,6 +944,20 @@ project.extensions.create("some", SomeExtension)
         fails('myTask')
         then:
         failureDescriptionContains("Type 'MyTask' property 'strings' doesn't have a configured value.")
+
+        verifyAll(receivedProblem) {
+            fqid == 'validation:property-validation:value-not-set'
+            contextualLabel == 'Type \'MyTask\' property \'strings\' doesn\'t have a configured value'
+            details == 'This property isn\'t marked as optional and no value has been configured'
+            solutions == [
+                'Assign a value to \'strings\'',
+                'Mark property \'strings\' as optional',
+            ]
+            additionalData == [
+                'typeName' : 'MyTask',
+                'propertyName' : 'strings',
+            ]
+        }
     }
 
     def "filter is evaluated lazily"() {

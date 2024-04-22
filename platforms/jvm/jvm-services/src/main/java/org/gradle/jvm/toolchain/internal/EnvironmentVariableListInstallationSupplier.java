@@ -17,27 +17,28 @@
 package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ProviderFactory;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
-import java.util.Arrays;
-import java.util.Collections;
+import java.util.Collection;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 public class EnvironmentVariableListInstallationSupplier implements InstallationSupplier {
 
-    private static final String JAVA_INSTALLATIONS_FROM_ENV_PROPERTY = "org.gradle.java.installations.fromEnv";
+    public static final String JAVA_INSTALLATIONS_FROM_ENV_PROPERTY = "org.gradle.java.installations.fromEnv";
 
-    private final ProviderFactory factory;
+    private final ToolchainConfiguration buildOptions;
     private final FileResolver fileResolver;
+    private final Map<String, String> environment;
 
     @Inject
-    public EnvironmentVariableListInstallationSupplier(ProviderFactory factory, FileResolver fileResolver) {
-        this.factory = factory;
+    public EnvironmentVariableListInstallationSupplier(ToolchainConfiguration buildOptions, FileResolver fileResolver, Map<String, String> environment) {
+        this.buildOptions = buildOptions;
         this.fileResolver = fileResolver;
+        this.environment = environment;
     }
 
     @Override
@@ -47,31 +48,27 @@ public class EnvironmentVariableListInstallationSupplier implements Installation
 
     @Override
     public Set<InstallationLocation> get() {
-        final Provider<String> property = factory.gradleProperty(JAVA_INSTALLATIONS_FROM_ENV_PROPERTY);
-        if (property.isPresent()) {
-            final String listOfEnvironmentVariables = property.get();
-            return Arrays.stream(listOfEnvironmentVariables.split(","))
-                .map(this::resolveEnvironmentVariable)
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .collect(Collectors.toSet());
-        }
-        return Collections.emptySet();
+        final Collection<String> possibleInstallations = buildOptions.getJavaInstallationsFromEnvironment();
+        return possibleInstallations.stream().map(this::resolveEnvironmentVariable)
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .collect(Collectors.toSet());
     }
 
     private Optional<InstallationLocation> resolveEnvironmentVariable(String environmentVariable) {
-        final Provider<String> value = environmentVariableValue(environmentVariable);
-        if (value.isPresent()) {
-            final String path = value.get().trim();
+        final String value = environmentVariableValue(environmentVariable);
+        if (value != null) {
+            final String path = value.trim();
             if (!path.isEmpty()) {
-                return Optional.of(new InstallationLocation(fileResolver.resolve(path), "environment variable '" + environmentVariable + "'"));
+                return Optional.of(InstallationLocation.userDefined(fileResolver.resolve(path), "environment variable '" + environmentVariable + "'"));
             }
         }
         return Optional.empty();
     }
 
-    private Provider<String> environmentVariableValue(String environmentVariable) {
-        return factory.environmentVariable(environmentVariable.trim());
+    @Nullable
+    private String environmentVariableValue(String environmentVariable) {
+        return environment.get(environmentVariable.trim());
     }
 
 

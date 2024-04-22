@@ -33,7 +33,6 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInter
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
-import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.MapNotationConverter;
 import org.gradle.internal.typeconversion.NotationConvertResult;
@@ -51,7 +50,6 @@ public class DependencyNotationParser {
                                                   ClassPathRegistry classPathRegistry,
                                                   FileCollectionFactory fileCollectionFactory,
                                                   RuntimeShadedJarFactory runtimeShadedJarFactory,
-                                                  CurrentGradleInstallation currentGradleInstallation,
                                                   Interner<String> stringInterner) {
         NotationConverter<String, ? extends ExternalModuleDependency> stringNotationConverter =
             new DependencyStringNotationConverter<>(instantiator, DefaultExternalModuleDependency.class, stringInterner);
@@ -63,7 +61,7 @@ public class DependencyNotationParser {
             new DependencyFilesNotationConverter(instantiator);
         NotationConverter<Project, ? extends ProjectDependency> projectNotationConverter =
             new DependencyProjectNotationConverter(dependencyFactory);
-        DependencyClassPathNotationConverter dependencyClassPathNotationConverter = new DependencyClassPathNotationConverter(instantiator, classPathRegistry, fileCollectionFactory, runtimeShadedJarFactory, currentGradleInstallation);
+        DependencyClassPathNotationConverter dependencyClassPathNotationConverter = new DependencyClassPathNotationConverter(instantiator, classPathRegistry, fileCollectionFactory, runtimeShadedJarFactory);
         NotationParser<Object, Dependency> notationParser = NotationParserBuilder
             .toType(Dependency.class)
             .noImplicitConverters()

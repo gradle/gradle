@@ -17,11 +17,11 @@
 package org.gradle.internal.execution;
 
 import org.gradle.internal.service.scopes.EventScope;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-@EventScope(Scopes.Build.class)
-@ServiceScope(Scopes.Gradle.class)
+@EventScope(Scope.Build.class)
+@ServiceScope(Scope.Gradle.class)
 public interface OutputChangeListener {
     /**
      * Invoked when some locations on disk have been changed or are about to be changed.

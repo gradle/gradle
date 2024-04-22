@@ -20,13 +20,13 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.project.HoldsProjectState;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * This is separate from {@link DefaultIdeArtifactRegistry} so that the data can be shared across a build tree, while the {@link DefaultIdeArtifactRegistry} is scoped to a particular consuming project.
  */
-@ServiceScope(Scopes.BuildTree.class)
+@ServiceScope(Scope.BuildTree.class)
 public class IdeArtifactStore implements HoldsProjectState {
     private final ListMultimap<ProjectComponentIdentifier, IdeProjectMetadata> metadata = ArrayListMultimap.create();
 

@@ -16,11 +16,14 @@
 package org.gradle.api;
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
 class CrossProcessFileLockIntegrationTest extends AbstractIntegrationSpec {
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "the task history lock can be acquired when the initial owner is busy executing tasks"() {
         createDirs("a", "b")
         settingsFile << "include 'a', 'b'"

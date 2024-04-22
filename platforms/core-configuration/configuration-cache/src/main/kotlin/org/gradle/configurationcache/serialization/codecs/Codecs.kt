@@ -21,7 +21,6 @@ import org.gradle.api.flow.FlowProviders
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSetToFileCollectionFactory
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.BuildIdentifierSerializer
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.CapabilitySerializer
 import org.gradle.api.internal.artifacts.transform.TransformActionScheme
 import org.gradle.api.internal.artifacts.transform.TransformParameterScheme
@@ -40,8 +39,8 @@ import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.composite.internal.BuildTreeWorkGraphController
-import org.gradle.configurationcache.problems.DocumentationSection.NotYetImplementedJavaSerialization
 import org.gradle.configurationcache.serialization.Codec
+import org.gradle.configurationcache.serialization.codecs.jos.ExternalizableCodec
 import org.gradle.configurationcache.serialization.codecs.jos.JavaObjectSerializationCodec
 import org.gradle.configurationcache.serialization.codecs.jos.JavaSerializationEncodingLookup
 import org.gradle.configurationcache.serialization.codecs.transform.CalculateArtifactsCodec
@@ -58,7 +57,6 @@ import org.gradle.configurationcache.serialization.codecs.transform.TransformedA
 import org.gradle.configurationcache.serialization.codecs.transform.TransformedExternalArtifactSetCodec
 import org.gradle.configurationcache.serialization.codecs.transform.TransformedProjectArtifactSetCodec
 import org.gradle.configurationcache.serialization.reentrant
-import org.gradle.configurationcache.serialization.unsupported
 import org.gradle.execution.plan.OrdinalGroupFactory
 import org.gradle.execution.plan.TaskNodeFactory
 import org.gradle.internal.Factory
@@ -67,25 +65,10 @@ import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.isolation.IsolatableFactory
 import org.gradle.internal.model.CalculatedValueContainerFactory
-import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.internal.serialize.BaseSerializerFactory.BIG_DECIMAL_SERIALIZER
-import org.gradle.internal.serialize.BaseSerializerFactory.BIG_INTEGER_SERIALIZER
-import org.gradle.internal.serialize.BaseSerializerFactory.BOOLEAN_SERIALIZER
-import org.gradle.internal.serialize.BaseSerializerFactory.BYTE_ARRAY_SERIALIZER
-import org.gradle.internal.serialize.BaseSerializerFactory.BYTE_SERIALIZER
-import org.gradle.internal.serialize.BaseSerializerFactory.CHAR_SERIALIZER
-import org.gradle.internal.serialize.BaseSerializerFactory.DOUBLE_SERIALIZER
-import org.gradle.internal.serialize.BaseSerializerFactory.FILE_SERIALIZER
-import org.gradle.internal.serialize.BaseSerializerFactory.FLOAT_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.HASHCODE_SERIALIZER
-import org.gradle.internal.serialize.BaseSerializerFactory.INTEGER_SERIALIZER
-import org.gradle.internal.serialize.BaseSerializerFactory.LONG_SERIALIZER
-import org.gradle.internal.serialize.BaseSerializerFactory.PATH_SERIALIZER
-import org.gradle.internal.serialize.BaseSerializerFactory.SHORT_SERIALIZER
-import org.gradle.internal.serialize.BaseSerializerFactory.STRING_SERIALIZER
 import org.gradle.internal.state.ManagedFactoryRegistry
-import java.io.Externalizable
 
 
 internal
@@ -103,7 +86,7 @@ class Codecs(
     val taskNodeFactory: TaskNodeFactory,
     val ordinalGroupFactory: OrdinalGroupFactory,
     inputFingerprinter: InputFingerprinter,
-    buildOperationExecutor: BuildOperationExecutor,
+    buildOperationRunner: BuildOperationRunner,
     classLoaderHierarchyHasher: ClassLoaderHierarchyHasher,
     isolatableFactory: IsolatableFactory,
     managedFactoryRegistry: ManagedFactoryRegistry,
@@ -145,8 +128,7 @@ class Codecs(
 
             bind(ApiTextResourceAdapterCodec)
 
-            bind(ClosureCodec)
-            bind(GroovyMetaClassCodec)
+            groovyCodecs()
             bind(SerializedLambdaParametersCheckingCodec)
 
             // Dependency management types
@@ -154,8 +136,8 @@ class Codecs(
             bind(ImmutableAttributesCodec(attributesFactory, managedFactoryRegistry))
             bind(AttributeContainerCodec(attributesFactory, managedFactoryRegistry))
             bind(ComponentVariantIdentifierCodec)
-            bind(InitialTransformStepNodeCodec(transformStepNodeFactory, buildOperationExecutor, calculatedValueContainerFactory))
-            bind(ChainedTransformStepNodeCodec(transformStepNodeFactory, buildOperationExecutor, calculatedValueContainerFactory))
+            bind(InitialTransformStepNodeCodec(transformStepNodeFactory, buildOperationRunner, calculatedValueContainerFactory))
+            bind(ChainedTransformStepNodeCodec(transformStepNodeFactory, buildOperationRunner, calculatedValueContainerFactory))
             bind(TransformStepCodec(inputFingerprinter))
             bind(TransformChainCodec())
             bind(DefaultTransformCodec(fileLookup, actionScheme))
@@ -168,7 +150,7 @@ class Codecs(
             bind(TransformedArtifactCodec(calculatedValueContainerFactory))
             bind(LocalFileDependencyBackedArtifactSetCodec(instantiator, attributesFactory, calculatedValueContainerFactory))
             bind(CalculatedValueContainerCodec(calculatedValueContainerFactory))
-            bind(IsolateTransformParametersCodec(parameterScheme, isolatableFactory, buildOperationExecutor, classLoaderHierarchyHasher, fileCollectionFactory, documentationRegistry))
+            bind(IsolateTransformParametersCodec(parameterScheme, isolatableFactory, buildOperationRunner, classLoaderHierarchyHasher, fileCollectionFactory, documentationRegistry))
             bind(FinalizeTransformDependenciesNodeCodec())
             bind(ResolveArtifactNodeCodec)
             bind(WorkNodeActionCodec)
@@ -196,12 +178,9 @@ class Codecs(
             bind(BooleanValueSnapshotCodec)
             bind(NullValueSnapshotCodec)
 
-            bind(ServicesCodec())
+            bind(ServicesCodec)
 
             bind(ProxyCodec)
-
-            // Java serialization integration
-            bind(unsupported<Externalizable>(NotYetImplementedJavaSerialization))
 
             bind(BeanSpecCodec)
 
@@ -233,6 +212,7 @@ class Codecs(
 
     private
     fun Bindings.completeWithStatefulCodecs() = append {
+        bind(ExternalizableCodec)
         bind(JavaObjectSerializationCodec(javaSerializationEncodingLookup))
 
         // This protects the BeanCodec against StackOverflowErrors, but
@@ -293,9 +273,11 @@ class Codecs(
         buildStateRegistry: BuildStateRegistry,
         flowProviders: FlowProviders
     ) = FixedValueReplacingProviderCodec(
-        ValueSourceProviderCodec(valueSourceProviderFactory),
-        BuildServiceProviderCodec(buildStateRegistry),
-        FlowProvidersCodec(flowProviders)
+        defaultCodecForProviderWithChangingValue(
+            ValueSourceProviderCodec(valueSourceProviderFactory),
+            BuildServiceProviderCodec(buildStateRegistry),
+            FlowProvidersCodec(flowProviders)
+        )
     )
 
     /**
@@ -305,9 +287,11 @@ class Codecs(
     fun nestedProviderCodecForFingerprint(
         valueSourceProviderFactory: ValueSourceProviderFactory
     ) = FixedValueReplacingProviderCodec(
-        ValueSourceProviderCodec(valueSourceProviderFactory),
-        UnsupportedFingerprintBuildServiceProviderCodec,
-        UnsupportedFingerprintFlowProviders
+        defaultCodecForProviderWithChangingValue(
+            ValueSourceProviderCodec(valueSourceProviderFactory),
+            UnsupportedFingerprintBuildServiceProviderCodec,
+            UnsupportedFingerprintFlowProviders
+        )
     )
 
     private
@@ -328,74 +312,6 @@ class Codecs(
         bind(fileCollectionCodec)
         bind(IntersectionPatternSetCodec)
         bind(PatternSetCodec(patternSetFactory))
-    }
-
-    private
-    fun BindingsBuilder.baseTypes() {
-        bind(STRING_SERIALIZER)
-        bind(BOOLEAN_SERIALIZER)
-        bind(INTEGER_SERIALIZER)
-        bind(CHAR_SERIALIZER)
-        bind(SHORT_SERIALIZER)
-        bind(LONG_SERIALIZER)
-        bind(BYTE_SERIALIZER)
-        bind(FLOAT_SERIALIZER)
-        bind(DOUBLE_SERIALIZER)
-        bind(FILE_SERIALIZER)
-        bind(PATH_SERIALIZER)
-        bind(BIG_INTEGER_SERIALIZER)
-        bind(BIG_DECIMAL_SERIALIZER)
-        bind(ClassCodec)
-        bind(MethodCodec)
-
-        // Only serialize certain List implementations
-        bind(arrayListCodec)
-        bind(linkedListCodec)
-        bind(copyOnWriteArrayListCodec)
-        bind(ImmutableListCodec)
-
-        // Only serialize certain Set implementations for now, as some custom types extend Set (e.g. DomainObjectContainer)
-        bind(HashSetCodec)
-        bind(treeSetCodec)
-        bind(copyOnWriteArraySetCodec)
-        bind(ImmutableSetCodec)
-
-        // Only serialize certain Map implementations for now, as some custom types extend Map (e.g. DefaultManifest)
-        bind(linkedHashMapCodec)
-        bind(hashMapCodec)
-        bind(treeMapCodec)
-        bind(concurrentHashMapCodec)
-        bind(ImmutableMapCodec)
-        bind(propertiesCodec)
-        bind(hashtableCodec)
-
-        // Arrays
-        bind(BYTE_ARRAY_SERIALIZER)
-        bind(ShortArrayCodec)
-        bind(IntArrayCodec)
-        bind(LongArrayCodec)
-        bind(FloatArrayCodec)
-        bind(DoubleArrayCodec)
-        bind(BooleanArrayCodec)
-        bind(CharArrayCodec)
-        bind(NonPrimitiveArrayCodec)
-
-        // Only serialize certain Queue implementations
-        bind(arrayDequeCodec)
-
-        bind(EnumCodec)
-        bind(RegexpPatternCodec)
-        bind(UrlCodec)
-        bind(LevelCodec)
-        bind(UnitCodec)
-        bind(CharsetCodec)
-
-        javaTimeTypes()
-
-        bind(BuildIdentifierSerializer())
-
-        bind(InputStreamCodec)
-        bind(OutputStreamCodec)
     }
 
     fun workNodeCodecFor(gradle: GradleInternal) =

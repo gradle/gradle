@@ -24,18 +24,18 @@ import org.gradle.api.internal.WithMutationGuard;
 import org.gradle.internal.Actions;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.util.Collections;
 
 public class BuildOperationCrossProjectConfigurator implements CrossProjectConfigurator, WithMutationGuard {
 
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationRunner buildOperationRunner;
     private final MutationGuard mutationGuard = new DefaultMutationGuard();
 
-    public BuildOperationCrossProjectConfigurator(BuildOperationExecutor buildOperationExecutor) {
-        this.buildOperationExecutor = buildOperationExecutor;
+    public BuildOperationCrossProjectConfigurator(BuildOperationRunner buildOperationRunner) {
+        this.buildOperationRunner = buildOperationRunner;
     }
 
     @Override
@@ -54,16 +54,16 @@ public class BuildOperationCrossProjectConfigurator implements CrossProjectConfi
     }
 
     @Override
-    public void rootProject(ProjectInternal project, Action<? super Project> buildOperationExecutor) {
-        runBlockConfigureAction(ROOT_PROJECT_DETAILS, Collections.singleton(project), buildOperationExecutor);
+    public void rootProject(ProjectInternal project, Action<? super Project> buildOperationRunner) {
+        runBlockConfigureAction(ROOT_PROJECT_DETAILS, Collections.singleton(project), buildOperationRunner);
     }
 
     private void runBlockConfigureAction(final BuildOperationDescriptor.Builder details, final Iterable<? extends ProjectInternal> projects, final Action<? super Project> configureAction) {
-        buildOperationExecutor.run(new BlockConfigureBuildOperation(details, projects, configureAction));
+        buildOperationRunner.run(new BlockConfigureBuildOperation(details, projects, configureAction));
     }
 
     private void runProjectConfigureAction(final ProjectInternal project, final Action<? super Project> configureAction) {
-        project.getOwner().applyToMutableState(p -> buildOperationExecutor.run(new CrossConfigureProjectBuildOperation(project) {
+        project.getOwner().applyToMutableState(p -> buildOperationRunner.run(new CrossConfigureProjectBuildOperation(project) {
             @Override
             public void run(BuildOperationContext context) {
                 Actions.with(project, mutationGuard.withMutationEnabled(configureAction));

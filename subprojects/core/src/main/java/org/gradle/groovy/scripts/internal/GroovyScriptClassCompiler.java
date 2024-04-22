@@ -36,6 +36,9 @@ import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactory
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.caching.CachingDisabledReason;
+import org.gradle.internal.execution.caching.CachingDisabledReasonCategory;
+import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
@@ -54,9 +57,11 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
+import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.File;
 import java.net.URI;
+import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -116,10 +121,10 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
         ClassLoader classLoader = targetScope.getExportClassLoader();
         GroovyScriptCompilationOutput output = doCompile(target, templateId, sourceHashCode, remapped, classLoader, operation, verifier, scriptBaseClass);
 
-        File instrumentedJar = output.getInstrumentedJar();
+        File instrumentedOutput = output.getInstrumentedOutput();
         File metadataDir = output.getMetadataDir();
         // TODO: Remove the remapping or move remapping to an uncached unit of work?
-        ClassPath remappedClasses = remapClasses(instrumentedJar, remapped);
+        ClassPath remappedClasses = remapClasses(instrumentedOutput, remapped);
         return scriptCompilationHandler.loadFromDir(source, sourceHashCode, targetScope, remappedClasses, metadataDir, operation, scriptBaseClass);
     }
 
@@ -204,6 +209,8 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
 
     static class GroovyScriptCompilationAndInstrumentation extends BuildScriptCompilationAndInstrumentation {
 
+        private static final CachingDisabledReason NOT_CACHEABLE = new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Not worth caching.");
+
         private final String templateId;
         private final HashCode sourceHashCode;
         private final ClassLoader classLoader;
@@ -242,6 +249,14 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
         }
 
         @Override
+        public Optional<CachingDisabledReason> shouldDisableCaching(@Nullable OverlappingOutputs detectedOverlappingOutputs) {
+            // Disabled since enabling it introduced negative savings to Groovy script compilation.
+            // It's not disabled for Kotlin since Kotlin has better compile avoidance, additionally
+            // Kotlin has build cache from the beginning and there was no report of a problem with it.
+            return Optional.of(NOT_CACHEABLE);
+        }
+
+        @Override
         public void visitIdentityInputs(InputVisitor visitor) {
             visitor.visitInputProperty(TEMPLATE_ID_PROPERTY_NAME, () -> templateId);
             visitor.visitInputProperty(SOURCE_HASH_PROPERTY_NAME, () -> sourceHashCode);
@@ -271,8 +286,8 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
         }
 
         @Override
-        public File instrumentedJar(File workspace) {
-            return new File(workspace, "instrumented/" + operation.getId() + ".jar");
+        public File instrumentedOutput(File workspace) {
+            return new File(workspace, "instrumented/" + operation.getId());
         }
 
         private File classesDir(File workspace) {
@@ -290,16 +305,16 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
 
         static class GroovyScriptCompilationOutput {
 
-            private final File instrumentedJar;
+            private final File instrumentedOutput;
             private final File metadataDir;
 
-            public GroovyScriptCompilationOutput(File instrumentedJar, File metadataDir) {
-                this.instrumentedJar = instrumentedJar;
+            public GroovyScriptCompilationOutput(File instrumentedOutput, File metadataDir) {
+                this.instrumentedOutput = instrumentedOutput;
                 this.metadataDir = metadataDir;
             }
 
-            public File getInstrumentedJar() {
-                return instrumentedJar;
+            public File getInstrumentedOutput() {
+                return instrumentedOutput;
             }
 
             public File getMetadataDir() {

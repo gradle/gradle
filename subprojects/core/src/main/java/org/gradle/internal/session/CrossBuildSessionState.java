@@ -29,12 +29,12 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.sink.OutputEventListenerManager;
 import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
+import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.DefaultBuildOperationExecutor;
 import org.gradle.internal.operations.DefaultBuildOperationQueueFactory;
 import org.gradle.internal.operations.logging.LoggingBuildOperationProgressBroadcaster;
@@ -45,9 +45,8 @@ import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.DefaultWorkerLeaseService;
 import org.gradle.internal.work.WorkerLeaseService;
 
@@ -55,20 +54,20 @@ import java.io.Closeable;
 
 /**
  * Services to be shared across build sessions.
- *
+ * <p>
  * Generally, one regular Gradle invocation is conceptually a session.
  * However, the GradleBuild task is currently implemented in such a way that it uses a discrete session.
- * Having the GradleBuild task reuse the outer session is complicated because it may use a different Gradle user home.
- * See https://github.com/gradle/gradle/issues/4559.
- *
+ * Having the GradleBuild task reuse the outer session is complicated because it <a href="https://github.com/gradle/gradle/issues/4559">may use a different Gradle user home</a>.
+ * <p>
  * This set of services is added as a parent of each build session scope.
  */
-@ServiceScope(Scopes.BuildSession.class)
+@ServiceScope(Scope.CrossBuildSession.class)
 public class CrossBuildSessionState implements Closeable {
     private final ServiceRegistry services;
 
     public CrossBuildSessionState(ServiceRegistry parent, StartParameter startParameter) {
         this.services = ServiceRegistryBuilder.builder()
+            .scope(Scope.CrossBuildSession.class)
             .displayName("cross session services")
             .parent(parent)
             .provider(new Services(startParameter))
@@ -109,22 +108,18 @@ public class CrossBuildSessionState implements Closeable {
         }
 
         BuildOperationExecutor createBuildOperationExecutor(
-            Clock clock,
-            ProgressLoggerFactory progressLoggerFactory,
+            BuildOperationRunner buildOperationRunner,
+            CurrentBuildOperationRef currentBuildOperationRef,
             WorkerLeaseService workerLeaseService,
             ExecutorFactory executorFactory,
-            ParallelismConfiguration parallelismConfiguration,
-            BuildOperationIdFactory buildOperationIdFactory,
-            BuildOperationListenerManager buildOperationListenerManager
+            ParallelismConfiguration parallelismConfiguration
         ) {
             return new DefaultBuildOperationExecutor(
-                buildOperationListenerManager.getBroadcaster(),
-                clock,
-                progressLoggerFactory,
+                buildOperationRunner,
+                currentBuildOperationRef,
                 new DefaultBuildOperationQueueFactory(workerLeaseService),
                 executorFactory,
-                parallelismConfiguration,
-                buildOperationIdFactory
+                parallelismConfiguration
             );
         }
 
@@ -132,12 +127,12 @@ public class CrossBuildSessionState implements Closeable {
             return new DefaultUserCodeApplicationContext();
         }
 
-        ListenerBuildOperationDecorator createListenerBuildOperationDecorator(BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext) {
-            return new DefaultListenerBuildOperationDecorator(buildOperationExecutor, userCodeApplicationContext);
+        ListenerBuildOperationDecorator createListenerBuildOperationDecorator(BuildOperationRunner buildOperationRunner, UserCodeApplicationContext userCodeApplicationContext) {
+            return new DefaultListenerBuildOperationDecorator(buildOperationRunner, userCodeApplicationContext);
         }
 
-        CollectionCallbackActionDecorator createDomainObjectCollectioncallbackActionDecorator(BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext) {
-            return new DefaultCollectionCallbackActionDecorator(buildOperationExecutor, userCodeApplicationContext);
+        CollectionCallbackActionDecorator createDomainObjectCollectioncallbackActionDecorator(BuildOperationRunner buildOperationRunner, UserCodeApplicationContext userCodeApplicationContext) {
+            return new DefaultCollectionCallbackActionDecorator(buildOperationRunner, userCodeApplicationContext);
         }
 
         LoggingBuildOperationProgressBroadcaster createLoggingBuildOperationProgressBroadcaster(OutputEventListenerManager outputEventListenerManager, BuildOperationProgressEventEmitter buildOperationProgressEventEmitter) {

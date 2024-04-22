@@ -22,8 +22,8 @@ import org.gradle.cache.FileLockManager;
 import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.internal.classpath.transforms.ClassTransform;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactory;
-import org.gradle.internal.classpath.types.GradleCoreInstrumentingTypeRegistry;
-import org.gradle.internal.classpath.types.InstrumentingTypeRegistry;
+import org.gradle.internal.classpath.types.GradleCoreInstrumentationTypeRegistry;
+import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
@@ -49,23 +49,23 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
         ClasspathFileHasher classpathFileHasher,
         ClasspathElementTransformFactory classpathElementTransformFactory,
         ClassTransform transform,
-        GradleCoreInstrumentingTypeRegistry gradleCoreInstrumentingTypeRegistry
+        GradleCoreInstrumentationTypeRegistry gradleCoreInstrumentationTypeRegistry
     ) {
         this.fileLockManager = fileLockManager;
 
         this.fileHasher = createFileHasherWithConfig(
-            configHashFor(classpathElementTransformFactory, transform, gradleCoreInstrumentingTypeRegistry),
+            configHashFor(classpathElementTransformFactory, transform, gradleCoreInstrumentationTypeRegistry),
             classpathFileHasher);
         this.classpathElementTransformFactory = classpathElementTransformFactory;
         this.transform = transform;
     }
 
-    private static HashCode configHashFor(ClasspathElementTransformFactory classpathElementTransformFactory, ClassTransform transform, GradleCoreInstrumentingTypeRegistry gradleCoreInstrumentingTypeRegistry) {
+    private static HashCode configHashFor(ClasspathElementTransformFactory classpathElementTransformFactory, ClassTransform transform, GradleCoreInstrumentationTypeRegistry gradleCoreInstrumentationTypeRegistry) {
         Hasher hasher = Hashing.defaultFunction().newHasher();
         hasher.putInt(CACHE_FORMAT);
         hasher.putInt(AsmConstants.MAX_SUPPORTED_JAVA_VERSION);
-        gradleCoreInstrumentingTypeRegistry.getInstrumentedTypesHash().ifPresent(hasher::putHash);
-        gradleCoreInstrumentingTypeRegistry.getUpgradedPropertiesHash().ifPresent(hasher::putHash);
+        gradleCoreInstrumentationTypeRegistry.getInstrumentedTypesHash().ifPresent(hasher::putHash);
+        gradleCoreInstrumentationTypeRegistry.getUpgradedPropertiesHash().ifPresent(hasher::putHash);
         classpathElementTransformFactory.applyConfigurationTo(hasher);
         transform.applyConfigurationTo(hasher);
         return hasher.hash();
@@ -76,15 +76,21 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
             Hasher hasher = Hashing.newHasher();
             hasher.putHash(configHash);
             hasher.putHash(fileHasher.hashOf(sourceSnapshot));
+            if (sourceSnapshot.getType() == FileType.Directory) {
+                // Prior to 8.7 we were combining instrumented classes from both directories and JARs into JARs.
+                // Now we store instrumented directories as directories, so we invalidate these.
+                // However, transformed JARs should be left intact.
+                hasher.putBoolean(true);
+            }
             return hasher.hash();
         };
     }
 
     @Override
-    public File transform(File source, FileSystemLocationSnapshot sourceSnapshot, File cacheDir, InstrumentingTypeRegistry typeRegistry) {
+    public File transform(File source, FileSystemLocationSnapshot sourceSnapshot, File cacheDir, InstrumentationTypeRegistry typeRegistry) {
         String destDirName = hashOf(sourceSnapshot);
         File destDir = new File(cacheDir, destDirName);
-        String destFileName = sourceSnapshot.getType() == FileType.Directory ? source.getName() + ".jar" : source.getName();
+        String destFileName = source.getName();
         File receipt = new File(destDir, destFileName + ".receipt");
         File transformed = new File(destDir, destFileName);
 
@@ -132,7 +138,7 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
         return fileHasher.hashOf(sourceSnapshot).toString();
     }
 
-    private void transform(File source, File dest, InstrumentingTypeRegistry typeRegistry) {
+    private void transform(File source, File dest, InstrumentationTypeRegistry typeRegistry) {
         classpathElementTransformFactory.createTransformer(source, this.transform, typeRegistry).transform(dest);
     }
 }

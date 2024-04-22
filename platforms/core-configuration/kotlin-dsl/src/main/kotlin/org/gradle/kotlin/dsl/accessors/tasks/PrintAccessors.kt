@@ -50,7 +50,7 @@ abstract class PrintAccessors : DefaultTask() {
     @TaskAction
     internal
     fun printExtensions() {
-        printAccessorsFor(schema.get())
+        printAccessorsFor(schema.get()!!)
     }
 
     private

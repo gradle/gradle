@@ -18,10 +18,10 @@ package org.gradle.integtests.tooling.r73
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import spock.lang.Ignore
+import org.gradle.util.GradleVersion
 
 class DeprecationsCrossVersionSpec extends ToolingApiSpecification {
-    @TargetGradleVersion(">=7.3 <8.0")
+    @TargetGradleVersion(">=7.3")
     def "deprecation is reported when tooling model builder resolves configuration from a project other than its target"() {
         settingsFile << """
             include("a")
@@ -65,56 +65,7 @@ class DeprecationsCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then:
-        stdout.toString().contains("Deprecated Gradle features were used in this build")
-    }
-
-    @Ignore("https://github.com/gradle/gradle/issues/22088")
-    @TargetGradleVersion(">=8.0")
-    def "fails when tooling model builder resolves configuration from a project other than its target post Gradle 8.0"() {
-        settingsFile << """
-            include("a")
-        """
-        buildFile << """
-            import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
-            import org.gradle.tooling.provider.model.ToolingModelBuilder
-            import org.gradle.api.Project
-
-            class MyModelBuilder implements ToolingModelBuilder {
-                boolean canBuild(String modelName) {
-                    return modelName == "${List.class.name}"
-                }
-                Object buildAll(String modelName, Project project) {
-                    println("creating model for \$project")
-                    project.allprojects.each { p ->
-                        p.configurations.compileClasspath.files()
-                    }
-                    return ["result"]
-                }
-            }
-
-            project.services.get(ToolingModelBuilderRegistry.class).register(new MyModelBuilder())
-
-            allprojects {
-                apply plugin: 'java-library'
-            }
-            project(':a') {
-                dependencies {
-                    implementation rootProject
-                }
-            }
-        """
-
-        when:
-        withConnection {
-            def builder = it.model(List)
-            builder.withArguments("--parallel")
-            collectOutputs(builder)
-            return builder.get()
-        }
-
-        then:
-        def e = thrown(org.gradle.tooling.BuildException)
-        e.message.contains("Could not fetch model of type 'List'")
-        e.cause.message.contains("Resolution of the configuration :a:compileClasspath was attempted from a context different than the project context.")
+        expectDeprecation("Deprecated Gradle features were used in this build, making it incompatible with Gradle ${targetVersion.compareTo(GradleVersion.version("7.6.4")) > 0 ? "9.0" : "8.0" }.")
+        assertHasConfigureSuccessfulLogging()
     }
 }

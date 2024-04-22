@@ -349,6 +349,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
     public Dependency platform(Object notation) {
         Dependency dependency = create(notation);
         if (dependency instanceof ModuleDependency) {
+            // Changes here may require changes in DefaultExternalModuleDependencyVariantSpec
             ModuleDependency moduleDependency = (ModuleDependency) dependency;
             moduleDependency.endorseStrictVersions();
             platformSupport.addPlatformAttribute(moduleDependency, toCategory(Category.REGULAR_PLATFORM));
@@ -370,6 +371,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
     public Dependency enforcedPlatform(Object notation) {
         Dependency platformDependency = create(notation);
         if (platformDependency instanceof ExternalModuleDependency) {
+            // Changes here may require changes in DefaultExternalModuleDependencyVariantSpec
             AbstractExternalModuleDependency externalModuleDependency = (AbstractExternalModuleDependency) platformDependency;
             MutableVersionConstraint constraint = (MutableVersionConstraint) externalModuleDependency.getVersionConstraint();
             constraint.strictly(externalModuleDependency.getVersion());
@@ -394,6 +396,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
             ProjectDependency projectDependency = (ProjectDependency) testFixturesDependency;
             projectDependency.capabilities(new ProjectTestFixtures(projectDependency.getDependencyProject()));
         } else if (testFixturesDependency instanceof ModuleDependency) {
+            // Changes here may require changes in DefaultExternalModuleDependencyVariantSpec
             ModuleDependency moduleDependency = (ModuleDependency) testFixturesDependency;
             moduleDependency.capabilities(capabilities -> capabilities.requireCapability(new DefaultImmutableCapability(
                 moduleDependency.getGroup(),
@@ -429,6 +432,8 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
     public Provider<MinimalExternalModuleDependency> enforcedPlatform(Provider<MinimalExternalModuleDependency> dependencyProvider) {
         return variantOf(dependencyProvider, spec -> {
             DefaultExternalModuleDependencyVariantSpec defaultSpec = (DefaultExternalModuleDependencyVariantSpec) spec;
+            MutableVersionConstraint versionConstraint = (MutableVersionConstraint) defaultSpec.dep.getVersionConstraint();
+            versionConstraint.strictly(defaultSpec.dep.getVersion());
             defaultSpec.attributesAction = attrs -> attrs.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.ENFORCED_PLATFORM));
         });
     }
@@ -463,6 +468,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
 
         @Override
         public void platform() {
+            this.dep.endorseStrictVersions();
             this.attributesAction = attrs -> attrs.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.REGULAR_PLATFORM));
         }
 

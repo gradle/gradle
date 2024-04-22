@@ -16,8 +16,12 @@
 
 package org.gradle.internal.component.resolution.failure.describer;
 
-import org.gradle.internal.component.ArtifactVariantSelectionException;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.internal.component.resolution.failure.exception.ArtifactVariantSelectionException;
 import org.gradle.internal.component.resolution.failure.type.UnknownArtifactSelectionFailure;
+
+import java.util.List;
+import java.util.Optional;
 
 /**
  * A {@link ResolutionFailureDescriber} that describes an {@link UnknownArtifactSelectionFailure}.
@@ -26,16 +30,17 @@ import org.gradle.internal.component.resolution.failure.type.UnknownArtifactSele
  * {@link ArtifactVariantSelectionException} is already the cause of the failure, it will be returned directly, with resolution
  * information added as necessary.
  */
-public abstract class UnknownArtifactSelectionFailureDescriber extends AbstractResolutionFailureDescriber<ArtifactVariantSelectionException, UnknownArtifactSelectionFailure> {
+public abstract class UnknownArtifactSelectionFailureDescriber extends AbstractResolutionFailureDescriber<UnknownArtifactSelectionFailure> {
     @Override
-    public ArtifactVariantSelectionException describeFailure(UnknownArtifactSelectionFailure failure) {
+    public ArtifactVariantSelectionException describeFailure(UnknownArtifactSelectionFailure failure, Optional<AttributesSchemaInternal> schema) {
         final ArtifactVariantSelectionException result;
         if (failure.getCause() instanceof ArtifactVariantSelectionException) {
             result = (ArtifactVariantSelectionException) failure.getCause();
         } else {
-            result = new ArtifactVariantSelectionException(buildUnknownArtifactVariantFailureMsg(failure), failure.getCause());
+            String message = buildUnknownArtifactVariantFailureMsg(failure);
+            List<String> resolutions = buildResolutions(suggestReviewAlgorithm());
+            result = new ArtifactVariantSelectionException(message, failure, resolutions, failure.getCause());
         }
-        suggestReviewAlgorithm(result);
         return result;
     }
 

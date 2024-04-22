@@ -21,7 +21,6 @@ import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
-import org.gradle.cache.internal.DecompressionCoordinator;
 
 import java.io.File;
 

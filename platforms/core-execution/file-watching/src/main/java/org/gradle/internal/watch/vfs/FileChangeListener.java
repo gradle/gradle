@@ -17,9 +17,9 @@
 package org.gradle.internal.watch.vfs;
 
 import org.gradle.internal.service.scopes.EventScope;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.watch.registry.FileWatcherRegistry;
 
-@EventScope(Scopes.UserHome.class)
+@EventScope(Scope.UserHome.class)
 public interface FileChangeListener extends FileWatcherRegistry.ChangeHandler {
 }

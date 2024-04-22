@@ -13,6 +13,30 @@
       }
     } ]
   }, {
+    "testId" : "org.gradle.performance.experiment.declarativedsl.DeclarativeDslFirstUsePerformanceTest.clean checkout",
+    "groups" : [ {
+      "testProject" : "largeEmptyMultiProjectDeclarativeDsl",
+      "coverage" : {
+        "per_day" : [ "linux", "macOs", "windows" ]
+      }
+    } ]
+  }, {
+    "testId" : "org.gradle.performance.experiment.declarativedsl.DeclarativeDslFirstUsePerformanceTest.cold daemon",
+    "groups" : [ {
+      "testProject" : "largeEmptyMultiProjectDeclarativeDsl",
+      "coverage" : {
+        "per_day" : [ "linux", "macOs", "windows" ]
+      }
+    } ]
+  }, {
+    "testId" : "org.gradle.performance.experiment.declarativedsl.DeclarativeDslFirstUsePerformanceTest.first use",
+    "groups" : [ {
+      "testProject" : "largeEmptyMultiProjectDeclarativeDsl",
+      "coverage" : {
+        "per_day" : [ "linux", "macOs", "windows" ]
+      }
+    } ]
+  }, {
     "testId" : "org.gradle.performance.experiment.java.ParallelBuildPerformanceTest.clean assemble with 4 parallel workers",
     "groups" : [ {
       "testProject" : "largeJavaMultiProject",
@@ -758,6 +782,29 @@
     "testId" : "org.gradle.performance.regression.java.JavaIDEModelPerformanceTest.get IDE model for IDEA",
     "groups" : [ {
       "testProject" : "largeJavaMultiProject",
+      "coverage" : {
+        "per_commit" : [ "linux" ]
+      }
+    } ]
+  }, {
+    "testId" : "org.gradle.performance.regression.java.JavaIDETaskExecutionPerformanceTest.run compileJava via Tooling API",
+    "groups" : [ {
+      "testProject" : "largeAndroidBuild",
+      "coverage" : {
+        "per_commit" : [ "linux" ]
+      }
+    }, {
+      "testProject" : "largeJavaMultiProject",
+      "coverage" : {
+        "per_commit" : [ "linux" ]
+      }
+    }, {
+      "testProject" : "largeJavaMultiProjectHierarchy",
+      "coverage" : {
+        "per_commit" : [ "linux" ]
+      }
+    }, {
+      "testProject" : "nowInAndroidBuild",
       "coverage" : {
         "per_commit" : [ "linux" ]
       }

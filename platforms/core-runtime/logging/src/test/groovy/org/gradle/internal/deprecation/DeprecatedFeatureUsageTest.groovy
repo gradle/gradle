@@ -24,29 +24,29 @@ class DeprecatedFeatureUsageTest extends Specification {
 
     def "formats messages"() {
         given:
-        def featureUsage = new DeprecatedFeatureUsage(summary, removalDetails, advice, contextualAdvice, documentationReference, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT, getClass())
+        def featureUsage = new DeprecatedFeatureUsage(summary, removalDetails, advice, contextualAdvice, documentationReference, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT, "id", "id display name", getClass())
 
         expect:
         featureUsage.formattedMessage() == expected
 
         where:
         summary   | removalDetails   | advice   | contextualAdvice   | documentationReference                       | expected
-        "summary" | "removalDetails" | null     | null               | Documentation.NO_DOCUMENTATION               | "summary removalDetails"
-        "summary" | "removalDetails" | "advice" | null               | Documentation.NO_DOCUMENTATION               | "summary removalDetails advice"
-        "summary" | "removalDetails" | "advice" | "contextualAdvice" | Documentation.NO_DOCUMENTATION               | "summary removalDetails contextualAdvice advice"
+        "summary" | "removalDetails" | null     | null               | null                                         | "summary removalDetails"
+        "summary" | "removalDetails" | "advice" | null               | null                                         | "summary removalDetails advice"
+        "summary" | "removalDetails" | "advice" | "contextualAdvice" | null                                         | "summary removalDetails contextualAdvice advice"
         "summary" | "removalDetails" | "advice" | "contextualAdvice" | Documentation.userManual("userguide", "bar") | "summary removalDetails contextualAdvice advice ${new DocumentationRegistry().getDocumentationRecommendationFor("information", "userguide", "bar")}"
     }
 
     def "returns documentation url"() {
         given:
-        def featureUsage = new DeprecatedFeatureUsage("summary", "removalDetails", "advice", "contextualAdvice", documentationReference, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT, getClass())
+        def featureUsage = new DeprecatedFeatureUsage("summary", "removalDetails", "advice", "contextualAdvice", documentationReference, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT, "id", "id display name", getClass())
 
         expect:
-        featureUsage.getDocumentationUrl().getUrl() == expected
+        featureUsage.getDocumentationUrl()?.getUrl() == expected
 
         where:
         documentationReference                 | expected
-        Documentation.NO_DOCUMENTATION         | null
+        null                                   | null
         Documentation.userManual("foo", "bar") | "https://docs.gradle.org/${GradleVersion.current().version}/userguide/foo.html#bar"
         Documentation.upgradeGuide(42, "bar")  | "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_42.html#bar"
     }

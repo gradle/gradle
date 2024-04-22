@@ -16,7 +16,9 @@
 
 package org.gradle.api.internal.tasks.testing.worker;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.testing.DefaultNestedTestSuiteDescriptor;
+import org.gradle.api.internal.tasks.testing.DefaultParameterizedTestDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestClassDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.DefaultTestDescriptor;
@@ -50,6 +52,7 @@ public class TestEventSerializer {
         registry.register(DefaultTestClassRunInfo.class, new DefaultTestClassRunInfoSerializer());
         registry.register(CompositeIdGenerator.CompositeId.class, new IdSerializer());
         registry.register(DefaultNestedTestSuiteDescriptor.class, new DefaultNestedTestSuiteDescriptorSerializer());
+        registry.register(DefaultParameterizedTestDescriptor.class, new DefaultParameterizedTestDescriptorSerializer());
         registry.register(DefaultTestSuiteDescriptor.class, new DefaultTestSuiteDescriptorSerializer());
         registry.register(WorkerTestClassProcessor.WorkerTestSuiteDescriptor.class, new WorkerTestSuiteDescriptorSerializer());
         registry.register(DefaultTestClassDescriptor.class, new DefaultTestClassDescriptorSerializer());
@@ -295,6 +298,30 @@ public class TestEventSerializer {
         public void write(Encoder encoder, DefaultNestedTestSuiteDescriptor value) throws Exception {
             idSerializer.write(encoder, (CompositeIdGenerator.CompositeId) value.getId());
             encoder.writeString(value.getName());
+            encoder.writeString(value.getDisplayName());
+            idSerializer.write(encoder, value.getParentId());
+        }
+    }
+
+    @NonNullApi
+    private static class DefaultParameterizedTestDescriptorSerializer implements Serializer<DefaultParameterizedTestDescriptor> {
+        final Serializer<CompositeIdGenerator.CompositeId> idSerializer = new IdSerializer();
+
+        @Override
+        public DefaultParameterizedTestDescriptor read(Decoder decoder) throws Exception {
+            Object id = idSerializer.read(decoder);
+            String name = decoder.readString();
+            String className = decoder.readNullableString();
+            String displayName = decoder.readString();
+            CompositeIdGenerator.CompositeId parentId = idSerializer.read(decoder);
+            return new DefaultParameterizedTestDescriptor(id, name, className, displayName, parentId);
+        }
+
+        @Override
+        public void write(Encoder encoder, DefaultParameterizedTestDescriptor value) throws Exception {
+            idSerializer.write(encoder, (CompositeIdGenerator.CompositeId) value.getId());
+            encoder.writeString(value.getName());
+            encoder.writeNullableString(value.getClassName());
             encoder.writeString(value.getDisplayName());
             idSerializer.write(encoder, value.getParentId());
         }

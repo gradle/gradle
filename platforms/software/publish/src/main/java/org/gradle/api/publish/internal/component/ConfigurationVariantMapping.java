@@ -55,7 +55,8 @@ public class ConfigurationVariantMapping {
     }
 
     public void collectVariants(Consumer<UsageContext> collector) {
-        outgoingConfiguration.preventFromFurtherMutation();
+        outgoingConfiguration.runDependencyActions();
+        outgoingConfiguration.markAsObserved();
         String outgoingConfigurationName = outgoingConfiguration.getName();
 
         if (!outgoingConfiguration.isTransitive()) {

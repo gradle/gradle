@@ -16,13 +16,19 @@
 
 package org.gradle.launcher.daemon.client;
 
+import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.logging.console.GlobalUserInputReceiver;
 import org.gradle.internal.logging.events.OutputEventListener;
+import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
+import org.gradle.launcher.daemon.context.DaemonRequestContext;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.util.Collections;
 
 public class DaemonClientFactory {
     private final ServiceRegistry sharedServices;
@@ -34,31 +40,36 @@ public class DaemonClientFactory {
     /**
      * Creates the services for a {@link DaemonClient} that can be used to run builds.
      */
-    public ServiceRegistry createBuildClientServices(OutputEventListener loggingReceiver, DaemonParameters daemonParameters, InputStream stdin) {
-        DefaultServiceRegistry loggingServices = new DefaultServiceRegistry(sharedServices);
-        loggingServices.add(OutputEventListener.class, loggingReceiver);
-        return new DaemonClientServices(loggingServices, daemonParameters, stdin);
+    public ServiceRegistry createBuildClientServices(ServiceLookup clientLoggingServices, DaemonParameters daemonParameters, DaemonRequestContext requestContext, InputStream stdin) {
+        ServiceRegistry loggingServices = createLoggingServices(clientLoggingServices);
+        return new DaemonClientServices(loggingServices, daemonParameters, requestContext, stdin);
     }
 
     /**
      * Creates the services for a {@link DaemonClient} that can be used to run a build in a single-use daemon.
      */
-    public ServiceRegistry createSingleUseDaemonClientServices(OutputEventListener loggingReceiver, DaemonParameters daemonParameters, InputStream stdin) {
+    public ServiceRegistry createSingleUseDaemonClientServices(ServiceLookup clientLoggingServices, DaemonParameters daemonParameters, DaemonRequestContext requestContext, InputStream stdin) {
+        ServiceRegistry loggingServices = createLoggingServices(clientLoggingServices);
+        return new SingleUseDaemonClientServices(loggingServices, daemonParameters, requestContext, stdin);
+    }
+
+    private DefaultServiceRegistry createLoggingServices(ServiceLookup clientLoggingServices) {
+        // Need to use some specific logging services from the client-specific registry, rather than the global registry
         DefaultServiceRegistry loggingServices = new DefaultServiceRegistry(sharedServices);
-        loggingServices.add(OutputEventListener.class, loggingReceiver);
-        return new SingleUseDaemonClientServices(loggingServices, daemonParameters, stdin);
+        loggingServices.add(OutputEventListener.class, clientLoggingServices.get(OutputEventListener.class));
+        loggingServices.add(GlobalUserInputReceiver.class, clientLoggingServices.get(GlobalUserInputReceiver.class));
+        return loggingServices;
     }
 
     /**
      * Creates the services for sending simple messages to daemons.
      *
      * Currently, there are two clients which can be used from this registry:
-     *   - {@link DaemonStopClient} that can be used to stop daemons.
-     *   - {@link NotifyDaemonAboutChangedPathsClient} that can be used to notify daemons about changed paths.
+     * - {@link DaemonStopClient} that can be used to stop daemons.
+     * - {@link NotifyDaemonAboutChangedPathsClient} that can be used to notify daemons about changed paths.
      */
-    public ServiceRegistry createMessageDaemonServices(OutputEventListener loggingReceiver, DaemonParameters daemonParameters) {
-        DefaultServiceRegistry loggingServices = new DefaultServiceRegistry(sharedServices);
-        loggingServices.add(OutputEventListener.class, loggingReceiver);
-        return new DaemonClientServices(loggingServices, daemonParameters, new ByteArrayInputStream(new byte[0]));
+    public ServiceRegistry createMessageDaemonServices(ServiceLookup clientLoggingServices, DaemonParameters daemonParameters) {
+        // These can always run inside the current JVM since we should not be forking a daemon to run them
+        return createBuildClientServices(clientLoggingServices, daemonParameters, new DaemonRequestContext(Jvm.current(), null, Collections.emptyList(), false, NativeServices.NativeServicesMode.NOT_SET, DaemonParameters.Priority.NORMAL), new ByteArrayInputStream(new byte[0]));
     }
 }

@@ -247,13 +247,14 @@ class TestSelectionMatcherTest extends Specification {
         matcher(pattern1, [], pattern2).mayIncludeClass(fullQualifiedName) == maybeMatch
 
         where:
-        pattern1                | pattern2                 | fullQualifiedName    | maybeMatch
-        ['FooTest*']            | ['FooTest']              | 'FooTest'            | true
-        ['FooTest*']            | ['BarTest*']             | 'FooTest'            | false
-        ['FooTest*']            | ['BarTest*']             | 'FooBarTest'         | false
-        []                      | []                       | 'anything'           | true
-        ['org.gradle.FooTest*'] | ['org.gradle.BarTest*']  | 'org.gradle.FooTest' | false
-        ['org.gradle.FooTest*'] | ['*org.gradle.BarTest*'] | 'org.gradle.FooTest' | true
+        pattern1                | pattern2                        | fullQualifiedName     | maybeMatch
+        ['']                    | ['com.my.Test.test[first.com]'] | 'com.my.Test'         | true
+        ['FooTest*']            | ['FooTest']                     | 'FooTest'             | true
+        ['FooTest*']            | ['BarTest*']                    | 'FooTest'             | false
+        ['FooTest*']            | ['BarTest*']                    | 'FooBarTest'          | false
+        []                      | []                              | 'anything'            | true
+        ['org.gradle.FooTest*'] | ['org.gradle.BarTest*']         | 'org.gradle.FooTest'  | false
+        ['org.gradle.FooTest*'] | ['*org.gradle.BarTest*']        | 'org.gradle.FooTest'  | true
     }
 
     def matcher(Collection<String> includedTests, Collection<String> excludedTests, Collection<String> includedTestsCommandLine) {

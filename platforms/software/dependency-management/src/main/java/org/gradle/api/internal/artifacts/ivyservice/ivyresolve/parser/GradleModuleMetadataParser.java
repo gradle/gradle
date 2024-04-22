@@ -399,6 +399,9 @@ public class GradleModuleMetadataParser {
         }
         assertDefined(reader, "name", artifactName);
         assertDefined(reader, "type", type);
+        if (extension == null) {
+            extension = type;
+        }
         reader.endObject();
         return new DefaultIvyArtifactName(artifactName, type, extension, classifier);
     }

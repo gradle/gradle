@@ -769,7 +769,7 @@ task show {
         expect:
         fails "resolveView"
         failure.assertHasDescription("Could not determine the dependencies of task ':app:resolveView'.")
-        failure.assertHasCause("Could not resolve all task dependencies for configuration ':app:compile'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':app:compile'.")
         failure.assertHasCause("""The consumer was configured to find attribute 'artifactType' with value 'jar', attribute 'usage' with value 'api'. However we cannot choose between the following variants of project :lib:
   - Configuration ':lib:compile' declares attribute 'artifactType' with value 'jar', attribute 'usage' with value 'api':
       - Unmatched attribute:

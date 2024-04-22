@@ -24,6 +24,7 @@ dependencies {
     implementation(project(":plugins-java-base"))
     implementation(project(":reporting"))
     implementation(project(":toolchains-jvm"))
+    implementation(project(":toolchains-jvm-shared"))
 
     implementation(libs.guava)
 
@@ -34,7 +35,10 @@ dependencies {
 
     integTestImplementation(testFixtures(project(":plugins-java-base")))
 
-    integTestDistributionRuntimeOnly(project(":distributions-jvm"))
+    integTestDistributionRuntimeOnly(project(":distributions-full")) {
+        because("The full distribution is required to run the GroovyToJavaConversionIntegrationTest")
+    }
+    crossVersionTestDistributionRuntimeOnly(project(":distributions-core"))
 }
 
 integTest.usesJavadocCodeSnippets.set(true)

@@ -312,8 +312,9 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         return new KeySetProvider();
     }
 
-    public void update(Transformer<? extends @org.jetbrains.annotations.Nullable Provider<? extends Map<? extends K, ? extends V>>, ? super Provider<Map<K, V>>> transform) {
-        Provider<? extends Map<? extends K, ? extends V>> newValue = transform.transform(shallowCopy());
+    @Override
+    public void replace(Transformer<? extends @org.jetbrains.annotations.Nullable Provider<? extends Map<? extends K, ? extends V>>, ? super Provider<Map<K, V>>> transformation) {
+        Provider<? extends Map<? extends K, ? extends V>> newValue = transformation.transform(shallowCopy());
         if (newValue != null) {
             set(newValue);
         } else {
@@ -796,6 +797,10 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
     }
 
+    /**
+     * A plus collector that either produces a composition of both of its left and right sides,
+     * or Value.present() with empty content (if left or right side are missing).
+     */
     private static class AbsentIgnoringPlusCollector<K, V> extends AbstractPlusCollector<K, V> {
 
         private AbsentIgnoringPlusCollector(MapCollector<K, V> left, MapCollector<K, V> right) {
@@ -815,6 +820,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         @Override
         public Value<Void> collectEntries(ValueConsumer consumer, MapEntryCollector<K, V> collector, Map<K, V> dest) {
             Map<K, V> candidates = new LinkedHashMap<>();
+            // we cannot use dest directly because we don't want to emit any entries if either left or right are missing
             Value<Void> leftValue = left.collectEntries(consumer, collector, candidates);
             if (leftValue.isMissing()) {
                 return Value.present();

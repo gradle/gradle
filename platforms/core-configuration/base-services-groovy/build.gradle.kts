@@ -14,7 +14,3 @@ dependencies {
 
     testImplementation(testFixtures(project(":core")))
 }
-
-strictCompile {
-    ignoreParameterizedVarargType() // [unchecked] Possible heap pollution from parameterized vararg type: org.gradle.api.specs.AndSpec.and()
-}

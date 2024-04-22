@@ -61,9 +61,6 @@ abstract class AbstractDependencyDescriptorFactoryInternalSpec extends Specifica
 
     protected static void assertDependencyDescriptorHasCommonFixtureValues(LocalOriginDependencyMetadata dependencyMetadata, boolean withArtifacts) {
         assert TEST_IVY_EXCLUDE_RULE == dependencyMetadata.getExcludes().get(0)
-        if (!withArtifacts) {
-            assert dependencyMetadata.getDependencyConfiguration() == TEST_DEP_CONF
-        }
         assert dependencyMetadata.isTransitive()
         if (withArtifacts) {
             assertDependencyDescriptorHasArtifacts(dependencyMetadata)

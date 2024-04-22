@@ -18,7 +18,6 @@ package org.gradle.internal.component.resolution.failure;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
-import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 
 import java.util.Collection;
 import java.util.stream.Collectors;
@@ -29,21 +28,20 @@ import java.util.stream.Collectors;
 public final class CapabilitiesDescriber {
     private CapabilitiesDescriber() {}
 
-    public static String describeCapabilitiesWithTitle(ComponentGraphResolveMetadata targetComponent, Collection<? extends Capability> capabilities) {
+    public static String describeCapabilitiesWithTitle(ModuleVersionIdentifier targetComponentId, Collection<? extends Capability> capabilities) {
         StringBuilder sb = new StringBuilder("capabilit");
         if (capabilities.size() > 1) {
             sb.append("ies ");
-            sb.append(describeCapabilities(targetComponent, capabilities));
+            sb.append(describeCapabilities(targetComponentId, capabilities));
         } else {
-            sb.append("y ").append(describeCapabilities(targetComponent, capabilities));
+            sb.append("y ").append(describeCapabilities(targetComponentId, capabilities));
         }
         return sb.toString();
     }
 
-    public static String describeCapabilities(ComponentGraphResolveMetadata target, Collection<? extends Capability> capabilities) {
+    public static String describeCapabilities(ModuleVersionIdentifier targetComponentId, Collection<? extends Capability> capabilities) {
         if (capabilities.isEmpty()) {
-            ModuleVersionIdentifier mvi = target.getModuleVersionId();
-            return describeCapability(new DefaultImmutableCapability(mvi.getGroup(), mvi.getName(), mvi.getVersion()));
+            return describeCapability(new DefaultImmutableCapability(targetComponentId.getGroup(), targetComponentId.getName(), targetComponentId.getVersion()));
         }
         return capabilities.stream()
             .map(CapabilitiesDescriber::describeCapability)

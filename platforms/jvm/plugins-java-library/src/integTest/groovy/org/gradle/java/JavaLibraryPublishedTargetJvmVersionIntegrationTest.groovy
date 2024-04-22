@@ -98,31 +98,12 @@ class JavaLibraryPublishedTargetJvmVersionIntegrationTest extends AbstractHttpDe
         fails ':checkDeps'
 
         then:
-        failure.assertHasCause('''No matching variant of org:producer:1.0 was found. The consumer was configured to find a library for use during compile-time, compatible with Java 5, preferably in the form of class files, preferably optimized for standard JVMs, and its dependencies declared externally but:
-  - Variant 'apiElementsJdk6' declares a library for use during compile-time, packaged as a jar, and its dependencies declared externally:
-      - Incompatible because this component declares a component, compatible with Java 6 and the consumer needed a component, compatible with Java 5
-      - Other compatible attribute:
-          - Doesn't say anything about its target Java environment (preferred optimized for standard JVMs)
-  - Variant 'apiElementsJdk7' declares a library for use during compile-time, packaged as a jar, and its dependencies declared externally:
-      - Incompatible because this component declares a component, compatible with Java 7 and the consumer needed a component, compatible with Java 5
-      - Other compatible attribute:
-          - Doesn't say anything about its target Java environment (preferred optimized for standard JVMs)
-  - Variant 'apiElementsJdk9' declares a library for use during compile-time, packaged as a jar, and its dependencies declared externally:
-      - Incompatible because this component declares a component, compatible with Java 9 and the consumer needed a component, compatible with Java 5
-      - Other compatible attribute:
-          - Doesn't say anything about its target Java environment (preferred optimized for standard JVMs)
-  - Variant 'runtimeElementsJdk6' declares a library for use during runtime, packaged as a jar, and its dependencies declared externally:
-      - Incompatible because this component declares a component, compatible with Java 6 and the consumer needed a component, compatible with Java 5
-      - Other compatible attribute:
-          - Doesn't say anything about its target Java environment (preferred optimized for standard JVMs)
-  - Variant 'runtimeElementsJdk7' declares a library for use during runtime, packaged as a jar, and its dependencies declared externally:
-      - Incompatible because this component declares a component, compatible with Java 7 and the consumer needed a component, compatible with Java 5
-      - Other compatible attribute:
-          - Doesn't say anything about its target Java environment (preferred optimized for standard JVMs)
-  - Variant 'runtimeElementsJdk9' declares a library for use during runtime, packaged as a jar, and its dependencies declared externally:
-      - Incompatible because this component declares a component, compatible with Java 9 and the consumer needed a component, compatible with Java 5
-      - Other compatible attribute:
-          - Doesn't say anything about its target Java environment (preferred optimized for standard JVMs)''')
+        failure.assertHasErrorOutput('''> Could not resolve all files for configuration ':compileClasspath'.
+   > Could not resolve org:producer:1.0.
+     Required by:
+         project :
+      > Dependency resolution is looking for a library compatible with JVM runtime version 5, but 'org:producer:1.0' is only compatible with JVM runtime version 6 or newer.''')
+        failure.assertHasResolution("Change the dependency on 'org:producer:1.0' to an earlier version that supports JVM runtime version 6.")
     }
 
     def "can select the most appropriate producer variant (#expected) based on target compatibility (#requested)"() {

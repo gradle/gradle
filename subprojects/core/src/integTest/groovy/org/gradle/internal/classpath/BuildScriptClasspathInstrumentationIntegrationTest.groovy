@@ -16,10 +16,20 @@
 
 package org.gradle.internal.classpath
 
+import org.gradle.api.Action
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
+import org.gradle.api.internal.cache.StringInterner
+import org.gradle.api.internal.initialization.transform.utils.InstrumentationAnalysisSerializer
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
+import org.gradle.test.fixtures.HttpRepository
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.server.http.MavenHttpRepository
+import org.gradle.test.fixtures.server.http.RepositoryHttpServer
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.util.internal.GFileUtils
+import org.junit.Rule
 import spock.lang.Issue
 
 import java.nio.file.Files
@@ -27,14 +37,26 @@ import java.util.function.Supplier
 import java.util.regex.Pattern
 import java.util.stream.Collectors
 
+import static org.gradle.api.internal.initialization.transform.services.CacheInstrumentationDataBuildService.GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.ANALYSIS_OUTPUT_DIR
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.DEPENDENCY_ANALYSIS_FILE_NAME
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.MERGE_OUTPUT_DIR
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.TYPE_HIERARCHY_ANALYSIS_FILE_NAME
 import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegrationSpec implements FileAccessTimeJournalFixture {
 
+    @Rule
+    public final RepositoryHttpServer server = new RepositoryHttpServer(temporaryFolder)
+
+    def serializer = new InstrumentationAnalysisSerializer(new StringInterner())
+
+    def setup() {
+        requireOwnGradleUserHomeDir("We test content in the global cache")
+    }
+
     def "buildSrc and included builds should be cached in global cache"() {
         given:
-        // We test content in the global cache
-        requireOwnGradleUserHomeDir()
         withBuildSrc()
         withIncludedBuild()
         buildFile << """
@@ -77,8 +99,6 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
 
     def "external dependencies should not be copied to the global artifact transform cache"() {
         given:
-        // We test content in the global cache
-        requireOwnGradleUserHomeDir()
         buildFile << """
             buildscript {
                 ${mavenCentralRepository()}
@@ -92,7 +112,8 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         run("tasks", "--info")
 
         then:
-        allTransformsFor("commons-lang3-3.8.1.jar") == ["ExternalDependencyInstrumentingArtifactTransform"]
+        // InstrumentationAnalysisTransform is duplicated since InstrumentationAnalysisTransform result is also an input to MergeInstrumentationAnalysisTransform
+        allTransformsFor("commons-lang3-3.8.1.jar") ==~ ["InstrumentationAnalysisTransform", "InstrumentationAnalysisTransform", "MergeInstrumentationAnalysisTransform", "ExternalDependencyInstrumentingArtifactTransform"]
         gradleUserHomeOutputs("original/commons-lang3-3.8.1.jar").isEmpty()
         gradleUserHomeOutput("instrumented/instrumented-commons-lang3-3.8.1.jar").exists()
     }
@@ -116,9 +137,17 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         run("tasks", "--info")
 
         then:
-        allTransformsFor("main") == [
+        allTransformsFor("main") ==~ [
             // Only the folder name is reported, so we cannot distinguish first and second
+            // InstrumentationAnalysisTransform is duplicated since InstrumentationAnalysisTransform
+            // result is also an input to MergeInstrumentationAnalysisTransform
+            "InstrumentationAnalysisTransform",
+            "InstrumentationAnalysisTransform",
+            "MergeInstrumentationAnalysisTransform",
             "ExternalDependencyInstrumentingArtifactTransform",
+            "InstrumentationAnalysisTransform",
+            "InstrumentationAnalysisTransform",
+            "MergeInstrumentationAnalysisTransform",
             "ExternalDependencyInstrumentingArtifactTransform"
         ]
     }
@@ -197,6 +226,341 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         outputContains("MyPlugin patched from buildSrc")
     }
 
+    def "classpath can contain non-existing file"() {
+        given:
+        buildFile << """
+            buildscript { dependencies { classpath files("does-not-exist.jar") } }
+        """
+
+        when:
+        succeeds()
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "should analyze plugin artifacts"() {
+        given:
+        multiProjectJavaBuild("subproject", "api", "animals") {
+            file("$it/api/src/main/java/org/gradle/api/Plugin.java") << "package org.gradle.api; public interface Plugin {}"
+            file("$it/api/src/main/java/org/gradle/api/Task.java") << "package org.gradle.api; public interface Task {}"
+            file("$it/api/src/main/java/org/gradle/api/DefaultTask.java") << "package org.gradle.api; public class DefaultTask implements Task {}"
+            file("$it/api/src/main/java/org/gradle/api/GradleException.java") << "package org.gradle.api; public class GradleException {}"
+            file("$it/animals/src/main/java/test/gradle/test/Dogs.java").createFile().text = """
+                package test.gradle.test;
+                import org.gradle.api.*;
+
+                class GermanShepherd extends Dog implements Animal {
+                    public void plugin() {
+                        ((Plugin) null).toString();
+                        new GradleException();
+                    }
+                }
+                abstract class Dog implements Mammal {
+                    public void task() {
+                        ((Task) null).toString();
+                        ((DefaultTask) null).toString();
+                    }
+                }
+                interface Mammal extends Animal {
+                }
+                interface Animal {
+                }
+            """
+        }
+        executer.inDirectory(file("subproject")).withTasks("jar").run()
+        buildFile << """
+            buildscript {
+                 repositories {
+                    maven { url "$mavenRepo.uri" }
+                }
+                dependencies {
+                    classpath(files("./subproject/animals/build/libs/animals-1.0.jar"))
+                }
+            }
+        """
+
+        when:
+        run("tasks", "--info")
+
+        then:
+        // InstrumentationAnalysisTransform is duplicated since InstrumentationAnalysisTransform result is also an input to MergeInstrumentationAnalysisTransform
+        allTransformsFor("animals-1.0.jar") ==~ ["InstrumentationAnalysisTransform", "InstrumentationAnalysisTransform", "MergeInstrumentationAnalysisTransform", "ExternalDependencyInstrumentingArtifactTransform"]
+        def typeHierarchyAnalysis = typeHierarchyAnalysisOutput("animals-1.0.jar")
+        typeHierarchyAnalysis.exists()
+        serializer.readTypeHierarchyAnalysis(typeHierarchyAnalysis) == [
+            "test/gradle/test/Dog": ["test/gradle/test/Mammal"] as Set<String>,
+            "test/gradle/test/GermanShepherd": ["test/gradle/test/Animal", "test/gradle/test/Dog"] as Set<String>,
+            "test/gradle/test/Mammal": ["test/gradle/test/Animal"] as Set<String>
+        ]
+        def dependencyAnalysis = dependencyAnalysisOutput("animals-1.0.jar")
+        dependencyAnalysis.exists()
+        serializer.readDependencyAnalysis(dependencyAnalysis).dependencies == [
+            "org/gradle/api/DefaultTask": [] as Set<String>,
+            "org/gradle/api/GradleException": [] as Set<String>,
+            "org/gradle/api/Plugin": [] as Set<String>,
+            "org/gradle/api/Task": [] as Set<String>,
+            "test/gradle/test/Animal": [] as Set<String>,
+            "test/gradle/test/Dog": [] as Set<String>,
+            "test/gradle/test/Mammal": [] as Set<String>,
+        ]
+    }
+
+    def "should output only org.gradle supertypes for class dependencies"() {
+        given:
+        multiProjectJavaBuild("subproject") {
+            file("$it/impl/src/main/java/A.java") << "public class A extends B {}"
+            file("$it/api/src/main/java/B.java") << "public class B extends C {}"
+            file("$it/api/src/main/java/C.java") << "import org.gradle.D; public class C extends D {}"
+            file("$it/api/src/main/java/org/gradle/D.java") << "package org.gradle; public class D extends E {}"
+            file("$it/api/src/main/java/org/gradle/E.java") << "package org.gradle; public class E {}"
+        }
+        buildFile << """
+            buildscript {
+                dependencies {
+                    // Add them as separate jars
+                    classpath(files("./subproject/impl/build/libs/impl-1.0.jar"))
+                    classpath(files("./subproject/api/build/libs/api-1.0.jar"))
+                }
+            }
+        """
+
+        when:
+        executer.inDirectory(file("subproject")).withTasks("jar").run()
+        run("tasks", "-D$GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY=true")
+
+        then:
+        mergeAnalysisOutput("impl-1.0.jar").exists()
+        mergeAnalysisOutput("api-1.0.jar").exists()
+        def implMergeAnalysis = mergeAnalysisOutput("impl-1.0.jar")
+        serializer.readDependencyAnalysis(implMergeAnalysis).dependencies == [
+            "B": ["org/gradle/D", "org/gradle/E"] as Set
+        ]
+        def apiMergeAnalysis = mergeAnalysisOutput("api-1.0.jar")
+        serializer.readDependencyAnalysis(apiMergeAnalysis).dependencies == [
+            "C": ["org/gradle/D", "org/gradle/E"] as Set,
+            "org/gradle/D": ["org/gradle/D", "org/gradle/E"] as Set,
+            "org/gradle/E": ["org/gradle/E"] as Set
+        ]
+    }
+
+    @Requires(
+        value = IntegTestPreconditions.NotConfigCached,
+        reason = "Cc doesn't get invalidated when file dependency changes"
+    )
+    def "should re-instrument jar if classpath changes and class starts extending a Gradle core class transitively"() {
+        given:
+        multiProjectJavaBuild("subproject") {
+            file("$it/impl/src/main/java/A.java") << "public class A extends B {}"
+            file("$it/api/src/main/java/B.java") << "public class B {}"
+        }
+        buildFile << """
+            buildscript {
+                dependencies {
+                    // Add them as separate jars
+                    classpath(files("./subproject/impl/build/libs/impl-1.0.jar"))
+                    classpath(files("./subproject/api/build/libs/api-1.0.jar"))
+                }
+            }
+        """
+
+        when:
+        executer.inDirectory(file("subproject")).withTasks("jar").run()
+        run("tasks", "-D$GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY=true")
+
+        then:
+        gradleUserHomeOutputs("instrumented/instrumented-api-1.0.jar").size() == 1
+        gradleUserHomeOutputs("instrumented/instrumented-impl-1.0.jar").size() == 1
+
+        when:
+        file("subproject/api/src/main/java/B.java").text = "import org.gradle.C; public class B extends C {}"
+        file("subproject/api/src/main/java/org/gradle/C.java") << "package org.gradle; public class C {}"
+        executer.inDirectory(file("subproject")).withTasks("jar").run()
+        run("tasks", "-D$GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY=true")
+
+        then:
+        gradleUserHomeOutputs("instrumented/instrumented-api-1.0.jar").size() == 2
+        gradleUserHomeOutputs("instrumented/instrumented-impl-1.0.jar").size() == 2
+    }
+
+    @Requires(
+        value = IntegTestPreconditions.NotConfigCached,
+        reason = "Cc doesn't get invalidated when file dependency changes"
+    )
+    def "should not re-instrument jar if classpath changes but class doesn't extend Gradle core class"() {
+        given:
+        multiProjectJavaBuild("subproject") {
+            file("$it/impl/src/main/java/A.java") << "public class A extends B {}"
+            file("$it/api/src/main/java/B.java") << "public class B {}"
+        }
+        buildFile << """
+            buildscript {
+                dependencies {
+                    // Add them as separate jars
+                    classpath(files("./subproject/impl/build/libs/impl-1.0.jar"))
+                    classpath(files("./subproject/api/build/libs/api-1.0.jar"))
+                }
+            }
+        """
+
+        when:
+        executer.inDirectory(file("subproject")).withTasks("jar").run()
+        run("tasks", "-D$GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY=true")
+
+        then:
+        gradleUserHomeOutputs("instrumented/instrumented-api-1.0.jar").size() == 1
+        gradleUserHomeOutputs("instrumented/instrumented-impl-1.0.jar").size() == 1
+
+        when:
+        file("subproject/api/src/main/java/B.java").text = "public class B extends C {}"
+        file("subproject/api/src/main/java/C.java") << "public class C {}"
+        executer.inDirectory(file("subproject")).withTasks("jar").run()
+        run("tasks", "-D$GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY=true")
+
+        then:
+        gradleUserHomeOutputs("instrumented/instrumented-api-1.0.jar").size() == 2
+        gradleUserHomeOutputs("instrumented/instrumented-impl-1.0.jar").size() == 1
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/28301")
+    def "instrumentation and upgrades don't fail a build when repository is changed from remote to local"() {
+        def mavenRemote = new MavenHttpRepository(server, "/repo", HttpRepository.MetadataType.DEFAULT, mavenRepo)
+        def remoteModule = mavenRemote.module("test.gradle", "test-plugin", "0.2").publish()
+        remoteModule.pom.expectDownload()
+        remoteModule.artifact.expectDownload()
+        def artifactCoordinates = "${remoteModule.groupId}:${remoteModule.artifactId}:${remoteModule.version}"
+
+        when:
+        buildFile.text = """
+            buildscript {
+                repositories { maven { url "${mavenRemote.uri}" } }
+                dependencies { classpath "$artifactCoordinates" }
+            }
+        """
+
+        then:
+        run("help")
+
+        when:
+        buildFile.text = """
+            buildscript {
+                repositories { maven { url "${normaliseFileSeparators(mavenRepo.uri.toString())}" } }
+                dependencies { classpath "$artifactCoordinates" }
+            }
+        """
+
+        then:
+        run("help")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/28496")
+    def "instrumentation and upgrades don't fail a build when we have two copies of the same artifact on the classpath"() {
+        file("jars/first").mkdirs()
+        file("jars/second").mkdirs()
+        def jar = file("jars/first/test-plugin-0.2.jar").with {
+            it.createFile()
+        }
+        GFileUtils.copyFile(jar, file("jars/second/test-plugin-0.2.jar"))
+
+        when:
+        buildFile.text = """
+            buildscript {
+                dependencies {
+                    classpath(files("./jars/first/test-plugin-0.2.jar"))
+                    classpath(files("./jars/second/test-plugin-0.2.jar"))
+                }
+            }
+        """
+
+        then:
+        run("help")
+    }
+
+    def "external dependencies merge analysis is #mergeRun if type hierarchy #typeHierachyChange for local project"() {
+        given:
+        withIncludedBuild()
+        file("included/src/main/java/Foo.java") << "class Foo {}"
+        file("included/src/main/java/Bar.java") << "class Bar {}"
+        buildFile << """
+            import java.nio.file.Paths
+
+            buildscript {
+                repositories {
+                    ${mavenCentralRepository()}
+                }
+                dependencies {
+                    classpath "org.test:included"
+                    classpath "org.apache.commons:commons-lang3:3.8.1"
+                }
+            }
+        """
+
+        when:
+        run("tasks")
+
+        then:
+        typeHierarchyAnalysisOutputs("commons-lang3-3.8.1.jar").size() == 1
+        dependencyAnalysisOutputs("commons-lang3-3.8.1.jar").size() == 1
+        mergeAnalysisOutputs("commons-lang3-3.8.1.jar").size() == 1
+
+        when:
+        file("included/src/main/java/Bar.java").text = barContentOnChange
+        run("tasks")
+
+        then:
+        typeHierarchyAnalysisOutputs("commons-lang3-3.8.1.jar").size() == 1
+        dependencyAnalysisOutputs("commons-lang3-3.8.1.jar").size() == 1
+        mergeAnalysisOutputs("commons-lang3-3.8.1.jar").size() == expectedFinalMergeAnalysisOutputs
+
+        where:
+        mergeRun     | typeHierachyChange | barContentOnChange                   | expectedFinalMergeAnalysisOutputs
+        "re-run"     | "is changed"       | "class Bar extends Foo {}"           | 2
+        "not re-run" | "is not changed"   | "class Bar { public void bar() {} }" | 1
+    }
+
+    def "project dependency analysis is #analysisRun if classes are #classChangeDescription and recompiled"() {
+        given:
+        withIncludedBuild()
+        file("included/src/main/java/Foo.java") << "class Foo {}"
+        file("included/src/main/java/Bar.java") << "class Bar {}"
+        buildFile << """
+            buildscript {
+                repositories {
+                    ${mavenCentralRepository()}
+                }
+                dependencies {
+                    classpath "org.test:included"
+                    classpath "org.apache.commons:commons-lang3:3.8.1"
+                }
+            }
+        """
+
+        when:
+        run(":included:clean", "tasks")
+
+        then:
+        // Artifact name == "main" since in transform we get "classes/<language>/main" directory
+        // as an input and we write a file name to the metadata as artifact name
+        def artifactName = "main"
+        typeHierarchyAnalysisOutputs(artifactName).size() == 1
+        dependencyAnalysisOutputs(artifactName).size() == 1
+        mergeAnalysisOutputs(artifactName).size() == 0
+
+        when:
+        file("included/src/main/java/Bar.java").text = barContentOnChange
+        run(":included:clean", "tasks")
+
+        then:
+        typeHierarchyAnalysisOutputs(artifactName).size() == expectedFinalAnalysisOutputs
+        dependencyAnalysisOutputs(artifactName).size() == expectedFinalAnalysisOutputs
+        mergeAnalysisOutputs(artifactName).size() == 0
+
+        where:
+        analysisRun  | classChangeDescription | barContentOnChange                    | expectedFinalAnalysisOutputs
+        "not re-run" | "not changed"          | "class Bar {}"                        | 1
+        "re-run"     | "changed"              | "class Bar { private void bar() {} }" | 2
+    }
+
     def withBuildSrc() {
         file("buildSrc/src/main/java/Thing.java") << "class Thing { }"
         file("buildSrc/settings.gradle") << "\n"
@@ -215,6 +579,50 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         settingsFile << """
             includeBuild("./$folderName")
         """
+    }
+
+    def javaBuild(String projectName = "included", Action<String> init) {
+        file("$projectName/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+            group = "org.test"
+            version = "1.0"
+        """
+        file("$projectName/settings.gradle") << """
+            rootProject.name = '$projectName'
+        """
+        init(projectName)
+    }
+
+    def multiProjectJavaBuild(String projectName = "included", Action<String> init) {
+        multiProjectJavaBuild(projectName, "api", "impl", init)
+    }
+
+    def multiProjectJavaBuild(String rootName = "included", String apiProjectName, String implProjectName, Action<String> init) {
+        file("$rootName/$apiProjectName/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+            group = "org.test"
+            version = "1.0"
+        """
+        file("$rootName/$implProjectName/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+            group = "org.test"
+            version = "1.0"
+
+            dependencies {
+                implementation project(":$apiProjectName")
+            }
+        """
+        file("$rootName/settings.gradle") << """
+            rootProject.name = '$rootName'
+            include("$apiProjectName", "$implProjectName")
+        """
+        init(rootName)
     }
 
     def withExternalPlugin(String name, String pluginId, Supplier<String> implementationBody = {}) {
@@ -272,6 +680,52 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         return transforms
     }
 
+    Set<TestFile> analyzeOutputs(String artifactName, String fileName, File cacheDir = getCacheDir()) {
+        return findOutputs("$ANALYSIS_OUTPUT_DIR/$DEPENDENCY_ANALYSIS_FILE_NAME", cacheDir).findAll {
+            serializer.readMetadataOnly(it).artifactName == artifactName
+        }.collect {
+            it.parentFile.listFiles().findAll { it.name == fileName }
+        }.flatten() as Set<TestFile>
+    }
+
+    Set<TestFile> typeHierarchyAnalysisOutputs(String artifactName, File cacheDir = getCacheDir()) {
+        return analyzeOutputs(artifactName, TYPE_HIERARCHY_ANALYSIS_FILE_NAME, cacheDir)
+    }
+
+    TestFile typeHierarchyAnalysisOutput(String artifactName, File cacheDir = getCacheDir()) {
+        def analysis = typeHierarchyAnalysisOutputs(artifactName, cacheDir)
+        if (analysis.size() == 1) {
+            return analysis.first()
+        }
+        throw new AssertionError("Could not find exactly one type hierarchy analysis for $artifactName: $analysis")
+    }
+
+    Set<TestFile> dependencyAnalysisOutputs(String artifactName, File cacheDir = getCacheDir()) {
+        return analyzeOutputs(artifactName, DEPENDENCY_ANALYSIS_FILE_NAME, cacheDir)
+    }
+
+    TestFile dependencyAnalysisOutput(String artifactName, File cacheDir = getCacheDir()) {
+        def analysis = dependencyAnalysisOutputs(artifactName, cacheDir)
+        if (analysis.size() == 1) {
+            return analysis.first()
+        }
+        throw new AssertionError("Could not find exactly one dependency analysis for $artifactName: $analysis")
+    }
+
+    Set<TestFile> mergeAnalysisOutputs(String artifactName, File cacheDir = getCacheDir()) {
+        return findOutputs("$MERGE_OUTPUT_DIR/$DEPENDENCY_ANALYSIS_FILE_NAME", cacheDir).findAll {
+            serializer.readMetadataOnly(it).artifactName == artifactName
+        }.collect { it } as Set<TestFile>
+    }
+
+    TestFile mergeAnalysisOutput(String artifactName, File cacheDir = getCacheDir()) {
+        def analysis = mergeAnalysisOutputs(artifactName, cacheDir)
+        if (analysis.size() == 1) {
+            return analysis.first()
+        }
+        throw new AssertionError("Could not find exactly one merge dependency analysis for $artifactName: $analysis")
+    }
+
     TestFile gradleUserHomeOutput(String outputEndsWith, File cacheDir = getCacheDir()) {
         findOutput(outputEndsWith, cacheDir)
     }
@@ -295,6 +749,6 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
     }
 
     TestFile getCacheDir() {
-        return getUserHomeCacheDir().file(CacheLayout.TRANSFORMS.getKey())
+        return getGradleVersionedCacheDir().file(CacheLayout.TRANSFORMS.getName())
     }
 }

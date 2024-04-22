@@ -16,31 +16,34 @@
 
 package org.gradle.internal.component.resolution.failure.describer;
 
-import org.gradle.internal.component.NoMatchingCapabilitiesException;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.component.resolution.failure.CapabilitiesDescriber;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
+import org.gradle.internal.component.resolution.failure.exception.VariantSelectionException;
 import org.gradle.internal.component.resolution.failure.type.NoMatchingCapabilitiesFailure;
+
+import java.util.List;
+import java.util.Optional;
 
 /**
  * A {@link ResolutionFailureDescriber} that describes a {@link NoMatchingCapabilitiesFailure}.
  */
-public abstract class NoMatchingCapabilitiesFailureDescriber extends AbstractResolutionFailureDescriber<NoMatchingCapabilitiesException, NoMatchingCapabilitiesFailure> {
+public abstract class NoMatchingCapabilitiesFailureDescriber extends AbstractResolutionFailureDescriber<NoMatchingCapabilitiesFailure> {
     @Override
-    public NoMatchingCapabilitiesException describeFailure(NoMatchingCapabilitiesFailure failure) {
+    public VariantSelectionException describeFailure(NoMatchingCapabilitiesFailure failure, Optional<AttributesSchemaInternal> schema) {
         String message = buildNoMatchingCapabilitiesFailureMsg(failure);
-        NoMatchingCapabilitiesException e = new NoMatchingCapabilitiesException(message);
-        suggestReviewAlgorithm(e);
-        return e;
+        List<String> resolutions = buildResolutions(suggestReviewAlgorithm());
+        return new VariantSelectionException(message, failure, resolutions);
     }
 
     private String buildNoMatchingCapabilitiesFailureMsg(NoMatchingCapabilitiesFailure failure) {
         StringBuilder sb = new StringBuilder("Unable to find a variant of ");
-        sb.append(failure.getTargetComponent().getId()).append(" providing the requested ");
-        sb.append(CapabilitiesDescriber.describeCapabilitiesWithTitle(failure.getTargetComponent(), failure.getRequestedCapabilities()));
+        sb.append(failure.getRequestedName()).append(" providing the requested ");
+        sb.append(CapabilitiesDescriber.describeCapabilitiesWithTitle(failure.getTargetComponentId(), failure.getRequestedCapabilities()));
         sb.append(":\n");
         for (ResolutionCandidateAssessor.AssessedCandidate candidate : failure.getCandidates()) {
             sb.append("   - Variant ").append(candidate.getDisplayName()).append(" provides ");
-            sb.append(CapabilitiesDescriber.describeCapabilities(failure.getTargetComponent(), candidate.getCandidateCapabilities().asSet())).append("\n");
+            sb.append(CapabilitiesDescriber.describeCapabilities(failure.getTargetComponentId(), candidate.getCandidateCapabilities().asSet())).append("\n");
         }
         return sb.toString();
     }

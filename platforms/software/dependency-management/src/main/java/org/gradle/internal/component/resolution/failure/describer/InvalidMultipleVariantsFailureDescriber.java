@@ -19,28 +19,28 @@ package org.gradle.internal.component.resolution.failure.describer;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.attributes.Attribute;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.component.IncompatibleArtifactVariantsException;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
+import org.gradle.internal.component.resolution.failure.exception.ArtifactVariantSelectionException;
 import org.gradle.internal.component.resolution.failure.type.IncompatibleMultipleNodeSelectionFailure;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * A {@link ResolutionFailureDescriber} that describes an {@link IncompatibleMultipleNodeSelectionFailure}.
  */
-public abstract class InvalidMultipleVariantsFailureDescriber extends AbstractResolutionFailureDescriber<IncompatibleArtifactVariantsException, IncompatibleMultipleNodeSelectionFailure> {
+public abstract class InvalidMultipleVariantsFailureDescriber extends AbstractResolutionFailureDescriber<IncompatibleMultipleNodeSelectionFailure> {
     private static final String INCOMPATIBLE_VARIANTS_PREFIX = "Incompatible variant errors are explained in more detail at ";
     private static final String INCOMPATIBLE_VARIANTS_SECTION = "sub:variant-incompatible";
 
     @Override
-    public IncompatibleArtifactVariantsException describeFailure(IncompatibleMultipleNodeSelectionFailure failure) {
+    public ArtifactVariantSelectionException describeFailure(IncompatibleMultipleNodeSelectionFailure failure, Optional<AttributesSchemaInternal> schema) {
         String msg = buildIncompatibleArtifactVariantsFailureMsg(failure);
-        IncompatibleArtifactVariantsException result = new IncompatibleArtifactVariantsException(msg);
-        suggestSpecificDocumentation(result, INCOMPATIBLE_VARIANTS_PREFIX, INCOMPATIBLE_VARIANTS_SECTION);
-        suggestReviewAlgorithm(result);
-        return result;
+        List<String> resolutions = buildResolutions(suggestSpecificDocumentation(INCOMPATIBLE_VARIANTS_PREFIX, INCOMPATIBLE_VARIANTS_SECTION), suggestReviewAlgorithm());
+        return new ArtifactVariantSelectionException(msg, failure, resolutions);
     }
 
     private String buildIncompatibleArtifactVariantsFailureMsg(IncompatibleMultipleNodeSelectionFailure failure) {

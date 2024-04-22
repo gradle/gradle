@@ -282,11 +282,13 @@ public class CopySpecWrapper implements SyncSpec {
     }
 
     @Override
+    @Deprecated
     public Integer getFileMode() {
         return delegate.getFileMode();
     }
 
     @Override
+    @Deprecated
     public CopyProcessingSpec setFileMode(@Nullable Integer mode) {
         delegate.setFileMode(mode);
         return this;
@@ -303,11 +305,13 @@ public class CopySpecWrapper implements SyncSpec {
     }
 
     @Override
+    @Deprecated
     public Integer getDirMode() {
         return delegate.getDirMode();
     }
 
     @Override
+    @Deprecated
     public CopyProcessingSpec setDirMode(@Nullable Integer mode) {
         delegate.setDirMode(mode);
         return this;

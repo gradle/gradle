@@ -17,10 +17,14 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Issue
+
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
 class ProjectHierarchyCustomizationIntegrationTest extends AbstractIntegrationSpec {
     @Issue("https://github.com/gradle/gradle/issues/18726")
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "can customize name of child project before customizing the name of parent project"() {
         createDirs("modules", "modules/projectA", "modules/projectA/projectB")
         settingsFile << """

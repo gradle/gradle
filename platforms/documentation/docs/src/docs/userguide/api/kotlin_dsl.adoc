@@ -211,19 +211,23 @@ The Kotlin DSL replaces such dynamic resolution with type-safe model accessors t
 [[kotdsl:accessor_applicability]]
 === Understanding when type-safe model accessors are available
 
-The Kotlin DSL currently supports type-safe model accessors for any of the following that are contributed by plugins:
+The Kotlin DSL currently provides various sets of type-safe model accessors, each tailored to different scopes.
+
+For the main project build scripts and precompiled project script plugins:
 
 * Dependency and artifact configurations (such as `implementation` and `runtimeOnly` contributed by the Java Plugin)
-* Project extensions and conventions (such as `sourceSets`)
-* Extensions on the `dependencies` and `repositories` containers
+* Project extensions and conventions (such as `sourceSets`), and extensions on them
+* Extensions on the `dependencies` and `repositories` containers, and extensions on them
 * Elements in the `tasks` and `configurations` containers
 * Elements in <<kotdsl:containers,project-extension containers>> (for example the source sets contributed by the Java Plugin that are added to the `sourceSets` container)
-* Extensions on each of the above
+
+For the main project settings script:
+
+* Project extensions and conventions, contributed by `Settings` plugins, and extensions on them
 
 [IMPORTANT]
 ====
-Only the main project build scripts and precompiled project script plugins have type-safe model accessors.
-Initialization scripts, settings scripts, script plugins do not.
+Initialization scripts and script plugins do not have type-safe model accessors.
 These limitations will be removed in a future Gradle release.
 ====
 

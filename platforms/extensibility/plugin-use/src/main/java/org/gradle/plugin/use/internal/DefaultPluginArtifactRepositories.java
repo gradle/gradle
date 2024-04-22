@@ -23,10 +23,13 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.JavaEcosystemSupport;
 import org.gradle.api.internal.artifacts.dsl.RepositoryHandlerInternal;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.Factory;
 import org.gradle.plugin.use.resolve.internal.ArtifactRepositoriesPluginResolver;
 import org.gradle.plugin.use.resolve.internal.PluginArtifactRepositories;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
+
+import java.util.Objects;
 
 class DefaultPluginArtifactRepositories implements PluginArtifactRepositories {
     private final DependencyResolutionServices dependencyResolutionServices;
@@ -36,7 +39,10 @@ class DefaultPluginArtifactRepositories implements PluginArtifactRepositories {
         // Create a copy of the shared repository container, so that mutations (eg adding the portal repo) are not reflected in the shared container
         dependencyResolutionServices = factory.create();
         this.sharedRepositories = sharedRepositories;
-        JavaEcosystemSupport.configureSchema(dependencyResolutionServices.getAttributesSchema(), dependencyResolutionServices.getObjectFactory());
+
+        AttributesSchemaInternal attributesSchema = (AttributesSchemaInternal) Objects.requireNonNull(dependencyResolutionServices).getAttributesSchema();
+        JavaEcosystemSupport.configureSchema(attributesSchema, dependencyResolutionServices.getObjectFactory());
+
         RepositoryHandler repositoryHandler = dependencyResolutionServices.getResolveRepositoryHandler();
         for (ArtifactRepository repository : sharedRepositories) {
             // Add a wrapper to the plugin, so that each scope (eg project) can define different exclusive content filters

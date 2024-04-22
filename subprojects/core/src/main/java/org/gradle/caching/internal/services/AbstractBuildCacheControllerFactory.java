@@ -35,7 +35,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.util.Path;
 import org.slf4j.Logger;
@@ -52,7 +52,7 @@ public abstract class AbstractBuildCacheControllerFactory<L extends BuildCacheSe
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractBuildCacheControllerFactory.class);
     protected final StartParameter startParameter;
     protected final StringInterner stringInterner;
-    protected final BuildOperationExecutor buildOperationExecutor;
+    protected final BuildOperationRunner buildOperationRunner;
     protected final OriginMetadataFactory originMetadataFactory;
 
     public enum BuildCacheMode {
@@ -65,12 +65,12 @@ public abstract class AbstractBuildCacheControllerFactory<L extends BuildCacheSe
 
     public AbstractBuildCacheControllerFactory(
         StartParameter startParameter,
-        BuildOperationExecutor buildOperationExecutor,
+        BuildOperationRunner buildOperationRunner,
         OriginMetadataFactory originMetadataFactory,
         StringInterner stringInterner
     ) {
         this.startParameter = startParameter;
-        this.buildOperationExecutor = buildOperationExecutor;
+        this.buildOperationRunner = buildOperationRunner;
         this.originMetadataFactory = originMetadataFactory;
         this.stringInterner = stringInterner;
     }
@@ -86,7 +86,7 @@ public abstract class AbstractBuildCacheControllerFactory<L extends BuildCacheSe
         BuildCacheMode buildCacheState = startParameter.isBuildCacheEnabled() ? AbstractBuildCacheControllerFactory.BuildCacheMode.ENABLED : AbstractBuildCacheControllerFactory.BuildCacheMode.DISABLED;
         RemoteAccessMode remoteAccessMode = startParameter.isOffline() ? AbstractBuildCacheControllerFactory.RemoteAccessMode.OFFLINE : AbstractBuildCacheControllerFactory.RemoteAccessMode.ONLINE;
 
-        return buildOperationExecutor.call(new CallableBuildOperation<BuildCacheController>() {
+        return buildOperationRunner.call(new CallableBuildOperation<BuildCacheController>() {
             @Override
             public BuildCacheController call(BuildOperationContext context) {
                 if (buildCacheState == BuildCacheMode.DISABLED) {

@@ -16,12 +16,12 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.internal.service.scopes.EventScope;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 
 /**
  * A {@code DependencyResolutionListener} is notified as dependencies are resolved.
  */
-@EventScope(Scopes.Build.class)
+@EventScope(Scope.Build.class)
 public interface DependencyResolutionListener {
     /**
      * This method is called immediately before a set of dependencies are resolved.

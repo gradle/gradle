@@ -21,7 +21,7 @@ import org.gradle.internal.build.CompositeBuildParticipantBuildState;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.composite.IncludedBuildInternal;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.HashSet;
@@ -33,7 +33,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 /**
  * Coordinates inclusion of builds across the build tree.
  */
-@ServiceScope(Scopes.BuildTree.class)
+@ServiceScope(Scope.BuildTree.class)
 public class BuildInclusionCoordinator {
     private final Set<IncludedBuildState> loadedBuilds = new CopyOnWriteArraySet<>();
     private final List<IncludedBuildState> libraryBuilds = new CopyOnWriteArrayList<>();

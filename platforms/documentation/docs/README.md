@@ -48,11 +48,12 @@ For development and fast feedback you should use:
 
     ./gradlew stageDocs -PquickDocs
 
-Alternatively, if you want to serve the docs in a built-in webserver, you can use:
+Alternatively, if you want to serve the docs in a built-in webserver (http://localhost:8000), you can use:
 
     ./gradlew serveDocs -PquickDocs
 
 The flag `-PquickDocs` disables some slow documentation tasks, like creating the DSL reference or the single page user manual PDF or HTML.
+This will automatically enter continuous build and rebuild the documentation when you make changes. It takes 30-40 seconds to rebuild the documentation in "quick mode".
 
 If you really want to generate just the user manual, you can run:
 

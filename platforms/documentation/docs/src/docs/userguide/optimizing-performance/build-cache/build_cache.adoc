@@ -273,13 +273,6 @@ The remote build cache can be configured by specifying the type of build cache t
 The built-in local build cache, link:{groovyDslPath}/org.gradle.caching.local.DirectoryBuildCache.html[DirectoryBuildCache], uses a directory to store build cache artifacts.
 By default, this directory resides in the Gradle User Home, but its location is configurable.
 
-Gradle will periodically clean-up the local cache directory by removing entries that have not been used recently to conserve disk space.
-How often Gradle will perform this clean-up is configurable as shown in the example below.
-Note that cache entries are cleaned-up regardless of the project they were produced by.
-If different projects configure this clean-up to run at different periods, the shortest period will clean-up cache entries for all projects.
-Therefore it is recommended to configure this setting globally in the <<init_scripts.adoc#sec:using_an_init_script,init script>>.
-The <<sec:build_cache_configure_use_cases, Configuration use-cases>> section has an example of putting cache configuration in the init script.
-
 For more details on the configuration options refer to the DSL documentation of link:{groovyDslPath}/org.gradle.caching.local.DirectoryBuildCache.html[DirectoryBuildCache].
 Here is an example of the configuration.
 
@@ -288,6 +281,10 @@ Here is an example of the configuration.
 include::sample[dir="snippets/buildCache/configure-built-in-caches/kotlin",files="settings.gradle.kts[tags=configure-directory-build-cache]"]
 include::sample[dir="snippets/buildCache/configure-built-in-caches/groovy",files="settings.gradle[tags=configure-directory-build-cache]"]
 ====
+
+Gradle will periodically clean-up the local cache directory by removing entries that have not been used recently to conserve disk space.
+How often Gradle will perform this clean-up and how long entries will be retained is configurable via an init-script as demonstrated
+link:{userManualPath}/directory_layout.html#dir:gradle_user_home:configure_cache_cleanup[in this section].
 
 [[sec:build_cache_configure_remote]]
 === Remote HTTP build cache

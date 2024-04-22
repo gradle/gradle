@@ -23,8 +23,4 @@ import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE
 
 @TargetCoverage({ JUNIT_VINTAGE })
 class JUnitVintageConsoleLoggingIntegrationTest extends AbstractJUnitConsoleLoggingIntegrationTest implements JUnitVintageMultiVersionTest {
-    @Override
-    String getMaybePackagePrefix() {
-        return ''
-    }
 }

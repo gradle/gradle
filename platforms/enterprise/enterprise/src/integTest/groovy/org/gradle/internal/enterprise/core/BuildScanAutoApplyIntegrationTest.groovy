@@ -18,8 +18,8 @@ package org.gradle.internal.enterprise.core
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.internal.enterprise.DevelocityPluginCheckInFixture
 import org.gradle.internal.enterprise.GradleEnterprisePluginCheckInFixture
+import org.gradle.internal.enterprise.DevelocityPluginCheckInFixture
 import org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService
 import org.gradle.internal.enterprise.impl.legacy.LegacyGradleEnterprisePluginCheckInService
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
@@ -36,8 +36,8 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
 
     private static final VersionNumber PLUGIN_MINIMUM_NON_DEPRECATED_VERSION = DefaultGradleEnterprisePluginCheckInService.MINIMUM_SUPPORTED_PLUGIN_VERSION_SINCE_GRADLE_9
 
-    private final GradleEnterprisePluginCheckInFixture fixture = new GradleEnterprisePluginCheckInFixture(testDirectory, mavenRepo, createExecuter())
-    private final DevelocityPluginCheckInFixture develocityFixture = new DevelocityPluginCheckInFixture(testDirectory, mavenRepo, createExecuter())
+    private final DevelocityPluginCheckInFixture fixture = new DevelocityPluginCheckInFixture(testDirectory, mavenRepo, createExecuter())
+    private final GradleEnterprisePluginCheckInFixture gradleEnterpriseFixture = new GradleEnterprisePluginCheckInFixture(testDirectory, mavenRepo, createExecuter())
 
     def setup() {
         buildFile << """
@@ -148,7 +148,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
                     maven { url '${mavenRepo.uri}' }
                 }
                 dependencies {
-                    classpath '${"com.gradle:gradle-enterprise-gradle-plugin:$version"}'
+                    classpath '${"com.gradle:develocity-gradle-plugin:$version"}'
                 }
             }
             apply plugin: '$fixture.id'
@@ -183,7 +183,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 dependencies {
-                    classpath '${"com.gradle:gradle-enterprise-gradle-plugin:$version"}'
+                    classpath '${"com.gradle:develocity-gradle-plugin:$version"}'
                 }
             }
 
@@ -324,10 +324,10 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         fixture.issuedNoPluginWarningCount(output, 1)
     }
 
-    def "does not auto-apply plugin when Develocity plugin is applied using plugin ID"() {
+    def "does not auto-apply plugin when Gradle Enterprise plugin is applied using plugin ID"() {
         when:
-        develocityFixture.publishDummyPlugin(executer)
-        settingsFile << develocityFixture.plugins()
+        gradleEnterpriseFixture.publishDummyPlugin(executer)
+        settingsFile << gradleEnterpriseFixture.plugins()
 
         and:
         runBuildWithScanRequest()
@@ -336,19 +336,19 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         pluginNotApplied()
     }
 
-    def "does not auto-apply plugin when Develocity plugin is applied using plugin class name"() {
+    def "does not auto-apply plugin when Gradle Enterprise plugin is applied using plugin class name"() {
         when:
-        develocityFixture.publishDummyPlugin(executer)
+        gradleEnterpriseFixture.publishDummyPlugin(executer)
         settingsFile.text = """
             buildscript {
                 repositories {
                     maven { url '${mavenRepo.uri}' }
                 }
                 dependencies {
-                    classpath '${"com.gradle:develocity-gradle-plugin:${develocityFixture.runtimeVersion}"}'
+                    classpath '${"com.gradle:gradle-enterprise-gradle-plugin:${gradleEnterpriseFixture.runtimeVersion}"}'
                 }
             }
-            apply plugin: $develocityFixture.className
+            apply plugin: $gradleEnterpriseFixture.className
         """
 
         and:
@@ -358,12 +358,12 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         pluginNotApplied()
     }
 
-    def "does not auto-apply plugin when Develocity plugin explicitly requested and not applied"() {
+    def "does not auto-apply plugin when Gradle Enterprise plugin explicitly requested and not applied"() {
         when:
-        develocityFixture.publishDummyPlugin(executer)
+        gradleEnterpriseFixture.publishDummyPlugin(executer)
         settingsFile << """
             plugins {
-                id '$develocityFixture.id' version '${develocityFixture.artifactVersion}' apply false
+                id '$gradleEnterpriseFixture.id' version '${gradleEnterpriseFixture.artifactVersion}' apply false
             }
         """
 
@@ -374,9 +374,9 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         pluginNotApplied()
     }
 
-    def "does not auto-apply plugin when Develocity plugin is added to initscript classpath"() {
+    def "does not auto-apply plugin when Gradle Enterprise plugin is added to initscript classpath"() {
         when:
-        develocityFixture.publishDummyPlugin(executer)
+        gradleEnterpriseFixture.publishDummyPlugin(executer)
         file('init.gradle') << """
             initscript {
                 repositories {
@@ -384,12 +384,12 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 dependencies {
-                    classpath '${"com.gradle:develocity-gradle-plugin:${develocityFixture.runtimeVersion}"}'
+                    classpath '${"com.gradle:gradle-enterprise-gradle-plugin:${gradleEnterpriseFixture.runtimeVersion}"}'
                 }
             }
 
             beforeSettings {
-                it.apply plugin: $develocityFixture.className
+                it.apply plugin: $gradleEnterpriseFixture.className
             }
         """
 

@@ -32,6 +32,7 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.state.ModelObject
 import java.io.IOException
 import java.lang.reflect.Field
+import java.lang.reflect.InvocationTargetException
 
 
 class BeanPropertyReader(
@@ -108,6 +109,9 @@ suspend fun ReadContext.readPropertyValue(kind: PropertyKind, name: String, acti
                 throw passThrough
             } catch (passThrough: GradleException) {
                 throw passThrough
+            } catch (e: InvocationTargetException) {
+                // unwrap ITEs as they are not useful to users
+                throw GradleException("Could not load the value of $trace.", e.cause)
             } catch (e: Exception) {
                 throw GradleException("Could not load the value of $trace.", e)
             }

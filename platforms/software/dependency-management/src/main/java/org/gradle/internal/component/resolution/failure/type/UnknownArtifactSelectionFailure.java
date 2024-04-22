@@ -16,16 +16,14 @@
 
 package org.gradle.internal.component.resolution.failure.type;
 
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
-
 /**
  * A {@link ResolutionFailure} that represents the an unknown, catch-all failure that occurred during variant selection.
  */
 public final class UnknownArtifactSelectionFailure extends AbstractVariantSelectionFailure {
     private final Exception cause;
 
-    public UnknownArtifactSelectionFailure(AttributesSchemaInternal schema, String requestedName, Exception cause) {
-        super(schema, requestedName);
+    public UnknownArtifactSelectionFailure(String requestedName, Exception cause) {
+        super(requestedName);
         this.cause = cause;
     }
 

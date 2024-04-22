@@ -35,6 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -69,8 +70,10 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
 
     @Override
     public String getDisplayName() {
-        String includes = patternSet.getIncludes().isEmpty() ? "" : String.format(" include %s", GUtil.toString(patternSet.getIncludes()));
-        String excludes = patternSet.getExcludes().isEmpty() ? "" : String.format(" exclude %s", GUtil.toString(patternSet.getExcludes()));
+        Set<String> includesSet = patternSet.getIncludesView();
+        String includes = includesSet.isEmpty() ? "" : String.format(" include %s", GUtil.toString(includesSet));
+        Set<String> excludesSet = patternSet.getExcludesView();
+        String excludes = excludesSet.isEmpty() ? "" : String.format(" exclude %s", GUtil.toString(excludesSet));
         return String.format("directory '%s'%s%s", dir, includes, excludes);
     }
 

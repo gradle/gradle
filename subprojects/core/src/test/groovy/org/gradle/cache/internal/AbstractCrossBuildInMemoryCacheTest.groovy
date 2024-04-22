@@ -17,14 +17,14 @@
 package org.gradle.cache.internal
 
 import org.gradle.internal.event.DefaultListenerManager
-import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.Scope
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.function.Function
 
 abstract class AbstractCrossBuildInMemoryCacheTest<K> extends ConcurrentSpec {
-    def listenerManager = new DefaultListenerManager(Scopes.BuildSession)
+    def listenerManager = new DefaultListenerManager(Scope.BuildSession)
     def factory = new DefaultCrossBuildInMemoryCacheFactory(listenerManager)
 
     abstract CrossBuildInMemoryCache<String, Object> newCache()

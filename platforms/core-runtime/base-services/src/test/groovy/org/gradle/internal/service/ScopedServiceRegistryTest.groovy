@@ -16,8 +16,8 @@
 
 package org.gradle.internal.service
 
+
 import org.gradle.internal.service.scopes.Scope
-import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
 import spock.lang.Specification
 
@@ -25,7 +25,7 @@ class ScopedServiceRegistryTest extends Specification {
 
     def "fails when registering a service by adding #method in a wrong scope"() {
         given:
-        def registry = new ScopedServiceRegistry(Scopes.Build)
+        def registry = new ScopedServiceRegistry(Scope.Build)
 
         when:
         registration(registry)
@@ -43,7 +43,7 @@ class ScopedServiceRegistryTest extends Specification {
 
     def "fails when registering a multi-scoped service by adding #method in a wrong scope"() {
         given:
-        def registry = new ScopedServiceRegistry(Scopes.BuildTree)
+        def registry = new ScopedServiceRegistry(Scope.BuildTree)
 
         when:
         registration(registry)
@@ -61,7 +61,7 @@ class ScopedServiceRegistryTest extends Specification {
 
     def "succeeds when registering a service in the correct scope"() {
         given:
-        def registry = new ScopedServiceRegistry(Scopes.BuildTree)
+        def registry = new ScopedServiceRegistry(Scope.BuildTree)
         def service = new BuildTreeScopedService()
 
         when:
@@ -85,7 +85,7 @@ class ScopedServiceRegistryTest extends Specification {
 
     def "succeeds when registering an unscoped service"() {
         given:
-        def registry = new ScopedServiceRegistry(Scopes.BuildTree)
+        def registry = new ScopedServiceRegistry(Scope.BuildTree)
         def service = new UnscopedService()
 
         when:
@@ -113,14 +113,14 @@ class ScopedServiceRegistryTest extends Specification {
         registry.get(GlobalAndBuildScopedService) === service
 
         where:
-        scope << [Scope.Global, Scopes.Build]
+        scope << [Scope.Global, Scope.Build]
         scopeName = scope.simpleName
     }
 
-    @ServiceScope(Scopes.BuildTree)
+    @ServiceScope(Scope.BuildTree)
     static class BuildTreeScopedService {}
 
-    @ServiceScope([Scope.Global, Scopes.Build])
+    @ServiceScope([Scope.Global, Scope.Build])
     static class GlobalAndBuildScopedService {}
 
     static class UnscopedService {}
@@ -141,7 +141,7 @@ class ScopedServiceRegistryTest extends Specification {
 
     static class BrokenScopedServiceRegistry extends ScopedServiceRegistry {
         BrokenScopedServiceRegistry() {
-            super(Scopes.Build)
+            super(Scope.Build)
         }
 
         @SuppressWarnings('unused')

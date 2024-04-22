@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList
 import com.google.common.collect.Iterables
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.problems.Severity
+import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.cache.Cache
 import org.gradle.cache.ManualEvictionInMemoryCache
 import org.gradle.caching.internal.controller.BuildCacheController
@@ -41,7 +42,7 @@ import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.id.UniqueId
-import org.gradle.internal.operations.TestBuildOperationExecutor
+import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.snapshot.SnapshotVisitorUtil
 import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter
@@ -81,7 +82,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
     def valueSnapshotter = new DefaultValueSnapshotter([], classloaderHierarchyHasher)
     def inputFingerprinter = new DefaultInputFingerprinter(snapshotter, fingerprinterRegistry, valueSnapshotter)
     def buildCacheController = Mock(BuildCacheController)
-    def buildOperationExecutor = new TestBuildOperationExecutor()
+    def buildOperationRunner = new TestBuildOperationRunner()
     def validationWarningReporter = Mock(ValidateStep.ValidationWarningRecorder)
 
     final outputFile = temporaryFolder.file("output-file")
@@ -110,7 +111,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
         TestExecutionEngineFactory.createExecutionEngine(
             buildId,
             buildCacheController,
-            buildOperationExecutor,
+            buildOperationRunner,
             classloaderHierarchyHasher,
             deleter,
             changeDetector,
@@ -242,8 +243,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
                 context
                     .forType(UnitOfWork, false)
                     .visitPropertyProblem {
-                        it.category("test.problem")
-                            .label("Validation problem")
+                        it.id("test-problem", "Validation problem", GradleCoreProblemGroup.validation())
                             .severity(Severity.WARNING)
                             .documentedAt(Documentation.userManual("id", "section"))
                             .details("Test")
@@ -552,9 +552,8 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
                 validationContext.forType(Object, true).visitTypeProblem {
                     it
                         .withAnnotationType(Object)
-                        .label("Validation error")
+                        .id("test-problem", "Validation error", GradleCoreProblemGroup.validation())
                         .documentedAt(Documentation.userManual("id", "section"))
-                        .category("test.problem")
                         .details("Test")
                         .severity(Severity.ERROR)
                 }

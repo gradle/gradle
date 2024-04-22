@@ -26,7 +26,7 @@ import org.gradle.internal.buildoption.FeatureFlags
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.service.scopes.ListenerService
-import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 
 
@@ -36,7 +36,7 @@ import org.gradle.internal.service.scopes.ServiceScope
  * in that case).
  */
 @ListenerService
-@ServiceScope(Scopes.BuildTree::class)
+@ServiceScope(Scope.BuildTree::class)
 internal
 class DeprecatedFeaturesListener(
     private val featureFlags: FeatureFlags,

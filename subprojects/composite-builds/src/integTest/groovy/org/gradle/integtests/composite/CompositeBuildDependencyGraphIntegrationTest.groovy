@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.composite
 
-import org.gradle.api.JavaVersion
+
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
@@ -697,8 +697,7 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
         checkDependenciesFails()
 
         then:
-        failure.assertHasCause("No matching variant of project :buildC was found. The consumer was configured to find a library for use during runtime, compatible with Java ${JavaVersion.current().majorVersion}, packaged as a jar, preferably optimized for standard JVMs, and its dependencies declared externally but:\n" +
-            "  - None of the variants have attributes.")
+        failure.assertHasCause("A dependency was declared on configuration 'default' which is not declared in the descriptor for project :buildC.")
     }
 
     public static final REPOSITORY_HINT = repositoryHint("Maven POM")
@@ -747,7 +746,7 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
 
         then:
         failure.assertHasDescription("Could not determine the dependencies of task ':buildC:buildOutputs'.")
-        failure.assertHasCause("Could not resolve all task dependencies for configuration ':buildC:buildInputs'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':buildC:buildInputs'.")
         failure.assertHasCause("""Could not find org.test:test:1.2.
 Searched in the following locations:
   - ${m.pom.file.displayUri}

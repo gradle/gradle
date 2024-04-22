@@ -21,6 +21,7 @@ import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.api.internal.cache.CacheConfigurationsInternal
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
 import org.gradle.integtests.fixtures.executer.ArtifactBuilder
 import org.gradle.test.fixtures.file.TestFile
@@ -35,6 +36,7 @@ import spock.lang.Unroll
 import java.nio.file.Files
 import java.util.stream.Collectors
 
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implements FileAccessTimeJournalFixture {
@@ -102,6 +104,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         loopNumber << (1..6).toList()
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "build script classloader copies only non-cached jar files to cache"() {
         given:
         createBuildFileThatPrintsClasspathURLs("""
@@ -229,7 +232,8 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         outputContains("hello again")
     }
 
-    def "cleans up unused cached JARs in the Jars cache"() {
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
+    def "cleans up unused cached entries in the Jars cache"() {
         given:
         executer.requireIsolatedDaemons() // needs to stop daemon
         requireOwnGradleUserHomeDir() // needs its own journal
@@ -242,13 +246,13 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         succeeds("showBuildscript")
 
         then:
-        def jar = inJarCache("proj.jar").assertExists()
+        def buildscriptClasses = inJarCache("proj/").assertExists()
         journal.assertExists()
 
         when:
         run '--stop' // ensure daemon does not cache file access times in memory
         jarsCacheGcFile.lastModified = daysAgo(2)
-        writeLastFileAccessTimeToJournal(jar.parentFile, daysAgo(MAX_CACHE_AGE_IN_DAYS + 1))
+        writeLastFileAccessTimeToJournal(buildscriptClasses.parentFile, daysAgo(MAX_CACHE_AGE_IN_DAYS + 1))
 
         and:
         createBuildFileThatPrintsClasspathURLs()
@@ -256,7 +260,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         executer.withTasks("showBuildscript").start().waitForFinish()
 
         then:
-        jar.assertDoesNotExist()
+        buildscriptClasses.assertDoesNotExist()
 
         when:
         createBuildFileThatPrintsClasspathURLs("""
@@ -265,7 +269,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         succeeds("showBuildscript")
 
         then:
-        jar.assertExists()
+        buildscriptClasses.assertExists()
     }
 
     def "cleans up unused versions of jars cache"() {
@@ -307,7 +311,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
             buildscript {
                 ${mavenCentralRepository()}
                 dependencies {
-                    classpath("org.bouncycastle:bcprov-jdk15on:1.66")
+                    classpath("org.bouncycastle:bcprov-jdk18on:1.77")
                 }
             }
 
@@ -401,6 +405,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         outputContains("JAR = 11")
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "class with #lambdaCount lambdas can be instrumented"() {
         given:
         createDir("buildSrc/src/main/java") {
@@ -543,7 +548,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
     }
 
     TestFile getArtifactTransformCacheDir() {
-        return userHomeCacheDir.file(CacheLayout.TRANSFORMS.key)
+        return getGradleVersionedCacheDir().file(CacheLayout.TRANSFORMS.getName())
     }
 
     /**

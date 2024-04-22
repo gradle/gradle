@@ -23,9 +23,9 @@ public class StandardPlugin implements Plugin<Project> {
     public void apply(Project target) {
         // tag::problems-api-report[]
         problems.forNamespace("reporters.standard.plugin").reporting(problem -> problem
-                .label("The 'standard-plugin' is deprecated")
+                .id("adhoc-plugin-deprecation", "Plugin is deprecated")
+                .contextualLabel("The 'standard-plugin' is deprecated")
                 .documentedAt("https://github.com/gradle/gradle/README.md")
-                .category("deprecation", "plugin")
                 .severity(Severity.WARNING)
                 .solution("Please use a more recent plugin version")
         );

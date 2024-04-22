@@ -22,22 +22,20 @@ plugins {
 description = "Contains the Test Report Aggregation plugin"
 
 dependencies {
-    implementation(project(":base-annotations"))
+    api(project(":base-annotations"))
+    api(project(":core-api"))
+    api(project(":platform-jvm"))
+
+    api(libs.inject)
+
     implementation(project(":base-services"))
-    implementation(project(":core-api"))
     implementation(project(":core"))
-    implementation(project(":logging"))
-    implementation(project(":model-core"))
-    implementation(project(":platform-jvm"))
     implementation(project(":plugins-java-base"))
     implementation(project(":plugins-jvm-test-suite"))
     implementation(project(":reporting"))
     implementation(project(":testing-base"))
     implementation(project(":testing-jvm"))
     implementation(project(":test-suites-base"))
-
-    implementation(libs.groovy)
-    implementation(libs.inject)
 
     integTestDistributionRuntimeOnly(project(":distributions-jvm"))
 }

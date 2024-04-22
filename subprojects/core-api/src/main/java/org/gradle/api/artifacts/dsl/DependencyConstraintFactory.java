@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.internal.HasInternalProtocol;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
@@ -43,7 +43,7 @@ import javax.annotation.Nullable;
 @HasInternalProtocol
 @NonExtensible
 @Incubating
-@ServiceScope(Scopes.Build.class)
+@ServiceScope(Scope.Build.class)
 public interface DependencyConstraintFactory {
     /**
      * Create a {@link DependencyConstraint} from the <code>"<i>group</i>:<i>name</i>:<i>version</i>"</code> notation.

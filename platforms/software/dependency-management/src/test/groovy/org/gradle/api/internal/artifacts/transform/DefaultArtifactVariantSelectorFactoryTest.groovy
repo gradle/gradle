@@ -27,11 +27,11 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.Describables
-import org.gradle.internal.component.AmbiguousArtifactVariantsException
-import org.gradle.internal.component.NoMatchingArtifactVariantsException
+
 import org.gradle.internal.component.ResolutionFailureHandler
 import org.gradle.internal.component.model.AttributeMatcher
 import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder
+import org.gradle.internal.component.resolution.failure.exception.ArtifactVariantSelectionException
 import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
 
@@ -99,7 +99,7 @@ class DefaultArtifactVariantSelectorFactoryTest extends Specification {
         visit(result)
 
         then:
-        def e = thrown(AmbiguousArtifactVariantsException)
+        def e = thrown(ArtifactVariantSelectionException)
         e.message == toPlatformLineSeparators("""The consumer was configured to find attribute 'artifactType' with value 'classes'. However we cannot choose between the following variants of <component>:
   - <variant1> declares attribute 'artifactType' with value 'classes'
   - <variant2> declares attribute 'artifactType' with value 'jar'""")
@@ -134,7 +134,7 @@ class DefaultArtifactVariantSelectorFactoryTest extends Specification {
         visit(result)
 
         then:
-        def e = thrown(AmbiguousArtifactTransformException)
+        def e = thrown(ArtifactVariantSelectionException)
         e.message == toPlatformLineSeparators("""Found multiple transforms that can produce a variant of <component> with requested attributes:
   - artifactType 'dll'
 Found the following transforms:
@@ -195,7 +195,7 @@ Found the following transforms:
         visit(result)
 
         then:
-        def e = thrown(NoMatchingArtifactVariantsException)
+        def e = thrown(ArtifactVariantSelectionException)
         e.message == toPlatformLineSeparators("""No variants of  match the consumer attributes:
   - <variant1>:
       - Incompatible because this component declares attribute 'artifactType' with value 'jar' and the consumer needed attribute 'artifactType' with value 'dll'

@@ -22,27 +22,34 @@ errorprone {
 }
 
 dependencies {
+    api(project(":base-annotations"))
+    api(project(":base-services"))
+    api(project(":build-operations"))
+    api(project(":core"))
+    api(project(":core-api"))
+    api(project(":enterprise-logging"))
+    api(project(":logging"))
+    api(project(":logging-api"))
+    api(project(":messaging"))
+    api(project(":native"))
     api(project(":reporting"))
+    api(project(":worker-processes"))
 
-    implementation(project(":base-services"))
-    implementation(project(":messaging"))
-    implementation(project(":native"))
-    implementation(project(":logging"))
-    implementation(project(":process-services"))
-    implementation(project(":worker-processes"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":core"))
+    api(libs.groovy)
+    api(libs.guava)
+    api(libs.jsr305)
+    api(libs.inject)
+
     implementation(project(":base-services-groovy"))
-    implementation(project(":platform-base"))
+    implementation(project(":model-core"))
+    implementation(project(":process-services"))
 
-    implementation(libs.slf4jApi)
-    implementation(libs.groovy)
-    implementation(libs.guava)
+    implementation(libs.ant) {
+        because("only used for DateUtils")
+    }
     implementation(libs.commonsLang)
     implementation(libs.kryo)
-    implementation(libs.inject)
-    implementation(libs.ant) // only used for DateUtils
+    implementation(libs.slf4jApi)
 
     testImplementation(project(":file-collections"))
     testImplementation(project(":enterprise-operations"))

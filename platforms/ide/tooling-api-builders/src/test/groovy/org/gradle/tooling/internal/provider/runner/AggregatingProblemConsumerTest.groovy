@@ -16,12 +16,11 @@
 
 package org.gradle.tooling.internal.provider.runner
 
-
 import org.gradle.internal.build.event.types.DefaultLabel
 import org.gradle.internal.build.event.types.DefaultProblemCategory
 import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.tooling.internal.protocol.InternalProblemEvent
-import org.gradle.tooling.internal.protocol.problem.InternalBasicProblemDetails
+import org.gradle.tooling.internal.protocol.problem.InternalBasicProblemDetailsVersion2
 import spock.lang.Specification
 
 class AggregatingProblemConsumerTest extends Specification {
@@ -105,7 +104,7 @@ class AggregatingProblemConsumerTest extends Specification {
 
     private createMockProblem(String categoryName) {
         def problem = Mock(InternalProblemEvent)
-        def details = Mock(InternalBasicProblemDetails)
+        def details = Mock(InternalBasicProblemDetailsVersion2)
         details.category >> new DefaultProblemCategory(categoryName, categoryName, [categoryName])
         details.label >> new DefaultLabel("label")
         problem.details >> details

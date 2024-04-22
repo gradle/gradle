@@ -15,11 +15,12 @@
  */
 package org.gradle.launcher.daemon.context;
 
+import org.gradle.api.JavaVersion;
+import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 
 import java.io.File;
-import java.io.Serializable;
-import java.util.List;
+import java.util.Collection;
 
 /**
  * A value object that describes a daemons environment/context.
@@ -27,14 +28,15 @@ import java.util.List;
  * This is used by clients to determine whether or not a daemon meets its requirements
  * such as JDK version, special system properties etc.
  * <p>
- * Instances must be serializable because they are shared via the DaemonRegistry, which is permitted
- * to use serialization to communicate across VM boundaries. Implementations are not required to be,
- * but should also be immutable.
+ * Instances are serialized by {@link org.gradle.launcher.daemon.context.DefaultDaemonContext.Serializer}
+ * and shared via the Daemon Registry.
  *
- * @see DaemonContextBuilder
+ * Implementation is immutable.
+ *
  * @see DaemonCompatibilitySpec
+ * @see DaemonRequestContext
  */
-public interface DaemonContext extends Serializable {
+public interface DaemonContext {
 
     /**
      * The unique identifier for this daemon.
@@ -45,6 +47,8 @@ public interface DaemonContext extends Serializable {
      * The JAVA_HOME in use, as the canonical file.
      */
     File getJavaHome();
+
+    JavaVersion getJavaVersion();
 
     /**
      * The directory that should be used for daemon storage (not including the gradle version number).
@@ -66,7 +70,7 @@ public interface DaemonContext extends Serializable {
      *
      * @return the JVM options that the daemon was started with
      */
-    List<String> getDaemonOpts();
+    Collection<String> getDaemonOpts();
 
     /**
      * Returns whether the instrumentation agent should be applied to the daemon
@@ -75,5 +79,12 @@ public interface DaemonContext extends Serializable {
      */
     boolean shouldApplyInstrumentationAgent();
 
+    /**
+     * Returns whether the daemon should use native services.
+     */
+    NativeServicesMode getNativeServicesMode();
+
     DaemonParameters.Priority getPriority();
+
+    DaemonRequestContext toRequest();
 }

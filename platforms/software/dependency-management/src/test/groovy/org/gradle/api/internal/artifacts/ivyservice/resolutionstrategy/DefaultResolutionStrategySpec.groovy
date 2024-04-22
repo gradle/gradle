@@ -33,7 +33,6 @@ import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.Depen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons
 import org.gradle.internal.Actions
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
-import org.gradle.internal.locking.NoOpDependencyLockingProvider
 import org.gradle.internal.rules.NoInputsRuleAction
 import org.gradle.util.TestUtil
 import org.gradle.vcs.internal.VcsResolver
@@ -298,26 +297,12 @@ class DefaultResolutionStrategySpec extends Specification {
         then: 0 * validator.validateMutation(_)
     }
 
-    def 'provides the expected DependencyLockingProvider (#activateLocking)'() {
+    def 'provides the expected DependencyLockingProvider'() {
         when:
-        if (activateLocking) {
-            strategy.activateDependencyLocking()
-        }
-        then:
-        strategy.dependencyLockingProvider.is(expectedProvider)
-
-        where:
-        activateLocking | expectedProvider
-        true            | dependencyLockingProvider
-        false           | NoOpDependencyLockingProvider.instance
-    }
-
-    def 'Does not provide DependencyLockingProvider when deactivatingLocking'() {
-        when:
-        strategy.deactivateDependencyLocking()
+        strategy.activateDependencyLocking()
 
         then:
-        strategy.dependencyLockingProvider.is( NoOpDependencyLockingProvider.instance)
+        strategy.dependencyLockingProvider.is(dependencyLockingProvider)
     }
 
     def "copies dependency verification state"() {

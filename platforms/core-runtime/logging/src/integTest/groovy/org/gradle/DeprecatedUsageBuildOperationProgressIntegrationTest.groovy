@@ -164,6 +164,50 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         typedTaskDeprecation2Details.stackTrace.length() > 0
         typedTaskDeprecation2Details.stackTrace.contains('build.gradle:29')
         typedTaskDeprecation2Details.stackTrace.contains('someAction')
+
+        and:
+        verifyAll(receivedProblem(0)) {
+            fqid == 'deprecation:custom-task-action'
+            contextualLabel == 'Custom Task action has been deprecated.'
+            solutions == [
+                'Use task type X instead.',
+                'Task \':t\' should not have custom actions attached.',
+            ]
+        }
+        verifyAll(receivedProblem(1)) {
+            fqid == 'deprecation:init-script'
+            contextualLabel == 'Init script has been deprecated.'
+        }
+        verifyAll(receivedProblem(2)) {
+            fqid == 'deprecation:init-script'
+            contextualLabel == 'Init script has been deprecated.'
+        }
+        verifyAll(receivedProblem(3)) {
+            fqid == 'deprecation:plugin'
+            contextualLabel == 'Plugin has been deprecated.'
+        }
+        verifyAll(receivedProblem(4)) {
+            fqid == 'deprecation:plugin-script'
+            contextualLabel == 'Plugin script has been deprecated.'
+        }
+        verifyAll(receivedProblem(5)) {
+            fqid == 'deprecation:some-indirect-deprecation'
+            contextualLabel == 'Some indirect deprecation has been deprecated.'
+            solutions == [ 'Some advice.' ]
+        }
+        verifyAll(receivedProblem(6)) {
+            fqid == 'deprecation:some-invocation-feature'
+            contextualLabel == 'Some invocation feature has been deprecated.'
+            solutions == [ 'Don\'t do custom invocation.' ]
+        }
+        verifyAll(receivedProblem(7)) {
+            fqid == 'deprecation:typed-task'
+            contextualLabel == 'Typed task has been deprecated.'
+        }
+        verifyAll(receivedProblem(8)) {
+            fqid == 'deprecation:typed-task'
+            contextualLabel == 'Typed task has been deprecated.'
+        }
     }
 
     def "emits deprecation warnings as build operation progress events for buildSrc builds"() {
@@ -186,6 +230,12 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         buildSrcDeprecationsDetails.type == 'USER_CODE_DIRECT'
         buildSrcDeprecationsDetails.stackTrace.length() > 0
         buildSrcDeprecationsDetails.stackTrace.contains("buildSrc${File.separator}build.gradle:2")
+
+        and:
+        verifyAll(receivedProblem) {
+            fqid == 'deprecation:buildsrc-script'
+            contextualLabel == 'BuildSrc script has been deprecated.'
+        }
     }
 
     def "emits deprecation warnings as build operation progress events for composite builds"() {
@@ -233,14 +283,28 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         includedBuildTaskDeprecationsDetails.type == 'USER_CODE_DIRECT'
         includedBuildTaskDeprecationsDetails.stackTrace.length() > 0
         includedBuildTaskDeprecationsDetails.stackTrace.contains("included${File.separator}build.gradle:6")
+
+        and:
+        verifyAll(receivedProblem(0)) {
+            fqid == 'deprecation:included-build-script'
+            contextualLabel == 'Included build script has been deprecated.'
+        }
+        verifyAll(receivedProblem(1)) {
+            fqid == 'deprecation:included-build-task'
+            contextualLabel == 'Included build task has been deprecated.'
+        }
     }
 
     def "collects stack traces for deprecation usages at certain limit, regardless of whether the deprecation has been encountered before for warning mode #mode"() {
         file('settings.gradle') << "rootProject.name = 'root'"
 
         51.times {
-            buildFile << """
-                org.gradle.internal.deprecation.DeprecationLogger.deprecate('Thing $it').willBeRemovedInGradle9().undocumented().nagUser();
+            buildFile """
+                org.gradle.internal.deprecation.DeprecationLogger.deprecate('Thing $it')
+                                                                 .withProblemIdDisplayName('Thing has been deprecated.')
+                                                                 .willBeRemovedInGradle9()
+                                                                 .undocumented()
+                                                                 .nagUser();
             """
         }
 
@@ -253,6 +317,15 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         events.size() == 51
         events[0].details['deprecation'].stackTrace.length() > 0
         events[50].details['deprecation'].stackTrace.length() == 0
+
+        and:
+        51.times {
+            verifyAll(receivedProblem(it)) {
+                fqid == 'deprecation:thing'
+                contextualLabel.contains(" has been deprecated.")
+            }
+        }
+
         where:
         mode << [WarningMode.None, WarningMode.Summary]
     }
@@ -261,8 +334,12 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         file('settings.gradle') << "rootProject.name = 'root'"
 
         100.times {
-            buildFile << """
-                org.gradle.internal.deprecation.DeprecationLogger.deprecate('Thing $it').willBeRemovedInGradle9().undocumented().nagUser();
+            buildFile """
+                org.gradle.internal.deprecation.DeprecationLogger.deprecate('Thing $it')
+                                                                .withProblemIdDisplayName('Thing has been deprecated.')
+                                                                .willBeRemovedInGradle9()
+                                                                .undocumented()
+                                                                .nagUser();
             """
         }
 
@@ -278,6 +355,14 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         def events = operations.only("Apply build file 'build.gradle' to root project 'root'").progress.findAll { it.hasDetailsOfType(DeprecatedUsageProgressDetails) }
         events.size() == 100
         events.every { it.details['deprecation'].stackTrace.length() > 0 }
+
+        and:
+        100.times {
+            verifyAll(receivedProblem(it)) {
+                fqid == 'deprecation:thing'
+                contextualLabel.contains('has been deprecated.')
+            }
+        }
 
         where:
         mode << [WarningMode.All, WarningMode.Fail]

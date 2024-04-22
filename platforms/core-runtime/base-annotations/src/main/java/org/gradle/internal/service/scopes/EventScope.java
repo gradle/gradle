@@ -31,7 +31,7 @@ import java.lang.annotation.Target;
  * <p>This annotation is used primarily to indicate to developers the scopes where this listener are available. There is also
  * some validation when a broadcaster or listener of this type is used in an incorrect scope.
  *
- * @see org.gradle.internal.service.scopes.Scopes
+ * @see Scope
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)

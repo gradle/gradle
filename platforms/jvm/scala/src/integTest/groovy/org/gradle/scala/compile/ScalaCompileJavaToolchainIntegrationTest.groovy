@@ -30,8 +30,7 @@ import org.junit.Assume
 
 import static org.gradle.scala.ScalaCompilationFixture.scalaDependency
 
-@TargetCoverage({ ScalaCoverage.SUPPORTED_BY_JDK })
-class ScalaCompileJavaToolchainIntegrationTest extends MultiVersionIntegrationSpec implements JavaToolchainFixture {
+class AbstractScalaCompileJavaToolchainIntegrationTest extends MultiVersionIntegrationSpec implements JavaToolchainFixture {
 
     def getTargetJava8() {
         return versionNumber >= VersionNumber.parse("2.13.9") ? "-release:8"
@@ -53,39 +52,20 @@ class ScalaCompileJavaToolchainIntegrationTest extends MultiVersionIntegrationSp
         """
     }
 
-    def "forkOptions #option is ignored for Scala "() {
-        def currentJdk = Jvm.current()
-        def otherJdk = AvailableJavaHomes.getDifferentVersion()
 
-        if (option == "executable") {
-            buildFile << """
-                compileScala {
-                    options.fork = true
-                    options.forkOptions.executable = "${TextUtil.normaliseFileSeparators(otherJdk.javaExecutable.absolutePath)}"
+    protected TestFile configureTool(Jvm jdk) {
+        buildFile << """
+            compileScala {
+                javaLauncher = javaToolchains.launcherFor {
+                    languageVersion = JavaLanguageVersion.of(${jdk.javaVersion.majorVersion})
                 }
-            """
-        } else {
-            buildFile << """
-                compileScala {
-                    options.fork = true
-                    options.forkOptions.javaHome = file("${TextUtil.normaliseFileSeparators(otherJdk.javaHome.absolutePath)}")
-                }
-            """
-        }
-
-        when:
-        withInstallations(otherJdk).run(":compileScala")
-
-        then:
-        executedAndNotSkipped(":compileScala")
-
-        JavaVersion.forClass(scalaClassFile("JavaThing.class").bytes) == currentJdk.javaVersion
-        JavaVersion.forClass(scalaClassFile("ScalaHall.class").bytes) == JavaVersion.VERSION_1_8
-
-        where:
-        option << ["executable", "javaHome"]
+            }
+        """
     }
+}
 
+@TargetCoverage({ ScalaCoverage.SUPPORTED_BY_JDK })
+class ScalaCompileJavaToolchainIntegrationTest1 extends AbstractScalaCompileJavaToolchainIntegrationTest {
     def "uses #what toolchain #when for Scala "() {
         def currentJdk = Jvm.current()
         def otherJdk = AvailableJavaHomes.differentVersion
@@ -122,6 +102,86 @@ class ScalaCompileJavaToolchainIntegrationTest extends MultiVersionIntegrationSp
         "java extension" | "when configured"            | null     | "other"           | "other"
         "assigned tool"  | "when configured"            | "other"  | null              | "other"
         "assigned tool"  | "over java extension"        | "other"  | "current"         | "other"
+    }
+
+    def "can compile source and run tests using Java #javaVersion for Scala "() {
+        def jdk = AvailableJavaHomes.getJdk(javaVersion)
+        Assume.assumeTrue(jdk != null)
+
+        configureJavaPluginToolchainVersion(jdk)
+
+        buildFile << """
+            tasks.withType(ScalaCompile).configureEach {
+                scalaCompileOptions.additionalParameters = ["${targetJava8}"]
+            }
+
+            dependencies {
+               testImplementation "junit:junit:4.13"
+            }
+
+            test {
+                useJUnit()
+            }
+        """
+
+        file("src/test/scala/ScalaTest.scala") << """
+            import _root_.org.junit.Test;
+
+            class ScalaTest {
+                @Test
+                def verify(): Unit = println("Running Scala test with Java version " + System.getProperty("java.version"))
+            }
+        """
+
+        when:
+        withInstallations(jdk).run(":test", "--info")
+
+        then:
+        executedAndNotSkipped(":test")
+        outputContains("Running Scala test with Java version ${jdk.javaVersion}")
+
+        JavaVersion.forClass(scalaClassFile("JavaThing.class").bytes) == javaVersion
+        JavaVersion.forClass(scalaClassFile("ScalaHall.class").bytes) == JavaVersion.VERSION_1_8
+        JavaVersion.forClass(classFile("scala", "test", "ScalaTest.class").bytes) == JavaVersion.VERSION_1_8
+
+        where:
+        javaVersion << JavaVersion.values().findAll { JavaVersion.VERSION_1_8 <= it && it <= JavaVersion.VERSION_22 }
+    }
+}
+
+@TargetCoverage({ ScalaCoverage.SUPPORTED_BY_JDK })
+class ScalaCompileJavaToolchainIntegrationTest2 extends AbstractScalaCompileJavaToolchainIntegrationTest {
+    def "forkOptions #option is ignored for Scala "() {
+        def currentJdk = Jvm.current()
+        def otherJdk = AvailableJavaHomes.getDifferentVersion()
+
+        if (option == "executable") {
+            buildFile << """
+                compileScala {
+                    options.fork = true
+                    options.forkOptions.executable = "${TextUtil.normaliseFileSeparators(otherJdk.javaExecutable.absolutePath)}"
+                }
+            """
+        } else {
+            buildFile << """
+                compileScala {
+                    options.fork = true
+                    options.forkOptions.javaHome = file("${TextUtil.normaliseFileSeparators(otherJdk.javaHome.absolutePath)}")
+                }
+            """
+        }
+
+        when:
+        withInstallations(otherJdk).run(":compileScala")
+
+        then:
+        executedAndNotSkipped(":compileScala")
+
+        JavaVersion.forClass(scalaClassFile("JavaThing.class").bytes) == currentJdk.javaVersion
+        JavaVersion.forClass(scalaClassFile("ScalaHall.class").bytes) == JavaVersion.VERSION_1_8
+
+        where:
+        option << ["executable", "javaHome"]
     }
 
     def "up-to-date depends on the toolchain for Scala "() {
@@ -209,59 +269,4 @@ class ScalaCompileJavaToolchainIntegrationTest extends MultiVersionIntegrationSp
         '9'    | 'none' | '9'       | '9'
         'none' | 'none' | '11'      | '11'
     }
-
-    def "can compile source and run tests using Java #javaVersion for Scala "() {
-        def jdk = AvailableJavaHomes.getJdk(javaVersion)
-        Assume.assumeTrue(jdk != null)
-
-        configureJavaPluginToolchainVersion(jdk)
-
-        buildFile << """
-            tasks.withType(ScalaCompile).configureEach {
-                scalaCompileOptions.additionalParameters = ["${targetJava8}"]
-            }
-
-            dependencies {
-               testImplementation "junit:junit:4.13"
-            }
-
-            test {
-                useJUnit()
-            }
-        """
-
-        file("src/test/scala/ScalaTest.scala") << """
-            import _root_.org.junit.Test;
-
-            class ScalaTest {
-                @Test
-                def verify(): Unit = println("Running Scala test with Java version " + System.getProperty("java.version"))
-            }
-        """
-
-        when:
-        withInstallations(jdk).run(":test", "--info")
-
-        then:
-        executedAndNotSkipped(":test")
-        outputContains("Running Scala test with Java version ${jdk.javaVersion}")
-
-        JavaVersion.forClass(scalaClassFile("JavaThing.class").bytes) == javaVersion
-        JavaVersion.forClass(scalaClassFile("ScalaHall.class").bytes) == JavaVersion.VERSION_1_8
-        JavaVersion.forClass(classFile("scala", "test", "ScalaTest.class").bytes) == JavaVersion.VERSION_1_8
-
-        where:
-        javaVersion << JavaVersion.values().findAll { JavaVersion.VERSION_1_8 <= it && it <= JavaVersion.VERSION_22 }
-    }
-
-    private TestFile configureTool(Jvm jdk) {
-        buildFile << """
-            compileScala {
-                javaLauncher = javaToolchains.launcherFor {
-                    languageVersion = JavaLanguageVersion.of(${jdk.javaVersion.majorVersion})
-                }
-            }
-        """
-    }
-
 }

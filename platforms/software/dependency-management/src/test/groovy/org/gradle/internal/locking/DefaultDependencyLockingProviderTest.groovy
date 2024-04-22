@@ -30,6 +30,7 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.provider.DefaultPropertyFactory
 import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.api.internal.provider.PropertyHost
+import org.gradle.internal.DisplayName
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.resource.local.FileResourceListener
 import org.gradle.test.fixtures.file.TestFile
@@ -50,6 +51,7 @@ class DefaultDependencyLockingProviderTest extends Specification {
     TestFile lockDir = tmpDir.createDir(LockFileReaderWriter.DEPENDENCY_LOCKING_FOLDER)
     TestFile uniqueLockFile = tmpDir.file(LockFileReaderWriter.UNIQUE_LOCKFILE_NAME)
 
+    DisplayName owner = Mock()
     FileResolver resolver = Mock()
     StartParameter startParameter = Mock()
     DomainObjectContext context = Mock()
@@ -77,8 +79,8 @@ class DefaultDependencyLockingProviderTest extends Specification {
         startParameter.isWriteDependencyLocks() >> true
         provider = newProvider()
         def modules = [module('org', 'foo', '1.0'), module('org','bar','1.3')] as Set
-        provider.loadLockState('conf')
-        provider.persistResolvedDependencies('conf', modules, emptySet())
+        provider.loadLockState('conf', owner)
+        provider.persistResolvedDependencies('conf', owner, modules, emptySet())
 
         when:
         provider.buildFinished()
@@ -97,7 +99,7 @@ empty=
         writeLockFile(['org:bar:1.3', 'org:foo:1.0'], unique)
 
         when:
-        def result = provider.loadLockState('conf')
+        def result = provider.loadLockState('conf', owner)
 
         then:
         result.mustValidateLockState()
@@ -121,7 +123,7 @@ empty=
         writeLockFile(['org:bar:1.3', 'org:foo:1.0'], unique)
 
         when:
-        def result = provider.loadLockState('conf')
+        def result = provider.loadLockState('conf', owner)
 
         then:
         !result.mustValidateLockState()
@@ -140,7 +142,7 @@ empty=
         writeLockFile(['org:bar:1.3', 'org:foo:1.0'], unique)
 
         when:
-        def result = provider.loadLockState('conf')
+        def result = provider.loadLockState('conf', owner)
 
         then:
         !result.mustValidateLockState()
@@ -159,7 +161,7 @@ empty=
         writeLockFile(['org.bar:foo:1.3', 'com:foo:1.0'], unique)
 
         when:
-        def result = provider.loadLockState('conf')
+        def result = provider.loadLockState('conf', owner)
 
         then:
         !result.mustValidateLockState()
@@ -183,7 +185,7 @@ empty=
         writeLockFile(['org:bar:1.1', 'org:foo:1.1'], unique)
 
         when:
-        def result = provider.loadLockState('conf')
+        def result = provider.loadLockState('conf', owner)
 
         then:
         result.getLockedDependencies() == [newId(DefaultModuleIdentifier.newId('org', 'bar'), '1.1')] as Set
@@ -197,12 +199,12 @@ empty=
         writeLockFile(["invalid"], unique)
 
         when:
-        provider.loadLockState('conf')
+        provider.loadLockState('conf', owner)
 
         then:
         def ex = thrown(InvalidLockFileException)
-        1 * context.identityPath('conf') >> Path.path(':conf')
-        ex.message == 'Invalid lock state for configuration \':conf\''
+        1 * owner.getDisplayName() >> "owner"
+        ex.message == 'Invalid lock state for owner'
         ex.cause.message == 'The module notation does not respect the lock file format of \'group:name:version\' - received \'invalid\''
 
         where:
@@ -218,16 +220,14 @@ empty=
         provider.getLockMode().set(LockMode.STRICT)
 
         when:
-        provider.loadLockState('conf')
+        provider.loadLockState('conf', owner)
 
         then:
         def ex = thrown(MissingLockStateException)
-        1 * context.identityPath('conf') >> Path.path(':conf')
-        ex.message == 'Locking strict mode: Configuration \':conf\' is locked but does not have lock state.'
-        ex.resolutions == ["To create the lock state, run a task that will resolve that configuration and add '--write-locks' to the command line.",
+        1 * owner.getCapitalizedDisplayName() >> "Owner"
+        ex.message == 'Locking strict mode: Owner is locked but does not have lock state.'
+        ex.resolutions == ["To create the lock state, run a task that performs dependency resolution and add '--write-locks' to the command line.",
                             "For more information on generating lock state, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/dependency_locking.html#generating_and_updating_dependency_locks in the Gradle documentation."]
-
-        where:
 
         where:
         unique << [true, false]
@@ -241,7 +241,7 @@ empty=
         provider.ignoredDependencies.add(notation)
 
         when:
-        provider.loadLockState('conf')
+        provider.loadLockState('conf', owner)
 
         then:
         def ex = thrown(IllegalArgumentException)
@@ -264,7 +264,7 @@ empty=
         provider = newProvider()
 
         when:
-        provider.confirmConfigurationNotLocked('conf')
+        provider.confirmNotLocked('conf')
         provider.buildFinished()
 
         then:
@@ -278,14 +278,14 @@ empty=
         new DefaultDependencyLockingProvider(resolver, startParameter, context, dependencySubstitutionRules, propertyFactory, filePropertyFactory, listener)
     }
 
-    def writeLockFile(List<String> modules, boolean unique = true, String configuration = 'conf') {
+    def writeLockFile(List<String> modules, boolean unique = true, String lockFileId = 'conf') {
         if (unique) {
             tmpDir.file(LockFileReaderWriter.UNIQUE_LOCKFILE_NAME) << """${LockFileReaderWriter.LOCKFILE_HEADER_LIST.join('\n')}
-${modules.toSorted().collect {"$it=$configuration"}.join('\n')}
+${modules.toSorted().collect {"$it=$lockFileId"}.join('\n')}
 empty=
 """.denormalize()
         } else {
-            lockDir.file("${configuration}.lockfile") << """${LockFileReaderWriter.LOCKFILE_HEADER_LIST.join('\n')}
+            lockDir.file("${lockFileId}.lockfile") << """${LockFileReaderWriter.LOCKFILE_HEADER_LIST.join('\n')}
 ${modules.toSorted().join('\n')}
 """.denormalize()
         }

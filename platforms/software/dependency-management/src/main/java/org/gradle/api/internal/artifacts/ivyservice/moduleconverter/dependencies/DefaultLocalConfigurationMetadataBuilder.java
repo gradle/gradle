@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencie
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExcludeRule;
@@ -52,12 +51,10 @@ import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.ModelContainer;
 
 import javax.annotation.Nullable;
-import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Queue;
 import java.util.Set;
 
 /**
@@ -86,15 +83,18 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
         ModelContainer<?> model,
         CalculatedValueContainerFactory calculatedValueContainerFactory
     ) {
-        // Ensure all actions are executed against this configuration and its hierarchy before reading its state.
-        // Dependency actions may modify the hierarchy.
-        runDependencyActionsInHierarchy(configuration);
+        // Perform any final mutating actions for this configuration and its parents.
+        // Then, lock this configuration and its parents from mutation.
+        // After we observe a configuration (by building its metadata), its state should not change.
+        configuration.runDependencyActions();
+        configuration.markAsObserved();
 
         String configurationName = configuration.getName();
         String description = configuration.getDescription();
         ComponentIdentifier componentId = parent.getId();
         ComponentConfigurationIdentifier configurationIdentifier = new ComponentConfigurationIdentifier(componentId, configuration.getName());
 
+        ImmutableAttributes attributes = configuration.getAttributes().asImmutable();
         ImmutableCapabilities capabilities = ImmutableCapabilities.of(Configurations.collectCapabilities(configuration, new HashSet<>(), new HashSet<>()));
 
         // Collect all artifacts and sub-variants.
@@ -120,9 +120,10 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
         });
 
         // Collect all dependencies and excludes in hierarchy.
-        ImmutableAttributes attributes = configuration.getAttributes().asImmutable();
+        // After running the dependency actions and preventing from mutation above, we know the
+        // hierarchy will not change anymore and all configurations in the hierarchy
+        // will no longer be mutated.
         ImmutableSet<String> hierarchy = Configurations.getNames(configuration.getHierarchy());
-
         CalculatedValue<DefaultLocalConfigurationMetadata.ConfigurationDependencyMetadata> dependencies =
             getConfigurationDependencyState(configurationsProvider, dependencyCache, model, calculatedValueContainerFactory, description, hierarchy, attributes);
 
@@ -195,30 +196,6 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
                 });
             }
         });
-    }
-
-    /**
-     * Runs the dependency actions for all configurations in {@code conf}'s hierarchy.
-     *
-     * <p>Specifically handles the case where {@link Configuration#extendsFrom} is called during the
-     * dependency action execution.</p>
-     */
-    private static void runDependencyActionsInHierarchy(ConfigurationInternal conf) {
-        Set<Configuration> seen = new HashSet<>();
-        Queue<Configuration> remaining = new ArrayDeque<>();
-        remaining.add(conf);
-        seen.add(conf);
-
-        while (!remaining.isEmpty()) {
-            Configuration current = remaining.remove();
-            ((ConfigurationInternal) current).runDependencyActions();
-
-            for (Configuration parent : current.getExtendsFrom()) {
-                if (seen.add(parent)) {
-                    remaining.add(parent);
-                }
-            }
-        }
     }
 
     /**

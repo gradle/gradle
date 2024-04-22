@@ -17,6 +17,8 @@
 package org.gradle.configurationcache.problems
 
 import com.google.common.collect.Sets.newConcurrentHashSet
+import org.gradle.api.initialization.Settings
+import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.logging.Logging
 import org.gradle.configurationcache.ConfigurationCacheAction
 import org.gradle.configurationcache.ConfigurationCacheAction.LOAD
@@ -27,15 +29,16 @@ import org.gradle.configurationcache.ConfigurationCacheProblemsException
 import org.gradle.configurationcache.TooManyConfigurationCacheProblemsException
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.initialization.RootBuildLifecycleListener
+import org.gradle.internal.InternalBuildAdapter
 import org.gradle.internal.event.ListenerManager
-import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.problems.buildtree.ProblemReporter
 import org.gradle.problems.buildtree.ProblemReporter.ProblemConsumer
 import java.io.File
 
 
-@ServiceScope(Scopes.BuildTree::class)
+@ServiceScope(Scope.BuildTree::class)
 internal
 class ConfigurationCacheProblems(
 
@@ -56,7 +59,13 @@ class ConfigurationCacheProblems(
     val summarizer = ConfigurationCacheProblemsSummary()
 
     private
+    val buildNameHandler = BuildNameHandler()
+
+    private
     val postBuildHandler = PostBuildProblemsHandler()
+
+    private
+    var buildName: String? = null
 
     private
     var isFailOnProblems = startParameter.failOnProblems
@@ -89,10 +98,12 @@ class ConfigurationCacheProblems(
         }
 
     init {
+        listenerManager.addListener(buildNameHandler)
         listenerManager.addListener(postBuildHandler)
     }
 
     override fun close() {
+        listenerManager.removeListener(buildNameHandler)
         listenerManager.removeListener(postBuildHandler)
     }
 
@@ -167,7 +178,8 @@ class ConfigurationCacheProblems(
         val outputDirectory = outputDirectoryFor(reportDir)
         val cacheActionText = cacheAction.summaryText()
         val requestedTasks = startParameter.requestedTasksOrDefault()
-        val htmlReportFile = report.writeReportFileTo(outputDirectory, cacheActionText, requestedTasks, summary.problemCount)
+        val buildDisplayName = buildName
+        val htmlReportFile = report.writeReportFileTo(outputDirectory, buildDisplayName, cacheActionText, requestedTasks, summary.problemCount)
         if (htmlReportFile == null) {
             // there was nothing to report (no problems, no build configuration inputs)
             require(hasNoProblems)
@@ -194,11 +206,20 @@ class ConfigurationCacheProblems(
 
     private
     fun ConfigurationCacheStartParameter.requestedTasksOrDefault() =
-        requestedTaskNames.takeIf { it.isNotEmpty() }?.joinToString(" ") ?: "default tasks"
+        requestedTaskNames.takeIf { it.isNotEmpty() }?.joinToString(" ")
 
     private
     fun outputDirectoryFor(buildDir: File): File =
         buildDir.resolve("reports/configuration-cache/$cacheKey")
+
+    private
+    inner class BuildNameHandler : InternalBuildAdapter() {
+        override fun settingsEvaluated(settings: Settings) {
+            if ((settings as SettingsInternal).gradle.isRootBuild) {
+                buildName = settings.rootProject.name
+            }
+        }
+    }
 
     private
     inner class PostBuildProblemsHandler : RootBuildLifecycleListener {

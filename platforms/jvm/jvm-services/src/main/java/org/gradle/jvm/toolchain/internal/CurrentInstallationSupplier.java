@@ -16,20 +16,13 @@
 
 package org.gradle.jvm.toolchain.internal;
 
-import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.jvm.Jvm;
 
-import javax.inject.Inject;
 import java.io.File;
 import java.util.Collections;
 import java.util.Set;
 
-public class CurrentInstallationSupplier extends AutoDetectingInstallationSupplier {
-
-    @Inject
-    public CurrentInstallationSupplier(ProviderFactory factory) {
-        super(factory);
-    }
+public class CurrentInstallationSupplier implements InstallationSupplier {
 
     @Override
     public String getSourceName() {
@@ -37,12 +30,10 @@ public class CurrentInstallationSupplier extends AutoDetectingInstallationSuppli
     }
 
     @Override
-    protected Set<InstallationLocation> findCandidates() {
+    public Set<InstallationLocation> get() {
         return Collections.singleton(asInstallation(Jvm.current().getJavaHome()));
     }
-
     private InstallationLocation asInstallation(File javaHome) {
-        return new InstallationLocation(javaHome, getSourceName());
+        return InstallationLocation.autoDetected(javaHome, getSourceName());
     }
-
 }

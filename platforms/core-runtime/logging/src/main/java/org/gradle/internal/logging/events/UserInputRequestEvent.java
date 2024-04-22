@@ -17,7 +17,7 @@ package org.gradle.internal.logging.events;
 
 import org.gradle.api.logging.LogLevel;
 
-public class UserInputRequestEvent extends OutputEvent {
+public class UserInputRequestEvent extends OutputEvent implements InteractiveEvent {
     @Override
     public LogLevel getLogLevel() {
         return LogLevel.QUIET;

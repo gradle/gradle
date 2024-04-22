@@ -19,10 +19,10 @@ package org.gradle.testkit.runner.enduser
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.util.internal.TextUtil
 
 import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.DUMMY_TASK_NAME
 import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.PROMPT
-import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.YES
 import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.answerOutput
 import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.buildScanPlugin
 import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.buildScanPluginApplication
@@ -53,17 +53,62 @@ class GradleRunnerConsoleInputEndUserIntegrationTest extends BaseTestKitEndUserI
 
     def "can capture user input if standard input was provided"() {
         when:
-        file("src/test/groovy/Test.groovy") << functionalTest(true, true)
+        file("src/test/groovy/Test.groovy") << functionalTest("""
+            // defer sending the answer until prompted
+            def stdin = new PipedInputStream()
+            def stdinSink = new PipedOutputStream(stdin)
+            def stdout = new java.io.Writer() {
+                def buffer = new StringBuilder()
+                def written = false
+
+                void write(char[] cbuf, int off, int len) {
+                    buffer.append(cbuf, off, len)
+                    if (!written && buffer.toString().contains('$PROMPT')) {
+                        written = true
+                        stdinSink.write(\"\"\"yes${TextUtil.platformLineSeparator}\"\"\".bytes)
+                        stdinSink.close()
+                    }
+                }
+
+                void flush() { }
+
+                void close() { }
+            }
+
+            when:
+            def result = GradleRunner.create()
+                .withProjectDir(testProjectDir)
+                .withArguments('$DUMMY_TASK_NAME')
+                .withDebug($debug)
+                .withStandardInput(stdin)
+                .forwardStdOutput(stdout)
+                .build()
+
+            then:
+            result.output.contains('$PROMPT')
+            result.output.contains('${answerOutput(true)}')
+        """)
 
         then:
-        succeeds 'build'
+        succeeds 'build', '-i'
         executedAndNotSkipped ':test'
         new JUnitXmlTestExecutionResult(projectDir).totalNumberOfTestClassesExecuted > 0
     }
 
     def "cannot capture user input if standard in was not provided"() {
         when:
-        file("src/test/groovy/Test.groovy") << functionalTest(false, null)
+        file("src/test/groovy/Test.groovy") << functionalTest("""
+            when:
+            def result = GradleRunner.create()
+                .withProjectDir(testProjectDir)
+                .withArguments('$DUMMY_TASK_NAME')
+                .withDebug($debug)
+                .build()
+
+            then:
+            !result.output.contains('$PROMPT')
+            result.output.contains('${answerOutput(null)}')
+        """)
 
         then:
         succeeds 'build'
@@ -71,7 +116,7 @@ class GradleRunnerConsoleInputEndUserIntegrationTest extends BaseTestKitEndUserI
         new JUnitXmlTestExecutionResult(projectDir).totalNumberOfTestClassesExecuted > 0
     }
 
-    static String functionalTest(boolean providesStandardInput, Boolean expectedAnswer) {
+    static String functionalTest(String content) {
         """
             import org.gradle.testkit.runner.GradleRunner
             import static org.gradle.testkit.runner.TaskOutcome.*
@@ -93,43 +138,9 @@ class GradleRunnerConsoleInputEndUserIntegrationTest extends BaseTestKitEndUserI
                 }
 
                 def "capture user input"() {
-                    when:
-                    ${providesStandardInput ? provideYesAnswerToStandardInput() : ''}
-                    def result = ${providesStandardInput ? gradleRunnerWithStandardInput() : gradleRunnerWithoutStandardInput()}
-
-                    then:
-                    ${providesStandardInput ? "result.output.contains('$PROMPT')" : "!result.output.contains('$PROMPT')"}
-                    result.output.contains('${answerOutput(expectedAnswer)}')
+                    $content
                 }
             }
-        """
-    }
-
-    static String provideYesAnswerToStandardInput() {
-        """
-            def input = new ByteArrayInputStream(('$YES' + System.getProperty('line.separator')).bytes)
-            System.setIn(input)
-        """
-    }
-
-    static String gradleRunnerWithoutStandardInput() {
-        """
-            GradleRunner.create()
-                .withProjectDir(testProjectDir)
-                .withArguments('$DUMMY_TASK_NAME')
-                .withDebug($debug)
-                .build()
-        """
-    }
-
-    static String gradleRunnerWithStandardInput() {
-        """
-            GradleRunner.create()
-                .withProjectDir(testProjectDir)
-                .withArguments('$DUMMY_TASK_NAME')
-                .withDebug($debug)
-                .withStandardInput(System.in)
-                .build()
         """
     }
 }

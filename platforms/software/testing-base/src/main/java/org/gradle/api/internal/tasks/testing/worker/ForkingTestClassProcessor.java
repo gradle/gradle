@@ -23,6 +23,7 @@ import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
+import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
 import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerThreadRegistry;
@@ -109,8 +110,9 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
         builder.setImplementationModulePath(classpath.getImplementationModulepath());
         builder.applicationClasspath(classpath.getApplicationClasspath());
         builder.applicationModulePath(classpath.getApplicationModulepath());
+        // Disabled for faster startup, see https://github.com/gradle/gradle/pull/1883
+        builder.setNativeServicesMode(NativeServicesMode.DISABLED);
         options.copyTo(builder.getJavaCommand());
-        builder.getJavaCommand().jvmArgs("-Dorg.gradle.native=false");
         buildConfigAction.execute(builder);
 
         workerProcess = builder.build();

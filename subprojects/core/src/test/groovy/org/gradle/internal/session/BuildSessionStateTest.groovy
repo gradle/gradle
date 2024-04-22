@@ -26,13 +26,13 @@ import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry
-import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.Scope
 import spock.lang.Specification
 
 import java.util.function.Function
 
 class BuildSessionStateTest extends Specification {
-    def listenerManager = new DefaultListenerManager(Scopes.BuildSession)
+    def listenerManager = new DefaultListenerManager(Scope.BuildSession)
     def actionExecutor = Mock(BuildSessionActionExecutor)
     def userHomeServiceRegistry = Mock(GradleUserHomeScopeServiceRegistry)
     def crossBuildState = Mock(CrossBuildSessionState)

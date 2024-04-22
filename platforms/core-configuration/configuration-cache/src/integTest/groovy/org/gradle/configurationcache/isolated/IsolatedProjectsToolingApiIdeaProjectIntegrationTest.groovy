@@ -503,7 +503,7 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
             modelsCreated(":", models(IdeaProject, pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
             modelsCreated(":lib1", models(pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
             // TODO:isolated there should be no violation
-            problem("Plugin class 'org.gradle.plugins.ide.idea.IdeaPlugin': Cannot access project ':' from project ':lib1'")
+            problem("Plugin class 'org.gradle.plugins.ide.idea.IdeaPlugin': Project ':lib1' cannot access 'Project.tasks' functionality on another project ':'")
         }
 
         // TODO:isolated check the model matches the vintage model

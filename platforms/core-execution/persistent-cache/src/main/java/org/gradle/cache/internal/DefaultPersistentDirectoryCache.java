@@ -23,7 +23,7 @@ import org.gradle.cache.FileLockManager;
 import org.gradle.cache.LockOptions;
 import org.gradle.cache.PersistentCache;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.logging.progress.ProgressLoggerFactory;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.util.internal.GFileUtils;
 import org.gradle.util.internal.GUtil;
 import org.slf4j.Logger;
@@ -41,8 +41,18 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
     private final Properties properties = new Properties();
     private final Action<? super PersistentCache> initAction;
 
-    public DefaultPersistentDirectoryCache(File dir, String displayName, Map<String, ?> properties, LockOptions lockOptions, @Nullable Action<? super PersistentCache> initAction, @Nullable CacheCleanupStrategy cacheCleanupStrategy, FileLockManager lockManager, ExecutorFactory executorFactory, ProgressLoggerFactory progressLoggerFactory) {
-        super(dir, displayName, lockOptions, cacheCleanupStrategy, lockManager, executorFactory, progressLoggerFactory);
+    public DefaultPersistentDirectoryCache(
+        File dir,
+        String displayName,
+        Map<String, ?> properties,
+        LockOptions lockOptions,
+        @Nullable Action<? super PersistentCache> initAction,
+        @Nullable CacheCleanupStrategy cacheCleanupStrategy,
+        FileLockManager lockManager,
+        ExecutorFactory executorFactory,
+        BuildOperationRunner buildOperationRunner
+    ) {
+        super(dir, displayName, lockOptions, cacheCleanupStrategy, lockManager, executorFactory, buildOperationRunner);
         this.initAction = initAction;
         this.properties.putAll(properties);
     }

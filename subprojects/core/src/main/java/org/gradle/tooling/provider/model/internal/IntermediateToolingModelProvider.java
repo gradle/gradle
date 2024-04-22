@@ -19,7 +19,7 @@ package org.gradle.tooling.provider.model.internal;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
@@ -32,7 +32,7 @@ import java.util.List;
  * from <b>multiple projects of the same build</b>.
  */
 @NonNullApi
-@ServiceScope(Scopes.Build.class)
+@ServiceScope(Scope.Build.class)
 public interface IntermediateToolingModelProvider {
 
     /**

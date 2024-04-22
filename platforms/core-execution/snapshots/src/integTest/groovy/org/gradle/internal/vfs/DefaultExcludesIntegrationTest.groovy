@@ -18,6 +18,7 @@ package org.gradle.internal.vfs
 
 import org.apache.tools.ant.DirectoryScanner
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Issue
 
 class DefaultExcludesIntegrationTest extends AbstractIntegrationSpec{
 
@@ -142,9 +143,36 @@ class DefaultExcludesIntegrationTest extends AbstractIntegrationSpec{
         failure.assertHasCause "Cannot change default excludes during the build. They were changed from ${defaultExcludesFromSettings} to ${defaultExcludesInTask}. Configure default excludes in the settings script instead."
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/27225")
+    def "default excludes are removed properly"() {
+        def defaultExclude = '.gitignore'
+        def defaultExcludeFile = file("input/$defaultExclude")
+        defaultExcludeFile << "some content"
+
+        settingsFile << removeDefaultExclude(defaultExclude)
+
+        when:
+        run "copyTask"
+        then:
+        executedAndNotSkipped(":copyTask")
+        file("build/output/$defaultExclude").exists()
+
+        when:
+        defaultExcludeFile.text = "changed"
+        run "copyTask"
+        then:
+        executedAndNotSkipped(":copyTask")
+    }
+
     private static String addDefaultExclude(String excludedFileName = EXCLUDED_FILE_NAME) {
         """
             ${DirectoryScanner.name}.addDefaultExclude('**/${ excludedFileName}')
+        """
+    }
+
+    private static String removeDefaultExclude(String defaultExcludedFileName) {
+        """
+            ${DirectoryScanner.name}.removeDefaultExclude('**/${defaultExcludedFileName}')
         """
     }
 }

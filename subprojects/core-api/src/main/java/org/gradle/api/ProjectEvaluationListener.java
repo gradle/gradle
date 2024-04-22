@@ -16,14 +16,14 @@
 package org.gradle.api;
 
 import org.gradle.internal.service.scopes.EventScope;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 
 /**
  * <p>An {@code ProjectEvaluationListener} is notified when a project is evaluated. You add can add an {@code
  * ProjectEvaluationListener} to a {@link org.gradle.api.invocation.Gradle} using {@link
  * org.gradle.api.invocation.Gradle#addProjectEvaluationListener(ProjectEvaluationListener)}.</p>
  */
-@EventScope(Scopes.Build.class)
+@EventScope(Scope.Build.class)
 public interface ProjectEvaluationListener {
     /**
      * This method is called immediately before a project is evaluated.

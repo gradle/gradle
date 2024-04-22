@@ -91,7 +91,9 @@ class PmdPluginToolchainsIntegrationTest extends AbstractPmdPluginVersionIntegra
             configuration.exclude(excludeProperties("org.slf4j", "log4j-over-slf4j"))
             configuration.exclude(excludeProperties("commons-logging", "commons-logging"))
             configuration.exclude(excludeProperties("log4j", "log4j"))
-            dependencies.add("pmd", dependencies.create("${calculateDefaultDependencyNotation()}"))
+            ${calculateDefaultDependencyNotation().collect { dependency ->
+            """dependencies.add("pmd", dependencies.create("$dependency"))"""
+        }.join('\n')}
             FileCollection pmdFileCollection = configuration
 
             tasks.register("myPmd", Pmd) {
@@ -128,10 +130,6 @@ class PmdPluginToolchainsIntegrationTest extends AbstractPmdPluginVersionIntegra
                 id 'pmd'
             }
 
-            dependencies {
-                pmd "${calculateDefaultDependencyNotation()}"
-            }
-
             ${mavenCentralRepository()}
         """
 
@@ -139,6 +137,13 @@ class PmdPluginToolchainsIntegrationTest extends AbstractPmdPluginVersionIntegra
             buildFile << """
                 pmd {
                     incrementalAnalysis = false
+                    toolVersion = '$version'
+                }
+            """
+        } else {
+            buildFile << """
+                pmd {
+                    toolVersion = '$version'
                 }
             """
         }

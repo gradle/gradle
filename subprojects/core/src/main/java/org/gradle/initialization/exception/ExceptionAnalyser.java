@@ -15,13 +15,13 @@
  */
 package org.gradle.initialization.exception;
 
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
 import java.util.List;
 
-@ServiceScope(Scopes.BuildTree.class)
+@ServiceScope(Scope.BuildTree.class)
 public interface ExceptionAnalyser {
     /**
      * Transforms the given build failure to add context where relevant and to remove unnecessary noise.

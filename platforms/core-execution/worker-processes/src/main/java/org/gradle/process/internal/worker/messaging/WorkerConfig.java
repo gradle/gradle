@@ -18,6 +18,7 @@ package org.gradle.process.internal.worker.messaging;
 
 import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
 import org.gradle.internal.remote.internal.inet.MultiChoiceAddress;
 import org.gradle.process.internal.worker.WorkerProcessContext;
 
@@ -34,8 +35,18 @@ public class WorkerConfig {
     private final long workerId;
     private final String displayName;
     private final Action<? super WorkerProcessContext> workerAction;
+    private final NativeServicesMode nativeServicesMode;
 
-    public WorkerConfig(LogLevel logLevel, boolean publishJvmMemoryInfo, String gradleUserHomeDirPath, MultiChoiceAddress serverAddress, long workerId, String displayName, Action<? super WorkerProcessContext> workerAction) {
+    public WorkerConfig(
+        LogLevel logLevel,
+        boolean publishJvmMemoryInfo,
+        String gradleUserHomeDirPath,
+        MultiChoiceAddress serverAddress,
+        long workerId,
+        String displayName,
+        Action<? super WorkerProcessContext> workerAction,
+        NativeServicesMode nativeServicesMode
+    ) {
         this.logLevel = logLevel;
         this.publishJvmMemoryInfo = publishJvmMemoryInfo;
         this.gradleUserHomeDirPath = gradleUserHomeDirPath;
@@ -43,6 +54,7 @@ public class WorkerConfig {
         this.workerId = workerId;
         this.displayName = displayName;
         this.workerAction = workerAction;
+        this.nativeServicesMode = nativeServicesMode;
 
         assert workerAction instanceof Serializable;
     }
@@ -75,6 +87,10 @@ public class WorkerConfig {
 
     public String getDisplayName() {
         return displayName;
+    }
+
+    public NativeServicesMode getNativeServicesMode() {
+        return nativeServicesMode;
     }
 
     public Action<? super WorkerProcessContext> getWorkerAction() {

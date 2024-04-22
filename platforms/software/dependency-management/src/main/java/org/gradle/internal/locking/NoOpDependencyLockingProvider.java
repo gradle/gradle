@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvi
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.internal.DisplayName;
 
 import java.util.Set;
 
@@ -39,12 +40,12 @@ public class NoOpDependencyLockingProvider implements DependencyLockingProvider 
     }
 
     @Override
-    public DependencyLockingState loadLockState(String configurationName) {
+    public DependencyLockingState loadLockState(String lockId, DisplayName lockOwner) {
         return DefaultDependencyLockingState.EMPTY_LOCK_CONSTRAINT;
     }
 
     @Override
-    public void persistResolvedDependencies(String configurationName, Set<ModuleComponentIdentifier> resolutionResult, Set<ModuleComponentIdentifier> changingResolvedModules) {
+    public void persistResolvedDependencies(String lockId, DisplayName lockOwner, Set<ModuleComponentIdentifier> resolutionResult, Set<ModuleComponentIdentifier> changingResolvedModules) {
         // No-op
     }
 
@@ -69,7 +70,7 @@ public class NoOpDependencyLockingProvider implements DependencyLockingProvider 
     }
 
     @Override
-    public void confirmConfigurationNotLocked(String configurationName) {
+    public void confirmNotLocked(String lockId) {
         // No-op
     }
 }

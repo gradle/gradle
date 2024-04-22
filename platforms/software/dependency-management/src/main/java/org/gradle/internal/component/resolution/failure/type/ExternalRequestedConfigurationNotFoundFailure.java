@@ -23,17 +23,11 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
  * a configuration is requested by name on an external dependency and does not exist on the target component.
  */
 public final class ExternalRequestedConfigurationNotFoundFailure extends RequestedConfigurationNotFoundFailure {
-    private final ComponentIdentifier fromComponent;
     private final String fromConfigurationName;
 
-    public ExternalRequestedConfigurationNotFoundFailure(String requestedName, ComponentIdentifier requestedComponent, ComponentIdentifier fromComponent, String fromConfigurationName) {
+    public ExternalRequestedConfigurationNotFoundFailure(String requestedName, ComponentIdentifier requestedComponent, String fromConfigurationName) {
         super(requestedName, requestedComponent);
-        this.fromComponent = fromComponent;
         this.fromConfigurationName = fromConfigurationName;
-    }
-
-    public ComponentIdentifier getFromComponent() {
-        return fromComponent;
     }
 
     public String getFromConfigurationName() {

@@ -28,7 +28,7 @@ import java.lang.annotation.Target;
  * <p>The listener infrastructure will ensure that a listener of this type will either receive all events, or no events.
  * Currently, this is done by disallowing the registration of a listener of this type once any events have been fired.
  *
- * @see Scopes
+ * @see Scope
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)

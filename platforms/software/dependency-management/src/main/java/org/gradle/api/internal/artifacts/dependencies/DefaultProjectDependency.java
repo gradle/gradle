@@ -27,7 +27,8 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
-import org.gradle.internal.component.ConfigurationNotConsumableException;
+import org.gradle.internal.component.resolution.failure.exception.ConfigurationSelectionException;
+import org.gradle.internal.component.resolution.failure.type.ConfigurationNotConsumableFailure;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.util.Path;
@@ -88,10 +89,32 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
         String declaredConfiguration = getTargetConfiguration();
         Configuration selectedConfiguration = dependencyConfigurations.getByName(GUtil.elvis(declaredConfiguration, Dependency.DEFAULT_CONFIGURATION));
         if (!selectedConfiguration.isCanBeConsumed()) {
-            throw new ConfigurationNotConsumableException(dependencyProject.getDisplayName(), selectedConfiguration.getName());
+            failDueToNonConsumableConfigurationSelection(selectedConfiguration);
         }
         ((DeprecatableConfiguration) selectedConfiguration).maybeEmitConsumptionDeprecation();
         return selectedConfiguration;
+    }
+
+    /**
+     * Fails the resolution of the project dependency because the selected configuration is not consumable by
+     * throwing the appropriate exception.
+     *
+     * This method is kind of ugly.  If we could get a hold of the ResolutionFailureHandler in this class, we could use the typical
+     * failure handling mechanism.  But we can't, so we have to throw the exception ourselves.  And as the describer
+     * for this failure is abstract, we need to create an anonymous instance of it ourselves here, since there are
+     * no instantiator types available here.
+     *
+     * NOTE: This should all be going away in Gradle 9, so it's okay to remain ugly for a little while.
+     *
+     * @param selectedConfiguration the non-consumable configuration that was selected
+     */
+    private void failDueToNonConsumableConfigurationSelection(Configuration selectedConfiguration) {
+        ConfigurationNotConsumableFailure failure = new ConfigurationNotConsumableFailure(selectedConfiguration.getName(), dependencyProject.getDisplayName());
+        String message = String.format(
+            "Selected configuration '" + failure.getRequestedName() + "' on '" + failure.getRequestedComponentDisplayName() +
+            "' but it can't be used as a project dependency because it isn't intended for consumption by other components."
+        );
+        throw new ConfigurationSelectionException(message, failure, Collections.emptyList());
     }
 
     @Override

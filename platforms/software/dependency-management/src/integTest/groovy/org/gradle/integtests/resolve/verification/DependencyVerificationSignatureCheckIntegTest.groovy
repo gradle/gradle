@@ -25,6 +25,7 @@ import org.gradle.security.fixtures.KeyServer
 import org.gradle.security.fixtures.SigningFixtures
 import org.gradle.security.fixtures.SimpleKeyRing
 import org.gradle.security.internal.Fingerprint
+import org.gradle.test.fixtures.server.http.MavenHttpModule
 import spock.lang.Issue
 
 import java.util.concurrent.TimeUnit
@@ -1932,6 +1933,43 @@ This can indicate that a dependency has been compromised. Please carefully verif
       - in repository 'maven': checksum is missing from verification metadata."""
     }
 
+    def "handles invalid signature properly"() {
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+            verifySignatures()
+            addTrustedKey("org:foo:1.0", validPublicKeyHexString)
+            addTrustedKey("org:foo:1.0", validPublicKeyHexString, "pom", "pom")
+        }
+
+        given:
+        javaLibrary()
+        def module = uncheckedModule("org", "foo", "1.0") {
+            withSignature { original ->
+                new File("${original}.asc") << "invalid signature"
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        serveValidKey()
+
+        then:
+        fails ":compileJava"
+        failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath'
+2 artifacts failed verification:
+  - foo-1.0.jar (org:foo:1.0) from repository maven
+  - foo-1.0.pom (org:foo:1.0) from repository maven
+This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
+
+        def artifactFile = getCachedArtifactLocation(module, 'jar.asc')
+        outputContains("Expected a signature list in ${artifactFile}, but got invalid file. Skipping this signature.")
+        assertConfigCacheDiscarded()
+    }
+
     private static void tamperWithFile(File file) {
         file.bytes = [0, 1, 2, 3] + file.readBytes().toList() as byte[]
     }
@@ -1946,5 +1984,11 @@ This can indicate that a dependency has been compromised. Please carefully verif
             def differentKeyring = newKeyRing()
             differentKeyring.writePublicKeyRingTo(target)
         }
+    }
+
+    private File getCachedArtifactLocation(MavenHttpModule module, String artifactType = 'jar', String classifier = null) {
+        def modulePath = new File(CacheLayout.FILE_STORE.getPath(metadataCacheDir), module.getPath())
+        def artifact = module.getArtifact([type: artifactType, classifier: classifier])
+        return new File(new File(modulePath, getChecksum(module, "sha1", artifactType)), artifact.file.name)
     }
 }

@@ -20,7 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.problems.internal.DefaultProblemReporter;
 import org.gradle.api.problems.internal.InternalProblemReporter;
 import org.gradle.api.problems.internal.InternalProblems;
-import org.gradle.api.problems.internal.ProblemReport;
+import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder;
 import org.gradle.internal.reflect.validation.DefaultTypeAwareProblemBuilder;
 import org.gradle.internal.reflect.validation.TypeAwareProblemBuilder;
@@ -71,5 +71,5 @@ abstract public class ProblemRecordingTypeValidationContext implements TypeValid
         recordProblem(problemBuilder.build());
     }
 
-    abstract protected void recordProblem(ProblemReport problem);
+    abstract protected void recordProblem(Problem problem);
 }

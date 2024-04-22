@@ -16,8 +16,11 @@
 
 package org.gradle.api.problems.internal;
 
+import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Severity;
+
+import javax.annotation.Nullable;
 
 public interface InternalProblemSpec extends ProblemSpec {
 
@@ -39,19 +42,21 @@ public interface InternalProblemSpec extends ProblemSpec {
      */
     InternalProblemSpec taskPathLocation(String buildTreePath);
 
-
     /**
      * Declares the documentation for this problem.
      *
      * @return this
      */
-    InternalProblemSpec documentedAt(DocLink doc);
+    InternalProblemSpec documentedAt(@Nullable DocLink doc);
 
     @Override
-    InternalProblemSpec label(String label);
+    InternalProblemSpec id(String name, String displayName);
 
     @Override
-    InternalProblemSpec category(String category, String... details);
+    InternalProblemSpec id(String name, String displayName, ProblemGroup parent);
+
+    @Override
+    InternalProblemSpec contextualLabel(String contextualLabel);
 
     @Override
     InternalProblemSpec documentedAt(String url);

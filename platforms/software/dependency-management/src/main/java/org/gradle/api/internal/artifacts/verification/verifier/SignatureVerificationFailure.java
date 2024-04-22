@@ -40,6 +40,7 @@ public class SignatureVerificationFailure extends AbstractVerificationFailure {
         this.signatureFile = signatureFile;
     }
 
+    @Override
     public File getSignatureFile() {
         return signatureFile;
     }

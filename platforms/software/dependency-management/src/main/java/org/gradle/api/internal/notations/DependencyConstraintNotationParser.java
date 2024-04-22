@@ -43,13 +43,13 @@ public class DependencyConstraintNotationParser {
     public static DependencyConstraintNotationParser parser(Instantiator instantiator, DefaultProjectDependencyFactory dependencyFactory, Interner<String> stringInterner, ImmutableAttributesFactory attributesFactory) {
         DependencyStringNotationConverter<DefaultDependencyConstraint> stringNotationConverter = new DependencyStringNotationConverter<>(instantiator, DefaultDependencyConstraint.class, stringInterner);
         MinimalExternalDependencyNotationConverter minimalExternalDependencyNotationConverter = new MinimalExternalDependencyNotationConverter(instantiator, attributesFactory);
-        ProjectDependencyNotationConverter projectDependencyNotationConverter = new ProjectDependencyNotationConverter();
+        ProjectDependencyNotationConverter projectDependencyNotationConverter = new ProjectDependencyNotationConverter(instantiator);
         NotationParser<Object, DependencyConstraint> notationParser = NotationParserBuilder
             .toType(DependencyConstraint.class)
             .fromType(MinimalExternalModuleDependency.class, minimalExternalDependencyNotationConverter)
             .fromCharSequence(stringNotationConverter)
             .converter(new DependencyMapNotationConverter<>(instantiator, DefaultDependencyConstraint.class))
-            .fromType(Project.class, new DependencyConstraintProjectNotationConverter(dependencyFactory))
+            .fromType(Project.class, new DependencyConstraintProjectNotationConverter(instantiator, dependencyFactory))
             .converter(projectDependencyNotationConverter)
             .invalidNotationMessage("Comprehensive documentation on dependency notations is available in DSL reference for DependencyHandler type.")
             .toComposite();
@@ -95,14 +95,16 @@ public class DependencyConstraintNotationParser {
     }
 
     private static class ProjectDependencyNotationConverter extends TypedNotationConverter<ProjectDependency, DependencyConstraint> {
+        private final Instantiator instantiator;
 
-        public ProjectDependencyNotationConverter() {
+        public ProjectDependencyNotationConverter(Instantiator instantiator) {
             super(ProjectDependency.class);
+            this.instantiator = instantiator;
         }
 
         @Override
         protected DependencyConstraint parseType(ProjectDependency notation) {
-            return new DefaultProjectDependencyConstraint(notation);
+            return instantiator.newInstance(DefaultProjectDependencyConstraint.class, notation);
         }
     }
 

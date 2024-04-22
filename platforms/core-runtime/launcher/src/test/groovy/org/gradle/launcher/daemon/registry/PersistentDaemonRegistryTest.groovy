@@ -16,13 +16,15 @@
 
 package org.gradle.launcher.daemon.registry
 
+import org.gradle.api.JavaVersion
 import org.gradle.internal.file.Chmod
-import org.gradle.internal.nativeintegration.ProcessEnvironment
+import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.remote.Address
 import org.gradle.internal.remote.internal.inet.InetEndpoint
 import org.gradle.internal.remote.internal.inet.MultiChoiceAddress
+import org.gradle.launcher.daemon.configuration.DaemonParameters
 import org.gradle.launcher.daemon.context.DaemonContext
-import org.gradle.launcher.daemon.context.DaemonContextBuilder
+import org.gradle.launcher.daemon.context.DefaultDaemonContext
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -30,6 +32,7 @@ import spock.lang.Specification
 
 import static org.gradle.cache.internal.DefaultFileLockManagerTestHelper.createDefaultFileLockManager
 import static org.gradle.cache.internal.DefaultFileLockManagerTestHelper.unlockUncleanly
+import static org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode
 import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Busy
 import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Idle
 
@@ -153,10 +156,7 @@ class PersistentDaemonRegistryTest extends Specification {
     }
 
     DaemonContext daemonContext() {
-        new DaemonContextBuilder([maybeGetPid: {null}] as ProcessEnvironment).with {
-            daemonRegistryDir = tmp.createDir("daemons")
-            create()
-        }
+        new DefaultDaemonContext(UUID.randomUUID().toString(), Jvm.current().javaHome, JavaVersion.current(), tmp.createDir("daemons"), 1L, 600, [], false, NativeServicesMode.ENABLED, DaemonParameters.Priority.NORMAL)
     }
 
     Address address(int i = addressCounter++) {

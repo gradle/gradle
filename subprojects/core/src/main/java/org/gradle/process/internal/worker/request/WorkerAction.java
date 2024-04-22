@@ -79,7 +79,7 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
             // Make the argument serializers available so work implementations can register their own serializers
             serviceRegistry.add(RequestArgumentSerializers.class, argumentSerializers);
             serviceRegistry.add(InstantiatorFactory.class, instantiatorFactory);
-            serviceRegistry.add(InternalProblems.class, new DefaultProblems(new WorkerProblemEmitter(responder)));
+            serviceRegistry.add(InternalProblems.class, new DefaultProblems(new WorkerProblemEmitter(responder), CurrentBuildOperationRef.instance()));
             Class<?> workerImplementation = Class.forName(workerImplementationName);
             implementation = Cast.uncheckedNonnullCast(instantiatorFactory.inject(serviceRegistry).newInstance(workerImplementation));
         } catch (Exception e) {
