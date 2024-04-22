@@ -25,6 +25,9 @@ import org.gradle.internal.properties.annotations.PropertyAnnotationHandler
 import org.gradle.internal.properties.annotations.PropertyMetadata
 
 
+/**
+ * Annotation handler for {@link NestedRestricted} annotations.
+ */
 class NestedRestrictedAnnotationHandler : AbstractPropertyAnnotationHandler(NestedRestricted::class.java, PropertyAnnotationHandler.Kind.OTHER, ImmutableSet.of()) {
     override fun isPropertyRelevant(): Boolean {
         return true

@@ -27,6 +27,13 @@ import org.gradle.internal.properties.annotations.TypeMetadataStore;
 
 import javax.annotation.Nullable;
 
+/**
+ * Walks the properties of a pair of objects, visiting each pair of properties with the provided {@link PropertyPairVisitor}.  The walker
+ * will visit all properties of the common type of the two objects, including nested properties annotated with {@link NestedRestricted}.
+ * Null properties will be visited, but the visitor will be passed null for the property value.  If either instance of a
+ * {@link NestedRestricted} property is null, the visitor will not be called for the nested properties of that property (even if one
+ * instance is non-null).
+ */
 public class DefaultPropertyPairWalker implements PropertyPairWalker {
     private final InstancePairTypeMetadataWalker walker;
 
@@ -64,9 +71,7 @@ public class DefaultPropertyPairWalker implements PropertyPairWalker {
                 if (Property.class.isAssignableFrom(type)) {
                     Property<?> left = Cast.uncheckedCast(propertyMetadata.getPropertyValue(parent.getLeft()));
                     Provider<?> right = Cast.uncheckedCast(propertyMetadata.getPropertyValue(parent.getRight()));
-                    if (left != null && right != null) {
-                        pairVisitor.visitPropertyTypePair(left, Cast.uncheckedCast(right));
-                    }
+                    pairVisitor.visitPropertyTypePair(left, Cast.uncheckedCast(right));
                 }
             }
         }

@@ -16,7 +16,12 @@
 
 package org.gradle.internal.properties.bean;
 
-
+/**
+ * Walks the properties of a pair of objects, visiting each pair of properties with the provided {@link PropertyPairVisitor}.
+ */
 public interface PropertyPairWalker {
+    /**
+     * Visits the properties of the given pair of objects.
+     */
     <T, L extends T, R extends T> void visitPropertyPairs(Class<T> commonType, L left, R right, PropertyPairVisitor visitor);
 }

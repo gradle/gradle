@@ -19,7 +19,7 @@ package org.gradle.internal.declarativedsl.settings
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec implements SoftwareTypeFixture {
-    def "can configure build-level conventions for a software type (#testCase)"() {
+    def "can configure build-level conventions for property objects in a software type (#testCase)"() {
         given:
         withSoftwareTypePlugins().prepareToExecute()
 

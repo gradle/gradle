@@ -25,6 +25,9 @@ import org.gradle.internal.properties.annotations.PropertyAnnotationHandler
 import org.gradle.internal.properties.annotations.PropertyMetadata
 
 
+/**
+ * Annotation handler for {@link Restricted} annotations.
+ */
 class RestrictedAnnotationHandler : AbstractPropertyAnnotationHandler(Restricted::class.java, PropertyAnnotationHandler.Kind.OTHER, ImmutableSet.of()) {
     override fun isPropertyRelevant(): Boolean {
         return true

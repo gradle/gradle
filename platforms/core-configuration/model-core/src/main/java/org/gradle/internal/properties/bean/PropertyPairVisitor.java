@@ -18,6 +18,14 @@ package org.gradle.internal.properties.bean;
 
 import org.gradle.api.provider.Property;
 
+import javax.annotation.Nullable;
+
+/**
+ * A visitor for pairs of properties in instances of a type.
+ */
 public interface PropertyPairVisitor {
-    <T> void visitPropertyTypePair(Property<T> left, Property<T> right);
+    /**
+     * Visits a pair of properties that are instances of {@link Property} objects.
+     */
+    <T> void visitPropertyTypePair(@Nullable Property<T> left, @Nullable Property<T> right);
 }

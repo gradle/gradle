@@ -45,6 +45,8 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 /**
  * A {@link PluginTarget} that inspects the plugin for {@link RegistersSoftwareTypes} annotations and registers the
  * specified software type plugins with the {@link SoftwareTypeRegistry} prior to applying the plugin via the delegate.
+ * For software types discovered in registered plugins, build-level convention objects are registered as extensions
+ * on the {@link Settings} target.
  */
 public class SoftwareTypeRegistrationPluginTarget implements PluginTarget {
     private final Settings target;

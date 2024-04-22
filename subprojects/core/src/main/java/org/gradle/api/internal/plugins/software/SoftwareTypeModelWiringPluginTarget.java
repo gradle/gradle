@@ -107,8 +107,8 @@ public class SoftwareTypeModelWiringPluginTarget implements PluginTarget {
         Object convention = target.getGradle().getSettings().getExtensions().getByName(softwareType.name());
         new DefaultPropertyPairWalker(inspectionScheme.getMetadataStore()).visitPropertyPairs(softwareType.modelPublicType(), Cast.uncheckedCast(model), Cast.uncheckedCast(convention), new PropertyPairVisitor() {
             @Override
-            public <T> void visitPropertyTypePair(Property<T> model, Property<T> convention) {
-                if (convention.isPresent()) {
+            public <T> void visitPropertyTypePair(@Nullable Property<T> model, @Nullable Property<T> convention) {
+                if (model != null && convention != null && convention.isPresent()) {
                     model.convention(convention);
                 }
             }

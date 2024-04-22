@@ -32,6 +32,11 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+/**
+ * A {@link TypeMetadataWalker} that walks a pair of instances.  These could be two instances of the same type or two instances of types with
+ * a common supertype.  The walker will visit each property of the instances, providing an {@link InstancePair} for each property, along with
+ * the {@link PropertyMetadata} for that property.
+ */
 public class InstancePairTypeMetadataWalker extends AbstractTypeMetadataWalker<InstancePairTypeMetadataWalker.InstancePair<?>, InstancePairTypeMetadataWalker.InstancePairMetadataVisitor> {
     private InstancePairTypeMetadataWalker(TypeMetadataStore typeMetadataStore, Class<? extends Annotation> nestedAnnotation, Supplier<Map<InstancePair<?>, String>> nestedNodeToQualifiedNameMapFactory) {
         super(typeMetadataStore, nestedAnnotation, nestedNodeToQualifiedNameMapFactory);
