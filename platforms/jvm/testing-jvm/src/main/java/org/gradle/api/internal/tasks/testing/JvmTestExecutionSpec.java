@@ -119,4 +119,8 @@ public class JvmTestExecutionSpec implements TestExecutionSpec {
     public boolean getTestIsModule() {
         return testIsModule;
     }
+
+    private static void anotherNewMethod() {
+        // for testing
+    }
 }
