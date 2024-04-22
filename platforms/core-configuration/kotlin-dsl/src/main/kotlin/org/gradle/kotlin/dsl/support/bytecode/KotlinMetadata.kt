@@ -52,6 +52,10 @@ import java.io.File
 
 
 internal
+val OUTPUT_METADATA_VERSION = JvmMetadataVersion(1, 7)
+
+
+internal
 fun publicKotlinClass(
     internalClassName: InternalName,
     header: Metadata,
@@ -79,7 +83,7 @@ fun beginFileFacadeClassHeader() = KmPackage()
 internal
 fun KmPackage.closeHeader(moduleName: String): Metadata {
     this.moduleName = moduleName
-    return KotlinClassMetadata.FileFacade(this, JvmMetadataVersion.LATEST_STABLE_SUPPORTED, 0)
+    return KotlinClassMetadata.FileFacade(this, OUTPUT_METADATA_VERSION, 0)
         .write()
 }
 
@@ -92,7 +96,7 @@ fun moduleMetadataBytesFor(fileFacades: List<InternalName>): ByteArray {
         fileFacades.map { it.value }.toMutableList(),
         emptyMap<String, String>().toMutableMap()
     )
-    return KotlinModuleMetadata(kmModule, JvmMetadataVersion.LATEST_STABLE_SUPPORTED).write()
+    return KotlinModuleMetadata(kmModule, OUTPUT_METADATA_VERSION).write()
 }
 
 
@@ -300,9 +304,9 @@ fun jvmGetterSignatureFor(pluginsExtension: ExtensionSpec): JvmMethodSignature =
 
 internal
 fun jvmGetterSignatureFor(propertyName: String, desc: String): JvmMethodSignature =
-    // Accessors honor the kotlin property jvm interop convention.
-    // The only difference with JavaBean 1.01 is to prefer `get` over `is` for boolean properties.
-    // The following code also complies with Section 8.8 of the spec, "Capitalization of inferred names.".
-    // Sun: "However to support the occasional use of all upper-case names,
+// Accessors honor the kotlin property jvm interop convention.
+// The only difference with JavaBean 1.01 is to prefer `get` over `is` for boolean properties.
+// The following code also complies with Section 8.8 of the spec, "Capitalization of inferred names.".
+// Sun: "However to support the occasional use of all upper-case names,
     //       we check if the first two characters of the name are both upper case and if so leave it alone."
     JvmMethodSignature("get${propertyName.uppercaseFirstChar()}", desc)
