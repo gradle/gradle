@@ -70,9 +70,9 @@ public class LayoutToPropertiesConverter {
         configureFromSystemPropertiesOfThisJvm(Cast.uncheckedNonnullCast(properties));
         properties.putAll(initialProperties.getRequestedSystemProperties());
 
-        Map<String, String> daemonJVMProperties = new HashMap<>();
-        configureFromDaemonJVMProperties(layout, daemonJVMProperties);
-        return new Result(properties, daemonJVMProperties, initialProperties);
+        Map<String, String> daemonJvmProperties = new HashMap<>();
+        configureFromDaemonJVMProperties(layout, daemonJvmProperties);
+        return new Result(properties, daemonJvmProperties, initialProperties);
     }
 
     private void configureFromSystemPropertiesOfThisJvm(Map<Object, Object> properties) {

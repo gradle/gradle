@@ -31,7 +31,6 @@ import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.TestFiles;
 import org.gradle.api.logging.configuration.ConsoleOutput;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.cli.CommandLineParser;
@@ -370,7 +369,6 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         // TODO: Reuse more of CommandlineActionFactory
         CommandLineParser parser = new CommandLineParser();
         FileCollectionFactory fileCollectionFactory = TestFiles.fileCollectionFactory();
-        ObjectFactory propertyFactory = GLOBAL_SERVICES.get(ObjectFactory.class);
         BuildEnvironmentConfigurationConverter buildEnvironmentConfigurationConverter = new BuildEnvironmentConfigurationConverter(new BuildLayoutFactory(), fileCollectionFactory);
         buildEnvironmentConfigurationConverter.configure(parser);
         Parameters parameters = buildEnvironmentConfigurationConverter.convertParameters(parser.parse(getAllArgs()), getWorkingDir());

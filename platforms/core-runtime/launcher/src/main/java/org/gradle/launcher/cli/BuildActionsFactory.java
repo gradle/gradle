@@ -46,7 +46,6 @@ import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.launcher.bootstrap.ExecutionListener;
-import org.gradle.launcher.configuration.AllProperties;
 import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonAction;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.DaemonClientFactory;
@@ -104,7 +103,6 @@ class BuildActionsFactory implements CommandLineActionCreator {
 
         StartParameterInternal startParameter = parameters.getStartParameter();
         DaemonParameters daemonParameters = parameters.getDaemonParameters();
-        AllProperties allProperties = parameters.getProperties();
 
         if (daemonParameters.isStop()) {
             return Actions.toAction(stopAllDaemons(daemonParameters));

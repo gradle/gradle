@@ -1754,7 +1754,6 @@ Class <org.gradle.internal.buildoption.Origin$CommandLineOrigin> is not annotate
 Class <org.gradle.internal.buildoption.Origin$GradlePropertyOrigin> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (Origin.java:0)
 Class <org.gradle.internal.buildoption.Origin> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (Origin.java:0)
 Class <org.gradle.internal.buildoption.PropertiesConverter> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (PropertiesConverter.java:0)
-Class <org.gradle.internal.buildoption.PropertyOrigin> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (PropertyOrigin.java:0)
 Class <org.gradle.internal.buildoption.StringBuildOption> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (StringBuildOption.java:0)
 Class <org.gradle.internal.buildoption.StringInternalOption> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (StringInternalOption.java:0)
 Class <org.gradle.internal.cache.MonitoredCleanupAction> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (MonitoredCleanupAction.java:0)
