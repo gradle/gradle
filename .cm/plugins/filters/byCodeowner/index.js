@@ -51,7 +51,7 @@ function resolveCodeowners(mapping, file) {
         );
     if (!match) {
         console.log("No codeowner found for: " + file);
-        match.owners = ['No owner'];
+        return ['No owner'];
     }
     return match.owners;
 }
@@ -60,11 +60,15 @@ module.exports = {
     async: true,
     filter: async (files, pr, token, pathToCodeOwners, callback) => {
         const fileData = await loadCodeownersFile(pr.author, pr.repo, token, pathToCodeOwners);
+        console.log("Finished loading codeowners file: " + fileData);
         const mapping = codeownersMapping(fileData);
+        console.log("Finished codeowners mapping: " + mapping);
 
         const result = new Map()
         files.map(f => {
+            console.log("Resolving owners for: " + f);
             const owners = resolveCodeowners(mapping, f);
+            console.log("Owners for: " + f + " are: " + owners);
             owners.filter(i => typeof i === 'string')
                 .map(u => u.replace(/^@gradle\//, ""))
                 .forEach(owner => {
