@@ -29,7 +29,7 @@ automations:
   platform_label_{{ platform.name }}:
     if:
       - {{ ('platform_labels' | isEnabledAutomation(pr)) }}
-      - {{ files | byPlatform | categorize(branch.diff.files_metadata) | readField(platform.name, 'files') | some }}
+      - {{ files | byPlatform | categorize(branch.diff.files_metadata) | readField(platform.name, 'files') | nullToEmpty | some }}
     run:
       - action: add-label@v1
         args:
