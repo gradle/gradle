@@ -43,6 +43,53 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
         "everything has convention and is set" | setAll("convention", "convention")   | setAll("test", "baz") | """id = test\nbar = baz"""
     }
 
+    def "can configure build-level conventions in a non-declarative settings file"() {
+        given:
+        withSoftwareTypePlugins().prepareToExecute()
+
+        file("settings.gradle.kts") << getDeclarativeSettingsScriptThatSetsConventions(setAll("convention", "convention"))
+
+        file("build.gradle.something") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(setId("test"))
+
+        when:
+        run(":printTestSoftwareTypeExtensionConfiguration")
+
+        then:
+        outputContains("""id = test\nbar = convention""")
+    }
+
+    def "can configure build-level conventions in a declarative settings file and apply in a non-declarative project file"() {
+        given:
+        withSoftwareTypePlugins().prepareToExecute()
+
+        file("settings.gradle.something") << getDeclarativeSettingsScriptThatSetsConventions(setAll("convention", "convention"))
+
+        file("build.gradle.kts") << """
+            plugins { id("com.example.test-software-type-impl") }
+        """ + getDeclarativeScriptThatConfiguresOnlyTestSoftwareType()
+
+        when:
+        run(":printTestSoftwareTypeExtensionConfiguration")
+
+        then:
+        outputContains("""id = convention\nbar = convention""")
+    }
+
+    def "can configure build-level conventions in a settings plugin"() {
+        given:
+        withSettingsPluginThatConfiguresSoftwareTypeConventions().prepareToExecute()
+
+        file("settings.gradle.kts") << getDeclarativeSettingsScriptThatSetsConventions()
+
+        file("build.gradle.something") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(setId("test"))
+
+        when:
+        run(":printTestSoftwareTypeExtensionConfiguration")
+
+        then:
+        outputContains("""id = test\nbar = plugin""")
+    }
+
     static String setId(String id) {
         return "id = \"${id}\""
     }

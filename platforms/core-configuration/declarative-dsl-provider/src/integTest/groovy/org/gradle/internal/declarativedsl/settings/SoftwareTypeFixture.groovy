@@ -132,6 +132,14 @@ trait SoftwareTypeFixture {
         )
     }
 
+    PluginBuilder withSettingsPluginThatConfiguresSoftwareTypeConventions() {
+        return withSoftwareTypePlugins(
+            softwareTypeExtension,
+            projectPluginThatProvidesSoftwareType,
+            settingsPluginThatConfiguresSoftwareTypeConventions
+        )
+    }
+
     static String getSoftwareTypeExtension() {
         return """
             package org.gradle.test;
@@ -593,6 +601,29 @@ trait SoftwareTypeFixture {
                         @Restricted
                         public abstract Property<String> getBar();
                     }
+                }
+            }
+        """
+    }
+
+    static String getSettingsPluginThatConfiguresSoftwareTypeConventions(List<String> softwareTypeImplPluginClassName = ["SoftwareTypeImplPlugin"]) {
+        return """
+            package org.gradle.test;
+
+            import org.gradle.api.DefaultTask;
+            import org.gradle.api.Plugin;
+            import org.gradle.api.initialization.Settings;
+            import org.gradle.api.internal.SettingsInternal;
+            import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
+            import ${RegistersSoftwareTypes.class.name};
+
+            @RegistersSoftwareTypes({ ${softwareTypeImplPluginClassName.collect { it + ".class" }.join(", ")} })
+            abstract public class SoftwareTypeRegistrationPlugin implements Plugin<Settings> {
+                @Override
+                public void apply(Settings target) {
+                    TestSoftwareTypeExtension convention = (TestSoftwareTypeExtension) target.getExtensions().getByName("testSoftwareType");
+                    convention.getId().convention("plugin");
+                    convention.getFoo().getBar().convention("plugin");
                 }
             }
         """
