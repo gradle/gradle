@@ -55,7 +55,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * <p>Currently, there is no simple, general way to know where in the above lifecycle a given piece of work will run.</p>
  */
 @ServiceScope(Scope.BuildTree.class)
-public class RootBuildCacheControllerRef {
+public class LifecycleAwareBuildCacheControllerFactory {
     private final RootBuildCacheController rootController = new RootBuildCacheController();
 
     public LifecycleAwareBuildCacheController createForRootBuild(Path identityPath, BuildCacheControllerFactory buildCacheControllerFactory, InstanceGenerator instanceGenerator) {

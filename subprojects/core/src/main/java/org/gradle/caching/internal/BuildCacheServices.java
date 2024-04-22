@@ -24,7 +24,7 @@ import org.gradle.caching.configuration.internal.BuildCacheServiceRegistration;
 import org.gradle.caching.configuration.internal.DefaultBuildCacheConfiguration;
 import org.gradle.caching.configuration.internal.DefaultBuildCacheServiceRegistration;
 import org.gradle.caching.internal.controller.impl.LifecycleAwareBuildCacheController;
-import org.gradle.caching.internal.controller.impl.RootBuildCacheControllerRef;
+import org.gradle.caching.internal.controller.impl.LifecycleAwareBuildCacheControllerFactory;
 import org.gradle.caching.internal.origin.OriginMetadataFactory;
 import org.gradle.caching.internal.packaging.BuildCacheEntryPacker;
 import org.gradle.caching.internal.packaging.impl.DefaultTarPackerFileSystemSupport;
@@ -77,8 +77,8 @@ public final class BuildCacheServices extends AbstractPluginServiceRegistry {
         registration.addProvider(new Object() {
             private static final String GRADLE_VERSION_KEY = "gradleVersion";
 
-            RootBuildCacheControllerRef createRootBuildCacheControllerRef() {
-                return new RootBuildCacheControllerRef();
+            LifecycleAwareBuildCacheControllerFactory createRootBuildCacheControllerRef() {
+                return new LifecycleAwareBuildCacheControllerFactory();
             }
 
             OriginMetadataFactory createOriginMetadataFactory(
@@ -131,7 +131,7 @@ public final class BuildCacheServices extends AbstractPluginServiceRegistry {
 
             LifecycleAwareBuildCacheController createBuildCacheController(
                 BuildState build,
-                RootBuildCacheControllerRef rootControllerRef,
+                LifecycleAwareBuildCacheControllerFactory rootControllerRef,
                 BuildCacheControllerFactory buildCacheControllerFactory,
                 InstantiatorFactory instantiatorFactory,
                 ServiceRegistry services

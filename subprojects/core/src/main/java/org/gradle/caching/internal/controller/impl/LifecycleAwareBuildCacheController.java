@@ -22,7 +22,7 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
- * This class is in this package, alongside {@link RootBuildCacheControllerRef}, to keep the complexity of the Gradle-specific {@link BuildCacheController} lifecycle in one place.
+ * This class is in this package, alongside {@link LifecycleAwareBuildCacheControllerFactory}, to keep the complexity of the Gradle-specific {@link BuildCacheController} lifecycle in one place.
  *
  * At some point we aim to better model services who need data from the Gradle model, and this complexity can go away.
  */
