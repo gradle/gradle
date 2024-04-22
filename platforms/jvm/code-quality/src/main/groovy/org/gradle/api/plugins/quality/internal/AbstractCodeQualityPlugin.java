@@ -233,4 +233,8 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
 
     @Inject
     protected abstract JvmPluginServices getJvmPluginServices();
+
+    public static void testInJvm() {
+
+    }
 }

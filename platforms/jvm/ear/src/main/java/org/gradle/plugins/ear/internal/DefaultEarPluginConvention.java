@@ -140,4 +140,8 @@ public abstract class DefaultEarPluginConvention extends org.gradle.plugins.ear.
             .withUpgradeGuideSection(8, "ear_convention_deprecation")
             .nagUser();
     }
+
+    public static void testInJvm() {
+
+    }
 }

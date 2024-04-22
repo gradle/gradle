@@ -134,4 +134,8 @@ public abstract class AbstractNamedDomainObjectContainer<T> extends DefaultNamed
             return Cast.uncheckedCast(doCreate(getName()));
         }
     }
+
+    public static void testNotInPlatform() {
+
+    }
 }
