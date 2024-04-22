@@ -40,7 +40,7 @@ class DefaultProblemDiagnosticsFactoryTest extends Specification {
         def diagnostics = stream.forCurrentCaller()
 
         then:
-        diagnostics.failure == null
+        diagnostics.failure != null
         assertIsCallerStackTrace(diagnostics.minifiedStackTrace)
         diagnostics.location == location
 
@@ -81,11 +81,11 @@ class DefaultProblemDiagnosticsFactoryTest extends Specification {
 
         expect:
         def diagnostics1 = stream.forCurrentCaller()
-        diagnostics1.failure == null
+        diagnostics1.failure != null
         !diagnostics1.minifiedStackTrace.empty
 
         def diagnostics2 = stream.forCurrentCaller()
-        diagnostics2.failure == null
+        diagnostics2.failure != null
         !diagnostics2.minifiedStackTrace.empty
 
         def diagnostics3 = stream.forCurrentCaller()
