@@ -27,10 +27,10 @@ dependencies {
     api(libs.futureKotlin("stdlib"))
     api(libs.inject)
     api(project(":model-core"))
+    api(projects.javaLanguageExtensions)
 
     testImplementation(libs.mockitoKotlin2)
 
-    implementation(projects.javaLanguageExtensions)
     implementation(project(":resources"))
 
     implementation(libs.guava)

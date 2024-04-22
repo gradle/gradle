@@ -23,11 +23,14 @@ import org.gradle.internal.properties.PropertyVisitor
 import org.gradle.internal.properties.annotations.AbstractPropertyAnnotationHandler
 import org.gradle.internal.properties.annotations.PropertyAnnotationHandler
 import org.gradle.internal.properties.annotations.PropertyMetadata
+import org.gradle.internal.service.scopes.Scope
+import org.gradle.internal.service.scopes.ServiceScope
 
 
 /**
  * Annotation handler for {@link NestedRestricted} annotations.
  */
+@ServiceScope(Scope.Global::class)
 class NestedRestrictedAnnotationHandler : AbstractPropertyAnnotationHandler(NestedRestricted::class.java, PropertyAnnotationHandler.Kind.OTHER, ImmutableSet.of()) {
     override fun isPropertyRelevant(): Boolean {
         return true
