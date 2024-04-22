@@ -61,9 +61,12 @@ fun pluginManagementEvaluationSchema(): EvaluationSchema =
 internal
 fun settingsEvaluationSchema(settings: Settings): EvaluationSchema {
     val schemaBuildingComponent = gradleDslGeneralSchemaComponent() +
-        ThirdPartyExtensionsComponent(Settings::class, settings, "settingsExtension")
+        /** TODO: Instead of [SettingsInternal], this should rely on the public API of [Settings];
+         *  missing single-arg [Settings.include] (or missing vararg support) prevents this from happening,
+         *  and we use the [SettingsInternal.include] single-argument workaround for now. */
+        ThirdPartyExtensionsComponent(SettingsInternal::class, settings, "settingsExtension")
 
-    return buildEvaluationSchema(Settings::class, schemaBuildingComponent, ignoreTopLevelPluginsAndPluginManagement)
+    return buildEvaluationSchema(SettingsInternal::class, schemaBuildingComponent, ignoreTopLevelPluginsAndPluginManagement)
 }
 
 
