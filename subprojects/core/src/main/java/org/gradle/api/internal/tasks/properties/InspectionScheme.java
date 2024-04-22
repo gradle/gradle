@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.properties;
 
 import org.gradle.internal.properties.annotations.TypeMetadataStore;
+import org.gradle.internal.properties.bean.PropertyPairWalker;
 import org.gradle.internal.properties.bean.PropertyWalker;
 
 /**
@@ -26,6 +27,8 @@ import org.gradle.internal.properties.bean.PropertyWalker;
  */
 public interface InspectionScheme {
     PropertyWalker getPropertyWalker();
+
+    PropertyPairWalker getPropertyPairWalker();
 
     TypeMetadataStore getMetadataStore();
 }

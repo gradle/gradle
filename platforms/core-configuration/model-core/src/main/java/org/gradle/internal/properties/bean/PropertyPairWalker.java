@@ -18,6 +18,8 @@ package org.gradle.internal.properties.bean;
 
 /**
  * Walks the properties of a pair of objects, visiting each pair of properties with the provided {@link PropertyPairVisitor}.
+ * This is useful when comparing the contents of two objects in some way or creating relationships between the properties
+ * of the two objects.
  */
 public interface PropertyPairWalker {
     /**

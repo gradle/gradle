@@ -26,7 +26,9 @@ import org.gradle.internal.properties.annotations.PropertyAnnotationHandler;
 import org.gradle.internal.properties.annotations.MissingPropertyAnnotationHandler;
 import org.gradle.internal.properties.annotations.TypeAnnotationHandler;
 import org.gradle.internal.properties.annotations.TypeMetadataStore;
+import org.gradle.internal.properties.bean.DefaultPropertyPairWalker;
 import org.gradle.internal.properties.bean.DefaultPropertyWalker;
+import org.gradle.internal.properties.bean.PropertyPairWalker;
 import org.gradle.internal.properties.bean.PropertyWalker;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadataStore;
 import org.gradle.internal.service.scopes.Scope;
@@ -92,12 +94,14 @@ public class InspectionSchemeFactory {
 
     private static class InspectionSchemeImpl implements InspectionScheme {
         private final DefaultPropertyWalker propertyWalker;
+        private final DefaultPropertyPairWalker propertyPairWalker;
         private final DefaultTypeMetadataStore metadataStore;
 
         public InspectionSchemeImpl(List<TypeAnnotationHandler> typeHandlers, List<PropertyAnnotationHandler> propertyHandlers, Collection<Class<? extends Annotation>> propertyModifiers, TypeAnnotationMetadataStore typeAnnotationMetadataStore, CrossBuildInMemoryCacheFactory cacheFactory, MissingPropertyAnnotationHandler missingAnnotationProblemHandler) {
             DefaultPropertyTypeResolver propertyTypeResolver = new DefaultPropertyTypeResolver();
-            metadataStore = new DefaultTypeMetadataStore(typeHandlers, propertyHandlers, propertyModifiers, typeAnnotationMetadataStore, propertyTypeResolver, cacheFactory, missingAnnotationProblemHandler);
-            propertyWalker = new DefaultPropertyWalker(metadataStore, new ScriptSourceAwareImplementationResolver(), propertyHandlers);
+            this.metadataStore = new DefaultTypeMetadataStore(typeHandlers, propertyHandlers, propertyModifiers, typeAnnotationMetadataStore, propertyTypeResolver, cacheFactory, missingAnnotationProblemHandler);
+            this.propertyWalker = new DefaultPropertyWalker(metadataStore, new ScriptSourceAwareImplementationResolver(), propertyHandlers);
+            this.propertyPairWalker = new DefaultPropertyPairWalker(metadataStore);
         }
 
         @Override
@@ -108,6 +112,11 @@ public class InspectionSchemeFactory {
         @Override
         public PropertyWalker getPropertyWalker() {
             return propertyWalker;
+        }
+
+        @Override
+        public PropertyPairWalker getPropertyPairWalker() {
+            return propertyPairWalker;
         }
     }
 }

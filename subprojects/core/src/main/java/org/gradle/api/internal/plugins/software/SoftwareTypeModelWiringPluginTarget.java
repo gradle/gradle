@@ -31,7 +31,6 @@ import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.properties.annotations.TypeMetadataStore;
-import org.gradle.internal.properties.bean.DefaultPropertyPairWalker;
 import org.gradle.internal.properties.bean.PropertyPairVisitor;
 import org.gradle.internal.reflect.DefaultTypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
@@ -105,7 +104,7 @@ public class SoftwareTypeModelWiringPluginTarget implements PluginTarget {
 
     private void applyBuildLevelConventions(ProjectInternal target, SoftwareType softwareType, Object model) {
         Object convention = target.getGradle().getSettings().getExtensions().getByName(softwareType.name());
-        new DefaultPropertyPairWalker(inspectionScheme.getMetadataStore()).visitPropertyPairs(softwareType.modelPublicType(), Cast.uncheckedCast(model), Cast.uncheckedCast(convention), new PropertyPairVisitor() {
+        inspectionScheme.getPropertyPairWalker().visitPropertyPairs(softwareType.modelPublicType(), Cast.uncheckedCast(model), Cast.uncheckedCast(convention), new PropertyPairVisitor() {
             @Override
             public <T> void visitPropertyTypePair(@Nullable Property<T> model, @Nullable Property<T> convention) {
                 if (model != null && convention != null && convention.isPresent()) {
