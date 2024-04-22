@@ -70,6 +70,8 @@ class AbstractCrossVersionPerformanceTest extends AbstractPerformanceTest {
         runner.addBuildMutator { invocationSettings ->
             new ApplyDevelocityPluginMutator(invocationSettings.projectDir)
         }
+        // Required by GradleLifecycle API used by Develocity
+        runner.gradleOpts += ["--add-opens=java.base/java.lang.invoke=ALL-UNNAMED"]
     }
 
     static {

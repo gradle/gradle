@@ -32,7 +32,7 @@ public class BuildPropertiesConfigurator implements ProjectConfigureAction {
                 task.setGroup("Build Setup");
                 task.setDescription("Generates or updates the Gradle Daemon JVM criteria.");
                 task.getPropertiesFile().convention(project.getLayout().getProjectDirectory().file(BuildPropertiesDefaults.BUILD_PROPERTIES_FILE));
-                task.getToolchainVersion().convention(BuildPropertiesDefaults.TOOLCHAIN_VERSION);
+                task.getJvmVersion().convention(BuildPropertiesDefaults.TOOLCHAIN_VERSION);
             });
         }
     }

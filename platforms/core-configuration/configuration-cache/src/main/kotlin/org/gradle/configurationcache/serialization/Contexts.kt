@@ -40,13 +40,11 @@ import org.gradle.internal.serialize.Encoder
 
 internal
 class DefaultWriteContext(
+
     codec: Codec<Any?>,
 
     private
     val encoder: Encoder,
-
-    private
-    val scopeLookup: ScopeLookup,
 
     private
     val beanStateWriterLookup: BeanStateWriterLookup,
@@ -55,19 +53,16 @@ class DefaultWriteContext(
 
     override val tracer: Tracer?,
 
-    problemsListener: ProblemsListener
+    problemsListener: ProblemsListener,
+
+    private
+    val classEncoder: ClassEncoder
 
 ) : AbstractIsolateContext<WriteIsolate>(codec, problemsListener), WriteContext, Encoder by encoder, AutoCloseable {
 
     override val sharedIdentities = WriteIdentities()
 
     override val circularReferences = CircularReferences()
-
-    private
-    val classes = WriteIdentities()
-
-    private
-    val scopes = WriteIdentities()
 
     /**
      * Closes the given [encoder] if it is [AutoCloseable].
@@ -89,60 +84,8 @@ class DefaultWriteContext(
     }
 
     override fun writeClass(type: Class<*>) {
-        val id = classes.getId(type)
-        if (id != null) {
-            writeSmallInt(id)
-        } else {
-            val scope = scopeLookup.scopeFor(type.classLoader)
-            val newId = classes.putInstance(type)
-            writeSmallInt(newId)
-            writeString(type.name)
-            if (scope == null) {
-                writeBoolean(false)
-            } else {
-                writeBoolean(true)
-                writeScope(scope.first)
-                writeBoolean(scope.second.local)
-            }
-        }
-    }
-
-    private
-    fun writeScope(scope: ClassLoaderScopeSpec) {
-        val id = scopes.getId(scope)
-        if (id != null) {
-            writeSmallInt(id)
-        } else {
-            val newId = scopes.putInstance(scope)
-            writeSmallInt(newId)
-            if (scope.parent == null) {
-                writeBoolean(false)
-            } else {
-                writeBoolean(true)
-                writeScope(scope.parent)
-            }
-            writeString(scope.name)
-            if (scope.origin is ClassLoaderScopeOrigin.Script) {
-                writeBoolean(true)
-                writeString(scope.origin.fileName)
-                writeString(scope.origin.longDisplayName.displayName)
-                writeString(scope.origin.shortDisplayName.displayName)
-            } else {
-                writeBoolean(false)
-            }
-            writeClassPath(scope.localClassPath)
-            writeHashCode(scope.localImplementationHash)
-            writeClassPath(scope.exportClassPath)
-        }
-    }
-
-    private
-    fun writeHashCode(hashCode: HashCode?) {
-        if (hashCode == null) {
-            writeBoolean(false)
-        } else {
-            writeBoolean(true)
-            writeBinary(hashCode.toByteArray())
+        classEncoder.run {
+            encodeClass(type)
         }
     }
 
@@ -206,6 +149,163 @@ interface ScopeLookup {
 
 
 internal
+interface ClassEncoder {
+    fun WriteContext.encodeClass(type: Class<*>)
+}
+
+
+internal
+interface ClassDecoder {
+    fun ReadContext.decodeClass(): Class<*>
+}
+
+
+internal
+class DefaultClassEncoder(
+    private val scopeLookup: ScopeLookup
+) : ClassEncoder {
+
+    private
+    val classes = WriteIdentities()
+
+    private
+    val scopes = WriteIdentities()
+
+    override fun WriteContext.encodeClass(type: Class<*>) {
+        val id = classes.getId(type)
+        if (id != null) {
+            writeSmallInt(id)
+        } else {
+            val scope = scopeLookup.scopeFor(type.classLoader)
+            val newId = classes.putInstance(type)
+            writeSmallInt(newId)
+            writeString(type.name)
+            if (scope == null) {
+                writeBoolean(false)
+            } else {
+                writeBoolean(true)
+                writeScope(scope.first)
+                writeBoolean(scope.second.local)
+            }
+        }
+    }
+
+    private
+    fun WriteContext.writeScope(scope: ClassLoaderScopeSpec) {
+        val id = scopes.getId(scope)
+        if (id != null) {
+            writeSmallInt(id)
+        } else {
+            val newId = scopes.putInstance(scope)
+            writeSmallInt(newId)
+            if (scope.parent == null) {
+                writeBoolean(false)
+            } else {
+                writeBoolean(true)
+                writeScope(scope.parent)
+            }
+            writeString(scope.name)
+            if (scope.origin is ClassLoaderScopeOrigin.Script) {
+                writeBoolean(true)
+                writeString(scope.origin.fileName)
+                writeString(scope.origin.longDisplayName.displayName)
+                writeString(scope.origin.shortDisplayName.displayName)
+            } else {
+                writeBoolean(false)
+            }
+            writeClassPath(scope.localClassPath)
+            writeHashCode(scope.localImplementationHash)
+            writeClassPath(scope.exportClassPath)
+        }
+    }
+
+    private
+    fun WriteContext.writeHashCode(hashCode: HashCode?) {
+        if (hashCode == null) {
+            writeBoolean(false)
+        } else {
+            writeBoolean(true)
+            writeBinary(hashCode.toByteArray())
+        }
+    }
+}
+
+
+internal
+class DefaultClassDecoder : ClassDecoder {
+
+    private
+    val classes = ReadIdentities()
+
+    private
+    val scopes = ReadIdentities()
+
+    override fun ReadContext.decodeClass(): Class<*> {
+        val id = readSmallInt()
+        val type = classes.getInstance(id)
+        if (type != null) {
+            return type as Class<*>
+        }
+        val name = readString()
+        val classLoader = if (readBoolean()) {
+            val scope = readScope()
+            if (readBoolean()) {
+                scope.localClassLoader
+            } else {
+                scope.exportClassLoader
+            }
+        } else {
+            this.classLoader
+        }
+        val newType = Class.forName(name, false, classLoader)
+        classes.putInstance(id, newType)
+        return newType
+    }
+
+    private
+    fun ReadContext.readScope(): ClassLoaderScope {
+        val id = readSmallInt()
+        val scope = scopes.getInstance(id)
+        if (scope != null) {
+            return scope as ClassLoaderScope
+        }
+
+        val parent = if (readBoolean()) {
+            readScope()
+        } else {
+            ownerService<ClassLoaderScopeRegistry>().coreAndPluginsScope
+        }
+
+        val name = readString()
+        val origin = if (readBoolean()) {
+            ClassLoaderScopeOrigin.Script(readString(), Describables.of(readString()), Describables.of(readString()))
+        } else {
+            null
+        }
+        val localClassPath = readClassPath()
+        val localImplementationHash = readHashCode()
+        val exportClassPath = readClassPath()
+
+        val newScope = if (localImplementationHash != null && exportClassPath.isEmpty) {
+            parent.createLockedChild(name, origin, localClassPath, localImplementationHash, null)
+        } else {
+            parent.createChild(name, origin).local(localClassPath).export(exportClassPath).lock()
+        }
+
+        scopes.putInstance(id, newScope)
+        return newScope
+    }
+
+    private
+    fun ReadContext.readHashCode() = if (readBoolean()) {
+        HashCode.fromBytes(readBinary())
+    } else {
+        null
+    }
+}
+
+
+internal
 class DefaultReadContext(
     codec: Codec<Any?>,
 
@@ -217,17 +317,14 @@ class DefaultReadContext(
 
     override val logger: Logger,
 
-    problemsListener: ProblemsListener
+    problemsListener: ProblemsListener,
+
+    private
+    val classDecoder: ClassDecoder = DefaultClassDecoder()
 
 ) : AbstractIsolateContext<ReadIsolate>(codec, problemsListener), ReadContext, Decoder by decoder, AutoCloseable {
 
     override val sharedIdentities = ReadIdentities()
-
-    private
-    val classes = ReadIdentities()
-
-    private
-    val scopes = ReadIdentities()
 
     private
     lateinit var projectProvider: ProjectProvider
@@ -269,74 +366,16 @@ class DefaultReadContext(
         decode()
     }
 
+    override fun readClass(): Class<*> = classDecoder.run {
+        decodeClass()
+    }
+
     override val isolate: ReadIsolate
         get() = getIsolate()
 
     override fun beanStateReaderFor(beanType: Class<*>): BeanStateReader =
         beanStateReaderLookup.beanStateReaderFor(beanType)
 
-    override fun readClass(): Class<*> {
-        val id = readSmallInt()
-        val type = classes.getInstance(id)
-        if (type != null) {
-            return type as Class<*>
-        }
-        val name = readString()
-        val classLoader = if (readBoolean()) {
-            val scope = readScope()
-            if (readBoolean()) {
-                scope.localClassLoader
-            } else {
-                scope.exportClassLoader
-            }
-        } else {
-            this.classLoader
-        }
-        val newType = Class.forName(name, false, classLoader)
-        classes.putInstance(id, newType)
-        return newType
-    }
-
-    private
-    fun readScope(): ClassLoaderScope {
-        val id = readSmallInt()
-        val scope = scopes.getInstance(id)
-        if (scope != null) {
-            return scope as ClassLoaderScope
-        }
-
-        val parent = if (readBoolean()) {
-            readScope()
-        } else {
-            ownerService<ClassLoaderScopeRegistry>().coreAndPluginsScope
-        }
-
-        val name = readString()
-        val origin = if (readBoolean()) {
-            ClassLoaderScopeOrigin.Script(readString(), Describables.of(readString()), Describables.of(readString()))
-        } else {
-            null
-        }
-        val localClassPath = readClassPath()
-        val localImplementationHash = readHashCode()
-        val exportClassPath = readClassPath()
-
-        val newScope = if (localImplementationHash != null && exportClassPath.isEmpty) {
-            parent.createLockedChild(name, origin, localClassPath, localImplementationHash, null)
-        } else {
-            parent.createChild(name, origin).local(localClassPath).export(exportClassPath).lock()
-        }
-
-        scopes.putInstance(id, newScope)
-        return newScope
-    }
-
-    private
-    fun readHashCode() = if (readBoolean()) {
-        HashCode.fromBytes(readBinary())
-    } else {
-        null
-    }
 
     override fun getProject(path: String): ProjectInternal =
         projectProvider(path)

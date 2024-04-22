@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.isolated
+package org.gradle.api.invocation
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 import static org.gradle.integtests.fixtures.KotlinDslTestUtil.getKotlinDslBuildSrcConfig
 
-class IsolatedActionIntegrationTest extends AbstractIntegrationSpec {
+class GradleLifecycleIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         settingsFile '''
@@ -42,7 +42,7 @@ class IsolatedActionIntegrationTest extends AbstractIntegrationSpec {
         true
     }
 
-    def 'isolated action given as Kotlin lambda can capture managed value'() {
+    def 'isolated beforeProject action given as Kotlin lambda can capture managed value'() {
         given:
         createDir('build-logic') {
             file('settings.gradle.kts') << ''
@@ -68,10 +68,11 @@ class IsolatedActionIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 // Expose dsl to the user, the value will be isolated only after settings has been fully evaluated
-                val dsl = extensions.create<my.SettingsPluginDsl>("dsl")
-                gradle.lifecycle.beforeProject {
-                    tasks.register<CustomTask>("test") {
-                        taskParameter = dsl.parameter
+                extensions.create<my.SettingsPluginDsl>("dsl").let { dsl ->
+                    gradle.lifecycle.beforeProject {
+                        tasks.register<CustomTask>("test") {
+                            taskParameter = dsl.parameter
+                        }
                     }
                 }
             '''
@@ -81,7 +82,7 @@ class IsolatedActionIntegrationTest extends AbstractIntegrationSpec {
         configuredTaskRunsCorrectly()
     }
 
-    def 'isolated action given as Java lambda can capture managed value'() {
+    def 'isolated beforeProject action given as Java lambda can capture managed value'() {
         given:
         createDir('build-logic') {
             groovyFile file('build.gradle'), '''
