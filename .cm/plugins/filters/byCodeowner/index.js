@@ -41,7 +41,7 @@ function codeownersMapping(data) {
 }
 
 function resolveCodeowners(mapping, file) {
-    const match = mapping
+    let match = mapping
         .slice()
         .reverse()
         .find(x =>
@@ -49,7 +49,10 @@ function resolveCodeowners(mapping, file) {
                 .add(x.path)
                 .ignores(file)
         );
-    if (!match) throw new Error("No codeowner found for ${file}");
+    if (!match) {
+        console.log("No codeowner found for: " + file);
+        match.owners = ['No owner'];
+    }
     return match.owners;
 }
 
