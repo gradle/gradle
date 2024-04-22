@@ -25,7 +25,7 @@ function byPlatform(files) {
 function getPlatform(file) {
     let result = null; // Default to null in case no platform is found
 
-    if (file.startsWith('/platforms/')) {
+    if (file.startsWith('platforms/')) {
         const parts = file.split('/');
         result = parts[2];
     }
