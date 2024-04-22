@@ -153,9 +153,6 @@ trait SoftwareTypeFixture {
                 @Inject
                 public TestSoftwareTypeExtension(ObjectFactory objects) {
                     this.foo = objects.newInstance(Foo.class);
-                    this.foo.getBar().convention("bar");
-
-                    getId().convention("<no id>");
                 }
 
                 @Restricted
@@ -172,9 +169,7 @@ trait SoftwareTypeFixture {
                 }
 
                 public abstract static class Foo {
-                    public Foo() {
-                        this.getBar().convention("nothing");
-                    }
+                    public Foo() { }
 
                     @Restricted
                     public abstract Property<String> getBar();
@@ -207,9 +202,7 @@ trait SoftwareTypeFixture {
                 }
 
                 public abstract static class Foo {
-                    public Foo() {
-                        this.getBar().convention("nothing");
-                    }
+                    public Foo() { }
 
                     @Restricted
                     public abstract Property<String> getBar();
@@ -237,9 +230,6 @@ trait SoftwareTypeFixture {
                 @Inject
                 public TestSoftwareTypeExtensionImpl(ObjectFactory objects) {
                     this.foo = objects.newInstance(Foo.class);
-                    this.foo.getBar().set("bar");
-
-                    getId().convention("<no id>");
                 }
 
                 @Override
@@ -301,6 +291,8 @@ trait SoftwareTypeFixture {
                 public void apply(Project target) {
                     System.out.println("Applying " + getClass().getSimpleName());
                     ${implementationTypeClassName} extension = getTestSoftwareTypeExtension();
+                    extension.getId().convention("<no id>");
+                    extension.getFoo().getBar().convention("bar");
                     target.getTasks().register("print${implementationTypeClassName}Configuration", DefaultTask.class, task -> {
                         task.doLast("print restricted extension content", t -> {
                             System.out.println("id = " + extension.getId().get());
@@ -369,9 +361,6 @@ trait SoftwareTypeFixture {
                 @Inject
                 public AnotherSoftwareTypeExtension(ObjectFactory objects) {
                     this.foo = objects.newInstance(Foo.class);
-                    this.foo.getBar().set("bar");
-
-                    getId().convention("<no id>");
                 }
 
                 @Restricted
@@ -388,9 +377,7 @@ trait SoftwareTypeFixture {
                 }
 
                 public abstract static class Foo {
-                    public Foo() {
-                        this.getBar().convention("nothing");
-                    }
+                    public Foo() { }
 
                     @Restricted
                     public abstract Property<String> getBar();
@@ -419,6 +406,8 @@ trait SoftwareTypeFixture {
                 @Override
                 public void apply(Project target) {
                     ${implementationTypeClassName} extension = getTestSoftwareTypeExtension();
+                    extension.getFoo().getBar().convention("bar");
+                    extension.getId().convention("<no id>");
                     target.getTasks().register("print${implementationTypeClassName}Configuration", DefaultTask.class, task -> {
                         task.doLast("print restricted extension content", t -> {
                             System.out.println("id = " + extension.getId().get());
@@ -514,6 +503,8 @@ trait SoftwareTypeFixture {
                 public void apply(Project target) {
                     System.out.println("Applying " + getClass().getSimpleName());
                     TestSoftwareTypeExtension extension = getTestSoftwareTypeExtension();
+                    extension.getId().convention("<no id>");
+                    extension.getFoo().getBar().convention("bar");
                     target.getTasks().register("printTestSoftwareTypeExtensionConfiguration", DefaultTask.class, task -> {
                         task.doLast("print restricted extension content", t -> {
                             System.out.println("id = " + extension.getId().get());
@@ -521,6 +512,8 @@ trait SoftwareTypeFixture {
                         });
                     });
                     AnotherSoftwareTypeExtension another = getAnotherSoftwareTypeExtension();
+                    another.getId().convention("<no id>");
+                    another.getFoo().getBar().convention("bar");
                     target.getTasks().register("printAnotherSoftwareTypeExtensionConfiguration", DefaultTask.class, task -> {
                         task.doLast("print restricted extension content", t -> {
                             System.out.println("id = " + another.getId().get());
@@ -595,9 +588,7 @@ trait SoftwareTypeFixture {
                     }
 
                     public static abstract class Foo {
-                        public Foo() {
-                            this.getBar().convention("nothing");
-                        }
+                        public Foo() { }
 
                         @Restricted
                         public abstract Property<String> getBar();

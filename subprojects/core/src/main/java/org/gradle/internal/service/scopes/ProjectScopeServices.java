@@ -41,7 +41,7 @@ import org.gradle.api.internal.initialization.BuildLogicBuilder;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
-import org.gradle.api.internal.plugins.software.AddSoftwareTypesAsExtensionsPluginTarget;
+import org.gradle.api.internal.plugins.software.SoftwareTypeModelWiringPluginTarget;
 import org.gradle.api.internal.plugins.DefaultPluginManager;
 import org.gradle.api.internal.plugins.ImperativeOnlyPluginTarget;
 import org.gradle.api.internal.plugins.PluginInstantiator;
@@ -201,7 +201,7 @@ public class ProjectScopeServices extends ScopedServiceRegistry {
             get(ModelRuleExtractor.class),
             get(ModelRuleSourceDetector.class)
         );
-        PluginTarget pluginTarget = new AddSoftwareTypesAsExtensionsPluginTarget(
+        PluginTarget pluginTarget = new SoftwareTypeModelWiringPluginTarget(
             project,
             ruleBasedTarget,
             pluginScheme.getInspectionScheme(),

@@ -17,7 +17,7 @@
 package org.gradle.api.internal.plugins
 
 import org.gradle.api.Plugin
-import org.gradle.api.internal.plugins.software.AddSoftwareTypesAsExtensionsPluginTarget
+import org.gradle.api.internal.plugins.software.SoftwareTypeModelWiringPluginTarget
 import org.gradle.api.internal.plugins.software.SoftwareType
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.properties.InspectionScheme
@@ -26,12 +26,12 @@ import org.gradle.internal.properties.bean.PropertyWalker
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 import spock.lang.Specification
 
-class AddSoftwareTypesAsExtensionsPluginTargetTest extends Specification {
+class SoftwareTypeModelWiringPluginTargetTest extends Specification {
     def target = Mock(ProjectInternal)
     def delegate = Mock(PluginTarget)
     def inspectionScheme = Mock(InspectionScheme)
     def softwareTypeRegistry = Mock(SoftwareTypeRegistry)
-    def pluginTarget = new AddSoftwareTypesAsExtensionsPluginTarget(target, delegate, inspectionScheme, softwareTypeRegistry)
+    def pluginTarget = new SoftwareTypeModelWiringPluginTarget(target, delegate, inspectionScheme, softwareTypeRegistry)
 
     def "adds software types as extensions when software type plugin is applied"() {
         def plugin = Mock(Plugin)
