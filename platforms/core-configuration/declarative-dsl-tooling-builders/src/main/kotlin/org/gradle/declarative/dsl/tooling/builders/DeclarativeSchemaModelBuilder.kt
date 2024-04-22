@@ -29,7 +29,7 @@ class DeclarativeSchemaModelBuilder(private val registry: DeclarativeSchemaRegis
         modelName == "org.gradle.declarative.dsl.tooling.models.DeclarativeSchemaModel"
 
     override fun buildAll(modelName: String, project: Project): Any =
-        DefaultDeclarativeSchemaModel(registry.projectSchema())
+        DefaultDeclarativeSchemaModel(registry.projectAnalysisSchema())
 }
 
 

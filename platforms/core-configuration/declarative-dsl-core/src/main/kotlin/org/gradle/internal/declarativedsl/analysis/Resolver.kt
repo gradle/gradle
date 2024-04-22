@@ -11,7 +11,7 @@ interface Resolver {
 }
 
 
-class ResolverImpl(
+class DefaultResolver(
     private val codeAnalyzer: CodeAnalyzer,
     private val errorCollector: ErrorCollector
 ) : Resolver {

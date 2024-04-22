@@ -16,8 +16,10 @@
 
 package org.gradle.declarative.dsl.tooling.builders.internal
 
+import org.gradle.declarative.dsl.tooling.builders.DeclarativeFileErrorsModelBuilder
 import org.gradle.declarative.dsl.tooling.builders.DeclarativeSchemaModelBuilder
 import org.gradle.internal.declarativedsl.evaluator.DeclarativeSchemaRegistry
+import org.gradle.internal.resource.TextFileResourceLoader
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry
 import org.gradle.tooling.provider.model.internal.BuildScopeToolingModelBuilderRegistryAction
@@ -35,9 +37,13 @@ internal
 object BuildScopeToolingServices {
 
     @Suppress("unused")
-    fun createIdeBuildScopeToolingModelBuilderRegistryAction(declarativeSchemaRegistry: DeclarativeSchemaRegistry): BuildScopeToolingModelBuilderRegistryAction {
+    fun createIdeBuildScopeToolingModelBuilderRegistryAction(
+        textFileResourceLoader: TextFileResourceLoader,
+        declarativeSchemaRegistry: DeclarativeSchemaRegistry
+    ): BuildScopeToolingModelBuilderRegistryAction {
         return BuildScopeToolingModelBuilderRegistryAction {
             it.register(DeclarativeSchemaModelBuilder(declarativeSchemaRegistry))
+            it.register(DeclarativeFileErrorsModelBuilder(textFileResourceLoader, declarativeSchemaRegistry))
         }
     }
 }

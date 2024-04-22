@@ -17,14 +17,19 @@
 package org.gradle.internal.declarativedsl.evaluator
 
 import org.gradle.api.Project
+import org.gradle.api.initialization.Settings
 import org.gradle.declarative.dsl.schema.AnalysisSchema
+import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchema
+import java.io.File
 
 
 interface DeclarativeSchemaRegistry {
 
-    fun storeSchema(target: Any, identifier: String, schema: AnalysisSchema)
+    fun storeSchema(target: Any, identifier: String, schema: EvaluationSchema)
 
-    fun projectSchema(): AnalysisSchema
+    fun projectAnalysisSchema(): AnalysisSchema
+
+    fun evaluationSchemaForBuildFile(file: File): EvaluationSchema?
 }
 
 
@@ -32,21 +37,41 @@ internal
 class DefaultDeclarativeSchemaRegistry : DeclarativeSchemaRegistry {
 
     private
-    val schemas: MutableMap<Pair<Any, String>, AnalysisSchema> = mutableMapOf()
+    val schemas: MutableMap<Any, EvaluationSchema> = mutableMapOf()
 
-    override fun storeSchema(target: Any, identifier: String, schema: AnalysisSchema) {
-        schemas[target to identifier] = schema
+    override fun storeSchema(target: Any, identifier: String, schema: EvaluationSchema) {
+        if (target is Project && identifier == "project" || target is Settings && identifier == "settings") {
+            schemas[target] = schema
+        }
     }
 
-    override fun projectSchema(): AnalysisSchema {
+    override fun projectAnalysisSchema(): AnalysisSchema {
         schemas.forEach {
-            val target = it.key.first
-            val identifier = it.key.second
-            if (target is Project && identifier == "project") {
+            val target = it.key
+            if (target is Project) {
                 val schema = it.value
-                return schema
+                return schema.analysisSchema
             }
         }
         return AnalysisSchema.EMPTY
+    }
+
+    override fun evaluationSchemaForBuildFile(file: File): EvaluationSchema? {
+        val searchPath = file.parentFile.absolutePath
+        schemas.forEach {
+            val target = it.key
+            if (target is Project) {
+                if (target.projectDir.absolutePath == searchPath) {
+                    return it.value
+                }
+            } else if (target is Settings) {
+                if (target.settingsDir.absolutePath == searchPath) {
+                    return it.value
+                }
+            } else {
+                error("Unhandled target type ${target.javaClass.simpleName}")
+            }
+        }
+        return null
     }
 }

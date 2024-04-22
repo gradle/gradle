@@ -7,7 +7,7 @@ import org.gradle.internal.declarativedsl.language.LocalValue
 import org.gradle.internal.declarativedsl.language.PropertyAccess
 
 
-fun defaultCodeResolver(elementFilter: AnalysisStatementFilter = analyzeEverything): ResolverImpl {
+fun defaultCodeResolver(elementFilter: AnalysisStatementFilter = analyzeEverything): DefaultResolver {
     return ResolverServicesContainer().run {
         analysisStatementFilter = elementFilter
         functionCallResolver = FunctionCallResolverImpl(this, this)
@@ -17,7 +17,7 @@ fun defaultCodeResolver(elementFilter: AnalysisStatementFilter = analyzeEverythi
         statementResolver = StatementResolverImpl(propertyAccessResolver, expressionResolver, errorCollector)
         codeAnalyzer = CodeAnalyzerImpl(analysisStatementFilter, statementResolver)
 
-        ResolverImpl(codeAnalyzer, errorCollector)
+        DefaultResolver(codeAnalyzer, errorCollector)
     }
 }
 
@@ -39,7 +39,7 @@ fun tracingCodeResolver(elementFilter: AnalysisStatementFilter = analyzeEverythi
 
         codeAnalyzer = CodeAnalyzerImpl(analysisStatementFilter, statementResolver)
 
-        TracingResolver(ResolverImpl(codeAnalyzer, errorCollector), tracer)
+        TracingResolver(DefaultResolver(codeAnalyzer, errorCollector), tracer)
     }
 }
 

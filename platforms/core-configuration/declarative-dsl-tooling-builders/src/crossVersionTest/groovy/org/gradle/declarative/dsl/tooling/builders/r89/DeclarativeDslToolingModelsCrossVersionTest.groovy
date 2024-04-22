@@ -17,6 +17,8 @@
 package org.gradle.declarative.dsl.tooling.builders.r89
 
 import org.gradle.api.internal.plugins.software.SoftwareType
+import org.gradle.declarative.dsl.tooling.builders.r89.internal.DeclarativeFileParameterAction
+import org.gradle.declarative.dsl.tooling.models.DeclarativeFileErrorsModel
 import org.gradle.declarative.dsl.tooling.models.DeclarativeSchemaModel
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
@@ -29,6 +31,60 @@ class DeclarativeDslToolingModelsCrossVersionTest extends ToolingApiSpecificatio
 
     def setup(){
         settingsFile.delete() //we are using a declarative settings file
+    }
+
+    def 'can obtain errors for declarative file'() {
+        given:
+        file("settings.gradle.something") << """
+            rootProject.name = "test"
+            include(":a")
+            include(":b")
+        """
+
+        file("a/build.gradle.something") << """
+            plugins {
+                id("java")
+            }
+        """
+
+        def buildFileOfProjectB = file("b/build.gradle.something")
+        buildFileOfProjectB << """
+            plugins {
+                id("java-library")
+            }
+            dependencies {
+                implementation(project(\":a\"))
+                api(project(\":a\"))
+                compileOnly(project(\":a\"))
+                runtimeOnly(project(\":a\"))
+                testImplementation(project(\":a\"))
+                testCompileOnly(project(\":a\"))
+            }
+        """
+
+        when:
+        DeclarativeFileErrorsModel model = toolingApi.withConnection() { connection ->
+            def parameterAction = new DeclarativeFileParameterAction<DeclarativeFileErrorsModel>(
+                DeclarativeFileErrorsModel.class,
+                buildFileOfProjectB,
+                """
+                    dependencies {
+                        var x = implementation(project(\":a\"))
+                        api(project(\":a\"))
+                        compileOnly(project(\":a\"))
+                        runtimeOnly(project(\":a\"))
+                        testImplementation(project(\":a\"))
+                        testCompileOnly(project(\":a\"))
+                    }
+                """.stripIndent()
+            )
+            connection.action(parameterAction).run()
+        }
+
+        then:
+        model != null
+
+        // TODO: more
     }
 
     def 'can obtain model containing project schema'() {

@@ -154,7 +154,6 @@ class DefaultDeclarativeKotlinScriptEvaluator(
     fun assignmentTrace(result: ResolutionResult) =
         AssignmentTracer { AssignmentResolver() }.produceAssignmentTrace(result)
 
-    private
     fun languageModelFromLightParser(scriptSource: ScriptSource): LanguageTreeResult {
         val (tree, code, codeOffset) = parse(scriptSource.resource.text)
         return languageTreeBuilder.build(tree, code, codeOffset, SourceIdentifier(scriptSource.fileName))

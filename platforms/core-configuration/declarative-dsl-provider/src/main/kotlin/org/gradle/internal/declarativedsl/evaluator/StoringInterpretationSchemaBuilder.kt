@@ -43,7 +43,10 @@ class StoringInterpretationSchemaBuilder(
         when (evaluationSchemaForScript) {
             is InterpretationSchemaBuildingResult.InterpretationSequenceAvailable -> {
                 val stepsWithSchemaStoring = evaluationSchemaForScript.sequence.steps.map {
-                    SchemaHandlingInterpretationSequenceStep(it) { id, schema -> storeSchemaResult(targetInstance, id, schema) }
+                    SchemaHandlingInterpretationSequenceStep(it) { id, schema ->
+                        writeSchemaToFile(targetInstance, id, schema.analysisSchema)
+                        storeSchemaInRegistry(targetInstance, id, schema)
+                    }
                 }
                 InterpretationSchemaBuildingResult.InterpretationSequenceAvailable(InterpretationSequence(stepsWithSchemaStoring))
             }
@@ -52,12 +55,15 @@ class StoringInterpretationSchemaBuilder(
         }
 
     private
-    fun storeSchemaResult(targetInstance: Any, identifier: String, analysisSchema: AnalysisSchema) {
+    fun writeSchemaToFile(targetInstance: Any, identifier: String, analysisSchema: AnalysisSchema) {
         val file = schemaFile(targetInstance, identifier)
         file.parentFile.mkdirs()
         file.writeText(SchemaSerialization.schemaToJsonString(analysisSchema))
+    }
 
-        declarativeSchemaRegistry.storeSchema(targetInstance, identifier, analysisSchema)
+    private
+    fun storeSchemaInRegistry(targetInstance: Any, identifier: String, evaluationSchema: EvaluationSchema) {
+        declarativeSchemaRegistry.storeSchema(targetInstance, identifier, evaluationSchema)
     }
 
     private
@@ -77,10 +83,11 @@ class StoringInterpretationSchemaBuilder(
     private
     class SchemaHandlingInterpretationSequenceStep<R : Any>(
         private val step: InterpretationSequenceStep<R>,
-        private val schemaHandler: (schemaId: String, schema: AnalysisSchema) -> Unit
+        private val schemaHandler: (schemaId: String, schema: EvaluationSchema) -> Unit
     ) : InterpretationSequenceStep<R> {
         override val stepIdentifier: String = step.stepIdentifier
-        override fun evaluationSchemaForStep(): EvaluationSchema = step.evaluationSchemaForStep().also { schemaHandler(stepIdentifier, it.analysisSchema) }
+        override fun evaluationSchemaForStep(): EvaluationSchema = step.evaluationSchemaForStep()
+            .also { schemaHandler(stepIdentifier, it) } // TODO: this is ugly, schema handler is called as a side effect of a getter...
         override fun topLevelReceiver(): R = step.topLevelReceiver()
         override fun whenEvaluated(resultReceiver: R) = step.whenEvaluated(resultReceiver)
     }
