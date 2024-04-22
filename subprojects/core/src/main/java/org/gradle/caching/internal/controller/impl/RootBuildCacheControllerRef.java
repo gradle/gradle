@@ -51,6 +51,8 @@ import java.util.concurrent.atomic.AtomicReference;
  *       Once configuration is available, it will be used, as per the above.
  *     </li>
  * </ul>
+ *
+ * <p>Currently, there is no simple, general way to know where in the above lifecycle a given piece of work will run.</p>
  */
 @ServiceScope(Scope.BuildTree.class)
 public class RootBuildCacheControllerRef {
@@ -109,7 +111,11 @@ public class RootBuildCacheControllerRef {
         protected abstract BuildCacheController getDelegate();
     }
 
+    /**
+     * This implementation tracks the state of the root build.
+     */
     private static class RootBuildCacheController extends DelegatingBuildCacheController {
+        // Holds an immutable BCC that represents the current state of the root build's cache configuration.
         private final AtomicReference<BuildCacheController> delegate = new AtomicReference<>();
         private Path identityPath;
         private BuildCacheControllerFactory buildCacheControllerFactory;
@@ -146,8 +152,12 @@ public class RootBuildCacheControllerRef {
         }
     }
 
+    /**
+     * This implementation manages the state of all other builds in the tree.
+     */
     private static class NonRootBuildCacheController extends DelegatingBuildCacheController {
         private final RootBuildCacheController rootController;
+        // Holds a BCC that represents the current state of this build's cache configuration, but only if used as an 'early' build.
         private final AtomicReference<BuildCacheController> delegate = new AtomicReference<>();
         private final Path identityPath;
         private final BuildCacheControllerFactory buildCacheControllerFactory;
