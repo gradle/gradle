@@ -34,4 +34,4 @@ automations:
             {{ by_owner_comment }}
 
 by_owner_comment: |
-  {{ files | byCodeowner(pr, env.CODEOWNERS_TOKEN, '.github/CODEOWNERS') | categorize(branch.diff.files_metadata) | computeStatistics(branch.diff.files_metadata) | summaryTable('Owner') }}
+  {{ files | byCodeowner(pr, env.REPO_READ_TOKEN, '.github/CODEOWNERS') | categorize(branch.diff.files_metadata) | computeStatistics(branch.diff.files_metadata) | summaryTable('Owner') }}
