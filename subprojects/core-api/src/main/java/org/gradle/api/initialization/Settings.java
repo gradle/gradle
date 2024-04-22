@@ -125,17 +125,6 @@ public interface Settings extends PluginAware, ExtensionAware {
     }
 
     /**
-     * This is a version of {@link Settings#include(String...)} for just one argument.
-     * FIXME: this public API should not be released!
-     * @since 8.8
-     */
-    @Adding // TODO: support varargs and remove the workaround
-    @Incubating
-    default void include(String projectPath) {
-        include(new String[] {projectPath});
-    }
-
-    /**
      * <p>Adds the given projects to the build. Each path in the supplied list is treated as the path of a project to
      * add to the build. Note that these path are not file paths, but instead specify the location of the new project in
      * the project hierarchy. As such, the supplied paths must use the ':' character as separator (and NOT '/').</p>
