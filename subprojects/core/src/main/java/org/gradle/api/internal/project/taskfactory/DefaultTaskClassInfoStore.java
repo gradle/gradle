@@ -46,7 +46,7 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
 
     @Override
     public TaskClassInfo getTaskClassInfo(Class<? extends Task> type) {
-        return classInfos.get(type, DefaultTaskClassInfoStore::taskClassInfoFactory);
+        return classInfos.get(type, aClass -> createTaskClassInfo(aClass.asSubclass(Task.class)));
     }
 
     private static TaskClassInfo createTaskClassInfo(Class<? extends Task> type) {
@@ -130,10 +130,6 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
         }
 
         return taskActionFactory;
-    }
-
-    private static TaskClassInfo taskClassInfoFactory(Class<?> aClass) {
-        return createTaskClassInfo(aClass.asSubclass(Task.class));
     }
 
     private static class StandardTaskActionFactory implements TaskActionFactory {

@@ -25,7 +25,6 @@ import org.gradle.jvm.toolchain.JvmVendorSpec;
 
 import java.util.function.Predicate;
 
-//@SuppressWarnings("UnnecessaryLambda")
 public class JvmInstallationMetadataMatcher implements Predicate<JvmInstallationMetadata> {
     private final JavaLanguageVersion languageVersion;
     private final DefaultJvmVendorSpec vendorSpec;
