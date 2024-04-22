@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.plugins
+package org.gradle.api.internal.plugins.software
 
 import org.gradle.api.Plugin
-import org.gradle.api.internal.plugins.software.SoftwareTypeModelWiringPluginTarget
-import org.gradle.api.internal.plugins.software.SoftwareType
+import org.gradle.api.internal.plugins.ExtensionContainerInternal
+import org.gradle.api.internal.plugins.PluginTarget
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.properties.InspectionScheme
 import org.gradle.internal.properties.PropertyValue
