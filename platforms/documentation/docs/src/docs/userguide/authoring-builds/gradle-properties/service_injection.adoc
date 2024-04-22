@@ -75,6 +75,7 @@ include::sample[dir="snippets/providers/services/groovy",files="build.gradle[tag
 
 The `MyObjectFactoryTask` task uses an `ObjectFactory` instance, which is injected into the task's constructor using the `@Inject` annotation.
 
+[[sec:projectlayout]]
 == 2. `ProjectLayout`
 
 link:{groovyDslPath}/org.gradle.api.file.ProjectLayout.html[`ProjectLayout`] is a service that provides access to the layout of a Gradle project's directories and files.
