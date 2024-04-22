@@ -41,7 +41,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -161,7 +160,6 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
     }
 
     private void displayDeprecationIfSameMessageNotDisplayedBefore(StringBuilder messageBuilder, @Nullable Failure stackTracing) {
-        String lineSeparator = SystemProperties.getInstance().getLineSeparator();
 
         if (stackTracing == null) {
             displayDeprecationIfSameMessageNotDisplayedBefore(messageBuilder.toString());
@@ -169,27 +167,16 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
         }
 
         if (isTraceLoggingEnabled()) {
-            // full stacktrace please
+            printFullStackTraceIfUnique(messageBuilder, stackTracing);
         } else {
-            // only the first user-code
-            int firstUserCode = stackTracing.indexOfStackFrame(0, StackFramePredicate.USER_CODE);
-            if (firstUserCode != -1) {
-                StackTraceElement element = stackTracing.getStackTrace().get(firstUserCode);
-                appendStackTraceElement(element, messageBuilder, lineSeparator);
-                appendRunWithStacktraceInfo(messageBuilder, lineSeparator);
-            }
-
+            appendFirstUserCodeStackFrame(messageBuilder, stackTracing);
             displayDeprecationIfSameMessageNotDisplayedBefore(messageBuilder.toString());
         }
 
+    }
 
-        System.out.println("Y7: Printing at least some stacktrace");
-        List<StackTraceElement> callStack = new ArrayList<StackTraceElement>();
-        System.out.println("Y8: SELECTED STACKTRACE:");
-        for (StackTraceElement stackTraceElement : callStack) {
-            System.out.println(stackTraceElement);
-        }
-        System.out.println("------------------------\n\n\n\n");
+    private void printFullStackTraceIfUnique(StringBuilder messageBuilder, Failure stackTracing) {
+        List<StackTraceElement> callStack = stackTracing.getStackTrace();
 
         // Let's cut the first 10 lines of stack traces as the "key" to identify a deprecation message uniquely.
         // Even when two deprecation messages are emitted from the same location,
@@ -199,6 +186,18 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
             appendLogTraceIfNecessary(messageBuilder, callStack, 10, callStack.size());
             displayMessage(messageBuilder.toString());
         }
+    }
+
+    private static void appendFirstUserCodeStackFrame(StringBuilder messageBuilder, Failure stackTracing) {
+        int firstUserCode = stackTracing.indexOfStackFrame(0, StackFramePredicate.USER_CODE);
+        if (firstUserCode == -1) {
+            return;
+        }
+
+        StackTraceElement element = stackTracing.getStackTrace().get(firstUserCode);
+        String lineSeparator = SystemProperties.getInstance().getLineSeparator();
+        appendStackTraceElement(element, messageBuilder, lineSeparator);
+        appendRunWithStacktraceInfo(messageBuilder, lineSeparator);
     }
 
     private void displayDeprecationIfSameMessageNotDisplayedBefore(String message) {
