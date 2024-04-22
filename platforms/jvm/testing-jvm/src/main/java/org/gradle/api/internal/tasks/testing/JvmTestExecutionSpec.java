@@ -120,7 +120,7 @@ public class JvmTestExecutionSpec implements TestExecutionSpec {
         return testIsModule;
     }
 
-    private static void anotherNewMethod() {
+    public static void anotherNewMethod() {
         // for testing
     }
 }
