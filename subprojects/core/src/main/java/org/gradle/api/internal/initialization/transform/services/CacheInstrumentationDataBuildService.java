@@ -80,6 +80,10 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
                 "That indicates that artifact changed during resolution from another process. That is not supported!", artifactName, hash);
     }
 
+    public void resolveOriginalProjectFile(long contextId) {
+        getResolutionData(contextId).getOriginalProjectClasspath().getFiles();
+    }
+
     @Nullable
     public String getArtifactHash(long contextId, File file) {
         return getResolutionData(contextId).getArtifactHash(file);
@@ -113,6 +117,12 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
             }
 
             @Override
+            public void setOriginalProjectClasspath(FileCollection originalClasspath) {
+                resolutionData.getOriginalProjectClasspath().setFrom(originalClasspath);
+                resolutionData.getOriginalClasspath().finalizeValueOnRead();
+            }
+
+            @Override
             public void close() {
                 CacheInstrumentationDataBuildService.this.resolutionData.remove(contextId);
             }
@@ -123,6 +133,7 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
 
         void setTypeHierarchyAnalysisResult(FileCollection analysisResult);
         void setOriginalClasspath(FileCollection originalClasspath);
+        void setOriginalProjectClasspath(FileCollection originalClasspath);
 
         @Override
         void close();
@@ -165,6 +176,7 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
 
         abstract ConfigurableFileCollection getTypeHierarchyAnalysisResult();
         abstract ConfigurableFileCollection getOriginalClasspath();
+        abstract ConfigurableFileCollection getOriginalProjectClasspath();
 
         private InstrumentationTypeRegistry getInstrumentationTypeRegistry() {
             return instrumentationTypeRegistry.get();

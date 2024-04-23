@@ -136,9 +136,10 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         try (ResolutionScope resolutionScope = buildService.newResolutionScope(contextId)) {
             ArtifactView originalDependencies = getOriginalDependencies(classpathConfiguration);
             ArtifactView originalProjectDependencies = getOriginalProjectDependencies(classpathConfiguration);
-//            originalProjectDependencies.getFiles().getFiles();
+            originalProjectDependencies.getFiles().getFiles();
             resolutionScope.setTypeHierarchyAnalysisResult(getAnalysisResult(classpathConfiguration));
             resolutionScope.setOriginalClasspath(originalDependencies.getFiles().plus(originalProjectDependencies.getFiles()));
+            resolutionScope.setOriginalProjectClasspath(originalProjectDependencies.getFiles());
             ArtifactCollection instrumentedExternalDependencies = getInstrumentedExternalDependencies(classpathConfiguration);
             return TransformedClassPath.handleInstrumentingArtifactTransform(instrumentedExternalDependencies.getArtifacts().stream()
                 .map(ResolvedArtifactResult::getFile)
@@ -156,7 +157,6 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         return classpathConfiguration.getIncoming().artifactView((Action<? super ArtifactView.ViewConfiguration>) config -> {
             config.attributes(attributes -> {
                 attributes.attribute(INSTRUMENTED_ATTRIBUTE, ANALYZED_ARTIFACT.value);
-                attributes.attribute(LIBRARY_ELEMENTS_ATTRIBUTE, instantiator.named(LibraryElements.class, LibraryElements.CLASSES));
             });
             // We have to analyze external and project dependencies to get full hierarchies, since
             // for example user could use dependency substitution to replace external dependency with project dependency.
