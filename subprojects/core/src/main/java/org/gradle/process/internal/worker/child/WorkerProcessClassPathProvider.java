@@ -107,7 +107,8 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider {
         "gradle-serialization",
         "gradle-time",
         "gradle-java-language-extensions",
-        "gradle-build-operations"
+        "gradle-build-operations",
+        "gradle-declarative-dsl-api"
     };
 
     public static final String[] RUNTIME_EXTERNAL_MODULES = new String[]{
