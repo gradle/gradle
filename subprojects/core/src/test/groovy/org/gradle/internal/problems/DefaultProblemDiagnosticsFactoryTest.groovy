@@ -26,7 +26,7 @@ import org.gradle.problems.Location
 import spock.lang.Specification
 
 class DefaultProblemDiagnosticsFactoryTest extends Specification {
-    def failureFactory = new DefaultFailureFactory(StackTraceClassifier.USER_CODE)
+    def failureFactory = new DefaultFailureFactory()
     def locationAnalyzer = Mock(ProblemLocationAnalyzer)
     def userCodeContext = Mock(UserCodeApplicationContext)
     def factory = new DefaultProblemDiagnosticsFactory(failureFactory, locationAnalyzer, userCodeContext, 2)
@@ -41,7 +41,7 @@ class DefaultProblemDiagnosticsFactoryTest extends Specification {
 
         then:
         diagnostics.failure != null
-        assertIsCallerStackTrace(diagnostics.minifiedStackTrace)
+        assertIsCallerStackTrace(diagnostics.failure.stackTrace)
         diagnostics.location == location
 
         1 * locationAnalyzer.locationForUsage(_, false) >> { Failure failure, b ->
