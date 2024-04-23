@@ -28,6 +28,7 @@ Building projects with different Java versions on different developer machines a
 Additionally, you may want to build a project using a Java version that is not supported for running Gradle.
 
 In order to improve reproducibility of the builds and make build requirements clearer, Gradle allows configuring toolchains on both project and task levels.
+You can also record JMV requirements using the <<gradle_daemon#sec:daemon_jvm_criteria,Daemon>>.
 
 [[sec:consuming]]
 == Toolchains for projects
