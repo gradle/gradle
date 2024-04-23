@@ -89,7 +89,7 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractIntegrationSpec {
             }
         """
 
-        file("build.gradle.something") << """
+        file("build.gradle.dcl") << """
             plugins {
                 id("com.example.restricted")
             }
