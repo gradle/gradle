@@ -109,7 +109,7 @@ Default retention for unused resources is 7 days.
 +
 Default retention for unused build-cache entries is 7 days.
 
-The retention period for each category can be configured independently via an <<init_scripts.adoc##init_scripts,init script>> in the Gradle User Home:
+The retention period for each category can be configured independently via an <<init_scripts.adoc#init_scripts,init script>> in the Gradle User Home:
 
 ====
 include::sample[dir="snippets/initScripts/cacheRetention/kotlin",files="gradleUserHome/init.d/cache-settings.gradle.kts"]

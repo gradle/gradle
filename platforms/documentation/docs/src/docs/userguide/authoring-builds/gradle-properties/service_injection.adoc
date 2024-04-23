@@ -51,7 +51,7 @@ include::sample[dir="snippets/providers/services/kotlin",files="build.gradle.kts
 include::sample[dir="snippets/providers/services/groovy",files="build.gradle[tags=object-factory]"]
 ====
 
-TIP: It is preferable to let Gradle create objects automatically by using <<#managed_properties,managed properties>>.
+TIP: It is preferable to let Gradle create objects automatically by using <<properties_providers.adoc#managed_properties,managed properties>>.
 
 Using `ObjectFactory` to create these objects ensures that they are properly managed by Gradle, especially in terms of configuration avoidance and lazy evaluation.
 This means that the values of these objects are only calculated when needed, which can improve build performance.

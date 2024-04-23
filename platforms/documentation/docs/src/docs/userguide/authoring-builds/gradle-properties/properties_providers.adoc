@@ -38,6 +38,7 @@ include::sample[dir="snippets/providers/property/groovy",files="build.gradle[tag
 The plugin adds the custom task to the project and also defines a dependent task that relies on the custom task.
 The custom task is defined as a lazy property (`customTaskProvider`) using `Provider`, which ensures that the task is only created and configured when it is needed.
 
+[[understanding_properties]]
 == Understanding Properties
 
 Properties in Gradle are variables that hold values.
@@ -59,6 +60,7 @@ Properties:
 This allows you to wire together `Provider` and `Property` instances before the values are configured.
 * A `Property` can be created by the factory method link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#property-java.lang.Class-[ObjectFactory.property(Class)].
 
+[[understanding_providers]]
 == Understanding Providers
 
 Providers are objects that represent a value that may not be immediately available.
