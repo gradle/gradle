@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Bundling;
@@ -37,6 +38,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInter
 import org.gradle.api.internal.initialization.transform.registration.InstrumentationTransformRegisterer;
 import org.gradle.api.internal.initialization.transform.services.CacheInstrumentationDataBuildService;
 import org.gradle.api.internal.initialization.transform.services.CacheInstrumentationDataBuildService.ResolutionScope;
+import org.gradle.api.internal.initialization.transform.utils.InstrumentationClasspathMerger;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.agents.AgentStatus;
@@ -47,9 +49,11 @@ import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.logging.util.Log4jBannedVersion;
 import org.gradle.util.GradleVersion;
 
-import java.util.ArrayList;
+import java.io.File;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.gradle.api.attributes.LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE;
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.ANALYZED_ARTIFACT;
@@ -134,7 +138,9 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
             resolutionScope.setTypeHierarchyAnalysisResult(getAnalysisResult(classpathConfiguration));
             resolutionScope.setOriginalClasspath(originalDependencies.getFiles());
             ArtifactCollection instrumentedExternalDependencies = getInstrumentedExternalDependencies(classpathConfiguration);
-            return TransformedClassPath.handleInstrumentingArtifactTransform(new ArrayList<>(instrumentedExternalDependencies.getArtifactFiles().getFiles()));
+            return TransformedClassPath.handleInstrumentingArtifactTransform(instrumentedExternalDependencies.getArtifacts().stream()
+                .map(ResolvedArtifactResult::getFile)
+                .collect(Collectors.toList()));
         }
     }
 
