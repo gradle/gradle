@@ -47,7 +47,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -77,14 +76,17 @@ import static org.gradle.internal.classpath.transforms.MrJarUtils.isInUnsupporte
 @DisableCachingByDefault(because = "Not worth caching.")
 public abstract class InstrumentationAnalysisTransform implements TransformAction<InstrumentationAnalysisTransform.Parameters> {
 
+    private static boolean isTypeAccepted(String type) {
+        return type != null && !type.startsWith("java/lang/");
+    }
+
     public interface Parameters extends TransformParameters {
         @Internal
         Property<CacheInstrumentationDataBuildService> getBuildService();
+
         @Internal
         Property<Long> getContextId();
     }
-
-    private static final Predicate<String> ACCEPTED_TYPES = type -> type != null && !type.startsWith("java/lang/");
 
     private final Lazy<InjectedInstrumentationServices> internalServices = Lazy.unsafe().of(() -> getObjects().newInstance(InjectedInstrumentationServices.class));
 
@@ -135,13 +137,13 @@ public abstract class InstrumentationAnalysisTransform implements TransformActio
 
     private static Set<String> collectSuperTypes(ClassReader reader) {
         return Stream.concat(Stream.of(reader.getSuperName()), Stream.of(reader.getInterfaces()))
-            .filter(ACCEPTED_TYPES)
+            .filter(InstrumentationAnalysisTransform::isTypeAccepted)
             .collect(toImmutableSortedSet(Ordering.natural()));
     }
 
     private static void collectArtifactClassDependencies(String className, ClassReader reader, Set<String> collector) {
         ClassAnalysisUtils.getClassDependencies(reader, dependencyDescriptor -> {
-            if (!dependencyDescriptor.equals(className) && ACCEPTED_TYPES.test(dependencyDescriptor)) {
+            if (!dependencyDescriptor.equals(className) && InstrumentationAnalysisTransform.isTypeAccepted(dependencyDescriptor)) {
                 collector.add(dependencyDescriptor);
             }
         });

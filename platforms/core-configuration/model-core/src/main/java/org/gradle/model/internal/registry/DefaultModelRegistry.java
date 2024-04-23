@@ -1071,7 +1071,7 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
                 return false;
             }
             for (ModelNodeInternal child : node.getLinks()) {
-                if (child.isAtLeast(Discovered) && (child.getPromise().canBeViewedAs(typeToBind))) {
+                if (child.isAtLeast(Discovered) && child.getPromise().canBeViewedAs(typeToBind)) {
                     return true;
                 }
             }

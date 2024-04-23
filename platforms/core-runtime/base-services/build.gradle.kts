@@ -42,7 +42,6 @@ errorprone {
         "ThreadLocalUsage", // 4 occurrences
         "TypeParameterUnusedInFormals", // 5 occurrences
         "URLEqualsHashCode", // 1 occurrences
-        "UnnecessaryParentheses", // 2 occurrences
         "UnsynchronizedOverridesSynchronized", // 2 occurrences
         "UnusedMethod", // 2 occurrences
         "UnusedVariable", // 3 occurrences
