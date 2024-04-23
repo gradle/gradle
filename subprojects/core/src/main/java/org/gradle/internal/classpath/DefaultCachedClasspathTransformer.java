@@ -184,19 +184,17 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
             return ImmutableList.of();
         }
         ClasspathFileTransformer transformer = fileTransformerFor(transform);
-        InstrumentationTypeRegistry typeRegistry = typeRegistryFactory.createFor(urls, transformer);
         return parallelTransformExecutor.transformAll(
             urls,
-            (url, seen) -> cachedURL(url, transformer, seen, typeRegistry)
+            (url, seen) -> cachedURL(url, transformer, seen, InstrumentationTypeRegistry.empty())
         );
     }
 
     private ClassPath transformFiles(ClassPath classPath, ClasspathFileTransformer transformer) {
-        InstrumentationTypeRegistry typeRegistry = typeRegistryFactory.createFor(classPath.getAsFiles(), transformer);
         return DefaultClassPath.of(
             parallelTransformExecutor.transformAll(
                 classPath.getAsFiles(),
-                (file, seen) -> cachedFile(file, transformer, seen, typeRegistry)
+                (file, seen) -> cachedFile(file, transformer, seen, InstrumentationTypeRegistry.empty())
             )
         );
     }
