@@ -109,7 +109,7 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
             @Override
             public void setOriginalClasspath(FileCollection originalClasspath) {
                 resolutionData.getOriginalClasspath().setFrom(originalClasspath);
-                resolutionData.getOriginalClasspath().finalizeValue();
+                resolutionData.getOriginalClasspath().finalizeValueOnRead();
             }
 
             @Override

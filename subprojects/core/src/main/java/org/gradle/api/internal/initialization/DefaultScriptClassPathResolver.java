@@ -135,13 +135,21 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         CacheInstrumentationDataBuildService buildService = resolutionContext.getBuildService().get();
         try (ResolutionScope resolutionScope = buildService.newResolutionScope(contextId)) {
             ArtifactView originalDependencies = getOriginalDependencies(classpathConfiguration);
+            ArtifactView originalProjectDependencies = getOriginalProjectDependencies(classpathConfiguration);
+            originalProjectDependencies.getFiles().getFiles();
             resolutionScope.setTypeHierarchyAnalysisResult(getAnalysisResult(classpathConfiguration));
-            resolutionScope.setOriginalClasspath(originalDependencies.getFiles());
+            resolutionScope.setOriginalClasspath(originalDependencies.getFiles().plus(originalProjectDependencies.getFiles()));
             ArtifactCollection instrumentedExternalDependencies = getInstrumentedExternalDependencies(classpathConfiguration);
             return TransformedClassPath.handleInstrumentingArtifactTransform(instrumentedExternalDependencies.getArtifacts().stream()
                 .map(ResolvedArtifactResult::getFile)
                 .collect(Collectors.toList()));
         }
+    }
+
+    private ArtifactView getOriginalProjectDependencies(Configuration classpathConfiguration) {
+        return classpathConfiguration.getIncoming().artifactView((Action<? super ArtifactView.ViewConfiguration>) config -> {
+            config.componentFilter(it -> isProjectDependency(it));
+        });
     }
 
     private FileCollection getAnalysisResult(Configuration classpathConfiguration) {
@@ -158,7 +166,7 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
 
     private static ArtifactView getOriginalDependencies(Configuration classpathConfiguration) {
         return classpathConfiguration.getIncoming().artifactView((Action<? super ArtifactView.ViewConfiguration>) config -> {
-            config.componentFilter(it -> !isGradleApi(it));
+            config.componentFilter(it -> isExternalDependency(it));
         });
     }
 
