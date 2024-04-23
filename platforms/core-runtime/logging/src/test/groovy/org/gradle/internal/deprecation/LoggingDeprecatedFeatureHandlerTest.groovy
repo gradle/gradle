@@ -32,6 +32,7 @@ import org.gradle.internal.operations.DefaultBuildOperationProgressEventEmitter
 import org.gradle.internal.operations.DefaultBuildOperationRef
 import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.operations.OperationProgressEvent
+import org.gradle.internal.problems.failure.DefaultFailureFactory
 import org.gradle.internal.problems.failure.Failure
 import org.gradle.internal.time.Clock
 import org.gradle.problems.Location
@@ -53,6 +54,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
     SetSystemProperties systemProperties = new SetSystemProperties()
     final problemStream = Mock(ProblemStream)
     final diagnosticsFactory = Stub(ProblemDiagnosticsFactory)
+    final failureFactory = new DefaultFailureFactory()
 
     final handler = new LoggingDeprecatedFeatureHandler()
     final Clock clock = Mock(Clock)
@@ -335,7 +337,7 @@ feature1 removal""")
         deprecationTracePropertyName = LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
     }
 
-    def 'fake call without Gradle script elements and #deprecationTracePropertyName=false does not log a stack trace element.'() {
+    def 'fake call without user-code stack trace elements and #deprecationTracePropertyName=false does not log a stack trace element.'() {
         given:
         System.setProperty(deprecationTracePropertyName, 'false')
         useStackTrace(fakeStackTrace)
@@ -356,7 +358,6 @@ feature1 removal""")
         fakeStackTrace = [
             new StackTraceElement(LoggingDeprecatedFeatureHandlerTest.name, 'foo', 'LoggingDeprecatedFeatureHandlerTest.java', 25),
             new StackTraceElement('org.gradle.internal.featurelifecycle.SimulatedJavaCallLocation', 'create', 'SimulatedJavaCallLocation.java', 25),
-            new StackTraceElement('some.ArbitraryClass', 'withSource', 'ArbitraryClass.java', 42),
             new StackTraceElement('java.lang.reflect.Method', 'invoke', 'Method.java', 498),
             new StackTraceElement('some.Class', 'withoutSource', null, -1),
             new StackTraceElement('some.Class', 'withNativeMethod', null, -2),
@@ -366,7 +367,7 @@ feature1 removal""")
         deprecationTracePropertyName = LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
     }
 
-    def 'fake call with only a single stack trace element and #deprecationTracePropertyName=false does not log that element'() {
+    def 'fake call without a user-code stack trace element and #deprecationTracePropertyName=false does not log that element'() {
         given:
         System.setProperty(deprecationTracePropertyName, 'false')
         useStackTrace(fakeStackTrace)
@@ -385,7 +386,7 @@ feature1 removal""")
 
         where:
         fakeStackTrace = [
-            new StackTraceElement('some.ArbitraryClass', 'withSource', 'ArbitraryClass.java', 42),
+            new StackTraceElement('org.gradle.internal.featurelifecycle.SimulatedJavaCallLocation', 'create', 'SimulatedJavaCallLocation.java', 25),
         ]
         deprecationTracePropertyName = LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
     }
@@ -500,24 +501,29 @@ feature1 removal""")
         1 * buildOperationListener.progress(_, _) >> { progressFired(it[1], 'feature2') }
     }
 
-    private void useStackTrace(List<StackTraceElement> stackTrace = []) {
+    private void useStackTrace(List<StackTraceElement> stackTrace = null) {
+        useDiagnostic(null, stackTrace)
+    }
+
+    private void useLocation(String displayName, int lineNumber, List<StackTraceElement> stackTrace = null) {
+        def location = new Location(Describables.of(displayName), Describables.of("<short>"), lineNumber)
+        useDiagnostic(location, stackTrace)
+    }
+
+    private void useDiagnostic(Location location, List<StackTraceElement> stackTrace) {
+        Failure failure = stackTrace == null ? null : createFailure(stackTrace)
+        def minifiedStackTrace = stackTrace == null ? [] : stackTrace
         1 * problemStream.forCurrentCaller() >> Stub(ProblemDiagnostics) {
-            _ * getFailure() >> Stub(Failure) {
-                getStackTrace() >> stackTrace
-            }
-            _ * getMinifiedStackTrace() >> stackTrace
-            _ * getLocation() >> null
+            _ * getFailure() >> failure
+            _ * getMinifiedStackTrace() >> minifiedStackTrace
+            _ * getLocation() >> location
         }
     }
 
-    private void useLocation(String displayName, int lineNumber, List<StackTraceElement> stackTrace = []) {
-        1 * problemStream.forCurrentCaller() >> Stub(ProblemDiagnostics) {
-            _ * getFailure() >> Stub(Failure) {
-                getStackTrace() >> stackTrace
-            }
-            _ * getMinifiedStackTrace() >> stackTrace
-            _ * getLocation() >> new Location(Describables.of(displayName), Describables.of("<short>"), lineNumber)
-        }
+    private Failure createFailure(List<StackTraceElement> stackTrace) {
+        def e = new Exception()
+        e.setStackTrace(stackTrace.toArray(new StackTraceElement[0]))
+        failureFactory.create(e)
     }
 
     private static void progressFired(OperationProgressEvent progressEvent, String summary) {

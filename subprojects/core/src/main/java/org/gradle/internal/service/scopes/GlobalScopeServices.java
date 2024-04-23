@@ -79,11 +79,8 @@ import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.DefaultBuildOperationProgressEventEmitter;
-import org.gradle.internal.problems.failure.CompositeStackTraceClassifier;
 import org.gradle.internal.problems.failure.DefaultFailureFactory;
 import org.gradle.internal.problems.failure.FailureFactory;
-import org.gradle.internal.problems.failure.InternalStackTraceClassifier;
-import org.gradle.internal.problems.failure.StackTraceClassifier;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.scripts.DefaultScriptFileResolver;
 import org.gradle.internal.scripts.DefaultScriptFileResolverListeners;
@@ -314,9 +311,6 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
     }
 
     FailureFactory createFailureFactory() {
-        return new DefaultFailureFactory(new CompositeStackTraceClassifier(
-            new InternalStackTraceClassifier(),
-            StackTraceClassifier.USER_CODE
-        ));
+        return new DefaultFailureFactory();
     }
 }

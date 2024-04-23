@@ -33,8 +33,11 @@ public class DefaultFailureFactory implements FailureFactory {
 
     private final StackTraceClassifier stackTraceClassifier;
 
-    public DefaultFailureFactory(StackTraceClassifier stackTraceClassifier) {
-        this.stackTraceClassifier = stackTraceClassifier;
+    public DefaultFailureFactory() {
+        this.stackTraceClassifier = new CompositeStackTraceClassifier(
+            new InternalStackTraceClassifier(),
+            StackTraceClassifier.USER_CODE
+        );
     }
 
     @Override
