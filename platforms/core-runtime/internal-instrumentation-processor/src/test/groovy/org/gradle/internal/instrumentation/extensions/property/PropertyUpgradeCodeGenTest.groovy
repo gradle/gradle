@@ -39,12 +39,12 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
 
             import org.gradle.api.provider.Property;
             import org.gradle.internal.instrumentation.api.annotations.VisitForInstrumentation;
-            import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty;
-            import org.gradle.internal.instrumentation.api.annotations.UpgradedDeprecation;
+            import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+            import org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation;
 
             @VisitForInstrumentation(value = {Task.class})
             public abstract class Task {
-                @UpgradedProperty(originalType = int.class)
+                @ReplacesEagerProperty(originalType = int.class)
                 public abstract Property<Integer> getMaxErrors();
             }
         """
@@ -83,11 +83,11 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
 
             import org.gradle.api.provider.Property;
             import org.gradle.internal.instrumentation.api.annotations.VisitForInstrumentation;
-            import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty;
+            import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
             @VisitForInstrumentation(value = {Task.class})
             public abstract class Task {
-                @UpgradedProperty(originalType = boolean.class, fluentSetter = true)
+                @ReplacesEagerProperty(originalType = boolean.class, fluentSetter = true)
                 public abstract Property<Boolean> getIncremental();
             }
         """
@@ -153,11 +153,11 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
             import org.gradle.api.provider.*;
             import org.gradle.api.file.*;
             import org.gradle.internal.instrumentation.api.annotations.VisitForInstrumentation;
-            import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty;
+            import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
             @VisitForInstrumentation(value = {Task.class})
             public abstract class Task {
-                @UpgradedProperty${PRIMITIVE_TYPES.contains(originalType) ? "(originalType = ${originalType}.class)" : ""}
+                @ReplacesEagerProperty${PRIMITIVE_TYPES.contains(originalType) ? "(originalType = ${originalType}.class)" : ""}
                 public abstract $upgradedType getProperty();
             }
         """
@@ -220,7 +220,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
 
             @VisitForInstrumentation(value = {Task.class})
             public abstract class Task {
-                @UpgradedProperty
+                @ReplacesEagerProperty
                 public abstract Property<String> getTargetCompatibility();
             }
         """
@@ -257,16 +257,16 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
             .containsElementsIn(generatedClass)
     }
 
-    def "should visit classes annotated with just @UpgradedProperty on properties"() {
+    def "should visit classes annotated with just @ReplacesEagerProperty on properties"() {
         given:
         def givenSource = source """
             package org.gradle.test;
 
             import org.gradle.api.provider.Property;
-            import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty;
+            import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
             public abstract class Task {
-                @UpgradedProperty
+                @ReplacesEagerProperty
                 public abstract Property<Integer> getMaxErrors();
             }
         """
@@ -279,16 +279,16 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
         assertThat(compilation).generatedSourceFile("${GENERATED_CLASSES_PACKAGE_NAME}.Task_Adapter")
     }
 
-    def "should fail if @UpgradedProperty is not a simple getter"() {
+    def "should fail if @ReplacesEagerProperty is not a simple getter"() {
         given:
         def givenSource = source """
             package org.gradle.test;
 
             import org.gradle.api.provider.Property;
-            import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty;
+            import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
             public abstract class Task {
-                @UpgradedProperty
+                @ReplacesEagerProperty
                 public abstract Property<Integer> getMaxErrors(String arg0);
             }
         """
@@ -298,7 +298,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
 
         then:
         assertThat(compilation).failed()
-        assertThat(compilation).hadErrorContaining("Method 'org.gradle.test.Task.getMaxErrors(java.lang.String)' annotated with @UpgradedProperty should be a simple getter: name should start with 'get' and method should not have any parameters.")
+        assertThat(compilation).hadErrorContaining("Method 'org.gradle.test.Task.getMaxErrors(java.lang.String)' annotated with @ReplacesEagerProperty should be a simple getter: name should start with 'get' and method should not have any parameters.")
     }
 
     def "should generate interceptor for upgraded property with original accessors with different names"() {
@@ -309,14 +309,14 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
             import org.gradle.api.provider.*;
             import org.gradle.api.file.*;
             import org.gradle.internal.instrumentation.api.annotations.*;
-            import org.gradle.internal.instrumentation.api.annotations.UpgradedAccessor.AccessorType;
+            import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
             import java.io.File;
 
             public abstract class Task {
-                @UpgradedProperty(originalAccessors = {
-                    @UpgradedAccessor(value = AccessorType.GETTER, methodName = "getDestinationDir"),
-                    @UpgradedAccessor(value = AccessorType.SETTER, methodName = "setDestinationDir"),
-                    @UpgradedAccessor(value = AccessorType.SETTER, methodName = "destinationDir", originalType = File.class)
+                @ReplacesEagerProperty(replacedAccessors = {
+                    @ReplacedAccessor(value = AccessorType.GETTER, name = "getDestinationDir"),
+                    @ReplacedAccessor(value = AccessorType.SETTER, name = "setDestinationDir"),
+                    @ReplacedAccessor(value = AccessorType.SETTER, name = "destinationDir", originalType = File.class)
                 })
                 public abstract DirectoryProperty getDestinationDirectory();
             }
@@ -361,7 +361,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
     private static String getDefaultDeprecation(String className, String propertyName) {
         return "DeprecationLogger.deprecateProperty(" + className + ".class, \"" + propertyName + "\")\n" +
             ".withContext(\"Property was automatically upgraded to the lazy version.\")\n" +
-            ".startingWithGradle9(\"Property is replaced with lazy version.\")\n" +
+            ".startingWithGradle9(\"this property is replaced with a lazy version\")\n" +
             ".undocumented()\n" +
             ".nagUser();";
     }

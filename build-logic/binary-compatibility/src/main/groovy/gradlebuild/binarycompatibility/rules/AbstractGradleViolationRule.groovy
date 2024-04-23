@@ -40,7 +40,7 @@ import org.gradle.api.Incubating
 import javax.inject.Inject
 
 import static gradlebuild.binarycompatibility.upgrades.UpgradedProperties.SEEN_OLD_ACCESSORS_OF_UPGRADED_PROPERTIES
-import static gradlebuild.binarycompatibility.upgrades.UpgradedProperty.UpgradedAccessorKey
+import static gradlebuild.binarycompatibility.upgrades.UpgradedProperty.AccessorKey
 
 @CompileStatic
 abstract class AbstractGradleViolationRule extends AbstractContextAwareViolationRule {
@@ -136,7 +136,7 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
 
     Violation acceptOrReject(JApiCompatibility member, List<String> changes, Violation rejection) {
         Set<ApiChange> seenApiChanges = (Set<ApiChange>) context.userData["seenApiChanges"]
-        Set<UpgradedAccessorKey> seenOldAccessorsOfUpgradedProperties = (Set<UpgradedAccessorKey>) context.userData[SEEN_OLD_ACCESSORS_OF_UPGRADED_PROPERTIES]
+        Set<AccessorKey> seenOldAccessorsOfUpgradedProperties = (Set<AccessorKey>) context.userData[SEEN_OLD_ACCESSORS_OF_UPGRADED_PROPERTIES]
         UpgradedProperties.maybeGetKeyOfOldAccessorOfUpgradedProperty(member, context).ifPresent { seenOldAccessorsOfUpgradedProperties.add(it) }
 
         def change = new ApiChange(

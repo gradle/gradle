@@ -1,5 +1,6 @@
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.instrumented-project")
 }
 
 description = "Public and internal 'core' Gradle APIs that are required by other subprojects"

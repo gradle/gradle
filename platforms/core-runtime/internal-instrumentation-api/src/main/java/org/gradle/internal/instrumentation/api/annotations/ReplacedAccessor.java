@@ -16,7 +16,7 @@
 
 package org.gradle.internal.instrumentation.api.annotations;
 
-import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty.DefaultValue;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.DefaultValue;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -25,7 +25,7 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.CLASS)
 @Target({ElementType.ANNOTATION_TYPE})
-public @interface UpgradedAccessor {
+public @interface ReplacedAccessor {
 
     enum AccessorType {
         GETTER,
@@ -34,12 +34,18 @@ public @interface UpgradedAccessor {
 
     AccessorType value();
 
-    String methodName();
+    /**
+     * The name of the accessor, e.g. `getDestinationDir` or `setDestinationDir`
+     */
+    String name();
 
+    /**
+     * See {@link ReplacesEagerProperty#originalType()}
+     */
     Class<?> originalType() default DefaultValue.class;
 
     /**
-     * Applies only to setters
+     * See {@link ReplacesEagerProperty#fluentSetter()}
      */
     boolean fluentSetter() default false;
 }

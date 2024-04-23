@@ -22,11 +22,11 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Marks that a property upgrade should show deprecation
+ * A configuration for deprecation of a replaced property/accessor.
  */
 @Retention(RetentionPolicy.CLASS)
 @Target({ElementType.METHOD})
-public @interface UpgradedDeprecation {
+public @interface ReplacedDeprecation {
 
     /**
      * Set if deprecation nagging is enabled or not

@@ -21,14 +21,14 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import static org.gradle.internal.instrumentation.api.annotations.UpgradedProperty.BinaryCompatibility.ACCESSORS_REMOVED;
+import static org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility.ACCESSORS_REMOVED;
 
 /**
- * Marks that a property is upgraded
+ * Marks that a property replaces an eager property.
  */
 @Retention(RetentionPolicy.CLASS)
 @Target({ElementType.METHOD})
-public @interface UpgradedProperty {
+public @interface ReplacesEagerProperty {
     /**
      * Overrides original type that will be used for generated code.
      * By default, the original type is determined from the lazy property type, e.g.:
@@ -41,16 +41,25 @@ public @interface UpgradedProperty {
      */
     Class<?> originalType() default DefaultValue.class;
 
+    /**
+     * Whether the setter accessor for property was fluent
+     */
     boolean fluentSetter() default false;
 
-    UpgradedAccessor[] originalAccessors() default {};
-
+    /**
+     * Configuration for binary compatibility check, see {@link BinaryCompatibility}
+     */
     BinaryCompatibility binaryCompatibility() default ACCESSORS_REMOVED;
 
     /**
-     * Deprecation configuration for the property
+     * Accessors that are replaced by the property
      */
-    UpgradedDeprecation deprecation() default @UpgradedDeprecation();
+    ReplacedAccessor[] replacedAccessors() default {};
+
+    /**
+     * Deprecation configuration for the replaced accessors
+     */
+    ReplacedDeprecation deprecation() default @ReplacedDeprecation();
 
     interface DefaultValue {
     }
