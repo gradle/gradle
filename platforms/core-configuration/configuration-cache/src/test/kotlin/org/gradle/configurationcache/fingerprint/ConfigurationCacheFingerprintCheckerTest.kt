@@ -266,34 +266,19 @@ class ConfigurationCacheFingerprintCheckerTest {
         )
     }
 
-    data class FileInfo(
-        val file: File,
-        val hashCode: HashCode,
-        val fileType: FileType
-    )
-
     private
     fun invalidationReasonForInitScriptsChange(
         from: Iterable<Pair<File, HashCode>>,
         to: List<Pair<File, HashCode>>
-    ): InvalidationReason? =
-        invalidationReasonForFileSystemChange(
-            from.map { FileInfo(it.first, it.second, FileType.RegularFile) },
-            to.map { FileInfo(it.first, it.second, FileType.RegularFile) })
-
-    private
-    fun invalidationReasonForFileSystemChange(
-        from: Iterable<FileInfo>,
-        to: List<FileInfo>
-    ): InvalidationReason? = to.map { it.file to it }.toMap().let { toMap ->
+    ): InvalidationReason? = to.toMap().let { toMap ->
         checkFingerprintGiven(
             mock {
                 on { allInitScripts } doReturn toMap.keys.toList()
                 on { hashCodeOf(any()) }.then { invocation ->
-                    toMap[invocation.getArgument(0)]?.hashCode
+                    toMap[invocation.getArgument(0)]
                 }
                 on { hashCodeAndTypeOf(any()) }.then { invocation ->
-                    toMap[invocation.getArgument(0)]?.let { it.hashCode to it.fileType }
+                    toMap[invocation.getArgument(0)] to FileType.RegularFile
                 }
                 on { displayNameOf(any()) }.then { invocation ->
                     invocation.getArgument<File>(0).name
