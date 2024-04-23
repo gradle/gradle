@@ -136,7 +136,7 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         try (ResolutionScope resolutionScope = buildService.newResolutionScope(contextId)) {
             ArtifactView originalDependencies = getOriginalDependencies(classpathConfiguration);
             ArtifactView originalProjectDependencies = getOriginalProjectDependencies(classpathConfiguration);
-            originalProjectDependencies.getFiles().getFiles();
+//            originalProjectDependencies.getFiles().getFiles();
             resolutionScope.setTypeHierarchyAnalysisResult(getAnalysisResult(classpathConfiguration));
             resolutionScope.setOriginalClasspath(originalDependencies.getFiles().plus(originalProjectDependencies.getFiles()));
             ArtifactCollection instrumentedExternalDependencies = getInstrumentedExternalDependencies(classpathConfiguration);
