@@ -156,7 +156,6 @@ The command line interface and the available flags are described in <<command_li
 
 System properties are variables set at the JVM level and accessible to the Gradle build process.
 System properties can be accessed using the `System` class in the build script.
-Common system properties are listed below.
 
 === Providing system properties
 
@@ -329,6 +328,8 @@ Specifies the Java home for the Gradle build process.
 The value can be set to either a `jdk` or `jre` location; however, using a JDK is safer depending on what your build does.
 This does not affect the version of Java used to launch the <<#sec:gradle_environment_variables,Gradle client VM>>.
 +
+You can also control the JVM used to run Gradle itself using the <<gradle_daemon#sec:daemon_jvm_criteria,Daemon JVM criteria>>.
++
 _Default is derived from your environment (`JAVA_HOME` or the path to `java`) if the setting is unspecified._
 
 `org.gradle.jvmargs=(JVM arguments)`::
@@ -489,7 +490,7 @@ Defaults to `USER_HOME/.gradle` if not set.
 `JAVA_HOME`::
 Specifies the JDK installation directory to use for the client VM.
 +
-This VM is also used for the daemon unless a different one is specified in a Gradle properties file with `org.gradle.java.home`.
+This VM is also used for the daemon unless a different one is specified in a Gradle properties file with `org.gradle.java.home` or using the <<gradle_daemon#sec:daemon_jvm_criteria,Daemon JVM criteria>>.
 
 `GRADLE_LIBS_REPO_OVERRIDE`::
 Overrides for the default Gradle library repository.

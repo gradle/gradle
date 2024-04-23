@@ -171,7 +171,7 @@ You can also kill Daemons manually with your operating system.
 To find the PIDs for all Daemons regardless of Gradle version, see <<gradle_daemon.adoc#find_all_daemons,Find Daemons>>.
 
 [[sec:daemon_jvm_criteria]]
-== Controlling the JVM
+== Control the JVM used
 
 NOTE: Daemon JVM discovery and Daemon JVM criteria are <<feature_lifecycle.adoc#sec:incubating_state,incubating>> features and are subject to change in a future release.
 
@@ -181,6 +181,7 @@ Gradle uses the current shell path and `JAVA_HOME` environment variable to locat
 You can also specify a different JVM installation for the build using the [`org.gradle.java.home`](build_environment.html#sec:gradle_configuration_properties) property or programmatically through the Tooling API.
 
 Using the _Daemon JVM discovery_ and _Daemon JVM criteria_ Gradle records the build's JVM requirements.
+This controls the JVM used to run Gradle itself.
 
 === Daemon JVM criteria
 
@@ -203,6 +204,7 @@ This will generate a new `gradle-build.properties` file that captures the curren
 This is an auto-generated file that isn't intended to be edited by hand.
 
 If you want to specify a different JVM version, run `./gradle updateDaemonJvm --jvm-version=17`.
+
 This new mechanism takes priority over `org.gradle.java.home`.
 
 Please note that this feature is incubating and may change in future releases.
