@@ -65,7 +65,7 @@ fun normalizeUrl(url: String): String {
     return if (result.endsWith("/")) result else "$result/"
 }
 
-gradle.allprojects {
+gradle.lifecycle.beforeProject {
     buildscript.configurations["classpath"].incoming.beforeResolve {
         withMirrors(buildscript.repositories)
     }
