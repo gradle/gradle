@@ -93,7 +93,7 @@ public class BuildEnvironmentConfigurationConverter {
         gradlePropertiesAsSeenByToolchains.putAll(properties.getProperties());
         gradlePropertiesAsSeenByToolchains.putAll(startParameter.getProjectProperties());
         toolchainConfigurationBuildOptionBackedConverter.convert(args, gradlePropertiesAsSeenByToolchains, daemonParameters.getToolchainConfiguration());
-        daemonParameters.setRequestedJvmCriteria(properties.getBuildProperties());
+        daemonParameters.setRequestedJvmCriteria(properties.getDaemonJVMProperties());
 
         return new Parameters(startParameter, daemonParameters, properties);
     }

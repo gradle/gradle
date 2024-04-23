@@ -20,13 +20,13 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
-import org.gradle.internal.buildconfiguration.fixture.BuildPropertiesFixture
+import org.gradle.internal.buildconfiguration.fixture.DaemonJVMPropertiesFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.junit.Assume
 
-class DaemonToolchainIntegrationTest extends AbstractIntegrationSpec implements BuildPropertiesFixture, JavaToolchainFixture {
+class DaemonToolchainIntegrationTest extends AbstractIntegrationSpec implements DaemonJVMPropertiesFixture, JavaToolchainFixture {
     def setup() {
         executer.requireIsolatedDaemons()
         executer.requireDaemon()

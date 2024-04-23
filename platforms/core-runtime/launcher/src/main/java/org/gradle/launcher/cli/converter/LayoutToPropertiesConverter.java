@@ -25,7 +25,7 @@ import org.gradle.initialization.StartParameterBuildOptions;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.Cast;
-import org.gradle.internal.buildconfiguration.BuildPropertiesDefaults;
+import org.gradle.internal.buildconfiguration.DaemonJVMPropertiesDefaults;
 import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
 import org.gradle.launcher.daemon.toolchain.ToolchainBuildOptions;
@@ -70,9 +70,9 @@ public class LayoutToPropertiesConverter {
         configureFromSystemPropertiesOfThisJvm(Cast.uncheckedNonnullCast(properties));
         properties.putAll(initialProperties.getRequestedSystemProperties());
 
-        Map<String, String> buildProperties = new HashMap<>();
-        configureFromBuildProperties(layout, buildProperties);
-        return new Result(properties, buildProperties, initialProperties);
+        Map<String, String> daemonJVMProperties = new HashMap<>();
+        configureFromDaemonJVMProperties(layout, daemonJVMProperties);
+        return new Result(properties, daemonJVMProperties, initialProperties);
     }
 
     private void configureFromSystemPropertiesOfThisJvm(Map<Object, Object> properties) {
@@ -94,9 +94,9 @@ public class LayoutToPropertiesConverter {
         maybeConfigureFrom(new File(layout.getRootDirectory(), Project.GRADLE_PROPERTIES), result);
     }
 
-    private void configureFromBuildProperties(BuildLayoutResult layoutResult, Map<String, String> result) {
+    private void configureFromDaemonJVMProperties(BuildLayoutResult layoutResult, Map<String, String> result) {
         BuildLayout layout = buildLayoutFactory.getLayoutFor(layoutResult.toLayoutConfiguration());
-        configureFrom(new File(layout.getRootDirectory(), BuildPropertiesDefaults.BUILD_PROPERTIES_FILE), result);
+        configureFrom(new File(layout.getRootDirectory(), DaemonJVMPropertiesDefaults.DAEMON_JVM_PROPERTIES_FILE), result);
     }
 
     private void configureFrom(File propertiesFile, Map<String, String> result) {
@@ -141,12 +141,12 @@ public class LayoutToPropertiesConverter {
 
     private static class Result implements AllProperties {
         private final Map<String, String> properties;
-        private final Map<String, String> buildProperties;
+        private final Map<String, String> daemonJVMProperties;
         private final InitialProperties initialProperties;
 
-        public Result(Map<String, String> properties, Map<String, String> buildProperties, InitialProperties initialProperties) {
+        public Result(Map<String, String> properties, Map<String, String> daemonJVMProperties, InitialProperties initialProperties) {
             this.properties = properties;
-            this.buildProperties = buildProperties;
+            this.daemonJVMProperties = daemonJVMProperties;
             this.initialProperties = initialProperties;
         }
 
@@ -161,8 +161,8 @@ public class LayoutToPropertiesConverter {
         }
 
         @Override
-        public Map<String, String> getBuildProperties() {
-            return Collections.unmodifiableMap(buildProperties);
+        public Map<String, String> getDaemonJVMProperties() {
+            return Collections.unmodifiableMap(daemonJVMProperties);
         }
 
         @Override
@@ -170,7 +170,7 @@ public class LayoutToPropertiesConverter {
             Map<String, String> properties = new HashMap<>(this.properties);
             properties.putAll(systemProperties);
             properties.putAll(initialProperties.getRequestedSystemProperties());
-            return new Result(properties, buildProperties, initialProperties);
+            return new Result(properties, daemonJVMProperties, initialProperties);
         }
     }
 }

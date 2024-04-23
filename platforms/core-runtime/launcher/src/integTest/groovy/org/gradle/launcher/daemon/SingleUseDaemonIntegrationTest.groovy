@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
-import org.gradle.internal.buildconfiguration.fixture.BuildPropertiesFixture
+import org.gradle.internal.buildconfiguration.fixture.DaemonJVMPropertiesFixture
 import org.gradle.launcher.daemon.client.DaemonStartupMessage
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient
 import org.gradle.test.precondition.Requires
@@ -29,7 +29,7 @@ import org.gradle.test.preconditions.IntegTestPreconditions
 import java.nio.charset.Charset
 
 @Requires(IntegTestPreconditions.NotDaemonExecutor)
-class SingleUseDaemonIntegrationTest extends AbstractIntegrationSpec implements BuildPropertiesFixture, JavaToolchainFixture {
+class SingleUseDaemonIntegrationTest extends AbstractIntegrationSpec implements DaemonJVMPropertiesFixture, JavaToolchainFixture {
 
     def setup() {
         executer.withArgument("--no-daemon")

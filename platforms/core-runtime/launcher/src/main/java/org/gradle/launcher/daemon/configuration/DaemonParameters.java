@@ -18,7 +18,7 @@ package org.gradle.launcher.daemon.configuration;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.internal.buildconfiguration.BuildPropertiesDefaults;
+import org.gradle.internal.buildconfiguration.DaemonJVMPropertiesDefaults;
 import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.JpmsConfiguration;
 import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
@@ -129,14 +129,14 @@ public class DaemonParameters {
     }
 
     public void setRequestedJvmCriteria(@Nullable Map<String, String> buildProperties) {
-        String requestedVersion = buildProperties.get(BuildPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY);
+        String requestedVersion = buildProperties.get(DaemonJVMPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY);
         if (requestedVersion != null) {
             try {
                 JavaVersion javaVersion = JavaVersion.toVersion(requestedVersion);
                 this.requestedJvmCriteria = new DaemonJvmCriteria(javaVersion, DefaultJvmVendorSpec.any(), JvmImplementation.VENDOR_SPECIFIC);
             } catch (Exception e) {
                 // TODO: This should be pushed somewhere else so we consistently report this message in the right context.
-                throw new IllegalArgumentException(String.format("Value '%s' given for %s is an invalid Java version", requestedVersion, BuildPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY));
+                throw new IllegalArgumentException(String.format("Value '%s' given for %s is an invalid Java version", requestedVersion, DaemonJVMPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY));
             }
         }
     }

@@ -20,12 +20,12 @@ import groovy.transform.SelfType
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.internal.buildconfiguration.BuildPropertiesDefaults
+import org.gradle.internal.buildconfiguration.DaemonJVMPropertiesDefaults
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
 
 @SelfType(AbstractIntegrationSpec)
-trait BuildPropertiesFixture {
+trait DaemonJVMPropertiesFixture {
     void assertDaemonUsedJvm(Jvm expectedJvm) {
         assert file("javaHome.txt").text == expectedJvm.javaHome.canonicalPath
     }
@@ -38,15 +38,15 @@ trait BuildPropertiesFixture {
         """
     }
 
-    TestFile getBuildPropertiesFile() {
-        return file(BuildPropertiesDefaults.BUILD_PROPERTIES_FILE)
+    TestFile getDaemonJVMPropertiesFile() {
+        return file(DaemonJVMPropertiesDefaults.DAEMON_JVM_PROPERTIES_FILE)
     }
 
     void assertJvmCriteria(JavaVersion version, String vendor = null, String implementation = null) {
-        Map<String, String> properties = buildPropertiesFile.properties
-        assert properties.get(BuildPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY) == version.majorVersion
-        assert properties.get(BuildPropertiesDefaults.TOOLCHAIN_VENDOR_PROPERTY) == vendor
-        assert properties.get(BuildPropertiesDefaults.TOOLCHAIN_IMPLEMENTATION_PROPERTY) == implementation
+        Map<String, String> properties = daemonJVMPropertiesFile.properties
+        assert properties.get(DaemonJVMPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY) == version.majorVersion
+        assert properties.get(DaemonJVMPropertiesDefaults.TOOLCHAIN_VENDOR_PROPERTY) == vendor
+        assert properties.get(DaemonJVMPropertiesDefaults.TOOLCHAIN_IMPLEMENTATION_PROPERTY) == implementation
     }
 
     void writeJvmCriteria(Jvm jvm) {
@@ -56,14 +56,14 @@ trait BuildPropertiesFixture {
 
     void writeJvmCriteria(JavaVersion version, String vendor = null, String implementation = null) {
         Properties properties = new Properties()
-        properties.put(BuildPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY, version.majorVersion)
+        properties.put(DaemonJVMPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY, version.majorVersion)
         if (vendor) {
-            properties.put(BuildPropertiesDefaults.TOOLCHAIN_VENDOR_PROPERTY, vendor)
+            properties.put(DaemonJVMPropertiesDefaults.TOOLCHAIN_VENDOR_PROPERTY, vendor)
         }
         if (implementation) {
-            properties.put(BuildPropertiesDefaults.TOOLCHAIN_IMPLEMENTATION_PROPERTY, implementation)
+            properties.put(DaemonJVMPropertiesDefaults.TOOLCHAIN_IMPLEMENTATION_PROPERTY, implementation)
         }
-        buildPropertiesFile.writeProperties(properties)
+        daemonJVMPropertiesFile.writeProperties(properties)
         assertJvmCriteria(version, vendor, implementation)
     }
 }

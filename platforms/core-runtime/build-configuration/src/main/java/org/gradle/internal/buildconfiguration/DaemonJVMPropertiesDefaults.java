@@ -18,8 +18,8 @@ package org.gradle.internal.buildconfiguration;
 
 import org.gradle.api.JavaVersion;
 
-public class BuildPropertiesDefaults {
-    public static final String BUILD_PROPERTIES_FILE = "gradle/gradle-build.properties";
+public class DaemonJVMPropertiesDefaults {
+    public static final String DAEMON_JVM_PROPERTIES_FILE = "gradle/gradle-daemon-jvm.properties";
 
     public static final String TOOLCHAIN_VERSION_PROPERTY = "daemon.jvm.toolchain.version";
     public static final String TOOLCHAIN_VENDOR_PROPERTY = "daemon.jvm.toolchain.vendor";
