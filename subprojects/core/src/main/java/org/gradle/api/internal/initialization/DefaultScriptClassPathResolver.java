@@ -38,7 +38,6 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInter
 import org.gradle.api.internal.initialization.transform.registration.InstrumentationTransformRegisterer;
 import org.gradle.api.internal.initialization.transform.services.CacheInstrumentationDataBuildService;
 import org.gradle.api.internal.initialization.transform.services.CacheInstrumentationDataBuildService.ResolutionScope;
-import org.gradle.api.internal.initialization.transform.utils.InstrumentationClasspathMerger;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.agents.AgentStatus;
@@ -49,9 +48,7 @@ import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.logging.util.Log4jBannedVersion;
 import org.gradle.util.GradleVersion;
 
-import java.io.File;
 import java.util.EnumSet;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -148,7 +145,7 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
 
     private ArtifactView getOriginalProjectDependencies(Configuration classpathConfiguration) {
         return classpathConfiguration.getIncoming().artifactView((Action<? super ArtifactView.ViewConfiguration>) config -> {
-            config.componentFilter(it -> isProjectDependency(it));
+            config.componentFilter(DefaultScriptClassPathResolver::isProjectDependency);
         });
     }
 

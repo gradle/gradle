@@ -17,27 +17,12 @@
 package org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks
 
 import org.gradle.StartParameter
-import org.gradle.api.artifacts.ArtifactCollection
-import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.ConfigurationContainer
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier
-import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.file.FileCollection
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.internal.StartParameterInternal
-import org.gradle.api.internal.artifacts.DependencyManagementServices
-import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
-import org.gradle.api.internal.artifacts.dependencies.DefaultFileCollectionDependency
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal.ClassPathNotation
-import org.gradle.api.internal.artifacts.dsl.dependencies.UnknownProjectFinder
-import org.gradle.api.internal.file.FileCollectionFactory
-import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
-import org.gradle.api.internal.initialization.ScriptClassPathResolver
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateRegistry
-import org.gradle.api.invocation.Gradle
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
@@ -56,9 +41,9 @@ import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.internal.Try
 import org.gradle.internal.build.NestedRootBuildRunner.createNestedBuildTree
+import org.gradle.internal.classpath.CachedClasspathTransformer
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
-import org.gradle.internal.component.local.model.OpaqueComponentIdentifier
 import org.gradle.internal.concurrent.CompositeStoppable.stoppable
 import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.internal.hash.HashCode
@@ -119,15 +104,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
 
     @get:InputFiles
     @get:Classpath
-    val runtimeClassPathFiles: FileCollection
-        get() = runtimeClassPathArtifactCollection.get().artifactFiles
-
-    /**
-     * Tracked via [runtimeClassPathFiles].
-     */
-    @get:Internal
-    internal
-    abstract val runtimeClassPathArtifactCollection: Property<ArtifactCollection>
+    abstract val runtimeClassPathFiles: ConfigurableFileCollection
 
     @get:OutputDirectory
     abstract val metadataOutputDir: DirectoryProperty
@@ -372,7 +349,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
                     val baseScope = classLoaderScopeRegistry.coreAndPluginsScope.createChild("accessors-classpath", null).apply {
                         // we export the build logic classpath to the base scope here so that all referenced plugins
                         // can be resolved in the root project scope created below.
-                        export(buildLogicClassPath(gradle))
+                        export(buildLogicClassPath())
                         lock()
                     }
                     val rootProjectScope = baseScope.createChild("accessors-root-project", null)
@@ -431,53 +408,11 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
     }
 
     private
-    fun buildLogicClassPath(gradle: Gradle): ClassPath {
-        // Ideally we would pass already instrumented classpath to a task and then just export it to the classloader.
-        // But since we do some artifact transform caching via BuildService,
-        // that would add some complexity when wiring GeneratePrecompiledScriptPluginAccessors task.
-        val dependencyManagementServices = gradle.serviceOf<DependencyManagementServices>()
-        val fileCollectionFactory = gradle.serviceOf<FileCollectionFactory>()
-        val dependencyResolutionServices = dependencyManagementServices.create(
-            gradle.serviceOf<FileResolver>(),
-            fileCollectionFactory,
-            gradle.serviceOf<DependencyMetaDataProvider>(),
-            UnknownProjectFinder("Project dependencies are not allowed at GeneratePrecompiledScriptPluginAccessors resolution"),
-            RootScriptDomainObjectContext.PLUGINS
+    fun buildLogicClassPath(): ClassPath =
+        services.get<CachedClasspathTransformer>().transform(
+            DefaultClassPath.of(runtimeClassPathFiles),
+            CachedClasspathTransformer.StandardTransform.BuildLogic
         )
-
-        val dependencies = dependencyResolutionServices.dependencyHandler
-        val configurations = dependencyResolutionServices.configurationContainer
-        val configuration = createBuildLogicClassPathConfiguration(dependencies, configurations, fileCollectionFactory)
-
-        val resolver = gradle.serviceOf<ScriptClassPathResolver>()
-        val resolutionContext = resolver.prepareDependencyHandler(dependencies)
-        resolver.prepareClassPath(configuration, resolutionContext)
-        return resolver.resolveClassPath(configuration, resolutionContext)
-    }
-
-    private
-    fun createBuildLogicClassPathConfiguration(
-        dependencyHandler: DependencyHandler,
-        configurations: ConfigurationContainer,
-        fileCollectionFactory: FileCollectionFactory
-    ): Configuration {
-        val dependencies = runtimeClassPathArtifactCollection.get().artifacts.map {
-            when (val componentIdentifier = it.id.componentIdentifier) {
-                is OpaqueComponentIdentifier -> DefaultFileCollectionDependency(
-                    componentIdentifier,
-                    fileCollectionFactory.fixed(it.file)
-                )
-                is ProjectComponentIdentifier -> DefaultFileCollectionDependency(
-                    OpaqueComponentIdentifier(ClassPathNotation.LOCAL_PROJECT_AS_OPAQUE_DEPENDENCY),
-                    fileCollectionFactory.fixed(componentIdentifier.displayName, it.file)
-                )
-                else -> {
-                    dependencyHandler.create(fileCollectionFactory.fixed(it.file))
-                }
-            }
-        }.toTypedArray()
-        return configurations.detachedConfiguration(*dependencies)
-    }
 
     private
     fun uniqueTempDirectory() =

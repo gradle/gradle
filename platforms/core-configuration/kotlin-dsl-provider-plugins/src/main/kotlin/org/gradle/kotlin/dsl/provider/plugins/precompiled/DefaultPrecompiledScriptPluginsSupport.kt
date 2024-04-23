@@ -224,7 +224,7 @@ fun Project.enableScriptCompilationOf(
             ) {
                 dependsOn(compilePluginsBlocks)
                 classPathFiles.from(compileClasspath)
-                runtimeClassPathArtifactCollection.set(configurations["runtimeClasspath"].incoming.artifacts)
+                runtimeClassPathFiles.setFrom(configurations["runtimeClasspath"])
                 sourceCodeOutputDir.set(it)
                 metadataOutputDir.set(accessorsMetadata)
                 compiledPluginsBlocksDir.set(compiledPluginsBlocks)
