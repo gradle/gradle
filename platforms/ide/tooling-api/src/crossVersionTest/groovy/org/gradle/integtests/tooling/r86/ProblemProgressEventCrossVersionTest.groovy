@@ -63,13 +63,6 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         return listener.problems.collect { it.descriptor }
     }
 
-    static def assertProblemDetailsForTAPIProblemEvent(List<?> problems) {
-        assertProblemDetailsForTAPIProblemEventWithoutSolution(problems)
-    }
-
-    static void assertProblemDetailsForTAPIProblemEventWithoutSolution(List<?> problems) {
-        problems.size() == 1
-    }
 
     @TargetGradleVersion("=8.3")
     def "Older Gradle versions do not report problems"() {
