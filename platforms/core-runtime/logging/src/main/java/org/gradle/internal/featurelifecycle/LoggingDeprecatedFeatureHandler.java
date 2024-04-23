@@ -160,7 +160,6 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
     }
 
     private void displayDeprecationIfSameMessageNotDisplayedBefore(StringBuilder messageBuilder, @Nullable Failure stackTracing) {
-
         if (stackTracing == null) {
             displayDeprecationIfSameMessageNotDisplayedBefore(messageBuilder.toString());
             return;
@@ -172,7 +171,6 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
             appendFirstUserCodeStackFrame(messageBuilder, stackTracing);
             displayDeprecationIfSameMessageNotDisplayedBefore(messageBuilder.toString());
         }
-
     }
 
     private void printFullStackTraceIfUnique(StringBuilder messageBuilder, Failure stackTracing) {
