@@ -36,6 +36,8 @@ public interface GradleEnterprisePluginEndOfBuildListener {
         Throwable getFailure();
 
         Collection<Problem> getProblems();
+
+        Collection<Problem> getProblemsFor(Throwable failure);
     }
 
     void buildFinished(BuildResult buildResult);
