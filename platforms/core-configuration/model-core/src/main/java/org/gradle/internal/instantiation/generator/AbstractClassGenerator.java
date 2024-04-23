@@ -33,6 +33,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
+import org.gradle.api.IsolatedAction;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.artifacts.dsl.DependencyCollector;
@@ -856,12 +857,17 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         @Override
         public void visitInstanceMethod(Method method) {
             Class<?>[] parameterTypes = method.getParameterTypes();
-            if (parameterTypes.length > 0 && parameterTypes[parameterTypes.length - 1].equals(Action.class)) {
-                actionMethods.add(method);
-            } else if (parameterTypes.length > 0 && parameterTypes[parameterTypes.length - 1].equals(Closure.class)) {
-                closureMethods.put(method.getName(), method);
-            } else if (method.getName().equals("toString") && parameterTypes.length == 0 && method.getDeclaringClass() != Object.class) {
-                providesOwnToString = true;
+            if (parameterTypes.length == 0) {
+                if (method.getName().equals("toString") && method.getDeclaringClass() != Object.class) {
+                    providesOwnToString = true;
+                }
+            } else {
+                Class<?> lastParameterType = parameterTypes[parameterTypes.length - 1];
+                if (lastParameterType.equals(Action.class) || lastParameterType.equals(IsolatedAction.class)) {
+                    actionMethods.add(method);
+                } else if (lastParameterType.equals(Closure.class)) {
+                    closureMethods.put(method.getName(), method);
+                }
             }
         }
 
