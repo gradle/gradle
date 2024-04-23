@@ -99,7 +99,7 @@ include::{snippetsPath}/initScripts/configurationInjection/tests-common/initScri
 ----
 
 [[sec:custom_classpath]]
-== Adding external dependencies to an init script
+== Adding external dependencies
 
 Init scripts can also declare dependencies with the `initscript()` method, passing in a closure that declares the init script classpath.
 
@@ -138,7 +138,7 @@ include::{snippetsPath}/initScripts/externalDependency/tests-common/externalInit
 ----
 
 [[sec:init_script_plugins]]
-== Applying plugins in an init script
+== Applying plugins
 
 Plugins can be applied to init scripts like a Gradle build script or a Gradle settings file.
 

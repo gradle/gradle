@@ -15,9 +15,8 @@
 [[properties_and_providers]]
 = Understanding Properties and Providers
 
-Lazy properties are important for <<lazy_configuration.adoc#lazy_configuration,lazy configuration>> which optimizes build performance and improves the efficiency of your build scripts by deferring work until it is actually required.
-
-When implementing a custom task or plugin, it's imperative that values and configurations are lazy instead of eager.
+Gradle provides properties that are important for <<lazy_configuration.adoc#lazy_configuration,lazy configuration>>.
+When implementing a custom task or plugin, it's imperative that you use these lazy properties.
 
 image::prop-prov-1.png[]
 
@@ -27,7 +26,8 @@ Gradle represents lazy properties with two interfaces:
 
 2. link:{javadocPath}/org/gradle/api/provider/Provider.html[Provider] - Represents a value that can only be queried and cannot be changed.
 
-Properties and providers manage values and configurations in a build script.
+Properties and providers manage _values and configurations_ in a build script.
+
 In this example, we define a custom task (`CustomTask`) and a custom plugin (`CustomPlugin`):
 
 ====

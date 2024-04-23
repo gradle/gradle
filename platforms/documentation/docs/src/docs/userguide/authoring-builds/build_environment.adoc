@@ -15,9 +15,7 @@
 [[build_environment]]
 = Configuring the Build Environment
 
-Gradle provides multiple mechanisms for configuring the behavior of Gradle itself and specific projects.
-
-The following is a reference for using these mechanisms:
+Gradle provides multiple mechanisms for configuring the behavior of Gradle itself and specific projects:
 
 [cols="~,~,~"]
 |===
@@ -36,8 +34,8 @@ The following is a reference for using these mechanisms:
 |`systemProp.http.proxyHost=somehost.org`
 
 |<<#sec:gradle_configuration_properties,Gradle properties>>
-|Properties that configure Gradle settings
-|`org.gradle.caching=true`
+|Properties that configure Gradle settings and the Java process that executes your build
+|`org.gradle.logging.level=quiet`
 
 |<<#sec:gradle_environment_variables,Environment variables>>
 |Properties that configure build behavior based on the environment
@@ -47,6 +45,7 @@ The following is a reference for using these mechanisms:
 == Priority for configurations
 
 When configuring Gradle behavior, you can use these methods, but you must consider their priority.
+
 The following table lists these methods in order of highest to lowest precedence (the first one wins):
 
 [cols="~,~,~,~,~"]
@@ -62,7 +61,7 @@ The following table lists these methods in order of highest to lowest precedence
 |2
 |<<#sec:gradle_system_properties,System properties>>
 |Project Root Dir
-|`systemProp.http.proxyPort=443`
+|`gradle.user.home=/User`
 |Stored in a `gradle.properties` file.
 
 |3
@@ -70,21 +69,20 @@ The following table lists these methods in order of highest to lowest precedence
 |`GRADLE_USER_HOME` +
 Project Root Dir +
 `GRADLE_HOME`
-|`org.gradle.logging.level=quiet`
+|`org.gradle.caching=true`
 |Stored in a `gradle.properties` file.
 
 |4
 |<<#sec:gradle_environment_variables,Environment variables>>
 |Environment
-|`GRADLE_OPTS`
+|`GRADLE_USER_HOME`
 |Sourced by the environment that executes Gradle.
 |===
 
 [[sec:project_properties]]
 == Project properties
 
-Project properties are specific to your Gradle project.
-They are defined using blocks in your build script or directly in the `project` object.
+Project properties are specific to your Gradle project, they are variables or configuration blocks defined in your build script or in the `project` object.
 
 For example, the project property `myProperty` is created in a build file:
 
@@ -98,51 +96,41 @@ ext {
 println "My property value: ${project.ext.myProperty}"
 ----
 
-You have two options to add project properties, listed in order of priority:
+You have three options to add project properties, listed in order of priority:
 
-1. *Command Line:* You can add properties directly to your link:{groovyDslPath}/org.gradle.api.Project.html[Project] object via the `-P` command line option.
+1. *Command Line:* You can add project properties directly to your link:{groovyDslPath}/org.gradle.api.Project.html[Project] object via the `-P` command line option.
 +
 [source,text]
 ----
 $ ./gradlew build -PmyProperty='Hi, world'
 ----
-2. *System Properties or Environment Variables:* You can set project properties with specially-named system properties or environment variables.
+2. *Command Line:* You can set project properties with specially-named gradle properties using the `-D` command line flag.
 +
 [source,text]
 ----
 $ ./gradlew build -Dorg.gradle.project.myProperty='Hi, world'
 ----
-
-If the environment variable name looks like `ORG_GRADLE_PROJECT___prop__=somevalue`, then Gradle will set a `prop` property on your project object, with the value of `somevalue`.
+3. *Gradle Properties:* You can set project properties with specially-named gradle properties in the `gradle.properties` file.
++
 Gradle also supports this for system properties, but with a different naming pattern, which looks like `org.gradle.project.__prop__`.
-
-The following examples will set the `foo` property on your Project object to `"bar"`.
-
-*Example 1:* Setting a project property via the command line.
-
-[source,text]
-----
-$ ./gradlew build -Pfoo=bar
-----
-
-*Example 2:* Setting a project property via a system property.
-
++
 .gradle.properties
+[source,properties]
+----
+org.gradle.project.myProperty='Hi, world'
+----
+3. *Environment Variables:* You can set project properties with environment variables.
++
 [source,text]
 ----
-org.gradle.project.foo=bar
+$ export ORG_GRADLE_PROJECT_myProperty='Hi, world'
 ----
-
-*Example 3:* Setting a project property via an environment variable.
-
-[source,text]
-----
-$ export ORG_GRADLE_PROJECT_foo=bar
-----
-
-This feature is very useful when you don't have admin rights to a continuous integration server and need to set property values that are not easily visible. Since you cannot use the `-P` option in that scenario nor change the system-level configuration files, the correct strategy is to change the configuration of your continuous integration build job, adding an environment variable setting that matches an expected pattern. This won't be visible to normal users on the system.
-
-You can access a project property in your build script simply by using its name, as you would a variable.
++
+If the environment variable name looks like `ORG_GRADLE_PROJECT___prop__=somevalue`, then Gradle will set a `prop` property on your project object, with the value of `somevalue`.
++
+This feature is very useful when you don't have admin rights to a continuous integration server and need to set property values that are not easily visible.
+Since you cannot use the `-P` option in that scenario nor change the system-level configuration files, the correct strategy is to change the configuration of your continuous integration build job, adding an environment variable setting that matches an expected pattern.
+This won't be visible to normal users on the system.
 
 [[sec:gradle_command_line_flags]]
 == Command-line flags
@@ -165,7 +153,7 @@ The `-D` option of the `gradle` command has the same effect as the `-D` option o
 ----
 $ ./gradlew build -Dgradle.wrapperUser=myuser
 ----
-2. *`gradle.properties` file:* You can also set system properties in `gradle.properties` files with the prefix `systemProp`:
+2. *Gradle Properties:* You can also set system properties in `gradle.properties` files with the prefix `systemProp`.
 +
 .gradle.properties
 [source,text]
@@ -174,7 +162,7 @@ systemProp.gradle.wrapperUser=myuser
 systemProp.gradle.wrapperPassword=mypassword
 ----
 
-The following are _common_ system properties:
+For a quick reference, the following are _common_ system properties:
 
 `gradle.wrapperUser=(myuser)`:: Specify username to download Gradle distributions <<gradle_wrapper.adoc#sec:authenticated_download,from servers using HTTP Basic Authentication>>.
 `gradle.wrapperPassword=(mypassword)`:: Specify password for downloading a Gradle distribution using the Gradle wrapper.
@@ -218,12 +206,18 @@ $ gradle -Dsystem=commandLineValue
 Gradle provides several options that make it easy to configure the Java process that will be used to execute your build.
 While it's possible to configure these in your local environment via `GRADLE_OPTS` or `JAVA_OPTS`, it is useful to be able to store certain settings like JVM memory configuration and `JAVA_HOME` location in version control so that an entire team can work with a consistent environment.
 
-You have one option to add gradle properties:
+You have two options to add gradle properties listed in order of priority:
 
-1. *`gradle.properties` file:* Place these settings into a `gradle.properties` file and commit it to your version control system.
+1. *Command Line:* Using the `-D` command-line option, you can pass a gradle property:
++
+[source,text]
+----
+$ ./gradlew build -Dorg.gradle.caching.debug=false
+----
+2. *Gradle Properties:* Place these settings into a `gradle.properties` file and commit it to your version control system.
 +
 .gradle.properties
-[source,text]
+[source,properties]
 ----
 org.gradle.caching.debug=false
 ----
@@ -258,7 +252,7 @@ If an option is configured in multiple locations, the _first one_ found in any o
 
 NOTE: The location of the `GRADLE_USER_HOME` may have been changed beforehand via the `-Dgradle.user.home` system property passed on the command line.
 
-The following properties are common Gradle properties:
+For reference, the following properties are common Gradle properties:
 
 `org.gradle.caching=(true,false)`::
 When set to `true`, Gradle will reuse task outputs from any previous build when possible, <<build_cache.adoc#build_cache,resulting in much faster builds>>.

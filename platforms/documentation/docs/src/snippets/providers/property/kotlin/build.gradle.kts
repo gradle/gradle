@@ -1,6 +1,6 @@
 // tag::set-prop[]
 // Setting a property
-val simpleMessageProperty: Property<String> = project.objects.property(String::class.java)
+val simpleMessageProperty: Property<String> = project.objects.property(String::class)
 simpleMessageProperty.set("Hello, World from a Property!")
 // Accessing a property
 println(simpleMessageProperty.get())
@@ -28,7 +28,7 @@ abstract class CustomTask : DefaultTask() {
 abstract class CustomPlugin : Plugin<Project> {
     override fun apply(project: Project) {
         // Create a lazy property (provider) for the custom task
-        val customTaskProvider: Provider<CustomTask> = project.tasks.register("customTask", CustomTask::class.java)
+        val customTaskProvider: Provider<CustomTask> = project.tasks.register("customTask", CustomTask::class)
 
         // Configure a task to depend on the lazy property
         project.tasks.register("dependentTask") {
