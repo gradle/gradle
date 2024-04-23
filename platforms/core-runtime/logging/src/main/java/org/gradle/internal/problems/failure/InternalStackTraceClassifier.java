@@ -26,10 +26,14 @@ public class InternalStackTraceClassifier implements StackTraceClassifier {
     @Nullable
     @Override
     public StackTraceRelevance classify(StackTraceElement frame) {
-        return isInternal(frame.getClassName()) ? StackTraceRelevance.INTERNAL : null;
+        return isInternal(frame) ? StackTraceRelevance.INTERNAL : null;
     }
 
-    private static boolean isInternal(String className) {
+    private static boolean isInternal(StackTraceElement frame) {
+        return frame.getFileName() == null || isInternalClass(frame.getClassName());
+    }
+
+    private static boolean isInternalClass(String className) {
         // JDK calls
         return className.startsWith("java.") ||
             className.startsWith("jdk.") ||
