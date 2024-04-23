@@ -18,21 +18,13 @@ package org.gradle.internal.problems.failure;
 
 public interface StackFramePredicate {
 
-    StackFramePredicate USER_CODE = new ForRelevance(StackTraceRelevance.USER_CODE);
+    StackFramePredicate USER_CODE = new StackFramePredicate() {
+        @Override
+        public boolean test(StackTraceElement frame, StackTraceRelevance relevance) {
+            return StackTraceRelevance.USER_CODE.equals(relevance);
+        }
+    };
 
     boolean test(StackTraceElement frame, StackTraceRelevance relevance);
 
-    class ForRelevance implements StackFramePredicate {
-
-        private final StackTraceRelevance relevance;
-
-        public ForRelevance(StackTraceRelevance relevance) {
-            this.relevance = relevance;
-        }
-
-        @Override
-        public boolean test(StackTraceElement frame, StackTraceRelevance relevance) {
-            return this.relevance.equals(relevance);
-        }
-    }
 }
