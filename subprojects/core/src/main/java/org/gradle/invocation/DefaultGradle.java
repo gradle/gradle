@@ -96,6 +96,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     private List<IncludedBuildInternal> includedBuilds;
     private final MutableActionSet<Project> rootProjectActions = new MutableActionSet<>();
     private final IsolatedProjectEvaluationListenerProvider isolatedProjectEvaluationListenerProvider;
+    private GradleLifecycle lifecycle;
     private boolean projectsLoaded;
     private Path identityPath;
     private Supplier<? extends ClassLoaderScope> classLoaderScope;
@@ -201,7 +202,10 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
 
     @Override
     public GradleLifecycle getLifecycle() {
-        return services.get(ObjectFactory.class).newInstance(DefaultGradleLifecycle.class, this);
+        if (lifecycle == null) {
+            lifecycle = instantiateGradleLifecycle();
+        }
+        return lifecycle;
     }
 
     @Override
@@ -612,7 +616,11 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     @Inject
     public abstract PublicBuildPath getPublicBuildPath();
 
-    public static class DefaultGradleLifecycle implements GradleLifecycle {
+    private DefaultGradleLifecycle instantiateGradleLifecycle() {
+        return services.get(ObjectFactory.class).newInstance(DefaultGradleLifecycle.class, this);
+    }
+
+    static class DefaultGradleLifecycle implements GradleLifecycle {
 
         private final DefaultGradle gradle;
 
