@@ -16,9 +16,12 @@
 
 package org.gradle.api.internal.plugins.software
 
+import com.google.common.reflect.TypeToken
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.internal.SettingsInternal
+import org.gradle.api.internal.plugins.ExtensionContainerInternal
 import org.gradle.api.internal.plugins.PluginTarget
 import org.gradle.api.internal.tasks.properties.InspectionScheme
 import org.gradle.internal.exceptions.DefaultMultiCauseException
@@ -30,10 +33,11 @@ import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 import spock.lang.Specification
 
 class SoftwareTypeRegistrationPluginTargetTest extends Specification {
+    def settings = Mock(SettingsInternal)
     def delegate = Mock(PluginTarget)
     def softwareTypeRegistry = Mock(SoftwareTypeRegistry)
     def inspectionScheme = Mock(InspectionScheme)
-    def pluginTarget = new SoftwareTypeRegistrationPluginTarget(delegate, softwareTypeRegistry, inspectionScheme)
+    def pluginTarget = new SoftwareTypeRegistrationPluginTarget(settings, delegate, softwareTypeRegistry, inspectionScheme)
     def plugin = Mock(Plugin)
     def metadataStore = Mock(TypeMetadataStore)
     def pluginTypeMetadata = Mock(TypeMetadata)
@@ -41,23 +45,34 @@ class SoftwareTypeRegistrationPluginTargetTest extends Specification {
     def registersSoftwareTypes = Mock(RegistersSoftwareTypes)
     def softwareTypePluginMetadata = Mock(TypeMetadata)
     def propertyMetadata = Mock(PropertyMetadata)
+    def fooTypeMetadata = Mock(TypeMetadata)
+    def extensions = Mock(ExtensionContainerInternal)
+    def softwareType = Mock(SoftwareType)
 
-    def "adds software type plugins for plugin that registers software types"() {
+    def "adds software types and registers conventions for plugin that registers software types"() {
         when:
         pluginTarget.applyImperative(null, plugin)
 
         then: // setup property metadata
-        2 * inspectionScheme.getMetadataStore() >> metadataStore
+        3 * inspectionScheme.getMetadataStore() >> metadataStore
         1 * metadataStore.getTypeMetadata(plugin.class) >> pluginTypeMetadata
         1 * pluginTypeMetadata.getTypeAnnotationMetadata() >> typeAnnotationMetadata
         1 * typeAnnotationMetadata.getAnnotation(RegistersSoftwareTypes.class) >> Optional.of(registersSoftwareTypes)
         1 * registersSoftwareTypes.value() >> [SoftwareTypePlugin.class]
-        1 * metadataStore.getTypeMetadata(SoftwareTypePlugin.class) >> softwareTypePluginMetadata
-        1 * softwareTypePluginMetadata.getPropertiesMetadata() >> [propertyMetadata]
+        2 * metadataStore.getTypeMetadata(SoftwareTypePlugin.class) >> softwareTypePluginMetadata
+        2 * softwareTypePluginMetadata.getPropertiesMetadata() >> [propertyMetadata]
 
         and: // returns property metadata with an annotation
-        1 * propertyMetadata.getAnnotation(SoftwareType.class) >> Optional.of(Stub(SoftwareType))
+        2 * propertyMetadata.getAnnotation(SoftwareType.class) >> Optional.of(softwareType)
         1 * softwareTypeRegistry.register(SoftwareTypePlugin.class)
+        1 * propertyMetadata.getPropertyType() >> SoftwareType.class
+        1 * propertyMetadata.getDeclaredType() >> TypeToken.of(Foo.class)
+        1 * metadataStore.getTypeMetadata(Foo.class) >> fooTypeMetadata
+        1 * fooTypeMetadata.getPropertiesMetadata() >> []
+        1 * settings.getExtensions() >> extensions
+        1 * softwareType.name() >> "foo"
+        1 * softwareType.modelPublicType() >> Foo.class
+        1 * extensions.create("foo", Foo.class)
 
         and:
         1 * delegate.applyImperative(null, plugin)
@@ -134,6 +149,7 @@ class SoftwareTypeRegistrationPluginTargetTest extends Specification {
         0 * _
     }
 
-    abstract class SoftwareTypePlugin implements Plugin<Project> { }
+    abstract static class SoftwareTypePlugin implements Plugin<Project> { }
+    abstract static class Foo {}
     private static class Rule {}
 }
