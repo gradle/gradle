@@ -121,7 +121,8 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
         }
 
         def finalizeOps = operations.all(FinalizeBuildCacheConfigurationBuildOperationType)
-        finalizeOps.size() == expectedCacheDirs.size()
+        def opsPerCache = configCache ? 2 : 1
+        finalizeOps.size() == expectedCacheDirs.size() * opsPerCache
         def pathToCacheDirMap = finalizeOps.collectEntries {
             [
                 it.details.buildPath,

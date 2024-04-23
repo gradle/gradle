@@ -19,6 +19,7 @@ package org.gradle.internal.build;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.caching.internal.controller.impl.LifecycleAwareBuildCacheController;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
@@ -75,6 +76,7 @@ public abstract class AbstractBuildState implements BuildState, Closeable {
         projectStateRegistry.get().discardProjectsFor(this);
         workGraphController.get().resetState();
         buildLifecycleController.get().resetModel();
+        buildLifecycleController.get().getGradle().getServices().get(LifecycleAwareBuildCacheController.class).resetState();
     }
 
     @Override

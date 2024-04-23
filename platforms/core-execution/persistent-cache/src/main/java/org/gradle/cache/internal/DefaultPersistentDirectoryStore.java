@@ -203,7 +203,6 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
         @Override
         public void cleanup() {
             if (cacheCleanupStrategy != null && requiresCleanup()) {
-                String description = "Cleaning " + getDisplayName();
                 buildOperationRunner.run(new RunnableBuildOperation() {
                     @Override
                     public void run(BuildOperationContext context) {
