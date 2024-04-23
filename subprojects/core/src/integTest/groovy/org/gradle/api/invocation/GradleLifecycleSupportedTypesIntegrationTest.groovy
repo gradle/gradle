@@ -48,7 +48,7 @@ class GradleLifecycleSupportedTypesIntegrationTest extends AbstractIntegrationSp
                 SomeBean bean = new SomeBean()
                 ${type} value = ${reference}
                 bean.value = ${reference}
-                gradle.lifecycle.beforeProject { target ->
+                gradle.lifecycle.beforeProject {
                     println "this.value = " + value
                     println "bean.value = " + bean.value
                 }
