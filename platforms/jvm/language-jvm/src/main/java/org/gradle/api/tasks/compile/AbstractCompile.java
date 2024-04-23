@@ -24,16 +24,16 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.internal.deprecation.DeprecationLogger;
-import org.gradle.internal.instrumentation.api.annotations.UpgradedAccessor;
-import org.gradle.internal.instrumentation.api.annotations.UpgradedDeprecation;
-import org.gradle.internal.instrumentation.api.annotations.UpgradedDeprecation.RemovedIn;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation.RemovedIn;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.work.DisableCachingByDefault;
 
 import java.io.File;
 
-import static org.gradle.internal.instrumentation.api.annotations.UpgradedAccessor.AccessorType.GETTER;
-import static org.gradle.internal.instrumentation.api.annotations.UpgradedAccessor.AccessorType.SETTER;
+import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.GETTER;
+import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.SETTER;
 import static org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility.ACCESSORS_KEPT;
 
 /**
@@ -77,12 +77,12 @@ public abstract class AbstractCompile extends SourceTask {
      */
     @OutputDirectory
     @ReplacesEagerProperty(
-        originalAccessors = {
-            @UpgradedAccessor(value = GETTER, name = "getDestinationDir"),
-            @UpgradedAccessor(value = SETTER, name = "setDestinationDir")
+        replacedAccessors = {
+            @ReplacedAccessor(value = GETTER, name = "getDestinationDir"),
+            @ReplacedAccessor(value = SETTER, name = "setDestinationDir")
         },
         binaryCompatibility = ACCESSORS_KEPT,
-        deprecation = @UpgradedDeprecation(removedIn = RemovedIn.GRADLE9, withUpgradeGuideMajorVersion = 7, withUpgradeGuideSection = "compile_task_wiring")
+        deprecation = @ReplacedDeprecation(removedIn = RemovedIn.GRADLE9, withUpgradeGuideMajorVersion = 7, withUpgradeGuideSection = "compile_task_wiring")
     )
     public DirectoryProperty getDestinationDirectory() {
         return destinationDirectory;

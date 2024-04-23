@@ -34,9 +34,9 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.deprecation.DeprecationLogger;
-import org.gradle.internal.instrumentation.api.annotations.UpgradedAccessor;
-import org.gradle.internal.instrumentation.api.annotations.UpgradedDeprecation;
-import org.gradle.internal.instrumentation.api.annotations.UpgradedDeprecation.RemovedIn;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation.RemovedIn;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRunner;
@@ -48,8 +48,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 import static org.gradle.internal.concurrent.CompositeStoppable.stoppable;
-import static org.gradle.internal.instrumentation.api.annotations.UpgradedAccessor.AccessorType.GETTER;
-import static org.gradle.internal.instrumentation.api.annotations.UpgradedAccessor.AccessorType.SETTER;
+import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.GETTER;
+import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.SETTER;
 import static org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility.ACCESSORS_KEPT;
 import static org.gradle.util.internal.CollectionUtils.collect;
 
@@ -112,12 +112,12 @@ public abstract class TestReport extends DefaultTask {
      */
     @OutputDirectory
     @ReplacesEagerProperty(
-        originalAccessors = {
-            @UpgradedAccessor(value = GETTER, name = "getDestinationDir"),
-            @UpgradedAccessor(value = SETTER, name = "setDestinationDir")
+        replacedAccessors = {
+            @ReplacedAccessor(value = GETTER, name = "getDestinationDir"),
+            @ReplacedAccessor(value = SETTER, name = "setDestinationDir")
         },
         binaryCompatibility = ACCESSORS_KEPT,
-        deprecation = @UpgradedDeprecation(removedIn = RemovedIn.GRADLE9, withDslReference = true)
+        deprecation = @ReplacedDeprecation(removedIn = RemovedIn.GRADLE9, withDslReference = true)
     )
     public DirectoryProperty getDestinationDirectory() {
         return this.destinationDir;

@@ -25,7 +25,7 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.CLASS)
 @Target({ElementType.ANNOTATION_TYPE})
-public @interface UpgradedAccessor {
+public @interface ReplacedAccessor {
 
     enum AccessorType {
         GETTER,
@@ -39,10 +39,13 @@ public @interface UpgradedAccessor {
      */
     String name();
 
+    /**
+     * See {@link ReplacesEagerProperty#originalType()}
+     */
     Class<?> originalType() default DefaultValue.class;
 
     /**
-     * Applies only to setters
+     * See {@link ReplacesEagerProperty#fluentSetter()}
      */
     boolean fluentSetter() default false;
 }

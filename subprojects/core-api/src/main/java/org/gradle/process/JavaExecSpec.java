@@ -27,10 +27,10 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.deprecation.DeprecationLogger;
-import org.gradle.internal.instrumentation.api.annotations.UpgradedAccessor;
-import org.gradle.internal.instrumentation.api.annotations.UpgradedAccessor.AccessorType;
-import org.gradle.internal.instrumentation.api.annotations.UpgradedDeprecation;
-import org.gradle.internal.instrumentation.api.annotations.UpgradedDeprecation.RemovedIn;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation.RemovedIn;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
 import javax.annotation.Nullable;
@@ -75,9 +75,9 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
     @Optional
     @Input
     @ReplacesEagerProperty(
-        originalAccessors = @UpgradedAccessor(value = AccessorType.SETTER, name = "setMain", fluentSetter = true),
+        replacedAccessors = @ReplacedAccessor(value = AccessorType.SETTER, name = "setMain", fluentSetter = true),
         binaryCompatibility = ACCESSORS_KEPT,
-        deprecation = @UpgradedDeprecation(removedIn = RemovedIn.GRADLE9, withDslReference = true)
+        deprecation = @ReplacedDeprecation(removedIn = RemovedIn.GRADLE9, withDslReference = true)
     )
     Property<String> getMainClass();
 

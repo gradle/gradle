@@ -41,16 +41,25 @@ public @interface ReplacesEagerProperty {
      */
     Class<?> originalType() default DefaultValue.class;
 
+    /**
+     * Whether the setter accessor for property was fluent
+     */
     boolean fluentSetter() default false;
 
-    UpgradedAccessor[] originalAccessors() default {};
-
+    /**
+     * Configuration for binary compatibility check, see {@link BinaryCompatibility}
+     */
     BinaryCompatibility binaryCompatibility() default ACCESSORS_REMOVED;
 
     /**
-     * Deprecation configuration for the property
+     * Accessors that are replaced by the property
      */
-    UpgradedDeprecation deprecation() default @UpgradedDeprecation();
+    ReplacedAccessor[] replacedAccessors() default {};
+
+    /**
+     * Deprecation configuration for the replaced accessors
+     */
+    ReplacedDeprecation deprecation() default @ReplacedDeprecation();
 
     interface DefaultValue {
     }

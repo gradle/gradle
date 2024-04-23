@@ -40,7 +40,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
             import org.gradle.api.provider.Property;
             import org.gradle.internal.instrumentation.api.annotations.VisitForInstrumentation;
             import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
-            import org.gradle.internal.instrumentation.api.annotations.UpgradedDeprecation;
+            import org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation;
 
             @VisitForInstrumentation(value = {Task.class})
             public abstract class Task {
@@ -309,14 +309,14 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
             import org.gradle.api.provider.*;
             import org.gradle.api.file.*;
             import org.gradle.internal.instrumentation.api.annotations.*;
-            import org.gradle.internal.instrumentation.api.annotations.UpgradedAccessor.AccessorType;
+            import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
             import java.io.File;
 
             public abstract class Task {
-                @ReplacesEagerProperty(originalAccessors = {
-                    @UpgradedAccessor(value = AccessorType.GETTER, name = "getDestinationDir"),
-                    @UpgradedAccessor(value = AccessorType.SETTER, name = "setDestinationDir"),
-                    @UpgradedAccessor(value = AccessorType.SETTER, name = "destinationDir", originalType = File.class)
+                @ReplacesEagerProperty(replacedAccessors = {
+                    @ReplacedAccessor(value = AccessorType.GETTER, name = "getDestinationDir"),
+                    @ReplacedAccessor(value = AccessorType.SETTER, name = "setDestinationDir"),
+                    @ReplacedAccessor(value = AccessorType.SETTER, name = "destinationDir", originalType = File.class)
                 })
                 public abstract DirectoryProperty getDestinationDirectory();
             }

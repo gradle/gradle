@@ -16,7 +16,7 @@
 
 package org.gradle.internal.instrumentation.extensions.property;
 
-import org.gradle.internal.instrumentation.api.annotations.UpgradedDeprecation.RemovedIn;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation.RemovedIn;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
@@ -58,7 +58,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.gradle.internal.instrumentation.api.annotations.UpgradedAccessor.AccessorType;
+import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
 import static org.gradle.internal.instrumentation.api.declarations.InterceptorDeclaration.GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES;
 import static org.gradle.internal.instrumentation.api.declarations.InterceptorDeclaration.JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES;
 import static org.gradle.internal.instrumentation.api.types.BytecodeInterceptorType.BYTECODE_UPGRADE;
@@ -145,13 +145,13 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
 
     @SuppressWarnings("unchecked")
     private List<AccessorSpec> readAccessorSpecsFromReplacesEagerProperty(ExecutableElement method, AnnotationMirror annotationMirror) {
-        List<AnnotationMirror> originalAccessors = AnnotationUtils.findAnnotationValue(annotationMirror, "originalAccessors")
+        List<AnnotationMirror> replacedAccessors = AnnotationUtils.findAnnotationValueWithDefaults(elements, annotationMirror, "replacedAccessors")
             .map(v -> (List<AnnotationMirror>) v.getValue())
-            .orElse(Collections.emptyList());
-        if (!originalAccessors.isEmpty()) {
+            .orElseThrow(() -> new AnnotationReadFailure(String.format("Missing 'replacedAccessors' attribute in @%s", ReplacesEagerProperty.class.getSimpleName())));
+        if (!replacedAccessors.isEmpty()) {
             DeprecationSpec parentDeprecationSpec = readDeprecationSpec(annotationMirror);
             BinaryCompatibility parentBinaryCompatibility = readBinaryCompatibility(annotationMirror);
-            return originalAccessors.stream()
+            return replacedAccessors.stream()
                 .map(annotation -> getAccessorSpec(method, annotation, parentDeprecationSpec, parentBinaryCompatibility))
                 .collect(Collectors.toList());
         }
@@ -167,35 +167,35 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
             .orElseThrow(() -> new AnnotationReadFailure(String.format("Missing 'deprecation' attribute in @%s", ReplacesEagerProperty.class.getSimpleName())));
         boolean enabled = AnnotationUtils.findAnnotationValueWithDefaults(elements, deprecation, "enabled")
             .map(annotationValue -> (Boolean) annotationValue.getValue())
-            .orElseThrow(() -> new AnnotationReadFailure("Missing 'enabled' attribute in @UpgradedDeprecation"));
+            .orElseThrow(() -> new AnnotationReadFailure("Missing 'enabled' attribute in @ReplacedDeprecation"));
         RemovedIn removedIn = AnnotationUtils.findAnnotationValueWithDefaults(elements, deprecation, "removedIn")
             .map(v -> RemovedIn.valueOf(v.getValue().toString()))
-            .orElseThrow(() -> new AnnotationReadFailure("Missing 'removedIn' attribute in @UpgradedDeprecation"));
+            .orElseThrow(() -> new AnnotationReadFailure("Missing 'removedIn' attribute in @ReplacedDeprecation"));
         int withUpgradeGuideVersion = AnnotationUtils.findAnnotationValueWithDefaults(elements, deprecation, "withUpgradeGuideMajorVersion")
             .map(annotationValue -> (int) annotationValue.getValue())
-            .orElseThrow(() -> new AnnotationReadFailure("Missing 'withUpgradeGuideMajorVersion' attribute in @UpgradedDeprecation"));
+            .orElseThrow(() -> new AnnotationReadFailure("Missing 'withUpgradeGuideMajorVersion' attribute in @ReplacedDeprecation"));
         String withUpgradeGuideSection = AnnotationUtils.findAnnotationValueWithDefaults(elements, deprecation, "withUpgradeGuideSection")
             .map(annotationValue -> (String) annotationValue.getValue())
-            .orElseThrow(() -> new AnnotationReadFailure("Missing 'withUpgradeGuideSection' attribute in @UpgradedDeprecation"));
+            .orElseThrow(() -> new AnnotationReadFailure("Missing 'withUpgradeGuideSection' attribute in @ReplacedDeprecation"));
         boolean withDslReference = AnnotationUtils.findAnnotationValueWithDefaults(elements, deprecation, "withDslReference")
             .map(annotationValue -> (boolean) annotationValue.getValue())
-            .orElseThrow(() -> new AnnotationReadFailure("Missing 'withDslReference' attribute in @UpgradedDeprecation"));
+            .orElseThrow(() -> new AnnotationReadFailure("Missing 'withDslReference' attribute in @ReplacedDeprecation"));
         return new DeprecationSpec(enabled, removedIn, withUpgradeGuideVersion, withUpgradeGuideSection, withDslReference);
     }
 
     private BinaryCompatibility readBinaryCompatibility(AnnotationMirror annotation) {
         return AnnotationUtils.findAnnotationValueWithDefaults(elements, annotation, "binaryCompatibility")
             .map(v -> BinaryCompatibility.valueOf(v.getValue().toString()))
-            .orElseThrow(() -> new AnnotationReadFailure("Missing 'binaryCompatibility' attribute in @UpgradedAccessor"));
+            .orElseThrow(() -> new AnnotationReadFailure("Missing 'binaryCompatibility' attribute in @ReplacedAccessor"));
     }
 
     private AccessorSpec getAccessorSpec(ExecutableElement method, AnnotationMirror annotation, DeprecationSpec parentDeprecationSpec, BinaryCompatibility binaryCompatibility) {
         String methodName = AnnotationUtils.findAnnotationValue(annotation, "name")
             .map(v -> (String) v.getValue())
-            .orElseThrow(() -> new AnnotationReadFailure("Missing 'name' attribute in @UpgradedAccessor"));
+            .orElseThrow(() -> new AnnotationReadFailure("Missing 'name' attribute in @ReplacedAccessor"));
         AccessorType accessorType = AnnotationUtils.findAnnotationValue(annotation, "value")
             .map(v -> AccessorType.valueOf(v.getValue().toString()))
-            .orElseThrow(() -> new AnnotationReadFailure("Missing 'value' attribute in @UpgradedAccessor"));
+            .orElseThrow(() -> new AnnotationReadFailure("Missing 'value' attribute in @ReplacedAccessor"));
         Type originalType = extractOriginalType(method, annotation);
         return getAccessorSpec(accessorType, methodName, originalType, annotation, parentDeprecationSpec, binaryCompatibility);
     }

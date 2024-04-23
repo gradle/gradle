@@ -17,8 +17,8 @@
 package gradlebuild.binarycompatibility.rules;
 
 import gradlebuild.binarycompatibility.upgrades.UpgradedProperty.BinaryCompatibility;
-import gradlebuild.binarycompatibility.upgrades.UpgradedProperty.UpgradedAccessor;
-import gradlebuild.binarycompatibility.upgrades.UpgradedProperty.UpgradedAccessorKey;
+import gradlebuild.binarycompatibility.upgrades.UpgradedProperty.ReplacedAccessor;
+import gradlebuild.binarycompatibility.upgrades.UpgradedProperty.AccessorKey;
 import me.champeau.gradle.japicmp.report.PostProcessViolationsRule;
 import me.champeau.gradle.japicmp.report.ViolationCheckContextWithViolations;
 import org.gradle.util.internal.CollectionUtils;
@@ -35,16 +35,16 @@ public class UpgradePropertiesRulePostProcess implements PostProcessViolationsRu
     @Override
     @SuppressWarnings("unchecked")
     public void execute(ViolationCheckContextWithViolations context) {
-        Set<UpgradedAccessorKey> seenUpgradedAccessorsChanges = (Set<UpgradedAccessorKey>) context.getUserData().get(SEEN_OLD_ACCESSORS_OF_UPGRADED_PROPERTIES);
-        Map<UpgradedAccessorKey, UpgradedAccessor> oldAccessorsOfUpgradedProperties = (Map<UpgradedAccessorKey, UpgradedAccessor>) context.getUserData().get(OLD_ACCESSORS_OF_UPGRADED_PROPERTIES);
+        Set<AccessorKey> seenUpgradedAccessorsChanges = (Set<AccessorKey>) context.getUserData().get(SEEN_OLD_ACCESSORS_OF_UPGRADED_PROPERTIES);
+        Map<AccessorKey, ReplacedAccessor> oldAccessorsOfUpgradedProperties = (Map<AccessorKey, ReplacedAccessor>) context.getUserData().get(OLD_ACCESSORS_OF_UPGRADED_PROPERTIES);
 
         // Find accessors that were not removed but should be
-        Map<UpgradedAccessorKey, UpgradedAccessor> keptAccessors = new HashMap<>(oldAccessorsOfUpgradedProperties);
+        Map<AccessorKey, ReplacedAccessor> keptAccessors = new HashMap<>(oldAccessorsOfUpgradedProperties);
         keptAccessors.entrySet().removeIf(e -> {
             if (seenUpgradedAccessorsChanges.contains(e.getKey())) {
                 return true;
             }
-            UpgradedAccessor accessor = e.getValue();
+            ReplacedAccessor accessor = e.getValue();
             return accessor.getBinaryCompatibility() == BinaryCompatibility.ACCESSORS_KEPT;
         });
         if (!keptAccessors.isEmpty()) {
@@ -53,12 +53,12 @@ public class UpgradePropertiesRulePostProcess implements PostProcessViolationsRu
         }
 
         // Find accessors that were removed but shouldn't be
-        Map<UpgradedAccessorKey, UpgradedAccessor> removedAccessors = new HashMap<>(oldAccessorsOfUpgradedProperties);
+        Map<AccessorKey, ReplacedAccessor> removedAccessors = new HashMap<>(oldAccessorsOfUpgradedProperties);
         removedAccessors.entrySet().removeIf(e -> {
             if (!seenUpgradedAccessorsChanges.contains(e.getKey())) {
                 return true;
             }
-            UpgradedAccessor accessor = e.getValue();
+            ReplacedAccessor accessor = e.getValue();
             return accessor.getBinaryCompatibility() == BinaryCompatibility.ACCESSORS_REMOVED;
         });
         if (!removedAccessors.isEmpty()) {
