@@ -66,30 +66,30 @@ public class InstrumentationTransformRegisterer {
     }
 
     private void registerInstrumentationAndUpgradesPipeline(long contextId, DependencyHandler dependencyHandler, Provider<CacheInstrumentationDataBuildService> service) {
-        dependencyHandler.registerTransform(
-            InstrumentationAnalysisTransform.class,
-            spec -> {
-                spec.getFrom().attribute(INSTRUMENTED_ATTRIBUTE, NOT_INSTRUMENTED.getValue());
-                spec.getTo().attribute(INSTRUMENTED_ATTRIBUTE, ANALYZED_ARTIFACT.getValue());
-                spec.parameters(params -> {
-                    params.getBuildService().set(service);
-                    params.getContextId().set(contextId);
-                });
-            }
-        );
-        dependencyHandler.registerTransform(
-            MergeInstrumentationAnalysisTransform.class,
-            spec -> {
-                spec.getFrom().attribute(INSTRUMENTED_ATTRIBUTE, ANALYZED_ARTIFACT.getValue());
-                spec.getTo().attribute(INSTRUMENTED_ATTRIBUTE, MERGED_ARTIFACT_ANALYSIS.getValue());
-                spec.parameters(params -> {
-                    params.getBuildService().set(service);
-                    params.getContextId().set(contextId);
-                    params.getTypeHierarchyAnalysis().setFrom(service.map(it -> it.getTypeHierarchyAnalysis(contextId)));
-                });
-            }
-        );
-        registerInstrumentingTransform(contextId, dependencyHandler, ExternalDependencyInstrumentingArtifactTransform.class, service, MERGED_ARTIFACT_ANALYSIS, INSTRUMENTED_AND_UPGRADED);
+//        dependencyHandler.registerTransform(
+//            InstrumentationAnalysisTransform.class,
+//            spec -> {
+//                spec.getFrom().attribute(INSTRUMENTED_ATTRIBUTE, NOT_INSTRUMENTED.getValue());
+//                spec.getTo().attribute(INSTRUMENTED_ATTRIBUTE, ANALYZED_ARTIFACT.getValue());
+//                spec.parameters(params -> {
+//                    params.getBuildService().set(service);
+//                    params.getContextId().set(contextId);
+//                });
+//            }
+//        );
+//        dependencyHandler.registerTransform(
+//            MergeInstrumentationAnalysisTransform.class,
+//            spec -> {
+//                spec.getFrom().attribute(INSTRUMENTED_ATTRIBUTE, ANALYZED_ARTIFACT.getValue());
+//                spec.getTo().attribute(INSTRUMENTED_ATTRIBUTE, MERGED_ARTIFACT_ANALYSIS.getValue());
+//                spec.parameters(params -> {
+//                    params.getBuildService().set(service);
+//                    params.getContextId().set(contextId);
+//                    params.getTypeHierarchyAnalysis().setFrom(service.map(it -> it.getTypeHierarchyAnalysis(contextId)));
+//                });
+//            }
+//        );
+        registerInstrumentingTransform(contextId, dependencyHandler, ProjectDependencyInstrumentingArtifactTransform.class, Providers.notDefined(), NOT_INSTRUMENTED, INSTRUMENTED_AND_UPGRADED);
     }
 
     private void registerInstrumentationOnlyPipeline(long contextId, DependencyHandler dependencyHandler) {
