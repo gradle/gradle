@@ -16,7 +16,7 @@
 
 package org.gradle.launcher.daemon.toolchain;
 
-import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.jvm.inspection.JvmVendor;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JvmImplementation;
 import org.gradle.jvm.toolchain.JvmVendorSpec;
@@ -25,6 +25,10 @@ public class DaemonJvmCriteria {
     private final JavaLanguageVersion javaVersion;
     private final JvmVendorSpec vendorSpec;
     private final JvmImplementation jvmImplementation;
+
+    public DaemonJvmCriteria(JavaLanguageVersion javaVersion, JvmVendorSpec vendorSpec) {
+        this(javaVersion, vendorSpec, JvmImplementation.VENDOR_SPECIFIC);
+    }
 
     public DaemonJvmCriteria(JavaLanguageVersion javaVersion, JvmVendorSpec vendorSpec, JvmImplementation jvmImplementation) {
         this.javaVersion = javaVersion;
@@ -44,22 +48,12 @@ public class DaemonJvmCriteria {
         return jvmImplementation;
     }
 
-    public boolean isCompatibleWith(Jvm other) {
-        Integer javaVersionMajor = other.getJavaVersionMajor();
-        if (javaVersionMajor == null) {
-            return false;
-        }
-        return isCompatibleWith(JavaLanguageVersion.of(javaVersionMajor));
-    }
-
     @Override
     public String toString() {
-        // TODO: Include vendor and implementation
-        return String.format("JVM version '%s'", getJavaVersion());
+        return String.format("JVM version '%s' vendor '%s'", getJavaVersion(), getVendorSpec());
     }
 
-    public boolean isCompatibleWith(JavaLanguageVersion javaVersion) {
-        // TODO: Implement comparisons for vendorSpec and jvmImplementation
-        return javaVersion.equals(getJavaVersion()); // && vendorSpec.matches() && jvmImplementation == other.jvmImplementation;
+    public boolean isCompatibleWith(JavaLanguageVersion javaVersion, JvmVendor javaVendor) {
+        return javaVersion == getJavaVersion() && vendorSpec.matches(javaVendor.getRawVendor());
     }
 }

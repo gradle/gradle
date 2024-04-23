@@ -16,12 +16,15 @@
 
 package org.gradle.launcher.cli;
 
+import org.gradle.StartParameter;
+import org.gradle.TaskExecutionRequest;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.internal.buildconfiguration.DaemonJvmPropertiesConfigurator;
 import org.gradle.jvm.toolchain.internal.ToolchainConfiguration;
 import org.gradle.launcher.cli.converter.BuildLayoutConverter;
 import org.gradle.launcher.cli.converter.BuildOptionBackedConverter;
@@ -38,6 +41,7 @@ import org.gradle.launcher.daemon.toolchain.ToolchainBuildOptions;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class BuildEnvironmentConfigurationConverter {
@@ -87,13 +91,21 @@ public class BuildEnvironmentConfigurationConverter {
         DaemonParameters daemonParameters = new DaemonParameters(buildLayout, fileCollectionFactory, properties.getRequestedSystemProperties());
         daemonParametersConverter.convert(args, properties.getProperties(), daemonParameters);
 
-        // This is a workaround to maintain existing behavior that allowed
-        // toolchain-specific properties to be specified with -P instead of -D
-        Map<String, String> gradlePropertiesAsSeenByToolchains = new HashMap<>();
-        gradlePropertiesAsSeenByToolchains.putAll(properties.getProperties());
-        gradlePropertiesAsSeenByToolchains.putAll(startParameter.getProjectProperties());
-        toolchainConfigurationBuildOptionBackedConverter.convert(args, gradlePropertiesAsSeenByToolchains, daemonParameters.getToolchainConfiguration());
-        daemonParameters.setRequestedJvmCriteria(properties.getDaemonJvmProperties());
+        try {
+            // This is a workaround to maintain existing behavior that allowed
+            // toolchain-specific properties to be specified with -P instead of -D
+            Map<String, String> gradlePropertiesAsSeenByToolchains = new HashMap<>();
+            gradlePropertiesAsSeenByToolchains.putAll(properties.getProperties());
+            gradlePropertiesAsSeenByToolchains.putAll(startParameter.getProjectProperties());
+            toolchainConfigurationBuildOptionBackedConverter.convert(args, gradlePropertiesAsSeenByToolchains, daemonParameters.getToolchainConfiguration());
+            daemonParameters.setRequestedJvmCriteria(properties.getDaemonJvmProperties());
+        } catch (Exception exception) {
+            // When executing updateDaemonJvm with an invalid jvm criteria the validation will be ignored
+            // and instead the JAVA_HOME will be used to update the daemon-jvm.properties
+            if (!isExecutingUpdateDaemonJvmTask(startParameter)) {
+                throw exception;
+            }
+        }
 
         return new Parameters(startParameter, daemonParameters, properties);
     }
@@ -103,5 +115,10 @@ public class BuildEnvironmentConfigurationConverter {
         buildLayoutConverter.configure(parser);
         startParameterConverter.configure(parser);
         daemonParametersConverter.configure(parser);
+    }
+
+    private boolean isExecutingUpdateDaemonJvmTask(StartParameter startParameters) {
+        List<TaskExecutionRequest> taskExecutionRequests = startParameters.getTaskRequests();
+        return taskExecutionRequests.size() == 1 && taskExecutionRequests.get(0).getArgs().contains(DaemonJvmPropertiesConfigurator.TASK_NAME);
     }
 }

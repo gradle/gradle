@@ -28,10 +28,15 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.buildconfiguration.DaemonJvmPropertiesDefaults;
 import org.gradle.internal.buildconfiguration.tasks.UpdateDaemonJvmModifier;
+import org.gradle.internal.jvm.inspection.JvmVendor;
+import org.gradle.jvm.toolchain.JvmVendorSpec;
+import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec;
+import org.gradle.util.internal.GUtil;
 import org.gradle.util.internal.IncubationLogger;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
+import java.util.Arrays;
 
 /**
  * Generates or updates the Gradle Daemon JVM criteria.
@@ -43,6 +48,9 @@ import javax.inject.Inject;
 @DisableCachingByDefault(because = "Not worth caching")
 @Incubating
 public abstract class UpdateDaemonJvm extends DefaultTask {
+
+    private final Property<JvmVendorSpec> jvmVendorSpec = getProject().getObjects().property(JvmVendorSpec.class);
+
     /**
      * Constructor.
      *
@@ -56,10 +64,15 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
     @TaskAction
     void generate() {
         IncubationLogger.incubatingFeatureUsed("Daemon JVM criteria");
+
+        JvmVendor jvmVendor = null;
+        if (jvmVendorSpec.isPresent()) {
+            jvmVendor = JvmVendor.KnownJvmVendor.valueOf(jvmVendorSpec.get().toString()).asJvmVendor();
+        }
         UpdateDaemonJvmModifier.updateJvmCriteria(
             getPropertiesFile().get().getAsFile(),
             getJvmVersion().get(),
-            null,
+            jvmVendor,
             null
         );
     }
@@ -85,4 +98,32 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
     @Option(option = "jvm-version", description = "The version of the JVM required to run the Gradle Daemon.")
     @Incubating
     public abstract Property<JavaVersion> getJvmVersion();
+
+    /**
+     * The vendor of Java required to run the Gradle Daemon.
+     *
+     * @since 8.9
+     */
+    @Input
+    @Optional
+    @Incubating
+    public Property<JvmVendorSpec> getJvmVendor() {
+        return jvmVendorSpec;
+    }
+
+    /**
+     * The vendor of Java required to run the Gradle Daemon.
+     *
+     * @since 8.9
+     */
+    @Option(option = "jvm-vendor", description = "The vendor of Java required to run the Gradle Daemon.")
+    @Incubating
+    public void setJvmVendor(String vendor) {
+        try {
+            JvmVendor.KnownJvmVendor jvmVendor = GUtil.toEnum(JvmVendor.KnownJvmVendor.class, vendor);
+            jvmVendorSpec.set(DefaultJvmVendorSpec.of(jvmVendor));
+        } catch (Exception e) {
+            throw new IllegalArgumentException(String.format("Value '%s' given for %s is an invalid Java vendor. Possible values are %s", vendor, DaemonJvmPropertiesDefaults.TOOLCHAIN_VENDOR_PROPERTY, Arrays.toString(JvmVendor.KnownJvmVendor.values())));
+        }
+    }
 }

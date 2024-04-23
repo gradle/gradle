@@ -17,6 +17,7 @@ package org.gradle.launcher.daemon.context;
 
 import com.google.common.base.Joiner;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.jvm.inspection.JvmVendor;
 import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -45,11 +46,13 @@ public class DefaultDaemonContext implements DaemonContext {
     private final DaemonParameters.Priority priority;
     private final NativeServicesMode nativeServicesMode;
     private final JavaLanguageVersion javaVersion;
+    private final JvmVendor.KnownJvmVendor javaVendor;
 
     public DefaultDaemonContext(
         String uid,
         File javaHome,
         JavaLanguageVersion javaVersion,
+        JvmVendor.KnownJvmVendor javaVendor,
         File daemonRegistryDir,
         Long pid,
         Integer idleTimeout,
@@ -68,13 +71,14 @@ public class DefaultDaemonContext implements DaemonContext {
         this.applyInstrumentationAgent = applyInstrumentationAgent;
         this.priority = priority;
         this.nativeServicesMode = nativeServicesMode;
+        this.javaVendor = javaVendor;
     }
 
     @Override
     public String toString() {
         // Changes to this also affect org.gradle.integtests.fixtures.daemon.DaemonContextParser
-        return String.format("DefaultDaemonContext[uid=%s,javaHome=%s,javaVersion=%s,daemonRegistryDir=%s,pid=%s,idleTimeout=%s,priority=%s,applyInstrumentationAgent=%s,nativeServicesMode=%s,daemonOpts=%s]",
-            uid, javaHome, javaVersion, daemonRegistryDir, pid, idleTimeout, priority, applyInstrumentationAgent, nativeServicesMode, Joiner.on(',').join(daemonOpts));
+        return String.format("DefaultDaemonContext[uid=%s,javaHome=%s,javaVersion=%s,javaVendor=%s,daemonRegistryDir=%s,pid=%s,idleTimeout=%s,priority=%s,applyInstrumentationAgent=%s,nativeServicesMode=%s,daemonOpts=%s]",
+            uid, javaHome, javaVersion, javaVendor, daemonRegistryDir, pid, idleTimeout, priority, applyInstrumentationAgent, nativeServicesMode, Joiner.on(',').join(daemonOpts));
     }
 
     @Override
@@ -90,6 +94,11 @@ public class DefaultDaemonContext implements DaemonContext {
     @Override
     public JavaLanguageVersion getJavaVersion() {
         return javaVersion;
+    }
+
+    @Override
+    public JvmVendor getJavaVendor() {
+        return javaVendor.asJvmVendor();
     }
 
     @Override
@@ -140,6 +149,7 @@ public class DefaultDaemonContext implements DaemonContext {
             String pathname = decoder.readString();
             File javaHome = new File(pathname);
             JavaLanguageVersion javaVersion = JavaLanguageVersion.of(decoder.readSmallInt());
+            JvmVendor.KnownJvmVendor javaVendor = JvmVendor.KnownJvmVendor.values()[decoder.readSmallInt()];
             File registryDir = new File(decoder.readString());
             Long pid = decoder.readBoolean() ? decoder.readLong() : null;
             Integer idle = decoder.readBoolean() ? decoder.readInt() : null;
@@ -152,7 +162,7 @@ public class DefaultDaemonContext implements DaemonContext {
             NativeServicesMode nativeServicesMode = NativeServicesMode.values()[decoder.readSmallInt()];
             DaemonParameters.Priority priority = decoder.readBoolean() ? DaemonParameters.Priority.values()[decoder.readInt()] : null;
 
-            return new DefaultDaemonContext(uid, javaHome, javaVersion, registryDir, pid, idle, daemonOpts, applyInstrumentationAgent, nativeServicesMode, priority);
+            return new DefaultDaemonContext(uid, javaHome, javaVersion, javaVendor, registryDir, pid, idle, daemonOpts, applyInstrumentationAgent, nativeServicesMode, priority);
         }
 
         @Override
@@ -160,6 +170,7 @@ public class DefaultDaemonContext implements DaemonContext {
             encoder.writeNullableString(context.uid);
             encoder.writeString(context.javaHome.getPath());
             encoder.writeSmallInt(context.javaVersion.asInt());
+            encoder.writeSmallInt(context.javaVendor.ordinal());
             encoder.writeString(context.daemonRegistryDir.getPath());
             encoder.writeBoolean(context.pid != null);
             if (context.pid != null) {
