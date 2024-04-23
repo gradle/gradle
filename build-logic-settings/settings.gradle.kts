@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,21 +24,6 @@ plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version("0.8.0")
 }
 
-includeBuild("../build-logic-settings")
+include("environment")
 
-// Shared basics for all
-include("basics")
-
-// Platform: defines shared dependency versions
-include("build-platform")
-
-// Compute the identity/version we are building and related details (like current git commit)
-include("module-identity")
-
-// Code quality rules common to :build-logic and the root build
-include("code-quality-rules")
-
-// Plugins to build :build-logic plugins
-include("gradle-plugin")
-
-rootProject.name = "build-logic-commons"
+rootProject.name = "build-logic-settings"

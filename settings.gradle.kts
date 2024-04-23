@@ -23,9 +23,11 @@ pluginManagement {
         }
         gradlePluginPortal()
     }
+    includeBuild("build-logic-settings")
 }
 
 plugins {
+    id("gradlebuild.build-environment")
     id("com.gradle.develocity").version("3.17.1") // Sync with `build-logic-commons/build-platform/build.gradle.kts`
     id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.9.1")
     id("org.gradle.toolchains.foojay-resolver-convention") version ("0.8.0")
