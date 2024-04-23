@@ -206,11 +206,6 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         if (isDaemonExplicitlyRequired() || !getJavaHomeLocation().equals(Jvm.current().getJavaHome())) {
             return true;
         }
-        File gradleProperties = new File(getWorkingDir(), "gradle.properties");
-        if (gradleProperties.isFile()) {
-            Properties properties = GUtil.loadProperties(gradleProperties);
-            return properties.getProperty("org.gradle.java.home") != null || properties.getProperty("org.gradle.jvmargs") != null;
-        }
         File daemonJVMProperties = new File(getWorkingDir(), "gradle/gradle-daemon-jvm.properties");
         if (daemonJVMProperties.isFile()) {
             Properties properties = GUtil.loadProperties(daemonJVMProperties);
@@ -225,6 +220,11 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
                     return true;
                 }
             }
+        }
+        File gradleProperties = new File(getWorkingDir(), "gradle.properties");
+        if (gradleProperties.isFile()) {
+            Properties properties = GUtil.loadProperties(gradleProperties);
+            return properties.getProperty("org.gradle.java.home") != null || properties.getProperty("org.gradle.jvmargs") != null;
         }
 
         boolean isInstrumentationEnabledForProcess = isAgentInstrumentationEnabled();
