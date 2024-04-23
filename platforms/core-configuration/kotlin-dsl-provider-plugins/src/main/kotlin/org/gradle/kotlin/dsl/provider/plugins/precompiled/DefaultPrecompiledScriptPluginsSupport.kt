@@ -393,7 +393,11 @@ fun Task.configureKotlinCompilerArgumentsEagerly(resolverEnvironment: Provider<S
 
 private
 val scriptTemplatesArgs
-    get() = listOf("-script-templates", scriptTemplates)
+    get() = listOf(
+        "-script-templates", scriptTemplates,
+        // w: Scripts are not yet supported with K2 in LightTree mode, consider using K1 or disable LightTree mode with -Xuse-fir-lt=false
+        "-Xuse-fir-lt=false",
+    )
 
 
 private
