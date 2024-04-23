@@ -59,8 +59,8 @@ class DaemonToolchainCoexistWithCurrentOptionsIntegrationTest extends AbstractIn
         def otherJvmMetadata = AvailableJavaHomes.getJvmInstallationMetadata(otherJvm)
         captureJavaHome()
         executer
-            .withArgument("-Pdaemon.jvm.toolchain.version=$otherJvmMetadata.javaVersion")
-            .withArgument("-Pdaemon.jvm.toolchain.vendor=$otherJvmMetadata.vendor.knownVendor")
+            .withArgument("-PtoolchainVersion=$otherJvmMetadata.javaVersion")
+            .withArgument("-PtoolchainVendor=$otherJvmMetadata.vendor.knownVendor")
 
         expect:
         succeeds("help")
@@ -75,8 +75,8 @@ class DaemonToolchainCoexistWithCurrentOptionsIntegrationTest extends AbstractIn
         captureJavaHome()
         file("gradle.properties")
             .writeProperties(
-                "daemon.jvm.toolchain.version": otherJvmMetadata.javaVersion,
-                "daemon.jvm.toolchain.vendor": otherJvmMetadata.vendor.knownVendor.name()
+                "toolchainVersion": otherJvmMetadata.javaVersion,
+                "toolchainVendor": otherJvmMetadata.vendor.knownVendor.name()
             )
 
         expect:

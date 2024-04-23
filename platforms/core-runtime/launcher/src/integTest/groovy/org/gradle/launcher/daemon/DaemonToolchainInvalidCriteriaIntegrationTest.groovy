@@ -41,7 +41,7 @@ class DaemonToolchainInvalidCriteriaIntegrationTest extends AbstractIntegrationS
         when:
         fails 'help'
         then:
-        failure.assertHasDescription("Value 'stringVersion' given for daemon.jvm.toolchain.version is an invalid Java version")
+        failure.assertHasDescription("Value 'stringVersion' given for toolchainVersion is an invalid Java version")
     }
 
     def "Given negative toolchain version When execute any task Then fails with expected exception message"() {
@@ -50,7 +50,7 @@ class DaemonToolchainInvalidCriteriaIntegrationTest extends AbstractIntegrationS
         when:
         fails 'help'
         then:
-        failure.assertHasDescription("Value '-1' given for daemon.jvm.toolchain.version is an invalid Java version")
+        failure.assertHasDescription("Value '-1' given for toolchainVersion is an invalid Java version")
     }
 
     @NotYetImplemented
@@ -62,7 +62,7 @@ class DaemonToolchainInvalidCriteriaIntegrationTest extends AbstractIntegrationS
         fails 'help'
 
         then:
-        failureDescriptionContains("Option daemon.jvm.toolchain.vendor doesn't accept value 'unexpectedVendor'. Possible values are " +
+        failureDescriptionContains("Option toolchainVendor doesn't accept value 'unexpectedVendor'. Possible values are " +
             "[ADOPTIUM, ADOPTOPENJDK, AMAZON, APPLE, AZUL, BELLSOFT, GRAAL_VM, HEWLETT_PACKARD, IBM, JETBRAINS, MICROSOFT, ORACLE, SAP, TENCENT, UNKNOWN]")
     }
 
@@ -75,6 +75,6 @@ class DaemonToolchainInvalidCriteriaIntegrationTest extends AbstractIntegrationS
         fails 'help'
 
         then:
-        failureDescriptionContains("Option daemon.jvm.toolchain.implementation doesn't accept value 'unknownImplementation'. Possible values are [VENDOR_SPECIFIC, J9]")
+        failureDescriptionContains("Option toolchainImplementation doesn't accept value 'unknownImplementation'. Possible values are [VENDOR_SPECIFIC, J9]")
     }
 }
