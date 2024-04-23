@@ -16,9 +16,7 @@
 
 package org.gradle.internal.enterprise.impl;
 
-import com.google.common.collect.Multimap;
 import org.gradle.api.problems.internal.InternalProblems;
-import org.gradle.api.problems.internal.Problem;
 import org.gradle.internal.enterprise.GradleEnterprisePluginBuildState;
 import org.gradle.internal.enterprise.GradleEnterprisePluginConfig;
 import org.gradle.internal.enterprise.GradleEnterprisePluginServiceFactory;
@@ -34,7 +32,7 @@ public class DefaultGradleEnterprisePluginAdapterFactory {
     private final GradleEnterprisePluginBuildState buildState;
     private final DefaultGradleEnterprisePluginServiceRef pluginServiceRef;
     private final BuildOperationNotificationListenerRegistrar buildOperationNotificationListenerRegistrar;
-    private final Multimap<Throwable, Problem> problemsMapping;
+    private final InternalProblems problems;
 
     public DefaultGradleEnterprisePluginAdapterFactory(
         GradleEnterprisePluginConfig config,
@@ -49,7 +47,7 @@ public class DefaultGradleEnterprisePluginAdapterFactory {
         this.buildState = buildState;
         this.pluginServiceRef = pluginServiceRef;
         this.buildOperationNotificationListenerRegistrar = buildOperationNotificationListenerRegistrar;
-        this.problemsMapping = problems.getProblemsForThrowables();
+        this.problems = problems;
     }
 
     public DefaultGradleEnterprisePluginAdapter create(GradleEnterprisePluginServiceFactory pluginServiceFactory) {
@@ -60,7 +58,7 @@ public class DefaultGradleEnterprisePluginAdapterFactory {
             buildState,
             pluginServiceRef,
             buildOperationNotificationListenerRegistrar,
-            problemsMapping
+            problems
         );
     }
 }

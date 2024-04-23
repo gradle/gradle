@@ -63,7 +63,7 @@ public class DefaultProblemReporter implements InternalProblemReporter {
         }
     }
 
-    public RuntimeException throwError(RuntimeException exception, Problem problem) {
+    private RuntimeException throwError(RuntimeException exception, Problem problem) {
         report(problem);
         problems.put(exception, problem);
         throw exception;
@@ -101,6 +101,10 @@ public class DefaultProblemReporter implements InternalProblemReporter {
      */
     @Override
     public void report(Problem problem) {
+        RuntimeException exception = problem.getException();
+        if(exception != null) {
+            problems.put(exception, problem);
+        }
         OperationIdentifier id = currentBuildOperationRef.getId();
         if (id != null) {
             report(problem, id);
