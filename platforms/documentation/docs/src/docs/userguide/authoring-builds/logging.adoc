@@ -24,7 +24,7 @@ In addition to the standard log levels, Gradle introduces two specific levels: _
 _LIFECYCLE_ is the default level used to report build progress.
 
 [[logLevels]]
-== Log levels
+== Understanding Log levels
 
 There are 6 log levels in Gradle:
 
