@@ -89,7 +89,7 @@ public class InstrumentationTransformRegisterer {
                 });
             }
         );
-        registerInstrumentingTransform(contextId, dependencyHandler, ExternalDependencyInstrumentingArtifactTransform.class, service, MERGED_ARTIFACT_ANALYSIS, INSTRUMENTED_AND_UPGRADED);
+        registerInstrumentingTransform(contextId, dependencyHandler, ProjectDependencyInstrumentingArtifactTransform.class, service, NOT_INSTRUMENTED, INSTRUMENTED_AND_UPGRADED);
     }
 
     private void registerInstrumentationOnlyPipeline(long contextId, DependencyHandler dependencyHandler) {
