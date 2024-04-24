@@ -48,6 +48,38 @@ class ExternalPluginsInstrumentationTypeRegistryTest extends ConcurrentSpec {
         ].collect { it.toString() }
     }
 
+    def "should collect instrumented types for types cycles no matter the order of queries"() {
+        given:
+        def gradleCoreRegistry = new TestGradleCoreInstrumentationTypeRegistry([:])
+        def directSuperTypes = [
+            "D": ["G", "H", "org/gradle/api/internal/TaskInternal"] as Set,
+            "F": ["D"] as Set,
+            "G": ["F", "org/gradle/api/Task"] as Set
+        ] as Map<String, Set<String>>
+
+        when:
+        def typeRegistry = new ExternalPluginsInstrumentationTypeRegistry(directSuperTypes, gradleCoreRegistry)
+        def gInstrumentedSuperTypes = typeRegistry.getSuperTypes("G")
+        def fInstrumentedSuperTypes = typeRegistry.getSuperTypes("F")
+        def dInstrumentedSuperTypes = typeRegistry.getSuperTypes("D")
+
+        then:
+        gInstrumentedSuperTypes ==~ ["org/gradle/api/Task", "org/gradle/api/internal/TaskInternal"] as Set<String>
+        dInstrumentedSuperTypes ==~ ["org/gradle/api/Task", "org/gradle/api/internal/TaskInternal"] as Set<String>
+        fInstrumentedSuperTypes ==~ ["org/gradle/api/Task", "org/gradle/api/internal/TaskInternal"] as Set<String>
+
+        when:
+        typeRegistry = new ExternalPluginsInstrumentationTypeRegistry(directSuperTypes, gradleCoreRegistry)
+        dInstrumentedSuperTypes = typeRegistry.getSuperTypes("D")
+        fInstrumentedSuperTypes = typeRegistry.getSuperTypes("F")
+        gInstrumentedSuperTypes = typeRegistry.getSuperTypes("G")
+
+        then:
+        gInstrumentedSuperTypes ==~ ["org/gradle/api/Task", "org/gradle/api/internal/TaskInternal"] as Set<String>
+        dInstrumentedSuperTypes ==~ ["org/gradle/api/Task", "org/gradle/api/internal/TaskInternal"] as Set<String>
+        fInstrumentedSuperTypes ==~ ["org/gradle/api/Task", "org/gradle/api/internal/TaskInternal"] as Set<String>
+    }
+
     private static class TestGradleCoreInstrumentationTypeRegistry implements InstrumentationTypeRegistry {
 
         private final Map<String, Set<String>> instrumentedSuperTypes
