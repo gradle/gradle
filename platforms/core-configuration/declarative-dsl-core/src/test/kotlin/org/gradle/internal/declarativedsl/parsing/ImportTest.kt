@@ -1,11 +1,11 @@
 package org.gradle.internal.declarativedsl.parsing
 
 import org.gradle.internal.declarativedsl.analysis.AnalysisContext
-import org.gradle.internal.declarativedsl.analysis.AnalysisSchemaImpl
-import org.gradle.internal.declarativedsl.analysis.DataClassImpl
+import org.gradle.internal.declarativedsl.schemaimpl.AnalysisSchemaImpl
+import org.gradle.internal.declarativedsl.schemaimpl.DataClassImpl
 import org.gradle.internal.declarativedsl.analysis.ErrorCollectorImpl
 import org.gradle.internal.declarativedsl.analysis.ErrorReason
-import org.gradle.internal.declarativedsl.analysis.FqNameImpl
+import org.gradle.internal.declarativedsl.schemaimpl.FqNameImpl
 import org.gradle.internal.declarativedsl.analysis.ResolutionError
 import org.gradle.internal.declarativedsl.analysis.defaultCodeResolver
 import org.gradle.internal.declarativedsl.language.AccessChain

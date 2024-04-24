@@ -19,23 +19,16 @@ package org.gradle.internal.declarativedsl.schema
 
 sealed interface DataType {
     sealed interface ConstantType<JvmType> : DataType
-    data object IntDataType : ConstantType<Int> {
-        override fun toString(): String = "Int"
-    }
-    data object LongDataType : ConstantType<Long> {
-        override fun toString(): String = "Long"
-    }
-    data object StringDataType : ConstantType<String> {
-        override fun toString(): String = "String"
-    }
-    data object BooleanDataType : ConstantType<Boolean> {
-        override fun toString(): String = "Boolean"
-    }
+
+    interface IntDataType : ConstantType<Int>
+    interface LongDataType : ConstantType<Long>
+    interface StringDataType : ConstantType<String>
+    interface BooleanDataType : ConstantType<Boolean>
 
     // TODO: implement nulls?
-    data object NullType : DataType
+    interface NullType : DataType
 
-    data object UnitType : DataType
+    interface UnitType : DataType
 
     // TODO: `Any` type?
     // TODO: Support subtyping of some sort in the schema rather than via reflection?

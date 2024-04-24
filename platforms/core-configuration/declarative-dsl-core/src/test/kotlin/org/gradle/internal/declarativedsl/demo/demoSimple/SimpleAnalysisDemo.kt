@@ -4,7 +4,7 @@ import com.example.Abc
 import com.example.C
 import com.example.D
 import com.example.newD
-import org.gradle.internal.declarativedsl.analysis.FqNameImpl
+import org.gradle.internal.declarativedsl.schemaimpl.FqNameImpl
 import org.gradle.internal.declarativedsl.demo.printResolutionResults
 import org.gradle.internal.declarativedsl.demo.resolve
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes

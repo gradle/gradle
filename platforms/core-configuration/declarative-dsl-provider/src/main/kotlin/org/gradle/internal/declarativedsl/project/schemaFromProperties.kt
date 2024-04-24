@@ -16,18 +16,18 @@
 
 package org.gradle.internal.declarativedsl.project
 
-import org.gradle.internal.declarativedsl.schemaBuilder.CollectedPropertyInformation
-import org.gradle.internal.declarativedsl.schemaBuilder.PropertyExtractor
-import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
-import org.gradle.internal.declarativedsl.schemaBuilder.annotationsWithGetters
-import org.gradle.internal.declarativedsl.schemaBuilder.toDataTypeRefOrError
 import org.gradle.api.provider.Property
 import org.gradle.declarative.dsl.model.annotations.AccessFromCurrentReceiverOnly
 import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl
+import org.gradle.internal.declarativedsl.schemaimpl.DataPropertyImpl.PropertyModeImpl
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaComponent
-import org.gradle.internal.declarativedsl.schema.DataProperty
+import org.gradle.internal.declarativedsl.schemaBuilder.CollectedPropertyInformation
 import org.gradle.internal.declarativedsl.schemaBuilder.MemberFilter
+import org.gradle.internal.declarativedsl.schemaBuilder.PropertyExtractor
+import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
+import org.gradle.internal.declarativedsl.schemaBuilder.annotationsWithGetters
 import org.gradle.internal.declarativedsl.schemaBuilder.isPublicAndRestricted
+import org.gradle.internal.declarativedsl.schemaBuilder.toDataTypeRefOrError
 import java.util.Locale
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
@@ -74,7 +74,7 @@ class GradlePropertyApiPropertyExtractor(
                 property.name,
                 property.returnType,
                 propertyValueType(property.returnType).toDataTypeRefOrError(),
-                DataProperty.PropertyMode.WriteOnly,
+                PropertyModeImpl.WriteOnlyImpl,
                 hasDefaultValue = false,
                 isHiddenInDeclarativeDsl = isHidden,
                 isDirectAccessOnly = isDirectAccessOnly,
@@ -97,7 +97,7 @@ class GradlePropertyApiPropertyExtractor(
             val isHidden = getter.annotations.any { it is HiddenInDeclarativeDsl }
             val isDirectAccessOnly = getter.annotations.any { it is AccessFromCurrentReceiverOnly }
             CollectedPropertyInformation(
-                propertyName, getter.returnType, type, DataProperty.PropertyMode.WriteOnly, false, isHidden, isDirectAccessOnly,
+                propertyName, getter.returnType, type, PropertyModeImpl.WriteOnlyImpl, false, isHidden, isDirectAccessOnly,
                 claimedFunctions = listOf(getter)
             )
         }.filter { propertyNamePredicate(it.name) }

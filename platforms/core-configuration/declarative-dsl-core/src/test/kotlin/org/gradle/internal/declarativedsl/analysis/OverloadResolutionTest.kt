@@ -24,7 +24,7 @@ import org.gradle.internal.declarativedsl.schema.FunctionSemantics.ConfigureSema
 import org.gradle.internal.declarativedsl.schema.FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement.Required
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import kotlin.test.Test
-import kotlin.test.assertEquals
+import kotlin.test.assertIs
 
 
 object OverloadResolutionTest {
@@ -41,8 +41,8 @@ object OverloadResolutionTest {
         val result = schema.resolve(code, resolver)
 
         val addedObjects = result.additions.map { it.dataObject }
-        assertEquals(NotAllowed, ((addedObjects[0] as FunctionInvocationOrigin).function.semantics as FunctionSemantics.ConfigureSemantics).configureBlockRequirement)
-        assertEquals(Required, ((addedObjects[1] as FunctionInvocationOrigin).function.semantics as FunctionSemantics.ConfigureSemantics).configureBlockRequirement)
+        assertIs<NotAllowed>(((addedObjects[0] as FunctionInvocationOrigin).function.semantics as FunctionSemantics.ConfigureSemantics).configureBlockRequirement)
+        assertIs<Required>(((addedObjects[1] as FunctionInvocationOrigin).function.semantics as FunctionSemantics.ConfigureSemantics).configureBlockRequirement)
     }
 
     private

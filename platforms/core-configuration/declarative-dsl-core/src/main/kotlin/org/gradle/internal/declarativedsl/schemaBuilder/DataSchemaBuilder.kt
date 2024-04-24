@@ -16,12 +16,12 @@
 
 package org.gradle.internal.declarativedsl.schemaBuilder
 
-import org.gradle.internal.declarativedsl.analysis.AnalysisSchemaImpl
-import org.gradle.internal.declarativedsl.analysis.DataClassImpl
-import org.gradle.internal.declarativedsl.analysis.DataPropertyImpl
-import org.gradle.internal.declarativedsl.analysis.ExternalObjectProviderKeyImpl
-import org.gradle.internal.declarativedsl.analysis.FqNameImpl
-import org.gradle.internal.declarativedsl.analysis.fqName
+import org.gradle.internal.declarativedsl.schemaimpl.AnalysisSchemaImpl
+import org.gradle.internal.declarativedsl.schemaimpl.DataClassImpl
+import org.gradle.internal.declarativedsl.schemaimpl.DataPropertyImpl
+import org.gradle.internal.declarativedsl.schemaimpl.ExternalObjectProviderKeyImpl
+import org.gradle.internal.declarativedsl.schemaimpl.FqNameImpl
+import org.gradle.internal.declarativedsl.schemaimpl.fqName
 import org.gradle.internal.declarativedsl.schema.AnalysisSchema
 import org.gradle.internal.declarativedsl.schema.DataClass
 import org.gradle.internal.declarativedsl.schema.DataProperty

@@ -22,6 +22,7 @@ import org.gradle.internal.declarativedsl.language.FunctionCall
 import org.gradle.internal.declarativedsl.language.LocalValue
 import org.gradle.internal.declarativedsl.schema.DataType
 import org.gradle.internal.declarativedsl.schema.FunctionSemantics
+import org.gradle.internal.declarativedsl.schemaimpl.isReadOnly
 
 
 interface StatementResolver {
@@ -73,8 +74,8 @@ class StatementResolverImpl(
                 null
             } else {
                 val rhsType = getDataType(rhsResolution)
-                val lhsExpectedType = resolveRef(lhsResolution.property.type)
-                if (rhsType == DataType.UnitType) {
+                val lhsExpectedType = resolveRef(lhsResolution.property.valueType)
+                if (rhsType is DataType.UnitType) {
                     errorCollector.collect(ResolutionError(assignment, ErrorReason.UnitAssignment))
                     hasErrors = true
                 }
@@ -98,7 +99,7 @@ class StatementResolverImpl(
         if (rhs == null) {
             errorCollector.collect(ResolutionError(localValue, ErrorReason.UnresolvedAssignmentRhs))
         } else {
-            if (getDataType(rhs) == DataType.UnitType) {
+            if (getDataType(rhs) is DataType.UnitType) {
                 errorCollector.collect(ResolutionError(localValue, ErrorReason.UnitAssignment))
             }
             currentScopes.last().declareLocal(localValue, rhs, errorCollector)

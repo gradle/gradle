@@ -6,10 +6,12 @@ import org.gradle.internal.declarativedsl.language.FunctionArgument
 import org.gradle.internal.declarativedsl.language.FunctionCall
 import org.gradle.internal.declarativedsl.language.PropertyAccess
 import org.gradle.internal.declarativedsl.language.asChainOrNull
+import org.gradle.internal.declarativedsl.schemaimpl.DataBuilderFunctionImpl
 import org.gradle.internal.declarativedsl.schema.DataClass
 import org.gradle.internal.declarativedsl.schema.DataMemberFunction
 import org.gradle.internal.declarativedsl.schema.DataParameter
 import org.gradle.internal.declarativedsl.schema.DataType
+import org.gradle.internal.declarativedsl.schemaimpl.FqNameImpl
 import org.gradle.internal.declarativedsl.schema.FunctionSemantics
 import org.gradle.internal.declarativedsl.schema.ParameterSemantics
 import org.gradle.internal.declarativedsl.schema.SchemaFunction
@@ -221,7 +223,7 @@ class FunctionCallResolverImpl(
             recordAddition(receiver, result)
         }
         val assignmentMethod = when (semantics) {
-            is FunctionSemantics.Builder -> AssignmentMethod.BuilderFunction(function.schemaFunction as DataBuilderFunction)
+            is FunctionSemantics.Builder -> AssignmentMethod.BuilderFunction(function.schemaFunction as DataBuilderFunctionImpl)
             else -> AssignmentMethod.AsConstructed
         }
         function.binding.binding.forEach { (param, arg) ->
@@ -266,10 +268,10 @@ class FunctionCallResolverImpl(
         )
 
         is FunctionSemantics.AccessAndConfigure -> when (semantics.returnType) {
-            FunctionSemantics.AccessAndConfigure.ReturnType.Unit ->
+            is FunctionSemantics.AccessAndConfigure.ReturnType.Unit ->
                 newObjectInvocationResult(function, valueBinding, functionCall, newFunctionCallId)
 
-            FunctionSemantics.AccessAndConfigure.ReturnType.ConfiguredObject ->
+            is FunctionSemantics.AccessAndConfigure.ReturnType.ConfiguredObject ->
                 configureReceiverObject(semantics, function, functionCall, valueBinding, newFunctionCallId)
         }
 

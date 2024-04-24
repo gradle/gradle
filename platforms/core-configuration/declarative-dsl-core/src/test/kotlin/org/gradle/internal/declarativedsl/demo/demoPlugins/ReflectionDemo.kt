@@ -1,6 +1,6 @@
 package org.gradle.internal.declarativedsl.demo.demoPlugins
 
-import org.gradle.internal.declarativedsl.analysis.FqNameImpl
+import org.gradle.internal.declarativedsl.schemaimpl.FqNameImpl
 import org.gradle.internal.declarativedsl.demo.reflection.printReflection
 import org.gradle.internal.declarativedsl.demo.reflection.reflect
 import org.gradle.internal.declarativedsl.demo.reflection.reflectAndPrint

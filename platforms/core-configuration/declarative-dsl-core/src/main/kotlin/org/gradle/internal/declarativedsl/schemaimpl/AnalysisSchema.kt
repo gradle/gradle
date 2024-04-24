@@ -1,4 +1,20 @@
-package org.gradle.internal.declarativedsl.analysis
+/*
+ * Copyright 2024 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.internal.declarativedsl.schemaimpl
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -10,6 +26,7 @@ import org.gradle.internal.declarativedsl.schema.DataConstructor
 import org.gradle.internal.declarativedsl.schema.DataMemberFunction
 import org.gradle.internal.declarativedsl.schema.DataParameter
 import org.gradle.internal.declarativedsl.schema.DataProperty
+import org.gradle.internal.declarativedsl.schema.DataProperty.PropertyMode
 import org.gradle.internal.declarativedsl.schema.DataTopLevelFunction
 import org.gradle.internal.declarativedsl.schema.DataType
 import org.gradle.internal.declarativedsl.schema.DataTypeRef
@@ -17,11 +34,13 @@ import org.gradle.internal.declarativedsl.schema.ExternalObjectProviderKey
 import org.gradle.internal.declarativedsl.schema.FqName
 import org.gradle.internal.declarativedsl.schema.FunctionSemantics
 import org.gradle.internal.declarativedsl.schema.FunctionSemantics.AccessAndConfigure.ReturnType
+import org.gradle.internal.declarativedsl.schema.FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement
 import org.gradle.internal.declarativedsl.schema.ParameterSemantics
 import org.gradle.internal.declarativedsl.schema.SchemaMemberFunction
 
 
 @Serializable
+@SerialName("analysisSchema")
 data class AnalysisSchemaImpl(
     override val topLevelReceiverType: DataClass,
     override val dataClassesByFqName: Map<FqName, DataClass>,
@@ -44,27 +63,84 @@ data class DataClassImpl(
 }
 
 
+/** Implementations for [DataType] */
+object DataTypeImpl {
+    @Serializable
+    @SerialName("int")
+    data object IntDataTypeImpl : DataType.IntDataType {
+        override fun toString(): String = "Int"
+    }
+
+    @Serializable
+    @SerialName("long")
+    data object LongDataTypeImpl : DataType.LongDataType {
+        override fun toString(): String = "Long"
+    }
+
+    @Serializable
+    @SerialName("string")
+    data object StringDataTypeImpl : DataType.StringDataType {
+        override fun toString(): String = "String"
+    }
+
+    @Serializable
+    @SerialName("boolean")
+    data object BooleanDataTypeImpl : DataType.BooleanDataType {
+        override fun toString(): String = "Boolean"
+    }
+
+    @Serializable
+    @SerialName("null")
+    data object NullTypeImpl : DataType.NullType {
+        override fun toString(): String = "Null"
+    }
+
+    @Serializable
+    @SerialName("unit")
+    data object UnitTypeImpl : DataType.UnitType {
+        override fun toString(): String = "Unit"
+    }
+}
+
+
 @Serializable
+@SerialName("dataProperty")
 data class DataPropertyImpl(
     override val name: String,
-    override val type: DataTypeRef,
-    override val mode: DataProperty.PropertyMode,
+    override val valueType: DataTypeRef,
+    override val mode: PropertyMode,
     override val hasDefaultValue: Boolean,
     override val isHiddenInDsl: Boolean = false,
     override val isDirectAccessOnly: Boolean = false
-) : DataProperty
+) : DataProperty {
+
+    /** Implementations for [PropertyMode] */
+    data object PropertyModeImpl {
+        @Serializable
+        data object ReadWriteImpl : PropertyMode.ReadWrite
+
+
+        @Serializable
+        data object ReadOnlyImpl : PropertyMode.ReadOnly
+
+
+        @Serializable
+        data object WriteOnlyImpl : PropertyMode.WriteOnly
+    }
+}
 
 
 val DataProperty.isReadOnly: Boolean
-    get() = mode == DataProperty.PropertyMode.ReadOnly
+    get() = mode is PropertyMode.ReadOnly
 
 
 val DataProperty.isWriteOnly: Boolean
-    get() = mode == DataProperty.PropertyMode.WriteOnly
+    get() = mode is PropertyMode.WriteOnly
 
 
 @Serializable
-data class DataBuilderFunction(
+@SerialName("dataBuilderFunction")
+data class DataBuilderFunctionImpl(
     override val receiver: DataTypeRef,
     override val simpleName: String,
     override val isDirectAccessOnly: Boolean,
@@ -77,6 +153,7 @@ data class DataBuilderFunction(
 
 
 @Serializable
+@SerialName("dataTopLevelFunction")
 data class DataTopLevelFunctionImpl(
     override val packageName: String,
     override val simpleName: String,
@@ -86,6 +163,7 @@ data class DataTopLevelFunctionImpl(
 
 
 @Serializable
+@SerialName("dataMemberFunction")
 data class DataMemberFunctionImpl(
     override val receiver: DataTypeRef,
     override val simpleName: String,
@@ -96,6 +174,7 @@ data class DataMemberFunctionImpl(
 
 
 @Serializable
+@SerialName("dataConstructor")
 data class DataConstructorImpl(
     override val parameters: List<DataParameter>,
     override val dataClass: DataTypeRef
@@ -107,47 +186,69 @@ data class DataConstructorImpl(
 
 
 @Serializable
+@SerialName("dataParameter")
 data class DataParameterImpl(
     override val name: String?,
+    @SerialName("parameterType")
     override val type: DataTypeRef,
     override val isDefault: Boolean,
     override val semantics: ParameterSemantics
 ) : DataParameter
 
 
-@Serializable
+/** Implementations for [ParameterSemantics] */
 object ParameterSemanticsImpl {
     @Serializable
+    @SerialName("storeValueInProperty")
     data class StoreValueInPropertyImpl(override val dataProperty: DataProperty) : ParameterSemantics.StoreValueInProperty
+
+    @Serializable
+    @SerialName("unknown")
+    data object UnknownImpl : ParameterSemantics.Unknown
 }
 
 
+/** Implementations for [FunctionSemantics] */
 object FunctionSemanticsImpl {
     @Serializable
+    @SerialName("builder")
     class BuilderImpl(private val objectType: DataTypeRef) : FunctionSemantics.Builder {
         override val returnValueType: DataTypeRef
             get() = objectType
     }
 
     @Serializable
+    @SerialName("accessAndConfigure")
     class AccessAndConfigureImpl(
         override val accessor: ConfigureAccessor,
         override val returnType: ReturnType
     ) : FunctionSemantics.AccessAndConfigure {
         override val returnValueType: DataTypeRef
             get() = when (returnType) {
-                ReturnType.ConfiguredObject -> accessor.objectType
-                ReturnType.Unit -> DataType.UnitType.ref
+                is ReturnType.ConfiguredObject -> accessor.objectType
+                is ReturnType.Unit -> DataTypeImpl.UnitTypeImpl.ref
             }
 
-        override val configureBlockRequirement: FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement
-            get() = FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement.Required
+        override val configureBlockRequirement: ConfigureBlockRequirement.Required
+            get() = ConfigureBlockRequirementImpl.RequiredImpl
+
+        /** Implementations for [ReturnType] */
+        object ReturnTypeImpl {
+            @Serializable
+            @SerialName("configuredObject")
+            data object ConfiguredObjectImpl : ReturnType.ConfiguredObject
+
+            @Serializable
+            @SerialName("unit")
+            object UnitImpl : ReturnType.Unit
+        }
     }
 
     @Serializable
+    @SerialName("addAndConfigure")
     class AddAndConfigureImpl(
         private val objectType: DataTypeRef,
-        override val configureBlockRequirement: FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement
+        override val configureBlockRequirement: ConfigureBlockRequirement
     ) : FunctionSemantics.AddAndConfigure {
         override val returnValueType: DataTypeRef
             get() = objectType
@@ -157,28 +258,38 @@ object FunctionSemanticsImpl {
     }
 
     @Serializable
+    @SerialName("pure")
     class PureImpl(override val returnValueType: DataTypeRef) : FunctionSemantics.Pure
+
+    /** Implementations for [ConfigureBlockRequirement] */
+    object ConfigureBlockRequirementImpl {
+        @Serializable
+        @SerialName("notAllowed")
+        data object NotAllowedImpl : ConfigureBlockRequirement.NotAllowed
+
+        @Serializable
+        @SerialName("optional")
+        data object OptionalImpl : ConfigureBlockRequirement.Optional
+
+        @Serializable
+        @SerialName("required")
+        data object RequiredImpl : ConfigureBlockRequirement.Required
+    }
 }
 
 
-fun ConfigureAccessor.access(objectOrigin: ObjectOrigin, inFunction: ObjectOrigin.AccessAndConfigureReceiver): ObjectOrigin = when (this) {
-    is ConfigureAccessor.Property ->
-        ObjectOrigin.PropertyReference(objectOrigin, dataProperty, objectOrigin.originElement)
-    is ConfigureAccessor.Custom ->
-        ObjectOrigin.CustomConfigureAccessor(objectOrigin, this, objectOrigin.originElement)
-    is ConfigureAccessor.ConfiguringLambdaArgument ->
-        ObjectOrigin.ConfiguringLambdaReceiver(inFunction.function, inFunction.parameterBindings, inFunction.invocationId, objectType, inFunction.originElement, inFunction.receiver)
-}
-
-
+/** Implementations for [ConfigureAccessor] */
 object ConfigureAccessorImpl {
     @Serializable
+    @SerialName("property")
     data class PropertyImpl(override val dataProperty: DataProperty) : ConfigureAccessor.Property
 
     @Serializable
+    @SerialName("custom")
     data class CustomImpl(override val objectType: DataTypeRef, override val customAccessorIdentifier: String) : ConfigureAccessor.Custom
 
     @Serializable
+    @SerialName("configuringLambdaArgument")
     data class ConfiguringLambdaArgumentImpl(override val objectType: DataTypeRef) : ConfigureAccessor.ConfiguringLambdaArgument
 
     // TODO: configure all elements by addition key?
@@ -187,6 +298,7 @@ object ConfigureAccessorImpl {
 
 
 @Serializable
+@SerialName("fqName")
 data class FqNameImpl(override val packageName: String, override val simpleName: String) : FqName {
     companion object {
         fun parse(fqNameString: String): FqName {
@@ -208,14 +320,18 @@ val DataTopLevelFunction.fqName: FqName
 
 
 @Serializable
-data class ExternalObjectProviderKeyImpl(override val type: DataTypeRef) : ExternalObjectProviderKey
+@SerialName("externalObjectProviderKey")
+data class ExternalObjectProviderKeyImpl(override val objectType: DataTypeRef) : ExternalObjectProviderKey
 
 
+/** Implementations for [DataTypeRef] */
 object DataTypeRefImpl {
     @Serializable
+    @SerialName("dataTypeRefType")
     data class TypeImpl(override val dataType: DataType) : DataTypeRef.Type
 
     @Serializable
+    @SerialName("dataTypeRefName")
     data class NameImpl(override val fqName: FqName) : DataTypeRef.Name
 }
 

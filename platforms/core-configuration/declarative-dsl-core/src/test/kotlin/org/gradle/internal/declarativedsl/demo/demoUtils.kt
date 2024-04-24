@@ -1,10 +1,11 @@
 package org.gradle.internal.declarativedsl.demo
 
-import org.gradle.internal.declarativedsl.analysis.DataTypeRefImpl
-import org.gradle.internal.declarativedsl.analysis.FqNameImpl
+import org.gradle.internal.declarativedsl.schemaimpl.DataTypeImpl
+import org.gradle.internal.declarativedsl.schemaimpl.DataTypeRefImpl
+import org.gradle.internal.declarativedsl.schemaimpl.FqNameImpl
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 import org.gradle.internal.declarativedsl.analysis.Resolver
-import org.gradle.internal.declarativedsl.analysis.ref
+import org.gradle.internal.declarativedsl.schemaimpl.ref
 import org.gradle.internal.declarativedsl.analysis.tracingCodeResolver
 import org.gradle.internal.declarativedsl.language.FailingResult
 import org.gradle.internal.declarativedsl.language.MultipleFailuresResult
@@ -25,13 +26,13 @@ import org.gradle.internal.declarativedsl.schema.DataType
 import org.gradle.internal.declarativedsl.schema.DataTypeRef
 
 
-val int = DataType.IntDataType.ref
+val int = DataTypeImpl.IntDataTypeImpl.ref
 
 
-val string = DataType.StringDataType.ref
+val string = DataTypeImpl.StringDataTypeImpl.ref
 
 
-val boolean = DataType.BooleanDataType.ref
+val boolean = DataTypeImpl.BooleanDataTypeImpl.ref
 
 
 fun AnalysisSchema.resolve(
@@ -120,7 +121,7 @@ fun prettyStringFromReflection(objectReflection: ObjectReflection): String {
         fun nextIndent() = "    ".repeat(depth + 1)
         when (current) {
             is ObjectReflection.ConstantValue -> append(
-                if (current.type == DataType.StringDataType)
+                if (current.type is DataType.StringDataType)
                     "\"${current.value}\""
                 else current.value.toString()
             )
@@ -144,7 +145,7 @@ fun prettyStringFromReflection(objectReflection: ObjectReflection): String {
                 }
             }
 
-            is ObjectReflection.External -> append("(external ${current.key.type}})")
+            is ObjectReflection.External -> append("(external ${current.key.objectType}})")
             is ObjectReflection.PureFunctionInvocation -> {
                 append(current.objectOrigin.function.simpleName)
                 append("#" + current.objectOrigin.invocationId)

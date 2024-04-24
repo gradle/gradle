@@ -20,9 +20,11 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.dsl.DependencyCollector
 import org.gradle.api.artifacts.dsl.DependencyHandler
-import org.gradle.internal.declarativedsl.analysis.DataMemberFunctionImpl
-import org.gradle.internal.declarativedsl.analysis.DataParameterImpl
-import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsImpl
+import org.gradle.internal.declarativedsl.schemaimpl.DataMemberFunctionImpl
+import org.gradle.internal.declarativedsl.schemaimpl.DataParameterImpl
+import org.gradle.internal.declarativedsl.schemaimpl.FunctionSemanticsImpl
+import org.gradle.internal.declarativedsl.schemaimpl.FunctionSemanticsImpl.ConfigureBlockRequirementImpl.NotAllowedImpl
+import org.gradle.internal.declarativedsl.schemaimpl.ParameterSemanticsImpl
 import org.gradle.internal.declarativedsl.analysis.ParameterValueBinding
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaComponent
 import org.gradle.internal.declarativedsl.mappingToJvm.DeclarativeRuntimeFunction
@@ -30,8 +32,6 @@ import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeFunctionResolver
 import org.gradle.internal.declarativedsl.schema.DataConstructor
 import org.gradle.internal.declarativedsl.schema.DataParameter
 import org.gradle.internal.declarativedsl.schema.DataTopLevelFunction
-import org.gradle.internal.declarativedsl.schema.FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement.NotAllowed
-import org.gradle.internal.declarativedsl.schema.ParameterSemantics
 import org.gradle.internal.declarativedsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.schemaBuilder.DataSchemaBuilder
 import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
@@ -57,10 +57,10 @@ class DependencyConfigurationsComponent(
     val configurations = DependencyConfigurations(project.configurations.names.toList())
 
     private
-    val gavDependencyParam = DataParameterImpl("dependency", String::class.toDataTypeRef(), false, ParameterSemantics.Unknown)
+    val gavDependencyParam = DataParameterImpl("dependency", String::class.toDataTypeRef(), false, ParameterSemanticsImpl.UnknownImpl)
 
     private
-    val projectDependencyParam = DataParameterImpl("dependency", ProjectDependency::class.toDataTypeRef(), false, ParameterSemantics.Unknown)
+    val projectDependencyParam = DataParameterImpl("dependency", ProjectDependency::class.toDataTypeRef(), false, ParameterSemanticsImpl.UnknownImpl)
 
     private
     val dependencyCollectorFunctionExtractorAndRuntimeResolver = DependencyCollectorFunctionExtractorAndRuntimeResolver(gavDependencyParam, projectDependencyParam)
@@ -93,7 +93,7 @@ class DependencyFunctionsExtractor(private val configurations: DependencyConfigu
                     configurationName,
                     listOf(projectDependencyParam),
                     false,
-                    FunctionSemanticsImpl.AddAndConfigureImpl(ProjectDependency::class.toDataTypeRef(), NotAllowed)
+                    FunctionSemanticsImpl.AddAndConfigureImpl(ProjectDependency::class.toDataTypeRef(), NotAllowedImpl)
                 )
             }
         } else emptyList()

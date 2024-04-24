@@ -206,7 +206,7 @@ object DomResolutionTest {
                 " -> configure ${resolution.elementType}"
 
             is DocumentResolution.PropertyResolution.PropertyAssignmentResolved ->
-                " -> ${resolution.receiverType}.${resolution.property.name}: ${typeString(resolution.property.type)}"
+                " -> ${resolution.receiverType}.${resolution.property.name}: ${typeString(resolution.property.valueType)}"
 
             is DocumentResolution.ValueResolution.ValueFactoryResolution.ValueFactoryResolved ->
                 " -> ${functionSignatureString(resolution.function)}"

@@ -9,6 +9,8 @@ import org.gradle.internal.declarativedsl.schema.DataClass
 import org.gradle.internal.declarativedsl.schema.DataProperty
 import org.gradle.internal.declarativedsl.schema.DataType
 import org.gradle.internal.declarativedsl.schema.FqName
+import org.gradle.internal.declarativedsl.schemaimpl.FqNameImpl
+import org.gradle.internal.declarativedsl.schemaimpl.isWriteOnly
 
 
 interface PropertyAccessResolver {

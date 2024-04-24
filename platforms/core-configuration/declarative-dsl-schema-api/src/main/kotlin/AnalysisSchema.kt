@@ -37,16 +37,16 @@ interface DataClass : DataType {
 
 interface DataProperty {
     val name: String
-    val type: DataTypeRef
+    val valueType: DataTypeRef
     val mode: PropertyMode
     val hasDefaultValue: Boolean
     val isHiddenInDsl: Boolean
     val isDirectAccessOnly: Boolean
 
     sealed interface PropertyMode {
-        data object ReadWrite : PropertyMode
-        data object ReadOnly : PropertyMode
-        data object WriteOnly : PropertyMode
+        interface ReadWrite : PropertyMode
+        interface ReadOnly : PropertyMode
+        interface WriteOnly : PropertyMode
     }
 }
 
@@ -114,7 +114,7 @@ sealed interface ParameterSemantics {
         val dataProperty: DataProperty
     }
 
-    data object Unknown : ParameterSemantics
+    interface Unknown : ParameterSemantics
 }
 
 
@@ -126,9 +126,9 @@ sealed interface FunctionSemantics {
         val configureBlockRequirement: ConfigureBlockRequirement
 
         sealed interface ConfigureBlockRequirement {
-            data object NotAllowed : ConfigureBlockRequirement
-            data object Optional : ConfigureBlockRequirement
-            data object Required : ConfigureBlockRequirement
+            interface NotAllowed : ConfigureBlockRequirement
+            interface Optional : ConfigureBlockRequirement
+            interface Required : ConfigureBlockRequirement
 
             val allows: Boolean
                 get() = this !is NotAllowed
@@ -152,15 +152,14 @@ sealed interface FunctionSemantics {
         val returnType: ReturnType
 
         sealed interface ReturnType {
-            data object Unit : ReturnType
-            data object ConfiguredObject : ReturnType
+            interface Unit : ReturnType
+            interface ConfiguredObject : ReturnType
         }
 
         override val configuredType: DataTypeRef
             get() = if (returnType is ReturnType.ConfiguredObject) returnValueType else accessor.objectType
 
-        override val configureBlockRequirement: ConfigureSemantics.ConfigureBlockRequirement
-            get() = ConfigureSemantics.ConfigureBlockRequirement.Required
+        override val configureBlockRequirement: ConfigureSemantics.ConfigureBlockRequirement.Required
     }
 
     interface AddAndConfigure : NewObjectFunctionSemantics, ConfigureSemantics {
@@ -183,7 +182,7 @@ sealed interface ConfigureAccessor {
         val dataProperty: DataProperty
 
         override val objectType: DataTypeRef
-            get() = dataProperty.type
+            get() = dataProperty.valueType
     }
 
     interface Custom : ConfigureAccessor {
@@ -204,7 +203,7 @@ interface FqName {
 
 
 interface ExternalObjectProviderKey {
-    val type: DataTypeRef
+    val objectType: DataTypeRef
 }
 
 

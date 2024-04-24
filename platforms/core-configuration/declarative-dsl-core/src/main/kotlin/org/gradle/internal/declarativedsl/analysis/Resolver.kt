@@ -4,6 +4,7 @@ import org.gradle.internal.declarativedsl.language.Block
 import org.gradle.internal.declarativedsl.language.Import
 import org.gradle.internal.declarativedsl.schema.AnalysisSchema
 import org.gradle.internal.declarativedsl.schema.FqName
+import org.gradle.internal.declarativedsl.schemaimpl.FqNameImpl
 
 
 interface Resolver {

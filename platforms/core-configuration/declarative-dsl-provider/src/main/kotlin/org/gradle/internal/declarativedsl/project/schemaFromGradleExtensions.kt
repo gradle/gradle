@@ -18,14 +18,14 @@ package org.gradle.internal.declarativedsl.project
 
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.declarative.dsl.model.annotations.Restricted
-import org.gradle.internal.declarativedsl.analysis.ConfigureAccessorImpl
-import org.gradle.internal.declarativedsl.analysis.DataMemberFunctionImpl
-import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsImpl
+import org.gradle.internal.declarativedsl.schemaimpl.ConfigureAccessorImpl
+import org.gradle.internal.declarativedsl.schemaimpl.DataMemberFunctionImpl
+import org.gradle.internal.declarativedsl.schemaimpl.FunctionSemanticsImpl
+import org.gradle.internal.declarativedsl.schemaimpl.FunctionSemanticsImpl.AccessAndConfigureImpl.ReturnTypeImpl
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaComponent
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeCustomAccessors
 import org.gradle.internal.declarativedsl.schema.ConfigureAccessor
 import org.gradle.internal.declarativedsl.schema.DataConstructor
-import org.gradle.internal.declarativedsl.schema.FunctionSemantics
 import org.gradle.internal.declarativedsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.schemaBuilder.DataSchemaBuilder
 import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
@@ -96,7 +96,7 @@ data class ExtensionInfo(
         isDirectAccessOnly = true,
         semantics = FunctionSemanticsImpl.AccessAndConfigureImpl(
             accessor = ConfigureAccessorImpl.CustomImpl(type.toDataTypeRef(), customAccessorId),
-            FunctionSemantics.AccessAndConfigure.ReturnType.Unit
+            ReturnTypeImpl.UnitImpl
         )
     )
 }

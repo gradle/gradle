@@ -20,8 +20,9 @@ import com.google.common.graph.Traverser
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.dsl.Dependencies
 import org.gradle.api.artifacts.dsl.DependencyCollector
-import org.gradle.internal.declarativedsl.analysis.DataMemberFunctionImpl
-import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsImpl
+import org.gradle.internal.declarativedsl.schemaimpl.DataMemberFunctionImpl
+import org.gradle.internal.declarativedsl.schemaimpl.FunctionSemanticsImpl
+import org.gradle.internal.declarativedsl.schemaimpl.FunctionSemanticsImpl.ConfigureBlockRequirementImpl.NotAllowedImpl
 import org.gradle.internal.declarativedsl.analysis.ParameterValueBinding
 import org.gradle.internal.declarativedsl.mappingToJvm.DeclarativeRuntimeFunction
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeFunctionResolver
@@ -29,7 +30,6 @@ import org.gradle.internal.declarativedsl.schema.DataConstructor
 import org.gradle.internal.declarativedsl.schema.DataMemberFunction
 import org.gradle.internal.declarativedsl.schema.DataParameter
 import org.gradle.internal.declarativedsl.schema.DataTopLevelFunction
-import org.gradle.internal.declarativedsl.schema.FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement.NotAllowed
 import org.gradle.internal.declarativedsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.schemaBuilder.DataSchemaBuilder
 import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
@@ -115,7 +115,7 @@ class DependencyCollectorFunctionExtractorAndRuntimeResolver(
         name,
         listOf(dependencyParam),
         false,
-        FunctionSemanticsImpl.AddAndConfigureImpl(ProjectDependency::class.toDataTypeRef(), NotAllowed)
+        FunctionSemanticsImpl.AddAndConfigureImpl(ProjectDependency::class.toDataTypeRef(), NotAllowedImpl)
     )
 
     private

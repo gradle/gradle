@@ -2,6 +2,7 @@ package org.gradle.internal.declarativedsl.objectGraph
 
 import org.gradle.internal.declarativedsl.analysis.AssignmentMethod
 import org.gradle.internal.declarativedsl.analysis.DataAddition
+import org.gradle.internal.declarativedsl.schemaimpl.DataTypeImpl
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
 import org.gradle.internal.declarativedsl.analysis.PropertyReferenceResolution
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
@@ -48,7 +49,7 @@ sealed interface ObjectReflection {
 
     data class Null(override val objectOrigin: ObjectOrigin) : ObjectReflection {
         override val type: DataType
-            get() = DataType.NullType
+            get() = DataTypeImpl.NullTypeImpl
     }
 
     data class DefaultValue(
@@ -65,7 +66,7 @@ sealed interface ObjectReflection {
     data class AddedByUnitInvocation(
         override val objectOrigin: ObjectOrigin
     ) : ObjectReflection {
-        override val type = DataType.UnitType
+        override val type = DataTypeImpl.UnitTypeImpl
     }
 }
 
@@ -102,7 +103,7 @@ fun reflect(
         is ObjectOrigin.FunctionInvocationOrigin -> context.functionCall(objectOrigin.invocationId) {
             when (objectOrigin.function.semantics) {
                 is FunctionSemantics.AddAndConfigure -> {
-                    if (type == DataType.UnitType) {
+                    if (type is DataType.UnitType) {
                         ObjectReflection.AddedByUnitInvocation(objectOrigin)
                     } else {
                         reflectData(
@@ -147,8 +148,8 @@ fun reflectDefaultValue(
     return when (val type = context.typeRefContext.getDataType(objectOrigin)) {
         is DataType.ConstantType<*> -> ObjectReflection.DefaultValue(type, objectOrigin)
         is DataClass -> reflectData(-1L, type, objectOrigin, context)
-        DataType.NullType -> error("Null type can't appear in property types")
-        DataType.UnitType -> error("Unit can't appear in property types")
+        is DataType.NullType -> error("Null type can't appear in property types")
+        is DataType.UnitType -> error("Unit can't appear in property types")
         else -> { error("Unhandled data type: ${type.javaClass.simpleName}") }
     }
 }
