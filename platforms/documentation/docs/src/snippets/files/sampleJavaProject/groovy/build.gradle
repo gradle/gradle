@@ -13,7 +13,9 @@ dependencies {
 }
 
 // tag::link-task-properties[]
+// tag::inner-link-task-properties[]
 def archivesDirPath = layout.buildDirectory.dir('archives')
+// end::inner-link-task-properties[]
 
 tasks.register('packageClasses', Zip) {
     archiveAppendix = "classes"

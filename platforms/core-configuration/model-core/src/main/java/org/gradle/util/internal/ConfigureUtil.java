@@ -19,6 +19,7 @@ package org.gradle.util.internal;
 import groovy.lang.Closure;
 import org.codehaus.groovy.runtime.GeneratedClosure;
 import org.gradle.api.Action;
+import org.gradle.api.IsolatedAction;
 import org.gradle.internal.Actions;
 import org.gradle.internal.metaobject.ConfigureDelegate;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
@@ -118,6 +119,16 @@ public class ConfigureUtil {
         }
 
         return new WrappedConfigureAction<T>(configureClosure);
+    }
+
+    /**
+     * Creates an isolated action that uses the given closure to configure objects of type T.
+     */
+    public static <T> IsolatedAction<T> configureUsingIsolatedAction(@Nullable final Closure configureClosure) {
+        if (configureClosure == null) {
+            return t -> {};
+        }
+        return t -> configure(configureClosure, t);
     }
 
     /**

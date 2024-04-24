@@ -485,24 +485,24 @@ Print out the stacktrace also for user exceptions (e.g. compile error). See also
 Create a https://gradle.com/build-scans[Build Scan] with fine-grained information about all aspects of your Gradle build.
 
 `-Dorg.gradle.debug=true`::
-Debug <<gradle_daemon.adoc#gradle_daemon, Gradle Daemon>> process. Gradle will wait for you to attach a debugger at `localhost:5005` by default.
+A <<build_environment.adoc#sec:gradle_configuration_properties,Gradle property>> that debugs the <<gradle_daemon.adoc#gradle_daemon, Gradle Daemon>> process. Gradle will wait for you to attach a debugger at `localhost:5005` by default.
 
 `-Dorg.gradle.debug.host=(host address)`::
-Specifies the host address to listen on or connect to when debug is enabled.
+A <<build_environment.adoc#sec:gradle_configuration_properties,Gradle property>> that specifies the host address to listen on or connect to when debug is enabled.
 In the server mode on Java 9 and above, passing `*` for the host will make the server listen on all network interfaces.
 By default, no host address is passed to JDWP, so on Java 9 and above, the loopback address is used, while earlier versions listen on all interfaces.
 
 `-Dorg.gradle.debug.port=(port number)`::
-Specifies the port number to listen on when debug is enabled. _Default is `5005`._
+A <<build_environment.adoc#sec:gradle_configuration_properties,Gradle property>> that specifies the port number to listen on when debug is enabled. _Default is `5005`._
 
 `-Dorg.gradle.debug.server=(true,false)`::
-If set to `true` and debugging is enabled, Gradle will run the build with the socket-attach mode of the debugger. Otherwise, the socket-listen mode is used. _Default is `true`._
+A <<build_environment.adoc#sec:gradle_configuration_properties,Gradle property>> that if set to `true` and debugging is enabled, will cause Gradle to run the build with the socket-attach mode of the debugger. Otherwise, the socket-listen mode is used. _Default is `true`._
 
 `-Dorg.gradle.debug.suspend=(true,false)`::
-When set to `true` and debugging is enabled, the JVM running Gradle will suspend until a debugger is attached. _Default is `true`._
+A <<build_environment.adoc#sec:gradle_configuration_properties,Gradle property>> that if set to `true` and debugging is enabled, the JVM running Gradle will suspend until a debugger is attached. _Default is `true`._
 
 `-Dorg.gradle.daemon.debug=true`::
-Debug <<gradle_daemon.adoc#gradle_daemon, Gradle Daemon>> process. (duplicate of `-Dorg.gradle.debug`)
+A <<build_environment.adoc#sec:gradle_configuration_properties,Gradle property>> that debugs the <<gradle_daemon.adoc#gradle_daemon, Gradle Daemon>> process. (duplicate of `-Dorg.gradle.debug`)
 
 [[sec:command_line_performance]]
 == Performance options
@@ -565,7 +565,7 @@ Run `gradle --status` to list running and recently stopped Gradle daemons. It on
 Run `gradle --stop` to stop all Gradle Daemons of the same version.
 
 `-Dorg.gradle.daemon.idletimeout=(number of milliseconds)`::
-Gradle Daemon will stop itself after this number of milliseconds of idle time. _Default is 10800000_ (3 hours).
+A <<build_environment.adoc#sec:gradle_configuration_properties,Gradle property>> wherein the Gradle Daemon will stop itself after this number of milliseconds of idle time. _Default is 10800000_ (3 hours).
 
 [[sec:command_line_logging]]
 == Logging options
@@ -574,7 +574,7 @@ Gradle Daemon will stop itself after this number of milliseconds of idle time. _
 You can customize the <<logging.adoc#logging,verbosity>> of Gradle logging with the following options, ordered from least verbose to most verbose.
 
 `-Dorg.gradle.logging.level=(quiet,warn,lifecycle,info,debug)`::
-Set logging level via Gradle properties.
+A <<build_environment.adoc#sec:gradle_configuration_properties,Gradle property>> that sets the logging level.
 
 `-q`, `--quiet`::
 Log errors only.
@@ -595,7 +595,7 @@ _Lifecycle_ is the default log level.
 You can control the use of rich output (colors and font variants) by specifying the console mode in the following ways:
 
 `-Dorg.gradle.console=(auto,plain,rich,verbose)`::
-Specify console mode via Gradle properties. Different modes are described immediately below.
+A <<build_environment.adoc#sec:gradle_configuration_properties,Gradle property>> that specifies the console mode. Different modes are described immediately below.
 
 `--console=(auto,plain,rich,verbose)`::
 Specifies which type of console output to generate.
@@ -619,7 +619,7 @@ Deprecated Gradle features were used in this build, making it incompatible with 
 You can control the verbosity of warnings on the console with the following options:
 
 `-Dorg.gradle.warning.mode=(all,fail,none,summary)`::
-Specify warning mode via <<build_environment.adoc#sec:gradle_configuration_properties, Gradle properties>>. Different modes are described immediately below.
+A <<build_environment.adoc#sec:gradle_configuration_properties,Gradle property>> that specifies the warning mode. Different modes are described immediately below.
 
 `--warning-mode=(all,fail,none,summary)`::
 Specifies how to log warnings. Default is `summary`.
@@ -698,7 +698,7 @@ Exports the public keys used for dependency verification.
 
 [[sec:environment_options]]
 == Environment options
-You can <<build_environment.adoc#build_environment,customize>> many aspects about where build scripts, settings, caches, and so on through the options below.
+You can <<build_environment.adoc#build_environment,customize>> many aspects of build scripts, settings, caches, and so on through the options below.
 
 `-b`, `--build-file` (deprecated)::
 Specifies the build file. For example: `gradle --build-file=foo.gradle`. The default is `build.gradle`, then `build.gradle.kts`.
@@ -725,10 +725,10 @@ Specifies an <<init_scripts.adoc#init_scripts,initialization script>>.
 Sets a <<project_properties.adoc#sec:project_properties,project property>> of the root project, for example `-Pmyprop=myvalue`.
 
 `-Dorg.gradle.jvmargs`::
-Set JVM arguments.
+A <<build_environment.adoc#sec:gradle_configuration_properties,Gradle property>> that sets JVM arguments.
 
 `-Dorg.gradle.java.home`::
-Set JDK home dir.
+A <<build_environment.adoc#sec:gradle_configuration_properties,Gradle property>> that sets the JDK home dir.
 
 [[sec:task_options]]
 == Task options

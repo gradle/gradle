@@ -19,8 +19,11 @@ package org.gradle.caching.internal.services;
 import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.internal.instantiation.InstanceGenerator;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
 
+@ServiceScope(Scope.Gradle.class)
 public interface BuildCacheControllerFactory {
     String REMOTE_CONTINUE_ON_ERROR_PROPERTY = "org.gradle.unsafe.build-cache.remote-continue-on-error";
 

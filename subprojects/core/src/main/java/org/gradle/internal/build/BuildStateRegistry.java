@@ -110,9 +110,4 @@ public interface BuildStateRegistry {
      * Visits all registered builds, ordered by {@link BuildState#getIdentityPath()}
      */
     void visitBuilds(Consumer<? super BuildState> visitor);
-
-    /**
-     * Restarts each build in the tree.
-     */
-    void resetStateForAllBuilds();
 }
