@@ -86,7 +86,7 @@ public abstract class InstrumentationAnalysisTransform implements TransformActio
 
     private static final Predicate<String> ACCEPTED_TYPES = type -> type != null && !type.startsWith("java/lang/");
 
-    private final Lazy<InjectedInstrumentationServices> internalServices = Lazy.unsafe().of(() -> getObjects().newInstance(InjectedInstrumentationServices.class));
+    private final Lazy<InjectedInstrumentationServices> internalServices = Lazy.unsafe().of(() -> getParameters().getBuildService().get().getInternalServices());
 
     @Inject
     protected abstract ObjectFactory getObjects();

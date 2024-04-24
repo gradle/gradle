@@ -55,6 +55,10 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
     private final Map<Long, ResolutionData> resolutionData = new ConcurrentHashMap<>();
     private final Lazy<InjectedInstrumentationServices> internalServices = Lazy.locking().of(() -> getObjectFactory().newInstance(InjectedInstrumentationServices.class));
 
+    public InjectedInstrumentationServices getInternalServices() {
+        return internalServices.get();
+    }
+
     @Inject
     protected abstract ObjectFactory getObjectFactory();
 

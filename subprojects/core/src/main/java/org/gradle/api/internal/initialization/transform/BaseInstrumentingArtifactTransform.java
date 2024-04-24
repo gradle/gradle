@@ -68,7 +68,7 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
         Property<Boolean> getAgentSupported();
     }
 
-    protected final Lazy<InjectedInstrumentationServices> internalServices = Lazy.unsafe().of(() -> getObjects().newInstance(InjectedInstrumentationServices.class));
+    protected final Lazy<InjectedInstrumentationServices> internalServices = Lazy.unsafe().of(() -> getParameters().getBuildService().get().getInternalServices());
 
     @Inject
     public abstract ObjectFactory getObjects();

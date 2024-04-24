@@ -147,11 +147,11 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
     @Override
     public ClassPath resolveClassPath(Configuration classpathConfiguration, ScriptClassPathResolutionContext resolutionContext) {
         // We clear resolution scope from service after the resolution is done, so data is not reused between invocations.
-        long contextId = resolutionContext.getContextId();
-        CacheInstrumentationDataBuildService buildService = resolutionContext.getBuildService().get();
         return executionEngine.createRequest(new CoarseGrainedInstrumentationUnitOfWork(inputFingerprinter, fileCollectionFactory, immutableWorkspaceProvider, getOriginalDependencies(classpathConfiguration).getFiles()) {
             @Override
             public TransformedClassPath getInstrumentedClasspath() {
+                long contextId = resolutionContext.getContextId();
+                CacheInstrumentationDataBuildService buildService = resolutionContext.getBuildService().get();
                 try (ResolutionScope resolutionScope = buildService.newResolutionScope(contextId)) {
                     ArtifactView originalDependencies = getOriginalDependencies(classpathConfiguration);
                     ArtifactView originalProjectDependencies = getOriginalProjectDependencies(classpathConfiguration);
