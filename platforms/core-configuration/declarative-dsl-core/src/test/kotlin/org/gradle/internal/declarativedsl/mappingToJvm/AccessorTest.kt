@@ -23,8 +23,7 @@ import org.gradle.internal.declarativedsl.analysis.DataMemberFunction
 import org.gradle.declarative.dsl.schema.DataTopLevelFunction
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.analysis.ConfigureAccessorInternal
-import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsInternal
-import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsInternal.AccessAndConfigure.ReturnType.UNIT
+import org.gradle.internal.declarativedsl.analysis.DefaultFunctionSemantics
 import org.gradle.internal.declarativedsl.demo.resolve
 import org.gradle.internal.declarativedsl.schemaBuilder.DataSchemaBuilder
 import org.gradle.internal.declarativedsl.schemaBuilder.DefaultFunctionExtractor
@@ -87,7 +86,8 @@ object AccessorTest {
                         "configureCustomInstance",
                         emptyList(),
                         false,
-                        FunctionSemanticsInternal.AccessAndConfigure(ConfigureAccessorInternal.Custom(Configured::class.toDataTypeRef(), "test"), UNIT)
+                        DefaultFunctionSemantics.DefaultAccessAndConfigure(ConfigureAccessorInternal.Custom(Configured::class.toDataTypeRef(), "test"),
+                            DefaultFunctionSemantics.DefaultAccessAndConfigure.DefaultReturnType.DefaultUnit)
                     )
                 )
             } else emptyList()

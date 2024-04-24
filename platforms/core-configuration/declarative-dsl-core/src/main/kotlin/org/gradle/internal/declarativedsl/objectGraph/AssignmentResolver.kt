@@ -115,7 +115,7 @@ class AssignmentResolver {
                         if (receiverAssigned != null) {
                             Ok(receiverAssigned.toOrigin(objectOrigin))
                         } else {
-                            if (objectOrigin.property.hasDefaultValue()) {
+                            if (objectOrigin.property.hasDefaultValue) {
                                 Ok(
                                     ObjectOrigin.PropertyDefaultValue(
                                         receiverOrigin, objectOrigin.property, objectOrigin.originElement

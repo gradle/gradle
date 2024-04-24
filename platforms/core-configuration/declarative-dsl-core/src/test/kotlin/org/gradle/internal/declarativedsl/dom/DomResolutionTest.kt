@@ -206,7 +206,7 @@ object DomResolutionTest {
                 " -> configure ${resolution.elementType}"
 
             is DocumentResolution.PropertyResolution.PropertyAssignmentResolved ->
-                " -> ${resolution.receiverType}.${resolution.property.name}: ${typeString(resolution.property.type)}"
+                " -> ${resolution.receiverType}.${resolution.property.name}: ${typeString(resolution.property.valueType)}"
 
             is DocumentResolution.ValueResolution.ValueFactoryResolution.ValueFactoryResolved ->
                 " -> ${functionSignatureString(resolution.function)}"
@@ -216,9 +216,9 @@ object DomResolutionTest {
         }
 
     private
-    fun typeString(typeRef: DataTypeRef) = when (typeRef.isNamed) {
-        false -> typeRef.dataType.toString()
-        true -> typeRef.fqName.simpleName
+    fun typeString(typeRef: DataTypeRef) = when (typeRef) {
+        is DataTypeRef.Type -> typeRef.getDataType().toString()
+        is DataTypeRef.Name -> typeRef.getFqName().simpleName
     }
 
     private

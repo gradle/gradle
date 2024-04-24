@@ -9,13 +9,21 @@ import org.gradle.declarative.dsl.schema.DataConstructor
 import org.gradle.declarative.dsl.schema.DataParameter
 import org.gradle.declarative.dsl.schema.DataProperty
 import org.gradle.declarative.dsl.schema.DataTopLevelFunction
+import org.gradle.declarative.dsl.schema.DataType
 import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.declarative.dsl.schema.ExternalObjectProviderKey
 import org.gradle.declarative.dsl.schema.FqName
 import org.gradle.declarative.dsl.schema.FunctionSemantics
+import org.gradle.declarative.dsl.schema.FunctionSemantics.AccessAndConfigure
+import org.gradle.declarative.dsl.schema.FunctionSemantics.AccessAndConfigure.ReturnType
+import org.gradle.declarative.dsl.schema.FunctionSemantics.AddAndConfigure
+import org.gradle.declarative.dsl.schema.FunctionSemantics.Builder
+import org.gradle.declarative.dsl.schema.FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement
+import org.gradle.declarative.dsl.schema.FunctionSemantics.Pure
 import org.gradle.declarative.dsl.schema.ParameterSemantics
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.language.DataTypeInternal
+import java.util.Collections
 
 
 @Serializable
@@ -35,74 +43,104 @@ data class DefaultAnalysisSchema(
     override fun getExternalObjectsByFqName(): Map<FqName, ExternalObjectProviderKey> = externalObjectsByFqName
 
     override fun getDefaultImports(): Set<FqName> = defaultImports
+
+    companion object Empty : AnalysisSchema {
+        override fun getTopLevelReceiverType(): DataClass = DefaultDataClass.Empty
+
+
+        override fun getDataClassesByFqName(): Map<FqName, DataClass> = mapOf()
+
+        override fun getExternalFunctionsByFqName(): Map<FqName, DataTopLevelFunction> = mapOf()
+
+        override fun getExternalObjectsByFqName(): Map<FqName, ExternalObjectProviderKey> = mapOf()
+
+        override fun getDefaultImports(): Set<FqName> = setOf()
+
+        private
+        fun readResolve(): Any = Empty
+    }
 }
 
 
 @Serializable
 @SerialName("data")
 data class DefaultDataClass(
-    private val name: FqName,
-    private val supertypes: Set<FqName>,
-    private val properties: List<DataProperty>,
-    private val memberFunctions: List<SchemaMemberFunction>,
-    private val constructors: List<DataConstructor>
-) : DataClass, DataTypeInternal {
+    override val name: FqName,
+    override val supertypes: Set<FqName>,
+    override val properties: List<DataProperty>,
+    override val memberFunctions: List<SchemaMemberFunction>,
+    override val constructors: List<DataConstructor>
+) : DataClass {
 
     override fun isClass(): Boolean = true
 
     override fun getDataClass(): DefaultDataClass = this
 
-    override fun getName(): FqName = name
-
-    override fun getSupertypes(): Set<FqName> = supertypes
-
-    override fun getProperties(): List<DataProperty> = properties
-
-    override fun getMemberFunctions(): List<SchemaMemberFunction> = memberFunctions
-
-    override fun getConstructors(): List<DataConstructor> = constructors
-
     override fun toString(): String = name.simpleName
+
+    companion object Empty : DataClass {
+        override val name: FqName = FqName.Empty
+        override val supertypes: Set<FqName> = Collections.emptySet()
+        override val properties: List<DataProperty> = Collections.emptyList()
+        override val memberFunctions: List<SchemaMemberFunction> = Collections.emptyList()
+        override val constructors: List<DataConstructor> = Collections.emptyList()
+        private
+        fun readResolve(): Any = Empty
+    }
 }
 
 
 @Serializable
+@SerialName("dataProperty")
 data class DefaultDataProperty(
-    private val name: String,
-    @SerialName("privateType") // TODO: is this ok?
-    private val type: DataTypeRefInternal,
-    private val mode: DataProperty.PropertyMode,
-    private val hasDefaultValue: Boolean,
-    private val isHiddenInDsl: Boolean = false,
-    private val isDirectAccessOnly: Boolean = false
+    override val name: String,
+    override val valueType: DataTypeRef,
+    override val mode: DataProperty.PropertyMode,
+    override val hasDefaultValue: Boolean,
+    override val isHiddenInDsl: Boolean = false,
+    override val isDirectAccessOnly: Boolean = false
 ) : DataProperty {
-    override fun getName(): String = name
+    data object DefaultPropertyMode {
+        @Serializable
+        data object DefaultReadWrite : DataProperty.PropertyMode.ReadWrite {
+            private
+            fun readResolve(): Any = DefaultReadWrite
+        }
 
-    override fun getType(): DataTypeRefInternal = type
 
-    override fun getMode(): DataProperty.PropertyMode = mode
+        @Serializable
+        data object DefaultReadOnly : DataProperty.PropertyMode.ReadOnly {
+            private
+            fun readResolve(): Any = DefaultReadOnly
+        }
 
-    override fun hasDefaultValue(): Boolean = hasDefaultValue
 
-    override fun isHiddenInDsl(): Boolean = isHiddenInDsl
-
-    override fun isDirectAccessOnly(): Boolean = isDirectAccessOnly
-
-    override fun isReadOnly(): Boolean = mode == DataProperty.PropertyMode.READ_ONLY
-
-    override fun isWriteOnly(): Boolean = mode == DataProperty.PropertyMode.WRITE_ONLY
+        @Serializable
+        data object DefaultWriteOnly : DataProperty.PropertyMode.WriteOnly {
+            private
+            fun readResolve(): Any = DefaultWriteOnly
+        }
+    }
 }
+
+
+val DataProperty.isReadOnly: Boolean
+    get() = mode.canRead() && !mode.canWrite()
+
+
+val DataProperty.isWriteOnly: Boolean
+    get() = !mode.canRead() && mode.canWrite()
 
 
 @Serializable
 data class DataBuilderFunction(
-    private val receiver: DataTypeRefInternal,
+    private val receiver: DataTypeRef,
     private val simpleName: String,
     private val isDirectAccessOnly: Boolean,
     val dataParameter: DataParameter,
 ) : SchemaMemberFunction {
     private
-    val internalSemantics: FunctionSemanticsInternal by lazy { FunctionSemanticsInternal.Builder(receiver) }
+    val internalSemantics: FunctionSemantics by lazy { DefaultFunctionSemantics.DefaultBuilder(receiver) }
     private
     val internalParameters: List<DataParameter> by lazy { listOf(dataParameter) }
 
@@ -110,11 +148,11 @@ data class DataBuilderFunction(
 
     override fun getParameters(): List<DataParameter> = internalParameters
 
-    override fun getSemantics(): FunctionSemanticsInternal = internalSemantics
+    override fun getSemantics(): FunctionSemantics = internalSemantics
 
-    override fun getReturnValueType(): DataTypeRefInternal = internalSemantics.returnValueType as DataTypeRefInternal
+    override fun getReturnValueType(): DataTypeRef = internalSemantics.returnValueType
 
-    override fun getReceiver(): DataTypeRefInternal = receiver
+    override fun getReceiver(): DataTypeRef = receiver
 
     override fun isDirectAccessOnly(): Boolean = isDirectAccessOnly
 }
@@ -125,7 +163,7 @@ data class DefaultDataTopLevelFunction(
     private val packageName: String,
     private val simpleName: String,
     private val parameters: List<DataParameter>,
-    private val semantics: FunctionSemanticsInternal.Pure,
+    private val semantics: Pure,
 ) : DataTopLevelFunction {
     override fun getPackageName(): String = packageName
 
@@ -133,29 +171,29 @@ data class DefaultDataTopLevelFunction(
 
     override fun getParameters(): List<DataParameter> = parameters
 
-    override fun getSemantics(): FunctionSemanticsInternal = semantics
+    override fun getSemantics(): FunctionSemantics = semantics
 
-    override fun getReturnValueType(): DataTypeRefInternal = semantics.returnValueType
+    override fun getReturnValueType(): DataTypeRef = semantics.returnValueType
 }
 
 
 @Serializable
 data class DataMemberFunction(
-    private val receiver: DataTypeRefInternal,
+    private val receiver: DataTypeRef,
     private val simpleName: String,
     private val parameters: List<DataParameter>,
     private val isDirectAccessOnly: Boolean,
-    private val semantics: FunctionSemanticsInternal,
+    private val semantics: FunctionSemantics,
 ) : SchemaMemberFunction {
     override fun getSimpleName(): String = simpleName
 
     override fun getParameters(): List<DataParameter> = parameters
 
-    override fun getSemantics(): FunctionSemanticsInternal = semantics
+    override fun getSemantics(): FunctionSemantics = semantics
 
-    override fun getReturnValueType(): DataTypeRefInternal = semantics.returnValueType as DataTypeRefInternal
+    override fun getReturnValueType(): DataTypeRef = semantics.returnValueType
 
-    override fun getReceiver(): DataTypeRefInternal = receiver
+    override fun getReceiver(): DataTypeRef = receiver
 
     override fun isDirectAccessOnly(): Boolean = isDirectAccessOnly
 }
@@ -164,34 +202,34 @@ data class DataMemberFunction(
 @Serializable
 data class DefaultDataConstructor(
     private val parameters: List<DataParameter>,
-    private val dataClass: DataTypeRefInternal
+    private val dataClass: DataTypeRef
 ) : DataConstructor {
     private
-    val internalSemantics: FunctionSemanticsInternal by lazy { FunctionSemanticsInternal.Pure(dataClass) }
+    val internalSemantics: FunctionSemantics by lazy { DefaultFunctionSemantics.DefaultPure(dataClass) }
 
     override fun getSimpleName(): String = "<init>"
 
     override fun getParameters(): List<DataParameter> = parameters
 
-    override fun getSemantics(): FunctionSemanticsInternal = internalSemantics
+    override fun getSemantics(): FunctionSemantics = internalSemantics
 
-    override fun getReturnValueType(): DataTypeRefInternal = internalSemantics.returnValueType as DataTypeRefInternal
+    override fun getReturnValueType(): DataTypeRef = internalSemantics.returnValueType
 
-    override fun getDataClass(): DataTypeRefInternal = dataClass
+    override fun getDataClass(): DataTypeRef = dataClass
 }
 
 
 @Serializable
 data class DefaultDataParameter(
     private val name: String?,
-    @SerialName("privateType") // TODO: is this ok?
-    private val type: DataTypeRefInternal,
+    @SerialName("privateType")
+    private val type: DataTypeRef,
     private val isDefault: Boolean,
     private val semantics: ParameterSemanticsInternal
 ) : DataParameter {
     override fun getName(): String? = name
 
-    override fun getType(): DataTypeRefInternal = type
+    override fun getType(): DataTypeRef = type
 
     override fun isDefault(): Boolean = isDefault
 
@@ -209,65 +247,104 @@ sealed interface ParameterSemanticsInternal : ParameterSemantics {
     }
 
     @Serializable
-    data object Unknown : ParameterSemanticsInternal
+    data object Unknown : ParameterSemanticsInternal {
+        private
+        fun readResolve(): Any = Unknown
+    }
 }
 
 
-@Serializable
-sealed interface FunctionSemanticsInternal : FunctionSemantics {
+object DefaultFunctionSemantics {
 
     @Serializable
-    sealed interface ConfigureSemantics : FunctionSemanticsInternal {
-        override fun isConfigureSemantics(): Boolean = true
+    @SerialName("builder")
+    class DefaultBuilder(private val objectType: DataTypeRef) : Builder {
+        override val returnValueType: DataTypeRef
+            get() = objectType
     }
 
     @Serializable
-    sealed interface NewObjectFunctionSemantics : FunctionSemanticsInternal {
-        override fun isNewObjectFunctionSemantics(): Boolean = true
-    }
-
-    @Serializable
-    class Builder(private val objectType: DataTypeRefInternal) : FunctionSemanticsInternal {
-        override fun getReturnValueType(): DataTypeRefInternal = objectType
-    }
-
-    @Serializable
-    class AccessAndConfigure(
-        val accessor: ConfigureAccessorInternal,
-        val returnType: ReturnType
-    ) : ConfigureSemantics {
-        enum class ReturnType {
-            UNIT, CONFIGURED_OBJECT
-        }
-
-        override fun getReturnValueType(): DataTypeRefInternal =
-            when (returnType) {
-                ReturnType.UNIT -> DataTypeInternal.UnitType.ref
-                ReturnType.CONFIGURED_OBJECT -> accessor.objectType as DataTypeRefInternal
+    @SerialName("accessAndConfigure")
+    class DefaultAccessAndConfigure(
+        override val accessor: ConfigureAccessor,
+        override val returnType: ReturnType
+    ) : AccessAndConfigure {
+        override val returnValueType: DataTypeRef
+            get() = when (returnType) {
+                is ReturnType.ConfiguredObject -> accessor.objectType
+                is ReturnType.Unit -> DataTypeInternal.DefaultUnitType.ref
             }
 
-        override fun getConfiguredType(): DataTypeRefInternal =
-            if (returnType == ReturnType.CONFIGURED_OBJECT) returnValueType else accessor.objectType as DataTypeRefInternal
+        override fun getConfiguredType(): DataTypeRef {
+            return if (returnType is ReturnType.ConfiguredObject) returnValueType else accessor.objectType
+        }
 
-        override fun getConfigureBlockRequirement(): FunctionSemantics.ConfigureBlockRequirement =
-            FunctionSemantics.ConfigureBlockRequirement.REQUIRED
+        override fun getConfigureBlockRequirement(): ConfigureBlockRequirement {
+            return DefaultConfigureBlockRequirement.DefaultRequired
+        }
+
+        /** Implementations for [ReturnType] */
+        object DefaultReturnType {
+            @Serializable
+            @SerialName("configuredObject")
+            data object DefaultConfiguredObject : ReturnType.ConfiguredObject {
+                private
+                fun readResolve(): Any = DefaultConfiguredObject
+            }
+
+            @Serializable
+            @SerialName("unit")
+            object DefaultUnit : ReturnType.Unit {
+                private
+                fun readResolve(): Any = DefaultUnit
+            }
+        }
     }
 
     @Serializable
-    class AddAndConfigure(
-        private val objectType: DataTypeRefInternal,
-        private val configureBlockRequirement: FunctionSemantics.ConfigureBlockRequirement
-    ) : NewObjectFunctionSemantics, ConfigureSemantics {
-        override fun getReturnValueType(): DataTypeRefInternal = objectType
+    @SerialName("addAndConfigure")
+    class DefaultAddAndConfigure(
+        private val objectType: DataTypeRef,
+        private val configureBlockRequirement: ConfigureBlockRequirement
+    ) : AddAndConfigure {
+        override val returnValueType: DataTypeRef
+            get() = objectType
 
-        override fun getConfiguredType(): DataTypeRefInternal = objectType
+        override fun getConfiguredType(): DataTypeRef {
+            return returnValueType
+        }
 
-        override fun getConfigureBlockRequirement(): FunctionSemantics.ConfigureBlockRequirement = configureBlockRequirement
+        override fun getConfigureBlockRequirement(): ConfigureBlockRequirement {
+            return configureBlockRequirement
+        }
     }
 
     @Serializable
-    class Pure(private val returnValueType: DataTypeRefInternal) : NewObjectFunctionSemantics {
-        override fun getReturnValueType(): DataTypeRefInternal = returnValueType
+    @SerialName("pure")
+    class DefaultPure(override val returnValueType: DataTypeRef) : Pure
+
+    /** Implementations for [ConfigureBlockRequirement] */
+    object DefaultConfigureBlockRequirement {
+        @Serializable
+        @SerialName("notAllowed")
+        data object DefaultNotAllowed : ConfigureBlockRequirement.NotAllowed {
+            private
+            fun readResolve(): Any = DefaultNotAllowed
+        }
+
+        @Serializable
+        @SerialName("optional")
+        data object DefaultOptional : ConfigureBlockRequirement.Optional {
+            private
+            fun readResolve(): Any = DefaultOptional
+        }
+
+        @Serializable
+        @SerialName("required")
+        data object DefaultRequired : ConfigureBlockRequirement.Required {
+            private
+            fun readResolve(): Any = DefaultRequired
+        }
     }
 }
 
@@ -282,7 +359,7 @@ sealed interface ConfigureAccessorInternal : ConfigureAccessor {
         private val dataProperty: DataProperty
     ) : ConfigureAccessorInternal {
 
-        override fun getObjectType(): DataTypeRefInternal = dataProperty.type as DataTypeRefInternal
+        override fun getObjectType(): DataTypeRef = dataProperty.valueType
 
         override fun access(objectOrigin: ObjectOrigin, inFunction: ObjectOrigin.AccessAndConfigureReceiver): ObjectOrigin =
             ObjectOrigin.PropertyReference(objectOrigin, dataProperty, objectOrigin.originElement)
@@ -290,11 +367,11 @@ sealed interface ConfigureAccessorInternal : ConfigureAccessor {
 
     @Serializable
     data class Custom(
-        private val objectType: DataTypeRefInternal,
+        private val objectType: DataTypeRef,
         val customAccessorIdentifier: String
     ) : ConfigureAccessorInternal {
 
-        override fun getObjectType(): DataTypeRefInternal = objectType
+        override fun getObjectType(): DataTypeRef = objectType
 
         override fun access(objectOrigin: ObjectOrigin, inFunction: ObjectOrigin.AccessAndConfigureReceiver): ObjectOrigin =
             ObjectOrigin.CustomConfigureAccessor(objectOrigin, this, objectOrigin.originElement)
@@ -302,10 +379,10 @@ sealed interface ConfigureAccessorInternal : ConfigureAccessor {
 
     @Serializable
     data class ConfiguringLambdaArgument(
-        private val objectType: DataTypeRefInternal
+        private val objectType: DataTypeRef
     ) : ConfigureAccessorInternal {
 
-        override fun getObjectType(): DataTypeRefInternal = objectType
+        override fun getObjectType(): DataTypeRef = objectType
 
         override fun access(objectOrigin: ObjectOrigin, inFunction: ObjectOrigin.AccessAndConfigureReceiver): ObjectOrigin =
             ObjectOrigin.ConfiguringLambdaReceiver(inFunction.function, inFunction.parameterBindings, inFunction.invocationId, objectType, inFunction.originElement, inFunction.receiver)
@@ -317,7 +394,7 @@ sealed interface ConfigureAccessorInternal : ConfigureAccessor {
 
 
 @Serializable
-data class DefaultFqName(private val packageName: String, private val simpleName: String) : FqName {
+data class DefaultFqName(override val packageName: String, override val simpleName: String) : FqName {
     companion object {
         fun parse(fqNameString: String): FqName {
             val parts = fqNameString.split(".")
@@ -325,15 +402,8 @@ data class DefaultFqName(private val packageName: String, private val simpleName
         }
     }
 
-    @get:JvmName("privateQualifiedName")
-    private
+    override
     val qualifiedName by lazy { "$packageName.$simpleName" }
-
-    override fun getPackageName(): String = packageName
-
-    override fun getSimpleName(): String = simpleName
-
-    override fun getQualifiedName(): String = qualifiedName
 
     override fun toString(): String = qualifiedName
 }
@@ -345,37 +415,35 @@ val DataTopLevelFunction.fqName: FqName
 
 @Serializable
 data class DefaultExternalObjectProviderKey(
-    private val type: DataTypeRefInternal
+    private val type: DataTypeRef
 ) : ExternalObjectProviderKey {
-    override fun getType(): DataTypeRefInternal = type
+    override fun getType(): DataTypeRef = type
 }
 
 
-@Serializable
-sealed interface DataTypeRefInternal : DataTypeRef {
+object DataTypeRefInternal {
     @Serializable
-    data class Type(private val dataType: DataTypeInternal) : DataTypeRefInternal {
-        override fun isNamed(): Boolean = false
+    @SerialName("dataTypeRefType")
+    data class DefaultType(
+        private val dataType: DataType
+    ) : DataTypeRef.Type {
 
-        override fun getDataType(): DataTypeInternal = dataType
+        override fun isTyped(): Boolean = true
 
-        override fun getFqName(): FqName {
-            throw UnsupportedOperationException("Not a reference to a named data type")
-        }
+        override fun getDataType(): DataType = dataType
     }
 
     @Serializable
-    data class Name(private val fqName: FqName) : DataTypeRefInternal {
-        override fun isNamed(): Boolean = true
+    @SerialName("dataTypeRefName")
+    data class DefaultName(
+        private val fqName: FqName
+    ) : DataTypeRef.Name {
+        override fun isNamed() = true
 
         override fun getFqName(): FqName = fqName
-
-        override fun getDataType(): DataTypeInternal {
-            throw UnsupportedOperationException("Data type only available as a name")
-        }
     }
 }
 
 
-val DataTypeInternal.ref: DataTypeRefInternal
-    get() = DataTypeRefInternal.Type(this)
+val DataType.ref: DataTypeRef
+    get() = DataTypeRefInternal.DefaultType(this)

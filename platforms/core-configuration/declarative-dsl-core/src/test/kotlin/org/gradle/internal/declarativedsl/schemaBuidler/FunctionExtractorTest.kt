@@ -17,7 +17,7 @@
 package org.gradle.internal.declarativedsl.schemaBuidler
 
 import org.gradle.declarative.dsl.model.annotations.Adding
-import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsInternal
+import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import org.junit.jupiter.api.assertThrows
 import kotlin.test.Test
@@ -30,7 +30,7 @@ object FunctionExtractorTest {
     fun `adding function may have a configuring lambda if it returns the added value`() {
         val schema = schemaFromTypes(ReceiverOne::class, listOf(ReceiverOne::class))
         val function = schema.dataClassesByFqName.values.single().memberFunctions.single()
-        assertIs<FunctionSemanticsInternal.AddAndConfigure>(function.semantics)
+        assertIs<FunctionSemantics.AddAndConfigure>(function.semantics)
     }
 
     @Test
@@ -45,7 +45,7 @@ object FunctionExtractorTest {
     fun `adding function with no lambda is accepted if it returns Unit`() {
         val schema = schemaFromTypes(ReceiverThree::class, listOf(ReceiverThree::class))
         val function = schema.dataClassesByFqName.values.single().memberFunctions.single()
-        assertIs<FunctionSemanticsInternal.AddAndConfigure>(function.semantics)
+        assertIs<FunctionSemantics.AddAndConfigure>(function.semantics)
     }
 
     abstract class ReceiverOne {

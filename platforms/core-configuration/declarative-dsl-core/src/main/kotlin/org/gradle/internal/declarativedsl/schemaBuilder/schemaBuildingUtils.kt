@@ -16,6 +16,7 @@
 
 package org.gradle.internal.declarativedsl.schemaBuilder
 
+import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.internal.declarativedsl.analysis.DataTypeRefInternal
 import org.gradle.internal.declarativedsl.analysis.DefaultFqName
 import org.gradle.internal.declarativedsl.analysis.ref
@@ -27,14 +28,14 @@ import kotlin.reflect.KProperty
 import kotlin.reflect.KType
 
 
-fun KClassifier.toDataTypeRef(): DataTypeRefInternal =
+fun KClassifier.toDataTypeRef(): DataTypeRef =
     when (this) {
-        Unit::class -> DataTypeInternal.UnitType.ref
-        Int::class -> DataTypeInternal.IntType.ref
-        String::class -> DataTypeInternal.StringType.ref
-        Boolean::class -> DataTypeInternal.BooleanType.ref
-        Long::class -> DataTypeInternal.LongType.ref
-        is KClass<*> -> DataTypeRefInternal.Name(DefaultFqName.parse(checkNotNull(qualifiedName)))
+        Unit::class -> DataTypeInternal.DefaultUnitType.ref
+        Int::class -> DataTypeInternal.DefaultIntDataType.ref
+        String::class -> DataTypeInternal.DefaultStringDataType.ref
+        Boolean::class -> DataTypeInternal.DefaultBooleanDataType.ref
+        Long::class -> DataTypeInternal.DefaultLongDataType.ref
+        is KClass<*> -> DataTypeRefInternal.DefaultName(DefaultFqName.parse(checkNotNull(qualifiedName)))
         else -> error("unexpected type")
     }
 
@@ -72,7 +73,7 @@ fun KType.toDataTypeRefOrError() =
 
 
 private
-fun KType.toDataTypeRef(): DataTypeRefInternal? = when {
+fun KType.toDataTypeRef(): DataTypeRef? = when {
     // isMarkedNullable -> TODO: support nullable types
     arguments.isNotEmpty() -> null // TODO: support for some particular generic types
     else -> when (val classifier = classifier) {

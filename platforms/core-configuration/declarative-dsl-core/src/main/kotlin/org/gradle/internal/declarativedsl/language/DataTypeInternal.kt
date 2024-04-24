@@ -21,69 +21,79 @@ import kotlinx.serialization.Serializable
 import org.gradle.declarative.dsl.schema.DataType
 
 
-interface DataTypeInternal : DataType {
-
-    sealed interface ConstantType<JvmType> : DataTypeInternal
+object DataTypeInternal {
 
     @Serializable
     @SerialName("int")
-    data object IntType : ConstantType<Int> {
-
+    data object DefaultIntDataType : DataType.IntDataType {
         override fun isConstant(): Boolean = true
 
         override fun getConstantType(): Class<Int> = Int::class.java
 
         override fun toString(): String = "Int"
+
+        private
+        fun readResolve(): Any = DefaultIntDataType
     }
 
 
     @Serializable
     @SerialName("long")
-    data object LongType : ConstantType<Long> {
-
+    data object DefaultLongDataType : DataType.LongDataType {
         override fun isConstant(): Boolean = true
 
         override fun getConstantType(): Class<Long> = Long::class.java
 
         override fun toString(): String = "Long"
+
+        private
+        fun readResolve(): Any = DefaultLongDataType
     }
 
 
     @Serializable
     @SerialName("string")
-    data object StringType : ConstantType<String> {
-
+    data object DefaultStringDataType : DataType.StringDataType {
         override fun isConstant(): Boolean = true
 
         override fun getConstantType(): Class<String> = String::class.java
 
         override fun toString(): String = "String"
+
+        private
+        fun readResolve(): Any = DefaultStringDataType
     }
 
 
     @Serializable
     @SerialName("boolean")
-    data object BooleanType : ConstantType<Boolean> {
-
+    data object DefaultBooleanDataType : DataType.BooleanDataType {
         override fun isConstant(): Boolean = true
-        override fun getConstantType(): Class<Boolean> = Boolean::class.java
 
+        override fun getConstantType(): Class<Boolean> = Boolean::class.java
         override fun toString(): String = "Boolean"
+
+        private
+        fun readResolve(): Any = DefaultBooleanDataType
     }
 
     @Serializable
     @SerialName("null")
-    data object NullType : DataTypeInternal { // TODO: implement nulls?
-
+    data object DefaultNullType : DataType.NullType {
         override fun isNull(): Boolean = true
+
+        private
+        fun readResolve(): Any = DefaultNullType
     }
 
 
     @Serializable
     @SerialName("unit")
-    data object UnitType : DataTypeInternal {
-
+    data object DefaultUnitType : DataType.UnitType {
         override fun isUnit(): Boolean = true
+
+        private
+        fun readResolve(): Any = DefaultUnitType
     }
 
 // TODO: `Any` type?

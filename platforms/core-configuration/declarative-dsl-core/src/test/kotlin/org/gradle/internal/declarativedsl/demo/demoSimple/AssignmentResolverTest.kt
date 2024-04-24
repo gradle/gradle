@@ -70,7 +70,7 @@ object AssignmentResolverTest {
             assertIs<AssignmentResolver.AssignmentAdditionResult.UnresolvedValueUsedInLhs>(assignmentAdditionResult)
             val propertyReference = assignmentAdditionResult.value
             assertIs<ObjectOrigin.PropertyReference>(propertyReference)
-            assertEquals("d", propertyReference.property.getName())
+            assertEquals("d", propertyReference.property.name)
         }
     }
 }

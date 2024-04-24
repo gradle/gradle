@@ -14,33 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.declarative.dsl.schema;
+package org.gradle.declarative.dsl.schema
 
-import java.io.Serializable;
+import java.io.Serializable
 
-public interface FqName extends Serializable {
 
-    String getPackageName();
+interface FqName : Serializable {
+    val packageName: String
+    val simpleName: String
+    val qualifiedName: String
 
-    String getSimpleName();
-
-    String getQualifiedName();
-
-    FqName EMPTY = new FqName() {
-        @Override
-        public String getPackageName() {
-            return "";
-        }
-
-        @Override
-        public String getSimpleName() {
-            return "";
-        }
-
-        @Override
-        public String getQualifiedName() {
-            return "";
-        }
-    };
-
+    companion object Empty : FqName {
+        override val packageName: String
+            get() = ""
+        override val simpleName: String
+            get() = ""
+        override val qualifiedName: String
+            get() = ""
+        private
+        fun readResolve(): Any = Empty
+    }
 }

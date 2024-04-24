@@ -19,8 +19,8 @@ package org.gradle.internal.declarativedsl.project
 import org.gradle.api.Project
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.internal.declarativedsl.analysis.DefaultFqName
-import org.gradle.declarative.dsl.schema.DataProperty.PropertyMode
 import org.gradle.internal.declarativedsl.analysis.DataTypeRefInternal
+import org.gradle.internal.declarativedsl.analysis.DefaultDataProperty
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaComponent
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimePropertyResolver
 import org.gradle.internal.declarativedsl.schemaBuilder.CollectedPropertyInformation
@@ -56,8 +56,8 @@ class TypesafeProjectAccessorsComponent(targetScope: ClassLoaderScope) : Evaluat
         CollectedPropertyInformation(
             "projects",
             projectAccessorsClass.createType(),
-            returnType = DataTypeRefInternal.Name(DefaultFqName.parse(projectAccessorsClass.qualifiedName!!)),
-            propertyMode = PropertyMode.READ_ONLY,
+            returnType = DataTypeRefInternal.DefaultName(DefaultFqName.parse(projectAccessorsClass.qualifiedName!!)),
+            propertyMode = DefaultDataProperty.DefaultPropertyMode.DefaultReadOnly,
             hasDefaultValue = true,
             isHiddenInDeclarativeDsl = false,
             isDirectAccessOnly = false,

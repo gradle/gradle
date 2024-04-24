@@ -18,6 +18,7 @@ package org.gradle.internal.declarativedsl.evaluator
 
 import org.gradle.api.Project
 import org.gradle.declarative.dsl.schema.AnalysisSchema
+import org.gradle.internal.declarativedsl.analysis.DefaultAnalysisSchema
 
 
 interface DeclarativeSchemaRegistry {
@@ -47,6 +48,6 @@ class DefaultDeclarativeSchemaRegistry : DeclarativeSchemaRegistry {
                 return schema
             }
         }
-        return AnalysisSchema.EMPTY
+        return DefaultAnalysisSchema.Empty
     }
 }

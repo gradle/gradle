@@ -1,9 +1,10 @@
 package org.gradle.internal.declarativedsl.analysis
 
+import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.DataProperty
+import org.gradle.declarative.dsl.schema.DataType
 import org.gradle.declarative.dsl.schema.FqName
 import org.gradle.internal.declarativedsl.language.AccessChain
-import org.gradle.internal.declarativedsl.language.DataTypeInternal
 import org.gradle.internal.declarativedsl.language.LanguageTreeElement
 import org.gradle.internal.declarativedsl.language.LocalValue
 import org.gradle.internal.declarativedsl.language.PropertyAccess
@@ -88,7 +89,7 @@ class PropertyAccessResolverImpl(
             } else {
                 if (result is ObjectOrigin.PropertyReference) {
                     checkAccessOnCurrentReceiver(result)
-                    if (result.property.isWriteOnly()) {
+                    if (result.property.isWriteOnly) {
                         errorCollector.collect(ResolutionError(result.originElement, ErrorReason.NonReadableProperty(result.property)))
                         return null
                     } else {
@@ -205,10 +206,10 @@ class PropertyAccessResolverImpl(
 
     private
     fun findDataProperty(
-        receiverType: DataTypeInternal,
+        receiverType: DataType,
         name: String
     ): DataProperty? =
-        if (receiverType is DefaultDataClass) receiverType.properties.find { !it.isHiddenInDsl && it.name == name } else null
+        if (receiverType is DataClass) receiverType.properties.find { !it.isHiddenInDsl && it.name == name } else null
 
     sealed interface AssignmentResolution {
         data class AssignProperty(val propertyReference: PropertyReferenceResolution) : AssignmentResolution

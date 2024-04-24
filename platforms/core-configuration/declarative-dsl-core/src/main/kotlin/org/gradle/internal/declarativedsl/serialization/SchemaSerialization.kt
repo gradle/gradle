@@ -22,16 +22,25 @@ import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
 import org.gradle.declarative.dsl.schema.AnalysisSchema
+import org.gradle.declarative.dsl.schema.ConfigureAccessor
+import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.internal.declarativedsl.analysis.DefaultAnalysisSchema
 import org.gradle.internal.declarativedsl.analysis.DataBuilderFunction
 import org.gradle.internal.declarativedsl.analysis.DataMemberFunction
 import org.gradle.declarative.dsl.schema.DataParameter
 import org.gradle.internal.declarativedsl.analysis.DefaultDataParameter
 import org.gradle.declarative.dsl.schema.DataProperty
+import org.gradle.declarative.dsl.schema.DataType
+import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.internal.declarativedsl.analysis.DefaultDataProperty
 import org.gradle.declarative.dsl.schema.FqName
+import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.internal.declarativedsl.analysis.DefaultFqName
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
+import org.gradle.internal.declarativedsl.analysis.ConfigureAccessorInternal
+import org.gradle.internal.declarativedsl.analysis.DataTypeRefInternal
+import org.gradle.internal.declarativedsl.analysis.DefaultDataClass
+import org.gradle.internal.declarativedsl.analysis.DefaultFunctionSemantics
 import org.gradle.internal.declarativedsl.language.DataTypeInternal
 
 
@@ -40,13 +49,25 @@ object SchemaSerialization {
     private
     val json = Json {
         serializersModule = SerializersModule {
-            polymorphic(DataTypeInternal::class) {
-                subclass(DataTypeInternal.IntType::class)
-                subclass(DataTypeInternal.LongType::class)
-                subclass(DataTypeInternal.StringType::class)
-                subclass(DataTypeInternal.BooleanType::class)
-                subclass(DataTypeInternal.NullType::class)
-                subclass(DataTypeInternal.UnitType::class)
+            polymorphic(ConfigureAccessor::class) {
+                subclass(ConfigureAccessorInternal.ConfiguringLambdaArgument::class)
+                subclass(ConfigureAccessorInternal.Custom::class)
+                subclass(ConfigureAccessorInternal.Property::class)
+            }
+            polymorphic(DataType::class) {
+                subclass(DataTypeInternal.DefaultIntDataType::class)
+                subclass(DataTypeInternal.DefaultLongDataType::class)
+                subclass(DataTypeInternal.DefaultStringDataType::class)
+                subclass(DataTypeInternal.DefaultBooleanDataType::class)
+                subclass(DataTypeInternal.DefaultNullType::class)
+                subclass(DataTypeInternal.DefaultUnitType::class)
+                polymorphic(DataClass::class) {
+                    subclass(DefaultDataClass::class)
+                }
+            }
+            polymorphic(DataTypeRef::class) {
+                subclass(DataTypeRefInternal.DefaultName::class)
+                subclass(DataTypeRefInternal.DefaultType::class)
             }
             polymorphic(DataParameter::class) {
                 subclass(DefaultDataParameter::class)
@@ -54,8 +75,28 @@ object SchemaSerialization {
             polymorphic(DataProperty::class) {
                 subclass(DefaultDataProperty::class)
             }
+            polymorphic(DataProperty.PropertyMode::class) {
+                subclass(DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite::class)
+                subclass(DefaultDataProperty.DefaultPropertyMode.DefaultReadOnly::class)
+                subclass(DefaultDataProperty.DefaultPropertyMode.DefaultWriteOnly::class)
+            }
             polymorphic(FqName::class) {
                 subclass(DefaultFqName::class)
+            }
+            polymorphic(FunctionSemantics::class) {
+                subclass(DefaultFunctionSemantics.DefaultAccessAndConfigure::class)
+                subclass(DefaultFunctionSemantics.DefaultAddAndConfigure::class)
+                subclass(DefaultFunctionSemantics.DefaultBuilder::class)
+                subclass(DefaultFunctionSemantics.DefaultPure::class)
+            }
+            polymorphic(FunctionSemantics.AccessAndConfigure.ReturnType::class) {
+                subclass(DefaultFunctionSemantics.DefaultAccessAndConfigure.DefaultReturnType.DefaultUnit::class)
+                subclass(DefaultFunctionSemantics.DefaultAccessAndConfigure.DefaultReturnType.DefaultConfiguredObject::class)
+            }
+            polymorphic(FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement::class) {
+                subclass(DefaultFunctionSemantics.DefaultConfigureBlockRequirement.DefaultNotAllowed::class)
+                subclass(DefaultFunctionSemantics.DefaultConfigureBlockRequirement.DefaultRequired::class)
+                subclass(DefaultFunctionSemantics.DefaultConfigureBlockRequirement.DefaultOptional::class)
             }
             polymorphic(SchemaMemberFunction::class) {
                 subclass(DataMemberFunction::class)

@@ -24,7 +24,7 @@ import org.gradle.internal.declarativedsl.schemaBuilder.toDataTypeRefOrError
 import org.gradle.api.provider.Property
 import org.gradle.declarative.dsl.model.annotations.AccessFromCurrentReceiverOnly
 import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl
-import org.gradle.declarative.dsl.schema.DataProperty.PropertyMode
+import org.gradle.internal.declarativedsl.analysis.DefaultDataProperty
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaComponent
 import org.gradle.internal.declarativedsl.schemaBuilder.MemberFilter
 import org.gradle.internal.declarativedsl.schemaBuilder.isPublicAndRestricted
@@ -74,7 +74,7 @@ class GradlePropertyApiPropertyExtractor(
                 property.name,
                 property.returnType,
                 propertyValueType(property.returnType).toDataTypeRefOrError(),
-                PropertyMode.WRITE_ONLY,
+                DefaultDataProperty.DefaultPropertyMode.DefaultWriteOnly,
                 hasDefaultValue = false,
                 isHiddenInDeclarativeDsl = isHidden,
                 isDirectAccessOnly = isDirectAccessOnly,
@@ -97,7 +97,7 @@ class GradlePropertyApiPropertyExtractor(
             val isHidden = getter.annotations.any { it is HiddenInDeclarativeDsl }
             val isDirectAccessOnly = getter.annotations.any { it is AccessFromCurrentReceiverOnly }
             CollectedPropertyInformation(
-                propertyName, getter.returnType, type, PropertyMode.WRITE_ONLY, false, isHidden, isDirectAccessOnly,
+                propertyName, getter.returnType, type, DefaultDataProperty.DefaultPropertyMode.DefaultWriteOnly, false, isHidden, isDirectAccessOnly,
                 claimedFunctions = listOf(getter)
             )
         }.filter { propertyNamePredicate(it.name) }

@@ -1,6 +1,7 @@
 package org.gradle.internal.declarativedsl.demo
 
 import org.gradle.declarative.dsl.schema.AnalysisSchema
+import org.gradle.declarative.dsl.schema.DataType
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 import org.gradle.internal.declarativedsl.analysis.Resolver
 import org.gradle.internal.declarativedsl.analysis.ref
@@ -22,13 +23,13 @@ import org.gradle.internal.declarativedsl.parsing.DefaultLanguageTreeBuilder
 import org.gradle.internal.declarativedsl.parsing.parse
 
 
-val int = DataTypeInternal.IntType.ref
+val int = DataTypeInternal.DefaultIntDataType.ref
 
 
-val string = DataTypeInternal.StringType.ref
+val string = DataTypeInternal.DefaultStringDataType.ref
 
 
-val boolean = DataTypeInternal.BooleanType.ref
+val boolean = DataTypeInternal.DefaultBooleanDataType.ref
 
 
 fun AnalysisSchema.resolve(
@@ -111,7 +112,7 @@ fun prettyStringFromReflection(objectReflection: ObjectReflection): String {
         fun nextIndent() = "    ".repeat(depth + 1)
         when (current) {
             is ObjectReflection.ConstantValue -> append(
-                if (current.type == DataTypeInternal.StringType)
+                if (current.type is DataType.StringDataType)
                     "\"${current.value}\""
                 else current.value.toString()
             )

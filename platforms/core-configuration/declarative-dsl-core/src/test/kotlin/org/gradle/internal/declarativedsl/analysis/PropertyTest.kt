@@ -17,7 +17,6 @@
 package org.gradle.internal.declarativedsl.analysis
 
 import org.gradle.declarative.dsl.model.annotations.Restricted
-import org.gradle.declarative.dsl.schema.DataProperty
 import org.gradle.internal.declarativedsl.demo.resolve
 import org.gradle.internal.declarativedsl.language.DataTypeInternal
 import org.gradle.internal.declarativedsl.schemaBuilder.CollectedPropertyInformation
@@ -64,7 +63,7 @@ object PropertyTest {
 
         val property = schema.dataClassesByFqName[DefaultFqName.parse(MyReceiver::class.qualifiedName!!)]!!.properties.single()
         assertEquals(expectedName, property.name)
-        assertEquals(DataTypeInternal.IntType.ref, property.type)
+        assertEquals(DataTypeInternal.DefaultIntDataType.ref, property.valueType)
     }
 
     private
@@ -84,8 +83,8 @@ object PropertyTest {
                     CollectedPropertyInformation(
                         "z",
                         typeOf<Int>(),
-                        DataTypeInternal.IntType.ref,
-                        DataProperty.PropertyMode.WRITE_ONLY,
+                        DataTypeInternal.DefaultIntDataType.ref,
+                        DefaultDataProperty.DefaultPropertyMode.DefaultWriteOnly,
                         hasDefaultValue = false,
                         isHiddenInDeclarativeDsl = false,
                         isDirectAccessOnly = false,
@@ -99,7 +98,7 @@ object PropertyTest {
     private
     fun testPropertyContributor(name: String, type: KType) = object : PropertyExtractor {
         override fun extractProperties(kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): Iterable<CollectedPropertyInformation> =
-            listOf(CollectedPropertyInformation(name, type, type.toDataTypeRefOrError(), DataProperty.PropertyMode.READ_WRITE, false, false, false, emptyList()))
+            listOf(CollectedPropertyInformation(name, type, type.toDataTypeRefOrError(), DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite, false, false, false, emptyList()))
                 .filter { propertyNamePredicate(it.name) }
     }
 

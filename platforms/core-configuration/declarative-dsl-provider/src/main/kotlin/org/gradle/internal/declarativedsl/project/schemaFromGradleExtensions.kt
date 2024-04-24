@@ -16,19 +16,19 @@
 
 package org.gradle.internal.declarativedsl.project
 
-import org.gradle.internal.declarativedsl.analysis.DataMemberFunction
-import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeCustomAccessors
-import org.gradle.internal.declarativedsl.schemaBuilder.DataSchemaBuilder
-import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
-import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
-import org.gradle.internal.declarativedsl.schemaBuilder.toDataTypeRef
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.declarative.dsl.schema.DataConstructor
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.analysis.ConfigureAccessorInternal
-import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsInternal
+import org.gradle.internal.declarativedsl.analysis.DataMemberFunction
+import org.gradle.internal.declarativedsl.analysis.DefaultFunctionSemantics
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaComponent
+import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeCustomAccessors
+import org.gradle.internal.declarativedsl.schemaBuilder.DataSchemaBuilder
+import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
+import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
+import org.gradle.internal.declarativedsl.schemaBuilder.toDataTypeRef
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 
@@ -92,9 +92,9 @@ data class ExtensionInfo(
         name,
         emptyList(),
         isDirectAccessOnly = true,
-        semantics = FunctionSemanticsInternal.AccessAndConfigure(
+        semantics = DefaultFunctionSemantics.DefaultAccessAndConfigure(
             accessor = ConfigureAccessorInternal.Custom(type.toDataTypeRef(), customAccessorId),
-            FunctionSemanticsInternal.AccessAndConfigure.ReturnType.UNIT
+            DefaultFunctionSemantics.DefaultAccessAndConfigure.DefaultReturnType.DefaultUnit
         )
     )
 }

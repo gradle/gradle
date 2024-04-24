@@ -17,6 +17,7 @@
 package org.gradle.internal.declarativedsl.dom
 
 import org.gradle.declarative.dsl.schema.AnalysisSchema
+import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter
 import org.gradle.internal.declarativedsl.analysis.ErrorReason
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
@@ -24,7 +25,6 @@ import org.gradle.internal.declarativedsl.analysis.ResolutionError
 import org.gradle.internal.declarativedsl.analysis.ResolutionTrace
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.analysis.DefaultDataClass
-import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsInternal
 import org.gradle.internal.declarativedsl.analysis.SchemaTypeRefContext
 import org.gradle.internal.declarativedsl.analysis.getDataType
 import org.gradle.internal.declarativedsl.analysis.tracingCodeResolver
@@ -86,14 +86,14 @@ class DocumentResolver(
                 }
                 val function = functionOrigin.function
                 when (val semantics = function.semantics) {
-                    is FunctionSemanticsInternal.AccessAndConfigure -> {
+                    is FunctionSemantics.AccessAndConfigure -> {
                         val configuredType = typeRefContext.resolveRef(semantics.accessor.objectType) as DefaultDataClass
                         DocumentResolution.ElementResolution.SuccessfulElementResolution.PropertyConfiguringElementResolved(configuredType)
                     }
 
-                    is FunctionSemanticsInternal.NewObjectFunctionSemantics -> {
+                    is FunctionSemantics.NewObjectFunctionSemantics -> {
                         DocumentResolution.ElementResolution.SuccessfulElementResolution.ContainerElementResolved(
-                            typeRefContext.resolveRef((semantics as? FunctionSemanticsInternal.ConfigureSemantics)?.configuredType ?: semantics.returnValueType),
+                            typeRefContext.resolveRef((semantics as? FunctionSemantics.ConfigureSemantics)?.getConfiguredType() ?: semantics.returnValueType),
                             function as SchemaMemberFunction,
                             false // TODO: produce proper key markers
                         )

@@ -21,7 +21,7 @@ import org.gradle.declarative.dsl.schema.DataConstructor
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.analysis.ConfigureAccessorInternal
 import org.gradle.internal.declarativedsl.analysis.DataMemberFunction
-import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsInternal
+import org.gradle.internal.declarativedsl.analysis.DefaultFunctionSemantics
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaComponent
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeCustomAccessors
 import org.gradle.internal.declarativedsl.schemaBuilder.DataSchemaBuilder
@@ -76,9 +76,9 @@ data class SoftwareTypeInfo(
         delegate.softwareType,
         emptyList(),
         isDirectAccessOnly = true,
-        semantics = FunctionSemanticsInternal.AccessAndConfigure(
+        semantics = DefaultFunctionSemantics.DefaultAccessAndConfigure(
             accessor = ConfigureAccessorInternal.Custom(delegate.modelPublicType.kotlin.toDataTypeRef(), customAccessorId),
-            FunctionSemanticsInternal.AccessAndConfigure.ReturnType.UNIT
+            DefaultFunctionSemantics.DefaultAccessAndConfigure.DefaultReturnType.DefaultUnit
         )
     )
 }

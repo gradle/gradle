@@ -20,7 +20,8 @@ import org.gradle.declarative.dsl.model.annotations.AccessFromCurrentReceiverOnl
 import org.gradle.declarative.dsl.model.annotations.HasDefaultValue
 import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl
 import org.gradle.declarative.dsl.schema.DataProperty.PropertyMode
-import org.gradle.internal.declarativedsl.analysis.DataTypeRefInternal
+import org.gradle.declarative.dsl.schema.DataTypeRef
+import org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode
 import java.util.Locale
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
@@ -71,7 +72,7 @@ operator fun PropertyExtractor.plus(other: PropertyExtractor): CompositeProperty
 data class CollectedPropertyInformation(
     val name: String,
     val originalReturnType: KType,
-    val returnType: DataTypeRefInternal,
+    val returnType: DataTypeRef,
     val propertyMode: PropertyMode,
     val hasDefaultValue: Boolean,
     val isHiddenInDeclarativeDsl: Boolean,
@@ -103,7 +104,7 @@ class DefaultPropertyExtractor(private val includeMemberFilter: MemberFilter = i
             val isDirectAccessOnly = getter.annotations.any { it is AccessFromCurrentReceiverOnly }
             val setter = functionsByName["set$nameAfterGet"]?.find { fn -> fn.parameters.singleOrNull { it != fn.instanceParameter }?.type == getter.returnType }
             val mode = run {
-                if (setter != null) PropertyMode.READ_WRITE else PropertyMode.READ_ONLY
+                if (setter != null) DefaultPropertyMode.DefaultReadWrite else DefaultPropertyMode.DefaultReadOnly
             }
             CollectedPropertyInformation(propertyName, getter.returnType, type, mode, true, isHidden, isDirectAccessOnly, listOfNotNull(getter, setter))
         }
@@ -127,7 +128,7 @@ class DefaultPropertyExtractor(private val includeMemberFilter: MemberFilter = i
             property.name,
             property.returnType,
             property.returnType.toDataTypeRefOrError(),
-            if (isReadOnly) PropertyMode.READ_ONLY else PropertyMode.READ_WRITE,
+            if (isReadOnly) DefaultPropertyMode.DefaultReadOnly else DefaultPropertyMode.DefaultReadWrite,
             hasDefaultValue = run {
                 isReadOnly || property.annotationsWithGetters.any { it is HasDefaultValue }
             },

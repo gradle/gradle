@@ -14,20 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.declarative.dsl.schema;
+package org.gradle.declarative.dsl.schema
 
-import java.io.Serializable;
 
-public interface DataTypeRef extends Serializable {
+interface DataClass : DataType {
 
-    boolean isNamed();
+    val name: FqName
+    val supertypes: Set<FqName>
+    val properties: List<DataProperty>
+    val memberFunctions: List<SchemaMemberFunction>
+    val constructors: List<DataConstructor>
 
-    default boolean isTyped() {
-        return !isNamed();
-    }
+    override fun isClass(): Boolean = true
 
-    DataType getDataType();
-
-    FqName getFqName();
-
+    override fun getDataClass(): DataClass = this
 }

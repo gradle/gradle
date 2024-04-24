@@ -3,10 +3,12 @@ package org.gradle.internal.declarativedsl.analysis
 import org.gradle.declarative.dsl.schema.DataConstructor
 import org.gradle.declarative.dsl.schema.DataParameter
 import org.gradle.declarative.dsl.schema.DataProperty
+import org.gradle.declarative.dsl.schema.DataType
+import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.declarative.dsl.schema.ExternalObjectProviderKey
+import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.declarative.dsl.schema.SchemaFunction
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
-import org.gradle.internal.declarativedsl.language.DataTypeInternal
 import org.gradle.internal.declarativedsl.language.FunctionCall
 import org.gradle.internal.declarativedsl.language.LanguageTreeElement
 import org.gradle.internal.declarativedsl.language.Literal
@@ -64,7 +66,7 @@ sealed interface ObjectOrigin {
 
     sealed interface ReceiverOrigin : ObjectOrigin
 
-    data class TopLevelReceiver(val type: DataTypeInternal, override val originElement: LanguageTreeElement) : ReceiverOrigin {
+    data class TopLevelReceiver(val type: DataType, override val originElement: LanguageTreeElement) : ReceiverOrigin {
         override fun toString(): String = "(top-level-object)"
     }
 
@@ -176,7 +178,7 @@ sealed interface ObjectOrigin {
         override val originElement: LanguageTreeElement
     ) : ObjectOrigin, HasReceiver {
         override fun toString(): String = "$receiver${'.'}${accessor.customAccessorIdentifier}"
-        val accessedType: DataTypeRefInternal
+        val accessedType: DataTypeRef
             get() = accessor.objectType
     }
 
@@ -184,13 +186,13 @@ sealed interface ObjectOrigin {
         override val function: SchemaFunction,
         override val parameterBindings: ParameterValueBinding,
         override val invocationId: Long,
-        val lambdaReceiverType: DataTypeRefInternal,
+        val lambdaReceiverType: DataTypeRef,
         override val originElement: LanguageTreeElement,
         override val receiver: ObjectOrigin,
     ) : FunctionInvocationOrigin, HasReceiver, ReceiverOrigin {
         init {
             val semantics = function.semantics
-            require(semantics is FunctionSemanticsInternal.AccessAndConfigure && semantics.accessor is ConfigureAccessorInternal.ConfiguringLambdaArgument)
+            require(semantics is FunctionSemantics.AccessAndConfigure && semantics.accessor is ConfigureAccessorInternal.ConfiguringLambdaArgument)
         }
 
         override fun toString(): String {
@@ -239,10 +241,9 @@ private
 fun functionInvocationString(function: SchemaFunction, receiver: ObjectOrigin?, invocationId: Long, parameterBindings: ParameterValueBinding) =
     receiver?.toString()?.plus(".").orEmpty() + buildString {
         if (function is DataConstructor) {
-            val ref = function.dataClass
-            val fqn = when (ref.isNamed) {
-                true -> ref.fqName.toString()
-                false -> (ref.dataType as? DefaultDataClass)?.name?.qualifiedName ?: ref.dataType.toString()
+            val fqn = when (val ref = function.dataClass) {
+                is DataTypeRef.Name -> ref.getFqName().toString()
+                is DataTypeRef.Type -> (ref.getDataType() as? DefaultDataClass)?.name?.qualifiedName ?: ref.getDataType().toString()
             }
             append(fqn)
             append(".")

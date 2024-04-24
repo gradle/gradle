@@ -14,30 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.declarative.dsl.schema;
+package org.gradle.declarative.dsl.schema
 
-import java.io.Serializable;
+import java.io.Serializable
 
-public interface DataProperty extends Serializable {
 
-    String getName();
+sealed interface DataTypeRef : Serializable {
 
-    DataTypeRef getType();
+    fun isNamed(): Boolean = false
 
-    PropertyMode getMode();
+    fun getDataType(): DataType = error("Not a reference to a named data type")
 
-    boolean hasDefaultValue();
+    fun isTyped(): Boolean = false
 
-    boolean isHiddenInDsl();
+    fun getFqName(): FqName = error("Data type only available as a name")
 
-    boolean isDirectAccessOnly();
+    interface Type : DataTypeRef
 
-    boolean isReadOnly();
-
-    boolean isWriteOnly();
-
-    enum PropertyMode {
-
-        READ_WRITE, READ_ONLY, WRITE_ONLY
-    }
+    interface Name : DataTypeRef
 }

@@ -17,7 +17,6 @@
 package org.gradle.declarative.dsl.schema;
 
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
@@ -32,32 +31,4 @@ public interface AnalysisSchema extends Serializable {
     Map<FqName, ExternalObjectProviderKey> getExternalObjectsByFqName();
 
     Set<FqName> getDefaultImports();
-
-    AnalysisSchema EMPTY = new AnalysisSchema() {
-        @Override
-        public DataClass getTopLevelReceiverType() {
-            return DataClass.EMPTY;
-        }
-
-        @Override
-        public Map<FqName, DataClass> getDataClassesByFqName() {
-            return Collections.emptyMap();
-        }
-
-        @Override
-        public Map<FqName, DataTopLevelFunction> getExternalFunctionsByFqName() {
-            return Collections.emptyMap();
-        }
-
-        @Override
-        public Map<FqName, ExternalObjectProviderKey> getExternalObjectsByFqName() {
-            return Collections.emptyMap();
-        }
-
-        @Override
-        public Set<FqName> getDefaultImports() {
-            return Collections.emptySet();
-        }
-    };
-
 }
