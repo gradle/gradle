@@ -50,6 +50,7 @@ import org.gradle.execution.plan.ToPlannedTaskConverter;
 import org.gradle.groovy.scripts.internal.CrossBuildInMemoryCachingScriptClassCache;
 import org.gradle.groovy.scripts.internal.DefaultScriptSourceHasher;
 import org.gradle.groovy.scripts.internal.GroovyDslWorkspaceProvider;
+import org.gradle.groovy.scripts.internal.InstrumentationClasspathWorkspaceProvider;
 import org.gradle.groovy.scripts.internal.RegistryAwareClassLoaderHierarchyHasher;
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher;
 import org.gradle.initialization.ClassLoaderRegistry;
@@ -259,5 +260,13 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
         CacheConfigurationsInternal cacheConfigurations
     ) {
        return new GroovyDslWorkspaceProvider(cacheBuilderFactory, fileAccessTimeJournal, cacheConfigurations);
+    }
+
+    InstrumentationClasspathWorkspaceProvider createInstrumentationClasspathWorkspaceProvider(
+        GlobalScopedCacheBuilderFactory cacheBuilderFactory,
+        FileAccessTimeJournal fileAccessTimeJournal,
+        CacheConfigurationsInternal cacheConfigurations
+    ) {
+        return new InstrumentationClasspathWorkspaceProvider(cacheBuilderFactory, fileAccessTimeJournal, cacheConfigurations);
     }
 }
