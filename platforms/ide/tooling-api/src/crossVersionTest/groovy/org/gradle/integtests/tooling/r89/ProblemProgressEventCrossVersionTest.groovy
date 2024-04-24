@@ -247,7 +247,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         thrown(BuildException)
         def problems = listener.problems
         validateCompilationProblem(problems, buildFile)
-        problems[0].failure == null
+        problems[0].failure.failure == null
     }
 
 
