@@ -21,7 +21,11 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
+import java.util.stream.Stream
+
 import static BuildSrcDetector.isValidBuildSrcBuild
+import static org.gradle.internal.scripts.ScriptFileUtil.getValidBuildFileNames
+import static org.gradle.internal.scripts.ScriptFileUtil.getValidSettingsFileNames
 
 class BuildSrcDetectorTest extends Specification {
 
@@ -77,6 +81,6 @@ class BuildSrcDetectorTest extends Specification {
         isValidBuildSrcBuild(buildSrcDir)
 
         where:
-        fileName << ["build.gradle", "build.gradle.kts", "settings.gradle", "settings.gradle.kts"]
+        fileName << Stream.concat(getValidSettingsFileNames().stream(), getValidBuildFileNames().stream()).toArray(String[]::new);
     }
 }
