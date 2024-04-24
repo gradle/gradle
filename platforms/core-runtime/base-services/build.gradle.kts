@@ -42,7 +42,6 @@ errorprone {
         "ThreadLocalUsage", // 4 occurrences
         "TypeParameterUnusedInFormals", // 5 occurrences
         "URLEqualsHashCode", // 1 occurrences
-        "UnnecessaryParentheses", // 2 occurrences
         "UnsynchronizedOverridesSynchronized", // 2 occurrences
         "UnusedMethod", // 2 occurrences
         "UnusedVariable", // 3 occurrences
@@ -52,8 +51,10 @@ errorprone {
 dependencies {
     api(projects.concurrent)
     api(projects.javaLanguageExtensions)
+    api(projects.fileTemp)
     api(project(":hashing"))
     api(project(":build-operations"))
+    api(libs.inject)
     api(libs.jsr305)
     api(libs.guava)
 
@@ -63,7 +64,6 @@ dependencies {
     implementation(libs.asm)
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
-    implementation(libs.inject)
     implementation(libs.slf4jApi)
 
     integTestImplementation(project(":logging"))

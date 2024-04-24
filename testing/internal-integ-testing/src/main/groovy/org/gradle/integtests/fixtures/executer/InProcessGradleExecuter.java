@@ -822,8 +822,14 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         @Override
         public ExecutionFailure assertThatDescription(Matcher<? super String> matcher) {
             outputFailure.assertThatDescription(matcher);
-            assertHasFailure(matcher, f -> {
-            });
+            assertHasFailure(matcher, f -> {});
+            return this;
+        }
+
+        @Override
+        public ExecutionFailure assertThatAllDescriptions(Matcher<? super String> matcher) {
+            outputFailure.assertThatAllDescriptions(matcher);
+            assertHasFailure(matcher, f -> {});
             return this;
         }
 

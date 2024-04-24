@@ -16,15 +16,14 @@ dependencies {
     api(project(":build-operations"))
     api(project(":hashing"))
     api(project(":base-services"))
-    api(project(":files"))
     api(project(":messaging"))
     api(project(":native"))
 
     api(libs.jsr305)
 
+    implementation(project(":files"))
     implementation(project(":logging"))
 
-    implementation(libs.slf4jApi)
     implementation(libs.guava)
     implementation(libs.commonsIo)
 

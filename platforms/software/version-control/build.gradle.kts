@@ -31,7 +31,6 @@ dependencies {
     implementation(project(":functional"))
     implementation(project(":hashing"))
     implementation(project(":logging-api"))
-    implementation(project(":resources"))
 
     implementation(libs.guava)
     implementation(libs.jgitSsh) {

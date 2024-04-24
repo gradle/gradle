@@ -385,7 +385,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
                     rootProject.projectEvaluationBroadcaster.beforeEvaluate(rootProject)
                     rootProject.run {
                         applyPlugins(plugins)
-                        serviceOf<ProjectSchemaProvider>().schemaFor(this)
+                        serviceOf<ProjectSchemaProvider>().schemaFor(this)!!
                     }
                 }
             }

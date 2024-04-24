@@ -68,7 +68,7 @@ public abstract class ExternalDependencyInstrumentingArtifactTransform extends B
     }
 
     private InstrumentationArtifactMetadata readArtifactMetadata(File input) {
-        InstrumentationAnalysisSerializer serializer = new InstrumentationAnalysisSerializer(internalServices.get().getStringInterner());
+        InstrumentationAnalysisSerializer serializer = getParameters().getBuildService().get().getCachedInstrumentationAnalysisSerializer();
         return serializer.readMetadataOnly(input);
     }
 
@@ -79,7 +79,7 @@ public abstract class ExternalDependencyInstrumentingArtifactTransform extends B
             public InstrumentationTypeRegistry getRegistry() {
                 return PropertiesBackedInstrumentationTypeRegistry.of(() -> {
                     File analysisFile = getInput().get().getAsFile();
-                    InstrumentationAnalysisSerializer serializer = new InstrumentationAnalysisSerializer(internalServices.get().getStringInterner());
+                    InstrumentationAnalysisSerializer serializer = getParameters().getBuildService().get().getCachedInstrumentationAnalysisSerializer();
                     return serializer.readDependencyAnalysis(analysisFile).getDependencies();
                 });
             }

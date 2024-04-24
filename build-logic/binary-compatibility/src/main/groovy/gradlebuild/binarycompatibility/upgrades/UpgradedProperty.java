@@ -30,18 +30,18 @@ public class UpgradedProperty {
     private final String containingType;
 
     /**
-     * Was upgradedMethods originally, but got renamed to upgradedAccessors,
-     * can be removed once base version will be the one that also uses 'upgradedAccessors'
+     * Was upgradedMethods originally, but got renamed to upgradedAccessors and then to replacedAccessors
+     * can be removed once base version will be the one that also uses 'replacedAccessors'.
      */
-    @SerializedName(value = "upgradedAccessors", alternate = "upgradedMethods")
-    private final List<UpgradedAccessor> upgradedAccessors;
+    @SerializedName(value = "replacedAccessors", alternate = {"upgradedAccessors", "upgradedMethods"})
+    private final List<ReplacedAccessor> replacedAccessors;
 
-    public UpgradedProperty(String containingType, String propertyName, String methodName, String methodDescriptor, List<UpgradedAccessor> upgradedAccessors) {
+    public UpgradedProperty(String containingType, String propertyName, String methodName, String methodDescriptor, List<ReplacedAccessor> replacedAccessors) {
         this.containingType = containingType;
         this.propertyName = propertyName;
         this.methodName = methodName;
         this.methodDescriptor = methodDescriptor;
-        this.upgradedAccessors = ImmutableList.copyOf(upgradedAccessors);
+        this.replacedAccessors = ImmutableList.copyOf(replacedAccessors);
     }
 
     public String getContainingType() {
@@ -60,8 +60,8 @@ public class UpgradedProperty {
         return methodDescriptor;
     }
 
-    public List<UpgradedAccessor> getUpgradedAccessors() {
-        return upgradedAccessors;
+    public List<ReplacedAccessor> getReplacedAccessors() {
+        return replacedAccessors;
     }
 
     @Override
@@ -71,16 +71,16 @@ public class UpgradedProperty {
             ", methodName='" + methodName + '\'' +
             ", methodDescriptor='" + methodDescriptor + '\'' +
             ", containingType='" + containingType + '\'' +
-            ", upgradedAccessors=" + upgradedAccessors +
+            ", replacedAccessors=" + replacedAccessors +
             '}';
     }
 
-    public static class UpgradedAccessor {
+    public static class ReplacedAccessor {
         private final String name;
         private final String descriptor;
         private final BinaryCompatibility binaryCompatibility;
 
-        public UpgradedAccessor(String name, String descriptor, BinaryCompatibility binaryCompatibility) {
+        public ReplacedAccessor(String name, String descriptor, BinaryCompatibility binaryCompatibility) {
             this.name = name;
             this.descriptor = descriptor;
             this.binaryCompatibility = binaryCompatibility;
@@ -100,7 +100,7 @@ public class UpgradedProperty {
 
         @Override
         public String toString() {
-            return "UpgradedAccessor{" +
+            return "ReplacedAccessor{" +
                 "name='" + name + '\'' +
                 ", descriptor='" + descriptor + '\'' +
                 ", binaryCompatibility='" + binaryCompatibility + '\'' +
@@ -113,41 +113,41 @@ public class UpgradedProperty {
         ACCESSORS_KEPT
     }
 
-    public static class UpgradedAccessorKey {
+    public static class AccessorKey {
         private final String containingType;
         private final String methodName;
         private final String descriptor;
 
-        private UpgradedAccessorKey(String containingType, String methodName, String descriptor) {
+        private AccessorKey(String containingType, String methodName, String descriptor) {
             this.containingType = containingType;
             this.methodName = methodName;
             this.descriptor = descriptor;
         }
 
-        public static UpgradedAccessorKey of(String containingType, String methodName, String descriptor) {
-            return new UpgradedAccessorKey(containingType, methodName, descriptor);
+        public static AccessorKey of(String containingType, String methodName, String descriptor) {
+            return new AccessorKey(containingType, methodName, descriptor);
         }
 
-        public static UpgradedAccessorKey ofUpgradedProperty(UpgradedProperty upgradedProperty) {
-            return new UpgradedAccessorKey(upgradedProperty.getContainingType(), upgradedProperty.getMethodName(), upgradedProperty.getMethodDescriptor());
+        public static AccessorKey ofUpgradedProperty(UpgradedProperty upgradedProperty) {
+            return new AccessorKey(upgradedProperty.getContainingType(), upgradedProperty.getMethodName(), upgradedProperty.getMethodDescriptor());
         }
 
-        public static UpgradedAccessorKey ofUpgradedAccessor(String containingType, UpgradedAccessor upgradedAccessor) {
-            return new UpgradedAccessorKey(containingType, upgradedAccessor.getName(), upgradedAccessor.getDescriptor());
+        public static AccessorKey ofReplacedAccessor(String containingType, ReplacedAccessor replacedAccessor) {
+            return new AccessorKey(containingType, replacedAccessor.getName(), replacedAccessor.getDescriptor());
         }
 
-        public static UpgradedAccessorKey ofNewMethod(JApiMethod jApiMethod) {
+        public static AccessorKey ofNewMethod(JApiMethod jApiMethod) {
             String name = jApiMethod.getName();
             String descriptor = jApiMethod.getNewMethod().get().getSignature();
             String containingType = jApiMethod.getjApiClass().getFullyQualifiedName();
-            return new UpgradedAccessorKey(containingType, name, descriptor);
+            return new AccessorKey(containingType, name, descriptor);
         }
 
-        public static UpgradedAccessorKey ofOldMethod(JApiMethod jApiMethod) {
+        public static AccessorKey ofOldMethod(JApiMethod jApiMethod) {
             String name = jApiMethod.getName();
             String descriptor = jApiMethod.getOldMethod().get().getSignature();
             String containingType = jApiMethod.getjApiClass().getFullyQualifiedName();
-            return new UpgradedAccessorKey(containingType, name, descriptor);
+            return new AccessorKey(containingType, name, descriptor);
         }
 
         @Override
@@ -163,7 +163,7 @@ public class UpgradedProperty {
             if (o == null || getClass() != o.getClass()) {
                 return false;
             }
-            UpgradedAccessorKey that = (UpgradedAccessorKey) o;
+            AccessorKey that = (AccessorKey) o;
             return Objects.equals(containingType, that.containingType)
                 && Objects.equals(methodName, that.methodName)
                 && Objects.equals(descriptor, that.descriptor);

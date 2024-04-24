@@ -104,7 +104,6 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
         cacheBuilderFactory,
         cacheFactory,
         fileAccessTimeJournal,
-        classpathWalker,
         classpathFingerprinter,
         fileSystemAccess,
         executorFactory,

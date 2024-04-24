@@ -26,7 +26,7 @@ import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
 import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory;
 import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.internal.resource.local.ModificationTimeFileAccessTimeJournal;
+import org.gradle.internal.file.nio.ModificationTimeFileAccessTimeJournal;
 import org.gradle.util.internal.GFileUtils;
 import org.gradle.vcs.VersionControlSpec;
 import org.gradle.vcs.git.GitVersionControlSpec;

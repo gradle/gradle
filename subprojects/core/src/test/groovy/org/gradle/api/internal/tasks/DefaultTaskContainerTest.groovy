@@ -30,6 +30,7 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.BuildOperationCrossProjectConfigurator
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.internal.project.taskfactory.TaskFactory
@@ -68,6 +69,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         getTaskDependencyFactory() >> TestFiles.taskDependencyFactory()
         getObjects() >> Stub(ObjectFactory)
     } as ProjectInternal
+    private final projectRegistry = Mock(ProjectRegistry)
     private container = new DefaultTaskContainerFactory(
         DirectInstantiator.INSTANCE,
         taskIdentityFactory,
@@ -76,7 +78,8 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         new TaskStatistics(),
         buildOperationRunner,
         new BuildOperationCrossProjectConfigurator(buildOperationRunner),
-        callbackActionDecorator
+        callbackActionDecorator,
+        projectRegistry
     ).create()
 
     boolean supportsBuildOperations = true
@@ -1608,7 +1611,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         def otherTaskContainer = Mock(TaskContainerInternal)
         def otherProjectState = Mock(ProjectState)
 
-        project.findProject(projectPath) >> otherProject
+        projectRegistry.getProject(_) >> otherProject
 
         otherProject.owner >> otherProjectState
         1 * otherProjectState.ensureTasksDiscovered()

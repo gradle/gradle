@@ -7,7 +7,6 @@ description = "Adds support for building Groovy projects"
 errorprone {
     disabledChecks.addAll(
         "ModifyCollectionInEnhancedForLoop", // 1 occurrences
-        "UnnecessaryParentheses", // 1 occurrences
         "UnusedMethod", // 4 occurrences
         "UnusedVariable", // 1 occurrences
     )

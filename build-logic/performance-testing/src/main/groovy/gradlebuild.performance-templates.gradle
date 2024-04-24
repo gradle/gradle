@@ -56,7 +56,7 @@ performanceTest.registerTestProject("largeEmptyMultiProjectDeclarativeDsl", Java
 
 
 // === Java ===
-['largeMonolithicJavaProject', 'largeJavaMultiProject', 'largeJavaMultiProjectHierarchy', 'largeMonolithicGroovyProject', 'largeGroovyMultiProject', 'largeJavaMultiProjectNoBuildSrc', 'largeJavaMultiProjectKotlinDsl',
+['largeMonolithicJavaProject', 'largeJavaMultiProject', 'smallJavaMultiProjectManyExternalDependencies', 'largeJavaMultiProjectHierarchy', 'largeMonolithicGroovyProject', 'largeGroovyMultiProject', 'largeJavaMultiProjectNoBuildSrc', 'largeJavaMultiProjectKotlinDsl',
  'mediumMonolithicJavaProject', 'mediumJavaMultiProject', 'mediumJavaMultiProjectWithTestNG', 'mediumJavaCompositeBuild', 'mediumJavaPredefinedCompositeBuild',
  'smallJavaMultiProject', 'smallJavaMultiProjectNoBuildSrc'].each { template ->
     performanceTest.registerTestProject(template, JavaExecProjectGeneratorTask) {

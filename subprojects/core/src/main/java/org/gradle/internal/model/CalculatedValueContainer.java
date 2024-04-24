@@ -42,9 +42,15 @@ import java.util.concurrent.locks.ReentrantLock;
  * </p>
  *
  * <p>You should use {@link CalculatedValueContainerFactory} to create instances of this type.</p>
+ *
+ * <p>This type can hold null as the computed value.</p>
  */
 @ThreadSafe
 public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>> implements CalculatedValue<T>, WorkNodeAction {
+    // TODO(https://github.com/gradle/gradle/issues/24767): with JSpecify, the nullable nature of the type argument <T> should be expressed as <T extends @Nullable Object>.
+    //  We cannot use this syntax until adopting JSpecify with e.g. Jetbrains Annotations, because IDEA wrongly treats all usages as having a nullable type, even when
+    //  it is explicitly spelled.
+
     private final DisplayName displayName;
     // Null when the value has been calculated and assigned to the result field. When not null the result has not been calculated
     // or is currently being calculated or has just been calculated. It is possible for both this field and the result field to be
@@ -83,17 +89,6 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
     @Override
     public T get() throws IllegalStateException {
         return getValue().get();
-    }
-
-    @Override
-    @Nullable
-    public T getOrNull() {
-        Try<T> result = this.result;
-        if (result != null) {
-            return result.get();
-        } else {
-            return null;
-        }
     }
 
     @Override
@@ -223,20 +218,15 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
                     return;
                 }
                 done = true;
-                Try<T> result = Try.ofFailable(() -> {
+
+                // Attach result and discard calculation state
+                owner.result = Try.ofFailable(() -> {
                     NodeExecutionContext effectiveContext = context;
                     if (effectiveContext == null) {
                         effectiveContext = new GlobalContext(defaultContext);
                     }
-                    T value = supplier.calculateValue(effectiveContext);
-                    if (value == null) {
-                        throw new IllegalStateException(String.format("Calculated value for %s cannot be null.", displayName));
-                    }
-                    return value;
+                    return supplier.calculateValue(effectiveContext);
                 });
-
-                // Attach result and discard calculation state
-                owner.result = result;
                 owner.calculationState = null;
             } finally {
                 releaseLock();

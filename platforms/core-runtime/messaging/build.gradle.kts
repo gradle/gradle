@@ -16,7 +16,6 @@ errorprone {
         "ReferenceEquality", // 1 occurrences
         "StringCaseLocaleUsage", // 1 occurrences
         "ThreadPriorityCheck", // 1 occurrences
-        "UnnecessaryParentheses", // 2 occurrences
         "UnrecognisedJavadocTag", // 1 occurrences
     )
 }

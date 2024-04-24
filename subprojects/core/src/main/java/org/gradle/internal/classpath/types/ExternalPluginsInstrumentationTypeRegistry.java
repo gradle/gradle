@@ -18,11 +18,9 @@ package org.gradle.internal.classpath.types;
 
 import com.google.common.collect.ImmutableMap;
 
-import java.util.ArrayDeque;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -51,21 +49,26 @@ public class ExternalPluginsInstrumentationTypeRegistry implements Instrumentati
         if (type.startsWith(GRADLE_CORE_PACKAGE_PREFIX)) {
             superTypes = gradleCoreInstrumentationTypeRegistry.getSuperTypes(type);
         }
-        return !superTypes.isEmpty() ? superTypes : computeAndCacheSuperTypesForExternalType(type);
+        return !superTypes.isEmpty() ? superTypes : Collections.unmodifiableSet(computeAndCacheSuperTypesForExternalType(type));
     }
 
     private Set<String> computeAndCacheSuperTypesForExternalType(String type) {
-        return Collections.unmodifiableSet(this.instrumentedSuperTypes.computeIfAbsent(type, this::computeInstrumentedSuperTypes));
+        // We intentionally avoid using computeIfAbsent, since ConcurrentHashMap doesn't allow map modifications in the computeIfAbsent map function.
+        // The result is, that multiple threads could recalculate the same key multiple times, but that is not a problem in our case.
+        Set<String> computedInstrumentedSuperTypes = instrumentedSuperTypes.get(type);
+        if (computedInstrumentedSuperTypes == null) {
+            computedInstrumentedSuperTypes = computeInstrumentedSuperTypes(type);
+            instrumentedSuperTypes.put(type, computedInstrumentedSuperTypes);
+        }
+        return computedInstrumentedSuperTypes;
     }
 
     private Set<String> computeInstrumentedSuperTypes(String type) {
-        Queue<String> superTypes = new ArrayDeque<>(getDirectSuperTypes(type));
         Set<String> collected = new HashSet<>();
         collected.add(type);
-        while (!superTypes.isEmpty()) {
-            String superType = superTypes.poll();
+        for (String superType : getDirectSuperTypes(type)) {
             if (collected.add(superType)) {
-                superTypes.addAll(getDirectSuperTypes(superType));
+                collected.addAll(computeAndCacheSuperTypesForExternalType(superType));
             }
         }
         // Keep just classes in the `org.gradle.` package. If we ever allow 3rd party plugins to contribute instrumentation,

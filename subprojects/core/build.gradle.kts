@@ -1,5 +1,6 @@
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.instrumented-project")
 }
 
 description = "Public and internal 'core' Gradle APIs with implementation"
@@ -68,8 +69,6 @@ errorprone {
         "TypeParameterShadowing", // 1 occurrences
         "TypeParameterUnusedInFormals", // 2 occurrences
         "UndefinedEquals", // 1 occurrences
-        "UnnecessaryLambda", // 1 occurrences
-        "UnnecessaryParentheses", // 1 occurrences
         "UnrecognisedJavadocTag", // 1 occurrences
         "UnusedMethod", // 18 occurrences
         "UnusedVariable", // 8 occurrences
