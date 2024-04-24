@@ -58,6 +58,10 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
     @Inject
     protected abstract ObjectFactory getObjectFactory();
 
+    public InjectedInstrumentationServices getInternalServices() {
+        return internalServices.get();
+    }
+
     public InstrumentationTypeRegistry getInstrumentationTypeRegistry(long contextId) {
         InstrumentationTypeRegistry gradleCoreInstrumentationTypeRegistry = internalServices.get().getGradleCoreInstrumentationTypeRegistry();
         if (!Boolean.getBoolean(GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY) && gradleCoreInstrumentationTypeRegistry.isEmpty()) {

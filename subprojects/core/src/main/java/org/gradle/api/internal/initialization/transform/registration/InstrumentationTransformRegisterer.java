@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.initialization.DefaultScriptClassPathResolver;
 import org.gradle.api.internal.initialization.ScriptClassPathResolutionContext;
 import org.gradle.api.internal.initialization.transform.BaseInstrumentingArtifactTransform;
+import org.gradle.api.internal.initialization.transform.CopyInstrumentedArtifactTransform;
 import org.gradle.api.internal.initialization.transform.ExternalDependencyInstrumentingArtifactTransform;
 import org.gradle.api.internal.initialization.transform.InstrumentationAnalysisTransform;
 import org.gradle.api.internal.initialization.transform.MergeInstrumentationAnalysisTransform;
@@ -35,6 +36,7 @@ import org.gradle.internal.lazy.Lazy;
 
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.INSTRUMENTED_ATTRIBUTE;
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.ANALYZED_ARTIFACT;
+import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.COPIED_ARTIFACT;
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.INSTRUMENTED_AND_UPGRADED;
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.INSTRUMENTED_ONLY;
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.MERGED_ARTIFACT_ANALYSIS;
@@ -67,9 +69,17 @@ public class InstrumentationTransformRegisterer {
 
     private void registerInstrumentationAndUpgradesPipeline(long contextId, DependencyHandler dependencyHandler, Provider<CacheInstrumentationDataBuildService> service) {
         dependencyHandler.registerTransform(
-            InstrumentationAnalysisTransform.class,
+            CopyInstrumentedArtifactTransform.class,
             spec -> {
                 spec.getFrom().attribute(INSTRUMENTED_ATTRIBUTE, NOT_INSTRUMENTED.getValue());
+                spec.getTo().attribute(INSTRUMENTED_ATTRIBUTE, COPIED_ARTIFACT.getValue());
+                spec.parameters(params -> params.getBuildService().set(service));
+            }
+        );
+        dependencyHandler.registerTransform(
+            InstrumentationAnalysisTransform.class,
+            spec -> {
+                spec.getFrom().attribute(INSTRUMENTED_ATTRIBUTE, COPIED_ARTIFACT.getValue());
                 spec.getTo().attribute(INSTRUMENTED_ATTRIBUTE, ANALYZED_ARTIFACT.getValue());
                 spec.parameters(params -> {
                     params.getBuildService().set(service);
