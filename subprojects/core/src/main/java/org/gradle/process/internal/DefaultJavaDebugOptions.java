@@ -53,6 +53,7 @@ public class DefaultJavaDebugOptions implements JavaDebugOptions {
         return Objects.hash(getEnabled().get(), getHost().getOrNull(), getPort().get(), getServer().get(), getSuspend().get());
     }
 
+    @SuppressWarnings("BoxedPrimitiveEquality")
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -62,13 +63,12 @@ public class DefaultJavaDebugOptions implements JavaDebugOptions {
             return false;
         }
         DefaultJavaDebugOptions that = (DefaultJavaDebugOptions) o;
-        return Objects.equals(enabled.get(), that.enabled.get())
+        return enabled.get() == that.enabled.get()
             && Objects.equals(host.getOrNull(), that.host.getOrNull())
             && port.get().equals(that.port.get())
-            && Objects.equals(server.get(), that.server.get())
-            && Objects.equals(suspend.get(), that.suspend.get());
+            && server.get() == that.server.get()
+            && suspend.get() == that.suspend.get();
     }
-
     @Override
     public Property<Boolean> getEnabled() {
         return enabled;
