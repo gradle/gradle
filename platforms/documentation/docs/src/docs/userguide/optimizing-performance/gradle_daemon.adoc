@@ -178,7 +178,7 @@ NOTE: Daemon JVM discovery and Daemon JVM criteria are <<feature_lifecycle.adoc#
 By default, the same JVM installation that starts the build is used to run the build.
 Gradle uses the current shell path and `JAVA_HOME` environment variable to locate a usable JVM.
 
-You can also specify a different JVM installation for the build using the [`org.gradle.java.home`](build_environment.html#sec:gradle_configuration_properties) property or programmatically through the Tooling API.
+You can also specify a different JVM installation for the build using the <<build_environment.adoc#sec:gradle_configuration_properties,`org.gradle.java.home`>> property or programmatically through the Tooling API.
 
 Using the _Daemon JVM discovery_ and _Daemon JVM criteria_ Gradle records the build's JVM requirements.
 This controls the JVM used to run Gradle itself.
