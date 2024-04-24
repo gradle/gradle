@@ -41,6 +41,7 @@ import kotlin.reflect.full.isSubclassOf
  * * for each typesafe accessor container type, extracts its properties (see [TypesafeProjectPropertyProducer]);
  * * at runtime, resolves property access to the `projects` property on [Project] instances.
  */
+@Suppress("unused") // temporarily excluded from the schema, awaiting rework in a way that does not require the target scope
 internal
 class TypesafeProjectAccessorsComponent(targetScope: ClassLoaderScope) : EvaluationSchemaComponent {
     private

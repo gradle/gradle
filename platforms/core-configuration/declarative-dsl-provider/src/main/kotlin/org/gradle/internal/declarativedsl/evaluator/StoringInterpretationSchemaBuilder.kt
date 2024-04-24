@@ -79,7 +79,7 @@ class StoringInterpretationSchemaBuilder(
     ) : InterpretationSequenceStep<R> {
         override val stepIdentifier: String = step.stepIdentifier
         override fun evaluationSchemaForStep(): EvaluationSchema = step.evaluationSchemaForStep().also { schemaHandler(stepIdentifier, it.analysisSchema) }
-        override fun topLevelReceiver(): R = step.topLevelReceiver()
+        override fun getTopLevelReceiverFromTarget(target: Any): R = step.getTopLevelReceiverFromTarget(target)
         override fun whenEvaluated(resultReceiver: R) = step.whenEvaluated(resultReceiver)
     }
 }

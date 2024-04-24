@@ -26,7 +26,6 @@ import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter.Compa
 import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter.Companion.isTopLevelElement
 import org.gradle.internal.declarativedsl.analysis.and
 import org.gradle.internal.declarativedsl.analysis.implies
-import org.gradle.internal.declarativedsl.analysis.not
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequenceStep
 import org.gradle.internal.service.ServiceRegistry
@@ -38,25 +37,24 @@ import org.gradle.plugin.use.internal.PluginRequestApplicator
 
 
 internal
-class PluginsInterpretationSequenceStep<T>(
+class PluginsInterpretationSequenceStep(
     override val stepIdentifier: String = "plugins",
-    private val target: T,
     private val targetScope: ClassLoaderScope,
     private val scriptSource: ScriptSource,
-    private val getTargetServices: (T) -> ServiceRegistry,
+    private val getTargetServices: () -> ServiceRegistry,
 ) : InterpretationSequenceStep<PluginsTopLevelReceiver> {
     override fun evaluationSchemaForStep(): EvaluationSchema = EvaluationSchema(
         schemaForPluginsBlock,
         analysisStatementFilter = isTopLevelPluginsBlock
     )
 
-    override fun topLevelReceiver() = PluginsTopLevelReceiver()
+    override fun getTopLevelReceiverFromTarget(target: Any) = PluginsTopLevelReceiver()
 
     override fun whenEvaluated(resultReceiver: PluginsTopLevelReceiver) {
         val pluginRequests = resultReceiver.plugins.specs.map {
             DefaultPluginRequest(DefaultPluginId.unvalidated(it.id), it.apply, PluginRequestInternal.Origin.OTHER, scriptSource.displayName, null, it.version, null, null, null)
         }
-        with(getTargetServices(target)) {
+        with(getTargetServices()) {
             val scriptHandler = get(ScriptHandlerFactory::class.java).create(scriptSource, targetScope)
             val pluginManager = get(PluginManagerInternal::class.java)
             val pluginApplicator = get(PluginRequestApplicator::class.java)
@@ -73,7 +71,3 @@ val isPluginConfiguringCall: AnalysisStatementFilter = isConfiguringCall.and(isC
 
 internal
 val isTopLevelPluginsBlock: AnalysisStatementFilter = isTopLevelElement.implies(isPluginConfiguringCall)
-
-
-internal
-val ignoreTopLevelPluginsBlock: AnalysisStatementFilter = isTopLevelElement.implies(isPluginConfiguringCall.not())

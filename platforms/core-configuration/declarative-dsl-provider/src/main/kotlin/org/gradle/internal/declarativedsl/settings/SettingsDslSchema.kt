@@ -46,9 +46,9 @@ fun settingsInterpretationSequence(
 ): InterpretationSequence =
     InterpretationSequence(
         listOf(
-            SimpleInterpretationSequenceStep("settingsPluginManagement", settings) { pluginManagementEvaluationSchema() },
-            PluginsInterpretationSequenceStep("settingsPlugins", settings, targetScope, scriptSource) { it.services },
-            SimpleInterpretationSequenceStep("settings", settings) { settingsEvaluationSchema(settings) }
+            SimpleInterpretationSequenceStep("settingsPluginManagement") { pluginManagementEvaluationSchema() },
+            PluginsInterpretationSequenceStep("settingsPlugins", targetScope, scriptSource) { settings.services },
+            SimpleInterpretationSequenceStep("settings") { settingsEvaluationSchema(settings) }
         )
     )
 
