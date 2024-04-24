@@ -88,7 +88,7 @@ Your code needs to run on [all versions of Java that Gradle supports](platforms/
 * Be careful when using features introduced in Java 1.7 or later. Some parts of Gradle still need to run on Java 6.
 * Normalize file paths in tests. The `org.gradle.util.internal.TextUtil` class has some useful functions for this purpose.
 
-You can consult the [Architecture Decision Records](architecture-standards) to learn about some of the architectural decisions the team took.
+You can consult the [Architecture documentation](architecture) to learn about some of the architecture of Gradle.
 
 ### Contributing to documentation
 
