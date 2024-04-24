@@ -49,7 +49,7 @@ public interface IsolatedProjectEvaluationListenerProvider {
     ProjectEvaluationListener isolateFor(Gradle owner);
 
     /**
-     * Discards any registered actions. This doesn't affect any {@link #isolate() previously returned isolated listeners}.
+     * Discards any registered actions. This doesn't affect any {@link #isolateFor(Gradle) previously returned isolated listeners}.
      */
     void clear();
 }
