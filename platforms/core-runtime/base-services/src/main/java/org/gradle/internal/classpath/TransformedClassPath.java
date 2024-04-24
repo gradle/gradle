@@ -312,7 +312,7 @@ public class TransformedClassPath implements ClassPath {
      */
     public static ClassPath handleInstrumentingArtifactTransform(List<File> classPath) {
         if (classPath.isEmpty()) {
-            return DefaultClassPath.of(classPath);
+            return TransformedClassPath.builderWithExactSize(0).build();
         }
 
         return fromInstrumentingArtifactTransformOutput(classPath);

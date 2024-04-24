@@ -97,6 +97,7 @@ public abstract class CoarseGrainedInstrumentationUnitOfWork implements Immutabl
     public Identity identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
         Hasher hasher = Hashing.newHasher();
         identityInputs.values().forEach(value -> requireNonNull(value).appendToHasher(hasher));
+        identityFileInputs.values().forEach(value -> hasher.putHash(value.getHash()));
         String identity = hasher.hash().toString();
         return () -> identity;
     }
@@ -135,6 +136,9 @@ public abstract class CoarseGrainedInstrumentationUnitOfWork implements Immutabl
     @Override
     public void visitOutputs(File workspace, OutputVisitor visitor) {
         TransformedClassPath classPath = readInstrumentedClasspath(workspace);
+        File classpathFile = new File(workspace, "instrumented-classpath.bin");
+        OutputFileValueSupplier classpath = OutputFileValueSupplier.fromStatic(classpathFile, fileCollectionFactory.fixed(classpathFile));
+        visitor.visitOutputProperty("classpath", TreeType.FILE, classpath);
         if (classPath == null) {
             return;
         }

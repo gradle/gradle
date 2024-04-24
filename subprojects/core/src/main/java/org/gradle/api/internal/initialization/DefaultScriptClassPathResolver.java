@@ -35,23 +35,26 @@ import org.gradle.api.attributes.plugin.GradlePluginApiVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.dsl.DependencyHandlerInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal.ClassPathNotation;
+import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.initialization.transform.CoarseGrainedInstrumentationUnitOfWork;
 import org.gradle.api.internal.initialization.transform.registration.InstrumentationTransformRegisterer;
 import org.gradle.api.internal.initialization.transform.services.CacheInstrumentationDataBuildService;
 import org.gradle.api.internal.initialization.transform.services.CacheInstrumentationDataBuildService.ResolutionScope;
-import org.gradle.api.internal.initialization.transform.utils.InstrumentationClasspathMerger;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.invocation.Gradle;
+import org.gradle.groovy.scripts.internal.InstrumentationClasspathWorkspaceProvider;
 import org.gradle.internal.agents.AgentStatus;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.TransformedClassPath;
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
+import org.gradle.internal.execution.ExecutionEngine;
+import org.gradle.internal.execution.InputFingerprinter;
+import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.logging.util.Log4jBannedVersion;
 import org.gradle.util.GradleVersion;
 
-import java.io.File;
 import java.util.EnumSet;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -89,15 +92,28 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
     public static final Attribute<String> INSTRUMENTED_ATTRIBUTE = Attribute.of("org.gradle.internal.instrumented", String.class);
     private final NamedObjectInstantiator instantiator;
     private final InstrumentationTransformRegisterer instrumentationTransformRegisterer;
+    private final ExecutionEngine executionEngine;
+    private final InputFingerprinter inputFingerprinter;
+    private final FileCollectionFactory fileCollectionFactory;
+    private final ImmutableWorkspaceProvider immutableWorkspaceProvider;
 
     public DefaultScriptClassPathResolver(
         NamedObjectInstantiator instantiator,
         AgentStatus agentStatus,
-        Gradle gradle
+        Gradle gradle,
+        ExecutionEngine executionEngine,
+        InputFingerprinter inputFingerprinter,
+        FileCollectionFactory fileCollectionFactory,
+        InstrumentationClasspathWorkspaceProvider immutableWorkspaceProvider
+
     ) {
         this.instantiator = instantiator;
         // Shared services must be provided lazily, otherwise they are instantiated too early and some cases can fail
         this.instrumentationTransformRegisterer = new InstrumentationTransformRegisterer(agentStatus, Lazy.atomic().of(gradle::getSharedServices));
+        this.executionEngine = executionEngine;
+        this.inputFingerprinter = inputFingerprinter;
+        this.fileCollectionFactory = fileCollectionFactory;
+        this.immutableWorkspaceProvider = immutableWorkspaceProvider.getWorkspace();
     }
 
     @Override
@@ -133,18 +149,23 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         // We clear resolution scope from service after the resolution is done, so data is not reused between invocations.
         long contextId = resolutionContext.getContextId();
         CacheInstrumentationDataBuildService buildService = resolutionContext.getBuildService().get();
-        try (ResolutionScope resolutionScope = buildService.newResolutionScope(contextId)) {
-            ArtifactView originalDependencies = getOriginalDependencies(classpathConfiguration);
-            ArtifactView originalProjectDependencies = getOriginalProjectDependencies(classpathConfiguration);
-            originalProjectDependencies.getFiles().getFiles();
-            resolutionScope.setTypeHierarchyAnalysisResult(getAnalysisResult(classpathConfiguration));
-            resolutionScope.setOriginalClasspath(originalDependencies.getFiles().plus(originalProjectDependencies.getFiles()));
-            resolutionScope.setOriginalProjectClasspath(originalProjectDependencies.getFiles());
-            ArtifactCollection instrumentedExternalDependencies = getInstrumentedExternalDependencies(classpathConfiguration);
-            return TransformedClassPath.handleInstrumentingArtifactTransform(instrumentedExternalDependencies.getArtifacts().stream()
-                .map(ResolvedArtifactResult::getFile)
-                .collect(Collectors.toList()));
-        }
+        return executionEngine.createRequest(new CoarseGrainedInstrumentationUnitOfWork(inputFingerprinter, fileCollectionFactory, immutableWorkspaceProvider, getOriginalDependencies(classpathConfiguration).getFiles()) {
+            @Override
+            public TransformedClassPath getInstrumentedClasspath() {
+                try (ResolutionScope resolutionScope = buildService.newResolutionScope(contextId)) {
+                    ArtifactView originalDependencies = getOriginalDependencies(classpathConfiguration);
+                    ArtifactView originalProjectDependencies = getOriginalProjectDependencies(classpathConfiguration);
+                    originalProjectDependencies.getFiles().getFiles();
+                    resolutionScope.setTypeHierarchyAnalysisResult(getAnalysisResult(classpathConfiguration));
+                    resolutionScope.setOriginalClasspath(originalDependencies.getFiles().plus(originalProjectDependencies.getFiles()));
+                    resolutionScope.setOriginalProjectClasspath(originalProjectDependencies.getFiles());
+                    ArtifactCollection instrumentedExternalDependencies = getInstrumentedExternalDependencies(classpathConfiguration);
+                    return (TransformedClassPath) TransformedClassPath.handleInstrumentingArtifactTransform(instrumentedExternalDependencies.getArtifacts().stream()
+                        .map(ResolvedArtifactResult::getFile)
+                        .collect(Collectors.toList()));
+                }
+            }
+        }).execute().getOutputAs(TransformedClassPath.class).get();
     }
 
     private ArtifactView getOriginalProjectDependencies(Configuration classpathConfiguration) {
@@ -166,7 +187,7 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
 
     private static ArtifactView getOriginalDependencies(Configuration classpathConfiguration) {
         return classpathConfiguration.getIncoming().artifactView((Action<? super ArtifactView.ViewConfiguration>) config -> {
-            config.componentFilter(it -> isExternalDependency(it));
+            config.componentFilter(it -> !isGradleApi(it));
         });
     }
 

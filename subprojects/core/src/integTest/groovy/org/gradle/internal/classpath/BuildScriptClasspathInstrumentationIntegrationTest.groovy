@@ -567,7 +567,7 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
     }
 
     def withIncludedBuild(String folderName = "included") {
-        file("$folderName/src/main/java/Thing.java") << "class Thing {}"
+        file("$folderName/src/main/java/Thing2.java") << "class Thing2 {}"
         file("$folderName/build.gradle") << """
             plugins {
                 id("java-library")
