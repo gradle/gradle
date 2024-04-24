@@ -29,7 +29,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-class JavaInstallationRegistryTest extends Specification {
+class DefaultJavaInstallationRegistryTest extends Specification {
     @Rule
     private final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
@@ -271,12 +271,12 @@ class JavaInstallationRegistryTest extends Specification {
         return jdkHome
     }
 
-    private JavaInstallationRegistry createRegistry(List<File> location, OperatingSystem os = OperatingSystem.current()) {
+    private DefaultJavaInstallationRegistry createRegistry(List<File> location, OperatingSystem os = OperatingSystem.current()) {
         def installations = Mock(InstallationSupplier)
         installations.sourceName >> "testSource"
         installations.get() >> location.collect { InstallationLocation.userDefined(it, "testSource") }
 
-        return new JavaInstallationRegistry(
+        return new DefaultJavaInstallationRegistry(
             toolchainConfiguration,
             [],
             [ installations ],

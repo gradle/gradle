@@ -22,6 +22,7 @@ import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
+import org.gradle.api.IsolatedAction;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.UnknownDomainObjectException;
@@ -114,7 +115,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
                 if (!rootProjectActions.isEmpty()) {
                     services.get(CrossProjectConfigurator.class).rootProject(rootProject, rootProjectActions);
                 }
-                final ProjectEvaluationListener isolatedListener = isolatedProjectEvaluationListenerProvider.isolate();
+                final ProjectEvaluationListener isolatedListener = isolatedProjectEvaluationListenerProvider.isolateFor(DefaultGradle.this);
                 if (isolatedListener != null) {
                     projectEvaluationListenerBroadcast.add(isolatedListener);
                 }
@@ -199,12 +200,25 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
 
     @Override
     public GradleLifecycle getLifecycle() {
-        return action -> {
-            if (projectsLoaded) {
-                throw new IllegalStateException("GradleLifecycle#beforeProject cannot be called after settings have been evaluated.");
+        // TODO:isolated how should decoration work for isolated actions? Should we just capture the current UserCodeApplication?
+        return new GradleLifecycle() {
+            @Override
+            public void beforeProject(IsolatedAction<? super Project> action) {
+                assertBeforeProjectsLoaded("beforeProject");
+                isolatedProjectEvaluationListenerProvider.beforeProject(action);
             }
-            // TODO:isolated how should decoration work for isolated actions? Should we just capture the current UserCodeApplication?
-            isolatedProjectEvaluationListenerProvider.beforeProject(action);
+
+            @Override
+            public void afterProject(IsolatedAction<? super Project> action) {
+                assertBeforeProjectsLoaded("afterProject");
+                isolatedProjectEvaluationListenerProvider.afterProject(action);
+            }
+
+            private void assertBeforeProjectsLoaded(String beforeProject) {
+                if (projectsLoaded) {
+                    throw new IllegalStateException("GradleLifecycle#" + beforeProject + " cannot be called after settings have been evaluated.");
+                }
+            }
         };
     }
 

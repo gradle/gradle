@@ -19,10 +19,14 @@ package org.gradle.jvm.toolchain.internal;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+import javax.annotation.Nullable;
+import java.io.File;
 import java.util.Collection;
 
 @ServiceScope({ Scope.Build.class, Scope.Global.class })
 public interface ToolchainConfiguration {
+    String AUTO_DETECT = "org.gradle.java.installations.auto-detect";
+
     Collection<String> getJavaInstallationsFromEnvironment();
     void setJavaInstallationsFromEnvironment(Collection<String> installations);
 
@@ -34,4 +38,14 @@ public interface ToolchainConfiguration {
 
     boolean isDownloadEnabled();
     void setDownloadEnabled(boolean enabled);
+
+    File getAsdfDataDirectory();
+
+    File getIntelliJdkDirectory();
+
+    void setIntelliJdkDirectory(File intellijInstallationDirectory);
+
+    @Nullable File getJabbaHomeDirectory();
+
+    File getSdkmanCandidatesDirectory();
 }

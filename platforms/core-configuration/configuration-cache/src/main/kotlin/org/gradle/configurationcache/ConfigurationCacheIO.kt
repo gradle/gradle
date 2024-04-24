@@ -25,6 +25,7 @@ import org.gradle.configurationcache.extensions.useToRun
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.configurationcache.problems.ConfigurationCacheProblems
 import org.gradle.configurationcache.serialization.Codec
+import org.gradle.configurationcache.serialization.DefaultClassEncoder
 import org.gradle.configurationcache.serialization.DefaultReadContext
 import org.gradle.configurationcache.serialization.DefaultWriteContext
 import org.gradle.configurationcache.serialization.LoggingTracer
@@ -155,7 +156,12 @@ class ConfigurationCacheIO internal constructor(
         }
 
     internal
-    fun readRootBuildStateFrom(stateFile: ConfigurationCacheStateFile, loadAfterStore: Boolean, graph: BuildTreeWorkGraph, graphBuilder: BuildTreeWorkGraphBuilder?): Pair<String, BuildTreeWorkGraph.FinalizedGraph> {
+    fun readRootBuildStateFrom(
+        stateFile: ConfigurationCacheStateFile,
+        loadAfterStore: Boolean,
+        graph: BuildTreeWorkGraph,
+        graphBuilder: BuildTreeWorkGraphBuilder?
+    ): Pair<String, BuildTreeWorkGraph.FinalizedGraph> {
         return readConfigurationCacheState(stateFile) { state ->
             state.run {
                 readRootBuildState(graph, graphBuilder, loadAfterStore)
@@ -309,11 +315,11 @@ class ConfigurationCacheIO internal constructor(
     ) = DefaultWriteContext(
         codec,
         encoder,
-        scopeRegistryListener,
         beanStateWriterLookup,
         logger,
         tracer,
-        problems
+        problems,
+        DefaultClassEncoder(scopeRegistryListener),
     )
 
     private

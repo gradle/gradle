@@ -35,10 +35,11 @@ import javax.inject.Inject;
  *
  * @apiNote This interface is intended to be used to mix-in DSL methods for {@code dependencies} blocks.
  * @implSpec The default implementation of all methods should not be overridden.
- * @implNote
- * Changes to this interface may require changes to the
+ * @implNote Changes to this interface may require changes to the
  * {@link org.gradle.api.internal.artifacts.dsl.dependencies.DependenciesExtensionModule extension module for Groovy DSL} or
  * {@link org.gradle.kotlin.dsl.DependenciesExtensions extension functions for Kotlin DSL}.
+ * <p>
+ * @see <a href="https://docs.gradle.org/current/userguide/custom_gradle_types.html#custom_dependencies_blocks">Creating custom dependencies blocks.</a>
  *
  * @since 7.6
  */

@@ -16,26 +16,16 @@
 
 package org.gradle.jvm.toolchain.internal;
 
-import org.gradle.api.Transformer;
-import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ProviderFactory;
-
 import javax.inject.Inject;
 import java.io.File;
-import java.util.Collections;
 import java.util.Set;
 
-public class AsdfInstallationSupplier extends AutoDetectingInstallationSupplier {
-
-    private final Provider<String> asdfDataDir;
-    private final Provider<String> asdfUserHome;
+public class AsdfInstallationSupplier implements InstallationSupplier {
+    private final ToolchainConfiguration toolchainConfiguration;
 
     @Inject
-    public AsdfInstallationSupplier(ProviderFactory factory) {
-        super(factory);
-        asdfDataDir = getEnvironmentProperty("ASDF_DATA_DIR");
-        asdfUserHome = getSystemProperty("user.home")
-            .map(home -> new File(home, ".asdf").getAbsolutePath());
+    public AsdfInstallationSupplier(ToolchainConfiguration toolchainConfiguration) {
+        this.toolchainConfiguration = toolchainConfiguration;
     }
 
     @Override
@@ -44,17 +34,12 @@ public class AsdfInstallationSupplier extends AutoDetectingInstallationSupplier 
     }
 
     @Override
-    protected Set<InstallationLocation> findCandidates() {
-        return asdfDataDir.map(findJavaCandidates())
-            .orElse(asdfUserHome.map(findJavaCandidates()))
-            .getOrElse(Collections.emptySet());
+    public Set<InstallationLocation> get() {
+        return findJavaCandidates(toolchainConfiguration.getAsdfDataDirectory());
     }
 
-    private Transformer<Set<InstallationLocation>, String> findJavaCandidates() {
-        return candidatesDir -> {
-            final File root = new File(candidatesDir, "installs/java");
-            return FileBasedInstallationFactory.fromDirectory(root, getSourceName(), InstallationLocation::autoDetected);
-        };
+    private Set<InstallationLocation> findJavaCandidates(File candidatesDir) {
+        final File root = new File(candidatesDir, "installs/java");
+        return FileBasedInstallationFactory.fromDirectory(root, getSourceName(), InstallationLocation::autoDetected);
     }
-
 }

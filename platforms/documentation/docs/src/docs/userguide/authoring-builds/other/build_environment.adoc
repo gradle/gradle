@@ -468,3 +468,21 @@ include::sample[dir="snippets/tutorial/environmentVariables/groovy",files="init.
 include::sample[dir="snippets/tutorial/environmentVariables/kotlin",files="build.gradle.kts[tags=execution]"]
 include::sample[dir="snippets/tutorial/environmentVariables/groovy",files="build.gradle[tags=execution]"]
 ====
+
+[[sec:daemon_jvm_criteria]]
+== Controlling JVM used by the build
+
+NOTE: Daemon JVM discovery and Daemon JVM criteria are <<feature_lifecycle.adoc#sec:incubating_state,incubating>> features and are subject to change in a future release.
+
+By default, Gradle will try to use the same JVM installation to run the build as the client VM that starts the build.
+
+A different JVM installation can be specified for the build using the `org.gradle.java.home` property or programmatically through the Tooling API.
+
+Daemon JVM criteria is a new feature to express the build's JVM requirements.
+Similar to the `wrapper` task, which captures the current Gradle version, the built-in `updateDaemonJvm` task records the JVM requirements for the build based on the current JVM installation.
+Gradle currently only considers the major JVM version when checking compatibility.
+
+Gradle will use the JVM requirements on subsequent builds to locate a compatible JVM installation using the same underlying mechanisms as <<toolchains.adoc#toolchains, Java Toolchains>>.
+This ensures every person who starts the build will use the same JVM version.
+
+Daemon JVM discovery does not currently support auto-provisioning of new JVM installations.

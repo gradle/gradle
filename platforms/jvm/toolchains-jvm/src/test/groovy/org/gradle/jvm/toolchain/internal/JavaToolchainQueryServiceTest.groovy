@@ -19,16 +19,12 @@ package org.gradle.jvm.toolchain.internal
 import org.gradle.api.GradleException
 import org.gradle.api.JavaVersion
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.logging.Logging
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.inspection.JavaInstallationRegistry
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
-import org.gradle.internal.jvm.inspection.JvmInstallationProblemReporter
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector
+import org.gradle.internal.jvm.inspection.JvmToolchainMetadata
 import org.gradle.internal.jvm.inspection.JvmVendor
-import org.gradle.internal.operations.TestBuildOperationRunner
-import org.gradle.internal.os.OperatingSystem
-import org.gradle.internal.progress.NoOpProgressLoggerFactory
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JavaToolchainSpec
 import org.gradle.jvm.toolchain.JvmImplementation
@@ -473,32 +469,16 @@ class JavaToolchainQueryServiceTest extends Specification {
     }
 
     private def createInstallationRegistry(
-        Collection<String> installations,
+        Collection<String> locations,
         JvmMetadataDetector detector = newJvmMetadataDetector()
     ) {
-        def supplier = new InstallationSupplier() {
-            @Override
-            String getSourceName() {
-                "test"
-            }
-
-            @Override
-            Set<InstallationLocation> get() {
-                installations.collect { locationFor(it) } as Set<InstallationLocation>
-            }
+        def installations = locations.collect {
+            def location = locationFor(it)
+            new JvmToolchainMetadata(detector.getMetadata(location), location)
         }
 
-        def registry = new JavaInstallationRegistry(new DefaultToolchainConfiguration(), [supplier], [], detector, Logging.getLogger(JavaInstallationRegistry.class), new TestBuildOperationRunner(), OperatingSystem.current(), new NoOpProgressLoggerFactory(), new JvmInstallationProblemReporter()) {
-            @Override
-            boolean installationExists(InstallationLocation installationLocation) {
-                return true
-            }
-
-            @Override
-            boolean installationHasExecutable(InstallationLocation installationLocation) {
-                return true
-            }
-        }
+        def registry = Stub(JavaInstallationRegistry)
+        registry.toolchains() >> installations
         registry
     }
 

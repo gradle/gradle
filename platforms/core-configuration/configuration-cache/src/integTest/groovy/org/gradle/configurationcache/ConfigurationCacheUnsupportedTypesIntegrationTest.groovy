@@ -17,7 +17,7 @@
 package org.gradle.configurationcache
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.IsolatedProject
+import org.gradle.api.project.IsolatedProject
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.Task
