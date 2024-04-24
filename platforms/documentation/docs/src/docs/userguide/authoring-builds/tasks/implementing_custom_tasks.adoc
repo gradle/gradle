@@ -959,3 +959,341 @@ tasks.compileJava {
 ----
 =====
 ====
+
+== Understanding inputs and outputs
+
+Task inputs and outputs are important for:
+
+1. *Up-to-date checks* - Gradle’s incremental build feature helps your build avoid doing the same work more than once by looking at changes for task inputs and outputs.
+2. *Linking task inputs and outputs* - When outputs of one task are linked to the inputs of another, Gradle can automatically create task dependencies.
+3. *Using dependency configurations* - Task outputs can be used to tell Gradle that an artifact produced by a task should be added to a specific configuration.
+
+== Declaring inputs and outputs
+
+You can configure the inputs and outputs of a task in two main ways:
+
+1. **Static Configuration:** Define inputs and outputs directly inside the task class. These inputs and outputs will always apply to the task whenever it is executed.
+
+2. **Dynamic Configuration:** Add inputs and outputs to a task dynamically, meaning you can customize the inputs and outputs for each execution of the task based on specific conditions or requirements. This approach allows for more flexibility and fine-grained control over the task's behavior.
+
+[.multi-language-sample]
+=====
+[source, kotlin]
+----
+abstract class ConfigurableTask : DefaultTask() {
+
+    @Input
+    val inputProperty = project.objects.property(String::class.java)
+
+    @OutputFile
+    val outputFile = project.objects.fileProperty()
+
+    // Static Configuration: Inputs and Outputs defined in the task class
+    init {
+        group = "custom"
+        description = "A configurable task example"
+    }
+
+    @TaskAction
+    fun executeTask() {
+        println("Executing task with input: ${inputProperty.get()} and output: ${outputFile.get()}")
+    }
+
+}
+
+// Dynamic Configuration: Adding inputs and outputs to a task instance
+tasks.register("dynamicTask", ConfigurableTask::class) {
+    // Set the input property dynamically
+    inputProperty.set("dynamic input value")
+
+    // Set the output file dynamically
+    outputFile.set(layout.buildDirectory.file("dynamicOutput.txt"))
+}
+----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+abstract class ConfigurableTask extends DefaultTask {
+
+    @Input
+    def inputProperty = project.objects.property(String)
+
+    @OutputFile
+    def outputFile = project.objects.fileProperty()
+
+    // Static Configuration: Inputs and Outputs defined in the task class
+    {
+        group = 'custom'
+        description = 'A configurable task example'
+    }
+
+    @TaskAction
+    void executeTask() {
+        println "Executing task with input: ${inputProperty.get()} and output: ${outputFile.get()}"
+    }
+
+}
+
+// Dynamic Configuration: Adding inputs and outputs to a task instance
+tasks.register('dynamicTask', ConfigurableTask) {
+    // Set the input property dynamically
+    inputProperty.set('dynamic input value')
+
+    // Set the output file dynamically
+    outputFile.set(layout.buildDirectory.file('dynamicOutput.txt'))
+}
+----
+=====
+
+== Creating lazy inputs and outputs
+
+Gradle has the concept of lazy configuration, which allows task inputs and outputs to be referenced before they’re actually set.
+This is done via a `Property` class type.
+
+[.multi-language-sample]
+=====
+[source, kotlin]
+----
+abstract class MyTask : DefaultTask() {
+    // Avoid Java Bean properties
+    @Input
+    var myEagerProperty: String = "default value"
+
+    // Use Gradle managed properties instead
+    @Input
+    val myLazyProperty: Property<String> = project.objects.property(String::class.java)
+
+    @TaskAction
+    fun myAction() {
+        println("Use ${myLazyProperty.get()} and do NOT use $myEagerProperty")
+    }
+}
+----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+abstract class MyTask extends DefaultTask {
+    // Avoid Java Bean properties
+    @Input
+    String myEagerProperty = "default value"
+
+    // Use Gradle managed properties instead
+    @Input
+    Property<String> myLazyProperty = project.objects.property(String)
+
+    @TaskAction
+    void myAction() {
+        println("Use ${myLazyProperty.get()} and do NOT use $myEagerProperty")
+    }
+}
+----
+=====
+
+One advantage of this mechanism is that you can link the output file of one task to the input file of another, all before the filename has even been decided.
+The `Property` class also knows about which task it’s linked to, so using inputs and outputs in this way enables Gradle to automatically add the required task dependency.
+
+image::writing-tasks-7.png[]
+
+To ensure proper lazy configuration, you should avoid using Java Bean types.
+Let’s explore the common options for what Gradle lazy types can be declared as task inputs and outputs:
+
+[cols="~,~,1,1"]
+|===
+|Lazy Gradle Type |Java Bean Type |Input |Output
+
+|`Property<String>`
+|`String`
+|X
+|
+
+|`RegularFileProperty`
+|`File`
+|X
+|X
+
+|Iterable of files (`Property<Iterable<File>` e.g. `ConfigurableFileCollection`, `ConfigurableFileTree`)
+|Iterable of files (`Iterable<File>` e.g. `FileTree` or `FileCollection`)
+|X
+|X
+
+|Map of files (`MapProperty<String, File>`)
+|Map of files (`Map<String, File>`)
+|
+|X
+
+|`DirectoryProperty`
+|`Directory`
+|X
+|X
+
+|Iterable of directories (`Property<Iterable<File>`)
+|Iterable of directories (`Iterable<File>`)
+|
+|X
+
+|Map of directories (`MapProperty<String, File>`)
+|Map of directories (`Map<String, File>`)
+|
+|X
+|===
+
+Notes:
+
+- Strings are only supported for task inputs, not outputs. These are normally used for configuration options e.g. `sourceCompatibility` of the `compileJava` task type.
+- Task outputs can only be files or directories.
+- Instead of `String`, `Boolean`, `String` and other standard types, use `Property<T>`.
+- Instead of `List<T>`, use `ListProperty<T>`.
+- Instead of `Set<T>`, use `SetProperty<T>`.
+
+== Annotating inputs and outputs
+
+A good practice is to create a task class for your custom task.
+The class encapsulates the task action logic, but should also declare any inputs and outputs the task expects.
+To do this, we use annotations.
+
+For task inputs we can use `@Input`, `@InputFile`, `@InputDirectory`, `@InputFiles`, `@Classpath`, and `@CompileClasspath`.
+For task outputs we have `@OutputFile`, `@OutputDirectory`, `@OutputFiles`, `@OutputDirectories`.
+
+Here are all available annotations in detail:
+
+[cols="1,~"]
+|===
+|Annotation |Usage
+
+|`@Input`
+|Property is an input value for the task
+
+|`@InputFile`
+|Property is an input file for the task
+
+|`@InputFiles`
+|Property is one or more input files for the task
+
+|`@InputDirectory`
+|Property is an input directory for the task
+
+|`@InputDirectory`
+|Property is an input directory for the task
+
+|`@Classpath`
+|Property is a one or more input files or directories that represent a Java classpath
+
+|`@CompileClasspath`
+|Property is a one or more input files or directories that represent a Java compile classpath
+
+|`@OutputFile`
+|Property is an output file for the task
+
+|`@OutputFiles`
+|Property is one or more output files for the task
+
+|`@OutputDirectory`
+|Property is an output directory for the task
+
+|`@OutputDirectories`
+|Property is one or more output directories for the task
+
+|`@Destroys`
+|Property is one or more files or directories that the task destroys (deletes/removes)
+
+|`@LocalState`
+|Property is a local state for a task
+
+|`@Nested`
+|Property is a nested bean and should be checked for other annotations
+
+|`@Console`
+|Property is not an input or an output and should not be taken into account for up-to-date checking
+
+|`@ReplacedBy`
+|Property is used internally and should not to be taken into account for up-to-date checking
+
+|`@SkipWhenEmpty`
+|Property is a file or directory and the task should be skipped when the value of the property is empty
+
+|`@Incremental`
+|Property is a file or directory and changes to it can be queried with `@InputChanges.getFileChanges()`
+
+|`@Optional`
+|Property is any type, its value does not have to be specified and validation checks are disabled
+
+|`@PathSensitive`
+|Property is one or more files and only the given part of the file path is important
+
+|`@IgnoreEmptyDirectories`
+|Used with `@InputFiles` or `@InputDirectory` to instruct Gradle to track only changes to the contents of directories and not differences in the directories themselves.
+
+|`@NormalizeLineEndings`
+|Used with `@InputFiles`, `@InputDirectory` or `@Classpath` to instruct Gradle to normalize line endings when calculating up-to-date checks or build cache keys
+|===
+
+Note that in Kotlin the annotations are prefixed with `get:`, so `@InputFile` becomes `@get:InputFile`.
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+abstract class AllTypes : DefaultTask() {
+
+    //inputs
+    @get:Input
+    abstract val inputString: Property<String>
+    @get:InputFile
+    abstract val inputFile: RegularFileProperty
+    @get:InputDirectory
+    abstract val inputDirectory: DirectoryProperty
+    @get:InputFiles
+    abstract val inputFileCollection: ListProperty<RegularFile>
+    @get:Classpath
+    abstract val inputClasspath: ListProperty<RegularFile>
+
+    // outputs
+    @get:OutputFile
+    abstract val outputFile: RegularFileProperty
+    @get:OutputDirectory
+    abstract val outputDirectory: DirectoryProperty
+    @get:OutputFiles
+    abstract val outputFiles: ListProperty<RegularFile>
+    @get:OutputDirectories
+    abstract val outputDirectories: ListProperty<Directory>
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+abstract class AllTypes extends DefaultTask {
+
+    //inputs
+    @Input
+    final abstract Property<String> inputString = ""
+    @InputFile
+    final abstract RegularFileProperty inputFile = ""
+    @InputDirectory
+    final abstract DirectoryProperty inputDirectory = ""
+    @InputFiles
+    final abstract ConfigurableFileCollection inputFileCollection = ""
+    @Classpath
+    final abstract ConfigurableFileCollection inputClasspath = ""
+
+    // outputs
+    @OutputFile
+    final abstract RegularFileProperty outputFile = ""
+    @OutputDirectory
+    final abstract DirectoryProperty outputDirectory = ""
+    @OutputFiles
+    final abstract ConfigurableFileCollection outputFiles = ""
+    @OutputDirectories
+    final abstract ConfigurableFileCollection outputDirectories = ""
+}
+----
+=====
+====

@@ -27,18 +27,18 @@ class GradleLifecycleIsolationIntegrationTest extends AbstractIntegrationSpec {
             include 'sub'
 
             def log = []
-            gradle.lifecycle.beforeProject { p ->
-                log << "1: before $p.name $p.version"
-                p.version = 'from action'
+            gradle.lifecycle.beforeProject {
+                log << "1: before $name $version"
+                version = 'from action'
             }
-            gradle.lifecycle.beforeProject { p ->
-                log << "2: before $p.name $p.version"
+            gradle.lifecycle.beforeProject {
+                log << "2: before $name $version"
             }
-            gradle.lifecycle.afterProject { p ->
-                log << "1: after $p.name $p.version"
+            gradle.lifecycle.afterProject {
+                log << "1: after $name $version"
             }
-            gradle.lifecycle.afterProject { p ->
-                log << "2: after $p.name $p.version"
+            gradle.lifecycle.afterProject {
+                log << "2: after $name $version"
             }
             gradle.lifecycle.afterProject {
                 println log

@@ -152,7 +152,7 @@ TIP: You can use the link:{kotlinDslPath}/[Kotlin DSL reference] search function
 * Groovy DSL script files use the `.gradle` file name extension.
 * Kotlin DSL script files use the `.gradle.kts` file name extension.
 
-To activate the Kotlin DSL, simply use the `.gradle.kts` extension for your build scripts in place of `.gradle`. That also applies to the <<organizing_gradle_projects#sec:settings_file,settings file>> — for example `settings.gradle.kts` — and <<init_scripts#init_scripts,initialization scripts>>.
+To activate the Kotlin DSL, simply use the `.gradle.kts` extension for your build scripts in place of `.gradle`. That also applies to the <<settings_file_basics.adoc#sec:settings_file_script,settings file>> — for example `settings.gradle.kts` — and <<init_scripts#init_scripts,initialization scripts>>.
 
 Note that you can mix Groovy DSL build scripts with Kotlin DSL ones, i.e. a Kotlin DSL build script can apply a Groovy DSL one and each project in a multi-project build can use either one.
 
@@ -177,7 +177,7 @@ All Kotlin DSL build scripts have implicit imports consisting of:
 .Avoid using internal Kotlin DSL APIs
 --
 Use of internal Kotlin DSL APIs in plugins and build scripts has the potential to break builds when either Gradle or plugins change.
-The link:{kotlinDslPath}/[Kotlin DSL API] extends the <<authoring_maintainable_build_scripts#sec:avoiding_gradle_internal_apis,Gradle public API>> with the types listed in the link:{kotlinDslPath}/[corresponding API docs] that are in the packages listed above (but not subpackages of those).
+The link:{kotlinDslPath}/[Kotlin DSL API] extends the Gradle public API with the types listed in the link:{kotlinDslPath}/[corresponding API docs] that are in the packages listed above (but not subpackages of those).
 --
 
 [[sec:compilation_warnings]]

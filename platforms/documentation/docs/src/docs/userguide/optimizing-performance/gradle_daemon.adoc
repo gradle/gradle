@@ -170,6 +170,45 @@ This terminates all Daemon processes started with the same version of Gradle use
 You can also kill Daemons manually with your operating system.
 To find the PIDs for all Daemons regardless of Gradle version, see <<gradle_daemon.adoc#find_all_daemons,Find Daemons>>.
 
+[[sec:daemon_jvm_criteria]]
+== Control the JVM used
+
+NOTE: Daemon JVM discovery and Daemon JVM criteria are <<feature_lifecycle.adoc#sec:incubating_state,incubating>> features and are subject to change in a future release.
+
+By default, the same JVM installation that starts the build is used to run the build.
+Gradle uses the current shell path and `JAVA_HOME` environment variable to locate a usable JVM.
+
+You can also specify a different JVM installation for the build using the [`org.gradle.java.home`](build_environment.html#sec:gradle_configuration_properties) property or programmatically through the Tooling API.
+
+Using the _Daemon JVM discovery_ and _Daemon JVM criteria_ Gradle records the build's JVM requirements.
+This controls the JVM used to run Gradle itself.
+
+=== Daemon JVM criteria
+
+The _Daemon JVM criteria_ feature is similar to the `wrapper` task, which captures the current Gradle version.
+It uses the built-in `updateDaemonJvm` task to record the JVM requirements for the build based on the current JVM installation.
+
+NOTE: Currently, Gradle only considers the major JVM version when checking compatibility.
+
+=== Daemon JVM discovery
+
+On subsequent builds, _Daemon JVM discovery_ uses the recorded JVM requirements to locate a compatible JVM installation using the same underlying mechanisms as <<toolchains.adoc#toolchains, Java Toolchains>>.
+This ensures every person who starts the build will use the same JVM version.
+
+_Daemon JVM discovery_ does not support auto-provisioning of new JVM installations.
+
+=== Daemon JVM usage
+
+To record the build's JVM requirements, run `./gradlew updateDaemonJvm`.
+This will generate a new `gradle-build.properties` file that captures the currently used JVM requirements.
+This is an auto-generated file that isn't intended to be edited by hand.
+
+If you want to specify a different JVM version, run `./gradle updateDaemonJvm --jvm-version=17`.
+
+This new mechanism takes priority over `org.gradle.java.home`.
+
+Please note that this feature is incubating and may change in future releases.
+
 [[sec:tools_and_ides]]
 == Tools & IDEs
 
