@@ -47,6 +47,7 @@ import static org.gradle.api.internal.initialization.transform.utils.Instrumenta
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.MERGE_OUTPUT_DIR;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.createInstrumentationClasspathMarker;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.getInputType;
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.outputOriginalArtifact;
 
 /**
  * A transform that merges all instrumentation related metadata for a single artifact.<br><br>
@@ -98,11 +99,13 @@ public abstract class MergeInstrumentationAnalysisTransform implements Transform
             case DEPENDENCY_ANALYSIS_DATA:
                 doMergeAndOutputAnalysis(input, outputs);
                 return;
+            case ORIGINAL_ARTIFACT:
+                outputOriginalArtifact(outputs, input);
+                return;
             case INSTRUMENTATION_MARKER:
             case TYPE_HIERARCHY_ANALYSIS_DATA:
                 // We don't need to do anything with the marker file and type hierarchy
                 return;
-            case ORIGINAL_ARTIFACT:
             default:
                 throw new IllegalStateException("Unexpected input type: " + inputType);
         }

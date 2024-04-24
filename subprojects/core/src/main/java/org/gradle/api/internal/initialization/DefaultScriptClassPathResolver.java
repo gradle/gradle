@@ -38,7 +38,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInter
 import org.gradle.api.internal.initialization.transform.registration.InstrumentationTransformRegisterer;
 import org.gradle.api.internal.initialization.transform.services.CacheInstrumentationDataBuildService;
 import org.gradle.api.internal.initialization.transform.services.CacheInstrumentationDataBuildService.ResolutionScope;
-import org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils;
+import org.gradle.api.internal.initialization.transform.utils.InstrumentationClasspathMerger;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.agents.AgentStatus;
@@ -49,13 +49,14 @@ import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.logging.util.Log4jBannedVersion;
 import org.gradle.util.GradleVersion;
 
+import java.io.File;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.gradle.api.attributes.LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE;
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.ANALYZED_ARTIFACT;
-import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.COPIED_ARTIFACT;
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.INSTRUMENTED_AND_UPGRADED;
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.INSTRUMENTED_ONLY;
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.NOT_INSTRUMENTED;
@@ -69,7 +70,6 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
 
     public enum InstrumentationPhase {
         NOT_INSTRUMENTED("not-instrumented"),
-        COPIED_ARTIFACT("copied-artifact"),
         ANALYZED_ARTIFACT("analyzed-artifact"),
         MERGED_ARTIFACT_ANALYSIS("merged-artifact-analysis"),
         INSTRUMENTED_AND_UPGRADED("instrumented-and-upgraded"),
@@ -135,19 +135,15 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         CacheInstrumentationDataBuildService buildService = resolutionContext.getBuildService().get();
         try (ResolutionScope resolutionScope = buildService.newResolutionScope(contextId)) {
             ArtifactView originalDependencies = getOriginalDependencies(classpathConfiguration);
+            ArtifactView originalProjectDependencies = getOriginalProjectDependencies(classpathConfiguration);
+            originalProjectDependencies.getFiles().getFiles();
             resolutionScope.setTypeHierarchyAnalysisResult(getAnalysisResult(classpathConfiguration));
-            resolutionScope.setOriginalClasspath(originalDependencies.getFiles());
-            ArtifactCollection originalArtifacts = originalDependencies.getArtifacts();
+            resolutionScope.setOriginalClasspath(originalDependencies.getFiles().plus(originalProjectDependencies.getFiles()));
+            resolutionScope.setOriginalProjectClasspath(originalProjectDependencies.getFiles());
             ArtifactCollection instrumentedExternalDependencies = getInstrumentedExternalDependencies(classpathConfiguration);
-            return TransformedClassPath.handleInstrumentingArtifactTransform(
-                originalArtifacts.getArtifacts().stream()
-                    .map(ResolvedArtifactResult::getFile)
-                    .filter(it -> !InstrumentationTransformUtils.isInstrumentationMarkerFile(it))
-                    .collect(Collectors.toList()),
-                instrumentedExternalDependencies.getArtifacts().stream()
-                    .map(ResolvedArtifactResult::getFile)
-                    .filter(it -> !InstrumentationTransformUtils.isInstrumentationMarkerFile(it))
-                    .collect(Collectors.toList()));
+            return TransformedClassPath.handleInstrumentingArtifactTransform(instrumentedExternalDependencies.getArtifacts().stream()
+                .map(ResolvedArtifactResult::getFile)
+                .collect(Collectors.toList()));
         }
     }
 
@@ -170,8 +166,7 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
 
     private static ArtifactView getOriginalDependencies(Configuration classpathConfiguration) {
         return classpathConfiguration.getIncoming().artifactView((Action<? super ArtifactView.ViewConfiguration>) config -> {
-            config.attributes(it -> it.attribute(INSTRUMENTED_ATTRIBUTE, COPIED_ARTIFACT.value));
-            config.componentFilter(it -> !isGradleApi(it));
+            config.componentFilter(it -> isExternalDependency(it));
         });
     }
 

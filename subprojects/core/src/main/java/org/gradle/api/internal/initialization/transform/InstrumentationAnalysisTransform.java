@@ -27,7 +27,6 @@ import org.gradle.api.internal.initialization.transform.services.CacheInstrument
 import org.gradle.api.internal.initialization.transform.services.InjectedInstrumentationServices;
 import org.gradle.api.internal.initialization.transform.utils.ClassAnalysisUtils;
 import org.gradle.api.internal.initialization.transform.utils.InstrumentationAnalysisSerializer;
-import org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -36,6 +35,7 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.classpath.ClasspathWalker;
 import org.gradle.internal.file.FileException;
+import org.gradle.internal.lazy.Lazy;
 import org.gradle.work.DisableCachingByDefault;
 import org.objectweb.asm.ClassReader;
 
@@ -48,7 +48,6 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -57,7 +56,7 @@ import static org.gradle.api.internal.initialization.transform.utils.Instrumenta
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.DEPENDENCY_ANALYSIS_FILE_NAME;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.TYPE_HIERARCHY_ANALYSIS_FILE_NAME;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.createInstrumentationClasspathMarker;
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.getInputType;
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.outputOriginalArtifact;
 import static org.gradle.internal.classpath.transforms.MrJarUtils.isInUnsupportedMrJarVersionedDirectory;
 
 /**
@@ -87,7 +86,7 @@ public abstract class InstrumentationAnalysisTransform implements TransformActio
 
     private static final Predicate<String> ACCEPTED_TYPES = type -> type != null && !type.startsWith("java/lang/");
 
-    private final Supplier<InjectedInstrumentationServices> internalServices = () -> getParameters().getBuildService().get().getInternalServices();
+    private final Lazy<InjectedInstrumentationServices> internalServices = Lazy.unsafe().of(() -> getObjects().newInstance(InjectedInstrumentationServices.class));
 
     @Inject
     protected abstract ObjectFactory getObjects();
@@ -99,16 +98,11 @@ public abstract class InstrumentationAnalysisTransform implements TransformActio
     @Override
     public void transform(TransformOutputs outputs) {
         File artifact = getInput().get().getAsFile();
-        InstrumentationTransformUtils.InstrumentationInputType inputType = getInputType(artifact);
-        switch (inputType) {
-            case INSTRUMENTATION_MARKER:
-                return;
-            case ORIGINAL_ARTIFACT:
-                break;
-            case DEPENDENCY_ANALYSIS_DATA:
-            case TYPE_HIERARCHY_ANALYSIS_DATA:
-            default:
-                throw new IllegalStateException("Unexpected input type: " + inputType);
+        if (!artifact.exists()) {
+            // Files can be passed to the artifact transform even if they don't exist,
+            // in the case when user adds a file classpath via files("path/to/jar").
+            // Unfortunately we don't filter them out before the artifact transform is run.
+            return;
         }
 
         try {
@@ -171,7 +165,7 @@ public abstract class InstrumentationAnalysisTransform implements TransformActio
         File dependencyAnalysisFile = outputs.file(ANALYSIS_OUTPUT_DIR + "/" + DEPENDENCY_ANALYSIS_FILE_NAME);
         InstrumentationArtifactMetadata metadata = getArtifactMetadata(artifact);
         serializer.writeDependencyAnalysis(dependencyAnalysisFile, metadata, toMapWithKeys(dependencies));
-        // outputOriginalArtifact(outputs, artifact);
+        outputOriginalArtifact(outputs, artifact);
     }
 
     private InstrumentationArtifactMetadata getArtifactMetadata(File artifact) {

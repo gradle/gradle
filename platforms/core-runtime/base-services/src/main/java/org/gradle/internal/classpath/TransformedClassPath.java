@@ -318,26 +318,6 @@ public class TransformedClassPath implements ClassPath {
         return fromInstrumentingArtifactTransformOutput(classPath);
     }
 
-    public static ClassPath handleInstrumentingArtifactTransform(List<File> original, List<File> instrumented) {
-        if (original.size() != instrumented.size()) {
-            throw new RuntimeException("Original and instrumented classpath entries must have the same size, but were: " + original.size() + " and " + instrumented.size());
-        }
-        Map<File, File> transformedEntries = Maps.newLinkedHashMapWithExpectedSize(original.size());
-        for (int i = 0; i < original.size(); i++) {
-            File originalEntry = original.get(i);
-            File instrumentedEntry = instrumented.get(i);
-            if (!areInstrumentedAndOriginalEntriesValid(instrumentedEntry, originalEntry)) {
-                throw new RuntimeException("Instrumented entry " + instrumentedEntry.getAbsolutePath() + " doesn't match original entry " + originalEntry.getAbsolutePath());
-            }
-            putIfAbsent(transformedEntries, originalEntry, instrumentedEntry);
-        }
-        Builder result = builderWithExactSize(transformedEntries.size());
-        for (Map.Entry<File, File> entry : transformedEntries.entrySet()) {
-            result.add(entry.getKey(), entry.getValue());
-        }
-        return result.build();
-    }
-
     private static ClassPath fromInstrumentingArtifactTransformOutput(List<File> inputFiles) {
         Map<File, File> transformedEntries = Maps.newLinkedHashMapWithExpectedSize(inputFiles.size());
         for (int i = 0; i < inputFiles.size();) {

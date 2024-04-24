@@ -45,12 +45,16 @@ public abstract class ExternalDependencyInstrumentingArtifactTransform extends B
             case DEPENDENCY_ANALYSIS_DATA:
                 doOutputTransformedFile(input, outputs);
                 return;
+            case ORIGINAL_ARTIFACT:
+                if (getParameters().getAgentSupported().get()) {
+                    doOutputOriginalArtifact(input, outputs);
+                }
+                return;
             case INSTRUMENTATION_MARKER:
                 // We don't need to do anything with the marker file
                 return;
             case TYPE_HIERARCHY_ANALYSIS_DATA:
                 // Type hierarchy analysis should never be an input to this transform
-            case ORIGINAL_ARTIFACT:
             default:
                 throw new IllegalStateException("Unexpected input type: " + inputType);
         }
