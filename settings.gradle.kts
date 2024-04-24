@@ -298,7 +298,7 @@ gradle.settingsEvaluated {
 gradle.rootProject {
     tasks.register("architectureDoc", GeneratorTask::class.java) {
         description = "Generates the architecture documentation"
-        outputFile = layout.projectDirectory.file("architecture/README.md")
+        outputFile = layout.projectDirectory.file("architecture/platforms.md")
         elements = provider { architectureElements.map { it.build() } }
     }
 }
@@ -317,16 +317,20 @@ abstract class GeneratorTask : DefaultTask() {
     @TaskAction
     fun generate() {
         val markdownFile = outputFile.asFile.get()
-        val content = markdownFile.readText().lines()
-        val markerPos = content.indexOfFirst { it.contains(markerComment) }
-        if (markerPos < 0) {
-            throw IllegalArgumentException("Could not locate the generated diagram in $markdownFile")
+        val head = if (markdownFile.exists()) {
+            val content = markdownFile.readText().lines()
+            val markerPos = content.indexOfFirst { it.contains(markerComment) }
+            if (markerPos < 0) {
+                throw IllegalArgumentException("Could not locate the generated diagram in $markdownFile")
+            }
+            val endPos = content.subList(markerPos, content.size).indexOfFirst { it.contains(endDiagram) && !it.contains(startDiagram) }
+            if (endPos < 0) {
+                throw IllegalArgumentException("Could not locate the end of the generated diagram in $markdownFile")
+            }
+            content.subList(0, markerPos)
+        } else {
+            emptyList()
         }
-        val endPos = content.subList(markerPos, content.size).indexOfFirst { it.contains(endDiagram) && !it.contains(startDiagram) }
-        if (endPos < 0) {
-            throw IllegalArgumentException("Could not locate the end of the generated diagram in $markdownFile")
-        }
-        val head = content.subList(0, markerPos)
 
         markdownFile.bufferedWriter().use {
             PrintWriter(it).run {
