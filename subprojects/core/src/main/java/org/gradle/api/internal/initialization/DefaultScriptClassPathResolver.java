@@ -136,11 +136,10 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
             resolutionScope.setTypeHierarchyAnalysisResult(getAnalysisResult(classpathConfiguration));
             resolutionScope.setOriginalClasspath(originalDependencies.getFiles());
             ArtifactCollection instrumentedExternalDependencies = getInstrumentedExternalDependencies(classpathConfiguration);
-            ArtifactCollection instrumentedProjectDependencies = getInstrumentedProjectDependencies(classpathConfiguration);
+//            ArtifactCollection instrumentedProjectDependencies = getInstrumentedProjectDependencies(classpathConfiguration);
             List<File> instrumentedClasspath = InstrumentationClasspathMerger.mergeToClasspath(
                 originalDependencies.getArtifacts(),
-                instrumentedExternalDependencies,
-                instrumentedProjectDependencies
+                instrumentedExternalDependencies
             );
             return TransformedClassPath.handleInstrumentingArtifactTransform(instrumentedClasspath);
         }
@@ -167,7 +166,7 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
     private static ArtifactCollection getInstrumentedExternalDependencies(Configuration classpathConfiguration) {
         return classpathConfiguration.getIncoming().artifactView((Action<? super ArtifactView.ViewConfiguration>) config -> {
             config.attributes(it -> it.attribute(INSTRUMENTED_ATTRIBUTE, INSTRUMENTED_AND_UPGRADED.value));
-            config.componentFilter(DefaultScriptClassPathResolver::isExternalDependency);
+            config.componentFilter(id -> !isGradleApi(id));
         }).getArtifacts();
     }
 

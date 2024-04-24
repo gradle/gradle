@@ -37,8 +37,7 @@ public class InstrumentationClasspathMerger {
      */
     public static List<File> mergeToClasspath(
         ArtifactCollection originalDependencies,
-        ArtifactCollection externalDependencies,
-        ArtifactCollection projectDependencies
+        ArtifactCollection externalDependencies
     ) {
         List<OriginalArtifactIdentifier> identifiers = originalDependencies.getArtifacts().stream()
             .map(OriginalArtifactIdentifier::of)
@@ -48,7 +47,7 @@ public class InstrumentationClasspathMerger {
             .collect(Collectors.toList());
 
         Ordering<OriginalArtifactIdentifier> ordering = Ordering.explicit(identifiers);
-        return Stream.concat(externalDependencies.getArtifacts().stream(), projectDependencies.getArtifacts().stream())
+        return externalDependencies.getArtifacts().stream()
             .map(ClassPathTransformedArtifact::ofTransformedArtifact)
             // We sort based on the original classpath to we keep the original order,
             // we also rely on the fact that for ordered streams `sorted()` method has stable sort.
