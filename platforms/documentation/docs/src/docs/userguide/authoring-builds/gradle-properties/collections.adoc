@@ -22,18 +22,19 @@ Gradle provides types for maintaining collections of objects, intended to work w
 
 These collection types are used for managing collections of objects, particularly in the context of build scripts and plugins:
 
-1. link:{javadocPath}/org/gradle/api/DomainObjectSet.html[`DomainObjectSet<T>`]: Represents a set of objects of type T. This set does not allow duplicate elements, and you can add, remove, and query objects in the set.
+1. <<domainobjectset,`DomainObjectSet<T>`>>: Represents a set of objects of type T. This set does not allow duplicate elements, and you can add, remove, and query objects in the set.
 
-2. link:{javadocPath}/org/gradle/api/NamedDomainObjectSet.html[`NamedDomainObjectSet<T>`]: A specialization of `DomainObjectSet` where each object has a unique name associated with it. This is often used for collections where each element needs to be uniquely identified by a name.
+2. <<nameddomainobjectset,`NamedDomainObjectSet<T>`>>: A specialization of `DomainObjectSet` where each object has a unique name associated with it. This is often used for collections where each element needs to be uniquely identified by a name.
 
-3. link:{javadocPath}/org/gradle/api/NamedDomainObjectList.html[`NamedDomainObjectList<T>`]: Similar to `NamedDomainObjectSet`, but represents a list of objects where order matters. Each element has a unique name associated with it, and you can access elements by index as well as by name.
+3. <<nameddomainobjectlist,`NamedDomainObjectList<T>`>>: Similar to `NamedDomainObjectSet`, but represents a list of objects where order matters. Each element has a unique name associated with it, and you can access elements by index as well as by name.
 
-4. link:{javadocPath}/org/gradle/api/NamedDomainObjectContainer.html[`NamedDomainObjectContainer<T>`]: A container for managing objects of type T, where each object has a unique name. This container provides methods for adding, removing, and querying objects by name.
+4. <<nameddomainobjectcontainer,`NamedDomainObjectContainer<T>`>>: A container for managing objects of type T, where each object has a unique name. This container provides methods for adding, removing, and querying objects by name.
 
-5. link:{javadocPath}/org/gradle/api/ExtensiblePolymorphicDomainObjectContainer.html[`ExtensiblePolymorphicDomainObjectContainer<T>`]: An extension of `NamedDomainObjectContainer` that allows you to define instantiation strategies for different types of objects. This is useful when you have a container that can hold multiple types of objects, and you want to control how each type of object is instantiated.
+5. <<extensiblepolymorphicdomainobjectcontainer,`ExtensiblePolymorphicDomainObjectContainer<T>`>>: An extension of `NamedDomainObjectContainer` that allows you to define instantiation strategies for different types of objects. This is useful when you have a container that can hold multiple types of objects, and you want to control how each type of object is instantiated.
 
 These types are commonly used in Gradle plugins and build scripts to manage collections of objects, such as tasks, configurations, or custom domain objects.
 
+[[domainobjectset]]
 == 1. `DomainObjectSet`
 
 A link:{javadocPath}/org/gradle/api/DomainObjectSet.html[`DomainObjectSet`] simply holds a set of configurable objects.
@@ -48,6 +49,7 @@ include::sample[dir="snippets/providers/collections/kotlin",files="build.gradle.
 include::sample[dir="snippets/providers/collections/groovy",files="build.gradle[tags=dos]"]
 ====
 
+[[nameddomainobjectset]]
 == 2. `NamedDomainObjectSet`
 
 A link:{javadocPath}/org/gradle/api/NamedDomainObjectSet.html[`NamedDomainObjectSet`] holds a set of configurable objects, where each element has a name associated with it.
@@ -62,6 +64,7 @@ include::sample[dir="snippets/providers/collections/kotlin",files="build.gradle.
 include::sample[dir="snippets/providers/collections/groovy",files="build.gradle[tags=ndos]"]
 ====
 
+[[nameddomainobjectlist]]
 == 3. `NamedDomainObjectList`
 
 A link:{javadocPath}/org/gradle/api/NamedDomainObjectList.html[`NamedDomainObjectList`] holds a list of configurable objects, where each element has a name associated with it.
@@ -76,6 +79,7 @@ include::sample[dir="snippets/providers/collections/kotlin",files="build.gradle.
 include::sample[dir="snippets/providers/collections/groovy",files="build.gradle[tags=ndol]"]
 ====
 
+[[nameddomainobjectcontainer]]
 == 4. `NamedDomainObjectContainer`
 
 A link:{javadocPath}/org/gradle/api/NamedDomainObjectContainer.html[`NamedDomainObjectContainer`] manages a set of objects, where each element has a name associated with it.
@@ -128,12 +132,13 @@ include::{snippetsPath}/plugins/namedDomainObjectContainer/groovy/build.gradle[]
 ----
 ====
 
+[[extensiblepolymorphicdomainobjectcontainer]]
 == 5. `ExtensiblePolymorphicDomainObjectContainer`
 
 An link:{javadocPath}/org/gradle/api/ExtensiblePolymorphicDomainObjectContainer.html[ExtensiblePolymorphicDomainObjectContainer] is a `NamedDomainObjectContainer` that allows you to
 define instantiation strategies for different types of objects.
 
-You can create an instance using the link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#polymorphicDomainObjectContainer-java.lang.Class-[ObjectFactory.polymorphicDomainObjectContainer()] method.
+You can create an instance using the link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#polymorphicDomainObjectContainer-java.lang.Class-[ObjectFactory.polymorphicDomainObjectContainer()] method:
 
 ====
 include::sample[dir="snippets/providers/collections/kotlin",files="build.gradle.kts[tags=epdoc]"]

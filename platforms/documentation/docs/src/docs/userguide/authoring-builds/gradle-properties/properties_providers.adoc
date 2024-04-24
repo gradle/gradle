@@ -28,15 +28,13 @@ Gradle represents lazy properties with two interfaces:
 
 Properties and providers manage _values and configurations_ in a build script.
 
-In this example, we define a custom task (`CustomTask`) and a custom plugin (`CustomPlugin`):
+In this example, `configuration` is a `Property<String>` that is set to the `configurationProvider` `Provider<String>`.
+The `configurationProvider` lazily provides the value `"Hello, Gradle!"`:
 
 ====
 include::sample[dir="snippets/providers/property/kotlin",files="build.gradle.kts[tags=introduction]"]
 include::sample[dir="snippets/providers/property/groovy",files="build.gradle[tags=introduction]"]
 ====
-
-The plugin adds the custom task to the project and also defines a dependent task that relies on the custom task.
-The custom task is defined as a lazy property (`customTaskProvider`) using `Provider`, which ensures that the task is only created and configured when it is needed.
 
 [[understanding_properties]]
 == Understanding Properties

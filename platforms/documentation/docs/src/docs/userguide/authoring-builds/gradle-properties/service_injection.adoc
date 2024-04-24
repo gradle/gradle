@@ -24,20 +24,21 @@ The services are made available through _service injection_.
 
 The following services are available for injection:
 
-1. link:{javadocPath}/org/gradle/api/model/ObjectFactory.html[ObjectFactory] - Allows model objects to be created.
-2. link:{groovyDslPath}/org.gradle.api.file.ProjectLayout.html[ProjectLayout] - Provides access to key project locations.
-3. link:{groovyDslPath}/org.gradle.api.file.BuildLayout.html[BuildLayout] - Provides access to important locations for a Gradle build.
-4. link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html[ProviderFactory] - Creates `Provider` instances.
-5. link:{javadocPath}/org/gradle/workers/WorkerExecutor.html[WorkerExecutor] - Allows a task to run work in parallel.
-6. link:{javadocPath}/org/gradle/api/file/FileSystemOperations.html[FileSystemOperations] - Allows a task to run operations on the filesystem such as deleting files, copying files or syncing directories.
-7. link:{javadocPath}/org/gradle/api/file/ArchiveOperations.html[ArchiveOperations] - Allows a task to run operations on archive files such as ZIP or TAR files.
-8. link:{javadocPath}/org/gradle/process/ExecOperations.html[ExecOperations] - Allows a task to run external processes with dedicated support for running external `java` programs.
-9. link:{javadocPath}/org/gradle/tooling/provider/model/ToolingModelBuilderRegistry.html[ToolingModelBuilderRegistry] - Allows a plugin to registers a Gradle tooling API model.
+1. <<objectfactory,`ObjectFactory`>> - Allows model objects to be created.
+2. <<sec:projectlayout,`ProjectLayout`>> - Provides access to key project locations.
+3. <<buildlayout,`BuildLayout`>> - Provides access to important locations for a Gradle build.
+4. <<providerfactory,`ProviderFactory`>> - Creates `Provider` instances.
+5. <<workerexecutor,`WorkerExecutor`>> - Allows a task to run work in parallel.
+6. <<filesystemoperations,`FileSystemOperations`>> - Allows a task to run operations on the filesystem such as deleting files, copying files or syncing directories.
+7. <<archiveoperations,`ArchiveOperations`>> - Allows a task to run operations on archive files such as ZIP or TAR files.
+8. <<execoperations,`ExecOperations`>> - Allows a task to run external processes with dedicated support for running external `java` programs.
+9. <<toolingmodelbuilderregistry,`ToolingModelBuilderRegistry`>> - Allows a plugin to registers a Gradle tooling API model.
 
 Out of the above, `ProjectLayout` and `WorkerExecutor` services are only available for injection in project plugins.
 `BuildLayout` is only available in settings plugins and settings files.
 `ProjectLayout` is unavailable in Worker API actions.
 
+[[objectfactory]]
 == 1. `ObjectFactory`
 
 link:{javadocPath}/org/gradle/api/model/ObjectFactory.html[`ObjectFactory`] is a service for creating custom Gradle types, allowing you to define nested objects and DSLs in your build logic.
@@ -98,6 +99,7 @@ include::sample[dir="snippets/providers/services/groovy",files="build.gradle[tag
 
 The `MyProjectLayoutTask` task uses a `ProjectLayout` instance, which is injected into the task's constructor using the `@Inject` annotation.
 
+[[buildlayout]]
 == 3. `BuildLayout`
 
 link:{groovyDslPath}/org.gradle.api.file.BuildLayout.html[`BuildLayout`] is a service that provides access to the root and settings directory in a Settings plugin or a Settings script, it is analogous to `ProjectLayout`.
@@ -125,6 +127,7 @@ include::sample[dir="snippets/providers/services/groovy",files="settings.gradle[
 This code defines a `MyBuildLayoutPlugin` plugin that implements the `Plugin` interface for the `Settings` type.
 The plugin expects a `BuildLayout` instance to be injected into its constructor using the `@Inject` annotation.
 
+[[providerfactory]]
 == 4. `ProviderFactory`
 
 link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html[`ProviderFactory`] is a service that provides methods for creating different types of providers.
@@ -155,6 +158,7 @@ include::sample[dir="snippets/providers/services/groovy",files="build.gradle[tag
 
 The `ProviderFactory` service is injected into the `MyProviderFactoryTask` task's constructor using the `@Inject` annotation.
 
+[[workerexecutor]]
 == 5. `WorkerExecutor`
 
 link:{javadocPath}/org/gradle/workers/WorkerExecutor.html[`WorkerExecutor`] is a service that allows you to perform parallel execution of tasks using worker processes.
@@ -172,6 +176,7 @@ include::sample[dir="snippets/providers/services/groovy",files="build.gradle[tag
 
 See <<worker_api.adoc#worker_api,the worker API>> for more details.
 
+[[filesystemoperations]]
 == 6. `FileSystemOperations`
 
 link:{javadocPath}/org/gradle/api/file/FileSystemOperations.html[`FileSystemOperations`] is a service that provides methods for performing file system operations such as copying, deleting, and creating directories.
@@ -194,6 +199,7 @@ include::sample[dir="snippets/providers/services/groovy",files="build.gradle[tag
 
 The `FileSystemOperations` service is injected into the `MyFileSystemOperationsTask` task's constructor using the `@Inject` annotation.
 
+[[archiveoperations]]
 == 7. `ArchiveOperations`
 
 link:{javadocPath}/org/gradle/api/file/ArchiveOperations.html[`ArchiveOperations`] is a service that provides methods for creating archives, such as ZIP and TAR files.
@@ -216,6 +222,7 @@ include::sample[dir="snippets/providers/services/groovy",files="build.gradle[tag
 
 The `ArchiveOperations` service is injected into the `MyArchiveOperationsTask` task's constructor using the `@Inject` annotation.
 
+[[execoperations]]
 == 8. `ExecOperations`
 
 link:{javadocPath}/org/gradle/process/ExecOperations.html[`ExecOperations`] is a service that provides methods for executing external processes (commands) from within a build script.
@@ -238,6 +245,7 @@ include::sample[dir="snippets/providers/services/groovy",files="build.gradle[tag
 
 The `ExecOperations` is injected into the `MyExecOperationsTask` task's constructor using the `@Inject` annotation.
 
+[[toolingmodelbuilderregistry]]
 == 9 `ToolingModelBuilderRegistry`
 
 link:{javadocPath}/org/gradle/tooling/provider/model/ToolingModelBuilderRegistry.html[`ToolingModelBuilderRegistry`] is a service that allows you to register custom tooling model builders.

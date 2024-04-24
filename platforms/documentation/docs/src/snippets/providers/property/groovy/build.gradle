@@ -22,30 +22,20 @@ println(simpleMessageProvider.get())
 // end::set-prov[]
 
 // tag::introduction[]
-// Define a custom task that prints a message
-abstract class CustomTask extends DefaultTask {
-    CustomTask() {
-        // Configure the task to print a message when executed
-        doLast {
-            println("Executing custom task")
-        }
+abstract class MyIntroTask extends DefaultTask {
+    @Input
+    abstract Property<String> getConfiguration()
+
+    @TaskAction
+    void printConfiguration() {
+        println "Configuration value: ${configuration.get()}"
     }
 }
 
-// Define a custom plugin that adds the custom task to the project
-abstract class CustomPlugin implements Plugin<Project> {
-    void apply(Project project) {
-        // Create a lazy property (provider) for the custom task
-        def customTaskProvider = project.tasks.register("customTask", CustomTask)
+Provider<String> configurationProvider = project.provider { "Hello, Gradle!" }
 
-        // Configure a task to depend on the lazy property
-        project.tasks.register("dependentTask") {
-            dependsOn(customTaskProvider)
-            doLast {
-                println("Dependent task executed after custom task")
-            }
-        }
-    }
+tasks.register("myIntroTask", MyIntroTask) {
+    it.setConfiguration(configurationProvider)
 }
 // end::introduction[]
 
@@ -53,7 +43,7 @@ abstract class CustomPlugin implements Plugin<Project> {
 // tag::prop-managed[]
 abstract class MyPropertyTask extends DefaultTask {
     @Input
-    final Property<String> messageProperty = project.objects.property(String)
+    abstract Property<String> messageProperty = project.objects.property(String)
 
     @TaskAction
     void printMessage() {
@@ -69,7 +59,6 @@ tasks.register('myPropertyTask', MyPropertyTask) {
 // Provider
 // tag::prov-managed[]
 abstract class MyProviderTask extends DefaultTask {
-    @Input
     final Provider<String> messageProvider = project.providers.provider { "Hello, Gradle!" }
 
     @TaskAction
