@@ -23,9 +23,9 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
         given:
         withSoftwareTypePlugins().prepareToExecute()
 
-        file("settings.gradle.something") << getDeclarativeSettingsScriptThatSetsConventions(convention)
+        file("settings.gradle.dcl") << getDeclarativeSettingsScriptThatSetsConventions(convention)
 
-        file("build.gradle.something") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(buildConfiguration)
+        file("build.gradle.dcl") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(buildConfiguration)
 
         when:
         run(":printTestSoftwareTypeExtensionConfiguration")
@@ -49,7 +49,7 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
 
         file("settings.gradle.kts") << getDeclarativeSettingsScriptThatSetsConventions(setAll("convention", "convention"))
 
-        file("build.gradle.something") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(setId("test"))
+        file("build.gradle.dcl") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(setId("test"))
 
         when:
         run(":printTestSoftwareTypeExtensionConfiguration")
@@ -62,7 +62,7 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
         given:
         withSoftwareTypePlugins().prepareToExecute()
 
-        file("settings.gradle.something") << getDeclarativeSettingsScriptThatSetsConventions(setAll("convention", "convention"))
+        file("settings.gradle.dcl") << getDeclarativeSettingsScriptThatSetsConventions(setAll("convention", "convention"))
 
         file("build.gradle.kts") << """
             plugins { id("com.example.test-software-type-impl") }
@@ -79,9 +79,9 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
         given:
         withSettingsPluginThatConfiguresSoftwareTypeConventions().prepareToExecute()
 
-        file("settings.gradle.kts") << getDeclarativeSettingsScriptThatSetsConventions()
+        file("settings.gradle.dcl") << getDeclarativeSettingsScriptThatSetsConventions()
 
-        file("build.gradle.something") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(setId("test"))
+        file("build.gradle.dcl") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(setId("test"))
 
         when:
         run(":printTestSoftwareTypeExtensionConfiguration")
