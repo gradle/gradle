@@ -36,7 +36,6 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.dsl.DependencyHandlerInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal.ClassPathNotation;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.initialization.transform.CoarseGrainedInstrumentationUnitOfWork;
 import org.gradle.api.internal.initialization.transform.registration.InstrumentationTransformRegisterer;
 import org.gradle.api.internal.initialization.transform.services.CacheInstrumentationDataBuildService;
 import org.gradle.api.internal.initialization.transform.services.CacheInstrumentationDataBuildService.ResolutionScope;
@@ -147,25 +146,20 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
     @Override
     public ClassPath resolveClassPath(Configuration classpathConfiguration, ScriptClassPathResolutionContext resolutionContext) {
         // We clear resolution scope from service after the resolution is done, so data is not reused between invocations.
-        return executionEngine.createRequest(new CoarseGrainedInstrumentationUnitOfWork(inputFingerprinter, fileCollectionFactory, immutableWorkspaceProvider, getOriginalDependencies(classpathConfiguration).getFiles()) {
-            @Override
-            public TransformedClassPath getInstrumentedClasspath() {
-                long contextId = resolutionContext.getContextId();
-                CacheInstrumentationDataBuildService buildService = resolutionContext.getBuildService().get();
-                try (ResolutionScope resolutionScope = buildService.newResolutionScope(contextId)) {
-                    ArtifactView originalDependencies = getOriginalDependencies(classpathConfiguration);
-                    ArtifactView originalProjectDependencies = getOriginalProjectDependencies(classpathConfiguration);
-                    originalProjectDependencies.getFiles().getFiles();
-                    resolutionScope.setTypeHierarchyAnalysisResult(getAnalysisResult(classpathConfiguration));
-                    resolutionScope.setOriginalClasspath(originalDependencies.getFiles().plus(originalProjectDependencies.getFiles()));
-                    resolutionScope.setOriginalProjectClasspath(originalProjectDependencies.getFiles());
-                    ArtifactCollection instrumentedExternalDependencies = getInstrumentedExternalDependencies(classpathConfiguration);
-                    return (TransformedClassPath) TransformedClassPath.handleInstrumentingArtifactTransform(instrumentedExternalDependencies.getArtifacts().stream()
-                        .map(ResolvedArtifactResult::getFile)
-                        .collect(Collectors.toList()));
-                }
-            }
-        }).execute().getOutputAs(TransformedClassPath.class).get();
+        long contextId = resolutionContext.getContextId();
+        CacheInstrumentationDataBuildService buildService = resolutionContext.getBuildService().get();
+        try (ResolutionScope resolutionScope = buildService.newResolutionScope(contextId)) {
+            ArtifactView originalDependencies = getOriginalDependencies(classpathConfiguration);
+            ArtifactView originalProjectDependencies = getOriginalProjectDependencies(classpathConfiguration);
+            originalProjectDependencies.getFiles().getFiles();
+            resolutionScope.setTypeHierarchyAnalysisResult(getAnalysisResult(classpathConfiguration));
+            resolutionScope.setOriginalClasspath(originalDependencies.getFiles().plus(originalProjectDependencies.getFiles()));
+            resolutionScope.setOriginalProjectClasspath(originalProjectDependencies.getFiles());
+            ArtifactCollection instrumentedExternalDependencies = getInstrumentedExternalDependencies(classpathConfiguration);
+            return TransformedClassPath.handleInstrumentingArtifactTransform(instrumentedExternalDependencies.getArtifacts().stream()
+                .map(ResolvedArtifactResult::getFile)
+                .collect(Collectors.toList()));
+        }
     }
 
     private ArtifactView getOriginalProjectDependencies(Configuration classpathConfiguration) {

@@ -225,18 +225,9 @@ fun Project.enableScriptCompilationOf(
                 "generatePrecompiledScriptPluginAccessors",
                 kotlinSourceDirectorySet
             ) {
-                fun isGradleApi(componentId: ComponentIdentifier): Boolean {
-                    if (componentId is OpaqueComponentIdentifier) {
-                        val classPathNotation = componentId.classPathNotation
-                        return classPathNotation == DependencyFactoryInternal.ClassPathNotation.GRADLE_API || classPathNotation == DependencyFactoryInternal.ClassPathNotation.LOCAL_GROOVY
-                    }
-                    return false
-                }
                 dependsOn(compilePluginsBlocks)
                 classPathFiles.from(compileClasspath)
-                runtimeClassPathArtifactCollection.set(configurations["runtimeClasspath"].incoming.artifactView { config ->
-                    config.componentFilter { id -> !isGradleApi(id) }
-                }.artifacts)
+                runtimeClassPathArtifactCollection.set(configurations["runtimeClasspath"].incoming.artifacts)
                 sourceCodeOutputDir.set(it)
                 metadataOutputDir.set(accessorsMetadata)
                 compiledPluginsBlocksDir.set(compiledPluginsBlocks)
