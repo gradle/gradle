@@ -21,10 +21,12 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.Transformer
+import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.file.Directory
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.initialization.Settings
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal
 import org.gradle.api.internal.plugins.DefaultPluginManager
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.model.ObjectFactory
@@ -37,6 +39,7 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
+import org.gradle.internal.component.local.model.OpaqueComponentIdentifier
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.deprecation.Documentation
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter
@@ -222,9 +225,18 @@ fun Project.enableScriptCompilationOf(
                 "generatePrecompiledScriptPluginAccessors",
                 kotlinSourceDirectorySet
             ) {
+                fun isGradleApi(componentId: ComponentIdentifier): Boolean {
+                    if (componentId is OpaqueComponentIdentifier) {
+                        val classPathNotation = componentId.classPathNotation
+                        return classPathNotation == DependencyFactoryInternal.ClassPathNotation.GRADLE_API || classPathNotation == DependencyFactoryInternal.ClassPathNotation.LOCAL_GROOVY
+                    }
+                    return false
+                }
                 dependsOn(compilePluginsBlocks)
                 classPathFiles.from(compileClasspath)
-                runtimeClassPathArtifactCollection.set(configurations["runtimeClasspath"].incoming.artifacts)
+                runtimeClassPathArtifactCollection.set(configurations["runtimeClasspath"].incoming.artifactView { config ->
+                    config.componentFilter { id -> !isGradleApi(id) }
+                }.artifacts)
                 sourceCodeOutputDir.set(it)
                 metadataOutputDir.set(accessorsMetadata)
                 compiledPluginsBlocksDir.set(compiledPluginsBlocks)
