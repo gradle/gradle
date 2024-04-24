@@ -23,17 +23,15 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Optional;
 
-public class SerializedLambdaQueries {
+class SerializedLambdaQueries {
     private static final String GENERATED_LAMBDA_CLASS_SUFFIX = "$$Lambda";
-
-    public static Optional<SerializedLambda> maybeSerializedLambdaFor(Object lambda) {
-        return isLambdaClass(lambda.getClass())
-            ? serializedLambdaFor(lambda)
-            : Optional.empty();
-    }
 
     public static boolean isLambdaClass(Class<?> type) {
         return type.isSynthetic() && isLambdaClassName(type.getName());
+    }
+
+    public static boolean isLambdaClassName(String className) {
+        return className.contains(GENERATED_LAMBDA_CLASS_SUFFIX);
     }
 
     public static Optional<SerializedLambda> serializedLambdaFor(@Nullable Object lambda) {
@@ -57,9 +55,5 @@ public class SerializedLambdaQueries {
             }
         }
         return Optional.empty();
-    }
-
-    static boolean isLambdaClassName(String className) {
-        return className.contains(GENERATED_LAMBDA_CLASS_SUFFIX);
     }
 }
