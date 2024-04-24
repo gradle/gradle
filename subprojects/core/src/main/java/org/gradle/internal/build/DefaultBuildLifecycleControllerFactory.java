@@ -75,8 +75,7 @@ public class DefaultBuildLifecycleControllerFactory implements BuildLifecycleCon
             gradle.getServices().get(BuildWorkPreparer.class),
             gradle.getServices().get(BuildWorkExecutor.class),
             buildToolingModelControllerFactory,
-            stateTransitionControllerFactory,
-            problems.getProblemsForThrowables()
+            stateTransitionControllerFactory
         );
     }
 

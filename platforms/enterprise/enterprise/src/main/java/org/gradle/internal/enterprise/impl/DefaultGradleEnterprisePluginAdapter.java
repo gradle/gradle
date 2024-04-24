@@ -17,7 +17,7 @@
 package org.gradle.internal.enterprise.impl;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.problems.internal.InternalProblems;
+import com.google.common.collect.Multimap;
 import org.gradle.api.problems.internal.Problem;
 import org.gradle.internal.enterprise.GradleEnterprisePluginBuildState;
 import org.gradle.internal.enterprise.GradleEnterprisePluginConfig;
@@ -54,7 +54,7 @@ public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePlu
     private final DefaultGradleEnterprisePluginServiceRef pluginServiceRef;
 
     private final BuildOperationNotificationListenerRegistrar buildOperationNotificationListenerRegistrar;
-    private final InternalProblems problems;
+    private final Multimap<Throwable, Problem> problems;
 
     private transient GradleEnterprisePluginService pluginService;
 
@@ -65,7 +65,7 @@ public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePlu
         GradleEnterprisePluginBuildState buildState,
         DefaultGradleEnterprisePluginServiceRef pluginServiceRef,
         BuildOperationNotificationListenerRegistrar buildOperationNotificationListenerRegistrar,
-        InternalProblems problems
+        Multimap<Throwable, Problem> problems
     ) {
         this.pluginServiceFactory = pluginServiceFactory;
         this.config = config;
@@ -112,7 +112,7 @@ public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePlu
 
                 @Override
                 public Collection<Problem> getProblemsFor(Throwable failure) {
-                    return DefaultGradleEnterprisePluginAdapter.this.problems.getProblemsForThrowables().get(buildFailure);
+                    return DefaultGradleEnterprisePluginAdapter.this.problems.get(buildFailure);
                 }
             });
         }
@@ -132,7 +132,7 @@ public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePlu
                     getProblems(cause, builder);
                 }
             }
-            builder.addAll(this.problems.getProblemsForThrowables().get(buildFailure));
+            builder.addAll(this.problems.get(buildFailure));
             buildFailure = buildFailure.getCause();
         }
     }
