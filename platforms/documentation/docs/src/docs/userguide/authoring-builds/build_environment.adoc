@@ -15,9 +15,13 @@
 [[build_environment]]
 = Configuring the Build Environment
 
-Gradle provides multiple mechanisms for configuring the behavior of Gradle itself and specific projects.
+Configuring the build environment is a powerful way to customize the build process.
+There are many mechanisms available.
+By leveraging these mechanisms, you can make your Gradle builds more flexible and adaptable to different environments and requirements.
 
-The following is a reference for using these mechanisms:
+== Available mechanisms
+
+Gradle provides multiple mechanisms for configuring the behavior of Gradle itself and specific projects:
 
 [cols="~,~,~"]
 |===
@@ -36,8 +40,8 @@ The following is a reference for using these mechanisms:
 |`systemProp.http.proxyHost=somehost.org`
 
 |<<#sec:gradle_configuration_properties,Gradle properties>>
-|Properties that configure Gradle settings
-|`org.gradle.caching=true`
+|Properties that configure Gradle settings and the Java process that executes your build
+|`org.gradle.logging.level=quiet`
 
 |<<#sec:gradle_environment_variables,Environment variables>>
 |Properties that configure build behavior based on the environment
@@ -47,44 +51,61 @@ The following is a reference for using these mechanisms:
 == Priority for configurations
 
 When configuring Gradle behavior, you can use these methods, but you must consider their priority.
+
 The following table lists these methods in order of highest to lowest precedence (the first one wins):
 
-[cols="~,~,~,~,~"]
+[cols="~,~,~,~"]
 |===
-|Priority |Method |Location |Example |Details
+|Priority |Method |Location |Notes
 
 |1
 |<<command_line_interface#command_line_interface,Command-line flags>>
 |Command line
-|`--build-cache`
-|These have precedence over properties and environment variables.
+|Flags have precedence over properties and environment variables
 
 |2
 |<<#sec:gradle_system_properties,System properties>>
 |Project Root Dir
-|`systemProp.http.proxyPort=443`
-|Stored in a `gradle.properties` file.
+|Stored in a `gradle.properties` file
 
 |3
 |<<#sec:gradle_configuration_properties,Gradle properties>>
 |`GRADLE_USER_HOME` +
 Project Root Dir +
 `GRADLE_HOME`
-|`org.gradle.logging.level=quiet`
-|Stored in a `gradle.properties` file.
+|Stored in a `gradle.properties` file
 
 |4
 |<<#sec:gradle_environment_variables,Environment variables>>
 |Environment
-|`GRADLE_OPTS`
-|Sourced by the environment that executes Gradle.
+|Sourced by the environment that executes Gradle
 |===
+
+Here are all possible configurations of specifying the JDK installation directory in order of priority:
+
+1. Command Line
++
+[source,text]
+----
+$ ./gradlew yourTask -Dorg.gradle.java.home=/path/to/your/java/home
+----
+2. Gradle Properties File
++
+[source,text]
+----
+org.gradle.java.home=/path/to/your/java/home
+----
+3. Environment Variable
++
+[source,text]
+----
+$ export JAVA_HOME=/path/to/your/java/home
+----
 
 [[sec:project_properties]]
 == Project properties
 
-Project properties are specific to your Gradle project.
-They are defined using blocks in your build script or directly in the `project` object.
+Project properties are specific to your Gradle project, they are variables or configuration blocks defined in your build script or in the `project` object.
 
 For example, the project property `myProperty` is created in a build file:
 
@@ -98,51 +119,38 @@ ext {
 println "My property value: ${project.ext.myProperty}"
 ----
 
-You have two options to add project properties, listed in order of priority:
+=== Setting a project properties
 
-1. *Command Line:* You can add properties directly to your link:{groovyDslPath}/org.gradle.api.Project.html[Project] object via the `-P` command line option.
+You have three options to add project properties, listed in order of priority:
+
+1. *Command Line:* You can add project properties directly to your link:{groovyDslPath}/org.gradle.api.Project.html[Project] object via the `-P` command line option.
 +
 [source,text]
 ----
 $ ./gradlew build -PmyProperty='Hi, world'
 ----
-2. *System Properties or Environment Variables:* You can set project properties with specially-named system properties or environment variables.
+2. *System Property:* Gradle creates specially-named system properties for project properties which you can set using the `-D` command line flag or `gradle.properties` file. For the project property `prop`, the system property created is called `org.gradle.project.__prop__`.
 +
 [source,text]
 ----
 $ ./gradlew build -Dorg.gradle.project.myProperty='Hi, world'
 ----
-
-If the environment variable name looks like `ORG_GRADLE_PROJECT___prop__=somevalue`, then Gradle will set a `prop` property on your project object, with the value of `somevalue`.
-Gradle also supports this for system properties, but with a different naming pattern, which looks like `org.gradle.project.__prop__`.
-
-The following examples will set the `foo` property on your Project object to `"bar"`.
-
-*Example 1:* Setting a project property via the command line.
-
-[source,text]
-----
-$ ./gradlew build -Pfoo=bar
-----
-
-*Example 2:* Setting a project property via a system property.
-
++
 .gradle.properties
+[source,properties]
+----
+org.gradle.project.myProperty='Hi, world'
+----
+3. *Environment Variables:* You can set project properties with environment variables. If the environment variable name looks like `ORG_GRADLE_PROJECT___prop__=somevalue`, then Gradle will set a `prop` property on your project object, with the value of `somevalue`.
++
 [source,text]
 ----
-org.gradle.project.foo=bar
+$ export ORG_GRADLE_PROJECT_myProperty='Hi, world'
 ----
-
-*Example 3:* Setting a project property via an environment variable.
-
-[source,text]
-----
-$ export ORG_GRADLE_PROJECT_foo=bar
-----
-
-This feature is very useful when you don't have admin rights to a continuous integration server and need to set property values that are not easily visible. Since you cannot use the `-P` option in that scenario nor change the system-level configuration files, the correct strategy is to change the configuration of your continuous integration build job, adding an environment variable setting that matches an expected pattern. This won't be visible to normal users on the system.
-
-You can access a project property in your build script simply by using its name, as you would a variable.
++
+This feature is very useful when you don't have admin rights to a continuous integration server and need to set property values that are not easily visible.
+Since you cannot use the `-P` option in that scenario nor change the system-level configuration files, the correct strategy is to change the configuration of your continuous integration build job, adding an environment variable setting that matches an expected pattern.
+This won't be visible to normal users on the system.
 
 [[sec:gradle_command_line_flags]]
 == Command-line flags
@@ -154,7 +162,8 @@ The command line interface and the available flags are described in <<command_li
 
 System properties are variables set at the JVM level and accessible to the Gradle build process.
 System properties can be accessed using the `System` class in the build script.
-Common system properties are listed below.
+
+=== Setting system properties
 
 You have two options to add system properties listed in order of priority:
 
@@ -165,7 +174,7 @@ The `-D` option of the `gradle` command has the same effect as the `-D` option o
 ----
 $ ./gradlew build -Dgradle.wrapperUser=myuser
 ----
-2. *`gradle.properties` file:* You can also set system properties in `gradle.properties` files with the prefix `systemProp`:
+2. *Gradle Properties File:* You can also set system properties in `gradle.properties` files with the prefix `systemProp`.
 +
 .gradle.properties
 [source,text]
@@ -174,7 +183,9 @@ systemProp.gradle.wrapperUser=myuser
 systemProp.gradle.wrapperPassword=mypassword
 ----
 
-The following are _common_ system properties:
+=== System properties reference
+
+For a quick reference, the following are _common_ system properties:
 
 `gradle.wrapperUser=(myuser)`:: Specify username to download Gradle distributions <<gradle_wrapper.adoc#sec:authenticated_download,from servers using HTTP Basic Authentication>>.
 `gradle.wrapperPassword=(mypassword)`:: Specify password for downloading a Gradle distribution using the Gradle wrapper.
@@ -185,6 +196,8 @@ Additional Java system properties are listed link:https://docs.oracle.com/javase
 
 In a multi-project build, `systemProp` properties set in any project except the root will be *ignored*.
 Only the root project's `gradle.properties` file will be checked for properties that begin with `systemProp`.
+
+=== Using system properties
 
 The following examples demonstrate how to use system properties:
 
@@ -218,12 +231,20 @@ $ gradle -Dsystem=commandLineValue
 Gradle provides several options that make it easy to configure the Java process that will be used to execute your build.
 While it's possible to configure these in your local environment via `GRADLE_OPTS` or `JAVA_OPTS`, it is useful to be able to store certain settings like JVM memory configuration and `JAVA_HOME` location in version control so that an entire team can work with a consistent environment.
 
-You have one option to add gradle properties:
+=== Setting Gradle properties
 
-1. *`gradle.properties` file:* Place these settings into a `gradle.properties` file and commit it to your version control system.
+You have two options to add Gradle properties listed in order of priority:
+
+1. *Command Line:* Using the `-D` command-line option, you can pass a Gradle property:
++
+[source,text]
+----
+$ ./gradlew build -Dorg.gradle.caching.debug=false
+----
+2. *Gradle Properties File:* Place these settings into a `gradle.properties` file and commit it to your version control system.
 +
 .gradle.properties
-[source,text]
+[source,properties]
 ----
 org.gradle.caching.debug=false
 ----
@@ -258,7 +279,9 @@ If an option is configured in multiple locations, the _first one_ found in any o
 
 NOTE: The location of the `GRADLE_USER_HOME` may have been changed beforehand via the `-Dgradle.user.home` system property passed on the command line.
 
-The following properties are common Gradle properties:
+=== Gradle properties reference
+
+For reference, the following properties are common Gradle properties:
 
 `org.gradle.caching=(true,false)`::
 When set to `true`, Gradle will reuse task outputs from any previous build when possible, <<build_cache.adoc#build_cache,resulting in much faster builds>>.
@@ -310,6 +333,8 @@ _Default is `false`._
 Specifies the Java home for the Gradle build process.
 The value can be set to either a `jdk` or `jre` location; however, using a JDK is safer depending on what your build does.
 This does not affect the version of Java used to launch the <<#sec:gradle_environment_variables,Gradle client VM>>.
++
+You can also control the JVM used to run Gradle itself using the <<gradle_daemon#sec:daemon_jvm_criteria,Daemon JVM criteria>>.
 +
 _Default is derived from your environment (`JAVA_HOME` or the path to `java`) if the setting is unspecified._
 
@@ -367,6 +392,8 @@ When configured, Gradle will use a maximum of the <<command_line_interface.adoc#
 +
 _Default is the number of CPU processors._
 
+=== Using Gradle properties
+
 The following examples demonstrate how to use Gradle properties.
 
 *Example 1:* Setting Gradle properties with a `gradle.properties` file:
@@ -417,9 +444,32 @@ Properties declared in a `gradle.properties` file present in a subproject direct
 == Environment variables
 
 Gradle provides a number of environment variables, which are listed below.
-You can access environment variables as properties in the build script using the `System.getenv()` method.
 
-The following environment variables are available for the `gradle` command.
+=== Setting environment variables
+
+Let's take an example that sets the $JAVA_HOME environment variable:
+
+[source,text]
+----
+$ set JAVA_HOME=C:\Path\To\Your\Java\Home   // Windows
+$ export JAVA_HOME=/path/to/your/java/home  // Mac/Linux
+----
+
+You can access environment variables as properties in the build script using the `System.getenv()` method:
+
+[source,groovy]
+----
+task printEnvVariables {
+    doLast {
+        println "JAVA_HOME: ${System.getenv('JAVA_HOME')}"
+    }
+}
+
+----
+
+=== Environment variables reference
+
+The following environment variables are available for the `gradle` command:
 
 `GRADLE_HOME`::
 Installation directory for Gradle.
@@ -446,7 +496,7 @@ Defaults to `USER_HOME/.gradle` if not set.
 `JAVA_HOME`::
 Specifies the JDK installation directory to use for the client VM.
 +
-This VM is also used for the daemon unless a different one is specified in a Gradle properties file with `org.gradle.java.home`.
+This VM is also used for the daemon unless a different one is specified in a Gradle properties file with `org.gradle.java.home` or using the <<gradle_daemon#sec:daemon_jvm_criteria,Daemon JVM criteria>>.
 
 `GRADLE_LIBS_REPO_OVERRIDE`::
 Overrides for the default Gradle library repository.
@@ -454,6 +504,8 @@ Overrides for the default Gradle library repository.
 Can be used to specify a default Gradle repository URL in `org.gradle.plugins.ide.internal.resolver`.
 +
 Useful override to specify an internally hosted repository if your company uses a firewall/proxy.
+
+=== Using environment variables
 
 The following examples demonstrate how to use environment variables.
 
@@ -468,21 +520,3 @@ include::sample[dir="snippets/tutorial/environmentVariables/groovy",files="init.
 include::sample[dir="snippets/tutorial/environmentVariables/kotlin",files="build.gradle.kts[tags=execution]"]
 include::sample[dir="snippets/tutorial/environmentVariables/groovy",files="build.gradle[tags=execution]"]
 ====
-
-[[sec:daemon_jvm_criteria]]
-== Controlling JVM used by the build
-
-NOTE: Daemon JVM discovery and Daemon JVM criteria are <<feature_lifecycle.adoc#sec:incubating_state,incubating>> features and are subject to change in a future release.
-
-By default, Gradle will try to use the same JVM installation to run the build as the client VM that starts the build.
-
-A different JVM installation can be specified for the build using the `org.gradle.java.home` property or programmatically through the Tooling API.
-
-Daemon JVM criteria is a new feature to express the build's JVM requirements.
-Similar to the `wrapper` task, which captures the current Gradle version, the built-in `updateDaemonJvm` task records the JVM requirements for the build based on the current JVM installation.
-Gradle currently only considers the major JVM version when checking compatibility.
-
-Gradle will use the JVM requirements on subsequent builds to locate a compatible JVM installation using the same underlying mechanisms as <<toolchains.adoc#toolchains, Java Toolchains>>.
-This ensures every person who starts the build will use the same JVM version.
-
-Daemon JVM discovery does not currently support auto-provisioning of new JVM installations.

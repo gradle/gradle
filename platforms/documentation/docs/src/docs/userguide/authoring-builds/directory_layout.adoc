@@ -93,23 +93,23 @@ The retention periods of the various caches can be configured.
 
 Caches are classified into five categories:
 
-- *Released wrapper distributions:* Distributions and related version-specific caches corresponding to released versions (e.g., `4.6.2` or `8.0`).
+1. *Released wrapper distributions:* Distributions and related version-specific caches corresponding to released versions (e.g., `4.6.2` or `8.0`).
 +
 Default retention for unused versions is 30 days.
-- *Snapshot wrapper distributions:* Distributions and related version-specific caches corresponding to snapshot versions (e.g. `7.6-20221130141522+0000`).
+2. *Snapshot wrapper distributions:* Distributions and related version-specific caches corresponding to snapshot versions (e.g. `7.6-20221130141522+0000`).
 +
 Default retention for unused versions is 7 days.
-- *Downloaded resources:* Shared caches downloaded from a remote repository (e.g., cached dependencies).
+3. *Downloaded resources:* Shared caches downloaded from a remote repository (e.g., cached dependencies).
 +
 Default retention for unused resources is 30 days.
-- *Created resources:* Shared caches that Gradle creates during a build (e.g., artifact transforms).
+4. *Created resources:* Shared caches that Gradle creates during a build (e.g., artifact transforms).
 +
 Default retention for unused resources is 7 days.
-- *Build cache:* The local build cache (e.g., build-cache-1).
+5. *Build cache:* The local build cache (e.g., build-cache-1).
 +
 Default retention for unused build-cache entries is 7 days.
 
-The retention period for each category can be configured independently via an init script in Gradle User Home:
+The retention period for each category can be configured independently via an <<init_scripts.adoc#init_scripts,init script>> in the Gradle User Home:
 
 ====
 include::sample[dir="snippets/initScripts/cacheRetention/kotlin",files="gradleUserHome/init.d/cache-settings.gradle.kts"]
@@ -120,11 +120,11 @@ The frequency at which cache cleanup is invoked is also configurable.
 
 There are three possible settings:
 
-- *DEFAULT:* Cleanup is performed periodically in the background (currently once every 24 hours).
-- *DISABLED:* Never cleanup Gradle User Home.
+1. *DEFAULT:* Cleanup is performed periodically in the background (currently once every 24 hours).
+2. *DISABLED:* Never cleanup Gradle User Home.
 +
 This is useful in cases where Gradle User Home is ephemeral or delaying cleanup is desirable until an explicit point.
-- *ALWAYS:* Cleanup is performed at the end of each build session.
+3. *ALWAYS:* Cleanup is performed at the end of each build session.
 +
 This is useful in cases where it's desirable to ensure that cleanup has occurred before proceeding.
 +
@@ -238,7 +238,7 @@ The anatomy of a typical project root directory looks as follows:
 <4> Contains the JAR file and configuration of the <<gradle_wrapper.adoc#gradle_wrapper_reference,Gradle Wrapper>>.
 <5> Project-specific <<build_environment.adoc#sec:gradle_configuration_properties,Gradle configuration properties>>.
 <6> Scripts for executing builds using the <<gradle_wrapper.adoc#gradle_wrapper_reference,Gradle Wrapper>>.
-<7> The project's <<organizing_gradle_projects.adoc#sec:settings_file, settings file>> where the list of subprojects is defined.
+<7> The project's <<settings_file_basics.adoc#sec:settings_file_script, settings file>> where the list of subprojects is defined.
 <8> Usually, a project is organized into one or multiple subprojects.
 <9> Each subproject has its own Gradle build script.
 
