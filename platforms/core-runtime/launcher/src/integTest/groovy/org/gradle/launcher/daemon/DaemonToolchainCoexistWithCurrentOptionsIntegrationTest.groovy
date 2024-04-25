@@ -19,12 +19,12 @@ package org.gradle.launcher.daemon
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
-import org.gradle.internal.buildconfiguration.fixture.BuildPropertiesFixture
+import org.gradle.internal.buildconfiguration.fixture.DaemonJvmPropertiesFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 
-class DaemonToolchainCoexistWithCurrentOptionsIntegrationTest extends AbstractIntegrationSpec implements BuildPropertiesFixture, JavaToolchainFixture {
+class DaemonToolchainCoexistWithCurrentOptionsIntegrationTest extends AbstractIntegrationSpec implements DaemonJvmPropertiesFixture, JavaToolchainFixture {
 
     @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "Given disabled auto-detection When using daemon toolchain Then option is ignored resolving with expected toolchain"() {
@@ -53,14 +53,14 @@ class DaemonToolchainCoexistWithCurrentOptionsIntegrationTest extends AbstractIn
     }
 
     @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
-    def "Given daemon toolchain properties When executing any task passing them as arguments Then those are ignored since aren't defined on build properties file"() {
+    def "Given daemon toolchain properties When executing any task passing them as arguments Then those are ignored since aren't defined on daemon-jvm properties file"() {
         given:
         def otherJvm = AvailableJavaHomes.differentVersion
         def otherJvmMetadata = AvailableJavaHomes.getJvmInstallationMetadata(otherJvm)
         captureJavaHome()
         executer
-            .withArgument("-Pdaemon.jvm.toolchain.version=$otherJvmMetadata.javaVersion")
-            .withArgument("-Pdaemon.jvm.toolchain.vendor=$otherJvmMetadata.vendor.knownVendor")
+            .withArgument("-PtoolchainVersion=$otherJvmMetadata.javaVersion")
+            .withArgument("-PtoolchainVendor=$otherJvmMetadata.vendor.knownVendor")
 
         expect:
         succeeds("help")
@@ -68,15 +68,15 @@ class DaemonToolchainCoexistWithCurrentOptionsIntegrationTest extends AbstractIn
     }
 
     @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
-    def "Given daemon toolchain properties defined on gradle properties When executing any task Then those are ignored since aren't defined on build properties file"() {
+    def "Given daemon toolchain properties defined on gradle properties When executing any task Then those are ignored since aren't defined on daemon-jvm properties file"() {
         given:
         def otherJvm = AvailableJavaHomes.differentVersion
         def otherJvmMetadata = AvailableJavaHomes.getJvmInstallationMetadata(otherJvm)
         captureJavaHome()
         file("gradle.properties")
             .writeProperties(
-                "daemon.jvm.toolchain.version": otherJvmMetadata.javaVersion,
-                "daemon.jvm.toolchain.vendor": otherJvmMetadata.vendor.knownVendor.name()
+                "toolchainVersion": otherJvmMetadata.javaVersion,
+                "toolchainVendor": otherJvmMetadata.vendor.knownVendor.name()
             )
 
         expect:
@@ -91,7 +91,7 @@ class DaemonToolchainCoexistWithCurrentOptionsIntegrationTest extends AbstractIn
         def otherJvmMetadata = AvailableJavaHomes.getJvmInstallationMetadata(otherJvm)
         captureJavaHome()
 
-        file("gradle/gradle-build.properties")
+        file("gradle/gradle-daemon-jvm.properties")
             .writeProperties(
                 "org.gradle.java.home": otherJvmMetadata.javaVersion,
             )

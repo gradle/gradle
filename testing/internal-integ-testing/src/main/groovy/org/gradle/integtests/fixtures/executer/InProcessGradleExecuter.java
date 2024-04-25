@@ -206,15 +206,10 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         if (isDaemonExplicitlyRequired() || !getJavaHomeLocation().equals(Jvm.current().getJavaHome())) {
             return true;
         }
-        File gradleProperties = new File(getWorkingDir(), "gradle.properties");
-        if (gradleProperties.isFile()) {
-            Properties properties = GUtil.loadProperties(gradleProperties);
-            return properties.getProperty("org.gradle.java.home") != null || properties.getProperty("org.gradle.jvmargs") != null;
-        }
-        File buildProperties = new File(getWorkingDir(), "gradle/gradle-build.properties");
-        if (buildProperties.isFile()) {
-            Properties properties = GUtil.loadProperties(buildProperties);
-            String requestedVersion = properties.getProperty("daemon.jvm.toolchain.version");
+        File daemonJvmProperties = new File(getWorkingDir(), "gradle/gradle-daemon-jvm.properties");
+        if (daemonJvmProperties.isFile()) {
+            Properties properties = GUtil.loadProperties(daemonJvmProperties);
+            String requestedVersion = properties.getProperty("toolchainVersion");
             if (requestedVersion != null) {
                 try {
                     JavaVersion requestedJavaVersion = JavaVersion.toVersion(requestedVersion);
@@ -225,6 +220,11 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
                     return true;
                 }
             }
+        }
+        File gradleProperties = new File(getWorkingDir(), "gradle.properties");
+        if (gradleProperties.isFile()) {
+            Properties properties = GUtil.loadProperties(gradleProperties);
+            return properties.getProperty("org.gradle.java.home") != null || properties.getProperty("org.gradle.jvmargs") != null;
         }
 
         boolean isInstrumentationEnabledForProcess = isAgentInstrumentationEnabled();
