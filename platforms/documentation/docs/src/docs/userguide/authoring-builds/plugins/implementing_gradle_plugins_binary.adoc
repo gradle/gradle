@@ -212,7 +212,7 @@ include::sample[dir="snippets/developingPlugins/pluginExtension/groovy",files="b
 
 As the number of exposed properties grows, you should introduce a nested, more expressive structure.
 
-The following code snippet adds a new configuration block named `customData` as part of the extension.
+The following code snippet adds a new configuration block named `siteInfo` as part of the extension.
 This provides a stronger indication of what those properties mean:
 
 ====
@@ -223,13 +223,13 @@ include::sample[dir="snippets/developingPlugins/pluginExtension/groovy",files="b
 Implementing the backing objects for such an extension is simple.
 First, introduce a new data object for managing the properties `websiteUrl` and `vcsUrl`:
 
-.CustomData.java
+.SiteInfo.java
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/pluginExtension/groovy/buildSrc/src/main/java/org/myorg/CustomData.java[tags=snippet]
+include::{snippetsPath}/developingPlugins/pluginExtension/groovy/buildSrc/src/main/java/org/myorg/SiteInfo.java[tags=snippet]
 ----
 
-In the extension, create an instance of the `CustomData` class and a method to delegate the captured values to the data instance.
+In the extension, create an instance of the `siteInfo` class and a method to delegate the captured values to the data instance.
 
 To configure underlying data objects, define a parameter of type link:{javadocPath}/org/gradle/api/Action.html[Action].
 

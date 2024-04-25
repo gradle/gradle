@@ -24,7 +24,7 @@ image::writing-tasks-3.png[]
 
 Custom actionable tasks can be created by extending the `DefaultTask` class and defining inputs, outputs, and actions.
 
-[[sec:task_groups]]
+[[sec:task_in_out]]
 == Task inputs and outputs
 
 Actionable tasks have inputs and outputs.
