@@ -20,7 +20,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.buildconfiguration.tasks.UpdateDaemonJvm;
 import org.gradle.configuration.project.ProjectConfigureAction;
 
-public class DaemonJVMPropertiesConfigurator implements ProjectConfigureAction {
+public class DaemonJvmPropertiesConfigurator implements ProjectConfigureAction {
 
     public static final String TASK_NAME = "updateDaemonJvm";
 
@@ -31,8 +31,8 @@ public class DaemonJVMPropertiesConfigurator implements ProjectConfigureAction {
             project.getTasks().register(TASK_NAME, UpdateDaemonJvm.class, task -> {
                 task.setGroup("Build Setup");
                 task.setDescription("Generates or updates the Gradle Daemon JVM criteria.");
-                task.getPropertiesFile().convention(project.getLayout().getProjectDirectory().file(DaemonJVMPropertiesDefaults.DAEMON_JVM_PROPERTIES_FILE));
-                task.getJvmVersion().convention(DaemonJVMPropertiesDefaults.TOOLCHAIN_VERSION);
+                task.getPropertiesFile().convention(project.getLayout().getProjectDirectory().file(DaemonJvmPropertiesDefaults.DAEMON_JVM_PROPERTIES_FILE));
+                task.getJvmVersion().convention(DaemonJvmPropertiesDefaults.TOOLCHAIN_VERSION);
             });
         }
     }

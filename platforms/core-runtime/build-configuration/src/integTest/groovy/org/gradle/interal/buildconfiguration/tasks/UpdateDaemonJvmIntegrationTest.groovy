@@ -21,13 +21,13 @@ import org.gradle.api.JavaVersion
 import org.gradle.buildconfiguration.tasks.UpdateDaemonJvm
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.internal.buildconfiguration.DaemonJVMPropertiesDefaults
-import org.gradle.internal.buildconfiguration.fixture.DaemonJVMPropertiesFixture
+import org.gradle.internal.buildconfiguration.DaemonJvmPropertiesDefaults
+import org.gradle.internal.buildconfiguration.fixture.DaemonJvmPropertiesFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 
-class UpdateDaemonJvmIntegrationTest extends AbstractIntegrationSpec implements DaemonJVMPropertiesFixture {
+class UpdateDaemonJvmIntegrationTest extends AbstractIntegrationSpec implements DaemonJvmPropertiesFixture {
 
     def "root project has an updateDaemonJvm task only"() {
         buildFile << """
@@ -110,7 +110,7 @@ class UpdateDaemonJvmIntegrationTest extends AbstractIntegrationSpec implements 
         run "updateDaemonJvm", "--toolchain-vendor=$vendor"
 
         then:
-        assertJvmCriteria(DaemonJVMPropertiesDefaults.TOOLCHAIN_VERSION, vendor)
+        assertJvmCriteria(DaemonJvmPropertiesDefaults.TOOLCHAIN_VERSION, vendor)
 
         where:
         vendor << ["ADOPTIUM", "ADOPTOPENJDK", "AMAZON", "APPLE", "AZUL", "BELLSOFT", "GRAAL_VM", "HEWLETT_PACKARD", "IBM", "JETBRAINS", "MICROSOFT", "ORACLE", "SAP", "TENCENT", "UNKNOWN"]
@@ -122,7 +122,7 @@ class UpdateDaemonJvmIntegrationTest extends AbstractIntegrationSpec implements 
         run "updateDaemonJvm", "--toolchain-implementation=$implementation"
 
         then:
-        assertJvmCriteria(DaemonJVMPropertiesDefaults.TOOLCHAIN_VERSION, null, implementation)
+        assertJvmCriteria(DaemonJvmPropertiesDefaults.TOOLCHAIN_VERSION, null, implementation)
 
         where:
         implementation << ["VENDOR_SPECIFIC", "J9"]

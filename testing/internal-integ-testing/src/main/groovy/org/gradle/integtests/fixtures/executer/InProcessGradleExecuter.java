@@ -206,9 +206,9 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         if (isDaemonExplicitlyRequired() || !getJavaHomeLocation().equals(Jvm.current().getJavaHome())) {
             return true;
         }
-        File daemonJVMProperties = new File(getWorkingDir(), "gradle/gradle-daemon-jvm.properties");
-        if (daemonJVMProperties.isFile()) {
-            Properties properties = GUtil.loadProperties(daemonJVMProperties);
+        File daemonJvmProperties = new File(getWorkingDir(), "gradle/gradle-daemon-jvm.properties");
+        if (daemonJvmProperties.isFile()) {
+            Properties properties = GUtil.loadProperties(daemonJvmProperties);
             String requestedVersion = properties.getProperty("toolchainVersion");
             if (requestedVersion != null) {
                 try {

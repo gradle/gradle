@@ -19,15 +19,15 @@ package org.gradle.launcher.daemon
 import groovy.test.NotYetImplemented
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.buildconfiguration.DaemonJVMPropertiesDefaults
-import org.gradle.internal.buildconfiguration.fixture.DaemonJVMPropertiesFixture
+import org.gradle.internal.buildconfiguration.DaemonJvmPropertiesDefaults
+import org.gradle.internal.buildconfiguration.fixture.DaemonJvmPropertiesFixture
 import org.gradle.internal.jvm.Jvm
 
-class DaemonToolchainInvalidCriteriaIntegrationTest extends AbstractIntegrationSpec implements DaemonJVMPropertiesFixture {
+class DaemonToolchainInvalidCriteriaIntegrationTest extends AbstractIntegrationSpec implements DaemonJvmPropertiesFixture {
 
     def "Given empty daemon-jvm properties file When execute any task Then succeeds using the current java home"() {
         given:
-        daemonJVMPropertiesFile.touch()
+        daemonJvmPropertiesFile.touch()
         captureJavaHome()
 
         expect:
@@ -37,7 +37,7 @@ class DaemonToolchainInvalidCriteriaIntegrationTest extends AbstractIntegrationS
 
     def "Given non-integer toolchain version When execute any task Then fails with expected exception message"() {
         given:
-        daemonJVMPropertiesFile.writeProperties((DaemonJVMPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY): "stringVersion")
+        daemonJvmPropertiesFile.writeProperties((DaemonJvmPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY): "stringVersion")
         when:
         fails 'help'
         then:
@@ -46,7 +46,7 @@ class DaemonToolchainInvalidCriteriaIntegrationTest extends AbstractIntegrationS
 
     def "Given negative toolchain version When execute any task Then fails with expected exception message"() {
         given:
-        daemonJVMPropertiesFile.writeProperties((DaemonJVMPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY): "-1")
+        daemonJvmPropertiesFile.writeProperties((DaemonJvmPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY): "-1")
         when:
         fails 'help'
         then:

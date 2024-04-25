@@ -25,7 +25,7 @@ import org.gradle.initialization.StartParameterBuildOptions;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.Cast;
-import org.gradle.internal.buildconfiguration.DaemonJVMPropertiesDefaults;
+import org.gradle.internal.buildconfiguration.DaemonJvmPropertiesDefaults;
 import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
 import org.gradle.launcher.daemon.toolchain.ToolchainBuildOptions;
@@ -96,7 +96,7 @@ public class LayoutToPropertiesConverter {
 
     private void configureFromDaemonJVMProperties(BuildLayoutResult layoutResult, Map<String, String> result) {
         BuildLayout layout = buildLayoutFactory.getLayoutFor(layoutResult.toLayoutConfiguration());
-        configureFrom(new File(layout.getRootDirectory(), DaemonJVMPropertiesDefaults.DAEMON_JVM_PROPERTIES_FILE), result);
+        configureFrom(new File(layout.getRootDirectory(), DaemonJvmPropertiesDefaults.DAEMON_JVM_PROPERTIES_FILE), result);
     }
 
     private void configureFrom(File propertiesFile, Map<String, String> result) {
@@ -141,12 +141,12 @@ public class LayoutToPropertiesConverter {
 
     private static class Result implements AllProperties {
         private final Map<String, String> properties;
-        private final Map<String, String> daemonJVMProperties;
+        private final Map<String, String> daemonJvmProperties;
         private final InitialProperties initialProperties;
 
-        public Result(Map<String, String> properties, Map<String, String> daemonJVMProperties, InitialProperties initialProperties) {
+        public Result(Map<String, String> properties, Map<String, String> daemonJvmProperties, InitialProperties initialProperties) {
             this.properties = properties;
-            this.daemonJVMProperties = daemonJVMProperties;
+            this.daemonJvmProperties = daemonJvmProperties;
             this.initialProperties = initialProperties;
         }
 
@@ -161,8 +161,8 @@ public class LayoutToPropertiesConverter {
         }
 
         @Override
-        public Map<String, String> getDaemonJVMProperties() {
-            return Collections.unmodifiableMap(daemonJVMProperties);
+        public Map<String, String> getDaemonJvmProperties() {
+            return Collections.unmodifiableMap(daemonJvmProperties);
         }
 
         @Override
@@ -170,7 +170,7 @@ public class LayoutToPropertiesConverter {
             Map<String, String> properties = new HashMap<>(this.properties);
             properties.putAll(systemProperties);
             properties.putAll(initialProperties.getRequestedSystemProperties());
-            return new Result(properties, daemonJVMProperties, initialProperties);
+            return new Result(properties, daemonJvmProperties, initialProperties);
         }
     }
 }
