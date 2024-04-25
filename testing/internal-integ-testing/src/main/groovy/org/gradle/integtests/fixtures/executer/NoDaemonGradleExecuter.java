@@ -17,13 +17,10 @@
 package org.gradle.integtests.fixtures.executer;
 
 import org.gradle.api.Action;
-import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
 import org.gradle.api.internal.file.TestFiles;
-import org.gradle.integtests.fixtures.AvailableJavaHomes;
 import org.gradle.internal.Factory;
 import org.gradle.internal.jvm.JpmsConfiguration;
-import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.process.internal.AbstractExecHandleBuilder;
 import org.gradle.process.internal.DefaultExecHandleBuilder;
@@ -126,26 +123,10 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
     @Override
     protected List<String> getImplicitBuildJvmArgs() {
         List<String> buildJvmOptions = super.getImplicitBuildJvmArgs();
-        if (getRequestedJavaVersion().isJava9Compatible() && !isUseDaemon()) {
+        if (!isUseDaemon() && getJavaVersionFromJavaHome().isJava9Compatible()) {
             buildJvmOptions.addAll(JpmsConfiguration.GRADLE_DAEMON_JPMS_ARGS);
         }
         return buildJvmOptions;
-    }
-
-    private boolean isUsingJvm(Jvm jvm) {
-        return getJavaHomeLocation().equals(jvm.getJavaHome());
-    }
-
-    private JavaVersion getRequestedJavaVersion() {
-        if (isUsingJvm(Jvm.current())) {
-            return JavaVersion.current();
-        }
-
-        Jvm requestedJvm = AvailableJavaHomes.getAvailableJvms().stream()
-            .filter(this::isUsingJvm)
-            .findFirst()
-            .orElseThrow(() -> new IllegalArgumentException("Cannot find requested JVM " + getJavaHome() + " in AvailableJavaHomes"));
-        return requestedJvm.getJavaVersion();
     }
 
     private void addPropagatedSystemProperties(List<String> args) {
@@ -159,7 +140,7 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
 
     @Override
     protected boolean supportsWhiteSpaceInEnvVars() {
-        return getRequestedJavaVersion().isJava7Compatible();
+        return getJavaVersionFromJavaHome().isJava7Compatible();
     }
 
     @Override
