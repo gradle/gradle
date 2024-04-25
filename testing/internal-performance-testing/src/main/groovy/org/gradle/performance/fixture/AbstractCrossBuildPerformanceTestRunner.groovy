@@ -111,7 +111,7 @@ abstract class AbstractCrossBuildPerformanceTestRunner<R extends CrossBuildPerfo
 
     protected void finalizeGradleSpec(GradleBuildExperimentSpec.GradleBuilder builder) {
         def invocation = builder.invocation
-        invocation.jvmArguments = customizeJvmOptions(invocation.jvmArguments)
+        invocation.jvmArguments = PerformanceTestJvmOptions.normalizeGradleJvmOptions(invocation.useDaemon, customizeJvmOptions(invocation.jvmArguments))
     }
 
     protected static List<String> customizeJvmOptions(List<String> jvmOptions) {

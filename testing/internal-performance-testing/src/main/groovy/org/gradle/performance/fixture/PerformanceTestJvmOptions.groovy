@@ -18,6 +18,7 @@ package org.gradle.performance.fixture
 
 import groovy.transform.CompileStatic
 import org.gradle.api.JavaVersion
+import org.gradle.internal.jvm.JpmsConfiguration
 
 @CompileStatic
 class PerformanceTestJvmOptions {
@@ -33,5 +34,14 @@ class PerformanceTestJvmOptions {
         }
 
         return jvmOptions
+    }
+
+    static List<String> normalizeGradleJvmOptions(boolean useDaemon, List<String> originalJvmOptions) {
+        if (JavaVersion.current().isJava9Compatible() && !useDaemon) {
+            List<String> jvmOptions = new ArrayList<>(originalJvmOptions)
+            jvmOptions.addAll(JpmsConfiguration.GRADLE_DAEMON_JPMS_ARGS)
+            return jvmOptions
+        }
+        return originalJvmOptions
     }
 }
