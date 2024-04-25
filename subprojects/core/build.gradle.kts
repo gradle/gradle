@@ -112,6 +112,7 @@ dependencies {
     api(project(":resources"))
     api(project(":snapshots"))
     api(project(":worker-processes"))
+    api(project(":declarative-dsl-api"))
 
     api(libs.ant)
     api(libs.asm)
@@ -127,7 +128,6 @@ dependencies {
     implementation(project(":base-asm"))
     implementation(project(":input-tracking"))
     implementation(project(":model-groovy"))
-    implementation(project(":declarative-dsl-api"))
 
     implementation(libs.asmCommons)
     implementation(libs.commonsIo)
