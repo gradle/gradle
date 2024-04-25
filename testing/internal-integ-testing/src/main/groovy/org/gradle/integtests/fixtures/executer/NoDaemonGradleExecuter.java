@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
 import org.gradle.api.internal.file.TestFiles;
+import org.gradle.integtests.fixtures.AvailableJavaHomes;
 import org.gradle.internal.Factory;
 import org.gradle.internal.jvm.JpmsConfiguration;
 import org.gradle.internal.jvm.Jvm;
@@ -125,11 +126,26 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
     @Override
     protected List<String> getImplicitBuildJvmArgs() {
         List<String> buildJvmOptions = super.getImplicitBuildJvmArgs();
-        final Jvm current = Jvm.current();
-        if (getJavaHomeLocation().equals(current.getJavaHome()) && JavaVersion.current().isJava9Compatible() && !isUseDaemon()) {
+        if (getRequestedJavaVersion().isJava9Compatible() && !isUseDaemon()) {
             buildJvmOptions.addAll(JpmsConfiguration.GRADLE_DAEMON_JPMS_ARGS);
         }
         return buildJvmOptions;
+    }
+
+    private boolean isUsingJvm(Jvm jvm) {
+        return getJavaHomeLocation().equals(jvm.getJavaHome());
+    }
+
+    private JavaVersion getRequestedJavaVersion() {
+        if (isUsingJvm(Jvm.current())) {
+            return JavaVersion.current();
+        }
+
+        Jvm requestedJvm = AvailableJavaHomes.getAvailableJvms().stream()
+            .filter(this::isUsingJvm)
+            .findFirst()
+            .orElseThrow(() -> new IllegalArgumentException("Cannot find requested JVM " + getJavaHome() + " in AvailableJavaHomes"));
+        return requestedJvm.getJavaVersion();
     }
 
     private void addPropagatedSystemProperties(List<String> args) {
