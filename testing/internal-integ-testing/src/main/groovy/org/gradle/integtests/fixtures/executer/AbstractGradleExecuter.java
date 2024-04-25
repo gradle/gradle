@@ -46,6 +46,7 @@ import org.gradle.internal.logging.services.DefaultLoggingManagerFactory;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.console.TestOverrideConsoleDetector;
 import org.gradle.internal.nativeintegration.services.NativeServices;
+import org.gradle.internal.scripts.ScriptFileUtil;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
@@ -1124,9 +1125,14 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         workingDir.createFile("settings.gradle");
     }
 
-    private boolean hasSettingsFile(TestFile dir) {
+    private static boolean hasSettingsFile(TestFile dir) {
         if (dir.isDirectory()) {
-            return dir.file("settings.gradle").isFile() || dir.file("settings.gradle.kts").isFile() || dir.file("settings.gradle.dcl").isFile();
+            String[] settingsFileNames = ScriptFileUtil.getValidSettingsFileNames();
+            for (String settingsFileName : settingsFileNames) {
+                if (dir.file(settingsFileName).isFile()) {
+                    return true;
+                }
+            }
         }
         return false;
     }
