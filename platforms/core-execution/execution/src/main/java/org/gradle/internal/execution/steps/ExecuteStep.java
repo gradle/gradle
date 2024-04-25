@@ -18,9 +18,11 @@ package org.gradle.internal.execution.steps;
 
 import com.google.common.base.Functions;
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.caching.BuildCacheKey;
 import org.gradle.internal.execution.ExecutionEngine.Execution;
 import org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -82,6 +84,13 @@ public class ExecuteStep<C extends ChangingOutputsContext> implements Step<C, Re
 
     private static Result executeInternal(UnitOfWork work, InputChangesContext context) {
         UnitOfWork.ExecutionRequest executionRequest = new UnitOfWork.ExecutionRequest() {
+
+            @Override
+            public Optional<BuildCacheKey> getCacheKey() {
+                return context.getCachingState().getCacheKeyCalculatedState()
+                    .map(CachingState.CacheKeyCalculatedState::getKey);
+            }
+
             @Override
             public File getWorkspace() {
                 return context.getWorkspace();

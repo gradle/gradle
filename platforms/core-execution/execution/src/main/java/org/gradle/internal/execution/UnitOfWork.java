@@ -19,6 +19,7 @@ package org.gradle.internal.execution;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.Describable;
 import org.gradle.api.file.FileCollection;
+import org.gradle.caching.BuildCacheKey;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.OverlappingOutputs;
@@ -75,6 +76,11 @@ public interface UnitOfWork extends Describable {
      * Parameter object for {@link #execute(ExecutionRequest)}.
      */
     interface ExecutionRequest {
+
+        default Optional<BuildCacheKey> getCacheKey() {
+            return Optional.empty();
+        }
+
         /**
          * The directory to produce outputs into.
          * <p>

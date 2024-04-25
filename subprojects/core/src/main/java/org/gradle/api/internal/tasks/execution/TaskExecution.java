@@ -21,6 +21,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsEnterpriseInternal;
+import org.gradle.api.internal.cache.BuildCacheKeyHolder;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
@@ -41,6 +42,7 @@ import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.StopActionException;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.Sync;
+import org.gradle.caching.BuildCacheKey;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.deprecation.DocumentedFailure;
 import org.gradle.internal.event.ListenerManager;
@@ -159,7 +161,7 @@ public class TaskExecution implements MutableUnitOfWork {
         TaskOutputsEnterpriseInternal outputs = (TaskOutputsEnterpriseInternal) task.getOutputs();
         outputs.setPreviousOutputFiles(previousFiles);
         try {
-            WorkResult didWork = executeWithPreviousOutputFiles(executionRequest.getInputChanges().orElse(null));
+            WorkResult didWork = executeWithPreviousOutputFiles(executionRequest.getInputChanges().orElse(null), executionRequest.getCacheKey().orElse(null));
             boolean storeInCache = outputs.getStoreInCache();
             return new WorkOutput() {
                 @Override
@@ -187,12 +189,12 @@ public class TaskExecution implements MutableUnitOfWork {
         return null;
     }
 
-    private WorkResult executeWithPreviousOutputFiles(@Nullable InputChangesInternal inputChanges) {
+    private WorkResult executeWithPreviousOutputFiles(@Nullable InputChangesInternal inputChanges, @Nullable BuildCacheKey cacheKey) {
         task.getState().setExecuting(true);
         try {
             LOGGER.debug("Executing actions for {}.", task);
             actionListener.beforeActions(task);
-            executeActions(task, inputChanges);
+            executeActions(task, inputChanges, cacheKey);
             return task.getState().getDidWork() ? WorkResult.DID_WORK : WorkResult.DID_NO_WORK;
         } finally {
             task.getState().setExecuting(false);
@@ -200,7 +202,7 @@ public class TaskExecution implements MutableUnitOfWork {
         }
     }
 
-    private void executeActions(TaskInternal task, @Nullable InputChangesInternal inputChanges) {
+    private void executeActions(TaskInternal task, @Nullable InputChangesInternal inputChanges, @Nullable BuildCacheKey cacheKey) {
         boolean hasTaskListener = listenerManager.hasListeners(org.gradle.api.execution.TaskActionListener.class) || listenerManager.hasListeners(org.gradle.api.execution.TaskExecutionListener.class);
         Iterator<InputChangesAwareTaskAction> actions = new ArrayList<>(task.getTaskActions()).iterator();
         while (actions.hasNext()) {
@@ -209,7 +211,7 @@ public class TaskExecution implements MutableUnitOfWork {
             task.getStandardOutputCapture().start();
             boolean hasMoreWork = hasTaskListener || actions.hasNext();
             try {
-                executeAction(action.getDisplayName(), task, action, inputChanges, hasMoreWork);
+                executeAction(action.getDisplayName(), task, action, inputChanges, hasMoreWork, cacheKey);
             } catch (StopActionException e) {
                 // Ignore
                 LOGGER.debug("Action stopped by some action with message: {}", e.getMessage());
@@ -222,7 +224,7 @@ public class TaskExecution implements MutableUnitOfWork {
         }
     }
 
-    private void executeAction(String actionDisplayName, TaskInternal task, InputChangesAwareTaskAction action, @Nullable InputChangesInternal inputChanges, boolean hasMoreWork) {
+    private void executeAction(String actionDisplayName, TaskInternal task, InputChangesAwareTaskAction action, @Nullable InputChangesInternal inputChanges, boolean hasMoreWork, @Nullable BuildCacheKey cacheKey) {
         if (inputChanges != null) {
             action.setInputChanges(inputChanges);
         }
@@ -241,7 +243,7 @@ public class TaskExecution implements MutableUnitOfWork {
                     BuildOperationRef currentOperation = buildOperationRunner.getCurrentOperation();
                     Throwable actionFailure = null;
                     try {
-                        action.execute(task);
+                        BuildCacheKeyHolder.runWithBuildCacheKey(cacheKey, () -> action.execute(task));
                     } catch (Throwable t) {
                         actionFailure = t;
                     } finally {
