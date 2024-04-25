@@ -159,15 +159,7 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
 
     @Override
     protected boolean supportsWhiteSpaceInEnvVars() {
-        final Jvm current = Jvm.current();
-        if (getJavaHomeLocation().equals(current.getJavaHome())) {
-            // we can tell for sure
-            return current.getJavaVersion().isJava7Compatible();
-        } else {
-            // TODO improve lookup by reusing AvailableJavaHomes testfixture
-            // for now we play it safe and just return false;
-            return false;
-        }
+        return getRequestedJavaVersion().isJava7Compatible();
     }
 
     @Override
