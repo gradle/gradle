@@ -55,13 +55,17 @@ public abstract class IncompatibleGraphVariantsFailureDescriber extends Abstract
             formatter.node("No matching variant of " + targetVariantText + " was found. The consumer was configured to find " + describer.describeAttributeSet(failure.getRequestedAttributes().asMap()) + " but:");
         }
         formatter.startChildren();
-        if (failure.noCandidatesHaveAttributes()) {
-            formatter.node("None of the variants have attributes.");
+        if (failure.getCandidates().size() < 1) {
+            formatter.node("No variants were found.");
         } else {
-            // We're sorting the names of the configurations and later attributes
-            // to make sure the output is consistently the same between invocations
-            for (ResolutionCandidateAssessor.AssessedCandidate candidate : failure.getCandidates()) {
-                formatUnselectableVariant(candidate, formatter, describer);
+            if (failure.noCandidatesHaveAttributes()) {
+                formatter.node("None of the variants have attributes.");
+            } else {
+                // We're sorting the names of the configurations and later attributes
+                // to make sure the output is consistently the same between invocations
+                for (ResolutionCandidateAssessor.AssessedCandidate candidate : failure.getCandidates()) {
+                    formatUnselectableVariant(candidate, formatter, describer);
+                }
             }
         }
         formatter.endChildren();

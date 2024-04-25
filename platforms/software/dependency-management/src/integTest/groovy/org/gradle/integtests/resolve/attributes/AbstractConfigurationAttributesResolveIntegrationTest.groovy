@@ -651,6 +651,38 @@ All of them match the consumer attributes:
         failure.assertHasCause """Selected configuration 'default' on 'project :b' but it can't be used as a project dependency because it isn't intended for consumption by other components."""
     }
 
+    def "mentions that there are no variants when there are none"() {
+        given:
+        createDirs("a", "b")
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << """
+            $typeDefs
+
+            project(':a') {
+                configurations {
+                    _compileFreeDebug.attributes { $freeDebug }
+                }
+                dependencies {
+                    _compileFreeDebug project(':b')
+                }
+                task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    doLast {
+                        assert configurations._compileFreeDebug.collect { it.name } == []
+                    }
+                }
+            }
+            project(':b') {
+            }
+        """
+
+        when:
+        fails ':a:checkDebug'
+
+        then:
+        failure.assertHasCause """No matching variant of project :b was found. The consumer was configured to find attribute 'buildType' with value 'debug', attribute 'flavor' with value 'free' but:
+  - No variants were found."""
+    }
+
     def "does not select explicit configuration when it's not consumable"() {
         given:
         createDirs("a", "b")
