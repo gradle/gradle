@@ -55,6 +55,7 @@ class ConfigurationCacheProblems(
     val listenerManager: ListenerManager
 
 ) : ProblemsListener, ProblemReporter, AutoCloseable {
+
     private
     val summarizer = ConfigurationCacheProblemsSummary()
 
@@ -192,6 +193,7 @@ class ConfigurationCacheProblems(
                 val log: (String) -> Unit = if (logReportAsInfo) logger::info else logger::warn
                 log(summary.textForConsole(cacheActionText, htmlReportFile))
             }
+
             else -> validationFailures.accept(failure)
         }
     }
