@@ -115,12 +115,12 @@ class ConnectedComponent(
                     @Suppress("TooGenericExceptionCaught")
                     try {
                         val result = connection.model(modelType.java)
-                            .let { b ->
+                            .addArguments(
                                 when (parameters.javaHomeDir) {
-                                    null -> b
-                                    else -> b.addArguments("-Dorg.gradle.java.home=${parameters.javaHomeDir}")
+                                    null -> "-Dorg.gradle.java.home=${System.getenv("JAVA_HOME")}"
+                                    else -> "-Dorg.gradle.java.home=${parameters.javaHomeDir}"
                                 }
-                            }
+                            )
                             .addProgressListener(
                                 newEventListener(),
                                 OperationType.entries.toSet() - OperationType.GENERIC

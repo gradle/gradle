@@ -14,18 +14,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.coroutines.launch
+import org.gradle.client.core.database.Build
 import org.gradle.client.core.gradle.GradleConnectionParameters
 import org.gradle.client.core.gradle.GradleConnectionParameters.Companion.isValidGradleInstallation
 import org.gradle.client.core.gradle.GradleConnectionParameters.Companion.isValidGradleUserHome
 import org.gradle.client.core.gradle.GradleConnectionParameters.Companion.isValidGradleVersion
 import org.gradle.client.core.gradle.GradleConnectionParameters.Companion.isValidJavaHome
 import org.gradle.client.core.gradle.GradleDistribution
-import org.gradle.client.ui.composables.DirChooserDialog
-import org.gradle.client.ui.composables.Loading
-import org.gradle.client.ui.composables.PlainTextTooltip
-import org.gradle.client.ui.composables.TopBar
+import org.gradle.client.ui.composables.*
 import org.gradle.client.ui.theme.plusPaneSpacing
 import org.gradle.client.ui.theme.spacing
+import java.io.File
 
 @Composable
 fun BuildContent(component: BuildComponent) {
@@ -38,6 +37,7 @@ fun BuildContent(component: BuildComponent) {
                 title = {
                     when (val current = model) {
                         BuildModel.Loading -> Text("Build")
+                        is BuildModel.Failed -> Text("Failed")
                         is BuildModel.Loaded -> Text(current.build.rootDir.name)
                     }
                 }
@@ -48,45 +48,78 @@ fun BuildContent(component: BuildComponent) {
         Surface(modifier = Modifier.padding(scaffoldPadding.plusPaneSpacing())) {
             when (val current = model) {
                 BuildModel.Loading -> Loading()
-                is BuildModel.Loaded -> BuildMainContent(component, current, snackbarState)
+                is BuildModel.Failed -> FailureContent(current.exception)
+                is BuildModel.Loaded -> BuildMainContent(component, current.build, snackbarState)
             }
         }
     }
 }
 
-enum class GradleDistSource(
-    val displayName: String
-) {
+enum class GradleDistSource(val displayName: String) {
     DEFAULT("Default/Wrapper"),
     VERSION("Specific Version"),
     LOCAL("Local Installation")
 }
 
 @Composable
-private fun BuildMainContent(
-    component: BuildComponent,
-    model: BuildModel.Loaded,
-    snackbarState: SnackbarHostState,
-) {
+@Suppress("LongMethod", "CyclomaticComplexMethod")
+private fun BuildMainContent(component: BuildComponent, build: Build, snackbarState: SnackbarHostState) {
+
     val scope = rememberCoroutineScope()
 
-    val javaHome = rememberSaveable { mutableStateOf(System.getenv("JAVA_HOME") ?: "") }
-    val gradleUserHome = rememberSaveable { mutableStateOf("") }
-    val gradleDistSource = rememberSaveable { mutableStateOf(GradleDistSource.DEFAULT) }
-    val gradleDistVersion = rememberSaveable { mutableStateOf("") }
-    val gradleDistLocalDir = rememberSaveable { mutableStateOf("") }
+    val javaHome = rememberSaveable { mutableStateOf(build.javaHomeDir?.absolutePath ?: "") }
+    val gradleUserHome = remember { mutableStateOf(build.gradleUserHomeDir?.absolutePath ?: "") }
+    val gradleDistSource = rememberSaveable {
+        mutableStateOf(
+            when (build.gradleDistribution) {
+                GradleDistribution.Default -> GradleDistSource.DEFAULT
+                is GradleDistribution.Local -> GradleDistSource.LOCAL
+                is GradleDistribution.Version -> GradleDistSource.VERSION
+            }
+        )
+    }
+    val gradleDistVersion = rememberSaveable {
+        mutableStateOf((build.gradleDistribution as? GradleDistribution.Version)?.version ?: "")
+    }
+    val gradleDistLocalDir = rememberSaveable {
+        mutableStateOf((build.gradleDistribution as? GradleDistribution.Local)?.installDir ?: "")
+    }
+
+    val gradleDistribution by derivedStateOf {
+        when (gradleDistSource.value) {
+            GradleDistSource.DEFAULT -> GradleDistribution.Default
+            GradleDistSource.VERSION -> GradleDistribution.Version(gradleDistVersion.value)
+            GradleDistSource.LOCAL -> GradleDistribution.Local(gradleDistLocalDir.value)
+        }
+    }
 
     val isJavaHomeValid by derivedStateOf { isValidJavaHome(javaHome.value) }
     val isGradleUserHomeValid by derivedStateOf { isValidGradleUserHome(gradleUserHome.value) }
     val isGradleDistVersionValid by derivedStateOf { isValidGradleVersion(gradleDistVersion.value) }
     val isGradleDistLocalDirValid by derivedStateOf { isValidGradleInstallation(gradleDistLocalDir.value) }
-    val isCanConnect by derivedStateOf {
-        isJavaHomeValid && isGradleUserHomeValid &&
-                when (gradleDistSource.value) {
-                    GradleDistSource.DEFAULT -> true
-                    GradleDistSource.VERSION -> isGradleDistVersionValid
-                    GradleDistSource.LOCAL -> isGradleDistLocalDirValid
-                }
+    val isGradleDistributionValid by derivedStateOf {
+        when (gradleDistribution) {
+            GradleDistribution.Default -> true
+            is GradleDistribution.Version -> isGradleDistVersionValid
+            is GradleDistribution.Local -> isGradleDistLocalDirValid
+        }
+    }
+    val isCanConnect by derivedStateOf { isJavaHomeValid && isGradleUserHomeValid && isGradleDistributionValid }
+
+    LaunchedEffect(javaHome.value) {
+        if (isJavaHomeValid && javaHome.value != (build.javaHomeDir?.absolutePath ?: "")) {
+            component.onJavaHomeChanged(javaHome.value.takeIf { it.isNotBlank() }?.let(::File))
+        }
+    }
+    LaunchedEffect(gradleUserHome.value) {
+        if (isGradleUserHomeValid && gradleUserHome.value != (build.gradleUserHomeDir?.absolutePath ?: "")) {
+            component.onGradleUserHomeChanged(gradleUserHome.value.takeIf { it.isNotBlank() }?.let(::File))
+        }
+    }
+    LaunchedEffect(gradleDistribution) {
+        if (isGradleDistributionValid && gradleDistribution != build.gradleDistribution) {
+            component.onGradleDistributionChanged(gradleDistribution)
+        }
     }
 
     Column(
@@ -95,14 +128,13 @@ private fun BuildMainContent(
         verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.level4),
     ) {
         BuildTextField(
-            value = model.build.rootDir.absolutePath,
-            onValueChange = {},
-            readOnly = true,
-            label = { Text("Root directory") },
+            value = build.rootDir.absolutePath, onValueChange = {},
+            readOnly = true, label = { Text("Root directory") },
         )
         DirectoryField(
             description = "Java Home",
             state = javaHome,
+            defaultState = System.getenv("JAVA_HOME").takeIf { it.isNotBlank() },
             isError = !isJavaHomeValid,
             showHiddenFiles = true,
             showSnackbar = { message -> scope.launch { snackbarState.showSnackbar(message) } }
@@ -115,27 +147,22 @@ private fun BuildMainContent(
             showHiddenFiles = true,
             showSnackbar = { message -> scope.launch { snackbarState.showSnackbar(message) } },
         )
-        GradleDistributionField(
-            state = gradleDistSource,
-        )
-        when (gradleDistSource.value) {
-            GradleDistSource.DEFAULT -> Unit
-            GradleDistSource.VERSION -> {
-                GradleVersionField(
-                    component = component,
-                    state = gradleDistVersion,
-                    isError = !isGradleDistVersionValid,
-                )
-            }
+        GradleDistributionField(state = gradleDistSource)
+        when (build.gradleDistribution) {
+            GradleDistribution.Default -> Unit
 
-            GradleDistSource.LOCAL -> {
-                DirectoryField(
-                    "Local Gradle Installation",
-                    state = gradleDistLocalDir,
-                    isError = !isGradleDistLocalDirValid,
-                    showSnackbar = { message -> scope.launch { snackbarState.showSnackbar(message) } }
-                )
-            }
+            is GradleDistribution.Version -> GradleVersionField(
+                component = component,
+                state = gradleDistVersion,
+                isError = !isGradleDistVersionValid,
+            )
+
+            is GradleDistribution.Local -> DirectoryField(
+                "Local Gradle Installation",
+                state = gradleDistLocalDir,
+                isError = !isGradleDistLocalDirValid,
+                showSnackbar = { message -> scope.launch { snackbarState.showSnackbar(message) } }
+            )
         }
 
         Button(
@@ -144,14 +171,10 @@ private fun BuildMainContent(
             onClick = {
                 component.onConnectClicked(
                     GradleConnectionParameters(
-                        rootDir = model.build.rootDir.absolutePath,
+                        rootDir = build.rootDir.absolutePath,
                         javaHomeDir = javaHome.value.takeIf { it.isNotBlank() },
                         gradleUserHomeDir = gradleUserHome.value.takeIf { it.isNotBlank() },
-                        distribution = when (gradleDistSource.value) {
-                            GradleDistSource.DEFAULT -> GradleDistribution.Default
-                            GradleDistSource.VERSION -> GradleDistribution.Version(gradleDistVersion.value)
-                            GradleDistSource.LOCAL -> GradleDistribution.Local(gradleDistLocalDir.value)
-                        }
+                        distribution = gradleDistribution,
                     )
                 )
             },

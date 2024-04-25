@@ -1,0 +1,10 @@
+-- Application Database Migration #2
+
+ALTER TABLE DbBuild
+    ADD javaHomeDir TEXT;
+
+ALTER TABLE DbBuild
+    ADD gradleUserHomeDir TEXT;
+
+ALTER TABLE DbBuild
+    ADD gradleDistributionJson TEXT;

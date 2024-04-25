@@ -1,10 +1,7 @@
 package org.gradle.client.ui.connected
 
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayCircle
@@ -12,8 +9,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontFamily
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import org.gradle.client.ui.composables.FailureContent
 import org.gradle.client.ui.composables.Loading
 import org.gradle.client.ui.composables.TopBar
 import org.gradle.client.ui.theme.plusPaneSpacing
@@ -51,19 +48,6 @@ private fun ConnectingMainContent(component: ConnectedComponent) {
     Column {
         Text("Connecting to ${component.parameters.rootDir}")
         Text(component.parameters.toString())
-    }
-}
-
-@Composable
-private fun FailureContent(exception: Exception) {
-    Column(
-        modifier = Modifier.fillMaxSize().horizontalScroll(rememberScrollState())
-    ) {
-        Text(
-            text = exception.stackTraceToString(),
-            style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
-            color = MaterialTheme.colorScheme.error,
-        )
     }
 }
 
