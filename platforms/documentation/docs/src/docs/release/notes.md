@@ -2,18 +2,31 @@ The Gradle team is excited to announce Gradle @version@.
 
 Gradle now supports [Java 22](#java-22).
 
-This release introduces a preview feature to configure the Gradle daemon JVM [using toolchains](#daemon-toolchains), and we [improved IDE performance](#ide-integration) with large projects.
+This release introduces a preview feature to configure the Gradle daemon JVM [using toolchains](#daemon-toolchains) and [improved IDE performance](#ide-perf) with large projects.
 
 Additionally, this release includes many notable improvements to [build authoring](#build-authoring), [error and warning messages](#error-warning), the [build cache](#build-cache), and the [configuration cache](#config-cache).
 
-<!-- 
-Include only their name, impactful features should be called out separately below.
- [Some person](https://github.com/some-person)
-
- THiS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
--->
-
 We would like to thank the following community members for their contributions to this release of Gradle:
+[Björn Kautler](https://github.com/Vampire),
+[Denes Daniel](https://github.com/pantherdd),
+[Fabian Windheuser](https://github.com/fawind),
+[Hélio Fernandes Sebastião](https://github.com/helfese),
+[Jay Wei](https://github.com/JayWei1215),
+[jhrom](https://github.com/jhrom),
+[jwp345](https://github.com/jwp345),
+[Jörgen Andersson](https://github.com/jorander),
+[Kirill Gavrilov](https://github.com/gavvvr),
+[MajesticMagikarpKing](https://github.com/yctomwang),
+[Maksim Lazeba](https://github.com/M-Lazeba),
+[Philip Wedemann](https://github.com/hfhbd),
+[Robert Elliot](https://github.com/Mahoney),
+[Róbert Papp](https://github.com/TWiStErRob),
+[Stefan M.](https://github.com/StefMa),
+[Tibor Vyletel](https://github.com/TiborVyletel),
+[Tony Robalik](https://github.com/autonomousapps),
+[Valentin Kulesh](https://github.com/unshare),
+[Yanming Zhou](https://github.com/quaff),
+[김용후](https://github.com/who-is-hu)
 
 Be sure to check out the [public roadmap](https://blog.gradle.org/roadmap-announcement) for insight into what's planned for future releases.
 
@@ -33,14 +46,14 @@ For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility
 ### Full Java 22 support
 
 With this release, Gradle supports running on [Java 22](https://jdk.java.net/22/).
-This means you can now use Java 22 for the [daemon](userguide/gradle_daemon.html) and [toolchains](userguide/toolchains.html).
+This means you can now use Java 22 for the [daemon](userguide/gradle_daemon.html) in addition to [toolchains](userguide/toolchains.html).
 
 For details, see the full [compatibility documentation](userguide/compatibility.html#java).
 
 <a name="daemon-toolchains"></a>
 ### Gradle daemon JVM configurable via toolchain
 
-Previously, capturing the JVM requirements of the build was cumbersome and error-prone, often leading to build failures when using the wrong JVM version.
+Previously, Gradle did not support capturing the JVM requirements of the build, which could lead to build failures when using the wrong JVM version.
 This made such builds harder to import into IDEs or run locally.
 
 With this release, users can [configure the JVM](userguide/gradle_daemon.html#sec:daemon_jvm_criteria) used to run a Gradle build.
@@ -48,14 +61,25 @@ This feature is built on top of [Java toolchains](userguide/toolchains.html) and
 
 This is an incubating feature that will change in future releases.
 
+<a name="ide-perf"></a>
+### Improved IDE performance for large projects
+
+When invoking large builds from an IDE, the [Tooling API's](userguide/third_party_integration.html) execution of extensive task graphs suffered from a performance penalty caused by transferring unnecessary information.
+
+Eliminating this transfer results in performance improvements of up to 12% in large up-to-date builds with over 15,000 tasks in their task graph.
+
+We want to thank a [community member](https://github.com/M-Lazeba) for identifying and fixing this issue.
+
+Updating your Gradle version will immediately benefit Android Studio, IntelliJ IDEA, Eclipse, and other [Tooling API clients](userguide/gradle_ides.html).
+
 <a name="build-authoring"></a>
 ### Build authoring improvements
 
-Gradle provides rich APIs and [lazy configuration](userguide/lazy_configuration.html) for plugin authors and build engineers to develop custom build logic.
+Gradle provides rich APIs for plugin authors and build engineers to develop custom build logic.
 
 #### Allow version catalog plugin aliases without a version
 
-Previously, a version catalog plugin alias could be defined without a version, but attempting to use it would result in an exception.
+Previously, a [version catalog plugin alias](userguide/platforms.html#sec:plugins_ver) could be defined without a version, but attempting to use it would result in an exception.
 It is now explicitly allowed to have a plugin alias with no version, and no exception will be thrown when using it:
 
 ```toml
@@ -73,7 +97,7 @@ plugins {
 
 #### Accessors for `Settings` extensions in Kotlin DSL
 
-Previously, extensions registered in `Plugin<Settings>` weren't available in `settings.gradle.kts`.
+Previously, extensions registered in [`Plugin<Settings>`](userguide/custom_plugins.html#project_vs_settings_vs_init_plugins) weren't available in `settings.gradle.kts`.
 Now, type-safe accessors for these extensions are generated.
 
 ```kotlin
@@ -100,11 +124,11 @@ This fixes [a long-standing issue](https://github.com/gradle/gradle/issues/11210
 
 #### Ability to set conventions on file collections
 
-Plugin-provided tasks often expose file collections that build engineers can customize (for example, the classpath for the JavaCompile task).
-Until now, to define default values for file collections, plugin authors had to resort to configuring those defaults as initial values.
+Plugin-provided tasks often expose file collections that build engineers need to customize, such as the classpath for the JavaCompile task.
+Until now, plugin authors defined default values for these collections by setting initial values.
 
-[Conventions](userguide/implementing_gradle_plugins_binary.html#sec:plugin_conventions) provide a better model.
-Plugin authors recommend default values via conventions, and users choose to accept, add on top, or completely replace them.
+With this release, Gradle introduces a more flexible approach using [conventions](userguide/implementing_gradle_plugins_binary.html#sec:plugin_conventions).
+Conventions allow plugin authors to recommend default values, which users can then accept, extend, or completely replace.
 
 This release introduces a pair of [`convention(...)`](javadoc/org/gradle/api/file/ConfigurableFileCollection.html#convention-java.lang.Object...-) methods on `ConfigurableFileCollection` that define the default value of a file collection if no explicit value is previously set via `setFrom(...)` or `from(...)`:
 
@@ -130,8 +154,8 @@ This is analogous to the [`convention(...)`](javadoc/org/gradle/api/provider/Pro
 
 #### Updating lazy property based on its current value with `replace()`
 
-Sometimes, it is necessary to modify a property based on its current value, for example, by appending something to it.
-Previously, the only way to do that was to obtain the current value explicitly by calling `Property.get()`:
+Modify a property based on its current value, such as appending text.
+previously required obtaining the current value explicitly by calling `Property.get()`:
 
 ```kotlin
 val property = objects.property<String>()
@@ -143,7 +167,7 @@ println(property.get()) // "some value and more""
 
 This could lead to performance issues like configuration cache misses.
 
-When attempting to construct a value [lazily](userguide/lazy_configuration.html), for instance, using `property.set(property.map { "$it and more" })`, a build failure could occur due to circular reference evaluation.
+Additionally, when attempting to construct a value [lazily](userguide/lazy_configuration.html), for instance, using `property.set(property.map { "$it and more" })`, a build failure could occur due to circular reference evaluation.
 
 [`Property`](javadoc/org/gradle/api/provider/Property.html#replace-org.gradle.api.Transformer-) and [`ConfigurableFileCollection`](javadoc/org/gradle/api/file/ConfigurableFileCollection.html#replace-org.gradle.api.Transformer-) now provide their respective `replace(Transformer<...>)` methods that allow lazily building the new value based on the current one:
 
@@ -159,17 +183,19 @@ Refer to the Javadoc for [`Property.replace(Transformer<>)`](javadoc/org/gradle/
 
 #### New Gradle lifecycle callbacks
 
-This release introduces a new [`GradleLifecycle`](javadoc/org/gradle/api/invocation/GradleLifecycle.html) API, accessible via `gradle.lifecyle`, which plugin authors and build engineers can use to register actions to be executed at certain points in the build lifecycle.
+This release introduces a new [`GradleLifecycle`](javadoc/org/gradle/api/invocation/GradleLifecycle.html) API, accessible via `gradle.lifecycle`, which plugin authors and build engineers can use to register actions to be executed at certain points in the build lifecycle.
 
 Actions registered as `GradleLifecycle` callbacks (currently, `beforeProject` and `afterProject`) are *[isolated](javadoc/org/gradle/api/IsolatedAction.html)*, running in an isolated context that is private to every project.
+This will allow Gradle to perform additional performance optimizations and will be required in the future to take advantage of parallelism during the build configuration phase.
 
-While the existing callbacks continue to work, we encourage everyone to adopt the new API and provide us with early feedback, as these will be required in the future to take advantage of parallelism during the build configuration phase.
+While the existing callbacks continue to work, we encourage everyone to adopt the new API and provide us with early feedback.
 
 The example below shows how this new API could be used in a settings script or [settings plugins](userguide/custom_plugins.html#project_vs_settings_vs_init_plugins):
 
 ```groovy
 // settings.gradle
 rootProject.name = 'root'
+
 def start = 0
 gradle.lifecycle.beforeProject {
     start = System.currentTimeMillis()
@@ -327,19 +353,12 @@ Execution failed for task ':resolve'.
 
 Gradle is integrated into many IDEs using the [Tooling API](userguide/third_party_integration.html).
 
-#### Fix IDE performance issues with large projects
-
-A community member identified and fixed a performance issue in the Tooling API that caused delays at the end of task execution in large projects.
-This problem occurred while transmitting task information for executed tasks to the IDE.
-
-After executing approximately 15,000 tasks, the IDE would encounter a delay of several seconds.
-The root cause was that much more information than needed was serialized via the Tooling API.
-We added a test to the fix to ensure no future regression, and the results demonstrate a performance improvement of around 12%.
-The environments that benefit from this fix are Android Studio, IntelliJ IDEA, Eclipse, and other Tooling API clients.
+The following improvements are for IDE integrators.
+They will become available to end-users in future IDE releases once IDE vendors adopt them.
 
 #### Tests metadata improvements in Tooling API
 
-IDEs and other tools leverage the tooling API to access information about tests executed by Gradle.
+IDEs and other tools leverage the [tooling API](userguide/third_party_integration.html) to access information about tests executed by Gradle.
 Each test event sent via the tooling API includes a test descriptor containing metadata such as a human-readable name, class name, and method name.
 
 Previously, the test display name could only be obtained by parsing the operation display name, which was not always reliable.
@@ -407,7 +426,7 @@ jacocoTestReport {
 
 #### Filter standard output and error output in XML test reports
 
-When testing Java projects using common frameworks, [reports are typically produced in XML format](userguide/java_testing.html#junit_xml_configuration_output_filterin).
+When testing Java projects using common frameworks, [reports are typically produced in XML format](userguide/java_testing.html#junit_xml_configuration_output_filtering).
 The new [`includeSystemOutLog` and `includeSystemErrLog` options](userguide/java_testing.html#junit_xml_configuration_output_filtering) control whether output written to standard output and standard error output during testing is included in those XML test reports.
 This report format is used by JUnit 4, JUnit Jupiter, and TestNG, despite the name of the report format, and can be configured when using any of these test frameworks.
 
@@ -517,7 +536,6 @@ The File Permissions API for defining file permissions using UNIX style values (
 * [FileSystemOperations.permissions(String)](javadoc/org/gradle/api/file/FileSystemOperations.html#permissions-java.lang.String-)
 * [FileSystemOperations.permissions(Provider)](javadoc/org/gradle/api/file/FileSystemOperations.html#permissions-org.gradle.api.provider.Provider-)
 * [FileTreeElement.getPermissions()](javadoc/org/gradle/api/file/FileTreeElement.html#getPermissions--)
-
 ## Fixed issues
 
 <!--
