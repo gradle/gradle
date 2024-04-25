@@ -159,32 +159,20 @@ public class ReleaseNotesTransformer extends FilterReader {
         tocSection.append("<h2>Table Of Contents</h2>");
         Element toc = tocSection.append("<ul class='toc'/>").children().last();
 
-        for (Element topic : document.body().select("h2")) {
-            String name = topic.text();
-            String anchor = topic.attr("id");
-            //Table of Content is repeated from above's h2 but this would put it in the wrong location. So print everything not starting with Tale
-            if(!name.startsWith("Table")){
+        Elements h23elements = document.select("h2,h3");
+        for (Element h23element: h23elements) {
+            String tag = h23element.tagName();
+            String name = h23element.text();
+            String anchor = h23element.attr("id");
+            if(!name.startsWith("Table") && tag.equals("h2")){
+                System.out.println(tag + name + anchor);
                 toc.append("<li class=\"mainTopic\"><a/></li>").children().last().select("a").first().text(name).attr("href", "#" + anchor);
+            } else if(!name.startsWith("Table") && tag.equals("h3")){
+                System.out.println(tag + name + anchor);
+                toc.append("<li class=\"subTopic\"><a/></li>").children().last().select("a").first().text(name).attr("href", "#" + anchor);
             }
-
-            //If the heading is listed under the h2 starting with new then create an h3 indent in the TOC
-            if (name.startsWith("New")){
-                for (Element subTopic : document.body().select("h3")){
-                    String subname = subTopic.text();
-                    String subanchor = subTopic.attr("id");
-                    //Once we move to the next section go back to the normal indent
-                    if(subname.startsWith("Promoted")){
-                        break;
-                    }
-                    toc.append("<li class=\"subTopic\"><a/></li>").children().last().select("a").first().text(subname).attr("href", "#" + subanchor);
-
-                }
-
-            }
-            
         }
     }
-    
 
     private void addAnchorsForHeadings(Document document) {
         // add anchors for all of the headings
