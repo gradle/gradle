@@ -117,7 +117,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
                 if (!rootProjectActions.isEmpty()) {
                     services.get(CrossProjectConfigurator.class).rootProject(rootProject, rootProjectActions);
                 }
-                final ProjectEvaluationListener isolatedListener = isolatedProjectEvaluationListenerProvider.isolateFor(DefaultGradle.this);
+                ProjectEvaluationListener isolatedListener = isolatedProjectEvaluationListenerProvider.isolateFor(DefaultGradle.this);
                 if (isolatedListener != null) {
                     projectEvaluationListenerBroadcast.add(isolatedListener);
                 }
@@ -616,6 +616,10 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     @Inject
     public abstract PublicBuildPath getPublicBuildPath();
 
+    /**
+     * Instantiate {@link DefaultGradleLifecycle} via {@link ObjectFactory} in order to get
+     * {@link Closure} overloads for the {@link IsolatedAction} based methods.
+     */
     private DefaultGradleLifecycle instantiateGradleLifecycle() {
         return services.get(ObjectFactory.class).newInstance(DefaultGradleLifecycle.class, this);
     }

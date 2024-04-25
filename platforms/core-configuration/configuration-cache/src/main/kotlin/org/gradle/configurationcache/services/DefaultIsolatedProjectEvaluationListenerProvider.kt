@@ -21,8 +21,8 @@ import org.gradle.api.Project
 import org.gradle.api.ProjectEvaluationListener
 import org.gradle.api.ProjectState
 import org.gradle.api.invocation.Gradle
-import org.gradle.api.plugins.ExtraPropertiesExtension
-import org.gradle.configurationcache.extensions.uncheckedCast
+import org.gradle.configurationcache.extensions.popSingletonProperty
+import org.gradle.configurationcache.extensions.setSingletonProperty
 import org.gradle.configurationcache.isolation.IsolatedActionDeserializer
 import org.gradle.configurationcache.isolation.IsolatedActionSerializer
 import org.gradle.configurationcache.isolation.SerializedIsolatedActionGraph
@@ -121,26 +121,3 @@ class IsolatedProjectEvaluationListener(
             .deserialize(isolated)
     }
 }
-
-
-private
-inline fun <reified T : Any> Project.setSingletonProperty(value: T) {
-    extra[T::class.java.name] = value
-}
-
-
-private
-inline fun <reified T> Project.popSingletonProperty(): T? {
-    val key = T::class.java.name
-    val extra = extra
-    val value = extra[key]
-    return value?.run {
-        extra[key] = null
-        uncheckedCast()
-    }
-}
-
-
-private
-val Project.extra: ExtraPropertiesExtension
-    get() = extensions.extraProperties
