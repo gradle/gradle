@@ -27,22 +27,21 @@ internal
 interface InterpretationSequenceStep<R : Any> {
     val stepIdentifier: String
     fun evaluationSchemaForStep(): EvaluationSchema
-    fun topLevelReceiver(): R
+    fun getTopLevelReceiverFromTarget(target: Any): R
     fun whenEvaluated(resultReceiver: R)
 }
 
 
 /**
- * Implements a straightforward interpretation sequence step that uses the specified [topLevelReceiver]
+ * Implements a straightforward interpretation sequence step that uses the target as the top-level receiver.
  * and produces an evaluation schema with [buildEvaluationSchema] immediately before the step runs.
  */
 internal
-class SimpleInterpretationSequenceStep<T : Any>(
+class SimpleInterpretationSequenceStep(
     override val stepIdentifier: String,
-    private val topLevelReceiver: T,
     private val buildEvaluationSchema: () -> EvaluationSchema
-) : InterpretationSequenceStep<T> {
+) : InterpretationSequenceStep<Any> {
     override fun evaluationSchemaForStep(): EvaluationSchema = buildEvaluationSchema()
-    override fun topLevelReceiver(): T = topLevelReceiver
-    override fun whenEvaluated(resultReceiver: T) = Unit
+    override fun getTopLevelReceiverFromTarget(target: Any): Any = target
+    override fun whenEvaluated(resultReceiver: Any) = Unit
 }
