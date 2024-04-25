@@ -18,9 +18,7 @@ package org.gradle.internal.scripts;
 
 import org.gradle.scripts.ScriptingLanguage;
 
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.List;
 
 public class ScriptFileUtil {
 
@@ -28,23 +26,29 @@ public class ScriptFileUtil {
 
     public static final String BUILD_FILE_BASE_NAME = "build";
 
-    public static Set<String> getValidSettingsFileNames() {
-        return getFileNames(SETTINGS_FILE_BASE_NAME).collect(Collectors.toSet());
+    public static String[] getValidSettingsFileNames() {
+        return getFileNames(SETTINGS_FILE_BASE_NAME);
     }
 
-    public static Set<String> getValidBuildFileNames() {
-        return getFileNames(BUILD_FILE_BASE_NAME).collect(Collectors.toSet());
+    public static String[] getValidBuildFileNames() {
+        return getFileNames(BUILD_FILE_BASE_NAME);
     }
 
     public static String[] getValidExtensions() {
-        return getExtensions().toArray(String[]::new);
+        List<ScriptingLanguage> scriptingLanguages = ScriptingLanguages.all();
+        String[] extensions = new String[scriptingLanguages.size()];
+        for (int i = 0; i < scriptingLanguages.size(); i++) {
+            extensions[i] = scriptingLanguages.get(i).getExtension();
+        }
+        return extensions;
     }
 
-    private static Stream<String> getExtensions() {
-        return ScriptingLanguages.all().stream().map(ScriptingLanguage::getExtension);
-    }
-
-    private static Stream<String> getFileNames(String basename) {
-        return getExtensions().map(extension -> basename + extension);
+    private static String[] getFileNames(String basename) {
+        List<ScriptingLanguage> scriptingLanguages = ScriptingLanguages.all();
+        String[] fileNames = new String[scriptingLanguages.size()];
+        for (int i = 0; i < scriptingLanguages.size(); i++) {
+            fileNames[i] = basename + scriptingLanguages.get(i).getExtension();
+        }
+        return fileNames;
     }
 }

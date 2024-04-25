@@ -31,8 +31,16 @@ import static org.gradle.internal.scripts.ScriptFileUtil.getValidSettingsFileNam
 
 public class BuildSrcDetector {
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildSrcDetector.class);
-    private static final String[] GRADLE_BUILD_FILES =
-        Stream.concat(getValidSettingsFileNames().stream(), getValidBuildFileNames().stream()).toArray(String[]::new);
+    private static final String[] GRADLE_BUILD_FILES;
+
+    static {
+        String[] settingsFileNames = getValidSettingsFileNames();
+        String[] buildFileNames = getValidBuildFileNames();
+
+        GRADLE_BUILD_FILES = new String[settingsFileNames.length + buildFileNames.length];
+        System.arraycopy(settingsFileNames, 0, GRADLE_BUILD_FILES, 0, settingsFileNames.length);
+        System.arraycopy(buildFileNames, 0, GRADLE_BUILD_FILES, settingsFileNames.length, buildFileNames.length);
+    }
 
     public static boolean isValidBuildSrcBuild(File buildSrcDir) {
         if (!buildSrcDir.exists()) {

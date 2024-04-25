@@ -23,7 +23,7 @@ import spock.lang.Specification
 
 class BuildLayoutFactoryTest extends Specification {
 
-    static final def TEST_CASES = ScriptFileUtil.getValidSettingsFileNames().toArray(String[]::new)
+    static final def TEST_CASES = ScriptFileUtil.getValidSettingsFileNames()
 
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())

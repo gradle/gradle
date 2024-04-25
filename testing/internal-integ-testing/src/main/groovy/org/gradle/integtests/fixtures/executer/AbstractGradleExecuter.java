@@ -1125,10 +1125,14 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         workingDir.createFile("settings.gradle");
     }
 
-    private boolean hasSettingsFile(TestFile dir) {
+    private static boolean hasSettingsFile(TestFile dir) {
         if (dir.isDirectory()) {
-            return ScriptFileUtil.getValidSettingsFileNames().stream()
-                .anyMatch(settingsFile -> dir.file(settingsFile).isFile());
+            String[] settingsFileNames = ScriptFileUtil.getValidSettingsFileNames();
+            for (String settingsFileName : settingsFileNames) {
+                if (dir.file(settingsFileName).isFile()) {
+                    return true;
+                }
+            }
         }
         return false;
     }

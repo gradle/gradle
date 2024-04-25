@@ -187,7 +187,7 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
 
         where:
-        fileName << ScriptFileUtil.getValidSettingsFileNames().toArray(String[]::new)
+        fileName << ScriptFileUtil.getValidSettingsFileNames()
     }
 
     def "does not treat buildSrc with no settings file as undefined build"() {
