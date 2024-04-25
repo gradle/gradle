@@ -27,8 +27,8 @@ import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
-
-import java.util.Set;
+import org.gradle.api.provider.SetProperty;
+import org.gradle.declarative.dsl.model.annotations.Restricted;
 
 /**
  * A {@code DependencyCollector} is used as part of a dependencies block in the DSL. A collector implements
@@ -248,13 +248,15 @@ public interface DependencyCollector {
      *
      * @since 8.6
      */
-    Provider<Set<Dependency>> getDependencies();
+    @Restricted
+    SetProperty<Dependency> getDependencies();
 
     /**
      * Returns all dependency constraints declared on this collector.
      *
      * @since 8.7
      */
-    Provider<Set<DependencyConstraint>> getDependencyConstraints();
+    @Restricted
+    SetProperty<DependencyConstraint> getDependencyConstraints();
 
 }

@@ -43,6 +43,91 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
         "everything has convention and is set" | setAll("convention", "convention")   | setAll("test", "baz") | """id = test\nbar = baz"""
     }
 
+    def "can configure build-level conventions for dependencies objects in a software type (#testCase)"() {
+        given:
+        withSoftwareTypePluginThatExposesExtensionWithDependencies().prepareToExecute()
+
+        file("settings.gradle.dcl") << getDeclarativeSettingsScriptThatSetsConventions(dependencies(convention))
+
+        file("build.gradle.dcl") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType("""
+            ${setId("foo")}
+            ${dependencies(buildConfiguration)}
+        """)
+
+        when:
+        run(":printTestSoftwareTypeExtensionWithDependenciesConfiguration")
+
+        then:
+        expectedConfigurations.each { outputContains(it) }
+
+        where:
+        [testCase, convention, buildConfiguration, expectedConfigurations] << [
+            [
+                testCase: "implementation has convention and is set",
+                convention: implementation("foo:bar:1.0"),
+                buildConfiguration: implementation("baz:buzz:2.0"),
+                expectedConfigurations: [
+                    "implementation = ${externalDependency('baz', 'buzz', '2.0')}"
+                ]
+            ],
+            [
+                testCase: "implementation has convention and is not set",
+                convention: implementation("foo:bar:1.0"),
+                buildConfiguration: "",
+                expectedConfigurations: [
+                    "implementation = ${externalDependency('foo', 'bar', '1.0')}"
+                ]
+            ],
+            [
+                testCase: "implementation has convention and api is set",
+                convention: implementation("foo:bar:1.0"),
+                buildConfiguration: api("baz:buzz:2.0"),
+                expectedConfigurations: [
+                    "implementation = ${externalDependency('foo', 'bar', '1.0')}",
+                    "api = ${externalDependency('baz', 'buzz', '2.0')}"
+                ]
+            ],
+            [
+                testCase: "all configurations have conventions and are set",
+                convention: allConfigs("foo:bar:1.0"),
+                buildConfiguration: allConfigs("baz:buzz:2.0"),
+                expectedConfigurations: [
+                    "api = ${externalDependency('baz', 'buzz', '2.0')}",
+                    "implementation = ${externalDependency('baz', 'buzz', '2.0')}",
+                    "runtimeOnly = ${externalDependency('baz', 'buzz', '2.0')}",
+                    "compileOnly = ${externalDependency('baz', 'buzz', '2.0')}"
+                ]
+            ],
+            [
+                testCase: "all configurations have conventions and are not set",
+                convention: allConfigs("foo:bar:1.0"),
+                buildConfiguration: "",
+                expectedConfigurations: [
+                    "api = ${externalDependency('foo', 'bar', '1.0')}",
+                    "implementation = ${externalDependency('foo', 'bar', '1.0')}",
+                    "runtimeOnly = ${externalDependency('foo', 'bar', '1.0')}",
+                    "compileOnly = ${externalDependency('foo', 'bar', '1.0')}"
+                ]
+            ],
+            [
+                testCase: "implementation has multiple conventions and is set",
+                convention: implementation("foo:bar:1.0", "baz:buzz:2.0"),
+                buildConfiguration: implementation("buzz:baz:1.0", "bar:foo:2.0"),
+                expectedConfigurations: [
+                    "implementation = ${externalDependency('buzz', 'baz', '1.0')}, ${externalDependency('bar', 'foo', '2.0')}"
+                ]
+            ],
+            [
+                testCase: "implementation has multiple conventions and is not set",
+                convention: implementation("foo:bar:1.0", "baz:buzz:2.0"),
+                buildConfiguration: "",
+                expectedConfigurations: [
+                    "implementation = ${externalDependency('foo', 'bar', '1.0')}, ${externalDependency('baz', 'buzz', '2.0')}"
+                ]
+            ]
+        ]
+    }
+
     def "can configure build-level conventions in a non-declarative settings file"() {
         given:
         withSoftwareTypePlugins().prepareToExecute()
@@ -100,6 +185,42 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
 
     static String setAll(String id, String bar) {
         return setId(id) + "\n" + setFooBar(bar)
+    }
+
+    static String dependencyFor(String configuration, String[] dependencies) {
+        return dependencies.collect { "${configuration}(\"${it}\")" }.join("\n")
+    }
+
+    static String implementation(String... dependencies) {
+        return dependencyFor("implementation", dependencies)
+    }
+
+    static String api(String... dependencies) {
+        return dependencyFor("api", dependencies)
+    }
+
+    static String compileOnly(String... dependencies) {
+        return dependencyFor("compileOnly", dependencies)
+    }
+
+    static String runtimeOnly(String... dependencies) {
+        return dependencyFor("runtimeOnly", dependencies)
+    }
+
+    static String allConfigs(String... dependencies) {
+        return implementation(dependencies) + "\n" + api(dependencies) + "\n" + compileOnly(dependencies) + "\n" + runtimeOnly(dependencies)
+    }
+
+    static String dependencies(String dependencies) {
+        return """
+            dependencies {
+                ${dependencies}
+            }
+        """
+    }
+
+    static String externalDependency(String group, String name, String version) {
+        return "DefaultExternalModuleDependency{group='${group}', name='${name}', version='${version}', configuration='default'}"
     }
 
     static String getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(String configuration="") {

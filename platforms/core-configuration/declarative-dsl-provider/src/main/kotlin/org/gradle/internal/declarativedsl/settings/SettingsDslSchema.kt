@@ -64,7 +64,8 @@ fun settingsEvaluationSchema(settings: Settings): EvaluationSchema {
         /** TODO: Instead of [SettingsInternal], this should rely on the public API of [Settings];
          *  missing single-arg [Settings.include] (or missing vararg support) prevents this from happening,
          *  and we use the [SettingsInternal.include] single-argument workaround for now. */
-        ThirdPartyExtensionsComponent(SettingsInternal::class, settings, "settingsExtension")
+        ThirdPartyExtensionsComponent(SettingsInternal::class, settings, "settingsExtension") +
+        SettingsDependencyConfigurationsComponent()
 
     return buildEvaluationSchema(SettingsInternal::class, schemaBuildingComponent, ignoreTopLevelPluginsAndPluginManagement)
 }

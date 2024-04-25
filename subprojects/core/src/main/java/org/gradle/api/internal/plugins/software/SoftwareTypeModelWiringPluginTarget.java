@@ -24,7 +24,9 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
+import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.internal.Cast;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
@@ -109,6 +111,16 @@ public class SoftwareTypeModelWiringPluginTarget implements PluginTarget {
             public <T> void visitPropertyTypePair(@Nullable Property<T> model, @Nullable Property<T> convention) {
                 if (model != null && convention != null && convention.isPresent()) {
                     model.convention(convention);
+                }
+            }
+
+            @Override
+            public <T> void visitMultipleValuesTypePair(@Nullable HasMultipleValues<T> model, @Nullable HasMultipleValues<T> convention) {
+                if (convention != null && Provider.class.isAssignableFrom(convention.getClass())) {
+                    Provider<? extends Iterable<? extends T>> conventionProvider = Cast.uncheckedCast(convention);
+                    if (model != null && conventionProvider.isPresent()) {
+                        model.convention(conventionProvider);
+                    }
                 }
             }
         });
