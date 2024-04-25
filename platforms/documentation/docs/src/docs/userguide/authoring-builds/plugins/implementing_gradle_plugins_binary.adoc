@@ -603,6 +603,9 @@ For logic that is executed as part of task execution, use the <<worker_api.adoc#
 [[plugin-with-variants]]
 == Providing multiple variants of a plugin
 
+Variants of a plugin refer to different flavors or configurations of the plugin that are tailored to specific needs or use cases.
+These variants can include different implementations, extensions, or configurations of the base plugin.
+
 The most convenient way to configure additional plugin variants is to use <<feature_variants.adoc#feature_variants,feature variants>>, a concept available in all Gradle projects that apply one of the Java plugins:
 
 [source,kotlin]
@@ -625,7 +628,7 @@ include::sample[dir="snippets/developingPlugins/pluginWithVariants/groovy",files
 
 NOTE: Only Gradle versions 7 or higher can be explicitly targeted by a variant, as support for this was only added in Gradle 7.
 
-First, we declare a separate _source set_ and a _feature variant_ for our Gradle7 plugin variant.
+First, we declare a separate _source set_ and a _feature variant_ for our Gradle 7 plugin variant.
 Then, we do some specific wiring to turn the feature into a proper Gradle plugin variant:
 
 <1> Assign the <<component_capabilities.adoc#declaring-component-capabilities,implicit capability that corresponds to the components GAV>> to the variant.
