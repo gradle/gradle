@@ -40,6 +40,8 @@ import org.gradle.internal.resource.transfer.ExternalResourceConnector
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry
 import java.io.File
+import org.gradle.configurationcache.extensions.add
+import org.gradle.invocation.IsolatedProjectEvaluationListenerProvider
 
 
 class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
@@ -80,7 +82,7 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
             addProvider(TaskExecutionAccessCheckerProvider)
             add(ConfigurationCacheHost::class.java)
             add(ConfigurationCacheIO::class.java)
-            addProvider(IsolatedProjectEvaluationListenerProvider)
+            add<IsolatedProjectEvaluationListenerProvider, DefaultIsolatedProjectEvaluationListenerProvider>()
         }
     }
 
@@ -162,10 +164,5 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
         private
         fun hasIgnoredPaths(configurationCacheStartParameter: ConfigurationCacheStartParameter): Boolean =
             !configurationCacheStartParameter.ignoredFileSystemCheckInputs.isNullOrEmpty()
-    }
-
-    private
-    object IsolatedProjectEvaluationListenerProvider {
-        fun createIsolatedProjectEvaluationListenerProvider() = DefaultIsolatedProjectEvaluationListenerProvider()
     }
 }
