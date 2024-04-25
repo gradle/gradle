@@ -200,7 +200,7 @@ _Daemon JVM discovery_ does not support auto-provisioning of new JVM installatio
 === Daemon JVM usage
 
 To record the build's JVM requirements, run `./gradlew updateDaemonJvm`.
-This will generate a new `gradle-build.properties` file that captures the currently used JVM requirements.
+This will generate a new `gradle-daemon-jvm.properties` file that captures the currently used JVM requirements.
 This is an auto-generated file that isn't intended to be edited by hand.
 
 If you want to specify a different JVM version, run `./gradle updateDaemonJvm --jvm-version=17`.
