@@ -63,19 +63,19 @@ platforms/core-configuration/declarative-dsl-provider/          @gradle/bt-decla
 
 # Core automation platform (core/runtime)
 platforms/core-runtime/                                     @gradle/bt-core-runtime-maintainers
-platforms/core-runtime/build-operations/                    @gradle/bt-core-runtime-maintainers @gradle/bt-execution @gradle/bt-ge-build-cache
+platforms/core-runtime/build-operations/                    @gradle/bt-core-runtime-maintainers @gradle/bt-execution @gradle/bt-dv-build-cache
 platforms/core-runtime/functional/                          @gradle/bt-core-runtime-maintainers @gradle/bt-execution @bamboo
-platforms/core-runtime/files/                               @gradle/bt-core-runtime-maintainers @gradle/bt-execution @gradle/bt-ge-build-cache
+platforms/core-runtime/files/                               @gradle/bt-core-runtime-maintainers @gradle/bt-execution @gradle/bt-dv-build-cache
 
 # Core automation platform (core/execution)
 platforms/core-execution/                                   @gradle/bt-execution
-platforms/core-execution/build-cache/                       @gradle/bt-execution @gradle/bt-ge-build-cache
-platforms/core-execution/build-cache-base/                  @gradle/bt-execution @gradle/bt-ge-build-cache
-platforms/core-execution/build-cache-http/                  @gradle/bt-execution @gradle/bt-ge-build-cache
-platforms/core-execution/build-cache-packaging/             @gradle/bt-execution @gradle/bt-ge-build-cache
-platforms/core-execution/build-cache-spi/                   @gradle/bt-execution @gradle/bt-ge-build-cache
-platforms/core-execution/hashing/                           @gradle/bt-execution @gradle/bt-ge-build-cache
-platforms/core-execution/snapshots/                         @gradle/bt-execution @gradle/bt-ge-build-cache
+platforms/core-execution/build-cache/                       @gradle/bt-execution @gradle/bt-dv-build-cache
+platforms/core-execution/build-cache-base/                  @gradle/bt-execution @gradle/bt-dv-build-cache
+platforms/core-execution/build-cache-http/                  @gradle/bt-execution @gradle/bt-dv-build-cache
+platforms/core-execution/build-cache-packaging/             @gradle/bt-execution @gradle/bt-dv-build-cache
+platforms/core-execution/build-cache-spi/                   @gradle/bt-execution @gradle/bt-dv-build-cache
+platforms/core-execution/hashing/                           @gradle/bt-execution @gradle/bt-dv-build-cache
+platforms/core-execution/snapshots/                         @gradle/bt-execution @gradle/bt-dv-build-cache
 
 # Develocity integration
 platforms/enterprise/                                   @gradle/bt-build-scan @gradle/ge-build-insights
