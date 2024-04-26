@@ -26,7 +26,7 @@ public class EnumValueSnapshot implements ValueSnapshot {
 
     public EnumValueSnapshot(Enum<?> value) {
         // Don't retain the value, to allow ClassLoader to be collected
-        this.className = value.getClass().getName();
+        this.className = value.getDeclaringClass().getName();
         this.name = value.name();
     }
 
@@ -54,7 +54,7 @@ public class EnumValueSnapshot implements ValueSnapshot {
     private boolean isEqualEnum(Object value) {
         if (value instanceof Enum) {
             Enum<?> enumValue = (Enum<?>) value;
-            if (enumValue.name().equals(name) && enumValue.getClass().getName().equals(className)) {
+            if (enumValue.name().equals(name) && enumValue.getDeclaringClass().getName().equals(className)) {
                 return true;
             }
         }

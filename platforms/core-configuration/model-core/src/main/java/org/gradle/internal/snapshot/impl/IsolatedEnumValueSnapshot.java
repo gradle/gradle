@@ -50,10 +50,10 @@ public class IsolatedEnumValueSnapshot extends EnumValueSnapshot implements Isol
     @Nullable
     @Override
     public <S> S coerce(Class<S> type) {
-        if (type.isAssignableFrom(value.getClass())) {
+        if (type.isInstance(value)) {
             return type.cast(value);
         }
-        if (type.isEnum() && type.getName().equals(value.getClass().getName())) {
+        if (type.isEnum() && type.getName().equals(value.getDeclaringClass().getName())) {
             return type.cast(Enum.valueOf(Cast.uncheckedNonnullCast(type.asSubclass(Enum.class)), value.name()));
         }
         return null;
