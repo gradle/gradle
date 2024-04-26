@@ -8,7 +8,6 @@ errorprone {
     disabledChecks.addAll(
         "MixedMutabilityReturnType", // 1 occurrences
         "StringSplitter", // 1 occurrences
-        "UnusedVariable", // 1 occurrences
     )
 }
 

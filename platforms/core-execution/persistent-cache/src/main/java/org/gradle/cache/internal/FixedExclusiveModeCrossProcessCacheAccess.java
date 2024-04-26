@@ -20,7 +20,6 @@ import com.google.common.util.concurrent.Runnables;
 import org.gradle.cache.CrossProcessCacheAccess;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
-import org.gradle.cache.FileLockReleasedSignal;
 import org.gradle.cache.LockOptions;
 import org.gradle.internal.UncheckedException;
 
@@ -34,7 +33,6 @@ import static org.gradle.cache.FileLockManager.LockMode.Exclusive;
  * A {@link CrossProcessCacheAccess} implementation used when a cache is opened with an exclusive lock that is held until the cache is closed. This implementation is simply a no-op for these methods.
  */
 public class FixedExclusiveModeCrossProcessCacheAccess extends AbstractCrossProcessCacheAccess {
-    private final static Consumer<FileLockReleasedSignal> NO_OP_CONTENDED_ACTION = __ -> {};
 
     private final String cacheDisplayName;
     private final File lockTarget;
@@ -62,7 +60,7 @@ public class FixedExclusiveModeCrossProcessCacheAccess extends AbstractCrossProc
         if (fileLock != null) {
             throw new IllegalStateException("File lock " + lockTarget + " is already open.");
         }
-        final FileLock fileLock = lockManager.lock(lockTarget, lockOptions, cacheDisplayName, "", NO_OP_CONTENDED_ACTION);
+        final FileLock fileLock = lockManager.lock(lockTarget, lockOptions, cacheDisplayName, "", unused -> {});
         try {
             boolean rebuild = initializationAction.requiresInitialization(fileLock);
             if (rebuild) {

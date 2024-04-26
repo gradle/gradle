@@ -35,9 +35,7 @@ val testInterceptorsImplementation: Configuration by configurations.getting {
 
 errorprone {
     disabledChecks.addAll(
-        "BadImport", // 3 occurrences
         "BadInstanceof", // 6 occurrences (this is from generated code)
-        "BoxedPrimitiveEquality", // 3 occurrences
         "DefaultCharset", // 4 occurrences
         "EmptyBlockTag", // 4 occurrences
         "Finally", // 1 occurrences
@@ -49,7 +47,6 @@ errorprone {
         "InlineMeSuggester", // 1 occurrences
         "InvalidBlockTag", // 1 occurrences
         "InvalidInlineTag", // 1 occurrences
-        "InvalidLink", // 2 occurrences
         "MissingCasesInEnumSwitch", // 1 occurrences
         "MixedMutabilityReturnType", // 1 occurrences
         "ModifyCollectionInEnhancedForLoop", // 1 occurrences

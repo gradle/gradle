@@ -7,7 +7,6 @@ description = "Public and internal 'core' Gradle APIs that are required by other
 
 errorprone {
     disabledChecks.addAll(
-        "BadImport", // 1 occurrences
         "EmptyBlockTag", // 5 occurrences
         "InlineMeSuggester", // 1 occurrences
         "MalformedInlineTag", // 3 occurrences

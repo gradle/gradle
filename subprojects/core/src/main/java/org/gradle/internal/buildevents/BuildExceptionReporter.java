@@ -49,8 +49,6 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import static com.google.common.collect.ImmutableList.builder;
-import static com.google.common.collect.ImmutableList.of;
 import static java.lang.String.join;
 import static org.apache.commons.lang.StringUtils.repeat;
 import static org.gradle.api.logging.LogLevel.DEBUG;
@@ -353,7 +351,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
     }
 
     private static List<String> getResolutions(Throwable throwable) {
-        ImmutableList.Builder<String> resolutions = builder();
+        ImmutableList.Builder<String> resolutions = ImmutableList.builder();
 
         if (throwable instanceof ResolutionProvider) {
             resolutions.addAll(((ResolutionProvider) throwable).getResolutions());
@@ -371,7 +369,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
             return ((MultiCauseException) cause).getCauses();
         }
         Throwable nextCause = cause.getCause();
-        return nextCause == null ? of() : of(nextCause);
+        return nextCause == null ? ImmutableList.of() : ImmutableList.of(nextCause);
     }
 
     private void addBuildScanMessage(ContextImpl context) {

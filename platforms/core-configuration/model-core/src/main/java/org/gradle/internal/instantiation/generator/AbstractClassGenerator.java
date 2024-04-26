@@ -43,6 +43,7 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.IConventionAware;
+import org.gradle.api.internal.plugins.software.SoftwareType;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.ListProperty;
@@ -54,7 +55,6 @@ import org.gradle.api.provider.SupportsConvention;
 import org.gradle.api.reflect.InjectionPointQualifier;
 import org.gradle.api.tasks.Nested;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
-import org.gradle.api.internal.plugins.software.SoftwareType;
 import org.gradle.internal.Cast;
 import org.gradle.internal.extensibility.NoConventionMapping;
 import org.gradle.internal.instantiation.ClassGenerationException;
@@ -777,6 +777,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
     }
 
     private static class ClassGenerationHandler {
+         // used in subclasses
         void startType(Class<?> type) {
         }
 

@@ -28,7 +28,6 @@ public abstract class Combiners {
     /**
      * We know the stream we are processing is handled sequentially, and hence there is no need for a combiner.
      */
-    @SuppressWarnings("unchecked")
     public static <T> BinaryOperator<T> nonCombining() {
         return Combiners::unsupportedCombineOperation;
     }

@@ -16,11 +16,11 @@
 
 package org.gradle.model.internal.core;
 
-import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.internal.Cast;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.Collections;
 
 import static org.gradle.model.internal.manage.schema.extract.PrimitiveTypes.isPrimitiveType;
@@ -78,14 +78,14 @@ public abstract class TypeCompatibilityModelProjectionSupport<M> implements Mode
         if (valueDescription != null) {
             return valueDescription;
         }
-        return new StringBuilder(type.toString()).append("#toString() returned null").toString();
+        return type + "#toString() returned null";
     }
 
     public static String description(ModelType<?> type) {
         if (type.getRawClass().getSuperclass() == null && type.getRawClass().getInterfaces().length == 0) {
             return type.toString();
         }
-        return type.toString() + " (or assignment compatible type thereof)";
+        return type + " (or assignment compatible type thereof)";
     }
 
     @Override
