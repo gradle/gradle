@@ -68,10 +68,6 @@ public class DefaultMutableVersionConstraint extends AbstractVersionConstraint i
         return new DefaultMutableVersionConstraint(null, version, version);
     }
 
-    public static DefaultMutableVersionConstraint withPreferredVersion(String version) {
-        return new DefaultMutableVersionConstraint(version, null, null);
-    }
-
     @Override
     public ImmutableVersionConstraint asImmutable() {
         return new DefaultImmutableVersionConstraint(preferredVersion, requiredVersion, strictVersion, rejectedVersions, branch);
