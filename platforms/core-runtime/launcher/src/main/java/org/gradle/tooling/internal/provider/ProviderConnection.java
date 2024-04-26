@@ -366,7 +366,7 @@ public class ProviderConnection {
             daemonParams.setJvmArgs(jvmArguments);
         }
 
-        daemonParams.setRequestedJvmCriteria(properties.getBuildProperties());
+        daemonParams.setRequestedJvmCriteria(properties.getDaemonJvmProperties());
 
         // Include the system properties that are defined in the daemon JVM args
         properties = properties.merge(daemonParams.getSystemProperties());

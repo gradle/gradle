@@ -18,12 +18,12 @@ package org.gradle.internal.buildconfiguration;
 
 import org.gradle.api.JavaVersion;
 
-public class BuildPropertiesDefaults {
-    public static final String BUILD_PROPERTIES_FILE = "gradle/gradle-build.properties";
+public class DaemonJvmPropertiesDefaults {
+    public static final String DAEMON_JVM_PROPERTIES_FILE = "gradle/gradle-daemon-jvm.properties";
 
-    public static final String TOOLCHAIN_VERSION_PROPERTY = "daemon.jvm.toolchain.version";
-    public static final String TOOLCHAIN_VENDOR_PROPERTY = "daemon.jvm.toolchain.vendor";
-    public static final String TOOLCHAIN_IMPLEMENTATION_PROPERTY = "daemon.jvm.toolchain.implementation";
+    public static final String TOOLCHAIN_VERSION_PROPERTY = "toolchainVersion";
+    public static final String TOOLCHAIN_VENDOR_PROPERTY = "toolchainVendor";
+    public static final String TOOLCHAIN_IMPLEMENTATION_PROPERTY = "toolchainImplementation";
 
     public static final JavaVersion TOOLCHAIN_VERSION = JavaVersion.current();
 }
