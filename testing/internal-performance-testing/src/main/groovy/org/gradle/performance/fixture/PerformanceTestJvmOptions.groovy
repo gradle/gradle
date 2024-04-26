@@ -37,7 +37,7 @@ class PerformanceTestJvmOptions {
     }
 
     static List<String> normalizeGradleJvmOptions(boolean useDaemon, List<String> originalJvmOptions) {
-        if (JavaVersion.current().isJava9Compatible() && !useDaemon) {
+        if (!useDaemon && JavaVersion.current().isJava9Compatible()) {
             List<String> jvmOptions = new ArrayList<>(originalJvmOptions)
             jvmOptions.addAll(JpmsConfiguration.GRADLE_DAEMON_JPMS_ARGS)
             return jvmOptions
