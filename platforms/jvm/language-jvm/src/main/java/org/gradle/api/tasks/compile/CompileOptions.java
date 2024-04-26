@@ -329,12 +329,12 @@ public abstract class CompileOptions extends AbstractOptions {
     /**
      * Returns any additional arguments to be passed to the compiler.
      * Defaults to the empty list.
-     *
+     * <p>
      * Compiler arguments not supported by the DSL can be added here.
-     *
-     * For example, it is possible to pass the {@code --enable-preview} option that was added in newer Java versions:
-     * <pre><code>compilerArgs.add("--enable-preview")</code></pre>
-     *
+     * <p>
+     * For example, it is possible to pass the {@code -Werror} option:
+     * <pre><code>compilerArgs.add("-Werror")</code></pre>
+     * <p>
      * Note that if {@code --release} is added then {@code -target} and {@code -source}
      * are ignored.
      */
