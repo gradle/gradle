@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.serialize;
+package org.gradle.api.internal.tasks.compile.incremental.deps;
 
 import it.unimi.dsi.fastutil.ints.IntIterator;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.ints.IntSets;
+import org.gradle.internal.serialize.Decoder;
+import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.Serializer;
 
 import java.io.EOFException;
 

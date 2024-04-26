@@ -27,7 +27,6 @@ dependencies {
     api(projects.hashing)
     api(projects.javaLanguageExtensions)
 
-    api(libs.fastutil)
     api(libs.guava)
     api(libs.jsr305)
 
