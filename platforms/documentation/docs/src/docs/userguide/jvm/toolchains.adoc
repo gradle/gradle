@@ -328,7 +328,7 @@ When removing an auto-provisioned toolchain is necessary, remove the relevant to
 
 [NOTE]
 ====
-The <<gradle_daemon.adoc#sec:gradle_daemon,Gradle Daemon>> caches information about your project, including configuration details such as toolchain paths or versions. Changes to a project's toolchain configuration might only occur once the Gradle Daemon is restarted. It is recommended to  <<gradle_daemon.adoc#sec:stopping_an_existing_daemon,stop the Gradle Daemon>> to ensure that Gradle updates the configuration for subsequent builds.
+The <<gradle_daemon.adoc#gradle_daemon,Gradle Daemon>> caches information about your project, including configuration details such as toolchain paths or versions. Changes to a project's toolchain configuration might only occur once the Gradle Daemon is restarted. It is recommended to  <<gradle_daemon.adoc#sec:stopping_an_existing_daemon,stop the Gradle Daemon>> to ensure that Gradle updates the configuration for subsequent builds.
 ====
 
 [[sec:custom_loc]]
