@@ -149,7 +149,6 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
 
         DefaultJavaPluginExtension javaPluginExtension = addExtensions(project);
 
-        // TODO: configure test and javadoc tasks
         configureCompileDefaults(project, javaPluginExtension);
         configureSourceSetDefaults(project, javaPluginExtension);
         configureJavaDoc(project, javaPluginExtension);
