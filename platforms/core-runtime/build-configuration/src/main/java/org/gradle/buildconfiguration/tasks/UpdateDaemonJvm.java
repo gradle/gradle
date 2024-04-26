@@ -26,7 +26,7 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
-import org.gradle.internal.buildconfiguration.BuildPropertiesDefaults;
+import org.gradle.internal.buildconfiguration.DaemonJvmPropertiesDefaults;
 import org.gradle.internal.buildconfiguration.tasks.UpdateDaemonJvmModifier;
 import org.gradle.util.internal.IncubationLogger;
 import org.gradle.work.DisableCachingByDefault;
@@ -67,7 +67,7 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
     /**
      * The file to write the requested daemon JVM criteria to.
      *
-     * {@value BuildPropertiesDefaults#BUILD_PROPERTIES_FILE}
+     * {@value DaemonJvmPropertiesDefaults#DAEMON_JVM_PROPERTIES_FILE}
      *
      * @since 8.8
      */
