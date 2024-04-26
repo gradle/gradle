@@ -59,7 +59,7 @@ Here is a breakdown of all options for implementing Gradle plugins:
 |Groovy DSL
 |Pre-compiled script plugin
 |a `.gradle` file.
-|Nofootnote:2[It is recommended to use a statically-typed language like *Java* or *Kotlin* for implementing plugins to reduce the likelihood of binary incompatibilities. If using Groovy, consider using *statically compiled Groovy*.]
+|Okfootnote:2[It is recommended to use a statically-typed language like *Java* or *Kotlin* for implementing plugins to reduce the likelihood of binary incompatibilities. If using Groovy, consider using *statically compiled Groovy*.]
 
 |5
 |Java
@@ -68,16 +68,16 @@ Here is a breakdown of all options for implementing Gradle plugins:
 |Yes
 
 |6
-|Kotlin
+|Kotlin / Kotlin DSL
 |Binary plugin
-|an abstract class that implements the `apply(Project project)` method of the `Plugin<Project>` interface in Kotlin.
+|an abstract class that implements the `apply(Project project)` method of the `Plugin<Project>` interface in Kotlin and/or Kotlin DSL.
 |Yes
 
 |7
-|Groovy
+|Groovy / Groovy DSL
 |Binary plugin
-|an abstract class that implements the `apply(Project project)` method of the `Plugin<Project>` interface in Groovy.
-|Nofootnote:2[]
+|an abstract class that implements the `apply(Project project)` method of the `Plugin<Project>` interface in Groovy and/or Groovy DSL.
+|Okfootnote:2[]
 
 |8
 |Scala

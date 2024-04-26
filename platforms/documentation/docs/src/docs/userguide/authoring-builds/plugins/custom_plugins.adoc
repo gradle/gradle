@@ -24,7 +24,7 @@ By applying plugins, users can easily add new features to their build process wi
 This plugin-based approach allows Gradle to be lightweight and modular.
 It also promotes code reuse and maintainability, as plugins can be shared across projects or within an organization.
 
-Before reading this chapter, it's recommended that you first read the <<gradle_directories.adoc#gradle_directories,Learning The Basics>> and complete the <<partr1_gradle_init.adoc#partr1_gradle_init,Tutorial>>.
+Before reading this chapter, it's recommended that you first read <<gradle_directories.adoc#gradle_directories,Learning The Basics>> and complete the <<partr1_gradle_init.adoc#partr1_gradle_init,Tutorial>>.
 
 == Plugins Introduction
 
@@ -57,7 +57,7 @@ There are three types of *custom plugins*:
 
 |<<sec:build_script_plugins,1>>
 |<<sec:build_script_plugins,Script plugins>>
-|Build script or script file
+|A `.gradle(.kts)` script file
 |A local plugin
 |Plugin is automatically compiled and included in the classpath of the build script.
 
@@ -77,14 +77,14 @@ There are three types of *custom plugins*:
 [[sec:build_script_plugins]]
 == Script plugins
 
-*Script plugins* are typically small, local plugins written in build or scropt files for tasks specific to a single build or project.
+*Script plugins* are typically small, local plugins written in script files for tasks specific to a single build or project.
 They do not need to be reused across multiple projects.
-Build script plugins *are not recommended* but many other forms of plugins evolve from build script plugins.
+Script plugins *are not recommended* but many other forms of plugins evolve from script plugins.
 
-To create a Gradle plugin, you need to write a class that implements the link:{javadocPath}/org/gradle/api/Plugin.html[Plugin] interface in a `gradle(.kts)` file.
+To create a plugin, you need to write a class that implements the link:{javadocPath}/org/gradle/api/Plugin.html[Plugin] interface.
 
 [[sec:writing_a_simple_plugin]]
-The following sample creates a `GreetingPlugin` in a build file, which adds a `hello` task to a project when applied:
+The following sample creates a `GreetingPlugin`, which adds a `hello` task to a project when applied:
 
 ====
 include::sample[dir="snippets/customPlugins/customPlugin/kotlin",files="build.gradle.kts[tag=no-script-plugin]"]
@@ -96,11 +96,12 @@ $ gradle -q hello
 include::{snippetsPath}/customPlugins/customPlugin/tests/customPlugin.out[]
 ----
 
-The `Project` object is passed as a parameter in `apply()`, which the plugin can use to configure the project however it needs to (such as adding tasks, configuring dependencies, etc.)
+The `Project` object is passed as a parameter in `apply()`, which the plugin can use to configure the project however it needs to (such as adding tasks, configuring dependencies, etc.).
+In this example, the plugin is written directly in the build file which is *not a recommended practice*.
 
-When the plugin is written in a separate script, it can be applied using `apply(from = " ")` or `apply from: ''`.
-
-In the example below, the script plugin is create in the `other.gradle(.kts)` file and the plugin is applied in `build.gradle(.kts)`:
+When the plugin is written in a separate script file, it can be applied using `apply(from = "file_name.gradle.kts")` or `apply from: 'file_name.gradle'`.
+In the example below, the plugin is coded in the `other.gradle(.kts)` script file.
+Then, the `other.gradle(.kts)` is applied to `build.gradle(.kts)` using `apply from`:
 
 ====
 include::sample[dir="snippets/customPlugins/customPlugin/kotlin",files="other.gradle.kts[]"]
@@ -116,6 +117,8 @@ include::sample[dir="snippets/customPlugins/customPlugin/groovy",files="build.gr
 $ gradle -q hi
 include::{snippetsPath}/customPlugins/customPlugin/tests/customPluginScript.out[]
 ----
+
+**Script plugins should be avoided.**
 
 [[sec:precompile_script_plugin]]
 == Precompiled script plugins
