@@ -27,7 +27,8 @@ import java.lang.annotation.*;
  * already.</p>
  *
  * <p>This will cause the task to be considered out-of-date when the file path or contents
- * are different to when the task was last run.</p>
+ * are different to when the task was last run. This indicates that the the file is no longer
+ * needed and should be removed.</p>
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)

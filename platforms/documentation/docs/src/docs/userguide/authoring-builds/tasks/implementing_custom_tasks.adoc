@@ -1186,7 +1186,7 @@ Here are all available annotations in detail:
 |Property is a one or more input files or directories that represent a Java compile classpath
 
 |`@OutputFile`
-|Property is an output file for the task
+|Property is an output file for the taskfootnote:1[This notation is used to indicate that a task may create a file. If the task has previously created this file, but its inputs change in such a way that the file is no longer necessary or valid, the task may delete the file. This deletion is not about physically destroying the file, but rather about updating that task's "output state" to reflect that the file is no longer required and should be deleted.]
 
 |`@OutputFiles`
 |Property is one or more output files for the task
@@ -1198,7 +1198,7 @@ Here are all available annotations in detail:
 |Property is one or more output directories for the task
 
 |`@Destroys`
-|Property is one or more files or directories that the task destroys (deletes/removes)
+|Property is one or more files or directories that the task destroys (deletes/removes)footnote:2[This notation is used to specify locations that a task will always delete, and these locations typically belong to other tasks. This annotation is useful for tasks that clean up after other tasks such as `clean`.]
 
 |`@LocalState`
 |Property is a local state for a task
