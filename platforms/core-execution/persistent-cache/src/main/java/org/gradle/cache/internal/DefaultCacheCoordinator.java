@@ -114,10 +114,6 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
         }
     }
 
-    private static void noOp() {
-        // Empty initial operation to trigger onStartWork calls
-    }
-
     private synchronized AsyncCacheAccess getCacheAccessWorker() {
         if (cacheAccessWorker == null) {
             cacheAccessWorker = new ExclusiveCacheAccessingWorker(cacheDisplayName, this);
@@ -236,34 +232,34 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
 
     @Override
     public <T> T useCache(Supplier<? extends T> factory) {
-            boolean wasStarted;
+        boolean wasStarted;
+        stateLock.lock();
+        try {
+            takeOwnership();
+            try {
+                wasStarted = onStartWork();
+            } catch (Throwable t) {
+                releaseOwnership();
+                throw UncheckedException.throwAsUncheckedException(t);
+            }
+        } finally {
+            stateLock.unlock();
+        }
+        try {
+            return factory.get();
+        } finally {
             stateLock.lock();
             try {
-                takeOwnership();
                 try {
-                    wasStarted = onStartWork();
-                } catch (Throwable t) {
+                    if (wasStarted) {
+                        onEndWork();
+                    }
+                } finally {
                     releaseOwnership();
-                    throw UncheckedException.throwAsUncheckedException(t);
                 }
             } finally {
                 stateLock.unlock();
             }
-            try {
-                return factory.get();
-            } finally {
-                stateLock.lock();
-                try {
-                    try {
-                        if (wasStarted) {
-                            onEndWork();
-                        }
-                    } finally {
-                        releaseOwnership();
-                    }
-                } finally {
-                    stateLock.unlock();
-                }
         }
     }
 
@@ -322,7 +318,7 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
                 if (decorator != null) {
                     indexedCache = decorator.decorate(cacheFile.getAbsolutePath(), parameters.getCacheName(), indexedCache, crossProcessCacheAccess, getCacheAccessWorker());
                     if (fileLock == null) {
-                        useCache(DefaultCacheCoordinator::noOp);
+                        useCache(() -> {});
                     }
                 }
                 entry = new IndexedCacheEntry<>(parameters, indexedCache);

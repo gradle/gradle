@@ -69,6 +69,7 @@ public class DefaultJavaDebugOptions implements JavaDebugOptions {
             && server.get() == that.server.get()
             && suspend.get() == that.suspend.get();
     }
+
     @Override
     public Property<Boolean> getEnabled() {
         return enabled;

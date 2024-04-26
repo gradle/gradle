@@ -296,7 +296,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             }
         }
 
-        @SuppressWarnings("UnusedVariable")  // used in subclasses
+        // used in subclasses
         protected DynamicInvokeResult getOpaqueProperty(String name) {
             return DynamicInvokeResult.notFound();
         }
@@ -504,7 +504,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             return properties;
         }
 
-        @SuppressWarnings("UnusedVariable")  // used in subclasses
+        // used in subclasses
         protected void getOpaqueProperties(Map<String, Object> properties) {
         }
 

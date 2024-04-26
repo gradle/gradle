@@ -20,7 +20,6 @@ import com.google.common.util.concurrent.Runnables;
 import org.gradle.cache.CrossProcessCacheAccess;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
-import org.gradle.cache.FileLockReleasedSignal;
 import org.gradle.cache.LockOptions;
 import org.gradle.internal.UncheckedException;
 
@@ -56,14 +55,12 @@ public class FixedExclusiveModeCrossProcessCacheAccess extends AbstractCrossProc
         this.lockManager = lockManager;
     }
 
-    private static void noOpContentAction(FileLockReleasedSignal unused) {}
-
     @Override
     public void open() {
         if (fileLock != null) {
             throw new IllegalStateException("File lock " + lockTarget + " is already open.");
         }
-        final FileLock fileLock = lockManager.lock(lockTarget, lockOptions, cacheDisplayName, "", FixedExclusiveModeCrossProcessCacheAccess::noOpContentAction);
+        final FileLock fileLock = lockManager.lock(lockTarget, lockOptions, cacheDisplayName, "", unused -> {});
         try {
             boolean rebuild = initializationAction.requiresInitialization(fileLock);
             if (rebuild) {

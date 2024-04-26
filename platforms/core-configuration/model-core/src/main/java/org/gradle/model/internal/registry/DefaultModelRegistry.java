@@ -608,7 +608,7 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
          * @return true if this goal will be ready to apply once the returned dependencies have been achieved. False if additional dependencies for this goal may be discovered during the execution of
          * the known dependencies.
          */
-        @SuppressWarnings("UnusedVariable")  // used in subclasses
+        // used in subclasses
         public boolean calculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
             return true;
         }
@@ -619,7 +619,7 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
         void apply() {
         }
 
-        @SuppressWarnings("UnusedVariable")  // used in subclasses
+        // used in subclasses
         void attachToCycle(List<String> displayValue) {
         }
 
@@ -732,7 +732,6 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
             return doCalculateDependencies(graph, dependencies);
         }
 
-        @SuppressWarnings("UnusedVariable")  // used in subclasses
         boolean doCalculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
             return true;
         }
