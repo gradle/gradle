@@ -26,7 +26,7 @@ public class YesNoQuestionPromptEvent extends PromptOutputEvent {
     public static final List<String> YES_NO_CHOICES = Lists.newArrayList("yes", "no");
 
     public YesNoQuestionPromptEvent(long timestamp, String prompt) {
-        super(timestamp, prompt, true);
+        super(timestamp, prompt);
     }
 
     @Override

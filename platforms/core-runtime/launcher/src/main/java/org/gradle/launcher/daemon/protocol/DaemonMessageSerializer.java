@@ -29,7 +29,6 @@ import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
-import org.gradle.internal.logging.events.PromptOutputEvent;
 import org.gradle.internal.logging.events.SelectOptionPromptEvent;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
 import org.gradle.internal.logging.events.TextQuestionPromptEvent;
@@ -43,7 +42,6 @@ import org.gradle.internal.logging.serializer.LogLevelChangeEventSerializer;
 import org.gradle.internal.logging.serializer.ProgressCompleteEventSerializer;
 import org.gradle.internal.logging.serializer.ProgressEventSerializer;
 import org.gradle.internal.logging.serializer.ProgressStartEventSerializer;
-import org.gradle.internal.logging.serializer.PromptOutputEventSerializer;
 import org.gradle.internal.logging.serializer.SelectOptionPromptEventSerializer;
 import org.gradle.internal.logging.serializer.SpanSerializer;
 import org.gradle.internal.logging.serializer.StyledTextOutputEventSerializer;
@@ -102,7 +100,6 @@ public class DaemonMessageSerializer {
         // Output events
         registry.register(LogEvent.class, new LogEventSerializer(logLevelSerializer, throwableSerializer));
         registry.register(UserInputRequestEvent.class, new UserInputRequestEventSerializer());
-        registry.register(PromptOutputEvent.class, new PromptOutputEventSerializer());
         registry.register(YesNoQuestionPromptEvent.class, new YesNoQuestionPromptEventSerializer());
         registry.register(BooleanQuestionPromptEvent.class, new BooleanQuestionPromptEventSerializer());
         registry.register(TextQuestionPromptEvent.class, new TextQuestionPromptEventSerializer());

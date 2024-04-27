@@ -21,6 +21,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.internal.Either;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.PromptOutputEvent;
+import org.gradle.internal.logging.events.UserInputValidationProblemEvent;
 
 import javax.annotation.Nullable;
 import java.util.concurrent.atomic.AtomicReference;
@@ -51,7 +52,7 @@ public class DefaultUserInputReceiver implements GlobalUserInputReceiver {
                 Either<?, String> result = event.convert(CharMatcher.javaIsoControl().removeFrom(StringUtils.trim(text)));
                 if (result.getRight().isPresent()) {
                     // Need to prompt the user again
-                    console.onOutput(new PromptOutputEvent(event.getTimestamp(), result.getRight().get(), false));
+                    console.onOutput(new UserInputValidationProblemEvent(event.getTimestamp(), result.getRight().get()));
                     return null;
                 } else {
                     // Send result

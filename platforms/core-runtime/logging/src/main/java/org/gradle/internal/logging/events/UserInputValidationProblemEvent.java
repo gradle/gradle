@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,44 +17,20 @@
 package org.gradle.internal.logging.events;
 
 import org.gradle.api.logging.LogLevel;
-import org.gradle.internal.Either;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.operations.OperationIdentifier;
 
-/**
- * Requests that the client present the given prompt to the user and return the user's response as a single line of text.
- *
- * The response is delivered to the {@link UserInputReader} service.
- */
-public abstract class PromptOutputEvent extends RenderableOutputEvent implements InteractiveEvent {
+public class UserInputValidationProblemEvent extends RenderableOutputEvent implements InteractiveEvent {
     private final String prompt;
 
-    public PromptOutputEvent(long timestamp, String prompt) {
+    public UserInputValidationProblemEvent(long timestamp, String prompt) {
         super(timestamp, "prompt", LogLevel.QUIET, null);
         this.prompt = prompt;
     }
 
     @Override
     public void render(StyledTextOutput output) {
-        // Add a newline at the start of each question
-        output.println();
         output.text(prompt);
-    }
-
-    /**
-     * Converts the given text into the response object, or returns a new prompt to display to the user.
-     */
-    public Either<?, String> convert(String text) {
-        return Either.left(text);
-    }
-
-    public String getPrompt() {
-        return prompt;
-    }
-
-    @Override
-    public String toString() {
-        return "[" + getLogLevel() + "] [" + getCategory() + "] '" + prompt + "'";
     }
 
     @Override

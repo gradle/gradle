@@ -24,7 +24,6 @@ import org.gradle.internal.logging.events.BooleanQuestionPromptEvent
 import org.gradle.internal.logging.events.IntQuestionPromptEvent
 import org.gradle.internal.logging.events.LogLevelChangeEvent
 import org.gradle.internal.logging.events.OutputEvent
-import org.gradle.internal.logging.events.PromptOutputEvent
 import org.gradle.internal.logging.events.SelectOptionPromptEvent
 import org.gradle.internal.logging.events.TextQuestionPromptEvent
 import org.gradle.internal.logging.events.UserInputRequestEvent
@@ -178,16 +177,6 @@ class DaemonMessageSerializerTest extends SerializerSpec {
         def event = new UserInputRequestEvent()
         def result = serialize(event, serializer)
         result instanceof UserInputRequestEvent
-    }
-
-    def "can serialize user prompt event"() {
-        expect:
-        def event = new PromptOutputEvent(123, 'prompt', true)
-        def result = serialize(event, serializer)
-        result instanceof PromptOutputEvent
-        result.prompt == 'prompt'
-        result.newQuestion
-        result.timestamp == 123
     }
 
     def "can serialize yes-no question prompt event"() {

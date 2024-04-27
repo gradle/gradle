@@ -29,7 +29,7 @@ public class BooleanQuestionPromptEvent extends PromptOutputEvent {
     private final String defaultString;
 
     public BooleanQuestionPromptEvent(long timestamp, String prompt, boolean defaultValue, String defaultString) {
-        super(timestamp, prompt, true);
+        super(timestamp, prompt);
         this.defaultValue = defaultValue;
         this.defaultString = defaultString;
     }

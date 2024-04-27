@@ -18,6 +18,6 @@ package org.gradle.internal.logging.events;
 
 public class TextQuestionPromptEvent extends PromptOutputEvent {
     public TextQuestionPromptEvent(long timestamp, String prompt) {
-        super(timestamp, prompt, true);
+        super(timestamp, prompt);
     }
 }
