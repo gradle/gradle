@@ -27,34 +27,27 @@ import org.gradle.internal.operations.OperationIdentifier;
  * The response is delivered to the {@link UserInputReader} service.
  */
 public abstract class PromptOutputEvent extends RenderableOutputEvent implements InteractiveEvent {
-    private final String prompt;
-
-    public PromptOutputEvent(long timestamp, String prompt) {
+    public PromptOutputEvent(long timestamp) {
         super(timestamp, "prompt", LogLevel.QUIET, null);
-        this.prompt = prompt;
     }
 
     @Override
     public void render(StyledTextOutput output) {
         // Add a newline at the start of each question
         output.println();
-        output.text(prompt);
+        output.text(getPrompt());
     }
 
     /**
      * Converts the given text into the response object, or returns a new prompt to display to the user.
      */
-    public Either<?, String> convert(String text) {
-        return Either.left(text);
-    }
+    public abstract Either<?, String> convert(String text);
 
-    public String getPrompt() {
-        return prompt;
-    }
+    public abstract String getPrompt();
 
     @Override
     public String toString() {
-        return "[" + getLogLevel() + "] [" + getCategory() + "] '" + prompt + "'";
+        return "[" + getLogLevel() + "] [" + getCategory() + "] '" + getPrompt() + "'";
     }
 
     @Override

@@ -25,13 +25,12 @@ public class BooleanQuestionPromptEventSerializer implements Serializer<BooleanQ
     @Override
     public void write(Encoder encoder, BooleanQuestionPromptEvent value) throws Exception {
         encoder.writeLong(value.getTimestamp());
-        encoder.writeString(value.getPrompt());
+        encoder.writeString(value.getQuestion());
         encoder.writeBoolean(value.getDefaultValue());
-        encoder.writeString(value.getDefaultString());
     }
 
     @Override
     public BooleanQuestionPromptEvent read(Decoder decoder) throws Exception {
-        return new BooleanQuestionPromptEvent(decoder.readLong(), decoder.readString(), decoder.readBoolean(), decoder.readString());
+        return new BooleanQuestionPromptEvent(decoder.readLong(), decoder.readString(), decoder.readBoolean());
     }
 }
