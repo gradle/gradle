@@ -16,6 +16,7 @@
 package org.gradle.launcher.daemon.server.exec;
 
 import org.gradle.api.internal.tasks.userinput.UserInputReader;
+import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.launcher.daemon.server.api.DaemonCommandAction;
 import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
 import org.gradle.launcher.daemon.server.clientinput.ClientInputForwarder;
@@ -27,8 +28,8 @@ import org.gradle.launcher.daemon.server.clientinput.ClientInputForwarder;
 public class ForwardClientInput implements DaemonCommandAction {
     private final ClientInputForwarder forwarder;
 
-    public ForwardClientInput(UserInputReader inputReader) {
-        this.forwarder = new ClientInputForwarder(inputReader);
+    public ForwardClientInput(UserInputReader inputReader, OutputEventListener eventDispatch) {
+        this.forwarder = new ClientInputForwarder(inputReader, eventDispatch);
     }
 
     @Override

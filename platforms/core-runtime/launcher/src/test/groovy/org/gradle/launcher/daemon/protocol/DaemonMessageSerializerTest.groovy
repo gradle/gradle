@@ -24,6 +24,7 @@ import org.gradle.internal.logging.events.BooleanQuestionPromptEvent
 import org.gradle.internal.logging.events.IntQuestionPromptEvent
 import org.gradle.internal.logging.events.LogLevelChangeEvent
 import org.gradle.internal.logging.events.OutputEvent
+import org.gradle.internal.logging.events.ReadStdInEvent
 import org.gradle.internal.logging.events.SelectOptionPromptEvent
 import org.gradle.internal.logging.events.TextQuestionPromptEvent
 import org.gradle.internal.logging.events.UserInputRequestEvent
@@ -236,6 +237,14 @@ class DaemonMessageSerializerTest extends SerializerSpec {
         def result = serialize(event, serializer)
         result instanceof UserInputResumeEvent
         result.timestamp == 123
+    }
+
+    def "can serialize read stdin event"() {
+        expect:
+        def event = new ReadStdInEvent(45)
+        def result = serialize(event, serializer)
+        result instanceof ReadStdInEvent
+        result.maxLength == 45
     }
 
     def "can serialize Build message"() {

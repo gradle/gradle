@@ -27,6 +27,7 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
@@ -150,7 +151,8 @@ public class DaemonServices extends DefaultServiceRegistry {
         DaemonRunningStats runningStats,
         ExecutorFactory executorFactory,
         ProcessEnvironment processEnvironment,
-        UserInputReader inputReader
+        UserInputReader inputReader,
+        OutputEventListener eventDispatch
     ) {
         File daemonLog = getDaemonLogFile();
         DaemonDiagnostics daemonDiagnostics = new DaemonDiagnostics(daemonLog, daemonContext.getPid());
@@ -166,7 +168,7 @@ public class DaemonServices extends DefaultServiceRegistry {
             new EstablishBuildEnvironment(processEnvironment),
             new LogToClient(loggingManager, daemonDiagnostics), // from this point down, logging is sent back to the client
             new LogAndCheckHealth(healthStats, healthCheck, runningStats),
-            new ForwardClientInput(inputReader),
+            new ForwardClientInput(inputReader, eventDispatch),
             new RequestStopIfSingleUsedDaemon(),
             new ResetDeprecationLogger(),
             new WatchForDisconnection(),

@@ -56,6 +56,11 @@ class InProcessUserInputHandlingExecutor implements BuildActionExecuter<BuildAct
 
     private class AsyncStdInReader implements UserInputReceiver {
         @Override
+        public void readAndForwardStdin(int maxLength) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
         public void readAndForwardText(UserInputReceiver.Normalizer normalizer) {
             // Starts a new thread for each input request
             // This should be refactored to share more logic with DaemonClientInputForwarder

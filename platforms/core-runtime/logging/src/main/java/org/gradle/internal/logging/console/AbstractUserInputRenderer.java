@@ -19,6 +19,7 @@ package org.gradle.internal.logging.console;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.PromptOutputEvent;
+import org.gradle.internal.logging.events.ReadStdInEvent;
 import org.gradle.internal.logging.events.RenderableOutputEvent;
 import org.gradle.internal.logging.events.UserInputRequestEvent;
 import org.gradle.internal.logging.events.UserInputResumeEvent;
@@ -52,6 +53,9 @@ public abstract class AbstractUserInputRenderer implements OutputEventListener {
             return;
         } else if (event instanceof UserInputValidationProblemEvent) {
             handleValidationProblemEvent((UserInputValidationProblemEvent) event);
+            return;
+        } else if (event instanceof ReadStdInEvent) {
+            userInput.readAndForwardStdin((ReadStdInEvent) event);
             return;
         }
 

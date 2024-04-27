@@ -36,13 +36,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 
 public class DefaultUserInputHandler extends AbstractUserInputHandler {
-    private final OutputEventListener outputEventBroadcaster;
+    private final OutputEventListener eventDispatch;
     private final Clock clock;
     private final UserInputReader userInputReader;
     private final AtomicBoolean interrupted = new AtomicBoolean();
 
-    public DefaultUserInputHandler(OutputEventListener outputEventBroadcaster, Clock clock, UserInputReader userInputReader) {
-        this.outputEventBroadcaster = outputEventBroadcaster;
+    public DefaultUserInputHandler(OutputEventListener eventDispatch, Clock clock, UserInputReader userInputReader) {
+        this.eventDispatch = eventDispatch;
         this.clock = clock;
         this.userInputReader = userInputReader;
     }
@@ -117,11 +117,11 @@ public class DefaultUserInputHandler extends AbstractUserInputHandler {
             }
 
             if (!hasPrompted) {
-                outputEventBroadcaster.onOutput(new UserInputRequestEvent());
+                eventDispatch.onOutput(new UserInputRequestEvent());
                 hasPrompted = true;
             }
 
-            outputEventBroadcaster.onOutput(prompt);
+            eventDispatch.onOutput(prompt);
             while (true) {
                 UserInputReader.UserInput input = userInputReader.readInput();
                 if (input == UserInputReader.END_OF_INPUT) {
@@ -160,7 +160,7 @@ public class DefaultUserInputHandler extends AbstractUserInputHandler {
         @Override
         public void finish() {
             if (hasPrompted) {
-                outputEventBroadcaster.onOutput(new UserInputResumeEvent(clock.getCurrentTime()));
+                eventDispatch.onOutput(new UserInputResumeEvent(clock.getCurrentTime()));
             }
         }
     }
