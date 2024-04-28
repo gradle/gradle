@@ -142,7 +142,7 @@ pluginManagement {                                          // <1>
 }
 
 plugins {                                                   // <2>
-    id("org.gradle.toolchains.fake") version "0.6.0"
+    id("org.gradle.toolchains.foojay-resolver-convention") version "0.8.0"
 }
 
 rootProject.name = "root-project"                           // <3>
@@ -158,9 +158,9 @@ include("sub-project-b")
 include("sub-project-c")
 ----
 <1> Define the location of plugins
-<2> Apply plugins.
+<2> Apply settings plugins.
 <3> Define the root project name.
-<4> Define build-wide repositories.
+<4> Define dependency resolution strategies.
 <5> Add subprojects to the build.
 =====
 
@@ -177,7 +177,7 @@ pluginManagement {                                          // <1>
 }
 
 plugins {                                                   // <2>
-    id 'org.gradle.toolchains.fake' version '0.6.0'
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '0.8.0'
 }
 
 rootProject.name = 'root-project'                           // <3>
@@ -193,18 +193,19 @@ include('sub-project-b')
 include('sub-project-c')
 ----
 <1> Define the location of plugins.
-<2> Apply plugins.
+<2> Apply settings plugins.
 <3> Define the root project name.
-<4> Define build-wide repositories.
+<4> Define dependency resolution strategies.
 <5> Add subprojects to the build.
 =====
 ====
 
 === 1. Define the location of plugins
 
-The settings file can optionally define the plugins your project uses with link:{javadocPath}/org/gradle/plugin/management/PluginManagementSpec.html[`pluginManagement`], including binary repositories such as the Gradle Plugin Portal or other Gradle builds using `includeBuild`:
+The settings file can optionally manage plugin versions and repositories for your build with link:{javadocPath}/org/gradle/plugin/management/PluginManagementSpec.html[`pluginManagement`]
+It provides a centralized way to define which plugins should be used in your project and from which repositories they should be resolved.
 
-[source]
+[source,kotlin]
 ----
 pluginManagement {
     repositories {
@@ -214,41 +215,40 @@ pluginManagement {
 }
 ----
 
-You can also include plugins and plugin dependency resolution strategies in this block.
+=== 2. Apply settings plugins
 
-=== 2. Apply plugins
+The settings file can optionally link:{javadocPath}/org/gradle/plugin/use/PluginDependenciesSpec.html[apply plugins] that are required for configuring the settings of the project.
+These are commonly the link:https://plugins.gradle.org/plugin/com.gradle.develocity[Develocity plugin] and the link:https://plugins.gradle.org/plugin/org.gradle.toolchains.foojay-resolver-convention[Toolchain Resolver plugin] in the example below.
 
-The settings file can optionally declare the link:{javadocPath}/org/gradle/plugin/use/PluginDependenciesSpec.html[plugins] that may be applied later, which can add shared configuration among several builds / subprojects:
+Plugins applied in the settings file only affect the `Settings` object.
 
-Plugins applied to the settings only affect the `Settings` object.
-
-[source]
+[source,kotlin]
 ----
 plugins {
-    id("org.gradle.toolchains.fake") version "0.6.0"
+  id("org.gradle.toolchains.foojay-resolver-convention") version "0.8.0"
 }
 ----
-
-This is typically used to ensure that all subprojects use the same plugin version.
 
 === 3. Define the root project name
 
 The settings file defines your project name using the link:{javadocPath}/org/gradle/api/initialization/ProjectDescriptor.html[`rootProject.name` property]:
 
-[source]
+[source,kotlin]
 ----
 rootProject.name = "root-project"
 ----
 
 There is only one root project per build.
 
-=== 4. Define build-wide repositories
+=== 4. Define dependency resolution strategies
 
-The settings file can optionally link:{javadocPath}/org/gradle/api/initialization/resolve/DependencyResolutionManagement.html[define] the locations of components your project relies on (as well as how to resolve them) using `repositories` such as binary repositories like Maven Central and/or other Gradle builds using `includeBuild`:
+The settings file can optionally link:{javadocPath}/org/gradle/api/initialization/resolve/DependencyResolutionManagement.html[define rules and configurations] for dependency resolution across your project(s).
+It provides a centralized way to manage and customize dependency resolution.
 
-[source]
+[source,kotlin]
 ----
 dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.PREFER_PROJECT)
     repositories {
         mavenCentral()
     }
@@ -261,12 +261,14 @@ You can also include version catalogs in this section.
 
 The settings file defines the structure of the project by adding all the subprojects using the link:{javadocPath}/org/gradle/api/initialization/Settings.html[`include`] statement:
 
-[source]
+[source,kotlin]
 ----
 include("app")
 include("business-logic")
 include("data-model")
 ----
+
+You can also include entire builds using link:{javadocPath}/org/gradle/api/initialization/IncludedBuild.html[`includeBuild`].
 
 == Settings File Scripting
 
@@ -274,14 +276,14 @@ There are many more properties and methods on the `Settings` object that you can
 
 It's important to remember that while many Gradle scripts are typically written in short Groovy or Kotlin syntax, every item in the settings script is essentially invoking a method on the `Settings` object in the Gradle API:
 
-[source]
+[source,kotlin]
 ----
 include("app")
 ----
 
 Is actually:
 
-[source]
+[source,kotlin]
 ----
 settings.include("app")
 ----
@@ -290,7 +292,7 @@ Additionally, the full power of the Groovy and Kotlin languages is available to 
 
 For example, instead of using `include` many times to add subprojects, you can iterate over the list of directories in the project root folder and include them automatically:
 
-[source]
+[source,kotlin]
 ----
 rootDir.listFiles().filter { it.isDirectory && (new File(it, "build.gradle.kts").exists()) }.forEach {
     include(it.name)
