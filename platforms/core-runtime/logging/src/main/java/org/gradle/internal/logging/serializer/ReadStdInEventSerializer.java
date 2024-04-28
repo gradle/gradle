@@ -25,11 +25,10 @@ public class ReadStdInEventSerializer implements Serializer<ReadStdInEvent> {
 
     @Override
     public void write(Encoder encoder, ReadStdInEvent event) throws Exception {
-        encoder.writeInt(event.getMaxLength());
     }
 
     @Override
     public ReadStdInEvent read(Decoder decoder) throws Exception {
-        return new ReadStdInEvent(decoder.readInt());
+        return new ReadStdInEvent();
     }
 }

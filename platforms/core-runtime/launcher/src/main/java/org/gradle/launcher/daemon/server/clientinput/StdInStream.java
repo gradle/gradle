@@ -26,9 +26,8 @@ import java.io.InputStream;
 class StdInStream extends InputStream {
     private final OutputEventListener eventDispatch;
     private final Object lock = new Object();
-    private final byte[] buffer = new byte[16 * 1024];
+    private byte[] buffer = new byte[0];
     private int readPos;
-    private int writePos;
     private boolean waiting;
     private boolean closed;
 
@@ -40,7 +39,7 @@ class StdInStream extends InputStream {
     public int read() throws IOException {
         synchronized (lock) {
             waitForContent();
-            if (readPos != writePos) {
+            if (readPos != buffer.length) {
                 return buffer[readPos++] & 0xFF;
             } else {
                 // Closed
@@ -50,12 +49,12 @@ class StdInStream extends InputStream {
     }
 
     @Override
-    public int read(byte[] buffer, int offset, int length) throws IOException {
+    public int read(byte[] dest, int offset, int length) throws IOException {
         synchronized (lock) {
             waitForContent();
-            if (readPos != writePos) {
-                int count = Math.min(length, writePos - readPos);
-                System.arraycopy(this.buffer, readPos, buffer, offset, count);
+            if (readPos != buffer.length) {
+                int count = Math.min(length, buffer.length - readPos);
+                System.arraycopy(buffer, readPos, dest, offset, count);
                 readPos += count;
                 return count;
             } else {
@@ -66,11 +65,11 @@ class StdInStream extends InputStream {
     }
 
     private void waitForContent() {
-        if (readPos == writePos && !waiting) {
-            eventDispatch.onOutput(new ReadStdInEvent(buffer.length));
+        if (readPos == buffer.length && !waiting && !closed) {
+            eventDispatch.onOutput(new ReadStdInEvent());
             waiting = true;
         }
-        while (readPos == writePos && !closed) {
+        while (readPos == buffer.length && !closed) {
             try {
                 lock.wait();
             } catch (InterruptedException e) {
@@ -82,6 +81,7 @@ class StdInStream extends InputStream {
     @Override
     public void close() {
         synchronized (lock) {
+            // Allow threads to read anything still buffered
             closed = true;
             lock.notifyAll();
         }
@@ -93,17 +93,8 @@ class StdInStream extends InputStream {
                 throw new IllegalStateException();
             }
             waiting = false;
-            if (readPos == writePos) {
-                readPos = 0;
-                writePos = 0;
-            } else {
-                int count = Math.min(buffer.length - writePos, bytes.length);
-                if (count != bytes.length) {
-                    throw new IllegalStateException("Receive buffer overflow");
-                }
-            }
-            System.arraycopy(bytes, 0, buffer, writePos, bytes.length);
-            writePos += bytes.length;
+            readPos = 0;
+            this.buffer = bytes;
             lock.notifyAll();
         }
     }

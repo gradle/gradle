@@ -47,7 +47,7 @@ class DaemonClientTest extends ConcurrentSpecification {
     final def idGenerator = new UUIDGenerator()
     final ProcessEnvironment processEnvironment = Mock()
     final GlobalUserInputReceiver userInput = Stub()
-    final DaemonClient client = new DaemonClient(connector, outputEventListener, compatibilitySpec, new ByteArrayInputStream(new byte[0]), userInput, executorFactory, idGenerator, processEnvironment)
+    final DaemonClient client = new DaemonClient(connector, outputEventListener, compatibilitySpec, new ByteArrayInputStream(new byte[0]), userInput, idGenerator, processEnvironment)
 
     def "executes action"() {
         def resultMessage = Stub(BuildActionResult)

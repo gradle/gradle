@@ -31,10 +31,8 @@ public interface UserInputReceiver {
     /**
      * Requests that bytes should be read from this process' stdin and forwarded to the daemon.
      * Does not block waiting for the input.
-     *
-     * @param maxLength Maximum number of bytes to read.
      */
-    void readAndForwardStdin(int maxLength);
+    void readAndForwardStdin();
 
     interface Normalizer {
         /**

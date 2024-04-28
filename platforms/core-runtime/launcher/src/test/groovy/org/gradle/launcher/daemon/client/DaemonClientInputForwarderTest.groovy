@@ -65,7 +65,7 @@ class DaemonClientInputForwarderTest extends ConcurrentSpecification {
 
     def createForwarder() {
         userInputReceiver.attachConsole(Mock(OutputEventListener))
-        forwarder = new DaemonClientInputForwarder(inputStream, dispatch, userInputReceiver, executorFactory)
+        forwarder = new DaemonClientInputForwarder(inputStream, dispatch, userInputReceiver)
         forwarder.start()
     }
 
@@ -79,36 +79,27 @@ class DaemonClientInputForwarderTest extends ConcurrentSpecification {
 
     def "input bytes are forwarded until forwarder is stopped"() {
         def text = toPlatformLineSeparators("abc\ndef\njkl\n")
+        def text2 = "more text"
 
         when:
-        userInputReceiver.readAndForwardStdin(new ReadStdInEvent(100))
+        userInputReceiver.readAndForwardStdin(new ReadStdInEvent())
         source << text
 
         then:
         receiveStdin text
 
         when:
+        source << text2
+        userInputReceiver.readAndForwardStdin(new ReadStdInEvent())
+
+        then:
+        receiveStdin text2
+
+        when:
         forwarder.stop()
 
         then:
         receiveClosed()
-    }
-
-    def "input bytes are forwarded up to max requested"() {
-        def text = toPlatformLineSeparators("abcdef\n")
-
-        when:
-        userInputReceiver.readAndForwardStdin(new ReadStdInEvent(3))
-        source << text
-
-        then:
-        receiveStdin "abc"
-
-        when:
-        userInputReceiver.readAndForwardStdin(new ReadStdInEvent(100))
-
-        then:
-        receiveStdin toPlatformLineSeparators("def\n")
     }
 
     def "one line of text is converted and forwarded as user response"() {
@@ -123,7 +114,7 @@ class DaemonClientInputForwarderTest extends ConcurrentSpecification {
         receiveUserResponse "12"
 
         when:
-        userInputReceiver.readAndForwardStdin(new ReadStdInEvent(100))
+        userInputReceiver.readAndForwardStdin(new ReadStdInEvent())
 
         then:
         receiveStdin toPlatformLineSeparators("jkl\n")
@@ -142,7 +133,7 @@ class DaemonClientInputForwarderTest extends ConcurrentSpecification {
         receiveUserResponse "12"
 
         when:
-        userInputReceiver.readAndForwardStdin(new ReadStdInEvent(100))
+        userInputReceiver.readAndForwardStdin(new ReadStdInEvent())
 
         then:
         receiveStdin toPlatformLineSeparators("jkl\n")
@@ -154,13 +145,13 @@ class DaemonClientInputForwarderTest extends ConcurrentSpecification {
         closeInput()
 
         when:
-        userInputReceiver.readAndForwardStdin(new ReadStdInEvent(100))
+        userInputReceiver.readAndForwardStdin(new ReadStdInEvent())
 
         then:
         receiveStdin toPlatformLineSeparators("abc\n")
 
         when:
-        userInputReceiver.readAndForwardStdin(new ReadStdInEvent(100))
+        userInputReceiver.readAndForwardStdin(new ReadStdInEvent())
 
         then:
         receiveClosed()

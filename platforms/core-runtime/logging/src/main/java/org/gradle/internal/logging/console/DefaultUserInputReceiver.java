@@ -63,7 +63,7 @@ public class DefaultUserInputReceiver implements GlobalUserInputReceiver {
     @Override
     public void readAndForwardStdin(ReadStdInEvent event) {
         UserInputReceiver userInput = getDelegate();
-        userInput.readAndForwardStdin(event.getMaxLength());
+        userInput.readAndForwardStdin();
     }
 
     private UserInputReceiver getDelegate() {

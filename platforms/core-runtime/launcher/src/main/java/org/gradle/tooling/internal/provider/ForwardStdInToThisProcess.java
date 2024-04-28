@@ -18,7 +18,6 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.internal.tasks.userinput.UserInputReader;
 import org.gradle.initialization.BuildRequestContext;
-import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.logging.console.GlobalUserInputReceiver;
 import org.gradle.internal.logging.events.ReadStdInEvent;
@@ -42,20 +41,17 @@ public class ForwardStdInToThisProcess implements BuildActionExecuter<BuildActio
     private final UserInputReader userInputReader;
     private final InputStream finalStandardInput;
     private final BuildActionExecuter<BuildActionParameters, BuildRequestContext> delegate;
-    private final ExecutorFactory executorFactory;
 
     public ForwardStdInToThisProcess(
         GlobalUserInputReceiver userInputReceiver,
         UserInputReader userInputReader,
         InputStream finalStandardInput,
-        BuildActionExecuter<BuildActionParameters, BuildRequestContext> delegate,
-        ExecutorFactory executorFactory
+        BuildActionExecuter<BuildActionParameters, BuildRequestContext> delegate
     ) {
         this.userInputReceiver = userInputReceiver;
         this.userInputReader = userInputReader;
         this.finalStandardInput = finalStandardInput;
         this.delegate = delegate;
-        this.executorFactory = executorFactory;
     }
 
     @Override
@@ -78,7 +74,7 @@ public class ForwardStdInToThisProcess implements BuildActionExecuter<BuildActio
                 } else {
                     throw new IllegalArgumentException();
                 }
-            }, userInputReceiver, executorFactory);
+            }, userInputReceiver);
             inputForwarder.start();
             try {
                 return delegate.execute(action, actionParameters, buildRequestContext);

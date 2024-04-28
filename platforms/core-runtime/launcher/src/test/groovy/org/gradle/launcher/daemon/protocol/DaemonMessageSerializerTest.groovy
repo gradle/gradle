@@ -241,10 +241,9 @@ class DaemonMessageSerializerTest extends SerializerSpec {
 
     def "can serialize read stdin event"() {
         expect:
-        def event = new ReadStdInEvent(45)
+        def event = new ReadStdInEvent()
         def result = serialize(event, serializer)
         result instanceof ReadStdInEvent
-        result.maxLength == 45
     }
 
     def "can serialize Build message"() {

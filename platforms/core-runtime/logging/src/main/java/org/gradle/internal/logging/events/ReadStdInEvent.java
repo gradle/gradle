@@ -21,16 +21,6 @@ import org.gradle.api.logging.LogLevel;
 import javax.annotation.Nullable;
 
 public class ReadStdInEvent extends OutputEvent implements InteractiveEvent {
-    private final int maxLength;
-
-    public ReadStdInEvent(int maxLength) {
-        this.maxLength = maxLength;
-    }
-
-    public int getMaxLength() {
-        return maxLength;
-    }
-
     @Nullable
     @Override
     public LogLevel getLogLevel() {
