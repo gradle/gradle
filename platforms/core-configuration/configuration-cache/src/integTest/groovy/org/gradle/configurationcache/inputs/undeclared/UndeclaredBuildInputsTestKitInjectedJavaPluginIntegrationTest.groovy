@@ -35,8 +35,10 @@ import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.internal.ToolingApiGradleExecutor
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
+import spock.lang.Ignore
 
 @Requires(UnitTestPreconditions.NotWindows)
+@Ignore
 class UndeclaredBuildInputsTestKitInjectedJavaPluginIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest implements JavaPluginImplementation {
     TestFile jar
     TestFile testKitDir

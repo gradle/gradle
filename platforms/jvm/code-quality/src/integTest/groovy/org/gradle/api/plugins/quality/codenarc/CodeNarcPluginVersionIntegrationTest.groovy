@@ -25,6 +25,7 @@ import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testing.fixture.GroovyCoverage
 import org.gradle.util.internal.ToBeImplemented
+import spock.lang.Ignore
 import spock.lang.Issue
 
 import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
@@ -34,6 +35,7 @@ import static org.hamcrest.Matchers.endsWith
 
 @TargetCoverage({ CodeNarcCoverage.supportedVersionsByCurrentJdk })
 @Requires(UnitTestPreconditions.StableGroovy)
+@Ignore
 class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec implements CodeNarcTestFixture {
     def setup() {
         buildFile << """

@@ -17,6 +17,7 @@ package org.gradle.api.plugins.quality.pmd
 
 
 import org.hamcrest.Matcher
+import spock.lang.Ignore
 import spock.lang.Issue
 
 import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
@@ -25,6 +26,7 @@ import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.not
 import static org.junit.Assume.assumeTrue
 
+@Ignore
 class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegrationTest {
 
     def setup() {

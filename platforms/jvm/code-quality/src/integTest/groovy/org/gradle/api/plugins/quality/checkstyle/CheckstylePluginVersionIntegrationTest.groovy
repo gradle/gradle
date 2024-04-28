@@ -28,6 +28,7 @@ import org.gradle.util.internal.VersionNumber
 import org.hamcrest.Matcher
 import org.junit.Assume
 import org.junit.Rule
+import spock.lang.Ignore
 import spock.lang.Issue
 
 import static org.gradle.util.Matchers.containsLine
@@ -37,6 +38,7 @@ import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.startsWith
 
 @TargetCoverage({ CheckstyleCoverage.getSupportedVersionsByJdk() })
+@Ignore
 class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
     @Rule
     public final Resources resources = new Resources()

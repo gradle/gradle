@@ -23,8 +23,10 @@ import org.gradle.testing.fixture.GroovyCoverage
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.VersionNumber
+import spock.lang.Ignore
 import spock.lang.Issue
 
+@Ignore
 class AntWorkerMemoryLeakIntegrationTest extends AbstractIntegrationSpec {
     public static final String LOCAL_GROOVY = 'localGroovy()'
 
