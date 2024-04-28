@@ -34,6 +34,7 @@ import org.gradle.internal.agents.AgentInitializer;
 import org.gradle.internal.agents.AgentStatus;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
@@ -65,6 +66,7 @@ import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildExecuter;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
 import org.gradle.process.internal.CurrentProcess;
+import org.gradle.tooling.internal.provider.ForwardStdInToThisProcess;
 
 import java.lang.management.ManagementFactory;
 import java.util.Properties;
@@ -220,10 +222,12 @@ class BuildActionsFactory implements CommandLineActionCreator {
 
         globalServices.get(AgentInitializer.class).maybeConfigureInstrumentationAgent();
 
-        BuildActionExecuter<BuildActionParameters, BuildRequestContext> executer = new InProcessUserInputHandlingExecutor(
+        BuildActionExecuter<BuildActionParameters, BuildRequestContext> executer = new ForwardStdInToThisProcess(
             globalServices.get(GlobalUserInputReceiver.class),
             globalServices.get(UserInputReader.class),
-            globalServices.get(BuildExecuter.class)
+            System.in,
+            globalServices.get(BuildExecuter.class),
+            globalServices.get(ExecutorFactory.class)
         );
 
         // Force the user home services to be stopped first, the dependencies between the user home services and the global services are not preserved currently
