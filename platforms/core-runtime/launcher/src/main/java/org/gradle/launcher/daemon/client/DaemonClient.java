@@ -31,7 +31,6 @@ import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.logging.console.GlobalUserInputReceiver;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
-import org.gradle.internal.remote.internal.Connection;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
 import org.gradle.launcher.daemon.protocol.Build;
@@ -234,7 +233,7 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters, 
         }
     }
 
-    private Object monitorBuild(Build build, DaemonDiagnostics diagnostics, Connection<Message> connection, BuildCancellationToken cancellationToken, BuildEventConsumer buildEventConsumer) {
+    private Object monitorBuild(Build build, DaemonDiagnostics diagnostics, DaemonClientConnection connection, BuildCancellationToken cancellationToken, BuildEventConsumer buildEventConsumer) {
         DaemonClientInputForwarder inputForwarder = new DaemonClientInputForwarder(buildStandardInput, connection, userInput);
         DaemonCancelForwarder cancelForwarder = new DaemonCancelForwarder(connection, cancellationToken);
         try {
@@ -250,6 +249,7 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters, 
                 }
 
                 if (object == null) {
+                    connection.markSuspect();
                     return handleDaemonDisappearance(build, diagnostics);
                 } else if (object instanceof OutputMessage) {
                     outputEventListener.onOutput(((OutputMessage) object).getEvent());
@@ -265,10 +265,10 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters, 
         }
     }
 
-    private Result handleDaemonDisappearance(Build build, DaemonDiagnostics diagnostics) {
-        //we can try sending something to the daemon and try out if he is really dead or use jps
-        //if he's really dead we should deregister it if it is not already deregistered.
-        //if the daemon is not dead we might continue receiving from him (and try to find the bug in messaging infrastructure)
+    private Result<?> handleDaemonDisappearance(Build build, DaemonDiagnostics diagnostics) {
+        //we can try sending something to the daemon and try out if it is really dead or use jps
+        //if it's really dead we should deregister it if it is not already deregistered.
+        //if the daemon is not dead we might continue receiving from it (and try to find the bug in messaging infrastructure)
         LOGGER.error("The message received from the daemon indicates that the daemon has disappeared."
             + "\nBuild request sent: {}"
             + "\nAttempting to read last messages from the daemon log...", build);
