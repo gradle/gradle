@@ -21,6 +21,7 @@ import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.watch.WatchingNotSupportedException;
 
 import javax.annotation.CheckReturnValue;
+import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
@@ -54,7 +55,7 @@ public interface FileWatcherRegistry extends Closeable {
      *
      * @throws WatchingNotSupportedException when the native watchers can't be updated.
      */
-    void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root, File probeLocation);
+    void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root, @Nullable File probeLocation);
 
     /**
      * Updates the watchers after changes to the root.

@@ -45,6 +45,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.CheckReturnValue;
+import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
@@ -201,7 +202,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
     }
 
     @Override
-    public void registerWatchableHierarchy(File watchableHierarchy, File probeLocation) {
+    public void registerWatchableHierarchy(File watchableHierarchy, @Nullable File probeLocation) {
         updateRootUnderLock(currentRoot -> {
             if (watchRegistry == null) {
                 watchableHierarchiesRegisteredEarly.put(watchableHierarchy, probeLocation);

@@ -231,11 +231,10 @@ public class VirtualFileSystemServices extends AbstractGradleModuleServices {
                 .orElse(new WatchingNotSupportedVirtualFileSystem(root));
 
             listenerManager.addListener((BuildAddedListener) buildState -> {
-                    File buildRootDir = buildState.getBuildRootDir();
+                File buildRootDir = buildState.getBuildRootDir();
                 File projectCacheDir = buildState.getMutableModel().getServices().get(ProjectCacheDir.class).getDir();
                 virtualFileSystem.registerWatchableHierarchy(buildRootDir, projectCacheDir);
-                }
-            );
+            });
             return virtualFileSystem;
         }
 

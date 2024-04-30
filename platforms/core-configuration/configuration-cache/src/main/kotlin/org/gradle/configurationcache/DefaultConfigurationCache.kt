@@ -565,7 +565,7 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun registerWatchableBuildDirectories(buildDirs: Iterable<File>) {
-        buildDirs.forEach { dir -> virtualFileSystem.registerWatchableHierarchy(dir, File(dir, ".gradle")) } // FIXME: what is the proper way to get probe?
+        buildDirs.forEach { dir -> virtualFileSystem.registerWatchableHierarchy(dir, null) }
     }
 
     private

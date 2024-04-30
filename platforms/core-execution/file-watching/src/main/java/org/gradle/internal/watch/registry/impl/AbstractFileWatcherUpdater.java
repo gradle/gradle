@@ -31,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.CheckReturnValue;
+import javax.annotation.Nullable;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Collection;
@@ -56,7 +57,7 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
     }
 
     @Override
-    public void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root, File probeLocation) {
+    public void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root, @Nullable File probeLocation) {
         watchableHierarchies.registerWatchableHierarchy(watchableHierarchy, root);
         probeRegistry.registerProbe(watchableHierarchy, probeLocation);
         update(root);

@@ -18,6 +18,7 @@ package org.gradle.internal.watch.registry;
 
 import com.google.common.collect.ImmutableSet;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.function.BiConsumer;
@@ -46,7 +47,7 @@ import java.util.stream.Stream;
  * the registry is closed.
  */
 public interface FileWatcherProbeRegistry {
-    void registerProbe(File hierarchy, File probeLocation);
+    void registerProbe(File hierarchy, @Nullable File probeLocation);
 
     void updateProbedHierarchies(ImmutableSet<File> probedHierarchies, BiConsumer<File, Boolean> probeDisarmed, BiConsumer<File, Boolean> beforeProbeArmed);
 

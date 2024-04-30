@@ -21,6 +21,7 @@ import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 
 import javax.annotation.CheckReturnValue;
+import javax.annotation.Nullable;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Collection;
@@ -77,7 +78,7 @@ public interface FileWatcherUpdater {
      *
      * @see FileWatcherRegistry#registerWatchableHierarchy(File, SnapshotHierarchy, File)
      */
-    void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root, File probeLocation);
+    void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root, @Nullable File probeLocation);
 
     /**
      * Updates the watchers after changes to the root.
