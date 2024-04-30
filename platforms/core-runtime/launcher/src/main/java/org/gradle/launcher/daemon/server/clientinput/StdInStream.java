@@ -23,6 +23,9 @@ import org.gradle.internal.logging.events.ReadStdInEvent;
 import java.io.IOException;
 import java.io.InputStream;
 
+/**
+ * A replacement for {@code System.in} in the daemon. When read from, requests that the client read from its stdin stream and forward the result.
+ */
 class StdInStream extends InputStream {
     private final OutputEventListener eventDispatch;
     private final Object lock = new Object();

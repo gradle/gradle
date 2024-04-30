@@ -238,7 +238,6 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters, 
         DaemonCancelForwarder cancelForwarder = new DaemonCancelForwarder(connection, cancellationToken);
         try {
             cancelForwarder.start();
-            inputForwarder.start();
             int objectsReceived = 0;
 
             while (true) {
@@ -249,6 +248,8 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters, 
                 }
 
                 if (object == null) {
+                    // The daemon has potentially disappeared, so mark the connection as suspect.
+                    // This makes the connection lenient if outgoing messages cannot be written while attempting to gracefully shut down the connection (in the finally {} block below)
                     connection.markSuspect();
                     return handleDaemonDisappearance(build, diagnostics);
                 } else if (object instanceof OutputMessage) {

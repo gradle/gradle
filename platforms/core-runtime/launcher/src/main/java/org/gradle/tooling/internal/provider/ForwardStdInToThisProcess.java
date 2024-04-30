@@ -75,7 +75,6 @@ public class ForwardStdInToThisProcess implements BuildActionExecuter<BuildActio
                     throw new IllegalArgumentException();
                 }
             }, userInputReceiver);
-            inputForwarder.start();
             try {
                 return delegate.execute(action, actionParameters, buildRequestContext);
             } finally {

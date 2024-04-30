@@ -66,7 +66,6 @@ class DaemonClientInputForwarderTest extends ConcurrentSpecification {
     def createForwarder() {
         userInputReceiver.attachConsole(Mock(OutputEventListener))
         forwarder = new DaemonClientInputForwarder(inputStream, dispatch, userInputReceiver)
-        forwarder.start()
     }
 
     def setup() {

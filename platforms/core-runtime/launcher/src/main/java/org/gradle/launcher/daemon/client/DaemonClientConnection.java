@@ -91,6 +91,9 @@ public class DaemonClientConnection implements Connection<Message> {
         }
     }
 
+    /**
+     * Treat the connection as probably broken, and leniently handle failures writing outgoing messages.
+     */
     public void markSuspect() {
         suspect = true;
     }

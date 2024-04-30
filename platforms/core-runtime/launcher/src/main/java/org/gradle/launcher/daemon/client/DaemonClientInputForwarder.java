@@ -33,6 +33,11 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+/**
+ * Reads input from this client stdin and forwards it to the daemon. Can either read raw content or read the user's response to some prompt.
+ *
+ * <p>Uses a single reader thread to perform all operations.
+ */
 public class DaemonClientInputForwarder implements Stoppable {
     private final ForwardingUserInput forwarder;
     private final GlobalUserInputReceiver userInput;
@@ -45,6 +50,8 @@ public class DaemonClientInputForwarder implements Stoppable {
     ) {
         this.userInput = userInput;
         // Use a single reader thread, and make it a daemon thread so that it does not block process shutdown
+        // In most cases, we try to cleanly shut down all threads. However, in this case it is difficult to disconnect a thread blocked trying to read from the
+        // process' stdin, so use a daemon thread instead.
         executor = Executors.newSingleThreadExecutor(r -> {
             Thread thread = new Thread(r);
             thread.setDaemon(true);
@@ -52,9 +59,6 @@ public class DaemonClientInputForwarder implements Stoppable {
         });
         forwarder = new ForwardingUserInput(inputStream, dispatch, executor);
         userInput.dispatchTo(forwarder);
-    }
-
-    public void start() {
     }
 
     @Override
@@ -68,8 +72,11 @@ public class DaemonClientInputForwarder implements Stoppable {
         private final Dispatch<? super InputMessage> dispatch;
         private final BufferedReader reader;
         private final Executor executor;
+        private char[] buffer;
+
+        // Protects the following state
+        private final Object lock = new Object();
         private boolean closed;
-        private final char[] buffer = new char[16 * 1024];
 
         public ForwardingUserInput(InputStream inputStream, Dispatch<? super InputMessage> dispatch, Executor executor) {
             this.dispatch = dispatch;
@@ -80,6 +87,9 @@ public class DaemonClientInputForwarder implements Stoppable {
         @Override
         public void readAndForwardStdin() {
             executor.execute(() -> {
+                if (buffer == null) {
+                    buffer = new char[16 * 1024];
+                }
                 int nread;
                 try {
                     // Read input as text rather than bytes, so that readAndForwardText() below can also read lines of text
@@ -117,7 +127,7 @@ public class DaemonClientInputForwarder implements Stoppable {
                             dispatch.dispatch(new UserResponse(normalized));
                             break;
                         }
-                        // Else, user input was no good
+                        // Else, user input was no good so read another line and try again
                     }
                 }
             });
@@ -128,10 +138,13 @@ public class DaemonClientInputForwarder implements Stoppable {
         }
 
         private void maybeClosed() {
-            if (!closed) {
-                CloseInput message = new CloseInput();
-                dispatch.dispatch(message);
-                closed = true;
+            // This can be invoked from the reader thread or some other thread that is attempting to shut the client down.
+            synchronized (lock) {
+                if (!closed) {
+                    CloseInput message = new CloseInput();
+                    dispatch.dispatch(message);
+                    closed = true;
+                }
             }
         }
     }
