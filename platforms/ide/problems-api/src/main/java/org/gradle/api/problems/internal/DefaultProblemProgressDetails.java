@@ -96,24 +96,31 @@ public class DefaultProblemProgressDetails implements ProblemProgressDetails, Pr
         }
 
         @Override
-        public String getName() {
-            return definition.getId().getName();
-        }
-
-        @Override
-        public String getDisplayName() {
-            return definition.getId().getDisplayName();
-        }
-
-        @Override
-        public List<ProblemGroup> getGroup() {
+        public ProblemId getId() {
             ImmutableList.Builder<ProblemGroup> builder = ImmutableList.builder();
-            org.gradle.api.problems.ProblemGroup currentGroup = definition.getId().getGroup();
+            final org.gradle.api.problems.ProblemId problemId = definition.getId();
+            org.gradle.api.problems.ProblemGroup currentGroup = problemId.getGroup();
             while (currentGroup != null) {
                 builder.add(new DevelocityProblemGroup(currentGroup));
                 currentGroup = currentGroup.getParent();
             }
-            return builder.build();
+            final ImmutableList<ProblemGroup> problemGroup = builder.build();
+            return new ProblemId() {
+                @Override
+                public String getId() {
+                    return problemId.getName();
+                }
+
+                @Override
+                public String getDisplayName() {
+                    return problemId.getDisplayName();
+                }
+
+                @Override
+                public List<ProblemGroup> getGroup() {
+                    return problemGroup;
+                }
+            };
         }
 
         @Override
