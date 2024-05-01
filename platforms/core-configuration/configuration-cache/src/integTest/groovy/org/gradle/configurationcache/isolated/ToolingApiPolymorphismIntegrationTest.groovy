@@ -18,17 +18,17 @@ package org.gradle.configurationcache.isolated
 
 import org.gradle.api.Project
 import org.gradle.configurationcache.fixtures.BaseModel
+import org.gradle.configurationcache.fixtures.CompositeModel
 import org.gradle.configurationcache.fixtures.DeepChildModel
 import org.gradle.configurationcache.fixtures.ShallowChildModel
 import org.gradle.tooling.provider.model.ToolingModelBuilder
 
-class ToolingApiPolimorphismIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
+class ToolingApiPolymorphismIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
 
-    def "ongoing"() {
-        given:
+    def "setup"() {
         addPluginBuildScript("plugins")
 
-        file("plugins/src/main/groovy/my/MyModel.groovy") << """
+        groovyFile("plugins/src/main/groovy/my/MyModel.groovy", """
             package org.gradle.configurationcache.fixtures
 
             interface BaseModel {
@@ -55,7 +55,17 @@ class ToolingApiPolimorphismIntegrationTest extends AbstractIsolatedProjectsTool
                 String getDeepMessage() { "deep " + message }
                 String toString() { message }
             }
-        """.stripIndent()
+
+            class DefaultCompositeModel implements java.io.Serializable {
+                private final DefaultModel nested
+                DefaultCompositeModel(DefaultModel nested) { this.nested = nested }
+                BaseModel getNested() { nested }
+            }
+        """)
+    }
+
+    def "supports model polymorphism"() {
+        given:
 
         file("plugins/src/main/groovy/my/MyModelBuilder.groovy") << """
             package my
@@ -88,6 +98,53 @@ class ToolingApiPolimorphismIntegrationTest extends AbstractIsolatedProjectsTool
 
         when:
         def model = fetchModel(BaseModel)
+
+        then:
+        model != null
+        model instanceof BaseModel
+        model instanceof ShallowChildModel
+        ((ShallowChildModel) model).getShallowMessage() == "shallow poly from 'root'"
+        model instanceof DeepChildModel
+        ((DeepChildModel) model).getDeepMessage() == "deep poly from 'root'"
+    }
+
+    def "supports nested model polymorphism"() {
+        given:
+
+        file("plugins/src/main/groovy/my/MyModelBuilder.groovy") << """
+            package my
+
+            import ${ToolingModelBuilder.name}
+            import ${Project.name}
+
+            import org.gradle.configurationcache.fixtures.DefaultCompositeModel
+            import org.gradle.configurationcache.fixtures.DefaultModel
+
+            class MyModelBuilder implements ToolingModelBuilder {
+                boolean canBuild(String modelName) {
+                    return modelName == "${CompositeModel.name}"
+                }
+                Object buildAll(String modelName, Project project) {
+                    println("creating model for \$project")
+                    return new DefaultCompositeModel(new DefaultModel("poly from '" + project.name + "'"))
+                }
+            }
+        """.stripIndent()
+
+        addBuilderRegisteringPluginImplementation("plugins", "MyModelBuilder")
+
+        settingsFile << """
+            includeBuild("plugins")
+            rootProject.name = 'root'
+        """
+        buildFile << """
+            plugins {
+                id("my.plugin")
+            }
+        """
+
+        when:
+        def model = fetchModel(CompositeModel).nested
 
         then:
         model != null

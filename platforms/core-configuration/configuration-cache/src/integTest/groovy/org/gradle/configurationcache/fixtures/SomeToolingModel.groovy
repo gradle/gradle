@@ -40,6 +40,9 @@ interface ShallowChildModel extends BaseModel {
 interface SideModel extends BaseModel {
 }
 
+interface CompositeModel {
+    BaseModel getNested()
+}
 
 interface SomeToolingModelParameter {
     String getMessagePrefix()
