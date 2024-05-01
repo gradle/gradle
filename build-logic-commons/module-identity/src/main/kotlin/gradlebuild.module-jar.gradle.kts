@@ -86,10 +86,12 @@ fun computeExternalDependenciesNotAccessibleFromProjectDependencies(
         val to = dependency.resolvedVariant
 
         when (val fromComponent = dependency.from.id) {
-            is ProjectComponentIdentifier -> if (fromComponent != rootComponent.id) {
+            is ProjectComponentIdentifier -> if (fromComponent != rootComponent.id && fromComponent.projectName != "perfetto") {
                 // Only track accessible dependencies from _transitive_ local dependencies
                 // We should not include the root variant's dependencies in the locally accessible set
                 locallyAccessible.add(to.owner)
+            }  else if (fromComponent != rootComponent.id && fromComponent.projectName == "perfetto") {
+                externallyAccessible.add(to.owner)
             }
             is ModuleComponentIdentifier -> externallyAccessible.add(to.owner)
         }

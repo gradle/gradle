@@ -44,6 +44,7 @@ import perfetto.protos.ClockSnapshotOuterClass.ClockSnapshot;
 import perfetto.protos.ClockSnapshotOuterClass.ClockSnapshot.Clock;
 import perfetto.protos.ProcessDescriptorOuterClass;
 import perfetto.protos.ThreadDescriptorOuterClass;
+import perfetto.protos.TraceOuterClass.Trace;
 import perfetto.protos.TracePacketOuterClass.TracePacket;
 import perfetto.protos.TrackDescriptorOuterClass.TrackDescriptor;
 import perfetto.protos.TrackEventOuterClass;
@@ -145,7 +146,7 @@ public class BuildOperationTrace implements Stoppable {
             this.outputTree = false;
             this.listener = new FilteringBuildOperationListener(new SerializingBuildOperationListener(this::write), filter);
         } else {
-            this.outputTree = true;
+            this.outputTree = false;
             this.listener = new SerializingBuildOperationListener(this::write);
         }
 
@@ -206,6 +207,11 @@ public class BuildOperationTrace implements Stoppable {
                     logOutputStream.close();
                 }
 
+                synchronized (traceBuilder) {
+                    traceBuilder.build().writeTo(protoOutputStream);
+                    protoOutputStream.close();
+                }
+
                 if (outputTree) {
                     List<BuildOperationRecord> roots = readLogToTreeRoots(logFile(basePath), false);
                     writeDetailTree(roots);
@@ -230,9 +236,8 @@ public class BuildOperationTrace implements Stoppable {
                     logOutputStream.flush();
                 }
 
-                synchronized (protoOutputStream) {
+                synchronized (traceBuilder) {
                     writeProto(operation);
-                    protoOutputStream.flush();
                 }
             } catch (IOException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
@@ -242,16 +247,20 @@ public class BuildOperationTrace implements Stoppable {
         }
     }
 
+    private final Trace.Builder traceBuilder = Trace.newBuilder();
+
     private void writeProto(SerializedOperation operation) throws IOException {
         if (!gotFirstMessage) {
             gotFirstMessage = true;
             // time information
-            TracePacket.newBuilder().setTimestampClockId(1).setClockSnapshot(ClockSnapshot.newBuilder()
-                .addClocks(Clock.newBuilder()
-                    .setTimestamp(firstStartTimeNs)
-                    .setClockId(BuiltinClock.BUILTIN_CLOCK_BOOTTIME_VALUE))
-            ).build().writeTo(protoOutputStream);
+            traceBuilder.addPacket(
+                TracePacket.newBuilder().setTimestampClockId(1).setClockSnapshot(ClockSnapshot.newBuilder()
+                    .addClocks(Clock.newBuilder()
+                        .setTimestamp(firstStartTimeNs)
+                        .setClockId(BuiltinClock.BUILTIN_CLOCK_BOOTTIME_VALUE))
+                ));
 
+            traceBuilder.addPacket(
             TracePacket.newBuilder()
                 .setTrustedPacketSequenceId(1)
                 .setTrackDescriptor(
@@ -262,8 +271,9 @@ public class BuildOperationTrace implements Stoppable {
                                 .setPid(1337)
                                 .setProcessName("Gradle")
                                 .build()))
-                .build().writeTo(protoOutputStream);
+            );
 
+            traceBuilder.addPacket(
             TracePacket.newBuilder()
                 .setTrustedPacketSequenceId(1)
                 .setTrackDescriptor(TrackDescriptor.newBuilder()
@@ -272,8 +282,7 @@ public class BuildOperationTrace implements Stoppable {
                         .setPid(1337)
                         .setTid(1337)
                         .setThreadName("Worker")))
-                .build()
-                .writeTo(protoOutputStream);
+            );
         }
 
         TrackEventOuterClass.TrackEvent.Builder event = toEvent(operation);
@@ -281,12 +290,12 @@ public class BuildOperationTrace implements Stoppable {
             return;
         }
 
+        traceBuilder.addPacket(
         TracePacket.newBuilder()
             .setTrustedPacketSequenceId(1)
             .setTimestamp(operation.getTimeStampNs() - firstStartTimeNs)
             .setTimestampClockId(BuiltinClock.BUILTIN_CLOCK_BOOTTIME_VALUE)
-            .setTrackEvent(event)
-            .build().writeTo(protoOutputStream);
+            .setTrackEvent(event));
     }
 
     private TrackEventOuterClass.TrackEvent.Builder toEvent(SerializedOperation operation) {
