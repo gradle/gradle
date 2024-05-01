@@ -52,10 +52,16 @@ public interface ProblemUsageProgressDetails {
     Throwable getFailure();
 
     interface ProblemDefinition {
-        List<ProblemGroup> getId();
+        ProblemId getId();
         String getSeverity();
         @Nullable
         DocumentationLink getDocumentationLink();
+    }
+
+    interface ProblemId {
+        String getId();
+        String getDisplayName();
+        List<ProblemGroup> getGroup();
     }
 
     interface ProblemGroup {
