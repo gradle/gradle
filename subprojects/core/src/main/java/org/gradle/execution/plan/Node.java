@@ -275,6 +275,16 @@ public abstract class Node {
         return false;
     }
 
+    private long executionTime = 0;
+
+    public long getExecutionTime(){
+        return executionTime;
+    }
+
+    public void setExecutionTime(long executionTime) {
+        this.executionTime = executionTime;
+    }
+
     /**
      * Returns any error that happened during the execution of the node itself,
      * i.e. a task action has thrown an exception.

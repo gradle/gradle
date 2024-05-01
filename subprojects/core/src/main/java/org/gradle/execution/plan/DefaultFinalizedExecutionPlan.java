@@ -57,14 +57,12 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
             } else if (!node1.isPriority() && node2.isPriority()) {
                 return 1;
             }
-            if (node1.getIndex() > node2.getIndex()) {
-                return 1;
-            } else if (node1.getIndex() < node2.getIndex()) {
-                return -1;
-            }
-            return NodeComparator.INSTANCE.compare(node1, node2);
+            return 0;
         }
-    };
+    }
+        .thenComparing(Comparator.comparing(Node::getExecutionTime).reversed())
+        .thenComparing(Node::getIndex)
+        .thenComparing(NodeComparator.INSTANCE);
 
     private final Set<Node> waitingToStartNodes = new HashSet<>();
     private final ExecutionQueue readyNodes = new ExecutionQueue();

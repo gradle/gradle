@@ -37,15 +37,20 @@ import org.gradle.plugin.use.internal.DefaultPluginId;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @ServiceScope(Scope.Build.class)
 public class TaskNodeFactory {
@@ -54,6 +59,7 @@ public class TaskNodeFactory {
     private final GradleInternal thisBuild;
     private final DefaultTypeOriginInspectorFactory typeOriginInspectorFactory;
     private final Function<LocalTaskNode, ResolveMutationsNode> resolveMutationsNodeFactory;
+    private final Map<String, Long> taskExecutionTimes;
 
     public TaskNodeFactory(
         GradleInternal thisBuild,
@@ -66,7 +72,23 @@ public class TaskNodeFactory {
         this.workGraphController = workGraphController;
         this.typeOriginInspectorFactory = new DefaultTypeOriginInspectorFactory();
         resolveMutationsNodeFactory = localTaskNode -> new ResolveMutationsNode(localTaskNode, nodeValidator, buildOperationRunner, accessHierarchies);
+        this.taskExecutionTimes = loadTaskExecutionTimes(thisBuild);
     }
+
+    private static Map<String, Long> loadTaskExecutionTimes(GradleInternal thisBuild) {
+        File file = new File(thisBuild.getGradleUserHomeDir(), "buildDurations.properties");
+        if (!file.exists()) {
+            return Collections.emptyMap();
+        }
+        try (FileReader reader = new FileReader(file)) {
+            Properties properties = new Properties();
+            properties.load(reader);
+            return properties.entrySet().stream().collect(Collectors.toMap(e-> (String)e.getKey(), e-> Long.valueOf((String)e.getValue())));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 
     public Set<Task> getTasks() {
         return nodes.keySet();
@@ -85,6 +107,9 @@ public class TaskNodeFactory {
             } else {
                 node = TaskInAnotherBuild.of((TaskInternal) task, workGraphController);
             }
+            String taskPath = thisBuild.getRootProject().getName() + task.getPath();
+            Long duration = taskExecutionTimes.getOrDefault(taskPath, 0L);
+            node.setExecutionTime(duration);
             nodes.put(task, node);
         }
         return node;
