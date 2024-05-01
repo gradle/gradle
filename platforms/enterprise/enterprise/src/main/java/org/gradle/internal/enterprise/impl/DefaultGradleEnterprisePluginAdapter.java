@@ -130,7 +130,7 @@ public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePlu
 
         @Override
         public Collection<Problem> getProblemsFor(Throwable failure) {
-            return problems.get(buildFailure);
+            return problems.get(failure);
         }
 
         private @Nonnull Collection<Problem> getProblems(@Nullable Throwable buildFailure) {
