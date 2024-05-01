@@ -25,6 +25,7 @@ public class IntQuestionPromptEventSerializer implements Serializer<IntQuestionP
     @Override
     public void write(Encoder encoder, IntQuestionPromptEvent value) throws Exception {
         encoder.writeLong(value.getTimestamp());
+        encoder.writeLong(value.getMonotonicTimestamp());
         encoder.writeString(value.getPrompt());
         encoder.writeSmallInt(value.getMinValue());
         encoder.writeSmallInt(value.getDefaultValue());
@@ -32,6 +33,6 @@ public class IntQuestionPromptEventSerializer implements Serializer<IntQuestionP
 
     @Override
     public IntQuestionPromptEvent read(Decoder decoder) throws Exception {
-        return new IntQuestionPromptEvent(decoder.readLong(), decoder.readString(), decoder.readSmallInt(), decoder.readSmallInt());
+        return new IntQuestionPromptEvent(decoder.readLong(), decoder.readLong(), decoder.readString(), decoder.readSmallInt(), decoder.readSmallInt());
     }
 }

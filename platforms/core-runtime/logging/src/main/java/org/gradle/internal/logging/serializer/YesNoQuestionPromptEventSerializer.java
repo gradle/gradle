@@ -25,11 +25,12 @@ public class YesNoQuestionPromptEventSerializer implements Serializer<YesNoQuest
     @Override
     public void write(Encoder encoder, YesNoQuestionPromptEvent value) throws Exception {
         encoder.writeLong(value.getTimestamp());
+        encoder.writeLong(value.getMonotonicTimestamp());
         encoder.writeString(value.getPrompt());
     }
 
     @Override
     public YesNoQuestionPromptEvent read(Decoder decoder) throws Exception {
-        return new YesNoQuestionPromptEvent(decoder.readLong(), decoder.readString());
+        return new YesNoQuestionPromptEvent(decoder.readLong(), decoder.readLong(), decoder.readString());
     }
 }

@@ -106,6 +106,7 @@ public class LoggingBuildOperationProgressBroadcaster implements Stoppable, Outp
         progressEventEmitter.emit(
             buildOperationId,
             event.getTimestamp(),
+            event.getMonotonicTimestamp(),
             event
         );
     }

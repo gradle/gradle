@@ -33,7 +33,7 @@ class BuildStatusRendererTest extends OutputSpecification {
 
     @Override
     UpdateNowEvent updateNow() {
-        return new UpdateNowEvent(currentTimeMs)
+        return new UpdateNowEvent(currentTimeMs, System.nanoTime())
     }
 
     def "forwards event list to listener"() {

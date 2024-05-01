@@ -51,7 +51,7 @@ public class DefaultUserInputReceiver implements GlobalUserInputReceiver {
                 Either<?, String> result = event.convert(CharMatcher.javaIsoControl().removeFrom(StringUtils.trim(text)));
                 if (result.getRight().isPresent()) {
                     // Need to prompt the user again
-                    console.onOutput(new PromptOutputEvent(event.getTimestamp(), result.getRight().get(), false));
+                    console.onOutput(new PromptOutputEvent(event.getTimestamp(), event.getMonotonicTimestamp(), result.getRight().get(), false));
                     return null;
                 } else {
                     // Send result

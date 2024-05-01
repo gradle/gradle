@@ -42,6 +42,7 @@ public class ProgressStartEvent extends CategorisedOutputEvent implements org.gr
         OperationIdentifier progressOperationId,
         @Nullable OperationIdentifier parentProgressOperationId,
         long timestamp,
+        long monotonicTimestamp,
         String category,
         String description,
         @Nullable String loggingHeader,
@@ -51,7 +52,7 @@ public class ProgressStartEvent extends CategorisedOutputEvent implements org.gr
         @Nullable OperationIdentifier buildOperationId,
         @Nullable BuildOperationCategory buildOperationCategory
     ) {
-        super(timestamp, category, LogLevel.LIFECYCLE);
+        super(timestamp, monotonicTimestamp, category, LogLevel.LIFECYCLE);
         this.progressOperationId = progressOperationId;
         this.parentProgressOperationId = parentProgressOperationId;
         this.description = description;
@@ -117,7 +118,7 @@ public class ProgressStartEvent extends CategorisedOutputEvent implements org.gr
     }
 
     public ProgressStartEvent withParentProgressOperation(OperationIdentifier parentProgressOperationId) {
-        return new ProgressStartEvent(progressOperationId, parentProgressOperationId, getTimestamp(), getCategory(), description, loggingHeader, status, totalProgress, buildOperationStart, buildOperationId, buildOperationCategory);
+        return new ProgressStartEvent(progressOperationId, parentProgressOperationId, getTimestamp(), getMonotonicTimestamp(), getCategory(), description, loggingHeader, status, totalProgress, buildOperationStart, buildOperationId, buildOperationCategory);
     }
 
     @Override

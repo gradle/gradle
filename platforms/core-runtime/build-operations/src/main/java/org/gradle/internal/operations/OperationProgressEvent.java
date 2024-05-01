@@ -22,14 +22,20 @@ public final class OperationProgressEvent {
 
     private final long time;
     private final Object details;
+    private final long monotonicTime;
 
-    public OperationProgressEvent(long time, @Nullable Object details) {
+    public OperationProgressEvent(long time, long monotonicTime, @Nullable Object details) {
         this.time = time;
+        this.monotonicTime = monotonicTime;
         this.details = details;
     }
 
     public long getTime() {
         return time;
+    }
+
+    public long getMonotonicTime() {
+        return monotonicTime;
     }
 
     @Nullable

@@ -49,7 +49,7 @@ class LoggingBuildOperationProgressBroadcasterTest extends Specification {
         bridge.onOutput(eventWithBuildOperationId)
 
         then:
-        1 * buildOperationProgressEventEmitter.emit(_, _, _) >> { OperationIdentifier operationIdentifier, long timestamp, Object details ->
+        1 * buildOperationProgressEventEmitter.emit(_, _, _, _) >> { OperationIdentifier operationIdentifier, long timestamp, Object details ->
             assert operationIdentifier == testOperationId
             assert details == eventWithBuildOperationId
         }
@@ -59,7 +59,7 @@ class LoggingBuildOperationProgressBroadcasterTest extends Specification {
         bridge.onOutput(eventWithFallbackBuildOperationId)
 
         then:
-        1 * buildOperationProgressEventEmitter.emit(_, _, _) >> { OperationIdentifier operationIdentifier, long timestamp, Object details ->
+        1 * buildOperationProgressEventEmitter.emit(_, _, _, _) >> { OperationIdentifier operationIdentifier, long timestamp, Object details ->
             assert operationIdentifier == fallbackOperationId
             assert details == eventWithFallbackBuildOperationId
         }
@@ -76,7 +76,7 @@ class LoggingBuildOperationProgressBroadcasterTest extends Specification {
         bridge.onOutput(progressStartEvent(testOperationId, null))
 
         then:
-        0 * buildOperationProgressEventEmitter.emit(_, _, _)
+        0 * buildOperationProgressEventEmitter.emit(_, _, _, _)
     }
 
     def "registers / unregisters itself as output listener"() {

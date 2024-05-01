@@ -26,10 +26,11 @@ public class UserInputResumeEventSerializer implements Serializer<UserInputResum
     @Override
     public void write(Encoder encoder, UserInputResumeEvent event) throws Exception {
         encoder.writeLong(event.getTimestamp());
+        encoder.writeLong(event.getMonotonicTimestamp());
     }
 
     @Override
     public UserInputResumeEvent read(Decoder decoder) throws Exception {
-        return new UserInputResumeEvent(decoder.readLong());
+        return new UserInputResumeEvent(decoder.readLong(), decoder.readLong());
     }
 }

@@ -112,6 +112,7 @@ public class ProgressStartEventSerializer implements Serializer<ProgressStartEve
             encoder.writeSmallLong(parentProgressOperationId.getId());
         }
         encoder.writeLong(event.getTimestamp());
+        encoder.writeLong(event.getMonotonicTimestamp());
         if ((flags & CATEGORY_NAME) != 0) {
             encoder.writeString(event.getCategory());
         }
@@ -144,6 +145,7 @@ public class ProgressStartEventSerializer implements Serializer<ProgressStartEve
         }
 
         long timestamp = decoder.readLong();
+        long monotonicTimestamp = decoder.readLong();
 
         String category;
         if ((flags & CATEGORY_IS_TASK) != 0) {
@@ -189,6 +191,7 @@ public class ProgressStartEventSerializer implements Serializer<ProgressStartEve
             progressOperationId,
             parentProgressOperationId,
             timestamp,
+            monotonicTimestamp,
             category,
             description,
             loggingHeader,

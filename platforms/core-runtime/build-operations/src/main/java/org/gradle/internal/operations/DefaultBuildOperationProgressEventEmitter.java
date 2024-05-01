@@ -31,47 +31,47 @@ public class DefaultBuildOperationProgressEventEmitter implements BuildOperation
     }
 
     @Override
-    public void emit(@Nullable OperationIdentifier operationIdentifier, long timestamp, @Nullable Object details) {
+    public void emit(@Nullable OperationIdentifier operationIdentifier, long timestamp, long monotonicTimestamp, @Nullable Object details) {
         // Explicit check in case of unsafe CurrentBuildOperationRef usage
         if (operationIdentifier == null) {
             throw new IllegalArgumentException("operationIdentifier is null");
         }
-        doEmit(operationIdentifier, timestamp, details);
+        doEmit(operationIdentifier, timestamp, monotonicTimestamp, details);
     }
 
     @Override
     public void emitNow(@Nullable OperationIdentifier operationIdentifier, @Nullable Object details) {
-        emit(operationIdentifier, clock.getCurrentTime(), details);
+        emit(operationIdentifier, clock.getCurrentTime(), System.nanoTime(), details);
     }
 
     @Override
     public void emitNowIfCurrent(Object details) {
-        emitIfCurrent(clock.getCurrentTime(), details);
+        emitIfCurrent(clock.getCurrentTime(), System.nanoTime(), details);
     }
 
     @Override
-    public void emitIfCurrent(long time, Object details) {
+    public void emitIfCurrent(long time, long monotonicTime, Object details) {
         OperationIdentifier currentOperationIdentifier = current.getId();
         if (currentOperationIdentifier != null) {
-            doEmit(currentOperationIdentifier, time, details);
+            doEmit(currentOperationIdentifier, time, monotonicTime, details);
         }
     }
 
     @Override
     public void emitNowForCurrent(Object details) {
-        emitForCurrent(clock.getCurrentTime(), details);
+        emitForCurrent(clock.getCurrentTime(), System.nanoTime(), details);
     }
 
-    private void emitForCurrent(long time, Object details) {
+    private void emitForCurrent(long time, long monotonicTimestamp, Object details) {
         OperationIdentifier currentOperationIdentifier = current.getId();
         if (currentOperationIdentifier == null) {
             throw new IllegalStateException("No current build operation");
         } else {
-            doEmit(currentOperationIdentifier, time, details);
+            doEmit(currentOperationIdentifier, time, monotonicTimestamp, details);
         }
     }
 
-    private void doEmit(OperationIdentifier operationIdentifier, long timestamp, @Nullable Object details) {
-        listener.progress(operationIdentifier, new OperationProgressEvent(timestamp, details));
+    private void doEmit(OperationIdentifier operationIdentifier, long timestamp, long monotonicTimestamp, @Nullable Object details) {
+        listener.progress(operationIdentifier, new OperationProgressEvent(timestamp, monotonicTimestamp, details));
     }
 }

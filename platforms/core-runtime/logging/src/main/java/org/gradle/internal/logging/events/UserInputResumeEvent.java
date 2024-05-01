@@ -20,8 +20,8 @@ import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.operations.OperationIdentifier;
 
 public class UserInputResumeEvent extends RenderableOutputEvent implements InteractiveEvent {
-    public UserInputResumeEvent(long timestamp) {
-        super(timestamp, "prompt", LogLevel.QUIET, null);
+    public UserInputResumeEvent(long timestamp, long monotonicTimestamp) {
+        super(timestamp, monotonicTimestamp, "prompt", LogLevel.QUIET, null);
     }
 
     @Override

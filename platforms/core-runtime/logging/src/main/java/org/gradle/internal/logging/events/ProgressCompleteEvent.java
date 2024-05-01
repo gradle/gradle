@@ -24,10 +24,12 @@ public class ProgressCompleteEvent extends OutputEvent {
     private final String status;
     private final OperationIdentifier progressOperationId;
     private final boolean failed;
+    private final long monotonicTimestamp;
 
-    public ProgressCompleteEvent(OperationIdentifier progressOperationId, long timestamp, String status, boolean failed) {
+    public ProgressCompleteEvent(OperationIdentifier progressOperationId, long timestamp, long monotonicTimestamp, String status, boolean failed) {
         this.progressOperationId = progressOperationId;
         this.timestamp = timestamp;
+        this.monotonicTimestamp = monotonicTimestamp;
         this.status = status;
         this.failed = failed;
     }
@@ -56,5 +58,9 @@ public class ProgressCompleteEvent extends OutputEvent {
 
     public long getTimestamp() {
         return timestamp;
+    }
+
+    public long getMonotonicTimestamp() {
+        return monotonicTimestamp;
     }
 }

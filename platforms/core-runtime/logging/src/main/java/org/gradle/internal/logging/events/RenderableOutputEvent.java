@@ -25,8 +25,8 @@ import javax.annotation.Nullable;
 public abstract class RenderableOutputEvent extends CategorisedOutputEvent {
     private OperationIdentifier buildOperationId;
 
-    protected RenderableOutputEvent(long timestamp, String category, LogLevel logLevel, @Nullable OperationIdentifier buildOperationId) {
-        super(timestamp, category, logLevel);
+    protected RenderableOutputEvent(long timestamp, long monotonicTimestamp, String category, LogLevel logLevel, @Nullable OperationIdentifier buildOperationId) {
+        super(timestamp, monotonicTimestamp, category, logLevel);
         this.buildOperationId = buildOperationId;
     }
 

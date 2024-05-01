@@ -59,6 +59,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
     private Object lastRenderedBuildOpId;
     private boolean needHeaderSeparator;
     private long currentTimePeriod;
+    private long currentMonotonicTimePeriod;
 
     public GroupingProgressLogEventGenerator(OutputEventListener listener, LogHeaderFormatter headerFormatter, boolean verbose) {
         this.listener = listener;
@@ -88,7 +89,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
         OperationIdentifier progressId = startEvent.getProgressOperationId();
         if (startEvent.isBuildOperationStart() && isGrouped) {
             // Create a new group for tasks or configure project
-            operationsInProgress.put(progressId, new OperationGroup(startEvent.getCategory(), startEvent.getDescription(), startEvent.getTimestamp(), startEvent.getParentProgressOperationId(), progressId, startEvent.getBuildOperationCategory()));
+            operationsInProgress.put(progressId, new OperationGroup(startEvent.getCategory(), startEvent.getDescription(), startEvent.getTimestamp(), startEvent.getMonotonicTimestamp(), startEvent.getParentProgressOperationId(), progressId, startEvent.getBuildOperationCategory()));
         } else {
             operationsInProgress.put(progressId, new OperationState(startEvent.getParentProgressOperationId(), progressId));
         }
@@ -96,7 +97,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
         // Preserve logging of headers for progress operations started outside of the build operation executor as was done in Gradle 3.x
         // Basically, if we see an operation with a logging header and it's not grouped, just log it
         if (!isGrouped && GUtil.isTrue(startEvent.getLoggingHeader())) {
-            onUngroupedOutput(new LogEvent(startEvent.getTimestamp(), startEvent.getCategory(), startEvent.getLogLevel(), startEvent.getLoggingHeader(), null, null));
+            onUngroupedOutput(new LogEvent(startEvent.getTimestamp(), startEvent.getMonotonicTimestamp(), startEvent.getCategory(), startEvent.getLogLevel(), startEvent.getLoggingHeader(), null, null));
         }
     }
 
@@ -131,6 +132,8 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
 
     private void onUpdateNow(UpdateNowEvent event) {
         currentTimePeriod = event.getTimestamp();
+        currentMonotonicTimePeriod = event.getMonotonicTimestamp();
+
         for (OperationState state: operationsInProgress.values()) {
             state.maybeFlushOutput(event.getTimestamp());
         }
@@ -138,7 +141,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
 
     private void onUngroupedOutput(RenderableOutputEvent event) {
         if (lastRenderedBuildOpId != null) {
-            listener.onOutput(spacerLine(event.getTimestamp(), event.getCategory()));
+            listener.onOutput(spacerLine(event.getTimestamp(), event.getMonotonicTimestamp(), event.getCategory()));
             lastRenderedBuildOpId = null;
             needHeaderSeparator = true;
         }
@@ -163,8 +166,8 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
         return null;
     }
 
-    private static LogEvent spacerLine(long timestamp, String category) {
-        return new LogEvent(timestamp, category, LogLevel.LIFECYCLE, "", null);
+    private static LogEvent spacerLine(long timestamp, long monotonicTimestamp, String category) {
+        return new LogEvent(timestamp, monotonicTimestamp, category, LogLevel.LIFECYCLE, "", null);
     }
 
     private static class OperationState {
@@ -187,6 +190,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
 
     private class OperationGroup extends OperationState {
         private final String category;
+        private long lastUpdateMonotonicTime;
         private long lastUpdateTime;
         private final String description;
         private final BuildOperationCategory buildOperationCategory;
@@ -199,16 +203,17 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
 
         private List<RenderableOutputEvent> bufferedLogs = new ArrayList<RenderableOutputEvent>();
 
-        OperationGroup(String category, String description, long startTime, @Nullable OperationIdentifier parentBuildOp, OperationIdentifier buildOpIdentifier, BuildOperationCategory buildOperationCategory) {
+        OperationGroup(String category, String description, long startTime, long monotonicTimestamp, @Nullable OperationIdentifier parentBuildOp, OperationIdentifier buildOpIdentifier, BuildOperationCategory buildOperationCategory) {
             super(parentBuildOp, buildOpIdentifier);
             this.category = category;
             this.lastUpdateTime = startTime;
+            this.lastUpdateMonotonicTime = monotonicTimestamp;
             this.description = description;
             this.buildOperationCategory = buildOperationCategory;
         }
 
         private StyledTextOutputEvent header() {
-            return new StyledTextOutputEvent(lastUpdateTime, category, LogLevel.LIFECYCLE, buildOpIdentifier, headerFormatter.format(description, status, failed));
+            return new StyledTextOutputEvent(lastUpdateTime, lastUpdateMonotonicTime, category, LogLevel.LIFECYCLE, buildOpIdentifier, headerFormatter.format(description, status, failed));
         }
 
         void bufferOutput(RenderableOutputEvent output) {
@@ -216,6 +221,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
             if (Objects.equal(buildOpIdentifier, lastRenderedBuildOpId)) {
                 listener.onOutput(output);
                 lastUpdateTime = currentTimePeriod;
+                lastUpdateMonotonicTime = currentMonotonicTimePeriod;
                 needHeaderSeparator = true;
             } else {
                 bufferedLogs.add(output);
@@ -228,7 +234,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
                 boolean hasContent = !bufferedLogs.isEmpty();
                 if (!hasForeground() || statusHasChanged()) {
                     if (needHeaderSeparator || hasContent) {
-                        listener.onOutput(spacerLine(lastUpdateTime, category));
+                        listener.onOutput(spacerLine(lastUpdateTime, lastUpdateMonotonicTime, category));
                     }
                     listener.onOutput(header());
                     headerSent = true;

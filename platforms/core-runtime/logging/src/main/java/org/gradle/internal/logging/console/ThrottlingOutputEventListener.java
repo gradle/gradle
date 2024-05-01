@@ -63,7 +63,7 @@ public class ThrottlingOutputEventListener implements OutputEventListener {
             @Override
             public void run() {
                 try {
-                    onOutput(new UpdateNowEvent(clock.getCurrentTime()));
+                    onOutput(new UpdateNowEvent(clock.getCurrentTime(), System.nanoTime()));
                 } catch (Throwable t) {
                     // this class is used as task in a scheduled executor service, so it must not throw any throwable,
                     // otherwise the further invocations of this task get automatically and silently cancelled

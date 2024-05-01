@@ -52,11 +52,11 @@ abstract class OutputSpecification extends Specification {
     }
 
     LogEvent event(String text) {
-        return new LogEvent(tenAm, 'category', LogLevel.INFO, text, null)
+        return new LogEvent(tenAm, monotonicTimestamp, 'category', LogLevel.INFO, text, null)
     }
 
     LogEvent event(String text, LogLevel logLevel) {
-        return new LogEvent(tenAm, 'category', logLevel, text, null)
+        return new LogEvent(tenAm, monotonicTimestamp, 'category', logLevel, text, null)
     }
 
     LogEvent event(String text, LogLevel logLevel, long buildOperationId) {
@@ -68,7 +68,7 @@ abstract class OutputSpecification extends Specification {
     }
 
     LogEvent event(long timestamp, String text, LogLevel logLevel) {
-        return new LogEvent(timestamp, 'category', logLevel, text, null)
+        return new LogEvent(timestamp, monotonicTimestamp, 'category', logLevel, text, null)
     }
 
     LogEvent event(long timestamp, String text, LogLevel logLevel, OperationIdentifier buildOperationId) {
@@ -76,11 +76,11 @@ abstract class OutputSpecification extends Specification {
     }
 
     LogEvent event(long timestamp, String text) {
-        return new LogEvent(timestamp, 'category', LogLevel.INFO, text, null)
+        return new LogEvent(timestamp, monotonicTimestamp, 'category', LogLevel.INFO, text, null)
     }
 
     LogEvent event(String text, Throwable throwable) {
-        return new LogEvent(tenAm, 'category', LogLevel.INFO, text, throwable)
+        return new LogEvent(tenAm, monotonicTimestamp, 'category', LogLevel.INFO, text, throwable)
     }
 
     ProgressStartEvent start(String description) {
@@ -121,6 +121,6 @@ abstract class OutputSpecification extends Specification {
     }
 
     UpdateNowEvent updateNow() {
-        new UpdateNowEvent(tenAm)
+        new UpdateNowEvent(tenAm, System.nanoTime())
     }
 }

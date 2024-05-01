@@ -22,15 +22,21 @@ public class CategorisedOutputEvent extends OutputEvent {
     private final String category;
     private final LogLevel logLevel;
     private final long timestamp;
+    private final long monotonicTimestamp;
 
-    public CategorisedOutputEvent(long timestamp, String category, LogLevel logLevel) {
+    public CategorisedOutputEvent(long timestamp, long monotonicTimestamp, String category, LogLevel logLevel) {
         this.timestamp = timestamp;
+        this.monotonicTimestamp = monotonicTimestamp;
         this.category = category;
         this.logLevel = logLevel;
     }
 
     public long getTimestamp() {
         return timestamp;
+    }
+
+    public long getMonotonicTimestamp() {
+        return monotonicTimestamp;
     }
 
     @Override

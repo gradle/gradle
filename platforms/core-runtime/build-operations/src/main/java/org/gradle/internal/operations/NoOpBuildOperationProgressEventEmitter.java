@@ -20,7 +20,7 @@ import javax.annotation.Nullable;
 
 public class NoOpBuildOperationProgressEventEmitter implements BuildOperationProgressEventEmitter {
     @Override
-    public void emit(OperationIdentifier operationIdentifier, long timestamp, @Nullable Object details) {}
+    public void emit(OperationIdentifier operationIdentifier, long timestamp, long monotonicTimestamp, @Nullable Object details) {}
 
     @Override
     public void emitNow(@Nullable OperationIdentifier operationIdentifier, @Nullable Object details) {}
@@ -29,7 +29,7 @@ public class NoOpBuildOperationProgressEventEmitter implements BuildOperationPro
     public void emitNowIfCurrent(Object details) {}
 
     @Override
-    public void emitIfCurrent(long time, Object details) {}
+    public void emitIfCurrent(long time, long monotonicTime, Object details) {}
 
     @Override
     public void emitNowForCurrent(Object details) {}

@@ -23,10 +23,14 @@ public final class OperationFinishEvent {
     private final long endTime;
     private final Throwable failure;
     private final Object result;
+    private final long monotonicStartTime;
+    private final long monotonicEndTime;
 
-    public OperationFinishEvent(long startTime, long endTime, @Nullable Throwable failure, @Nullable Object result) {
+    public OperationFinishEvent(long startTime, long monotonicStartTime, long endTime, long monotonicEndTime, @Nullable Throwable failure, @Nullable Object result) {
         this.startTime = startTime;
+        this.monotonicStartTime = monotonicStartTime;
         this.endTime = endTime;
+        this.monotonicEndTime = monotonicEndTime;
         this.failure = failure;
         this.result = result;
     }
@@ -35,8 +39,16 @@ public final class OperationFinishEvent {
         return startTime;
     }
 
+    public long getMonotonicStartTime() {
+        return monotonicStartTime;
+    }
+
     public long getEndTime() {
         return endTime;
+    }
+
+    public long getMonotonicEndTime() {
+        return monotonicEndTime;
     }
 
     @Nullable

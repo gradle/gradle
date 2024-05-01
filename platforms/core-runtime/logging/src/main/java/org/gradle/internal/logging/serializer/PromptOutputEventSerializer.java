@@ -25,12 +25,13 @@ public class PromptOutputEventSerializer implements Serializer<PromptOutputEvent
     @Override
     public void write(Encoder encoder, PromptOutputEvent value) throws Exception {
         encoder.writeLong(value.getTimestamp());
+        encoder.writeLong(value.getMonotonicTimestamp());
         encoder.writeString(value.getPrompt());
         encoder.writeBoolean(value.isNewQuestion());
     }
 
     @Override
     public PromptOutputEvent read(Decoder decoder) throws Exception {
-        return new PromptOutputEvent(decoder.readLong(), decoder.readString(), decoder.readBoolean());
+        return new PromptOutputEvent(decoder.readLong(), decoder.readLong(), decoder.readString(), decoder.readBoolean());
     }
 }

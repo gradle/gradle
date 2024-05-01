@@ -37,6 +37,7 @@ public class StyledTextOutputEventSerializer implements Serializer<StyledTextOut
     @Override
     public void write(Encoder encoder, StyledTextOutputEvent event) throws Exception {
         encoder.writeLong(event.getTimestamp());
+        encoder.writeLong(event.getMonotonicTimestamp());
         encoder.writeString(event.getCategory());
         logLevelSerializer.write(encoder, event.getLogLevel());
         if (event.getBuildOperationId() == null) {
@@ -51,11 +52,12 @@ public class StyledTextOutputEventSerializer implements Serializer<StyledTextOut
     @Override
     public StyledTextOutputEvent read(Decoder decoder) throws Exception {
         long timestamp = decoder.readLong();
+        long monotonicTimestamp = decoder.readLong();
         String category = decoder.readString();
         LogLevel logLevel = logLevelSerializer.read(decoder);
         OperationIdentifier buildOperationId = decoder.readBoolean() ? new OperationIdentifier(decoder.readSmallLong()) : null;
         List<StyledTextOutputEvent.Span> spans = spanSerializer.read(decoder);
-        return new StyledTextOutputEvent(timestamp, category, logLevel, buildOperationId, spans);
+        return new StyledTextOutputEvent(timestamp, monotonicTimestamp, category, logLevel, buildOperationId, spans);
     }
 }
 

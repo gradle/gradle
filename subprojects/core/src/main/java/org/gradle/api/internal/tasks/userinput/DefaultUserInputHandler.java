@@ -74,7 +74,7 @@ public class DefaultUserInputHandler extends AbstractUserInputHandler {
             builder.append(" [");
             builder.append(StringUtils.join(YesNoQuestionPromptEvent.YES_NO_CHOICES, ", "));
             builder.append("] ");
-            YesNoQuestionPromptEvent prompt = new YesNoQuestionPromptEvent(clock.getCurrentTime(), builder.toString());
+            YesNoQuestionPromptEvent prompt = new YesNoQuestionPromptEvent(clock.getCurrentTime(), System.nanoTime(), builder.toString());
             return prompt(prompt, BooleanUtils::toBoolean);
         }
 
@@ -88,7 +88,7 @@ public class DefaultUserInputHandler extends AbstractUserInputHandler {
             builder.append(") [");
             builder.append(StringUtils.join(YesNoQuestionPromptEvent.YES_NO_CHOICES, ", "));
             builder.append("] ");
-            BooleanQuestionPromptEvent prompt = new BooleanQuestionPromptEvent(clock.getCurrentTime(), builder.toString(), defaultValue, defaultString);
+            BooleanQuestionPromptEvent prompt = new BooleanQuestionPromptEvent(clock.getCurrentTime(), System.nanoTime(), builder.toString(), defaultValue, defaultString);
             return prompt(prompt, defaultValue, BooleanUtils::toBoolean);
         }
 
@@ -114,7 +114,7 @@ public class DefaultUserInputHandler extends AbstractUserInputHandler {
             builder.append(", default: ");
             builder.append(defaultValue);
             builder.append("): ");
-            IntQuestionPromptEvent prompt = new IntQuestionPromptEvent(clock.getCurrentTime(), builder.toString(), minValue, defaultValue);
+            IntQuestionPromptEvent prompt = new IntQuestionPromptEvent(clock.getCurrentTime(), System.nanoTime(), builder.toString(), minValue, defaultValue);
             return prompt(prompt, defaultValue, Integer::parseInt);
         }
 
@@ -125,7 +125,7 @@ public class DefaultUserInputHandler extends AbstractUserInputHandler {
             builder.append(" (default: ");
             builder.append(defaultValue);
             builder.append("): ");
-            TextQuestionPromptEvent prompt = new TextQuestionPromptEvent(clock.getCurrentTime(), builder.toString());
+            TextQuestionPromptEvent prompt = new TextQuestionPromptEvent(clock.getCurrentTime(), System.nanoTime(), builder.toString());
             return prompt(prompt, defaultValue, sanitizedValue -> sanitizedValue);
         }
 
@@ -195,7 +195,7 @@ public class DefaultUserInputHandler extends AbstractUserInputHandler {
             builder.append(") [1..");
             builder.append(options.size());
             builder.append("] ");
-            SelectOptionPromptEvent prompt = new SelectOptionPromptEvent(clock.getCurrentTime(), builder.toString(), values.size(), values.indexOf(defaultOption) + 1);
+            SelectOptionPromptEvent prompt = new SelectOptionPromptEvent(clock.getCurrentTime(), System.nanoTime(), builder.toString(), values.size(), values.indexOf(defaultOption) + 1);
             return prompt(prompt, defaultOption, sanitizedInput -> {
                 int value = Integer.parseInt(sanitizedInput);
                 return values.get(value - 1);
@@ -205,7 +205,7 @@ public class DefaultUserInputHandler extends AbstractUserInputHandler {
         @Override
         public void finish() {
             if (hasPrompted) {
-                outputEventBroadcaster.onOutput(new UserInputResumeEvent(clock.getCurrentTime()));
+                outputEventBroadcaster.onOutput(new UserInputResumeEvent(clock.getCurrentTime(), System.nanoTime()));
             }
         }
     }

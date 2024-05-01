@@ -27,7 +27,7 @@ class LogEventTest extends Specification {
 
     def renderWritesMessageToTextOutput() {
         given:
-        def logEvent = new LogEvent(TIMESTAMP, CATEGORY, LogLevel.INFO, MESSAGE, null)
+        def logEvent = new LogEvent(TIMESTAMP, monotonicTimestamp, CATEGORY, LogLevel.INFO, MESSAGE, null)
 
         when:
         logEvent.render(output)
@@ -41,7 +41,7 @@ class LogEventTest extends Specification {
     def renderWritesMessageAndExceptionToTextOutput() {
         given:
         def failure = new RuntimeException()
-        def logEvent = new LogEvent(TIMESTAMP, CATEGORY, LogLevel.INFO, MESSAGE, failure)
+        def logEvent = new LogEvent(TIMESTAMP, monotonicTimestamp, CATEGORY, LogLevel.INFO, MESSAGE, failure)
 
         when:
         logEvent.render(output)

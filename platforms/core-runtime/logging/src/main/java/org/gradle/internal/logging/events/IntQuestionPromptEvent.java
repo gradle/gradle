@@ -22,8 +22,8 @@ public class IntQuestionPromptEvent extends PromptOutputEvent {
     private final int minValue;
     private final int defaultValue;
 
-    public IntQuestionPromptEvent(long timestamp, String prompt, int minValue, int defaultValue) {
-        super(timestamp, prompt, true);
+    public IntQuestionPromptEvent(long timestamp, long monotonicTimestamp, String prompt, int minValue, int defaultValue) {
+        super(timestamp, monotonicTimestamp, prompt, true);
         this.minValue = minValue;
         this.defaultValue = defaultValue;
     }

@@ -160,7 +160,7 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
             : parent.getDescription().getId());
         assertParentRunning("Cannot start operation (%s) as parent operation (%s) has already completed.", descriptor, parent);
 
-        BuildOperationState operationState = new BuildOperationState(descriptor, clock.getCurrentTime());
+        BuildOperationState operationState = new BuildOperationState(descriptor, clock.getCurrentTime(), System.nanoTime());
         BuildOperationTrackingListener listener = new BuildOperationTrackingListener(currentBuildOperationRef, listenerFactory.createListener());
         DefaultBuildOperationContext context = new DefaultBuildOperationContext(descriptor, listener);
         return execution.execute(

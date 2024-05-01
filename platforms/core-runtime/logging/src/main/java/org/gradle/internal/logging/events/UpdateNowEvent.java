@@ -24,13 +24,19 @@ import org.gradle.api.logging.LogLevel;
 public class UpdateNowEvent extends OutputEvent implements InteractiveEvent {
 
     private final long timestamp;
+    private final long monotonicTimestamp;
 
-    public UpdateNowEvent(long timestamp) {
+    public UpdateNowEvent(long timestamp, long monotonicTimestamp) {
         this.timestamp = timestamp;
+        this.monotonicTimestamp = monotonicTimestamp;
     }
 
     public long getTimestamp() {
         return timestamp;
+    }
+
+    public long getMonotonicTimestamp() {
+        return monotonicTimestamp;
     }
 
     @Override

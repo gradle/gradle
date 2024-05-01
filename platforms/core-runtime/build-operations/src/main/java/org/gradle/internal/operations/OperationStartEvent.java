@@ -18,13 +18,19 @@ package org.gradle.internal.operations;
 
 public final class OperationStartEvent {
     private final long startTime;
+    private final long monotonicStartTime;
 
-    public OperationStartEvent(long startTime) {
+    public OperationStartEvent(long startTime, long monotonicStartTime) {
         this.startTime = startTime;
+        this.monotonicStartTime = monotonicStartTime;
     }
 
     public long getStartTime() {
         return startTime;
+    }
+
+    public long getMonotonicStartTime() {
+        return monotonicStartTime;
     }
 
     @Override

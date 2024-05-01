@@ -83,11 +83,12 @@ public class ProgressLogEventGenerator implements OutputEventListener {
     private void completeOperation(ProgressCompleteEvent progressCompleteEvent, Operation operation) {
         operation.status = progressCompleteEvent.getStatus();
         operation.completeTime = progressCompleteEvent.getTimestamp();
+        operation.completeMonotonicTime = progressCompleteEvent.getMonotonicTimestamp();
         operation.complete();
     }
 
     private void onStart(ProgressStartEvent progressStartEvent) {
-        Operation operation = new Operation(progressStartEvent.getCategory(), progressStartEvent.getLoggingHeader(), progressStartEvent.getTimestamp(), progressStartEvent.getBuildOperationId());
+        Operation operation = new Operation(progressStartEvent.getCategory(), progressStartEvent.getLoggingHeader(), progressStartEvent.getTimestamp(), progressStartEvent.getMonotonicTimestamp(), progressStartEvent.getBuildOperationId());
         operations.put(progressStartEvent.getProgressOperationId(), operation);
     }
 
@@ -99,24 +100,27 @@ public class ProgressLogEventGenerator implements OutputEventListener {
         private final String loggingHeader;
         private final long startTime;
         private final boolean hasLoggingHeader;
+        private final long monotonicTimestamp;
         private String status = "";
         private State state = State.None;
         private long completeTime;
+        private long completeMonotonicTime;
 
-        private Operation(String category, String loggingHeader, long startTime, OperationIdentifier buildOperationIdentifier) {
+        private Operation(String category, String loggingHeader, long startTime, long monotonicTimestamp, OperationIdentifier buildOperationIdentifier) {
             this.category = category;
             this.loggingHeader = loggingHeader;
             this.startTime = startTime;
+            this.monotonicTimestamp = monotonicTimestamp;
             this.hasLoggingHeader = GUtil.isTrue(loggingHeader);
             this.buildOperationIdentifier = buildOperationIdentifier;
         }
 
-        private StyledTextOutputEvent plainTextEvent(long timestamp, String text) {
-            return new StyledTextOutputEvent(timestamp, category, LogLevel.LIFECYCLE, buildOperationIdentifier, Collections.singletonList(new StyledTextOutputEvent.Span(text)));
+        private StyledTextOutputEvent plainTextEvent(long timestamp, long monotonicTimestamp, String text) {
+            return new StyledTextOutputEvent(timestamp, monotonicTimestamp, category, LogLevel.LIFECYCLE, buildOperationIdentifier, Collections.singletonList(new StyledTextOutputEvent.Span(text)));
         }
 
-        private StyledTextOutputEvent styledTextEvent(long timestamp, StyledTextOutputEvent.Span... spans) {
-            return new StyledTextOutputEvent(timestamp, category, LogLevel.LIFECYCLE, buildOperationIdentifier, Arrays.asList(spans));
+        private StyledTextOutputEvent styledTextEvent(long timestamp, long monotonicTimestamp, StyledTextOutputEvent.Span... spans) {
+            return new StyledTextOutputEvent(timestamp, monotonicTimestamp, category, LogLevel.LIFECYCLE, buildOperationIdentifier, Arrays.asList(spans));
         }
 
         private void doOutput(RenderableOutputEvent event) {
@@ -133,7 +137,7 @@ public class ProgressLogEventGenerator implements OutputEventListener {
             assert state == State.None;
             if (hasLoggingHeader) {
                 state = State.HeaderStarted;
-                doOutput(plainTextEvent(startTime, loggingHeader));
+                doOutput(plainTextEvent(startTime, monotonicTimestamp, loggingHeader));
             } else {
                 state = State.HeaderCompleted;
             }
@@ -143,11 +147,11 @@ public class ProgressLogEventGenerator implements OutputEventListener {
             switch (state) {
                 case None:
                     if (hasLoggingHeader) {
-                        listener.onOutput(plainTextEvent(startTime, loggingHeader + EOL));
+                        listener.onOutput(plainTextEvent(startTime, monotonicTimestamp, loggingHeader + EOL));
                     }
                     break;
                 case HeaderStarted:
-                    listener.onOutput(plainTextEvent(startTime, EOL));
+                    listener.onOutput(plainTextEvent(startTime, monotonicTimestamp, EOL));
                     break;
                 case HeaderCompleted:
                     return;
@@ -163,27 +167,30 @@ public class ProgressLogEventGenerator implements OutputEventListener {
                 case None:
                     if (hasLoggingHeader && hasStatus) {
                         doOutput(styledTextEvent(completeTime,
+                            completeMonotonicTime,
                             new StyledTextOutputEvent.Span(loggingHeader + ' '),
                             new StyledTextOutputEvent.Span(Style.ProgressStatus, status),
                             new StyledTextOutputEvent.Span(EOL)));
                     } else if (hasLoggingHeader) {
-                        doOutput(plainTextEvent(completeTime, loggingHeader + EOL));
+                        doOutput(plainTextEvent(completeTime, completeMonotonicTime, loggingHeader + EOL));
                     }
                     break;
                 case HeaderStarted:
                     assert hasLoggingHeader;
                     if (hasStatus) {
                         doOutput(styledTextEvent(completeTime,
+                            completeMonotonicTime,
                             new StyledTextOutputEvent.Span(" "),
                             new StyledTextOutputEvent.Span(Style.ProgressStatus, status),
                             new StyledTextOutputEvent.Span(EOL)));
                     } else {
-                        doOutput(plainTextEvent(completeTime, EOL));
+                        doOutput(plainTextEvent(completeTime, completeMonotonicTime, EOL));
                     }
                     break;
                 case HeaderCompleted:
                     if (hasLoggingHeader && hasStatus) {
                         doOutput(styledTextEvent(completeTime,
+                            completeMonotonicTime,
                             new StyledTextOutputEvent.Span(loggingHeader + ' '),
                             new StyledTextOutputEvent.Span(Style.ProgressStatus, status),
                             new StyledTextOutputEvent.Span(EOL)));

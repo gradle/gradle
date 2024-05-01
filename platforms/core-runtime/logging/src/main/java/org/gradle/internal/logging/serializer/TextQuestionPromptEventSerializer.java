@@ -25,11 +25,12 @@ public class TextQuestionPromptEventSerializer implements Serializer<TextQuestio
     @Override
     public void write(Encoder encoder, TextQuestionPromptEvent value) throws Exception {
         encoder.writeLong(value.getTimestamp());
+        encoder.writeLong(value.getMonotonicTimestamp());
         encoder.writeString(value.getPrompt());
     }
 
     @Override
     public TextQuestionPromptEvent read(Decoder decoder) throws Exception {
-        return new TextQuestionPromptEvent(decoder.readLong(), decoder.readString());
+        return new TextQuestionPromptEvent(decoder.readLong(), decoder.readLong(), decoder.readString());
     }
 }

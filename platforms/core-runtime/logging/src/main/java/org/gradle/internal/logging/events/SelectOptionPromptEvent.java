@@ -22,8 +22,8 @@ public class SelectOptionPromptEvent extends PromptOutputEvent {
     private final int optionCount;
     private final int defaultOption;
 
-    public SelectOptionPromptEvent(long timestamp, String prompt, int optionCount, int defaultOption) {
-        super(timestamp, prompt, true);
+    public SelectOptionPromptEvent(long timestamp, long monotonicTimestamp, String prompt, int optionCount, int defaultOption) {
+        super(timestamp, monotonicTimestamp, prompt, true);
         this.optionCount = optionCount;
         this.defaultOption = defaultOption;
     }

@@ -26,12 +26,12 @@ import javax.annotation.Nullable;
  */
 @ServiceScope(Global.class)
 public interface BuildOperationProgressEventEmitter {
-    void emit(OperationIdentifier operationIdentifier, long timestamp, @Nullable Object details);
+    void emit(OperationIdentifier operationIdentifier, long timestamp, long monotonicTimestamp, @Nullable Object details);
 
     void emitNow(@Nullable OperationIdentifier operationIdentifier, @Nullable Object details);
     void emitNowIfCurrent(Object details);
 
-    void emitIfCurrent(long time, Object details);
+    void emitIfCurrent(long time, long monotonicTime, Object details);
 
     void emitNowForCurrent(Object details);
 }

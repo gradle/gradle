@@ -33,12 +33,12 @@ public class StyledTextOutputEvent extends RenderableOutputEvent implements org.
 
     private final List<Span> spans;
 
-    public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, @Nullable OperationIdentifier buildOperationIdentifier, String text) {
-        this(timestamp, category, logLevel, buildOperationIdentifier, Collections.singletonList(new Span(StyledTextOutput.Style.Normal, text)));
+    public StyledTextOutputEvent(long timestamp, long monotonicTimestamp, String category, LogLevel logLevel, @Nullable OperationIdentifier buildOperationIdentifier, String text) {
+        this(timestamp, monotonicTimestamp, category, logLevel, buildOperationIdentifier, Collections.singletonList(new Span(StyledTextOutput.Style.Normal, text)));
     }
 
-    public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, @Nullable OperationIdentifier buildOperationIdentifier, List<Span> spans) {
-        super(timestamp, category, logLevel, buildOperationIdentifier);
+    public StyledTextOutputEvent(long timestamp, long monotonicTimestamp, String category, LogLevel logLevel, @Nullable OperationIdentifier buildOperationIdentifier, List<Span> spans) {
+        super(timestamp, monotonicTimestamp, category, logLevel, buildOperationIdentifier);
         this.spans = new ArrayList<Span>(spans);
     }
 
@@ -60,12 +60,12 @@ public class StyledTextOutputEvent extends RenderableOutputEvent implements org.
     }
 
     public StyledTextOutputEvent withLogLevel(LogLevel logLevel) {
-        return new StyledTextOutputEvent(getTimestamp(), getCategory(), logLevel, getBuildOperationId(), spans);
+        return new StyledTextOutputEvent(getTimestamp(), getMonotonicTimestamp(), getCategory(), logLevel, getBuildOperationId(), spans);
     }
 
     @Override
     public StyledTextOutputEvent withBuildOperationId(OperationIdentifier buildOperationId) {
-        return new StyledTextOutputEvent(getTimestamp(), getCategory(), getLogLevel(), buildOperationId, spans);
+        return new StyledTextOutputEvent(getTimestamp(), getMonotonicTimestamp(), getCategory(), getLogLevel(), buildOperationId, spans);
     }
 
     @Override

@@ -30,8 +30,8 @@ public class PromptOutputEvent extends RenderableOutputEvent implements Interact
     private final String prompt;
     private final boolean newQuestion;
 
-    public PromptOutputEvent(long timestamp, String prompt, boolean newQuestion) {
-        super(timestamp, "prompt", LogLevel.QUIET, null);
+    public PromptOutputEvent(long timestamp, long monotonicTimestamp, String prompt, boolean newQuestion) {
+        super(timestamp, monotonicTimestamp, "prompt", LogLevel.QUIET, null);
         this.prompt = prompt;
         this.newQuestion = newQuestion;
     }

@@ -28,12 +28,14 @@ class SerializedOperationProgress implements SerializedOperation {
 
     final long id;
     final long time;
+    final long monotonicTime;
     final Object details;
     final String detailsClassName;
 
     SerializedOperationProgress(OperationIdentifier id, OperationProgressEvent progressEvent) {
         this.id = id.getId();
         this.time = progressEvent.getTime();
+        this.monotonicTime = progressEvent.getMonotonicTime();
         this.details = toSerializableModel(progressEvent.getDetails());
         this.detailsClassName = details == null ? null : progressEvent.getDetails().getClass().getName();
     }
@@ -41,6 +43,7 @@ class SerializedOperationProgress implements SerializedOperation {
     SerializedOperationProgress(Map<String, ?> map) {
         this.id = ((Integer) map.get("id")).longValue();
         this.time = (Long) map.get("time");
+        this.monotonicTime = (Long) map.get("monotonicTime");
         this.details = map.get("details");
         this.detailsClassName = (String) map.get("detailsClassName");
     }
@@ -58,6 +61,7 @@ class SerializedOperationProgress implements SerializedOperation {
 
         map.put("id", id);
         map.put("time", time);
+        map.put("monotonicTime", monotonicTime);
 
         return map.build();
     }

@@ -31,6 +31,7 @@ class SerializedOperationStart implements SerializedOperation {
     final String displayName;
 
     final long startTime;
+    final long monotonicStartTime;
 
     final Object details;
     final String detailsClassName;
@@ -40,6 +41,7 @@ class SerializedOperationStart implements SerializedOperation {
         this.parentId = descriptor.getParentId() == null ? null : descriptor.getParentId().getId();
         this.displayName = descriptor.getDisplayName();
         this.startTime = startEvent.getStartTime();
+        this.monotonicStartTime = startEvent.getMonotonicStartTime();
         this.details = toSerializableModel(descriptor.getDetails());
         this.detailsClassName = details == null ? null : descriptor.getDetails().getClass().getName();
     }
@@ -50,6 +52,7 @@ class SerializedOperationStart implements SerializedOperation {
         this.parentId = parentId == null ? null : parentId.longValue();
         this.displayName = (String) map.get("displayName");
         this.startTime = (Long) map.get("startTime");
+        this.monotonicStartTime = (Long) map.get("monotonicStartTime");
         this.details = map.get("details");
         this.detailsClassName = (String) map.get("detailsClassName");
     }
@@ -72,6 +75,7 @@ class SerializedOperationStart implements SerializedOperation {
             map.put("parentId", parentId);
         }
         map.put("startTime", startTime);
+        map.put("monotonicStartTime", monotonicStartTime);
 
         return map.build();
     }

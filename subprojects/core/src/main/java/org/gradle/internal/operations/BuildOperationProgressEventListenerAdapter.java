@@ -45,7 +45,7 @@ public class BuildOperationProgressEventListenerAdapter implements DefaultBuildO
 
     @Override
     public void start(BuildOperationDescriptor descriptor, BuildOperationState operationState) {
-        buildOperationListener.started(descriptor, new OperationStartEvent(operationState.getStartTime()));
+        buildOperationListener.started(descriptor, new OperationStartEvent(operationState.getStartTime(), operationState.getMonotonicStartTime()));
         ProgressLogger progressLogger = progressLoggerFactory.newOperation(DefaultBuildOperationRunner.class, descriptor);
         this.progressLogger = progressLogger.start(descriptor.getDisplayName(), descriptor.getProgressDisplayName());
     }
@@ -67,7 +67,7 @@ public class BuildOperationProgressEventListenerAdapter implements DefaultBuildO
     @Override
     public void progress(BuildOperationDescriptor descriptor, long progress, long total, String units, String status) {
         progress(descriptor, status);
-        buildOperationListener.progress(descriptor.getId(), new OperationProgressEvent(clock.getCurrentTime(), new OperationProgressDetails(progress, total, units)));
+        buildOperationListener.progress(descriptor.getId(), new OperationProgressEvent(clock.getCurrentTime(), System.nanoTime(), new OperationProgressDetails(progress, total, units)));
     }
 
     @Override
@@ -76,7 +76,15 @@ public class BuildOperationProgressEventListenerAdapter implements DefaultBuildO
             statusProgressLogger.completed();
         }
         progressLogger.completed(context.getStatus(), context.getFailure() != null);
-        buildOperationListener.finished(descriptor, new OperationFinishEvent(operationState.getStartTime(), clock.getCurrentTime(), context.getFailure(), context.getResult()));
+        buildOperationListener.finished(descriptor, new OperationFinishEvent(
+                operationState.getStartTime(),
+                operationState.getMonotonicStartTime(),
+                clock.getCurrentTime(),
+                System.nanoTime(),
+                context.getFailure(),
+                context.getResult()
+            )
+        );
     }
 
     @Override

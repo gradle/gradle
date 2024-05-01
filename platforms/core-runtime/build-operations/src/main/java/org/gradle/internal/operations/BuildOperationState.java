@@ -23,9 +23,11 @@ public class BuildOperationState implements BuildOperationRef {
     private final BuildOperationDescriptor description;
     private final AtomicBoolean running = new AtomicBoolean();
     private final long startTime;
+    private final long monotonicStartTime;
 
-    public BuildOperationState(BuildOperationDescriptor descriptor, long startTime) {
+    public BuildOperationState(BuildOperationDescriptor descriptor, long startTime, long monotonicStartTime) {
         this.startTime = startTime;
+        this.monotonicStartTime = monotonicStartTime;
         this.description = descriptor;
     }
 
@@ -43,6 +45,10 @@ public class BuildOperationState implements BuildOperationRef {
 
     public long getStartTime() {
         return startTime;
+    }
+
+    public long getMonotonicStartTime() {
+        return monotonicStartTime;
     }
 
     @Override

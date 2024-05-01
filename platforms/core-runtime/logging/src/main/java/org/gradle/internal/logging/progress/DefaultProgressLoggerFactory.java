@@ -215,6 +215,7 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
                 progressOperationId,
                 parentProgressId,
                 clock.getCurrentTime(),
+                System.nanoTime(),
                 category,
                 description,
                 loggingHeader,
@@ -247,7 +248,7 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
             assertRunning();
             state = State.completed;
             current.set(previous);
-            listener.completed(new ProgressCompleteEvent(progressOperationId, clock.getCurrentTime(), ensureNotNull(status), failed));
+            listener.completed(new ProgressCompleteEvent(progressOperationId, clock.getCurrentTime(), System.nanoTime(), ensureNotNull(status), failed));
         }
 
         private String ensureNotNull(String status) {

@@ -28,12 +28,12 @@ public class LogEvent extends RenderableOutputEvent implements org.gradle.intern
     private final String message;
     private final Throwable throwable;
 
-    public LogEvent(long timestamp, String category, LogLevel logLevel, String message, @Nullable Throwable throwable) {
-        this(timestamp, category, logLevel, message, throwable, null);
+    public LogEvent(long timestamp, long monotonicTimestamp, String category, LogLevel logLevel, String message, @Nullable Throwable throwable) {
+        this(timestamp, monotonicTimestamp, category, logLevel, message, throwable, null);
     }
 
-    public LogEvent(long timestamp, String category, LogLevel logLevel, String message, @Nullable Throwable throwable, @Nullable OperationIdentifier buildOperationIdentifier) {
-        super(timestamp, category, logLevel, buildOperationIdentifier);
+    public LogEvent(long timestamp, long monotonicTimestamp, String category, LogLevel logLevel, String message, @Nullable Throwable throwable, @Nullable OperationIdentifier buildOperationIdentifier) {
+        super(timestamp, monotonicTimestamp, category, logLevel, buildOperationIdentifier);
         this.message = message;
         this.throwable = throwable;
     }
@@ -70,6 +70,6 @@ public class LogEvent extends RenderableOutputEvent implements org.gradle.intern
 
     @Override
     public RenderableOutputEvent withBuildOperationId(OperationIdentifier buildOperationId) {
-        return new LogEvent(getTimestamp(), getCategory(), getLogLevel(), message, throwable, buildOperationId);
+        return new LogEvent(getTimestamp(), getMonotonicTimestamp(), getCategory(), getLogLevel(), message, throwable, buildOperationId);
     }
 }

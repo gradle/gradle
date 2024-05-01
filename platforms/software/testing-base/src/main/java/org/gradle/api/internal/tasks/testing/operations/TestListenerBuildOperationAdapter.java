@@ -60,23 +60,26 @@ public class TestListenerBuildOperationAdapter implements TestListenerInternal {
     @Override
     public void started(final TestDescriptorInternal testDescriptor, TestStartEvent startEvent) {
         long currentTime = clock.getCurrentTime();
+        long currentMonotonicTime = System.nanoTime();
         BuildOperationDescriptor testBuildOperationDescriptor = createTestBuildOperationDescriptor(testDescriptor, startEvent);
-        runningTests.put(testDescriptor, new InProgressExecuteTestBuildOperation(testBuildOperationDescriptor, currentTime));
-        listener.started(testBuildOperationDescriptor, new OperationStartEvent(currentTime));
+        runningTests.put(testDescriptor, new InProgressExecuteTestBuildOperation(testBuildOperationDescriptor, currentTime, currentMonotonicTime));
+        listener.started(testBuildOperationDescriptor, new OperationStartEvent(currentTime, currentMonotonicTime));
     }
 
     @Override
     public void completed(TestDescriptorInternal testDescriptor, TestResult testResult, TestCompleteEvent completeEvent) {
         long currentTime = clock.getCurrentTime();
+        long currentMonotonicTime = System.nanoTime();
         InProgressExecuteTestBuildOperation runningOp = runningTests.remove(testDescriptor);
-        listener.finished(runningOp.descriptor, new OperationFinishEvent(runningOp.startTime, currentTime, testResult.getException(), new Result(testResult)));
+        listener.finished(runningOp.descriptor, new OperationFinishEvent(runningOp.startTime, runningOp.monotonicStartTime, currentTime, currentMonotonicTime, testResult.getException(), new Result(testResult)));
     }
 
     @Override
     public void output(final TestDescriptorInternal testDescriptor, final TestOutputEvent event) {
         long currentTime = clock.getCurrentTime();
+        long currentMonotonicTime = System.nanoTime();
         InProgressExecuteTestBuildOperation runningOp = runningTests.get(testDescriptor);
-        listener.progress(runningOp.descriptor.getId(), new OperationProgressEvent(currentTime, new OutputProgress(event)));
+        listener.progress(runningOp.descriptor.getId(), new OperationProgressEvent(currentTime, currentMonotonicTime, new OutputProgress(event)));
     }
 
     private BuildOperationDescriptor createTestBuildOperationDescriptor(TestDescriptor testDescriptor, TestStartEvent testStartEvent) {
@@ -144,10 +147,12 @@ public class TestListenerBuildOperationAdapter implements TestListenerInternal {
         final BuildOperationDescriptor descriptor;
 
         final long startTime;
+        final long monotonicStartTime;
 
-        InProgressExecuteTestBuildOperation(BuildOperationDescriptor testBuildOperationDescriptor, long startTime) {
+        InProgressExecuteTestBuildOperation(BuildOperationDescriptor testBuildOperationDescriptor, long startTime, long currentMonotonicTime) {
             this.descriptor = testBuildOperationDescriptor;
             this.startTime = startTime;
+            this.monotonicStartTime = currentMonotonicTime;
         }
 
     }

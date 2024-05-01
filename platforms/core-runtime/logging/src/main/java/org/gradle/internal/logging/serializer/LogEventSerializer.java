@@ -35,6 +35,7 @@ public class LogEventSerializer implements Serializer<LogEvent> {
     @Override
     public void write(Encoder encoder, LogEvent event) throws Exception {
         encoder.writeLong(event.getTimestamp());
+        encoder.writeLong(event.getMonotonicTimestamp());
         encoder.writeString(event.getCategory());
         logLevelSerializer.write(encoder, event.getLogLevel());
         encoder.writeNullableString(event.getMessage());
@@ -50,11 +51,12 @@ public class LogEventSerializer implements Serializer<LogEvent> {
     @Override
     public LogEvent read(Decoder decoder) throws Exception {
         long timestamp = decoder.readLong();
+        long monotonicTimestamp = decoder.readLong();
         String category = decoder.readString();
         LogLevel logLevel = logLevelSerializer.read(decoder);
         String message = decoder.readNullableString();
         Throwable throwable = throwableSerializer.read(decoder);
         OperationIdentifier buildOperationId = decoder.readBoolean() ? new OperationIdentifier(decoder.readSmallLong()) : null;
-        return new LogEvent(timestamp, category, logLevel, message, throwable, buildOperationId);
+        return new LogEvent(timestamp, monotonicTimestamp, category, logLevel, message, throwable, buildOperationId);
     }
 }
