@@ -14,6 +14,10 @@ repositories {
     mavenCentral()
 }
 
+tasks.withType<JavaCompile>().configureEach {
+    options.release = 8
+}
+
 protobuf {
     protoc {
         artifact = "com.google.protobuf:protoc:3.21.12"

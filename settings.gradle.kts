@@ -36,6 +36,10 @@ includeBuild("build-logic-commons")
 includeBuild("build-logic")
 includeBuild("ext-perfetto") {
     name = "perfetto"
+
+//    dependencySubstitution {
+//        substitute(module("org.gradle.external:perfetto")).using(project(":"))
+//    }
 }
 
 apply(from = "gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
