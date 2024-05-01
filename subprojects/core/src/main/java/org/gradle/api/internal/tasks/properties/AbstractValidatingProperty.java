@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks.properties;
 import com.google.common.base.Suppliers;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.internal.provider.DefaultProperty;
-import org.gradle.api.problems.ProblemBuilder;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.provider.HasConfigurableValue;
