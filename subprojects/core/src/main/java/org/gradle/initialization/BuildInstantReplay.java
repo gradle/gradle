@@ -20,14 +20,38 @@ import java.util.List;
 
 public class BuildInstantReplay {
     private final List<String> requestedTaskSelectors;
+    private final List<TestFailure> testFailures;
 
-    BuildInstantReplay(List<String> requestedTaskSelectors) {
+    BuildInstantReplay(List<String> requestedTaskSelectors, List<TestFailure> testFailures) {
         this.requestedTaskSelectors = requestedTaskSelectors;
+        this.testFailures = testFailures;
     }
 
     public List<String> getRequestedTaskSelectors() {
         return requestedTaskSelectors;
     }
+
+    public List<TestFailure> getTestFailures() {
+        return testFailures;
+    }
 //    List<String> excludedTasks;
 //    int numberOfWorkers;
+
+    public static class TestFailure {
+        private final String taskPath;
+        private final String failedTest;
+
+        TestFailure(String taskPath, String failedTest) {
+            this.taskPath = taskPath;
+            this.failedTest = failedTest;
+        }
+
+        public String getTaskPath() {
+            return taskPath;
+        }
+
+        public String getFailedTest() {
+            return failedTest;
+        }
+    }
 }

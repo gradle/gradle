@@ -31,7 +31,11 @@ import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
 
 import java.net.URI;
-import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.groupingBy;
 
 /**
  * Actually executes the build.
@@ -65,7 +69,22 @@ public class ExecuteBuild extends BuildCommandOnly {
                 URI url = URI.create(buildScan);
                 BuildInstantReplay instantReplay = new InstantReplaySomething().retrieve(url, build.getAction().getStartParameter().getGradleUserHomeDir());
 
-                build.getAction().getStartParameter().setTaskNames(instantReplay.getRequestedTaskSelectors());
+                if (instantReplay.getTestFailures().isEmpty()) {
+                    build.getAction().getStartParameter().setTaskNames(instantReplay.getRequestedTaskSelectors());
+                } else {
+
+                    List<String> taskNames = instantReplay.getTestFailures().stream().collect(groupingBy(BuildInstantReplay.TestFailure::getTaskPath)).entrySet().stream().flatMap(entry -> {
+                        List<String> args = new ArrayList<String>();
+                        args.add(entry.getKey());
+                        for (BuildInstantReplay.TestFailure failure : entry.getValue()) {
+                            args.add("--tests");
+                            args.add(failure.getFailedTest());
+                        }
+                        return args.stream();
+                    }).collect(Collectors.toList());
+                    System.out.println("taskNames: " + taskNames);
+                    build.getAction().getStartParameter().setTaskNames(taskNames);
+                }
             }
 
             if (!build.getAction().getStartParameter().isContinuous()) {
