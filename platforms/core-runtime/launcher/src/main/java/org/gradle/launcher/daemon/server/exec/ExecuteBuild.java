@@ -18,8 +18,10 @@ package org.gradle.launcher.daemon.server.exec;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.initialization.BuildInstantReplay;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.DefaultBuildRequestContext;
+import org.gradle.initialization.InstantReplaySomething;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.protocol.Build;
 import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
@@ -27,6 +29,9 @@ import org.gradle.launcher.daemon.server.stats.DaemonRunningStats;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
+
+import java.net.URI;
+import java.net.URL;
 
 /**
  * Actually executes the build.
@@ -54,6 +59,15 @@ public class ExecuteBuild extends BuildCommandOnly {
         try {
             BuildCancellationToken cancellationToken = execution.getDaemonStateControl().getCancellationToken();
             BuildRequestContext buildRequestContext = new DefaultBuildRequestContext(build.getBuildRequestMetaData(), cancellationToken, buildEventConsumer);
+
+            String buildScan = build.getAction().getStartParameter().getSystemPropertiesArgs().get("oAgain");
+            if (buildScan != null) {
+                URI url = URI.create(buildScan);
+                BuildInstantReplay instantReplay = new InstantReplaySomething().retrieve(url, build.getAction().getStartParameter().getGradleUserHomeDir());
+
+                build.getAction().getStartParameter().setTaskNames(instantReplay.getRequestedTaskSelectors());
+            }
+
             if (!build.getAction().getStartParameter().isContinuous()) {
                 buildRequestContext.getCancellationToken().addCallback(new Runnable() {
                     @Override

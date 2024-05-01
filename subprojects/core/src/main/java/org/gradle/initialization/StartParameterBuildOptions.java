@@ -115,6 +115,19 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         }
     }
 
+//    public static class RerunFromScanOption extends StringBuildOption<StartParameterInternal> {
+//        public static final String LONG_OPTION = "rerun";
+//
+//        public RerunFromScanOption() {
+//            super(null, CommandLineOptionConfiguration.create(LONG_OPTION, "Rerun tasks from the build scan with the given URL."));
+//        }
+//
+//        @Override
+//        public void applyTo(String value, StartParameterInternal settings, Origin origin) {
+//            settings.setRerunFromScan(value);
+//        }
+//    }
+
     public static class ProfileOption extends EnabledOnlyBooleanBuildOption<StartParameterInternal> {
         public ProfileOption() {
             super(null, CommandLineOptionConfiguration.create("profile", "Profile build execution time and generates a report in the <build_dir>/reports/profile directory."));
