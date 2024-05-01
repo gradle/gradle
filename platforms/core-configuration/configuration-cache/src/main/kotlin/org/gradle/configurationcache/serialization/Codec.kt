@@ -95,6 +95,9 @@ interface ReadContext : IsolateContext, MutableIsolateContext, Decoder {
 
 suspend fun <T : Any> ReadContext.readNonNull() = read()!!.uncheckedCast<T>()
 
+fun ReadContext.skipTag() {
+    readSmallInt()
+}
 
 interface IsolateContext {
 

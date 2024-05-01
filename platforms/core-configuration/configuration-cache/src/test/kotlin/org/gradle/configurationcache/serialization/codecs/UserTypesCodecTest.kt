@@ -16,17 +16,21 @@
 
 package org.gradle.configurationcache.serialization.codecs
 
+import org.gradle.configurationcache.extensions.useToRun
 import org.gradle.configurationcache.problems.PropertyTrace
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.beans.Optimizable
 import org.gradle.configurationcache.serialization.readNonNull
+import org.gradle.configurationcache.serialization.skipTag
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.sameInstance
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
-import java.io.OutputStreamWriter
-import java.io.StringWriter
+import java.io.File
+import java.io.FileWriter
 import java.io.Writer
+import kotlin.math.ceil
+import kotlin.math.log
 import kotlin.random.Random
 
 enum class FieldType {
@@ -53,7 +57,7 @@ class UserTypesCodecTest : AbstractUserTypeCodecTest() {
     data class Bar(val i: Int)
 
     fun Random.generateSchema(): BeanSchema {
-        val maxLength = 20
+        val maxLength = 100
         val fieldsCount = nextInt(2, maxLength)
         return List(fieldsCount) {
             FieldType.values().random(this)
@@ -62,7 +66,7 @@ class UserTypesCodecTest : AbstractUserTypeCodecTest() {
 
     fun Writer.writeType(schema: BeanSchema) {
         val name = schema.name
-        write(
+        appendLine(
             """
             class $name(${fieldsOf(schema)}) : Optimizable {
 
@@ -71,16 +75,23 @@ class UserTypesCodecTest : AbstractUserTypeCodecTest() {
 
         schema.forEachIndexed { index, fieldType ->
             when (fieldType) {
-                FieldType.Int -> appendLine("skipTag();_$index=readInt()")
-                FieldType.String -> appendLine("skipTag();_$index=readString()")
-                FieldType.Bean -> appendLine("_$index=read()?.uncheckedCast()")
+                FieldType.Int -> appendLine("skipTag();${schema.fieldNameFor(index)}=readInt()")
+                FieldType.String -> appendLine("skipTag();${schema.fieldNameFor(index)}=readString()")
+                FieldType.Bean -> appendLine("${schema.fieldNameFor(index)}=readNonNull()")
             }
         }
+        appendLine(
+            """
+                }
+            }"""
+        )
+    }
+
+    fun Writer.writeTypeUnoptimized(schema: BeanSchema) {
+        val name = schema.name
         write(
             """
-
-                }
-            }
+            class Unoptimized$name(${fieldsOf(schema)})
         """
         )
     }
@@ -88,12 +99,17 @@ class UserTypesCodecTest : AbstractUserTypeCodecTest() {
     private fun fieldsOf(schema: BeanSchema): String {
         return schema.mapIndexed { index, fieldType ->
             when (fieldType) {
-                FieldType.Int -> "var _$index: Int"
-                FieldType.String -> "var _$index: String"
-                FieldType.Bean -> "var _$index: Bean"
+                FieldType.Int -> "var ${schema.fieldNameFor(index)}: Int = $index"
+                FieldType.String -> "var ${schema.fieldNameFor(index)}: String = \"$index\""
+                FieldType.Bean -> "var ${schema.fieldNameFor(index)}: Bean = Bean($index)"
             }
         }.joinToString()
     }
+
+    private fun BeanSchema.getPadLength(): Int = ceil(log(size.toDouble(), 10.0)).toInt()
+
+    private fun BeanSchema.fieldNameFor(index: Int): String =
+        "_" + "$index".padStart(getPadLength(), '0')
 
     private val BeanSchema.name: String
         get() = joinToString("") {
@@ -106,12 +122,76 @@ class UserTypesCodecTest : AbstractUserTypeCodecTest() {
 
     @Test
     fun `generate`() {
-        OutputStreamWriter(System.out).use { writer ->
-            repeat(1) {
-                val schema = Random.generateSchema()
-                writer.writeType(schema)
+        val file = File("/Users/sopivalov/Projects/wm24hack/build.gradle.kts").apply {
+            parentFile.mkdirs()
+        }
+        FileWriter(file).useToRun {
+            generateBenchmarkProject()
+        }
+    }
+
+    private fun Writer.generateBenchmarkProject(): Appendable {
+        appendLine(
+            """
+                    import ${Optimizable::class.qualifiedName}
+                    import ${ReadContext::class.qualifiedName}
+                    import org.gradle.configurationcache.serialization.readNonNull
+                    import org.gradle.configurationcache.serialization.skipTag
+
+                    data class Bean(val i : Int)
+
+                    abstract class BeanTask : DefaultTask() {
+                        @get:Input
+                        abstract val bean: Property<Any>
+
+                        @TaskAction
+                        fun doSomething() {}
+                    }
+
+                """.trimIndent()
+        )
+
+        val schemaNames = mutableSetOf<String>()
+        List(10) {
+            Random.generateSchema()
+        }.toSet().forEach {
+            val schema = it
+            val taskName = schema.name + "Task"
+            schemaNames += schema.name
+
+            writeType(schema)
+            writeTypeUnoptimized(schema)
+            appendLine(
+                """
+                        tasks.register<BeanTask>("$taskName") {
+                            bean.set(${schema.name}())
+                        }
+
+                        tasks.register<BeanTask>("Unoptimized$taskName") {
+                            bean.set(Unoptimized${schema.name}())
+                        }
+                    """.trimIndent()
+            )
+        }
+
+        return appendLine("""
+                    tasks.register("optimized") {
+                        ${
+            schemaNames.joinToString("\n") {
+                "dependsOn(\"${it}Task\")"
             }
         }
+                    }
+
+                    tasks.register("unoptimized") {
+                        ${
+            schemaNames.joinToString("\n") {
+                "dependsOn(\"Unoptimized${it}Task\")"
+            }
+        }
+                    }
+
+                """.trimIndent())
     }
 
     @Test
@@ -240,8 +320,4 @@ class UserTypesCodecTest : AbstractUserTypeCodecTest() {
             }
         }
     }
-}
-
-private fun ReadContext.skipTag() {
-    readSmallInt()
 }
