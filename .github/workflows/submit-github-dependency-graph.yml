@@ -5,11 +5,12 @@ on:
     branches:
       - master
 
-permissions:
-  contents: write
+permissions: {}
 
 jobs:
   generate-and-submit:
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4

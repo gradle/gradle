@@ -4,11 +4,13 @@ on:
   issues:
     types: [ opened, unlabeled, closed ]
 
+permissions: {}
+
 jobs:
   check_issue_metadata:
-    runs-on: ubuntu-latest
     permissions:
       issues: write
+    runs-on: ubuntu-latest
     steps:
       # Check that issues have proper metadata: labels and milestone
       # https://github.com/gradle/issue-management-action/blob/main/src/issue-metadata.ts
