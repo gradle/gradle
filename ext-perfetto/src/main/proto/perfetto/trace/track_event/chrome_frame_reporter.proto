@@ -1,0 +1,114 @@
+/*
+ * Copyright (C) 2020 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto2";
+
+package perfetto.protos;
+
+message ChromeFrameReporter {
+  enum State {
+    // The frame did not have any updates to present.
+    STATE_NO_UPDATE_DESIRED = 0;
+
+    // The frame presented all the desired updates (i.e. any updates requested
+    // from both the compositor thread and main-threads were handled).
+    STATE_PRESENTED_ALL = 1;
+
+    // The frame was presented with some updates, but also missed some updates
+    // (e.g. missed updates from the main-thread, but included updates from the
+    // compositor thread).
+    STATE_PRESENTED_PARTIAL = 2;
+
+    // The frame was dropped, i.e. some updates were desired for the frame, but
+    // was not presented.
+    STATE_DROPPED = 3;
+  };
+
+  optional State state = 1;
+
+  enum FrameDropReason {
+    REASON_UNSPECIFIED = 0;
+
+    // Frame was dropped by the display-compositor.
+    // The display-compositor may drop a frame some times (e.g. the frame missed
+    // the deadline, or was blocked on surface-sync, etc.)
+    REASON_DISPLAY_COMPOSITOR = 1;
+
+    // Frame was dropped because of the main-thread.
+    // The main-thread may cause a frame to be dropped, e.g. if the main-thread
+    // is running expensive javascript, or doing a lot of layout updates, etc.
+    REASON_MAIN_THREAD = 2;
+
+    // Frame was dropped by the client compositor.
+    // The client compositor can drop some frames too (e.g. attempting to
+    // recover latency, missing the deadline, etc.).
+    REASON_CLIENT_COMPOSITOR = 3;
+  };
+
+  // The reason is set only if |state| is not |STATE_UPDATED_ALL|.
+  optional FrameDropReason reason = 2;
+
+  optional uint64 frame_source = 3;
+  optional uint64 frame_sequence = 4;
+
+  // If this is a droped frame (i.e. if |state| is set to |STATE_DROPPED| or
+  // |STATE_PRESENTED_PARTIAL|), then indicates whether this frame impacts
+  // smoothness.
+  optional bool affects_smoothness = 5;
+
+  enum ScrollState {
+    SCROLL_NONE = 0;
+    SCROLL_MAIN_THREAD = 1;
+    SCROLL_COMPOSITOR_THREAD = 2;
+
+    // Used when it can't be determined whether a scroll is in progress or not.
+    SCROLL_UNKNOWN = 3;
+  }
+
+  // The type of active scroll.
+  optional ScrollState scroll_state = 6;
+
+  // If any main thread animation is active during this frame.
+  optional bool has_main_animation = 7;
+  // If any compositor thread animation is active during this frame.
+  optional bool has_compositor_animation = 8;
+  // If any touch-driven UX (not scroll) is active during this frame.
+  optional bool has_smooth_input_main = 9;
+
+  // Whether the frame contained any missing content (i.e. whether there was
+  // checkerboarding in the frame).
+  optional bool has_missing_content = 10;
+
+  // The id of layer_tree_host that the frame has been produced for.
+  optional uint64 layer_tree_host_id = 11;
+
+  // If total latency of PipelineReporter exceeds a certain limit.
+  optional bool has_high_latency = 12;
+
+  enum FrameType {
+    FORKED = 0;
+    BACKFILL = 1;
+  }
+
+  // Indicate if the frame is "FORKED" (i.e. a PipelineReporter event starts at
+  // the same frame sequence as another PipelineReporter) or "BACKFILL"
+  // (i.e. dropped frames when there are no partial compositor updates).
+  optional FrameType frame_type = 13;
+
+  // The breakdown stage of PipelineReporter that is most likely accountable for
+  // high latency.
+  repeated string high_latency_contribution_stage = 14;
+}

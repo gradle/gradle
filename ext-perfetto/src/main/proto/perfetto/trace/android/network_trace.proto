@@ -1,0 +1,56 @@
+/*
+ * Copyright (C) 2022 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto2";
+
+package perfetto.protos;
+
+enum TrafficDirection {
+  DIR_UNSPECIFIED = 0;
+  DIR_INGRESS = 1;
+  DIR_EGRESS = 2;
+}
+
+// NetworkPacketEvent records the details of a single packet sent or received
+// on the network (in Linux kernel terminology, one sk_buff struct).
+message NetworkPacketEvent {
+  // The direction traffic is flowing for this event.
+  optional TrafficDirection direction = 1;
+
+  // The name of the interface if available (e.g. 'rmnet0').
+  optional string interface = 2;
+
+  // The length of the packet in bytes (wire_size - L2_header_size).
+  optional uint32 length = 3;
+
+  // The Linux user id associated with the packet's socket.
+  optional uint32 uid = 4;
+
+  // The Android network tag associated with the packet's socket.
+  optional uint32 tag = 5;
+
+  // The packet's IP protocol (TCP=6, UDP=17, etc).
+  optional uint32 ip_proto = 6;
+
+  // The packet's TCP flags as a bitmask (FIN=0x1, SYN=0x2, RST=0x4, etc).
+  optional uint32 tcp_flags = 7;
+
+  // The local udp/tcp port of the packet.
+  optional uint32 local_port = 8;
+
+  // The remote udp/tcp port of the packet.
+  optional uint32 remote_port = 9;
+}

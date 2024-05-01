@@ -1,0 +1,162 @@
+/*
+ * Copyright (C) 2017 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto2";
+
+package perfetto.protos;
+
+// Next id: 24.
+message FtraceConfig {
+  repeated string ftrace_events = 1;
+  repeated string atrace_categories = 2;
+  repeated string atrace_apps = 3;
+  // *Per-CPU* buffer size.
+  optional uint32 buffer_size_kb = 10;
+  optional uint32 drain_period_ms = 11;
+
+  // Configuration for compact encoding of scheduler events. When enabled (and
+  // recording the relevant ftrace events), specific high-volume events are
+  // encoded in a denser format than normal.
+  message CompactSchedConfig {
+    // If true, and sched_switch or sched_waking ftrace events are enabled,
+    // record those events in the compact format.
+    optional bool enabled = 1;
+  }
+  optional CompactSchedConfig compact_sched = 12;
+
+  // Optional filter for "ftrace/print" events.
+  //
+  // The filter consists of multiple rules. A rule matches if its prefix matches
+  // exactly with the beginning of the "ftrace/print" "buf" field. As soon as a
+  // rule matches (the rules are processed in order), its `allow` field will be
+  // used as the outcome: if `allow` is true, the event will be included in the
+  // trace, otherwise it will be discarded. If an event does not match any rule,
+  // it will be allowed by default (a rule with an empty prefix and allow=false,
+  // disallows everything by default).
+  message PrintFilter {
+    message Rule {
+      optional string prefix = 1;
+      optional bool allow = 2;
+    }
+    repeated Rule rules = 1;
+  }
+  optional PrintFilter print_filter = 22;
+
+  // Enables symbol name resolution against /proc/kallsyms.
+  // It requires that either traced_probes is running as root or that
+  // kptr_restrict has been manually lowered.
+  // It does not disclose KASLR, symbol addresses are mangled.
+  optional bool symbolize_ksyms = 13;
+
+  // When symbolize_ksyms=true, tetermines whether the traced_probes daemon
+  // should keep the symbol map in memory (and reuse it for future tracing
+  // sessions) or clear it (saving memory) and re-create it on each tracing
+  // session (wasting cpu and wall time).
+  // The tradeoff is roughly:
+  //  KSYMS_RETAIN: pay a fixed ~1.2 MB cost after the first trace.
+  //  KSYMS_CLEANUP_ON_STOP: pay a ~300-500ms cost when starting each trace.
+  // Default behavior: KSYMS_CLEANUP_ON_STOP.
+  enum KsymsMemPolicy {
+    KSYMS_UNSPECIFIED = 0;
+    KSYMS_CLEANUP_ON_STOP = 1;
+    KSYMS_RETAIN = 2;
+  }
+  optional KsymsMemPolicy ksyms_mem_policy = 17;
+
+  // By default the kernel symbolizer is lazily initialized on a deferred task
+  // to reduce ftrace's time-to-start-recording. Unfortunately that makes
+  // ksyms integration tests hard. This flag forces the kernel symbolizer to be
+  // initialized synchronously on the data source start and hence avoiding
+  // timing races in tests.
+  // DEPRECATED in v28 / Android U. This is now the default behavior, setting it
+  // to true is a no-op.
+  optional bool initialize_ksyms_synchronously_for_testing = 14
+      [deprecated = true];
+
+  // When this boolean is true AND the ftrace_events contains "kmem/rss_stat",
+  // this option causes traced_probes to enable the "kmem/rss_stat_throttled"
+  // event instead if present, and fall back to "kmem/rss_stat" if not present.
+  // The historical context for this is the following:
+  // - Up to Android S (12), the rss_stat was internally throttled in its
+  //   kernel implementation.
+  // - A change introduced in the kernels after S has introduced a new
+  //   "rss_stat_throttled" making the original "rss_stat" event unthrottled
+  //   (hence very spammy).
+  // - Not all Android T/13 devices will receive a new kernel though, hence we
+  //   need to deal with both cases.
+  // For more context: go/rss-stat-throttled.
+  optional bool throttle_rss_stat = 15;
+
+  // If true, avoid enabling events that aren't statically known by
+  // traced_probes. Otherwise, the default is to emit such events as
+  // GenericFtraceEvent protos.
+  // Prefer to keep this flag at its default. This was added for Android
+  // tracing, where atrace categories and/or atrace HAL requested events can
+  // expand to events that aren't of interest to the tracing user.
+  // Introduced in: Android T.
+  optional bool disable_generic_events = 16;
+
+  // The list of syscalls that should be recorded by sys_{enter,exit} ftrace
+  // events. When empty, all syscalls are recorded. If neither sys_{enter,exit}
+  // are enabled, this setting has no effect. Example: ["sys_read", "sys_open"].
+  // Introduced in: Android U.
+  repeated string syscall_events = 18;
+
+  // If true, enable the "function_graph" kernel tracer that emits events
+  // whenever a kernel function is entered and exited
+  // (funcgraph_entry/funcgraph_exit).
+  // Notes on use:
+  // * Requires |symbolize_ksyms| for function name resolution.
+  // * Use |function_filters| or |function_graph_roots| to constrain the traced
+  //   set of functions, otherwise the event bandwidth will be too high for
+  //   practical use.
+  // * The data source might be rejected if there is already a concurrent
+  //   ftrace data source that does not use function graph itself, as we do not
+  //   support switching kernel tracers mid-trace.
+  // * Requires a kernel compiled with CONFIG_FUNCTION_GRAPH_TRACER. This is
+  //   enabled if "cat /sys/kernel/tracing/available_tracers" includes
+  //   "function_graph".
+  // Android:
+  // * Available only on debuggable builds.
+  // * Introduced in: Android U.
+  optional bool enable_function_graph = 19;
+
+  // Constrains the set of functions traced when |enable_function_graph| is
+  // true. Supports globs, e.g. "sched*". You can specify multiple filters,
+  // in which case all matching functions will be traced. See kernel
+  // documentation on ftrace "set_ftrace_filter" file for more details.
+  // Android:
+  // * Available only on debuggable builds.
+  // * Introduced in: Android U.
+  repeated string function_filters = 20;
+
+  // If |enable_function_graph| is true, trace this set of functions *and* all
+  // of its callees. Supports globs. Can be set together with
+  // |function_filters|, in which case only callees matching the filter will be
+  // traced. If setting both, you most likely want all roots to also be
+  // included in |function_filters|.
+  // Android:
+  // * Available only on debuggable builds.
+  // * Introduced in: Android U.
+  repeated string function_graph_roots = 21;
+
+  // If true, does not clear ftrace buffers before the start of the program.
+  // This makes sense only if this is the first ftrace data source instance
+  // created after the daemon has been started. Can be useful for gathering boot
+  // traces, if ftrace has been separately configured (e.g. via kernel
+  // commandline).
+  optional bool preserve_ftrace_buffer = 23;
+}

@@ -1,0 +1,43 @@
+/*
+ * Copyright (C) 2020 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto2";
+
+package perfetto.protos;
+
+message AndroidDvfsMetric {
+
+  message BandStat {
+    // Operating frequency
+    optional int32 freq_value = 1;
+
+    // Percentage of duration in this operating frequency compared to all frequencies
+    optional double percentage = 2;
+
+    // Total duration in ns when the state was in this operating frequency
+    optional int64 duration_ns = 3;
+  }
+
+  message FrequencyResidency {
+    // Frequency representative name
+    optional string freq_name = 1;
+    // Each band statistics meta
+    repeated BandStat band_stat = 2;
+  }
+
+  // Frequency residency metrics from clock_set_rate ftrace event.
+  repeated FrequencyResidency freq_residencies = 1;
+}

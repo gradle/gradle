@@ -1,0 +1,52 @@
+/*
+ * Copyright (C) 2017 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto2";
+
+import "perfetto/trace/track_event/debug_annotation.proto";
+
+package perfetto.protos;
+
+// Event used by testing code.
+message TestEvent {
+  // Arbitrary string used in tests.
+  optional string str = 1;
+
+  // The current value of the random number sequence used in tests.
+  optional uint32 seq_value = 2;
+
+  // Monotonically increased on each packet.
+  optional uint64 counter = 3;
+
+  // No more packets should follow (from the current sequence).
+  optional bool is_last = 4;
+
+  message TestPayload {
+    repeated string str = 1;
+    repeated TestPayload nested = 2;
+
+    optional string single_string = 4;
+
+    optional int32 single_int = 5;
+    repeated int32 repeated_ints = 6;
+
+    // When 0 this is the bottom-most nested message.
+    optional uint32 remaining_nesting_depth = 3;
+
+    repeated DebugAnnotation debug_annotations = 7;
+  }
+  optional TestPayload payload = 5;
+}

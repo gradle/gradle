@@ -1,0 +1,150 @@
+/*
+ * Copyright (C) 2019 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto2";
+
+// TODO(fmayer): Remove this import once clients are migrated to the new
+// location.
+import public "perfetto/trace/profiling/deobfuscation.proto";
+import "perfetto/trace/profiling/profile_common.proto";
+
+// These messages encode a graph of objects that retain one another. Currently
+// this is used for Android Runtime (i.e. Java and Kotlin) heap graphs.
+
+package perfetto.protos;
+
+message HeapGraphRoot {
+  enum Type {
+    ROOT_UNKNOWN = 0;
+    ROOT_JNI_GLOBAL = 1;
+    ROOT_JNI_LOCAL = 2;
+    ROOT_JAVA_FRAME = 3;
+    ROOT_NATIVE_STACK = 4;
+    ROOT_STICKY_CLASS = 5;
+    ROOT_THREAD_BLOCK = 6;
+    ROOT_MONITOR_USED = 7;
+    ROOT_THREAD_OBJECT = 8;
+    ROOT_INTERNED_STRING = 9;
+    ROOT_FINALIZING = 10;
+    ROOT_DEBUGGER = 11;
+    ROOT_REFERENCE_CLEANUP = 12;
+    ROOT_VM_INTERNAL = 13;
+    ROOT_JNI_MONITOR = 14;
+  };
+  // Objects retained by this root.
+  repeated uint64 object_ids = 1 [packed = true];
+
+  optional Type root_type = 2;
+}
+
+message HeapGraphType {
+  enum Kind {
+    KIND_UNKNOWN = 0;
+    KIND_NORMAL = 1;
+    KIND_NOREFERENCES = 2;
+    KIND_STRING = 3;
+    KIND_ARRAY = 4;
+    KIND_CLASS = 5;
+    KIND_CLASSLOADER = 6;
+    KIND_DEXCACHE = 7;
+    KIND_SOFT_REFERENCE = 8;
+    KIND_WEAK_REFERENCE = 9;
+    KIND_FINALIZER_REFERENCE = 10;
+    KIND_PHANTOM_REFERENCE = 11;
+  };
+  // TODO(fmayer): Consider removing this and using the index in the repeaed
+  // field to save space.
+  optional uint64 id = 1;
+  optional uint64 location_id = 2;
+  optional string class_name = 3;
+  // Size of objects of this type.
+  optional uint64 object_size = 4;
+  optional uint64 superclass_id = 5;
+  // Indices for InternedData.field_names for the names of the fields of
+  // instances of this class. This does NOT include the fields from
+  // superclasses. The consumer of this data needs to walk all super
+  // classes to get a full lists of fields. Objects always write the
+  // fields in order of most specific class to the furthest up superclass.
+  repeated uint64 reference_field_id = 6 [packed = true];
+  optional Kind kind = 7;
+  optional uint64 classloader_id = 8;
+}
+
+message HeapGraphObject {
+  oneof identifier {
+    uint64 id = 1;
+    uint64 id_delta = 7;
+  }
+
+  // Index for InternedData.types for the name of the type of this object.
+  optional uint64 type_id = 2;
+
+  // Bytes occupied by this objects.
+  optional uint64 self_size = 3;
+
+  // Add this to all non-zero values in reference_object_id. This is used to
+  // get more compact varint encoding.
+  //
+  // The name is confusing, but this has always been used as a base for
+  // reference_object_id. The field should be named reference_object_id_base.
+  optional uint64 reference_field_id_base = 6;
+
+  // Indices for InternedData.field_names for the name of the field referring
+  // to the object. For Android S+ and for instances of normal classes (e.g.
+  // not instances of java.lang.Class or arrays), this is instead set in the
+  // corresponding HeapGraphType, and this is left empty.
+  repeated uint64 reference_field_id = 4 [packed = true];
+
+  // Ids of the Object that is referred to.
+  repeated uint64 reference_object_id = 5 [packed = true];
+
+  // If this object is an instance of `libcore.util.NativeAllocationRegistry`,
+  // the value of the `size` field.
+  //
+  // N.B. This is not the native size of this object.
+  optional int64 native_allocation_registry_size_field = 8;
+}
+
+message HeapGraph {
+  optional int32 pid = 1;
+
+  // This contains all objects at the time this dump was taken. Some of these
+  // will be live, some of those unreachable (garbage). To find the live
+  // objects, the client needs to build the transitive closure of objects
+  // reachable from |roots|.
+  // All objects not contained within that transitive closure are garbage that
+  // has not yet been collected.
+  repeated HeapGraphObject objects = 2;
+
+  // Roots at the time this dump was taken.
+  // All live objects are reachable from the roots. All other objects are
+  // garbage.
+  repeated HeapGraphRoot roots = 7;
+
+  // Types used in HeapGraphObjects.
+  repeated HeapGraphType types = 9;
+
+  reserved 3;
+
+  // Field names for references in managed heap graph.
+  repeated InternedString field_names = 4;
+
+  // Paths of files used in managed heap graph.
+  repeated InternedString location_names = 8;
+
+  optional bool continued = 5;
+  optional uint64 index = 6;
+}

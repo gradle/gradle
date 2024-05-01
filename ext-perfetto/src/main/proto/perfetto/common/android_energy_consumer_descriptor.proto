@@ -1,0 +1,43 @@
+/*
+ * Copyright (C) 2021 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto2";
+
+package perfetto.protos;
+
+// Energy consumer based on aidl class:
+// android.hardware.power.stats.EnergyConsumer.
+message AndroidEnergyConsumer {
+  // Unique ID of this energy consumer.  Matches the ID in a
+  // AndroidEnergyEstimationBreakdown.
+  optional int32 energy_consumer_id = 1;
+
+  // For a group of energy consumers of the same logical type, sorting by
+  // ordinal gives their physical order. Ordinals must be consecutive integers
+  // starting from 0.
+  optional int32 ordinal = 2;
+
+  // Type of this energy consumer.
+  optional string type = 3;
+
+  // Unique name of this energy consumer. Vendor/device specific. Opaque to
+  // framework.
+  optional string name = 4;
+}
+
+message AndroidEnergyConsumerDescriptor {
+  repeated AndroidEnergyConsumer energy_consumers = 1;
+}

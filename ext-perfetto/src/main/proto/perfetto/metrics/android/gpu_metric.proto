@@ -1,0 +1,68 @@
+/*
+ * Copyright (C) 2020 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto2";
+
+package perfetto.protos;
+
+message AndroidGpuMetric {
+  message Process {
+    // Process name.
+    optional string name = 1;
+
+    // max/min/avg GPU memory used by this process.
+    optional int64 mem_max = 2;
+    optional int64 mem_min = 3;
+    optional int64 mem_avg = 4;
+  }
+
+  // GPU metric for processes using GPU.
+  repeated Process processes = 1;
+
+  // max/min/avg GPU memory used by the entire system.
+  optional int64 mem_max = 2;
+  optional int64 mem_min = 3;
+  optional int64 mem_avg = 4;
+
+  message FrequencyMetric {
+    // Identifier for GPU in a multi-gpu device.
+    optional uint32 gpu_id = 1;
+
+    // max/min/avg GPU frequency for this gpu_id
+    // the calculation of avg is weighted by the duration of each frequency
+    optional int64 freq_max = 2;
+    optional int64 freq_min = 3;
+    optional double freq_avg = 4;
+
+    message MetricsPerFrequency {
+      // Used frequency
+      optional int64 freq = 1;
+
+      // Total duration in ms when the state of GPU was in this frequency
+      optional double dur_ms = 2;
+
+      // Percentage of duration in this frequency compared to all frequencies
+      // in this gpu_id
+      optional double percentage = 3;
+    }
+
+    // Metrics for each used GPU frequency
+    repeated MetricsPerFrequency used_freqs = 5;
+  }
+
+  // GPU frequency metric for each gpu_id
+  repeated FrequencyMetric freq_metrics = 5;
+}

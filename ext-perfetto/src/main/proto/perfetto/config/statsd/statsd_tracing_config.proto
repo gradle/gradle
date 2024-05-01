@@ -1,0 +1,41 @@
+/*
+ * Copyright (C) 2022 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto2";
+
+package perfetto.protos;
+
+import "perfetto/config/statsd/atom_ids.proto";
+
+// This file is named 'statsd_tracing_config.proto' rather than
+// 'statsd_config.proto' (which would be more consistent with the other
+// config protos) so it doesn't show up and confuse folks looking for
+// the existing statsd_config.proto for configuring statsd itself.
+// Same for the config proto itself.
+message StatsdTracingConfig {
+  repeated AtomId push_atom_id = 1;
+  repeated int32 raw_push_atom_id = 2;
+
+  repeated StatsdPullAtomConfig pull_config = 3;
+}
+
+message StatsdPullAtomConfig {
+  repeated AtomId pull_atom_id = 1;
+  repeated int32 raw_pull_atom_id = 2;
+
+  optional int32 pull_frequency_ms = 3;
+  repeated string packages = 4;
+}

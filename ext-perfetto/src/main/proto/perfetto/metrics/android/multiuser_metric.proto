@@ -1,0 +1,48 @@
+/*
+ * Copyright (C) 2021 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto2";
+
+package perfetto.protos;
+
+// Metrics for Multiuser events, such as switching users.
+message AndroidMultiuserMetric {
+
+  // Holds the data for a Multiuser event.
+  message EventData {
+    // Duration of the event (in milliseconds).
+    optional int32 duration_ms = 1;
+
+    // CPU usage of each process during the event.
+    message CpuUsage {
+      // The userId of the process (e.g. 0 or 10).
+      optional int32 user_id = 1;
+      // The name of the process.
+      optional string process_name = 2;
+      // The number of CPU cycles (in megacycles) spent by that process during the event.
+      optional int32 cpu_mcycles = 3;
+      // The ratio of this process's cycles to the total for all processes, expressed as a percentage.
+      optional float cpu_percentage = 4;
+      // General identifier for this usage source: determined from the process name, user, etc.
+      // Should be stable across multiple runs (i.e. does not print the user_id directly).
+      optional string identifier = 5;
+    }
+    repeated CpuUsage cpu_usage = 2;
+  }
+
+  // Metrics for a user switch.
+  optional EventData user_switch = 1;
+}

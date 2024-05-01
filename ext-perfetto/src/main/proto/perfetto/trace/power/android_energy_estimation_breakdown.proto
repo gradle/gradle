@@ -1,0 +1,49 @@
+/*
+ * Copyright (C) 2021 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto2";
+package perfetto.protos;
+
+import "perfetto/common/android_energy_consumer_descriptor.proto";
+
+// Energy data retrieve using the ODPM(On Device Power Monitor) API.
+// This proto represents the aidl class:
+// android.hardware.power.stats.EnergyConsumerResult.
+message AndroidEnergyEstimationBreakdown {
+  // The first trace packet of each session should include a energy consumer
+  // descriptor.
+  optional AndroidEnergyConsumerDescriptor energy_consumer_descriptor = 1;
+
+  // ID of the AndroidEnergyConsumer associated with this result.  Matches
+  // the energy_consumer_id in the AndroidEnergyConsumerDescriptor that
+  // should be sent at the beginning of a trace.
+  optional int32 energy_consumer_id = 2;
+
+  // Total accumulated energy since boot in microwatt-seconds (uWs)
+  optional int64 energy_uws = 3;
+
+  message EnergyUidBreakdown {
+    // Android ID/Linux UID, the accumulated energy is attributed to.
+    optional int32 uid = 1;
+
+    // Accumulated energy since boot in microwatt-seconds (uWs).
+    optional int64 energy_uws = 2;
+  }
+  // Optional attributed energy per Android ID / Linux UID for this
+  // EnergyConsumer. Sum total of attributed energy must be less than or equal
+  // to total accumulated energy.
+  repeated EnergyUidBreakdown per_uid_breakdown = 4;
+}

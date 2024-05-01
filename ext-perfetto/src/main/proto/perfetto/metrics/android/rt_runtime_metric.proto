@@ -1,0 +1,39 @@
+/*
+ * Copyright (C) 2022 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto2";
+
+package perfetto.protos;
+
+// measure max RT runtime and RT tasks running over 5ms.
+message AndroidRtRuntimeMetric {
+  message RtSlice {
+    // thread name
+    optional string tname = 1;
+    // timestamp
+    optional int64 ts = 2;
+    // runtime of RT task
+    optional int64 dur = 3;
+  }
+
+  // max runtime of RT tasks
+  optional int64 max_runtime = 1;
+  // how many RT tasks are over 5ms.
+  optional int64 over_5ms_count = 2;
+  // information for top 10 RT tasks
+  repeated RtSlice longest_rt_slices = 3;
+}
+

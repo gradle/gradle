@@ -1,0 +1,57 @@
+/*
+ * Copyright (C) 2020 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto2";
+
+package perfetto.protos;
+
+message AndroidSurfaceflingerMetric {
+  // Counts the number of missed frames in the trace.
+  optional uint32 missed_frames = 1;
+
+  // Counts the number of missed HWC frames in the trace.
+  optional uint32 missed_hwc_frames = 2;
+
+  // Counts the number of missed GPU frames in the trace.
+  optional uint32 missed_gpu_frames = 3;
+
+  // Calculate the number of missed frames divided by
+  // total frames
+  optional double missed_frame_rate = 4;
+
+  // Calculate the number of missed HWC frames divided by
+  // total HWC frames
+  optional double missed_hwc_frame_rate = 5;
+
+  // Calculate the number of missed GPU frames divided by
+  // total GPU frames
+  optional double missed_gpu_frame_rate = 6;
+
+  // Count the number of times SurfaceFlinger needs to invoke GPU
+  // for rendering some layers
+  optional uint32 gpu_invocations = 7;
+
+  // Calculate the average duration of GPU request by SurfaceFlinger
+  // since it enters the FenceMonitor's queue until it gets completed
+  optional double avg_gpu_waiting_dur_ms = 8;
+
+  // Calculate the total duration when there is at least one GPU request
+  // by SurfaceFlinger that is still waiting for GPU to complete the
+  // request.
+  // This also equals to the total duration of
+  // "waiting for GPU completion <fence_num>" in SurfaceFlinger.
+  optional double total_non_empty_gpu_waiting_dur_ms = 9;
+}

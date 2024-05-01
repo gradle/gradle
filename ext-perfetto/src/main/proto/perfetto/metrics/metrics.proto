@@ -1,0 +1,243 @@
+/*
+ * Copyright (C) 2019 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto2";
+
+package perfetto.protos;
+
+import "perfetto/metrics/android/android_frame_timeline_metric.proto";
+import "perfetto/metrics/android/batt_metric.proto";
+import "perfetto/metrics/android/cpu_metric.proto";
+import "perfetto/metrics/android/camera_metric.proto";
+import "perfetto/metrics/android/camera_unagg_metric.proto";
+import "perfetto/metrics/android/display_metrics.proto";
+import "perfetto/metrics/android/dma_heap_metric.proto";
+import "perfetto/metrics/android/dvfs_metric.proto";
+import "perfetto/metrics/android/fastrpc_metric.proto";
+import "perfetto/metrics/android/g2d_metric.proto";
+import "perfetto/metrics/android/gpu_metric.proto";
+import "perfetto/metrics/android/hwcomposer.proto";
+import "perfetto/metrics/android/hwui_metric.proto";
+import "perfetto/metrics/android/ion_metric.proto";
+import "perfetto/metrics/android/irq_runtime_metric.proto";
+import "perfetto/metrics/android/jank_cuj_metric.proto";
+import "perfetto/metrics/android/java_heap_histogram.proto";
+import "perfetto/metrics/android/java_heap_stats.proto";
+import "perfetto/metrics/android/lmk_metric.proto";
+import "perfetto/metrics/android/lmk_reason_metric.proto";
+import "perfetto/metrics/android/mem_metric.proto";
+import "perfetto/metrics/android/mem_unagg_metric.proto";
+import "perfetto/metrics/android/multiuser_metric.proto";
+import "perfetto/metrics/android/network_metric.proto";
+import "perfetto/metrics/android/other_traces.proto";
+import "perfetto/metrics/android/package_list.proto";
+import "perfetto/metrics/android/powrails_metric.proto";
+import "perfetto/metrics/android/profiler_smaps.proto";
+import "perfetto/metrics/android/rt_runtime_metric.proto";
+import "perfetto/metrics/android/simpleperf.proto";
+import "perfetto/metrics/android/startup_metric.proto";
+import "perfetto/metrics/android/surfaceflinger.proto";
+import "perfetto/metrics/android/task_names.proto";
+import "perfetto/metrics/android/trace_quality.proto";
+import "perfetto/metrics/android/android_trusty_workqueues.proto";
+import "perfetto/metrics/android/unsymbolized_frames.proto";
+import "perfetto/metrics/android/binder_metric.proto";
+
+// Trace processor metadata
+message TraceMetadata {
+  reserved 1;
+  optional int64 trace_duration_ns = 2;
+  optional string trace_uuid = 3;
+  optional string android_build_fingerprint = 4;
+  optional int64 statsd_triggering_subscription_id = 5;
+  optional int64 trace_size_bytes = 6;
+  repeated string trace_trigger = 7;
+  optional string unique_session_name = 8;
+  optional string trace_config_pbtxt = 9;
+  optional int64 sched_duration_ns = 10;
+}
+
+// Stats counters for the trace.
+// Defined in src/trace_processor/storage/stats.h
+message TraceAnalysisStats {
+  enum Severity {
+    SEVERITY_UNKNOWN = 0;
+    SEVERITY_INFO = 1;
+    SEVERITY_DATA_LOSS = 2;
+    SEVERITY_ERROR = 3;
+  }
+
+  enum Source {
+    SOURCE_UNKNOWN = 0;
+    SOURCE_TRACE = 1;
+    SOURCE_ANALYSIS = 2;
+  }
+
+  message Stat {
+    optional string name = 1;
+    optional uint32 idx = 2;
+    optional Severity severity = 3;
+    optional Source source = 4;
+
+    optional int64 count = 5;
+  }
+
+  repeated Stat stat = 1;
+}
+
+// Root message for all Perfetto-based metrics.
+//
+// Next id: 49
+message TraceMetrics {
+  reserved 4, 10, 13, 14, 16, 19;
+
+  // Battery counters metric on Android.
+  optional AndroidBatteryMetric android_batt = 5;
+
+  // CPU usage per trace, process and thread.
+  optional AndroidCpuMetric android_cpu = 6;
+
+  // Memory metrics on Android (owned by the Android Telemetry team).
+  optional AndroidMemoryMetric android_mem = 1;
+
+  // Memory metrics on Android in unaggregated form. (owned by the Android
+  // Telemetry team).
+  // Note: this generates a lot of data so should not be requested unless it
+  // is clear that this data is necessary.
+  optional AndroidMemoryUnaggregatedMetric android_mem_unagg = 11;
+
+  // Package list.
+  optional AndroidPackageList android_package_list = 12;
+
+  // ion buffer memory metrics.
+  optional AndroidIonMetric android_ion = 9;
+
+  // fastrpc subsystem memory metrics.
+  optional AndroidFastrpcMetric android_fastrpc = 31;
+
+  // Statistics about low memory kills.
+  optional AndroidLmkMetric android_lmk = 8;
+
+  // Power Rails metrics on Android.
+  optional AndroidPowerRails android_powrails = 7;
+
+  // Startup metrics on Android (owned by the Android Telemetry team).
+  optional AndroidStartupMetric android_startup = 2;
+
+  // Trace metadata (applicable to all traces).
+  optional TraceMetadata trace_metadata = 3;
+
+  // Trace stats (applicable to all traces).
+  optional TraceAnalysisStats trace_stats = 33;
+
+  // Returns stack frames missing symbols.
+  optional UnsymbolizedFrames unsymbolized_frames = 15;
+
+  // If the trace contains a heap graph, output allocation statistics.
+  optional JavaHeapStats java_heap_stats = 17;
+
+  // If the trace contains a heap graph, output histogram.
+  optional JavaHeapHistogram java_heap_histogram = 21;
+
+  // Metrics used to find potential culprits of low-memory kills.
+  optional AndroidLmkReasonMetric android_lmk_reason = 18;
+
+  optional AndroidHwuiMetric android_hwui_metric = 20;
+
+  optional AndroidDisplayMetrics display_metrics = 22;
+
+  optional AndroidTaskNames android_task_names = 23;
+
+  // Deprecated was AndroidThreadTimeInStateMetric
+  reserved 24;
+
+  // Metric associated with surfaceflinger.
+  optional AndroidSurfaceflingerMetric android_surfaceflinger = 25;
+
+  // GPU metrics on Android.
+  optional AndroidGpuMetric android_gpu = 26;
+
+  // Deprecated AndroidSysUiCujMetrics.
+  reserved 27;
+
+  // Interaction and frame timings for CUJs (important UI transitions).
+  optional AndroidJankCujMetric android_jank_cuj = 48;
+
+  // Metric associated with hwcomposer.
+  optional AndroidHwcomposerMetrics android_hwcomposer = 28;
+
+  // Deprecated was AndroidJankMetrics;
+  reserved 29;
+
+  // G2D metrics.
+  optional G2dMetrics g2d = 30;
+
+  // Dmabuf heap metrics.
+  optional AndroidDmaHeapMetric android_dma_heap = 32;
+
+  // Metric to verify the quality of the trace.
+  optional AndroidTraceQualityMetric android_trace_quality = 34;
+
+  // Profiler smaps
+  optional ProfilerSmaps profiler_smaps = 35;
+
+  // Multiuser - metrics for switching users.
+  optional AndroidMultiuserMetric android_multiuser = 36;
+
+  // Metrics related to simpleperf tool
+  optional AndroidSimpleperfMetric android_simpleperf = 37;
+
+  // Metrics for the Camera team.
+  optional AndroidCameraMetric android_camera = 38;
+
+  // Metrics for dynamic voltage and frequency scaling.
+  optional AndroidDvfsMetric android_dvfs = 39;
+
+  // Metrics for network performance.
+  optional AndroidNetworkMetric android_netperf = 40;
+
+  // Metrics for the Camera team.
+  // Note: this generates a lot of data so should not be requested unless it
+  // is clear that this data is necessary.
+  optional AndroidCameraUnaggregatedMetric android_camera_unagg = 41;
+
+  // Metrics for RT runtime.
+  optional AndroidRtRuntimeMetric android_rt_runtime = 42;
+
+  // Metrics for IRQ runtime.
+  optional AndroidIrqRuntimeMetric android_irq_runtime = 43;
+
+  // Metrics for the Trusty team.
+  optional AndroidTrustyWorkqueues android_trusty_workqueues = 44;
+
+  // Summary of other concurrent trace recording.
+  optional AndroidOtherTracesMetric android_other_traces = 45;
+
+  // Per-process Binder transaction metrics.
+  optional AndroidBinderMetric android_binder = 46;
+
+  // Metrics for app deadline missed.
+  optional AndroidFrameTimelineMetric android_frame_timeline_metric = 47;
+
+  // Demo extensions.
+  extensions 450 to 499;
+
+  // Vendor extensions.
+  extensions 500 to 1000;
+
+  // Chrome metrics.
+  extensions 1001 to 2000;
+}

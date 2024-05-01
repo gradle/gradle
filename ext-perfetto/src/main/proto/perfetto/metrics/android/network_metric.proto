@@ -1,0 +1,176 @@
+/*
+ * Copyright (C) 2020 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto2";
+
+package perfetto.protos;
+
+message AndroidNetworkMetric {
+  message PacketStatistic {
+    // Packet count.
+    optional int64 packets = 1;
+
+    // Packet Bytes.
+    optional int64 bytes = 2;
+
+    // Timestamp when first packet received or transmitted.
+    optional int64 first_packet_timestamp_ns = 3;
+
+    // Timestamp when last packet received or transmitted.
+    optional int64 last_packet_timestamp_ns = 4;
+
+    // Interval between first & last packet. The minimum interval is 10ms.
+    optional int64 interval_ns = 5;
+
+    // Data Speed.
+    optional double data_rate_kbps = 6;
+  }
+
+  message CorePacketStatistic {
+    optional uint32 id = 1;
+    optional PacketStatistic packet_statistic = 2;
+  }
+
+  message Rx {
+    // Total packets statistic.
+    optional PacketStatistic total = 1;
+
+    // Per core packets statistic.
+    repeated CorePacketStatistic core = 2;
+
+    // GRO aggregation ratio.
+    optional string gro_aggregation_ratio = 3;
+  }
+
+  message Tx {
+    // Total packets statistic.
+    optional PacketStatistic total = 1;
+
+    // Per core packets statistic.
+    repeated CorePacketStatistic core = 2;
+  }
+
+  message NetDevice {
+    // Network device name.
+    optional string name = 1;
+
+    // Ingress traffic statistic.
+    optional Rx rx = 2;
+
+    // Egress traffic statistic
+    optional Tx tx = 3;
+  }
+
+  message NetRxActionStatistic {
+    // SoftIrq NET_RX action count.
+    optional int64 count = 1;
+
+    // SoftIrq NET_RX action was running in millisecond.
+    optional double runtime_ms = 2;
+
+    // SoftIrq NET_RX action average running time.
+    optional double avg_runtime_ms = 3;
+
+    // CPU megacycles (i.e. cycles divided by 1e6).
+    optional int64 mcycles = 4;
+
+    // Average weighted CPU frequency by the time the NET_RX Action
+    // running at each frequency.
+    optional int64 avg_freq_khz = 5;
+  }
+
+  message NetTxActionStatistic {
+    // SoftIrq NET_TX action count.
+    optional int64 count = 1;
+
+    // SoftIrq NET_TX action was running in millisecond.
+    optional double runtime_ms = 2;
+
+    // SoftIrq NET_TX action average running time.
+    optional double avg_runtime_ms = 3;
+
+    // CPU megacycles (i.e. cycles divided by 1e6).
+    optional int64 mcycles = 4;
+
+    // Average weighted CPU frequency by the time the NET_TX Action
+    // running at each frequency.
+    optional int64 avg_freq_khz = 5;
+  }
+
+  message IpiActionStatistic {
+    // SoftIrq IPI action count.
+    optional int64 count = 1;
+
+    // SoftIrq IPI action was running in millisecond.
+    optional double runtime_ms = 2;
+
+    // SoftIrq IPI action average running time.
+    optional double avg_runtime_ms = 3;
+  }
+
+  message CoreNetRxActionStatistic {
+    optional uint32 id = 1;
+    optional NetRxActionStatistic net_rx_action_statistic = 2;
+  }
+
+  message CoreNetTxActionStatistic {
+    optional uint32 id = 1;
+    optional NetTxActionStatistic net_tx_action_statistic = 2;
+  }
+
+  message NetRxAction {
+    // Total NET_RX action statistics.
+    optional NetRxActionStatistic total = 1;
+
+    // Per core NET_RX action statistics.
+    repeated CoreNetRxActionStatistic core = 2;
+
+    // The average packet time moves through the kernel stack.
+    optional double avg_interstack_latency_ms = 3;
+  }
+
+  message NetTxAction {
+    // Total NET_TX action statistics.
+    optional NetTxActionStatistic total = 1;
+
+    // Per core NET_TX action statistics.
+    repeated CoreNetTxActionStatistic core = 2;
+  }
+
+  message IpiAction {
+    // Total IPI action statistics.
+    optional IpiActionStatistic total = 1;
+  }
+
+  // Network device metrics.
+  repeated NetDevice net_devices = 1;
+
+  // SoftIrq NET_RX action metrics.
+  optional NetRxAction net_rx_action = 2;
+
+  // Packet retransmission rate.
+  optional double retransmission_rate = 3;
+
+  // Kfree Skb rate (i.e. kfree_skb count divided by the packet count from all
+  // net devices).
+  optional double kfree_skb_rate = 4;
+
+  // SoftIrq NET_TX action metrics.
+  optional NetTxAction net_tx_action = 5;
+
+  // SoftIrq IPI action metrics.
+  optional IpiAction ipi_action = 6;
+}

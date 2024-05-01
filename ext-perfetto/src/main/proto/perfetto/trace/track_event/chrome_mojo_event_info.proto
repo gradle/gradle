@@ -1,0 +1,55 @@
+/*
+ * Copyright (C) 2020 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto2";
+
+package perfetto.protos;
+
+// Contains information to identify mojo handling events. The trace events in
+// mojo are common for all mojo interfaces and this information is used to
+// identify who is the caller or callee.
+message ChromeMojoEventInfo {
+  // Contains the interface name or the file name of the creator of a mojo
+  // handle watcher, recorded when an event if notified to the watcher. The code
+  // that runs within the track event belongs to the interface.
+  optional string watcher_notify_interface_tag = 1;
+
+  // The hash of the IPC message that is being handled.
+  optional uint32 ipc_hash = 2;
+
+  // A static string representing the mojo interface name of the message that is
+  // being handled.
+  optional string mojo_interface_tag = 3;
+
+  // Refers to an interned UnsymbolizedSourceLocation.
+  // The UnsymbolizedSourceLocation contains the interface method that's being
+  // handled, represented as a native symbol.
+  // The native symbol can be symbolized after the trace is recorded.
+  // Not using a symbolized source location for official Chromium builds to
+  // reduce binary size - emitting file/function names as strings into the
+  // trace requires storing them in the binary, which causes a significant
+  // binary size bloat for Chromium.
+  optional uint64 mojo_interface_method_iid = 4;
+
+  // Indicate whether this is a message or reply.
+  optional bool is_reply = 5;
+
+  // The payload size of the message being sent through mojo messages.
+  optional uint64 payload_size = 6;
+
+  // Represents the size of the message. Includes all headers and user payload.
+  optional uint64 data_num_bytes = 7;
+}

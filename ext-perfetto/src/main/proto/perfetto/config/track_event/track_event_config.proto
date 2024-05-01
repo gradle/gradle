@@ -1,0 +1,98 @@
+/*
+ * Copyright (C) 2020 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto2";
+
+package perfetto.protos;
+
+message TrackEventConfig {
+  // The following fields define the set of enabled trace categories. Each list
+  // item is a glob.
+  //
+  // To determine if category is enabled, it is checked against the filters in
+  // the following order:
+  //
+  //   1. Exact matches in enabled categories.
+  //   2. Exact matches in enabled tags.
+  //   3. Exact matches in disabled categories.
+  //   4. Exact matches in disabled tags.
+  //   5. Pattern matches in enabled categories.
+  //   6. Pattern matches in enabled tags.
+  //   7. Pattern matches in disabled categories.
+  //   8. Pattern matches in disabled tags.
+  //
+  // If none of the steps produced a match, the category is enabled by default.
+  //
+  // Examples:
+  //
+  //  - To enable all non-slow/debug categories:
+  //
+  //       No configuration needed, happens by default.
+  //
+  //  - To enable a specific category:
+  //
+  //       disabled_categories = ["*"]
+  //       enabled_categories = ["my_category"]
+  //
+  //  - To enable only categories with a specific tag:
+  //
+  //       disabled_tags = ["*"]
+  //       enabled_tags = ["my_tag"]
+  //
+
+  // Default: []
+  repeated string disabled_categories = 1;
+
+  // Default: []
+  repeated string enabled_categories = 2;
+
+  // Default: ["slow", "debug"]
+  repeated string disabled_tags = 3;
+
+  // Default: []
+  repeated string enabled_tags = 4;
+
+  // Default: false (i.e. enabled by default)
+  optional bool disable_incremental_timestamps = 5;
+
+  // Allows to specify a custom unit different than the default (ns).
+  // Also affects thread timestamps if enable_thread_time_sampling = true.
+  // A multiplier of 1000 means that a timestamp = 3 should be interpreted as
+  // 3000 ns = 3 us.
+  // Default: 1 (if unset, it should be read as 1).
+  optional uint64 timestamp_unit_multiplier = 6;
+
+  // Default: false (i.e. debug_annotations is NOT filtered out by default)
+  // When true, any debug annotations provided as arguments to the
+  // TRACE_EVENT macros are not written into the trace. Typed arguments will
+  // still be emitted even if set to true.
+  optional bool filter_debug_annotations = 7;
+
+  // Default : false (i.e. disabled)
+  // When true, the SDK samples and emits the current thread time counter value
+  // for each event on the current thread's track. This value represents the
+  // total CPU time consumed by that thread since its creation. Note that if a
+  // thread is not scheduled by OS for some duration, that time won't be
+  // included in thread_time.
+  // Learn more : "CLOCK_THREAD_CPUTIME_ID" flag at
+  // https://linux.die.net/man/3/clock_gettime
+  optional bool enable_thread_time_sampling = 8;
+
+  // Default: false (i.e. dynamic event names are NOT filtered out by default)
+  // When true, event_names wrapped in perfetto::DynamicString will be filtered
+  // out.
+  optional bool filter_dynamic_event_names = 9;
+}

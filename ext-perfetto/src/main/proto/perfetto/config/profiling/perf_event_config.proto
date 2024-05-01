@@ -1,0 +1,218 @@
+/*
+ * Copyright (C) 2019 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto2";
+
+import "perfetto/common/perf_events.proto";
+
+package perfetto.protos;
+
+// Configuration for the traced_perf profiler.
+//
+// Example config for basic cpu profiling:
+//   perf_event_config {
+//     timebase {
+//       frequency: 80
+//     }
+//     callstack_sampling {
+//       scope {
+//         target_cmdline: "surfaceflinger"
+//         target_cmdline: "system_server"
+//       }
+//       kernel_frames: true
+//     }
+//   }
+//
+// Next id: 19
+message PerfEventConfig {
+  // What event to sample on, and how often.
+  // Defined in common/perf_events.proto.
+  optional PerfEvents.Timebase timebase = 15;
+
+  // If set, the profiler will sample userspace processes' callstacks at the
+  // interval specified by the |timebase|.
+  // If unset, the profiler will record only the event counts.
+  optional CallstackSampling callstack_sampling = 16;
+
+  //
+  // Kernel <-> userspace ring buffer options:
+  //
+
+  // How often the per-cpu ring buffers are read by the producer.
+  // If unset, an implementation-defined default is used.
+  optional uint32 ring_buffer_read_period_ms = 8;
+
+  // Size (in 4k pages) of each per-cpu ring buffer that is filled by the
+  // kernel. If set, must be a power of two.
+  // If unset, an implementation-defined default is used.
+  optional uint32 ring_buffer_pages = 3;
+
+  //
+  // Daemon's resource usage limits:
+  //
+
+  // Drop samples if the heap memory held by the samples in the unwinder queue
+  // is above the given limit. This counts the memory across all concurrent data
+  // sources (not just this one's), and there is no fairness guarantee - the
+  // whole quota might be used up by a concurrent source.
+  optional uint64 max_enqueued_footprint_kb = 17;
+
+  // Stop the data source if traced_perf's combined {RssAnon + Swap} memory
+  // footprint exceeds this value.
+  optional uint32 max_daemon_memory_kb = 13;
+
+  //
+  // Uncommon options:
+  //
+
+  // Timeout for the remote /proc/<pid>/{maps,mem} file descriptors for a
+  // sampled process. This is primarily for Android, where this lookup is
+  // asynchronous. As long as the producer is waiting, the associated samples
+  // will be kept enqueued (putting pressure on the capacity of the shared
+  // unwinding queue). Once a lookup for a process expires, all associated
+  // samples are discarded. However, if the lookup still succeeds after the
+  // timeout, future samples will be handled normally.
+  // If unset, an implementation-defined default is used.
+  optional uint32 remote_descriptor_timeout_ms = 9;
+
+  // Optional period for clearing state cached by the unwinder. This is a heavy
+  // operation that is only necessary for traces that target a wide set of
+  // processes, and require the memory footprint to be reset periodically.
+  // If unset, the cached state will not be cleared.
+  optional uint32 unwind_state_clear_period_ms = 10;
+
+  // If set, only profile target if it was installed by a package with one of
+  // these names. Special values:
+  // * "@system": installed on the system partition
+  // * "@product": installed on the product partition
+  // * "@null": sideloaded
+  // Supported on Android 12+.
+  repeated string target_installed_by = 18;
+
+  //
+  // Deprecated (superseded by options above):
+  //
+  // Do not set *any* of these fields in new configs.
+  //
+
+  // Note: legacy configs had to set |all_cpus| to true to pass parsing.
+  // We rely on this to detect such configs.
+  optional bool all_cpus = 1;
+  optional uint32 sampling_frequency = 2;
+  optional bool kernel_frames = 12;
+  repeated int32 target_pid = 4;
+  repeated string target_cmdline = 5;
+  repeated int32 exclude_pid = 6;
+  repeated string exclude_cmdline = 7;
+  optional uint32 additional_cmdline_count = 11;
+  // previously |tracepoint|
+  reserved 14;
+
+  //
+  // Sub-messages (nested for generated code namespacing).
+  //
+
+  message CallstackSampling {
+    // Defines a set of processes for which samples are retained/skipped. If
+    // unset, all samples are kept, but beware that it will be very heavy on the
+    // stack unwinder, which might start dropping samples due to overload.
+    optional Scope scope = 1;
+
+    // If true, callstacks will include the kernel-space frames. Such frames can
+    // be identified by a magical "kernel" string as their mapping name.
+    // Requires traced_perf to be running as root, or kptr_restrict to have been
+    // manually unrestricted. On Android, the platform should do the right thing
+    // on debug builds.
+    // This does *not* disclose KASLR, as only the function names are emitted.
+    optional bool kernel_frames = 2;
+
+    // Whether to record and unwind userspace callstacks. If unset, defaults to
+    // including userspace (UNWIND_DWARF) both for backwards compatibility and
+    // as the most common default (this defaulting is only applicable if the
+    // outer CallstackSampling message is explicitly set).
+    optional UnwindMode user_frames = 3;
+  }
+
+  message Scope {
+    // Process ID (TGID) allowlist. If this list is not empty, only matching
+    // samples will be retained. If multiple allow/deny-lists are
+    // specified by the config, then all of them are evaluated for each sampled
+    // process.
+    repeated int32 target_pid = 1;
+
+    // Command line allowlist, matched against the /proc/<pid>/cmdline (not the
+    // comm string). The semantics of this field were changed since its original
+    // introduction.
+    //
+    // On Android T+ (13+), this field can specify a single wildcard (*), and
+    // the profiler will attempt to match it in two possible ways:
+    // * if the pattern starts with a '/', then it is matched against the first
+    //   segment of the cmdline (i.e. argv0). For example "/bin/e*" would match
+    //   "/bin/echo".
+    // * otherwise the pattern is matched against the part of argv0
+    //   corresponding to the binary name (this is unrelated to /proc/pid/exe).
+    //   For example "echo" would match "/bin/echo".
+    //
+    // On Android S (12) and below, both this pattern and /proc/pid/cmdline get
+    // normalized prior to an exact string comparison. Normalization is as
+    // follows: (1) trim everything beyond the first null or "@" byte; (2) if
+    // the string contains forward slashes, trim everything up to and including
+    // the last one.
+    //
+    // Implementation note: in either case, at most 511 characters of cmdline
+    // are considered.
+    repeated string target_cmdline = 2;
+
+    // List of excluded pids.
+    repeated int32 exclude_pid = 3;
+
+    // List of excluded cmdlines. See description of |target_cmdline| for how
+    // this is handled.
+    repeated string exclude_cmdline = 4;
+
+    // Niche features for systemwide callstacks:
+
+    // Number of additional command lines to sample. Only those which are
+    // neither explicitly included nor excluded will be considered. Processes
+    // are accepted on a first come, first served basis.
+    optional uint32 additional_cmdline_count = 5;
+
+    // If set to N, all encountered processes will be put into one of the N
+    // possible bins, and only one randomly-chosen bin will be selected for
+    // unwinding. The binning is simply "pid % N", under the assumption that
+    // low-order bits of pids are roughly uniformly distributed. Other explicit
+    // inclusions/exclusions in this |Scope| message are still respected.
+    //
+    // The profiler will report the chosen shard in PerfSampleDefaults, and the
+    // values will be queryable in trace processor under the "stats" table as
+    // "perf_process_shard_count" and "perf_chosen_process_shard".
+    //
+    // NB: all data sources in a config that set |process_shard_count| must set
+    // it to the same value. The profiler will choose one bin for all those data
+    // sources.
+    optional uint32 process_shard_count = 6;
+  }
+
+  // Userspace unwinding mode. A possible future addition is kernel-unwound
+  // callchains for frame pointer based systems.
+  enum UnwindMode {
+    UNWIND_UNKNOWN = 0;
+    // Do not unwind userspace:
+    UNWIND_SKIP = 1;
+    // Use libunwindstack (default):
+    UNWIND_DWARF = 2;
+  }
+}

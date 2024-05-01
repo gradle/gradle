@@ -1,0 +1,363 @@
+/*
+ * Copyright (C) 2018 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto2";
+
+import "perfetto/common/perf_events.proto";
+import "perfetto/trace/profiling/profile_common.proto";
+
+package perfetto.protos;
+
+// This file contains a mixture of messages emitted by various sampling
+// profilers:
+//
+// Memory allocator profiling
+// ----------------
+// ProfilePacket:
+//   The packet emitted by heapprofd, which started off as a native heap
+//   (malloc/free) profiler, but now supports custom allocators as well. Each
+//   packet contains a preaggregated state of the heap at snapshot time, which
+//   report the total allocated/free bytes per callstack (plus other info such
+//   as the number of samples).
+// StreamingAllocation/StreamingFree:
+//   Emitted by heapprofd when configured in streaming mode (i.e. when
+//   stream_allocations = true). This is only for local testing, and doesn't
+//   report callstacks (only address time and size of each alloc/free). It can
+//   lead to enormous traces, as it contains the stream of each alloc/free call.
+//
+// Callstack sampling
+// ------------------
+// StreamingProfilePacket:
+//   The packet emitted by the chromium in-process sampling profiler, which is
+//   based on periodically sending a signal to itself, and unwinding the stack
+//   in the signal handler. Each packet contains a series of individual stack
+//   samples for a Chromium thread.
+//
+// Callstack and performance counter sampling
+// ---------------------
+// PerfSample:
+//   The packet emitted by traced_perf sampling performance profiler based on
+//   the perf_event_open syscall. Each packet represents an individual sample
+//   of a performance counter (which might be a timer), and optionally a
+//   callstack of the process that was scheduled at the time of the sample.
+//
+
+// The packet emitted by heapprofd for each heap snapshot. A snapshot can
+// involve more than one ProfilePacket if the snapshot is big (when |continued|
+// is true). The cardinality and grouping is as follows:
+// A ProfilePacket contains:
+//  - 1+ per-process heap snapshots (ProcessHeapSamples). Normally there is only
+//    one heap per process (the main malloc/free heap), but there can be more if
+//    the process is using the heapprofd API to profile custom allocators.
+//  - Globally interned strings, mappings and frames (to allow de-duplicating
+//    frames/mapping in common between different processes).
+// A ProcessHeapSamples contains:
+//  - The process and heap identifier.
+//  - A number of HeapSample, one for each callsite that had some alloc/frees.
+//  - Statistics about heapprofd internals (e.g., sampling/unwinding timings).
+// A HeapSample contains statistics about callsites:
+//  - Total number of bytes allocated and freed from that callsite.
+//  - Total number of alloc/free calls sampled.
+//  - Stats at the local maximum when dump_at_max = true.
+// See https://perfetto.dev/docs/data-sources/native-heap-profiler for more.
+message ProfilePacket {
+  // The following interning tables are only used in Android version Q.
+  // In newer versions, these tables are in InternedData
+  // (see protos/perfetto/trace/interned_data) and are shared across
+  // multiple ProfilePackets.
+  // For backwards compatibility, consumers need to first look up interned
+  // data in the tables within the ProfilePacket, and then, if they are empty,
+  // look up in the InternedData instead.
+  repeated InternedString strings = 1;
+  repeated Mapping mappings = 4;
+  repeated Frame frames = 2;
+  repeated Callstack callstacks = 3;
+
+  // Next ID: 9
+  message HeapSample {
+    optional uint64 callstack_id = 1;
+    // bytes allocated at this callstack.
+    optional uint64 self_allocated = 2;
+    // bytes allocated at this callstack that have been freed.
+    optional uint64 self_freed = 3;
+    // deprecated self_idle.
+    reserved 7;
+    // Bytes allocated by this callstack but not freed at the time the malloc
+    // heap usage of this process was maximal. This is only set if dump_at_max
+    // is true in HeapprofdConfig. In that case, self_allocated, self_freed and
+    // self_idle will not be set.
+    optional uint64 self_max = 8;
+    // Number of allocations that were sampled at this callstack but not freed
+    // at the time the malloc heap usage of this process was maximal. This is
+    // only set if dump_at_max is true in HeapprofdConfig. In that case,
+    // self_allocated, self_freed and self_idle will not be set.
+    optional uint64 self_max_count = 9;
+    // timestamp [opt]
+    optional uint64 timestamp = 4;
+    // Number of allocations that were sampled at this callstack.
+    optional uint64 alloc_count = 5;
+    // Number of allocations that were sampled at this callstack that have been
+    // freed.
+    optional uint64 free_count = 6;
+  }
+
+  message Histogram {
+    message Bucket {
+      // This bucket counts values from the previous bucket's (or -infinity if
+      // this is the first bucket) upper_limit (inclusive) to this upper_limit
+      // (exclusive).
+      optional uint64 upper_limit = 1;
+      // This is the highest bucket. This is set instead of the upper_limit. Any
+      // values larger or equal to the previous bucket's upper_limit are counted
+      // in this bucket.
+      optional bool max_bucket = 2;
+      // Number of values that fall into this range.
+      optional uint64 count = 3;
+    }
+    repeated Bucket buckets = 1;
+  }
+
+  message ProcessStats {
+    optional uint64 unwinding_errors = 1;
+    optional uint64 heap_samples = 2;
+    optional uint64 map_reparses = 3;
+    optional Histogram unwinding_time_us = 4;
+    optional uint64 total_unwinding_time_us = 5;
+    optional uint64 client_spinlock_blocked_us = 6;
+  }
+
+  repeated ProcessHeapSamples process_dumps = 5;
+  message ProcessHeapSamples {
+    enum ClientError {
+      CLIENT_ERROR_NONE = 0;
+      CLIENT_ERROR_HIT_TIMEOUT = 1;
+      CLIENT_ERROR_INVALID_STACK_BOUNDS = 2;
+    }
+    optional uint64 pid = 1;
+
+    // This process was profiled from startup.
+    // If false, this process was already running when profiling started.
+    optional bool from_startup = 3;
+
+    // This process was not profiled because a concurrent session was active.
+    // If this is true, samples will be empty.
+    optional bool rejected_concurrent = 4;
+
+    // This process disconnected while it was profiled.
+    // If false, the process outlived the profiling session.
+    optional bool disconnected = 6;
+
+    // If disconnected, this disconnect was caused by the client overrunning
+    // the buffer.
+    // Equivalent to client_error == CLIENT_ERROR_HIT_TIMEOUT
+    // on new S builds.
+    optional bool buffer_overran = 7;
+
+    optional ClientError client_error = 14;
+
+    // If disconnected, this disconnected was caused by the shared memory
+    // buffer being corrupted. THIS IS ALWAYS A BUG IN HEAPPROFD OR CLIENT
+    // MEMORY CORRUPTION.
+    optional bool buffer_corrupted = 8;
+
+    // If disconnected, this disconnect was caused by heapprofd exceeding
+    // guardrails during this profiling session.
+    optional bool hit_guardrail = 10;
+
+    optional string heap_name = 11;
+    optional uint64 sampling_interval_bytes = 12;
+    optional uint64 orig_sampling_interval_bytes = 13;
+
+    // Timestamp of the state of the target process that this dump represents.
+    // This can be different to the timestamp of the TracePackets for various
+    // reasons:
+    // * If disconnected is set above, this is the timestamp of last state
+    //   heapprofd had of the process before it disconnected.
+    // * Otherwise, if the rate of events produced by the process is high,
+    //   heapprofd might be behind.
+    //
+    // TODO(fmayer): This is MONOTONIC_COARSE. Refactor ClockSnapshot::Clock
+    //               to have a type enum that we can reuse here.
+    optional uint64 timestamp = 9;
+
+    // Metadata about heapprofd.
+    optional ProcessStats stats = 5;
+
+    repeated HeapSample samples = 2;
+  }
+
+  // If this is true, the next ProfilePacket in this package_sequence_id is a
+  // continuation of this one.
+  // To get all samples for a process, accummulate its
+  // ProcessHeapSamples.samples until you see continued=false.
+  optional bool continued = 6;
+
+  // Index of this ProfilePacket on its package_sequence_id. Can be used
+  // to detect dropped data.
+  // Verify these are consecutive.
+  optional uint64 index = 7;
+}
+
+// Packet emitted by heapprofd when stream_allocations = true. Only for local
+// testing. Doesn't report the callsite.
+message StreamingAllocation {
+  // TODO(fmayer): Add callstack.
+  repeated uint64 address = 1;
+  repeated uint64 size = 2;
+  repeated uint64 sample_size = 3;
+  repeated uint64 clock_monotonic_coarse_timestamp = 4;
+  repeated uint32 heap_id = 5;
+  repeated uint64 sequence_number = 6;
+};
+
+// Packet emitted by heapprofd when stream_allocations = true. Only for local
+// testing. Doesn't report the callsite.
+message StreamingFree {
+  // TODO(fmayer): Add callstack.
+  repeated uint64 address = 1;
+  repeated uint32 heap_id = 2;
+  repeated uint64 sequence_number = 3;
+};
+
+// Packet emitted by the chromium in-process signal-based callstack sampler.
+// Represents a series of individual stack samples (sampled at discrete points
+// in time), rather than aggregated over an interval.
+message StreamingProfilePacket {
+  // Index into InternedData.callstacks
+  repeated uint64 callstack_iid = 1;
+  // TODO(eseckler): ThreadDescriptor-based timestamps are deprecated. Replace
+  // this with ClockSnapshot-based delta encoding instead.
+  repeated int64 timestamp_delta_us = 2;
+  optional int32 process_priority = 3;
+}
+
+// Namespace for the contained enums.
+message Profiling {
+  enum CpuMode {
+    MODE_UNKNOWN = 0;
+    MODE_KERNEL = 1;
+    MODE_USER = 2;
+    // The following values aren't expected, but included for completeness:
+    MODE_HYPERVISOR = 3;
+    MODE_GUEST_KERNEL = 4;
+    MODE_GUEST_USER = 5;
+  }
+
+  // Enumeration of libunwindstack's error codes.
+  // NB: the integral representations of the two enums are different.
+  enum StackUnwindError {
+    UNWIND_ERROR_UNKNOWN = 0;
+    UNWIND_ERROR_NONE = 1;
+    UNWIND_ERROR_MEMORY_INVALID = 2;
+    UNWIND_ERROR_UNWIND_INFO = 3;
+    UNWIND_ERROR_UNSUPPORTED = 4;
+    UNWIND_ERROR_INVALID_MAP = 5;
+    UNWIND_ERROR_MAX_FRAMES_EXCEEDED = 6;
+    UNWIND_ERROR_REPEATED_FRAME = 7;
+    UNWIND_ERROR_INVALID_ELF = 8;
+    UNWIND_ERROR_SYSTEM_CALL = 9;
+    UNWIND_ERROR_THREAD_TIMEOUT = 10;
+    UNWIND_ERROR_THREAD_DOES_NOT_EXIST = 11;
+    UNWIND_ERROR_BAD_ARCH = 12;
+    UNWIND_ERROR_MAPS_PARSE = 13;
+    UNWIND_ERROR_INVALID_PARAMETER = 14;
+    UNWIND_ERROR_PTRACE_CALL = 15;
+  }
+}
+
+// Packet emitted by the traced_perf sampling performance profiler, which
+// gathers data via the perf_event_open syscall. Each packet contains an
+// individual sample with a counter value, and optionally a
+// callstack.
+//
+// Timestamps are within the root packet. The config can specify the clock, or
+// the implementation will default to CLOCK_MONOTONIC_RAW. Within the Android R
+// timeframe, the default was CLOCK_BOOTTIME.
+//
+// There are several distinct views of this message:
+// * indication of kernel buffer data loss (kernel_records_lost set)
+// * indication of skipped samples (sample_skipped_reason set)
+// * notable event in the sampling implementation (producer_event set)
+// * normal sample (timebase_count set, typically also callstack_iid)
+message PerfSample {
+  optional uint32 cpu = 1;
+  optional uint32 pid = 2;
+  optional uint32 tid = 3;
+
+  // Execution state that the process was sampled at.
+  optional Profiling.CpuMode cpu_mode = 5;
+
+  // Value of the timebase counter (since the event was configured, no deltas).
+  optional uint64 timebase_count = 6;
+
+  // Unwound callstack. Might be partial, in which case a synthetic "error"
+  // frame is appended, and |unwind_error| is set accordingly.
+  optional uint64 callstack_iid = 4;
+
+  // If set, stack unwinding was incomplete due to an error.
+  // Unset values should be treated as UNWIND_ERROR_NONE.
+  oneof optional_unwind_error { Profiling.StackUnwindError unwind_error = 16; };
+
+  // If set, indicates that this message is not a sample, but rather an
+  // indication of data loss in the ring buffer allocated for |cpu|. Such data
+  // loss occurs when the kernel has insufficient ring buffer capacity to write
+  // a record (which gets discarded). A record in this context is an individual
+  // ring buffer entry, and counts more than just sample records.
+  //
+  // The |timestamp| of the packet corresponds to the time that the producer
+  // wrote the packet for trace-sorting purposes alone, and should not be
+  // interpreted relative to the sample timestamps. This field is sufficient to
+  // detect that *some* kernel data loss happened within the trace, but not the
+  // specific time bounds of that loss (which would require tracking precedessor
+  // & successor timestamps, which is not deemed necessary at the moment).
+  optional uint64 kernel_records_lost = 17;
+
+  // If set, indicates that the profiler encountered a sample that was relevant,
+  // but was skipped.
+  enum SampleSkipReason {
+    PROFILER_SKIP_UNKNOWN = 0;
+    PROFILER_SKIP_READ_STAGE = 1;
+    PROFILER_SKIP_UNWIND_STAGE = 2;
+    PROFILER_SKIP_UNWIND_ENQUEUE = 3;
+  }
+  oneof optional_sample_skipped_reason {
+    SampleSkipReason sample_skipped_reason = 18;
+  };
+
+  // A notable event within the sampling implementation.
+  message ProducerEvent {
+    enum DataSourceStopReason {
+      PROFILER_STOP_UNKNOWN = 0;
+      PROFILER_STOP_GUARDRAIL = 1;
+    }
+    oneof optional_source_stop_reason {
+      DataSourceStopReason source_stop_reason = 1;
+    }
+  }
+  optional ProducerEvent producer_event = 19;
+}
+
+// Submessage for TracePacketDefaults.
+message PerfSampleDefaults {
+  // The sampling timebase. Might not be identical to the data source config if
+  // the implementation decided to default/override some parameters.
+  optional PerfEvents.Timebase timebase = 1;
+
+  // If the config requested process sharding, report back the count and which
+  // of those bins was selected. Never changes for the duration of a trace.
+  optional uint32 process_shard_count = 2;
+  optional uint32 chosen_process_shard = 3;
+}

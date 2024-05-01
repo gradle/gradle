@@ -1,0 +1,117 @@
+/*
+ * Copyright (C) 2019 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto2";
+
+package perfetto.protos;
+
+import "perfetto/common/data_source_descriptor.proto";
+
+// Reports the state of the tracing service. Used to gather details about the
+// data sources connected.
+// See ConsumerPort::QueryServiceState().
+message TracingServiceState {
+  // Describes a producer process.
+  message Producer {
+    // Unique ID of the producer (monotonic counter).
+    optional int32 id = 1;
+
+    // Typically matches the process name.
+    optional string name = 2;
+
+    // Unix pid of the remote process. Supported only on Linux-based systems.
+    // Introduced in v24 / Android T.
+    optional int32 pid = 5;
+
+    // Unix uid of the remote process.
+    optional int32 uid = 3;
+
+    // The version of the client library used by the producer.
+    // This is a human readable string with and its format varies depending on
+    // the build system and the repo (standalone vs AOSP).
+    // This is intended for human debugging only.
+    optional string sdk_version = 4;
+  }
+
+  // Describes a data source registered by a producer. Data sources are listed
+  // regardless of the fact that they are being used or not.
+  message DataSource {
+    // Descriptor passed by the data source when calling RegisterDataSource().
+    optional DataSourceDescriptor ds_descriptor = 1;
+
+    // ID of the producer, as per Producer.id.
+    optional int32 producer_id = 2;
+  }
+
+  message TracingSession {
+    // The TracingSessionID.
+    optional uint64 id = 1;
+
+    // The Unix uid of the consumer that started the session.
+    // This is meaningful only if the caller is root. In all other cases only
+    // tracing sessions that match the caller UID will be displayed.
+    optional int32 consumer_uid = 2;
+
+    // Internal state of the tracing session.
+    // These strings are FYI only and subjected to change.
+    optional string state = 3;
+
+    // The unique_session_name as set in the trace config (might be empty).
+    optional string unique_session_name = 4;
+
+    // The number and size of each buffer.
+    repeated uint32 buffer_size_kb = 5;
+
+    // Duration, as specified in the TraceConfig.duration_ms.
+    optional uint32 duration_ms = 6;
+
+    // Number of data sources involved in the session.
+    optional uint32 num_data_sources = 7;
+
+    // Time when the session was started, in the CLOCK_REALTIME domain.
+    // Available only on Linux-based systems.
+    optional int64 start_realtime_ns = 8;
+  }
+
+  // Lists all the producers connected.
+  repeated Producer producers = 1;
+
+  // Lists the data sources available.
+  repeated DataSource data_sources = 2;
+
+  // Lists the tracing sessions active AND owned by a consumer that has the same
+  // UID of the caller (or all of them if the caller is root).
+  // Introduced in v24 / Android T.
+  repeated TracingSession tracing_sessions = 6;
+
+  // This is always set to true from v24 and beyond. This flag is only used to
+  // tell the difference between: (1) talking to a recent service which happens
+  // to have no tracing session active; (2) talking to an older version of the
+  // service which will never report any tracing session.
+  optional bool supports_tracing_sessions = 7;
+
+  // Total number of tracing sessions.
+  optional int32 num_sessions = 3;
+
+  // Number of tracing sessions in the started state. Always <= num_sessions.
+  optional int32 num_sessions_started = 4;
+
+  // The version of traced (the same returned by `traced --version`).
+  // This is a human readable string with and its format varies depending on
+  // the build system and the repo (standalone vs AOSP).
+  // This is intended for human debugging only.
+  optional string tracing_service_version = 5;
+}

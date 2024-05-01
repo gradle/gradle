@@ -1,0 +1,44 @@
+/*
+ * Copyright (C) 2020 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto2";
+
+package perfetto.protos;
+
+message ObfuscatedMember {
+  // This is the obfuscated field name relative to the class containing the
+  // ObfuscatedMember.
+  optional string obfuscated_name = 1;
+  // If this is fully qualified (i.e. contains a '.') this is the deobfuscated
+  // field name including its class. Otherwise, this is this the unqualified
+  // deobfuscated field name relative to the class containing this
+  // ObfuscatedMember.
+  optional string deobfuscated_name = 2;
+}
+
+message ObfuscatedClass {
+  optional string obfuscated_name = 1;
+  optional string deobfuscated_name = 2;
+  // fields.
+  repeated ObfuscatedMember obfuscated_members = 3;
+  repeated ObfuscatedMember obfuscated_methods = 4;
+}
+
+message DeobfuscationMapping {
+  optional string package_name = 1;
+  optional int64 version_code = 2;
+  repeated ObfuscatedClass obfuscated_classes = 3;
+}

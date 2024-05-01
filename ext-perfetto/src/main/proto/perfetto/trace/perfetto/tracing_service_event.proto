@@ -1,0 +1,65 @@
+/*
+ * Copyright (C) 2020 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto2";
+
+package perfetto.protos;
+
+// Events emitted by the tracing service.
+message TracingServiceEvent {
+  oneof event_type {
+    // When each of the following booleans are set to true, they report the
+    // point in time (through TracePacket's timestamp) where the condition
+    // they describe happened.
+    // The order of the booleans below matches the timestamp ordering
+    // they would generally be expected to have.
+
+    // Emitted when we start tracing and specifically, this will be before any
+    // producer is notified about the existence of this trace. This is always
+    // emitted before the all_data_sources_started event. This event is also
+    // guaranteed to be seen (byte-offset wise) before any data packets from
+    // producers.
+    bool tracing_started = 2;
+
+    // Emitted after all data sources saw the start event and ACKed it.
+    // This identifies the point in time when it's safe to assume that all data
+    // sources have been recording events.
+    bool all_data_sources_started = 1;
+
+    // Emitted when all data sources have been flushed successfully or with an
+    // error (including timeouts). This can generally happen many times over the
+    // course of the trace.
+    bool all_data_sources_flushed = 3;
+
+    // Emitted when reading back the central tracing buffers has been completed.
+    // If |write_into_file| is specified, this can happen many times over the
+    // course of the trace.
+    bool read_tracing_buffers_completed = 4;
+
+    // Emitted after tracing has been disabled and specifically, this will be
+    // after all packets from producers have been included in the central
+    // tracing buffer.
+    bool tracing_disabled = 5;
+
+    // Emitted if perfetto --save-for-bugreport was invoked while the current
+    // tracing session was running and it had the highest bugreport_score. In
+    // this case the original consumer will see a nearly empty trace, because
+    // the contents are routed onto the bugreport file. This event flags the
+    // situation explicitly. Traces that contain this marker should be discarded
+    // by test infrastructures / pipelines.
+    bool seized_for_bugreport = 6;
+  }
+}

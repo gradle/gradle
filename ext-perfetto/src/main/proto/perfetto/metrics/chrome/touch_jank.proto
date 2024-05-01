@@ -1,0 +1,35 @@
+/*
+ * Copyright (C) 2021 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto2";
+
+package perfetto.protos;
+
+import "perfetto/metrics/custom_options.proto";
+
+message TouchJank {
+  // The percentage of time we consider janky of the total time spent performing
+  // touch gestures during the trace. I.E. approximately equal to
+  // |touch_jank_ms|/|touch_ms|.
+  optional double touch_jank_percentage = 1 [(unit) = "n%_smallerIsBetter"];
+  optional double touch_ms = 2 [(unit) = "ms_biggerIsBetter"];
+  optional double touch_processing_ms = 3 [(unit) = "ms_biggerIsBetter"];
+  optional double touch_jank_processing_ms = 4 [(unit) = "ms_smallerIsBetter"];
+  optional int64 num_touch_update_count = 5 [(unit) = "count_biggerIsBetter"];
+  optional int64 num_touch_update_jank_count = 6
+      [(unit) = "count_smallerIsBetter"];
+  optional double touch_jank_budget_ms = 7 [(unit) = "ms_smallerIsBetter"];
+}

@@ -1,0 +1,82 @@
+/*
+ * Copyright (C) 2021 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto2";
+
+package perfetto.protos;
+
+message AndroidHwcomposerMetrics {
+  // Counts the number of composition total layers in the trace. (non-weighted average)
+  optional double composition_total_layers = 1;
+
+  // Counts the number of composition dpu layers in the trace. (non-weighted average)
+  optional double composition_dpu_layers = 2;
+
+  // Counts the number of composition gpu layers in the trace. (non-weighted average)
+  optional double composition_gpu_layers = 3;
+
+  // Counts the number of composition dpu cached layers in the trace. (non-weighted average)
+  optional double composition_dpu_cached_layers = 4;
+
+  // Counts the number of composition surfaceflinger cached layers in the trace.
+  // (non-weighted average)
+  optional double composition_sf_cached_layers = 5;
+
+  // Counts how many times validateDisplay is skipped.
+  optional int32 skipped_validation_count = 6;
+
+  // Counts how many times validateDisplay cannot be skipped.
+  optional int32 unskipped_validation_count = 7;
+
+  // Counts how many times validateDisplay is already separated from presentDisplay
+  // since the beginning.
+  optional int32 separated_validation_count = 8;
+
+  // Counts how many unhandled validation cases which might be caused by errors.
+  optional int32 unknown_validation_count = 9;
+
+  // the average of overall hwcomposer execution time.
+  optional double avg_all_execution_time_ms = 10;
+
+  // the average of hwcomposer execution time for skipped validation cases.
+  optional double avg_skipped_execution_time_ms = 11;
+
+  // the average of hwcomposer execution time for unskipped validation cases.
+  optional double avg_unskipped_execution_time_ms = 12;
+
+  // the average of hwcomposer execution time for separated validation cases.
+  optional double avg_separated_execution_time_ms = 13;
+
+  message DpuVoteMetrics {
+    // the thread ID that handles this track
+    optional uint32 tid = 1;
+
+    // the weighted average of DPU Vote Clock
+    optional double avg_dpu_vote_clock = 2;
+
+    // the weighted average of DPU Vote Avg Bandwidth
+    optional double avg_dpu_vote_avg_bw = 3;
+
+    // the weighted average of DPU Vote Peak Bandwidth
+    optional double avg_dpu_vote_peak_bw = 4;
+
+    // the weighted average of DPU Vote RT (Real Time) Bandwidth
+    optional double avg_dpu_vote_rt_bw = 5;
+  }
+
+  // DPU Vote Metrics for each thread track
+  repeated DpuVoteMetrics dpu_vote_metrics = 14;
+}

@@ -1,0 +1,56 @@
+/*
+ * Copyright (C) 2021 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto2";
+
+package perfetto.protos;
+
+message G2dMetrics {
+  message G2dInstance {
+    // G2d name.
+    optional string name = 1;
+
+    optional uint32 frame_count = 5;
+    optional uint32 error_count = 6;
+
+    optional double max_dur_ms = 7;
+    optional double min_dur_ms = 8;
+    optional double avg_dur_ms = 9;
+
+    // Removed: was int64 versions of max_dur_ns, min_dur_ns and avg_dur_ns.
+    reserved 2 to 4;
+  }
+  message G2dMetric {
+    // G2D Metric for each G2D Instance.
+    repeated G2dInstance instances = 1;
+
+    // the number of frames processed by G2D
+    optional uint32 frame_count = 5;
+    // the number of error events
+    optional uint32 error_count = 6;
+
+    // max/min/avg G2d frame durations for all instances.
+    optional double max_dur_ms = 7;
+    optional double min_dur_ms = 8;
+    optional double avg_dur_ms = 9;
+
+    // Removed: was int64 versions of max_dur_ns, min_dur_ns and avg_dur_ns.
+    reserved 2 to 4;
+  }
+
+  optional G2dMetric g2d_hw = 1;
+  optional G2dMetric g2d_sw = 2;
+}

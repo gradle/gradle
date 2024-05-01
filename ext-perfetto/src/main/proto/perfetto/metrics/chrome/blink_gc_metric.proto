@@ -1,0 +1,100 @@
+/*
+ * Copyright (C) 2021 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http_//www.apache.org/licenses/LICENSE_2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto2";
+
+package perfetto.protos;
+
+import "perfetto/metrics/custom_options.proto";
+
+message BlinkGcMetric {
+  repeated double blink_gc_atomic_pause_mark_epilogue = 1
+      [(unit) = "ms_smallerIsBetter"];
+  repeated double blink_gc_main_thread_cycle_full_atomic_mark_epilogue = 2
+      [(unit) = "ms_smallerIsBetter"];
+  repeated double blink_gc_atomic_pause_mark_prologue = 3
+      [(unit) = "ms_smallerIsBetter"];
+  repeated double blink_gc_main_thread_cycle_full_atomic_mark_prologue = 4
+      [(unit) = "ms_smallerIsBetter"];
+  repeated double blink_gc_atomic_pause_mark_roots = 5
+      [(unit) = "ms_smallerIsBetter"];
+  repeated double blink_gc_main_thread_cycle_full_atomic_mark_roots = 6
+      [(unit) = "ms_smallerIsBetter"];
+  repeated double blink_gc_atomic_pause_sweep_and_compact = 7
+      [(unit) = "ms_smallerIsBetter"];
+  repeated double blink_gc_main_thread_cycle_full_atomic_sweep_compact = 8
+      [(unit) = "ms_smallerIsBetter"];
+  repeated double blink_gc_complete_sweep = 9 [(unit) = "ms_smallerIsBetter"];
+  repeated double blink_gc_main_thread_cycle_full_sweep_complete = 10
+      [(unit) = "ms_smallerIsBetter"];
+  repeated double blink_gc_incremental_start = 11
+      [(unit) = "ms_smallerIsBetter"];
+  repeated double blink_gc_main_thread_cycle_full_incremental_mark_start = 12
+      [(unit) = "ms_smallerIsBetter"];
+  repeated double blink_gc_incremental_step = 13
+      [(unit) = "ms_smallerIsBetter"];
+  repeated double blink_gc_main_thread_cycle_full_incremental_mark_step = 14
+      [(unit) = "ms_smallerIsBetter"];
+  repeated double blink_gc_sweep_allocation = 15
+      [(unit) = "ms_smallerIsBetter"];
+  repeated double blink_gc_main_thread_cycle_full_sweep_on_allocation = 16
+      [(unit) = "ms_smallerIsBetter"];
+  repeated double blink_gc_sweep_task_foreground = 17
+      [(unit) = "ms_smallerIsBetter"];
+  repeated double blink_gc_main_thread_cycle_full_sweep_idle = 18
+      [(unit) = "ms_smallerIsBetter"];
+  repeated double blink_gc_unified_marking_by_v8 = 19
+      [(unit) = "ms_smallerIsBetter"];
+  repeated double unified_gc_main_thread_cycle_full_mark_step = 20
+      [(unit) = "ms_smallerIsBetter"];
+  repeated double blink_gc_atomic_pause = 21 [(unit) = "ms_smallerIsBetter"];
+  repeated double blink_gc_main_thread_cycle_full_atomic = 22
+      [(unit) = "ms_smallerIsBetter"];
+  repeated double blink_gc_atomic_pause_mark_transitive_closure = 23
+      [(unit) = "ms_smallerIsBetter"];
+  repeated double
+      blink_gc_main_thread_cycle_full_atomic_mark_transitive_closure = 24
+      [(unit) = "ms_smallerIsBetter"];
+  repeated double blink_gc_total = 25 [(unit) = "ms_smallerIsBetter"];
+  repeated double blink_gc_main_thread_cycle_full = 26
+      [(unit) = "ms_smallerIsBetter"];
+  repeated double blink_gc_mark_roots = 27 [(unit) = "ms_smallerIsBetter"];
+  repeated double blink_gc_main_thread_cycle_full_mark_roots = 28
+      [(unit) = "ms_smallerIsBetter"];
+  repeated double blink_gc_mark_transitive_closure = 29
+      [(unit) = "ms_smallerIsBetter"];
+  repeated double blink_gc_main_thread_cycle_full_mark_transitive_closure = 30
+      [(unit) = "ms_smallerIsBetter"];
+  repeated double blink_gc_mark_foreground = 31 [(unit) = "ms_smallerIsBetter"];
+  repeated double blink_gc_main_thread_cycle_full_mark = 32
+      [(unit) = "ms_smallerIsBetter"];
+  repeated double blink_gc_mark_foreground_forced = 33
+      [(unit) = "ms_smallerIsBetter"];
+  repeated double blink_gc_main_thread_cycle_full_mark_forced = 34
+      [(unit) = "ms_smallerIsBetter"];
+  repeated double blink_gc_mark_background = 35 [(unit) = "ms_smallerIsBetter"];
+  repeated double blink_gc_concurrent_thread_cycle_full_mark = 36
+      [(unit) = "ms_smallerIsBetter"];
+  repeated double blink_gc_sweep_foreground = 37
+      [(unit) = "ms_smallerIsBetter"];
+  repeated double blink_gc_main_thread_cycle_full_sweep = 38
+      [(unit) = "ms_smallerIsBetter"];
+  repeated double blink_gc_sweep_background = 39
+      [(unit) = "ms_smallerIsBetter"];
+  repeated double blink_gc_concurrent_thread_cycle_full_sweep = 40
+      [(unit) = "ms_smallerIsBetter"];
+  repeated double unified_gc_total = 41 [(unit) = "ms_smallerIsBetter"];
+}

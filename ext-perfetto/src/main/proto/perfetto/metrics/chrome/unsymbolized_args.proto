@@ -1,0 +1,39 @@
+/*
+ * Copyright (C) 2022 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto2";
+
+package perfetto.protos;
+
+// This message is similar to perfetto.protos.UnsymbolizedFrames, but this is
+// for trace event arguments, not stack frames. Keeping them separate because
+// the protos may evolve independently.
+message ChromeUnsymbolizedArgs {
+  message Arg {
+    optional string module = 1;
+    optional string build_id = 2;
+    optional int64 address = 3;
+
+    // In some cases (Chrome/Webview) the ID that should be used to query
+    // symbols in Google's internal tera-scale symbolization service is !=
+    // `build_id` and requires some mangling.
+    // This field is == 'build_id` for non-chromium cases, and is the breakpad
+    // module ID (with lowercase hex digics) for chromium cases.
+    optional string google_lookup_id = 4;
+  }
+
+  repeated Arg args = 1;
+}

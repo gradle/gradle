@@ -1,0 +1,41 @@
+/*
+ * Copyright (C) 2020 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto2";
+
+import public "perfetto/trace/track_event/track_event.proto";
+import "perfetto/trace/track_event/debug_annotation.proto";
+
+package perfetto.protos;
+
+// Extensions for TrackEvent used for integration testing. This proto file is
+// compiled to descriptor and is used in tools/diff_test_trace_processor.py.
+//
+// See docs/design-docs/extensions.md for more details.
+message TestExtension {
+  extend TrackEvent {
+    optional string string_extension_for_testing = 9900;
+    repeated int32 int_extension_for_testing = 9901;
+    optional string omitted_extension_for_testing = 9902;
+    optional TestExtensionChild nested_message_extension_for_testing = 9903;
+  }
+}
+
+message TestExtensionChild {
+  optional string child_field_for_testing = 1;
+
+  repeated DebugAnnotation debug_annotations = 99;
+}

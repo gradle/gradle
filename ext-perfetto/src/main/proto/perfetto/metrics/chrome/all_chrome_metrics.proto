@@ -1,0 +1,55 @@
+/*
+ * Copyright (C) 2020 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto2";
+
+package perfetto.protos;
+
+import "perfetto/metrics/metrics.proto";
+import "perfetto/metrics/chrome/args_class_names.proto";
+import "perfetto/metrics/chrome/blink_gc_metric.proto";
+import "perfetto/metrics/chrome/dropped_frames.proto";
+import "perfetto/metrics/chrome/frame_times.proto";
+import "perfetto/metrics/chrome/histogram_hashes.proto";
+import "perfetto/metrics/chrome/long_latency.proto";
+import "perfetto/metrics/chrome/media_metric.proto";
+import "perfetto/metrics/chrome/performance_mark_hashes.proto";
+import "perfetto/metrics/chrome/reported_by_page.proto";
+import "perfetto/metrics/chrome/slice_names.proto";
+import "perfetto/metrics/chrome/scroll_jank.proto";
+import "perfetto/metrics/chrome/test_chrome_metric.proto";
+import "perfetto/metrics/chrome/touch_jank.proto";
+import "perfetto/metrics/chrome/user_event_hashes.proto";
+import "perfetto/metrics/chrome/unsymbolized_args.proto";
+
+// TODO(lalitm): rename metrics below to include a "chrome_" prefix.
+extend TraceMetrics {
+  optional TestChromeMetric test_chrome_metric = 1001;
+  optional FrameTimes frame_times = 1002;
+  optional ReportedByPage reported_by_page = 1003;
+  optional ScrollJank scroll_jank = 1004;
+  optional BlinkGcMetric blink_gc_metric = 1005;
+  optional MediaMetric media_metric = 1006;
+  optional TouchJank touch_jank = 1007;
+  optional ChromeDroppedFrames chrome_dropped_frames = 1008;
+  optional ChromeLongLatency chrome_long_latency = 1009;
+  optional ChromeHistogramHashes chrome_histogram_hashes = 1010;
+  optional ChromeUserEventHashes chrome_user_event_hashes = 1011;
+  optional ChromePerformanceMarkHashes chrome_performance_mark_hashes = 1012;
+  optional ChromeSliceNames chrome_slice_names = 1013;
+  optional ChromeUnsymbolizedArgs chrome_unsymbolized_args = 1014;
+  optional ChromeArgsClassNames chrome_args_class_names = 1015;
+}

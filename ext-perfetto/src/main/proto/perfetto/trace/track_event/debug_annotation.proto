@@ -1,0 +1,139 @@
+/*
+ * Copyright (C) 2019 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto2";
+
+package perfetto.protos;
+
+// Proto representation of untyped key/value annotations provided in TRACE_EVENT
+// macros. Users of the Perfetto SDK should prefer to use the
+// perfetto::TracedValue API to fill these protos, rather than filling them
+// manually.
+//
+// Debug annotations are intended for debug use and are not considered a stable
+// API of the trace contents. Trace-based metrics that use debug annotation
+// values are prone to breakage, so please rely on typed TrackEvent fields for
+// these instead.
+//
+// DebugAnnotations support nested arrays and dictionaries. Each entry is
+// encoded as a single DebugAnnotation message. Only dictionary entries
+// set the "name" field. The TrackEvent message forms an implicit root
+// dictionary.
+//
+// Example TrackEvent with nested annotations:
+//   track_event {
+//     debug_annotations {
+//       name: "foo"
+//       dict_entries {
+//         name: "a"
+//         bool_value: true
+//       }
+//       dict_entries {
+//         name: "b"
+//         int_value: 123
+//       }
+//     }
+//     debug_annotations {
+//       name: "bar"
+//       array_values {
+//         string_value: "hello"
+//       }
+//       array_values {
+//         string_value: "world"
+//       }
+//     }
+//   }
+//
+// Next ID: 17.
+// Reserved ID: 15
+message DebugAnnotation {
+  // Name fields are set only for dictionary entries.
+  oneof name_field {
+    // interned DebugAnnotationName.
+    uint64 name_iid = 1;
+    // non-interned variant.
+    string name = 10;
+  }
+
+  oneof value {
+    bool bool_value = 2;
+    uint64 uint_value = 3;
+    int64 int_value = 4;
+    double double_value = 5;
+    string string_value = 6;
+    // Pointers are stored in a separate type as the JSON output treats them
+    // differently from other uint64 values.
+    uint64 pointer_value = 7;
+
+    // Deprecated. Use dict_entries / array_values instead.
+    NestedValue nested_value = 8;
+
+    // Legacy instrumentation may not support conversion of nested data to
+    // NestedValue yet.
+    string legacy_json_value = 9;
+  }
+
+  // Used to embed arbitrary proto messages (which are also typically used to
+  // represent typed TrackEvent arguments). |proto_type_name| or
+  // |proto_type_name_iid| are storing the full name of the proto messages (e.g.
+  // .perfetto.protos.DebugAnnotation) and |proto_value| contains the serialised
+  // proto messages. See |TracedValue::WriteProto| for more details.
+  oneof proto_type_descriptor {
+    string proto_type_name = 16;
+    // interned DebugAnnotationValueTypeName.
+    uint64 proto_type_name_iid = 13;
+  }
+  optional bytes proto_value = 14;
+
+  repeated DebugAnnotation dict_entries = 11;
+  repeated DebugAnnotation array_values = 12;
+
+  // Deprecated legacy way to use nested values. Only kept for
+  // backwards-compatibility in TraceProcessor. May be removed in the future -
+  // code filling protos should use |dict_entries| and |array_values| instead.
+  message NestedValue {
+    enum NestedType {
+      // leaf value.
+      UNSPECIFIED = 0;
+      DICT = 1;
+      ARRAY = 2;
+    }
+    optional NestedType nested_type = 1;
+
+    repeated string dict_keys = 2;
+    repeated NestedValue dict_values = 3;
+    repeated NestedValue array_values = 4;
+    optional int64 int_value = 5;
+    optional double double_value = 6;
+    optional bool bool_value = 7;
+    optional string string_value = 8;
+  }
+}
+
+// --------------------
+// Interned data types:
+// --------------------
+
+message DebugAnnotationName {
+  optional uint64 iid = 1;
+  optional string name = 2;
+}
+
+// See the |proto_type_descriptor| comment.
+message DebugAnnotationValueTypeName {
+  optional uint64 iid = 1;
+  optional string name = 2;
+}

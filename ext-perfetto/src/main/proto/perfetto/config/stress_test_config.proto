@@ -1,0 +1,77 @@
+/*
+ * Copyright (C) 2017 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto2";
+
+import "perfetto/config/trace_config.proto";
+
+package perfetto.protos;
+
+// This is the schema for the config files in /test/stress_test/configs/*.cfg.
+message StressTestConfig {
+  optional TraceConfig trace_config = 1;
+
+  // Shared Memory Buffer setup, passed as arguments to Tracing.Initialize().
+  optional uint32 shmem_size_kb = 2;
+  optional uint32 shmem_page_size_kb = 3;
+
+  // How many producer processes to spawn.
+  optional uint32 num_processes = 4;
+
+  // How many writer threads each producer process should spawn.
+  optional uint32 num_threads = 5;
+
+  // The producer will write events until one of the following is met:
+  // - trace_config.duration_ms is reached.
+  // - max_events is reached.
+  optional uint32 max_events = 6;
+
+  // If > 0 will write nested messages up to N levels deep. The size of each
+  // nested message depends on the payload_mean / sttdev arguments (below).
+  // This is to cover the patching logic.
+  optional uint32 nesting = 7;
+
+  // This submessage defines the timings of each writer worker thread.
+  message WriterTiming {
+    // The size of the payload written on each iteration.
+    optional double payload_mean = 1;
+    optional double payload_stddev = 2;
+
+    // The nominal event writing rate, expressed in events/sec.
+    // E.g. if payload_mean = 500 (bytes) and rate_mean = 1000 (Hz), each thread
+    // will write 500 KB / sec approximately (% stalling).
+    optional double rate_mean = 3;
+    optional double rate_stddev = 4;
+
+    // If non-zero each worker will slow down the writing of the payload:
+    // it writes half payload, sleep for payload_write_time_ms, then write the
+    // other half.
+    optional uint32 payload_write_time_ms = 5;
+  }
+
+  // The timings used by default.
+  optional WriterTiming steady_state_timings = 8;
+
+  // Optionally it is possible to cause a writer to enter "burst mode",
+  // simulating peaks of high-intensity writing. The way it works is the
+  // following: by default the writer writes events using the
+  // |steady_state_timings|. Then every |burst_period_ms| it will switch to the
+  // |burst_timings| for |burst_duration_ms|, and go back to the steady state
+  // after that (and then repeat).
+  optional uint32 burst_period_ms = 9;
+  optional uint32 burst_duration_ms = 10;
+  optional WriterTiming burst_timings = 11;
+}

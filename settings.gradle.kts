@@ -34,6 +34,9 @@ plugins {
 
 includeBuild("build-logic-commons")
 includeBuild("build-logic")
+includeBuild("ext-perfetto") {
+    name = "perfetto"
+}
 
 apply(from = "gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
 

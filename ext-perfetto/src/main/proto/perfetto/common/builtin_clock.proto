@@ -1,0 +1,36 @@
+/*
+ * Copyright (C) 2020 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto2";
+
+package perfetto.protos;
+
+enum BuiltinClock {
+  BUILTIN_CLOCK_UNKNOWN = 0;
+  BUILTIN_CLOCK_REALTIME = 1;
+  BUILTIN_CLOCK_REALTIME_COARSE = 2;
+  BUILTIN_CLOCK_MONOTONIC = 3;
+  BUILTIN_CLOCK_MONOTONIC_COARSE = 4;
+  BUILTIN_CLOCK_MONOTONIC_RAW = 5;
+  BUILTIN_CLOCK_BOOTTIME = 6;
+  BUILTIN_CLOCK_MAX_ID = 63;
+
+  reserved 7, 8;
+
+  // An internal CL (ag/16521245) has taken this for BUILTIN_CLOCK_TSC.
+  // That might get upstreamed later on. Avoid diverging on this ID in future.
+  reserved 9;
+}

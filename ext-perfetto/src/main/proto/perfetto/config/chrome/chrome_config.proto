@@ -1,0 +1,48 @@
+/*
+ * Copyright (C) 2018 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto2";
+
+package perfetto.protos;
+
+message ChromeConfig {
+  optional string trace_config = 1;
+
+  // When enabled, the data source should only fill in fields in the output that
+  // are not potentially privacy sensitive.
+  optional bool privacy_filtering_enabled = 2;
+
+  // Instead of emitting binary protobuf, convert the trace data to the legacy
+  // JSON format. Note that the trace data will still be returned as a series of
+  // TracePackets, but the embedded data will be JSON instead of serialized
+  // protobuf.
+  optional bool convert_to_legacy_json = 3;
+
+  // Priority of the tracing session client. A higher priority session may
+  // preempt a lower priority one in configurations where concurrent sessions
+  // aren't supported.
+  enum ClientPriority {
+    UNKNOWN = 0;
+    BACKGROUND = 1;
+    USER_INITIATED = 2;
+  }
+  optional ClientPriority client_priority = 4;
+
+  // Applicable only when using legacy JSON format.
+  // If |json_agent_label_filter| is not empty, only data pertaining to
+  // the specified tracing agent label (e.g. "traceEvents") will be returned.
+  optional string json_agent_label_filter = 5;
+}

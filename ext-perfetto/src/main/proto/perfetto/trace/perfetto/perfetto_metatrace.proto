@@ -1,0 +1,68 @@
+/*
+ * Copyright (C) 2019 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto2";
+
+package perfetto.protos;
+
+// Used to trace the execution of perfetto itself.
+message PerfettoMetatrace {
+  // See base/metatrace_events.h for definitions.
+  oneof record_type {
+    uint32 event_id = 1;
+    uint32 counter_id = 2;
+
+    // For trace processor metatracing.
+    string event_name = 8;
+    uint64 event_name_iid = 11;
+
+    string counter_name = 9;
+  }
+  message Arg {
+    oneof key_or_interned_key {
+      string key = 1;
+      uint64 key_iid = 3;
+    }
+    oneof value_or_interned_value {
+      string value = 2;
+      uint64 value_iid = 4;
+    }
+  }
+
+  // Only when using |event_id|.
+  optional uint64 event_duration_ns = 3;
+
+  // Only when using |counter_id|.
+  optional int32 counter_value = 4;
+
+  // ID of the thread that emitted the event.
+  optional uint32 thread_id = 5;
+
+  // If true the meta-tracing ring buffer had overruns and hence some data is
+  // missing from this point.
+  optional bool has_overruns = 6;
+
+  // Args for the event.
+  repeated Arg args = 7;
+
+  // Interned strings corresponding to the |event_name_iid|, |key_iid| and
+  // |value_iid| above.
+  message InternedString {
+    optional uint64 iid = 1;
+    optional string value = 2;
+  };
+  repeated InternedString interned_strings = 10;
+}

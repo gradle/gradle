@@ -1,0 +1,54 @@
+/*
+ * Copyright (C) 2021 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+syntax = "proto2";
+
+package perfetto.protos;
+
+// Common state for UIs visualizing Perfetto traces.
+// This message can be appended as a TracePacket by UIs to save the
+// visible state (e.g. scroll position/zoom state) for future opening
+// of the trace.
+// Design doc: go/trace-ui-state.
+message UiState {
+  // The start and end bounds of the viewport of the UI in nanoseconds.
+  //
+  // This is the absolute time associated to slices and other events in
+  // trace processor tables (i.e. the |ts| column of most tables)
+  optional int64 timeline_start_ts = 1;
+  optional int64 timeline_end_ts = 2;
+
+  // Indicates that the given process should be highlighted by the UI.
+  message HighlightProcess {
+    oneof selector {
+      // The pid of the process to highlight. This is useful for UIs to focus
+      // on tracks of a particular process in the trace.
+      //
+      // If more than one process in a trace has the same pid, it is UI
+      // implementation specific how the process to be focused will be
+      // chosen.
+      uint32 pid = 1;
+
+      // The command line of the process to highlight; for most Android apps,
+      // this is the package name of the app. This is useful for UIs to focus
+      // on a particular app in the trace.
+      //
+      // If more than one process hasthe same cmdline, it is UI implementation
+      // specific how the process to be focused will be chosen.
+      string cmdline = 2;
+    }
+  }
+  optional HighlightProcess highlight_process = 3;
+}

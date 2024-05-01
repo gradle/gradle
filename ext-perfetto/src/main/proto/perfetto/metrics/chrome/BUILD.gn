@@ -1,0 +1,49 @@
+# Copyright (C) 2020 The Android Open Source Project
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("../../../../gn/proto_library.gni")
+
+perfetto_proto_library("@TYPE@") {
+  proto_generators = [ "source_set" ]
+  deps = [
+    "..:@TYPE@",
+    "..:custom_options_@TYPE@",
+  ]
+  sources = [
+    "all_chrome_metrics.proto",
+    "args_class_names.proto",
+    "blink_gc_metric.proto",
+    "dropped_frames.proto",
+    "frame_times.proto",
+    "histogram_hashes.proto",
+    "long_latency.proto",
+    "media_metric.proto",
+    "performance_mark_hashes.proto",
+    "reported_by_page.proto",
+    "scroll_jank.proto",
+    "slice_names.proto",
+    "test_chrome_metric.proto",
+    "touch_jank.proto",
+    "unsymbolized_args.proto",
+    "user_event_hashes.proto",
+  ]
+}
+
+perfetto_proto_library("descriptor") {
+  proto_generators = [ "descriptor" ]
+  import_dirs = [ "${perfetto_protobuf_src_dir}" ]
+  generate_descriptor = "all_chrome_metrics.descriptor"
+  deps = [ ":source_set" ]
+  sources = [ "all_chrome_metrics.proto" ]
+}

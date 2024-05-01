@@ -1,0 +1,90 @@
+/*
+ * Copyright (C) 2019 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto2";
+
+package perfetto.protos;
+
+// Configuration for managed app heap graph snapshots.
+message JavaHprofConfig {
+  // If dump_interval_ms != 0, the following configuration is used.
+  message ContinuousDumpConfig {
+    // ms to wait before first continuous dump.
+    // A dump is always created at the beginning of the trace.
+    optional uint32 dump_phase_ms = 1;
+    // ms to wait between following dumps.
+    optional uint32 dump_interval_ms = 2;
+    // If true, scans all the processes to find `process_cmdline` and filter by
+    // `min_anonymous_memory_kb` only at data source start. Default on Android
+    // S-.
+    //
+    // If false, rescans all the processes to find on every dump. Default on
+    // Android T+.
+    optional bool scan_pids_only_on_start = 3;
+  }
+
+  // Command line allowlist, matched against the /proc/<pid>/cmdline (not the
+  // comm string). The semantics of this field were changed since its original
+  // introduction.
+  //
+  // On Android T+ (13+), this field can specify a single wildcard (*), and
+  // the profiler will attempt to match it in two possible ways:
+  // * if the pattern starts with a '/', then it is matched against the first
+  //   segment of the cmdline (i.e. argv0). For example "/bin/e*" would match
+  //   "/bin/echo".
+  // * otherwise the pattern is matched against the part of argv0
+  //   corresponding to the binary name (this is unrelated to /proc/pid/exe).
+  //   For example "echo" would match "/bin/echo".
+  //
+  // On Android S (12) and below, both this pattern and /proc/pid/cmdline get
+  // normalized prior to an exact string comparison. Normalization is as
+  // follows: (1) trim everything beyond the first null or "@" byte; (2) if
+  // the string contains forward slashes, trim everything up to and including
+  // the last one.
+  //
+  // Implementation note: in either case, at most 511 characters of cmdline
+  // are considered.
+  repeated string process_cmdline = 1;
+
+  // For watermark based triggering or local debugging.
+  repeated uint64 pid = 2;
+
+  // Only profile target if it was installed by one of the packages given.
+  // Special values are:
+  // * @system: installed on the system partition
+  // * @product: installed on the product partition
+  // * @null: sideloaded
+  // Supported on Android 12+.
+  repeated string target_installed_by = 7;
+
+  // Dump at a predefined interval.
+  optional ContinuousDumpConfig continuous_dump_config = 3;
+
+  // Do not profile processes whose anon RSS + swap < given value.
+  optional uint32 min_anonymous_memory_kb = 4;
+
+  // Include the process' /proc/self/smaps.
+  // This only shows maps that:
+  // * start with /system
+  // * start with /vendor
+  // * start with /data/app
+  // * contain "extracted in memory from Y", where Y matches any of the above
+  optional bool dump_smaps = 5;
+
+  // Exclude objects of the following types from the profile. This can be
+  // useful if lots of uninteresting objects, e.g. "sun.misc.Cleaner".
+  repeated string ignored_types = 6;
+}

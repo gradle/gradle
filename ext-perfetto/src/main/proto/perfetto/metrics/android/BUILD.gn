@@ -1,0 +1,63 @@
+# Copyright (C) 2019 The Android Open Source Project
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("../../../../gn/proto_library.gni")
+
+perfetto_proto_library("@TYPE@") {
+  proto_generators = [
+    "lite",
+    "source_set",
+  ]
+  sources = [
+    "android_frame_timeline_metric.proto",
+    "android_trusty_workqueues.proto",
+    "batt_metric.proto",
+    "binder_metric.proto",
+    "camera_metric.proto",
+    "camera_unagg_metric.proto",
+    "cpu_metric.proto",
+    "display_metrics.proto",
+    "dma_heap_metric.proto",
+    "dvfs_metric.proto",
+    "fastrpc_metric.proto",
+    "g2d_metric.proto",
+    "gpu_metric.proto",
+    "hwcomposer.proto",
+    "hwui_metric.proto",
+    "ion_metric.proto",
+    "irq_runtime_metric.proto",
+    "jank_cuj_metric.proto",
+    "java_heap_histogram.proto",
+    "java_heap_stats.proto",
+    "lmk_metric.proto",
+    "lmk_reason_metric.proto",
+    "mem_metric.proto",
+    "mem_unagg_metric.proto",
+    "multiuser_metric.proto",
+    "network_metric.proto",
+    "other_traces.proto",
+    "package_list.proto",
+    "powrails_metric.proto",
+    "process_metadata.proto",
+    "profiler_smaps.proto",
+    "rt_runtime_metric.proto",
+    "simpleperf.proto",
+    "startup_metric.proto",
+    "surfaceflinger.proto",
+    "task_names.proto",
+    "thread_time_in_state_metric.proto",
+    "trace_quality.proto",
+    "unsymbolized_frames.proto",
+  ]
+}

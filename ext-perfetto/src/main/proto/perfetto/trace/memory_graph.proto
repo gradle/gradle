@@ -1,0 +1,123 @@
+/*
+ * Copyright (C) 2020 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto2";
+
+package perfetto.protos;
+
+// Message definitions for app-reported memory breakdowns. At the moment, this
+// is a Chrome-only tracing feature, historically known as 'memory-infra'. See
+// https://chromium.googlesource.com/chromium/src/+/master/docs/memory-infra/ .
+// This is unrelated to the native or java heap profilers (those protos live
+// in //protos/perfetto/trace/profiling/).
+
+message MemoryTrackerSnapshot {
+  // Memory snapshot of a process. The snapshot contains memory data that is
+  // from 2 different sources, namely system stats and instrumentation stats.
+  // The system memory usage stats come from the OS based on standard API
+  // available in the platform to query memory usage. The instrumentation stats
+  // are added by instrumenting specific piece of code which tracks memory
+  // allocations and deallocations made by a small sub-system within the
+  // application.
+  // The system stats of the global memory snapshot are recorded as part of
+  // ProcessStats and SmapsPacket fields in trace packet with the same
+  // timestamp.
+  message ProcessSnapshot {
+    // Process ID of the process
+    optional int32 pid = 1;
+
+    // Memory dumps are represented as a graph of memory nodes which contain
+    // statistics. To avoid double counting the same memory across different
+    // nodes, edges are used to mark nodes that account for the same memory. See
+    // this doc for examples of the usage:
+    // https://docs.google.com/document/d/1WGQRJ1sjJrfVkNcgPVY6frm64UqPc94tsxUOXImZUZI
+
+    // A single node in the memory graph.
+    message MemoryNode {
+      // Unique ID of the node across all processes involved in the global
+      // memory dump. The ID is only unique within this particular global dump
+      // identified by GlobalMemoryDumpPacket.global_dump_id.
+      optional uint64 id = 1;
+
+      // Absolute name is a unique name for the memory node within the process
+      // with ProcessMemoryDump.pid. The name can contain multiple parts
+      // separated by '/', which traces the edges of the node from the root
+      // node.
+      // Eg: "partition_allocator/array_buffers/buffer1" refers to the child
+      // node "buffer1" in a graph structure of:
+      //   root -> partition_allocator -> array_buffers -> buffer1.
+      optional string absolute_name = 2;
+
+      // A weak node means that the instrumentation that added the current node
+      // is unsure about the existence of the actual memory. Unless a "strong"
+      // (non-weak is default) node that has an edge to the current node exists
+      // in the current global dump, the current node will be discarded.
+      optional bool weak = 3;
+
+      // Size of the node in bytes, used to compute the effective size of the
+      // nodes without double counting.
+      optional uint64 size_bytes = 4;
+
+      // Entries in the memory node that contain statistics and additional
+      // debuggable information about the memory. The size of the node is
+      // tracked separately in the |size_bytes| field.
+      message MemoryNodeEntry {
+        optional string name = 1;
+
+        enum Units {
+          UNSPECIFIED = 0;
+          BYTES = 1;
+          COUNT = 2;
+        }
+        optional Units units = 2;
+
+        // Contains either one of uint64 or string value.
+        optional uint64 value_uint64 = 3;
+        optional string value_string = 4;
+      }
+      repeated MemoryNodeEntry entries = 5;
+    }
+    repeated MemoryNode allocator_dumps = 2;
+
+    // A directed edge that connects any 2 nodes in the graph above. These are
+    // in addition to the inherent edges added due to the tree structure of the
+    // node's absolute names.
+    // Node with id |source_id| owns the node with id |target_id|, and has the
+    // effect of attributing the memory usage of target to source. |importance|
+    // is optional and relevant only for the cases of co-ownership, where it
+    // acts as a z-index: the owner with the highest importance will be
+    // attributed target's memory.
+    message MemoryEdge {
+      optional uint64 source_id = 1;
+      optional uint64 target_id = 2;
+      optional uint32 importance = 3;
+      optional bool overridable = 4;
+    }
+    repeated MemoryEdge memory_edges = 3;
+  }
+
+  // Unique ID that represents the global memory dump.
+  optional uint64 global_dump_id = 1;
+
+  enum LevelOfDetail {
+    DETAIL_FULL = 0;
+    DETAIL_LIGHT = 1;
+    DETAIL_BACKGROUND = 2;
+  }
+  optional LevelOfDetail level_of_detail = 2;
+
+  repeated ProcessSnapshot process_memory_dumps = 3;
+}

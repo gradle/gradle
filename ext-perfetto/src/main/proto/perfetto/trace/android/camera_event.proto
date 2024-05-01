@@ -1,0 +1,160 @@
+/*
+ * Copyright (C) 2022 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto2";
+package perfetto.protos;
+
+// A profiling event corresponding to a single camera frame. This message
+// collects important details and timestamps involved in producing a single
+// camera frame.
+// Next ID: 17
+message AndroidCameraFrameEvent {
+  // Identifier for the CameraCaptureSession this frame originates from. See:
+  // https://developer.android.com/reference/android/hardware/camera2/CameraCaptureSession
+  optional uint64 session_id = 1;
+  // Identifier for the camera sensor that is the source of this frame. This may
+  // be either a physical or logical camera (up to vendor interpretation).
+  optional uint32 camera_id = 2;
+  // The frame number identifying this frame on this camera.
+  optional int64 frame_number = 3;
+  // Identifier for the CaptureRequest. See:
+  // https://developer.android.com/reference/android/hardware/camera2/CaptureRequest
+  //
+  // If multiple cameras are streaming simultaneously, the request_id may be
+  // used to identify which frames were captured in service of the same request.
+  optional int64 request_id = 4;
+
+  // The CLOCK_BOOTTIME timestamp at which the camera framework request is
+  // received by the camera HAL pipeline. Note that this request may wait for
+  // some time before processing actually begins. See also
+  // request_processing_started_ns.
+  optional int64 request_received_ns = 5;
+  // The CLOCK_BOOTTIME timestamp at which the framework request is accepted for
+  // processing by the camera HAL pipeline. This is the time at which the
+  // pipeline actually begins to work on the request.
+  optional int64 request_processing_started_ns = 6;
+
+  // The CLOCK_BOOTTIME timestamp at which the sensor begins its exposure.
+  optional int64 start_of_exposure_ns = 7;
+  // The CLOCK_BOOTTIME timestamp corresponding to the sensor start of frame
+  // event.
+  optional int64 start_of_frame_ns = 8;
+  // The CLOCK_BOOTTIME timestamp at which the camera HAL has sent all responses
+  // for the frame.
+  optional int64 responses_all_sent_ns = 9;
+
+  // The error status, if any, reported to the camera framework. Any status
+  // other than STATUS_OK indicates a dropped frame.
+  // Next Enum: 6
+  enum CaptureResultStatus {
+    STATUS_UNSPECIFIED = 0;
+    STATUS_OK = 1;
+    // Early metadata was returned to the camera framework with an error.
+    STATUS_EARLY_METADATA_ERROR = 2;
+    // Final metadata was returned to the camera framework with an error.
+    STATUS_FINAL_METADATA_ERROR = 3;
+    // One or more buffers were returned to the camera framework with an error.
+    STATUS_BUFFER_ERROR = 4;
+    // The frame was dropped as a result of a flush operation.
+    STATUS_FLUSH_ERROR = 5;
+  }
+  optional CaptureResultStatus capture_result_status = 10;
+
+  // The number of sensor frames that were skipped between this frame and the
+  // previous frame. Under normal operation, this should be zero. Any number
+  // greater than zero indicates dropped sensor frames.
+  optional int32 skipped_sensor_frames = 11;
+
+  // The value of CONTROL_CAPTURE_INTENT. See:
+  // https://developer.android.com/reference/android/hardware/camera2/CaptureRequest#CONTROL_CAPTURE_INTENT
+  optional int32 capture_intent = 12;
+  // The number of streams in the capture request.
+  optional int32 num_streams = 13;
+
+  // A profiling event corresponding to a single node processing within the camera
+  // pipeline. Intuitively this corresponds to a single stage of processing to
+  // produce a camera frame.
+  // Next ID: 6
+  message CameraNodeProcessingDetails {
+    optional int64 node_id = 1;
+    // The timestamp at which node processing begins to run.
+    optional int64 start_processing_ns = 2;
+    // The timestamp at which node processing finishes running.
+    optional int64 end_processing_ns = 3;
+    // The delay between inputs becoming ready and the node actually beginning to
+    // run.
+    optional int64 scheduling_latency_ns = 4;
+  }
+  repeated CameraNodeProcessingDetails node_processing_details = 14;
+
+  // These fields capture vendor-specific additions to this proto message. In
+  // practice `vendor_data` typically contains a serialized message of the
+  // vendor's design, and `vendor_data_version` is incremented each time there
+  // is a backwards incompatible change made to the message.
+  optional int32 vendor_data_version = 15;
+  optional bytes vendor_data = 16;
+}
+
+// A profiling event that may be emitted periodically (i.e., at a slower rate
+// than `AndroidCameraFrameEvent`s) to record fixed and aggregated camera
+// session-specific values.
+message AndroidCameraSessionStats {
+  // Identifier for the CameraCaptureSession this frame originates from. See:
+  // https://developer.android.com/reference/android/hardware/camera2/CameraCaptureSession
+  optional uint64 session_id = 1;
+
+  // Although vendor implementations may vary, camera pipeline processing is
+  // typically arranged into a directed graph-like structure. This message is
+  // used to record that graph.
+  message CameraGraph {
+    message CameraNode {
+      optional int64 node_id = 1;
+      // A list of inputs consumed by this node.
+      repeated int64 input_ids = 2;
+      // A list of outputs produced by this node.
+      repeated int64 output_ids = 3;
+
+      // These fields capture vendor-specific additions to this proto message. In
+      // practice `vendor_data` typically contains a serialized message of the
+      // vendor's design, and `vendor_data_version` is incremented each time there
+      // is a backwards incompatible change made to the message.
+      optional int32 vendor_data_version = 4;
+      optional bytes vendor_data = 5;
+    }
+    repeated CameraNode nodes = 1;
+
+    // An adjacency list describing connections between CameraNodes, mapping
+    // nodes and their outputs to other nodes that consume them as inputs.
+    message CameraEdge {
+      // The pair of IDs identifying the node and output connected by this edge.
+      optional int64 output_node_id = 1;
+      optional int64 output_id = 2;
+
+      // The pair of IDs identifying the node and input connected by this edge.
+      optional int64 input_node_id = 3;
+      optional int64 input_id = 4;
+
+      // These fields capture vendor-specific additions to this proto message. In
+      // practice `vendor_data` typically contains a serialized message of the
+      // vendor's design, and `vendor_data_version` is incremented each time there
+      // is a backwards incompatible change made to the message.
+      optional int32 vendor_data_version = 5;
+      optional bytes vendor_data = 6;
+    }
+    repeated CameraEdge edges = 2;
+  }
+  optional CameraGraph graph = 2;
+}

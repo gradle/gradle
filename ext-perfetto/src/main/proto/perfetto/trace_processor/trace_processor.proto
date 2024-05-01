@@ -1,0 +1,296 @@
+/*
+ * Copyright (C) 2018 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto2";
+
+package perfetto.protos;
+
+import "perfetto/common/descriptor.proto";
+import "perfetto/trace_processor/metatrace_categories.proto";
+
+// This file defines the schema for {,un}marshalling arguments and return values
+// when interfacing to the trace processor binary interface.
+
+// The Trace Processor can be used in three modes:
+// 1. Fully native from C++ or directly using trace_processor_shell.
+//    In this case, this file isn't really relevant because no binary
+//    marshalling is involved. Look at include/trace_processor/trace_processor.h
+//    for the public C++ API definition.
+// 2. Using WASM within the HTML ui. In this case these messages are used to
+//    {,un}marshall calls made through the JS<>WASM interop in
+//    src/trace_processor/rpc/wasm_bridge.cc .
+// 3. Using the HTTP+RPC interface, by running trace_processor_shell -D.
+//    In this case these messages are used to {,un}marshall HTTP requests and
+//    response made through src/trace_processor/rpc/httpd.cc .
+
+enum TraceProcessorApiVersion {
+  // This variable has been introduced in v15 and is used to deal with API
+  // mismatches between UI and trace_processor_shell --httpd. Increment this
+  // every time a new feature that the UI depends on is being introduced (e.g.
+  // new tables, new SQL operators, metrics that are required by the UI).
+  // See also StatusResult.api_version (below).
+  TRACE_PROCESSOR_CURRENT_API_VERSION = 6;
+}
+
+// At lowest level, the wire-format of the RPC procol is a linear sequence of
+// TraceProcessorRpc messages on each side of the byte pipe
+// Each message is prefixed by a tag (field = 1, type = length delimited) and a
+// varint encoding its size (this is so the whole stream can also be read /
+// written as if it was a repeated field of TraceProcessorRpcStream).
+
+message TraceProcessorRpcStream {
+  repeated TraceProcessorRpc msg = 1;
+}
+
+message TraceProcessorRpc {
+  // A monotonic counter used only for debugging purposes, to detect if the
+  // underlying stream is missing or duping data. The counter starts at 0 on
+  // each side of the pipe and is incremented on each message.
+  // Do NOT expect that a response has the same |seq| of its corresponding
+  // request: some requests (e.g., a query returning many rows) can yield more
+  // than one response message, bringing the tx and rq seq our of sync.
+  optional int64 seq = 1;
+
+  // This is returned when some unrecoverable error has been detected by the
+  // peer. The typical case is TraceProcessor detecting that the |seq| sequence
+  // is broken (e.g. when having two tabs open with the same --httpd instance).
+  optional string fatal_error = 5;
+
+  enum TraceProcessorMethod {
+    TPM_UNSPECIFIED = 0;
+    TPM_APPEND_TRACE_DATA = 1;
+    TPM_FINALIZE_TRACE_DATA = 2;
+    TPM_QUERY_STREAMING = 3;
+    // Previously: TPM_QUERY_RAW_DEPRECATED
+    reserved 4;
+    reserved "TPM_QUERY_RAW_DEPRECATED";
+    TPM_COMPUTE_METRIC = 5;
+    TPM_GET_METRIC_DESCRIPTORS = 6;
+    TPM_RESTORE_INITIAL_TABLES = 7;
+    TPM_ENABLE_METATRACE = 8;
+    TPM_DISABLE_AND_READ_METATRACE = 9;
+    TPM_GET_STATUS = 10;
+    TPM_RESET_TRACE_PROCESSOR = 11;
+  }
+
+  oneof type {
+    // Client -> TraceProcessor requests.
+    TraceProcessorMethod request = 2;
+
+    // TraceProcessor -> Client responses.
+    TraceProcessorMethod response = 3;
+
+    // This is sent back instead of filling |response| when the client sends a
+    // |request| which is not known by the TraceProcessor service. This can
+    // happen when the client is newer than the service.
+    TraceProcessorMethod invalid_request = 4;
+  }
+
+  // Request/Response arguments.
+  // Not all requests / responses require an argument.
+
+  oneof args {
+    // TraceProcessorMethod request args.
+
+    // For TPM_APPEND_TRACE_DATA.
+    bytes append_trace_data = 101;
+    // For TPM_QUERY_STREAMING.
+    QueryArgs query_args = 103;
+    // For TPM_COMPUTE_METRIC.
+    ComputeMetricArgs compute_metric_args = 105;
+    // For TPM_ENABLE_METATRACE.
+    EnableMetatraceArgs enable_metatrace_args = 106;
+    // For TPM_RESET_TRACE_PROCESSOR.
+    ResetTraceProcessorArgs reset_trace_processor_args = 107;
+
+    // TraceProcessorMethod response args.
+    // For TPM_APPEND_TRACE_DATA.
+    AppendTraceDataResult append_result = 201;
+    // For TPM_QUERY_STREAMING.
+    QueryResult query_result = 203;
+    // For TPM_COMPUTE_METRIC.
+    ComputeMetricResult metric_result = 205;
+    // For TPM_GET_METRIC_DESCRIPTORS.
+    DescriptorSet metric_descriptors = 206;
+    // For TPM_DISABLE_AND_READ_METATRACE.
+    DisableAndReadMetatraceResult metatrace = 209;
+    // For TPM_GET_STATUS.
+    StatusResult status = 210;
+  }
+
+  // Previously: RawQueryArgs for TPM_QUERY_RAW_DEPRECATED
+  reserved 104;
+  // Previously: RawQueryResult for TPM_QUERY_RAW_DEPRECATED
+  reserved 204;
+}
+
+message AppendTraceDataResult {
+  optional int64 total_bytes_parsed = 1;
+  optional string error = 2;
+}
+
+message QueryArgs {
+  optional string sql_query = 1;
+  // Was time_queued_ns
+  reserved 2;
+  // Optional string to tag this query with for performance diagnostic purposes.
+  optional string tag = 3;
+}
+
+// Output for the /query endpoint.
+// Returns a query result set, grouping cells into batches. Batching allows a
+// more efficient encoding of results, at the same time allowing to return
+// O(M) results in a pipelined fashion, without full-memory buffering.
+// Batches are split when either a large number of cells (~thousands) is reached
+// or the string/blob payload becomes too large (~hundreds of KB).
+// Data is batched in cells, scanning results by row -> column. e.g. if a query
+// returns 3 columns and 2 rows, the cells will be emitted in this order:
+// R0C0, R0C1, R0C2, R1C0, R1C1, R1C2.
+message QueryResult {
+  // This determines the number and names of columns.
+  repeated string column_names = 1;
+
+  // If non-emty the query returned an error. Note that some cells might still
+  // be present, if the error happened while iterating.
+  optional string error = 2;
+
+  // A batch contains an array of cell headers, stating the type of each cell.
+  // The payload of each cell is stored in the corresponding xxx_cells field
+  // below (unless the cell is NULL).
+  // So if |cells| contains: [VARINT, FLOAT64, VARINT, STRING], the results will
+  // be available as:
+  // [varint_cells[0], float64_cells[0], varint_cells[1], string_cells[0]].
+  message CellsBatch {
+    enum CellType {
+      CELL_INVALID = 0;
+      CELL_NULL = 1;
+      CELL_VARINT = 2;
+      CELL_FLOAT64 = 3;
+      CELL_STRING = 4;
+      CELL_BLOB = 5;
+    }
+    repeated CellType cells = 1 [packed = true];
+
+    repeated int64 varint_cells = 2 [packed = true];
+    repeated double float64_cells = 3 [packed = true];
+    repeated bytes blob_cells = 4;
+
+    // The string cells are concatenated in a single field. Each cell is
+    // NUL-terminated. This is because JS incurs into a non-negligible overhead
+    // when decoding strings and one decode + split('\0') is measurably faster
+    // than decoding N strings. See goto.google.com/postmessage-benchmark .
+    optional string string_cells = 5;
+
+    // If true this is the last batch for the query result.
+    optional bool is_last_batch = 6;
+
+    // Padding field. Used only to re-align and fill gaps in the binary format.
+    reserved 7;
+  }
+  repeated CellsBatch batch = 3;
+
+  // The number of statements in the provided SQL.
+  optional uint32 statement_count = 4;
+
+  // The number of statements which produced output rows in the provided SQL.
+  optional uint32 statement_with_output_count = 5;
+}
+
+// Input for the /status endpoint.
+message StatusArgs {}
+
+// Output for the /status endpoint.
+message StatusResult {
+  // If present and not empty, a trace is already loaded already. This happens
+  // when using the HTTP+RPC mode nad passing a trace file to the shell, via
+  // trace_processor_shell -D trace_file.pftrace .
+  optional string loaded_trace_name = 1;
+
+  // Typically something like "v11.0.123", but could be just "v11" or "unknown",
+  // for binaries built from Bazel or other build configurations. This is for
+  // human presentation only, don't attempt to parse and reason on it.
+  optional string human_readable_version = 2;
+
+  // The API version is incremented every time a change that the UI depends
+  // on is introduced (e.g. adding a new table that the UI queries).
+  optional int32 api_version = 3;
+}
+
+// Input for the /compute_metric endpoint.
+message ComputeMetricArgs {
+  enum ResultFormat {
+    BINARY_PROTOBUF = 0;
+    TEXTPROTO = 1;
+  }
+  repeated string metric_names = 1;
+  optional ResultFormat format = 2;
+}
+
+// Output for the /compute_metric endpoint.
+message ComputeMetricResult {
+  oneof result {
+    // This is meant to contain a perfetto.protos.TraceMetrics. We're using
+    // bytes instead of the actual type because we do not want to generate
+    // protozero code for the metrics protos. We always encode/decode metrics
+    // using a reflection based mechanism that does not require the compiled C++
+    // code. This allows us to read in new protos at runtime.
+    bytes metrics = 1;
+
+    // A perfetto.protos.TraceMetrics formatted as prototext.
+    string metrics_as_prototext = 3;
+  }
+
+  optional string error = 2;
+}
+
+// Input for the /enable_metatrace endpoint.
+message EnableMetatraceArgs {
+  optional MetatraceCategories categories = 1;
+}
+
+// Output for the /enable_metatrace endpoint.
+message EnableMetatraceResult {}
+
+// Input for the /disable_and_read_metatrace endpoint.
+message DisableAndReadMetatraceArgs {}
+
+// Output for the /disable_and_read_metatrace endpoint.
+message DisableAndReadMetatraceResult {
+  // Bytes of perfetto.protos.Trace message. Stored as bytes
+  // to avoid adding a dependency on trace.proto.
+  optional bytes metatrace = 1;
+  optional string error = 2;
+}
+
+// Convenience wrapper for multiple descriptors, similar to FileDescriptorSet
+// in descriptor.proto.
+message DescriptorSet {
+  repeated DescriptorProto descriptors = 1;
+}
+
+// Input for setting Trace Processor config. This method works only in the WASM
+// mode. trace_processor_shell supports configuration through command line
+// flags.
+message ResetTraceProcessorArgs {
+  enum DropTrackEventDataBefore {
+    NO_DROP = 0;
+    TRACK_EVENT_RANGE_OF_INTEREST = 1;
+  }
+  // Mirror of the corresponding perfetto::trace_processor::Config fields.
+  optional DropTrackEventDataBefore drop_track_event_data_before = 1;
+  optional bool ingest_ftrace_in_raw_table = 2;
+  optional bool analyze_trace_proto_content = 3;
+}

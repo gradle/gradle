@@ -1,0 +1,92 @@
+/*
+ * Copyright (C) 2020 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto2";
+
+package perfetto.protos;
+
+// Describes the attributes for a Chrome process. Must be paired with a
+// ProcessDescriptor in the same TrackDescriptor.
+//
+// Next id: 6.
+message ChromeProcessDescriptor {
+  // See chromium's content::ProcessType.
+  enum ProcessType {
+    PROCESS_UNSPECIFIED = 0;
+    PROCESS_BROWSER = 1;
+    PROCESS_RENDERER = 2;
+    PROCESS_UTILITY = 3;
+    PROCESS_ZYGOTE = 4;
+    PROCESS_SANDBOX_HELPER = 5;
+    PROCESS_GPU = 6;
+    PROCESS_PPAPI_PLUGIN = 7;
+    PROCESS_PPAPI_BROKER = 8;
+    PROCESS_SERVICE_NETWORK = 9;
+    PROCESS_SERVICE_TRACING = 10;
+    PROCESS_SERVICE_STORAGE = 11;
+    PROCESS_SERVICE_AUDIO = 12;
+    PROCESS_SERVICE_DATA_DECODER = 13;
+    PROCESS_SERVICE_UTIL_WIN = 14;
+    PROCESS_SERVICE_PROXY_RESOLVER = 15;
+    PROCESS_SERVICE_CDM = 16;
+    PROCESS_SERVICE_VIDEO_CAPTURE = 17;
+    PROCESS_SERVICE_UNZIPPER = 18;
+    PROCESS_SERVICE_MIRRORING = 19;
+    PROCESS_SERVICE_FILEPATCHER = 20;
+    PROCESS_SERVICE_TTS = 21;
+    PROCESS_SERVICE_PRINTING = 22;
+    PROCESS_SERVICE_QUARANTINE = 23;
+    PROCESS_SERVICE_CROS_LOCALSEARCH = 24;
+    PROCESS_SERVICE_CROS_ASSISTANT_AUDIO_DECODER = 25;
+    PROCESS_SERVICE_FILEUTIL = 26;
+    PROCESS_SERVICE_PRINTCOMPOSITOR = 27;
+    PROCESS_SERVICE_PAINTPREVIEW = 28;
+    PROCESS_SERVICE_SPEECHRECOGNITION = 29;
+    PROCESS_SERVICE_XRDEVICE = 30;
+    PROCESS_SERVICE_READICON = 31;
+    PROCESS_SERVICE_LANGUAGEDETECTION = 32;
+    PROCESS_SERVICE_SHARING = 33;
+    PROCESS_SERVICE_MEDIAPARSER = 34;
+    PROCESS_SERVICE_QRCODEGENERATOR = 35;
+    PROCESS_SERVICE_PROFILEIMPORT = 36;
+    PROCESS_SERVICE_IME = 37;
+    PROCESS_SERVICE_RECORDING = 38;
+    PROCESS_SERVICE_SHAPEDETECTION = 39;
+    PROCESS_RENDERER_EXTENSION = 40;
+  }
+  optional ProcessType process_type = 1;
+  optional int32 process_priority = 2;
+
+  // To support old UI. New UI should determine default sorting by process_type.
+  optional int32 legacy_sort_index = 3;
+
+  // Name of the hosting app for WebView. Used to match renderer processes to
+  // their hosting apps.
+  optional string host_app_package_name = 4;
+
+  // The ID to link crashes to trace.
+  // Notes:
+  // * The ID is per process. So, each trace may contain many IDs, and you need
+  //   to look for the ID from crashed process to find the crash report.
+  // * Having a "chrome-trace-id" in crash doesn't necessarily mean we can
+  //   get an uploaded trace, since uploads could have failed.
+  // * On the other hand, if there was a crash during the session and trace was
+  //   uploaded, it is very likely to find a crash report with the trace ID.
+  // * This is not crash ID or trace ID. It is just a random 64-bit number
+  //   recorded in both traces and crashes. It is possible to have collisions,
+  //   though very rare.
+  optional uint64 crash_trace_id = 5;
+}

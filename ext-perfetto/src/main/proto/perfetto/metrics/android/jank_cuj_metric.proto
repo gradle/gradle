@@ -1,0 +1,123 @@
+/*
+ * Copyright (C) 2022 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto2";
+
+package perfetto.protos;
+
+import "perfetto/metrics/android/process_metadata.proto";
+
+message AndroidJankCujMetric {
+  repeated Cuj cuj = 1;
+
+  // Next id: 11
+  message Cuj {
+    // ID of the CUJ that is unique within the trace.
+    optional int32 id = 1;
+
+    // Name of the CUJ, extracted from the CUJ trace marker.
+    // For example SHADE_EXPAND_COLLAPSE from J<SHADE_EXPAND_COLLAPSE>.
+    optional string name = 2;
+
+    // Details about the process (uid, version, etc)
+    optional AndroidProcessMetadata process = 3;
+
+    // ts of the CUJ trace marker slice.
+    optional int64 ts = 4;
+
+    // dur of the CUJ trace marker slice.
+    optional int64 dur = 5;
+
+    // Details about each of the frames within the CUJ.
+    repeated Frame frame = 6;
+
+    // Details about each of the SF frames within the CUJ.
+    repeated Frame sf_frame = 10;
+
+    // Metrics extracted from the counters output by FrameTracker
+    // Does not contain the frame_dur percentile information.
+    optional Metrics counter_metrics = 7;
+
+    // Metrics extracted from the frame timeline.
+    optional Metrics timeline_metrics = 8;
+
+    // Metrics extracted from the trace slices.
+    optional Metrics trace_metrics = 9;
+  }
+
+  // Next id: 8
+  message Frame {
+    // Index of the frame within the single user journey.
+    optional int64 frame_number = 1;
+
+    // VSYNC ID of the frame.
+    optional int64 vsync = 2;
+
+    optional int64 ts = 3;
+    optional int64 dur = 4;
+    optional int64 dur_expected = 7;
+
+    // Whether the app process missed the frame deadline.
+    // Only set for the App frames. Always left unset for SF frames.
+    optional bool app_missed = 5;
+
+    // Whether SF missed the frame deadline.
+    optional bool sf_missed = 6;
+  }
+
+  // Next id: 12
+  message Metrics {
+    // Overall number of frames within the CUJ.
+    optional int64 total_frames = 1;
+
+    // Number of missed frames.
+    optional int64 missed_frames = 2;
+
+    // Number of frames missed due to the app missing the deadline.
+    optional int64 missed_app_frames = 3;
+
+    // Number of frames missed due to SF.
+    optional int64 missed_sf_frames = 4;
+
+    // Number of successive frames missed.
+    // Not available in timeline_metrics and trace_metrics.
+    optional int64 missed_frames_max_successive = 5;
+
+    // Max frame duration.
+    // Not available in counter_metrics.
+    optional int64 frame_dur_max = 6;
+
+    // Average frame duration.
+    // Not available in counter_metrics.
+    optional int64 frame_dur_avg = 7;
+
+    // Median frame duration.
+    // Not available in counter_metrics.
+    optional int64 frame_dur_p50 = 8;
+
+    // P90 frame duration.
+    // Not available in counter_metrics.
+    optional int64 frame_dur_p90 = 9;
+
+    // P95 frame duration.
+    // Not available in counter_metrics.
+    optional int64 frame_dur_p95 = 10;
+
+    // P99 frame duration.
+    // Not available in counter_metrics.
+    optional int64 frame_dur_p99 = 11;
+  }
+}
