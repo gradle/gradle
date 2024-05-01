@@ -16,7 +16,13 @@
 
 package org.gradle.configurationcache.serialization.beans
 
+import org.gradle.configurationcache.extensions.uncheckedCast
+import org.gradle.configurationcache.extensions.unsafeLazy
+import org.gradle.configurationcache.serialization.ReadContext
+import org.gradle.configurationcache.serialization.ownerService
+import org.gradle.internal.instantiation.InstantiationScheme
 import org.gradle.internal.instantiation.InstantiatorFactory
+import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import java.util.concurrent.ConcurrentHashMap
@@ -32,5 +38,40 @@ class BeanStateReaderLookup(
     val beanStateReaders = ConcurrentHashMap<Class<*>, BeanStateReader>()
 
     fun beanStateReaderFor(beanType: Class<*>): BeanStateReader =
-        beanStateReaders.computeIfAbsent(beanType) { type -> BeanPropertyReader(type, constructors, instantiatorFactory) }
+        beanStateReaders.computeIfAbsent(beanType) { type ->
+            if (Optimizable::class.java.isAssignableFrom(type)) {
+                OptimizableBeanReader(type, constructors, instantiatorFactory)
+            } else {
+                BeanPropertyReader(type, constructors, instantiatorFactory)
+            }
+        }
+}
+
+class OptimizableBeanReader(private val beanType: Class<*>, constructors: BeanConstructors, instantiatorFactory: InstantiatorFactory) : BeanStateReader {
+
+    private
+    val instantiationScheme: InstantiationScheme = instantiatorFactory.decorateScheme()
+
+    private
+    val constructorForSerialization by unsafeLazy {
+        constructors.constructorForSerialization(beanType)
+    }
+
+    override fun ReadContext.newBean(generated: Boolean): Any = if (generated) {
+        val services = ownerService<ServiceRegistry>()
+        instantiationScheme.withServices(services).deserializationInstantiator().newInstance(beanType, Any::class.java)
+    } else {
+        constructorForSerialization.newInstance()
+    }
+
+    override suspend fun ReadContext.readStateOf(bean: Any) {
+        bean.uncheckedCast<Optimizable>().run {
+            readBean()
+        }
+    }
+}
+
+interface Optimizable {
+
+    suspend fun ReadContext.readBean()
 }
