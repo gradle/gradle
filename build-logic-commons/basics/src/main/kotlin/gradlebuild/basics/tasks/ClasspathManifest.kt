@@ -51,6 +51,8 @@ abstract class ClasspathManifest : DefaultTask() {
     @get:OutputFile
     abstract val manifestFile: RegularFileProperty
 
+    private val projectName = project.name
+
     @TaskAction
     fun generate() {
         ReproduciblePropertiesWriter.store(createProperties(), manifestFile.get().asFile)

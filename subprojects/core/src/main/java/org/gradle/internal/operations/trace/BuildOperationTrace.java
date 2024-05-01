@@ -248,6 +248,7 @@ public class BuildOperationTrace implements Stoppable {
     }
 
     private final Trace.Builder traceBuilder = Trace.newBuilder();
+    private final ThreadLocal<Boolean> seenThread = ThreadLocal.withInitial(() -> false);
 
     private void writeProto(SerializedOperation operation) throws IOException {
         if (!gotFirstMessage) {
@@ -272,22 +273,25 @@ public class BuildOperationTrace implements Stoppable {
                                 .setProcessName("Gradle")
                                 .build()))
             );
-
-            traceBuilder.addPacket(
-            TracePacket.newBuilder()
-                .setTrustedPacketSequenceId(1)
-                .setTrackDescriptor(TrackDescriptor.newBuilder()
-                    .setUuid(1)
-                    .setThread(ThreadDescriptorOuterClass.ThreadDescriptor.newBuilder()
-                        .setPid(1337)
-                        .setTid(1337)
-                        .setThreadName("Worker")))
-            );
         }
 
         TrackEventOuterClass.TrackEvent.Builder event = toEvent(operation);
         if (event == null) {
             return;
+        }
+
+        if (!seenThread.get()) {
+            seenThread.set(true);
+            traceBuilder.addPacket(
+                TracePacket.newBuilder()
+                    .setTrustedPacketSequenceId(1)
+                    .setTrackDescriptor(TrackDescriptor.newBuilder()
+                        .setUuid(Thread.currentThread().getId())
+                        .setThread(ThreadDescriptorOuterClass.ThreadDescriptor.newBuilder()
+                            .setPid(1337)
+                            .setTid((int) Thread.currentThread().getId())
+                            .setThreadName(Thread.currentThread().getName())))
+            );
         }
 
         traceBuilder.addPacket(
@@ -302,12 +306,12 @@ public class BuildOperationTrace implements Stoppable {
         if (operation instanceof SerializedOperationStart) {
             SerializedOperationStart start = (SerializedOperationStart) operation;
             return TrackEventOuterClass.TrackEvent.newBuilder()
-                .setTrackUuid(1)  // of thread
+                .setTrackUuid(Thread.currentThread().getId())  // of thread
                 .setName(start.getName())
                 .setType(TrackEventOuterClass.TrackEvent.Type.TYPE_SLICE_BEGIN);
         } else if (operation instanceof SerializedOperationFinish) {
             return TrackEventOuterClass.TrackEvent.newBuilder()
-                .setTrackUuid(1)  // of thread
+                .setTrackUuid(Thread.currentThread().getId())  // of thread
                 .setType(TrackEventOuterClass.TrackEvent.Type.TYPE_SLICE_END);
         }
         return null;
