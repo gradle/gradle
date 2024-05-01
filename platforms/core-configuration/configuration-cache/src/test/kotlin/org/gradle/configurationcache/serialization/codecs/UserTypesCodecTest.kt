@@ -16,6 +16,11 @@
 
 package org.gradle.configurationcache.serialization.codecs
 
+import org.gradle.api.DefaultTask
+import org.gradle.api.Project
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.TaskAction
 import org.gradle.configurationcache.extensions.useToRun
 import org.gradle.configurationcache.problems.PropertyTrace
 import org.gradle.configurationcache.serialization.ReadContext
@@ -33,11 +38,15 @@ import kotlin.math.ceil
 import kotlin.math.log
 import kotlin.random.Random
 
+const val schemasCount = 1000
+const val taskCount = 100
+
 enum class FieldType {
     Int, String, Bean
 }
 
 typealias BeanSchema = List<FieldType>
+
 
 class UserTypesCodecTest : AbstractUserTypeCodecTest() {
 
@@ -122,54 +131,96 @@ class UserTypesCodecTest : AbstractUserTypeCodecTest() {
 
     @Test
     fun `generate`() {
-        val file = File("/Users/sopivalov/Projects/wm24hack/build.gradle.kts").apply {
-            parentFile.mkdirs()
+        val projectDir = File("/Users/sopivalov/Projects/wm24hack/").apply {
+            deleteRecursively()
+            mkdirs()
         }
-        FileWriter(file).useToRun {
-            generateBenchmarkProject()
+        projectDir.resolve("gradle.properties").writeText("""
+            org.gradle.caching=true
+            org.gradle.jvmargs=-Xmx27000m -XX:MaxMetaspaceSize=768m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8
+        """.trimIndent())
+        val buildFile = projectDir.resolve("build.gradle.kts")
+        val buildSrc = projectDir.resolve("buildSrc").apply { mkdirs() }
+        val sourceDir = buildSrc.resolve("src/main/kotlin/").apply { mkdirs() }
+
+        buildSrc.resolve("build.gradle.kts").writeText(
+            """
+            plugins { `kotlin-dsl` }
+            repositories { mavenCentral() }
+        """.trimIndent()
+        )
+
+        sourceDir.resolve("Bean.kt").writeText(getBeanText())
+
+        val random = Random(42)
+        val schemas = List(schemasCount) { random.generateSchema() }.toSet()
+        println(schemas.size)
+        schemas.forEach {
+            FileWriter(sourceDir.resolve("${it.name}.kt")).useToRun {
+                writeBeanFile(it)
+            }
+        }
+        FileWriter(buildFile).useToRun {
+            generateBenchmarkProject(schemas)
         }
     }
 
-    private fun Writer.generateBenchmarkProject(): Appendable {
+    private fun FileWriter.writeBeanFile(schema: BeanSchema) {
         appendLine(
             """
-                    import ${Optimizable::class.qualifiedName}
-                    import ${ReadContext::class.qualifiedName}
-                    import org.gradle.configurationcache.serialization.readNonNull
-                    import org.gradle.configurationcache.serialization.skipTag
+                        import ${Optimizable::class.qualifiedName}
+                        import ${ReadContext::class.qualifiedName}
+                        import ${Project::class.qualifiedName}
+                        import org.gradle.configurationcache.serialization.readNonNull
+                        import org.gradle.configurationcache.serialization.skipTag
+                        import org.gradle.kotlin.dsl.*
 
-                    data class Bean(val i : Int)
-
-                    abstract class BeanTask : DefaultTask() {
-                        @get:Input
-                        abstract val bean: Property<Any>
-
-                        @TaskAction
-                        fun doSomething() {}
-                    }
-
-                """.trimIndent()
+                    """.trimIndent()
         )
+        writeType(schema)
+        writeTypeUnoptimized(schema)
 
+        val taskName = schema.name + "Task"
+        appendLine("""
+            fun Project.generateTasksFor${schema.name}() {
+                            val taskCount = $taskCount
+                            repeat(taskCount) { index ->
+                                tasks.register<BeanTask>("$taskName${'$'}index") {
+                                    bean.set(${schema.name}())
+                                }
+
+                                tasks.register<BeanTask>("Unoptimized$taskName${'$'}index") {
+                                    bean.set(Unoptimized${schema.name}())
+                                }
+                            }
+
+                            tasks.register<BeanTask>("$taskName") {
+                                bean.set(${schema.name}())
+                                repeat(taskCount) { index ->
+                                     dependsOn("$taskName${'$'}index")
+                                }
+                            }
+
+                            tasks.register<BeanTask>("Unoptimized$taskName") {
+                                bean.set(Unoptimized${schema.name}())
+                                repeat(taskCount) { index ->
+                                     dependsOn("Unoptimized$taskName${'$'}index")
+                                }
+                            }
+                        }
+        """.trimIndent()
+        )
+    }
+
+    private fun Writer.generateBenchmarkProject(schemas: Set<BeanSchema>): Appendable {
         val schemaNames = mutableSetOf<String>()
-        List(10) {
-            Random.generateSchema()
-        }.toSet().forEach {
+        schemas.forEach {
             val schema = it
-            val taskName = schema.name + "Task"
             schemaNames += schema.name
 
-            writeType(schema)
-            writeTypeUnoptimized(schema)
             appendLine(
                 """
-                        tasks.register<BeanTask>("$taskName") {
-                            bean.set(${schema.name}())
-                        }
-
-                        tasks.register<BeanTask>("Unoptimized$taskName") {
-                            bean.set(Unoptimized${schema.name}())
-                        }
+                        generateTasksFor${schema.name}()
                     """.trimIndent()
             )
         }
@@ -193,6 +244,23 @@ class UserTypesCodecTest : AbstractUserTypeCodecTest() {
 
                 """.trimIndent())
     }
+
+    private fun getBeanText(): String =
+        """
+            import ${DefaultTask::class.qualifiedName}
+            import ${Input::class.qualifiedName}
+            import ${Property::class.qualifiedName}
+            import ${TaskAction::class.qualifiedName}
+
+            data class Bean(val i : Int)
+
+                        abstract class BeanTask : DefaultTask() {
+                            @get:Input
+                            abstract val bean: Property<Any>
+
+                            @TaskAction
+                            fun doSomething() {}
+                        }"""
 
     @Test
     fun `can handle optimizable bean`() {
