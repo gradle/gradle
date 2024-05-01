@@ -18,7 +18,8 @@ package org.gradle.configurationcache.isolated
 
 import org.gradle.api.Project
 import org.gradle.configurationcache.fixtures.BaseModel
-import org.gradle.configurationcache.fixtures.ChildModel
+import org.gradle.configurationcache.fixtures.DeepChildModel
+import org.gradle.configurationcache.fixtures.ShallowChildModel
 import org.gradle.tooling.provider.model.ToolingModelBuilder
 
 class ToolingApiPolimorphismIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
@@ -33,18 +34,25 @@ class ToolingApiPolimorphismIntegrationTest extends AbstractIsolatedProjectsTool
             interface BaseModel {
             }
 
-            // Mark as protocol
-            interface ChildModel extends BaseModel {
-                String getMessage()
+            interface ShallowChildModel extends BaseModel {
+                String getShallowMessage()
+            }
+
+            interface DeepChildModel extends BaseModel {
+                String getDeepMessage()
             }
 
             interface SideModel extends BaseModel {
             }
 
-            class DefaultModel implements ChildModel, java.io.Serializable {
+            abstract class AbstractModel implements DeepChildModel {
+            }
+
+            class DefaultModel extends AbstractModel implements ShallowChildModel, java.io.Serializable {
                 private final String message
                 DefaultModel(String message) { this.message = message }
-                String getMessage() { message }
+                String getShallowMessage() { "shallow " + message }
+                String getDeepMessage() { "deep " + message }
                 String toString() { message }
             }
         """.stripIndent()
@@ -84,7 +92,9 @@ class ToolingApiPolimorphismIntegrationTest extends AbstractIsolatedProjectsTool
         then:
         model != null
         model instanceof BaseModel
-//        model instanceof ChildModel
-        ((ChildModel) model).getMessage() == "poly from 'root'"
+        model instanceof ShallowChildModel
+        ((ShallowChildModel) model).getShallowMessage() == "shallow poly from 'root'"
+        model instanceof DeepChildModel
+        ((DeepChildModel) model).getDeepMessage() == "deep poly from 'root'"
     }
 }

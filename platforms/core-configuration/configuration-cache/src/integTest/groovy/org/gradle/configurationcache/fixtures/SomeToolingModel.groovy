@@ -24,13 +24,17 @@ interface SomeToolingModel {
     String getMessage()
 }
 
-@ToolingModelContract(subTypes = [ChildModel.class])
+@ToolingModelContract(subTypes = [ShallowChildModel.class, DeepChildModel.class])
 interface BaseModel {
 }
 
 // Mark as protocol
-interface ChildModel extends BaseModel {
-    String getMessage()
+interface DeepChildModel extends BaseModel {
+    String getDeepMessage()
+}
+
+interface ShallowChildModel extends BaseModel {
+    String getShallowMessage()
 }
 
 interface SideModel extends BaseModel {

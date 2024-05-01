@@ -16,6 +16,7 @@
 package org.gradle.tooling.internal.adapter;
 
 import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableList;
 import com.google.common.graph.SuccessorsFunction;
 import com.google.common.graph.Traverser;
 import org.gradle.internal.Cast;
@@ -180,11 +181,16 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
     }
 
     private static Set<Class<?>> collectSubtypes(Object sourceObject, Map<String, Class<?>> subInterfaces) {
-        // TODO: we just traverse the interface hierarchy; we should also do it for superclasses
         Iterable<Class<?>> interfaces = Traverser.forGraph(new SuccessorsFunction<Class<?>>() {
             @Override
             public Iterable<? extends Class<?>> successors(Class<?> node) {
-                return Arrays.asList(node.getInterfaces());
+                ImmutableList.Builder<Class<?>> builder = new ImmutableList.Builder<>();
+                if (node.getSuperclass() != null) {
+                    builder.add(node.getSuperclass());
+                }
+                return builder
+                    .add(node.getInterfaces())
+                    .build();
             }
         }).breadthFirst(sourceObject.getClass());
 
