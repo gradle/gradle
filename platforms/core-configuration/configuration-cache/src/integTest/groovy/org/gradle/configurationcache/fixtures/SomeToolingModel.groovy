@@ -23,6 +23,18 @@ interface SomeToolingModel {
     String getMessage()
 }
 
+interface BaseModel {
+}
+
+// Mark as protocol
+interface ChildModel extends BaseModel {
+    String getMessage()
+}
+
+interface SideModel extends BaseModel {
+}
+
+
 interface SomeToolingModelParameter {
     String getMessagePrefix()
     void setMessagePrefix(String value)
