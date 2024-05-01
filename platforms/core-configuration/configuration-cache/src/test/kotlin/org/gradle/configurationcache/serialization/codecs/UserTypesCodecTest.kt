@@ -17,13 +17,125 @@
 package org.gradle.configurationcache.serialization.codecs
 
 import org.gradle.configurationcache.problems.PropertyTrace
+import org.gradle.configurationcache.serialization.ReadContext
+import org.gradle.configurationcache.serialization.beans.Optimizable
+import org.gradle.configurationcache.serialization.readNonNull
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.sameInstance
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
+import java.io.OutputStreamWriter
+import java.io.StringWriter
+import java.io.Writer
+import kotlin.random.Random
 
+enum class FieldType {
+    Int, String, Bean
+}
+
+typealias BeanSchema = List<FieldType>
 
 class UserTypesCodecTest : AbstractUserTypeCodecTest() {
+
+    class Foo(var i: Int, var s: String, var bar: Bar) : Optimizable {
+        override suspend fun ReadContext.readBean() {
+            val _bar = readNonNull<Bar>()
+            skipTag()
+            val _i = readInt()
+            skipTag()
+            val _s = readString()
+            i = _i
+            s = _s
+            bar = _bar
+        }
+    }
+
+    data class Bar(val i: Int)
+
+    fun Random.generateSchema(): BeanSchema {
+        val maxLength = 20
+        val fieldsCount = nextInt(2, maxLength)
+        return List(fieldsCount) {
+            FieldType.values().random(this)
+        }
+    }
+
+    fun Writer.writeType(schema: BeanSchema) {
+        val name = schema.name
+        write(
+            """
+            class $name(${fieldsOf(schema)}) : Optimizable {
+
+                override suspend fun ReadContext.readBean() {"""
+        )
+
+        schema.forEachIndexed { index, fieldType ->
+            when (fieldType) {
+                FieldType.Int -> appendLine("skipTag();_$index=readInt()")
+                FieldType.String -> appendLine("skipTag();_$index=readString()")
+                FieldType.Bean -> appendLine("_$index=read()?.uncheckedCast()")
+            }
+        }
+        write(
+            """
+
+                }
+            }
+        """
+        )
+    }
+
+    private fun fieldsOf(schema: BeanSchema): String {
+        return schema.mapIndexed { index, fieldType ->
+            when (fieldType) {
+                FieldType.Int -> "var _$index: Int"
+                FieldType.String -> "var _$index: String"
+                FieldType.Bean -> "var _$index: Bean"
+            }
+        }.joinToString()
+    }
+
+    private val BeanSchema.name: String
+        get() = joinToString("") {
+            when (it) {
+                FieldType.Int -> "I"
+                FieldType.String -> "S"
+                FieldType.Bean -> "B"
+            }
+        }
+
+    @Test
+    fun `generate`() {
+        OutputStreamWriter(System.out).use { writer ->
+            repeat(1) {
+                val schema = Random.generateSchema()
+                writer.writeType(schema)
+            }
+        }
+    }
+
+    @Test
+    fun `can handle optimizable bean`() {
+        val foo = Foo(42, "foo", Bar(43))
+
+        val read = configurationCacheRoundtripOf(foo)
+
+        assertThat(
+            read.bar,
+            equalTo(foo.bar)
+        )
+
+        assertThat(
+            read.i,
+            equalTo(foo.i)
+        )
+
+        assertThat(
+            read.s,
+            equalTo(foo.s)
+        )
+    }
+
 
     @Test
     fun `can handle deeply nested graphs`() {
@@ -128,4 +240,8 @@ class UserTypesCodecTest : AbstractUserTypeCodecTest() {
             }
         }
     }
+}
+
+private fun ReadContext.skipTag() {
+    readSmallInt()
 }
