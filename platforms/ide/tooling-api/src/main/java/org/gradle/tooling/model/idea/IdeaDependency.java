@@ -16,6 +16,8 @@
 
 package org.gradle.tooling.model.idea;
 
+import org.gradle.tooling.ToolingModelContract;
+import org.gradle.tooling.internal.consumer.converters.BackwardsCompatibleIdeaModuleDependency;
 import org.gradle.tooling.model.Dependency;
 
 /**
@@ -23,6 +25,8 @@ import org.gradle.tooling.model.Dependency;
  *
  * @since 1.0-milestone-5
  */
+// TODO: move the IDEA model changes to a separate PR and consider compatibility
+@ToolingModelContract(subTypes = {IdeaSingleEntryLibraryDependency.class, IdeaModuleDependency.class, BackwardsCompatibleIdeaModuleDependency.class})
 public interface IdeaDependency extends Dependency {
 
     /**

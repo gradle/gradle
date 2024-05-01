@@ -17,10 +17,9 @@
 package org.gradle.plugins.ide.internal.tooling.idea;
 
 import org.gradle.tooling.model.idea.IdeaDependencyScope;
-import org.gradle.tooling.provider.model.internal.LegacyConsumerInterface;
+import org.gradle.tooling.model.idea.IdeaModuleDependency;
 
-@LegacyConsumerInterface("org.gradle.tooling.model.idea.IdeaModuleDependency")
-public class DefaultIdeaModuleDependency extends DefaultIdeaDependency {
+public class DefaultIdeaModuleDependency extends DefaultIdeaDependency implements IdeaModuleDependency {
     private final String targetModuleName;
     private IdeaDependencyScope scope;
     private boolean exported;
@@ -29,6 +28,7 @@ public class DefaultIdeaModuleDependency extends DefaultIdeaDependency {
         this.targetModuleName = targetModuleName;
     }
 
+    @Override
     public IdeaDependencyScope getScope() {
         return scope;
     }
@@ -38,10 +38,12 @@ public class DefaultIdeaModuleDependency extends DefaultIdeaDependency {
         return this;
     }
 
+    @Override
     public String getTargetModuleName() {
         return targetModuleName;
     }
 
+    @Override
     public boolean getExported() {
         return exported;
     }

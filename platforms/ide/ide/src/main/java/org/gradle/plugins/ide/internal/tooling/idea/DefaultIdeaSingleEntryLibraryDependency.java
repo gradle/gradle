@@ -18,12 +18,11 @@ package org.gradle.plugins.ide.internal.tooling.idea;
 
 import org.gradle.tooling.model.GradleModuleVersion;
 import org.gradle.tooling.model.idea.IdeaDependencyScope;
-import org.gradle.tooling.provider.model.internal.LegacyConsumerInterface;
+import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency;
 
 import java.io.File;
 
-@LegacyConsumerInterface("org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency")
-public class DefaultIdeaSingleEntryLibraryDependency extends DefaultIdeaDependency {
+public class DefaultIdeaSingleEntryLibraryDependency extends DefaultIdeaDependency implements IdeaSingleEntryLibraryDependency {
     private File file;
     private File source;
     private File javadoc;
@@ -31,6 +30,7 @@ public class DefaultIdeaSingleEntryLibraryDependency extends DefaultIdeaDependen
     private IdeaDependencyScope scope;
     private GradleModuleVersion moduleVersion;
 
+    @Override
     public File getFile() {
         return file;
     }
@@ -40,6 +40,7 @@ public class DefaultIdeaSingleEntryLibraryDependency extends DefaultIdeaDependen
         return this;
     }
 
+    @Override
     public File getSource() {
         return source;
     }
@@ -49,10 +50,12 @@ public class DefaultIdeaSingleEntryLibraryDependency extends DefaultIdeaDependen
         return this;
     }
 
+    @Override
     public File getJavadoc() {
         return javadoc;
     }
 
+    @Override
     public GradleModuleVersion getGradleModuleVersion() {
         return moduleVersion;
     }
@@ -62,8 +65,14 @@ public class DefaultIdeaSingleEntryLibraryDependency extends DefaultIdeaDependen
         return this;
     }
 
+    @Override
     public boolean getExported() {
         return exported;
+    }
+
+    @Override
+    public boolean isExported() {
+        return getExported();
     }
 
     public DefaultIdeaSingleEntryLibraryDependency setExported(Boolean exported) {
@@ -71,6 +80,7 @@ public class DefaultIdeaSingleEntryLibraryDependency extends DefaultIdeaDependen
         return this;
     }
 
+    @Override
     public IdeaDependencyScope getScope() {
         return scope;
     }

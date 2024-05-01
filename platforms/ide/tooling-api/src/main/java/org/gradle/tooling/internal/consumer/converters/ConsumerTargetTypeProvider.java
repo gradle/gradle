@@ -31,28 +31,13 @@ import org.gradle.tooling.model.cpp.CppLibrary;
 import org.gradle.tooling.model.cpp.CppSharedLibrary;
 import org.gradle.tooling.model.cpp.CppStaticLibrary;
 import org.gradle.tooling.model.cpp.CppTestSuite;
-import org.gradle.tooling.model.idea.IdeaModuleDependency;
-import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency;
 
-import java.util.HashMap;
-import java.util.Map;
 
 public class ConsumerTargetTypeProvider implements TargetTypeProvider {
-    private final Map<String, Class<?>> configuredTargetTypes = new HashMap<String, Class<?>>();
-
-    public ConsumerTargetTypeProvider() {
-        configuredTargetTypes.put(IdeaSingleEntryLibraryDependency.class.getCanonicalName(), IdeaSingleEntryLibraryDependency.class);
-        configuredTargetTypes.put(IdeaModuleDependency.class.getCanonicalName(), BackwardsCompatibleIdeaModuleDependency.class);
-    }
 
     @Override
     public <T> Class<? extends T> getTargetType(Class<T> initialTargetType, Object protocolObject) {
-        Class<?>[] interfaces = protocolObject.getClass().getInterfaces();
-        for (Class<?> i : interfaces) {
-            if (configuredTargetTypes.containsKey(i.getName())) {
-                return configuredTargetTypes.get(i.getName()).asSubclass(initialTargetType);
-            }
-        }
+        // TODO: implement this mapping via ToolingModelContract mechanism
         if (initialTargetType.isAssignableFrom(CppComponent.class)) {
             if (protocolObject instanceof InternalCppApplication) {
                 return CppApplication.class.asSubclass(initialTargetType);
