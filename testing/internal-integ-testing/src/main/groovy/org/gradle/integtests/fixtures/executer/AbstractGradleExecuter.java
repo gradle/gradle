@@ -645,7 +645,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         return this;
     }
 
-    private JavaVersion getJavaVersionFromJavaHome() {
+    protected final JavaVersion getJavaVersionFromJavaHome() {
         try {
             return JVM_VERSION_DETECTOR.getJavaVersion(Jvm.forHome(getJavaHomeLocation()));
         } catch (IllegalArgumentException | JavaHomeException e) {

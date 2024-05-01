@@ -23,7 +23,6 @@ description = "Plugins that add support for generating IDE project files used fo
 errorprone {
     disabledChecks.addAll(
         "MixedMutabilityReturnType", // 2 occurrences
-        "ShortCircuitBoolean", // 2 occurrences
     )
 }
 

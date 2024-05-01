@@ -251,13 +251,11 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
             return annotationMetadata.isAnnotationPresent(annotationType);
         }
 
-        @Nullable
         @Override
         public <T extends Annotation> Optional<T> getAnnotation(Class<T> annotationType) {
             return annotationMetadata.getAnnotation(annotationType);
         }
 
-        @Nullable
         @Override
         public Optional<Annotation> getAnnotationForCategory(AnnotationCategory category) {
             return Optional.ofNullable(annotationMetadata.getAnnotations().get(category));

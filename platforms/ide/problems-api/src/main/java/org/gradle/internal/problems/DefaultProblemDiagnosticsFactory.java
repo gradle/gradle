@@ -106,15 +106,16 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
         }
 
         List<StackTraceElement> stackTrace = Collections.emptyList();
+        Failure stackTracingFailure = null;
         Location location = null;
         if (throwable != null) {
             stackTrace = transformer.transform(throwable.getStackTrace());
-            Failure stackTracingFailure = failureFactory.create(throwable);
+            stackTracingFailure = failureFactory.create(throwable);
             location = locationAnalyzer.locationForUsage(stackTracingFailure, fromException);
         }
 
         UserCodeSource source = applicationContext != null ? applicationContext.getSource() : null;
-        return new DefaultProblemDiagnostics(keepException ? throwable : null, stackTrace, location, source);
+        return new DefaultProblemDiagnostics(stackTracingFailure, keepException ? throwable : null, stackTrace, location, source);
     }
 
     @NonNullApi
@@ -160,21 +161,30 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
     }
 
     private static class DefaultProblemDiagnostics implements ProblemDiagnostics {
+        private final Failure failure;
         private final Throwable exception;
         private final List<StackTraceElement> stackTrace;
         private final Location location;
         private final UserCodeSource source;
 
         public DefaultProblemDiagnostics(
+            @Nullable Failure stackTracingFailure,
             @Nullable Throwable exception,
             List<StackTraceElement> stackTrace,
             @Nullable Location location,
             @Nullable UserCodeSource source
         ) {
+            this.failure = stackTracingFailure;
             this.exception = exception;
             this.stackTrace = stackTrace;
             this.location = location;
             this.source = source;
+        }
+
+        @Nullable
+        @Override
+        public Failure getFailure() {
+            return failure;
         }
 
         @Nullable

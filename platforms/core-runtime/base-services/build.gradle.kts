@@ -44,7 +44,6 @@ errorprone {
         "URLEqualsHashCode", // 1 occurrences
         "UnsynchronizedOverridesSynchronized", // 2 occurrences
         "UnusedMethod", // 2 occurrences
-        "UnusedVariable", // 3 occurrences
     )
 }
 

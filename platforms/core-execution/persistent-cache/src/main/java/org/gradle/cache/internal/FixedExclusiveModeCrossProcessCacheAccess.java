@@ -59,7 +59,7 @@ public class FixedExclusiveModeCrossProcessCacheAccess extends AbstractCrossProc
         if (fileLock != null) {
             throw new IllegalStateException("File lock " + lockTarget + " is already open.");
         }
-        final FileLock fileLock = lockManager.lock(lockTarget, lockOptions, cacheDisplayName, "", __ -> {});
+        final FileLock fileLock = lockManager.lock(lockTarget, lockOptions, cacheDisplayName, "", unused -> {});
         try {
             boolean rebuild = initializationAction.requiresInitialization(fileLock);
             if (rebuild) {

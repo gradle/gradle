@@ -6,14 +6,12 @@ description = "Contains project diagnostics or report tasks, e.g. help, project 
 
 errorprone {
     disabledChecks.addAll(
-        "BadImport", // 1 occurrences
         "DefaultCharset", // 1 occurrences
         "InlineMeInliner", // 1 occurrences
         "MixedMutabilityReturnType", // 1 occurrences
         "NonApiType", // 5 occurrences
         "ProtectedMembersInFinalClass", // 1 occurrences
         "StringCaseLocaleUsage", // 3 occurrences
-        "UnusedVariable", // 1 occurrences
     )
 }
 

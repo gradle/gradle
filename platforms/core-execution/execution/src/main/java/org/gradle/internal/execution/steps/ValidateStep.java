@@ -86,8 +86,8 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
             .collect(
                 groupingBy(p -> p.getDefinition().getSeverity(),
                     mapping(identity(), toImmutableList())));
-        ImmutableList<Problem> warnings = problemsMap.getOrDefault(WARNING, ImmutableList.of());
-        ImmutableList<Problem> errors = problemsMap.getOrDefault(ERROR, ImmutableList.of());
+        List<Problem> warnings = problemsMap.getOrDefault(WARNING, ImmutableList.of());
+        List<Problem> errors = problemsMap.getOrDefault(ERROR, ImmutableList.of());
 
         if (!warnings.isEmpty()) {
             warningReporter.recordValidationWarnings(work, warnings);

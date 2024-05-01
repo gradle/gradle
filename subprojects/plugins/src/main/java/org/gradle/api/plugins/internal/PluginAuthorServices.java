@@ -28,6 +28,7 @@ import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 /**
  * Registers services that can be used by plugin authors to develop their plugins.
  */
+@SuppressWarnings("unused") // Used by reflection
 public class PluginAuthorServices extends AbstractPluginServiceRegistry {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {

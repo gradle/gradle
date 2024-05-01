@@ -17,13 +17,11 @@ errorprone {
         "InvalidParam", // 1 occurrences
         "MixedMutabilityReturnType", // 4 occurrences
         "MutablePublicArray", // 1 occurrences
-        "NullableOptional", // 2 occurrences
         "OperatorPrecedence", // 5 occurrences
         "ReferenceEquality", // 3 occurrences
         "StringCaseLocaleUsage", // 13 occurrences
         "TypeParameterShadowing", // 2 occurrences
         "UndefinedEquals", // 2 occurrences
-        "UnnecessaryStringBuilder", // 1 occurrences
         "UnusedMethod", // 8 occurrences
         "UnusedTypeParameter", // 1 occurrences
         "UnusedVariable", // 20 occurrences

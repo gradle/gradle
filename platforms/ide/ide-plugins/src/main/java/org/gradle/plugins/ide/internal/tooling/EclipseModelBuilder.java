@@ -127,7 +127,7 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
         List<EclipseWorkspaceProject> projects = eclipseRuntime.getWorkspace().getProjects();
         HashSet<EclipseWorkspaceProject> projectsInBuild = new HashSet<>(projects);
         projectsInBuild.removeAll(gatherExternalProjects((ProjectInternal) project.getRootProject(), projects));
-        projectOpenStatus = projectsInBuild.stream().collect(Collectors.toMap(EclipseWorkspaceProject::getName, EclipseModelBuilder::isProjectOpen, (a, b) -> a | b));
+        projectOpenStatus = projectsInBuild.stream().collect(Collectors.toMap(EclipseWorkspaceProject::getName, EclipseModelBuilder::isProjectOpen, (a, b) -> a || b));
 
         return buildAll(modelName, project);
     }

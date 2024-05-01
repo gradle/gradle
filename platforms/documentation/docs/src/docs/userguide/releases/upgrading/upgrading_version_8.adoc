@@ -285,6 +285,7 @@ We have implemented several refactorings of the Problems API, including a signif
 The complete design specification can be found https://docs.google.com/document/d/1T_vM-Upa23aA21sanFTTLZa3j9xV6R32djJk6-muWzI/edit#heading=h.610fausqnpu6[here].
 
 In implementing this spec, we have introduced the following breaking changes to the `ProblemSpec` interface:
+
 - The `label(String)` and `description(String)` methods have been replaced with the `id(String, String)` method and its overloaded variants.
 
 In addition, the corresponding Tooling API events are changed to reflect the new design.
