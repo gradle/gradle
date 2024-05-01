@@ -127,7 +127,8 @@ dependencies {
     implementation(project(":base-asm"))
     implementation(project(":input-tracking"))
     implementation(project(":model-groovy"))
-    implementation("org.gradle.external:perfetto:0.1")  // org.gradle.external:perfetto:0.1
+    implementation(libs.perfetto)
+    implementation("com.google.protobuf:protobuf-java:3.21.12")// org.gradle.external:perfetto:0.1
 
     implementation(libs.asmCommons)
     implementation(libs.commonsIo)

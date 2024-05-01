@@ -39,7 +39,7 @@ class ConfigurationCacheSettingsFinalizedBuildOperationIntegTest extends Abstrac
         file("build.gradle") << "task t"
 
         when:
-        succeeds("t", "--no-configuration-cache")
+        succeeds("t", "--no-configuration-cache", "--stacktrace")
 
         then:
         events().enabled == [false]

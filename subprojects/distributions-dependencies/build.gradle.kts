@@ -167,6 +167,8 @@ dependencies {
         api(libs.maven3PluginApi)       { version { strictly(mavenVersion); because("required for maven2gradle in init plugin") }}
         api(libs.zinc)                  { version { strictly("1.9.6") }}
 
+        api(libs.perfetto)              { version { strictly("0.1") }}
+
         // test only
         api(libs.aircompressor)         { version { strictly("0.8") }}
         api(libs.archunit)              { version { strictly(archunitVersion) }}

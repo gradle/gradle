@@ -16,10 +16,16 @@
 
 package org.gradle.internal.operations.trace;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 
 interface SerializedOperation {
 
     Map<String, ?> toMap();
 
+    long getTimeStampNs();
+
+    @Nullable String getName();
+
+    long getId();
 }

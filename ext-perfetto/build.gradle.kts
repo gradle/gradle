@@ -3,7 +3,7 @@ plugins {
     id("com.google.protobuf") version ("0.9.1")
 }
 
-group = "org.gradle.external"
+group = "perfetto"
 version = "0.1"
 
 dependencies {

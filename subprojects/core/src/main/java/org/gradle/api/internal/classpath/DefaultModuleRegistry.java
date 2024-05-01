@@ -258,7 +258,9 @@ public class DefaultModuleRegistry implements ModuleRegistry, GlobalCache {
 
     private static String projectDirNameFrom(String moduleName) {
         Matcher matcher = Pattern.compile("gradle-(.+)").matcher(moduleName);
-        matcher.matches();
+        if (!matcher.matches()) {
+            throw new IllegalArgumentException("Invalid module name " + moduleName);
+        };
         return matcher.group(1);
     }
 

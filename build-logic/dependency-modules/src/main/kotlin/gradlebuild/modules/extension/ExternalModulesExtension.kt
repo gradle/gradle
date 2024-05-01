@@ -202,6 +202,8 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val xerces = "xerces:xercesImpl"
     val xmlunit = "xmlunit:xmlunit"
 
+    val perfetto = "perfetto:perfetto"
+
     val licenses = mapOf(
         ansiControlSequenceUtil to License.Apache2,
         ant to License.Apache2,
@@ -304,6 +306,8 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
         trove4j to License.LGPL21,
         xbeanReflect to License.Apache2,
         xmlApis to License.Apache2,
-        zinc to License.Apache2
+        zinc to License.Apache2,
+
+        perfetto to License.Apache2,
     )
 }

@@ -80,4 +80,18 @@ class SerializedOperationStart implements SerializedOperation {
         return map.build();
     }
 
+    @Override
+    public long getTimeStampNs() {
+        return monotonicStartTime;
+    }
+
+    @Override
+    public String getName() {
+        return displayName;
+    }
+
+    @Override
+    public long getId() {
+        return id;
+    }
 }

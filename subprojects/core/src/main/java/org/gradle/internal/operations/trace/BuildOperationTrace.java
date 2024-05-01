@@ -39,6 +39,14 @@ import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.internal.GFileUtils;
+import perfetto.protos.BuiltinClockOuterClass.BuiltinClock;
+import perfetto.protos.ClockSnapshotOuterClass.ClockSnapshot;
+import perfetto.protos.ClockSnapshotOuterClass.ClockSnapshot.Clock;
+import perfetto.protos.ProcessDescriptorOuterClass;
+import perfetto.protos.ThreadDescriptorOuterClass;
+import perfetto.protos.TracePacketOuterClass.TracePacket;
+import perfetto.protos.TrackDescriptorOuterClass.TrackDescriptor;
+import perfetto.protos.TrackEventOuterClass;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -119,9 +127,15 @@ public class BuildOperationTrace implements Stoppable {
     private final BuildOperationListener listener;
     private final String basePath;
 
+    @Nullable
     private final OutputStream logOutputStream;
+    @Nullable
+    private final OutputStream protoOutputStream;
     private final JsonGenerator jsonGenerator = createJsonGenerator();
     private final BuildOperationListenerManager buildOperationListenerManager;
+
+    private boolean gotFirstMessage;
+    private final long firstStartTimeNs = System.nanoTime();
 
     public BuildOperationTrace(StartParameter startParameter, BuildOperationListenerManager buildOperationListenerManager) {
         this.buildOperationListenerManager = buildOperationListenerManager;
@@ -139,24 +153,29 @@ public class BuildOperationTrace implements Stoppable {
 
         if (this.basePath == null || basePath.equals(Boolean.FALSE.toString())) {
             this.logOutputStream = null;
+            this.protoOutputStream = null;
             return;
         }
 
         try {
-            File logFile = logFile(basePath);
-            GFileUtils.mkdirs(logFile.getParentFile());
-            if (logFile.isFile()) {
-                GFileUtils.forceDelete(logFile);
-            }
-            //noinspection ResultOfMethodCallIgnored
-            logFile.createNewFile();
-
-            this.logOutputStream = new BufferedOutputStream(new FileOutputStream(logFile));
+            logOutputStream = openOutputStream(logFile(basePath));
+            protoOutputStream = openOutputStream(protoFile(basePath));
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
 
         buildOperationListenerManager.addListener(listener);
+    }
+
+    private OutputStream openOutputStream(File outputFile) throws IOException {
+        GFileUtils.mkdirs(outputFile.getParentFile());
+        if (outputFile.isFile()) {
+            GFileUtils.forceDelete(outputFile);
+        }
+        //noinspection ResultOfMethodCallIgnored
+        outputFile.createNewFile();
+
+        return new BufferedOutputStream(new FileOutputStream(outputFile));
     }
 
     private static String getProperty(StartParameter startParameter, String property) {
@@ -203,12 +222,17 @@ public class BuildOperationTrace implements Stoppable {
         ClassLoader previousClassLoader = currentThread.getContextClassLoader();
         currentThread.setContextClassLoader(JsonOutput.class.getClassLoader());
         try {
-            String json = jsonGenerator.toJson(operation.toMap());
             try {
                 synchronized (logOutputStream) {
+                    String json = jsonGenerator.toJson(operation.toMap());
                     logOutputStream.write(json.getBytes(StandardCharsets.UTF_8));
                     logOutputStream.write(NEWLINE);
                     logOutputStream.flush();
+                }
+
+                synchronized (protoOutputStream) {
+                    writeProto(operation);
+                    protoOutputStream.flush();
                 }
             } catch (IOException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
@@ -216,6 +240,68 @@ public class BuildOperationTrace implements Stoppable {
         } finally {
             currentThread.setContextClassLoader(previousClassLoader);
         }
+    }
+
+    private void writeProto(SerializedOperation operation) throws IOException {
+        if (!gotFirstMessage) {
+            gotFirstMessage = true;
+            // time information
+            TracePacket.newBuilder().setTimestampClockId(1).setClockSnapshot(ClockSnapshot.newBuilder()
+                .addClocks(Clock.newBuilder()
+                    .setTimestamp(firstStartTimeNs)
+                    .setClockId(BuiltinClock.BUILTIN_CLOCK_BOOTTIME_VALUE))
+            ).build().writeTo(protoOutputStream);
+
+            TracePacket.newBuilder()
+                .setTrustedPacketSequenceId(1)
+                .setTrackDescriptor(
+                    TrackDescriptor.newBuilder()
+                        .setUuid(0)  // irrelevant?
+                        .setProcess(
+                            ProcessDescriptorOuterClass.ProcessDescriptor.newBuilder()
+                                .setPid(1337)
+                                .setProcessName("Gradle")
+                                .build()))
+                .build().writeTo(protoOutputStream);
+
+            TracePacket.newBuilder()
+                .setTrustedPacketSequenceId(1)
+                .setTrackDescriptor(TrackDescriptor.newBuilder()
+                    .setUuid(1)
+                    .setThread(ThreadDescriptorOuterClass.ThreadDescriptor.newBuilder()
+                        .setPid(1337)
+                        .setTid(1337)
+                        .setThreadName("Worker")))
+                .build()
+                .writeTo(protoOutputStream);
+        }
+
+        TrackEventOuterClass.TrackEvent.Builder event = toEvent(operation);
+        if (event == null) {
+            return;
+        }
+
+        TracePacket.newBuilder()
+            .setTrustedPacketSequenceId(1)
+            .setTimestamp(operation.getTimeStampNs() - firstStartTimeNs)
+            .setTimestampClockId(BuiltinClock.BUILTIN_CLOCK_BOOTTIME_VALUE)
+            .setTrackEvent(event)
+            .build().writeTo(protoOutputStream);
+    }
+
+    private TrackEventOuterClass.TrackEvent.Builder toEvent(SerializedOperation operation) {
+        if (operation instanceof SerializedOperationStart) {
+            SerializedOperationStart start = (SerializedOperationStart) operation;
+            return TrackEventOuterClass.TrackEvent.newBuilder()
+                .setTrackUuid(1)  // of thread
+                .setName(start.getName())
+                .setType(TrackEventOuterClass.TrackEvent.Type.TYPE_SLICE_BEGIN);
+        } else if (operation instanceof SerializedOperationFinish) {
+            return TrackEventOuterClass.TrackEvent.newBuilder()
+                .setTrackUuid(1)  // of thread
+                .setType(TrackEventOuterClass.TrackEvent.Type.TYPE_SLICE_END);
+        }
+        return null;
     }
 
     private void writeDetailTree(List<BuildOperationRecord> roots) throws IOException {
@@ -454,6 +540,10 @@ public class BuildOperationTrace implements Stoppable {
 
     private static File logFile(String basePath) {
         return file(basePath, "-log.txt");
+    }
+
+    private static File protoFile(String basePath) {
+        return file(basePath, "-trace.proto");
     }
 
     private static File file(String base, String suffix) {

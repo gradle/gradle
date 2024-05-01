@@ -38,12 +38,12 @@ fun configureClasspathManifestGeneration() {
     val classpathManifest = tasks.register("classpathManifest", ClasspathManifest::class) {
         this.projectDependencies.from(runtimeClasspath.incoming.artifactView {
             componentFilter {
-                it is ProjectComponentIdentifier
+                it is ProjectComponentIdentifier && it.projectName != "perfetto"
             }
         }.files)
         this.externalDependencies.from(runtimeClasspath.incoming.artifactView {
             componentFilter {
-                externalComponents.contains(it)
+                externalComponents.contains(it) || (it is ProjectComponentIdentifier && it.projectName == "perfetto")
             }
         }.files)
         this.manifestFile = moduleIdentity.baseName.map { layout.buildDirectory.file("generated-resources/$it-classpath/$it-classpath.properties").get() }

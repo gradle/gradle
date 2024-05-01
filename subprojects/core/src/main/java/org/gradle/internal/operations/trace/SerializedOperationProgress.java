@@ -19,6 +19,7 @@ package org.gradle.internal.operations.trace;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
@@ -66,4 +67,19 @@ class SerializedOperationProgress implements SerializedOperation {
         return map.build();
     }
 
+    @Override
+    public long getTimeStampNs() {
+        return monotonicTime;
+    }
+
+    @Nullable
+    @Override
+    public String getName() {
+        return null;
+    }
+
+    @Override
+    public long getId() {
+        return id;
+    }
 }

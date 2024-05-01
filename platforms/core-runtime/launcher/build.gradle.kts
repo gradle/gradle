@@ -51,6 +51,7 @@ dependencies {
     implementation(project(":problems"))
     implementation(project(":toolchains-jvm-shared"))
     implementation(project(":declarative-dsl-provider"))
+    implementation("com.google.protobuf:protobuf-java:3.21.12")// org.gradle.external:perfetto:0.1
 
     implementation(libs.groovy) // for 'ReleaseInfo.getVersion()'
     implementation(libs.slf4jApi)

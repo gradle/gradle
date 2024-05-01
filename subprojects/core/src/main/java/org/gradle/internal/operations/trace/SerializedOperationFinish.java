@@ -19,6 +19,7 @@ package org.gradle.internal.operations.trace;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.OperationFinishEvent;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
@@ -77,4 +78,19 @@ class SerializedOperationFinish implements SerializedOperation {
         return map.build();
     }
 
+    @Override
+    public long getTimeStampNs() {
+        return monotonicEndTime;
+    }
+
+    @Nullable
+    @Override
+    public String getName() {
+        return null;
+    }
+
+    @Override
+    public long getId() {
+        return id;
+    }
 }
