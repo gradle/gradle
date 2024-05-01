@@ -32,6 +32,7 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.agents.AgentInitializer;
 import org.gradle.internal.agents.AgentStatus;
+import org.gradle.internal.buildprocess.BuildProcessState;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
@@ -43,10 +44,8 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.BasicGlobalScopeServices;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
-import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.launcher.bootstrap.ExecutionListener;
-import org.gradle.launcher.configuration.AllProperties;
 import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonAction;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.DaemonClientFactory;
@@ -105,7 +104,6 @@ class BuildActionsFactory implements CommandLineActionCreator {
 
         StartParameterInternal startParameter = parameters.getStartParameter();
         DaemonParameters daemonParameters = parameters.getDaemonParameters();
-        AllProperties allProperties = parameters.getProperties();
 
         if (daemonParameters.isStop()) {
             return Actions.toAction(stopAllDaemons(daemonParameters));
@@ -211,14 +209,13 @@ class BuildActionsFactory implements CommandLineActionCreator {
         properties.putAll(daemonParameters.getEffectiveSystemProperties());
         System.setProperties(properties);
 
-        ServiceRegistry globalServices = ServiceRegistryBuilder.builder()
-            .scopeStrictly(Scope.Global.class)
-            .displayName("Global services")
-            .parent(loggingServices)
-            .parent(NativeServices.getInstance())
-            .provider(new GlobalScopeServices(startParameter.isContinuous(), AgentStatus.of(daemonParameters.shouldApplyInstrumentationAgent())))
-            .build();
+        BuildProcessState buildProcessState = new BuildProcessState(startParameter.isContinuous(),
+            AgentStatus.of(daemonParameters.shouldApplyInstrumentationAgent()),
+            ClassPath.EMPTY,
+            NativeServices.getInstance(),
+            loggingServices);
 
+        ServiceRegistry globalServices = buildProcessState.getServices();
         globalServices.get(AgentInitializer.class).maybeConfigureInstrumentationAgent();
 
         BuildActionExecuter<BuildActionParameters, BuildRequestContext> executer = new ForwardStdInToThisProcess(
@@ -229,7 +226,7 @@ class BuildActionsFactory implements CommandLineActionCreator {
         );
 
         // Force the user home services to be stopped first, the dependencies between the user home services and the global services are not preserved currently
-        return runBuildAndCloseServices(startParameter, daemonParameters, executer, globalServices, globalServices.get(GradleUserHomeScopeServiceRegistry.class));
+        return runBuildAndCloseServices(startParameter, daemonParameters, executer, buildProcessState.getServices(), buildProcessState);
     }
 
     private Runnable runBuildInSingleUseDaemon(StartParameterInternal startParameter, DaemonParameters daemonParameters, DaemonRequestContext requestContext) {
