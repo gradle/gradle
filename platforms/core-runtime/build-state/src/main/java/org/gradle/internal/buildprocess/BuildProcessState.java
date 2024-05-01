@@ -34,14 +34,20 @@ import java.io.IOException;
 public class BuildProcessState implements Closeable {
     private final ServiceRegistry services;
 
-    public BuildProcessState(final boolean longLiving, AgentStatus agentStatus, ClassPath additionalModuleClassPath, ServiceRegistry nativeServices, ServiceRegistry loggingServices) {
-        services = ServiceRegistryBuilder.builder()
+    public BuildProcessState(
+        final boolean longLiving,
+        AgentStatus agentStatus,
+        ClassPath additionalModuleClassPath,
+        ServiceRegistry... parents
+    ) {
+        ServiceRegistryBuilder builder = ServiceRegistryBuilder.builder()
             .scopeStrictly(Scope.Global.class)
             .displayName("Global services")
-            .parent(loggingServices)
-            .parent(nativeServices)
-            .provider(new GlobalScopeServices(longLiving, agentStatus, additionalModuleClassPath))
-            .build();
+            .provider(new GlobalScopeServices(longLiving, agentStatus, additionalModuleClassPath));
+        for (ServiceRegistry parent : parents) {
+            builder.parent(parent);
+        }
+        services = builder.build();
     }
 
     public ServiceRegistry getServices() {
