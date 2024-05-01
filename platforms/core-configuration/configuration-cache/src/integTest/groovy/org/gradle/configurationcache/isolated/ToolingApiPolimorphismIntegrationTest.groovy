@@ -28,7 +28,7 @@ class ToolingApiPolimorphismIntegrationTest extends AbstractIsolatedProjectsTool
         addPluginBuildScript("plugins")
 
         file("plugins/src/main/groovy/my/MyModel.groovy") << """
-            package my
+            package org.gradle.configurationcache.fixtures
 
             interface BaseModel {
             }
@@ -41,7 +41,7 @@ class ToolingApiPolimorphismIntegrationTest extends AbstractIsolatedProjectsTool
             interface SideModel extends BaseModel {
             }
 
-            class DefaultModel implements ChildModel, SideModel, java.io.Serializable {
+            class DefaultModel implements ChildModel, java.io.Serializable {
                 private final String message
                 DefaultModel(String message) { this.message = message }
                 String getMessage() { message }
@@ -61,7 +61,7 @@ class ToolingApiPolimorphismIntegrationTest extends AbstractIsolatedProjectsTool
                 }
                 Object buildAll(String modelName, Project project) {
                     println("creating model for \$project")
-                    return new DefaultModel("poly from '" + project.name + "'")
+                    return new org.gradle.configurationcache.fixtures.DefaultModel("poly from '" + project.name + "'")
                 }
             }
         """.stripIndent()
@@ -70,6 +70,7 @@ class ToolingApiPolimorphismIntegrationTest extends AbstractIsolatedProjectsTool
 
         settingsFile << """
             includeBuild("plugins")
+            rootProject.name = 'root'
         """
         buildFile << """
             plugins {
@@ -84,6 +85,6 @@ class ToolingApiPolimorphismIntegrationTest extends AbstractIsolatedProjectsTool
         model != null
         model instanceof BaseModel
 //        model instanceof ChildModel
-        ((ChildModel) model).getMessage() == "poly from ':'"
+        ((ChildModel) model).getMessage() == "poly from 'root'"
     }
 }

@@ -18,11 +18,13 @@ package org.gradle.configurationcache.fixtures
 
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
+import org.gradle.tooling.ToolingModelContract
 
 interface SomeToolingModel {
     String getMessage()
 }
 
+@ToolingModelContract(subTypes = [ChildModel.class])
 interface BaseModel {
 }
 

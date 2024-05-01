@@ -16,11 +16,14 @@
 package org.gradle.tooling.internal.adapter;
 
 import com.google.common.base.Optional;
+import com.google.common.graph.SuccessorsFunction;
+import com.google.common.graph.Traverser;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.time.CountdownTimer;
 import org.gradle.internal.time.Time;
+import org.gradle.tooling.ToolingModelContract;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.internal.Exceptions;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
@@ -28,6 +31,7 @@ import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.Serializable;
+import java.lang.annotation.Annotation;
 import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationHandler;
@@ -157,14 +161,55 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
             return targetType.cast(view);
         }
 
+        Annotation[] annotations = targetType.getAnnotations();
+        Map<String, Class<?>> subInterfaces = getInterfaces(annotations);
+        Set<Class<?>> subtypes = collectSubtypes(sourceObject, subInterfaces);
+
+        List<Class<?>> supportedTypes = new ArrayList<>();
+        supportedTypes.add(viewType);
+        supportedTypes.addAll(subtypes);
+
         // Create a proxy
         InvocationHandlerImpl handler = new InvocationHandlerImpl(targetType, sourceObject, decorationsForThisType, graphDetails);
-        Object proxy = Proxy.newProxyInstance(viewType.getClassLoader(), new Class<?>[]{viewType}, handler);
+        Object proxy = Proxy.newProxyInstance(viewType.getClassLoader(), supportedTypes.toArray(new Class<?>[0]), handler);
         handler.attachProxy(proxy);
 
         graphDetails.putViewFor(sourceObject, viewKey, proxy);
 
         return viewType.cast(proxy);
+    }
+
+    private static Set<Class<?>> collectSubtypes(Object sourceObject, Map<String, Class<?>> subInterfaces) {
+        // TODO: we just traverse the interface hierarchy; we should also do it for superclasses
+        Iterable<Class<?>> interfaces = Traverser.forGraph(new SuccessorsFunction<Class<?>>() {
+            @Override
+            public Iterable<? extends Class<?>> successors(Class<?> node) {
+                return Arrays.asList(node.getInterfaces());
+            }
+        }).breadthFirst(sourceObject.getClass());
+
+        Set<Class<?>> result = new HashSet<>();
+        for (Class<?> intf : interfaces) {
+            Class<?> actualSubType = subInterfaces.get(intf.getName());
+            if (actualSubType != null) {
+                result.add(actualSubType);
+            }
+        }
+
+        return result;
+    }
+
+    private static Map<String, Class<?>> getInterfaces(Annotation[] annotations) {
+        Map<String, Class<?>> result = new HashMap<>();
+        for (Annotation annotation : annotations) {
+            if (annotation instanceof ToolingModelContract) {
+                Class<?>[] classes = ((ToolingModelContract) annotation).subTypes();
+                for (Class<?> clazz : classes) {
+                    result.put(clazz.getName(), clazz);
+                }
+            }
+        }
+        return result;
     }
 
     private static <T, S> T adaptToEnum(Class<T> targetType, S sourceObject) {
