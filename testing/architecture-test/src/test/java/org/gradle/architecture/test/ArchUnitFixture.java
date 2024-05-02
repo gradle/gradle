@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+
 package org.gradle.architecture.test;
 
 import com.google.common.collect.ImmutableSet;
