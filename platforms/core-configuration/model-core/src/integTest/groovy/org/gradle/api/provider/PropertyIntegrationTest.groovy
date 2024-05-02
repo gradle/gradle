@@ -16,6 +16,7 @@
 
 package org.gradle.api.provider
 
+import org.gradle.api.problems.internal.LineInFileLocation
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.precondition.Requires
@@ -160,16 +161,16 @@ task thing(type: SomeTask) {
         def fileLocation = testDirectory.file("non-existing.txt")
         failureDescriptionContains("Reason: An input file was expected to be present but it doesn't exist.")
         failureDescriptionContains("""- Type 'SomeTask' property 'prop' specifies file '${fileLocation.absolutePath}' which doesn't exist.""")
-        collectedProblems.size() == 1
-        def (problem) = collectedProblems
-        problem.details == "An input file was expected to be present but it doesn't exist"
-        problem.additionalData?.propertyName == "prop"
-        problem.locations != null
-        def problemFileLocation = problem.locations.find { it.type == 'file' }
-        problemFileLocation != null
-        problemFileLocation.line == 11
-        problemFileLocation.column == 24
-        problemFileLocation.path == testDirectory.file("build.gradle").path
+        verifyAll(receivedProblem) {problem ->
+            problem.details == "An input file was expected to be present but it doesn't exist"
+            problem.additionalData?.propertyName == "prop"
+            problem.locations != null
+            problem.locations.size() == 1
+            def (LineInFileLocation location) = problem.locations
+            location.line == 11
+            location.column == 24
+            location.path == "build.gradle"
+        }
     }
 
     def "fails when property with no value is queried"() {

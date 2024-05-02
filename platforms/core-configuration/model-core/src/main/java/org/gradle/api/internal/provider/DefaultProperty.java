@@ -32,7 +32,7 @@ import javax.annotation.Nullable;
  */
 public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? extends T>> implements Property<T> {
 
-    private static ThreadLocal<ValueProvenance> nextProvenance = new ThreadLocal<>();
+    private final static ThreadLocal<ValueProvenance> NEXT_PROVENANCE = new ThreadLocal<>();
 
     private final Class<T> type;
     private final ValueSanitizer<T> sanitizer;
@@ -70,8 +70,9 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
         return null;
     }
 
+    @SuppressWarnings("unused") // Used via instrumentation
     public static <T> T withProv(T value, String sourceUnit, int lineNumber, int columnNumber) {
-        nextProvenance.set(new ValueProvenance() {
+        NEXT_PROVENANCE.set(new ValueProvenance() {
             @Override
             public Integer getColumn() {
                 return columnNumber == -1 ? null : columnNumber;
@@ -131,7 +132,7 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
         } else {
             setSupplier(Providers.fixedValue(getValidationDisplayName(), value, type, sanitizer));
         }
-        ValueProvenance newProvenance = nextProvenance.get();
+        ValueProvenance newProvenance = NEXT_PROVENANCE.get();
         provenance = newProvenance;
     }
 

@@ -70,7 +70,7 @@ public class AssignmentProvenanceTransformer extends AbstractScriptTransformer {
                         "withProv",
                         new ArgumentListExpression(new Expression[] {
                             rhs,
-                            location == null ? ConstantExpression.NULL : new ConstantExpression(Paths.get(location.getPath()).toString()),
+                            getSourceLocation(),
                             new ConstantExpression(rhs.getLineNumber()),
                             new ConstantExpression(rhs.getColumnNumber())
                         })
@@ -79,5 +79,10 @@ public class AssignmentProvenanceTransformer extends AbstractScriptTransformer {
             }
             super.visitBinaryExpression(expr);
         }
+    }
+
+    private ConstantExpression getSourceLocation() {
+        // FIXME-RC: we only collect the name (and even that is unreliable), as it may come from a cached .class file compiled from a different file name
+        return location == null ? ConstantExpression.NULL : new ConstantExpression(Paths.get(location.getPath()).getFileName().toString());
     }
 }

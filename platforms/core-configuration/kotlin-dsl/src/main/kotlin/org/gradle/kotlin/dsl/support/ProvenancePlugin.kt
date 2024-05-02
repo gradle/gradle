@@ -26,7 +26,7 @@ import org.jetbrains.kotlin.ir.builders.irCall
 import org.jetbrains.kotlin.ir.builders.irInt
 import org.jetbrains.kotlin.ir.builders.irString
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
-import org.jetbrains.kotlin.ir.declarations.path
+import org.jetbrains.kotlin.ir.declarations.name
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.util.getSimpleFunction
@@ -53,8 +53,9 @@ class ProvenanceGenerationExtension : IrGenerationExtension {
                     val originalValue = expression.getValueArgument(0)
                     val provenanceOffset = originalValue!!.startOffset
                     val file = moduleFragment.files.first()
+                    // FIXME-RC: we only collect the name (and even that is unreliable), as it may come from a cached .class file compiled from a different file name
+                    val sourceUnit = file.name
                     val fileEntry = file.fileEntry
-                    val sourceUnit = file.path
                     val lineNumber = fileEntry.getLineNumber(provenanceOffset) + 1
                     val columnNumber = fileEntry.getColumnNumber(provenanceOffset)
 

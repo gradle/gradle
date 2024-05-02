@@ -59,8 +59,9 @@ class MainClassProvenanceIntegTest extends AbstractIntegrationSpec {
     }
 
     def 'it works for direct assignment'() {
+        def buildScriptFile = testDirectory.file(buildScriptFileName)
         given:
-        buildFile """
+        groovyFile(buildScriptFile, """
             plugins {
                 id 'application'
             }
@@ -70,18 +71,23 @@ class MainClassProvenanceIntegTest extends AbstractIntegrationSpec {
             }
 
             println application.mainClass.provenance
-        """
+        """)
 
         when:
+        executer.usingBuildScript(buildScriptFile).expectDeprecationWarning()
         run 'build'
 
         then:
-        outputContains "build.gradle:$position"
+        outputContains "${buildScriptFile.name}:$position"
 
         where:
-        assignment           | position
-        "mainClass = 'Foo'"  | "7:29"
-        "mainClass =  'Foo'" | "7:30"
+        assignment           | position | buildScriptFileName
+        "mainClass = 'Foo'"  | "7:29"   | "custom-script-1.gradle"
+        "mainClass =  'Foo'" | "7:30"   | "custom-script-1.gradle"
+        "mainClass = 'Foo'"  | "7:29"   | "custom-script-2.gradle"
+        "mainClass =  'Foo'" | "7:30"   | "custom-script-2.gradle"
+        "mainClass = 'Foo'"  | "7:29"   | "build.gradle"
+        "mainClass =  'Foo'" | "7:30"   | "build.gradle"
     }
 
     def 'it works for chained assignments'() {
@@ -114,8 +120,9 @@ class MainClassProvenanceIntegTest extends AbstractIntegrationSpec {
     }
 
     def 'it works for direct assignment in Kotlin'() {
+        def buildScriptFile = testDirectory.file(buildScriptFileName)
         given:
-        buildKotlinFile << """
+        buildScriptFile << """
             plugins {
                 id("application")
             }
@@ -128,15 +135,20 @@ class MainClassProvenanceIntegTest extends AbstractIntegrationSpec {
         """
 
         when:
-        run 'build'
+        executer.usingBuildScript(buildScriptFile).expectDeprecationWarning()
+        run "build"
 
         then:
-        outputContains "build.gradle.kts:$position"
+        outputContains "$buildScriptFileName:$position"
 
         where:
-        assignment           | position
-        'mainClass = "Foo"'  | "7:29"
-        'mainClass =  "Foo"' | "7:30"
+        assignment           | position | buildScriptFileName
+        'mainClass = "Foo"'  | "7:29"   | "custom-file-1.gradle.kts"
+        'mainClass =  "Foo"' | "7:30"   | "custom-file-1.gradle.kts"
+        'mainClass = "Foo"'  | "7:29"   | "custom-file-2.gradle.kts"
+        'mainClass =  "Foo"' | "7:30"   | "custom-file-2.gradle.kts"
+        'mainClass = "Foo"'  | "7:29"   | "build.gradle.kts"
+        'mainClass =  "Foo"' | "7:30"   | "build.gradle.kts"
     }
 
     def 'it works for chained assignment in Kotlin'() {
