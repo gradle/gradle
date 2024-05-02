@@ -207,8 +207,7 @@ public class BuildOperationTrace implements Stoppable {
                     logOutputStream.close();
                 }
 
-                synchronized (traceBuilder) {
-                    traceBuilder.build().writeTo(protoOutputStream);
+                synchronized (protoOutputStream) {
                     protoOutputStream.close();
                 }
 
@@ -236,8 +235,9 @@ public class BuildOperationTrace implements Stoppable {
                     logOutputStream.flush();
                 }
 
-                synchronized (traceBuilder) {
+                synchronized (protoOutputStream) {
                     writeProto(operation);
+                    protoOutputStream.flush();
                 }
             } catch (IOException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
@@ -247,21 +247,20 @@ public class BuildOperationTrace implements Stoppable {
         }
     }
 
-    private final Trace.Builder traceBuilder = Trace.newBuilder();
     private final ThreadLocal<Boolean> seenThread = ThreadLocal.withInitial(() -> false);
 
     private void writeProto(SerializedOperation operation) throws IOException {
         if (!gotFirstMessage) {
             gotFirstMessage = true;
             // time information
-            traceBuilder.addPacket(
+            addPacket(
                 TracePacket.newBuilder().setTimestampClockId(1).setClockSnapshot(ClockSnapshot.newBuilder()
                     .addClocks(Clock.newBuilder()
                         .setTimestamp(firstStartTimeNs)
                         .setClockId(BuiltinClock.BUILTIN_CLOCK_BOOTTIME_VALUE))
                 ));
 
-            traceBuilder.addPacket(
+            addPacket(
             TracePacket.newBuilder()
                 .setTrustedPacketSequenceId(1)
                 .setTrackDescriptor(
@@ -282,7 +281,7 @@ public class BuildOperationTrace implements Stoppable {
 
         if (!seenThread.get()) {
             seenThread.set(true);
-            traceBuilder.addPacket(
+            addPacket(
                 TracePacket.newBuilder()
                     .setTrustedPacketSequenceId(1)
                     .setTrackDescriptor(TrackDescriptor.newBuilder()
@@ -294,12 +293,16 @@ public class BuildOperationTrace implements Stoppable {
             );
         }
 
-        traceBuilder.addPacket(
-        TracePacket.newBuilder()
-            .setTrustedPacketSequenceId(1)
-            .setTimestamp(operation.getTimeStampNs() - firstStartTimeNs)
-            .setTimestampClockId(BuiltinClock.BUILTIN_CLOCK_BOOTTIME_VALUE)
-            .setTrackEvent(event));
+        addPacket(
+            TracePacket.newBuilder()
+                .setTrustedPacketSequenceId(1)
+                .setTimestamp(operation.getTimeStampNs() - firstStartTimeNs)
+                .setTimestampClockId(BuiltinClock.BUILTIN_CLOCK_BOOTTIME_VALUE)
+                .setTrackEvent(event));
+    }
+
+    private void addPacket(TracePacket.Builder builder) throws IOException {
+        Trace.newBuilder().addPacket(builder).build().writeTo(protoOutputStream);
     }
 
     private TrackEventOuterClass.TrackEvent.Builder toEvent(SerializedOperation operation) {
