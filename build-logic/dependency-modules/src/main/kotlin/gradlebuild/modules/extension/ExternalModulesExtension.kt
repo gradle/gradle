@@ -20,7 +20,7 @@ import gradlebuild.modules.model.License
 
 abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
 
-    val groovyVersion = if (isBundleGroovy4) "4.0.20" else "3.0.21"
+    val groovyVersion = if (isBundleGroovy4) "4.0.22" else "3.0.22"
     val groovyGroup = if (isBundleGroovy4) "org.apache.groovy" else "org.codehaus.groovy"
 
     val configurationCacheReportVersion = "1.7"
