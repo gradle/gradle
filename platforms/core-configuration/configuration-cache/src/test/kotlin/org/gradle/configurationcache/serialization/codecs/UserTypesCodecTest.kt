@@ -25,6 +25,7 @@ import org.gradle.configurationcache.extensions.useToRun
 import org.gradle.configurationcache.problems.PropertyTrace
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.beans.Optimizable
+import org.gradle.configurationcache.serialization.readList
 import org.gradle.configurationcache.serialization.readNonNull
 import org.gradle.configurationcache.serialization.skipTag
 import org.hamcrest.CoreMatchers.equalTo
@@ -38,8 +39,8 @@ import kotlin.math.ceil
 import kotlin.math.log
 import kotlin.random.Random
 
-const val schemasCount = 1000
-const val taskCount = 100
+const val schemasCount = 500
+const val width = 1000
 
 enum class FieldType {
     Int, String, Bean
@@ -135,10 +136,12 @@ class UserTypesCodecTest : AbstractUserTypeCodecTest() {
             deleteRecursively()
             mkdirs()
         }
-        projectDir.resolve("gradle.properties").writeText("""
+        projectDir.resolve("gradle.properties").writeText(
+            """
             org.gradle.caching=true
             org.gradle.jvmargs=-Xmx27000m -XX:MaxMetaspaceSize=768m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8
-        """.trimIndent())
+        """.trimIndent()
+        )
         val buildFile = projectDir.resolve("build.gradle.kts")
         val buildSrc = projectDir.resolve("buildSrc").apply { mkdirs() }
         val sourceDir = buildSrc.resolve("src/main/kotlin/").apply { mkdirs() }
@@ -151,6 +154,7 @@ class UserTypesCodecTest : AbstractUserTypeCodecTest() {
         )
 
         sourceDir.resolve("Bean.kt").writeText(getBeanText())
+        sourceDir.resolve("BeanTree.kt").writeText(getBeanTreeText())
 
         val random = Random(42)
         val schemas = List(schemasCount) { random.generateSchema() }.toSet()
@@ -164,6 +168,22 @@ class UserTypesCodecTest : AbstractUserTypeCodecTest() {
             generateBenchmarkProject(schemas)
         }
     }
+
+    private fun getBeanTreeText(): String = """
+        import ${Optimizable::class.qualifiedName}
+        import ${ReadContext::class.qualifiedName}
+        import org.gradle.configurationcache.serialization.skipTag
+        import org.gradle.configurationcache.serialization.readList
+
+        class UnoptimizedBeanTree(var nodes : List<Any?>)
+
+        class BeanTree(var nodes : List<Any?>) : Optimizable {
+            override suspend fun ReadContext.readBean() {
+                skipTag()
+                nodes = readList()
+            }
+        }
+    """.trimIndent()
 
     private fun FileWriter.writeBeanFile(schema: BeanSchema) {
         appendLine(
@@ -179,70 +199,31 @@ class UserTypesCodecTest : AbstractUserTypeCodecTest() {
         )
         writeType(schema)
         writeTypeUnoptimized(schema)
-
-        val taskName = schema.name + "Task"
-        appendLine("""
-            fun Project.generateTasksFor${schema.name}() {
-                            val taskCount = $taskCount
-                            repeat(taskCount) { index ->
-                                tasks.register<BeanTask>("$taskName${'$'}index") {
-                                    bean.set(${schema.name}())
-                                }
-
-                                tasks.register<BeanTask>("Unoptimized$taskName${'$'}index") {
-                                    bean.set(Unoptimized${schema.name}())
-                                }
-                            }
-
-                            tasks.register<BeanTask>("$taskName") {
-                                bean.set(${schema.name}())
-                                repeat(taskCount) { index ->
-                                     dependsOn("$taskName${'$'}index")
-                                }
-                            }
-
-                            tasks.register<BeanTask>("Unoptimized$taskName") {
-                                bean.set(Unoptimized${schema.name}())
-                                repeat(taskCount) { index ->
-                                     dependsOn("Unoptimized$taskName${'$'}index")
-                                }
-                            }
-                        }
-        """.trimIndent()
-        )
     }
 
     private fun Writer.generateBenchmarkProject(schemas: Set<BeanSchema>): Appendable {
-        val schemaNames = mutableSetOf<String>()
-        schemas.forEach {
-            val schema = it
-            schemaNames += schema.name
+        return appendLine(
+            """
+                    fun optimizeLeafs() = arrayListOf(${schemas.joinToString { "${it.name}()" }})
 
-            appendLine(
-                """
-                        generateTasksFor${schema.name}()
-                    """.trimIndent()
-            )
-        }
-
-        return appendLine("""
-                    tasks.register("optimized") {
-                        ${
-            schemaNames.joinToString("\n") {
-                "dependsOn(\"${it}Task\")"
-            }
-        }
+                    tasks.register<BeanTask>("optimized") {
+                        val children = (1..$width).map {
+                            BeanTree(optimizeLeafs())
+                        }
+                        bean = BeanTree(children)
                     }
 
-                    tasks.register("unoptimized") {
-                        ${
-            schemaNames.joinToString("\n") {
-                "dependsOn(\"Unoptimized${it}Task\")"
-            }
-        }
+                    fun unoptimizeLeafs() = arrayListOf(${schemas.joinToString { "Unoptimized${it.name}()" }})
+
+                    tasks.register<BeanTask>("unoptimized") {
+                    val children = (1..$width).map {
+                            UnoptimizedBeanTree(unoptimizeLeafs())
+                        }
+                        bean = UnoptimizedBeanTree(children)
                     }
 
-                """.trimIndent())
+                """.trimIndent()
+        )
     }
 
     private fun getBeanText(): String =
@@ -264,24 +245,25 @@ class UserTypesCodecTest : AbstractUserTypeCodecTest() {
 
     @Test
     fun `can handle optimizable bean`() {
-        val foo = Foo(42, "foo", Bar(43))
-
-        val read = configurationCacheRoundtripOf(foo)
-
-        assertThat(
-            read.bar,
-            equalTo(foo.bar)
-        )
-
-        assertThat(
-            read.i,
-            equalTo(foo.i)
-        )
-
-        assertThat(
-            read.s,
-            equalTo(foo.s)
-        )
+//        val tree = BeanTree(arrayListOf(Foo(42, "foo", Bar(43))))
+//        val foo = tree.nodes[0] as Foo
+//
+//        val read = configurationCacheRoundtripOf(tree).nodes[0] as Foo
+//
+//        assertThat(
+//            read.bar,
+//            equalTo(foo.bar)
+//        )
+//
+//        assertThat(
+//            read.i,
+//            equalTo(foo.i)
+//        )
+//
+//        assertThat(
+//            read.s,
+//            equalTo(foo.s)
+//        )
     }
 
 

@@ -216,7 +216,6 @@ fun ReadContext.readClassArray(): Array<Class<*>> =
     readArray { readClass() }
 
 
-internal
 suspend fun ReadContext.readList(): List<Any?> =
     readList { read() }
 
