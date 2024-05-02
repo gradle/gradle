@@ -37,6 +37,7 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
     private final Class<T> type;
     private final ValueSanitizer<T> sanitizer;
     private final static ProviderInternal<?> NOT_DEFINED = Providers.notDefined();
+    @Nullable
     private ValueProvenance provenance;
 
     public DefaultProperty(PropertyHost propertyHost, Class<T> type) {
@@ -51,6 +52,7 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
         return Providers.notDefined();
     }
 
+    @Nullable
     public ValueProvenance getProvenance() {
         ProviderInternal<? extends T> provider = getProvider();
         if (provider instanceof DefaultProperty) {

@@ -16,8 +16,13 @@
 
 package org.gradle.api.internal.provider;
 
+import javax.annotation.Nullable;
+
 public interface ValueProvenance {
+    @Nullable
     String getSourceUnit();
+    @Nullable
     Integer getLine();
+    @Nullable
     Integer getColumn();
 }
