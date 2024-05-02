@@ -26,7 +26,11 @@ import java.util.Set;
 public class ServiceScopeValidatorWorkarounds {
 
     private static final Set<String> SUPPRESSED_VALIDATION_CLASSES = new HashSet<String>(Arrays.asList(
+        "com.google.common.collect.ImmutableList",
+        "java.util.Properties",
+
         "org.gradle.internal.Factory",
+        "org.gradle.internal.serialize.Serializer",
         "org.gradle.execution.DefaultWorkValidationWarningRecorder",
         "org.gradle.api.internal.classpath.DefaultModuleRegistry",
         "org.gradle.tooling.internal.provider.runner.ToolingApiBuildEventListenerFactory",

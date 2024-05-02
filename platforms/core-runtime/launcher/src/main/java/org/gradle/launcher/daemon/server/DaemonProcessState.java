@@ -19,30 +19,39 @@ package org.gradle.launcher.daemon.server;
 import org.gradle.internal.agents.AgentStatus;
 import org.gradle.internal.buildprocess.BuildProcessState;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.launcher.daemon.configuration.DaemonServerConfiguration;
+import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
 
 import java.io.Closeable;
-import java.io.IOException;
 
+/**
+ * Encapsulates the state of the daemon process.
+ */
 public class DaemonProcessState implements Closeable {
     private final BuildProcessState buildProcessState;
-    private final DaemonServices services;
 
     public DaemonProcessState(DaemonServerConfiguration configuration, ServiceRegistry loggingServices, LoggingManagerInternal loggingManager, ClassPath additionalModuleClassPath) {
-        buildProcessState = new BuildProcessState(!configuration.isSingleUse(), AgentStatus.of(configuration.isInstrumentationAgentAllowed()), additionalModuleClassPath, loggingServices, NativeServices.getInstance());
-        services = new DaemonServices(configuration, buildProcessState.getServices(), loggingManager);
+        // Merge the daemon services into the build process services
+        // It would be better to separate these into different scopes, but keep them merged as a migration step
+        buildProcessState = new BuildProcessState(!configuration.isSingleUse(), AgentStatus.of(configuration.isInstrumentationAgentAllowed()), additionalModuleClassPath, loggingServices, NativeServices.getInstance()) {
+            @Override
+            protected void addProviders(ServiceRegistryBuilder builder) {
+                builder.provider(new DaemonServices(configuration, loggingManager));
+                builder.provider(new DaemonRegistryServices(configuration.getBaseDir()));
+            }
+        };
     }
 
-    public DaemonServices getServices() {
-        return services;
+    public ServiceRegistry getServices() {
+        return buildProcessState.getServices();
     }
 
     @Override
-    public void close() throws IOException {
-        CompositeStoppable.stoppable(services, buildProcessState).stop();
+    public void close() {
+        buildProcessState.close();
     }
 }

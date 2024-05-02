@@ -26,7 +26,6 @@ import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.service.scopes.Scope;
 
 import java.io.Closeable;
-import java.io.IOException;
 
 /**
  * Encapsulates the state of a build process, such as the Gradle daemon.
@@ -47,7 +46,11 @@ public class BuildProcessState implements Closeable {
         for (ServiceRegistry parent : parents) {
             builder.parent(parent);
         }
+        addProviders(builder);
         services = builder.build();
+    }
+
+    protected void addProviders(ServiceRegistryBuilder builder) {
     }
 
     public ServiceRegistry getServices() {
@@ -55,7 +58,7 @@ public class BuildProcessState implements Closeable {
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         // Force the user home services to be stopped first, because the dependencies between the user home services and the global services are not preserved currently
         CompositeStoppable.stoppable(services.get(GradleUserHomeScopeServiceRegistry.class), services).stop();
     }

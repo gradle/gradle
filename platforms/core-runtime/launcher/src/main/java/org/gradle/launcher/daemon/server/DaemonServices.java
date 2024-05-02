@@ -30,8 +30,6 @@ import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 import org.gradle.internal.serialize.Serializer;
-import org.gradle.internal.service.DefaultServiceRegistry;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.launcher.daemon.configuration.DaemonServerConfiguration;
 import org.gradle.launcher.daemon.context.DaemonContext;
@@ -40,7 +38,6 @@ import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
 import org.gradle.launcher.daemon.protocol.DaemonMessageSerializer;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
-import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
 import org.gradle.launcher.daemon.server.api.DaemonCommandAction;
 import org.gradle.launcher.daemon.server.api.HandleInvalidateVirtualFileSystem;
 import org.gradle.launcher.daemon.server.api.HandleReportStatus;
@@ -76,17 +73,14 @@ import static org.gradle.internal.FileUtils.canonicalize;
 /**
  * Takes care of instantiating and wiring together the services required by the daemon server.
  */
-public class DaemonServices extends DefaultServiceRegistry {
+public class DaemonServices {
     private final DaemonServerConfiguration configuration;
     private final LoggingManagerInternal loggingManager;
     private static final Logger LOGGER = Logging.getLogger(DaemonServices.class);
 
-    public DaemonServices(DaemonServerConfiguration configuration, ServiceRegistry parent, LoggingManagerInternal loggingManager) {
-        super(parent);
+    public DaemonServices(DaemonServerConfiguration configuration, LoggingManagerInternal loggingManager) {
         this.configuration = configuration;
         this.loggingManager = loggingManager;
-
-        addProvider(new DaemonRegistryServices(configuration.getBaseDir()));
     }
 
     protected DaemonContext createDaemonContext(AgentStatus agentStatus, ProcessEnvironment processEnvironment) {
@@ -104,11 +98,10 @@ public class DaemonServices extends DefaultServiceRegistry {
         );
     }
 
-    public File getDaemonLogFile() {
-        final DaemonContext daemonContext = get(DaemonContext.class);
+    protected DaemonLogFile createDaemonLogFile(DaemonContext daemonContext, DaemonDir daemonDir) {
         final Long pid = daemonContext.getPid();
         String fileName = "daemon-" + (pid == null ? UUID.randomUUID() : pid) + ".out.log";
-        return new File(get(DaemonDir.class).getVersionedDir(), fileName);
+        return new DaemonLogFile(new File(daemonDir.getVersionedDir(), fileName));
     }
 
     protected DaemonHealthCheck createDaemonHealthCheck(ListenerManager listenerManager, HealthExpirationStrategy healthExpirationStrategy) {
@@ -119,8 +112,8 @@ public class DaemonServices extends DefaultServiceRegistry {
         return new DaemonRunningStats();
     }
 
-    protected DaemonScanInfo createDaemonScanInfo(DaemonRunningStats runningStats, ListenerManager listenerManager) {
-        return new DefaultDaemonScanInfo(runningStats, configuration.getIdleTimeout(), configuration.isSingleUse(), get(DaemonRegistry.class), listenerManager);
+    protected DaemonScanInfo createDaemonScanInfo(DaemonRunningStats runningStats, ListenerManager listenerManager, DaemonRegistry daemonRegistry) {
+        return new DefaultDaemonScanInfo(runningStats, configuration.getIdleTimeout(), configuration.isSingleUse(), daemonRegistry, listenerManager);
     }
 
     protected MasterExpirationStrategy createMasterExpirationStrategy(Daemon daemon, HealthExpirationStrategy healthExpirationStrategy, ListenerManager listenerManager) {
@@ -148,13 +141,14 @@ public class DaemonServices extends DefaultServiceRegistry {
         ExecutorFactory executorFactory,
         ProcessEnvironment processEnvironment,
         UserInputReader inputReader,
-        OutputEventListener eventDispatch
+        OutputEventListener eventDispatch,
+        DaemonLogFile daemonLogFile,
+        GradleUserHomeScopeServiceRegistry userHomeServiceRegistry,
+        ListenerManager listenerManager
     ) {
-        File daemonLog = getDaemonLogFile();
-        DaemonDiagnostics daemonDiagnostics = new DaemonDiagnostics(daemonLog, daemonContext.getPid());
-        GradleUserHomeScopeServiceRegistry userHomeServiceRegistry = get(GradleUserHomeScopeServiceRegistry.class);
+        DaemonDiagnostics daemonDiagnostics = new DaemonDiagnostics(daemonLogFile.getFile(), daemonContext.getPid());
         return ImmutableList.of(
-            new HandleStop(get(ListenerManager.class)),
+            new HandleStop(listenerManager),
             new HandleInvalidateVirtualFileSystem(userHomeServiceRegistry),
             new HandleCancel(),
             new HandleReportStatus(),
@@ -176,18 +170,26 @@ public class DaemonServices extends DefaultServiceRegistry {
         return BuildActionSerializer.create();
     }
 
-    protected Daemon createDaemon(ImmutableList<DaemonCommandAction> actions, Serializer<BuildAction> buildActionSerializer) {
+    protected Daemon createDaemon(
+        ImmutableList<DaemonCommandAction> actions,
+        Serializer<BuildAction> buildActionSerializer,
+        ExecutorFactory executorFactory,
+        InetAddressFactory inetAddressFactory,
+        DaemonRegistry daemonRegistry,
+        DaemonContext daemonContext,
+        ListenerManager listenerManager
+    ) {
         return new Daemon(
             new DaemonTcpServerConnector(
-                get(ExecutorFactory.class),
-                get(InetAddressFactory.class),
+                executorFactory,
+                inetAddressFactory,
                 DaemonMessageSerializer.create(buildActionSerializer)
             ),
-            get(DaemonRegistry.class),
-            get(DaemonContext.class),
+            daemonRegistry,
+            daemonContext,
             new DaemonCommandExecuter(configuration, actions),
-            get(ExecutorFactory.class),
-            get(ListenerManager.class)
+            executorFactory,
+            listenerManager
         );
     }
 }
