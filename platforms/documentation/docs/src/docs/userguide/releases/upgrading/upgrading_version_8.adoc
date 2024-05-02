@@ -59,6 +59,10 @@ This means it was possible for some projects to compile without any declared dep
 We believe this situation is very unlikely to occur in real projects, as IDE integration and test execution would not work correctly.
 If you need to use the Gradle API, declare a `gradleApi` dependency or use the `java-gradle-plugin` plugin.
 
+==== Upgrade to JaCoCo 0.8.12
+
+JaCoCo has been updated to https://www.jacoco.org/jacoco/trunk/doc/changes.html[0.8.12].
+
 [[changes_8.8]]
 == Upgrading from 8.7 and earlier
 
