@@ -24,18 +24,19 @@ class DeclarativeDslProjectSettingsIntegrationSpec extends AbstractIntegrationSp
     def "can interpret the settings file with the declarative DSL"() {
         given:
         file("settings.gradle.dcl") << """
-            rootProject.name = "test-value"
-            include(":a")
-            include(":b")
-
-            dependencyResolutionManagement {
+            pluginManagement {
+                includeBuild("pluginIncluded")
                 repositories {
                     mavenCentral()
                     google()
                 }
             }
-            pluginManagement {
-                includeBuild("pluginIncluded")
+
+            rootProject.name = "test-value"
+            include(":a")
+            include(":b")
+
+            dependencyResolutionManagement {
                 repositories {
                     mavenCentral()
                     google()
@@ -84,6 +85,54 @@ class DeclarativeDslProjectSettingsIntegrationSpec extends AbstractIntegrationSp
         "syntax"           | "..."                 | "2:13: parsing error: Expecting an element"
         "language feature" | "@A dependencies { }" | "2:13: unsupported language feature: AnnotationUsage"
         "semantic"         | "x = 1"               | "2:13: unresolved reference 'x'"
+    }
+
+    def 'reports illegal order of settings blocks on #order'() {
+        given:
+        file("settings.gradle.dcl") << content
+
+        when:
+        def failure = fails(":projects")
+
+        then:
+        failure.assertHasErrorOutput(errorMessage)
+
+        where:
+        order                                | content                                          | errorMessage
+        'statement before plugin management' | 'rootProject.name = "foo"\npluginManagement { }' | "1:1: illegal content before 'pluginManagement', which can only appear as the first element in the file"
+        'plugins before plugin management'   | 'plugins { }\npluginManagement { }'              | "1:1: illegal content before 'pluginManagement', which can only appear as the first element in the file"
+        'statement before plugins'           | 'rootProject.name = "foo"\nplugins { }'          | "1:1: illegal content before 'plugins', which can only be preceded by 'pluginManagement"
+    }
+
+    def 'reports duplicate #kind blocks in settings'() {
+        given:
+        file("settings.gradle.dcl") << content
+
+        when:
+        def failure = fails(":projects")
+
+        then:
+        failure.assertHasErrorOutput(errorMessage)
+
+        where:
+        kind               | content                                                                             | errorMessage
+        'plugins'          | 'pluginManagement { }\nplugins { }\nrootProject.name = "foo"\nplugins { }'          | ""
+        'pluginManagement' | 'pluginManagement { }\nplugins { }\nrootProject.name = "foo"\npluginManagement { }' | ""
+    }
+
+    def 'supports correct order of blocks in setttings file if there is #order'() {
+        given:
+        file("settings.gradle.dcl") << content
+
+        expect:
+        succeeds(":projects")
+        outputContains("Root project 'test-project'")
+
+        where:
+        order                                     | content
+        'a plugins block but no pluginManagement' | 'plugins { }\nrootProject.name = "test-project"'
+        'a pluginManagement block but no plugins' | 'pluginManagement { }\nrootProject.name = "test-project'
+        'no special blocks'                       | 'rootProject.name = "test-project"'
     }
 
     def 'can apply settings plugins'() {

@@ -23,6 +23,8 @@ import org.gradle.internal.declarativedsl.language.SourceData
 import org.gradle.internal.declarativedsl.objectGraph.AssignmentTraceElement
 import org.gradle.api.GradleException
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.internal.declarativedsl.checks.DocumentCheckFailure
+import org.gradle.internal.declarativedsl.checks.DocumentCheckFailureReason
 import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure
 import org.gradle.internal.declarativedsl.language.ParsingError
 import org.gradle.internal.declarativedsl.language.SingleFailureResult
@@ -61,6 +63,13 @@ class DeclarativeDslNotEvaluatedException(
                         appendLine("Failures in assignments:".indent(1))
                         stageFailure.usages.forEach { unassigned ->
                             appendLine(describedUnassignedValueUsage(unassigned).indent(2))
+                        }
+                    }
+
+                    is StageFailure.DocumentCheckFailures -> {
+                        appendLine("Failures in document checks:".indent(1))
+                        stageFailure.failures.forEach { failure ->
+                            appendLine(describeDocumentCheckFailure(failure).indent(2))
                         }
                     }
                 }
@@ -131,6 +140,18 @@ class DeclarativeDslNotEvaluatedException(
     private
     fun elementLocationString(languageTreeElement: LanguageTreeElement): String =
         locationPrefixString(languageTreeElement.sourceData)
+
+    private
+    fun describeDocumentCheckFailure(failure: DocumentCheckFailure): String =
+        locationPrefixString(failure.location.sourceData) + ": " + describeDocumentCheckFailureReason(failure.reason)
+
+    private
+    fun describeDocumentCheckFailureReason(reason: DocumentCheckFailureReason) = when (reason) {
+        DocumentCheckFailureReason.PluginManagementBlockOrderViolated -> "illegal content before 'pluginManagement', which can only appear as the first element in the file"
+        DocumentCheckFailureReason.PluginsBlockOrderViolated -> "illegal content before 'plugins', which can only be preceded by 'pluginManagement'"
+        DocumentCheckFailureReason.DuplicatePluginManagementBlock -> "duplicate 'pluginManagement'"
+        DocumentCheckFailureReason.DuplicatePluginsBlock -> "duplicate 'plugins'"
+    }
 
     private
     fun locationPrefixString(ast: SourceData): String =
