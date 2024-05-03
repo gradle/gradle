@@ -42,6 +42,7 @@ import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.server.Daemon;
 import org.gradle.launcher.daemon.server.DaemonLogFile;
 import org.gradle.launcher.daemon.server.DaemonProcessState;
+import org.gradle.launcher.daemon.server.DaemonStopState;
 import org.gradle.launcher.daemon.server.MasterExpirationStrategy;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStrategy;
 import org.gradle.process.internal.shutdown.ShutdownHooks;
@@ -137,10 +138,10 @@ public class DaemonMain extends EntryPoint {
             Long pid = daemonContext.getPid();
             daemonStarted(pid, daemon.getUid(), daemon.getAddress(), daemonLog);
             DaemonExpirationStrategy expirationStrategy = daemonServices.get(MasterExpirationStrategy.class);
-            daemon.stopOnExpiration(expirationStrategy, parameters.getPeriodicCheckIntervalMs());
+            DaemonStopState stopState = daemon.stopOnExpiration(expirationStrategy, parameters.getPeriodicCheckIntervalMs());
+            daemonProcessState.stopped(stopState);
         } finally {
-            daemon.stop();
-            CompositeStoppable.stoppable(daemonProcessState).stop();
+            CompositeStoppable.stoppable(daemon, daemonProcessState).stop();
         }
     }
 

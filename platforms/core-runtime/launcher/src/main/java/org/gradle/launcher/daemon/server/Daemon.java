@@ -218,10 +218,10 @@ public class Daemon implements Stoppable {
         }
     }
 
-    public void stopOnExpiration(DaemonExpirationStrategy expirationStrategy, int checkIntervalMills) {
+    public DaemonStopState stopOnExpiration(DaemonExpirationStrategy expirationStrategy, int checkIntervalMills) {
         LOGGER.debug("stopOnExpiration() called on daemon");
         scheduleExpirationChecks(expirationStrategy, checkIntervalMills);
-        awaitExpiration();
+        return awaitExpiration();
     }
 
     private void scheduleExpirationChecks(DaemonExpirationStrategy expirationStrategy, int checkIntervalMills) {
@@ -233,7 +233,7 @@ public class Daemon implements Stoppable {
     /**
      * Tell DaemonStateCoordinator to block until it's state is Stopped.
      */
-    private void awaitExpiration() {
+    private DaemonStopState awaitExpiration() {
         LOGGER.debug("awaitExpiration() called on daemon");
 
         DaemonStateCoordinator stateCoordinator;
@@ -247,7 +247,7 @@ public class Daemon implements Stoppable {
             lifecycleLock.unlock();
         }
 
-        stateCoordinator.awaitStop();
+        return stateCoordinator.awaitStop();
     }
 
     public DaemonStateCoordinator getStateCoordinator() {

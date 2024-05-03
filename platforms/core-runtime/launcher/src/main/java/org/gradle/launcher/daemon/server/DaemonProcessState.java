@@ -27,16 +27,19 @@ import org.gradle.launcher.daemon.configuration.DaemonServerConfiguration;
 import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
 
 import java.io.Closeable;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Encapsulates the state of the daemon process.
  */
 public class DaemonProcessState implements Closeable {
     private final BuildProcessState buildProcessState;
+    private final AtomicReference<DaemonStopState> stopState = new AtomicReference<>();
 
     public DaemonProcessState(DaemonServerConfiguration configuration, ServiceRegistry loggingServices, LoggingManagerInternal loggingManager, ClassPath additionalModuleClassPath) {
         // Merge the daemon services into the build process services
-        // It would be better to separate these into different scopes, but keep them merged as a migration step
+        // It would be better to separate these into different scopes, but many things still assume that daemon services are available in the global scope,
+        // so keep them merged as a migration step
         buildProcessState = new BuildProcessState(!configuration.isSingleUse(), AgentStatus.of(configuration.isInstrumentationAgentAllowed()), additionalModuleClassPath, loggingServices, NativeServices.getInstance()) {
             @Override
             protected void addProviders(ServiceRegistryBuilder builder) {
@@ -50,8 +53,19 @@ public class DaemonProcessState implements Closeable {
         return buildProcessState.getServices();
     }
 
+    public void stopped(DaemonStopState stopState) {
+        this.stopState.set(stopState);
+    }
+
     @Override
     public void close() {
+        if (stopState.get() == DaemonStopState.Forced) {
+            // The daemon could not be stopped cleanly, so the services could still be doing work.
+            // Don't attempt to stop the services, just stop this process
+            return;
+        }
+
+        // Daemon has finished work, so stop the services
         buildProcessState.close();
     }
 }
