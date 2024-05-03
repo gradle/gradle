@@ -31,7 +31,7 @@ import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvalu
 import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure.FailuresInLanguageTree
 import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure.FailuresInResolution
 import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure.NoSchemaAvailable
-import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure.UnassignedValuesUsed
+import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure.AssignmentErrors
 import org.gradle.internal.declarativedsl.language.LanguageTreeResult
 import org.gradle.internal.declarativedsl.language.SingleFailureResult
 import org.gradle.internal.declarativedsl.language.SourceIdentifier
@@ -63,7 +63,7 @@ interface DeclarativeKotlinScriptEvaluator {
                 object NoParseResult : StageFailure
                 data class FailuresInLanguageTree(val failures: List<SingleFailureResult>) : StageFailure
                 data class FailuresInResolution(val errors: List<ResolutionError>) : StageFailure
-                data class UnassignedValuesUsed(val usages: List<AssignmentTraceElement.UnassignedValueUsed>) : StageFailure
+                data class AssignmentErrors(val usages: List<AssignmentTraceElement.FailedToRecordAssignment>) : StageFailure
             }
         } // TODO: make reason more structured
     }
@@ -129,9 +129,9 @@ class DefaultDeclarativeKotlinScriptEvaluator(
         }
 
         val trace = assignmentTrace(resolution)
-        val unassignedValueUsages = trace.elements.filterIsInstance<AssignmentTraceElement.UnassignedValueUsed>()
-        if (unassignedValueUsages.isNotEmpty()) {
-            failureReasons += UnassignedValuesUsed(unassignedValueUsages)
+        val assignmentErrors = trace.elements.filterIsInstance<AssignmentTraceElement.FailedToRecordAssignment>()
+        if (assignmentErrors.isNotEmpty()) {
+            failureReasons += AssignmentErrors(assignmentErrors)
         }
         if (failureReasons.isNotEmpty()) {
             return NotEvaluated(failureReasons)

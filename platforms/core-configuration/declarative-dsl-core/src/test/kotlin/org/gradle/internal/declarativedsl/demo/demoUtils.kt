@@ -84,11 +84,15 @@ fun printAssignmentTrace(trace: AssignmentTrace) {
         when (element) {
             is AssignmentTraceElement.UnassignedValueUsed -> {
                 val locationString = when (val result = element.assignmentAdditionResult) {
+                    is AssignmentResolver.AssignmentAdditionResult.Reassignment,
                     is AssignmentAdded -> error("unexpected")
                     is AssignmentResolver.AssignmentAdditionResult.UnresolvedValueUsedInLhs -> "lhs: ${result.value}"
                     is AssignmentResolver.AssignmentAdditionResult.UnresolvedValueUsedInRhs -> "rhs: ${result.value}"
                 }
                 println("${element.lhs} !:= ${element.rhs} -- unassigned property in $locationString")
+            }
+            is AssignmentTraceElement.Reassignment -> {
+                println("${element.lhs} !:= ${element.rhs} -- reassignment")
             }
             is AssignmentTraceElement.RecordedAssignment -> {
                 val assigned = trace.resolvedAssignments.getValue(element.lhs) as Assigned

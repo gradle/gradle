@@ -54,6 +54,8 @@ sealed interface ObjectOrigin {
 
         override val originElement: LanguageTreeElement
             get() = resolvedTo.originElement
+
+        override fun toString(): String = "(this:$resolvedTo)"
     }
 
     sealed interface ReceiverOrigin : ObjectOrigin
