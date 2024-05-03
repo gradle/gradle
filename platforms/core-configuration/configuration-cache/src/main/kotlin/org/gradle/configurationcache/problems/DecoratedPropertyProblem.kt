@@ -16,10 +16,10 @@
 
 package org.gradle.configurationcache.problems
 
+import org.gradle.internal.problems.failure.Failure
 import org.gradle.internal.problems.failure.FailurePrinter
 import org.gradle.internal.problems.failure.FailurePrinterListener
 import org.gradle.internal.problems.failure.StackTraceRelevance
-import org.gradle.internal.problems.failure.Failure
 
 
 internal

@@ -8,18 +8,6 @@ description = """Persistent caches on disk and cross process locking.
     | Also contains implementations for in-memory caches in front of the disk cache.
 """.trimMargin()
 
-errorprone {
-    disabledChecks.addAll(
-        "EmptyBlockTag", // 2 occurrences
-        "LockNotBeforeTry", // 3 occurrences
-        "NonAtomicVolatileUpdate", // 1 occurrences
-        "StringCaseLocaleUsage", // 1 occurrences
-        "ThreadLocalUsage", // 1 occurrences
-        "UnusedMethod", // 2 occurrences
-        "WaitNotInLoop", // 1 occurrences
-    )
-}
-
 dependencies {
     api(projects.concurrent)
     api(projects.javaLanguageExtensions)

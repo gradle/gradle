@@ -4,12 +4,6 @@ plugins {
 
 description = "Infrastructure for starting and managing worker processes"
 
-errorprone {
-    disabledChecks.addAll(
-        "URLEqualsHashCode", // 1 occurrences
-    )
-}
-
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":messaging"))

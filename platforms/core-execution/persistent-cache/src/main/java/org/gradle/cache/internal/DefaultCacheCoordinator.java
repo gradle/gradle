@@ -306,8 +306,8 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
     @Override
     public <K, V> MultiProcessSafeIndexedCache<K, V> newCache(final IndexedCacheParameters<K, V> parameters) {
         stateLock.lock();
-        IndexedCacheEntry<K, V> entry = Cast.uncheckedCast(caches.get(parameters.getCacheName()));
         try {
+            IndexedCacheEntry<K, V> entry = Cast.uncheckedCast(caches.get(parameters.getCacheName()));
             if (entry == null) {
                 File cacheFile = findCacheFile(parameters);
                 LOG.debug("Creating new cache for {}, path {}, access {}", parameters.getCacheName(), cacheFile, this);
@@ -318,7 +318,9 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
                 if (decorator != null) {
                     indexedCache = decorator.decorate(cacheFile.getAbsolutePath(), parameters.getCacheName(), indexedCache, crossProcessCacheAccess, getCacheAccessWorker());
                     if (fileLock == null) {
-                        useCache(() -> {});
+                        useCache(() -> {
+                            // Empty initial operation to trigger onStartWork calls
+                        });
                     }
                 }
                 entry = new IndexedCacheEntry<>(parameters, indexedCache);
@@ -493,10 +495,6 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
 
         public MultiProcessSafeIndexedCache<K, V> getCache() {
             return cache;
-        }
-
-        public IndexedCacheParameters<K, V> getParameters() {
-            return parameters;
         }
 
         void assertCompatibleCacheParameters(IndexedCacheParameters<K, V> parameters) {

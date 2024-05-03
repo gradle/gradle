@@ -52,7 +52,7 @@ public class DefaultInMemoryCacheDecoratorFactory implements InMemoryCacheDecora
 
     protected <K, V> MultiProcessSafeAsyncPersistentIndexedCache<K, V> applyInMemoryCaching(String cacheId, MultiProcessSafeAsyncPersistentIndexedCache<K, V> backingCache, int maxEntriesToKeepInMemory, boolean cacheInMemoryForShortLivedProcesses) {
         if (!longLivingProcess && !cacheInMemoryForShortLivedProcesses) {
-            // Short lived process, don't cache in memory
+            // Short-lived process, don't cache in memory
             LOG.debug("Creating cache {} without in-memory store.", cacheId);
             return backingCache;
         }
@@ -74,8 +74,8 @@ public class DefaultInMemoryCacheDecoratorFactory implements InMemoryCacheDecora
         return cacheDetails;
     }
 
-    private Cache<Object, Object> createInMemoryCache(String cacheId, int maxSize) {
-        LoggingEvictionListener evictionListener = new LoggingEvictionListener(cacheId, maxSize);
+    private static Cache<Object, Object> createInMemoryCache(String cacheId, int maxSize) {
+        LoggingEvictionListener evictionListener = new LoggingEvictionListener(cacheId, maxSize, LOG);
         final CacheBuilder<Object, Object> cacheBuilder = CacheBuilder.newBuilder().maximumSize(maxSize).recordStats().removalListener(evictionListener);
         Cache<Object, Object> inMemoryCache = cacheBuilder.build();
         evictionListener.setCache(inMemoryCache);
