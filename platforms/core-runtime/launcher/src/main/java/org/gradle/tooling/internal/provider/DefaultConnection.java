@@ -19,13 +19,14 @@ import org.gradle.api.JavaVersion;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.internal.Cast;
-import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.agents.AgentStatus;
+import org.gradle.internal.buildprocess.BuildProcessState;
+import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
@@ -75,7 +76,7 @@ public class DefaultConnection implements ConnectionVersion4,
 
     private static final GradleVersion MIN_CLIENT_VERSION = GradleVersion.version("3.0");
     private ProtocolToModelAdapter adapter;
-    private ServiceRegistry services;
+    private BuildProcessState buildProcessState;
     private ProviderConnection connection;
     @Nullable // not provided by older client versions
     private GradleVersion consumerVersion;
@@ -114,13 +115,18 @@ public class DefaultConnection implements ConnectionVersion4,
     private void initializeServices(File gradleUserHomeDir) {
         NativeServices.initializeOnClient(gradleUserHomeDir, NativeServicesMode.fromSystemProperties());
         LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newEmbeddableLogging();
-        services = ServiceRegistryBuilder.builder()
-            .displayName("Connection services")
-            .parent(loggingServices)
-            .parent(NativeServices.getInstance())
-            .provider(new ConnectionScopeServices()).build();
-        adapter = services.get(ProtocolToModelAdapter.class);
-        connection = services.get(ProviderConnection.class);
+        // Merge the connection services into the build process services
+        // It would be better to separate these into different scopes, but many things still assume that connection services are available in the global scope,
+        // so keep them merged as a migration step
+        // It would also be better to create the build process services only if they are needed, ie when the tooling API is used in embedded mode
+        buildProcessState = new BuildProcessState(true, AgentStatus.disabled(), ClassPath.EMPTY, loggingServices, NativeServices.getInstance()) {
+            @Override
+            protected void addProviders(ServiceRegistryBuilder builder) {
+                builder.provider(new ConnectionScopeServices());
+            }
+        };
+        adapter = buildProcessState.getServices().get(ProtocolToModelAdapter.class);
+        connection = buildProcessState.getServices().get(ProviderConnection.class);
     }
 
     /**
@@ -137,7 +143,7 @@ public class DefaultConnection implements ConnectionVersion4,
      */
     @Override
     public void shutdown(ShutdownParameters parameters) {
-        CompositeStoppable.stoppable(services).stop();
+        buildProcessState.close();
     }
 
     /**
