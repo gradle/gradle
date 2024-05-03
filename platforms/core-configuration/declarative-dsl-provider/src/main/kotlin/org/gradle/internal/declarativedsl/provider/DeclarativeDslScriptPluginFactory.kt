@@ -44,6 +44,7 @@ import javax.inject.Inject
 
 
 @Suppress("unused") // The name of this class is hardcoded in Gradle
+internal
 class DeclarativeDslScriptPluginFactory @Inject constructor(
     private val declarativeKotlinScriptEvaluator: DeclarativeKotlinScriptEvaluator
 ) : ScriptPluginFactory {

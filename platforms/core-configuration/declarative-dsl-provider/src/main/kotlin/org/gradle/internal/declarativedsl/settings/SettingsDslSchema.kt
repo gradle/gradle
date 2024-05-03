@@ -47,7 +47,7 @@ fun settingsInterpretationSequence(
     InterpretationSequence(
         listOf(
             SimpleInterpretationSequenceStep("settingsPluginManagement") { pluginManagementEvaluationSchema() },
-            PluginsInterpretationSequenceStep("settingsPlugins", targetScope, scriptSource) { settings.services },
+            PluginsInterpretationSequenceStep("settingsPlugins", targetScope, scriptSource, SettingsBlocksCheck) { settings.services },
             SimpleInterpretationSequenceStep("settings") { settingsEvaluationSchema(settings) }
         )
     )
@@ -55,7 +55,11 @@ fun settingsInterpretationSequence(
 
 internal
 fun pluginManagementEvaluationSchema(): EvaluationSchema =
-    buildEvaluationSchema(Settings::class, gradleDslGeneralSchemaComponent(), isTopLevelPluginManagementBlock)
+    buildEvaluationSchema(
+        Settings::class,
+        gradleDslGeneralSchemaComponent() + SettingsBlocksCheck,
+        isTopLevelPluginManagementBlock
+    )
 
 
 internal
