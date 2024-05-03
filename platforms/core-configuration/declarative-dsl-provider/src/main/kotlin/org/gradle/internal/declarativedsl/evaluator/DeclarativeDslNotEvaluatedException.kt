@@ -57,8 +57,8 @@ class DeclarativeDslNotEvaluatedException(
 
                     StageFailure.NoParseResult -> appendLine("Failed to parse due to syntax errors")
                     is StageFailure.NoSchemaAvailable -> appendLine("No associated schema for ${stageFailure.target}")
-                    is StageFailure.UnassignedValuesUsed -> {
-                        appendLine("Unassigned value usages".indent(1))
+                    is StageFailure.AssignmentErrors -> {
+                        appendLine("Failures in assignments:".indent(1))
                         stageFailure.usages.forEach { unassigned ->
                             appendLine(describedUnassignedValueUsage(unassigned).indent(2))
                         }
@@ -120,8 +120,13 @@ class DeclarativeDslNotEvaluatedException(
     }
 
     private
-    fun describedUnassignedValueUsage(unassigned: AssignmentTraceElement.UnassignedValueUsed) =
-        "${elementLocationString(unassigned.lhs.receiverObject.originElement)}: ${unassigned.lhs} := (unassigned) ${unassigned.rhs}"
+    fun describedUnassignedValueUsage(unassigned: AssignmentTraceElement.FailedToRecordAssignment): String {
+        val errorMessage = when (unassigned) {
+            is AssignmentTraceElement.Reassignment -> "Value reassigned"
+            is AssignmentTraceElement.UnassignedValueUsed -> "Unassigned value used"
+        }
+        return "${elementLocationString(unassigned.lhs.receiverObject.originElement)}: $errorMessage in ${unassigned.lhs} := ${unassigned.rhs}"
+    }
 
     private
     fun elementLocationString(languageTreeElement: LanguageTreeElement): String =
