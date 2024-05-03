@@ -20,47 +20,42 @@ import org.gradle.api.internal.tasks.userinput.UserInputReader;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.IoActions;
-import org.gradle.internal.UncheckedException;
+import org.gradle.internal.logging.events.OutputEvent;
+import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.launcher.daemon.protocol.ForwardInput;
 import org.gradle.launcher.daemon.protocol.UserResponse;
 import org.gradle.launcher.daemon.server.api.StdinHandler;
 
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.util.function.Function;
 
 /**
- * Forwards user input received from the client to this process' System.in and the relevant services.
+ * Forwards user input received from the client to this process' System.in and {@link UserInputReader}.
  */
 public class ClientInputForwarder {
     private static final Logger LOGGER = Logging.getLogger(ClientInputForwarder.class);
     private final UserInputReader inputReader;
+    private final OutputEventListener eventDispatch;
 
-    public ClientInputForwarder(UserInputReader inputReader) {
+    public ClientInputForwarder(UserInputReader inputReader, OutputEventListener eventDispatch) {
         this.inputReader = inputReader;
+        this.eventDispatch = eventDispatch;
     }
 
     public <T> T forwardInput(Function<StdinHandler, T> action) {
-        final PipedOutputStream inputSource = new PipedOutputStream();
-        final PipedInputStream replacementStdin;
-        try {
-            replacementStdin = new PipedInputStream(inputSource);
-        } catch (IOException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
+        final StdInStream stdInStream = new StdInStream(new OutputEventListener() {
+            @Override
+            public void onOutput(OutputEvent event) {
+                eventDispatch.onOutput(event);
+            }
+        });
         inputReader.startInput();
 
         StdinHandler stdinHandler = new StdinHandler() {
             @Override
             public void onInput(ForwardInput input) {
                 LOGGER.debug("Writing forwarded input on this process' stdin.");
-                try {
-                    inputSource.write(input.getBytes());
-                } catch (IOException e) {
-                    LOGGER.warn("Received exception trying to forward client input.", e);
-                }
+                stdInStream.received(input.getBytes());
             }
 
             @Override
@@ -72,10 +67,8 @@ public class ClientInputForwarder {
             public void onEndOfInput() {
                 LOGGER.debug("Closing this process' stdin at end of input.");
                 try {
-                    inputSource.close();
+                    stdInStream.close();
                     inputReader.putInput(UserInputReader.END_OF_INPUT);
-                } catch (IOException e) {
-                    LOGGER.warn("Problem closing output stream connected to replacement stdin", e);
                 } finally {
                     LOGGER.debug("This process will no longer process any forwarded input.");
                 }
@@ -84,12 +77,11 @@ public class ClientInputForwarder {
 
         InputStream previousStdin = System.in;
         try {
-            System.setIn(replacementStdin);
+            System.setIn(stdInStream);
             return action.apply(stdinHandler);
         } finally {
             System.setIn(previousStdin);
-            IoActions.closeQuietly(replacementStdin);
-            IoActions.closeQuietly(inputSource);
+            IoActions.closeQuietly(stdInStream);
         }
     }
 }

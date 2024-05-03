@@ -24,6 +24,9 @@ import org.gradle.internal.service.scopes.ServiceScope;
  */
 @ServiceScope(Scope.Global.class)
 public interface UserInputReader {
+    /**
+     * Called when the current process starts receiving user input from the client.
+     */
     void startInput();
 
     void putInput(UserInput input);

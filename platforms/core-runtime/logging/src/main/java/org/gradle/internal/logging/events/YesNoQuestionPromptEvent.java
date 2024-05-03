@@ -18,15 +18,32 @@ package org.gradle.internal.logging.events;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.BooleanUtils;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.internal.Either;
 
 import java.util.List;
 
 public class YesNoQuestionPromptEvent extends PromptOutputEvent {
     public static final List<String> YES_NO_CHOICES = Lists.newArrayList("yes", "no");
+    private final String question;
 
-    public YesNoQuestionPromptEvent(long timestamp, String prompt) {
-        super(timestamp, prompt, true);
+    public YesNoQuestionPromptEvent(long timestamp, String question) {
+        super(timestamp);
+        this.question = question;
+    }
+
+    public String getQuestion() {
+        return question;
+    }
+
+    @Override
+    public String getPrompt() {
+        StringBuilder builder = new StringBuilder();
+        builder.append(question);
+        builder.append(" [");
+        builder.append(StringUtils.join(YesNoQuestionPromptEvent.YES_NO_CHOICES, ", "));
+        builder.append("] ");
+        return builder.toString();
     }
 
     @Override

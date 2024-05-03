@@ -24,7 +24,7 @@ import org.gradle.internal.logging.events.BooleanQuestionPromptEvent
 import org.gradle.internal.logging.events.IntQuestionPromptEvent
 import org.gradle.internal.logging.events.LogLevelChangeEvent
 import org.gradle.internal.logging.events.OutputEvent
-import org.gradle.internal.logging.events.PromptOutputEvent
+import org.gradle.internal.logging.events.ReadStdInEvent
 import org.gradle.internal.logging.events.SelectOptionPromptEvent
 import org.gradle.internal.logging.events.TextQuestionPromptEvent
 import org.gradle.internal.logging.events.UserInputRequestEvent
@@ -180,33 +180,22 @@ class DaemonMessageSerializerTest extends SerializerSpec {
         result instanceof UserInputRequestEvent
     }
 
-    def "can serialize user prompt event"() {
-        expect:
-        def event = new PromptOutputEvent(123, 'prompt', true)
-        def result = serialize(event, serializer)
-        result instanceof PromptOutputEvent
-        result.prompt == 'prompt'
-        result.newQuestion
-        result.timestamp == 123
-    }
-
     def "can serialize yes-no question prompt event"() {
         expect:
         def event = new YesNoQuestionPromptEvent(123, 'prompt')
         def result = serialize(event, serializer)
         result instanceof YesNoQuestionPromptEvent
-        result.prompt == 'prompt'
-        result.newQuestion
+        result.question == 'prompt'
         result.timestamp == 123
     }
 
     def "can serialize boolean question prompt event"() {
         expect:
-        def event = new BooleanQuestionPromptEvent(123, 'prompt', true, "yes")
+        def event = new BooleanQuestionPromptEvent(123, 'prompt', false)
         def result = serialize(event, serializer)
         result instanceof BooleanQuestionPromptEvent
-        result.prompt == 'prompt'
-        result.newQuestion
+        result.question == 'prompt'
+        !result.defaultValue
         result.timestamp == 123
     }
 
@@ -215,28 +204,30 @@ class DaemonMessageSerializerTest extends SerializerSpec {
         def event = new IntQuestionPromptEvent(123, 'prompt', 1, 2)
         def result = serialize(event, serializer)
         result instanceof IntQuestionPromptEvent
-        result.prompt == 'prompt'
-        result.newQuestion
+        result.question == 'prompt'
+        result.minValue == 1
+        result.defaultValue == 2
         result.timestamp == 123
     }
 
     def "can serialize text question prompt event"() {
         expect:
-        def event = new TextQuestionPromptEvent(123, 'prompt')
+        def event = new TextQuestionPromptEvent(123, 'prompt', 'value')
         def result = serialize(event, serializer)
         result instanceof TextQuestionPromptEvent
-        result.prompt == 'prompt'
-        result.newQuestion
+        result.question == 'prompt'
+        result.defaultValue == 'value'
         result.timestamp == 123
     }
 
     def "can serialize select option prompt event"() {
         expect:
-        def event = new SelectOptionPromptEvent(123, 'prompt', 4, 2)
+        def event = new SelectOptionPromptEvent(123, 'prompt', ['a', 'b'], 1)
         def result = serialize(event, serializer)
         result instanceof SelectOptionPromptEvent
-        result.prompt == 'prompt'
-        result.newQuestion
+        result.question == 'prompt'
+        result.options == ['a', 'b']
+        result.defaultOption == 1
         result.timestamp == 123
     }
 
@@ -246,6 +237,13 @@ class DaemonMessageSerializerTest extends SerializerSpec {
         def result = serialize(event, serializer)
         result instanceof UserInputResumeEvent
         result.timestamp == 123
+    }
+
+    def "can serialize read stdin event"() {
+        expect:
+        def event = new ReadStdInEvent()
+        def result = serialize(event, serializer)
+        result instanceof ReadStdInEvent
     }
 
     def "can serialize Build message"() {

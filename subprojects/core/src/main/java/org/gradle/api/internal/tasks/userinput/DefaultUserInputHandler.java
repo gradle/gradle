@@ -15,9 +15,7 @@
  */
 package org.gradle.api.internal.tasks.userinput;
 
-import com.google.common.base.CharMatcher;
 import org.apache.commons.lang.BooleanUtils;
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Transformer;
 import org.gradle.internal.logging.events.BooleanQuestionPromptEvent;
 import org.gradle.internal.logging.events.IntQuestionPromptEvent;
@@ -29,7 +27,6 @@ import org.gradle.internal.logging.events.UserInputRequestEvent;
 import org.gradle.internal.logging.events.UserInputResumeEvent;
 import org.gradle.internal.logging.events.YesNoQuestionPromptEvent;
 import org.gradle.internal.time.Clock;
-import org.gradle.util.internal.TextUtil;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -39,13 +36,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 
 public class DefaultUserInputHandler extends AbstractUserInputHandler {
-    private final OutputEventListener outputEventBroadcaster;
+    private final OutputEventListener eventDispatch;
     private final Clock clock;
     private final UserInputReader userInputReader;
     private final AtomicBoolean interrupted = new AtomicBoolean();
 
-    public DefaultUserInputHandler(OutputEventListener outputEventBroadcaster, Clock clock, UserInputReader userInputReader) {
-        this.outputEventBroadcaster = outputEventBroadcaster;
+    public DefaultUserInputHandler(OutputEventListener eventDispatch, Clock clock, UserInputReader userInputReader) {
+        this.eventDispatch = eventDispatch;
         this.clock = clock;
         this.userInputReader = userInputReader;
     }
@@ -60,35 +57,18 @@ public class DefaultUserInputHandler extends AbstractUserInputHandler {
         return interrupted.get();
     }
 
-    private String sanitizeInput(String input) {
-        return CharMatcher.javaIsoControl().removeFrom(StringUtils.trim(input));
-    }
-
     private class InteractiveUserQuestions implements UserInteraction {
         private boolean hasPrompted;
 
         @Override
         public Boolean askYesNoQuestion(String question) {
-            StringBuilder builder = new StringBuilder();
-            builder.append(question);
-            builder.append(" [");
-            builder.append(StringUtils.join(YesNoQuestionPromptEvent.YES_NO_CHOICES, ", "));
-            builder.append("] ");
-            YesNoQuestionPromptEvent prompt = new YesNoQuestionPromptEvent(clock.getCurrentTime(), builder.toString());
+            YesNoQuestionPromptEvent prompt = new YesNoQuestionPromptEvent(clock.getCurrentTime(), question);
             return prompt(prompt, BooleanUtils::toBoolean);
         }
 
         @Override
         public boolean askBooleanQuestion(String question, final boolean defaultValue) {
-            StringBuilder builder = new StringBuilder();
-            builder.append(question);
-            builder.append(" (default: ");
-            String defaultString = defaultValue ? "yes" : "no";
-            builder.append(defaultString);
-            builder.append(") [");
-            builder.append(StringUtils.join(YesNoQuestionPromptEvent.YES_NO_CHOICES, ", "));
-            builder.append("] ");
-            BooleanQuestionPromptEvent prompt = new BooleanQuestionPromptEvent(clock.getCurrentTime(), builder.toString(), defaultValue, defaultString);
+            BooleanQuestionPromptEvent prompt = new BooleanQuestionPromptEvent(clock.getCurrentTime(), question, defaultValue);
             return prompt(prompt, defaultValue, BooleanUtils::toBoolean);
         }
 
@@ -107,25 +87,13 @@ public class DefaultUserInputHandler extends AbstractUserInputHandler {
 
         @Override
         public int askIntQuestion(String question, int minValue, int defaultValue) {
-            StringBuilder builder = new StringBuilder();
-            builder.append(question);
-            builder.append(" (min: ");
-            builder.append(minValue);
-            builder.append(", default: ");
-            builder.append(defaultValue);
-            builder.append("): ");
-            IntQuestionPromptEvent prompt = new IntQuestionPromptEvent(clock.getCurrentTime(), builder.toString(), minValue, defaultValue);
+            IntQuestionPromptEvent prompt = new IntQuestionPromptEvent(clock.getCurrentTime(), question, minValue, defaultValue);
             return prompt(prompt, defaultValue, Integer::parseInt);
         }
 
         @Override
         public String askQuestion(String question, final String defaultValue) {
-            StringBuilder builder = new StringBuilder();
-            builder.append(question);
-            builder.append(" (default: ");
-            builder.append(defaultValue);
-            builder.append("): ");
-            TextQuestionPromptEvent prompt = new TextQuestionPromptEvent(clock.getCurrentTime(), builder.toString());
+            TextQuestionPromptEvent prompt = new TextQuestionPromptEvent(clock.getCurrentTime(), question, defaultValue);
             return prompt(prompt, defaultValue, sanitizedValue -> sanitizedValue);
         }
 
@@ -149,11 +117,11 @@ public class DefaultUserInputHandler extends AbstractUserInputHandler {
             }
 
             if (!hasPrompted) {
-                outputEventBroadcaster.onOutput(new UserInputRequestEvent());
+                eventDispatch.onOutput(new UserInputRequestEvent());
                 hasPrompted = true;
             }
 
-            outputEventBroadcaster.onOutput(prompt);
+            eventDispatch.onOutput(prompt);
             while (true) {
                 UserInputReader.UserInput input = userInputReader.readInput();
                 if (input == UserInputReader.END_OF_INPUT) {
@@ -161,8 +129,7 @@ public class DefaultUserInputHandler extends AbstractUserInputHandler {
                     return null;
                 }
 
-                String sanitizedInput = sanitizeInput(input.getText());
-                T result = parser.transform(sanitizedInput);
+                T result = parser.transform(input.getText());
                 if (result != null) {
                     return result;
                 }
@@ -178,34 +145,22 @@ public class DefaultUserInputHandler extends AbstractUserInputHandler {
             }
 
             final List<T> values = new ArrayList<>(options);
-            StringBuilder builder = new StringBuilder();
-            builder.append(question);
-            builder.append(":");
-            builder.append(TextUtil.getPlatformLineSeparator());
+            final List<String> displayValues = new ArrayList<>();
             for (int i = 0; i < options.size(); i++) {
                 T option = values.get(i);
-                builder.append("  ");
-                builder.append(i + 1);
-                builder.append(": ");
-                builder.append(renderer.apply(option));
-                builder.append(TextUtil.getPlatformLineSeparator());
+                displayValues.add(renderer.apply(option));
             }
-            builder.append("Enter selection (default: ");
-            builder.append(renderer.apply(defaultOption));
-            builder.append(") [1..");
-            builder.append(options.size());
-            builder.append("] ");
-            SelectOptionPromptEvent prompt = new SelectOptionPromptEvent(clock.getCurrentTime(), builder.toString(), values.size(), values.indexOf(defaultOption) + 1);
+            SelectOptionPromptEvent prompt = new SelectOptionPromptEvent(clock.getCurrentTime(), question, displayValues, values.indexOf(defaultOption));
             return prompt(prompt, defaultOption, sanitizedInput -> {
                 int value = Integer.parseInt(sanitizedInput);
-                return values.get(value - 1);
+                return values.get(value);
             });
         }
 
         @Override
         public void finish() {
             if (hasPrompted) {
-                outputEventBroadcaster.onOutput(new UserInputResumeEvent(clock.getCurrentTime()));
+                eventDispatch.onOutput(new UserInputResumeEvent(clock.getCurrentTime()));
             }
         }
     }

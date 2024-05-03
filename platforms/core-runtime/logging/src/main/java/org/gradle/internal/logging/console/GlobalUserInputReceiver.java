@@ -17,6 +17,7 @@
 package org.gradle.internal.logging.console;
 
 import org.gradle.internal.logging.events.PromptOutputEvent;
+import org.gradle.internal.logging.events.ReadStdInEvent;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -29,12 +30,17 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public interface GlobalUserInputReceiver {
     /**
-     * Requests that a line of text should be received from the user, for example via this process' stdin, and forwarded to the {link UserInputReader} instance in the daemon.
+     * Requests that a line of text should be received from the user, for example via this process' stdin, and forwarded to the {@link UserInputReader} instance in the daemon.
      * Does not block waiting for the input.
      *
      * @param event Specifies how to validate and normalize the text.
      */
     void readAndForwardText(PromptOutputEvent event);
+
+    /**
+     * Requests that bytes should be read from this process' stdin, and forwarded to the daemon.
+     */
+    void readAndForwardStdin(ReadStdInEvent event);
 
     /**
      * Defines the {@link UserInputReceiver} instance for this service to delegate to.

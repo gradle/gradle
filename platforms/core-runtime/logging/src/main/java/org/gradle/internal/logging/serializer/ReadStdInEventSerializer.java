@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,19 @@
 
 package org.gradle.internal.logging.serializer;
 
-import org.gradle.internal.logging.events.PromptOutputEvent;
+import org.gradle.internal.logging.events.ReadStdInEvent;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 
-public class PromptOutputEventSerializer implements Serializer<PromptOutputEvent> {
+public class ReadStdInEventSerializer implements Serializer<ReadStdInEvent> {
+
     @Override
-    public void write(Encoder encoder, PromptOutputEvent value) throws Exception {
-        encoder.writeLong(value.getTimestamp());
-        encoder.writeString(value.getPrompt());
-        encoder.writeBoolean(value.isNewQuestion());
+    public void write(Encoder encoder, ReadStdInEvent event) throws Exception {
     }
 
     @Override
-    public PromptOutputEvent read(Decoder decoder) throws Exception {
-        return new PromptOutputEvent(decoder.readLong(), decoder.readString(), decoder.readBoolean());
+    public ReadStdInEvent read(Decoder decoder) throws Exception {
+        return new ReadStdInEvent();
     }
 }

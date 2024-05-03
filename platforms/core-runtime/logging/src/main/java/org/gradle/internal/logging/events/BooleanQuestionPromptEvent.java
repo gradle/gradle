@@ -18,6 +18,7 @@ package org.gradle.internal.logging.events;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.BooleanUtils;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.internal.Either;
 
 import java.util.List;
@@ -25,21 +26,34 @@ import java.util.Locale;
 
 public class BooleanQuestionPromptEvent extends PromptOutputEvent {
     private static final List<String> LENIENT_YES_NO_CHOICES = Lists.newArrayList("yes", "no", "y", "n");
+    private final String question;
     private final boolean defaultValue;
-    private final String defaultString;
 
-    public BooleanQuestionPromptEvent(long timestamp, String prompt, boolean defaultValue, String defaultString) {
-        super(timestamp, prompt, true);
+    public BooleanQuestionPromptEvent(long timestamp, String question, boolean defaultValue) {
+        super(timestamp);
+        this.question = question;
         this.defaultValue = defaultValue;
-        this.defaultString = defaultString;
+    }
+
+    @Override
+    public String getPrompt() {
+        StringBuilder builder = new StringBuilder();
+        builder.append(question);
+        builder.append(" (default: ");
+        String defaultString = defaultValue ? "yes" : "no";
+        builder.append(defaultString);
+        builder.append(") [");
+        builder.append(StringUtils.join(YesNoQuestionPromptEvent.YES_NO_CHOICES, ", "));
+        builder.append("] ");
+        return builder.toString();
+    }
+
+    public String getQuestion() {
+        return question;
     }
 
     public boolean getDefaultValue() {
         return defaultValue;
-    }
-
-    public String getDefaultString() {
-        return defaultString;
     }
 
     @Override
@@ -51,6 +65,7 @@ public class BooleanQuestionPromptEvent extends PromptOutputEvent {
         if (LENIENT_YES_NO_CHOICES.contains(trimmed)) {
             return Either.left(BooleanUtils.toBoolean(trimmed));
         }
+        String defaultString = defaultValue ? "yes" : "no";
         return Either.right("Please enter 'yes' or 'no' (default: '" + defaultString + "'): ");
     }
 }

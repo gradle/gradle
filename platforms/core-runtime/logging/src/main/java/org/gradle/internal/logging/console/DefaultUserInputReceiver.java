@@ -21,6 +21,8 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.internal.Either;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.PromptOutputEvent;
+import org.gradle.internal.logging.events.ReadStdInEvent;
+import org.gradle.internal.logging.events.UserInputValidationProblemEvent;
 
 import javax.annotation.Nullable;
 import java.util.concurrent.atomic.AtomicReference;
@@ -40,10 +42,7 @@ public class DefaultUserInputReceiver implements GlobalUserInputReceiver {
 
     @Override
     public void readAndForwardText(final PromptOutputEvent event) {
-        UserInputReceiver userInput = delegate.get();
-        if (userInput == null) {
-            throw new IllegalStateException("User input has not been initialized.");
-        }
+        UserInputReceiver userInput = getDelegate();
         userInput.readAndForwardText(new UserInputReceiver.Normalizer() {
             @Nullable
             @Override
@@ -51,7 +50,7 @@ public class DefaultUserInputReceiver implements GlobalUserInputReceiver {
                 Either<?, String> result = event.convert(CharMatcher.javaIsoControl().removeFrom(StringUtils.trim(text)));
                 if (result.getRight().isPresent()) {
                     // Need to prompt the user again
-                    console.onOutput(new PromptOutputEvent(event.getTimestamp(), result.getRight().get(), false));
+                    console.onOutput(new UserInputValidationProblemEvent(event.getTimestamp(), result.getRight().get()));
                     return null;
                 } else {
                     // Send result
@@ -59,6 +58,20 @@ public class DefaultUserInputReceiver implements GlobalUserInputReceiver {
                 }
             }
         });
+    }
+
+    @Override
+    public void readAndForwardStdin(ReadStdInEvent event) {
+        UserInputReceiver userInput = getDelegate();
+        userInput.readAndForwardStdin();
+    }
+
+    private UserInputReceiver getDelegate() {
+        UserInputReceiver userInput = delegate.get();
+        if (userInput == null) {
+            throw new IllegalStateException("User input has not been initialized.");
+        }
+        return userInput;
     }
 
     @Override

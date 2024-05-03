@@ -40,6 +40,7 @@ import org.gradle.launcher.exec.BuildActionExecuter
 import org.gradle.process.internal.CurrentProcess
 import org.gradle.process.internal.JvmOptions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.tooling.internal.provider.ForwardStdInToThisProcess
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
@@ -187,7 +188,7 @@ class BuildActionsFactoryTest extends Specification {
     void isInProcess(def action) {
         def runnable = unwrapAction(action)
         def executor = unwrapExecutor(runnable)
-        assert executor instanceof InProcessUserInputHandlingExecutor
+        assert executor instanceof ForwardStdInToThisProcess
     }
 
     void isSingleUseDaemon(def action) {

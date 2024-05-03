@@ -15,12 +15,9 @@
  */
 package org.gradle.launcher.daemon.client;
 
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
-import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.dispatch.Dispatch;
-import org.gradle.internal.io.TextStream;
 import org.gradle.internal.logging.console.GlobalUserInputReceiver;
 import org.gradle.internal.logging.console.UserInputReceiver;
 import org.gradle.launcher.daemon.protocol.CloseInput;
@@ -28,105 +25,127 @@ import org.gradle.launcher.daemon.protocol.ForwardInput;
 import org.gradle.launcher.daemon.protocol.InputMessage;
 import org.gradle.launcher.daemon.protocol.UserResponse;
 
-import javax.annotation.Nullable;
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
-import java.util.concurrent.atomic.AtomicReference;
+import java.io.InputStreamReader;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
- * Eagerly consumes from an input stream, sending each line as a commands over the connection and finishing with a {@link CloseInput} command.
- * Each line is forwarded as either a {@link ForwardInput}, for non-interactive text, or a {@link UserResponse}, when expecting some interactive text.
+ * Reads input from this client stdin and forwards it to the daemon. Can either read raw content or read the user's response to some prompt.
+ *
+ * <p>Uses a single reader thread to perform all operations.
  */
 public class DaemonClientInputForwarder implements Stoppable {
-    private static final Logger LOGGER = Logging.getLogger(DaemonClientInputForwarder.class);
-
-    public static final int DEFAULT_BUFFER_SIZE = 8192;
-    private final InputForwarder forwarder;
+    private final ForwardingUserInput forwarder;
     private final GlobalUserInputReceiver userInput;
+    private final ExecutorService executor;
 
     public DaemonClientInputForwarder(
         InputStream inputStream,
         Dispatch<? super InputMessage> dispatch,
-        GlobalUserInputReceiver userInput,
-        ExecutorFactory executorFactory
-    ) {
-        this(inputStream, dispatch, userInput, executorFactory, DEFAULT_BUFFER_SIZE);
-    }
-
-    public DaemonClientInputForwarder(
-        InputStream inputStream,
-        Dispatch<? super InputMessage> dispatch,
-        GlobalUserInputReceiver userInput,
-        ExecutorFactory executorFactory,
-        int bufferSize
+        GlobalUserInputReceiver userInput
     ) {
         this.userInput = userInput;
-        ForwardTextStreamToConnection handler = new ForwardTextStreamToConnection(dispatch);
-        this.forwarder = new InputForwarder(inputStream, handler, executorFactory, bufferSize);
-        userInput.dispatchTo(new ForwardingUserInput(handler));
-    }
-
-    public void start() {
-        forwarder.start();
+        // Use a single reader thread, and make it a daemon thread so that it does not block process shutdown
+        // In most cases, we try to cleanly shut down all threads. However, in this case it is difficult to disconnect a thread blocked trying to read from the
+        // process' stdin, so use a daemon thread instead.
+        executor = Executors.newSingleThreadExecutor(r -> {
+            Thread thread = new Thread(r);
+            thread.setDaemon(true);
+            return thread;
+        });
+        forwarder = new ForwardingUserInput(inputStream, dispatch, executor);
+        userInput.dispatchTo(forwarder);
     }
 
     @Override
     public void stop() {
         userInput.stopDispatching();
         forwarder.stop();
+        executor.shutdown();
     }
 
     private static class ForwardingUserInput implements UserInputReceiver {
-        private final ForwardTextStreamToConnection handler;
+        private final Dispatch<? super InputMessage> dispatch;
+        private final BufferedReader reader;
+        private final Executor executor;
+        private char[] buffer;
 
-        public ForwardingUserInput(ForwardTextStreamToConnection handler) {
-            this.handler = handler;
+        // Protects the following state
+        private final Object lock = new Object();
+        private boolean closed;
+
+        public ForwardingUserInput(InputStream inputStream, Dispatch<? super InputMessage> dispatch, Executor executor) {
+            this.dispatch = dispatch;
+            this.reader = new BufferedReader(new InputStreamReader(inputStream));
+            this.executor = executor;
+        }
+
+        @Override
+        public void readAndForwardStdin() {
+            executor.execute(() -> {
+                if (buffer == null) {
+                    buffer = new char[16 * 1024];
+                }
+                int nread;
+                try {
+                    // Read input as text rather than bytes, so that readAndForwardText() below can also read lines of text
+                    nread = reader.read(buffer);
+                } catch (IOException e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
+                if (nread < 0) {
+                    maybeClosed();
+                } else {
+                    String text = new String(buffer, 0, nread);
+                    byte[] result = text.getBytes();
+                    ForwardInput message = new ForwardInput(result);
+                    dispatch.dispatch(message);
+                }
+            });
         }
 
         @Override
         public void readAndForwardText(Normalizer normalizer) {
-            handler.forwardNextLineAsUserResponse(normalizer);
-        }
-    }
-
-    private static class ForwardTextStreamToConnection implements TextStream {
-        private final Dispatch<? super InputMessage> dispatch;
-        private final AtomicReference<UserInputReceiver.Normalizer> pending = new AtomicReference<>();
-
-        public ForwardTextStreamToConnection(Dispatch<? super InputMessage> dispatch) {
-            this.dispatch = dispatch;
-        }
-
-        void forwardNextLineAsUserResponse(UserInputReceiver.Normalizer request) {
-            if (!pending.compareAndSet(null, request)) {
-                throw new IllegalStateException("Already expecting user input");
-            }
-        }
-
-        @Override
-        public void text(String input) {
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Forwarding input to daemon: '{}'", input.replace("\n", "\\n"));
-            }
-            UserInputReceiver.Normalizer currentUserInputRequest = pending.get();
-            if (currentUserInputRequest != null) {
-                // Expecting some user input
-                String result = currentUserInputRequest.normalize(input);
-                if (result != null) {
-                    // Send result
-                    pending.set(null);
-                    dispatch.dispatch(new UserResponse(result));
+            executor.execute(() -> {
+                while (true) {
+                    String input;
+                    try {
+                        input = reader.readLine();
+                    } catch (IOException e) {
+                        throw UncheckedException.throwAsUncheckedException(e);
+                    }
+                    if (input == null) {
+                        maybeClosed();
+                        break;
+                    } else {
+                        String normalized = normalizer.normalize(input);
+                        if (normalized != null) {
+                            dispatch.dispatch(new UserResponse(normalized));
+                            break;
+                        }
+                        // Else, user input was no good so read another line and try again
+                    }
                 }
-                // Else, input was no good, so try again
-            } else {
-                dispatch.dispatch(new ForwardInput(input.getBytes()));
-            }
+            });
         }
 
-        @Override
-        public void endOfStream(@Nullable Throwable failure) {
-            CloseInput message = new CloseInput();
-            LOGGER.debug("Dispatching close input message: {}", message);
-            dispatch.dispatch(message);
+        void stop() {
+            maybeClosed();
+        }
+
+        private void maybeClosed() {
+            // This can be invoked from the reader thread or some other thread that is attempting to shut the client down.
+            synchronized (lock) {
+                if (!closed) {
+                    CloseInput message = new CloseInput();
+                    dispatch.dispatch(message);
+                    closed = true;
+                }
+            }
         }
     }
 }
