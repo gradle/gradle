@@ -21,7 +21,7 @@ import java.util.function.Function;
 /**
  * Asks the user to select an option from a list of options. Allows the choice to be configured in various ways.
  *
- * @param <T>
+ * @param <T> The type of the options of this choice.
  */
 public interface Choice<T> {
     /**

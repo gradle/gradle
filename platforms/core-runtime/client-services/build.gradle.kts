@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.userinput;
+plugins {
+    id("gradlebuild.distribution.api-java")
+}
 
-import org.gradle.internal.scan.UsedByScanPlugin;
+description = "Services used by the Gradle client to interact with the daemon"
 
-import javax.annotation.Nullable;
+dependencies {
+    api(project(":concurrent"))
+    api(project(":messaging"))
+    api(project(":logging"))
+    api(project(":daemon-protocol"))
 
-@UsedByScanPlugin
-public interface BuildScanUserInputHandler {
-    @Nullable
-    Boolean askYesNoQuestion(String question);
+    implementation(project(":java-language-extensions"))
+
+    testImplementation(testFixtures(project(":core"))) {
+        because("ConcurrentSpecification")
+    }
 }

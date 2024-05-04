@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.gradle.launcher.daemon.protocol.CloseInput
 import org.gradle.launcher.daemon.protocol.ForwardInput
 import org.gradle.launcher.daemon.protocol.UserResponse
 import org.gradle.util.ConcurrentSpecification
+import spock.lang.Specification
 
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
@@ -103,7 +104,7 @@ class DaemonClientInputForwarderTest extends ConcurrentSpecification {
 
     def "one line of text is converted and forwarded as user response"() {
         def event = Stub(PromptOutputEvent)
-        _ * event.convert("def") >> Either.left(12)
+        Specification._ * event.convert("def") >> Either.left(12)
 
         when:
         userInputReceiver.readAndForwardText(event)
@@ -121,8 +122,8 @@ class DaemonClientInputForwarderTest extends ConcurrentSpecification {
 
     def "collects additional line of text when invalid user response received"() {
         def event = Stub(PromptOutputEvent)
-        _ * event.convert("bad") >> Either.right("try again")
-        _ * event.convert("ok") >> Either.left(12)
+        Specification._ * event.convert("bad") >> Either.right("try again")
+        Specification._ * event.convert("ok") >> Either.left(12)
 
         when:
         userInputReceiver.readAndForwardText(event)

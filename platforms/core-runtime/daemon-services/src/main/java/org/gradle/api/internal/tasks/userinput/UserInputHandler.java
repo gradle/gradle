@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import javax.annotation.Nullable;
 import java.util.function.Function;
 
-@ServiceScope(Scope.Build.class)
+@ServiceScope(Scope.BuildSession.class)
 public interface UserInputHandler {
     /**
      * Prompts the user with a yes/no question and returns the answer. Requires that the user explicitly type "yes" or "no".

@@ -29,6 +29,7 @@ dependencies {
     implementation(project(":enterprise-workers"))
     implementation(project(":cli"))
     implementation(project(":messaging"))
+    implementation(project(":daemon-protocol"))
     implementation(project(":build-configuration"))
     implementation(project(":build-option"))
     implementation(project(":native"))
@@ -50,6 +51,8 @@ dependencies {
     implementation(project(":file-watching"))
     implementation(project(":problems-api"))
     implementation(project(":problems"))
+    implementation(project(":client-services"))
+    implementation(project(":daemon-services"))
     implementation(project(":toolchains-jvm-shared"))
     implementation(project(":declarative-dsl-provider"))
 
