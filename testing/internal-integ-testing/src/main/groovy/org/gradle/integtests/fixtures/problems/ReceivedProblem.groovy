@@ -51,7 +51,7 @@ class ReceivedProblem implements Problem {
         this.details =  problemDetails['details'] as String
         this.solutions = problemDetails['solutions'] as List<String>
         this.locations = fromList(problemDetails['locations'] as List<Object>)
-        this.additionalData = problemDetails['additionalData'] as Map<String, Object>
+        this.additionalData = (problemDetails['additionalData'] as Map<String, Object>).findAll { k, v -> v != null }
         this.exception = problemDetails['exception'] == null ? null : new ReceivedException(problemDetails['exception'] as Map<String, Object>)
     }
 
