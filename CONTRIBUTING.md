@@ -102,7 +102,7 @@ though we use GitHub-flavored Markdown for internal documentation too.
 You can generate docs by running `./gradlew :docs:docs`.
 This will build the whole documentation locally in [platforms/documentation](./platforms/documentation).
 For more commands and examples, including local development,
-see [this guide](./platforms/documentation/README.md).
+see [this guide](./platforms/documentation/docs/README.md).
 
 ### Creating commits and writing commit messages
 
