@@ -4,13 +4,6 @@ plugins {
 
 description = "Configuration input discovery code"
 
-errorprone {
-    disabledChecks.addAll(
-        "HashtableContains",
-        "UnsynchronizedOverridesSynchronized", // 29 occurrences
-    )
-}
-
 dependencies {
     api(libs.jsr305)
     api(libs.guava)
