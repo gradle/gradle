@@ -21,6 +21,9 @@ import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.File;
 
+/**
+ * Carries the location of the log file for the current daemon.
+ */
 @ServiceScope(Scope.Global.class)
 public class DaemonLogFile {
     private final File file;

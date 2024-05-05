@@ -31,7 +31,7 @@ abstract class DaemonIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     void buildSucceeds() {
-        result = executer.withArguments("--info", "-S").run()
+        result = executer.withArguments("--info").run()
     }
 
     DaemonsFixture getDaemons() {

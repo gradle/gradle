@@ -16,6 +16,16 @@
 
 package org.gradle.launcher.daemon.server;
 
+/**
+ * Indicates the state of the daemon when it stops doing work.
+ */
 public enum DaemonStopState {
-    Clean, Forced
+    /**
+     * Daemon was stopped cleanly and all work stopped.
+     */
+    Clean,
+    /**
+     * Daemon could not be stopped cleanly and some work may still be running.
+     */
+    Forced
 }

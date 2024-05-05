@@ -57,8 +57,7 @@ public class ForegroundDaemonAction implements Runnable {
             daemonRegistry.markState(daemon.getAddress(), Idle);
             daemon.stopOnExpiration(expirationStrategy, configuration.getPeriodicCheckIntervalMs());
         } finally {
-            daemon.stop();
-            CompositeStoppable.stoppable(daemonProcessState).stop();
+            CompositeStoppable.stoppable(daemon, daemonProcessState).stop();
         }
     }
 }

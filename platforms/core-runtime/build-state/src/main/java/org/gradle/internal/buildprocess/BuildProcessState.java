@@ -28,7 +28,7 @@ import org.gradle.internal.service.scopes.Scope;
 import java.io.Closeable;
 
 /**
- * Encapsulates the state of a build process, such as the Gradle daemon.
+ * Encapsulates the state of a build process, such as the Gradle daemon. An instance is created for each process that runs a build.
  */
 public class BuildProcessState implements Closeable {
     private final ServiceRegistry services;
