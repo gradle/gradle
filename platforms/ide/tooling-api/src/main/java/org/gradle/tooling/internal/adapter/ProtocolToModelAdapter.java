@@ -162,17 +162,10 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
             return targetType.cast(view);
         }
 
-        Annotation[] annotations = targetType.getAnnotations();
-        Map<String, Class<?>> subInterfaces = getInterfaces(annotations);
-        Set<Class<?>> subtypes = collectSubtypes(sourceObject, subInterfaces);
-
-        List<Class<?>> supportedTypes = new ArrayList<>();
-        supportedTypes.add(viewType);
-        supportedTypes.addAll(subtypes);
-
         // Create a proxy
         InvocationHandlerImpl handler = new InvocationHandlerImpl(targetType, sourceObject, decorationsForThisType, graphDetails);
-        Object proxy = Proxy.newProxyInstance(viewType.getClassLoader(), supportedTypes.toArray(new Class<?>[0]), handler);
+        Class<?>[] modelContractInterfaces = getModelContractInterfaces(targetType, sourceObject, viewType);
+        Object proxy = Proxy.newProxyInstance(viewType.getClassLoader(), modelContractInterfaces, handler);
         handler.attachProxy(proxy);
 
         graphDetails.putViewFor(sourceObject, viewKey, proxy);
@@ -180,8 +173,33 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         return viewType.cast(proxy);
     }
 
-    private static Set<Class<?>> collectSubtypes(Object sourceObject, Map<String, Class<?>> subInterfaces) {
-        Iterable<Class<?>> interfaces = Traverser.forGraph(new SuccessorsFunction<Class<?>>() {
+    private static <T> Class<?>[] getModelContractInterfaces(Class<T> targetType, Object sourceObject, Class<? extends T> viewType) {
+        Map<String, Class<?>> potentialSubInterfaces = getPotentialModelContractSubInterfaces(targetType);
+        Set<Class<?>> actualSubInterfaces = getActualImplementedModelContractSubInterfaces(sourceObject, potentialSubInterfaces);
+
+        List<Class<?>> modelContractInterfaces = new ArrayList<>();
+        modelContractInterfaces.add(viewType); // base interface
+        modelContractInterfaces.addAll(actualSubInterfaces);
+        return modelContractInterfaces.toArray(new Class<?>[0]);
+    }
+
+    private static <T> Map<String, Class<?>> getPotentialModelContractSubInterfaces(Class<T> targetType) {
+        Annotation[] annotations = targetType.getAnnotations();
+        Map<String, Class<?>> result = new HashMap<>();
+        for (Annotation annotation : annotations) {
+            if (annotation instanceof ToolingModelContract) {
+                Class<?>[] classes = ((ToolingModelContract) annotation).subTypes();
+                for (Class<?> clazz : classes) {
+                    result.put(clazz.getName(), clazz);
+                }
+            }
+        }
+        return result;
+    }
+
+    private static Set<Class<?>> getActualImplementedModelContractSubInterfaces(Object sourceObject, Map<String, Class<?>> potentialModelContractInterfaces) {
+        // deep-traverse the source object's type hierarchy and extract all implemented interfaces
+        Iterable<Class<?>> allImplementedInterfaces = Traverser.forGraph(new SuccessorsFunction<Class<?>>() {
             @Override
             public Iterable<? extends Class<?>> successors(Class<?> node) {
                 ImmutableList.Builder<Class<?>> builder = new ImmutableList.Builder<>();
@@ -194,28 +212,16 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
             }
         }).breadthFirst(sourceObject.getClass());
 
-        Set<Class<?>> result = new HashSet<>();
-        for (Class<?> intf : interfaces) {
-            Class<?> actualSubType = subInterfaces.get(intf.getName());
+        // keep only those implemented interfaces which are in model contract set
+        Set<Class<?>> filteredImplementedInterfaces = new HashSet<>();
+        for (Class<?> i : allImplementedInterfaces) {
+            Class<?> actualSubType = potentialModelContractInterfaces.get(i.getName());
             if (actualSubType != null) {
-                result.add(actualSubType);
+                filteredImplementedInterfaces.add(actualSubType);
             }
         }
 
-        return result;
-    }
-
-    private static Map<String, Class<?>> getInterfaces(Annotation[] annotations) {
-        Map<String, Class<?>> result = new HashMap<>();
-        for (Annotation annotation : annotations) {
-            if (annotation instanceof ToolingModelContract) {
-                Class<?>[] classes = ((ToolingModelContract) annotation).subTypes();
-                for (Class<?> clazz : classes) {
-                    result.put(clazz.getName(), clazz);
-                }
-            }
-        }
-        return result;
+        return filteredImplementedInterfaces;
     }
 
     private static <T, S> T adaptToEnum(Class<T> targetType, S sourceObject) {
