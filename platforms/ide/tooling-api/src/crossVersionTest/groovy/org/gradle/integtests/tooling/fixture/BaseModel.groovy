@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.fixtures
+package org.gradle.integtests.tooling.fixture
 
-import org.gradle.tooling.BuildAction
-import org.gradle.tooling.BuildController
+import org.gradle.tooling.ToolingModelContract
 
-interface SomeToolingModel {
-    String getMessage()
+@ToolingModelContract(subTypes = [ShallowChildModel.class, DeepChildModel.class])
+interface BaseModel {
 }
 
-interface SomeToolingModelParameter {
-    String getMessagePrefix()
-    void setMessagePrefix(String value)
+interface DeepChildModel extends BaseModel {
+    String getDeepMessage()
 }
 
-class SomeToolingModelBuildAction implements BuildAction<SomeToolingModel> {
-    @Override
-    SomeToolingModel execute(BuildController controller) {
-        return controller.getModel(SomeToolingModel)
-    }
+interface ShallowChildModel extends BaseModel {
+    String getShallowMessage()
+}
+
+interface SideModel extends BaseModel {
+}
+
+interface CompositeModel {
+    BaseModel getNested()
 }

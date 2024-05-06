@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,42 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.isolated
+package org.gradle.integtests.tooling.r89
 
+import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.configurationcache.fixtures.BaseModel
-import org.gradle.configurationcache.fixtures.CompositeModel
-import org.gradle.configurationcache.fixtures.DeepChildModel
-import org.gradle.configurationcache.fixtures.ShallowChildModel
+import org.gradle.integtests.tooling.fixture.CompositeModel
+import org.gradle.integtests.tooling.fixture.DeepChildModel
+import org.gradle.integtests.tooling.fixture.ShallowChildModel
+import org.gradle.integtests.tooling.fixture.SideModel
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.integtests.tooling.fixture.BaseModel
 import org.gradle.tooling.provider.model.ToolingModelBuilder
+import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 
-class ToolingApiPolymorphismIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
+import javax.inject.Inject
+
+@ToolingApiVersion(">=8.9")
+class ToolingApiPolymorphismCrossVersionTest extends ToolingApiSpecification {
 
     def "setup"() {
-        addPluginBuildScript("plugins")
+        file("plugins/build.gradle") << """
+            plugins {
+                id("groovy-gradle-plugin")
+            }
+            gradlePlugin {
+                plugins {
+                    test {
+                        id = "my.plugin"
+                        implementationClass = "my.MyPlugin"
+                    }
+                }
+            }
+        """
 
-        groovyFile("plugins/src/main/groovy/my/MyModel.groovy", """
-            package org.gradle.configurationcache.fixtures
+        file("plugins/src/main/groovy/my/MyModel.groovy") << """
+            package org.gradle.integtests.tooling.fixture
 
             interface BaseModel {
             }
@@ -48,7 +68,7 @@ class ToolingApiPolymorphismIntegrationTest extends AbstractIsolatedProjectsTool
             abstract class AbstractModel implements DeepChildModel {
             }
 
-            class DefaultModel extends AbstractModel implements ShallowChildModel, java.io.Serializable {
+            class DefaultModel extends AbstractModel implements ShallowChildModel, SideModel, java.io.Serializable {
                 private final String message
                 DefaultModel(String message) { this.message = message }
                 String getShallowMessage() { "shallow " + message }
@@ -61,12 +81,11 @@ class ToolingApiPolymorphismIntegrationTest extends AbstractIsolatedProjectsTool
                 DefaultCompositeModel(DefaultModel nested) { this.nested = nested }
                 BaseModel getNested() { nested }
             }
-        """)
+        """
     }
 
     def "supports model polymorphism"() {
         given:
-
         file("plugins/src/main/groovy/my/MyModelBuilder.groovy") << """
             package my
 
@@ -79,7 +98,7 @@ class ToolingApiPolymorphismIntegrationTest extends AbstractIsolatedProjectsTool
                 }
                 Object buildAll(String modelName, Project project) {
                     println("creating model for \$project")
-                    return new org.gradle.configurationcache.fixtures.DefaultModel("poly from '" + project.name + "'")
+                    return new org.gradle.integtests.tooling.fixture.DefaultModel("poly from '" + project.name + "'")
                 }
             }
         """.stripIndent()
@@ -97,28 +116,32 @@ class ToolingApiPolymorphismIntegrationTest extends AbstractIsolatedProjectsTool
         """
 
         when:
-        def model = fetchModel(BaseModel)
+        def model = toolingApi.withConnection() { connection -> connection.getModel(BaseModel) }
 
         then:
         model != null
+
         model instanceof BaseModel
+
         model instanceof ShallowChildModel
         ((ShallowChildModel) model).getShallowMessage() == "shallow poly from 'root'"
+
         model instanceof DeepChildModel
         ((DeepChildModel) model).getDeepMessage() == "deep poly from 'root'"
+
+        !(model instanceof SideModel)
     }
 
     def "supports nested model polymorphism"() {
         given:
-
         file("plugins/src/main/groovy/my/MyModelBuilder.groovy") << """
             package my
 
             import ${ToolingModelBuilder.name}
             import ${Project.name}
 
-            import org.gradle.configurationcache.fixtures.DefaultCompositeModel
-            import org.gradle.configurationcache.fixtures.DefaultModel
+            import org.gradle.integtests.tooling.fixture.DefaultCompositeModel
+            import org.gradle.integtests.tooling.fixture.DefaultModel
 
             class MyModelBuilder implements ToolingModelBuilder {
                 boolean canBuild(String modelName) {
@@ -144,14 +167,41 @@ class ToolingApiPolymorphismIntegrationTest extends AbstractIsolatedProjectsTool
         """
 
         when:
-        def model = fetchModel(CompositeModel).nested
+        def model = toolingApi.withConnection() { connection -> connection.getModel(CompositeModel) }.nested
 
         then:
         model != null
+
         model instanceof BaseModel
+
         model instanceof ShallowChildModel
         ((ShallowChildModel) model).getShallowMessage() == "shallow poly from 'root'"
+
         model instanceof DeepChildModel
         ((DeepChildModel) model).getDeepMessage() == "deep poly from 'root'"
+
+        !(model instanceof SideModel)
     }
+
+    private void addBuilderRegisteringPluginImplementation(String targetBuildName, String builderClassName, String content = "") {
+        file("$targetBuildName/src/main/groovy/my/MyPlugin.groovy") << """
+            package my
+
+            import ${Project.name}
+            import ${Plugin.name}
+            import ${Inject.name}
+            import ${ToolingModelBuilderRegistry.name}
+
+            abstract class MyPlugin implements Plugin<Project> {
+                void apply(Project project) {
+                    $content
+                    registry.register(new my.$builderClassName())
+                }
+
+                @Inject
+                abstract ToolingModelBuilderRegistry getRegistry()
+            }
+        """.stripIndent()
+    }
+
 }
