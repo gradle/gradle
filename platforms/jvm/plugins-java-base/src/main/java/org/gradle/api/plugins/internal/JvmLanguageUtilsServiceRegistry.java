@@ -20,7 +20,10 @@ import org.gradle.api.plugins.jvm.internal.DefaultJvmLanguageUtilities;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 
-public class JvmPluginServiceRegistry extends AbstractPluginServiceRegistry {
+/**
+ * Registers services containing utilities used by projects that compile JVM language source.
+ */
+public class JvmLanguageUtilsServiceRegistry extends AbstractPluginServiceRegistry {
     @Override
     public void registerProjectServices(ServiceRegistration registration) {
         registration.add(DefaultJvmLanguageUtilities.class);
