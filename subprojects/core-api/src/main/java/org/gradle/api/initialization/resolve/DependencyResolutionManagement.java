@@ -48,7 +48,47 @@ public interface DependencyResolutionManagement {
     RepositoryHandler getRepositories();
 
     @Incubating
+    @Restricted
     Property<RepositoriesMode> getRepositoriesMode();
+
+    /**
+     * Returns the {@link RepositoriesMode#PREFER_PROJECT} repositories mode type to be used in Declarative
+     * Gradle files.
+     *
+     * @return {@link RepositoriesMode#PREFER_PROJECT}
+     * @since 8.9
+     */
+    @Incubating
+    @Restricted
+    default RepositoriesMode preferProject() {
+        return RepositoriesMode.PREFER_PROJECT;
+    }
+
+    /**
+     * Returns the {@link RepositoriesMode#PREFER_SETTINGS} repositories mode type to be used in Declarative
+     * Gradle files.
+     *
+     * @return {@link RepositoriesMode#PREFER_SETTINGS}
+     * @since 8.9
+     */
+    @Incubating
+    @Restricted
+    default RepositoriesMode preferSettings() {
+        return RepositoriesMode.PREFER_SETTINGS;
+    }
+
+    /**
+     * Returns the {@link RepositoriesMode#FAIL_ON_PROJECT_REPOS} repositories mode type to be used in Declarative
+     * Gradle files.
+     *
+     * @return {@link RepositoriesMode#FAIL_ON_PROJECT_REPOS}
+     * @since 8.9
+     */
+    @Incubating
+    @Restricted
+    default RepositoriesMode failOnProjectRepos() {
+        return RepositoriesMode.FAIL_ON_PROJECT_REPOS;
+    }
 
     /**
      * Registers component metadata rules used by all projects

@@ -283,6 +283,30 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
         failure.assertHasCause("Class SoftwareTypeImplPlugin.AnotherSoftwareTypeExtension is private.")
     }
 
+    def 'can configure RepositoriesMode in settings'() {
+        given:
+        file("settings.gradle.dcl") << """
+            dependencyResolutionManagement {
+                repositoriesMode = failOnProjectRepos()
+                repositories {
+                    google()
+                }
+            }
+            rootProject.name = "example"
+        """
+
+        file("build.gradle.kts") << """
+            repositories {
+                mavenCentral()
+            }
+        """
+
+        expect:
+        fails(":build").with {
+            assertHasErrorOutput("Build was configured to prefer settings repositories over project repositories but repository 'MavenRepo' was added by build file 'build.gradle.kts'")
+        }
+    }
+
     static String getPluginsFromIncludedBuild() {
         return """
             pluginManagement {
