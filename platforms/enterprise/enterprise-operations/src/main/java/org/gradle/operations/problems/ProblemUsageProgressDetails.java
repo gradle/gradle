@@ -16,9 +16,12 @@
 
 package org.gradle.operations.problems;
 
+import org.gradle.api.NonNullApi;
+
 import javax.annotation.Nullable;
 import java.util.List;
 
+@NonNullApi
 public interface ProblemUsageProgressDetails {
 
     ProblemDefinition getProblemDefinition();
@@ -51,6 +54,7 @@ public interface ProblemUsageProgressDetails {
     @Nullable
     Throwable getFailure();
 
+    @NonNullApi
     interface ProblemDefinition {
         ProblemId getId();
         String getSeverity();
@@ -58,17 +62,20 @@ public interface ProblemUsageProgressDetails {
         DocumentationLink getDocumentationLink();
     }
 
+    @NonNullApi
     interface ProblemId {
         String getId();
         String getDisplayName();
         List<ProblemGroup> getGroup();
     }
 
+    @NonNullApi
     interface ProblemGroup {
         String getId();
         String getDisplayName();
     }
 
+    @NonNullApi
     interface DocumentationLink {
         /**
          * The URL to the documentation page.
@@ -84,10 +91,12 @@ public interface ProblemUsageProgressDetails {
         String getConsultDocumentationMessage();
     }
 
+    @NonNullApi
     interface ProblemLocation {
         String getDisplayName();
     }
 
+    @NonNullApi
     interface PluginIdLocation extends ProblemLocation {
         /**
          * The plugin ID.
@@ -97,6 +106,7 @@ public interface ProblemUsageProgressDetails {
         String getPluginId();
     }
 
+    @NonNullApi
     interface FileLocation extends ProblemLocation {
         // TODO: Add getFileType() - build logic file, software definition, application code
         /**
@@ -107,6 +117,7 @@ public interface ProblemUsageProgressDetails {
         String getPath();
     }
 
+    @NonNullApi
     interface OffsetInFileLocation extends FileLocation {
         /**
          * The global offset from the beginning of the file.
@@ -123,6 +134,7 @@ public interface ProblemUsageProgressDetails {
         int getLength();
     }
 
+    @NonNullApi
     interface LineInFileLocation extends FileLocation {
         /**
          * The line number within the file.
@@ -154,9 +166,9 @@ public interface ProblemUsageProgressDetails {
         Integer getLength();
     }
 
+    @NonNullApi
     interface TaskPathLocation extends ProblemLocation {
         String getBuildPath();
         String getPath();
     }
-
 }

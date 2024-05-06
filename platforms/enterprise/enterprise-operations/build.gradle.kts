@@ -10,5 +10,5 @@ dependencies {
 
     api(libs.jsr305)
 
-    implementation(projects.javaLanguageExtensions)
+    api(projects.javaLanguageExtensions)
 }

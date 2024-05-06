@@ -31,6 +31,7 @@ import java.util.Collection;
  */
 public interface GradleEnterprisePluginEndOfBuildListener {
 
+
     interface BuildResult {
         @Nullable
         Throwable getFailure();

@@ -138,7 +138,9 @@ public class DefaultProblemProgressDetails implements ProblemProgressDetails, Pr
         private static class DevelocityProblemGroup implements ProblemGroup {
             private final org.gradle.api.problems.ProblemGroup currentGroup;
 
-            public DevelocityProblemGroup(org.gradle.api.problems.ProblemGroup currentGroup) {this.currentGroup = currentGroup;}
+            public DevelocityProblemGroup(org.gradle.api.problems.ProblemGroup currentGroup) {
+                this.currentGroup = currentGroup;
+            }
 
             @Override
             public String getId() {
@@ -154,7 +156,9 @@ public class DefaultProblemProgressDetails implements ProblemProgressDetails, Pr
         private static class DevelocityDocumentationLink implements DocumentationLink {
             private final DocLink documentationLink;
 
-            public DevelocityDocumentationLink(DocLink documentationLink) {this.documentationLink = documentationLink;}
+            public DevelocityDocumentationLink(DocLink documentationLink) {
+                this.documentationLink = documentationLink;
+            }
 
             @Nullable
             @Override
@@ -173,7 +177,9 @@ public class DefaultProblemProgressDetails implements ProblemProgressDetails, Pr
     private static class DevelocityProblemLocation implements ProblemLocation {
         private final org.gradle.api.problems.internal.ProblemLocation location;
 
-        public DevelocityProblemLocation(org.gradle.api.problems.internal.ProblemLocation location) {this.location = location;}
+        public DevelocityProblemLocation(org.gradle.api.problems.internal.ProblemLocation location) {
+            this.location = location;
+        }
 
         @Override
         public String getDisplayName() {
