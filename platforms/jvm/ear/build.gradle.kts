@@ -37,8 +37,6 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.commonsLang)
 
-    runtimeOnly(project(":plugins"))
-
     testImplementation(project(":base-services-groovy"))
     testImplementation(testFixtures(project(":core")))
     testImplementation(project(":native"))

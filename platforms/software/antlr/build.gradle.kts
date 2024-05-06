@@ -34,7 +34,6 @@ dependencies {
     }
 
     runtimeOnly(project(":language-jvm"))
-    runtimeOnly(project(":plugins"))
     runtimeOnly(project(":workers"))
 
     testImplementation(project(":base-services-groovy"))
