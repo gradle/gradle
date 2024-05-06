@@ -112,6 +112,14 @@ class ReceivedProblem implements Problem {
         locations
     }
 
+    <T extends ProblemLocation> T getSingleLocation(Class<T> locationType) {
+        def location = locations.find {
+            locationType.isInstance(it)
+        }
+        assert location != null : "Expected a location of type $locationType, but found none."
+        return locationType.cast(location)
+    }
+
     @Override
     Map<String, Object> getAdditionalData() {
        additionalData

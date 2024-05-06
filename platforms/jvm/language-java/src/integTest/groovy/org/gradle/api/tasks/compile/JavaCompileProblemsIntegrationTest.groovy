@@ -18,6 +18,7 @@ package org.gradle.api.tasks.compile
 
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
+import org.gradle.api.JavaVersion
 import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.FileLocation
 import org.gradle.api.problems.internal.LineInFileLocation
@@ -237,14 +238,15 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    def "the compiler flag -Werror correctly reports"() {
+    def "the compiler flag -Werror correctly reports problems"() {
         given:
         buildFile << "tasks.compileJava.options.compilerArgs += ['-Werror']"
-        possibleFileLocations.put(writeJavaCausingTwoCompilationWarnings("Foo"), 3)
+
+        def fooFileLocation = writeJavaCausingTwoCompilationWarnings("Foo")
+        possibleFileLocations.put(fooFileLocation, 3)
 
         when:
         fails("compileJava")
-
 
         then:
         // 2 warnings + 1 special error
@@ -254,22 +256,42 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
             fqid == 'compilation:java:java-compilation-error'
             details == 'warnings found and -Werror specified'
             solutions.empty
-            additionalData.isEmpty()
+            additionalData["formatted"] == "error: warnings found and -Werror specified"
         }
+
+        // Based on the Java version, the types in the lint message will differ...
+        String expectedType
+        if (JavaVersion.current().isJava9Compatible()) {
+            expectedType = "String"
+        } else {
+            expectedType = "java.lang.String"
+        }
+
         // The two expected warnings are still reported as warnings
         verifyAll(receivedProblem(1)) {
             assertProblem(it, "WARNING", true)
             fqid == 'compilation:java:java-compilation-warning'
             details == 'redundant cast to java.lang.String'
             solutions.empty
-            additionalData.isEmpty()
+            verifyAll(getSingleLocation(ReceivedProblem.ReceivedFileLocation)) {
+                it.path == fooFileLocation
+            }
+            verifyAll(getSingleLocation(ReceivedProblem.ReceivedLineInFileLocation)) {
+                it.line == 5
+                it.length == 21
+            }
+            additionalData["formatted"] == """$fooFileLocation:5: warning: [cast] redundant cast to $expectedType
+                    String s = (String)"Hello World";
+                               ^"""
         }
         verifyAll(receivedProblem(2)) {
             assertProblem(it, "WARNING", true)
             fqid == 'compilation:java:java-compilation-warning'
             details == 'redundant cast to java.lang.String'
             solutions.empty
-            additionalData.isEmpty()
+            additionalData["formatted"] == """${fooFileLocation}:10: warning: [cast] redundant cast to $expectedType
+                    String s = (String)"Hello World";
+                               ^"""
         }
     }
 
