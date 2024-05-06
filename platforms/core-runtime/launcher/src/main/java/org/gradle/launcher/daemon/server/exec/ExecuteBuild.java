@@ -82,7 +82,7 @@ public class ExecuteBuild extends BuildCommandOnly {
                         }
                         return args.stream();
                     }).collect(Collectors.toList());
-                    System.out.println("taskNames: " + taskNames);
+//                    System.out.println("taskNames: " + taskNames);
                     build.getAction().getStartParameter().setTaskNames(taskNames);
                 }
             }

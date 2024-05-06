@@ -29,6 +29,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -51,8 +52,8 @@ public class InstantReplaySomething {
                 List<String> requestedTasks = (List<String>) gradleAttributesJson.get("requestedTasks");
 
                 Map<String, ?> testsJson = buildScanTestFailures(buildScanUrl, id, token);
-                Map<String, ?> data = (Map<String, ?>)testsJson.get("data");
-                List<Map<String, ?>> tests = (List<Map<String, ?>>)data.get("tests");
+                Map<String, Object> data = (Map<String, Object>)testsJson.get("data");
+                List<Map<String, ?>> tests = (List<Map<String, ?>>)data.getOrDefault("tests", Collections.emptyList());
                 List<BuildInstantReplay.TestFailure> testFailures = tests.stream().filter(test -> (int)test.get("outcome") == 2).map(test -> {
                     String taskPath = (String)test.get("workUnitName");
                     String testClass = (String)test.get("suiteName");
@@ -68,14 +69,14 @@ public class InstantReplaySomething {
     }
 
     private static Map<String, ?> buildScanGradleAttributes(URI buildScanUrl, String id, String token) throws URISyntaxException, IOException {
-        LOGGER.warn("Retrieving build attributes for build scan id {} using token {}", id, token.substring(0, 16));
+//        LOGGER.warn("Retrieving build attributes for build scan id {} using token {}", id, token.substring(0, 16));
 
         URL buildScanData = new URI(buildScanUrl.getScheme(), buildScanUrl.getHost(), "/api/builds/" + id + "/gradle-attributes", null).toURL();
         return getJson(token, buildScanData);
     }
 
     private static Map<String, ?> buildScanTestFailures(URI buildScanUrl, String id, String token) throws URISyntaxException, IOException {
-        LOGGER.warn("Retrieving failed tests for build scan id {} using token {}", id, token.substring(0, 16));
+//        LOGGER.warn("Retrieving failed tests for build scan id {} using token {}", id, token.substring(0, 16));
 
         // https://ge.gradle.org/scan-data/gradle/xc5mnhehiacoo/tests
         URL buildScanData = new URI(buildScanUrl.getScheme(), buildScanUrl.getHost(), "/scan-data/gradle/" + id + "/tests", null).toURL();
@@ -88,7 +89,7 @@ public class InstantReplaySomething {
         uc.setRequestProperty ("Authorization", basicAuth);
         try (InputStream in = uc.getInputStream()) {
             Object json = new JsonSlurper().parse(in);
-            LOGGER.warn(json.toString());
+//            LOGGER.warn(json.toString());
             return Cast.uncheckedCast(json);
         }
     }
