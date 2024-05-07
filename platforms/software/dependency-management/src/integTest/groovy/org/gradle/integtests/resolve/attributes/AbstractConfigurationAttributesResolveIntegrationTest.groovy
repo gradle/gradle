@@ -680,7 +680,7 @@ All of them match the consumer attributes:
 
         then:
         failure.assertHasCause """No matching variant of project :b was found. The consumer was configured to find attribute 'buildType' with value 'debug', attribute 'flavor' with value 'free' but:
-  - No variants were found."""
+  - No variants exist."""
     }
 
     def "does not select explicit configuration when it's not consumable"() {

@@ -19,7 +19,6 @@ package org.gradle.internal.component.model;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.capabilities.Capability;
@@ -157,11 +156,10 @@ public class GraphVariantSelector {
     public VariantGraphResolveState selectLegacyConfiguration(ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema) {
         VariantGraphResolveState conf = targetComponentState.getCandidatesForGraphVariantSelection().getLegacyVariant();
         if (conf == null) {
-            // TODO: We should have a better failure message here.
             // We wanted to do variant matching, but there were no variants in the target component.
             // So, we fell back to looking for the legacy (`default`) configuration, but it didn't exist.
-            // We should say that instead of failing with `A dependency was declared on configuration 'default' ...`
-            throw failureProcessor.configurationNotFoundFailure(targetComponentState.getId(), Dependency.DEFAULT_CONFIGURATION);
+            // So, there are no variants to select from, and selection fails here.
+            throw failureProcessor.noVariantsExistFailure(consumerSchema, consumerAttributes, targetComponentState.getId());
         }
 
         validateVariantAttributes(conf, consumerAttributes, targetComponentState, consumerSchema);
