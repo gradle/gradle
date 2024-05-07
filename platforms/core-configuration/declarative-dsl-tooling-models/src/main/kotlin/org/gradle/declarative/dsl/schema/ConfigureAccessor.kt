@@ -14,12 +14,27 @@
  * limitations under the License.
  */
 
-package org.gradle.declarative.dsl.schema;
+package org.gradle.declarative.dsl.schema
 
-import java.io.Serializable;
+import java.io.Serializable
 
-public interface ConfigureAccessor extends Serializable {
 
-    DataTypeRef getObjectType();
+sealed interface ConfigureAccessor : Serializable {
+    val objectType: DataTypeRef
 
+    interface Property : ConfigureAccessor {
+        val dataProperty: DataProperty
+
+        override val objectType: DataTypeRef
+            get() = dataProperty.valueType
+    }
+
+    interface Custom : ConfigureAccessor {
+        val customAccessorIdentifier: String
+    }
+
+    interface ConfiguringLambdaArgument : ConfigureAccessor
+
+    // TODO: configure all elements by addition key?
+    // TODO: Do we want to support configuring external objects?
 }

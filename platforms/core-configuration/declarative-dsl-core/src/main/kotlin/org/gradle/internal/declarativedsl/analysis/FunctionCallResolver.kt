@@ -1,8 +1,11 @@
 package org.gradle.internal.declarativedsl.analysis
 
+import org.gradle.declarative.dsl.schema.DataBuilderFunction
+import org.gradle.declarative.dsl.schema.DataMemberFunction
 import org.gradle.declarative.dsl.schema.DataParameter
 import org.gradle.declarative.dsl.schema.DataType
 import org.gradle.declarative.dsl.schema.FunctionSemantics
+import org.gradle.declarative.dsl.schema.ParameterSemantics
 import org.gradle.declarative.dsl.schema.SchemaFunction
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.analysis.FunctionCallResolver.FunctionResolutionAndBinding
@@ -223,7 +226,7 @@ class FunctionCallResolverImpl(
         }
         function.binding.binding.forEach { (param, arg) ->
             val paramSemantics = param.semantics
-            if (paramSemantics is ParameterSemanticsInternal.StoreValueInProperty) {
+            if (paramSemantics is ParameterSemantics.StoreValueInProperty) {
                 val property = paramSemantics.dataProperty
                 recordAssignment(PropertyReferenceResolution(result, property), argResolutions.getValue(arg), assignmentMethod, call)
             }
@@ -241,7 +244,7 @@ class FunctionCallResolverImpl(
 
             val parameter = function.schemaFunction.parameters.singleOrNull()
                 ?: error("builder functions must have a single parameter")
-            parameter.semantics as? ParameterSemanticsInternal.StoreValueInProperty
+            parameter.semantics as? ParameterSemantics.StoreValueInProperty
                 ?: error("a builder function must assign its parameter to a property")
         }
     }
@@ -283,7 +286,7 @@ class FunctionCallResolverImpl(
     ): ObjectOrigin.AccessAndConfigureReceiver {
         require(function.receiver != null)
         require(functionCall.args.all { it is FunctionArgument.Lambda })
-        return ObjectOrigin.AccessAndConfigureReceiver(function.receiver, function.schemaFunction, functionCall, binding, newFunctionCallId, semantics.accessor as ConfigureAccessorInternal)
+        return ObjectOrigin.AccessAndConfigureReceiver(function.receiver, function.schemaFunction, functionCall, binding, newFunctionCallId, semantics.accessor)
     }
 
     private

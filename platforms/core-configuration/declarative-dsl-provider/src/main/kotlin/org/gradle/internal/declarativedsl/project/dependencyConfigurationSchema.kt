@@ -33,10 +33,10 @@ import org.gradle.internal.declarativedsl.schemaBuilder.toDataTypeRef
 internal
 class DependencyCollectorsComponent : EvaluationSchemaComponent {
     private
-    val gavDependencyParam = DefaultDataParameter("dependency", String::class.toDataTypeRef(), false, ParameterSemanticsInternal.Unknown)
+    val gavDependencyParam = DefaultDataParameter("dependency", String::class.toDataTypeRef(), false, ParameterSemanticsInternal.DefaultUnknown)
 
     private
-    val projectDependencyParam = DefaultDataParameter("dependency", ProjectDependency::class.toDataTypeRef(), false, ParameterSemanticsInternal.Unknown)
+    val projectDependencyParam = DefaultDataParameter("dependency", ProjectDependency::class.toDataTypeRef(), false, ParameterSemanticsInternal.DefaultUnknown)
 
     private
     val dependencyCollectorFunctionExtractorAndRuntimeResolver = DependencyCollectorFunctionExtractorAndRuntimeResolver(gavDependencyParam, projectDependencyParam)

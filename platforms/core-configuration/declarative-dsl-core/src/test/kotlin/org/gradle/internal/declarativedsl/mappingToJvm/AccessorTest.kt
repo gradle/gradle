@@ -18,11 +18,12 @@ package org.gradle.internal.declarativedsl.mappingToJvm
 
 import org.gradle.declarative.dsl.model.annotations.Configuring
 import org.gradle.declarative.dsl.model.annotations.Restricted
+import org.gradle.declarative.dsl.schema.ConfigureAccessor
 import org.gradle.declarative.dsl.schema.DataConstructor
-import org.gradle.internal.declarativedsl.analysis.DataMemberFunction
 import org.gradle.declarative.dsl.schema.DataTopLevelFunction
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.analysis.ConfigureAccessorInternal
+import org.gradle.internal.declarativedsl.analysis.DefaultDataMemberFunction
 import org.gradle.internal.declarativedsl.analysis.DefaultFunctionSemantics
 import org.gradle.internal.declarativedsl.demo.resolve
 import org.gradle.internal.declarativedsl.schemaBuilder.DataSchemaBuilder
@@ -70,7 +71,7 @@ object AccessorTest {
 
     // don't make this private, will produce failures on Java 8 (due to https://youtrack.jetbrains.com/issue/KT-37660)
     val runtimeCustomAccessors = object : RuntimeCustomAccessors {
-        override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessorInternal.Custom): Any? =
+        override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessor.Custom): Any? =
             if (receiverObject is MyReceiver && accessor.customAccessorIdentifier == "test")
                 receiverObject.myHiddenInstance
             else null
@@ -81,12 +82,12 @@ object AccessorTest {
         override fun memberFunctions(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<SchemaMemberFunction> =
             if (kClass == MyReceiver::class) {
                 listOf(
-                    DataMemberFunction(
+                    DefaultDataMemberFunction(
                         MyReceiver::class.toDataTypeRef(),
                         "configureCustomInstance",
                         emptyList(),
                         false,
-                        DefaultFunctionSemantics.DefaultAccessAndConfigure(ConfigureAccessorInternal.Custom(Configured::class.toDataTypeRef(), "test"),
+                        DefaultFunctionSemantics.DefaultAccessAndConfigure(ConfigureAccessorInternal.DefaultCustom(Configured::class.toDataTypeRef(), "test"),
                             DefaultFunctionSemantics.DefaultAccessAndConfigure.DefaultReturnType.DefaultUnit)
                     )
                 )

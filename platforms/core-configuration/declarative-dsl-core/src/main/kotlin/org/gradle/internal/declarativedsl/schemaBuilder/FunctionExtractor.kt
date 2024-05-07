@@ -20,17 +20,18 @@ import org.gradle.declarative.dsl.model.annotations.AccessFromCurrentReceiverOnl
 import org.gradle.declarative.dsl.model.annotations.Adding
 import org.gradle.declarative.dsl.model.annotations.Builder
 import org.gradle.declarative.dsl.model.annotations.Configuring
-import org.gradle.internal.declarativedsl.analysis.DataBuilderFunction
 import org.gradle.declarative.dsl.schema.DataConstructor
-import org.gradle.internal.declarativedsl.analysis.DefaultDataConstructor
-import org.gradle.internal.declarativedsl.analysis.DataMemberFunction
 import org.gradle.declarative.dsl.schema.DataParameter
-import org.gradle.internal.declarativedsl.analysis.DefaultDataParameter
 import org.gradle.declarative.dsl.schema.DataTopLevelFunction
 import org.gradle.declarative.dsl.schema.FunctionSemantics
-import org.gradle.internal.declarativedsl.analysis.DefaultDataTopLevelFunction
+import org.gradle.declarative.dsl.schema.ParameterSemantics
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.analysis.ConfigureAccessorInternal
+import org.gradle.internal.declarativedsl.analysis.DefaultDataBuilderFunction
+import org.gradle.internal.declarativedsl.analysis.DefaultDataConstructor
+import org.gradle.internal.declarativedsl.analysis.DefaultDataMemberFunction
+import org.gradle.internal.declarativedsl.analysis.DefaultDataParameter
+import org.gradle.internal.declarativedsl.analysis.DefaultDataTopLevelFunction
 import org.gradle.internal.declarativedsl.analysis.DefaultFunctionSemantics
 import org.gradle.internal.declarativedsl.analysis.ParameterSemanticsInternal
 import kotlin.reflect.KClass
@@ -131,14 +132,14 @@ class DefaultFunctionExtractor(
         val isDirectAccessOnly = function.annotations.any { it is AccessFromCurrentReceiverOnly }
 
         return if (semanticsFromSignature is FunctionSemantics.Builder) {
-            DataBuilderFunction(
+            DefaultDataBuilderFunction(
                 thisTypeRef,
                 function.name,
                 isDirectAccessOnly,
                 params.single(),
             )
         } else {
-            DataMemberFunction(
+            DefaultDataMemberFunction(
                 thisTypeRef,
                 function.name,
                 params,
@@ -208,7 +209,7 @@ class DefaultFunctionExtractor(
         fnParam: KParameter,
         returnClass: KClass<*>,
         preIndex: DataSchemaBuilder.PreIndex
-    ): ParameterSemanticsInternal {
+    ): ParameterSemantics {
         val propertyNamesToCheck = buildList {
             if (functionSemantics is FunctionSemantics.Builder) add(function.name)
             if (functionSemantics is FunctionSemantics.NewObjectFunctionSemantics) fnParam.name?.let(::add)
@@ -218,10 +219,10 @@ class DefaultFunctionExtractor(
                 preIndex.getAllProperties(returnClass).any { it.name == propertyName }
             if (isPropertyLike) {
                 val storeProperty = checkNotNull(preIndex.getProperty(returnClass, propertyName))
-                return ParameterSemanticsInternal.StoreValueInProperty(storeProperty)
+                return ParameterSemanticsInternal.DefaultStoreValueInProperty(storeProperty)
             }
         }
-        return ParameterSemanticsInternal.Unknown
+        return ParameterSemanticsInternal.DefaultUnknown
     }
 
     private
@@ -279,7 +280,10 @@ class DefaultFunctionExtractor(
                     else -> error("cannot infer the return type of a configuring function; it must be Unit or the configured object type")
                 }
                 check(function.parameters.filter { it != function.instanceParameter }.size == 1) { "a configuring function may not accept any other parameters" }
-                val accessor = if (property != null) ConfigureAccessorInternal.Property(property) else ConfigureAccessorInternal.ConfiguringLambdaArgument(configuredType.toDataTypeRefOrError())
+                val accessor = when {
+                    property != null -> ConfigureAccessorInternal.DefaultProperty(property)
+                    else -> ConfigureAccessorInternal.DefaultConfiguringLambdaArgument(configuredType.toDataTypeRefOrError())
+                }
                 DefaultFunctionSemantics.DefaultAccessAndConfigure(accessor, returnType)
             }
 

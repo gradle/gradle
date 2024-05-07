@@ -14,18 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.declarative.dsl.schema;
+package org.gradle.declarative.dsl.schema
 
-import java.io.Serializable;
 
-public interface DataParameter extends Serializable {
-
-    String getName();
-
-    DataTypeRef getType();
-
-    boolean isDefault();
-
-    ParameterSemantics getSemantics();
-
+interface DataTopLevelFunction : SchemaFunction {
+    val packageName: String
+    override val simpleName: String
+    override val parameters: List<DataParameter>
+    override val semantics: FunctionSemantics.Pure
 }

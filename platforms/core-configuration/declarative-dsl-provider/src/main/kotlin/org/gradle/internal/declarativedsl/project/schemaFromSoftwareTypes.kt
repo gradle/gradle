@@ -17,10 +17,11 @@
 package org.gradle.internal.declarativedsl.project
 
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.declarative.dsl.schema.ConfigureAccessor
 import org.gradle.declarative.dsl.schema.DataConstructor
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.analysis.ConfigureAccessorInternal
-import org.gradle.internal.declarativedsl.analysis.DataMemberFunction
+import org.gradle.internal.declarativedsl.analysis.DefaultDataMemberFunction
 import org.gradle.internal.declarativedsl.analysis.DefaultFunctionSemantics
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaComponent
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeCustomAccessors
@@ -71,13 +72,13 @@ data class SoftwareTypeInfo(
 ) : SoftwareTypeImplementation by delegate {
     val customAccessorId = "$accessorIdPrefix:${delegate.softwareType}"
 
-    val schemaFunction = DataMemberFunction(
+    val schemaFunction = DefaultDataMemberFunction(
         ProjectTopLevelReceiver::class.toDataTypeRef(),
         delegate.softwareType,
         emptyList(),
         isDirectAccessOnly = true,
         semantics = DefaultFunctionSemantics.DefaultAccessAndConfigure(
-            accessor = ConfigureAccessorInternal.Custom(delegate.modelPublicType.kotlin.toDataTypeRef(), customAccessorId),
+            accessor = ConfigureAccessorInternal.DefaultCustom(delegate.modelPublicType.kotlin.toDataTypeRef(), customAccessorId),
             DefaultFunctionSemantics.DefaultAccessAndConfigure.DefaultReturnType.DefaultUnit
         )
     )
@@ -100,6 +101,6 @@ class RuntimeModelTypeAccessors(info: List<SoftwareTypeInfo>) : RuntimeCustomAcc
 
     val modelTypeById = info.associate { it.customAccessorId to it.extensionProvider }
 
-    override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessorInternal.Custom): Any? =
+    override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessor.Custom): Any? =
         modelTypeById[accessor.customAccessorIdentifier]?.invoke(receiverObject)
 }

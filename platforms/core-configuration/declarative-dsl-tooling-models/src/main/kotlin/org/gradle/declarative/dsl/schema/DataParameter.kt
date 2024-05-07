@@ -14,12 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.declarative.dsl.schema;
+package org.gradle.declarative.dsl.schema
 
-public interface SchemaMemberFunction extends SchemaFunction {
+import java.io.Serializable
 
-    DataTypeRef getReceiver();
 
-    boolean isDirectAccessOnly();
+interface DataParameter : Serializable {
 
+    val name: String?
+
+    val type: DataTypeRef
+
+    val isDefault: Boolean
+
+    val semantics: ParameterSemantics
 }

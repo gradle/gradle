@@ -136,7 +136,7 @@ fun prettyStringFromReflection(objectReflection: ObjectReflection): String {
                 }
             }
 
-            is ObjectReflection.External -> append("(external ${current.key.type}})")
+            is ObjectReflection.External -> append("(external ${current.key.objectType}})")
             is ObjectReflection.PureFunctionInvocation -> {
                 append(current.objectOrigin.function.simpleName)
                 append("#" + current.objectOrigin.invocationId)

@@ -16,22 +16,22 @@
 
 package org.gradle.internal.declarativedsl.mappingToJvm
 
-import org.gradle.internal.declarativedsl.analysis.ConfigureAccessorInternal
+import org.gradle.declarative.dsl.schema.ConfigureAccessor
 
 
 interface RuntimeCustomAccessors {
-    fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessorInternal.Custom): Any?
+    fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessor.Custom): Any?
 
     companion object {
         val none: RuntimeCustomAccessors = object : RuntimeCustomAccessors {
-            override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessorInternal.Custom): Any? = null
+            override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessor.Custom): Any? = null
         }
     }
 }
 
 
 class CompositeCustomAccessors(private val implementations: List<RuntimeCustomAccessors>) : RuntimeCustomAccessors {
-    override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessorInternal.Custom): Any? {
+    override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessor.Custom): Any? {
         implementations.forEach {
             val result = it.getObjectFromCustomAccessor(receiverObject, accessor)
             if (result != null)

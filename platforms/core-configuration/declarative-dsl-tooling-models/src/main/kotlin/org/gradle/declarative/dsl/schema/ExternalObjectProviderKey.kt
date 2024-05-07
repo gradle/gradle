@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.declarative.dsl.schema;
+package org.gradle.declarative.dsl.schema
 
-public interface DataConstructor extends SchemaFunction {
+import java.io.Serializable
 
-    DataTypeRef getDataClass();
 
+interface ExternalObjectProviderKey : Serializable {
+    val objectType: DataTypeRef
 }

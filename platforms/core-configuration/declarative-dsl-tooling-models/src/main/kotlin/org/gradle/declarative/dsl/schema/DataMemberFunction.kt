@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.declarative.dsl.schema;
+package org.gradle.declarative.dsl.schema
 
-public interface DataTopLevelFunction extends SchemaFunction {
 
-    String getPackageName();
-
+interface DataMemberFunction : SchemaMemberFunction {
+    override val receiver: DataTypeRef
+    override val simpleName: String
+    override val parameters: List<DataParameter>
+    override val isDirectAccessOnly: Boolean
+    override val semantics: FunctionSemantics
 }

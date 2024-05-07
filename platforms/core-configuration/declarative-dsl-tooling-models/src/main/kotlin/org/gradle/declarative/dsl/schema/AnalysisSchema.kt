@@ -14,18 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.declarative.dsl.schema;
+package org.gradle.declarative.dsl.schema
 
-import java.io.Serializable;
+import java.io.Serializable
 
-public interface ParameterSemantics extends Serializable {
 
-    default boolean isStoreValueInProperty() {
-        return false;
-    }
-
-    default DataProperty getDataProperty() {
-        throw new UnsupportedOperationException("Not store value in property semantics");
-    }
-
+interface AnalysisSchema : Serializable {
+    val topLevelReceiverType: DataClass
+    val dataClassesByFqName: Map<FqName, DataClass>
+    val externalFunctionsByFqName: Map<FqName, DataTopLevelFunction>
+    val externalObjectsByFqName: Map<FqName, ExternalObjectProviderKey>
+    val defaultImports: Set<FqName>
 }

@@ -24,23 +24,28 @@ import kotlinx.serialization.modules.subclass
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.declarative.dsl.schema.ConfigureAccessor
 import org.gradle.declarative.dsl.schema.DataClass
-import org.gradle.internal.declarativedsl.analysis.DefaultAnalysisSchema
-import org.gradle.internal.declarativedsl.analysis.DataBuilderFunction
-import org.gradle.internal.declarativedsl.analysis.DataMemberFunction
 import org.gradle.declarative.dsl.schema.DataParameter
-import org.gradle.internal.declarativedsl.analysis.DefaultDataParameter
 import org.gradle.declarative.dsl.schema.DataProperty
 import org.gradle.declarative.dsl.schema.DataType
 import org.gradle.declarative.dsl.schema.DataTypeRef
-import org.gradle.internal.declarativedsl.analysis.DefaultDataProperty
 import org.gradle.declarative.dsl.schema.FqName
 import org.gradle.declarative.dsl.schema.FunctionSemantics
-import org.gradle.internal.declarativedsl.analysis.DefaultFqName
+import org.gradle.declarative.dsl.schema.ParameterSemantics
+import org.gradle.declarative.dsl.schema.SchemaFunction
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.analysis.ConfigureAccessorInternal
 import org.gradle.internal.declarativedsl.analysis.DataTypeRefInternal
+import org.gradle.internal.declarativedsl.analysis.DefaultAnalysisSchema
+import org.gradle.internal.declarativedsl.analysis.DefaultDataBuilderFunction
 import org.gradle.internal.declarativedsl.analysis.DefaultDataClass
+import org.gradle.internal.declarativedsl.analysis.DefaultDataConstructor
+import org.gradle.internal.declarativedsl.analysis.DefaultDataMemberFunction
+import org.gradle.internal.declarativedsl.analysis.DefaultDataParameter
+import org.gradle.internal.declarativedsl.analysis.DefaultDataProperty
+import org.gradle.internal.declarativedsl.analysis.DefaultDataTopLevelFunction
+import org.gradle.internal.declarativedsl.analysis.DefaultFqName
 import org.gradle.internal.declarativedsl.analysis.DefaultFunctionSemantics
+import org.gradle.internal.declarativedsl.analysis.ParameterSemanticsInternal
 import org.gradle.internal.declarativedsl.language.DataTypeInternal
 
 
@@ -50,9 +55,9 @@ object SchemaSerialization {
     val json = Json {
         serializersModule = SerializersModule {
             polymorphic(ConfigureAccessor::class) {
-                subclass(ConfigureAccessorInternal.ConfiguringLambdaArgument::class)
-                subclass(ConfigureAccessorInternal.Custom::class)
-                subclass(ConfigureAccessorInternal.Property::class)
+                subclass(ConfigureAccessorInternal.DefaultConfiguringLambdaArgument::class)
+                subclass(ConfigureAccessorInternal.DefaultCustom::class)
+                subclass(ConfigureAccessorInternal.DefaultProperty::class)
             }
             polymorphic(DataType::class) {
                 subclass(DataTypeInternal.DefaultIntDataType::class)
@@ -93,14 +98,25 @@ object SchemaSerialization {
                 subclass(DefaultFunctionSemantics.DefaultAccessAndConfigure.DefaultReturnType.DefaultUnit::class)
                 subclass(DefaultFunctionSemantics.DefaultAccessAndConfigure.DefaultReturnType.DefaultConfiguredObject::class)
             }
+            polymorphic(FunctionSemantics.Builder::class) {
+                subclass(DefaultFunctionSemantics.DefaultBuilder::class)
+            }
             polymorphic(FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement::class) {
                 subclass(DefaultFunctionSemantics.DefaultConfigureBlockRequirement.DefaultNotAllowed::class)
                 subclass(DefaultFunctionSemantics.DefaultConfigureBlockRequirement.DefaultRequired::class)
                 subclass(DefaultFunctionSemantics.DefaultConfigureBlockRequirement.DefaultOptional::class)
             }
-            polymorphic(SchemaMemberFunction::class) {
-                subclass(DataMemberFunction::class)
-                subclass(DataBuilderFunction::class)
+            polymorphic(ParameterSemantics::class) {
+                subclass(ParameterSemanticsInternal.DefaultStoreValueInProperty::class)
+                subclass(ParameterSemanticsInternal.DefaultUnknown::class)
+            }
+            polymorphic(SchemaFunction::class) {
+                polymorphic(SchemaMemberFunction::class) {
+                    subclass(DefaultDataBuilderFunction::class)
+                    subclass(DefaultDataMemberFunction::class)
+                }
+                subclass(DefaultDataTopLevelFunction::class)
+                subclass(DefaultDataConstructor::class)
             }
         }
         prettyPrint = true

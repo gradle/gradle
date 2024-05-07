@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.declarative.dsl.schema;
+package org.gradle.declarative.dsl.schema
 
-import java.io.Serializable;
+import java.io.Serializable
 
-public interface ExternalObjectProviderKey extends Serializable {
 
-    DataTypeRef getType();
-
+sealed interface SchemaFunction : Serializable {
+    val simpleName: String
+    val semantics: FunctionSemantics
+    val parameters: List<DataParameter>
+    val returnValueType: DataTypeRef
+        get() = semantics.returnValueType
 }

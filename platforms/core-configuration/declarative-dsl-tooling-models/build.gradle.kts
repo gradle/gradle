@@ -25,8 +25,6 @@ plugins {
 description = "Declarative DSL Tooling Models for IDEs"
 
 dependencies {
-    implementation(project(":java-language-extensions"))
-
     compileOnly(libs.futureKotlin("stdlib")) {
         because(
             "used by the compiler, but there should be no binary dependency on the stdlib; " +

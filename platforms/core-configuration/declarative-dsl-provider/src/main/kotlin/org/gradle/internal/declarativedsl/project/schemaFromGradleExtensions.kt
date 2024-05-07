@@ -18,10 +18,11 @@ package org.gradle.internal.declarativedsl.project
 
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.declarative.dsl.model.annotations.Restricted
+import org.gradle.declarative.dsl.schema.ConfigureAccessor
 import org.gradle.declarative.dsl.schema.DataConstructor
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.analysis.ConfigureAccessorInternal
-import org.gradle.internal.declarativedsl.analysis.DataMemberFunction
+import org.gradle.internal.declarativedsl.analysis.DefaultDataMemberFunction
 import org.gradle.internal.declarativedsl.analysis.DefaultFunctionSemantics
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaComponent
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeCustomAccessors
@@ -87,13 +88,13 @@ data class ExtensionInfo(
 ) {
     val customAccessorId = "$accessorIdPrefix:$name"
 
-    val schemaFunction = DataMemberFunction(
+    val schemaFunction = DefaultDataMemberFunction(
         ProjectTopLevelReceiver::class.toDataTypeRef(),
         name,
         emptyList(),
         isDirectAccessOnly = true,
         semantics = DefaultFunctionSemantics.DefaultAccessAndConfigure(
-            accessor = ConfigureAccessorInternal.Custom(type.toDataTypeRef(), customAccessorId),
+            accessor = ConfigureAccessorInternal.DefaultCustom(type.toDataTypeRef(), customAccessorId),
             DefaultFunctionSemantics.DefaultAccessAndConfigure.DefaultReturnType.DefaultUnit
         )
     )
@@ -105,7 +106,7 @@ class RuntimeExtensionAccessors(info: List<ExtensionInfo>) : RuntimeCustomAccess
 
     val extensionsByIdentifier = info.associate { it.customAccessorId to it.extensionProvider() }
 
-    override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessorInternal.Custom): Any? =
+    override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessor.Custom): Any? =
         extensionsByIdentifier[accessor.customAccessorIdentifier]
 }
 

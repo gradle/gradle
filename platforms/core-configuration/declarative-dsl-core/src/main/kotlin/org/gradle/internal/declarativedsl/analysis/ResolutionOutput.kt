@@ -1,5 +1,7 @@
 package org.gradle.internal.declarativedsl.analysis
 
+import org.gradle.declarative.dsl.schema.ConfigureAccessor
+import org.gradle.declarative.dsl.schema.DataBuilderFunction
 import org.gradle.declarative.dsl.schema.DataConstructor
 import org.gradle.declarative.dsl.schema.DataParameter
 import org.gradle.declarative.dsl.schema.DataProperty
@@ -141,7 +143,7 @@ sealed interface ObjectOrigin {
         override val originElement: FunctionCall,
         override val parameterBindings: ParameterValueBinding,
         override val invocationId: Long,
-        val accessor: ConfigureAccessorInternal,
+        val accessor: ConfigureAccessor,
     ) : FunctionInvocationOrigin, ReceiverOrigin, DelegatingObjectOrigin {
         override fun toString(): String = accessor.access(receiver, this).toString()
 
@@ -174,7 +176,7 @@ sealed interface ObjectOrigin {
 
     data class CustomConfigureAccessor(
         override val receiver: ObjectOrigin,
-        val accessor: ConfigureAccessorInternal.Custom,
+        val accessor: ConfigureAccessor.Custom,
         override val originElement: LanguageTreeElement
     ) : ObjectOrigin, HasReceiver {
         override fun toString(): String = "$receiver${'.'}${accessor.customAccessorIdentifier}"
@@ -192,7 +194,7 @@ sealed interface ObjectOrigin {
     ) : FunctionInvocationOrigin, HasReceiver, ReceiverOrigin {
         init {
             val semantics = function.semantics
-            require(semantics is FunctionSemantics.AccessAndConfigure && semantics.accessor is ConfigureAccessorInternal.ConfiguringLambdaArgument)
+            require(semantics is FunctionSemantics.AccessAndConfigure && semantics.accessor is ConfigureAccessor.ConfiguringLambdaArgument)
         }
 
         override fun toString(): String {
@@ -226,7 +228,7 @@ sealed interface ObjectOrigin {
     }
 
     data class External(val key: ExternalObjectProviderKey, override val originElement: PropertyAccess) : ObjectOrigin {
-        override fun toString(): String = "${key.type}"
+        override fun toString(): String = "${key.objectType}"
     }
 }
 

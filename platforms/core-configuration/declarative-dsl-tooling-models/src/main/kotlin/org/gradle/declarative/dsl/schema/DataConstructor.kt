@@ -13,7 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@NonNullApi
-package org.gradle.declarative.dsl.schema;
 
-import org.gradle.api.NonNullApi;
+package org.gradle.declarative.dsl.schema
+
+
+interface DataConstructor : SchemaFunction {
+    val dataClass: DataTypeRef
+    override val parameters: List<DataParameter>
+    override val simpleName
+        get() = "<init>"
+    override val semantics: FunctionSemantics.Pure
+}

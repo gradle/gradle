@@ -40,7 +40,7 @@ internal
 fun TypeRefContext.getDataType(objectOrigin: ObjectOrigin): DataType = when (objectOrigin) {
     is ObjectOrigin.DelegatingObjectOrigin -> getDataType(objectOrigin.delegate)
     is ObjectOrigin.ConstantOrigin -> objectOrigin.literal.type
-    is ObjectOrigin.External -> resolveRef(objectOrigin.key.type)
+    is ObjectOrigin.External -> resolveRef(objectOrigin.key.objectType)
     is ObjectOrigin.NewObjectFromMemberFunction -> resolveRef(objectOrigin.function.returnValueType)
     is ObjectOrigin.NewObjectFromTopLevelFunction -> resolveRef(objectOrigin.function.returnValueType)
     is ObjectOrigin.PropertyReference -> resolveRef(objectOrigin.property.valueType)
