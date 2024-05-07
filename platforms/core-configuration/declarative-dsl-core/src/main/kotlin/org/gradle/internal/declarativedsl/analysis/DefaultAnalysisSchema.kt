@@ -62,7 +62,7 @@ data class DefaultDataClass(
 
     override fun isClass(): Boolean = true
 
-    override fun getDataClass(): DefaultDataClass = this
+    override fun getDataClass(): DataClass = this
 
     override fun toString(): String = name.simpleName
 

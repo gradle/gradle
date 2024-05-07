@@ -1,6 +1,7 @@
 package org.gradle.internal.declarativedsl.analysis
 
 import org.gradle.declarative.dsl.schema.DataBuilderFunction
+import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.DataMemberFunction
 import org.gradle.declarative.dsl.schema.DataParameter
 import org.gradle.declarative.dsl.schema.DataType
@@ -301,7 +302,7 @@ class FunctionCallResolverImpl(
         functionCall: FunctionCall,
         argResolution: Map<FunctionArgument.ValueArgument, ObjectOrigin>,
     ): List<FunctionResolutionAndBinding> {
-        val receiverType = getDataType(receiver) as? DefaultDataClass
+        val receiverType = getDataType(receiver) as? DataClass
             ?: return emptyList()
         val functionName = functionCall.name
         val matchingMembers = receiverType.memberFunctions.filter { it.simpleName == functionName }
@@ -376,20 +377,20 @@ class FunctionCallResolverImpl(
                 val fqn = DefaultFqName(receiverAsChain.nameParts.joinToString("."), functionCall.name)
                 val typeByFqn = schema.dataClassesByFqName[fqn]
                 if (typeByFqn != null) {
-                    add(typeByFqn as DefaultDataClass)
+                    add(typeByFqn)
                 }
             } else if (functionCall.receiver == null) {
                 val importedName = imports[functionCall.name]
                 if (importedName != null) {
                     val maybeType = schema.dataClassesByFqName[importedName]
                     if (maybeType != null) {
-                        add(maybeType as DefaultDataClass)
+                        add(maybeType)
                     }
                 }
             }
         }
         val constructors = candidateTypes
-            .flatMap { (it as? DefaultDataClass)?.constructors.orEmpty() }
+            .flatMap { (it as? DataClass)?.constructors.orEmpty() }
             .filter { it.parameters.size == functionCall.args.size }
 
         return chooseMatchingOverloads(null, constructors, functionCall.args, argResolution)

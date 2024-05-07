@@ -280,10 +280,7 @@ class DefaultFunctionExtractor(
                     else -> error("cannot infer the return type of a configuring function; it must be Unit or the configured object type")
                 }
                 check(function.parameters.filter { it != function.instanceParameter }.size == 1) { "a configuring function may not accept any other parameters" }
-                val accessor = when {
-                    property != null -> ConfigureAccessorInternal.DefaultProperty(property)
-                    else -> ConfigureAccessorInternal.DefaultConfiguringLambdaArgument(configuredType.toDataTypeRefOrError())
-                }
+                val accessor = if (property != null) ConfigureAccessorInternal.DefaultProperty(property) else ConfigureAccessorInternal.DefaultConfiguringLambdaArgument(configuredType.toDataTypeRefOrError())
                 DefaultFunctionSemantics.DefaultAccessAndConfigure(accessor, returnType)
             }
 

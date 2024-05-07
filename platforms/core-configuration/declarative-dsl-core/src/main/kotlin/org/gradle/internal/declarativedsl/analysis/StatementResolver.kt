@@ -116,7 +116,8 @@ class StatementResolverImpl(
             is ObjectOrigin.ConstantOrigin -> false
             is ObjectOrigin.External -> true
             is ObjectOrigin.FunctionOrigin -> {
-                when (objectOrigin.function.semantics) {
+                val semantics = objectOrigin.function.semantics
+                when (semantics) {
                     is FunctionSemantics.Builder -> error("should be impossible?")
                     is FunctionSemantics.AccessAndConfigure -> true
                     is FunctionSemantics.AddAndConfigure -> true
