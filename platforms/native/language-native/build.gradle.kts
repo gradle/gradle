@@ -31,7 +31,6 @@ dependencies {
     implementation(project(":dependency-management"))
     implementation(project(":platform-base"))
     implementation(project(":platform-native"))
-    implementation(project(":plugins"))
     implementation(project(":publish"))
     implementation(project(":maven"))
     implementation(project(":ivy"))

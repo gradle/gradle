@@ -90,7 +90,6 @@ dependencies {
     testFixturesImplementation(project(":platform-base"))
     testFixturesImplementation(project(":core-api"))
     testFixturesImplementation(project(":logging"))
-    testFixturesImplementation(project(":plugins"))
     testFixturesImplementation(project(":plugins-java"))
     testFixturesImplementation(project(":testing-base"))
     testFixturesImplementation(project(":test-suites-base"))

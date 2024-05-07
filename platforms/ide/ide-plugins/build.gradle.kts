@@ -58,7 +58,6 @@ dependencies {
     implementation(libs.commonsLang)
 
     runtimeOnly(project(":language-jvm"))
-    runtimeOnly(project(":plugins"))
     runtimeOnly(project(":testing-base"))
 
     testImplementation(testFixtures(project(":core")))

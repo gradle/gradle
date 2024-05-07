@@ -11,4 +11,3 @@ subprojects {
     def count = (project.name - "project") as int
     compileJava.options.forkOptions.jvmArgs = count % 2 ? ["-dsa"] : ["-esa"]
 }
-

@@ -167,7 +167,6 @@
 					"language-native",
 					"tooling-native",
 					"core-api",
-					"plugins",
 					"wrapper",
 					"build-events",
 					"reporting",
@@ -476,7 +475,6 @@
 				"subprojects":[
 					"maven",
 					"plugins-version-catalog",
-					"plugins",
 					"plugins-jvm-test-fixtures",
 					"reporting",
 					"model-groovy",
@@ -711,7 +709,6 @@
 					"ear",
 					"resources-s3",
 					"plugins-jvm-test-fixtures",
-					"plugins",
 					"plugins-version-catalog",
 					"build-events"
 				]
@@ -975,7 +972,6 @@
 					"problems",
 					"build-cache",
 					"plugins-test-report-aggregation",
-					"plugins",
 					"tooling-native",
 					"build-configuration",
 					"java-platform"
@@ -1214,7 +1210,6 @@
 					"ear",
 					"plugins-jvm-test-fixtures",
 					"plugins-version-catalog",
-					"plugins",
 					"build-events",
 					"reporting",
 					"build-cache-http"
@@ -1411,7 +1406,6 @@
 					"launcher",
 					"testing-base",
 					"resources-gcs",
-					"plugins",
 					"build-events",
 					"resources-sftp",
 					"build-cache-http",
@@ -1580,7 +1574,6 @@
 					"plugins-java-base",
 					"plugins-test-report-aggregation",
 					"problems-api",
-					"plugins",
 					"java-platform",
 					"build-configuration",
 					"build-cache",
@@ -1808,7 +1801,6 @@
 					"publish",
 					"plugins-java-base",
 					"plugins-test-report-aggregation",
-					"plugins",
 					"problems-api",
 					"testing-base"
 				]
@@ -2125,8 +2117,7 @@
 					"build-events",
 					"resources-sftp",
 					"plugins-version-catalog",
-					"plugins-jvm-test-fixtures",
-					"plugins"
+					"plugins-jvm-test-fixtures"
 				]
 			},
 			{
@@ -2324,7 +2315,6 @@
 					"platform-jvm",
 					"plugin-development",
 					"plugin-use",
-					"plugins",
 					"plugins-application",
 					"plugins-distribution",
 					"plugins-groovy",
@@ -2469,7 +2459,6 @@
 					"platform-jvm",
 					"plugin-development",
 					"plugin-use",
-					"plugins",
 					"plugins-application",
 					"plugins-distribution",
 					"plugins-groovy",
@@ -2665,7 +2654,6 @@
 				"subprojects":[
 					"plugin-use",
 					"plugins-test-report-aggregation",
-					"plugins",
 					"platform-native",
 					"testing-base",
 					"java-platform",

@@ -260,7 +260,6 @@ dependencies {
     integTestImplementation(project(":workers"))
     integTestImplementation(project(":dependency-management"))
     integTestImplementation(project(":launcher"))
-    integTestImplementation(project(":plugins"))
     integTestImplementation(project(":war"))
     integTestImplementation(libs.jansi)
     integTestImplementation(libs.jetbrainsAnnotations)
@@ -304,4 +303,3 @@ tasks.compileTestGroovy {
 
 integTest.usesJavadocCodeSnippets = true
 testFilesCleanup.reportOnly = true
-
