@@ -15,32 +15,25 @@
  */
 package org.gradle.util.internal
 
-
 import org.gradle.internal.InternalTransformer
 import spock.lang.Specification
 
 import static org.gradle.util.internal.CollectionUtils.addAll
 import static org.gradle.util.internal.CollectionUtils.collect
 import static org.gradle.util.internal.CollectionUtils.collectMap
-import static org.gradle.util.internal.CollectionUtils.collectMapValues
-import static org.gradle.util.internal.CollectionUtils.compact
 import static org.gradle.util.internal.CollectionUtils.diffSetsBy
 import static org.gradle.util.internal.CollectionUtils.every
 import static org.gradle.util.internal.CollectionUtils.filter
 import static org.gradle.util.internal.CollectionUtils.flattenCollections
 import static org.gradle.util.internal.CollectionUtils.groupBy
-import static org.gradle.util.internal.CollectionUtils.inject
 import static org.gradle.util.internal.CollectionUtils.intersection
 import static org.gradle.util.internal.CollectionUtils.join
-import static org.gradle.util.internal.CollectionUtils.nonEmptyOrNull
 import static org.gradle.util.internal.CollectionUtils.partition
-import static org.gradle.util.internal.CollectionUtils.replace
 import static org.gradle.util.internal.CollectionUtils.sort
 import static org.gradle.util.internal.CollectionUtils.stringize
 import static org.gradle.util.internal.CollectionUtils.toList
 import static org.gradle.util.internal.CollectionUtils.toSet
 import static org.gradle.util.internal.CollectionUtils.toStringList
-import static org.gradle.util.internal.CollectionUtils.unpack
 
 class CollectionUtilsTest extends Specification {
 
@@ -106,17 +99,6 @@ class CollectionUtilsTest extends Specification {
         toStringList(list) == ["42", "string"]
     }
 
-    def "list compacting"() {
-        expect:
-        compact([1, null, 2]) == [1, 2]
-        compact([null, 1, 2]) == [1, 2]
-        compact([1, 2, null]) == [1, 2]
-
-        def l = [1, 2, 3]
-        compact(l).is l
-
-    }
-
     def "collect array"() {
         expect:
         collect([1, 2, 3] as Object[], transformer { it * 2 }) == [2, 4, 6]
@@ -141,20 +123,6 @@ class CollectionUtilsTest extends Specification {
     def "stringize"() {
         expect:
         stringize(["c", "b", "a"], new TreeSet<String>()) == ["a", "b", "c"] as Set
-    }
-
-    def "replacing"() {
-        given:
-        def l = [1, 2, 3]
-
-        expect:
-        replace l, { it == 2 }, transformer { 2 * 2 }
-        l == [1, 4, 3]
-
-        replace l, { it > 1 }, transformer { 0 }
-        l == [1, 0, 0]
-
-        !replace(l, { false }, transformer { it })
     }
 
     def "diffing sets"() {
@@ -190,12 +158,6 @@ class CollectionUtilsTest extends Specification {
         expect:
         collectMap([1, 2, 3], transformer { it * 10 }) == [10: 1, 20: 2, 30: 3]
         collectMap([], transformer { it * 10 }) == [:]
-    }
-
-    def "collect values as map"() {
-        expect:
-        collectMapValues([1, 2, 3], transformer { it * 10 }) == [1: 10, 2: 20, 3: 30]
-        collectMapValues([], transformer { it * 10 }) == [:]
     }
 
     def "every"() {
@@ -319,37 +281,6 @@ class CollectionUtilsTest extends Specification {
         addAll([] as Set, 1, 2, 3, 1) == [1, 2, 3] as Set
     }
 
-    def "injection"() {
-        expect:
-        def target = []
-        def result = inject(target, [1, 2, 3], { it.target.add(it.item.toString()) })
-        result.is(target)
-        result == ["1", "2", "3"]
-
-        inject([], [[1, 2], [3]], { it.target.addAll(it.item) }) == [1, 2, 3]
-
-        when:
-        inject(null, [], {})
-
-        then:
-        def e = thrown(NullPointerException)
-        e.message == "The 'target' cannot be null"
-
-        when:
-        inject([], null, {})
-
-        then:
-        e = thrown(NullPointerException)
-        e.message == "The 'items' cannot be null"
-
-        when:
-        inject([], [], null)
-
-        then:
-        e = thrown(NullPointerException)
-        e.message == "The 'action' cannot be null"
-    }
-
     def "to set"() {
         expect:
         toSet([1, 2, 3]) == [1, 2, 3] as Set
@@ -363,7 +294,6 @@ class CollectionUtilsTest extends Specification {
         expect:
         toList([1, 2, 3] as Set) == [1, 2, 3]
         toList([]).empty
-        toList(([1, 2, 3] as Vector).elements()) == [1, 2, 3]
     }
 
     def "sorting with comparator"() {
@@ -398,17 +328,6 @@ class CollectionUtilsTest extends Specification {
         groupBy([1, 2, 3], transformer { "a" }) == ["a": [1, 2, 3]]
         groupBy(["a", "b", "c"], transformer { it.toUpperCase() }) == ["A": ["a"], "B": ["b"], "C": ["c"]]
         groupBy([], transformer { throw new AssertionError("shouldn't be called") }).isEmpty()
-    }
-    def unpack() {
-        expect:
-        unpack([{ 1 } as org.gradle.internal.Factory, { 2 } as org.gradle.internal.Factory, { 3 } as org.gradle.internal.Factory]).toList() == [1, 2, 3]
-        unpack([]).toList().isEmpty()
-    }
-
-    def nonEmptyOrNull() {
-        expect:
-        nonEmptyOrNull([1, 2, 3]) == [1, 2, 3]
-        nonEmptyOrNull([]) == null
     }
 
     InternalTransformer<?, ?> transformer(Closure c) {
