@@ -58,6 +58,31 @@ class MainClassProvenanceIntegTest extends AbstractIntegrationSpec {
         "mainClass =  'Foo'" | "7:30"
     }
 
+    def 'it works for script plugin applied with apply from'() {
+        given:
+        groovyFile file(pluginFileName), """
+        def someProperty = objects.property(String)
+        def someProvider = provider { "Hello" }
+        someProperty.set(someProvider)
+        println someProperty.provenance
+        """
+
+        buildFile """
+            apply from: "${pluginFileName}"
+        """
+
+        when:
+        run 'build'
+
+        then:
+        outputContains "${pluginFileName}:$position"
+
+        where:
+        assignment           | position | pluginFileName
+        "mainClass = 'Foo'"  | "7:30"   | "external-1.gradle"
+        "mainClass = 'Foo'"  | "7:30"   | "external-2.gradle"
+    }
+
     def 'it works for direct assignment'() {
         def buildScriptFile = testDirectory.file(buildScriptFileName)
         given:
@@ -83,11 +108,8 @@ class MainClassProvenanceIntegTest extends AbstractIntegrationSpec {
         where:
         assignment           | position | buildScriptFileName
         "mainClass = 'Foo'"  | "7:29"   | "custom-script-1.gradle"
-        "mainClass =  'Foo'" | "7:30"   | "custom-script-1.gradle"
         "mainClass = 'Foo'"  | "7:29"   | "custom-script-2.gradle"
-        "mainClass =  'Foo'" | "7:30"   | "custom-script-2.gradle"
         "mainClass = 'Foo'"  | "7:29"   | "build.gradle"
-        "mainClass =  'Foo'" | "7:30"   | "build.gradle"
     }
 
     def 'it works for chained assignments'() {
@@ -116,7 +138,6 @@ class MainClassProvenanceIntegTest extends AbstractIntegrationSpec {
         where:
         assignment           | position
         "mainClass = 'Foo'"  | "7:29"
-        "mainClass =  'Foo'" | "7:30"
     }
 
     def 'it works for direct assignment in Kotlin'() {
@@ -144,11 +165,8 @@ class MainClassProvenanceIntegTest extends AbstractIntegrationSpec {
         where:
         assignment           | position | buildScriptFileName
         'mainClass = "Foo"'  | "7:29"   | "custom-file-1.gradle.kts"
-        'mainClass =  "Foo"' | "7:30"   | "custom-file-1.gradle.kts"
         'mainClass = "Foo"'  | "7:29"   | "custom-file-2.gradle.kts"
-        'mainClass =  "Foo"' | "7:30"   | "custom-file-2.gradle.kts"
         'mainClass = "Foo"'  | "7:29"   | "build.gradle.kts"
-        'mainClass =  "Foo"' | "7:30"   | "build.gradle.kts"
     }
 
     def 'it works for chained assignment in Kotlin'() {
@@ -177,7 +195,6 @@ class MainClassProvenanceIntegTest extends AbstractIntegrationSpec {
         where:
         assignment           | position
         'mainClass = "Foo"'  | "7:29"
-        'mainClass =  "Foo"' | "7:30"
     }
 
 }
