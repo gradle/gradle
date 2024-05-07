@@ -343,7 +343,6 @@ Class <org.gradle.api.internal.component.SoftwareComponentContainerInternal> is 
 Class <org.gradle.api.internal.component.SoftwareComponentInternal> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (SoftwareComponentInternal.java:0)
 Class <org.gradle.api.internal.component.UsageContext> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (UsageContext.java:0)
 Class <org.gradle.api.internal.composite.CompositeBuildContext> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (CompositeBuildContext.java:0)
-Class <org.gradle.api.internal.credentials.CredentialListener> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (CredentialListener.java:0)
 Class <org.gradle.api.internal.exceptions.MarkedVerificationException> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (MarkedVerificationException.java:0)
 Class <org.gradle.api.internal.file.ant.AntFileResource> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (AntFileResource.java:0)
 Class <org.gradle.api.internal.file.ant.BaseDirSelector> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (BaseDirSelector.java:0)
