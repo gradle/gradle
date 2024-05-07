@@ -75,6 +75,7 @@ val core = platform("core") {
         subproject("build-operations")
         subproject("build-option")
         subproject("build-profile")
+        subproject("build-state")
         subproject("cli")
         subproject("concurrent")
         subproject("distributions-basics")

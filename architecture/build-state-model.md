@@ -41,7 +41,7 @@ The build process state also includes state that is tied to a particular Gradle 
 When that directory changes between Gradle invocations, the state is discarded and recreated.
 Typically, the Gradle user home directory does not change for a given process, so this is effectively process state.
 
-The build process state is created once for a given process.
+The build process state is managed by the `BuildProcessState` class. An instance is created once for a given process.
 
 ### Build session state
 

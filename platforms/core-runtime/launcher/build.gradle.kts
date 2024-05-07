@@ -45,6 +45,7 @@ dependencies {
     implementation(project(":bootstrap"))
     implementation(project(":jvm-services"))
     implementation(project(":build-events"))
+    implementation(project(":build-state"))
     implementation(project(":tooling-api"))
     implementation(project(":file-watching"))
     implementation(project(":problems-api"))

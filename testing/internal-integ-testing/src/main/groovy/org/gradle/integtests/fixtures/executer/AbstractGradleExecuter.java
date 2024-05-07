@@ -37,6 +37,8 @@ import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.agents.AgentStatus;
+import org.gradle.internal.buildprocess.BuildProcessState;
+import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.jvm.JavaHomeException;
 import org.gradle.internal.jvm.Jvm;
@@ -48,9 +50,6 @@ import org.gradle.internal.nativeintegration.console.TestOverrideConsoleDetector
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.scripts.ScriptFileUtil;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.service.ServiceRegistryBuilder;
-import org.gradle.internal.service.scopes.GlobalScopeServices;
-import org.gradle.internal.service.scopes.Scope;
 import org.gradle.jvm.toolchain.internal.ToolchainConfiguration;
 import org.gradle.launcher.cli.DefaultCommandLineActionFactory;
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
@@ -106,14 +105,14 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     private static final String PROFILE_SYSPROP = "org.gradle.integtest.profile";
     private static final String ALLOW_INSTRUMENTATION_AGENT_SYSPROP = "org.gradle.integtest.agent.allowed";
 
-    protected static final ServiceRegistry GLOBAL_SERVICES = ServiceRegistryBuilder.builder()
-        .scopeStrictly(Scope.Global.class)
-        .displayName("Global services")
-        .parent(newCommandLineProcessLogging())
-        .parent(NativeServicesTestFixture.getInstance())
-        .parent(ValidationServicesFixture.getServices())
-        .provider(new GlobalScopeServices(true, AgentStatus.of(isAgentInstrumentationEnabled())))
-        .build();
+    protected static final ServiceRegistry GLOBAL_SERVICES = new BuildProcessState(
+        true,
+        AgentStatus.of(isAgentInstrumentationEnabled()),
+        ClassPath.EMPTY,
+        newCommandLineProcessLogging(),
+        NativeServicesTestFixture.getInstance(),
+        ValidationServicesFixture.getServices()
+    ).getServices();
 
     private static final JvmVersionDetector JVM_VERSION_DETECTOR = GLOBAL_SERVICES.get(JvmVersionDetector.class);
 
@@ -1414,6 +1413,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         return this;
     }
 
+    @Override
     public GradleExecuter startLauncherInDebugger(Action<JavaDebugOptionsInternal> action) {
         debugLauncher.setEnabled(true);
         action.execute(debugLauncher);

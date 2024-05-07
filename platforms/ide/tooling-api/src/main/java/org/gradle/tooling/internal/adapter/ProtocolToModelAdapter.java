@@ -19,6 +19,8 @@ import com.google.common.base.Optional;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.DirectInstantiator;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.time.CountdownTimer;
 import org.gradle.internal.time.Time;
 import org.gradle.tooling.model.DomainObjectSet;
@@ -54,6 +56,7 @@ import java.util.regex.Pattern;
 /**
  * Adapts some source object to some target view type.
  */
+@ServiceScope(Scope.Global.class)
 public class ProtocolToModelAdapter implements ObjectGraphAdapter {
     private static final ViewDecoration NO_OP_MAPPER = new NoOpDecoration();
     private static final TargetTypeProvider IDENTITY_TYPE_PROVIDER = new TargetTypeProvider() {
