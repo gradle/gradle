@@ -6,12 +6,10 @@ on:
   schedule:
     - cron: '0 5 * * *'
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
   CodeQL-Build:
-
     permissions:
       actions: read  # for github/codeql-action/init to get workflow details
       contents: read  # for actions/checkout to fetch code
