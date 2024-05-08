@@ -17,6 +17,7 @@
 package org.gradle.model.internal.registry;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -535,9 +536,9 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
 
     private List<BindingPredicate> mapInputs(List<? extends ModelReference<?>> inputs) {
         if (inputs.isEmpty()) {
-            return Collections.emptyList();
+            return ImmutableList.of();
         }
-        ArrayList<BindingPredicate> result = new ArrayList<BindingPredicate>(inputs.size());
+        ImmutableList.Builder<BindingPredicate> result = ImmutableList.builderWithExpectedSize(inputs.size());
         for (ModelReference<?> input : inputs) {
             if (input.getPath() == null && input.getScope() == null) {
                 result.add(new BindingPredicate(input.inScope(ModelPath.ROOT)));
@@ -545,7 +546,7 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
                 result.add(new BindingPredicate(input));
             }
         }
-        return result;
+        return result.build();
     }
 
     private class GoalGraph {
@@ -631,7 +632,7 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
      * Some abstract goal to be achieve for a particular node in the model graph.
      */
     private abstract class ModelNodeGoal extends ModelGoal {
-        public final ModelPath target;
+        private final ModelPath target;
         public ModelNodeInternal node;
 
         protected ModelNodeGoal(ModelPath target) {

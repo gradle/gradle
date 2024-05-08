@@ -7,23 +7,12 @@ description = "Implementation of configuration model types and annotation metada
 
 errorprone {
     disabledChecks.addAll(
-        "AnnotateFormatMethod", // 1 occurrences
-        "EmptyBlockTag", // 3 occurrences
-        "FormatString", // 1 occurrences
+        "AnnotateFormatMethod", // 1 occurrence, needs errorprone annotations
         "GetClassOnEnum", // 4 occurrences
-        "HidingField", // 1 occurrences
-        "IdentityHashMapUsage", // 1 occurrences
         "ImmutableEnumChecker", // 1 occurrences
-        "InvalidParam", // 1 occurrences
-        "MixedMutabilityReturnType", // 4 occurrences
-        "MutablePublicArray", // 1 occurrences
-        "OperatorPrecedence", // 5 occurrences
         "ReferenceEquality", // 3 occurrences
-        "StringCaseLocaleUsage", // 13 occurrences
-        "TypeParameterShadowing", // 2 occurrences
         "UndefinedEquals", // 2 occurrences
         "UnusedMethod", // 8 occurrences
-        "UnusedTypeParameter", // 1 occurrences
         "UnusedVariable", // 20 occurrences
     )
 }

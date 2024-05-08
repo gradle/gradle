@@ -22,9 +22,9 @@ import org.gradle.internal.snapshot.ValueSnapshot;
 import javax.annotation.Nullable;
 
 /**
- * A isolated immutable scalar value. Should only be used for immutable JVM provided or core Gradle types.
+ * An isolated immutable scalar value. Should only be used for immutable JVM provided or core Gradle types.
  *
- * @param <T>
+ * @param <T> the type of the value
  */
 abstract class AbstractIsolatableScalarValue<T> extends AbstractScalarValueSnapshot<T> implements Isolatable<T> {
     public AbstractIsolatableScalarValue(T value) {

@@ -1198,8 +1198,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             // For ConfigurableFileCollection we generate setters just for readonly properties,
             // since we want to support += for mutable FileCollection properties, but we don't support += for ConfigurableFileCollection (yet).
             // And if we generate setter override for ConfigurableFileCollection, it's difficult to distinguish between these two cases in setFromAnyValue method.
-            if (property.isReadable() && hasPropertyType(property) ||
-                property.isReadOnly() && isConfigurableFileCollectionType(property.getType())) {
+            if ((property.isReadable() && hasPropertyType(property)) ||
+                (property.isReadOnly() && isConfigurableFileCollectionType(property.getType()))) {
                 lazyGroovySupportTyped.add(property);
             }
         }

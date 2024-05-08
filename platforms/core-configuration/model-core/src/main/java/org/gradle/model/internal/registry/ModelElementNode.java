@@ -17,6 +17,7 @@
 package org.gradle.model.internal.registry;
 
 import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import org.gradle.internal.Cast;
 import org.gradle.model.RuleSource;
@@ -37,7 +38,6 @@ import org.gradle.model.internal.type.ModelType;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -144,16 +144,16 @@ class ModelElementNode extends ModelNodeInternal {
     @Override
     public Set<String> getLinkNames(Predicate<? super MutableModelNode> predicate) {
         if (links == null) {
-            return Collections.emptySet();
+            return ImmutableSet.of();
         }
-        Set<String> names = new LinkedHashSet<>();
+        ImmutableSet.Builder<String> names = ImmutableSet.builder();
         for (Map.Entry<String, ModelNodeInternal> entry : links.entrySet()) {
             ModelNodeInternal link = entry.getValue();
             if (predicate.apply(link)) {
                 names.add(entry.getKey());
             }
         }
-        return names;
+        return names.build();
     }
 
     @Override

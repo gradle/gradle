@@ -277,7 +277,7 @@ public class Collectors {
             return collectEntriesFromValue(collector, collection, value);
         }
 
-        private <T> ValueSupplier.Value<Void> collectEntriesFromValue(ValueCollector<T> collector, ImmutableCollection.Builder<T> collection, ValueSupplier.Value<? extends Iterable<? extends T>> value) {
+        private ValueSupplier.Value<Void> collectEntriesFromValue(ValueCollector<T> collector, ImmutableCollection.Builder<T> collection, ValueSupplier.Value<? extends Iterable<? extends T>> value) {
             if (value.isMissing()) {
                 return ignoreAbsent ? Value.present() : value.asType();
             }
