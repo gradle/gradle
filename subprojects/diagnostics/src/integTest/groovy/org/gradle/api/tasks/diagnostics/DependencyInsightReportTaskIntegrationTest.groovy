@@ -21,6 +21,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.integtests.resolve.locking.LockfileFixture
+import org.gradle.util.GradleVersion
 import spock.lang.Issue
 
 import static org.gradle.integtests.fixtures.SuggestionsMessages.repositoryHint
@@ -1537,7 +1538,7 @@ org:leaf:[1.5,2.0] FAILED
 project :A FAILED
    Failures:
       - Could not resolve project :A.
-        No matching variant errors are explained in more detail at https://docs.gradle.org/8.9-20240508040000+0000/userguide/variant_model.html#sub:variant-no-match.
+        Creating consumable variants is explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_dependencies.html#sec:resolvable-consumable-configs.
           - Unable to find a matching variant of project :A:
               - No variants exist.
 
@@ -1553,7 +1554,7 @@ project :A FAILED
 project :C FAILED
    Failures:
       - Could not resolve project :C.
-        No matching variant errors are explained in more detail at https://docs.gradle.org/8.9-20240508040000+0000/userguide/variant_model.html#sub:variant-no-match.
+        Creating consumable variants is explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_dependencies.html#sec:resolvable-consumable-configs.
           - Unable to find a matching variant of project :C:
               - No variants exist.
 
