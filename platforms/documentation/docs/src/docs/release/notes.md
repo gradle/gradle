@@ -216,10 +216,10 @@ The view exposes only those properties that are safe to access across project bo
 
 The example below shows how the API could be used from a `Project` configuration callback to query the root project directory in a parallel-safe way:
 
-```groovy
-gradle.lifecycle.beforeProject { project ->
-   def rootDir = project.isolated.rootProject.projectDirectory
-   println "The root project directory is $rootDir"
+```kotlin
+gradle.lifecycle.beforeProject {
+    val rootDir = project.isolated.rootProject.projectDirectory
+    println("The root project directory is $rootDir")
 }
 ```
 
