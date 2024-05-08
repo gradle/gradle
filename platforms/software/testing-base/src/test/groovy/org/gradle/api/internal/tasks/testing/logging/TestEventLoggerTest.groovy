@@ -105,6 +105,6 @@ class TestEventLoggerTest extends Specification {
 
     def "allows empty event set"() {
         expect:
-        testLogging.setEvents(new HashSet<TestLogEvent>())
+        testLogging.setEvents(Collections.emptySet())
     }
 }
