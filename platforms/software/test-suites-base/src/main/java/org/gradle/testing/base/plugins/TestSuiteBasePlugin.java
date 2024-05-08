@@ -33,21 +33,4 @@ public abstract class TestSuiteBasePlugin implements Plugin<Project> {
     public void apply(Project project) {
         project.getExtensions().create(TestingExtension.class, "testing", DefaultTestingExtension.class);
     }
-
-    private static class WrapperOnlyIfSpec implements Spec<Task> {
-
-        private final Task initTask;
-
-        private WrapperOnlyIfSpec(Task initTask) {
-            this.initTask = initTask;
-        }
-
-        @Override
-        public boolean isSatisfiedBy(Task element) {
-            if (initTask != null && initTask.getState().getExecuted()) {
-                return initTask.getState().getFailure() == null;
-            }
-            return true;
-        }
-    }
 }
