@@ -43,7 +43,6 @@ dependencies {
         because("Needs access to StartScriptGenerator.")
     }
     implementation(project(":plugins-jvm-test-suite"))
-    implementation(project(":resources"))
     implementation(project(":wrapper"))
     implementation(project(":wrapper-shared"))
 
