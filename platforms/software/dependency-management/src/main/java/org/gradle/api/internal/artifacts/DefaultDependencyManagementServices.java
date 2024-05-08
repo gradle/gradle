@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler;
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler;
+import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
@@ -647,6 +648,11 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         @Override
         public ObjectFactory getObjectFactory() {
             return services.get(ObjectFactory.class);
+        }
+
+        @Override
+        public DependencyFactory getDependencyFactory() {
+            return services.get(DependencyFactory.class);
         }
     }
 
