@@ -377,7 +377,7 @@ public abstract class InitBuild extends DefaultTask {
                     fileOverwriteAllowed = getAllowFileOverwrite().get();
                 } else {
                     fileOverwriteAllowed = userQuestions.askBooleanQuestion("Found existing files in the project directory: '" + projectDirFile +
-                        "'. Allow these files to be overwritten?", false);
+                        "'." + System.lineSeparator() + "Allow these files to be overwritten?", false);
                 }
 
                 if (!fileOverwriteAllowed) {
