@@ -41,6 +41,10 @@ dependencies {
 
     integTestImplementation(project(":internal-testing"))
     integTestImplementation(project(":logging"))
+    integTestImplementation(testFixtures(project(":declarative-dsl-provider")))
+
+    testFixturesImplementation(project(":internal-testing"))
+    testFixturesImplementation(project(":internal-integ-testing"))
 
     integTestDistributionRuntimeOnly(project(":distributions-full"))
 

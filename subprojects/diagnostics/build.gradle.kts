@@ -49,6 +49,7 @@ dependencies {
 
     integTestImplementation(libs.jsoup)
     integTestImplementation(libs.jetty)
+    integTestImplementation(testFixtures(project(":declarative-dsl-provider")))
 
     testFixturesApi(testFixtures(project(":platform-native")))
     testFixturesApi(testFixtures(project(":logging")))

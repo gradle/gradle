@@ -16,8 +16,9 @@
 package org.gradle.api.tasks.diagnostics
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.declarativedsl.settings.SoftwareTypeFixture
 
-class ProjectReportTaskIntegrationTest extends AbstractIntegrationSpec {
+class ProjectReportTaskIntegrationTest extends AbstractIntegrationSpec implements SoftwareTypeFixture {
 
     def "reports project structure with single composite"() {
         given:
