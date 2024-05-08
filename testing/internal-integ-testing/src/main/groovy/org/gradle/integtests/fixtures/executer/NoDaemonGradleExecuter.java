@@ -229,11 +229,11 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
             } else {
                 cmd = "gradle";
             }
-            builder.executable("cmd");
+            builder.executable("cmd.exe");
 
             List<String> allArgs = builder.getArgs();
             String actualCommand = quote(quote(cmd) + " " + allArgs.stream().map(NoDaemonGradleExecuter::quote).collect(joining(" ")));
-            builder.setArgs(Arrays.asList("/c", actualCommand));
+            builder.setArgs(Arrays.asList("/d", "/c", actualCommand));
 
             String gradleHome = getDistribution().getGradleHomeDir().getAbsolutePath();
 

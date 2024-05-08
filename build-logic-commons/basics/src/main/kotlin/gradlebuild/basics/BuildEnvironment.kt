@@ -73,7 +73,7 @@ fun Project.git(vararg args: String): Provider<String> {
         isIgnoreExitValue = true
         commandLine = listOf("git", *args)
         if (OperatingSystem.current().isWindows) {
-            commandLine = listOf("cmd", "/c") + commandLine
+            commandLine = listOf("cmd.exe", "/d", "/c") + commandLine
         }
     }
     return execOutput.result.zip(execOutput.standardOutput.asText) { result, outputText ->
