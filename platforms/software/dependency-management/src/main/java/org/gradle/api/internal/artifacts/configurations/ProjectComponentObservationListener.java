@@ -16,9 +16,6 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
-import org.gradle.internal.service.scopes.EventScope;
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.StatefulListener;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
@@ -26,8 +23,6 @@ import javax.annotation.Nullable;
 /**
  * A listener that is notified when one project observes the local component metadata of another.
  */
-@StatefulListener
-@EventScope(Scope.Build.class)
 public interface ProjectComponentObservationListener {
     /**
      * Called when one project observes the local component metadata of another project.

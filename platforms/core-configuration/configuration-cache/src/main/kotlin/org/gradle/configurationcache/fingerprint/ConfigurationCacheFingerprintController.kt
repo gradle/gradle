@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache.fingerprint
 
+import org.gradle.api.internal.artifacts.configurations.ProjectComponentObservationListener
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
@@ -64,6 +65,7 @@ import org.gradle.util.internal.GFileUtils
 import java.io.File
 import java.net.URI
 import java.nio.file.Files
+import java.util.concurrent.ConcurrentHashMap
 import java.util.function.Supplier
 
 
@@ -92,7 +94,7 @@ class ConfigurationCacheFingerprintController internal constructor(
     private val agentStatus: AgentStatus,
     private val problems: ConfigurationCacheProblems,
     private val encryptionService: EncryptionService
-) : Stoppable, ProjectScopedScriptResolution {
+) : Stoppable, ProjectScopedScriptResolution, ProjectComponentObservationListener {
 
     interface Host {
         val valueSourceProviderFactory: ValueSourceProviderFactory
@@ -101,6 +103,9 @@ class ConfigurationCacheFingerprintController internal constructor(
 
     private
     val fileCollectionFingerprinter = fingerprinterRegistry.getFingerprinter(DefaultFileNormalizationSpec.from(InputNormalizer.ABSOLUTE_PATH, DirectorySensitivity.DEFAULT, LineEndingSensitivity.DEFAULT))
+
+    private
+    val projectObservationListeners = ConcurrentHashMap.newKeySet<ProjectComponentObservationListener>()
 
     private
     abstract class WritingState {
@@ -297,6 +302,7 @@ class ConfigurationCacheFingerprintController internal constructor(
         listenerManager.addListener(listener)
         workInputListeners.addListener(listener)
         scriptFileResolverListeners.addListener(listener)
+        projectObservationListeners.add(listener)
     }
 
     private
@@ -304,6 +310,11 @@ class ConfigurationCacheFingerprintController internal constructor(
         scriptFileResolverListeners.removeListener(listener)
         workInputListeners.removeListener(listener)
         listenerManager.removeListener(listener)
+        projectObservationListeners.remove(listener)
+    }
+
+    override fun projectObserved(consumingProjectPath: Path?, targetProjectPath: Path) {
+        projectObservationListeners.forEach { it.projectObserved(consumingProjectPath, targetProjectPath) }
     }
 
     private

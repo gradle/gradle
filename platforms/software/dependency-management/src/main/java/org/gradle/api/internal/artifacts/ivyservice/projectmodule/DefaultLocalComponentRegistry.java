@@ -21,11 +21,11 @@ import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ProjectComponentIdentifierInternal;
 import org.gradle.api.internal.artifacts.configurations.ProjectComponentObservationListener;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
-import org.gradle.internal.event.ListenerManager;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import java.util.List;
 
 /**
  * A simple dependency-management scoped wrapper around {@link BuildTreeLocalComponentProvider} that
@@ -36,18 +36,18 @@ import javax.inject.Inject;
 public class DefaultLocalComponentRegistry implements LocalComponentRegistry {
     private final Path currentProjectPath;
     private final Path currentBuildPath;
-    private final ProjectComponentObservationListener projectComponentObservationListener;
+    private final List<ProjectComponentObservationListener> projectComponentObservationListeners;
     private final BuildTreeLocalComponentProvider componentProvider;
 
     @Inject
     public DefaultLocalComponentRegistry(
         DomainObjectContext domainObjectContext,
-        ListenerManager listenerManager,
+        List<ProjectComponentObservationListener> projectComponentObservationListeners,
         BuildTreeLocalComponentProvider componentProvider
     ) {
         this.currentProjectPath = getProjectIdentityPath(domainObjectContext);
         this.currentBuildPath = domainObjectContext.getBuildPath();
-        this.projectComponentObservationListener = listenerManager.getBroadcaster(ProjectComponentObservationListener.class);
+        this.projectComponentObservationListeners = projectComponentObservationListeners;
         this.componentProvider = componentProvider;
     }
 
@@ -62,7 +62,9 @@ public class DefaultLocalComponentRegistry implements LocalComponentRegistry {
             // Specifically, the following test breaks when we remove this check:
             // IsolatedProjectsToolingApiIdeaProjectIntegrationTest.ensures unique name for all Idea modules in composite
             if (projectIdentifier.getBuild().getBuildPath().equals(currentBuildPath.getPath())) {
-                projectComponentObservationListener.projectObserved(currentProjectPath, targetProjectPath);
+                for (ProjectComponentObservationListener listener : projectComponentObservationListeners) {
+                    listener.projectObserved(currentProjectPath, targetProjectPath);
+                }
             }
 
         }

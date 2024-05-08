@@ -24,6 +24,7 @@ import org.gradle.internal.build.BuildState
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.util.Path
+import java.util.concurrent.ConcurrentHashMap
 
 
 @ServiceScope(Scope.Build::class)
@@ -33,7 +34,7 @@ class RelevantProjectsRegistry(
 ) : ProjectComponentObservationListener {
 
     private
-    val targetProjects = mutableSetOf<ProjectState>()
+    val targetProjects = ConcurrentHashMap.newKeySet<ProjectState>()
 
     fun relevantProjects(nodes: List<Node>): Set<ProjectState> {
         val result = mutableSetOf<ProjectState>()
