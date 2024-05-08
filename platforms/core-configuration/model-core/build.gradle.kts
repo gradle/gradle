@@ -8,7 +8,6 @@ description = "Implementation of configuration model types and annotation metada
 errorprone {
     disabledChecks.addAll(
         "AnnotateFormatMethod", // 1 occurrence, needs errorprone annotations
-        "GetClassOnEnum", // 4 occurrences
         "ImmutableEnumChecker", // 1 occurrences
         "ReferenceEquality", // 3 occurrences
         "UndefinedEquals", // 2 occurrences
