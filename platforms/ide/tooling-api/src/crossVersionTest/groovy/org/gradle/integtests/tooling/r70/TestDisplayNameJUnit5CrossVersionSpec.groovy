@@ -78,8 +78,10 @@ public class SimpleTests {
                 suite("Gradle Test Run :test") {
                     suite("Gradle Test Executor") {
                         testClass("org.example.SimpleTests") {
+                            operationDisplayName "a class display name"
                             testDisplayName "a class display name"
                             test("test()") {
+                                operationDisplayName "and a test display name"
                                 testDisplayName "and a test display name"
                             }
                         }
@@ -191,29 +193,40 @@ class TestingAStackDemo {
                 suite("Gradle Test Run :test") {
                     suite("Gradle Test Executor") {
                         testClass("org.example.TestingAStackDemo") {
+                            operationDisplayName "A stack"
                             testDisplayName "A stack"
                             test("isInstantiatedWithNew()") {
+                                operationDisplayName "is instantiated with new Stack()"
                                 testDisplayName "is instantiated with new Stack()"
                             }
                             testClass("org.example.TestingAStackDemo\$WhenNew") {
+                                operationDisplayName "when new"
                                 testDisplayName "when new"
                                 test("isEmpty()") {
+                                    operationDisplayName "is empty"
                                     testDisplayName "is empty"
                                 }
                                 test("throwsExceptionWhenPeeked()") {
+                                    operationDisplayName "throws EmptyStackException when peeked"
                                     testDisplayName "throws EmptyStackException when peeked"
                                 }
                                 test("throwsExceptionWhenPopped()") {
+                                    operationDisplayName "throws EmptyStackException when popped"
                                     testDisplayName "throws EmptyStackException when popped"
                                 }
                                 testClass("org.example.TestingAStackDemo\$WhenNew\$AfterPushing") {
+                                    operationDisplayName "after pushing an element"
+                                    testDisplayName "after pushing an element"
                                     test("isNotEmpty()") {
+                                        operationDisplayName "it is no longer empty"
                                         testDisplayName "it is no longer empty"
                                     }
                                     test("returnElementWhenPeeked()") {
+                                        operationDisplayName "returns the element when peeked but remains not empty"
                                         testDisplayName "returns the element when peeked but remains not empty"
                                     }
                                     test("returnElementWhenPopped()") {
+                                        operationDisplayName "returns the element when popped and is empty"
                                         testDisplayName "returns the element when popped and is empty"
                                     }
                                 }
@@ -265,22 +278,29 @@ public class ParameterizedTests {
                 suite("Gradle Test Run :test") {
                     suite("Gradle Test Executor") {
                         testClass("org.example.ParameterizedTests") {
+                            operationDisplayName "Parameterized test"
                             testDisplayName "Parameterized test"
                             testMethodSuite("test1(String)") {
+                                operationDisplayName "1st test"
                                 testDisplayName "1st test"
                                 test("test1(String)[1]") {
+                                    operationDisplayName "[1] foo"
                                     testDisplayName "[1] foo"
                                 }
                                 test("test1(String)[2]") {
+                                    operationDisplayName "[2] bar"
                                     testDisplayName "[2] bar"
                                 }
                             }
                             testMethodSuite("test2(String)") {
+                                operationDisplayName "2nd test"
                                 testDisplayName "2nd test"
                                 test("test2(String)[1]") {
+                                    operationDisplayName "1 ==> the test for 'foo'"
                                     testDisplayName "1 ==> the test for 'foo'"
                                 }
                                 test("test2(String)[2]") {
+                                    operationDisplayName "2 ==> the test for 'bar'"
                                     testDisplayName "2 ==> the test for 'bar'"
                                 }
                             }
@@ -345,23 +365,30 @@ public class DynamicTests {
                         testClass("org.example.DynamicTests") {
                             testDisplayName "DynamicTests"
                             testMethodSuite("testFactory()") {
+                                operationDisplayName "testFactory()"
                                 testDisplayName "testFactory()"
                                 testMethodSuite("testFactory()[1]") {
+                                    operationDisplayName "some container"
                                     testDisplayName "some container"
                                     testMethodSuite("testFactory()[1][1]") {
+                                        operationDisplayName "some nested container"
                                         testDisplayName "some nested container"
                                         test("testFactory()[1][1][1]") {
+                                            operationDisplayName "foo"
                                             testDisplayName "foo"
                                         }
                                         test("testFactory()[1][1][2]") {
+                                            operationDisplayName "bar"
                                             testDisplayName "bar"
                                         }
                                     }
                                 }
                             }
                             testMethodSuite("anotherTestFactory()") {
+                                operationDisplayName "another test factory"
                                 testDisplayName "another test factory"
                                 test("anotherTestFactory()[1]") {
+                                    operationDisplayName "foo"
                                     testDisplayName "foo"
                                 }
                             }
@@ -423,32 +450,42 @@ public class ComplexTests {
                 suite("Gradle Test Run :test") {
                     suite("Gradle Test Executor") {
                         testClass("org.example.ComplexTests") {
+                            operationDisplayName "some_name for_tests"
                             testDisplayName "some_name for_tests"
 
                             test("test()") {
+                                operationDisplayName "test"
                                 testDisplayName "test"
                             }
                             test("simple_test()") {
+                                operationDisplayName "simple test"
                                 testDisplayName "simple test"
                             }
                             test("ugly_test()") {
+                                operationDisplayName "pretty pretty_test"
                                 testDisplayName "pretty pretty_test"
                             }
                             testMethodSuite("parametrized_test(int, String)") {
+                                operationDisplayName "parametrized test (int, String)"
                                 testDisplayName "parametrized test (int, String)"
                                 test("parametrized_test(int, String)[1]") {
+                                    operationDisplayName "[1] 10, first"
                                     testDisplayName "[1] 10, first"
                                 }
                                 test("parametrized_test(int, String)[2]") {
+                                    operationDisplayName "[2] 20, second"
                                     testDisplayName "[2] 20, second"
                                 }
                             }
                             testMethodSuite("ugly_parametrized_test(int, String)") {
+                                operationDisplayName "pretty parametrized test"
                                 testDisplayName "pretty parametrized test"
                                 test("ugly_parametrized_test(int, String)[1]") {
+                                    operationDisplayName "[1] 30, third"
                                     testDisplayName "[1] 30, third"
                                 }
                                 test("ugly_parametrized_test(int, String)[2]") {
+                                    operationDisplayName "[2] 40, fourth"
                                     testDisplayName "[2] 40, fourth"
                                 }
                             }
