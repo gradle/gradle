@@ -130,7 +130,7 @@ abstract class AbstractIntegrationSpec extends Specification {
     def cleanup() {
         if (enableProblemsApiCheck) {
             collectedProblems.each {
-                KnownProblemIds.assertHasKnownId(it)
+                KnownProblemIds.assertIsKnown(it)
             }
 
             if (getReceivedProblems().every {it == null }) {
