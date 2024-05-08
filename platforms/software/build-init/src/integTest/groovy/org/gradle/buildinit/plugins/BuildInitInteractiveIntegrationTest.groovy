@@ -538,7 +538,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
     private void assertPromptedToOverwriteExistingFiles(GradleHandle handle) {
-        assert handle.standardOutput.contains("Found existing files in the project directory: '${testDirectory.file(defaultProjectName)}'. Allow these files to be overwritten? (default: no)")
+        assert handle.standardOutput.contains("Found existing files in the project directory: '${testDirectory.file(defaultProjectName)}'." + System.lineSeparator() + "Allow these files to be overwritten? (default: no)")
     }
 
     private void assertBuildAborted(GradleHandle handle) {
