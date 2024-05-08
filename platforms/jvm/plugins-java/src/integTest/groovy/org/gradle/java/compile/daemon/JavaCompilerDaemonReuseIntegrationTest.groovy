@@ -167,13 +167,13 @@ class JavaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReuse
             operationId == taskOperations["Task :compileJava"].id
             fqid == 'compilation:java:java-compilation-note'
             details == "${testDirectory}/src/main/java/ClassWithWarning1.java uses or overrides a deprecated API."
-            (locations[0] as FileLocation).path == "${testDirectory}/src/main/java/ClassWithWarning1.java"
+            getSingleLocation(FileLocation).path == "${testDirectory}/src/main/java/ClassWithWarning1.java"
         }
         verifyAll(receivedProblem(1)) {
             operationId == taskOperations["Task :compileMain2Java"].id
             fqid == 'compilation:java:java-compilation-note'
             details == "${testDirectory}/src/main2/java/ClassWithWarning2.java uses or overrides a deprecated API."
-            (locations[0] as FileLocation).path == "${testDirectory}/src/main2/java/ClassWithWarning2.java"
+            getSingleLocation(FileLocation).path == "${testDirectory}/src/main2/java/ClassWithWarning2.java"
         }
         verifyAll(receivedProblem(2)) {
             operationId == taskOperations["Task :compileJava"].id
