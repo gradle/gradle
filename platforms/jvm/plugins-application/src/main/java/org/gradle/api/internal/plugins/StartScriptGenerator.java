@@ -59,6 +59,8 @@ public class StartScriptGenerator {
         this.optsEnvironmentVar = optsEnvironmentVar;
     }
 
+    @SuppressWarnings("DeprecatedIsStillUsed")
+    @Deprecated
     public void setExitEnvironmentVar(String exitEnvironmentVar) {
         this.exitEnvironmentVar = exitEnvironmentVar;
     }

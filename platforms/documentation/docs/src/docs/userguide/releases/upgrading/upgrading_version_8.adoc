@@ -55,6 +55,20 @@ When this happens, configurations in the substituted project could be selected t
 
 Consuming non-consumable configurations in this manner is deprecated and will result in an error in Gradle 9.0.
 
+[[remove_exit_environment_var]]
+==== Deprecate `exitEnvironmentVar` property in `CreateStartScripts` task
+
+In prior versions of Gradle, Windows Wrapper script ran the main executable within the batch file.
+This could lead to strange behavior during Wrapper upgrades, when Gradle tried to update the script while it was still parsed by `cmd.exe` shell.
+In Gradle 8.10, the Wrapper transfers control back to the parent context in order to invoke the main binary.
+This renders `exitEnvironmentVar` property obsolete as no batch code can run after that point.
+
+Methods operating on `exitEnvironmentVar` have been deprecated and will be removed in Gradle 9.0:
+
+- link:{javadocPath}/org/gradle/jvm/application/tasks/CreateStartScripts.html#getExitEnvironmentVar--[CreateStartScripts.getExitEnvironmentVar]
+- link:{javadocPath}/org/gradle/jvm/application/tasks/CreateStartScripts.html#setExitEnvironmentVar-java.lang.String-[CreateStartScripts.setExitEnvironmentVar]
+- link:{javadocPath}/org/gradle/jvm/application/scripts/JavaAppStartScriptGenerationDetails.html#getExitEnvironmentVar--[JavaAppStartScriptGenerationDetails.getExitEnvironmentVar]
+
 [[changes_8.9]]
 == Upgrading from 8.8 and earlier
 

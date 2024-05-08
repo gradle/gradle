@@ -52,7 +52,6 @@ public class StartScriptTemplateBindingFactory implements Transformer<Map<String
         Map<String, String> binding = new HashMap<>();
         binding.put(ScriptBindingParameter.APP_NAME.getKey(), details.getApplicationName());
         binding.put(ScriptBindingParameter.OPTS_ENV_VAR.getKey(), details.getOptsEnvironmentVar());
-        binding.put(ScriptBindingParameter.EXIT_ENV_VAR.getKey(), details.getExitEnvironmentVar());
         binding.put(ScriptBindingParameter.MAIN_CLASSNAME.getKey(), details.getMainClassName());
         binding.put(ScriptBindingParameter.DEFAULT_JVM_OPTS.getKey(), createJoinedDefaultJvmOpts(details.getDefaultJvmOpts()));
         binding.put(ScriptBindingParameter.APP_NAME_SYS_PROP.getKey(), details.getAppNameSystemProperty());
@@ -157,7 +156,11 @@ public class StartScriptTemplateBindingFactory implements Transformer<Map<String
     private enum ScriptBindingParameter {
         APP_NAME("applicationName"),
         OPTS_ENV_VAR("optsEnvironmentVar"),
+
+        @SuppressWarnings("DeprecatedIsStillUsed")
+        @Deprecated
         EXIT_ENV_VAR("exitEnvironmentVar"),
+
         MAIN_MODULE_NAME("mainModuleName"),
         MAIN_CLASSNAME("mainClassName"),
         DEFAULT_JVM_OPTS("defaultJvmOpts"),

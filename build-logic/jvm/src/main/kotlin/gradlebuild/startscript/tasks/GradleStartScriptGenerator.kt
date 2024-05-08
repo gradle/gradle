@@ -77,7 +77,6 @@ abstract class GradleStartScriptGenerator : DefaultTask() {
         val generator = StartScriptGenerator(createUnixStartScriptGenerator(), createWindowsStartScriptGenerator())
         generator.setApplicationName("Gradle")
         generator.setOptsEnvironmentVar("GRADLE_OPTS")
-        generator.setExitEnvironmentVar("GRADLE_EXIT_CONSOLE")
         generator.setMainClassName("org.gradle.launcher.GradleMain")
         generator.setScriptRelPath("bin/gradle")
         generator.setClasspath(listOf("lib/$launcherJarName"))

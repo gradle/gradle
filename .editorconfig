@@ -15,6 +15,10 @@ charset = utf-8
 trim_trailing_whitespace = true
 insert_final_newline = true
 
+[*.{bat,cmd}]
+charset = unset
+end_of_line = crlf
+
 # Markdown files sometimes need trailing whitespaces.
 [*.md]
 trim_trailing_whitespace = false

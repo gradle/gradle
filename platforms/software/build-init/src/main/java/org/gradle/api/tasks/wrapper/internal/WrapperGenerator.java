@@ -126,7 +126,6 @@ public class WrapperGenerator {
         generator.setMainClassName(GradleWrapperMain.class.getName());
         generator.setClasspath(singletonList(jarFileRelativePath));
         generator.setOptsEnvironmentVar("GRADLE_OPTS");
-        generator.setExitEnvironmentVar("GRADLE_EXIT_CONSOLE");
         generator.setAppNameSystemProperty("org.gradle.appname");
         generator.setScriptRelPath(unixScript.getName());
         generator.setDefaultJvmOpts(ImmutableList.of("-Xmx64m", "-Xms64m"));

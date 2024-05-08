@@ -37,6 +37,8 @@ public interface JavaAppStartScriptGenerationDetails {
     /**
      * The environment variable to use to control exit value (windows only)
      */
+    @SuppressWarnings("DeprecatedIsStillUsed")
+    @Deprecated
     String getExitEnvironmentVar();
 
     String getMainClassName();

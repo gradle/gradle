@@ -824,4 +824,50 @@ rootProject.name = 'sample'
         where:
         envVar << ["JAVA_OPTS", "SAMPLE_OPTS"]
     }
+
+    def "exitEnvironmentVar properties on CreateStartScripts are deprecated"() {
+        given:
+        buildFile << """
+            tasks.startScripts {
+                exitEnvironmentVar = exitEnvironmentVar
+            }
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning(
+            "The CreateStartScripts.getExitEnvironmentVar() method has been deprecated. " +
+                "This is scheduled to be removed in Gradle 9.0. " +
+                "Consult the upgrading guide for further information: " +
+                "https://docs.gradle.org/current/userguide/" +
+                "upgrading_version_8.html#remove_exit_environment_var"
+        )
+        executer.expectDocumentedDeprecationWarning(
+            "The CreateStartScripts.setExitEnvironmentVar() method has been deprecated. " +
+                "This is scheduled to be removed in Gradle 9.0. " +
+                "Consult the upgrading guide for further information: " +
+                "https://docs.gradle.org/current/userguide/" +
+                "upgrading_version_8.html#remove_exit_environment_var"
+        )
+        succeeds(":startScripts")
+    }
+
+        def "exitEnvironmentVar properties on JavaAppStartScriptGenerationDetails are deprecated"() {
+        given:
+        buildFile << """
+            import org.gradle.api.internal.plugins.DefaultJavaAppStartScriptGenerationDetails
+            tasks.startScripts {
+                new DefaultJavaAppStartScriptGenerationDetails(null, null, null, null, null, null, null, null, null).exitEnvironmentVar
+            }
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning(
+            "The JavaAppStartScriptGenerationDetails.getExitEnvironmentVar() method has been deprecated. " +
+                "This is scheduled to be removed in Gradle 9.0. " +
+                "Consult the upgrading guide for further information: " +
+                "https://docs.gradle.org/current/userguide/" +
+                "upgrading_version_8.html#remove_exit_environment_var"
+        )
+        succeeds(":startScripts")
+    }
 }
