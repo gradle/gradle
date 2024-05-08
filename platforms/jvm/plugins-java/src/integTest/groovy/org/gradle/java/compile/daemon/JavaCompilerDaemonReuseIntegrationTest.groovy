@@ -17,8 +17,8 @@
 package org.gradle.java.compile.daemon
 
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
+import org.gradle.api.problems.internal.FileLocation
 import org.gradle.api.tasks.compile.AbstractCompilerDaemonReuseIntegrationTest
-import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.JavaAgentFixture
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
 import org.gradle.internal.operations.trace.BuildOperationRecord
@@ -116,7 +116,8 @@ class JavaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReuse
     }
 
     def "log messages from a compiler daemon are associated with the task that generates them"() {
-        def buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
+        enableBuildOperationsFixture()
+        enableProblemsApiCheck()
 
         withSingleProjectSources()
         buildFile << """
@@ -153,26 +154,36 @@ class JavaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReuse
         assertRunningCompilerDaemonIs(firstCompilerIdentity)
 
         and:
-        def compilerOperations = buildOperations.all(ExecuteWorkItemBuildOperationType)
-        def taskOperations =
+        def compilerOperations = buildOperationsFixture.all(ExecuteWorkItemBuildOperationType)
+        Map<String, BuildOperationRecord> taskOperations =
             compilerOperations.collectEntries {
-                def op = buildOperations.parentsOf(it).reverse().find {
-                    parent -> buildOperations.isType(parent, ExecuteTaskBuildOperationType)
+                def op = buildOperationsFixture.parentsOf(it).reverse().find {
+                    parent -> buildOperationsFixture.isType(parent, ExecuteTaskBuildOperationType)
                 }
                 [op.displayName, it]
             }
 
-        def tasks = ['Task :compileJava', 'Task :compileMain2Java']
-        taskOperations.keySet() == tasks.toSet()
-        tasks.eachWithIndex { taskName, index ->
-            def operation = taskOperations[taskName] as BuildOperationRecord
-            assert operation["progress"].find { BuildOperationRecord.Progress progress ->
-                "org.gradle.api.problems.internal.DefaultProblemProgressDetails" == progress.detailsClassName
-            }.any { BuildOperationRecord.Progress progress ->
-                def problem = progress.details["problem"]
-                def detail = problem["details"] as String
-                return detail.endsWith("ClassWithWarning${index + 1}.java uses or overrides a deprecated API.")
-            }
+        verifyAll(receivedProblem(0)) {
+            operationId == taskOperations["Task :compileJava"].id
+            fqid == 'compilation:java:java-compilation-note'
+            details == "${testDirectory}/src/main/java/ClassWithWarning1.java uses or overrides a deprecated API."
+            (locations[0] as FileLocation).path == "${testDirectory}/src/main/java/ClassWithWarning1.java"
+        }
+        verifyAll(receivedProblem(1)) {
+            operationId == taskOperations["Task :compileMain2Java"].id
+            fqid == 'compilation:java:java-compilation-note'
+            details == "${testDirectory}/src/main2/java/ClassWithWarning2.java uses or overrides a deprecated API."
+            (locations[0] as FileLocation).path == "${testDirectory}/src/main2/java/ClassWithWarning2.java"
+        }
+        verifyAll(receivedProblem(2)) {
+            operationId == taskOperations["Task :compileJava"].id
+            fqid == 'compilation:java:java-compilation-note'
+            details == 'Recompile with -Xlint:deprecation for details.'
+        }
+        verifyAll(receivedProblem(3)) {
+            operationId == taskOperations["Task :compileMain2Java"].id
+            fqid == 'compilation:java:java-compilation-note'
+            details == 'Recompile with -Xlint:deprecation for details.'
         }
     }
 }
