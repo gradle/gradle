@@ -1537,7 +1537,9 @@ org:leaf:[1.5,2.0] FAILED
 project :A FAILED
    Failures:
       - Could not resolve project :A.
-          - A dependency was declared on configuration 'default' which is not declared in the descriptor for project :A.
+        No matching variant errors are explained in more detail at https://docs.gradle.org/8.9-20240508040000+0000/userguide/variant_model.html#sub:variant-no-match.
+          - Unable to find a matching variant of project :A:
+              - No variants exist.
 
 project :A FAILED
 \\--- conf
@@ -1551,7 +1553,9 @@ project :A FAILED
 project :C FAILED
    Failures:
       - Could not resolve project :C.
-          - A dependency was declared on configuration 'default' which is not declared in the descriptor for project :C.
+        No matching variant errors are explained in more detail at https://docs.gradle.org/8.9-20240508040000+0000/userguide/variant_model.html#sub:variant-no-match.
+          - Unable to find a matching variant of project :C:
+              - No variants exist.
 
 project :C FAILED
 \\--- project :B
