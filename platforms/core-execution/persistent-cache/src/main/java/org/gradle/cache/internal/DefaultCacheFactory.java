@@ -105,7 +105,8 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
         if (dirCacheReference == null) {
             ReferencablePersistentCache cache;
             if (!properties.isEmpty() || initializer != null) {
-                cache = new DefaultPersistentDirectoryCache(canonicalDir, displayName, properties, lockOptions, initializer, cacheCleanupStrategy, lockManager, executorFactory, buildOperationRunner);
+                Consumer<? super PersistentCache> initAction = initializer != null ? initializer : __ -> {};
+                cache = new DefaultPersistentDirectoryCache(canonicalDir, displayName, properties, lockOptions, initAction, cacheCleanupStrategy, lockManager, executorFactory, buildOperationRunner);
             } else {
                 cache = new DefaultPersistentDirectoryStore(canonicalDir, displayName, lockOptions, cacheCleanupStrategy, lockManager, executorFactory, buildOperationRunner);
             }
