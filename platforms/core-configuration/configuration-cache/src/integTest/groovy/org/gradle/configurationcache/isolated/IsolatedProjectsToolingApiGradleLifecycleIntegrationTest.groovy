@@ -30,6 +30,7 @@ class IsolatedProjectsToolingApiGradleLifecycleIntegrationTest extends AbstractI
         withSomeToolingModelBuilderPluginInBuildSrc()
         settingsFile << """
             include("a")
+            include("b")
 
             gradle.lifecycle.beforeProject {
                 println("Callback before \$it")
@@ -41,6 +42,8 @@ class IsolatedProjectsToolingApiGradleLifecycleIntegrationTest extends AbstractI
         file("a/build.gradle") << """
             plugins.apply(my.MyPlugin)
         """
+        // Intentionally do not apply the plugin to 'b'
+        file("b/build.gradle") << ""
 
         when:
         withIsolatedProjects()
@@ -52,13 +55,14 @@ class IsolatedProjectsToolingApiGradleLifecycleIntegrationTest extends AbstractI
         model[1].message == "It works from project :a"
 
         fixture.assertStateStored {
-            projectConfigured(":buildSrc")
+            projectsConfigured(":buildSrc", ":b")
             buildModelCreated()
             modelsCreated(":", ":a")
         }
 
         outputContains("Callback before root project 'root'")
         outputContains("Callback before project ':a'")
+        outputContains("Callback before project ':b'")
 
 
         when:
@@ -88,11 +92,12 @@ class IsolatedProjectsToolingApiGradleLifecycleIntegrationTest extends AbstractI
             fileChanged("build.gradle")
             projectConfigured(":buildSrc")
             modelsCreated(":")
-            modelsReused(":a", ":buildSrc")
+            modelsReused(":a", ":b", ":buildSrc")
         }
 
         outputContains("Callback before root project 'root'")
         outputDoesNotContain("Callback before project ':a'")
+        outputDoesNotContain("Callback before project ':b'")
 
 
         when:
@@ -124,11 +129,12 @@ class IsolatedProjectsToolingApiGradleLifecycleIntegrationTest extends AbstractI
             projectConfigured(":buildSrc")
             projectConfigured(":")
             modelsCreated(":a")
-            modelsReused(":", ":buildSrc")
+            modelsReused(":", "b", ":buildSrc")
         }
 
         outputContains("Callback before root project 'root'")
         outputContains("Callback before project ':a'")
+        outputDoesNotContain("Callback before project ':b'")
     }
 
 }
