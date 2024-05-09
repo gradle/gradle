@@ -95,7 +95,7 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
 
         @Override
         public void dispatch(MethodInvocation message) {
-            if (message.getMethod().getName().equals(methodName)) {
+            if (message.getMethodName().equals(methodName)) {
                 action.execute(message.getArguments()[0]);
             }
         }
