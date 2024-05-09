@@ -503,6 +503,11 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         return result
     }
 
+    @SuppressWarnings('GroovyAssignabilityCheck')
+    protected ExecutionResult succeeds(List<String> tasks) {
+        succeeds(tasks.toArray(new String[tasks.size()]))
+    }
+
     ExecutionResult getResult() {
         if (currentResult == null) {
             throw new IllegalStateException("No build result is available yet.")
