@@ -192,7 +192,7 @@ public interface GradleDistribution {
     boolean isSupportsToolchainsUsingFoojay();
 
     /**
-     * Returns true if this version uses the non-flaky toolchain provisioning mechanism introduced in 8.8.
+     * Returns true if this version uses the non-flaky toolchain provisioning mechanism introduced in 8.9.
      */
     boolean isNonFlakyToolchainProvisioning();
 }

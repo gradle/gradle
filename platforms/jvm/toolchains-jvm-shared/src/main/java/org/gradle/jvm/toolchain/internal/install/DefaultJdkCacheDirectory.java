@@ -56,7 +56,7 @@ public class DefaultJdkCacheDirectory implements JdkCacheDirectory {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultJdkCacheDirectory.class);
     /**
-     * Marker file used by Gradle 8.7 and earlier to indicate that a JDK has been provisioned. This is a flaky marker, as it may appear
+     * Marker file used by Gradle 8.8 and earlier to indicate that a JDK has been provisioned. This is a flaky marker, as it may appear
      * before the JDK is fully provisioned, causing faulty detection of the JDK. It is replaced by {@value #MARKER_FILE}.
      */
     @VisibleForTesting

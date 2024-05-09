@@ -353,8 +353,8 @@ class DefaultGradleDistribution implements GradleDistribution {
 
     @Override
     boolean isNonFlakyToolchainProvisioning() {
-        // Excluding potential 8.8 RCs
-        return !isSameOrOlder("8.7")
+        // Excluding potential 8.9 RCs
+        return !isSameOrOlder("8.8")
     }
 
     protected boolean isSameOrNewer(String otherVersion) {
