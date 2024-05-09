@@ -16,8 +16,6 @@
 
 package org.gradle.internal.logging.events;
 
-import org.gradle.internal.Either;
-
 public class TextQuestionPromptEvent extends PromptOutputEvent {
     private final String question;
     private final String defaultValue;
@@ -47,10 +45,10 @@ public class TextQuestionPromptEvent extends PromptOutputEvent {
     }
 
     @Override
-    public Either<?, String> convert(String text) {
+    public PromptResult<String> convert(String text) {
         if (text.isEmpty()) {
-            return Either.left(defaultValue);
+            return PromptResult.response(defaultValue);
         }
-        return Either.left(text);
+        return PromptResult.response(text);
     }
 }

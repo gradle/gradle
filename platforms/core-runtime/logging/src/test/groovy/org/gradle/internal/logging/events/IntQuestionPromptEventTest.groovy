@@ -29,8 +29,8 @@ class IntQuestionPromptEventTest extends Specification {
 
         expect:
         def result = event.convert(input)
-        result.left.get() == expected
-        !result.right.isPresent()
+        result.response == expected
+        result.newPrompt == null
 
         where:
         input  | expected
@@ -46,8 +46,8 @@ class IntQuestionPromptEventTest extends Specification {
 
         expect:
         def result = event.convert("")
-        result.left.get() == 4
-        !result.right.isPresent()
+        result.response == 4
+        result.newPrompt == null
     }
 
     def "can have negative minimum value"() {
@@ -55,8 +55,8 @@ class IntQuestionPromptEventTest extends Specification {
 
         expect:
         def result = event.convert(input)
-        result.left.get() == expected
-        !result.right.isPresent()
+        result.response == expected
+        result.newPrompt == null
 
         where:
         input  | expected
@@ -70,8 +70,8 @@ class IntQuestionPromptEventTest extends Specification {
 
         expect:
         def result = event.convert(input)
-        !result.left.isPresent()
-        result.right.get() == "Please enter an integer value (min: 2, default: 4): "
+        result.response == null
+        result.newPrompt == "Please enter an integer value (min: 2, default: 4): "
 
         where:
         input | _
@@ -86,8 +86,8 @@ class IntQuestionPromptEventTest extends Specification {
 
         expect:
         def result = event.convert(input)
-        !result.left.isPresent()
-        result.right.get() == "Please enter an integer value >= 2 (default: 4): "
+        result.response == null
+        result.newPrompt == "Please enter an integer value >= 2 (default: 4): "
 
         where:
         input | _
