@@ -185,7 +185,7 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
         @Override
         public boolean equals(Object obj) {
             SingletonDispatch<T> other = Cast.uncheckedNonnullCast(obj);
-            return handler == other.handler || handler.equals(other.handler);
+            return sameOrEquals(handler, other.handler);
         }
 
         @Override
@@ -195,7 +195,7 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
 
         @Override
         BroadcastDispatch<T> add(Object handler, Dispatch<MethodInvocation> dispatch) {
-            if (this.handler == handler || this.handler.equals(handler)) {
+            if (sameOrEquals(this.handler, handler)) {
                 return this;
             }
             List<SingletonDispatch<T>> result = new ArrayList<SingletonDispatch<T>>();
@@ -209,7 +209,7 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
             List<SingletonDispatch<T>> result = new ArrayList<SingletonDispatch<T>>();
             result.add(this);
             for (T listener : listeners) {
-                if (handler == listener || handler.equals(listener)) {
+                if (sameOrEquals(handler, listener)) {
                     continue;
                 }
                 SingletonDispatch<T> dispatch = new SingletonDispatch<T>(type, listener, new ReflectionDispatch(listener));
@@ -225,7 +225,7 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
 
         @Override
         public BroadcastDispatch<T> remove(Object listener) {
-            if (handler == listener || handler.equals(listener)) {
+            if (sameOrEquals(handler, listener)) {
                 return new EmptyDispatch<T>(type);
             }
             return this;
@@ -234,7 +234,7 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
         @Override
         public BroadcastDispatch<T> removeAll(Collection<?> listeners) {
             for (Object listener : listeners) {
-                if (handler == listener || handler.equals(listener)) {
+                if (sameOrEquals(handler, listener)) {
                     return new EmptyDispatch<T>(type);
                 }
             }
@@ -286,7 +286,7 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
         BroadcastDispatch<T> add(Object handler, Dispatch<MethodInvocation> dispatch) {
             List<SingletonDispatch<T>> result = new ArrayList<SingletonDispatch<T>>();
             for (SingletonDispatch<T> listener : dispatchers) {
-                if (listener.handler == handler || listener.handler.equals(handler)) {
+                if (sameOrEquals(listener.handler, handler)) {
                     return this;
                 }
                 result.add(listener);
@@ -315,7 +315,7 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
             List<SingletonDispatch<T>> result = new ArrayList<SingletonDispatch<T>>();
             boolean found = false;
             for (SingletonDispatch<T> dispatch : dispatchers) {
-                if (dispatch.handler == listener || dispatch.handler.equals(listener)) {
+                if (sameOrEquals(dispatch.handler, listener)) {
                     found = true;
                 } else {
                     result.add(dispatch);
@@ -379,5 +379,9 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
         public void dispatch(MethodInvocation message) {
             dispatch(message, dispatchers);
         }
+    }
+
+    private static boolean sameOrEquals(Object x, Object y) {
+        return x == y || x.equals(y);
     }
 }
