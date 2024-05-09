@@ -18,6 +18,13 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.changedetection.state.FileHasherStatistics;
+import org.gradle.api.internal.tasks.userinput.BuildScanUserInputHandler;
+import org.gradle.api.internal.tasks.userinput.DefaultBuildScanUserInputHandler;
+import org.gradle.api.internal.tasks.userinput.DefaultUserInputHandler;
+import org.gradle.api.internal.tasks.userinput.DefaultUserInputReader;
+import org.gradle.api.internal.tasks.userinput.NonInteractiveUserInputHandler;
+import org.gradle.api.internal.tasks.userinput.UserInputHandler;
+import org.gradle.api.internal.tasks.userinput.UserInputReader;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.deployment.internal.DeploymentRegistryInternal;
 import org.gradle.execution.WorkValidationWarningReporter;
@@ -45,6 +52,7 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.WorkInputListeners;
 import org.gradle.internal.file.StatStatistics;
 import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.internal.logging.sink.OutputEventListenerManager;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationListenerManager;
@@ -112,6 +120,12 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
     }
 
     static class ToolingGlobalScopeServices {
+        void configure(ServiceRegistration registration) {
+            registration.add(UserInputReader.class, DefaultUserInputReader.class);
+            registration.add(BuildActionRunner.class, ExecuteBuildActionRunner.class);
+            registration.add(ClassLoaderCache.class, ClassLoaderCache.class);
+        }
+
         BuildExecuter createBuildExecuter(
             LoggingManagerInternal loggingManager,
             BuildLoggerFactory buildLoggerFactory,
@@ -130,14 +144,6 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
 
         BuildLoggerFactory createBuildLoggerFactory(StyledTextOutputFactory styledTextOutputFactory, WorkValidationWarningReporter workValidationWarningReporter) {
             return new BuildLoggerFactory(styledTextOutputFactory, workValidationWarningReporter, Time.clock(), null);
-        }
-
-        BuildActionRunner createExecuteBuildActionRunner() {
-            return new ExecuteBuildActionRunner();
-        }
-
-        ClassLoaderCache createClassLoaderCache() {
-            return new ClassLoaderCache();
         }
     }
 
@@ -210,6 +216,19 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                             loggingBuildOperationProgressBroadcaster,
                             buildOperationNotificationValve))));
         }
+
+        UserInputHandler createUserInputHandler(BuildRequestMetaData requestMetaData, OutputEventListenerManager outputEventListenerManager, Clock clock, UserInputReader inputReader) {
+            if (!requestMetaData.isInteractive()) {
+                return new NonInteractiveUserInputHandler();
+            }
+
+            return new DefaultUserInputHandler(outputEventListenerManager.getBroadcaster(), clock, inputReader);
+        }
+
+        BuildScanUserInputHandler createBuildScanUserInputHandler(UserInputHandler userInputHandler) {
+            return new DefaultBuildScanUserInputHandler(userInputHandler);
+        }
+
     }
 
     static class ToolingBuildTreeScopeServices {

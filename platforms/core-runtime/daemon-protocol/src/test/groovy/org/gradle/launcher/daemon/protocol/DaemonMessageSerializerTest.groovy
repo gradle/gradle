@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.logging.LogLevel
 import org.gradle.configuration.GradleLauncherMetaData
 import org.gradle.internal.classpath.ClassPath
+import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.logging.events.BooleanQuestionPromptEvent
 import org.gradle.internal.logging.events.IntQuestionPromptEvent
 import org.gradle.internal.logging.events.LogLevelChangeEvent
@@ -30,18 +31,17 @@ import org.gradle.internal.logging.events.TextQuestionPromptEvent
 import org.gradle.internal.logging.events.UserInputRequestEvent
 import org.gradle.internal.logging.events.UserInputResumeEvent
 import org.gradle.internal.logging.events.YesNoQuestionPromptEvent
+import org.gradle.internal.serialize.DefaultSerializer
 import org.gradle.internal.serialize.PlaceholderException
 import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.serialize.SerializerSpec
 import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics
 import org.gradle.launcher.exec.BuildActionResult
 import org.gradle.launcher.exec.DefaultBuildActionParameters
-import org.gradle.tooling.internal.provider.action.BuildActionSerializer
-import org.gradle.tooling.internal.provider.action.ExecuteBuildAction
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload
 
 class DaemonMessageSerializerTest extends SerializerSpec {
-    def serializer = DaemonMessageSerializer.create(BuildActionSerializer.create())
+    def serializer = DaemonMessageSerializer.create(new DefaultSerializer<BuildAction>())
 
     def "can serialize BuildEvent messages"() {
         expect:
@@ -248,7 +248,7 @@ class DaemonMessageSerializerTest extends SerializerSpec {
 
     def "can serialize Build message"() {
         expect:
-        def action = new ExecuteBuildAction(new StartParameterInternal())
+        def action = new TestAction()
         def clientMetadata = new GradleLauncherMetaData()
         def params = new DefaultBuildActionParameters([:], [:], new File("some-dir"), LogLevel.ERROR, true, ClassPath.EMPTY)
         def message = new Build(UUID.randomUUID(), [1, 2, 3] as byte[], action, clientMetadata, 1234L, true, params)
@@ -311,5 +311,22 @@ class DaemonMessageSerializerTest extends SerializerSpec {
         def result = serialize(new OutputMessage(event), serializer)
         assert result instanceof OutputMessage
         return result.event
+    }
+
+    private static class TestAction implements BuildAction, Serializable {
+        @Override
+        StartParameterInternal getStartParameter() {
+            return null
+        }
+
+        @Override
+        boolean isRunTasks() {
+            return false
+        }
+
+        @Override
+        boolean isCreateModel() {
+            return false
+        }
     }
 }

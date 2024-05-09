@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -80,7 +81,7 @@ public class DaemonClientInputForwarder implements Stoppable {
 
         public ForwardingUserInput(InputStream inputStream, Dispatch<? super InputMessage> dispatch, Executor executor) {
             this.dispatch = dispatch;
-            this.reader = new BufferedReader(new InputStreamReader(inputStream));
+            this.reader = new BufferedReader(new InputStreamReader(inputStream, Charset.defaultCharset()));
             this.executor = executor;
         }
 
@@ -101,7 +102,7 @@ public class DaemonClientInputForwarder implements Stoppable {
                     maybeClosed();
                 } else {
                     String text = new String(buffer, 0, nread);
-                    byte[] result = text.getBytes();
+                    byte[] result = text.getBytes(Charset.defaultCharset());
                     ForwardInput message = new ForwardInput(result);
                     dispatch.dispatch(message);
                 }

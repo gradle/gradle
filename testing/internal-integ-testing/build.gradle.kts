@@ -55,6 +55,7 @@ dependencies {
     implementation(project(":platform-jvm"))
     implementation(project(":dependency-management"))
     implementation(project(":configuration-cache"))
+    implementation(project(":daemon-protocol"))
     implementation(project(":launcher"))
     implementation(project(":build-events"))
     implementation(project(":build-option"))

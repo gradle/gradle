@@ -3100,8 +3100,6 @@ Class <org.gradle.launcher.daemon.client.DefaultDaemonConnector$1> is not annota
 Class <org.gradle.launcher.daemon.client.DefaultDaemonConnector$CleanupOnStaleAddress> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultDaemonConnector.java:0)
 Class <org.gradle.launcher.daemon.client.DefaultDaemonConnector> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultDaemonConnector.java:0)
 Class <org.gradle.launcher.daemon.client.DefaultDaemonStarter> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultDaemonStarter.java:0)
-Class <org.gradle.launcher.daemon.client.InputForwarder$1> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (InputForwarder.java:0)
-Class <org.gradle.launcher.daemon.client.InputForwarder> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (InputForwarder.java:0)
 Class <org.gradle.launcher.daemon.client.JvmVersionValidator> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (JvmVersionValidator.java:0)
 Class <org.gradle.launcher.daemon.client.NoUsableDaemonFoundException> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (NoUsableDaemonFoundException.java:0)
 Class <org.gradle.launcher.daemon.client.NotifyDaemonAboutChangedPathsClient> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (NotifyDaemonAboutChangedPathsClient.java:0)
