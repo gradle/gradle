@@ -35,8 +35,8 @@ Enter selection (default: 12) [1..3] """)
 
         expect:
         def result = event.convert(input)
-        result.left.get() == expected
-        !result.right.isPresent()
+        result.response == expected
+        result.newPrompt == null
 
         where:
         input | expected
@@ -50,8 +50,8 @@ Enter selection (default: 12) [1..3] """)
 
         expect:
         def result = event.convert("")
-        result.left.get() == 1
-        !result.right.isPresent()
+        result.response == 1
+        result.newPrompt == null
     }
 
     def "rejects invalid input"() {
@@ -59,8 +59,8 @@ Enter selection (default: 12) [1..3] """)
 
         expect:
         def result = event.convert(input)
-        !result.left.isPresent()
-        result.right.get() == "Please enter a value between 1 and 4: "
+        result.response == null
+        result.newPrompt == "Please enter a value between 1 and 4: "
 
         where:
         input | _
