@@ -23,44 +23,31 @@ import org.gradle.cache.IndexedCache;
 import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.LockOptions;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRunner;
-import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.serialize.Serializer;
-import org.gradle.internal.time.Time;
-import org.gradle.internal.time.Timer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 import static org.gradle.cache.internal.CacheInitializationAction.NO_INIT_REQUIRED;
 
 public class DefaultPersistentDirectoryStore implements ReferencablePersistentCache {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPersistentDirectoryStore.class);
-
     public static final int CLEANUP_INTERVAL_IN_HOURS = 24;
 
     private final File dir;
     private final LockOptions lockOptions;
-    @Nullable
-    private final CacheCleanupStrategy cacheCleanupStrategy;
     private final FileLockManager lockManager;
     private final ExecutorFactory executorFactory;
     private final String displayName;
 
     protected final File propertiesFile;
     private final File gcFile;
-    private final BuildOperationRunner buildOperationRunner;
+
+    private final DefaultCacheCleanupExecutor cleanupExecutor;
     private DefaultCacheCoordinator cacheAccess;
 
     public DefaultPersistentDirectoryStore(
@@ -74,13 +61,12 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     ) {
         this.dir = dir;
         this.lockOptions = lockOptions;
-        this.cacheCleanupStrategy = cacheCleanupStrategy;
         this.lockManager = fileLockManager;
         this.executorFactory = executorFactory;
         this.propertiesFile = new File(dir, "cache.properties");
         this.gcFile = new File(dir, "gc.properties");
-        this.buildOperationRunner = buildOperationRunner;
         this.displayName = displayName != null ? (displayName + " (" + dir + ")") : ("cache directory " + dir.getName() + " (" + dir + ")");
+        this.cleanupExecutor = new DefaultCacheCleanupExecutor(this, gcFile, cacheCleanupStrategy, buildOperationRunner);
     }
 
     @Override
@@ -97,7 +83,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     }
 
     private DefaultCacheCoordinator createCacheAccess() {
-        return new DefaultCacheCoordinator(displayName, getLockTarget(), lockOptions, dir, lockManager, getInitAction(), getCleanupExecutor(), executorFactory);
+        return new DefaultCacheCoordinator(displayName, getLockTarget(), lockOptions, dir, lockManager, getInitAction(), cleanupExecutor, executorFactory);
     }
 
     private File getLockTarget() {
@@ -106,10 +92,6 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
 
     protected CacheInitializationAction getInitAction() {
         return NO_INIT_REQUIRED;
-    }
-
-    protected CacheCleanupExecutor getCleanupExecutor() {
-        return new CleanupExecutor();
     }
 
     @Override
@@ -187,48 +169,4 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
         cacheAccess.cleanup();
     }
 
-    private class CleanupExecutor implements CacheCleanupExecutor {
-        private boolean requiresCleanup() {
-            if (dir.exists() && cacheCleanupStrategy != null) {
-                if (!gcFile.exists()) {
-                    try {
-                        FileUtils.touch(gcFile);
-                    } catch (IOException e) {
-                        throw new UncheckedIOException(e);
-                    }
-                } else {
-                    long duration = System.currentTimeMillis() - gcFile.lastModified();
-                    long timeInHours = TimeUnit.MILLISECONDS.toHours(duration);
-                    LOGGER.debug("{} has last been fully cleaned up {} hours ago", DefaultPersistentDirectoryStore.this, timeInHours);
-                    return cacheCleanupStrategy.getCleanupFrequency().requiresCleanup(gcFile.lastModified());
-                }
-            }
-            return false;
-        }
-
-        @Override
-        public void cleanup() {
-            if (cacheCleanupStrategy != null && requiresCleanup()) {
-                buildOperationRunner.run(new RunnableBuildOperation() {
-                    @Override
-                    public void run(BuildOperationContext context) {
-                        Timer timer = Time.startTimer();
-                        try {
-                            cacheCleanupStrategy.getCleanupAction().clean(DefaultPersistentDirectoryStore.this, new DefaultCleanupProgressMonitor(context));
-                            FileUtils.touch(gcFile);
-                        } catch (IOException e) {
-                            throw new UncheckedIOException(e);
-                        } finally {
-                            LOGGER.info("{} cleaned up in {}.", DefaultPersistentDirectoryStore.this, timer.getElapsed());
-                        }
-                    }
-
-                    @Override
-                    public BuildOperationDescriptor.Builder description() {
-                        return BuildOperationDescriptor.displayName("Clean up " + displayName);
-                    }
-                });
-            }
-        }
-    }
 }
