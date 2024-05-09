@@ -1106,13 +1106,6 @@
     "crossVersionTests": false
   },
   {
-    "name": "worker-services",
-    "path": "platforms/core-runtime/worker-services",
-    "unitTests": false,
-    "functionalTests": false,
-    "crossVersionTests": false
-  },
-  {
     "name": "workers",
     "path": "platforms/core-execution/workers",
     "unitTests": true,

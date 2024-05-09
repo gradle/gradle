@@ -16,8 +16,6 @@
 
 package org.gradle.launcher;
 
-import org.gradle.internal.jvm.GradleVersionNumberLoader;
-
 import java.lang.reflect.Method;
 
 public class GradleMain {

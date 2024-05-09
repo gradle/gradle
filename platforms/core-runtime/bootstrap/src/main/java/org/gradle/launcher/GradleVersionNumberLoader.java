@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.jvm;
+package org.gradle.launcher;
 
 import java.io.InputStream;
 import java.net.URL;
