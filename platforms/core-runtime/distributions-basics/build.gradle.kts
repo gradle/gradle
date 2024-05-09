@@ -22,4 +22,5 @@ dependencies {
     pluginsRuntimeOnly(project(":kotlin-dsl-tooling-builders"))
 
     pluginsRuntimeOnly(project(":test-kit"))
+    pluginsRuntimeOnly(project(":unit-test-fixtures"))
 }

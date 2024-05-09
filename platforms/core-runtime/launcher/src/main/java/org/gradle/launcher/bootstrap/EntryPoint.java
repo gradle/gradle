@@ -40,7 +40,7 @@ import java.io.PrintStream;
  * testing as it's difficult to test something that will call System.exit().
  */
 public abstract class EntryPoint {
-    private PrintStream originalStdErr = System.err;
+    private final PrintStream originalStdErr = System.err;
 
     /**
      * Unless the createCompleter() method is overridden, the JVM will exit before returning from this method.

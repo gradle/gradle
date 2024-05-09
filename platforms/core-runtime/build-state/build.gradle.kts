@@ -21,12 +21,19 @@ plugins {
 description = "Types for build state management"
 
 dependencies {
-    api(project(":core")) {
-        because("API because of AgentStatus")
-    }
-    api(project(":base-services")) {
-        because("API because of ServiceRegistry")
-    }
+    api(project(":core"))
+    api(project(":base-services"))
+    api(project(":java-language-extensions"))
+    api(project(":core-api"))
+    api(project(":file-collections"))
+
+    implementation(project(":build-operations"))
+    implementation(project(":files"))
+    implementation(project(":hashing"))
+    implementation(project(":logging"))
+    implementation(project(":messaging"))
+    implementation(project(":native"))
+    implementation(project(":persistent-cache"))
+    implementation(project(":time"))
     implementation(project(":concurrent"))
-    implementation(project(":java-language-extensions"))
 }

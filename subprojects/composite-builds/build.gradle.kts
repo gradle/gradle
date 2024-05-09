@@ -25,6 +25,7 @@ dependencies {
     api(project(":messaging"))
     api(project(":model-core"))
     api(project(":plugin-use"))
+    api(project(":build-state"))
 
     api(libs.inject)
     api(libs.jsr305)

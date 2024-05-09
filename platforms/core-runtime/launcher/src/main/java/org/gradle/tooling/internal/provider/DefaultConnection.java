@@ -137,7 +137,6 @@ public class DefaultConnection implements ConnectionVersion4,
         return new DefaultConnectionMetaData();
     }
 
-
     /**
      * This is used by consumers 2.2-rc-1 and later
      */
@@ -189,7 +188,7 @@ public class DefaultConnection implements ConnectionVersion4,
         ProviderOperationParameters providerParameters = validateAndConvert(operationParameters);
         BuildCancellationToken buildCancellationToken = new InternalCancellationTokenAdapter(cancellationToken);
         Object results = connection.runPhasedAction(phasedAction, listener, buildCancellationToken, providerParameters);
-        return new ProviderBuildResult<Object>(results);
+        return new ProviderBuildResult<>(results);
     }
 
     /**
@@ -202,7 +201,7 @@ public class DefaultConnection implements ConnectionVersion4,
         ProviderInternalTestExecutionRequest testExecutionRequestVersion2 = adapter.adapt(ProviderInternalTestExecutionRequest.class, testExecutionRequest);
         BuildCancellationToken buildCancellationToken = new InternalCancellationTokenAdapter(cancellationToken);
         Object results = connection.runTests(testExecutionRequestVersion2, buildCancellationToken, providerParameters);
-        return new ProviderBuildResult<Object>(results);
+        return new ProviderBuildResult<>(results);
     }
 
     private ProviderOperationParameters validateAndConvert(BuildParameters buildParameters) {

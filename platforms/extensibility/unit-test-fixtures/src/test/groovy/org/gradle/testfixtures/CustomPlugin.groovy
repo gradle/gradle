@@ -18,18 +18,10 @@ package org.gradle.testfixtures
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.internal.reflect.Instantiator
-
-import javax.inject.Inject
 
 
-public class CustomPluginWithInjection implements Plugin<Project> {
+class CustomPlugin implements Plugin<Project> {
     void apply(Project target) {
         target.task('hello');
-    }
-
-    @Inject
-    public Instantiator getInstantiator() {
-        throw new UnsupportedOperationException();
     }
 }

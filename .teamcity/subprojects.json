@@ -149,7 +149,7 @@
   {
     "name": "build-state",
     "path": "platforms/core-runtime/build-state",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
@@ -1076,6 +1076,13 @@
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": true
+  },
+  {
+    "name": "unit-test-fixtures",
+    "path": "platforms/extensibility/unit-test-fixtures",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
   },
   {
     "name": "version-control",

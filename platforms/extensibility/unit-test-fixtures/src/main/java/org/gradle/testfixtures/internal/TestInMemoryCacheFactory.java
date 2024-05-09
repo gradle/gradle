@@ -92,10 +92,6 @@ public class TestInMemoryCacheFactory implements CacheFactory {
             }
         }
 
-        public boolean isClosed() {
-            return closed;
-        }
-
         @Override
         public File getBaseDir() {
             return cacheDir;
