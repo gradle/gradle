@@ -17,7 +17,6 @@ errorprone {
 }
 
 dependencies {
-    api(project(":functional"))
     api(projects.javaLanguageExtensions)
 
     api(libs.jsr305)
