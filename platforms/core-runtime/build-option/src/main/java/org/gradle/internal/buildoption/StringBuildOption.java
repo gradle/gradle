@@ -32,10 +32,6 @@ public abstract class StringBuildOption<T> extends AbstractBuildOption<T, Comman
         super(property);
     }
 
-    public StringBuildOption(String property, PropertyOrigin propertyOrigin) {
-        super(property, propertyOrigin);
-    }
-
     public StringBuildOption(String property, CommandLineOptionConfiguration... commandLineOptionConfigurations) {
         super(property, commandLineOptionConfigurations);
     }
@@ -45,7 +41,7 @@ public abstract class StringBuildOption<T> extends AbstractBuildOption<T, Comman
         String value = properties.get(property);
 
         if (value != null) {
-            applyTo(value, settings, propertyOrigin.toOrigin(property));
+            applyTo(value, settings, Origin.forGradleProperty(property));
         }
     }
 
