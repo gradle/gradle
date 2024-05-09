@@ -27,6 +27,7 @@ import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.graph.GraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
+import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
 import org.gradle.util.Path;
 import org.gradle.util.internal.CollectionUtils;
 import org.gradle.work.DisableCachingByDefault;
@@ -58,6 +59,9 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
     public BuildStateRegistry getBuildStateRegistry() {
         throw new UnsupportedOperationException();
     }
+
+    @Inject
+    protected abstract SoftwareTypeRegistry getSoftwareTypeRegistry();
 
     /**
      * Report model.
@@ -92,6 +96,8 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
 
     @Override
     protected ProjectReportModel calculateReportModelFor(Project project) {
+        getSoftwareTypesForProject(project);
+
         return new ProjectReportModel(
             ProjectDetails.of(project),
             calculateChildrenProjectsFor(project),
@@ -100,6 +106,17 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
             project.getRootProject().absoluteProjectPath(ProjectInternal.PROJECTS_TASK),
             calculateIncludedBuildIdentityPaths()
         );
+    }
+
+    private List<Class<?>> getSoftwareTypesForProject(Project project) {
+        List<Class<?>> results = new ArrayList<>(1);
+        getSoftwareTypeRegistry().getSoftwareTypeImplementations().forEach(registeredType -> {
+            Class<?> softwareType = registeredType.getModelPublicType();
+            if (project.getExtensions().findByType(softwareType) != null) {
+                results.add(softwareType);
+            }
+        });
+        return results;
     }
 
     private List<ProjectReportModel> calculateChildrenProjectsFor(Project project) {
