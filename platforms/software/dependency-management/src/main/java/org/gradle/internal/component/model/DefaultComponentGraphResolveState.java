@@ -56,8 +56,7 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
     public DefaultComponentGraphResolveState(long instanceId, T graphMetadata, S artifactMetadata, AttributeDesugaring attributeDesugaring, ComponentIdGenerator idGenerator) {
         super(instanceId, graphMetadata, artifactMetadata, attributeDesugaring);
         this.allVariantsForGraphResolution = Lazy.locking().of(() ->
-            graphMetadata.getVariantsForGraphTraversal()
-                .stream()
+            graphMetadata.getVariantsForGraphTraversal().stream()
                 .map(ModuleConfigurationMetadata.class::cast)
                 .map(variant -> resolveStateFor(variant).asVariant())
                 .collect(Collectors.toList())

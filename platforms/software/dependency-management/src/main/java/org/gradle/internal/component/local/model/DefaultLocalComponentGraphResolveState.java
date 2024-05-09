@@ -72,8 +72,7 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
     public DefaultLocalComponentGraphResolveState(long instanceId, LocalComponentMetadata metadata, AttributeDesugaring attributeDesugaring, ComponentIdGenerator idGenerator, boolean adHoc) {
         super(instanceId, metadata, metadata, attributeDesugaring);
         this.allVariantsForGraphResolution = Lazy.locking().of(() ->
-            metadata.getVariantsForGraphTraversal()
-                .stream()
+            metadata.getVariantsForGraphTraversal().stream()
                 .map(variant -> getConfiguration(variant.getName()).asVariant())
                 .collect(Collectors.toList())
         );

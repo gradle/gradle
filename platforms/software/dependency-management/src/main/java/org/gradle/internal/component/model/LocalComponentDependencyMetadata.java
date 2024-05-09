@@ -99,7 +99,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         AttributesSchemaInternal consumerSchema,
         Collection<? extends Capability> explicitRequestedCapabilities
     ) {
-        // If a specific variant is requested by name, selected it.
+        // If a specific variant is requested by name, select it.
         if (dependencyConfiguration != null) {
             VariantGraphResolveState selected = variantSelector.selectVariantByConfigurationName(dependencyConfiguration, consumerAttributes, targetComponentState, consumerSchema);
             return new GraphVariantSelectionResult(Collections.singletonList(selected), false);
