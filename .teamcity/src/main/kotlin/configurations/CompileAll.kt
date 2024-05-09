@@ -19,7 +19,7 @@ class CompileAll(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(stage 
             name = "SET_JDKS"
             executionMode = BuildStep.ExecutionMode.ALWAYS
             scriptContent = """
-                nix-shell .teamcity/jdk11.nix
+                /nix/var/nix/profiles/default/bin/nix-shell .teamcity/jdk11.nix
             """.trimIndent()
         }
 
