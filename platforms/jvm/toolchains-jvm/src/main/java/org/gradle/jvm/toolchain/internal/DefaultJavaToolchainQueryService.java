@@ -23,7 +23,6 @@ import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.deprecation.DeprecationLogger;
-import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.deprecation.DocumentedFailure;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JavaInstallationRegistry;
@@ -163,12 +162,9 @@ public class DefaultJavaToolchainQueryService implements JavaToolchainQueryServi
     private void warnIfAutoProvisionedToolchainUsedWithoutRepositoryDefinitions(InstallationLocation javaHome) {
         boolean autoDetectedToolchain = javaHome.isAutoProvisioned();
         if (autoDetectedToolchain && installService.isAutoDownloadEnabled() && !installService.hasConfiguredToolchainRepositories()) {
-            DeprecationLogger.warnOfChangedBehaviour(
-                    "Using a toolchain installed via auto-provisioning, but having no toolchain repositories configured",
-                    "Consider defining toolchain download repositories, otherwise the build might fail in clean environments; " +
-                        "see " + Documentation.userManual("toolchains", "sub:download_repositories").getUrl()
-                )
-                .withUserManual("toolchains", "sub:download_repositories") //has no effect due to bug in DeprecationLogger.warnOfChangedBehaviour
+            DeprecationLogger.deprecateBehaviour("Using a toolchain installed via auto-provisioning while having no toolchain repositories configured.")
+                .startingWithGradle9("consider defining toolchain download repositories, otherwise the build might fail in clean environments")
+                .withUserManual("toolchains", "sub:download_repositories")
                 .nagUser();
         }
     }

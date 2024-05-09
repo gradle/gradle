@@ -413,8 +413,9 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
         """
 
         expect:
-        executer.withStackTraceChecksDisabled()
-        executer.expectDeprecationWarning("Publication ignores 'transitive = false' at configuration level. This behavior is deprecated. Consider using 'transitive = false' at the dependency level if you need this to be published.")
+        executer.expectDocumentedDeprecationWarning("Publication ignores 'transitive = false' at configuration level. This behavior has been deprecated. " +
+            "This will fail with an error in Gradle 9.0. Consider using 'transitive = false' at the dependency level if you need this to be published. " +
+            "For more information, please refer to https://docs.gradle.org/current/userguide/publishing_ivy.html#configurations_marked_as_non_transitive in the Gradle documentation.")
         succeeds 'publish'
     }
 

@@ -60,7 +60,9 @@ public class ConfigurationVariantMapping {
         String outgoingConfigurationName = outgoingConfiguration.getName();
 
         if (!outgoingConfiguration.isTransitive()) {
-            DeprecationLogger.warnOfChangedBehaviour("Publication ignores 'transitive = false' at configuration level", "Consider using 'transitive = false' at the dependency level if you need this to be published.")
+            DeprecationLogger.deprecateBehaviour("Publication ignores 'transitive = false' at configuration level.")
+                .withAdvice("Consider using 'transitive = false' at the dependency level if you need this to be published.")
+                .willBecomeAnErrorInGradle9()
                 .withUserManual("publishing_ivy", "configurations_marked_as_non_transitive")
                 .nagUser();
         }

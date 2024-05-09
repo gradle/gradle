@@ -358,16 +358,6 @@ class DeprecationMessagesTest extends Specification {
         expectMessage "Internal API constructor DefaultPolymorphicDomainObjectContainer(Class<T>, Instantiator) has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Please use ObjectFactory.polymorphicDomainObjectContainer(Class<T>) instead."
     }
 
-    def "logs deprecation without scheduled removal"() {
-        when:
-        DeprecationLogger.warnOfChangedBehaviour("Publication ignores 'transitive = false' at configuration level", "Consider using 'transitive = false' at the dependency level if you need this to be published.")
-            .undocumented()
-            .nagUser()
-
-        then:
-        expectMessage "Publication ignores 'transitive = false' at configuration level. This behavior is deprecated. Consider using 'transitive = false' at the dependency level if you need this to be published."
-    }
-
     def "logs documentation reference"() {
         when:
         DeprecationLogger.deprecateBehaviour("Some behavior.")
