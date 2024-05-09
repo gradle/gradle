@@ -31,7 +31,9 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.util.concurrent.TimeUnit;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Optional;
 
 public class DefaultCacheCleanupExecutor implements CacheCleanupExecutor {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultCacheCleanupExecutor.class);
@@ -48,47 +50,118 @@ public class DefaultCacheCleanupExecutor implements CacheCleanupExecutor {
         this.buildOperationRunner = buildOperationRunner;
     }
 
-    private boolean requiresCleanup() {
-        File dir = cleanableStore.getBaseDir();
-        if (dir.exists() && cacheCleanupStrategy != CacheCleanupStrategy.NO_CLEANUP) {
-            if (!gcFile.exists()) {
-                try {
-                    FileUtils.touch(gcFile);
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
-                }
-            } else {
-                long duration = System.currentTimeMillis() - gcFile.lastModified();
-                long timeInHours = TimeUnit.MILLISECONDS.toHours(duration);
-                LOGGER.debug("{} has last been fully cleaned up {} hours ago", cleanableStore.getDisplayName(), timeInHours);
-                return cacheCleanupStrategy.getCleanupFrequency().requiresCleanup(gcFile.lastModified());
-            }
-        }
-        return false;
-    }
-
     @Override
     public void cleanup() {
-        if (requiresCleanup()) {
-            buildOperationRunner.run(new RunnableBuildOperation() {
-                @Override
-                public void run(BuildOperationContext context) {
+        getLastCleanupTime()
+            .ifPresent(this::performCleanupIfNecessary);
+    }
+
+    private void performCleanupIfNecessary(Instant lastCleanupTime) {
+        if (LOGGER.isDebugEnabled()) {
+            Duration timeSinceLastCleanup = Duration.between(lastCleanupTime, Instant.now());
+            LOGGER.debug("{} has last been fully cleaned up {} hours ago", cleanableStore.getDisplayName(), timeSinceLastCleanup.toHours());
+        }
+
+        boolean requiresCleanup = cacheCleanupStrategy.getCleanupFrequency().requiresCleanup(lastCleanupTime);
+        buildOperationRunner.run(new RunnableBuildOperation() {
+            @Override
+            public void run(BuildOperationContext context) {
+                if (requiresCleanup) {
+                    DefaultCleanupProgressMonitor progressMonitor = new DefaultCleanupProgressMonitor(context);
                     Timer timer = Time.startTimer();
                     try {
-                        cacheCleanupStrategy.getCleanupAction().clean(cleanableStore, new DefaultCleanupProgressMonitor(context));
+                        cacheCleanupStrategy.getCleanupAction().clean(cleanableStore, progressMonitor);
                         FileUtils.touch(gcFile);
                     } catch (IOException e) {
                         throw new UncheckedIOException(e);
                     } finally {
                         LOGGER.info("{} cleaned up in {}.", cleanableStore.getDisplayName(), timer.getElapsed());
+                        context.setResult(CacheCleanupResult.performed(progressMonitor.getDeleted(), lastCleanupTime));
                     }
+                } else {
+                    context.setResult(CacheCleanupResult.skipped(lastCleanupTime));
                 }
+            }
 
-                @Override
-                public BuildOperationDescriptor.Builder description() {
-                    return BuildOperationDescriptor.displayName("Clean up " + cleanableStore.getDisplayName());
-                }
-            });
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor.displayName("Clean up " + cleanableStore.getDisplayName())
+                    .details(new CacheCleanupDetails(requiresCleanup));
+            }
+        });
+    }
+
+    private Optional<Instant> getLastCleanupTime() {
+        // If the cleanup strategy is NO_CLEANUP, we don't need to do anything
+        if (cacheCleanupStrategy == CacheCleanupStrategy.NO_CLEANUP) {
+            return Optional.empty();
+        }
+
+        File dir = cleanableStore.getBaseDir();
+        if (!dir.exists()) {
+            // Directory does not exist, nothing to clean up
+            return Optional.empty();
+        }
+
+        if (!gcFile.exists()) {
+            // If GC file hasn't been created, then this cache hasn't been used before.
+            // We create the GC file, but there's nothing to clean up
+            try {
+                FileUtils.touch(gcFile);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+            return Optional.empty();
+        }
+
+        return Optional.of(Instant.ofEpochMilli(gcFile.lastModified()));
+    }
+
+    private static class CacheCleanupDetails implements CacheCleanupBuildOperationType.Details {
+        private final boolean requiresCleanup;
+
+        public CacheCleanupDetails(boolean requiresCleanup) {
+            this.requiresCleanup = requiresCleanup;
+        }
+
+        @Override
+        public boolean isCleanupRequired() {
+            return requiresCleanup;
+        }
+    }
+
+    private static class CacheCleanupResult implements CacheCleanupBuildOperationType.Result {
+        private final boolean cleanedPerformed;
+        private final long deletedEntriesCount;
+        private final Instant previousCleanupTime;
+
+        public static CacheCleanupBuildOperationType.Result performed(long deletedEntriesCount, Instant previousCleanupTime) {
+            return new CacheCleanupResult(true, deletedEntriesCount, previousCleanupTime);
+        }
+
+        public static CacheCleanupBuildOperationType.Result skipped(Instant previousCleanupTime) {
+            return new CacheCleanupResult(false, 0, previousCleanupTime);
+        }
+
+        private CacheCleanupResult(boolean cleanedPerformed, long deletedEntriesCount, Instant previousCleanupTime) {
+            this.cleanedPerformed = cleanedPerformed;
+            this.deletedEntriesCount = deletedEntriesCount;
+            this.previousCleanupTime = previousCleanupTime;
+        }
+
+        @Override
+        public boolean isCleanupPerformed() {
+            return cleanedPerformed;
+        }
+
+        @Override
+        public long getDeletedEntriesCount() {
+            return deletedEntriesCount;
+        }
+
+        @Override
+        public Instant getPreviousCleanupTime() {
+            return previousCleanupTime;
         }
     }
 }
