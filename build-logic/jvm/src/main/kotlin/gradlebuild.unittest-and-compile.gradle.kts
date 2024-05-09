@@ -268,8 +268,8 @@ fun configureTests() {
 
         extensions.findByType<DevelocityTestConfiguration>()?.testDistribution {
             this as TestDistributionConfigurationInternal
-            // Dogfooding TD against ge-td-dogfooding in order to test new features and benefit from bug fixes before they are released
-            server = uri("https://ge-td-dogfooding.grdev.net")
+            // Dogfooding TD against dv-td-dogfooding in order to test new features and benefit from bug fixes before they are released
+            server = uri("https://dv-td-dogfooding.grdev.net")
 
             if (project.testDistributionEnabled && !isUnitTest() && !isPerformanceProject() && !isNativeProject()) {
                 enabled = true
