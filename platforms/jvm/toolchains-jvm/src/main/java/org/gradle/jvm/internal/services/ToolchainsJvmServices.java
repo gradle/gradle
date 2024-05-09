@@ -37,6 +37,7 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.jvm.toolchain.JavaToolchainResolverRegistry;
 import org.gradle.jvm.toolchain.internal.AsdfInstallationSupplier;
+import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainQueryService;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainResolverRegistry;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainService;
 import org.gradle.jvm.toolchain.internal.DefaultJvmToolchainManagement;
@@ -44,7 +45,6 @@ import org.gradle.jvm.toolchain.internal.DefaultOsXJavaHomeCommand;
 import org.gradle.jvm.toolchain.internal.InstallationSupplier;
 import org.gradle.jvm.toolchain.internal.IntellijInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.JabbaInstallationSupplier;
-import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService;
 import org.gradle.jvm.toolchain.internal.JdkCacheDirectory;
 import org.gradle.jvm.toolchain.internal.LinuxInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.MavenToolchainsInstallationSupplier;
@@ -100,6 +100,9 @@ public class ToolchainsJvmServices extends AbstractPluginServiceRegistry {
             registration.add(LinuxInstallationSupplier.class);
             registration.add(OsXInstallationSupplier.class);
             registration.add(WindowsInstallationSupplier.class);
+
+            registration.add(DefaultJavaToolchainProvisioningService.class);
+            registration.add(SecureFileDownloader.class);
         }
     }
 
@@ -115,9 +118,7 @@ public class ToolchainsJvmServices extends AbstractPluginServiceRegistry {
 
     @Override
     public void registerProjectServices(ServiceRegistration registration) {
+        registration.add(DefaultJavaToolchainQueryService.class);
         registration.add(DefaultJavaToolchainService.class);
-        registration.add(DefaultJavaToolchainProvisioningService.class);
-        registration.add(SecureFileDownloader.class);
-        registration.add(JavaToolchainQueryService.class);
     }
 }

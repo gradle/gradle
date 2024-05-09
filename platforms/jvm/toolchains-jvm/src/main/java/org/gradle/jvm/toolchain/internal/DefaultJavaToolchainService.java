@@ -20,6 +20,8 @@ import org.gradle.api.Action;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.jvm.toolchain.JavaCompiler;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
@@ -29,6 +31,7 @@ import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainUsageProgressDetail
 
 import javax.inject.Inject;
 
+@ServiceScope(Scope.Project.class)
 public class DefaultJavaToolchainService implements JavaToolchainService {
 
     private final JavaToolchainQueryService queryService;

@@ -20,7 +20,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.jvm.toolchain.JavaToolchainService;
-import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainService;
 import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService;
 
 import javax.inject.Inject;
@@ -35,14 +34,15 @@ import javax.inject.Inject;
 public abstract class JvmToolchainsPlugin implements Plugin<Project> {
 
     @Override
-    public void apply(Project target) {
-        target.getExtensions().create(JavaToolchainService.class, "javaToolchains", DefaultJavaToolchainService.class, javaToolchainQueryService);
+    public void apply(Project project) {
+        project.getExtensions().add(JavaToolchainService.class, "javaToolchains", getJavaToolchainService());
     }
 
-    private final JavaToolchainQueryService javaToolchainQueryService;
+    @Inject
+    protected abstract JavaToolchainService getJavaToolchainService();
 
     @Inject
+    @SuppressWarnings("unused") // kept for binary compatibility
     public JvmToolchainsPlugin(JavaToolchainQueryService javaToolchainQueryService) {
-        this.javaToolchainQueryService = javaToolchainQueryService;
     }
 }

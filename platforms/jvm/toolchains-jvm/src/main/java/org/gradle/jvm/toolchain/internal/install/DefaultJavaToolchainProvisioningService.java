@@ -17,8 +17,6 @@
 package org.gradle.jvm.toolchain.internal.install;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ProviderFactory;
 import org.gradle.authentication.Authentication;
 import org.gradle.cache.FileLock;
 import org.gradle.internal.deprecation.Documentation;
@@ -29,6 +27,8 @@ import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.jvm.toolchain.JavaToolchainDownload;
 import org.gradle.jvm.toolchain.JavaToolchainResolver;
 import org.gradle.jvm.toolchain.JavaToolchainResolverRegistry;
@@ -37,6 +37,7 @@ import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainRequest;
 import org.gradle.jvm.toolchain.internal.JavaToolchainResolverRegistryInternal;
 import org.gradle.jvm.toolchain.internal.JdkCacheDirectory;
 import org.gradle.jvm.toolchain.internal.RealizedJavaToolchainRepository;
+import org.gradle.jvm.toolchain.internal.ToolchainConfiguration;
 import org.gradle.jvm.toolchain.internal.ToolchainDownloadFailedException;
 import org.gradle.platform.BuildPlatform;
 import org.slf4j.Logger;
@@ -54,8 +55,7 @@ import java.util.TreeMap;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
-import static org.gradle.jvm.toolchain.internal.AutoInstalledInstallationSupplier.AUTO_DOWNLOAD;
-
+@ServiceScope(Scope.Build.class)
 public class DefaultJavaToolchainProvisioningService implements JavaToolchainProvisioningService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultJavaToolchainProvisioningService.class);
@@ -73,7 +73,7 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
     private final JavaToolchainResolverRegistryInternal toolchainResolverRegistry;
     private final SecureFileDownloader downloader;
     private final DefaultJdkCacheDirectory cacheDirProvider;
-    private final Provider<Boolean> downloadEnabled;
+    private final ToolchainConfiguration toolchainConfiguration;
     private final BuildOperationRunner buildOperationRunner;
     private final BuildPlatform buildPlatform;
 
@@ -82,21 +82,21 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
         JavaToolchainResolverRegistry toolchainResolverRegistry,
         SecureFileDownloader downloader,
         JdkCacheDirectory cacheDirProvider,
-        ProviderFactory factory,
+        ToolchainConfiguration toolchainConfiguration,
         BuildOperationRunner executor,
         BuildPlatform buildPlatform
     ) {
         this.toolchainResolverRegistry = (JavaToolchainResolverRegistryInternal) toolchainResolverRegistry;
         this.downloader = downloader;
         this.cacheDirProvider = (DefaultJdkCacheDirectory)cacheDirProvider;
-        this.downloadEnabled = factory.gradleProperty(AUTO_DOWNLOAD).map(Boolean::parseBoolean);
+        this.toolchainConfiguration = toolchainConfiguration;
         this.buildOperationRunner = executor;
         this.buildPlatform = buildPlatform;
     }
 
     @Override
     public boolean isAutoDownloadEnabled() {
-        return downloadEnabled.getOrElse(true);
+        return toolchainConfiguration.isDownloadEnabled();
     }
 
     @Override

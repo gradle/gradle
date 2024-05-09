@@ -41,7 +41,7 @@ import java.util.function.Function
 import static org.gradle.api.internal.file.TestFiles.systemSpecificAbsolutePath
 import static org.gradle.internal.jvm.inspection.JvmInstallationMetadata.JavaInstallationCapability.J9_VIRTUAL_MACHINE
 
-class JavaToolchainQueryServiceTest extends Specification {
+class DefaultJavaToolchainQueryServiceTest extends Specification {
 
     JavaToolchainSpec createSpec() {
         TestUtil.objectFactory().newInstance(DefaultToolchainSpec)
@@ -412,7 +412,7 @@ class JavaToolchainQueryServiceTest extends Specification {
         toolchain.getInstallationPath().toString() == systemSpecificAbsolutePath("/path/1.8.2")
     }
 
-    private JavaToolchainQueryService setupInstallations(
+    private DefaultJavaToolchainQueryService setupInstallations(
         Collection<String> installations,
         InstallationLocation currentJvm = null,
         Function<String, String> getVersion = { it },
@@ -490,7 +490,7 @@ class JavaToolchainQueryServiceTest extends Specification {
         return InstallationLocation.userDefined(new File("/path/${version}").absoluteFile, "test")
     }
 
-    private JavaToolchainQueryService createQueryService(
+    private DefaultJavaToolchainQueryService createQueryService(
         JavaInstallationRegistry registry,
         JvmMetadataDetector detector,
         JavaToolchainProvisioningService provisioningService,
@@ -507,6 +507,6 @@ class JavaToolchainQueryServiceTest extends Specification {
                 return Architecture.X86_64
             }
         }
-        new JavaToolchainQueryService(registry, detector, TestFiles.fileFactory(), provisioningService, TestUtil.objectFactory(), currentJavaHome, buildPlatform)
+        new DefaultJavaToolchainQueryService(registry, detector, TestFiles.fileFactory(), provisioningService, TestUtil.objectFactory(), currentJavaHome, buildPlatform)
     }
 }
