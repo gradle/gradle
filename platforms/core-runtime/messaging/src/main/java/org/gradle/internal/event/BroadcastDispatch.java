@@ -157,7 +157,7 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
                 return this;
             }
             if (result.size() == 1) {
-                return result.iterator().next();
+                return result.get(0);
             }
             return new CompositeDispatch<T>(type, result);
         }
@@ -297,8 +297,7 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
 
         @Override
         public BroadcastDispatch<T> addAll(Collection<? extends T> listeners) {
-            List<SingletonDispatch<T>> result = new ArrayList<SingletonDispatch<T>>();
-            result.addAll(dispatchers);
+            List<SingletonDispatch<T>> result = new ArrayList<SingletonDispatch<T>>(dispatchers);
             for (T listener : listeners) {
                 SingletonDispatch<T> dispatch = new SingletonDispatch<T>(type, listener, new ReflectionDispatch(listener));
                 if (!result.contains(dispatch)) {
@@ -326,7 +325,7 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
                 return this;
             }
             if (result.size() == 1) {
-                return result.iterator().next();
+                return result.get(0);
             }
             return new CompositeDispatch<T>(type, result);
         }
@@ -340,11 +339,11 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
                     result.add(dispatch);
                 }
             }
-            if (result.size() == 0) {
+            if (result.isEmpty()) {
                 return new EmptyDispatch<T>(type);
             }
             if (result.size() == 1) {
-                return result.iterator().next();
+                return result.get(0);
             }
             if (result.equals(this.dispatchers)) {
                 return this;
