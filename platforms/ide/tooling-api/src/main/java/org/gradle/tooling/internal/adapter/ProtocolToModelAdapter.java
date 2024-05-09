@@ -198,6 +198,10 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
     }
 
     private static Set<Class<?>> getActualImplementedModelContractSubInterfaces(Object sourceObject, Map<String, Class<?>> potentialModelContractInterfaces) {
+        if (potentialModelContractInterfaces.isEmpty()) {
+            return Collections.emptySet();
+        }
+
         // deep-traverse the source object's type hierarchy and extract all implemented interfaces
         Iterable<Class<?>> allImplementedInterfaces = Traverser.forGraph(new SuccessorsFunction<Class<?>>() {
             @Override

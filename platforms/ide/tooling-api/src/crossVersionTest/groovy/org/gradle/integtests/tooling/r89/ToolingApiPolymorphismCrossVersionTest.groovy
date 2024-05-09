@@ -69,10 +69,18 @@ class ToolingApiPolymorphismCrossVersionTest extends ToolingApiSpecification {
             }
 
             class DefaultModel extends AbstractModel implements ShallowChildModel, SideModel, java.io.Serializable {
+
                 private final String message
+
                 DefaultModel(String message) { this.message = message }
+
+                @Override
                 String getShallowMessage() { "shallow " + message }
+
+                @Override
                 String getDeepMessage() { "deep " + message }
+
+                @Override
                 String toString() { message }
             }
 
@@ -119,17 +127,7 @@ class ToolingApiPolymorphismCrossVersionTest extends ToolingApiSpecification {
         def model = toolingApi.withConnection() { connection -> connection.getModel(BaseModel) }
 
         then:
-        model != null
-
-        model instanceof BaseModel
-
-        model instanceof ShallowChildModel
-        ((ShallowChildModel) model).getShallowMessage() == "shallow poly from 'root'"
-
-        model instanceof DeepChildModel
-        ((DeepChildModel) model).getDeepMessage() == "deep poly from 'root'"
-
-        !(model instanceof SideModel)
+        assertModelIsPolymorphic(model)
     }
 
     def "supports nested model polymorphism"() {
@@ -170,17 +168,7 @@ class ToolingApiPolymorphismCrossVersionTest extends ToolingApiSpecification {
         def model = toolingApi.withConnection() { connection -> connection.getModel(CompositeModel) }.nested
 
         then:
-        model != null
-
-        model instanceof BaseModel
-
-        model instanceof ShallowChildModel
-        ((ShallowChildModel) model).getShallowMessage() == "shallow poly from 'root'"
-
-        model instanceof DeepChildModel
-        ((DeepChildModel) model).getDeepMessage() == "deep poly from 'root'"
-
-        !(model instanceof SideModel)
+        assertModelIsPolymorphic(model)
     }
 
     private void addBuilderRegisteringPluginImplementation(String targetBuildName, String builderClassName, String content = "") {
@@ -202,6 +190,20 @@ class ToolingApiPolymorphismCrossVersionTest extends ToolingApiSpecification {
                 abstract ToolingModelBuilderRegistry getRegistry()
             }
         """.stripIndent()
+    }
+
+    private static void assertModelIsPolymorphic(Object model) {
+        assert model != null
+
+        assert model instanceof BaseModel
+
+        assert model instanceof ShallowChildModel
+        assert ((ShallowChildModel) model).getShallowMessage() == "shallow poly from 'root'"
+
+        assert model instanceof DeepChildModel
+        assert ((DeepChildModel) model).getDeepMessage() == "deep poly from 'root'"
+
+        assert !(model instanceof SideModel)
     }
 
 }
