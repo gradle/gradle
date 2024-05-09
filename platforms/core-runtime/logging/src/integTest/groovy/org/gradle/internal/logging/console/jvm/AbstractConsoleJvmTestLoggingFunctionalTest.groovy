@@ -172,11 +172,18 @@ abstract class AbstractConsoleJvmTestLoggingFunctionalTest extends AbstractInteg
         succeeds(TEST_TASK_NAME)
 
         then:
-        def taskOutput = getTaskOutput(result).readLines().findAll { !it.isBlank() } .join('\n')
-        !taskOutput.contains("""MyTest > testExpectation ${TestLogEvent.STANDARD_OUT.consoleMarker}
+        if (result.groupedOutput.hasTask(TEST_TASK_PATH)) {
+            def taskOutput = getTaskOutput(result).readLines().findAll { !it.isBlank() }.join('\n')
+            assert !taskOutput.contains("""MyTest > testExpectation ${TestLogEvent.STANDARD_OUT.consoleMarker}
     standard output""")
-        !taskOutput.contains("""MyTest > testExpectation ${TestLogEvent.STANDARD_ERROR.consoleMarker}
+            assert !taskOutput.contains("""MyTest > testExpectation ${TestLogEvent.STANDARD_ERROR.consoleMarker}
     standard error""")
+        } else {
+            outputDoesNotContain("""MyTest > testExpectation ${TestLogEvent.STANDARD_OUT.consoleMarker}
+    standard output""")
+            outputDoesNotContain("""MyTest > testExpectation ${TestLogEvent.STANDARD_ERROR.consoleMarker}
+    standard error""")
+        }
     }
 
     private static String javaProject() {
