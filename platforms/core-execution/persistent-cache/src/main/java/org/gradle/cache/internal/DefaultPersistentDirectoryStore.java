@@ -54,7 +54,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
         File dir,
         @Nullable String displayName,
         LockOptions lockOptions,
-        @Nullable CacheCleanupStrategy cacheCleanupStrategy,
+        CacheCleanupStrategy cacheCleanupStrategy,
         FileLockManager fileLockManager,
         ExecutorFactory executorFactory,
         BuildOperationRunner buildOperationRunner

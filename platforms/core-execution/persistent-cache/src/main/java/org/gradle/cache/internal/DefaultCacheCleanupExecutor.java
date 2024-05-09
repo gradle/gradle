@@ -28,7 +28,6 @@ import org.gradle.internal.time.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -42,7 +41,7 @@ public class DefaultCacheCleanupExecutor implements CacheCleanupExecutor {
     private final CacheCleanupStrategy cacheCleanupStrategy;
     private final BuildOperationRunner buildOperationRunner;
 
-    public DefaultCacheCleanupExecutor(CleanableStore cleanableStore, File gcFile, @Nullable CacheCleanupStrategy cacheCleanupStrategy, BuildOperationRunner buildOperationRunner) {
+    public DefaultCacheCleanupExecutor(CleanableStore cleanableStore, File gcFile, CacheCleanupStrategy cacheCleanupStrategy, BuildOperationRunner buildOperationRunner) {
         this.cleanableStore = cleanableStore;
         this.gcFile = gcFile;
         this.cacheCleanupStrategy = cacheCleanupStrategy;
@@ -51,7 +50,7 @@ public class DefaultCacheCleanupExecutor implements CacheCleanupExecutor {
 
     private boolean requiresCleanup() {
         File dir = cleanableStore.getBaseDir();
-        if (dir.exists() && cacheCleanupStrategy != null) {
+        if (dir.exists() && cacheCleanupStrategy != CacheCleanupStrategy.NO_CLEANUP) {
             if (!gcFile.exists()) {
                 try {
                     FileUtils.touch(gcFile);
@@ -70,7 +69,7 @@ public class DefaultCacheCleanupExecutor implements CacheCleanupExecutor {
 
     @Override
     public void cleanup() {
-        if (cacheCleanupStrategy != null && requiresCleanup()) {
+        if (requiresCleanup()) {
             buildOperationRunner.run(new RunnableBuildOperation() {
                 @Override
                 public void run(BuildOperationContext context) {

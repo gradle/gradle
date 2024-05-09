@@ -50,7 +50,7 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
         Map<String, ?> properties,
         LockOptions lockOptions,
         @Nullable Consumer<? super PersistentCache> initAction,
-        @Nullable CacheCleanupStrategy cacheCleanupStrategy,
+        CacheCleanupStrategy cacheCleanupStrategy,
         FileLockManager lockManager,
         ExecutorFactory executorFactory,
         BuildOperationRunner buildOperationRunner
