@@ -31,9 +31,7 @@ import org.gradle.api.internal.project.BuildOperationCrossProjectConfigurator;
 import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.cache.UnscopedCacheBuilderFactory;
-import org.gradle.cache.internal.BuildOperationCleanupActionDecorator;
 import org.gradle.cache.internal.BuildScopeCacheDir;
-import org.gradle.cache.internal.CleanupActionDecorator;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.scopes.DefaultBuildTreeScopedCacheBuilderFactory;
 import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory;
@@ -184,10 +182,6 @@ public class BuildSessionScopeServices extends WorkerSharedBuildSessionScopeServ
     BuildStartedTime createBuildStartedTime(Clock clock, BuildRequestMetaData buildRequestMetaData) {
         long currentTime = clock.getCurrentTime();
         return BuildStartedTime.startingAt(Math.min(currentTime, buildRequestMetaData.getStartTime()));
-    }
-
-    CleanupActionDecorator createCleanupActionFactory(BuildOperationRunner buildOperationRunner) {
-        return new BuildOperationCleanupActionDecorator(buildOperationRunner);
     }
 
     protected ExecFactory decorateExecFactory(ExecFactory execFactory, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, BuildCancellationToken buildCancellationToken, ObjectFactory objectFactory, JavaModuleDetector javaModuleDetector) {

@@ -225,7 +225,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
 
                     @Override
                     public BuildOperationDescriptor.Builder description() {
-                        return BuildOperationDescriptor.displayName(displayName);
+                        return BuildOperationDescriptor.displayName("Clean up " + displayName);
                     }
                 });
             }
