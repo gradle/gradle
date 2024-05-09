@@ -190,20 +190,19 @@ This will allow Gradle to perform additional performance optimizations and will 
 
 While the existing callbacks continue to work, we encourage everyone to adopt the new API and provide us with early feedback.
 
-The example below shows how this new API could be used in a settings script or [settings plugins](userguide/custom_plugins.html#project_vs_settings_vs_init_plugins):
+The example below shows how this new API could be used in a settings script or [settings plugins](userguide/custom_plugins.html#project_vs_settings_vs_init_plugins) to apply configuration to all projects, 
+while avoiding [cross-project configuration](userguide/sharing_build_logic_between_subprojects.html#sec:convention_plugins_vs_cross_configuration):
 
-```groovy
-// settings.gradle
-rootProject.name = 'root'
+```kotlin
+// settings.gradle.kts
+include("sub1")
+include("sub2")
 
-def start = 0
 gradle.lifecycle.beforeProject {
-    start = System.currentTimeMillis()
-}
-gradle.lifecycle.afterProject { project ->
-    def end = System.currentTimeMillis()
-    def elapsed = end - start
-    println "Project $project.name configured in ${elapsed}ms"
+    apply(plugin = "base")
+    repositories {
+        mavenCentral()
+    }
 }
 ```
 
@@ -215,10 +214,10 @@ The view exposes only those properties that are safe to access across project bo
 
 The example below shows how the API could be used from a `Project` configuration callback to query the root project directory in a parallel-safe way:
 
-```groovy
-gradle.lifecycle.beforeProject { project ->
-   def rootDir = project.isolated.rootProject.projectDirectory
-   println "The root project directory is $rootDir"
+```kotlin
+gradle.lifecycle.beforeProject {
+    val rootDir = project.isolated.rootProject.projectDirectory
+    println("The root project directory is $rootDir")
 }
 ```
 
