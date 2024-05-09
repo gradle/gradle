@@ -24,8 +24,10 @@ dependencies {
     api(project(":base-services"))
     api(project(":logging-api"))
     api(project(":serialization"))
-    api(project(":core"))
     api(project(":logging"))
+
+    // The client should not depend on core, but core still contains some types that are shared between the client and daemon
+    api(project(":core"))
 
     api(libs.jsr305)
 

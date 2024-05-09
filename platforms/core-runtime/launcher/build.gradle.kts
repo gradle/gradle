@@ -51,10 +51,13 @@ dependencies {
     implementation(project(":file-watching"))
     implementation(project(":problems-api"))
     implementation(project(":problems"))
-    implementation(project(":client-services"))
-    implementation(project(":daemon-services"))
     implementation(project(":toolchains-jvm-shared"))
     implementation(project(":declarative-dsl-provider"))
+
+    // This project contains the client, daemon and tooling API provider. It should be split up
+    // For now, add dependencies on both the client and daemon pieces
+    implementation(project(":client-services"))
+    implementation(project(":daemon-services"))
 
     implementation(libs.groovy) // for 'ReleaseInfo.getVersion()'
     implementation(libs.slf4jApi)
