@@ -174,14 +174,7 @@ fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet,
             jvmArgumentProviders.add(SamplesBaseDirPropertyProvider(samplesDir))
         }
         setUpAgentIfNeeded(testType, executer)
-        disableForExecuter(executer)
     }
-
-
-internal
-fun IntegrationTest.disableForExecuter(executer: String) {
-    isEnabled = executer != "isolatedProjects"
-}
 
 
 private
