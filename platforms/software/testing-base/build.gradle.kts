@@ -2,8 +2,6 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
-gradlebuildJava.usedInWorkers()
-
 description = """Basic testing related plugins, which establish conventions for testing output directories,
 and setup basic testing-related features lik a testSuites container and the testing extension.  It provides most of the
 testing-related abstract base types and interfaces for things like Test tasks, listeners and filters.
@@ -17,14 +15,12 @@ errorprone {
         "InlineMeInliner", // 2 occurrences
         "MissingCasesInEnumSwitch", // 1 occurrences
         "OperatorPrecedence", // 1 occurrences
-        "UnusedMethod", // 4 occurrences
     )
 }
 
 dependencies {
-    api(projects.concurrent)
     api(projects.javaLanguageExtensions)
-    api(projects.serialization)
+    api(projects.testingBaseInfrastructure)
     api(projects.time)
     api(project(":base-services"))
     api(project(":build-operations"))
@@ -36,15 +32,15 @@ dependencies {
     api(project(":messaging"))
     api(project(":native"))
     api(project(":reporting"))
-    api(project(":worker-processes"))
 
     api(libs.groovy)
     api(libs.guava)
     api(libs.jsr305)
     api(libs.inject)
 
+    implementation(projects.concurrent)
     implementation(projects.files)
-    implementation(projects.io)
+    implementation(projects.serialization)
     implementation(project(":base-services-groovy"))
     implementation(project(":model-core"))
     implementation(project(":process-services"))
