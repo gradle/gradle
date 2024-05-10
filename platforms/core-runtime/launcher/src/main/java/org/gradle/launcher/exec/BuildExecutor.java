@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.launcher.exec;
 
-import org.gradle.internal.invocation.BuildAction;
+import org.gradle.initialization.BuildRequestContext;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
-public interface BuildActionExecuter<PARAMS, CONTEXT> {
-    /**
-     * Executes the given action, and returns the result. Build failures should be packaged in the result, rather than thrown. A failure packaged in this way will have already been reported as a build failure and should not be reported again.
-     *
-     * @param action The action
-     * @return The result.
-     */
-    BuildActionResult execute(BuildAction action, PARAMS actionParameters, CONTEXT context);
+/**
+ * Marker interface that can be used to obtain the action executor responsible for actually running builds.
+ */
+@ServiceScope(Scope.Global.class)
+public interface BuildExecutor extends BuildActionExecutor<BuildActionParameters, BuildRequestContext> {
+
 }

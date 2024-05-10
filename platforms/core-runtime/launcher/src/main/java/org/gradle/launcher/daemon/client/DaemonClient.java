@@ -46,7 +46,7 @@ import org.gradle.launcher.daemon.protocol.OutputMessage;
 import org.gradle.launcher.daemon.protocol.Result;
 import org.gradle.launcher.daemon.protocol.Stop;
 import org.gradle.launcher.daemon.server.api.DaemonStoppedException;
-import org.gradle.launcher.exec.BuildActionExecuter;
+import org.gradle.launcher.exec.BuildActionExecutor;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
 
@@ -93,7 +93,7 @@ import java.util.UUID;
  * <p>
  * If the daemon returns a {@code null} message before returning a {@link Result} object, it has terminated unexpectedly for some reason.
  */
-public class DaemonClient implements BuildActionExecuter<BuildActionParameters, BuildRequestContext> {
+public class DaemonClient implements BuildActionExecutor<BuildActionParameters, BuildRequestContext> {
     private static final Logger LOGGER = Logging.getLogger(DaemonClient.class);
     private final DaemonConnector connector;
     private final OutputEventListener outputEventListener;

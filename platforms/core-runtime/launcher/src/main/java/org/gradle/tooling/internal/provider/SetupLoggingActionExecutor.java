@@ -20,19 +20,19 @@ import org.gradle.StartParameter;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.logging.LoggingManagerInternal;
-import org.gradle.launcher.exec.BuildActionExecuter;
+import org.gradle.launcher.exec.BuildActionExecutor;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
-import org.gradle.launcher.exec.BuildExecuter;
+import org.gradle.launcher.exec.BuildExecutor;
 
 /**
  * Sets up logging around a session.
  */
-public class SetupLoggingActionExecuter implements BuildExecuter {
-    private final BuildActionExecuter<BuildActionParameters, BuildRequestContext> delegate;
+public class SetupLoggingActionExecutor implements BuildExecutor {
+    private final BuildActionExecutor<BuildActionParameters, BuildRequestContext> delegate;
     private final LoggingManagerInternal loggingManager;
 
-    public SetupLoggingActionExecuter(LoggingManagerInternal loggingManager, BuildActionExecuter<BuildActionParameters, BuildRequestContext> delegate) {
+    public SetupLoggingActionExecutor(LoggingManagerInternal loggingManager, BuildActionExecutor<BuildActionParameters, BuildRequestContext> delegate) {
         this.loggingManager = loggingManager;
         this.delegate = delegate;
     }

@@ -58,9 +58,9 @@ import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.context.DaemonRequestContext;
 import org.gradle.launcher.daemon.context.DefaultDaemonContext;
 import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria;
-import org.gradle.launcher.exec.BuildActionExecuter;
+import org.gradle.launcher.exec.BuildActionExecutor;
 import org.gradle.launcher.exec.BuildActionParameters;
-import org.gradle.launcher.exec.BuildExecuter;
+import org.gradle.launcher.exec.BuildExecutor;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
 import org.gradle.process.internal.CurrentProcess;
 import org.gradle.tooling.internal.provider.ForwardStdInToThisProcess;
@@ -217,11 +217,11 @@ class BuildActionsFactory implements CommandLineActionCreator {
         ServiceRegistry globalServices = buildProcessState.getServices();
         globalServices.get(AgentInitializer.class).maybeConfigureInstrumentationAgent();
 
-        BuildActionExecuter<BuildActionParameters, BuildRequestContext> executer = new ForwardStdInToThisProcess(
+        BuildActionExecutor<BuildActionParameters, BuildRequestContext> executer = new ForwardStdInToThisProcess(
             globalServices.get(GlobalUserInputReceiver.class),
             globalServices.get(UserInputReader.class),
             System.in,
-            globalServices.get(BuildExecuter.class)
+            globalServices.get(BuildExecutor.class)
         );
 
         // Force the user home services to be stopped first, the dependencies between the user home services and the global services are not preserved currently
@@ -253,7 +253,7 @@ class BuildActionsFactory implements CommandLineActionCreator {
         return builder.provider(new DaemonClientGlobalServices()).build();
     }
 
-    private Runnable runBuildAndCloseServices(StartParameterInternal startParameter, DaemonParameters daemonParameters, BuildActionExecuter<BuildActionParameters, BuildRequestContext> executer, ServiceRegistry sharedServices, Object... stopBeforeSharedServices) {
+    private Runnable runBuildAndCloseServices(StartParameterInternal startParameter, DaemonParameters daemonParameters, BuildActionExecutor<BuildActionParameters, BuildRequestContext> executer, ServiceRegistry sharedServices, Object... stopBeforeSharedServices) {
         BuildActionParameters parameters = createBuildActionParameters(startParameter, daemonParameters);
         Stoppable stoppable = new CompositeStoppable().add(stopBeforeSharedServices).add(sharedServices);
         return new RunBuildAction(executer, startParameter, clientMetaData(), getBuildStartTime(), parameters, sharedServices, stoppable);

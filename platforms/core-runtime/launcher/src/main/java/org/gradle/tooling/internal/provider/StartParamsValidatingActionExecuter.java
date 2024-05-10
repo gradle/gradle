@@ -20,7 +20,7 @@ import org.gradle.StartParameter;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.invocation.BuildAction;
-import org.gradle.launcher.exec.BuildActionExecuter;
+import org.gradle.launcher.exec.BuildActionExecutor;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
 
@@ -29,10 +29,10 @@ import java.io.File;
 /**
  * Validates certain aspects of the start parameters, prior to starting a session using the parameters.
  */
-public class StartParamsValidatingActionExecuter implements BuildActionExecuter<BuildActionParameters, BuildRequestContext> {
-    private final BuildActionExecuter<BuildActionParameters, BuildRequestContext> delegate;
+public class StartParamsValidatingActionExecuter implements BuildActionExecutor<BuildActionParameters, BuildRequestContext> {
+    private final BuildActionExecutor<BuildActionParameters, BuildRequestContext> delegate;
 
-    public StartParamsValidatingActionExecuter(BuildActionExecuter<BuildActionParameters, BuildRequestContext> delegate) {
+    public StartParamsValidatingActionExecuter(BuildActionExecutor<BuildActionParameters, BuildRequestContext> delegate) {
         this.delegate = delegate;
     }
 

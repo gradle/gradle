@@ -21,16 +21,16 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
-import org.gradle.launcher.exec.BuildActionExecuter;
+import org.gradle.launcher.exec.BuildActionExecutor;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 
-public class DaemonBuildActionExecuter implements BuildActionExecuter<ConnectionOperationParameters, BuildRequestContext> {
-    private final BuildActionExecuter<BuildActionParameters, BuildRequestContext> executer;
+public class DaemonBuildActionExecuter implements BuildActionExecutor<ConnectionOperationParameters, BuildRequestContext> {
+    private final BuildActionExecutor<BuildActionParameters, BuildRequestContext> executer;
 
-    public DaemonBuildActionExecuter(BuildActionExecuter<BuildActionParameters, BuildRequestContext> executer) {
+    public DaemonBuildActionExecuter(BuildActionExecutor<BuildActionParameters, BuildRequestContext> executer) {
         this.executer = executer;
     }
 

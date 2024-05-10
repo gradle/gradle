@@ -65,7 +65,7 @@ import org.gradle.launcher.Main;
 import org.gradle.launcher.cli.BuildEnvironmentConfigurationConverter;
 import org.gradle.launcher.cli.Parameters;
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
-import org.gradle.launcher.exec.BuildActionExecuter;
+import org.gradle.launcher.exec.BuildActionExecutor;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
@@ -373,7 +373,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         buildEnvironmentConfigurationConverter.configure(parser);
         Parameters parameters = buildEnvironmentConfigurationConverter.convertParameters(parser.parse(getAllArgs()), getWorkingDir());
 
-        BuildActionExecuter<BuildActionParameters, BuildRequestContext> actionExecuter = GLOBAL_SERVICES.get(BuildActionExecuter.class);
+        BuildActionExecutor<BuildActionParameters, BuildRequestContext> actionExecuter = GLOBAL_SERVICES.get(BuildActionExecutor.class);
 
         ListenerManager listenerManager = GLOBAL_SERVICES.get(ListenerManager.class);
         listenerManager.addListener(listener);

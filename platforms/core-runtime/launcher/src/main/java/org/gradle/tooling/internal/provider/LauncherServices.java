@@ -74,7 +74,7 @@ import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
 import org.gradle.internal.watch.vfs.FileChangeListeners;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.launcher.exec.BuildCompletionNotifyingBuildActionRunner;
-import org.gradle.launcher.exec.BuildExecuter;
+import org.gradle.launcher.exec.BuildExecutor;
 import org.gradle.launcher.exec.BuildOutcomeReportingBuildActionRunner;
 import org.gradle.launcher.exec.BuildTreeLifecycleBuildActionExecutor;
 import org.gradle.launcher.exec.ChainingBuildActionRunner;
@@ -126,7 +126,7 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
             registration.add(ClassLoaderCache.class, ClassLoaderCache.class);
         }
 
-        BuildExecuter createBuildExecuter(
+        BuildExecutor createBuildExecuter(
             LoggingManagerInternal loggingManager,
             BuildLoggerFactory buildLoggerFactory,
             GradleUserHomeScopeServiceRegistry userHomeServiceRegistry,
@@ -134,7 +134,7 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
         ) {
             // @formatter:off
             return
-                new SetupLoggingActionExecuter(loggingManager,
+                new SetupLoggingActionExecutor(loggingManager,
                 new SessionFailureReportingActionExecuter(buildLoggerFactory,
                 new StartParamsValidatingActionExecuter(
                 new BuildSessionLifecycleBuildActionExecuter(userHomeServiceRegistry, globalServices

@@ -24,7 +24,7 @@ import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
-import org.gradle.launcher.exec.BuildActionExecuter;
+import org.gradle.launcher.exec.BuildActionExecutor;
 import org.gradle.launcher.exec.BuildActionResult;
 import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
@@ -32,13 +32,13 @@ import org.gradle.tooling.internal.provider.connection.ProviderOperationParamete
 import java.io.OutputStream;
 
 /**
- * A {@link org.gradle.launcher.exec.BuildActionExecuter} which routes Gradle logging to those listeners specified in the {@link ProviderOperationParameters} provided with a tooling api build request.
+ * A {@link BuildActionExecutor} which routes Gradle logging to those listeners specified in the {@link ProviderOperationParameters} provided with a tooling api build request.
  */
-public class LoggingBridgingBuildActionExecuter implements BuildActionExecuter<ConnectionOperationParameters, BuildRequestContext> {
+public class LoggingBridgingBuildActionExecuter implements BuildActionExecutor<ConnectionOperationParameters, BuildRequestContext> {
     private final LoggingManagerInternal loggingManager;
-    private final BuildActionExecuter<ConnectionOperationParameters, BuildRequestContext> executer;
+    private final BuildActionExecutor<ConnectionOperationParameters, BuildRequestContext> executer;
 
-    public LoggingBridgingBuildActionExecuter(BuildActionExecuter<ConnectionOperationParameters, BuildRequestContext> executer, LoggingManagerInternal loggingManager) {
+    public LoggingBridgingBuildActionExecuter(BuildActionExecutor<ConnectionOperationParameters, BuildRequestContext> executer, LoggingManagerInternal loggingManager) {
         this.executer = executer;
         this.loggingManager = loggingManager;
     }

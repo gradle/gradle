@@ -55,7 +55,7 @@ import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.context.DaemonRequestContext;
 import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria;
-import org.gradle.launcher.exec.BuildActionExecuter;
+import org.gradle.launcher.exec.BuildActionExecutor;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
 import org.gradle.process.internal.streams.SafeStreams;
@@ -106,7 +106,7 @@ public class ProviderConnection {
     private final PayloadSerializer payloadSerializer;
     private final BuildLayoutFactory buildLayoutFactory;
     private final DaemonClientFactory daemonClientFactory;
-    private final BuildActionExecuter<BuildActionParameters, BuildRequestContext> embeddedExecutor;
+    private final BuildActionExecutor<BuildActionParameters, BuildRequestContext> embeddedExecutor;
     private final ServiceRegistry sharedServices;
     private final FileCollectionFactory fileCollectionFactory;
     private final GlobalUserInputReceiver userInputReceiver;
@@ -119,7 +119,7 @@ public class ProviderConnection {
         ServiceRegistry sharedServices,
         BuildLayoutFactory buildLayoutFactory,
         DaemonClientFactory daemonClientFactory,
-        BuildActionExecuter<BuildActionParameters, BuildRequestContext> embeddedExecutor,
+        BuildActionExecutor<BuildActionParameters, BuildRequestContext> embeddedExecutor,
         PayloadSerializer payloadSerializer,
         JvmVersionDetector jvmVersionDetector,
         FileCollectionFactory fileCollectionFactory,
@@ -258,7 +258,7 @@ public class ProviderConnection {
         Parameters parameters
     ) {
         try {
-            BuildActionExecuter<ConnectionOperationParameters, BuildRequestContext> executer = createExecuter(providerParameters, parameters);
+            BuildActionExecutor<ConnectionOperationParameters, BuildRequestContext> executer = createExecuter(providerParameters, parameters);
             boolean interactive = providerParameters.getStandardInput() != null;
             BuildRequestContext buildRequestContext = new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(providerParameters.getStartTime(), interactive), cancellationToken, buildEventConsumer);
             BuildActionResult result = executer.execute(action, new ConnectionOperationParameters(parameters.daemonParams, parameters.tapiSystemProperties, providerParameters), buildRequestContext);
@@ -293,9 +293,9 @@ public class ProviderConnection {
         throw new BuildExceptionVersion1(exception);
     }
 
-    private BuildActionExecuter<ConnectionOperationParameters, BuildRequestContext> createExecuter(ProviderOperationParameters operationParameters, Parameters params) {
+    private BuildActionExecutor<ConnectionOperationParameters, BuildRequestContext> createExecuter(ProviderOperationParameters operationParameters, Parameters params) {
         LoggingManagerInternal loggingManager;
-        BuildActionExecuter<BuildActionParameters, BuildRequestContext> executer;
+        BuildActionExecutor<BuildActionParameters, BuildRequestContext> executer;
         InputStream standardInput = operationParameters.getStandardInput();
         if (standardInput == null) {
             standardInput = SafeStreams.emptyInput();

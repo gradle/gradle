@@ -25,14 +25,14 @@ import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.nativeintegration.console.ConsoleDetector
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.tooling.internal.provider.action.ExecuteBuildAction
-import org.gradle.launcher.exec.BuildActionExecuter
+import org.gradle.launcher.exec.BuildActionExecutor
 import org.gradle.launcher.exec.BuildActionParameters
 import org.gradle.launcher.exec.BuildActionResult
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload
 import spock.lang.Specification
 
 class RunBuildActionTest extends Specification {
-    final BuildActionExecuter<BuildActionParameters, BuildRequestContext> client = Mock()
+    final BuildActionExecutor<BuildActionParameters, BuildRequestContext> client = Mock()
     final StartParameterInternal startParameter = Mock()
     final BuildClientMetaData clientMetaData = Mock()
     final long startTime = 90

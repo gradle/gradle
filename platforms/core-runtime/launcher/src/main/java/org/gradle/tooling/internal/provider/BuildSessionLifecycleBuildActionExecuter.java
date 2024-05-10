@@ -26,19 +26,19 @@ import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.session.BuildSessionContext;
 import org.gradle.internal.session.BuildSessionState;
 import org.gradle.internal.session.CrossBuildSessionState;
-import org.gradle.launcher.exec.BuildActionExecuter;
+import org.gradle.launcher.exec.BuildActionExecutor;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
-import org.gradle.launcher.exec.BuildExecuter;
+import org.gradle.launcher.exec.BuildExecutor;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 
 import java.util.function.Function;
 
 /**
- * A {@link BuildExecuter} responsible for establishing the {@link BuildSessionState} to execute a {@link BuildAction} within.
+ * A {@link BuildExecutor} responsible for establishing the {@link BuildSessionState} to execute a {@link BuildAction} within.
  */
-public class BuildSessionLifecycleBuildActionExecuter implements BuildActionExecuter<BuildActionParameters, BuildRequestContext> {
+public class BuildSessionLifecycleBuildActionExecuter implements BuildActionExecutor<BuildActionParameters, BuildRequestContext> {
     private final ServiceRegistry globalServices;
     private final GradleUserHomeScopeServiceRegistry userHomeServiceRegistry;
 

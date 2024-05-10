@@ -29,7 +29,7 @@ import org.gradle.launcher.daemon.client.DaemonClientFactory;
 import org.gradle.launcher.daemon.client.DaemonClientGlobalServices;
 import org.gradle.launcher.daemon.client.DaemonStopClient;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
-import org.gradle.launcher.exec.BuildExecuter;
+import org.gradle.launcher.exec.BuildExecutor;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.provider.serialization.ClassLoaderCache;
 import org.gradle.tooling.internal.provider.serialization.ClasspathInferer;
@@ -56,16 +56,17 @@ public class ConnectionScopeServices {
         return shutdownCoordinator;
     }
 
-    ProviderConnection createProviderConnection(BuildExecuter buildActionExecuter,
-                                                DaemonClientFactory daemonClientFactory,
-                                                BuildLayoutFactory buildLayoutFactory,
-                                                ServiceRegistry serviceRegistry,
-                                                FileCollectionFactory fileCollectionFactory,
-                                                GlobalUserInputReceiver userInput,
-                                                UserInputReader userInputReader,
-                                                JvmVersionDetector jvmVersionDetector,
-                                                // This is here to trigger creation of the ShutdownCoordinator. Could do this in a nicer way
-                                                ShutdownCoordinator shutdownCoordinator) {
+    ProviderConnection createProviderConnection(
+        BuildExecutor buildActionExecuter,
+        DaemonClientFactory daemonClientFactory,
+        BuildLayoutFactory buildLayoutFactory,
+        ServiceRegistry serviceRegistry,
+        FileCollectionFactory fileCollectionFactory,
+        GlobalUserInputReceiver userInput,
+        UserInputReader userInputReader,
+        JvmVersionDetector jvmVersionDetector,
+        // This is here to trigger creation of the ShutdownCoordinator. Could do this in a nicer way
+        ShutdownCoordinator shutdownCoordinator) {
         ClassLoaderCache classLoaderCache = new ClassLoaderCache();
         return new ProviderConnection(
                 serviceRegistry,

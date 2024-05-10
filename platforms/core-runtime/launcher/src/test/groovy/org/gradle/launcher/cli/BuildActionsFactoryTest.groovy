@@ -35,7 +35,7 @@ import org.gradle.launcher.daemon.client.SingleUseDaemonClient
 import org.gradle.launcher.daemon.configuration.DaemonParameters
 import org.gradle.launcher.daemon.context.DaemonRequestContext
 import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria
-import org.gradle.launcher.exec.BuildActionExecuter
+import org.gradle.launcher.exec.BuildActionExecutor
 import org.gradle.process.internal.CurrentProcess
 import org.gradle.process.internal.JvmOptions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -200,7 +200,7 @@ class BuildActionsFactoryTest extends Specification {
         return action.runnable
     }
 
-    private BuildActionExecuter unwrapExecutor(Runnable runnable) {
+    private BuildActionExecutor unwrapExecutor(Runnable runnable) {
         assert runnable instanceof RunBuildAction
         return runnable.executer
     }

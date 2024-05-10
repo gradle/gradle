@@ -24,7 +24,7 @@ import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.protocol.Build;
 import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
 import org.gradle.launcher.daemon.server.stats.DaemonRunningStats;
-import org.gradle.launcher.exec.BuildActionExecuter;
+import org.gradle.launcher.exec.BuildActionExecutor;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
 
@@ -37,10 +37,10 @@ public class ExecuteBuild extends BuildCommandOnly {
 
     private static final Logger LOGGER = Logging.getLogger(ExecuteBuild.class);
 
-    final private BuildActionExecuter<BuildActionParameters, BuildRequestContext> actionExecuter;
+    final private BuildActionExecutor<BuildActionParameters, BuildRequestContext> actionExecuter;
     private final DaemonRunningStats runningStats;
 
-    public ExecuteBuild(BuildActionExecuter<BuildActionParameters, BuildRequestContext> actionExecuter, DaemonRunningStats runningStats) {
+    public ExecuteBuild(BuildActionExecutor<BuildActionParameters, BuildRequestContext> actionExecuter, DaemonRunningStats runningStats) {
         this.actionExecuter = actionExecuter;
         this.runningStats = runningStats;
     }

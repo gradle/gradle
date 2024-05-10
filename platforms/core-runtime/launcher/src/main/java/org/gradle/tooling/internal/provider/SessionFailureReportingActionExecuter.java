@@ -29,18 +29,18 @@ import org.gradle.internal.buildevents.BuildLoggerFactory;
 import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.problems.NoOpProblemDiagnosticsFactory;
 import org.gradle.internal.invocation.BuildAction;
-import org.gradle.launcher.exec.BuildActionExecuter;
+import org.gradle.launcher.exec.BuildActionExecutor;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
 
 /**
  * Reports any unreported failure that causes the session to finish.
  */
-public class SessionFailureReportingActionExecuter implements BuildActionExecuter<BuildActionParameters, BuildRequestContext> {
-    private final BuildActionExecuter<BuildActionParameters, BuildRequestContext> delegate;
+public class SessionFailureReportingActionExecuter implements BuildActionExecutor<BuildActionParameters, BuildRequestContext> {
+    private final BuildActionExecutor<BuildActionParameters, BuildRequestContext> delegate;
     private final BuildLoggerFactory buildLoggerFactory;
 
-    public SessionFailureReportingActionExecuter(BuildLoggerFactory buildLoggerFactory, BuildActionExecuter<BuildActionParameters, BuildRequestContext> delegate) {
+    public SessionFailureReportingActionExecuter(BuildLoggerFactory buildLoggerFactory, BuildActionExecutor<BuildActionParameters, BuildRequestContext> delegate) {
         this.delegate = delegate;
         this.buildLoggerFactory = buildLoggerFactory;
     }
