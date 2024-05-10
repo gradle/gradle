@@ -25,34 +25,31 @@ dependencies {
     reports("jquery:jquery.min:3.5.1@js")
     reports("flot:flot:0.8.1:min@js")
 
+    api(project(":core"))
+    api(project(":internal-testing"))
+    api(project(":java-language-extensions"))
+    api(project(":time"))
+    api(project(":tooling-api"))
+
     api(libs.gradleProfiler) {
         because("Consumers need to instantiate BuildMutators")
     }
-    implementation(libs.javaParser) {
-        because("The Groovy compiler inspects the dependencies at compile time")
-    }
-
+    api(libs.jetty)
     api(libs.jettyWebApp)
+    api(libs.jsr305)
 
     implementation(project(":base-services"))
-    implementation(project(":native"))
-    implementation(project(":cli"))
-    implementation(project(":logging"))
-    implementation(project(":process-services"))
+    implementation(project(":concurrent"))
     implementation(project(":core-api"))
-    implementation(project(":build-option"))
-    implementation(project(":file-collections"))
-    implementation(project(":snapshots"))
-    implementation(project(":resources"))
-    implementation(project(":persistent-cache"))
-    implementation(project(":jvm-services"))
-    implementation(project(":wrapper-shared"))
+    implementation(project(":logging"))
+    implementation(project(":logging-api"))
     implementation(project(":internal-integ-testing"))
+    implementation(project(":persistent-cache"))
+    implementation(project(":wrapper-shared"))
 
-    implementation(libs.junit)
-    implementation(libs.spock)
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
+    implementation(libs.commonsMath)
     implementation(libs.guava)
     implementation(libs.groovy)
     implementation(libs.groovyAnt)
@@ -61,17 +58,18 @@ dependencies {
     implementation(libs.jacksonAnnotations)
     implementation(libs.jacksonCore)
     implementation(libs.jacksonDatabind)
-    implementation(libs.slf4jApi)
-    implementation(libs.joda)
     implementation(libs.jatl)
-    implementation(libs.commonsHttpclient)
-    implementation(libs.jsch)
-    implementation(libs.commonsMath)
     implementation(libs.jclToSlf4j)
-    implementation(libs.mina)
+    implementation(libs.jettyUtil)
+    implementation(libs.joda)
     implementation(libs.joptSimple)
-    implementation(testFixtures(project(":core")))
-    implementation(testFixtures(project(":tooling-api")))
+    implementation(libs.junit)
+    implementation(libs.mina)
+    implementation(libs.spock)
+
+    compileOnly(libs.javaParser) {
+        because("The Groovy compiler inspects the dependencies at compile time")
+    }
 
     runtimeOnly(libs.mySqlConnector)
 

@@ -176,6 +176,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val javaParser = "com.github.javaparser:javaparser-core"
     val jetty = "org.eclipse.jetty:jetty-http"
     val jettySecurity = "org.eclipse.jetty:jetty-security"
+    val jettyUtil = "org.eclipse.jetty:jetty-util"
     val jettyWebApp = "org.eclipse.jetty:jetty-webapp"
     val joptSimple = "net.sf.jopt-simple:jopt-simple"
     val jsoup = "org.jsoup:jsoup"
