@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,8 +27,8 @@ import org.gradle.initialization.exception.StackTraceSanitizingExceptionAnalyser
 import org.gradle.internal.buildevents.BuildLogger;
 import org.gradle.internal.buildevents.BuildLoggerFactory;
 import org.gradle.internal.buildevents.BuildStartedTime;
-import org.gradle.internal.problems.NoOpProblemDiagnosticsFactory;
 import org.gradle.internal.invocation.BuildAction;
+import org.gradle.internal.problems.NoOpProblemDiagnosticsFactory;
 import org.gradle.launcher.exec.BuildActionExecutor;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
@@ -59,7 +59,7 @@ public class SessionFailureReportingActionExecuter implements BuildActionExecuto
             }
             RuntimeException failure = exceptionAnalyser.transform(e);
             BuildStartedTime buildStartedTime = BuildStartedTime.startingAt(requestContext.getStartTime());
-            BuildLogger buildLogger = buildLoggerFactory.create(Logging.getLogger(BuildSessionLifecycleBuildActionExecuter.class), action.getStartParameter(), buildStartedTime, requestContext);
+            BuildLogger buildLogger = buildLoggerFactory.create(Logging.getLogger(SessionFailureReportingActionExecuter.class), action.getStartParameter(), buildStartedTime, requestContext);
             buildLogger.buildFinished(new BuildResult(null, failure));
             buildLogger.logResult(failure);
             return BuildActionResult.failed(failure);

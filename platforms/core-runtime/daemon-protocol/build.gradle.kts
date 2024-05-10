@@ -31,6 +31,7 @@ dependencies {
 
     api(libs.jsr305)
 
+    implementation(project(":io"))
     implementation(project(":enterprise-logging"))
 
     testImplementation(testFixtures(project(":serialization")))

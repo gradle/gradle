@@ -36,4 +36,5 @@ dependencies {
     implementation(project(":persistent-cache"))
     implementation(project(":time"))
     implementation(project(":concurrent"))
+    implementation(project(":daemon-protocol"))
 }
