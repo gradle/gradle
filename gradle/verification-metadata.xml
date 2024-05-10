@@ -880,11 +880,6 @@
             <pgp value="7E22D50A7EBD9D2CD269B2D4056ACA74D46000BF"/>
          </artifact>
       </component>
-      <component group="io.usethesource" name="capsule" version="0.6.3">
-         <artifact name="capsule-0.6.3.jar">
-            <sha256 value="38df64de67bd7c953f3643bdc34fe5fc674eb7e42b8f65f01e2233b8e5006a09" origin="Verified" reason="Artifact is not signed"/>
-         </artifact>
-      </component>
       <component group="it.unimi.dsi" name="fastutil" version="8.5.2">
          <artifact name="fastutil-8.5.2.jar">
             <pgp value="0CB5871FB7BF3B351614BBF6CA85FFE638D4407A"/>

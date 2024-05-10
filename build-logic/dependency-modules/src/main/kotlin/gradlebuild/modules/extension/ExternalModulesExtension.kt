@@ -45,7 +45,6 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val bouncycastlePkix = "org.bouncycastle:bcpkix-jdk18on"
     val bouncycastleProvider = "org.bouncycastle:bcprov-jdk18on"
     val bsh = "org.apache-extras.beanshell:bsh"
-    val capsule = "io.usethesource:capsule"
     val commonsCodec = "commons-codec:commons-codec"
     val commonsCompress = "org.apache.commons:commons-compress"
     val commonsHttpclient = "org.apache.httpcomponents:httpclient"
@@ -228,7 +227,6 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
         bouncycastlePgp to License.MIT,
         bouncycastleProvider to License.MIT,
         bsh to License.Apache2,
-        capsule to License.BSDStyle,
         commonsCodec to License.Apache2,
         commonsCompress to License.Apache2,
         commonsHttpclient to License.Apache2,
