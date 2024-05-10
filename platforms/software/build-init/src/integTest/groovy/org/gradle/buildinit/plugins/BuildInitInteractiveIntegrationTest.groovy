@@ -36,6 +36,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
     def defaultFileName = "some-file"
     def projectNamePrompt = "Project name (default: $defaultProjectName)"
     def convertMavenBuildPrompt = "Found a Maven build. Generate a Gradle build from this?"
+    def overwriteFilesPrompt = "Found existing files in the project directory: '${testDirectory.file(defaultProjectName)}'." + System.lineSeparator() + "Directory will be modified and existing files may be overwritten.  Continue? (default: no)"
     def javaOption = 1
     def languageSelectionOptions = [
         "Select implementation language:",
@@ -145,7 +146,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
 
         then:
         result.assertHasDescription("Execution failed for task ':init'")
-        assertPromptedToOverwriteExistingFiles(handle)
+        assertBuildAborted(handle)
         assertSuggestedResolutionsToExistingFilesProblem(handle)
     }
 
@@ -368,24 +369,12 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         rootProjectDslFixtureFor(BuildInitDsl.GROOVY).assertGradleFilesNotGenerated()
     }
 
-    def "prompts user when run from an interactive session and pom.xml present"() {
+    def "does not prompt user to overwrite when run from an interactive session and pom.xml present"() {
         given:
         pom()
 
         when:
         def handle = startInteractiveExecutorWithTasks("init")
-
-        // Select 'yes'
-        ConcurrentTestUtil.poll(60) {
-            assertPromptedToOverwriteExistingFiles(handle)
-        }
-        handle.stdinPipe.write(("yes" + TextUtil.platformLineSeparator).bytes)
-
-        // Select 'yes'
-        ConcurrentTestUtil.poll(60) {
-            assert handle.standardOutput.contains(String.format(overwriteFilesPrompt, executer.testDirectoryProvider.testDirectory.toPath().resolve(defaultProjectName)))
-        }
-        handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
 
         // Select 'yes'
         ConcurrentTestUtil.poll(60) {
@@ -425,18 +414,6 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
 
         when:
         def handle = startInteractiveExecutorWithTasks("init")
-
-        // Select 'yes'
-        ConcurrentTestUtil.poll(60) {
-            assertPromptedToOverwriteExistingFiles(handle)
-        }
-        handle.stdinPipe.write(("yes" + TextUtil.platformLineSeparator).bytes)
-
-        // Select 'yes'
-        ConcurrentTestUtil.poll(60) {
-            assert handle.standardOutput.contains(String.format(overwriteFilesPrompt, executer.testDirectoryProvider.testDirectory.toPath().resolve(defaultProjectName)))
-        }
-        handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
 
         // Select 'no'
         ConcurrentTestUtil.poll(60) {
@@ -538,7 +515,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
     private void assertPromptedToOverwriteExistingFiles(GradleHandle handle) {
-        assert handle.standardOutput.contains("Found existing files in the project directory: '${testDirectory.file(defaultProjectName)}'." + System.lineSeparator() + "Allow these files to be overwritten? (default: no)")
+        assert handle.standardOutput.contains(overwriteFilesPrompt)
     }
 
     private void assertBuildAborted(GradleHandle handle) {

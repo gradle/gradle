@@ -372,12 +372,10 @@ public abstract class InitBuild extends DefaultTask {
 
             boolean isNotEmptyDirectory = existingProjectFiles != null && existingProjectFiles.length != 0;
             if (isNotEmptyDirectory) {
-                boolean fileOverwriteAllowed;
-                if (getAllowFileOverwrite().isPresent()) {
-                    fileOverwriteAllowed = getAllowFileOverwrite().get();
-                } else {
+                boolean fileOverwriteAllowed = getAllowFileOverwrite().get();
+                if (!fileOverwriteAllowed) {
                     fileOverwriteAllowed = userQuestions.askBooleanQuestion("Found existing files in the project directory: '" + projectDirFile +
-                        "'." + System.lineSeparator() + "Allow these files to be overwritten?", false);
+                        "'." + System.lineSeparator() + "Directory will be modified and existing files may be overwritten.  Continue?", false);
                 }
 
                 if (!fileOverwriteAllowed) {
