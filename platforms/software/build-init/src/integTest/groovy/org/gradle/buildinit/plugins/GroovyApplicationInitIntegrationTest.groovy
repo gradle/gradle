@@ -184,7 +184,7 @@ class GroovyApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegra
                 }
         """
         when:
-        run('init', '--type', 'groovy-application', '--dsl', scriptDsl.id)
+        run('init', '--type', 'groovy-application', '--dsl', scriptDsl.id, '--overwrite')
 
         then:
         subprojectDir.file("src/main/groovy").assertHasDescendants("org/acme/SampleMain.groovy")

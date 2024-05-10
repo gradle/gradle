@@ -247,7 +247,7 @@ class JavaApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrati
                 }
         """
         when:
-        run('init', '--type', 'java-application', '--dsl', scriptDsl.id)
+        run('init', '--type', 'java-application', '--dsl', scriptDsl.id, '--overwrite')
 
         then:
         subprojectDir.file("src/main/java").assertHasDescendants("org/acme/SampleMain.java")
