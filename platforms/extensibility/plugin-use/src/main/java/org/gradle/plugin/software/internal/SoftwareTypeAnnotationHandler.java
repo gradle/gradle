@@ -50,7 +50,7 @@ public class SoftwareTypeAnnotationHandler extends AbstractPropertyAnnotationHan
         propertyMetadata.getAnnotation(SoftwareType.class).ifPresent(softwareType -> {
             Class<?> publicType = softwareType.modelPublicType();
             Class<?> valueType = propertyMetadata.getDeclaredType().getRawType();
-            if (!publicType.isAssignableFrom(valueType)) {
+            if (publicType != Void.class && !publicType.isAssignableFrom(valueType)) {
                 validationContext.visitPropertyProblem(problem ->
                     problem
                         .forProperty(propertyMetadata.getPropertyName())
