@@ -47,7 +47,10 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
         given:
         withSoftwareTypePluginThatExposesExtensionWithDependencies().prepareToExecute()
 
-        file("settings.gradle.dcl") << getDeclarativeSettingsScriptThatSetsConventions(dependencies(convention))
+        file("foo").createDir()
+        file("settings.gradle.dcl") << getDeclarativeSettingsScriptThatSetsConventions(dependencies(convention)) + """
+            include("foo")
+        """
 
         file("build.gradle.dcl") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType("""
             ${setId("foo")}
@@ -124,6 +127,22 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
                 expectedConfigurations: [
                     "implementation = ${externalDependency('foo', 'bar', '1.0')}, ${externalDependency('baz', 'buzz', '2.0')}"
                 ]
+            ],
+            [
+                testCase: "implementation has project convention and is set",
+                convention: implementation('project(":foo")'),
+                buildConfiguration: implementation("baz:buzz:2.0"),
+                expectedConfigurations: [
+                    "implementation = ${externalDependency('baz', 'buzz', '2.0')}"
+                ]
+            ],
+            [
+                testCase: "implementation has convention and is set to project",
+                convention: implementation("foo:bar:1.0"),
+                buildConfiguration: implementation('project(":foo")'),
+                expectedConfigurations: [
+                    "implementation = ${projectDependency(':foo')}"
+                ]
             ]
         ]
     }
@@ -188,7 +207,11 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
     }
 
     static String dependencyFor(String configuration, String[] dependencies) {
-        return dependencies.collect { "${configuration}(\"${it}\")" }.join("\n")
+        return dependencies.collect { dependency(configuration, it) }.join("\n")
+    }
+
+    static String dependency(String configuration, String dependency) {
+        return dependency.startsWith("project(") ? "${configuration}(${dependency})" : "${configuration}(\"${dependency}\")"
     }
 
     static String implementation(String... dependencies) {
@@ -221,6 +244,10 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
 
     static String externalDependency(String group, String name, String version) {
         return "DefaultExternalModuleDependency{group='${group}', name='${name}', version='${version}', configuration='default'}"
+    }
+
+    static String projectDependency(String projectPath) {
+        return "DefaultProjectDependency{identityPath='${projectPath}', configuration='default'}"
     }
 
     static String getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(String configuration="") {
