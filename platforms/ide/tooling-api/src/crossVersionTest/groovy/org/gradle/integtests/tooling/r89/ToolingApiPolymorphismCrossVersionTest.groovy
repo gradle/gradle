@@ -22,6 +22,7 @@ import org.gradle.integtests.tooling.fixture.CompositeModel
 import org.gradle.integtests.tooling.fixture.DeepChildModel
 import org.gradle.integtests.tooling.fixture.ShallowChildModel
 import org.gradle.integtests.tooling.fixture.SideModel
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.fixture.BaseModel
@@ -31,6 +32,7 @@ import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import javax.inject.Inject
 
 @ToolingApiVersion(">=8.9")
+@TargetGradleVersion('>=6.4') // that's when support for precompiled script plugins in Groovy has been added (used in this test)
 class ToolingApiPolymorphismCrossVersionTest extends ToolingApiSpecification {
 
     def "setup"() {
