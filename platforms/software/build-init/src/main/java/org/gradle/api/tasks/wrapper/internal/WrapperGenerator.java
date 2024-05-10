@@ -56,7 +56,7 @@ public class WrapperGenerator {
 
     public static String getDistributionUrl(GradleVersion gradleVersion, Wrapper.DistributionType distributionType) {
         String distType = distributionType.name().toLowerCase(Locale.ENGLISH);
-        return new DistributionLocator().getDistributionFor(gradleVersion, distType).toASCIIString();
+        return DistributionLocator.getDistributionFor(gradleVersion, distType).toASCIIString();
     }
 
     public static void generate(

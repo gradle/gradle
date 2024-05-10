@@ -95,7 +95,7 @@ public class DistributionFactory {
     }
 
     private Distribution getDownloadedDistribution(String gradleVersion) {
-        URI distUri = new DistributionLocator().getDistributionFor(GradleVersion.version(gradleVersion));
+        URI distUri = DistributionLocator.getDistributionFor(GradleVersion.version(gradleVersion));
         return getDistribution(distUri);
     }
 

@@ -26,15 +26,14 @@ import spock.lang.Specification
 class DistributionLocatorIntegrationTest extends Specification {
     private static final int CONNECTION_TIMEOUT_SECONDS = 60 * 1000
     private static final int READ_TIMEOUT_SECONDS = 60 * 1000
-    def locator = new DistributionLocator()
     def distributions = new ReleasedVersionDistributions()
 
     def "locates release versions"() {
         expect:
-        urlExist(locator.getDistributionFor(GradleVersion.version("0.8")))
-        urlExist(locator.getDistributionFor(GradleVersion.version("0.9.1")))
-        urlExist(locator.getDistributionFor(GradleVersion.version("1.0-milestone-3")))
-        urlExist(locator.getDistributionFor(GradleVersion.version("1.12")))
+        urlExist(DistributionLocator.getDistributionFor(GradleVersion.version("0.8")))
+        urlExist(DistributionLocator.getDistributionFor(GradleVersion.version("0.9.1")))
+        urlExist(DistributionLocator.getDistributionFor(GradleVersion.version("1.0-milestone-3")))
+        urlExist(DistributionLocator.getDistributionFor(GradleVersion.version("1.12")))
     }
 
     /**
@@ -43,7 +42,7 @@ class DistributionLocatorIntegrationTest extends Specification {
      */
     def "locates snapshot versions"() {
         expect:
-        urlExist(locator.getDistributionFor(distributions.mostRecentReleaseSnapshot.version))
+        urlExist(DistributionLocator.getDistributionFor(distributions.mostRecentReleaseSnapshot.version))
     }
 
     void urlExist(URI url) {

@@ -66,7 +66,7 @@ class DistributionFactoryTest extends Specification {
     }
 
     def usesTheCurrentVersionAsTheDefaultDistributionWhenNoWrapperPropertiesFilePresent() {
-        def uri = new DistributionLocator().getDistributionFor(GradleVersion.current()).toASCIIString()
+        def uri = DistributionLocator.getDistributionFor(GradleVersion.current()).toASCIIString()
 
         expect:
         factory.getDefaultDistribution(tmpDir.testDirectory, false).displayName == "Gradle distribution '${uri}'"

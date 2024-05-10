@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests.fixtures.executer
 
-import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.internal.DistributionLocator
+package gradlebuild.process
 
-class ReleasedGradleDistribution extends DownloadableGradleDistribution {
+import org.gradle.api.attributes.Attribute
 
-    ReleasedGradleDistribution(String version, TestFile versionDir) {
-        super(version, versionDir)
-    }
 
-    @Override
-    protected URL getDownloadURL() {
-        return DistributionLocator.getDistributionFor(getVersion()).toURL();
-    }
+object TargetProcess {
+
+    val TARGET_PROCESS_ATTRIBUTE = Attribute.of("org.gradle.target-process", String::class.java)
 }

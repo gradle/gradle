@@ -21,26 +21,28 @@ import org.gradle.util.GradleVersion;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-public class DistributionLocator {
+public final class DistributionLocator {
 
     private static final String SERVICES_GRADLE_BASE_URL_PROPERTY = "org.gradle.internal.services.base.url";
     private static final String SERVICES_GRADLE_BASE_URL = "https://services.gradle.org";
     private static final String RELEASE_REPOSITORY = "/distributions";
     private static final String SNAPSHOT_REPOSITORY = "/distributions-snapshots";
 
+    private DistributionLocator() { }
+
     public static String getBaseUrl() {
         return System.getProperty(SERVICES_GRADLE_BASE_URL_PROPERTY, SERVICES_GRADLE_BASE_URL);
     }
 
-    public URI getDistributionFor(GradleVersion version) {
+    public static URI getDistributionFor(GradleVersion version) {
         return getDistributionFor(version, "bin");
     }
 
-    public URI getDistributionFor(GradleVersion version, String type) {
+    public static URI getDistributionFor(GradleVersion version, String type) {
         return getDistribution(getDistributionRepository(version), version, "gradle", type);
     }
 
-    private String getDistributionRepository(GradleVersion version) {
+    private static String getDistributionRepository(GradleVersion version) {
         if (version.isSnapshot()) {
             return getBaseUrl() + SNAPSHOT_REPOSITORY;
         } else {
@@ -48,7 +50,7 @@ public class DistributionLocator {
         }
     }
 
-    private URI getDistribution(
+    private static URI getDistribution(
         String repositoryUrl, GradleVersion version, String archiveName,
         String archiveClassifier
     ) {

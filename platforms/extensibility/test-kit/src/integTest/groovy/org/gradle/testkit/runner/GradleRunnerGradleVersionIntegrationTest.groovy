@@ -26,7 +26,6 @@ import org.gradle.testkit.runner.fixtures.NonCrossVersion
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.DistributionLocator
 import spock.lang.Retry
-import spock.lang.Shared
 
 import static org.gradle.integtests.fixtures.RetryConditions.onIssueWithReleasedGradleVersion
 
@@ -37,8 +36,6 @@ import static org.gradle.integtests.fixtures.RetryConditions.onIssueWithReleased
 ])
 @Retry(condition = { onIssueWithReleasedGradleVersion(instance, failure) }, count = 2)
 class GradleRunnerGradleVersionIntegrationTest extends BaseGradleRunnerIntegrationTest {
-    @Shared
-    DistributionLocator locator = new DistributionLocator()
 
     String getReleasedGradleVersion() {
         lowestMajorGradleVersion
@@ -76,7 +73,7 @@ class GradleRunnerGradleVersionIntegrationTest extends BaseGradleRunnerIntegrati
         where:
         type         | version                      | configurer
         "embedded"   | buildContext.version.version | { if (!GradleContextualExecuter.embedded) { it.withGradleInstallation(buildContext.gradleHomeDir) } }
-        "locator"    | lowestMajorGradleVersion     | { it.withGradleDistribution(locator.getDistributionFor(GradleVersion.version(lowestMajorGradleVersion))) }
+        "locator"    | lowestMajorGradleVersion     | { it.withGradleDistribution(DistributionLocator.getDistributionFor(GradleVersion.version(lowestMajorGradleVersion))) }
         "production" | lowestMajorGradleVersion     | { it.withGradleVersion(lowestMajorGradleVersion) }
     }
 

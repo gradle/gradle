@@ -35,6 +35,8 @@ import gradlebuild.basics.testing.includeSpockAnnotation
 import gradlebuild.filterEnvironmentVariables
 import gradlebuild.jvm.argumentproviders.CiEnvironmentProvider
 import gradlebuild.jvm.extension.UnitTestAndCompileExtension
+import gradlebuild.process.TargetProcess
+import gradlebuild.process.ValidateTargetProcessCompatibility
 import org.gradle.internal.os.OperatingSystem
 import java.time.Duration
 
@@ -45,7 +47,19 @@ plugins {
     id("gradlebuild.dependency-modules")
 }
 
-extensions.create<UnitTestAndCompileExtension>("gradlebuildJava", project, tasks)
+val extension = extensions.create<UnitTestAndCompileExtension>("gradlebuildJava", project, tasks)
+extension.targetProcess = "daemon"
+
+configurations.runtimeElements.configure {
+    attributes {
+        attributeProvider(TargetProcess.TARGET_PROCESS_ATTRIBUTE, extension.targetProcess)
+    }
+}
+
+tasks.register<ValidateTargetProcessCompatibility>("validateTargetProcessCompatibility") {
+    runtimeGraphRoot = configurations.runtimeClasspath.flatMap { it.incoming.resolutionResult.rootComponent }
+    ownTargetProcess = extension.targetProcess
+}
 
 removeTeamcityTempProperty()
 addDependencies()

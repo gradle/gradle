@@ -37,8 +37,8 @@ dependencies {
     implementation(project(":enterprise-workers"))
     implementation(project(":messaging"))
     implementation(project(":logging"))
-    implementation(project(":core-api"))
-    implementation(project(":core"))
+//        implementation(project(":core-api"))
+//        implementation(project(":core"))
     implementation(project(":wrapper-shared"))
 
     implementation(libs.guava)

@@ -17,6 +17,7 @@
 package gradlebuild.jvm.extension
 
 import org.gradle.api.Project
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.kotlin.dsl.*
@@ -32,6 +33,7 @@ abstract class UnitTestAndCompileExtension(
      */
     fun usedInWorkers() {
         enforceCompatibility(6)
+        targetProcess = "worker"
     }
 
     /**
@@ -39,6 +41,7 @@ abstract class UnitTestAndCompileExtension(
      */
     fun usedForStartup() {
         enforceCompatibility(6)
+        targetProcess = "startup"
     }
 
     /**
@@ -46,6 +49,12 @@ abstract class UnitTestAndCompileExtension(
      */
     fun usedInToolingApi() {
         enforceCompatibility(7)
+        targetProcess = "tooling-api"
+    }
+
+    fun usedInLauncher() {
+        enforceCompatibility(8)
+        targetProcess = "launcher"
     }
 
     private
@@ -59,4 +68,6 @@ abstract class UnitTestAndCompileExtension(
         // Apply ParameterNamesIndex since 6 doesn't support -parameters
         project.apply(plugin = "gradlebuild.api-parameter-names-index")
     }
+
+    abstract val targetProcess: Property<String>
 }
