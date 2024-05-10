@@ -25,10 +25,20 @@ dependencies {
     api(project(":messaging"))
     api(project(":logging"))
     api(project(":daemon-protocol"))
+    api(project(":base-services"))
 
+    implementation(libs.jsr305)
+    implementation(libs.guava)
+    implementation(libs.asm)
+    implementation(libs.slf4jApi)
+    implementation(project(":core"))
     implementation(project(":java-language-extensions"))
 
     testImplementation(testFixtures(project(":core"))) {
         because("ConcurrentSpecification")
     }
+    testImplementation(project(":tooling-api")) {
+        because("Unit tests verify serialization works with TAPI types")
+    }
+    testImplementation(testFixtures(project(":daemon-protocol")))
 }
