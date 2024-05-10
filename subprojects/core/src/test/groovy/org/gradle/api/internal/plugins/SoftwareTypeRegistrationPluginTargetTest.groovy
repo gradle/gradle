@@ -22,6 +22,7 @@ import org.gradle.api.Project
 import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
 import org.gradle.api.internal.plugins.software.SoftwareType
 import org.gradle.api.internal.tasks.properties.InspectionScheme
+import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.properties.annotations.PropertyMetadata
 import org.gradle.internal.properties.annotations.TypeMetadata
 import org.gradle.internal.properties.annotations.TypeMetadataStore
@@ -71,6 +72,7 @@ class SoftwareTypeRegistrationPluginTargetTest extends Specification {
         2 * inspectionScheme.getMetadataStore() >> metadataStore
         1 * metadataStore.getTypeMetadata(plugin.class) >> pluginTypeMetadata
         1 * pluginTypeMetadata.getTypeAnnotationMetadata() >> typeAnnotationMetadata
+        1 * pluginTypeMetadata.getType() >> plugin.class
         1 * typeAnnotationMetadata.getAnnotation(RegistersSoftwareTypes.class) >> Optional.of(registersSoftwareTypes)
         1 * registersSoftwareTypes.value() >> [SoftwareTypePlugin.class]
         1 * metadataStore.getTypeMetadata(SoftwareTypePlugin.class) >> softwareTypePluginMetadata
@@ -80,7 +82,34 @@ class SoftwareTypeRegistrationPluginTargetTest extends Specification {
         1 * propertyMetadata.getAnnotation(SoftwareType.class) >> Optional.empty()
 
         and:
-        def e = thrown(InvalidUserDataException)
+        def e = thrown(DefaultMultiCauseException)
+        e.hasCause(InvalidUserDataException)
+    }
+
+    def "throws exception when plugins are registered that expose multiple software types"() {
+        given:
+        def anotherPropertyMetadata = Mock(PropertyMetadata)
+
+        when:
+        pluginTarget.applyImperative(null, plugin)
+
+        then: // setup property metadata
+        2 * inspectionScheme.getMetadataStore() >> metadataStore
+        1 * metadataStore.getTypeMetadata(plugin.class) >> pluginTypeMetadata
+        1 * pluginTypeMetadata.getTypeAnnotationMetadata() >> typeAnnotationMetadata
+        1 * pluginTypeMetadata.getType() >> plugin.class
+        1 * typeAnnotationMetadata.getAnnotation(RegistersSoftwareTypes.class) >> Optional.of(registersSoftwareTypes)
+        1 * registersSoftwareTypes.value() >> [SoftwareTypePlugin.class]
+        1 * metadataStore.getTypeMetadata(SoftwareTypePlugin.class) >> softwareTypePluginMetadata
+        1 * softwareTypePluginMetadata.getPropertiesMetadata() >> [propertyMetadata, anotherPropertyMetadata]
+
+        and: // returns multiple properties with annotation present
+        1 * propertyMetadata.getAnnotation(SoftwareType.class) >> Optional.of(Stub(SoftwareType))
+        1 * anotherPropertyMetadata.getAnnotation(SoftwareType.class) >> Optional.of(Stub(SoftwareType))
+
+        and:
+        def e = thrown(DefaultMultiCauseException)
+        e.hasCause(InvalidUserDataException)
     }
 
     def "calls delegate for plugins that do not register software types"() {
