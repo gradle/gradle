@@ -83,7 +83,8 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val gson = "com.google.code.gson:gson"
     val guava = "com.google.guava:guava"
     val h2Database = "com.h2database:h2"
-    val hamcrest = "org.hamcrest:hamcrest-core"
+    val hamcrest = "org.hamcrest:hamcrest"
+    val hamcrestCore = "org.hamcrest:hamcrest-core"
     val httpcore = "org.apache.httpcomponents:httpcore"
     val inject = "javax.inject:javax.inject"
     val ivy = "org.apache.ivy:ivy"
@@ -198,6 +199,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val sshdOsgi = "org.apache.sshd:sshd-osgi"
     val sshdScp = "org.apache.sshd:sshd-scp"
     val sshdSftp = "org.apache.sshd:sshd-sftp"
+    val testcontainers = "org.testcontainers:testcontainers"
     val testcontainersSpock = "org.testcontainers:spock"
     val typesafeConfig = "com.typesafe:config"
     val xerces = "xerces:xercesImpl"
@@ -244,6 +246,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
         guava to License.Apache2,
         h2Database to License.EPL,
         hamcrest to License.BSD3,
+        hamcrestCore to License.BSD3,
         httpcore to License.Apache2,
         hikariCP to License.Apache2,
         inject to License.Apache2,

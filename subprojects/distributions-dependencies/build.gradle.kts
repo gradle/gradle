@@ -97,7 +97,7 @@ dependencies {
         api(libs.groovyXml)             { version { strictly(libs.groovyVersion) }}
         api(libs.gson)                  { version { strictly("2.10") }}
         api(libs.h2Database)            { version { strictly("2.2.220") }}
-        api(libs.hamcrest)              { version { strictly("1.3"); because("2.x changes the API") }}
+        api(libs.hamcrestCore)              { version { strictly("1.3"); because("2.x changes the API") }}
         api(libs.hikariCP)              { version { strictly("4.0.3"); because("5.x requires Java 11+") }}
         api(libs.httpcore)              { version { strictly("4.4.14") }}
         api(libs.inject)                { version { strictly("1") }}
@@ -211,6 +211,7 @@ dependencies {
         api(libs.sshdOsgi)              { version { rejectAll(); because("It contains sshd-core and sshd-common classes") }}
         api(libs.sshdScp)               { version { strictly(sshdVersion) }}
         api(libs.sshdSftp)              { version { strictly(sshdVersion) }}
+        api(libs.testcontainers)        { version { strictly("1.12.5") }}
         api(libs.testcontainersSpock)   { version { strictly("1.12.5") }}
         api(libs.typesafeConfig)        { version { strictly("1.3.3") }}
         api(libs.xerces)                { version { strictly("2.12.0") }}
