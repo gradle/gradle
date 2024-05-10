@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,15 @@
 
 package org.gradle.tooling.internal.provider.serialization;
 
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClassLoaderSpec;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 
+import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -39,13 +43,25 @@ public class DaemonSidePayloadClassLoaderFactory implements PayloadClassLoaderFa
     public ClassLoader getClassLoaderFor(ClassLoaderSpec spec, List<? extends ClassLoader> parents) {
         if (spec instanceof ClientOwnedClassLoaderSpec) {
             ClientOwnedClassLoaderSpec clientSpec = (ClientOwnedClassLoaderSpec) spec;
-            return createClassLoaderForClassPath("client-owned-daemon-payload-loader", parents, clientSpec.getClasspath());
+            return createClassLoaderForClassPath("client-owned-daemon-payload-loader", parents, urls(clientSpec.getClasspath()));
         }
         if (spec instanceof VisitableURLClassLoader.Spec) {
             VisitableURLClassLoader.Spec urlSpec = (VisitableURLClassLoader.Spec) spec;
             return createClassLoaderForClassPath(urlSpec.getName() + "-daemon-payload-loader", parents, urlSpec.getClasspath());
         }
         return delegate.getClassLoaderFor(spec, parents);
+    }
+
+    private List<URL> urls(List<URI> classpath) {
+        List<URL> urls = new ArrayList<>(classpath.size());
+        for (URI uri : classpath) {
+            try {
+                urls.add(uri.toURL());
+            } catch (MalformedURLException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        }
+        return urls;
     }
 
     private ClassLoader createClassLoaderForClassPath(String name, List<? extends ClassLoader> parents, List<URL> classpath) {

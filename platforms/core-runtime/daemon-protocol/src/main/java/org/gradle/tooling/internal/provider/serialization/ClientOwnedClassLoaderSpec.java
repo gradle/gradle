@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,17 +18,17 @@ package org.gradle.tooling.internal.provider.serialization;
 
 import org.gradle.internal.classloader.ClassLoaderSpec;
 
-import java.net.URL;
+import java.net.URI;
 import java.util.List;
 
 public class ClientOwnedClassLoaderSpec extends ClassLoaderSpec {
-    private final List<URL> classpath;
+    private final List<URI> classpath;
 
-    public ClientOwnedClassLoaderSpec(List<URL> classpath) {
+    public ClientOwnedClassLoaderSpec(List<URI> classpath) {
         this.classpath = classpath;
     }
 
-    public List<URL> getClasspath() {
+    public List<URI> getClasspath() {
         return classpath;
     }
 

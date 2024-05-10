@@ -16,9 +16,11 @@
 
 package org.gradle.tooling.internal.provider.serialization;
 
+import com.google.common.collect.ImmutableList;
+
 import javax.annotation.concurrent.ThreadSafe;
 import java.lang.ref.WeakReference;
-import java.net.URL;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -53,7 +55,7 @@ public class ClientSidePayloadClassLoaderRegistry implements PayloadClassLoaderR
     @Override
     public SerializeMap newSerializeSession() {
         final Set<ClassLoader> candidates = new LinkedHashSet<>();
-        final Set<URL> classPath = new LinkedHashSet<>();
+        final Set<URI> classPath = new LinkedHashSet<>();
         final Map<ClassLoader, Short> classLoaderIds = new HashMap<>();
         final Map<Short, ClassLoaderDetails> classLoaderDetails = new HashMap<>();
         return new SerializeMap() {
@@ -139,7 +141,7 @@ public class ClientSidePayloadClassLoaderRegistry implements PayloadClassLoaderR
         }
     }
 
-    private ClassLoaderDetails getDetailsForClassLoaders(Set<ClassLoader> candidates, Set<URL> classPath) {
+    private ClassLoaderDetails getDetailsForClassLoaders(Set<ClassLoader> candidates, Set<URI> classPath) {
         lock.lock();
         try {
             // Determine whether the given set of classloaders have already been used for some previous request
@@ -160,13 +162,13 @@ public class ClientSidePayloadClassLoaderRegistry implements PayloadClassLoaderR
                 }
                 if (localCandidates.equals(candidates)) {
                     // A match. Because the entry is reused, add any additional classpath entries
-                    return new ClassLoaderDetails(localClassLoaderMapping.details.uuid, new ClientOwnedClassLoaderSpec(new ArrayList<>(classPath)));
+                    return new ClassLoaderDetails(localClassLoaderMapping.details.uuid, new ClientOwnedClassLoaderSpec(ImmutableList.copyOf(classPath)));
                 }
             }
 
             // Haven't seen the classloaders before - add a new entry
             UUID uuid = UUID.randomUUID();
-            ClassLoaderDetails clientClassLoaders = new ClassLoaderDetails(uuid, new ClientOwnedClassLoaderSpec(new ArrayList<>(classPath)));
+            ClassLoaderDetails clientClassLoaders = new ClassLoaderDetails(uuid, new ClientOwnedClassLoaderSpec(ImmutableList.copyOf(classPath)));
             LocalClassLoaderMapping mapping = new LocalClassLoaderMapping(clientClassLoaders);
             for (ClassLoader candidate : candidates) {
                 mapping.classLoaders.add(new WeakReference<>(candidate));

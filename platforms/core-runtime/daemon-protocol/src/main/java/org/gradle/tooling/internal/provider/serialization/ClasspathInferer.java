@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package org.gradle.tooling.internal.provider.serialization;
 
 import com.google.common.collect.MapMaker;
 import com.google.common.io.ByteStreams;
-import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.GradleException;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classloader.ClasspathUtil;
@@ -27,9 +26,11 @@ import org.objectweb.asm.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
 import java.io.InputStream;
 import java.net.JarURLConnection;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Collection;
@@ -44,19 +45,19 @@ import java.util.concurrent.locks.ReentrantLock;
 public class ClasspathInferer {
     private static final Logger LOGGER = LoggerFactory.getLogger(ClasspathInferer.class);
     private final Lock lock = new ReentrantLock();
-    private final Map<Class<?>, Collection<URL>> classPathCache;
+    private final Map<Class<?>, Collection<URI>> classPathCache;
 
     public ClasspathInferer() {
         this.classPathCache = new MapMaker().weakKeys().makeMap();
     }
 
-    public void getClassPathFor(Class<?> targetClass, Collection<URL> dest) {
+    public void getClassPathFor(Class<?> targetClass, Collection<URI> dest) {
         lock.lock();
         try {
-            Collection<URL> classPath = classPathCache.get(targetClass);
+            Collection<URI> classPath = classPathCache.get(targetClass);
             if (classPath == null) {
-                Set<Class<?>> visited = new HashSet<Class<?>>();
-                classPath = new LinkedHashSet<URL>();
+                Set<Class<?>> visited = new HashSet<>();
+                classPath = new LinkedHashSet<>();
                 find(targetClass, visited, classPath);
                 classPathCache.put(targetClass, classPath);
             }
@@ -69,7 +70,7 @@ public class ClasspathInferer {
     /**
      * Locates the classpath required by the given target class. Traverses the dependency graph of classes used by the specified class and collects the result in the given collection.
      */
-    private void find(Class<?> target, Collection<Class<?>> visited, Collection<URL> dest) {
+    private void find(Class<?> target, Collection<Class<?>> visited, Collection<URI> dest) {
         ClassLoader targetClassLoader = target.getClassLoader();
         if (targetClassLoader == null || targetClassLoader == ClassLoaderUtils.getPlatformClassLoader()) {
             // A system class, skip it
@@ -89,7 +90,7 @@ public class ClasspathInferer {
             }
 
             File classPathRoot = ClasspathUtil.getClasspathForClass(target);
-            dest.add(classPathRoot.toURI().toURL());
+            dest.add(classPathRoot.toURI());
 
             // To determine the dependencies of the class, load up the byte code and look for CONSTANT_Class entries in the constant pool
 
@@ -100,11 +101,8 @@ public class ClasspathInferer {
                 // There are other options for solving this that may be more performant. However a class is inspected this way once and the result reused, so this approach is probably fine
                 urlConnection.setUseCaches(false);
             }
-            InputStream inputStream = urlConnection.getInputStream();
-            try {
+            try (InputStream inputStream = urlConnection.getInputStream()) {
                 reader = new ClassReader(ByteStreams.toByteArray(inputStream));
-            } finally {
-                inputStream.close();
             }
 
             char[] charBuffer = new char[reader.getMaxStringLength()];

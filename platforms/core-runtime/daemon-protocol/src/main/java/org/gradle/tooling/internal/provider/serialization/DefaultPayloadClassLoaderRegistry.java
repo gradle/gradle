@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,8 @@
 package org.gradle.tooling.internal.provider.serialization;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Transformer;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClassLoaderSpec;
 import org.gradle.internal.classloader.ClassLoaderVisitor;
 import org.gradle.internal.classloader.SystemClassLoaderSpec;
@@ -28,9 +28,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.ThreadSafe;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -104,14 +108,27 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
         if (details.spec instanceof ClientOwnedClassLoaderSpec) {
             ClientOwnedClassLoaderSpec spec = (ClientOwnedClassLoaderSpec) details.spec;
             VisitableURLClassLoader urlClassLoader = (VisitableURLClassLoader) classLoader;
-            Set<URL> currentClassPath = ImmutableSet.copyOf(urlClassLoader.getURLs());
-            for (URL url : spec.getClasspath()) {
-                if (!currentClassPath.contains(url)) {
-                    urlClassLoader.addURL(url);
+            try {
+                Set<URI> currentClassPath = uris(urlClassLoader);
+                for (URI uri : spec.getClasspath()) {
+                    if (!currentClassPath.contains(uri)) {
+                        urlClassLoader.addURL(uri.toURL());
+                    }
                 }
+            } catch (URISyntaxException | MalformedURLException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         }
         return classLoader;
+    }
+
+    private static Set<URI> uris(VisitableURLClassLoader classLoader) throws URISyntaxException {
+        URL[] urls = classLoader.getURLs();
+        Set<URI> uris = new HashSet<>(urls.length);
+        for (URL url : urls) {
+            uris.add(url.toURI());
+        }
+        return uris;
     }
 
     private ClassLoaderDetails getDetails(ClassLoader classLoader) {
