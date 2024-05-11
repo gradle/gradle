@@ -284,12 +284,12 @@ fun configureTests() {
 
                 if (BuildEnvironment.isCiServer) {
                     when {
-                        OperatingSystem.current().isLinux -> requirements = listOf("os=linux", "gbt-dogfooding")
-                        OperatingSystem.current().isWindows -> requirements = listOf("os=windows", "gbt-dogfooding")
-                        OperatingSystem.current().isMacOsX -> requirements = listOf("os=macos", "gbt-dogfooding")
+                        OperatingSystem.current().isLinux -> requirements = listOf("os=linux", "gbt-dogfooding-all-in-one")
+                        OperatingSystem.current().isWindows -> requirements = listOf("os=windows", "gbt-dogfooding-all-in-one")
+                        OperatingSystem.current().isMacOsX -> requirements = listOf("os=macos", "gbt-dogfooding-all-in-one")
                     }
                 } else {
-                    requirements = listOf("gbt-dogfooding")
+                    requirements = listOf("gbt-dogfooding-all-in-one")
                 }
             }
         }
