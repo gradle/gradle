@@ -98,13 +98,13 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
         configuration.collectVariants(new ConfigurationInternal.VariantVisitor() {
             @Override
             public void visitOwnVariant(DisplayName displayName, ImmutableAttributes attributes, Collection<? extends PublishArtifact> artifacts) {
-                CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> variantArtifacts = getVariantArtifacts(componentId, displayName, artifacts, model, calculatedValueContainerFactory);
+                CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> variantArtifacts = getVariantArtifacts(displayName, componentId, artifacts, model, calculatedValueContainerFactory);
                 variantsBuilder.add(new LocalVariantMetadata(configurationName, configurationIdentifier, displayName, attributes, capabilities, variantArtifacts));
             }
 
             @Override
             public void visitChildVariant(String name, DisplayName displayName, ImmutableAttributes attributes, Collection<? extends PublishArtifact> artifacts) {
-                CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> variantArtifacts = getVariantArtifacts(componentId, displayName, artifacts, model, calculatedValueContainerFactory);
+                CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> variantArtifacts = getVariantArtifacts(displayName, componentId, artifacts, model, calculatedValueContainerFactory);
                 variantsBuilder.add(new LocalVariantMetadata(configurationName + "-" + name, new NestedVariantIdentifier(configurationIdentifier, name), displayName, attributes, capabilities, variantArtifacts));
             }
         });
@@ -115,10 +115,10 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
         // will no longer be mutated.
         ImmutableSet<String> hierarchy = Configurations.getNames(configuration.getHierarchy());
         CalculatedValue<DefaultLocalConfigurationMetadata.ConfigurationDependencyMetadata> dependencies =
-            getConfigurationDependencyState(configurationsProvider, dependencyCache, model, calculatedValueContainerFactory, description, hierarchy, attributes);
+            getConfigurationDependencyState(description, hierarchy, attributes, configurationsProvider, dependencyCache, model, calculatedValueContainerFactory);
 
         CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> artifacts =
-            getConfigurationArtifacts(model, calculatedValueContainerFactory, configurationName, description, hierarchy, configurationsProvider, componentId);
+            getConfigurationArtifacts(configurationName, description, componentId, hierarchy, configurationsProvider, model, calculatedValueContainerFactory);
 
         return new DefaultLocalConfigurationMetadata(
             configurationName,
@@ -140,8 +140,13 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
     }
 
     private static CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> getConfigurationArtifacts(
-        ModelContainer<?> model, CalculatedValueContainerFactory calculatedValueContainerFactory,
-        String name, String description, ImmutableSet<String> hierarchy, ConfigurationsProvider configurationsProvider, ComponentIdentifier componentId
+        String name,
+        String description,
+        ComponentIdentifier componentId,
+        ImmutableSet<String> hierarchy,
+        ConfigurationsProvider configurationsProvider,
+        ModelContainer<?> model,
+        CalculatedValueContainerFactory calculatedValueContainerFactory
     ) {
         return calculatedValueContainerFactory.create(Describables.of(description, "artifacts"), context -> model.fromMutableState(m -> {
             Set<PublishArtifact> ownArtifacts = configurationsProvider.findByName(name).getOutgoing().getArtifacts();
@@ -168,7 +173,11 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
     }
 
     private static CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> getVariantArtifacts(
-        ComponentIdentifier componentId, DisplayName displayName, Collection<? extends PublishArtifact> sourceArtifacts, ModelContainer<?> model, CalculatedValueContainerFactory calculatedValueContainerFactory
+        DisplayName displayName,
+        ComponentIdentifier componentId,
+        Collection<? extends PublishArtifact> sourceArtifacts,
+        ModelContainer<?> model,
+        CalculatedValueContainerFactory calculatedValueContainerFactory
     ) {
         return calculatedValueContainerFactory.create(Describables.of(displayName, "artifacts"), context -> {
             if (sourceArtifacts.isEmpty()) {
@@ -189,13 +198,13 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
      * Lazily collect all dependencies and excludes of all configurations in the provided {@code hierarchy}.
      */
     private CalculatedValue<DefaultLocalConfigurationMetadata.ConfigurationDependencyMetadata> getConfigurationDependencyState(
+        String description,
+        ImmutableSet<String> hierarchy,
+        ImmutableAttributes attributes,
         ConfigurationsProvider configurationsProvider,
         DependencyCache dependencyCache,
         ModelContainer<?> model,
-        CalculatedValueContainerFactory calculatedValueContainerFactory,
-        String description,
-        ImmutableSet<String> hierarchy,
-        ImmutableAttributes attributes
+        CalculatedValueContainerFactory calculatedValueContainerFactory
     ) {
         return calculatedValueContainerFactory.create(Describables.of("Dependency state for", description), context -> model.fromMutableState(p -> {
             ImmutableList.Builder<LocalOriginDependencyMetadata> dependencies = ImmutableList.builder();
