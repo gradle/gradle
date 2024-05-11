@@ -19,12 +19,14 @@ package org.gradle.api.plugins.quality
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.testing.fixture.GroovyCoverage
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.VersionNumber
 import spock.lang.Issue
 
+@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "too slow")
 class AntWorkerMemoryLeakIntegrationTest extends AbstractIntegrationSpec {
     public static final String LOCAL_GROOVY = 'localGroovy()'
 
