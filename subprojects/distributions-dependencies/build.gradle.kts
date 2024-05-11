@@ -185,6 +185,7 @@ dependencies {
         api(libs.jetty)                 { version { strictly(jettyVersion) }}
         api(libs.jettySecurity)         { version { strictly(jettyVersion) }}
         api(libs.jettyServer)           { version { strictly(jettyVersion) }}
+        api(libs.jettyServlet)          { version { strictly(jettyVersion) }}
         api(libs.jettyUtil)             { version { strictly(jettyVersion) }}
         api(libs.jettyWebApp)           { version { strictly(jettyVersion) }}
         api(libs.jtar)                  { version { strictly("2.3") }}
@@ -204,7 +205,10 @@ dependencies {
         api(libs.mockitoKotlin2)        { version { strictly("2.2.0") }}
         api(libs.mockwebserver)         { version { strictly("4.12.0") }}
         api(libs.mySqlConnector)        { version { strictly("8.0.17") }}
+        api(libs.netty)                 { version { strictly("4.1.63.Final") }}
+        api(libs.opentest4j)            { version { strictly("1.3.0") }}
         api(libs.samplesCheck)          { version { strictly("1.0.0") }}
+        api(libs.samplesDiscovery)      { version { strictly("1.0.0") }}
         api(libs.snappy)                { version { strictly("0.4") }}
         api(libs.socksProxy)            { version { strictly("2.0.0") }}
         api(libs.spock)                 { version { strictly(spockVersion) }}
