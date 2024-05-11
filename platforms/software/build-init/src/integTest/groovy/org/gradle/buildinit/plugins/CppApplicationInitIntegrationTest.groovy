@@ -16,11 +16,13 @@
 
 package org.gradle.buildinit.plugins
 
+import com.gradle.develocity.testing.annotations.LocalOnly
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.ExecutableFixture
 
+@LocalOnly
 class CppApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
 
     public static final String SAMPLE_APP_CLASS = "app.cpp"
