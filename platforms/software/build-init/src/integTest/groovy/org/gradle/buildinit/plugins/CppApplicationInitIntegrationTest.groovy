@@ -118,7 +118,7 @@ class CppApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
             }
         """
         when:
-        run('init', '--type', 'cpp-application', '--project-name', 'app', '--dsl', scriptDsl.id)
+        run('init', '--type', 'cpp-application', '--project-name', 'app', '--dsl', scriptDsl.id, '--overwrite')
 
         then:
         subprojectDir.file("src/main/cpp").assertHasDescendants("hola.cpp")

@@ -163,7 +163,7 @@ class KotlinApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegra
                 }
         """
         when:
-        run('init', '--type', 'kotlin-application', '--dsl', scriptDsl.id)
+        run('init', '--type', 'kotlin-application', '--dsl', scriptDsl.id, '--overwrite')
 
         then:
         subprojectDir.file("src/main/kotlin").assertHasDescendants("org/acme/SampleMain.kt")

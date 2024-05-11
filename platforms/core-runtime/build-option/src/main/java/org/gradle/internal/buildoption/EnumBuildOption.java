@@ -35,23 +35,15 @@ public abstract class EnumBuildOption<E extends Enum<E>, T> extends AbstractBuil
     private final Class<E> enumClass;
     private final List<E> possibleValues;
 
-    public EnumBuildOption(String displayName, Class<E> enumClass, E[] possibleValues, String property, String deprecatedProperty, CommandLineOptionConfiguration... commandLineOptionConfigurations) {
-        this(displayName, enumClass, possibleValues, property, deprecatedProperty, PropertyOrigin.GRADLE_PROPERTIES, commandLineOptionConfigurations);
-    }
-
-    public EnumBuildOption(String displayName, Class<E> enumClass, E[] possibleValues, String property, CommandLineOptionConfiguration... commandLineOptionConfigurations) {
-        this(displayName, enumClass, possibleValues, property, null, PropertyOrigin.GRADLE_PROPERTIES, commandLineOptionConfigurations);
-    }
-
-    public EnumBuildOption(String displayName, Class<E> enumClass, E[] possibleValues, String property, PropertyOrigin propertyOrigin, CommandLineOptionConfiguration... commandLineOptionConfigurations) {
-        this(displayName, enumClass, possibleValues, property, null, propertyOrigin, commandLineOptionConfigurations);
-    }
-
-    public EnumBuildOption(String displayName, Class<E> enumClass, E[] possibleValues, String property, String deprecatedProperty, PropertyOrigin propertyOrigin, CommandLineOptionConfiguration... commandLineOptionConfigurations) {
-        super(property, deprecatedProperty, propertyOrigin, commandLineOptionConfigurations);
+    public EnumBuildOption(String displayName, Class<E> enumClass, E[] possibleValues, String gradleProperty, String deprecatedProperty, CommandLineOptionConfiguration... commandLineOptionConfigurations) {
+        super(gradleProperty, deprecatedProperty, commandLineOptionConfigurations);
         this.displayName = displayName;
         this.enumClass = enumClass;
         this.possibleValues = Collections.unmodifiableList(Arrays.asList(possibleValues));
+    }
+
+    public EnumBuildOption(String displayName, Class<E> enumClass, E[] possibleValues, String gradleProperty, CommandLineOptionConfiguration... commandLineOptionConfigurations) {
+        this(displayName, enumClass, possibleValues, gradleProperty, null, commandLineOptionConfigurations);
     }
 
     @Override

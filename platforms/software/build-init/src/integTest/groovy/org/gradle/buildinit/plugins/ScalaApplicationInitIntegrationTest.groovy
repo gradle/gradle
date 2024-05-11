@@ -161,7 +161,7 @@ class ScalaApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrat
                 }
         """
         when:
-        run('init', '--type', 'scala-application', '--dsl', scriptDsl.id)
+        run('init', '--type', 'scala-application', '--dsl', scriptDsl.id, '--overwrite')
 
         then:
         subprojectDir.file("src/main/scala").assertHasDescendants("org/acme/SampleMain.scala")

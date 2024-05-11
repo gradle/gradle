@@ -129,7 +129,7 @@ class SwiftApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         """
 
         when:
-        run('init', '--type', 'swift-application', '--project-name', 'app', '--dsl', scriptDsl.id)
+        run('init', '--type', 'swift-application', '--project-name', 'app', '--dsl', scriptDsl.id, '--overwrite')
 
         then:
         subprojectDir.file("src/main/swift").assertHasDescendants("main.swift")

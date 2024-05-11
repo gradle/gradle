@@ -43,12 +43,13 @@ import org.gradle.api.internal.artifacts.DefaultExcludeRule
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultResolverResults
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
-import org.gradle.api.internal.artifacts.ResolveExceptionContextualizer
+import org.gradle.api.internal.artifacts.ResolveExceptionMapper
 import org.gradle.api.internal.artifacts.ResolverResults
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
+import org.gradle.api.internal.artifacts.ivyservice.TypedResolveException
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedFileVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet
@@ -327,7 +328,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
 
     def "get as path throws failure resolving"() {
         def configuration = conf()
-        def failure = new ResolveException(configuration.getDisplayName(), [])
+        def failure = new TypedResolveException("dependencies", configuration.getDisplayName(), [])
 
         given:
         _ * resolver.resolveGraph(_) >> graphResolved(failure)
@@ -363,7 +364,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
     def "state indicates failure resolving graph"() {
         given:
         def configuration = conf()
-        def failure = new ResolveException("bad", new RuntimeException())
+        def failure = new TypedResolveException("dependencies", "configuration ':conf'", [new RuntimeException()])
 
         and:
         _ * resolver.resolveGraph(_) >> graphResolved(failure)
@@ -373,7 +374,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         configuration.getBuildDependencies().getDependencies(null)
 
         then:
-        def t = thrown(GradleException)
+        def t = thrown(TypedResolveException)
         t == failure
         configuration.getState() == RESOLVED_WITH_FAILURES
     }
@@ -1638,7 +1639,7 @@ All Artifacts:
         rootConfig.getAllExcludeRules() == [thirdRule] as Set
     }
 
-    void 'gives informative error message when settings is not available'() {
+    void 'does not fail to map failures when settings are not available'() {
         when:
         DependencyResolutionServices resolutionServices = ProjectBuilder.builder().build().services.get(DependencyResolutionServices)
         resolutionServices.resolveRepositoryHandler.mavenCentral()
@@ -1650,7 +1651,6 @@ All Artifacts:
         ResolveException e = thrown()
         def stacktrace = ExceptionUtil.printStackTrace(e)
         stacktrace.contains("Could not find dummyGroupId:dummyArtifactId:dummyVersion")
-        stacktrace.contains("The settings are not yet available for build")
     }
 
     def "locking usage changes prevents #usageName usage changes"() {
@@ -1841,7 +1841,7 @@ All Artifacts:
             new TestBuildOperationRunner(),
             publishArtifactNotationParser,
             immutableAttributesFactory,
-            new ResolveExceptionContextualizer(Mock(DomainObjectContext), Mock(DocumentationRegistry)),
+            new ResolveExceptionMapper(Mock(DomainObjectContext), Mock(DocumentationRegistry)),
             userCodeApplicationContext,
             projectStateRegistry,
             Stub(WorkerThreadRegistry),

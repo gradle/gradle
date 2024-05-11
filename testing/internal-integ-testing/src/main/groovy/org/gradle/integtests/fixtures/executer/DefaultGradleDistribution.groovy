@@ -346,6 +346,17 @@ class DefaultGradleDistribution implements GradleDistribution {
         return isSameOrNewer("8.8-rc-1")
     }
 
+    @Override
+    boolean isSupportsToolchainsUsingFoojay() {
+        return isSameOrNewer("7.6")
+    }
+
+    @Override
+    boolean isNonFlakyToolchainProvisioning() {
+        // Excluding potential 8.9 RCs
+        return !isSameOrOlder("8.8")
+    }
+
     protected boolean isSameOrNewer(String otherVersion) {
         return isVersion(otherVersion) || version.compareTo(GradleVersion.version(otherVersion)) > 0;
     }
