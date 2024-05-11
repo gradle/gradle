@@ -29,7 +29,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Resolved
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
 import org.gradle.api.internal.artifacts.result.DefaultMinimalResolutionResult;
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
-import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -65,7 +64,6 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
     private final ComponentSelectorSerializer componentSelectorSerializer;
     private final DependencyResultSerializer dependencyResultSerializer;
     private final Set<Long> visitedComponents = new HashSet<>();
-    private final AttributeDesugaring desugaring;
 
     private ImmutableAttributes rootAttributes;
     private boolean mayHaveVirtualPlatforms;
@@ -76,7 +74,6 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
         AttributeContainerSerializer attributeContainerSerializer,
         ComponentDetailsSerializer componentDetailsSerializer,
         SelectedVariantSerializer selectedVariantSerializer,
-        AttributeDesugaring desugaring,
         ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
         boolean includeAllSelectableVariantResults
     ) {
@@ -85,7 +82,6 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
         this.store = store;
         this.cache = cache;
         this.componentSelectorSerializer = new ComponentSelectorSerializer(attributeContainerSerializer);
-        this.desugaring = desugaring;
     }
 
     public MinimalResolutionResult getResolutionResult(Set<UnresolvedDependency> dependencyLockingFailures) {
@@ -96,7 +92,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
 
     @Override
     public void start(final RootGraphNode root) {
-        rootAttributes = desugaring.desugar(root.getMetadata().getAttributes());
+        rootAttributes = root.getMetadata().getAttributes();
         mayHaveVirtualPlatforms = root.getResolveOptimizations().mayHaveVirtualPlatforms();
     }
 

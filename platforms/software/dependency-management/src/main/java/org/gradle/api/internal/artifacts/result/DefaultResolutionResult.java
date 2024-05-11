@@ -22,7 +22,8 @@ import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.internal.provider.DefaultProvider;
+import org.gradle.api.internal.artifacts.resolver.ResolutionHandle;
+import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Actions;
 import org.gradle.util.internal.ConfigureUtil;
@@ -34,28 +35,32 @@ import java.util.Set;
 
 import static org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult.eachElement;
 
-@SuppressWarnings("rawtypes")
 public class DefaultResolutionResult implements ResolutionResult {
 
-    private final MinimalResolutionResult minimal;
+    private final ResolutionHandle resolutionHandle;
+    private final AttributeDesugaring attributeDesugaring;
 
-    public DefaultResolutionResult(MinimalResolutionResult minimal) {
-        this.minimal = minimal;
+    public DefaultResolutionResult(
+        ResolutionHandle resolutionHandle,
+        AttributeDesugaring attributeDesugaring
+    ) {
+        this.resolutionHandle = resolutionHandle;
+        this.attributeDesugaring = attributeDesugaring;
     }
 
     @Override
     public ResolvedComponentResult getRoot() {
-        return minimal.getRootSource().get();
+        return getRootComponent().get();
     }
 
     @Override
     public Provider<ResolvedComponentResult> getRootComponent() {
-        return new DefaultProvider<>(() -> minimal.getRootSource().get());
+        return resolutionHandle.getPublicView().getRootComponent();
     }
 
     @Override
     public AttributeContainer getRequestedAttributes() {
-        return minimal.getRequestedAttributes();
+        return attributeDesugaring.desugar(resolutionHandle.getAttributes());
     }
 
     @Override
@@ -71,6 +76,7 @@ public class DefaultResolutionResult implements ResolutionResult {
     }
 
     @Override
+    @SuppressWarnings("rawtypes")
     public void allDependencies(final Closure closure) {
         allDependencies(ConfigureUtil.configureUsing(closure));
     }
@@ -88,6 +94,7 @@ public class DefaultResolutionResult implements ResolutionResult {
     }
 
     @Override
+    @SuppressWarnings("rawtypes")
     public void allComponents(final Closure closure) {
         allComponents(ConfigureUtil.configureUsing(closure));
     }
@@ -101,11 +108,11 @@ public class DefaultResolutionResult implements ResolutionResult {
             return false;
         }
         DefaultResolutionResult that = (DefaultResolutionResult) o;
-        return Objects.equals(minimal, that.minimal);
+        return Objects.equals(resolutionHandle, that.resolutionHandle);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(minimal);
+        return resolutionHandle.hashCode();
     }
 }
