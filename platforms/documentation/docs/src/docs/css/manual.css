@@ -15,6 +15,16 @@
  */
 /* Custom Admonition Blocks */
 :root {
+    --gradle-blue: #209BC4;
+    --gradle-bg-dark: #010002;
+    --gradle-bg-gray: #F8F8F8;
+    --gradle-bg-white: #FFFFFF;
+    --gradle-blue: #209BC4;
+    --gradle-blue-lite: #4DC9C0;
+    --gradle-blue-dark: #1b3262;
+    --gradle-blue-darker: #19274f;
+    --button-gradient-angle: 160deg;
+
 	--caution-color: #e40046;
 	--caution-on-color: #fff;
 	--important-color: #802392;
@@ -69,7 +79,6 @@
 		--footer-text-color: #aaa;
 		--quoteblock-color: #1DA2BD;
 		--menu-burger-color: #242526;
-
 
 	}
 }
@@ -4318,6 +4327,62 @@ code[data-lang="text"] .fun {
 	}
 }
 
+/* DPE University button*/
+/* CSS */
+.badge-wrapper {
+    padding-top: 0px;
+    padding-bottom: 20px;
+    a {
+        text-decoration: none;
+    }
+    a:link {
+        text-decoration: none;
+    }
+    a:visited {
+        text-decoration: none;
+    }
+    a:hover {
+        text-decoration: none;
+    }
+    a:active {
+        text-decoration: none;
+    }
+}
+.badge {
+    background-color: var(--black-color);
+    height: 24px;
+    border-radius: 12px;
+    border-color: var(--black-color);
+    border-style: solid;
+    border-width: 1px;
+    padding: 5px;
+    a {
+        color: var(--gradle-blue);
+    }
+}
+.badge-type {
+    border-radius: 8px;
+    margin-right: 10px;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+.badge-text {
+    color: var(--white-color);
+}
+.button--blue {
+  color: white;
+  border-color: transparent;
+  &:hover {
+    color: white;
+  }
+}
+.button--blue {
+  background: var(--gradle-blue);
+  background: linear-gradient(var(--button-gradient-angle), var(--gradle-blue) 0%, var(--gradle-blue-lite) 100%);
+  &:hover {
+    background: var(--gradle-blue-lite);
+  }
+}
 /* Custom Download button*/
 /* CSS */
 .button-9 {
