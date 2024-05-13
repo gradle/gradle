@@ -19,6 +19,7 @@ package org.gradle.api.internal.plugins
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
 import org.gradle.api.internal.plugins.software.SoftwareType
 import org.gradle.api.internal.tasks.properties.InspectionScheme
@@ -135,6 +136,7 @@ class SoftwareTypeRegistrationPluginTargetTest extends Specification {
         0 * _
     }
 
+    abstract class RegisteringPlugin implements Plugin<Settings> { }
     abstract class SoftwareTypePlugin implements Plugin<Project> { }
     private static class Rule {}
 }

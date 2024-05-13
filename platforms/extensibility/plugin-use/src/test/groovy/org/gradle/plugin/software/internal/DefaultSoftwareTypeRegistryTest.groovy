@@ -19,6 +19,8 @@ package org.gradle.plugin.software.internal
 import com.google.common.reflect.TypeToken
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.initialization.Settings
+import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
 import org.gradle.api.internal.plugins.software.SoftwareType
 import org.gradle.api.internal.tasks.properties.InspectionScheme
 import org.gradle.internal.properties.annotations.PropertyMetadata
@@ -38,7 +40,7 @@ class DefaultSoftwareTypeRegistryTest extends Specification {
         def softwareType = Mock(SoftwareType)
 
         when:
-        registry.register(SoftwareTypeImpl)
+        registry.register(SoftwareTypeImpl, RegisteringPlugin)
 
         and:
         def implementations = registry.softwareTypeImplementations
@@ -68,7 +70,7 @@ class DefaultSoftwareTypeRegistryTest extends Specification {
         def pluginTypeMetadata = Mock(TypeMetadata)
 
         when:
-        registry.register(NotASoftwareTypeImpl)
+        registry.register(NotASoftwareTypeImpl, RegisteringPlugin)
         def implementations = registry.softwareTypeImplementations
 
         then:
@@ -87,8 +89,8 @@ class DefaultSoftwareTypeRegistryTest extends Specification {
         def softwareType = Mock(SoftwareType)
 
         when:
-        registry.register(SoftwareTypeImpl)
-        registry.register(SoftwareTypeImpl)
+        registry.register(SoftwareTypeImpl, RegisteringPlugin)
+        registry.register(SoftwareTypeImpl, RegisteringPlugin)
         def implementations = registry.softwareTypeImplementations
 
         then:
@@ -116,8 +118,8 @@ class DefaultSoftwareTypeRegistryTest extends Specification {
         def softwareType = Mock(SoftwareType)
 
         when:
-        registry.register(SoftwareTypeImpl)
-        registry.register(DuplicateSoftwareTypeImpl)
+        registry.register(SoftwareTypeImpl, RegisteringPlugin)
+        registry.register(DuplicateSoftwareTypeImpl, RegisteringPlugin)
         registry.getSoftwareTypeImplementations()
 
         then:
@@ -143,6 +145,8 @@ class DefaultSoftwareTypeRegistryTest extends Specification {
     }
 
     private static class TestModel { }
+
+    private abstract static class RegisteringPlugin implements Plugin<Settings> { }
 
     private abstract static class SoftwareTypeImpl implements Plugin<Project> { }
 
