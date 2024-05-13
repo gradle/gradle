@@ -262,9 +262,6 @@ fun configureTests() {
                 maxRetries.convention(determineMaxRetries())
                 maxFailures = determineMaxFailures()
             }
-            doFirst {
-                logger.lifecycle("maxParallelForks for '$path' is $maxParallelForks")
-            }
         }
 
         useJUnitPlatform()

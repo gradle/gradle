@@ -35,7 +35,6 @@ import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 public abstract class AbstractComponentGraphResolveState<T extends ComponentGraphResolveMetadata, S extends ComponentResolveMetadata> implements ComponentGraphResolveState, ComponentArtifactResolveState {
     private final long instanceId;
@@ -84,7 +83,7 @@ public abstract class AbstractComponentGraphResolveState<T extends ComponentGrap
         return false;
     }
 
-    protected abstract Optional<List<? extends VariantGraphResolveState>> getVariantsForGraphTraversal();
+    protected abstract List<? extends VariantGraphResolveState> getVariantsForGraphTraversal();
 
     @Nullable
     @Override
@@ -151,19 +150,19 @@ public abstract class AbstractComponentGraphResolveState<T extends ComponentGrap
         private final AbstractComponentGraphResolveState<?, ?> component;
 
         public DefaultGraphSelectionCandidates(AbstractComponentGraphResolveState<?, ?> component) {
-            this.variants = component.getVariantsForGraphTraversal().orElse(Collections.emptyList());
+            this.variants = component.getVariantsForGraphTraversal();
             this.component = component;
         }
 
         @Override
-        public boolean isUseVariants() {
+        public boolean supportsAttributeMatching() {
             return !variants.isEmpty();
         }
 
         @Override
-        public List<? extends VariantGraphResolveState> getVariants() {
+        public List<? extends VariantGraphResolveState> getVariantsForAttributeMatching() {
             if (variants.isEmpty()) {
-                throw new IllegalStateException("No variants available for selection");
+                throw new IllegalStateException("No variants available for attribute matching.");
             }
             return variants;
         }

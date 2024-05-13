@@ -23,7 +23,6 @@ import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
 
 import javax.annotation.Nullable;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -49,9 +48,11 @@ public interface ComponentGraphResolveMetadata {
     boolean isChanging();
 
     /**
-     * Returns the set of variants of this component to use for variant aware resolution of the dependency graph nodes. May be empty, in which case selection falls back to the legacy configurations available via {@link #getConfiguration(String)}. The component should provide a configuration called {@value Dependency#DEFAULT_CONFIGURATION}.
+     * Returns the set of variants of this component to use for variant aware resolution of the dependency graph nodes.
+     * May be empty, in which case selection falls back to the legacy configurations available via {@link #getConfiguration(String)}.
+     * The component should provide a configuration called {@value Dependency#DEFAULT_CONFIGURATION}.
      */
-    Optional<List<? extends VariantGraphResolveMetadata>> getVariantsForGraphTraversal();
+    List<? extends VariantGraphResolveMetadata> getVariantsForGraphTraversal();
 
     Set<String> getConfigurationNames();
 
