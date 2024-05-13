@@ -7,14 +7,14 @@ gradlebuildJava.usedInWorkers()
 description = """Generalized test infrastructure to support executing tests in test workers."""
 
 dependencies {
+    api(projects.baseServices)
     api(projects.concurrent)
     api(projects.javaLanguageExtensions)
+    api(projects.logging)
+    api(projects.loggingApi)
     api(projects.serialization)
     api(projects.time)
-    api(project(":base-services"))
-    api(project(":logging"))
-    api(project(":logging-api"))
-    api(project(":worker-processes"))
+    api(projects.workerProcesses)
 
     api(libs.jsr305)
 
@@ -27,7 +27,7 @@ dependencies {
     testImplementation(libs.commonsIo)
     testImplementation(testFixtures(projects.serialization))
 
-    integTestDistributionRuntimeOnly(project(":distributions-core"))
+    integTestDistributionRuntimeOnly(projects.distributionsCore)
 }
 
 packageCycles {
