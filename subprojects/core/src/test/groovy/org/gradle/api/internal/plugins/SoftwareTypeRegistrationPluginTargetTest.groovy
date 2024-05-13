@@ -59,7 +59,7 @@ class SoftwareTypeRegistrationPluginTargetTest extends Specification {
 
         and: // returns property metadata with an annotation
         1 * propertyMetadata.getAnnotation(SoftwareType.class) >> Optional.of(Stub(SoftwareType))
-        1 * softwareTypeRegistry.register(SoftwareTypePlugin.class)
+        1 * softwareTypeRegistry.register(SoftwareTypePlugin.class, RegisteringPlugin.class)
 
         and:
         1 * delegate.applyImperative(null, plugin)
