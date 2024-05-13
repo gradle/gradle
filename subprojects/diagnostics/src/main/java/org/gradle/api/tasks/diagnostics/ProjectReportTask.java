@@ -190,10 +190,12 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
 
     private void renderSoftwareTypeInfo(ProjectReportModel model, StyledTextOutput styledTextOutput) {
         if (!model.softwareTypes.isEmpty()) {
-            styledTextOutput.withStyle(Info).text("\n        ");
-            styledTextOutput.withStyle(Info).text("Software type" + (model.softwareTypes.size() == 1 ? "" : "s") + ": ");
             String softwareTypeDesc = model.softwareTypes.stream()
-                .map(type -> type.getSoftwareType() + " (" + type.getModelPublicType().getName() + ") defined in Plugin: " + type.getPluginClass().getName())
+                .map(type ->
+                    "\n        Software type: " + type.getSoftwareType() + " (" + type.getModelPublicType().getName() + ")" +
+                    "\n        Defined in plugin: " + type.getPluginClass().getName() +
+                    "\n        Registered by plugin: " + type.getRegisteringPluginClass().getName()
+                )
                 .collect(Collectors.joining(", "));
             styledTextOutput.withStyle(Info).text(softwareTypeDesc);
         }

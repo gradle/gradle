@@ -279,11 +279,18 @@ Root project 'example'
 
 Root project 'example'
 +--- Project ':app' - Sample application project
-        Software type: application (com.example.restricted.ApplicationExtension) defined in Plugin: com.example.restricted.ApplicationPlugin
+        Software type: application (com.example.restricted.ApplicationExtension)
+        Defined in plugin: com.example.restricted.ApplicationPlugin
+        Registered by plugin: com.example.restricted.SoftwareTypeRegistrationPlugin
 +--- Project ':lib' - Sample library project
-        Software type: library (com.example.restricted.LibraryExtension) defined in Plugin: com.example.restricted.LibraryPlugin
+        Software type: library (com.example.restricted.LibraryExtension)
+        Defined in plugin: com.example.restricted.LibraryPlugin
+        Registered by plugin: com.example.restricted.SoftwareTypeRegistrationPlugin
 \\--- Project ':util' - Utilities and common code
-        Software type: utility (com.example.restricted.UtilityExtension) defined in Plugin: com.example.restricted.UtilityPlugin
+        Software type: utility (com.example.restricted.UtilityExtension)
+        Defined in plugin: com.example.restricted.UtilityPlugin
+        Registered by plugin: com.example.restricted.SoftwareTypeRegistrationPlugin
+
 """)
     }
 }

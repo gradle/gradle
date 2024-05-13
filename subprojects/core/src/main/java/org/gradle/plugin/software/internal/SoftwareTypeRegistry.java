@@ -18,6 +18,7 @@ package org.gradle.plugin.software.internal;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.initialization.Settings;
 
 import java.util.Set;
 
@@ -29,16 +30,16 @@ public interface SoftwareTypeRegistry {
      * Registers a plugin as providing a software type.  Cannot be called again once the list of software types has been
      * queried via {@link #getSoftwareTypeImplementations()}.
      */
-    void register(Class<? extends Plugin<Project>> pluginClass);
+    void register(Class<? extends Plugin<Project>> pluginClass, Class<? extends Plugin<Settings>> registeringPluginClass);
 
     /**
      * Returns a set of the software types available along with their model types and associated plugins.  Note that once
-     * method is called, calling {@link #register(Class)} will result in an error.
+     * method is called, calling {@link #register(Class, Class)} will result in an error.
      */
     Set<SoftwareTypeImplementation<?>> getSoftwareTypeImplementations();
 
     /**
      * Returns whether a plugin is registered as providing a software type or not.
      */
-    boolean isRegistered(Class<? extends Plugin<?>> pluginClass);
+    boolean isRegistered(Class<? extends Plugin<Project>> pluginClass);
 }
