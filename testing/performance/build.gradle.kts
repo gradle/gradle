@@ -8,16 +8,23 @@ description = "Performance tests for the Gradle build tool"
 
 dependencies {
     performanceTestImplementation(project(":base-services"))
-    performanceTestImplementation(project(":enterprise-operations"))
     performanceTestImplementation(project(":core"))
-    performanceTestImplementation(project(":model-core"))
-    performanceTestImplementation(project(":core-api"))
-    performanceTestImplementation(project(":build-option"))
-    performanceTestImplementation(libs.slf4jApi)
-    performanceTestImplementation(libs.commonsIo)
-    performanceTestImplementation(libs.commonsCompress)
-    performanceTestImplementation(libs.jetty)
+    performanceTestImplementation(project(":internal-testing"))
+    performanceTestImplementation(project(":java-language-extensions"))
+    performanceTestImplementation(project(":tooling-api"))
+
     performanceTestImplementation(testFixtures(project(":tooling-api")))
+
+    performanceTestImplementation(libs.commonsLang3)
+    performanceTestImplementation(libs.commonsIo)
+    performanceTestImplementation(libs.gradleProfiler)
+    performanceTestImplementation(libs.jettyServer)
+    performanceTestImplementation(libs.jettyWebApp)
+    performanceTestImplementation(libs.junit)
+    performanceTestImplementation(libs.servletApi)
+
+    performanceTestRuntimeOnly(project(":core-api"))
+    performanceTestRuntimeOnly(libs.jetty)
 
     performanceTestDistributionRuntimeOnly(project(":distributions-full")) {
         because("All Gradle features have to be available.")

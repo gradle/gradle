@@ -97,7 +97,7 @@ dependencies {
         api(libs.groovyXml)             { version { strictly(libs.groovyVersion) }}
         api(libs.gson)                  { version { strictly("2.10") }}
         api(libs.h2Database)            { version { strictly("2.2.220") }}
-        api(libs.hamcrest)              { version { strictly("1.3"); because("2.x changes the API") }}
+        api(libs.hamcrestCore)              { version { strictly("1.3"); because("2.x changes the API") }}
         api(libs.hikariCP)              { version { strictly("4.0.3"); because("5.x requires Java 11+") }}
         api(libs.httpcore)              { version { strictly("4.4.14") }}
         api(libs.inject)                { version { strictly("1") }}
@@ -184,6 +184,9 @@ dependencies {
         api(libs.javaParser)            { version { strictly("3.17.0") }}
         api(libs.jetty)                 { version { strictly(jettyVersion) }}
         api(libs.jettySecurity)         { version { strictly(jettyVersion) }}
+        api(libs.jettyServer)           { version { strictly(jettyVersion) }}
+        api(libs.jettyServlet)          { version { strictly(jettyVersion) }}
+        api(libs.jettyUtil)             { version { strictly(jettyVersion) }}
         api(libs.jettyWebApp)           { version { strictly(jettyVersion) }}
         api(libs.jtar)                  { version { strictly("2.3") }}
         api(libs.kotlinCoroutines)      { version { strictly("1.5.2") }}
@@ -202,7 +205,10 @@ dependencies {
         api(libs.mockitoKotlin2)        { version { strictly("2.2.0") }}
         api(libs.mockwebserver)         { version { strictly("4.12.0") }}
         api(libs.mySqlConnector)        { version { strictly("8.0.17") }}
+        api(libs.netty)                 { version { strictly("4.1.63.Final") }}
+        api(libs.opentest4j)            { version { strictly("1.3.0") }}
         api(libs.samplesCheck)          { version { strictly("1.0.0") }}
+        api(libs.samplesDiscovery)      { version { strictly("1.0.0") }}
         api(libs.snappy)                { version { strictly("0.4") }}
         api(libs.socksProxy)            { version { strictly("2.0.0") }}
         api(libs.spock)                 { version { strictly(spockVersion) }}
@@ -211,6 +217,7 @@ dependencies {
         api(libs.sshdOsgi)              { version { rejectAll(); because("It contains sshd-core and sshd-common classes") }}
         api(libs.sshdScp)               { version { strictly(sshdVersion) }}
         api(libs.sshdSftp)              { version { strictly(sshdVersion) }}
+        api(libs.testcontainers)        { version { strictly("1.12.5") }}
         api(libs.testcontainersSpock)   { version { strictly("1.12.5") }}
         api(libs.typesafeConfig)        { version { strictly("1.3.3") }}
         api(libs.xerces)                { version { strictly("2.12.0") }}
