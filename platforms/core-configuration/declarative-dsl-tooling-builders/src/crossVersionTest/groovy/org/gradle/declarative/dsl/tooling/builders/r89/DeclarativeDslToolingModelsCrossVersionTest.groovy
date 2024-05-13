@@ -33,31 +33,15 @@ class DeclarativeDslToolingModelsCrossVersionTest extends ToolingApiSpecificatio
 
     def 'can obtain model containing project schema'() {
         given:
-        file("settings.gradle.something") << """
+        file("settings.gradle.dcl") << """
             rootProject.name = "test"
             include(":a")
             include(":b")
         """
 
-        file("a/build.gradle.something") << """
-            plugins {
-                id("java")
-            }
-        """
+        file("a/build.gradle.dcl") << ""
 
-        file("b/build.gradle.something") << """
-            plugins {
-                id("java-library")
-            }
-            dependencies {
-                implementation(project(\":a\"))
-                api(project(\":a\"))
-                compileOnly(project(\":a\"))
-                runtimeOnly(project(\":a\"))
-                testImplementation(project(\":a\"))
-                testCompileOnly(project(\":a\"))
-            }
-        """
+        file("b/build.gradle.dcl") << ""
 
         when:
         DeclarativeSchemaModel model = toolingApi.withConnection() { connection -> connection.getModel(DeclarativeSchemaModel.class) }
@@ -73,7 +57,7 @@ class DeclarativeDslToolingModelsCrossVersionTest extends ToolingApiSpecificatio
         given:
         withSoftwareTypePlugins().prepareToExecute()
 
-        file("settings.gradle.something") << """
+        file("settings.gradle.dcl") << """
             pluginManagement {
                 includeBuild("plugins")
             }
@@ -82,7 +66,7 @@ class DeclarativeDslToolingModelsCrossVersionTest extends ToolingApiSpecificatio
             }
         """
 
-        file("build.gradle.something") << declarativeScriptThatConfiguresOnlyTestSoftwareType
+        file("build.gradle.dcl") << declarativeScriptThatConfiguresOnlyTestSoftwareType
 
         when:
         DeclarativeSchemaModel model = toolingApi.withConnection() { connection -> connection.getModel(DeclarativeSchemaModel.class) }
