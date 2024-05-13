@@ -24,8 +24,12 @@ interface DeclarativeDocument {
     val content: Collection<DocumentNode>
     val sourceIdentifier: SourceIdentifier
 
-    sealed interface DocumentNode {
+    sealed interface Node {
         val sourceData: SourceData
+    }
+
+    sealed interface DocumentNode : Node {
+        override val sourceData: SourceData
 
         sealed interface PropertyNode : DocumentNode {
             val name: String
@@ -43,8 +47,8 @@ interface DeclarativeDocument {
         }
     }
 
-    sealed interface ValueNode {
-        val sourceData: SourceData
+    sealed interface ValueNode : Node {
+        override val sourceData: SourceData
 
         sealed interface LiteralValueNode : ValueNode {
             val value: Any

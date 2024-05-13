@@ -23,6 +23,9 @@ import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.internal.declarativedsl.analysis.DataTypeRef
 import org.gradle.internal.declarativedsl.analysis.SchemaFunction
 import org.gradle.internal.declarativedsl.analysis.tracingCodeResolver
+import org.gradle.internal.declarativedsl.dom.data.collectToMap
+import org.gradle.internal.declarativedsl.dom.resolution.DocumentResolution
+import org.gradle.internal.declarativedsl.dom.resolution.resolutionContainer
 import org.gradle.internal.declarativedsl.language.Block
 import org.gradle.internal.declarativedsl.language.SourceIdentifier
 import org.gradle.internal.declarativedsl.parsing.DefaultLanguageTreeBuilder
@@ -58,8 +61,8 @@ object DomResolutionTest {
         resolver.resolve(schema, emptyList(), topLevelBlock)
 
         val document = convertBlockToDocument(topLevelBlock)
-        val resolved = resolvedDocument(schema, resolver.trace, document)
-        val resolutions = collectResolutions(resolved)
+        val resolved = resolutionContainer(schema, resolver.trace, document)
+        val resolutions = resolved.collectToMap(document).values
         assertEquals(
             resolutions.map { resolutionPrettyString(it) }.joinToString("\n"),
             """
@@ -87,27 +90,6 @@ object DomResolutionTest {
     }
 
     @Test
-    fun `resolved document keeps the original structure and source data`() {
-        val resolver = tracingCodeResolver()
-
-        val topLevelBlock = parseAsTopLevelBlock(
-            """
-            addAndConfigure("test") {
-                number = 123
-            }
-            """.trimIndent()
-        )
-
-        val document = convertBlockToDocument(topLevelBlock)
-        resolver.resolve(schema, emptyList(), topLevelBlock)
-
-        val resolved = resolvedDocument(schema, resolver.trace, document)
-        val printer = DomTest.DomPrettyPrinter(withSourceData = true)
-
-        assertEquals(printer.domAsString(document), printer.domAsString(resolved))
-    }
-
-    @Test
     fun `maps resolution errors to document errors`() {
         val resolver = tracingCodeResolver()
 
@@ -132,8 +114,8 @@ object DomResolutionTest {
         resolver.resolve(schema, emptyList(), topLevelBlock)
 
         val document = convertBlockToDocument(topLevelBlock)
-        val resolved = resolvedDocument(schema, resolver.trace, document, strictReceiverChecks = true)
-        val resolutions = collectResolutions(resolved)
+        val resolved = resolutionContainer(schema, resolver.trace, document, strictReceiverChecks = true)
+        val resolutions = resolved.collectToMap(document).values
         assertEquals(
             resolutions.map { resolutionPrettyString(it) }.joinToString("\n"),
             """
@@ -165,36 +147,6 @@ object DomResolutionTest {
 
     private
     val schema = schemaFromTypes(TopLevelReceiver::class, this::class.nestedClasses.toList())
-
-    private
-    fun collectResolutions(resolvedDeclarativeDocument: ResolvedDeclarativeDocument) = buildList {
-        class Visitor {
-            fun visitNode(node: ResolvedDeclarativeDocument.ResolvedDocumentNode) {
-                add(node.resolution)
-                when (node) {
-                    is ResolvedDeclarativeDocument.ResolvedDocumentNode.ResolvedElementNode -> {
-                        node.elementValues.forEach(::visitValue)
-                        node.content.forEach(::visitNode)
-                    }
-
-                    is ResolvedDeclarativeDocument.ResolvedDocumentNode.ResolvedPropertyNode -> {
-                        visitValue(node.value)
-                    }
-
-                    is ResolvedDeclarativeDocument.ResolvedDocumentNode.ResolvedErrorNode -> Unit
-                }
-            }
-
-            fun visitValue(value: ResolvedDeclarativeDocument.ResolvedValueNode) {
-                add(value.resolution)
-                when (value) {
-                    is ResolvedDeclarativeDocument.ResolvedValueNode.ResolvedLiteralValueNode -> Unit
-                    is ResolvedDeclarativeDocument.ResolvedValueNode.ResolvedValueFactoryNode -> value.values.forEach(::visitValue)
-                }
-            }
-        }
-        Visitor().run { resolvedDeclarativeDocument.content.forEach(::visitNode) }
-    }
 
     private
     fun resolutionPrettyString(resolution: DocumentResolution): String =

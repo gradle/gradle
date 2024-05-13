@@ -16,13 +16,14 @@
 
 package org.gradle.internal.declarativedsl.checks
 
-import org.gradle.internal.declarativedsl.dom.ResolvedDeclarativeDocument
+import org.gradle.internal.declarativedsl.dom.DeclarativeDocument
+import org.gradle.internal.declarativedsl.dom.resolution.DocumentResolutionContainer
 import org.gradle.internal.declarativedsl.language.SourceData
 
 
 internal
 interface DocumentCheck {
-    fun detectFailures(resolvedDeclarativeDocument: ResolvedDeclarativeDocument): List<DocumentCheckFailure>
+    fun detectFailures(document: DeclarativeDocument, resolutionContainer: DocumentResolutionContainer): List<DocumentCheckFailure>
 }
 
 
@@ -42,8 +43,8 @@ sealed interface DocumentCheckFailureLocation {
             is FailedAtValue -> node.sourceData
         }
 
-    data class FailedAtNode(val node: ResolvedDeclarativeDocument.ResolvedDocumentNode) : DocumentCheckFailureLocation
-    data class FailedAtValue(val node: ResolvedDeclarativeDocument.ResolvedValueNode) : DocumentCheckFailureLocation
+    data class FailedAtNode(val node: DeclarativeDocument.DocumentNode) : DocumentCheckFailureLocation
+    data class FailedAtValue(val node: DeclarativeDocument.ValueNode) : DocumentCheckFailureLocation
 }
 
 

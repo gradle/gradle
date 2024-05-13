@@ -25,7 +25,7 @@ import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 import org.gradle.internal.declarativedsl.analysis.SchemaTypeRefContext
 import org.gradle.internal.declarativedsl.analysis.tracingCodeResolver
 import org.gradle.internal.declarativedsl.checks.DocumentCheckFailure
-import org.gradle.internal.declarativedsl.dom.resolvedDocument
+import org.gradle.internal.declarativedsl.dom.resolution.resolutionContainer
 import org.gradle.internal.declarativedsl.dom.toDocument
 import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequence
 import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequenceStep
@@ -133,8 +133,9 @@ class DefaultDeclarativeKotlinScriptEvaluator(
             failureReasons += FailuresInResolution(resolution.errors)
         }
 
-        val document = resolvedDocument(evaluationSchema.analysisSchema, resolver.trace, languageModel.toDocument())
-        val checkResults = evaluationSchema.documentChecks.flatMap { it.detectFailures(document) }
+        val document = languageModel.toDocument()
+        val documentResolutionContainer = resolutionContainer(evaluationSchema.analysisSchema, resolver.trace, languageModel.toDocument())
+        val checkResults = evaluationSchema.documentChecks.flatMap { it.detectFailures(document, documentResolutionContainer) }
         if (checkResults.isNotEmpty()) {
             failureReasons += NotEvaluated.StageFailure.DocumentCheckFailures(checkResults)
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.dom
+package org.gradle.internal.declarativedsl.dom.resolution
 
 import org.gradle.internal.declarativedsl.analysis.DataClass
 import org.gradle.internal.declarativedsl.analysis.DataProperty
 import org.gradle.internal.declarativedsl.language.DataType
 import org.gradle.internal.declarativedsl.analysis.SchemaFunction
 import org.gradle.internal.declarativedsl.analysis.SchemaMemberFunction
+import org.gradle.internal.declarativedsl.dom.ElementNotResolvedReason
+import org.gradle.internal.declarativedsl.dom.IsError
+import org.gradle.internal.declarativedsl.dom.PropertyNotAssignedReason
+import org.gradle.internal.declarativedsl.dom.ResolutionFailureReason
+import org.gradle.internal.declarativedsl.dom.ValueFactoryNotResolvedReason
 
 
 sealed interface DocumentResolution {
@@ -29,12 +34,14 @@ sealed interface DocumentResolution {
         val reasons: Iterable<ResolutionFailureReason>
     }
 
-    sealed interface PropertyResolution : DocumentResolution {
+    sealed interface NodeResolution : DocumentResolution
+
+    sealed interface PropertyResolution : NodeResolution {
         data class PropertyAssignmentResolved(val receiverType: DataType, val property: DataProperty) : PropertyResolution, SuccessfulResolution
         data class PropertyNotAssigned(override val reasons: List<PropertyNotAssignedReason>) : PropertyResolution, UnsuccessfulResolution
     }
 
-    sealed interface ElementResolution : DocumentResolution {
+    sealed interface ElementResolution : NodeResolution {
         sealed interface SuccessfulElementResolution : ElementResolution, SuccessfulResolution {
             val elementType: DataType
 
@@ -52,7 +59,7 @@ sealed interface DocumentResolution {
         data class ElementNotResolved(override val reasons: List<ElementNotResolvedReason>) : ElementResolution, UnsuccessfulResolution
     }
 
-    data object ErrorResolution : DocumentResolution, UnsuccessfulResolution {
+    data object ErrorResolution : NodeResolution, UnsuccessfulResolution {
         override val reasons: Iterable<ResolutionFailureReason>
             get() = listOf(IsError)
     }

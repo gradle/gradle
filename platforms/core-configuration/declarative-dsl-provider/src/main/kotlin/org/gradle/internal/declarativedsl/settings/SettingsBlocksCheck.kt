@@ -21,11 +21,12 @@ import org.gradle.internal.declarativedsl.checks.DocumentCheck
 import org.gradle.internal.declarativedsl.checks.DocumentCheckFailure
 import org.gradle.internal.declarativedsl.checks.DocumentCheckFailureLocation.FailedAtNode
 import org.gradle.internal.declarativedsl.checks.DocumentCheckFailureReason
-import org.gradle.internal.declarativedsl.dom.DocumentResolution
-import org.gradle.internal.declarativedsl.dom.DocumentResolution.ElementResolution.SuccessfulElementResolution.PropertyConfiguringElementResolved
-import org.gradle.internal.declarativedsl.dom.ResolvedDeclarativeDocument
-import org.gradle.internal.declarativedsl.dom.ResolvedDeclarativeDocument.ResolvedDocumentNode
-import org.gradle.internal.declarativedsl.dom.ResolvedDeclarativeDocument.ResolvedDocumentNode.ResolvedElementNode
+import org.gradle.internal.declarativedsl.dom.DeclarativeDocument
+import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode
+import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.ElementNode
+import org.gradle.internal.declarativedsl.dom.resolution.DocumentResolution
+import org.gradle.internal.declarativedsl.dom.resolution.DocumentResolution.ElementResolution.SuccessfulElementResolution.PropertyConfiguringElementResolved
+import org.gradle.internal.declarativedsl.dom.resolution.DocumentResolutionContainer
 import org.gradle.internal.declarativedsl.dom.UnresolvedBase
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaComponent
 import org.gradle.internal.declarativedsl.plugins.PluginsCollectingPluginsBlock
@@ -42,17 +43,17 @@ object SettingsBlocksCheck : DocumentCheck, EvaluationSchemaComponent {
         PLUGIN_MANAGEMENT, PLUGINS
     }
 
-    override fun detectFailures(resolvedDeclarativeDocument: ResolvedDeclarativeDocument): List<DocumentCheckFailure> {
-        val outOfOrderNodes = mutableListOf<ResolvedDocumentNode>()
-        val duplicates = mutableListOf<ResolvedDocumentNode>()
+    override fun detectFailures(document: DeclarativeDocument, resolutionContainer: DocumentResolutionContainer): List<DocumentCheckFailure> {
+        val outOfOrderNodes = mutableListOf<DocumentNode>()
+        val duplicates = mutableListOf<DocumentNode>()
 
         var seenBlock: SpecialOrderBlock? = null
 
-        resolvedDeclarativeDocument.content.forEach { node ->
-            val specialBlockKind = isSpecialBlock(node)
+        document.content.forEach { node ->
+            val specialBlockKind = isSpecialBlock(node, resolutionContainer)
             when {
                 /** In the "plugins" step, the pluginManagement { ... } block is not resolved and is fine to appear above plugins { ... }; don't report it. */
-                isUnresolvedPluginManagementNode(node) -> Unit
+                isUnresolvedPluginManagementNode(resolutionContainer, node) -> Unit
 
                 specialBlockKind != null -> when (seenBlock) {
                     null -> seenBlock = specialBlockKind
@@ -70,17 +71,17 @@ object SettingsBlocksCheck : DocumentCheck, EvaluationSchemaComponent {
     }
 
     private
-    fun isSpecialBlock(resolvedDocumentNode: ResolvedDocumentNode): SpecialOrderBlock? =
+    fun isSpecialBlock(documentNode: DocumentNode, resolutionContainer: DocumentResolutionContainer): SpecialOrderBlock? =
         when {
-            isResolvedPluginManagementNode(resolvedDocumentNode) -> SpecialOrderBlock.PLUGIN_MANAGEMENT
-            isResolvedPluginsNode(resolvedDocumentNode) -> SpecialOrderBlock.PLUGINS
+            isResolvedPluginManagementNode(resolutionContainer, documentNode) -> SpecialOrderBlock.PLUGIN_MANAGEMENT
+            isResolvedPluginsNode(resolutionContainer, documentNode) -> SpecialOrderBlock.PLUGINS
             else -> null
         }
 
     private
-    fun asIllegalOrderFailure(specialOrderBlock: SpecialOrderBlock, resolvedDocumentNode: ResolvedDocumentNode): DocumentCheckFailure =
+    fun asIllegalOrderFailure(specialOrderBlock: SpecialOrderBlock, documentNode: DocumentNode): DocumentCheckFailure =
         DocumentCheckFailure(
-            this, FailedAtNode(resolvedDocumentNode),
+            this@SettingsBlocksCheck, FailedAtNode(documentNode),
             when (specialOrderBlock) {
                 SpecialOrderBlock.PLUGIN_MANAGEMENT -> DocumentCheckFailureReason.PluginManagementBlockOrderViolated
                 SpecialOrderBlock.PLUGINS -> DocumentCheckFailureReason.PluginsBlockOrderViolated
@@ -88,9 +89,9 @@ object SettingsBlocksCheck : DocumentCheck, EvaluationSchemaComponent {
         )
 
     private
-    fun asDuplicateFailure(specialOrderBlock: SpecialOrderBlock, resolvedDocumentNode: ResolvedDocumentNode): DocumentCheckFailure =
+    fun asDuplicateFailure(specialOrderBlock: SpecialOrderBlock, documentNode: DocumentNode): DocumentCheckFailure =
         DocumentCheckFailure(
-            this, FailedAtNode(resolvedDocumentNode), when (specialOrderBlock) {
+            this, FailedAtNode(documentNode), when (specialOrderBlock) {
                 SpecialOrderBlock.PLUGIN_MANAGEMENT -> DocumentCheckFailureReason.DuplicatePluginManagementBlock
                 SpecialOrderBlock.PLUGINS -> DocumentCheckFailureReason.DuplicatePluginsBlock
             }
@@ -98,26 +99,26 @@ object SettingsBlocksCheck : DocumentCheck, EvaluationSchemaComponent {
 
 
     private
-    fun isResolvedPluginManagementNode(resolvedDocumentNode: ResolvedDocumentNode): Boolean =
-        resolvedDocumentNode is ResolvedElementNode &&
-            resolvedDocumentNode.name == Settings::pluginManagement.name &&
-            with(resolvedDocumentNode.resolution) {
+    fun isResolvedPluginManagementNode(documentResolutionContainer: DocumentResolutionContainer, documentNode: DocumentNode): Boolean =
+        documentNode is ElementNode &&
+            documentNode.name == Settings::pluginManagement.name &&
+            with(documentResolutionContainer.data(documentNode)) {
                 this is PropertyConfiguringElementResolved && this.elementType.name.qualifiedName == PluginManagementSpec::class.qualifiedName
             }
 
     private
-    fun isUnresolvedPluginManagementNode(resolvedDocumentNode: ResolvedDocumentNode): Boolean =
-        resolvedDocumentNode is ResolvedElementNode &&
-            resolvedDocumentNode.name == Settings::pluginManagement.name &&
-            with(resolvedDocumentNode.resolution) {
+    fun isUnresolvedPluginManagementNode(documentResolutionContainer: DocumentResolutionContainer, documentNode: DocumentNode): Boolean =
+        documentNode is ElementNode &&
+            documentNode.name == Settings::pluginManagement.name &&
+            with(documentResolutionContainer.data(documentNode)) {
                 this is DocumentResolution.ElementResolution.ElementNotResolved && this.reasons == listOf(UnresolvedBase)
             }
 
     private
-    fun isResolvedPluginsNode(resolvedDocumentNode: ResolvedDocumentNode): Boolean =
-        resolvedDocumentNode is ResolvedElementNode &&
+    fun isResolvedPluginsNode(documentResolutionContainer: DocumentResolutionContainer, resolvedDocumentNode: DocumentNode): Boolean =
+        resolvedDocumentNode is ElementNode &&
             resolvedDocumentNode.name == "plugins" &&
-            with(resolvedDocumentNode.resolution) {
+            with(documentResolutionContainer.data(resolvedDocumentNode)) {
                 this is PropertyConfiguringElementResolved && this.elementType.name.qualifiedName == PluginsCollectingPluginsBlock::class.qualifiedName
             }
 }

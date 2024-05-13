@@ -19,7 +19,7 @@ package org.gradle.internal.declarativedsl.settings
 import org.gradle.internal.declarativedsl.analysis.tracingCodeResolver
 import org.gradle.internal.declarativedsl.checks.DocumentCheckFailure
 import org.gradle.internal.declarativedsl.checks.DocumentCheckFailureReason
-import org.gradle.internal.declarativedsl.dom.resolvedDocument
+import org.gradle.internal.declarativedsl.dom.resolution.resolutionContainer
 import org.gradle.internal.declarativedsl.dom.toDocument
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationSchema
@@ -48,7 +48,7 @@ class SettingsBlockCheckTest {
         )
 
         assertEquals(2, result.size)
-        assertEquals(listOf(2, 4), result.map { it.location.sourceData.lineRange.start })
+        assertEquals(listOf(2, 4), result.map { it.location.sourceData.lineRange.first })
         assertTrue(result.all { it.reason == DocumentCheckFailureReason.DuplicatePluginsBlock })
     }
 
@@ -64,7 +64,7 @@ class SettingsBlockCheckTest {
         )
 
         assertEquals(2, result.size)
-        assertEquals(listOf(2, 4), result.map { it.location.sourceData.lineRange.start })
+        assertEquals(listOf(2, 4), result.map { it.location.sourceData.lineRange.first })
         assertTrue(result.all { it.reason == DocumentCheckFailureReason.DuplicatePluginManagementBlock })
     }
 
@@ -122,8 +122,9 @@ class SettingsBlockCheckTest {
         val trace = tracingCodeResolver(analysisStatementFilter)
             .apply { resolve(analysisSchema, languageModel.imports, languageModel.topLevelBlock) }
             .trace
-        val document = resolvedDocument(analysisSchema, trace, languageModel.toDocument())
-        return documentChecks.flatMap { it.detectFailures(document) }
+        val document = languageModel.toDocument()
+        val resolution = resolutionContainer(analysisSchema, trace, document)
+        return documentChecks.flatMap { it.detectFailures(document, resolution) }
     }
 
     private
