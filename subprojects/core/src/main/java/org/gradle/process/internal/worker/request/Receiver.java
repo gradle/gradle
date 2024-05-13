@@ -58,6 +58,10 @@ public class Receiver implements ResponseProtocol, StreamCompletion, StreamFailu
         this.baseName = baseName;
     }
 
+    public boolean isEmpty() {
+        return received.isEmpty();
+    }
+
     public boolean awaitNextResult() {
         try {
             if (next == null) {

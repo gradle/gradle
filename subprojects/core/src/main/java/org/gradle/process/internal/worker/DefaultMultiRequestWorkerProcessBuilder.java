@@ -170,6 +170,9 @@ class DefaultMultiRequestWorkerProcessBuilder<IN, OUT> implements MultiRequestWo
 
             @Override
             public OUT run(IN request) {
+                while (!receiver.isEmpty()) {
+                    receiver.getNextResult(); // clear any previous result
+                }
                 requestProtocol.run(new Request(request, CurrentBuildOperationRef.instance().get()));
                 boolean hasResult = receiver.awaitNextResult();
                 if (!hasResult) {
