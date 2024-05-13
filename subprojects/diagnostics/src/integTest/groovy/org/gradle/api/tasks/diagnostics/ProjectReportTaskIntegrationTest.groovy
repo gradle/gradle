@@ -18,7 +18,6 @@ package org.gradle.api.tasks.diagnostics
 import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
 import org.gradle.api.internal.plugins.software.SoftwareType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.internal.declarativedsl.settings.SoftwareTypeFixture
 
 class ProjectReportTaskIntegrationTest extends AbstractIntegrationSpec implements SoftwareTypeFixture {
@@ -112,8 +111,8 @@ No sub-projects
 """
     }
 
-    def "test running on declarative dcl"() {
-        given: "a build-logic build registering an ecosystem plugin defining several software types"
+    def "project project structure and software types for multi-project build using declarative dcl"() {
+        given: "a build-logic build registering an ecosystem plugin defining several software types via several plugins"
         file("build-logic/src/main/java/com/example/restricted/LibraryExtension.java") << """
             package com.example.restricted;
 
@@ -150,20 +149,44 @@ No sub-projects
                 Property<String> getName();
             }
         """
-        file("build-logic/src/main/java/com/example/restricted/RestrictedPlugin.java") << """
+        file("build-logic/src/main/java/com/example/restricted/LibraryPlugin.java") << """
             package com.example.restricted;
 
             import org.gradle.api.Plugin;
             import org.gradle.api.Project;
             import ${SoftwareType.class.name};
 
-            public abstract class RestrictedPlugin implements Plugin<Project> {
+            public abstract class LibraryPlugin implements Plugin<Project> {
                 @SoftwareType(name = "library", modelPublicType = LibraryExtension.class)
                 public abstract LibraryExtension getLibrary();
 
+                @Override
+                public void apply(Project project) {}
+            }
+        """
+        file("build-logic/src/main/java/com/example/restricted/ApplicationPlugin.java") << """
+            package com.example.restricted;
+
+            import org.gradle.api.Plugin;
+            import org.gradle.api.Project;
+            import ${SoftwareType.class.name};
+
+            public abstract class ApplicationPlugin implements Plugin<Project> {
                 @SoftwareType(name = "application", modelPublicType = ApplicationExtension.class)
                 public abstract ApplicationExtension getApplication();
 
+                @Override
+                public void apply(Project project) {}
+            }
+        """
+        file("build-logic/src/main/java/com/example/restricted/UtilityPlugin.java") << """
+            package com.example.restricted;
+
+            import org.gradle.api.Plugin;
+            import org.gradle.api.Project;
+            import ${SoftwareType.class.name};
+
+            public abstract class UtilityPlugin implements Plugin<Project> {
                 @SoftwareType(name = "utility", modelPublicType = UtilityExtension.class)
                 public abstract UtilityExtension getUtility();
 
@@ -179,7 +202,7 @@ No sub-projects
             import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
             import ${ RegistersSoftwareTypes.class.name};
 
-            @RegistersSoftwareTypes({ RestrictedPlugin.class })
+            @RegistersSoftwareTypes({ LibraryPlugin.class, ApplicationPlugin.class, UtilityPlugin.class })
             abstract public class SoftwareTypeRegistrationPlugin implements Plugin<Settings> {
                 @Override
                 public void apply(Settings target) {}
@@ -194,10 +217,6 @@ No sub-projects
 
             gradlePlugin {
                 plugins {
-                    create("restrictedPlugin") {
-                        id = "com.example.restricted"
-                        implementationClass = "com.example.restricted.RestrictedPlugin"
-                    }
                     create("softwareTypeRegistrator") {
                         id = "com.example.restricted.ecosystem"
                         implementationClass = "com.example.restricted.SoftwareTypeRegistrationPlugin"
@@ -206,7 +225,7 @@ No sub-projects
             }
         """
 
-        and: "a build that applies that ecosystem plugin to a multi-project build"
+        and: "a build that applies that ecosystem plugin to a multi-project build, with each project using a different software type"
         settingsFile << """
             pluginManagement {
                 includeBuild("build-logic")
@@ -216,18 +235,22 @@ No sub-projects
                 id("com.example.restricted.ecosystem")
             }
 
-            dependencyResolutionManagement {
-                repositories {
-                    mavenCentral()
-                }
-            }
-
             rootProject.name = 'example'
-            enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
             include("lib")
             include("app")
             include("util")
+        """
+        buildFile << """
+            project(":lib") {
+                description = "Sample library project"
+            }
+            project(":util") {
+                description = "Utilities and common code"
+            }
+            project(":app") {
+                description = "Sample application project"
+            }
         """
 
         file("lib/build.gradle.dcl") << """
@@ -248,5 +271,19 @@ No sub-projects
 
         expect:
         succeeds("projects")
+
+        outputContains("""
+------------------------------------------------------------
+Root project 'example'
+------------------------------------------------------------
+
+Root project 'example'
++--- Project ':app' - Sample application project
+        Software type: application (com.example.restricted.ApplicationExtension) defined in Plugin: com.example.restricted.ApplicationPlugin
++--- Project ':lib' - Sample library project
+        Software type: library (com.example.restricted.LibraryExtension) defined in Plugin: com.example.restricted.LibraryPlugin
+\\--- Project ':util' - Utilities and common code
+        Software type: utility (com.example.restricted.UtilityExtension) defined in Plugin: com.example.restricted.UtilityPlugin
+""")
     }
 }
