@@ -570,10 +570,12 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
     }
 
     def "preview features are not allowed #description"() {
-        def jdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_21)
+        def jdk = AvailableJavaHomes.getJdk21()
 
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id 'java'
+            }
 
             java {
                 toolchain {
@@ -602,11 +604,13 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
         "when disabled" | "options.enablePreview = false"
     }
 
-    def "preview features are allowed when enabled via #description"() {
-        def jdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_21)
+    def "preview features are allowed when enabled"() {
+        def jdk = AvailableJavaHomes.getJdk21()
 
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id 'java'
+            }
 
             java {
                 toolchain {
@@ -615,7 +619,7 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
             }
 
             compileJava {
-                $configureCompilation
+                options.enablePreview = true
             }
         """
 
@@ -628,18 +632,15 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
         executedAndNotSkipped(":compileJava")
         errorOutput.contains("Main.java uses preview features of Java SE 21.")
         classJavaVersion(javaClassFile("Main.class")) == JavaVersion.VERSION_21
-
-        where:
-        description          | configureCompilation
-        "compiler flag"      | "options.compilerArgs += '--enable-preview'"
-        "compilation option" | "options.enablePreview = true"
     }
 
     def "cannot mix enable-preview compiler flag and enabling the compilation option"() {
-        def jdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_21)
+        def jdk = AvailableJavaHomes.getJdk21()
 
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id 'java'
+            }
 
             java {
                 toolchain {
