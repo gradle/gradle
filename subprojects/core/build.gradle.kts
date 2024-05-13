@@ -1,5 +1,6 @@
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.instrumented-project")
 }
 
 description = "Public and internal 'core' Gradle APIs with implementation"
@@ -34,9 +35,7 @@ val testInterceptorsImplementation: Configuration by configurations.getting {
 
 errorprone {
     disabledChecks.addAll(
-        "BadImport", // 3 occurrences
         "BadInstanceof", // 6 occurrences (this is from generated code)
-        "BoxedPrimitiveEquality", // 3 occurrences
         "DefaultCharset", // 4 occurrences
         "EmptyBlockTag", // 4 occurrences
         "Finally", // 1 occurrences
@@ -48,7 +47,6 @@ errorprone {
         "InlineMeSuggester", // 1 occurrences
         "InvalidBlockTag", // 1 occurrences
         "InvalidInlineTag", // 1 occurrences
-        "InvalidLink", // 2 occurrences
         "MissingCasesInEnumSwitch", // 1 occurrences
         "MixedMutabilityReturnType", // 1 occurrences
         "ModifyCollectionInEnhancedForLoop", // 1 occurrences
@@ -68,8 +66,6 @@ errorprone {
         "TypeParameterShadowing", // 1 occurrences
         "TypeParameterUnusedInFormals", // 2 occurrences
         "UndefinedEquals", // 1 occurrences
-        "UnnecessaryLambda", // 1 occurrences
-        "UnnecessaryParentheses", // 1 occurrences
         "UnrecognisedJavadocTag", // 1 occurrences
         "UnusedMethod", // 18 occurrences
         "UnusedVariable", // 8 occurrences
@@ -77,7 +73,10 @@ errorprone {
 }
 
 dependencies {
-    api(project(":base-annotations"))
+    api(projects.concurrent)
+    api(projects.javaLanguageExtensions)
+    api(projects.serialization)
+    api(projects.time)
     api(project(":base-services"))
     api(project(":base-services-groovy"))
     api(project(":build-cache"))
@@ -124,6 +123,8 @@ dependencies {
     api(libs.jsr305)
     api(libs.nativePlatform)
 
+    implementation(projects.io)
+    implementation(project(":base-asm"))
     implementation(project(":input-tracking"))
     implementation(project(":model-groovy"))
 
@@ -246,6 +247,7 @@ dependencies {
 
     testImplementation(project(":dependency-management"))
 
+    testImplementation(testFixtures(projects.serialization))
     testImplementation(testFixtures(project(":core-api")))
     testImplementation(testFixtures(project(":messaging")))
     testImplementation(testFixtures(project(":model-core")))
@@ -258,8 +260,8 @@ dependencies {
     integTestImplementation(project(":workers"))
     integTestImplementation(project(":dependency-management"))
     integTestImplementation(project(":launcher"))
-    integTestImplementation(project(":plugins"))
     integTestImplementation(project(":war"))
+    integTestImplementation(project(":daemon-services"))
     integTestImplementation(libs.jansi)
     integTestImplementation(libs.jetbrainsAnnotations)
     integTestImplementation(libs.jetty)
@@ -302,4 +304,3 @@ tasks.compileTestGroovy {
 
 integTest.usesJavadocCodeSnippets = true
 testFilesCleanup.reportOnly = true
-

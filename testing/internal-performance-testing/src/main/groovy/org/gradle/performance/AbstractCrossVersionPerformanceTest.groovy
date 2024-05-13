@@ -19,7 +19,7 @@ package org.gradle.performance
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
-import org.gradle.internal.scan.config.fixtures.ApplyGradleEnterprisePluginFixture
+import org.gradle.internal.scan.config.fixtures.ApplyDevelocityPluginFixture
 import org.gradle.performance.annotations.AllFeaturesShouldBeAnnotated
 import org.gradle.performance.fixture.CrossVersionPerformanceTestRunner
 import org.gradle.performance.fixture.GradleBuildExperimentRunner
@@ -66,12 +66,10 @@ class AbstractCrossVersionPerformanceTest extends AbstractPerformanceTest {
         runner
     }
 
-    void applyEnterprisePlugin() {
+    void applyDevelocityPlugin() {
         runner.addBuildMutator { invocationSettings ->
-            new ApplyGradleEnterprisePluginMutator(invocationSettings.projectDir)
+            new ApplyDevelocityPluginMutator(invocationSettings.projectDir)
         }
-        // Required by GradleLifecycle API used by Develocity
-        runner.gradleOpts += ["--add-opens=java.base/java.lang.invoke=ALL-UNNAMED"]
     }
 
     static {
@@ -82,11 +80,11 @@ class AbstractCrossVersionPerformanceTest extends AbstractPerformanceTest {
     }
 }
 
-class ApplyGradleEnterprisePluginMutator implements BuildMutator {
+class ApplyDevelocityPluginMutator implements BuildMutator {
 
     private final File projectDir
 
-    ApplyGradleEnterprisePluginMutator(File projectDir) {
+    ApplyDevelocityPluginMutator(File projectDir) {
         this.projectDir = projectDir
     }
 
@@ -94,6 +92,6 @@ class ApplyGradleEnterprisePluginMutator implements BuildMutator {
     void beforeScenario(ScenarioContext context) {
         def groovySettingsFile = new File(projectDir, "settings.gradle")
         def kotlinSettingsFile = new File(projectDir, "settings.gradle.kts")
-        ApplyGradleEnterprisePluginFixture.applyEnterprisePlugin(groovySettingsFile.exists() ? groovySettingsFile: kotlinSettingsFile)
+        ApplyDevelocityPluginFixture.applyDevelocityPlugin(groovySettingsFile.exists() ? groovySettingsFile: kotlinSettingsFile)
     }
 }

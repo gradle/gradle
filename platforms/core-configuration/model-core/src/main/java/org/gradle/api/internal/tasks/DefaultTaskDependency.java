@@ -45,7 +45,7 @@ import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 
 import static com.google.common.collect.Iterables.toArray;
-import static org.gradle.util.internal.GUtil.uncheckedCall;
+import static org.gradle.internal.UncheckedException.uncheckedCall;
 
 /**
  * A task dependency which can have both mutable and immutable dependency values.

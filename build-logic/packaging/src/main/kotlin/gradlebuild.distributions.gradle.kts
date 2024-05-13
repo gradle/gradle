@@ -116,7 +116,7 @@ val generateRelocatedPackageList by tasks.registering(PackageListGenerator::clas
     outputFile = generatedTxtFileFor("api-relocated")
 }
 
-// Extract pubic API metadata from source code of Gradle module Jars packaged in the distribution (used by the two tasks below to handle default imports in build scripts)
+// Extract public API metadata from source code of Gradle module Jars packaged in the distribution (used by the two tasks below to handle default imports in build scripts)
 val dslMetaData by tasks.registering(ExtractDslMetaDataTask::class) {
     source(gradleApiSources)
     destinationFile = generatedBinFileFor("dsl-meta-data.bin")

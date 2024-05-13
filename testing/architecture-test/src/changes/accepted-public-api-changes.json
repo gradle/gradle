@@ -1,20 +1,3 @@
 {
-    "acceptedApiChanges": [
-        {
-            "type": "org.gradle.api.file.ConfigurableFileCollection",
-            "member": "Class org.gradle.api.file.ConfigurableFileCollection",
-            "acceptation": "Introduce SupportsConvention",
-            "changes": [
-                "org.gradle.api.provider.SupportsConvention"
-            ]
-        },
-        {
-            "type": "org.gradle.kotlin.dsl.PluginDependenciesSpecExtensionsKt",
-            "member": "Method org.gradle.kotlin.dsl.PluginDependenciesSpecExtensionsKt.getGradle-enterprise$annotations(org.gradle.plugin.use.PluginDependenciesSpec)",
-            "acceptation": "Adding the deprecation annotation added this new method, we directly ignore it",
-            "changes": [
-                "Method added to public class"
-            ]
-        }
-    ]
+    "acceptedApiChanges": []
 }

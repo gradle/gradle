@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.DependencyResolutionListener;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
-import org.gradle.api.internal.artifacts.ResolveExceptionContextualizer;
+import org.gradle.api.internal.artifacts.ResolveExceptionMapper;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory;
@@ -36,7 +36,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.model.CalculatedValueContainerFactory;
+import org.gradle.internal.model.CalculatedValueFactory;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
@@ -63,12 +63,12 @@ public class DefaultConfigurationFactory {
     private final NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser;
     private final NotationParser<Object, Capability> capabilityNotationParser;
     private final ImmutableAttributesFactory attributesFactory;
-    private final ResolveExceptionContextualizer exceptionContextualizer;
+    private final ResolveExceptionMapper exceptionContextualizer;
     private final UserCodeApplicationContext userCodeApplicationContext;
     private final ProjectStateRegistry projectStateRegistry;
     private final WorkerThreadRegistry workerThreadRegistry;
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
-    private final CalculatedValueContainerFactory calculatedValueContainerFactory;
+    private final CalculatedValueFactory calculatedValueFactory;
     private final TaskDependencyFactory taskDependencyFactory;
 
     @Inject
@@ -84,12 +84,12 @@ public class DefaultConfigurationFactory {
         BuildOperationRunner buildOperationRunner,
         PublishArtifactNotationParserFactory artifactNotationParserFactory,
         ImmutableAttributesFactory attributesFactory,
-        ResolveExceptionContextualizer exceptionContextualizer,
+        ResolveExceptionMapper exceptionMapper,
         UserCodeApplicationContext userCodeApplicationContext,
         ProjectStateRegistry projectStateRegistry,
         WorkerThreadRegistry workerThreadRegistry,
         DomainObjectCollectionFactory domainObjectCollectionFactory,
-        CalculatedValueContainerFactory calculatedValueContainerFactory,
+        CalculatedValueFactory calculatedValueFactory,
         TaskDependencyFactory taskDependencyFactory
     ) {
         this.instantiator = instantiator;
@@ -104,12 +104,12 @@ public class DefaultConfigurationFactory {
         this.artifactNotationParser = artifactNotationParserFactory.create();
         this.capabilityNotationParser = new CapabilityNotationParserFactory(true).create();
         this.attributesFactory = attributesFactory;
-        this.exceptionContextualizer = exceptionContextualizer;
+        this.exceptionContextualizer = exceptionMapper;
         this.userCodeApplicationContext = userCodeApplicationContext;
         this.projectStateRegistry = projectStateRegistry;
         this.workerThreadRegistry = workerThreadRegistry;
         this.domainObjectCollectionFactory = domainObjectCollectionFactory;
-        this.calculatedValueContainerFactory = calculatedValueContainerFactory;
+        this.calculatedValueFactory = calculatedValueFactory;
         this.taskDependencyFactory = taskDependencyFactory;
     }
 
@@ -148,7 +148,7 @@ public class DefaultConfigurationFactory {
                 projectStateRegistry,
                 workerThreadRegistry,
                 domainObjectCollectionFactory,
-                calculatedValueContainerFactory,
+                calculatedValueFactory,
                 this,
                 taskDependencyFactory,
                 role
@@ -191,7 +191,7 @@ public class DefaultConfigurationFactory {
             projectStateRegistry,
             workerThreadRegistry,
             domainObjectCollectionFactory,
-            calculatedValueContainerFactory,
+            calculatedValueFactory,
             this,
             taskDependencyFactory
         );
@@ -233,7 +233,7 @@ public class DefaultConfigurationFactory {
             projectStateRegistry,
             workerThreadRegistry,
             domainObjectCollectionFactory,
-            calculatedValueContainerFactory,
+            calculatedValueFactory,
             this,
             taskDependencyFactory
         );
@@ -275,7 +275,7 @@ public class DefaultConfigurationFactory {
             projectStateRegistry,
             workerThreadRegistry,
             domainObjectCollectionFactory,
-            calculatedValueContainerFactory,
+            calculatedValueFactory,
             this,
             taskDependencyFactory
         );

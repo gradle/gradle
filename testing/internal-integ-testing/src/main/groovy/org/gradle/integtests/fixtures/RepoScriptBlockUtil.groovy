@@ -184,7 +184,7 @@ class RepoScriptBlockUtil {
             @CompileStatic
             class MirrorPlugin implements Plugin<Gradle> {
                 void apply(Gradle gradle) {
-                    gradle.allprojects { Project project ->
+                    def mirrorClosure = { Project project ->
                         project.buildscript.configurations["classpath"].incoming.beforeResolve {
                             withMirrors(project.buildscript.repositories)
                         }
@@ -192,7 +192,17 @@ class RepoScriptBlockUtil {
                             withMirrors(project.repositories)
                         }
                     }
+                    applyToAllProjects(gradle, mirrorClosure)
                     maybeConfigurePluginManagement(gradle)
+                }
+
+                @CompileDynamic
+                void applyToAllProjects(Gradle gradle, Closure projectClosure) {
+                    if (gradle.gradleVersion >= "8.8") {
+                        gradle.lifecycle.beforeProject(projectClosure)
+                    } else {
+                        gradle.allprojects(projectClosure)
+                    }
                 }
 
                 @CompileDynamic
@@ -204,7 +214,7 @@ class RepoScriptBlockUtil {
                     }
                 }
 
-                void withMirrors(RepositoryHandler repos) {
+                static void withMirrors(RepositoryHandler repos) {
                     repos.all { repo ->
                         if (repo instanceof MavenArtifactRepository) {
                             mirror(repo)
@@ -214,17 +224,17 @@ class RepoScriptBlockUtil {
                     }
                 }
 
-                void mirror(MavenArtifactRepository repo) {
+                static void mirror(MavenArtifactRepository repo) {
                     ${mirrorConditions}
                 }
 
-                void mirror(IvyArtifactRepository repo) {
+                static void mirror(IvyArtifactRepository repo) {
                     ${mirrorConditions}
                 }
 
                 // We see them as equal:
                 // https://repo.maven.apache.org/maven2/ and http://repo.maven.apache.org/maven2
-                String normalizeUrl(Object url) {
+                static String normalizeUrl(Object url) {
                     String result = url.toString().replace('https://', 'http://')
                     return result.endsWith("/") ? result : result + "/"
                 }

@@ -20,14 +20,14 @@ manifest:
 on:
   - pr_created
   - commit
+  - comment_added
 
 automations:
 
   # If someone adds a TODO, remind them about it by requesting removal
-  point_out_todos:
+  includes_todos:
     if:
-      - {{ is.requested or not pr.author_is_org_member }}
-      - {{ author.using_gitstream or not pr.author_is_org_member }}
+      - {{ ('includes_todos' | isEnabledAutomation(pr)) }}
       - {{ source.diff.files | matchDiffLines(regex=r/(TODO)|(todo)/) | some }}
     run:
       - action: add-label@v1
@@ -36,7 +36,8 @@ automations:
           color: {{ colors.yellow }}
       - action: add-comment@v1
         args:
-          comment: 'There are new TODOs present in this change.  Should any be removed?'
+          comment: |
+            :warning: 'There are new TODOs present in this change.  Should any be removed?'
 
 # To simplify the automations section, some calculations are placed under unique YAML keys defined here.
 # Read the "|" not as "or", but as a "pipe", taking the output of the previous command and passing it to the next command.
@@ -44,9 +45,3 @@ automations:
 
 colors:
   yellow: 'ffb300'
-
-is:
-  requested: {{ (pr.comments | match(attr='content', term='@bot-gitstream check all') | some) or (pr.comments | match(attr='content', term='@bot-gitstream check todos') | some) }}
-
-author:
-  using_gitstream: {{ (pr.author | isEnabledUser ) }}

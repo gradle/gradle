@@ -20,7 +20,6 @@ import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.Action
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ModuleVersionIdentifier
-import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter
@@ -69,6 +68,7 @@ import org.gradle.internal.component.model.GraphVariantSelector
 import org.gradle.internal.component.model.IvyArtifactName
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata
+import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.model.CalculatedValue
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.BuildOperationQueue
@@ -780,7 +780,7 @@ class DependencyGraphBuilderTest extends Specification {
         result.rethrowFailure()
 
         then:
-        ResolveException e = thrown()
+        DefaultMultiCauseException e = thrown()
         e.cause instanceof ModuleVersionResolveException
         e.cause.message.contains "project :root > group:a:1.0"
         e.cause.message.contains "project :root > group:b:1.0"
@@ -807,7 +807,7 @@ class DependencyGraphBuilderTest extends Specification {
         result.rethrowFailure()
 
         then:
-        ResolveException e = thrown()
+        DefaultMultiCauseException e = thrown()
         e.cause instanceof ModuleVersionResolveException
         e.cause.message.contains "project :root > group:a:1.0"
         e.cause.message.contains "project :root > group:b:1.0"
@@ -833,7 +833,7 @@ class DependencyGraphBuilderTest extends Specification {
         result.rethrowFailure()
 
         then:
-        ResolveException e = thrown()
+        DefaultMultiCauseException e = thrown()
         e.cause instanceof ModuleVersionResolveException
         e.cause.message.contains "project :root > group:a:1.0"
         e.cause.message.contains "project :root > group:b:1.0"
@@ -860,7 +860,7 @@ class DependencyGraphBuilderTest extends Specification {
         result.rethrowFailure()
 
         then:
-        ResolveException e = thrown()
+        DefaultMultiCauseException e = thrown()
         e.cause instanceof ModuleVersionNotFoundException
         e.cause.message.contains "project :root > group:a:1.0"
         e.cause.message.contains "project :root > group:b:1.0"
@@ -887,7 +887,7 @@ class DependencyGraphBuilderTest extends Specification {
         result.rethrowFailure()
 
         then:
-        ResolveException e = thrown()
+        DefaultMultiCauseException e = thrown()
         e.cause instanceof ModuleVersionNotFoundException
         e.cause.message.contains "project :root > group:a:1.0"
         e.cause.message.contains "project :root > group:b:1.0"
@@ -913,7 +913,7 @@ class DependencyGraphBuilderTest extends Specification {
         result.rethrowFailure()
 
         then:
-        ResolveException e = thrown()
+        DefaultMultiCauseException e = thrown()
         e.cause instanceof ModuleVersionNotFoundException
         e.cause.message.contains "project :root > group:a:1.0 > group:b:1.0"
     }
@@ -948,7 +948,7 @@ class DependencyGraphBuilderTest extends Specification {
         result.rethrowFailure()
 
         then:
-        ResolveException ex = thrown()
+        DefaultMultiCauseException ex = thrown()
         ex.cause instanceof ModuleVersionNotFoundException
         !ex.cause.message.contains("group:a:1.1")
         ex.cause.message.contains "project :root > group:a:1.2"
@@ -978,7 +978,7 @@ class DependencyGraphBuilderTest extends Specification {
         }
 
         and:
-        ResolveException e = thrown()
+        DefaultMultiCauseException e = thrown()
         e.cause instanceof ModuleVersionNotFoundException
         e.cause.message.contains("project :root")
     }
@@ -1217,7 +1217,7 @@ class DependencyGraphBuilderTest extends Specification {
                 return
             }
 
-            throw new ResolveException("config", failures.values().collect {
+            throw new DefaultMultiCauseException("message", failures.values().collect {
                 it.failure.withIncomingPaths(DependencyGraphPathResolver.calculatePaths(it.requiredBy, root))
             })
         }

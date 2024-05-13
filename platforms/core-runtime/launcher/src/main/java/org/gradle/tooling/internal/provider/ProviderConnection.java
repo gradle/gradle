@@ -33,7 +33,6 @@ import org.gradle.initialization.DefaultBuildRequestMetaData;
 import org.gradle.initialization.NoOpBuildEventConsumer;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
-import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
@@ -41,6 +40,8 @@ import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.console.GlobalUserInputReceiver;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.launcher.cli.converter.BuildLayoutConverter;
 import org.gradle.launcher.cli.converter.InitialPropertiesConverter;
 import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
@@ -99,6 +100,7 @@ import java.util.Set;
 
 import static java.util.Collections.emptySet;
 
+@ServiceScope(Scope.Global.class)
 public class ProviderConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(ProviderConnection.class);
     private final PayloadSerializer payloadSerializer;
@@ -109,7 +111,6 @@ public class ProviderConnection {
     private final FileCollectionFactory fileCollectionFactory;
     private final GlobalUserInputReceiver userInputReceiver;
     private final UserInputReader userInputReader;
-    private final ExecutorFactory executorFactory;
 
     private final JvmVersionDetector jvmVersionDetector;
     private GradleVersion consumerVersion;
@@ -123,8 +124,7 @@ public class ProviderConnection {
         JvmVersionDetector jvmVersionDetector,
         FileCollectionFactory fileCollectionFactory,
         GlobalUserInputReceiver userInputReceiver,
-        UserInputReader userInputReader,
-        ExecutorFactory executorFactory
+        UserInputReader userInputReader
     ) {
         this.buildLayoutFactory = buildLayoutFactory;
         this.daemonClientFactory = daemonClientFactory;
@@ -134,7 +134,6 @@ public class ProviderConnection {
         this.fileCollectionFactory = fileCollectionFactory;
         this.userInputReceiver = userInputReceiver;
         this.userInputReader = userInputReader;
-        this.executorFactory = executorFactory;
         this.jvmVersionDetector = jvmVersionDetector;
     }
 
@@ -304,7 +303,7 @@ public class ProviderConnection {
         if (Boolean.TRUE.equals(operationParameters.isEmbedded())) {
             loggingManager = sharedServices.getFactory(LoggingManagerInternal.class).create();
             loggingManager.captureSystemSources();
-            executer = new SystemPropertySetterExecuter(new ForwardStdInToThisProcess(userInputReceiver, userInputReader, standardInput, embeddedExecutor, executorFactory));
+            executer = new SystemPropertySetterExecuter(new ForwardStdInToThisProcess(userInputReceiver, userInputReader, standardInput, embeddedExecutor));
         } else {
             LoggingServiceRegistry requestSpecificLogging = LoggingServiceRegistry.newNestedLogging();
             loggingManager = requestSpecificLogging.getFactory(LoggingManagerInternal.class).create();

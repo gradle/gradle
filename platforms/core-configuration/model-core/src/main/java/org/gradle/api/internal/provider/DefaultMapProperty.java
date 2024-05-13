@@ -324,7 +324,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
     @Override
     protected String describeContents() {
-        return String.format("Map(%s->%s, %s)", keyType.getSimpleName().toLowerCase(), valueType.getSimpleName(), describeValue());
+        return String.format("Map(%s->%s, %s)", keyType.getSimpleName(), valueType.getSimpleName(), describeValue());
     }
 
     @Override

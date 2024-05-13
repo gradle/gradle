@@ -25,7 +25,7 @@ public class IntQuestionPromptEventSerializer implements Serializer<IntQuestionP
     @Override
     public void write(Encoder encoder, IntQuestionPromptEvent value) throws Exception {
         encoder.writeLong(value.getTimestamp());
-        encoder.writeString(value.getPrompt());
+        encoder.writeString(value.getQuestion());
         encoder.writeSmallInt(value.getMinValue());
         encoder.writeSmallInt(value.getDefaultValue());
     }

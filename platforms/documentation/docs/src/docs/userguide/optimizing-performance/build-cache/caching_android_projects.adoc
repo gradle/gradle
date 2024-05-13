@@ -73,9 +73,7 @@ include::sample[dir="snippets/buildCache/caching-android-projects/groovy",files=
 
 == Unit test execution
 
-Unlike with unit tests in a pure Java project, the equivalent test task in an Android project (`AndroidUnitTest`) is not cacheable.
-The Google Team is working to make these tests cacheable.
-Please see https://issuetracker.google.com/issues/79122161[this issue].
+Like unit tests in a pure Java project, the equivalent test task in an Android project (`AndroidUnitTest`) is also cacheable since Android Gradle Plugin 3.6.0.
 
 == Instrumented test execution (i.e., Espresso tests)
 

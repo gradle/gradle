@@ -22,7 +22,7 @@ import org.gradle.internal.snapshot.ValueSnapshotter;
 /**
  * A snapshot of an immutable scalar value. Should only be used for immutable JVM provided or core Gradle types.
  *
- * @param <T>
+ * @param <T> the type of the value
  */
 abstract class AbstractScalarValueSnapshot<T> implements ValueSnapshot {
     private final T value;

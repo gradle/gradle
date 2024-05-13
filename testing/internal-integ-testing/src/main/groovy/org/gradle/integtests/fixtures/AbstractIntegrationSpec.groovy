@@ -130,7 +130,7 @@ abstract class AbstractIntegrationSpec extends Specification {
     def cleanup() {
         if (enableProblemsApiCheck) {
             collectedProblems.each {
-                KnownProblemIds.assertHasKnownId(it)
+                KnownProblemIds.assertIsKnown(it)
             }
 
             if (getReceivedProblems().every {it == null }) {
@@ -501,6 +501,11 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
 
         result = executer.withTasks(*tasks).run()
         return result
+    }
+
+    @SuppressWarnings('GroovyAssignabilityCheck')
+    protected ExecutionResult succeeds(List<String> tasks) {
+        succeeds(tasks.toArray(new String[tasks.size()]))
     }
 
     ExecutionResult getResult() {

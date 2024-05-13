@@ -41,6 +41,7 @@ import kotlin.reflect.full.isSubclassOf
  * * for each typesafe accessor container type, extracts its properties (see [TypesafeProjectPropertyProducer]);
  * * at runtime, resolves property access to the `projects` property on [Project] instances.
  */
+@Suppress("unused") // temporarily excluded from the schema, awaiting rework in a way that does not require the target scope
 internal
 class TypesafeProjectAccessorsComponent(targetScope: ClassLoaderScope) : EvaluationSchemaComponent {
     private
@@ -122,7 +123,7 @@ class TypesafeProjectAccessorTypeDiscovery : TypeDiscovery {
         fun visit(type: KType) {
             val classifier = type.classifier
             if (classifier is KClass<*> && add(classifier)) {
-                classifier.supertypes.forEach(::visit)
+                (classifier.supertypes - Any::class.createType()).forEach(::visit) // No need to visit Any, it only clutters the extracted functions
             }
         }
         add(kClass)

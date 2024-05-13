@@ -12,6 +12,7 @@ sourceSets {
 }
 
 dependencies {
+    implementation(projects.messaging)
     implementation(project(":base-services"))
     implementation(project(":functional"))
     implementation(project(":native"))

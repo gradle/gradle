@@ -24,7 +24,6 @@ import org.gradle.api.problems.internal.ProblemEmitter
 import org.gradle.internal.Describables
 import org.gradle.internal.featurelifecycle.DeprecatedUsageProgressDetails
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler
-import org.gradle.internal.featurelifecycle.StackTraceSanitizerTest
 import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
 import org.gradle.internal.operations.BuildOperationListener
@@ -397,7 +396,7 @@ feature1 removal""")
         useStackTrace(fakeStackTrace)
 
         when:
-        handler.featureUsed(new DeprecatedFeatureUsage(new DeprecatedFeatureUsage('fake', "removal", null, null, null, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT, "id", "id display name", StackTraceSanitizerTest)))
+        handler.featureUsed(new DeprecatedFeatureUsage(new DeprecatedFeatureUsage('fake', "removal", null, null, null, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT, "id display name", "id", LoggingDeprecatedFeatureHandlerTest)))
         def events = outputEventListener.events
 
         then:
@@ -411,7 +410,7 @@ feature1 removal""")
 
         where:
         fakeStackTrace = [
-            new StackTraceElement(StackTraceSanitizerTest.name, 'calledFrom', 'FeatureUsageTest.java', 23),
+            new StackTraceElement(LoggingDeprecatedFeatureHandlerTest.name, 'calledFrom', 'FeatureUsageTest.java', 23),
             new StackTraceElement('some.ArbitraryClass', 'withSource', 'ArbitraryClass.java', 42),
         ]
         deprecationTracePropertyName = LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
@@ -423,7 +422,7 @@ feature1 removal""")
         useStackTrace()
 
         when:
-        handler.featureUsed(new DeprecatedFeatureUsage('fake', "removal", null, null, null, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT, "id", "id display name", StackTraceSanitizerTest))
+        handler.featureUsed(new DeprecatedFeatureUsage('fake', "removal", null, null, null, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT, "id display name", "id", LoggingDeprecatedFeatureHandlerTest))
         def events = outputEventListener.events
 
         then:
@@ -522,6 +521,6 @@ feature1 removal""")
     }
 
     private static DeprecatedFeatureUsage deprecatedFeatureUsage(String summary, Class<?> calledFrom = LoggingDeprecatedFeatureHandlerTest) {
-        new DeprecatedFeatureUsage(summary, "removal", null, null, null, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT, GradleCoreProblemGroup.deprecation().toString(), "id display name", calledFrom)
+        new DeprecatedFeatureUsage(summary, "removal", null, null, null, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT, "id display name", GradleCoreProblemGroup.deprecation().toString(), calledFrom)
     }
 }

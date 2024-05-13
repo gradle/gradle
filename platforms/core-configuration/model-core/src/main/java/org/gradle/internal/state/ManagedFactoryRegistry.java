@@ -16,6 +16,10 @@
 
 package org.gradle.internal.state;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
+@ServiceScope({Scope.Global.class, Scope.Project.class})
 public interface ManagedFactoryRegistry {
     /**
      * Looks up a {@link ManagedFactory} that can provide the given type.

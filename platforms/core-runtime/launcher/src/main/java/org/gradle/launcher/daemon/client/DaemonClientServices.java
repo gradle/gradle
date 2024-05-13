@@ -15,7 +15,6 @@
  */
 package org.gradle.launcher.daemon.client;
 
-import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.logging.console.GlobalUserInputReceiver;
 import org.gradle.internal.logging.events.OutputEventListener;
@@ -43,7 +42,6 @@ public class DaemonClientServices extends DaemonClientServicesSupport {
             matchingContextSpec,
             getBuildStandardInput(),
             get(GlobalUserInputReceiver.class),
-            get(ExecutorFactory.class),
             idGenerator,
             get(ProcessEnvironment.class));
     }

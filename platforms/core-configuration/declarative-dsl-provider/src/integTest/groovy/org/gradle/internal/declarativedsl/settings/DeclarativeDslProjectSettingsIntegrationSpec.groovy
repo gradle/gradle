@@ -23,7 +23,7 @@ class DeclarativeDslProjectSettingsIntegrationSpec extends AbstractIntegrationSp
 
     def "can interpret the settings file with the declarative DSL"() {
         given:
-        file("settings.gradle.something") << """
+        file("settings.gradle.dcl") << """
             rootProject.name = "test-value"
             include(":a")
             include(":b")
@@ -45,7 +45,7 @@ class DeclarativeDslProjectSettingsIntegrationSpec extends AbstractIntegrationSp
         buildFile << "println('name = ' + rootProject.name)"
         file("a/build.gradle") << ""
         file("b/build.gradle") << ""
-        file("pluginIncluded/settings.gradle.something") << "rootProject.name = \"pluginIncluded\""
+        file("pluginIncluded/settings.gradle.dcl") << "rootProject.name = \"pluginIncluded\""
 
         expect:
         succeeds(":help", ":a:help", ":b:help")
@@ -54,7 +54,7 @@ class DeclarativeDslProjectSettingsIntegrationSpec extends AbstractIntegrationSp
 
     def 'schema is written during settings interpretation'() {
         given:
-        file("settings.gradle.something") << """
+        file("settings.gradle.dcl") << """
             rootProject.name = "test"
         """
 
@@ -62,13 +62,13 @@ class DeclarativeDslProjectSettingsIntegrationSpec extends AbstractIntegrationSp
         run(":help")
 
         then:
-        def schemaFile = file(".gradle/restricted-schema/settings.something.schema")
+        def schemaFile = file(".gradle/declarative-schema/settings.dcl.schema")
         schemaFile.isFile() && schemaFile.text != ""
     }
 
     def 'reports #kind errors in settings'() {
         given:
-        file("settings.gradle.something") << """
+        file("settings.gradle.dcl") << """
             rootProject.name = "test"
             $code
         """
@@ -134,7 +134,7 @@ class DeclarativeDslProjectSettingsIntegrationSpec extends AbstractIntegrationSp
             }
         """
 
-        file("settings.gradle.something") << """
+        file("settings.gradle.dcl") << """
             pluginManagement {
                 includeBuild("included-settings-plugin")
             }

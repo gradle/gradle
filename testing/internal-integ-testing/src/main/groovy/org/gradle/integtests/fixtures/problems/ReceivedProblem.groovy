@@ -51,7 +51,7 @@ class ReceivedProblem implements Problem {
         this.details =  problemDetails['details'] as String
         this.solutions = problemDetails['solutions'] as List<String>
         this.locations = fromList(problemDetails['locations'] as List<Object>)
-        this.additionalData = problemDetails['additionalData'] as Map<String, Object>
+        this.additionalData = (problemDetails['additionalData'] as Map<String, Object>).findAll { k, v -> v != null }
         this.exception = problemDetails['exception'] == null ? null : new ReceivedException(problemDetails['exception'] as Map<String, Object>)
     }
 
@@ -110,6 +110,14 @@ class ReceivedProblem implements Problem {
     @Override
     List<ProblemLocation> getLocations() {
         locations
+    }
+
+    <T extends ProblemLocation> T getSingleLocation(Class<T> locationType) {
+        def location = locations.find {
+            locationType.isInstance(it)
+        }
+        assert location != null : "Expected a location of type $locationType, but found none."
+        return locationType.cast(location)
     }
 
     @Override

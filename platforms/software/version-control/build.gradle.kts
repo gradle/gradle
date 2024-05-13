@@ -13,6 +13,7 @@ errorprone {
 }
 
 dependencies {
+    api(projects.concurrent)
     api(project(":base-services"))
     api(project(":core"))
     api(project(":core-api"))
@@ -24,12 +25,12 @@ dependencies {
     api(libs.inject)
     api(libs.jsr305)
 
+    implementation(projects.javaLanguageExtensions)
+    implementation(projects.serialization)
     implementation(project(":files"))
     implementation(project(":functional"))
     implementation(project(":hashing"))
     implementation(project(":logging-api"))
-    implementation(project(":messaging"))
-    implementation(project(":resources"))
 
     implementation(libs.guava)
     implementation(libs.jgitSsh) {

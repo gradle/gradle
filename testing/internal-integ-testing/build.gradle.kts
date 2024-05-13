@@ -37,6 +37,7 @@ dependencies {
         because("HttpServer leaks PortAllocator to spock AST transformer")
     }
 
+    implementation(projects.io)
     implementation(project(":enterprise-operations"))
     implementation(project(":messaging"))
     implementation(project(":native"))
@@ -54,9 +55,11 @@ dependencies {
     implementation(project(":platform-jvm"))
     implementation(project(":dependency-management"))
     implementation(project(":configuration-cache"))
+    implementation(project(":daemon-protocol"))
     implementation(project(":launcher"))
     implementation(project(":build-events"))
     implementation(project(":build-option"))
+    implementation(project(":build-state"))
     implementation(project(":toolchains-jvm-shared"))
 
     implementation(libs.groovy)

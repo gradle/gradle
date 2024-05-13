@@ -7,35 +7,20 @@ description = "Implementation of configuration model types and annotation metada
 
 errorprone {
     disabledChecks.addAll(
-        "AnnotateFormatMethod", // 1 occurrences
-        "EmptyBlockTag", // 3 occurrences
-        "FormatString", // 1 occurrences
-        "GetClassOnEnum", // 4 occurrences
-        "HidingField", // 1 occurrences
-        "IdentityHashMapUsage", // 1 occurrences
+        "AnnotateFormatMethod", // 1 occurrence, needs errorprone annotations
         "ImmutableEnumChecker", // 1 occurrences
-        "InvalidParam", // 1 occurrences
-        "MixedMutabilityReturnType", // 4 occurrences
-        "MutablePublicArray", // 1 occurrences
-        "NullableOptional", // 2 occurrences
-        "OperatorPrecedence", // 5 occurrences
         "ReferenceEquality", // 3 occurrences
-        "StringCaseLocaleUsage", // 13 occurrences
-        "TypeParameterShadowing", // 2 occurrences
         "UndefinedEquals", // 2 occurrences
-        "UnnecessaryLambda", // 1 occurrences
-        "UnnecessaryParentheses", // 1 occurrences
-        "UnnecessaryStringBuilder", // 1 occurrences
         "UnusedMethod", // 8 occurrences
-        "UnusedTypeParameter", // 1 occurrences
         "UnusedVariable", // 20 occurrences
     )
 }
 
 dependencies {
+    api(projects.javaLanguageExtensions)
+    api(projects.serialization)
     api(project(":core-api"))
     api(project(":problems-api"))
-    api(project(":base-annotations"))
     api(project(":hashing"))
     api(project(":process-services"))
     api(project(":base-services"))
@@ -53,6 +38,7 @@ dependencies {
     api(libs.guava)
 
     implementation(project(":base-services-groovy"))
+    implementation(project(":base-asm"))
 
     implementation(libs.futureKotlin("stdlib"))
     implementation(libs.slf4jApi)

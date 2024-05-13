@@ -20,7 +20,7 @@ import org.gradle.api.internal.cache.CacheConfigurationsInternal
 import org.gradle.api.internal.cache.CacheResourceConfigurationInternal
 import org.gradle.cache.internal.DefaultUnscopedCacheBuilderFactory
 import org.gradle.cache.internal.UsedGradleVersions
-import org.gradle.internal.resource.local.ModificationTimeFileAccessTimeJournal
+import org.gradle.internal.file.nio.ModificationTimeFileAccessTimeJournal
 import org.gradle.internal.time.TimestampSuppliers
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.TestInMemoryCacheFactory

@@ -49,7 +49,7 @@ class AndroidIncrementalExecutionPerformanceTest extends AbstractIncrementalExec
         // use the deprecated property so it works with previous versions
         runner.args.add("-D${StartParameterBuildOptions.ConfigurationCacheProblemsOption.DEPRECATED_PROPERTY_NAME}=warn")
         runner.warmUpRuns = 20
-        applyEnterprisePlugin()
+        applyDevelocityPlugin()
     }
 
     def "abi change#configurationCaching"() {

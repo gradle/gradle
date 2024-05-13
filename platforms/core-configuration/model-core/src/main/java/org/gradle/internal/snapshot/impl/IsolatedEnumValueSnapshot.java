@@ -25,7 +25,7 @@ import javax.annotation.Nullable;
 /**
  * Isolates an Enum value and is a snapshot for that value.
  */
-public class IsolatedEnumValueSnapshot extends EnumValueSnapshot implements Isolatable<Enum> {
+public class IsolatedEnumValueSnapshot extends EnumValueSnapshot implements Isolatable<Enum<?>> {
     private final Enum<?> value;
 
     public IsolatedEnumValueSnapshot(Enum<?> value) {
@@ -43,17 +43,17 @@ public class IsolatedEnumValueSnapshot extends EnumValueSnapshot implements Isol
     }
 
     @Override
-    public Enum isolate() {
+    public Enum<?> isolate() {
         return value;
     }
 
     @Nullable
     @Override
     public <S> S coerce(Class<S> type) {
-        if (type.isAssignableFrom(value.getClass())) {
+        if (type.isInstance(value)) {
             return type.cast(value);
         }
-        if (type.isEnum() && type.getName().equals(value.getClass().getName())) {
+        if (type.isEnum() && type.getName().equals(value.getDeclaringClass().getName())) {
             return type.cast(Enum.valueOf(Cast.uncheckedNonnullCast(type.asSubclass(Enum.class)), value.name()));
         }
         return null;

@@ -72,6 +72,7 @@ dependencies {
         api(libs.commonsLang3)          { version { strictly("3.14.0") }}
         api(libs.commonsMath)           { version { strictly("3.6.1") }}
         api(libs.eclipseSisuPlexus)     { version { strictly("0.3.5"); because("transitive dependency of Maven modules to process POM metadata") }}
+        api(libs.errorProneAnnotations) { version { strictly("2.26.1") }}
         api(libs.gradleProfiler)        { version { strictly("0.21.0-alpha-3") }}
         api(libs.develocityTestAnnotation) { version { strictly("2.0.1") }}
         api(libs.gcs)                   { version { strictly("v1-rev20220705-1.32.1") }}
@@ -151,6 +152,7 @@ dependencies {
         api(libs.plist)                 { version { strictly("1.27") }}
         api(libs.servletApi)            { version { strictly("3.1.0") }}
         api(libs.slf4jApi)              { version { strictly(slf4jVersion) }}
+        api(libs.slf4jSimple)           { version { strictly(slf4jVersion) }}
         api(libs.snakeyaml)             { version { strictly("2.0") }}
         api(libs.testng)                { version { strictly("6.3.1"); because("later versions break test cross-version test filtering") }}
         api(libs.tomlj)                 { version { strictly(tomljVersion) }}
@@ -177,7 +179,7 @@ dependencies {
         api(libs.cglib)                 { version { strictly("3.2.6") }}
         api(libs.compileTesting)        { version { strictly("0.21.0")}}
         api(libs.equalsverifier)        { version { strictly("2.1.6") }}
-        api(libs.guice)                 { version { strictly("4.2.3") }}
+        api(libs.guice)                 { version { strictly("5.1.0") }}
         api(libs.httpmime)              { version { strictly("4.5.10") }}
         api(libs.javaParser)            { version { strictly("3.17.0") }}
         api(libs.jetty)                 { version { strictly(jettyVersion) }}

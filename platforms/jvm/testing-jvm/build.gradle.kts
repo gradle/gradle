@@ -1,5 +1,6 @@
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.instrumented-project")
 }
 
 description = """JVM-specific testing functionality, including the Test type and support for configuring options for and detecting
@@ -17,7 +18,8 @@ errorprone {
 }
 
 dependencies {
-    api(project(":base-annotations"))
+    api(projects.javaLanguageExtensions)
+    api(projects.time)
     api(project(":base-services"))
     api(project(":build-operations"))
     api(project(":core"))
@@ -36,6 +38,7 @@ dependencies {
     api(libs.inject)
     api(libs.jsr305)
 
+    implementation(projects.concurrent)
     implementation(project(":file-temp"))
     implementation(project(":functional"))
     implementation(project(":logging-api"))
@@ -52,7 +55,6 @@ dependencies {
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":model-core")))
 
-    integTestImplementation(project(":plugins"))
     integTestImplementation(testFixtures(project(":testing-base")))
     integTestImplementation(testFixtures(project(":language-groovy")))
 

@@ -35,6 +35,18 @@ The previous step will help you identify potential problems by issuing deprecati
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_8.9]]
+== Upgrading from 8.8 and earlier
+
+=== Potential breaking changes
+
+==== Change to toolchain provisioning
+In previous versions of Gradle, toolchain provisioning could leave a partially provisioned toolchain in place **with a marker file indicating that the toolchain was fully provisioned**. This could lead to strange behavior with the toolchain. In Gradle 8.9, the toolchain is now fully provisioned before the marker file is written. However, in order to not detect potentially broken toolchains, a different marker file (`.ready`) is used. This means that all of your existing toolchains will be re-provisioned the first time you use them with Gradle 8.9. Gradle 8.9 also writes the old marker file (`provisioned.ok`) to indicate that the toolchain was fully provisioned. This means that if you go back to an older version of Gradle, a 8.9-provisioned toolchain will **not** be re-provisioned.
+
+==== Upgrade to Kotlin 1.9.23
+
+The embedded Kotlin has been updated from 1.9.22 to link:https://github.com/JetBrains/kotlin/releases/tag/v1.9.23[Kotlin 1.9.23].
+
 [[changes_8.8]]
 == Upgrading from 8.7 and earlier
 
@@ -278,6 +290,8 @@ The complete design specification can be found https://docs.google.com/document/
 In implementing this spec, we have introduced the following breaking changes to the `ProblemSpec` interface:
 
 - The `label(String)` and `description(String)` methods have been replaced with the `id(String, String)` method and its overloaded variants.
+
+In addition, the corresponding Tooling API events are changed to reflect the new design.
 
 ==== Upgrade to Groovy 3.0.21
 

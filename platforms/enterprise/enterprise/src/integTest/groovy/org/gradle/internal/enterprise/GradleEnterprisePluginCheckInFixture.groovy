@@ -17,7 +17,7 @@
 package org.gradle.internal.enterprise
 
 import org.gradle.integtests.fixtures.executer.GradleExecuter
-import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
+import org.gradle.plugin.management.internal.autoapply.AutoAppliedDevelocityPlugin
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenFileRepository
 
@@ -28,10 +28,10 @@ class GradleEnterprisePluginCheckInFixture extends BaseBuildScanPluginCheckInFix
             projectDir,
             mavenRepo,
             pluginBuildExecuter,
-            AutoAppliedGradleEnterprisePlugin.GRADLE_ENTERPRISE_PLUGIN_ID.id,
+            AutoAppliedDevelocityPlugin.GRADLE_ENTERPRISE_PLUGIN_ID.id,
             'com.gradle.enterprise.gradleplugin',
             'GradleEnterprisePlugin',
-            AutoAppliedGradleEnterprisePlugin.GRADLE_ENTERPRISE_PLUGIN_ARTIFACT_NAME
+            AutoAppliedDevelocityPlugin.GRADLE_ENTERPRISE_PLUGIN_ARTIFACT_NAME
         )
     }
 

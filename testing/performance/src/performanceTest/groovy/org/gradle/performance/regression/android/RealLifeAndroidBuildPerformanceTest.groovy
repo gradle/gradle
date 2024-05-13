@@ -68,7 +68,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
         if (IncrementalAndroidTestProject.NOW_IN_ANDROID == testProject) {
             configureRunnerSpecificallyForNowInAndroid()
         }
-        applyEnterprisePlugin()
+        applyDevelocityPlugin()
 
         when:
         def result = runner.run()
@@ -108,7 +108,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
         if (IncrementalAndroidTestProject.NOW_IN_ANDROID == testProject) {
             configureRunnerSpecificallyForNowInAndroid()
         }
-        applyEnterprisePlugin()
+        applyDevelocityPlugin()
 
         when:
         def result = runner.run()
@@ -134,7 +134,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
         runner.args.add('-Dorg.gradle.parallel=true')
         runner.warmUpRuns = 2
         runner.runs = 8
-        applyEnterprisePlugin()
+        applyDevelocityPlugin()
 
         when:
         def result = runner.run()

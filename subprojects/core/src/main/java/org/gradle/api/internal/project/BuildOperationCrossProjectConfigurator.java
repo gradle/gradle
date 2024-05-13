@@ -76,13 +76,9 @@ public class BuildOperationCrossProjectConfigurator implements CrossProjectConfi
         return mutationGuard;
     }
 
-    private final static String ALLPROJECTS = "allprojects";
-    private final static String SUBPROJECTS = "subprojects";
-    private final static String ROOTPROJECT = "rootProject";
-
-    private final static BuildOperationDescriptor.Builder ALLPROJECTS_DETAILS = computeConfigurationBlockBuildOperationDetails(ALLPROJECTS);
-    private final static BuildOperationDescriptor.Builder SUBPROJECTS_DETAILS = computeConfigurationBlockBuildOperationDetails(SUBPROJECTS);
-    private final static BuildOperationDescriptor.Builder ROOT_PROJECT_DETAILS = computeConfigurationBlockBuildOperationDetails(ROOTPROJECT);
+    private final static BuildOperationDescriptor.Builder ALLPROJECTS_DETAILS = computeConfigurationBlockBuildOperationDetails("allprojects");
+    private final static BuildOperationDescriptor.Builder SUBPROJECTS_DETAILS = computeConfigurationBlockBuildOperationDetails("subprojects");
+    private final static BuildOperationDescriptor.Builder ROOT_PROJECT_DETAILS = computeConfigurationBlockBuildOperationDetails("rootProject");
 
     private static BuildOperationDescriptor.Builder computeConfigurationBlockBuildOperationDetails(String configurationBlockName) {
         return BuildOperationDescriptor.displayName("Execute '" + configurationBlockName + " {}' action").name(configurationBlockName);
@@ -122,7 +118,7 @@ public class BuildOperationCrossProjectConfigurator implements CrossProjectConfi
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            String name = "Cross-configure project " + ((ProjectInternal) project).getIdentityPath().toString();
+            String name = "Cross-configure project " + ((ProjectInternal) project).getIdentityPath();
             return BuildOperationDescriptor.displayName(name);
         }
     }

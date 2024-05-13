@@ -22,6 +22,8 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.NonNullApi;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.code.UserCodeSource;
+import org.gradle.internal.problems.failure.Failure;
+import org.gradle.internal.problems.failure.FailureFactory;
 import org.gradle.problems.Location;
 import org.gradle.problems.ProblemDiagnostics;
 import org.gradle.problems.buildtree.ProblemDiagnosticsFactory;
@@ -33,10 +35,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-@NonNullApi
 public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFactory {
 
-    @NonNullApi
     private static class CopyStackTraceTransFormer implements ProblemStream.StackTraceTransformer {
         @Override
         public List<StackTraceElement> transform(StackTraceElement[] original) {
@@ -54,24 +54,28 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
         }
     };
 
+    private final FailureFactory failureFactory;
     private final ProblemLocationAnalyzer locationAnalyzer;
     private final UserCodeApplicationContext userCodeContext;
     private final int maxStackTraces;
 
     @Inject
     public DefaultProblemDiagnosticsFactory(
+        FailureFactory failureFactory,
         ProblemLocationAnalyzer locationAnalyzer,
         UserCodeApplicationContext userCodeContext
     ) {
-        this(locationAnalyzer, userCodeContext, 50);
+        this(failureFactory, locationAnalyzer, userCodeContext, 50);
     }
 
     @VisibleForTesting
     DefaultProblemDiagnosticsFactory(
+        FailureFactory failureFactory,
         ProblemLocationAnalyzer locationAnalyzer,
         UserCodeApplicationContext userCodeContext,
         int maxStackTraces
     ) {
+        this.failureFactory = failureFactory;
         this.locationAnalyzer = locationAnalyzer;
         this.userCodeContext = userCodeContext;
         this.maxStackTraces = maxStackTraces;
@@ -102,14 +106,16 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
         }
 
         List<StackTraceElement> stackTrace = Collections.emptyList();
+        Failure stackTracingFailure = null;
         Location location = null;
         if (throwable != null) {
             stackTrace = transformer.transform(throwable.getStackTrace());
-            location = locationAnalyzer.locationForUsage(stackTrace, fromException);
+            stackTracingFailure = failureFactory.create(throwable);
+            location = locationAnalyzer.locationForUsage(stackTracingFailure, fromException);
         }
 
         UserCodeSource source = applicationContext != null ? applicationContext.getSource() : null;
-        return new DefaultProblemDiagnostics(keepException ? throwable : null, stackTrace, location, source);
+        return new DefaultProblemDiagnostics(stackTracingFailure, keepException ? throwable : null, stackTrace, location, source);
     }
 
     @NonNullApi
@@ -154,23 +160,31 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
         }
     }
 
-    @NonNullApi
     private static class DefaultProblemDiagnostics implements ProblemDiagnostics {
+        private final Failure failure;
         private final Throwable exception;
         private final List<StackTraceElement> stackTrace;
         private final Location location;
         private final UserCodeSource source;
 
         public DefaultProblemDiagnostics(
+            @Nullable Failure stackTracingFailure,
             @Nullable Throwable exception,
             List<StackTraceElement> stackTrace,
             @Nullable Location location,
             @Nullable UserCodeSource source
         ) {
+            this.failure = stackTracingFailure;
             this.exception = exception;
             this.stackTrace = stackTrace;
             this.location = location;
             this.source = source;
+        }
+
+        @Nullable
+        @Override
+        public Failure getFailure() {
+            return failure;
         }
 
         @Nullable

@@ -773,7 +773,6 @@ class ConfigurationCacheFingerprintWriter(
             PropertyProblem(
                 trace,
                 StructuredMessage.build(messageBuilder),
-                null,
                 documentationSection = documentationSection
             )
         )

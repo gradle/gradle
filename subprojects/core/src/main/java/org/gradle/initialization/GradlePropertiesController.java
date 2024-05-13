@@ -50,7 +50,7 @@ public interface GradlePropertiesController {
     void loadGradlePropertiesFrom(File settingsDir, boolean setSystemProperties);
 
     /**
-     * Unloads the properties so the next call to {@link #loadGradlePropertiesFrom(File)} would reload them and
+     * Unloads the properties so the next call to {@link #loadGradlePropertiesFrom(File, boolean)} would reload them and
      * re-evaluate any property defining system properties and environment variables.
      */
     void unloadGradleProperties();

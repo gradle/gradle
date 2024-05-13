@@ -26,15 +26,12 @@ import org.gradle.language.nativeplatform.internal.incremental.sourceparser.Cach
 import org.gradle.language.nativeplatform.internal.toolchains.DefaultToolChainSelector;
 
 public class NativeLanguageServices extends AbstractPluginServiceRegistry {
-    @Override
-    public void registerGradleServices(ServiceRegistration registration) {
-        registration.add(DefaultCompilationStateCacheFactory.class);
-        registration.add(CachingCSourceParser.class);
-    }
 
     @Override
     public void registerBuildServices(ServiceRegistration registration) {
         registration.add(NativeDependencyCache.class);
+        registration.add(DefaultCompilationStateCacheFactory.class);
+        registration.add(CachingCSourceParser.class);
     }
 
     @Override

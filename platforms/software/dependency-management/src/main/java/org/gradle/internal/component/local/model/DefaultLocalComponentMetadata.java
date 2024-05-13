@@ -40,7 +40,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -66,7 +65,7 @@ public final class DefaultLocalComponentMetadata implements LocalComponentMetada
     private final Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> artifactTransformer;
 
     private final Map<String, LocalConfigurationMetadata> allConfigurations = new LinkedHashMap<>();
-    private Optional<List<? extends VariantGraphResolveMetadata>> consumableConfigurations;
+    private List<? extends VariantGraphResolveMetadata> consumableConfigurations;
 
     public DefaultLocalComponentMetadata(
         ModuleVersionIdentifier moduleVersionId,
@@ -151,7 +150,7 @@ public final class DefaultLocalComponentMetadata implements LocalComponentMetada
      * For a local project component, the `variantsForGraphTraversal` are any _consumable_ configurations that have attributes defined.
      */
     @Override
-    public synchronized Optional<List<? extends VariantGraphResolveMetadata>> getVariantsForGraphTraversal() {
+    public synchronized List<? extends VariantGraphResolveMetadata> getVariantsForGraphTraversal() {
         if (consumableConfigurations == null) {
             ImmutableList.Builder<VariantGraphResolveMetadata> builder = new ImmutableList.Builder<>();
             configurationFactory.visitConfigurations(candidate -> {
@@ -160,8 +159,7 @@ public final class DefaultLocalComponentMetadata implements LocalComponentMetada
                 }
             });
 
-            ImmutableList<VariantGraphResolveMetadata> variants = builder.build();
-            consumableConfigurations = !variants.isEmpty() ? Optional.of(variants) : Optional.empty();
+            consumableConfigurations = builder.build();
         }
         return consumableConfigurations;
     }
@@ -170,7 +168,7 @@ public final class DefaultLocalComponentMetadata implements LocalComponentMetada
     public LocalConfigurationMetadata getConfiguration(final String name) {
         LocalConfigurationMetadata md = allConfigurations.get(name);
         if (md == null) {
-            md = configurationFactory.getConfiguration(name, this);
+            md = configurationFactory.getConfiguration(name);
             if (md == null) {
                 return null;
             }
@@ -231,10 +229,7 @@ public final class DefaultLocalComponentMetadata implements LocalComponentMetada
          * @return Null if the configuration with the given name does not exist.
          */
         @Nullable
-        LocalConfigurationMetadata getConfiguration(
-            String name,
-            DefaultLocalComponentMetadata parent
-        );
+        LocalConfigurationMetadata getConfiguration(String name);
 
         interface Candidate {
             String getName();
@@ -287,10 +282,7 @@ public final class DefaultLocalComponentMetadata implements LocalComponentMetada
         public void invalidate() {}
 
         @Override
-        public LocalConfigurationMetadata getConfiguration(
-            String name,
-            DefaultLocalComponentMetadata parent
-        ) {
+        public LocalConfigurationMetadata getConfiguration(String name) {
             return metadata.get(name);
         }
     }
@@ -300,6 +292,7 @@ public final class DefaultLocalComponentMetadata implements LocalComponentMetada
      */
     public static class ConfigurationsProviderMetadataFactory implements ConfigurationMetadataFactory {
 
+        private final ComponentIdentifier componentId;
         private final ConfigurationsProvider configurationsProvider;
         private final LocalConfigurationMetadataBuilder metadataBuilder;
         private final ModelContainer<?> model;
@@ -307,11 +300,13 @@ public final class DefaultLocalComponentMetadata implements LocalComponentMetada
         private final DefaultLocalConfigurationMetadataBuilder.DependencyCache cache;
 
         public ConfigurationsProviderMetadataFactory(
+            ComponentIdentifier componentId,
             ConfigurationsProvider configurationsProvider,
             LocalConfigurationMetadataBuilder metadataBuilder,
             ModelContainer<?> model,
             CalculatedValueContainerFactory calculatedValueContainerFactory
         ) {
+            this.componentId = componentId;
             this.configurationsProvider = configurationsProvider;
             this.metadataBuilder = metadataBuilder;
             this.model = model;
@@ -356,16 +351,13 @@ public final class DefaultLocalComponentMetadata implements LocalComponentMetada
         }
 
         @Override
-        public LocalConfigurationMetadata getConfiguration(
-            String name,
-            DefaultLocalComponentMetadata parent
-        ) {
+        public LocalConfigurationMetadata getConfiguration(String name) {
             ConfigurationInternal configuration = configurationsProvider.findByName(name);
             if (configuration == null) {
                 return null;
             }
 
-            return metadataBuilder.create(configuration, configurationsProvider, parent, cache, model, calculatedValueContainerFactory);
+            return metadataBuilder.create(configuration, configurationsProvider, componentId, cache, model, calculatedValueContainerFactory);
         }
     }
 

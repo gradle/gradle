@@ -24,7 +24,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 
-import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -35,13 +34,6 @@ import java.util.Set;
 public class FailOnVersionConflictGraphVisitor implements DependencyGraphVisitor {
 
     private final Set<Conflict> allConflicts = new LinkedHashSet<>();
-    private final String projectPath;
-    private final String configurationName;
-
-    public FailOnVersionConflictGraphVisitor(String projectPath, String configurationName) {
-        this.projectPath = projectPath;
-        this.configurationName = configurationName;
-    }
 
     @Override
     public void visitNode(DependencyGraphNode node) {
@@ -52,13 +44,12 @@ public class FailOnVersionConflictGraphVisitor implements DependencyGraphVisitor
         }
     }
 
-//    private Pair<List<? extends ModuleVersionIdentifier>, String> buildConflict(DependencyGraphComponent owner, ComponentSelectionReason selectionReason) {
-    private Conflict buildConflict(DependencyGraphComponent owner, ComponentSelectionReason selectionReason) {
+    private static Conflict buildConflict(DependencyGraphComponent owner, ComponentSelectionReason selectionReason) {
         ModuleIdentifier module = owner.getModuleVersion().getModule();
         return new Conflict(ImmutableList.copyOf(owner.getAllVersions()), buildConflictMessage(module, selectionReason));
     }
 
-    private String buildConflictMessage(ModuleIdentifier owner, ComponentSelectionReason selectionReason) {
+    private static String buildConflictMessage(ModuleIdentifier owner, ComponentSelectionReason selectionReason) {
         String conflictDescription = null;
         for (ComponentSelectionDescriptor description : selectionReason.getDescriptions()) {
             if (description.getCause().equals(ComponentSelectionCause.CONFLICT_RESOLUTION)) {
@@ -69,10 +60,7 @@ public class FailOnVersionConflictGraphVisitor implements DependencyGraphVisitor
         return owner.getGroup() + ":" + owner.getName() + " " + conflictDescription;
     }
 
-    public Set<Throwable> collectConflictFailures() {
-        if (!allConflicts.isEmpty()) {
-            return Collections.singleton(VersionConflictException.create(projectPath, configurationName, allConflicts));
-        }
-        return Collections.emptySet();
+    public Set<Conflict> getAllConflicts() {
+        return allConflicts;
     }
 }

@@ -27,9 +27,16 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation.RemovedIn;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
 import javax.annotation.Nullable;
 import java.util.List;
+
+import static org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility.ACCESSORS_KEPT;
 
 /**
  * Specifies the options for executing a Java application.
@@ -67,6 +74,11 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
      */
     @Optional
     @Input
+    @ReplacesEagerProperty(
+        replacedAccessors = @ReplacedAccessor(value = AccessorType.SETTER, name = "setMain", fluentSetter = true),
+        binaryCompatibility = ACCESSORS_KEPT,
+        deprecation = @ReplacedDeprecation(removedIn = RemovedIn.GRADLE9, withDslReference = true)
+    )
     Property<String> getMainClass();
 
     /**

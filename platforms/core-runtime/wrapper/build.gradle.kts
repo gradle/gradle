@@ -12,7 +12,7 @@ description = "Bootstraps a Gradle build initiated by the gradlew script"
 gradlebuildJava.usedInWorkers()
 
 dependencies {
-    implementation(project(":base-annotations"))
+    implementation(projects.javaLanguageExtensions)
     implementation(project(":cli"))
     implementation(project(":wrapper-shared"))
 

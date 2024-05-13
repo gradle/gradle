@@ -13,30 +13,6 @@
       }
     } ]
   }, {
-    "testId" : "org.gradle.performance.experiment.declarativedsl.DeclarativeDslFirstUsePerformanceTest.clean checkout",
-    "groups" : [ {
-      "testProject" : "largeEmptyMultiProjectDeclarativeDsl",
-      "coverage" : {
-        "per_day" : [ "linux", "macOs", "windows" ]
-      }
-    } ]
-  }, {
-    "testId" : "org.gradle.performance.experiment.declarativedsl.DeclarativeDslFirstUsePerformanceTest.cold daemon",
-    "groups" : [ {
-      "testProject" : "largeEmptyMultiProjectDeclarativeDsl",
-      "coverage" : {
-        "per_day" : [ "linux", "macOs", "windows" ]
-      }
-    } ]
-  }, {
-    "testId" : "org.gradle.performance.experiment.declarativedsl.DeclarativeDslFirstUsePerformanceTest.first use",
-    "groups" : [ {
-      "testProject" : "largeEmptyMultiProjectDeclarativeDsl",
-      "coverage" : {
-        "per_day" : [ "linux", "macOs", "windows" ]
-      }
-    } ]
-  }, {
     "testId" : "org.gradle.performance.experiment.java.ParallelBuildPerformanceTest.clean assemble with 4 parallel workers",
     "groups" : [ {
       "testProject" : "largeJavaMultiProject",
@@ -364,6 +340,14 @@
       }
     } ]
   }, {
+    "testId" : "org.gradle.performance.regression.buildcache.TaskOutputCachingJavaPerformanceTest.clean check on ephemeral ci with remote http cache",
+    "groups" : [ {
+      "testProject" : "smallJavaMultiProjectManyExternalDependencies",
+      "coverage" : {
+        "per_day" : [ "linux" ]
+      }
+    } ]
+  }, {
     "testId" : "org.gradle.performance.regression.buildcache.TaskOutputCachingNativePerformanceTest.clean assemble with local cache (native project)",
     "groups" : [ {
       "testProject" : "bigCppApp",
@@ -392,6 +376,30 @@
       "testProject" : "mediumSwiftMulti",
       "coverage" : {
         "per_day" : [ "linux" ]
+      }
+    } ]
+  }, {
+    "testId" : "org.gradle.performance.regression.corefeature.ArchiveTreePerformanceTest.compressing tar",
+    "groups" : [ {
+      "testProject" : "archivePerformanceProject",
+      "coverage" : {
+        "per_commit" : [ "linux" ]
+      }
+    } ]
+  }, {
+    "testId" : "org.gradle.performance.regression.corefeature.ArchiveTreePerformanceTest.compressing zip",
+    "groups" : [ {
+      "testProject" : "archivePerformanceProject",
+      "coverage" : {
+        "per_commit" : [ "linux" ]
+      }
+    } ]
+  }, {
+    "testId" : "org.gradle.performance.regression.corefeature.ArchiveTreePerformanceTest.packing tar",
+    "groups" : [ {
+      "testProject" : "archivePerformanceProject",
+      "coverage" : {
+        "per_commit" : [ "linux" ]
       }
     } ]
   }, {

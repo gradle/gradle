@@ -30,6 +30,7 @@ import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.SupportsConvention;
 import org.gradle.internal.Cast;
+import org.gradle.util.internal.TextUtil;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -104,7 +105,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     }
 
     private CollectionSupplier<T, C> noValueSupplier() {
-        return Cast.uncheckedCast(new NoValueSupplier<>(Value.missing()));
+        return new NoValueSupplier(Value.missing());
     }
 
     /**
@@ -127,7 +128,9 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     }
 
     private boolean isNoValueSupplier(CollectionSupplier<T, C> valueSupplier) {
-        return valueSupplier instanceof NoValueSupplier;
+        // Cannot use plain NoValueSupplier because of Java restrictions:
+        // a generic type [AbstractCollectionProperty<T, C>.]NoValueSupplier cannot be used in instanceof.
+        return valueSupplier instanceof AbstractCollectionProperty<?, ?>.NoValueSupplier;
     }
 
     @Override
@@ -192,7 +195,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     /**
      * Adds the given supplier as the new root supplier for this collection.
      *
-     * @param collector
+     * @param collector the collector to add
      * @param ignoreAbsent whether elements that are missing values should be ignored
      */
     private void addExplicitCollector(Collector<T> collector, boolean ignoreAbsent) {
@@ -309,7 +312,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         } else if (result.getPathToOrigin().isEmpty()) {
             return noValueSupplier();
         } else {
-            return new NoValueSupplier<>(result);
+            return new NoValueSupplier(result);
         }
     }
 
@@ -336,10 +339,11 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     protected String describeContents() {
-        return String.format("%s(%s, %s)", collectionType.getSimpleName().toLowerCase(), elementType, describeValue());
+        String typeDisplayName = TextUtil.toLowerCaseLocaleSafe(collectionType.getSimpleName());
+        return String.format("%s(%s, %s)", typeDisplayName, elementType, describeValue());
     }
 
-    class NoValueSupplier<T, C extends Collection<? extends T>> implements CollectionSupplier<T, C> {
+    class NoValueSupplier implements CollectionSupplier<T, C> {
         private final Value<? extends C> value;
 
         public NoValueSupplier(Value<? extends C> value) {

@@ -7,13 +7,12 @@ description = "Plugin and integration with JaCoCo code coverage"
 errorprone {
     disabledChecks.addAll(
         "ReferenceEquality", // 3 occurrences
-        "UnnecessaryParentheses", // 1 occurrences
         "UnusedMethod", // 1 occurrences
     )
 }
 
 dependencies {
-    api(project(":base-annotations"))
+    api(projects.javaLanguageExtensions)
     api(project(":base-services"))
     api(project(":core"))
     api(project(":core-api"))

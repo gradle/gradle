@@ -19,7 +19,7 @@ package org.gradle.internal.classpath
 import org.gradle.api.Action
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.api.internal.cache.StringInterner
-import org.gradle.api.internal.initialization.transform.utils.InstrumentationAnalysisSerializer
+import org.gradle.api.internal.initialization.transform.utils.DefaultInstrumentationAnalysisSerializer
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
 import org.gradle.test.fixtures.HttpRepository
@@ -37,7 +37,6 @@ import java.util.function.Supplier
 import java.util.regex.Pattern
 import java.util.stream.Collectors
 
-import static org.gradle.api.internal.initialization.transform.services.CacheInstrumentationDataBuildService.GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.ANALYSIS_OUTPUT_DIR
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.DEPENDENCY_ANALYSIS_FILE_NAME
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.MERGE_OUTPUT_DIR
@@ -49,7 +48,7 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
     @Rule
     public final RepositoryHttpServer server = new RepositoryHttpServer(temporaryFolder)
 
-    def serializer = new InstrumentationAnalysisSerializer(new StringInterner())
+    def serializer = new DefaultInstrumentationAnalysisSerializer(new StringInterner())
 
     def setup() {
         requireOwnGradleUserHomeDir("We test content in the global cache")
@@ -327,7 +326,7 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
 
         when:
         executer.inDirectory(file("subproject")).withTasks("jar").run()
-        run("tasks", "-D$GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY=true")
+        run("tasks")
 
         then:
         mergeAnalysisOutput("impl-1.0.jar").exists()
@@ -366,7 +365,7 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
 
         when:
         executer.inDirectory(file("subproject")).withTasks("jar").run()
-        run("tasks", "-D$GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY=true")
+        run("tasks")
 
         then:
         gradleUserHomeOutputs("instrumented/instrumented-api-1.0.jar").size() == 1
@@ -376,7 +375,7 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         file("subproject/api/src/main/java/B.java").text = "import org.gradle.C; public class B extends C {}"
         file("subproject/api/src/main/java/org/gradle/C.java") << "package org.gradle; public class C {}"
         executer.inDirectory(file("subproject")).withTasks("jar").run()
-        run("tasks", "-D$GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY=true")
+        run("tasks")
 
         then:
         gradleUserHomeOutputs("instrumented/instrumented-api-1.0.jar").size() == 2
@@ -405,7 +404,7 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
 
         when:
         executer.inDirectory(file("subproject")).withTasks("jar").run()
-        run("tasks", "-D$GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY=true")
+        run("tasks")
 
         then:
         gradleUserHomeOutputs("instrumented/instrumented-api-1.0.jar").size() == 1
@@ -415,7 +414,7 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         file("subproject/api/src/main/java/B.java").text = "public class B extends C {}"
         file("subproject/api/src/main/java/C.java") << "public class C {}"
         executer.inDirectory(file("subproject")).withTasks("jar").run()
-        run("tasks", "-D$GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY=true")
+        run("tasks")
 
         then:
         gradleUserHomeOutputs("instrumented/instrumented-api-1.0.jar").size() == 2

@@ -43,6 +43,7 @@ import org.gradle.configurationcache.serialization.beans.BeanStateWriter
 import org.gradle.configurationcache.serialization.runReadOperation
 import org.gradle.configurationcache.serialization.runWriteOperation
 import org.gradle.internal.Try
+import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.serialize.Decoder
@@ -165,7 +166,7 @@ class ConfigurationCacheFingerprintCheckerTest {
         assertThat(
             checkFingerprintGiven(
                 mock {
-                    on { hashCodeOf(scriptFile) } doReturn TestHashCodes.hashCodeFrom(1)
+                    on { hashCodeAndTypeOf(scriptFile) } doReturn (TestHashCodes.hashCodeFrom(1) to FileType.RegularFile)
                     on { displayNameOf(scriptFile) } doReturn "displayNameOf(scriptFile)"
                 },
                 ConfigurationCacheFingerprint.InputFile(
@@ -174,6 +175,66 @@ class ConfigurationCacheFingerprintCheckerTest {
                 )
             ),
             equalTo("file 'displayNameOf(scriptFile)' has changed")
+        )
+    }
+
+    @Test
+    fun `build input file has been removed`() {
+        val inputFile = File("input.txt")
+        // no need to match a missing file hash, as long it is changed from the original one
+        val missingFileHash = TestHashCodes.hashCodeFrom(2)
+        val originalFileHash = TestHashCodes.hashCodeFrom(1)
+        assertThat(
+            checkFingerprintGiven(
+                mock {
+                    on { hashCodeAndTypeOf(inputFile) } doReturn (missingFileHash to FileType.Missing)
+                    on { displayNameOf(inputFile) } doReturn "displayNameOf(inputFile)"
+                },
+                ConfigurationCacheFingerprint.InputFile(
+                    inputFile,
+                    originalFileHash
+                )
+            ),
+            equalTo("file 'displayNameOf(inputFile)' has been removed")
+        )
+    }
+
+    @Test
+    fun `build input file is replaced by directory`() {
+        val inputFile = File("input.txt")
+        // all we care is that it is changed from the original one
+        val newDirectoryHash = TestHashCodes.hashCodeFrom(2)
+        val originalFileHash = TestHashCodes.hashCodeFrom(1)
+        assertThat(
+            checkFingerprintGiven(
+                mock {
+                    on { hashCodeAndTypeOf(inputFile) } doReturn (newDirectoryHash to FileType.Directory)
+                    on { displayNameOf(inputFile) } doReturn "displayNameOf(inputFile)"
+                },
+                ConfigurationCacheFingerprint.InputFile(
+                    inputFile,
+                    originalFileHash
+                )
+            ),
+            equalTo("file 'displayNameOf(inputFile)' has been replaced by a directory")
+        )
+    }
+
+    @Test
+    fun `build input file system entry has been removed`() {
+        val inputFile = File("input.txt")
+        assertThat(
+            checkFingerprintGiven(
+                mock {
+                    on { hashCodeAndTypeOf(inputFile) } doReturn (TestHashCodes.hashCodeFrom(1) to FileType.Missing)
+                    on { displayNameOf(inputFile) } doReturn "displayNameOf(inputFile)"
+                },
+                ConfigurationCacheFingerprint.InputFileSystemEntry(
+                    inputFile,
+                    FileType.RegularFile
+                )
+            ),
+            equalTo("the file system entry 'displayNameOf(inputFile)' has been removed")
         )
     }
 
@@ -209,8 +270,8 @@ class ConfigurationCacheFingerprintCheckerTest {
         checkFingerprintGiven(
             mock {
                 on { allInitScripts } doReturn toMap.keys.toList()
-                on { hashCodeOf(any()) }.then { invocation ->
-                    toMap[invocation.getArgument(0)]
+                on { hashCodeAndTypeOf(any()) }.then { invocation ->
+                    toMap[invocation.getArgument(0)] to FileType.RegularFile
                 }
                 on { displayNameOf(any()) }.then { invocation ->
                     invocation.getArgument<File>(0).name

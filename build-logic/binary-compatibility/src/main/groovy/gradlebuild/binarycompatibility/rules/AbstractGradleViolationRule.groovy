@@ -39,8 +39,8 @@ import org.gradle.api.Incubating
 
 import javax.inject.Inject
 
-import static gradlebuild.binarycompatibility.upgrades.UpgradedProperties.SEEN_OLD_METHODS_OF_UPGRADED_PROPERTIES
-import static gradlebuild.binarycompatibility.upgrades.UpgradedProperty.UpgradedMethodKey
+import static gradlebuild.binarycompatibility.upgrades.UpgradedProperties.SEEN_OLD_ACCESSORS_OF_UPGRADED_PROPERTIES
+import static gradlebuild.binarycompatibility.upgrades.UpgradedProperty.AccessorKey
 
 @CompileStatic
 abstract class AbstractGradleViolationRule extends AbstractContextAwareViolationRule {
@@ -136,8 +136,8 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
 
     Violation acceptOrReject(JApiCompatibility member, List<String> changes, Violation rejection) {
         Set<ApiChange> seenApiChanges = (Set<ApiChange>) context.userData["seenApiChanges"]
-        Set<UpgradedMethodKey> seenOldMethodsOfUpgradedProperties = (Set<UpgradedMethodKey>) context.userData[SEEN_OLD_METHODS_OF_UPGRADED_PROPERTIES]
-        UpgradedProperties.maybeGetKeyOfOldMethodOfUpgradedProperty(member, context).ifPresent { seenOldMethodsOfUpgradedProperties.add(it) }
+        Set<AccessorKey> seenOldAccessorsOfUpgradedProperties = (Set<AccessorKey>) context.userData[SEEN_OLD_ACCESSORS_OF_UPGRADED_PROPERTIES]
+        UpgradedProperties.maybeGetKeyOfOldAccessorOfUpgradedProperty(member, context).ifPresent { seenOldAccessorsOfUpgradedProperties.add(it) }
 
         def change = new ApiChange(
             context.className,

@@ -252,7 +252,7 @@ public class ScalarCollectionNodeInitializerExtractionStrategy extends Collectio
         }
 
         @Override
-        public <T> T[] toArray(T[] a) {
+        public <E> E[] toArray(E[] a) {
             return getDelegate(false).toArray(a);
         }
 

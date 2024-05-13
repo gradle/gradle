@@ -50,6 +50,7 @@ import org.gradle.internal.execution.WorkExecutionTracker
 import org.gradle.internal.execution.WorkInputListeners
 import org.gradle.internal.execution.impl.DefaultFileNormalizationSpec
 import org.gradle.internal.execution.model.InputNormalizer
+import org.gradle.internal.file.FileType
 import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.fingerprint.LineEndingSensitivity
 import org.gradle.internal.hash.HashCode
@@ -406,7 +407,10 @@ class ConfigurationCacheFingerprintController internal constructor(
             gradleProperties.find(propertyName)?.uncheckedCast()
 
         override fun hashCodeOf(file: File) =
-            fileSystemAccess.read(file.absolutePath).hash
+            hashCodeAndTypeOf(file).first
+
+        override fun hashCodeAndTypeOf(file: File): Pair<HashCode, FileType> =
+            fileSystemAccess.read(file.absolutePath).let { it.hash to it.type }
 
         override fun hashCodeOfDirectoryContent(file: File): HashCode = directoryChildrenNamesHash(file)
 

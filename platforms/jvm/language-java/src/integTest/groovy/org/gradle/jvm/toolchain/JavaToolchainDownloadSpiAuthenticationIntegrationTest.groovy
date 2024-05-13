@@ -67,7 +67,7 @@ class JavaToolchainDownloadSpiAuthenticationIntegrationTest extends AbstractInte
         when:
         failure = executer
                 .withTasks("compileJava")
-                .requireOwnGradleUserHomeDir()
+                .requireOwnGradleUserHomeDir("needs to be able to provision fresh toolchains")
                 .withToolchainDownloadEnabled()
                 .runWithFailure()
 
@@ -79,8 +79,7 @@ class JavaToolchainDownloadSpiAuthenticationIntegrationTest extends AbstractInte
                 .assertHasCause("No matching toolchain could be found in the locally installed toolchains or the configured toolchain download repositories. " +
                     "Some toolchain resolvers had provisioning failures: custom (Unable to download toolchain matching the requirements " +
                     "({languageVersion=99, vendor=matching('exotic'), implementation=vendor-specific}) from '$archiveUri', " +
-                    "due to: Provisioned toolchain '" + temporaryFolder.testDirectory.file("user-home", "jdks", "toolchain") + "' could not be probed: " +
-                    "A problem occurred starting process 'command '" + temporaryFolder.testDirectory.file("user-home", "jdks", "toolchain", "bin", "java"))
+                    "due to: Unpacked JDK archive does not contain a Java home: " + temporaryFolder.testDirectory.file("user-home", ".tmp", "jdks", "toolchain"))
     }
 
     def "can download with basic authentication"() {
@@ -125,7 +124,7 @@ class JavaToolchainDownloadSpiAuthenticationIntegrationTest extends AbstractInte
         when:
         failure = executer
                 .withTasks("compileJava")
-                .requireOwnGradleUserHomeDir()
+                .requireOwnGradleUserHomeDir("needs to be able to provision fresh toolchains")
                 .withToolchainDownloadEnabled()
                 .runWithFailure()
 
@@ -137,7 +136,6 @@ class JavaToolchainDownloadSpiAuthenticationIntegrationTest extends AbstractInte
             .assertHasCause("No matching toolchain could be found in the locally installed toolchains or the configured toolchain download repositories. " +
                 "Some toolchain resolvers had provisioning failures: custom (Unable to download toolchain matching the requirements " +
                 "({languageVersion=99, vendor=matching('exotic'), implementation=vendor-specific}) from '$archiveUri', " +
-                "due to: Provisioned toolchain '" + temporaryFolder.testDirectory.file("user-home", "jdks", "toolchain") + "' could not be probed: " +
-                "A problem occurred starting process 'command '" + temporaryFolder.testDirectory.file("user-home", "jdks", "toolchain", "bin", "java"))
+                "due to: Unpacked JDK archive does not contain a Java home: " + temporaryFolder.testDirectory.file("user-home", ".tmp", "jdks", "toolchain"))
     }
 }

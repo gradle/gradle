@@ -75,12 +75,6 @@ import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.resources.DefaultResourceHandler;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskStatistics;
-import org.gradle.api.internal.tasks.userinput.BuildScanUserInputHandler;
-import org.gradle.api.internal.tasks.userinput.DefaultBuildScanUserInputHandler;
-import org.gradle.api.internal.tasks.userinput.DefaultUserInputHandler;
-import org.gradle.api.internal.tasks.userinput.NonInteractiveUserInputHandler;
-import org.gradle.api.internal.tasks.userinput.UserInputHandler;
-import org.gradle.api.internal.tasks.userinput.UserInputReader;
 import org.gradle.api.invocation.BuildInvocationDetails;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
@@ -129,7 +123,6 @@ import org.gradle.groovy.scripts.internal.ScriptSourceListener;
 import org.gradle.initialization.BuildLoader;
 import org.gradle.initialization.BuildOperationFiringSettingsPreparer;
 import org.gradle.initialization.BuildOperationSettingsProcessor;
-import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.initialization.DefaultGradlePropertiesController;
 import org.gradle.initialization.DefaultGradlePropertiesLoader;
@@ -183,11 +176,12 @@ import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForLegacy;
+import org.gradle.internal.cleanup.DefaultBuildOutputCleanupRegistry;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.composite.DefaultBuildIncluder;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.event.ScopedListenerManager;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.WorkExecutionTracker;
@@ -200,7 +194,7 @@ import org.gradle.internal.invocation.DefaultBuildInvocationDetails;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.logging.LoggingManagerInternal;
-import org.gradle.internal.logging.sink.OutputEventListenerManager;
+import org.gradle.internal.model.CalculatedValueFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.BuildOperationRunner;
@@ -217,7 +211,6 @@ import org.gradle.internal.service.CachingServiceLocator;
 import org.gradle.internal.service.ScopedServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.CaseSensitivity;
-import org.gradle.internal.time.Clock;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
@@ -236,7 +229,7 @@ import java.util.List;
 public class BuildScopeServices extends ScopedServiceRegistry {
 
     public BuildScopeServices(ServiceRegistry parent, BuildModelControllerServices.Supplier supplier) {
-        super(Scope.Build.class, parent);
+        super(Scope.Build.class, "build-scope services", parent);
         addProvider(new BuildCacheServices());
         register(registration -> {
             registration.add(DefaultExecOperations.class);
@@ -255,6 +248,7 @@ public class BuildScopeServices extends ScopedServiceRegistry {
             registration.add(DefaultBuildIncluder.class);
             registration.add(DefaultScriptClassPathResolver.class);
             registration.add(DefaultScriptHandlerFactory.class);
+            registration.add(DefaultBuildOutputCleanupRegistry.class);
             supplier.applyServicesTo(registration, this);
             for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
                 pluginServiceRegistry.registerBuildServices(registration);
@@ -344,7 +338,7 @@ public class BuildScopeServices extends ScopedServiceRegistry {
         return new DefaultTextFileResourceLoader(resolver);
     }
 
-    protected DefaultListenerManager createListenerManager(DefaultListenerManager listenerManager) {
+    protected ScopedListenerManager createListenerManager(ScopedListenerManager listenerManager) {
         return listenerManager.createChild(Scope.Build.class);
     }
 
@@ -398,13 +392,15 @@ public class BuildScopeServices extends ScopedServiceRegistry {
         ServiceRegistry services,
         GradleProperties gradleProperties,
         ExecFactory execFactory,
-        ListenerManager listenerManager
+        ListenerManager listenerManager,
+        CalculatedValueFactory calculatedValueFactory
     ) {
         return new DefaultValueSourceProviderFactory(
             listenerManager,
             instantiatorFactory,
             isolatableFactory,
             gradleProperties,
+            calculatedValueFactory,
             new DefaultExecOperations(execFactory.forContext().withoutExternalProcessStartedListener().build()),
             services
         );
@@ -674,10 +670,6 @@ public class BuildScopeServices extends ScopedServiceRegistry {
         return registry;
     }
 
-    protected BuildScanUserInputHandler createBuildScanUserInputHandler(UserInputHandler userInputHandler) {
-        return new DefaultBuildScanUserInputHandler(userInputHandler);
-    }
-
     protected BuildInvocationDetails createBuildInvocationDetails(BuildStartedTime buildStartedTime) {
         return new DefaultBuildInvocationDetails(buildStartedTime);
     }
@@ -735,13 +727,5 @@ public class BuildScopeServices extends ScopedServiceRegistry {
                 ? new BuildServiceProviderNagger(services.get(WorkExecutionTracker.class))
                 : BuildServiceProvider.Listener.EMPTY
         );
-    }
-
-    UserInputHandler createUserInputHandler(BuildRequestMetaData requestMetaData, OutputEventListenerManager outputEventListenerManager, Clock clock, UserInputReader inputReader) {
-        if (!requestMetaData.isInteractive()) {
-            return new NonInteractiveUserInputHandler();
-        }
-
-        return new DefaultUserInputHandler(outputEventListenerManager.getBroadcaster(), clock, inputReader);
     }
 }

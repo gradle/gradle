@@ -68,6 +68,7 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 
+@SuppressWarnings("UnusedMethod")
 public class WorkerDaemonServer implements RequestHandler<TransportableActionExecutionSpec, DefaultWorkResult> {
     private final ServiceRegistry internalServices;
     private final LegacyTypesSupport legacyTypesSupport;
@@ -126,6 +127,7 @@ public class WorkerDaemonServer implements RequestHandler<TransportableActionExe
         return "WorkerDaemonServer{}";
     }
 
+    @SuppressWarnings("unused") // Used by reflection
     private static class WorkerDaemonServices extends WorkerSharedUserHomeScopeServices {
 
         // TODO:configuration-cache - deprecate workers access to ProviderFactory?

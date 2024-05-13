@@ -2,6 +2,7 @@
   <profile version="1.0">
     <option name="myName" value="Gradle" />
     <inspection_tool class="21f28a86-2ba8-3048-9ce1-b6f10d4d4a12" enabled="true" level="WEAK WARNING" enabled_by_default="true" editorAttributes="INFO_ATTRIBUTES" />
+    <inspection_tool class="62125fc1-a999-3cf1-9b9b-a30b4375d9bf" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="73cd39e8-e54e-3a38-ad1b-b883fff4b1eb" enabled="true" level="WEAK WARNING" enabled_by_default="true" editorAttributes="INFO_ATTRIBUTES" />
     <inspection_tool class="AsciiDocLinkResolve" enabled="false" level="ERROR" enabled_by_default="false" />
     <inspection_tool class="CatchMayIgnoreException" enabled="true" level="ERROR" enabled_by_default="true" />
@@ -94,6 +95,9 @@
         <constraint name="__context__" within="" contains="" />
       </replaceConfiguration>
       <replaceConfiguration name="Treat some Guava Collection factory methods as Deprecated" uuid="82f9f9ab-9c3b-367f-99ad-40841dc13819" text="com.google.common.collect.Sets.newTreeSet()" recursive="false" caseInsensitive="false" type="JAVA" pattern_context="default" reformatAccordingToStyle="true" shortenFQN="true" replacement="new java.util.TreeSet&lt;&gt;()">
+        <constraint name="__context__" within="" contains="" />
+      </replaceConfiguration>
+      <replaceConfiguration name="Use @ToBeImplemented annotation" suppressId="not_yet_implemented" problemDescriptor="Prefer '@ToBeImplemented' annotation" text="@NotYetImplemented" recursive="false" caseInsensitive="false" type="Groovy" pattern_context="File" reformatAccordingToStyle="true" shortenFQN="true" useStaticImport="true" replacement="@org.gradle.util.internal.ToBeImplemented">
         <constraint name="__context__" within="" contains="" />
       </replaceConfiguration>
     </inspection_tool>

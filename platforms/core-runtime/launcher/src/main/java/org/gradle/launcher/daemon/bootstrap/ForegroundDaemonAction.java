@@ -17,12 +17,13 @@ package org.gradle.launcher.daemon.bootstrap;
 
 import org.gradle.internal.agents.AgentInitializer;
 import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.daemon.configuration.DaemonServerConfiguration;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.server.Daemon;
-import org.gradle.launcher.daemon.server.DaemonServices;
+import org.gradle.launcher.daemon.server.DaemonProcessState;
 import org.gradle.launcher.daemon.server.MasterExpirationStrategy;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStrategy;
 
@@ -43,7 +44,8 @@ public class ForegroundDaemonAction implements Runnable {
         LoggingManagerInternal loggingManager = loggingRegistry.newInstance(LoggingManagerInternal.class);
         loggingManager.start();
 
-        DaemonServices daemonServices = new DaemonServices(configuration, loggingRegistry, loggingManager, DefaultClassPath.of());
+        DaemonProcessState daemonProcessState = new DaemonProcessState(configuration, loggingRegistry, loggingManager, DefaultClassPath.of());
+        ServiceRegistry daemonServices = daemonProcessState.getServices();
         Daemon daemon = daemonServices.get(Daemon.class);
         DaemonRegistry daemonRegistry = daemonServices.get(DaemonRegistry.class);
         DaemonExpirationStrategy expirationStrategy = daemonServices.get(MasterExpirationStrategy.class);
@@ -55,7 +57,7 @@ public class ForegroundDaemonAction implements Runnable {
             daemonRegistry.markState(daemon.getAddress(), Idle);
             daemon.stopOnExpiration(expirationStrategy, configuration.getPeriodicCheckIntervalMs());
         } finally {
-            daemon.stop();
+            CompositeStoppable.stoppable(daemon, daemonProcessState).stop();
         }
     }
 }

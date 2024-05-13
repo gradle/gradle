@@ -25,14 +25,12 @@ import org.gradle.initialization.BuildRequestContext;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.logging.console.GlobalUserInputReceiver;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
-import org.gradle.internal.remote.internal.Connection;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
 import org.gradle.launcher.daemon.protocol.Build;
@@ -102,7 +100,6 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters, 
     private final ExplainingSpec<DaemonContext> compatibilitySpec;
     private final InputStream buildStandardInput;
     private final GlobalUserInputReceiver userInput;
-    private final ExecutorFactory executorFactory;
     private final IdGenerator<UUID> idGenerator;
     private final ProcessEnvironment processEnvironment;
 
@@ -114,7 +111,6 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters, 
         ExplainingSpec<DaemonContext> compatibilitySpec,
         InputStream buildStandardInput,
         GlobalUserInputReceiver userInput,
-        ExecutorFactory executorFactory,
         IdGenerator<UUID> idGenerator,
         ProcessEnvironment processEnvironment
     ) {
@@ -123,7 +119,6 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters, 
         this.compatibilitySpec = compatibilitySpec;
         this.buildStandardInput = buildStandardInput;
         this.userInput = userInput;
-        this.executorFactory = executorFactory;
         this.idGenerator = idGenerator;
         this.processEnvironment = processEnvironment;
     }
@@ -238,12 +233,11 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters, 
         }
     }
 
-    private Object monitorBuild(Build build, DaemonDiagnostics diagnostics, Connection<Message> connection, BuildCancellationToken cancellationToken, BuildEventConsumer buildEventConsumer) {
-        DaemonClientInputForwarder inputForwarder = new DaemonClientInputForwarder(buildStandardInput, connection, userInput, executorFactory);
+    private Object monitorBuild(Build build, DaemonDiagnostics diagnostics, DaemonClientConnection connection, BuildCancellationToken cancellationToken, BuildEventConsumer buildEventConsumer) {
+        DaemonClientInputForwarder inputForwarder = new DaemonClientInputForwarder(buildStandardInput, connection, userInput);
         DaemonCancelForwarder cancelForwarder = new DaemonCancelForwarder(connection, cancellationToken);
         try {
             cancelForwarder.start();
-            inputForwarder.start();
             int objectsReceived = 0;
 
             while (true) {
@@ -254,6 +248,9 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters, 
                 }
 
                 if (object == null) {
+                    // The daemon has potentially disappeared, so mark the connection as suspect.
+                    // This makes the connection lenient if outgoing messages cannot be written while attempting to gracefully shut down the connection (in the finally {} block below)
+                    connection.markSuspect();
                     return handleDaemonDisappearance(build, diagnostics);
                 } else if (object instanceof OutputMessage) {
                     outputEventListener.onOutput(((OutputMessage) object).getEvent());
@@ -269,10 +266,10 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters, 
         }
     }
 
-    private Result handleDaemonDisappearance(Build build, DaemonDiagnostics diagnostics) {
-        //we can try sending something to the daemon and try out if he is really dead or use jps
-        //if he's really dead we should deregister it if it is not already deregistered.
-        //if the daemon is not dead we might continue receiving from him (and try to find the bug in messaging infrastructure)
+    private Result<?> handleDaemonDisappearance(Build build, DaemonDiagnostics diagnostics) {
+        //we can try sending something to the daemon and try out if it is really dead or use jps
+        //if it's really dead we should deregister it if it is not already deregistered.
+        //if the daemon is not dead we might continue receiving from it (and try to find the bug in messaging infrastructure)
         LOGGER.error("The message received from the daemon indicates that the daemon has disappeared."
             + "\nBuild request sent: {}"
             + "\nAttempting to read last messages from the daemon log...", build);

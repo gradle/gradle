@@ -19,7 +19,7 @@ package org.gradle.internal.snapshot.impl;
 import com.google.common.base.Objects;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
-import org.gradle.internal.io.ClassLoaderObjectInputStream;
+import org.gradle.internal.serialize.ClassLoaderObjectInputStream;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.snapshot.ValueSnapshottingException;

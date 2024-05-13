@@ -26,6 +26,7 @@ public class ServiceRegistryBuilder {
     private final List<Object> providers = new ArrayList<Object>();
     private String displayName;
     private Class<? extends Scope> scope;
+    private boolean strict;
 
     private ServiceRegistryBuilder() {
     }
@@ -52,9 +53,30 @@ public class ServiceRegistryBuilder {
     /**
      * Providing a scope makes the resulting {@link ServiceRegistry}
      * validate all registered services for being annotated with the given scope.
+     * <p>
+     * However, this still allows to register services without the
+     * {@link org.gradle.internal.service.scopes.ServiceScope @ServiceScope} annotation.
+     *
+     * @see #scopeStrictly(Class)
      */
     public ServiceRegistryBuilder scope(Class<? extends Scope> scope) {
         this.scope = scope;
+        this.strict = false;
+        return this;
+    }
+
+    /**
+     * Providing a scope makes the resulting {@link ServiceRegistry}
+     * validate all registered services for being annotated with the given scope.
+     * <p>
+     * All registered services require the {@link org.gradle.internal.service.scopes.ServiceScope @ServiceScope}
+     * annotation to be present and contain the given scope.
+     *
+     * @see #scope(Class)
+     */
+    public ServiceRegistryBuilder scopeStrictly(Class<? extends Scope> scope) {
+        this.scope = scope;
+        this.strict = true;
         return this;
     }
 
@@ -62,7 +84,7 @@ public class ServiceRegistryBuilder {
         ServiceRegistry[] parents = this.parents.toArray(new ServiceRegistry[0]);
 
         DefaultServiceRegistry registry = scope != null
-            ? new ScopedServiceRegistry(scope, displayName, parents)
+            ? new ScopedServiceRegistry(scope, strict, displayName, parents)
             : new DefaultServiceRegistry(displayName, parents);
 
         for (Object provider : providers) {

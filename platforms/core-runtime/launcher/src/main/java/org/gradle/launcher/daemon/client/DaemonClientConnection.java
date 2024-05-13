@@ -39,6 +39,7 @@ public class DaemonClientConnection implements Connection<Message> {
     private final StaleAddressDetector staleAddressDetector;
     private boolean hasReceived;
     private final Lock dispatchLock = new ReentrantLock();
+    private boolean suspect;
 
     public DaemonClientConnection(RemoteConnection<Message> connection, DaemonConnectDetails daemon, StaleAddressDetector staleAddressDetector) {
         this.connection = connection;
@@ -62,11 +63,15 @@ public class DaemonClientConnection implements Connection<Message> {
                 dispatchLock.unlock();
             }
         } catch (MessageIOException e) {
-            LOG.debug("Problem dispatching message to the daemon. Performing 'on failure' operation...");
-            if (!hasReceived && staleAddressDetector.maybeStaleAddress(e)) {
-                throw new StaleDaemonAddressException("Could not dispatch a message to the daemon.", e);
+            if (suspect) {
+                LOG.debug("Problem dispatching message to the daemon.", e);
+            } else {
+                LOG.debug("Problem dispatching message to the daemon. Performing 'on failure' operation...");
+                if (!hasReceived && staleAddressDetector.maybeStaleAddress(e)) {
+                    throw new StaleDaemonAddressException("Could not dispatch a message to the daemon.", e);
+                }
+                throw new DaemonConnectionException("Could not dispatch a message to the daemon.", e);
             }
-            throw new DaemonConnectionException("Could not dispatch a message to the daemon.", e);
         }
     }
 
@@ -84,6 +89,13 @@ public class DaemonClientConnection implements Connection<Message> {
         } finally {
             hasReceived = true;
         }
+    }
+
+    /**
+     * Treat the connection as probably broken, and leniently handle failures writing outgoing messages.
+     */
+    public void markSuspect() {
+        suspect = true;
     }
 
     @Override
