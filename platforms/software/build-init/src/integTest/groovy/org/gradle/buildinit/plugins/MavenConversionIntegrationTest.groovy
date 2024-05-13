@@ -27,6 +27,8 @@ import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.PomHttpArtifact
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
@@ -863,10 +865,12 @@ Root project 'webinar-parent'
     }
 }
 
+@Requires(IntegTestPreconditions.NotEmbeddedExecutor)
 class KotlinDslMavenConversionIntegrationTest extends MavenConversionIntegrationTest {
     BuildInitDsl scriptDsl = BuildInitDsl.KOTLIN
 }
 
+@Requires(IntegTestPreconditions.NotEmbeddedExecutor)
 class GroovyDslMavenConversionIntegrationTest extends MavenConversionIntegrationTest {
     BuildInitDsl scriptDsl = BuildInitDsl.GROOVY
 }

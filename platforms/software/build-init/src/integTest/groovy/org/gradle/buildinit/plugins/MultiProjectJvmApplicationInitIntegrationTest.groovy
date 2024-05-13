@@ -32,7 +32,6 @@ import static org.gradle.util.Matchers.containsLine
 import static org.gradle.util.Matchers.containsText
 import static org.hamcrest.core.AllOf.allOf
 
-@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "too slow")
 abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSpec {
     protected BuildInitDsl buildDsl
 
@@ -260,144 +259,168 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest3 extends Ab
     }
 }
 
+@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "too slow")
 class GroovyDslMultiProjectJavaApplicationInitIntegrationTest1 extends AbstractMultiProjectJvmApplicationInitIntegrationTest1 {
     def setup() {
         setupDslAndLanguage(BuildInitDsl.GROOVY, JAVA)
     }
 }
 
+@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "too slow")
 class GroovyDslMultiProjectJavaApplicationInitIntegrationTest2 extends AbstractMultiProjectJvmApplicationInitIntegrationTest2 {
     def setup() {
         setupDslAndLanguage(BuildInitDsl.GROOVY, JAVA)
     }
 }
 
+@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "too slow")
 class GroovyDslMultiProjectJavaApplicationInitIntegrationTest3 extends AbstractMultiProjectJvmApplicationInitIntegrationTest3 {
     def setup() {
         setupDslAndLanguage(BuildInitDsl.GROOVY, JAVA)
     }
 }
 
+@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "too slow")
 class GroovyDslMultiProjectGroovyApplicationInitIntegrationTest1 extends AbstractMultiProjectJvmApplicationInitIntegrationTest1 {
     def setup() {
         setupDslAndLanguage(BuildInitDsl.GROOVY, GROOVY)
     }
 }
 
+@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "too slow")
 class GroovyDslMultiProjectGroovyApplicationInitIntegrationTest2 extends AbstractMultiProjectJvmApplicationInitIntegrationTest2 {
     def setup() {
         setupDslAndLanguage(BuildInitDsl.GROOVY, GROOVY)
     }
 }
 
+@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "too slow")
 class GroovyDslMultiProjectGroovyApplicationInitIntegrationTest3 extends AbstractMultiProjectJvmApplicationInitIntegrationTest3 {
     def setup() {
         setupDslAndLanguage(BuildInitDsl.GROOVY, GROOVY)
     }
 }
 
+@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "too slow")
 class GroovyDslMultiProjectKotlinApplicationInitIntegrationTest1 extends AbstractMultiProjectJvmApplicationInitIntegrationTest1 {
     def setup() {
         setupDslAndLanguage(BuildInitDsl.GROOVY, KOTLIN)
     }
 }
 
+@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "too slow")
 class GroovyDslMultiProjectKotlinApplicationInitIntegrationTest2 extends AbstractMultiProjectJvmApplicationInitIntegrationTest2 {
     def setup() {
         setupDslAndLanguage(BuildInitDsl.GROOVY, KOTLIN)
     }
 }
 
+@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "too slow")
 class GroovyDslMultiProjectKotlinApplicationInitIntegrationTest3 extends AbstractMultiProjectJvmApplicationInitIntegrationTest3 {
     def setup() {
         setupDslAndLanguage(BuildInitDsl.GROOVY, KOTLIN)
     }
 }
 
+@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "too slow")
 class GroovyDslMultiProjectScalaApplicationInitIntegrationTest1 extends AbstractMultiProjectJvmApplicationInitIntegrationTest1 {
     def setup() {
         setupDslAndLanguage(BuildInitDsl.GROOVY, SCALA)
     }
 }
 
+@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "too slow")
 class GroovyDslMultiProjectScalaApplicationInitIntegrationTest2 extends AbstractMultiProjectJvmApplicationInitIntegrationTest2 {
     def setup() {
         setupDslAndLanguage(BuildInitDsl.GROOVY, SCALA)
     }
 }
 
+@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "too slow")
 class GroovyDslMultiProjectScalaApplicationInitIntegrationTest3 extends AbstractMultiProjectJvmApplicationInitIntegrationTest3 {
     def setup() {
         setupDslAndLanguage(BuildInitDsl.GROOVY, SCALA)
     }
 }
 
+@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "too slow")
 class KotlinDslMultiProjectJavaApplicationInitIntegrationTest1 extends AbstractMultiProjectJvmApplicationInitIntegrationTest1 {
     def setup() {
         setupDslAndLanguage(BuildInitDsl.KOTLIN, JAVA)
     }
 }
 
+@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "too slow")
 class KotlinDslMultiProjectJavaApplicationInitIntegrationTest2 extends AbstractMultiProjectJvmApplicationInitIntegrationTest2 {
     def setup() {
         setupDslAndLanguage(BuildInitDsl.KOTLIN, JAVA)
     }
 }
 
+@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "too slow")
 class KotlinDslMultiProjectJavaApplicationInitIntegrationTest3 extends AbstractMultiProjectJvmApplicationInitIntegrationTest3 {
     def setup() {
         setupDslAndLanguage(BuildInitDsl.KOTLIN, JAVA)
     }
 }
 
+@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "too slow")
 class KotlinDslMultiProjectGroovyApplicationInitIntegrationTest1 extends AbstractMultiProjectJvmApplicationInitIntegrationTest1 {
     def setup() {
         setupDslAndLanguage(BuildInitDsl.KOTLIN, GROOVY)
     }
 }
 
+@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "too slow")
 class KotlinDslMultiProjectGroovyApplicationInitIntegrationTest2 extends AbstractMultiProjectJvmApplicationInitIntegrationTest2 {
     def setup() {
         setupDslAndLanguage(BuildInitDsl.KOTLIN, GROOVY)
     }
 }
 
+@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "too slow")
 class KotlinDslMultiProjectGroovyApplicationInitIntegrationTest3 extends AbstractMultiProjectJvmApplicationInitIntegrationTest3 {
     def setup() {
         setupDslAndLanguage(BuildInitDsl.KOTLIN, GROOVY)
     }
 }
 
+@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "too slow")
 class KotlinDslMultiProjectKotlinApplicationInitIntegrationTest1 extends AbstractMultiProjectJvmApplicationInitIntegrationTest1 {
     def setup() {
         setupDslAndLanguage(BuildInitDsl.KOTLIN, KOTLIN)
     }
 }
 
+@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "too slow")
 class KotlinDslMultiProjectKotlinApplicationInitIntegrationTest2 extends AbstractMultiProjectJvmApplicationInitIntegrationTest2 {
     def setup() {
         setupDslAndLanguage(BuildInitDsl.KOTLIN, KOTLIN)
     }
 }
 
+@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "too slow")
 class KotlinDslMultiProjectKotlinApplicationInitIntegrationTest3 extends AbstractMultiProjectJvmApplicationInitIntegrationTest3 {
     def setup() {
         setupDslAndLanguage(BuildInitDsl.KOTLIN, KOTLIN)
     }
 }
 
+@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "too slow")
 class KotlinDslMultiProjectScalaApplicationInitIntegrationTest1 extends AbstractMultiProjectJvmApplicationInitIntegrationTest1 {
     def setup() {
         setupDslAndLanguage(BuildInitDsl.KOTLIN, SCALA)
     }
 }
 
+@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "too slow")
 class KotlinDslMultiProjectScalaApplicationInitIntegrationTest2 extends AbstractMultiProjectJvmApplicationInitIntegrationTest2 {
     def setup() {
         setupDslAndLanguage(BuildInitDsl.KOTLIN, SCALA)
     }
 }
 
+@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "too slow")
 class KotlinDslMultiProjectScalaApplicationInitIntegrationTest3 extends AbstractMultiProjectJvmApplicationInitIntegrationTest3 {
     def setup() {
         setupDslAndLanguage(BuildInitDsl.KOTLIN, SCALA)

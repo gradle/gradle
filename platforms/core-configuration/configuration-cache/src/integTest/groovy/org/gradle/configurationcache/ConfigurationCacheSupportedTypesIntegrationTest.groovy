@@ -25,6 +25,7 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.internal.event.ListenerManager
 import org.gradle.process.ExecOperations
 import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.workers.WorkerExecutor
@@ -35,6 +36,7 @@ import javax.inject.Inject
 import java.nio.charset.Charset
 import java.util.logging.Level
 
+@Requires(IntegTestPreconditions.NotEmbeddedExecutor)
 class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
     def "restores task fields whose value is instance of #type"() {

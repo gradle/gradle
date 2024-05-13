@@ -19,6 +19,8 @@ import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.publish.RemoteRepositorySpec
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.junit.Assume
 import spock.lang.Issue
 
@@ -39,6 +41,7 @@ class ForcingPlatformAlignmentMavenWithGradleMetadataTest extends ForcingPlatfor
 
 @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
 @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")
+@Requires(IntegTestPreconditions.NotEmbeddedExecutor)
 class ForcingPlatformAlignmentMavenWithoutGradleMetadataTest extends ForcingPlatformAlignmentTest {
 }
 

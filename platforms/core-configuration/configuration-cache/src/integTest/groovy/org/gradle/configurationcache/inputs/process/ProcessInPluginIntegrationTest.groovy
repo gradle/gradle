@@ -21,6 +21,8 @@ import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.process.ExecOperations
 import org.gradle.test.fixtures.dsl.GradleDsl
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
 import javax.inject.Inject
 
@@ -30,6 +32,7 @@ import static org.gradle.configurationcache.fixtures.ExternalProcessFixture.proc
 import static org.gradle.configurationcache.fixtures.ExternalProcessFixture.runtimeExec
 import static org.gradle.configurationcache.fixtures.ExternalProcessFixture.stringArrayExecute
 
+@Requires(IntegTestPreconditions.NotEmbeddedExecutor)
 class ProcessInPluginIntegrationTest extends AbstractProcessIntegrationTest {
     def "using #snippetsFactory.summary in convention plugin #file is a problem"() {
         given:
