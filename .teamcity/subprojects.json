@@ -1008,6 +1008,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "testing-base-infrastructure",
+    "path": "platforms/software/testing-base-infrastructure",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "testing-junit-platform",
     "path": "platforms/jvm/testing-junit-platform",
     "unitTests": false,

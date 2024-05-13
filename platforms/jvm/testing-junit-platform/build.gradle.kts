@@ -12,14 +12,16 @@ We make sure to include this subproject as a runtime dependency in :distribution
 
 dependencies {
     api(projects.javaLanguageExtensions)
+    api(projects.testingBaseInfrastructure)
     api(projects.time)
     api(project(":base-services"))
     api(project(":messaging"))
-    api(project(":testing-base"))
     api(project(":testing-jvm-infrastructure"))
 
     api(libs.junitPlatform)
     api(libs.junitPlatformEngine)
+
+    implementation(projects.testingBase)
 
     implementation(libs.jsr305)
 }

@@ -188,6 +188,7 @@ val software = platform("software") {
     subproject("security")
     subproject("signing")
     subproject("testing-base")
+    subproject("testing-base-infrastructure")
     subproject("test-suites-base")
     subproject("version-control")
 }
