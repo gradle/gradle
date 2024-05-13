@@ -110,7 +110,9 @@ class DefaultProjectSpec extends Specification {
 
     def "can view as an IsolatedProject"() {
         given:
-        def project = project('root', null, Stub(GradleInternal))
+        def rootBuild = Stub(GradleInternal)
+        rootBuild.identityPath >> Path.ROOT
+        def project = project('root', null, rootBuild)
 
         when:
         def isolatedProject = project.isolated
@@ -118,6 +120,7 @@ class DefaultProjectSpec extends Specification {
         then:
         isolatedProject.name == 'root'
         isolatedProject.path == ':'
+        isolatedProject.buildTreePath == ':'
         isolatedProject.projectDirectory === project.layout.projectDirectory
         isolatedProject.rootProject === isolatedProject
     }
@@ -177,6 +180,45 @@ class DefaultProjectSpec extends Specification {
         nestedChild2.path == ":child1:child2"
         nestedChild2.buildTreePath == ":nested:child1:child2"
         nestedChild2.identityPath == Path.path(":nested:child1:child2")
+    }
+
+    def "isolated project view preserves the path and build tree path"() {
+        def rootBuild = Stub(GradleInternal)
+        rootBuild.isRootBuild() >> true
+        rootBuild.parent >> null
+        rootBuild.identityPath >> Path.ROOT
+
+        def nestedBuild = Stub(GradleInternal)
+        rootBuild.isRootBuild() >> false
+        nestedBuild.parent >> rootBuild
+        nestedBuild.identityPath >> Path.path(":nested")
+
+        def rootProject = project("root", null, rootBuild)
+        def child1 = project("child1", rootProject, rootBuild)
+        def child2 = project("child2", child1, rootBuild)
+
+        def nestedRootProject = project("root", null, nestedBuild)
+        def nestedChild1 = project("child1", nestedRootProject, nestedBuild)
+        def nestedChild2 = project("child2", nestedChild1, nestedBuild)
+
+        expect:
+        rootProject.isolated.path == ":"
+        rootProject.isolated.buildTreePath == ':'
+
+        child1.isolated.path == ":child1"
+        child1.isolated.buildTreePath == ":child1"
+
+        child2.isolated.path == ":child1:child2"
+        child2.isolated.buildTreePath == ":child1:child2"
+
+        nestedRootProject.isolated.path == ":"
+        nestedRootProject.isolated.buildTreePath == ":nested"
+
+        nestedChild1.isolated.path == ":child1"
+        nestedChild1.isolated.buildTreePath == ":nested:child1"
+
+        nestedChild2.isolated.path == ":child1:child2"
+        nestedChild2.isolated.buildTreePath == ":nested:child1:child2"
     }
 
     ProjectInternal project(String name, @Nullable ProjectInternal parent, GradleInternal build) {
