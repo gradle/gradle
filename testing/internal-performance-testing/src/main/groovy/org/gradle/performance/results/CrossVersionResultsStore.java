@@ -129,6 +129,7 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
             "testClass", "testId", "startTime", "endTime", "targetVersion", "testProject", "tasks", "args", "gradleOpts", "daemon", "operatingSystem",
             "jvm", "vcsBranch", "vcsCommit", "channel", "host", "cleanTasks", "teamCityBuildId", "currentMedian", "baselineMedian", "diffConfidence");
 
+        System.out.println("Gradle opts: " + results.getGradleOpts());
 
         try (PreparedStatement statement = connection.prepareStatement(insertStatement, Statement.RETURN_GENERATED_KEYS)) {
             statement.setString(1, results.getTestClass());
