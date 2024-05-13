@@ -50,6 +50,7 @@ import org.gradle.jvm.toolchain.internal.IntellijInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.JabbaInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.LinuxInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.OsXInstallationSupplier;
+import org.gradle.jvm.toolchain.internal.ScoopInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.SdkmanInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.ToolchainConfiguration;
 import org.gradle.jvm.toolchain.internal.WindowsInstallationSupplier;
@@ -314,6 +315,7 @@ public abstract class AvailableJavaHomes {
             new EnvVariableJvmLocator(),
             new IntellijInstallationSupplier(toolchainConfiguration),
             new JabbaInstallationSupplier(toolchainConfiguration),
+            new ScoopInstallationSupplier(toolchainConfiguration),
             new LinuxInstallationSupplier(),
             new OsXInstallationSupplier(OperatingSystem.current(), new DefaultOsXJavaHomeCommand(TestFiles.execHandleFactory())),
             new SdkmanInstallationSupplier(toolchainConfiguration),

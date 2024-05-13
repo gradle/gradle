@@ -48,4 +48,6 @@ public interface ToolchainConfiguration {
     @Nullable File getJabbaHomeDirectory();
 
     File getSdkmanCandidatesDirectory();
+
+    File getScoopDirectory();
 }

@@ -135,4 +135,13 @@ public class DefaultToolchainConfiguration implements ToolchainConfiguration {
         }
         return new File(systemProperties.getUserHome(), ".sdkman/candidates");
     }
+
+    @Override
+    public File getScoopDirectory() {
+        String scoopEnvVar = environment.get("SCOOP");
+        if (scoopEnvVar != null) {
+            return new File(scoopEnvVar);
+        }
+        return new File(systemProperties.getUserHome(), "scoop");
+    }
 }

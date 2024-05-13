@@ -134,4 +134,13 @@ public class ProviderBackedToolchainConfiguration implements ToolchainConfigurat
         }
         return new File(systemProperties.getUserHome(), ".sdkman/candidates");
     }
+
+    @Override
+    public File getScoopDirectory() {
+        String scoopEnvVar = providerFactory.environmentVariable("SCOOP").getOrNull();
+        if (scoopEnvVar != null) {
+            return new File(scoopEnvVar);
+        }
+        return new File(systemProperties.getUserHome(), "scoop");
+    }
 }
