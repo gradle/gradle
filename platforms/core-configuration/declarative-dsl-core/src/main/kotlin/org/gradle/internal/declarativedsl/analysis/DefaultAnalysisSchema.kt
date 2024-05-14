@@ -173,7 +173,8 @@ object ParameterSemanticsInternal {
     @Serializable
     @SerialName("unknown")
     data object DefaultUnknown : ParameterSemantics.Unknown {
-        private fun readResolve(): Any = DefaultUnknown
+        private
+        fun readResolve(): Any = DefaultUnknown
     }
 }
 

@@ -28,7 +28,8 @@ object DataTypeInternal {
     data object DefaultIntDataType : DataType.IntDataType {
         override fun getConstantType(): Class<Int> = Int::class.java
         override fun toString(): String = "Int"
-        private fun readResolve(): Any = DefaultIntDataType
+        private
+        fun readResolve(): Any = DefaultIntDataType
     }
 
     @Serializable
@@ -36,7 +37,8 @@ object DataTypeInternal {
     data object DefaultLongDataType : DataType.LongDataType {
         override fun getConstantType(): Class<Long> = Long::class.java
         override fun toString(): String = "Long"
-        private fun readResolve(): Any = DefaultLongDataType
+        private
+        fun readResolve(): Any = DefaultLongDataType
     }
 
     @Serializable
@@ -44,7 +46,8 @@ object DataTypeInternal {
     data object DefaultStringDataType : DataType.StringDataType {
         override fun getConstantType(): Class<String> = String::class.java
         override fun toString(): String = "String"
-        private fun readResolve(): Any = DefaultStringDataType
+        private
+        fun readResolve(): Any = DefaultStringDataType
     }
 
     @Serializable
@@ -52,21 +55,24 @@ object DataTypeInternal {
     data object DefaultBooleanDataType : DataType.BooleanDataType {
         override fun getConstantType(): Class<Boolean> = Boolean::class.java
         override fun toString(): String = "Boolean"
-        private fun readResolve(): Any = DefaultBooleanDataType
+        private
+        fun readResolve(): Any = DefaultBooleanDataType
     }
 
     @Serializable
     @SerialName("null")
     data object DefaultNullType : DataType.NullType {
         override fun toString(): String = "Null"
-        private fun readResolve(): Any = DefaultNullType
+        private
+        fun readResolve(): Any = DefaultNullType
     }
 
     @Serializable
     @SerialName("unit")
     data object DefaultUnitType : DataType.UnitType {
         override fun toString(): String = "Unit"
-        private fun readResolve(): Any = DefaultUnitType
+        private
+        fun readResolve(): Any = DefaultUnitType
     }
 
 // TODO: `Any` type?

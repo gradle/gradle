@@ -19,7 +19,7 @@ package org.gradle.declarative.dsl.schema
 import java.io.Serializable
 
 
-interface DataProperty {
+interface DataProperty : Serializable {
     val name: String
     val valueType: DataTypeRef
     val mode: PropertyMode
