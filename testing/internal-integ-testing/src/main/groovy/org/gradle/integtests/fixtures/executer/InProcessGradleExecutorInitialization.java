@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.fixtures.executer
+package org.gradle.integtests.fixtures.executer;
 
-import org.gradle.api.model.ObjectFactory
-import org.spockframework.runtime.extension.IGlobalExtension
-import spock.lang.Issue
+import org.gradle.api.model.ObjectFactory;
+import org.spockframework.runtime.extension.IGlobalExtension;
+import spock.lang.Issue;
 
 /**
  * Initializes services for the in-process Gradle executor.
@@ -28,11 +28,14 @@ import spock.lang.Issue
  * may have a test implementation instead of the real thing when a unit test runs first.
  */
 @Issue("https://github.com/gradle/gradle-private/issues/3534")
-class InProcessGradleExecutorInitialization implements IGlobalExtension {
+public class InProcessGradleExecutorInitialization implements IGlobalExtension {
     @Override
-    void start() {
-        if (GradleContextualExecuter.embedded ) {
-            AbstractGradleExecuter.GLOBAL_SERVICES.get(ObjectFactory)
+    public void start() {
+        // Check the property without referencing GradleContextualExecuter to avoid loading AbstractGradleExecuter class.
+        // Loading AbstractGradleExecuter causes some initialization to happen that fails in some test JVMs
+        if (System.getProperty("org.gradle.integtest.executer") != null && GradleContextualExecuter.isEmbedded()) {
+            // We obtain ObjectFactory, since that initializes AsmBackedClassGenerator.GENERATED_CLASSES_CACHES
+            AbstractGradleExecuter.GLOBAL_SERVICES.get(ObjectFactory.class);
         }
     }
 }
