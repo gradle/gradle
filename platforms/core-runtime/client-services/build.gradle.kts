@@ -31,8 +31,10 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.asm)
     implementation(libs.slf4jApi)
-    implementation(project(":core"))
     implementation(project(":java-language-extensions"))
+
+    // The client should not depend on core, but core still contains some types that are shared between the client and daemon
+    implementation(project(":core"))
 
     testImplementation(testFixtures(project(":core"))) {
         because("ConcurrentSpecification")

@@ -18,6 +18,8 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "Public types for unit testing plugins"
+
 dependencies {
     api(libs.jsr305)
     api(project(":base-services"))
@@ -47,5 +49,3 @@ dependencies {
     }
     integTestDistributionRuntimeClasspath(project(":distributions-core"))
 }
-
-description = "Public types for unit testing plugins"
