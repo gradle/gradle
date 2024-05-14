@@ -1473,7 +1473,6 @@
 					"ear",
 					"resources-s3",
 					"plugins-jvm-test-fixtures",
-					"plugins",
 					"plugins-version-catalog",
 					"build-events"
 				]
