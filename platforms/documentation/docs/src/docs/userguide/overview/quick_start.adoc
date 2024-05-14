@@ -36,7 +36,7 @@ However, if you are starting a project from scratch, and you need to install Gra
 
 For software developers that need to build, test, and publish their app, or add dependencies to their build, get started here:
 
-== 1. Core Concepts
+=== 1. Core Concepts
 
 The core concepts section goes through the Gradle basics so that you can quickly understand how to invoke tasks, turn on features, apply plugins, add dependencies to your project, and more.
 
@@ -78,7 +78,7 @@ _Training level_: **Intermediate** +
 _Training time_: **65 minutes**
 
 [[reference]]
-=== 3. Reference
+=== 3. API Reference
 
 Gradle's API references can be found in the links below:
 
