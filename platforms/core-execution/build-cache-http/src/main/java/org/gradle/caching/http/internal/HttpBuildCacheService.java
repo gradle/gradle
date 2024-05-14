@@ -23,6 +23,7 @@ import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.protocol.HTTP;
@@ -33,6 +34,10 @@ import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.resource.transport.http.HttpClientHelper;
 import org.gradle.internal.resource.transport.http.HttpClientResponse;
 import org.slf4j.Logger;
@@ -64,11 +69,19 @@ public class HttpBuildCacheService implements BuildCacheService {
     );
 
     private final URI root;
+    private final BuildOperationRunner buildOperationRunner;
     private final HttpClientHelper httpClientHelper;
     private final HttpBuildCacheRequestCustomizer requestCustomizer;
     private final boolean useExpectContinue;
 
-    public HttpBuildCacheService(HttpClientHelper httpClientHelper, URI url, HttpBuildCacheRequestCustomizer requestCustomizer, boolean useExpectContinue) {
+    public HttpBuildCacheService(
+        BuildOperationRunner buildOperationRunner,
+        HttpClientHelper httpClientHelper,
+        URI url,
+        HttpBuildCacheRequestCustomizer requestCustomizer,
+        boolean useExpectContinue
+    ) {
+        this.buildOperationRunner = buildOperationRunner;
         this.requestCustomizer = requestCustomizer;
         this.useExpectContinue = useExpectContinue;
         this.root = withTrailingSlash(url);
@@ -82,7 +95,7 @@ public class HttpBuildCacheService implements BuildCacheService {
         httpGet.addHeader(HttpHeaders.ACCEPT, BUILD_CACHE_CONTENT_TYPE + ", */*");
         requestCustomizer.customize(httpGet);
 
-        try (HttpClientResponse response = httpClientHelper.performHttpRequest(httpGet)) {
+        try (HttpClientResponse response = performHttpRequest(key, httpGet)) {
             StatusLine statusLine = response.getStatusLine();
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Response for GET {}: {}", safeUri(uri), statusLine);
@@ -138,7 +151,7 @@ public class HttpBuildCacheService implements BuildCacheService {
                 return false;
             }
         });
-        try (HttpClientResponse response = httpClientHelper.performHttpRequest(httpPut)) {
+        try (HttpClientResponse response = performHttpRequest(key, httpPut)) {
             StatusLine statusLine = response.getStatusLine();
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Response for PUT {}: {}", safeUri(uri), statusLine);
@@ -153,6 +166,20 @@ public class HttpBuildCacheService implements BuildCacheService {
         } catch (IOException e) {
             throw wrap(e);
         }
+    }
+
+    private HttpClientResponse performHttpRequest(BuildCacheKey key, HttpRequestBase request) throws IOException {
+        return buildOperationRunner.call(new CallableBuildOperation<HttpClientResponse>() {
+            @Override
+            public HttpClientResponse call(BuildOperationContext context) throws Exception {
+                return httpClientHelper.performHttpRequest(request);
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor.displayName("HTTP " + request.getMethod() + " request for cache key " + key.getHashCode());
+            }
+        });
     }
 
     private static BuildCacheException wrap(Throwable e) {

@@ -11,6 +11,7 @@ dependencies {
     api(libs.inject)
     api(libs.jsr305)
 
+    api(projects.buildOperations)
     api(project(":base-services"))
     api(project(":build-cache-spi"))
     api(project(":core-api"))

@@ -25,6 +25,7 @@ import org.gradle.caching.BuildCacheException
 import org.gradle.caching.BuildCacheServiceFactory
 import org.gradle.caching.http.HttpBuildCache
 import org.gradle.caching.internal.TestBuildCacheKey
+import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.resource.transport.http.DefaultSslContextFactory
 import org.gradle.internal.resource.transport.http.HttpClientHelper
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -57,6 +58,7 @@ class HttpBuildCacheServiceTest extends Specification {
 
     BuildCacheServiceFactory.Describer buildCacheDescriber
     HttpClientHelper.Factory httpClientHelperFactory = HttpClientHelper.Factory.createFactory(new DocumentationRegistry())
+    def buildOperationRunner = new TestBuildOperationRunner()
 
     def key = new TestBuildCacheKey(0x01234567abcdef)
     private config = TestUtil.newInstance(HttpBuildCache.class)
@@ -66,7 +68,7 @@ class HttpBuildCacheServiceTest extends Specification {
     HttpBuildCacheService getCache() {
         if (cacheRef == null) {
             buildCacheDescriber = new NoopBuildCacheDescriber()
-            cacheRef = new DefaultHttpBuildCacheServiceFactory(new DefaultSslContextFactory(), { it.addHeader("X-Gradle-Version", "3.0") }, httpClientHelperFactory)
+            cacheRef = new DefaultHttpBuildCacheServiceFactory(buildOperationRunner, new DefaultSslContextFactory(), { it.addHeader("X-Gradle-Version", "3.0") }, httpClientHelperFactory)
                 .createBuildCacheService(this.config, buildCacheDescriber) as HttpBuildCacheService
         }
         cacheRef

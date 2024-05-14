@@ -25,6 +25,7 @@ import org.gradle.caching.http.HttpBuildCache;
 import org.gradle.caching.http.HttpBuildCacheCredentials;
 import org.gradle.internal.authentication.DefaultBasicAuthentication;
 import org.gradle.internal.deprecation.Documentation;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.resource.transport.http.DefaultHttpSettings;
 import org.gradle.internal.resource.transport.http.HttpClientHelper;
 import org.gradle.internal.resource.transport.http.HttpSettings;
@@ -45,12 +46,19 @@ public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFac
 
     private static final int MAX_REDIRECTS = Integer.getInteger("org.gradle.cache.http.max-redirects", 10);
 
+    private final BuildOperationRunner buildOperationRunner;
     private final SslContextFactory sslContextFactory;
     private final HttpBuildCacheRequestCustomizer requestCustomizer;
     private final HttpClientHelper.Factory httpClientHelperFactory;
 
     @Inject
-    public DefaultHttpBuildCacheServiceFactory(SslContextFactory sslContextFactory, HttpBuildCacheRequestCustomizer requestCustomizer, HttpClientHelper.Factory httpClientHelperFactory) {
+    public DefaultHttpBuildCacheServiceFactory(
+        BuildOperationRunner buildOperationRunner,
+        SslContextFactory sslContextFactory,
+        HttpBuildCacheRequestCustomizer requestCustomizer,
+        HttpClientHelper.Factory httpClientHelperFactory
+    ) {
+        this.buildOperationRunner = buildOperationRunner;
         this.sslContextFactory = sslContextFactory;
         this.requestCustomizer = requestCustomizer;
         this.httpClientHelperFactory = httpClientHelperFactory;
@@ -105,7 +113,7 @@ public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFac
             .config("allowInsecureProtocol", Boolean.toString(allowInsecureProtocol))
             .config("useExpectContinue", Boolean.toString(useExpectContinue));
 
-        return new HttpBuildCacheService(httpClientHelper, noUserInfoUrl, requestCustomizer, useExpectContinue);
+        return new HttpBuildCacheService(buildOperationRunner, httpClientHelper, noUserInfoUrl, requestCustomizer, useExpectContinue);
     }
 
     private HttpRedirectVerifier createRedirectVerifier(URI url, boolean allowInsecureProtocol) {
