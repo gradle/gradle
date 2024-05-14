@@ -27,6 +27,7 @@ import org.gradle.vcs.git.GitVersionControlSpec
 import org.gradle.vcs.internal.VersionRef
 import org.junit.Rule
 import org.junit.rules.RuleChain
+import spock.lang.Issue;
 import spock.lang.Specification
 
 class GitVersionControlSystemSpec extends Specification {
