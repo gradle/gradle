@@ -44,7 +44,7 @@ import org.gradle.internal.declarativedsl.analysis.DefaultDataParameter
 import org.gradle.internal.declarativedsl.analysis.DefaultDataProperty
 import org.gradle.internal.declarativedsl.analysis.DefaultDataTopLevelFunction
 import org.gradle.internal.declarativedsl.analysis.DefaultFqName
-import org.gradle.internal.declarativedsl.analysis.DefaultFunctionSemantics
+import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsInternal
 import org.gradle.internal.declarativedsl.analysis.ParameterSemanticsInternal
 import org.gradle.internal.declarativedsl.language.DataTypeInternal
 
@@ -89,22 +89,22 @@ object SchemaSerialization {
                 subclass(DefaultFqName::class)
             }
             polymorphic(FunctionSemantics::class) {
-                subclass(DefaultFunctionSemantics.DefaultAccessAndConfigure::class)
-                subclass(DefaultFunctionSemantics.DefaultAddAndConfigure::class)
-                subclass(DefaultFunctionSemantics.DefaultBuilder::class)
-                subclass(DefaultFunctionSemantics.DefaultPure::class)
+                subclass(FunctionSemanticsInternal.DefaultAccessAndConfigure::class)
+                subclass(FunctionSemanticsInternal.DefaultAddAndConfigure::class)
+                subclass(FunctionSemanticsInternal.DefaultBuilder::class)
+                subclass(FunctionSemanticsInternal.DefaultPure::class)
             }
             polymorphic(FunctionSemantics.AccessAndConfigure.ReturnType::class) {
-                subclass(DefaultFunctionSemantics.DefaultAccessAndConfigure.DefaultReturnType.DefaultUnit::class)
-                subclass(DefaultFunctionSemantics.DefaultAccessAndConfigure.DefaultReturnType.DefaultConfiguredObject::class)
+                subclass(FunctionSemanticsInternal.DefaultAccessAndConfigure.DefaultReturnType.DefaultUnit::class)
+                subclass(FunctionSemanticsInternal.DefaultAccessAndConfigure.DefaultReturnType.DefaultConfiguredObject::class)
             }
             polymorphic(FunctionSemantics.Builder::class) {
-                subclass(DefaultFunctionSemantics.DefaultBuilder::class)
+                subclass(FunctionSemanticsInternal.DefaultBuilder::class)
             }
             polymorphic(FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement::class) {
-                subclass(DefaultFunctionSemantics.DefaultConfigureBlockRequirement.DefaultNotAllowed::class)
-                subclass(DefaultFunctionSemantics.DefaultConfigureBlockRequirement.DefaultRequired::class)
-                subclass(DefaultFunctionSemantics.DefaultConfigureBlockRequirement.DefaultOptional::class)
+                subclass(FunctionSemanticsInternal.DefaultConfigureBlockRequirement.DefaultNotAllowed::class)
+                subclass(FunctionSemanticsInternal.DefaultConfigureBlockRequirement.DefaultRequired::class)
+                subclass(FunctionSemanticsInternal.DefaultConfigureBlockRequirement.DefaultOptional::class)
             }
             polymorphic(ParameterSemantics::class) {
                 subclass(ParameterSemanticsInternal.DefaultStoreValueInProperty::class)

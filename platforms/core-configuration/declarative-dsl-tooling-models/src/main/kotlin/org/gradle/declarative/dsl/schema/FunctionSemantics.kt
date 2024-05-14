@@ -23,19 +23,11 @@ sealed interface FunctionSemantics : Serializable {
 
     val returnValueType: DataTypeRef
 
-    fun isNewObjectFunctionSemantics() = false
-
-    fun isConfigureSemantics() = false
-
-    fun getConfiguredType(): DataTypeRef = error("Not configure semantics")
-
-    fun getConfigureBlockRequirement(): ConfigureSemantics.ConfigureBlockRequirement =
-        error("Not configure semantics")
-
     sealed interface ConfigureSemantics : FunctionSemantics {
-        override fun isConfigureSemantics(): Boolean = true
+        val configuredType: DataTypeRef
+        val configureBlockRequirement: ConfigureBlockRequirement
 
-        sealed interface ConfigureBlockRequirement : Serializable {
+        sealed interface ConfigureBlockRequirement {
             interface NotAllowed : ConfigureBlockRequirement
             interface Optional : ConfigureBlockRequirement
             interface Required : ConfigureBlockRequirement
@@ -53,9 +45,7 @@ sealed interface FunctionSemantics : Serializable {
         }
     }
 
-    sealed interface NewObjectFunctionSemantics : FunctionSemantics {
-        override fun isNewObjectFunctionSemantics(): Boolean = true
-    }
+    sealed interface NewObjectFunctionSemantics : FunctionSemantics
 
     interface Builder : FunctionSemantics
 
@@ -63,13 +53,23 @@ sealed interface FunctionSemantics : Serializable {
         val accessor: ConfigureAccessor
         val returnType: ReturnType
 
-        sealed interface ReturnType : Serializable {
+        sealed interface ReturnType {
             interface Unit : ReturnType
             interface ConfiguredObject : ReturnType
         }
+
+        override val configuredType: DataTypeRef
+            get() = if (returnType is ReturnType.ConfiguredObject) returnValueType else accessor.objectType
+
+        override val configureBlockRequirement: ConfigureSemantics.ConfigureBlockRequirement.Required
     }
 
-    interface AddAndConfigure : NewObjectFunctionSemantics, ConfigureSemantics
+    interface AddAndConfigure : NewObjectFunctionSemantics, ConfigureSemantics {
+        override val configureBlockRequirement: ConfigureSemantics.ConfigureBlockRequirement
+
+        override val configuredType: DataTypeRef
+            get() = returnValueType
+    }
 
     interface Pure : NewObjectFunctionSemantics {
         override val returnValueType: DataTypeRef

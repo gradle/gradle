@@ -180,7 +180,7 @@ class FunctionCallResolverImpl(
         if (semantics !is FunctionSemantics.ConfigureSemantics)
             return
 
-        val (expectsConfigureLambda, requiresConfigureLambda) = semantics.getConfigureBlockRequirement().run { allows to requires }
+        val (expectsConfigureLambda, requiresConfigureLambda) = semantics.configureBlockRequirement.run { allows to requires }
 
         val lambda = call.args.filterIsInstance<FunctionArgument.Lambda>().singleOrNull()
         if (expectsConfigureLambda) {
@@ -409,7 +409,7 @@ class FunctionCallResolverImpl(
         ) ?: return@mapNotNull null
 
         (candidate.semantics as? FunctionSemantics.ConfigureSemantics)?.let { configureSemantics ->
-            if (!configureSemantics.getConfigureBlockRequirement().isValidIfLambdaIsPresent(args.lastOrNull() is FunctionArgument.Lambda)) {
+            if (!configureSemantics.configureBlockRequirement.isValidIfLambdaIsPresent(args.lastOrNull() is FunctionArgument.Lambda)) {
                 return@mapNotNull null
             }
         }

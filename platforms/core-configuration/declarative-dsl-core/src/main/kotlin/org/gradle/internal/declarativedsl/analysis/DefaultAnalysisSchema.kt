@@ -124,7 +124,7 @@ data class DefaultDataBuilderFunction(
     override val isDirectAccessOnly: Boolean,
     override val dataParameter: DataParameter,
 ) : DataBuilderFunction {
-    override val semantics: Builder = DefaultFunctionSemantics.DefaultBuilder(receiver)
+    override val semantics: Builder = FunctionSemanticsInternal.DefaultBuilder(receiver)
     override val parameters: List<DataParameter>
         get() = listOf(dataParameter)
 }
@@ -159,7 +159,7 @@ data class DefaultDataConstructor(
 ) : DataConstructor {
     override val simpleName
         get() = "<init>"
-    override val semantics: Pure = DefaultFunctionSemantics.DefaultPure(dataClass)
+    override val semantics: Pure = FunctionSemanticsInternal.DefaultPure(dataClass)
 }
 
 
@@ -186,7 +186,7 @@ object ParameterSemanticsInternal {
 }
 
 
-object DefaultFunctionSemantics {
+object FunctionSemanticsInternal {
 
     @Serializable
     @SerialName("builder")
@@ -207,29 +207,18 @@ object DefaultFunctionSemantics {
                 is ReturnType.Unit -> DataTypeInternal.DefaultUnitType.ref
             }
 
-        override fun getConfiguredType(): DataTypeRef {
-            return if (returnType is ReturnType.ConfiguredObject) returnValueType else accessor.objectType
-        }
-
-        override fun getConfigureBlockRequirement(): ConfigureBlockRequirement {
-            return DefaultConfigureBlockRequirement.DefaultRequired
-        }
+        override val configureBlockRequirement: ConfigureBlockRequirement.Required
+            get() = DefaultConfigureBlockRequirement.DefaultRequired
 
         /** Implementations for [ReturnType] */
         object DefaultReturnType {
             @Serializable
             @SerialName("configuredObject")
-            data object DefaultConfiguredObject : ReturnType.ConfiguredObject {
-                private
-                fun readResolve(): Any = DefaultConfiguredObject
-            }
+            data object DefaultConfiguredObject : ReturnType.ConfiguredObject
 
             @Serializable
             @SerialName("unit")
-            object DefaultUnit : ReturnType.Unit {
-                private
-                fun readResolve(): Any = DefaultUnit
-            }
+            object DefaultUnit : ReturnType.Unit
         }
     }
 
@@ -237,18 +226,13 @@ object DefaultFunctionSemantics {
     @SerialName("addAndConfigure")
     class DefaultAddAndConfigure(
         private val objectType: DataTypeRef,
-        private val configureBlockRequirement: ConfigureBlockRequirement
+        override val configureBlockRequirement: ConfigureBlockRequirement
     ) : AddAndConfigure {
         override val returnValueType: DataTypeRef
             get() = objectType
 
-        override fun getConfiguredType(): DataTypeRef {
-            return returnValueType
-        }
-
-        override fun getConfigureBlockRequirement(): ConfigureBlockRequirement {
-            return configureBlockRequirement
-        }
+        override val configuredType: DataTypeRef
+            get() = returnValueType
     }
 
     @Serializable
@@ -259,24 +243,15 @@ object DefaultFunctionSemantics {
     object DefaultConfigureBlockRequirement {
         @Serializable
         @SerialName("notAllowed")
-        data object DefaultNotAllowed : ConfigureBlockRequirement.NotAllowed {
-            private
-            fun readResolve(): Any = DefaultNotAllowed
-        }
+        data object DefaultNotAllowed : ConfigureBlockRequirement.NotAllowed
 
         @Serializable
         @SerialName("optional")
-        data object DefaultOptional : ConfigureBlockRequirement.Optional {
-            private
-            fun readResolve(): Any = DefaultOptional
-        }
+        data object DefaultOptional : ConfigureBlockRequirement.Optional
 
         @Serializable
         @SerialName("required")
-        data object DefaultRequired : ConfigureBlockRequirement.Required {
-            private
-            fun readResolve(): Any = DefaultRequired
-        }
+        data object DefaultRequired : ConfigureBlockRequirement.Required
     }
 }
 
