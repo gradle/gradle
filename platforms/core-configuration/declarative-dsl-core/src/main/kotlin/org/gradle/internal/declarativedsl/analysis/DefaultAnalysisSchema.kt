@@ -10,6 +10,7 @@ import org.gradle.declarative.dsl.schema.DataConstructor
 import org.gradle.declarative.dsl.schema.DataMemberFunction
 import org.gradle.declarative.dsl.schema.DataParameter
 import org.gradle.declarative.dsl.schema.DataProperty
+import org.gradle.declarative.dsl.schema.DataProperty.PropertyMode
 import org.gradle.declarative.dsl.schema.DataTopLevelFunction
 import org.gradle.declarative.dsl.schema.DataType
 import org.gradle.declarative.dsl.schema.DataTypeRef
@@ -79,41 +80,32 @@ data class DefaultDataClass(
 data class DefaultDataProperty(
     override val name: String,
     override val valueType: DataTypeRef,
-    override val mode: DataProperty.PropertyMode,
+    override val mode: PropertyMode,
     override val hasDefaultValue: Boolean,
     override val isHiddenInDsl: Boolean = false,
     override val isDirectAccessOnly: Boolean = false
 ) : DataProperty {
     data object DefaultPropertyMode {
         @Serializable
-        data object DefaultReadWrite : DataProperty.PropertyMode.ReadWrite {
-            private
-            fun readResolve(): Any = DefaultReadWrite
-        }
+        data object DefaultReadWrite : PropertyMode.ReadWrite
 
 
         @Serializable
-        data object DefaultReadOnly : DataProperty.PropertyMode.ReadOnly {
-            private
-            fun readResolve(): Any = DefaultReadOnly
-        }
+        data object DefaultReadOnly : PropertyMode.ReadOnly
 
 
         @Serializable
-        data object DefaultWriteOnly : DataProperty.PropertyMode.WriteOnly {
-            private
-            fun readResolve(): Any = DefaultWriteOnly
-        }
+        data object DefaultWriteOnly : PropertyMode.WriteOnly
     }
 }
 
 
 val DataProperty.isReadOnly: Boolean
-    get() = mode.canRead() && !mode.canWrite()
+    get() = mode is PropertyMode.ReadOnly
 
 
 val DataProperty.isWriteOnly: Boolean
-    get() = !mode.canRead() && mode.canWrite()
+    get() = mode is PropertyMode.WriteOnly
 
 
 @Serializable

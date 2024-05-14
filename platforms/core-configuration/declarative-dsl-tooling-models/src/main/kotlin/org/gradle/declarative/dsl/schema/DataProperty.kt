@@ -19,8 +19,7 @@ package org.gradle.declarative.dsl.schema
 import java.io.Serializable
 
 
-interface DataProperty : Serializable {
-
+interface DataProperty {
     val name: String
     val valueType: DataTypeRef
     val mode: PropertyMode
@@ -28,23 +27,9 @@ interface DataProperty : Serializable {
     val isHiddenInDsl: Boolean
     val isDirectAccessOnly: Boolean
 
-    sealed interface PropertyMode : Serializable {
-
-        fun canRead() = false
-
-        fun canWrite() = false
-
-        interface ReadWrite : PropertyMode {
-            override fun canRead() = true
-            override fun canWrite() = true
-        }
-
-        interface ReadOnly : PropertyMode {
-            override fun canRead() = true
-        }
-
-        interface WriteOnly : PropertyMode {
-            override fun canWrite() = true
-        }
+    sealed interface PropertyMode {
+        interface ReadWrite : PropertyMode
+        interface ReadOnly : PropertyMode
+        interface WriteOnly : PropertyMode
     }
 }
