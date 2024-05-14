@@ -11,7 +11,9 @@ tasks.register('test') {
 }
 
 tasks.register('testBoth') {
-	doFirst {
+    mustRunAfter("test")
+
+    doFirst {
 	  println 'This is executed first during the execution phase.'
 	}
 	doLast {
