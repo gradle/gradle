@@ -35,14 +35,9 @@ public final class CacheCleanupBuildOperationType implements BuildOperationType<
     }
 
     /**
-     * Sent after the cache has been cleaned up or the cleanup has been skipped.
+     * Sent after the cache has been cleaned up.
      */
     public interface Result {
-
-        /**
-         * True when cache was cleaned up because a cleanup was due.
-         */
-        boolean isCleanupPerformed();
 
         /**
          * The number of cache entries deleted during this clean up.

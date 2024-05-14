@@ -62,23 +62,23 @@ public class DefaultCacheCleanupExecutor implements CacheCleanupExecutor {
             LOGGER.debug("{} has last been fully cleaned up {} hours ago", cleanableStore.getDisplayName(), timeSinceLastCleanup.toHours());
         }
 
+        if (!cacheCleanupStrategy.getCleanupFrequency().requiresCleanup(lastCleanupTime)) {
+            LOGGER.debug("Skipping cleanup for {} as it is not yet due", cleanableStore.getDisplayName());
+            return;
+        }
+
         buildOperationRunner.run(new RunnableBuildOperation() {
             @Override
             public void run(BuildOperationContext context) {
-                if (cacheCleanupStrategy.getCleanupFrequency().requiresCleanup(lastCleanupTime)) {
-                    DefaultCleanupProgressMonitor progressMonitor = new DefaultCleanupProgressMonitor(context);
-                    Timer timer = Time.startTimer();
-                    try {
-                        cacheCleanupStrategy.getCleanupAction().clean(cleanableStore, progressMonitor);
-                        FileUtils.touch(gcFile);
-                    } catch (IOException e) {
-                        throw new UncheckedIOException(e);
-                    } finally {
-                        LOGGER.info("{} cleaned up in {}.", cleanableStore.getDisplayName(), timer.getElapsed());
-                        context.setResult(CacheCleanupResult.performed(progressMonitor.getDeleted(), lastCleanupTime));
-                    }
-                } else {
-                    context.setResult(CacheCleanupResult.skipped(lastCleanupTime));
+                DefaultCleanupProgressMonitor progressMonitor = new DefaultCleanupProgressMonitor(context);
+                Timer timer = Time.startTimer();
+                try {
+                    cacheCleanupStrategy.getCleanupAction().clean(cleanableStore, progressMonitor);
+                    FileUtils.touch(gcFile);
+                    LOGGER.info("{} cleaned up in {}.", cleanableStore.getDisplayName(), timer.getElapsed());
+                    context.setResult(new CacheCleanupResult(progressMonitor.getDeleted(), lastCleanupTime));
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
                 }
             }
 
@@ -130,27 +130,12 @@ public class DefaultCacheCleanupExecutor implements CacheCleanupExecutor {
     }
 
     private static class CacheCleanupResult implements CacheCleanupBuildOperationType.Result {
-        private final boolean cleanedPerformed;
         private final long deletedEntriesCount;
         private final Instant previousCleanupTime;
 
-        public static CacheCleanupBuildOperationType.Result performed(long deletedEntriesCount, Instant previousCleanupTime) {
-            return new CacheCleanupResult(true, deletedEntriesCount, previousCleanupTime);
-        }
-
-        public static CacheCleanupBuildOperationType.Result skipped(Instant previousCleanupTime) {
-            return new CacheCleanupResult(false, 0, previousCleanupTime);
-        }
-
-        private CacheCleanupResult(boolean cleanedPerformed, long deletedEntriesCount, Instant previousCleanupTime) {
-            this.cleanedPerformed = cleanedPerformed;
+        private CacheCleanupResult(long deletedEntriesCount, Instant previousCleanupTime) {
             this.deletedEntriesCount = deletedEntriesCount;
             this.previousCleanupTime = previousCleanupTime;
-        }
-
-        @Override
-        public boolean isCleanupPerformed() {
-            return cleanedPerformed;
         }
 
         @Override
