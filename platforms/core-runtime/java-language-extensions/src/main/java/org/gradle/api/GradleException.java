@@ -17,8 +17,6 @@
 package org.gradle.api;
 
 import javax.annotation.Nullable;
-import java.lang.String;
-import java.lang.Throwable;
 
 /**
  * <p><code>GradleException</code> is the base class of all exceptions thrown by Gradle.</p>
