@@ -70,8 +70,8 @@ class SoftwareTypeRegistrationPluginTargetTest extends Specification {
         1 * metadataStore.getTypeMetadata(Foo.class) >> fooTypeMetadata
         1 * fooTypeMetadata.getPropertiesMetadata() >> []
         1 * settings.getExtensions() >> extensions
-        1 * softwareType.name() >> "foo"
-        1 * softwareType.modelPublicType() >> Foo.class
+        2 * softwareType.name() >> "foo"
+        2 * softwareType.modelPublicType() >> Foo.class
         1 * extensions.create("foo", Foo.class)
 
         and:

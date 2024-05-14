@@ -167,8 +167,12 @@ public class SoftwareTypeRegistrationPluginTarget implements PluginTarget {
         @Override
         public void visitNested(TypeMetadata typeMetadata, String qualifiedName, PropertyMetadata propertyMetadata, TypeToken<?> value) {
             propertyMetadata.getAnnotation(SoftwareType.class).ifPresent(softwareType -> {
-                extensionContainer.create(softwareType.name(), softwareType.modelPublicType());
+                extensionContainer.create(softwareType.name(), publicTypeOf(propertyMetadata, softwareType));
             });
+        }
+
+        private static Class<?> publicTypeOf(PropertyMetadata propertyMetadata, SoftwareType softwareType) {
+            return softwareType.modelPublicType() == Void.class ? propertyMetadata.getDeclaredType().getRawType() : softwareType.modelPublicType();
         }
     }
 }

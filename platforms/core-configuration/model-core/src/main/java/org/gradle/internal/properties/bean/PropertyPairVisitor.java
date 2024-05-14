@@ -16,6 +16,7 @@
 
 package org.gradle.internal.properties.bean;
 
+import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.Property;
 
 import javax.annotation.Nullable;
@@ -28,4 +29,6 @@ public interface PropertyPairVisitor {
      * Visits a pair of properties that are instances of {@link Property} objects.
      */
     <T> void visitPropertyTypePair(@Nullable Property<T> left, @Nullable Property<T> right);
+
+    <T> void visitMultipleValuesTypePair(@Nullable HasMultipleValues<T> left, @Nullable HasMultipleValues<T> right);
 }

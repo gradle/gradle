@@ -26,6 +26,7 @@ dependencies {
 
     implementation(project(":jvm-services"))
     implementation(project(":problems-api"))
+    implementation(project(":declarative-dsl-api"))
 
     testImplementation(testFixtures(project(":resources-http")))
 

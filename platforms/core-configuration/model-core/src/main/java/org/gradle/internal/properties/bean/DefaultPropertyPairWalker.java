@@ -16,6 +16,7 @@
 
 package org.gradle.internal.properties.bean;
 
+import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.declarative.dsl.model.annotations.NestedRestricted;
@@ -72,6 +73,10 @@ public class DefaultPropertyPairWalker implements PropertyPairWalker {
                     Property<?> left = Cast.uncheckedCast(propertyMetadata.getPropertyValue(parent.getLeft()));
                     Provider<?> right = Cast.uncheckedCast(propertyMetadata.getPropertyValue(parent.getRight()));
                     pairVisitor.visitPropertyTypePair(left, Cast.uncheckedCast(right));
+                } else if (HasMultipleValues.class.isAssignableFrom(type)) {
+                    HasMultipleValues<?> left = Cast.uncheckedCast(propertyMetadata.getPropertyValue(parent.getLeft()));
+                    HasMultipleValues<?> right = Cast.uncheckedCast(propertyMetadata.getPropertyValue(parent.getRight()));
+                    pairVisitor.visitMultipleValuesTypePair(left, Cast.uncheckedCast(right));
                 }
             }
         }

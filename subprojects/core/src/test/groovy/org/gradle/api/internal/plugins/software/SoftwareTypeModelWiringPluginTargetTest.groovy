@@ -60,7 +60,7 @@ class SoftwareTypeModelWiringPluginTargetTest extends Specification {
         1 * inspectionScheme.getPropertyWalker() >> propertyWalker
         1 * propertyWalker.visitProperties(plugin, _, _) >> { args -> args[2].visitSoftwareTypeProperty("foo", propertyValue, softwareType) }
         1 * target.getExtensions() >> extensions
-        2 * softwareType.modelPublicType() >> Foo.class
+        4 * softwareType.modelPublicType() >> Foo.class
         2 * softwareType.name() >> "foo"
         1 * propertyValue.call() >> foo
         1 * extensions.add(Foo.class, "foo", foo)
