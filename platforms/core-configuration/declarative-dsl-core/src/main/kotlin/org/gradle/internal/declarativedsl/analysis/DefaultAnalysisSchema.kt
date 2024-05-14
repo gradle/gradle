@@ -60,10 +60,6 @@ data class DefaultDataClass(
     override val constructors: List<DataConstructor>
 ) : DataClass {
 
-    override fun isClass(): Boolean = true
-
-    override fun getDataClass(): DataClass = this
-
     override fun toString(): String = name.simpleName
 
     companion object Empty : DataClass {
@@ -184,7 +180,9 @@ object ParameterSemanticsInternal {
 
     @Serializable
     @SerialName("unknown")
-    data object DefaultUnknown : ParameterSemantics.Unknown
+    data object DefaultUnknown : ParameterSemantics.Unknown {
+        private fun readResolve(): Any = DefaultUnknown
+    }
 }
 
 

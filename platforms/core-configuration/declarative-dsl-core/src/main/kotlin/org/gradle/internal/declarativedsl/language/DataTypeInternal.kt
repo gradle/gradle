@@ -26,74 +26,47 @@ object DataTypeInternal {
     @Serializable
     @SerialName("int")
     data object DefaultIntDataType : DataType.IntDataType {
-        override fun isConstant(): Boolean = true
-
         override fun getConstantType(): Class<Int> = Int::class.java
-
         override fun toString(): String = "Int"
-
-        private
-        fun readResolve(): Any = DefaultIntDataType
+        private fun readResolve(): Any = DefaultIntDataType
     }
-
 
     @Serializable
     @SerialName("long")
     data object DefaultLongDataType : DataType.LongDataType {
-        override fun isConstant(): Boolean = true
-
         override fun getConstantType(): Class<Long> = Long::class.java
-
         override fun toString(): String = "Long"
-
-        private
-        fun readResolve(): Any = DefaultLongDataType
+        private fun readResolve(): Any = DefaultLongDataType
     }
-
 
     @Serializable
     @SerialName("string")
     data object DefaultStringDataType : DataType.StringDataType {
-        override fun isConstant(): Boolean = true
-
         override fun getConstantType(): Class<String> = String::class.java
-
         override fun toString(): String = "String"
-
-        private
-        fun readResolve(): Any = DefaultStringDataType
+        private fun readResolve(): Any = DefaultStringDataType
     }
-
 
     @Serializable
     @SerialName("boolean")
     data object DefaultBooleanDataType : DataType.BooleanDataType {
-        override fun isConstant(): Boolean = true
-
         override fun getConstantType(): Class<Boolean> = Boolean::class.java
         override fun toString(): String = "Boolean"
-
-        private
-        fun readResolve(): Any = DefaultBooleanDataType
+        private fun readResolve(): Any = DefaultBooleanDataType
     }
 
     @Serializable
     @SerialName("null")
     data object DefaultNullType : DataType.NullType {
-        override fun isNull(): Boolean = true
-
-        private
-        fun readResolve(): Any = DefaultNullType
+        override fun toString(): String = "Null"
+        private fun readResolve(): Any = DefaultNullType
     }
-
 
     @Serializable
     @SerialName("unit")
     data object DefaultUnitType : DataType.UnitType {
-        override fun isUnit(): Boolean = true
-
-        private
-        fun readResolve(): Any = DefaultUnitType
+        override fun toString(): String = "Unit"
+        private fun readResolve(): Any = DefaultUnitType
     }
 
 // TODO: `Any` type?

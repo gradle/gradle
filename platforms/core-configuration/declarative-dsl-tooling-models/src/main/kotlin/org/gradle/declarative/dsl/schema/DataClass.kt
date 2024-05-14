@@ -24,8 +24,4 @@ interface DataClass : DataType {
     val properties: List<DataProperty>
     val memberFunctions: List<SchemaMemberFunction>
     val constructors: List<DataConstructor>
-
-    override fun isClass(): Boolean = true
-
-    override fun getDataClass(): DataClass = this
 }

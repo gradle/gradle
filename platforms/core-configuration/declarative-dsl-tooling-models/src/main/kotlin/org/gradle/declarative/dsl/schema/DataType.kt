@@ -20,8 +20,9 @@ import java.io.Serializable
 
 
 sealed interface DataType : Serializable {
-
-    sealed interface ConstantType<JvmType> : DataType
+    sealed interface ConstantType<JvmType> : DataType {
+        fun getConstantType(): Class<*>
+    }
 
     interface IntDataType : ConstantType<Int>
     interface LongDataType : ConstantType<Long>
@@ -32,18 +33,6 @@ sealed interface DataType : Serializable {
     interface NullType : DataType
 
     interface UnitType : DataType
-
-    fun isNull(): Boolean = false
-
-    fun isUnit(): Boolean = false
-
-    fun isConstant(): Boolean = false
-
-    fun getConstantType(): Class<*> = error("Not constant type")
-
-    fun isClass(): Boolean = false
-
-    fun getDataClass(): DataClass = error("Not data class")
 
     // TODO: `Any` type?
     // TODO: Support subtyping of some sort in the schema rather than via reflection?
