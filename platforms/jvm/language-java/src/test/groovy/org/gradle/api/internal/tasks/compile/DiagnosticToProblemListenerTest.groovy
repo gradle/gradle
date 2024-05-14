@@ -30,7 +30,7 @@ class DiagnosticToProblemListenerTest extends Specification {
         1 * additionalData("formatted", "Formatted message")
     }
 
-    def diagnosticToProblemListener = new DiagnosticToProblemListener(null, null, (fo) -> "Formatted message")
+    def diagnosticToProblemListener = new DiagnosticToProblemListener(null, (fo) -> "Formatted message")
 
     def "file location is correctly reported"() {
         given:
