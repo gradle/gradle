@@ -19,6 +19,7 @@ package org.gradle.internal.work;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
+import org.gradle.internal.concurrent.WorkerLimits;
 
 import javax.annotation.Nullable;
 import java.util.Deque;
@@ -39,7 +40,7 @@ public class DefaultConditionalExecutionQueue<T> implements ConditionalExecution
         Working, Stopped
     }
 
-    private final int maxWorkers;
+    private final WorkerLimits workerLimits;
     private final WorkerLeaseService workerLeaseService;
     private final ManagedExecutor executor;
     private final Deque<ConditionalExecution<T>> queue = new LinkedList<ConditionalExecution<T>>();
@@ -48,8 +49,8 @@ public class DefaultConditionalExecutionQueue<T> implements ConditionalExecution
     private QueueState queueState = QueueState.Working;
     private volatile int workerCount;
 
-    public DefaultConditionalExecutionQueue(String displayName, int maxWorkers, ExecutorFactory executorFactory, WorkerLeaseService workerLeaseService) {
-        this.maxWorkers = maxWorkers;
+    public DefaultConditionalExecutionQueue(String displayName, WorkerLimits workerLimits, ExecutorFactory executorFactory, WorkerLeaseService workerLeaseService) {
+        this.workerLimits = workerLimits;
         this.workerLeaseService = workerLeaseService;
         this.executor = executorFactory.create(displayName);
 
@@ -65,7 +66,7 @@ public class DefaultConditionalExecutionQueue<T> implements ConditionalExecution
         lock.lock();
         try {
             // expand the thread pool until we hit max workers
-            if (workerCount < maxWorkers) {
+            if (workerCount < getMaxWorkerCount()) {
                 expand(true);
             }
 
@@ -79,6 +80,10 @@ public class DefaultConditionalExecutionQueue<T> implements ConditionalExecution
     @Override
     public void expand() {
         expand(false);
+    }
+
+    private int getMaxWorkerCount() {
+        return workerLimits.getMaxWorkerCount();
     }
 
     /**
@@ -135,7 +140,7 @@ public class DefaultConditionalExecutionQueue<T> implements ConditionalExecution
             try {
                 // Wait for work to be submitted if the queue is empty and our worker count is under max workers
                 // This attempts to keep up to max workers threads alive once they've been started.
-                while (queueState == QueueState.Working && queue.isEmpty() && (workerCount <= maxWorkers)) {
+                while (queueState == QueueState.Working && queue.isEmpty() && (workerCount <= getMaxWorkerCount())) {
                     try {
                         workAvailable.await();
                     } catch (InterruptedException e) {

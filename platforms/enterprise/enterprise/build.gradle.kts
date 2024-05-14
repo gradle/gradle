@@ -31,6 +31,7 @@ dependencies {
     implementation(project(":messaging"))
     implementation(project(":model-core"))
     implementation(project(":process-services"))
+    implementation(project(":daemon-services"))
     implementation(project(":reporting"))
     implementation(project(":snapshots"))
     implementation(project(":testing-base"))

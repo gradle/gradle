@@ -18,8 +18,9 @@ package org.gradle.execution.plan;
 
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.problems.Severity;
+import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.Problem;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.WorkValidationException;
@@ -39,6 +40,13 @@ import static org.gradle.internal.reflect.validation.TypeValidationProblemRender
  * the build by throwing a {@link WorkValidationException} if any errors are found.
  */
 public class DefaultNodeValidator implements NodeValidator {
+
+    private final InternalProblems problemsService;
+
+    public DefaultNodeValidator(InternalProblems problemsService) {
+        this.problemsService = problemsService;
+    }
+
     @Override
     public boolean hasValidationProblems(LocalTaskNode node) {
         WorkValidationContext validationContext = validateNode(node);
@@ -73,6 +81,10 @@ public class DefaultNodeValidator implements NodeValidator {
     }
 
     private void reportErrors(List<? extends Problem> problems, TaskInternal task, WorkValidationContext validationContext) {
+        for (Problem problem : problems) {
+            problemsService.getInternalReporter().report(problem);
+        }
+
         Set<String> uniqueErrors = getUniqueErrors(problems);
         if (!uniqueErrors.isEmpty()) {
             throw WorkValidationException.forProblems(uniqueErrors)

@@ -21,6 +21,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.integtests.resolve.locking.LockfileFixture
+import org.gradle.util.GradleVersion
 import spock.lang.Issue
 
 import static org.gradle.integtests.fixtures.SuggestionsMessages.repositoryHint
@@ -1537,7 +1538,9 @@ org:leaf:[1.5,2.0] FAILED
 project :A FAILED
    Failures:
       - Could not resolve project :A.
-          - A dependency was declared on configuration 'default' which is not declared in the descriptor for project :A.
+        Creating consumable variants is explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_dependencies.html#sec:resolvable-consumable-configs.
+          - Unable to find a matching variant of project :A:
+              - No variants exist.
 
 project :A FAILED
 \\--- conf
@@ -1551,7 +1554,9 @@ project :A FAILED
 project :C FAILED
    Failures:
       - Could not resolve project :C.
-          - A dependency was declared on configuration 'default' which is not declared in the descriptor for project :C.
+        Creating consumable variants is explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_dependencies.html#sec:resolvable-consumable-configs.
+          - Unable to find a matching variant of project :C:
+              - No variants exist.
 
 project :C FAILED
 \\--- project :B

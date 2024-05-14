@@ -38,10 +38,10 @@ import static org.gradle.performance.fixture.BaselineVersionResolver.toBaselineV
 class AbstractBuildScanPluginPerformanceTest extends AbstractPerformanceTest {
 
     /**
-     * System property that points to a directory with GE plugin information
+     * System property that points to a directory with DV plugin information
      * such files containing build commit ID and plugin version.
      */
-    private static final INFO_DIR_SYSTEM_PROP = "org.gradle.performance.enterprise.plugin.infoDir"
+    private static final INFO_DIR_SYSTEM_PROP = "org.gradle.performance.develocity.plugin.infoDir"
 
     private static File resolvePluginInfoDir() {
         def path = System.getProperty(INFO_DIR_SYSTEM_PROP)

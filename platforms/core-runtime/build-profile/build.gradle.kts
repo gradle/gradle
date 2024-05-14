@@ -8,12 +8,12 @@ errorprone {
     disabledChecks.addAll(
         "DateFormatConstant", // 2 occurrences
         "ThreadLocalUsage", // 1 occurrences
-        "UnnecessaryParentheses", // 1 occurrences
     )
 }
 
 dependencies {
-    api(project(":base-annotations"))
+    api(projects.javaLanguageExtensions)
+    api(projects.time)
     api(project(":base-services"))
     api(project(":core"))
     api(project(":core-api"))

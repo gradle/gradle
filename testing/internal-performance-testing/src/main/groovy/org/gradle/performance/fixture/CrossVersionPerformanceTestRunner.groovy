@@ -228,7 +228,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     }
 
     private List<String> resolveGradleOpts() {
-        PerformanceTestJvmOptions.normalizeJvmOptions(this.gradleOpts)
+        PerformanceTestJvmOptions.normalizeGradleJvmOptions(useDaemon, PerformanceTestJvmOptions.normalizeJvmOptions(this.gradleOpts))
     }
 
     def <T extends LongRunningOperation> ToolingApiAction<T> toolingApi(String displayName, Function<ProjectConnection, T> initialAction) {

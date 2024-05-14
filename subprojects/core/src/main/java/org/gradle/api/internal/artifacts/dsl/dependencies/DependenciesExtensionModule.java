@@ -110,7 +110,7 @@ public class DependenciesExtensionModule {
 
     @Nullable
     private static String extract(Map<String, CharSequence> map, String key) {
-        return (map.containsKey(key)) ? map.get(key).toString() : null;
+        return map.containsKey(key) ? map.get(key).toString() : null;
     }
 
     /**

@@ -18,8 +18,9 @@ package org.gradle.kotlin.dsl.integration
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.internal.classanalysis.JavaClassUtil
+import org.gradle.integtests.fixtures.jvm.TestJavaClassUtil
 import org.gradle.internal.jvm.Jvm
+import org.gradle.internal.serialize.JavaClassUtil
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.precondition.Requires
@@ -251,12 +252,12 @@ class KotlinDslJvmTargetIntegrationTest : AbstractKotlinIntegrationTest() {
 
     private
     val printScriptJavaClassFileMajorVersion = """
-        println("Java Class Major Version = ${'$'}{org.gradle.internal.classanalysis.JavaClassUtil.getClassMajorVersion(this::class.java)}")
+        println("Java Class Major Version = ${'$'}{org.gradle.internal.serialize.JavaClassUtil.getClassMajorVersion(this::class.java)}")
     """
 
     private
     fun outputFor(javaVersion: JavaVersion) =
-        "Java Class Major Version = ${JavaClassUtil.getClassMajorVersion(javaVersion)}"
+        "Java Class Major Version = ${TestJavaClassUtil.getClassVersion(javaVersion)}"
 
     private
     fun supportedKotlinJavaVersion(version: JavaVersion = JavaVersion.current()): JavaVersion {

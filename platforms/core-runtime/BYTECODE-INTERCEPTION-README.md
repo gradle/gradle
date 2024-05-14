@@ -211,7 +211,7 @@ public static class SetSourceCompatibilityCallInterceptor extends CallIntercepto
     }
 
     @Override
-    public Object doIntercept(Invocation invocation, String consumer) throws Throwable {
+    public Object intercept(Invocation invocation, String consumer) throws Throwable {
         Object receiver = invocation.getReceiver();
         if (receiver instanceof JavaCompile) {
             File receiverTyped = (JavaCompile) receiver;
@@ -237,13 +237,13 @@ Some examples for configuration cache instrumentation can be found in **org.grad
 ##### Property bytecode upgrades declaration
 
 For the purpose of property bytecode upgrades we simplified the whole process and implemented another layer above manual interceptor declaration. 
-For bytecode upgrades you can then use just [@UpgradedProperty](./internal-instrumentation-api/src/main/java/org/gradle/internal/instrumentation/api/annotations/UpgradedProperty.java#L29) annotation that does a lot of work for you.
+For bytecode upgrades you can then use just [@ReplacesEagerProperty](./internal-instrumentation-api/src/main/java/org/gradle/internal/instrumentation/api/annotations/ReplacesEagerProperty.java#L29) annotation that does a lot of work for you.
 
 With this annotation we can simplify interception of source compatibility by using just:
 ```java
 abstract class JavaCompile {
     @Input
-    @UpgradedProperty
+    @ReplacesEagerProperty
     public Property<String> getSourceCompatibility();
 } 
 ```

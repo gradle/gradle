@@ -34,7 +34,9 @@ import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.api.model.BuildTreeObjectFactory;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.configuration.project.BuiltInCommand;
 import org.gradle.execution.DefaultTaskSelector;
 import org.gradle.execution.ProjectConfigurer;
 import org.gradle.execution.TaskNameResolver;
@@ -48,13 +50,14 @@ import org.gradle.initialization.exception.ExceptionCollector;
 import org.gradle.initialization.exception.MultipleBuildFailuresExceptionAnalyser;
 import org.gradle.initialization.exception.StackTraceSanitizingExceptionAnalyser;
 import org.gradle.internal.Factory;
+import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.DefaultBuildLifecycleControllerFactory;
 import org.gradle.internal.buildoption.DefaultFeatureFlags;
 import org.gradle.internal.buildoption.DefaultInternalOptions;
 import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
-import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.event.ScopedListenerManager;
 import org.gradle.internal.id.ConfigurationCacheableIdFactory;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.problems.DefaultProblemDiagnosticsFactory;
@@ -90,7 +93,6 @@ public class BuildTreeScopeServices {
         registration.add(DefaultBuildLifecycleControllerFactory.class);
         registration.add(BuildOptionBuildOperationProgressEventsEmitter.class);
         registration.add(BuildInclusionCoordinator.class);
-        registration.add(DefaultBuildTaskSelector.class);
         registration.add(DefaultProjectStateRegistry.class);
         registration.add(DefaultConfigurationTimeBarrier.class);
         registration.add(DeprecationsReporter.class);
@@ -122,6 +124,8 @@ public class BuildTreeScopeServices {
             domainObjectCollectionFactory);
     }
 
+
+
     protected InternalOptions createInternalOptions(StartParameter startParameter) {
         return new DefaultInternalOptions(startParameter.getSystemPropertiesArgs());
     }
@@ -130,7 +134,11 @@ public class BuildTreeScopeServices {
         return objectFactory.newInstance(DefaultTaskSelector.class, new TaskNameResolver(), projectConfigurer);
     }
 
-    protected DefaultListenerManager createListenerManager(DefaultListenerManager parent) {
+    protected DefaultBuildTaskSelector createBuildTaskSelector(BuildStateRegistry buildRegistry, TaskSelector taskSelector, List<BuiltInCommand> commands, InternalProblems problemsService) {
+        return new DefaultBuildTaskSelector(buildRegistry, taskSelector, commands, problemsService);
+    }
+
+    protected ScopedListenerManager createListenerManager(ScopedListenerManager parent) {
         return parent.createChild(Scope.BuildTree.class);
     }
 

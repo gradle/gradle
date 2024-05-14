@@ -16,7 +16,6 @@ errorprone {
         "StringCaseLocaleUsage", // 3 occurrences
         "StringCharset", // 2 occurrences
         "StringSplitter", // 1 occurrences
-        "UnnecessaryParentheses", // 1 occurrences
         "UnnecessaryTypeArgument", // 2 occurrences
         "UnusedMethod", // 11 occurrences
         "UnusedTypeParameter", // 1 occurrences
@@ -25,6 +24,7 @@ errorprone {
 }
 
 dependencies {
+    implementation(projects.io)
     implementation(project(":base-services"))
     implementation(project(":logging"))
     implementation(project(":native"))

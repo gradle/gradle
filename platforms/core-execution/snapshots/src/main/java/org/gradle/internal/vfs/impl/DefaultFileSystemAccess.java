@@ -21,8 +21,8 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Interner;
 import com.google.common.util.concurrent.Striped;
 import org.gradle.internal.file.FileMetadata;
+import org.gradle.internal.file.FileMetadataAccessor;
 import org.gradle.internal.file.FileType;
-import org.gradle.internal.file.Stat;
 import org.gradle.internal.file.excludes.FileSystemDefaultExcludesListener;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
@@ -56,7 +56,7 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFileSystemAccess.class);
 
     private final VirtualFileSystem virtualFileSystem;
-    private final Stat stat;
+    private final FileMetadataAccessor stat;
     private final Interner<String> stringInterner;
     private final WriteListener writeListener;
     private final DirectorySnapshotterStatistics.Collector statisticsCollector;
@@ -68,7 +68,7 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
     public DefaultFileSystemAccess(
         FileHasher hasher,
         Interner<String> stringInterner,
-        Stat stat,
+        FileMetadataAccessor stat,
         VirtualFileSystem virtualFileSystem,
         WriteListener writeListener,
         DirectorySnapshotterStatistics.Collector statisticsCollector,
@@ -243,8 +243,8 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
 
         public <V> V guardByKey(T key, Supplier<V> supplier) {
             Lock lock = locks.get(key);
+            lock.lock();
             try {
-                lock.lock();
                 return supplier.get();
             } finally {
                 lock.unlock();

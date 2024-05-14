@@ -34,11 +34,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 
-import static com.google.common.collect.ImmutableList.builder;
-
 public class DefaultWorkValidationContext implements WorkValidationContext {
     private final Set<Class<?>> types = new HashSet<>();
-    private final ImmutableList.Builder<Problem> problems = builder();
+    private final ImmutableList.Builder<Problem> problems = ImmutableList.builder();
     private final TypeOriginInspector typeOriginInspector;
 
     public DefaultWorkValidationContext(TypeOriginInspector typeOriginInspector) {

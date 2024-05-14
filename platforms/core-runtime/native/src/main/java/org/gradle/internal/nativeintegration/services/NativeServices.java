@@ -35,6 +35,7 @@ import org.gradle.api.internal.file.temp.GradleUserHomeTemporaryFileProvider;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.file.FileMetadataAccessor;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.nativeintegration.NativeCapabilities;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
@@ -43,7 +44,6 @@ import org.gradle.internal.nativeintegration.console.FallbackConsoleDetector;
 import org.gradle.internal.nativeintegration.console.NativePlatformConsoleDetector;
 import org.gradle.internal.nativeintegration.console.TestOverrideConsoleDetector;
 import org.gradle.internal.nativeintegration.console.WindowsConsoleDetector;
-import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor;
 import org.gradle.internal.nativeintegration.filesystem.services.FallbackFileMetadataAccessor;
 import org.gradle.internal.nativeintegration.filesystem.services.FileSystemServices;
 import org.gradle.internal.nativeintegration.filesystem.services.NativePlatformBackedFileMetadataAccessor;
@@ -485,7 +485,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         }
 
         if (JavaVersion.current().isJava7Compatible()) {
-            return newInstanceOrFallback("org.gradle.internal.nativeintegration.filesystem.jdk7.NioFileMetadataAccessor", NativeServices.class.getClassLoader(), FallbackFileMetadataAccessor.class);
+            return newInstanceOrFallback("org.gradle.internal.file.nio.NioFileMetadataAccessor", NativeServices.class.getClassLoader(), FallbackFileMetadataAccessor.class);
         }
 
         return new FallbackFileMetadataAccessor();

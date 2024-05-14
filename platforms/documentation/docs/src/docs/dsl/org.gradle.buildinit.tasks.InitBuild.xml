@@ -37,6 +37,10 @@
                 <td><literal>defaults to 'warn'</literal></td>
             </tr>
             <tr>
+                <td>allowFileOverwrite</td>
+                <td><literal>defaults to 'false'</literal></td>
+            </tr>
+            <tr>
                 <td>packageName</td>
                 <td />
             </tr>

@@ -42,7 +42,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-import static org.gradle.util.internal.GUtil.uncheckedCall;
+import static org.gradle.internal.UncheckedException.uncheckedCall;
 
 @SuppressWarnings({"deprecation", "FieldNamingConvention"})
 public class ConventionAwareHelper implements ConventionMapping, org.gradle.api.internal.HasConvention {
@@ -83,7 +83,8 @@ public class ConventionAwareHelper implements ConventionMapping, org.gradle.api.
                     throw new IllegalStateException(String.format("Could not access property %s.%s", sourceType.getSimpleName(), propertyName), e);
                 }
                 if (!mapConventionOn(target, mapping)) {
-                    throw new IllegalStateException(String.format("Unexpected convention-supporting type used in property %s.%s", sourceType.getSimpleName(), propertyName, getter.getReturnType().getName()));
+                    throw new IllegalStateException(String.format(
+                        "Unexpected convention-supporting type %s used in property %s.%s", getter.getReturnType().getName(), sourceType.getSimpleName(), propertyName));
                 }
             } else {
                 throw DocumentedFailure.builder()

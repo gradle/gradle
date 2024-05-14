@@ -23,7 +23,6 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.IoActions;
-import org.gradle.internal.UncheckedException;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -48,7 +47,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.concurrent.Callable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -89,10 +87,10 @@ public class GUtil {
                 flatten((Collection<?>) element, addTo, flattenMaps, flattenArrays);
             } else if ((element instanceof Map) && flattenMaps) {
                 flatten(((Map<?, ?>) element).values(), addTo, flattenMaps, flattenArrays);
-            } else if ((element.getClass().isArray()) && flattenArrays) {
+            } else if (element.getClass().isArray() && flattenArrays) {
                 flatten(asList((Object[]) element), addTo, flattenMaps, flattenArrays);
             } else {
-                (Cast.<Collection<Object>>uncheckedNonnullCast(addTo)).add(element);
+                Cast.<Collection<Object>>uncheckedNonnullCast(addTo).add(element);
             }
         }
         return addTo;
@@ -422,22 +420,6 @@ public class GUtil {
                 return comparator.compare(o1, o2);
             }
         };
-    }
-
-    /**
-     * Calls the given callable converting any thrown exception to an unchecked exception via {@link UncheckedException#throwAsUncheckedException(Throwable)}
-     *
-     * @param callable The callable to call
-     * @param <T> Callable's return type
-     * @return The value returned by {@link Callable#call()}
-     */
-    @Nullable
-    public static <T> T uncheckedCall(Callable<T> callable) {
-        try {
-            return callable.call();
-        } catch (Exception e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
     }
 
     public static <T extends Enum<T>> T toEnum(Class<? extends T> enumType, Object value) {

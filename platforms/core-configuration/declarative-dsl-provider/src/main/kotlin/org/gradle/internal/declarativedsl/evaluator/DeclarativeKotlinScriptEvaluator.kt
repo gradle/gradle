@@ -87,17 +87,18 @@ class DefaultDeclarativeKotlinScriptEvaluator(
     ): DeclarativeKotlinScriptEvaluator.EvaluationResult {
         return when (val built = schemaBuilder.getEvaluationSchemaForScript(target, scriptContextFor(target, scriptSource, evaluationContext))) {
             InterpretationSchemaBuildingResult.SchemaNotBuilt -> NotEvaluated(listOf(NoSchemaAvailable(target)))
-            is InterpretationSchemaBuildingResult.InterpretationSequenceAvailable -> runInterpretationSequence(scriptSource, built.sequence)
+            is InterpretationSchemaBuildingResult.InterpretationSequenceAvailable -> runInterpretationSequence(scriptSource, built.sequence, target)
         }
     }
 
     private
     fun runInterpretationSequence(
         scriptSource: ScriptSource,
-        sequence: InterpretationSequence
+        sequence: InterpretationSequence,
+        target: Any
     ): DeclarativeKotlinScriptEvaluator.EvaluationResult {
         sequence.steps.forEach { step ->
-            val result = runInterpretationSequenceStep(scriptSource, step)
+            val result = runInterpretationSequenceStep(target, scriptSource, step)
             if (result is NotEvaluated) {
                 return result
             }
@@ -107,6 +108,7 @@ class DefaultDeclarativeKotlinScriptEvaluator(
 
     private
     fun <R : Any> runInterpretationSequenceStep(
+        target: Any,
         scriptSource: ScriptSource,
         step: InterpretationSequenceStep<R>
     ): DeclarativeKotlinScriptEvaluator.EvaluationResult {
@@ -141,7 +143,7 @@ class DefaultDeclarativeKotlinScriptEvaluator(
         val functionResolver = CompositeFunctionResolver(evaluationSchema.runtimeFunctionResolvers)
         val customAccessors = CompositeCustomAccessors(evaluationSchema.runtimeCustomAccessors)
 
-        val topLevelReceiver = step.topLevelReceiver()
+        val topLevelReceiver = step.getTopLevelReceiverFromTarget(target)
         val converter = DeclarativeReflectionToObjectConverter(emptyMap(), topLevelReceiver, functionResolver, propertyResolver, customAccessors)
         converter.apply(topLevelObjectReflection)
 

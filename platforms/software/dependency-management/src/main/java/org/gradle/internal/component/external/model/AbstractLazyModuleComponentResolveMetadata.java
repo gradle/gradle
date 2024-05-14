@@ -145,11 +145,11 @@ public abstract class AbstractLazyModuleComponentResolveMetadata extends Abstrac
     }
 
     @Override
-    public synchronized Optional<List<? extends VariantGraphResolveMetadata>> getVariantsForGraphTraversal() {
+    public synchronized List<? extends VariantGraphResolveMetadata> getVariantsForGraphTraversal() {
         if (graphVariants == null) {
             graphVariants = buildVariantsForGraphTraversal();
         }
-        return graphVariants;
+        return graphVariants.orElse(Collections.emptyList());
     }
 
     @Override

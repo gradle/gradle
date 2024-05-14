@@ -22,6 +22,8 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.typeconversion.TypeConverter;
 import org.gradle.model.internal.manage.binding.StructBindings;
 import org.gradle.model.internal.manage.schema.StructSchema;
@@ -31,6 +33,7 @@ import org.gradle.model.internal.type.ModelType;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
+@ServiceScope(Scope.Global.class)
 public class ManagedProxyFactory {
     private final ManagedProxyClassGenerator proxyClassGenerator = new ManagedProxyClassGenerator();
     private final LoadingCache<CacheKey, Class<?>> generatedImplementationTypes = CacheBuilder.newBuilder()

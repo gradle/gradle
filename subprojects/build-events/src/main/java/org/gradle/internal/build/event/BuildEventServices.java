@@ -25,7 +25,7 @@ import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 public class BuildEventServices extends AbstractPluginServiceRegistry {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
-        registration.add(DefaultBuildEventsListenerRegistry.class);
+        registration.add(BuildEventListenerRegistryInternal.class, DefaultBuildEventsListenerRegistry.class);
         registration.addProvider(new Object() {
             BuildOperationAncestryTracker createBuildOperationAncestryTracker(BuildOperationListenerManager listenerManager) {
                 DefaultBuildOperationAncestryTracker tracker = new DefaultBuildOperationAncestryTracker();

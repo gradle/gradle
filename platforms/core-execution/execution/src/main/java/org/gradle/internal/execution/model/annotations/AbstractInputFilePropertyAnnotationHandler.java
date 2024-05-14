@@ -39,6 +39,7 @@ import org.gradle.work.Incremental;
 import org.gradle.work.NormalizeLineEndings;
 
 import java.lang.annotation.Annotation;
+import java.util.Locale;
 
 import static org.gradle.internal.deprecation.Documentation.userManual;
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.NORMALIZATION;
@@ -117,7 +118,7 @@ public abstract class AbstractInputFilePropertyAnnotationHandler extends Abstrac
                     .forProperty(propertyName)
                     .id(MISSING_NORMALIZATION_ID.getName(), MISSING_NORMALIZATION_ID.getDisplayName(), MISSING_NORMALIZATION_ID.getGroup()) // TODO (donat) missing test coverage
                     .contextualLabel(String.format("is annotated with @%s but missing a normalization strategy", getAnnotationType().getSimpleName()))
-                    .documentedAt(userManual("validation_problems", MISSING_NORMALIZATION_ANNOTATION.toLowerCase()))
+                    .documentedAt(userManual("validation_problems", MISSING_NORMALIZATION_ANNOTATION.toLowerCase(Locale.ROOT)))
                     .severity(Severity.ERROR)
                     .details("If you don't declare the normalization, outputs can't be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly")
                     .solution("Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath");

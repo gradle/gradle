@@ -148,7 +148,7 @@ class RuleBindings {
             }
         }
 
-        public void remove(ModelNodeInternal node) {
+        public void remove() {
             match = null;
         }
     }
@@ -175,7 +175,7 @@ class RuleBindings {
         }
 
         public void removeNode(ModelNodeInternal node) {
-            predicatesForPath(node.getPath()).remove(node);
+            predicatesForPath(node.getPath()).remove();
         }
     }
 
@@ -196,7 +196,7 @@ class RuleBindings {
             nodes.remove(node);
             for (PredicateMatches matches : types.values()) {
                 if (matches.match == node) {
-                    matches.remove(node);
+                    matches.remove();
                 }
             }
         }

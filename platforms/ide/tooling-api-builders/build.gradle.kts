@@ -21,6 +21,7 @@ dependencies {
     implementation(project(":functional"))
     implementation(project(":dependency-management"))
     implementation(project(":launcher"))
+    implementation(project(":daemon-protocol"))
     implementation(project(":logging"))
     implementation(project(":messaging"))
     implementation(project(":model-core"))

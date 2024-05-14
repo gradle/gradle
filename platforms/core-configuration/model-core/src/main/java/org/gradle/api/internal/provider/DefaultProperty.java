@@ -28,7 +28,7 @@ import javax.annotation.Nullable;
  * The implementation for general-purpose (atomic, non-composite) properties, where
  * the value is supplied by some provider.
  *
- * @param <T>
+ * @param <T> the type of the property value
  */
 public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? extends T>> implements Property<T> {
     private final Class<T> type;

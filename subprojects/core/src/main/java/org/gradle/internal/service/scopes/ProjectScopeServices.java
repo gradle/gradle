@@ -41,7 +41,10 @@ import org.gradle.api.internal.initialization.BuildLogicBuilder;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
+import org.gradle.api.internal.plugins.AddSoftwareTypesAsExtensionsPluginTarget;
 import org.gradle.api.internal.plugins.DefaultPluginManager;
+import org.gradle.api.internal.plugins.ImperativeOnlyPluginTarget;
+import org.gradle.api.internal.plugins.PluginInstantiator;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.plugins.PluginTarget;
@@ -51,6 +54,7 @@ import org.gradle.api.internal.project.CrossProjectModelAccess;
 import org.gradle.api.internal.project.DefaultAntBuilderFactory;
 import org.gradle.api.internal.project.DeferredProjectConfiguration;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.project.ant.DefaultAntLoggingAdapterFactory;
@@ -96,6 +100,8 @@ import org.gradle.normalization.internal.DefaultInputNormalizationHandler;
 import org.gradle.normalization.internal.DefaultRuntimeClasspathNormalization;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 import org.gradle.normalization.internal.RuntimeClasspathNormalizationInternal;
+import org.gradle.plugin.software.internal.PluginScheme;
+import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
 import org.gradle.process.internal.ExecFactory;
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry;
 import org.gradle.util.Path;
@@ -179,13 +185,41 @@ public class ProjectScopeServices extends ScopedServiceRegistry {
         return buildScopedToolingModelBuilders.createChild();
     }
 
-    protected PluginManagerInternal createPluginManager(Instantiator instantiator, InstantiatorFactory instantiatorFactory, BuildOperationRunner buildOperationRunner, UserCodeApplicationContext userCodeApplicationContext, CollectionCallbackActionDecorator decorator, DomainObjectCollectionFactory domainObjectCollectionFactory) {
-        PluginTarget target = new RuleBasedPluginTarget(
+    protected PluginManagerInternal createPluginManager(
+        Instantiator instantiator,
+        InstantiatorFactory instantiatorFactory,
+        BuildOperationRunner buildOperationRunner,
+        UserCodeApplicationContext userCodeApplicationContext,
+        CollectionCallbackActionDecorator decorator,
+        DomainObjectCollectionFactory domainObjectCollectionFactory,
+        PluginScheme pluginScheme,
+        SoftwareTypeRegistry softwareTypeRegistry
+        ) {
+        PluginTarget ruleBasedTarget = new RuleBasedPluginTarget(
             project,
+            new ImperativeOnlyPluginTarget<>(project),
             get(ModelRuleExtractor.class),
             get(ModelRuleSourceDetector.class)
         );
-        return instantiator.newInstance(DefaultPluginManager.class, get(PluginRegistry.class), instantiatorFactory.inject(this), target, buildOperationRunner, userCodeApplicationContext, decorator, domainObjectCollectionFactory);
+        PluginTarget pluginTarget = new AddSoftwareTypesAsExtensionsPluginTarget(
+            project,
+            ruleBasedTarget,
+            pluginScheme.getInspectionScheme(),
+            softwareTypeRegistry
+        );
+        return instantiator.newInstance(
+            DefaultPluginManager.class,
+            get(PluginRegistry.class),
+            new PluginInstantiator(
+                instantiatorFactory.injectScheme().withServices(this).instantiator(),
+                pluginScheme.getInstantiationScheme().withServices(this).instantiator()
+            ),
+            pluginTarget,
+            buildOperationRunner,
+            userCodeApplicationContext,
+            decorator,
+            domainObjectCollectionFactory
+        );
     }
 
     protected ITaskFactory createTaskFactory(ITaskFactory parentFactory, TaskScheme taskScheme) {
@@ -196,7 +230,13 @@ public class ProjectScopeServices extends ScopedServiceRegistry {
         return new TaskInstantiator(taskIdentityFactory, taskFactory, project);
     }
 
-    protected TaskContainerInternal createTaskContainerInternal(TaskStatistics taskStatistics, BuildOperationRunner buildOperationRunner, CrossProjectConfigurator crossProjectConfigurator, CollectionCallbackActionDecorator decorator) {
+    protected TaskContainerInternal createTaskContainerInternal(
+        TaskStatistics taskStatistics,
+        BuildOperationRunner buildOperationRunner,
+        CrossProjectConfigurator crossProjectConfigurator,
+        CollectionCallbackActionDecorator decorator,
+        ProjectRegistry<ProjectInternal> projectRegistry
+    ) {
         return new DefaultTaskContainerFactory(
             get(Instantiator.class),
             get(TaskIdentityFactory.class),
@@ -205,7 +245,8 @@ public class ProjectScopeServices extends ScopedServiceRegistry {
             taskStatistics,
             buildOperationRunner,
             crossProjectConfigurator,
-            decorator
+            decorator,
+            projectRegistry
         ).create();
     }
 

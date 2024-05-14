@@ -24,12 +24,11 @@ description = "Adds support for using JVM toolchains in projects"
 errorprone {
     disabledChecks.addAll(
         "StringCaseLocaleUsage", // 2 occurrences
-        "UnnecessaryLambda", // 2 occurrences
     )
 }
 
 dependencies {
-    api(project(":base-annotations"))
+    api(projects.javaLanguageExtensions)
     api(project(":base-services"))
     api(project(":build-operations"))
     api(project(":core"))
@@ -74,6 +73,7 @@ dependencies {
     integTestImplementation(libs.slf4jApi)
 
     integTestDistributionRuntimeOnly(project(":distributions-jvm"))
+    crossVersionTestDistributionRuntimeOnly(project(":distributions-jvm"))
 }
 
 packageCycles {

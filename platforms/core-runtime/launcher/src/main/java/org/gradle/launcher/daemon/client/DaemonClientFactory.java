@@ -23,6 +23,8 @@ import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.context.DaemonRequestContext;
 
@@ -30,6 +32,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.Collections;
 
+@ServiceScope(Scope.Global.class)
 public class DaemonClientFactory {
     private final ServiceRegistry sharedServices;
 

@@ -24,7 +24,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 /**
  * Infrastructure like services used by the plugin.
  */
-@ServiceScope(Scope.Gradle.class)
+@ServiceScope(Scope.Build.class)
 public interface GradleEnterprisePluginRequiredServices {
 
     UserInputHandler getUserInputHandler();

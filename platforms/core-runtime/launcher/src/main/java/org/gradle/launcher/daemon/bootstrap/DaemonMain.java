@@ -30,7 +30,7 @@ import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
 import org.gradle.internal.remote.Address;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
-import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.stream.EncodedStream;
 import org.gradle.launcher.bootstrap.EntryPoint;
 import org.gradle.launcher.bootstrap.ExecutionListener;
@@ -40,7 +40,9 @@ import org.gradle.launcher.daemon.configuration.DefaultDaemonServerConfiguration
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.server.Daemon;
-import org.gradle.launcher.daemon.server.DaemonServices;
+import org.gradle.launcher.daemon.server.DaemonLogFile;
+import org.gradle.launcher.daemon.server.DaemonProcessState;
+import org.gradle.launcher.daemon.server.DaemonStopState;
 import org.gradle.launcher.daemon.server.MasterExpirationStrategy;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStrategy;
 import org.gradle.process.internal.shutdown.ShutdownHooks;
@@ -113,8 +115,9 @@ public class DaemonMain extends EntryPoint {
         LoggingServiceRegistry loggingRegistry = LoggingServiceRegistry.newCommandLineProcessLogging();
         LoggingManagerInternal loggingManager = loggingRegistry.newInstance(LoggingManagerInternal.class);
 
-        DaemonServices daemonServices = new DaemonServices(parameters, loggingRegistry, loggingManager, DefaultClassPath.of(additionalClassPath));
-        File daemonLog = daemonServices.getDaemonLogFile();
+        DaemonProcessState daemonProcessState = new DaemonProcessState(parameters, loggingRegistry, loggingManager, DefaultClassPath.of(additionalClassPath));
+        ServiceRegistry daemonServices = daemonProcessState.getServices();
+        File daemonLog = daemonServices.get(DaemonLogFile.class).getFile();
 
         // Any logging prior to this point will not end up in the daemon log file.
         initialiseLogging(loggingManager, daemonLog);
@@ -135,11 +138,10 @@ public class DaemonMain extends EntryPoint {
             Long pid = daemonContext.getPid();
             daemonStarted(pid, daemon.getUid(), daemon.getAddress(), daemonLog);
             DaemonExpirationStrategy expirationStrategy = daemonServices.get(MasterExpirationStrategy.class);
-            daemon.stopOnExpiration(expirationStrategy, parameters.getPeriodicCheckIntervalMs());
+            DaemonStopState stopState = daemon.stopOnExpiration(expirationStrategy, parameters.getPeriodicCheckIntervalMs());
+            daemonProcessState.stopped(stopState);
         } finally {
-            daemon.stop();
-            // TODO: Stop all daemon services
-            CompositeStoppable.stoppable(daemonServices.get(GradleUserHomeScopeServiceRegistry.class)).stop();
+            CompositeStoppable.stoppable(daemon, daemonProcessState).stop();
         }
     }
 

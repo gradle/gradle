@@ -130,7 +130,7 @@ class SwiftLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         """
 
         when:
-        run('init', '--type', 'swift-library', '--project-name', 'hello', '--dsl', scriptDsl.id)
+        run('init', '--type', 'swift-library', '--project-name', 'hello', '--dsl', scriptDsl.id, '--overwrite')
 
         then:
         subprojectDir.file("src/main/swift").assertHasDescendants("hola.swift")

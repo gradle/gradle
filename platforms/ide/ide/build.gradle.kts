@@ -24,7 +24,6 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":base-services-groovy"))
     implementation(project(":dependency-management"))
-    implementation(project(":plugins"))
     implementation(project(":plugins-java"))
     implementation(project(":plugins-java-base"))
     implementation(project(":platform-base"))

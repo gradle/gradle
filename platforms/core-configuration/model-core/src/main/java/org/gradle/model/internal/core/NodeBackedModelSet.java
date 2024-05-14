@@ -136,7 +136,7 @@ public class NodeBackedModelSet<T> implements ModelSet<T>, ManagedInstance {
     }
 
     @Override
-    public <T> T[] toArray(T[] a) {
+    public <E> E[] toArray(E[] a) {
         return getElements().toArray(a);
     }
 

@@ -79,6 +79,10 @@ public class TypeUtils {
         if (type.getSort() == Type.ARRAY) {
             return ArrayTypeName.of(typeName(type.getElementType()));
         }
+        return className(type);
+    }
+
+    public static ClassName className(Type type) {
         return ClassName.bestGuess(type.getClassName().replace("$", "."));
     }
 }

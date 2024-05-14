@@ -469,7 +469,6 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
             }
         """
 
-        //noinspection GrDeprecatedAPIUsage
         executer.expectDeprecationWarning("$fileWithDeprecation:5: warning: $deprecationMessage")
 
         when:

@@ -65,6 +65,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -81,10 +82,13 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider {
         "gradle-logging",
         "gradle-logging-api",
         "gradle-messaging",
+        "gradle-base-asm",
         "gradle-base-services",
         "gradle-enterprise-logging",
         "gradle-enterprise-workers",
         "gradle-cli",
+        "gradle-concurrent",
+        "gradle-io",
         "gradle-wrapper-shared",
         "gradle-native",
         "gradle-dependency-management",
@@ -100,7 +104,9 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider {
         "gradle-file-temp",
         "gradle-hashing",
         "gradle-snapshots",
-        "gradle-base-annotations",
+        "gradle-serialization",
+        "gradle-time",
+        "gradle-java-language-extensions",
         "gradle-build-operations"
     };
 
@@ -121,6 +127,7 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider {
 
     // This list is ordered by the number of classes we load from each jar descending
     private static final String[] WORKER_OPTIMIZED_LOADING_ORDER = new String[]{
+        "gradle-base-asm",
         "gradle-base-services",
         "guava",
         "gradle-messaging",
@@ -236,21 +243,18 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider {
         return new File(cache.getBaseDir(), "gradle-worker.jar");
     }
 
-    private static class CacheInitializer implements Action<PersistentCache> {
+    private static class CacheInitializer implements Consumer<PersistentCache> {
         private final WorkerClassRemapper remapper = new WorkerClassRemapper();
 
         @Override
-        public void execute(PersistentCache cache) {
+        public void accept(PersistentCache cache) {
             try {
                 File jarFile = jarFile(cache);
                 LOGGER.debug("Generating worker process classes to {}.", jarFile);
-                ZipOutputStream outputStream = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(jarFile)));
-                try {
+                try (ZipOutputStream outputStream = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(jarFile)))) {
                     for (Class<?> classToMap : getClassesForWorkerJar()) {
                         remapClass(classToMap, outputStream);
                     }
-                } finally {
-                    outputStream.close();
                 }
             } catch (Exception e) {
                 throw new GradleException("Could not generate worker process bootstrap classes.", e);

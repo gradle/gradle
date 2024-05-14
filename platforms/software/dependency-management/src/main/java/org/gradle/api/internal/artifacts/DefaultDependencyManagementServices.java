@@ -213,7 +213,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         void configure(ServiceRegistration registration) {
             registration.add(DefaultTransformedVariantFactory.class);
             registration.add(DefaultRootComponentMetadataBuilder.Factory.class);
-            registration.add(ResolveExceptionContextualizer.class);
+            registration.add(ResolveExceptionMapper.class);
             registration.add(ResolutionStrategyFactory.class);
             registration.add(DefaultLocalComponentRegistry.class);
             registration.add(ProjectDependencyResolver.class);
@@ -523,7 +523,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
             ResolvedArtifactSetResolver artifactSetResolver,
             AttributeDesugaring attributeDesugaring,
-            ResolveExceptionContextualizer resolveExceptionContextualizer,
             ComponentDetailsSerializer componentDetailsSerializer,
             SelectedVariantSerializer selectedVariantSerializer,
             ResolvedVariantCache resolvedVariantCache,
@@ -553,7 +552,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 attributeDesugaring,
                 artifactSetResolver,
                 componentSelectionDescriptorFactory,
-                resolveExceptionContextualizer,
                 componentDetailsSerializer,
                 selectedVariantSerializer,
                 resolvedVariantCache,

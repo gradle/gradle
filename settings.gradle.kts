@@ -68,14 +68,17 @@ val core = platform("core") {
 
     // Core Runtime Module
     module("core-runtime") {
-        subproject("base-annotations")
+        subproject("base-asm")
         subproject("base-services")
         subproject("bootstrap")
         subproject("build-configuration")
         subproject("build-operations")
         subproject("build-option")
         subproject("build-profile")
+        subproject("build-state")
         subproject("cli")
+        subproject("concurrent")
+        subproject("daemon-protocol")
         subproject("distributions-basics")
         subproject("distributions-core")
         subproject("file-temp")
@@ -86,12 +89,18 @@ val core = platform("core") {
         subproject("instrumentation-declarations")
         subproject("internal-instrumentation-api")
         subproject("internal-instrumentation-processor")
+        subproject("io")
+        subproject("java-language-extensions")
         subproject("launcher")
         subproject("logging")
         subproject("logging-api")
         subproject("messaging")
         subproject("native")
         subproject("process-services")
+        subproject("serialization")
+        subproject("time")
+        subproject("client-services")
+        subproject("daemon-services")
         subproject("worker-services")
         subproject("wrapper")
         subproject("wrapper-shared")
@@ -121,6 +130,7 @@ val core = platform("core") {
     module("core-execution") {
         subproject("build-cache")
         subproject("build-cache-base")
+        subproject("build-cache-example-client")
         subproject("build-cache-local")
         subproject("build-cache-http")
         subproject("build-cache-packaging")
@@ -178,6 +188,7 @@ val software = platform("software") {
     subproject("security")
     subproject("signing")
     subproject("testing-base")
+    subproject("testing-base-infrastructure")
     subproject("test-suites-base")
     subproject("version-control")
 }
@@ -292,7 +303,7 @@ gradle.settingsEvaluated {
 gradle.rootProject {
     tasks.register("architectureDoc", GeneratorTask::class.java) {
         description = "Generates the architecture documentation"
-        outputFile = layout.projectDirectory.file("architecture/README.md")
+        outputFile = layout.projectDirectory.file("architecture/platforms.md")
         elements = provider { architectureElements.map { it.build() } }
     }
 }
@@ -311,16 +322,20 @@ abstract class GeneratorTask : DefaultTask() {
     @TaskAction
     fun generate() {
         val markdownFile = outputFile.asFile.get()
-        val content = markdownFile.readText().lines()
-        val markerPos = content.indexOfFirst { it.contains(markerComment) }
-        if (markerPos < 0) {
-            throw IllegalArgumentException("Could not locate the generated diagram in $markdownFile")
+        val head = if (markdownFile.exists()) {
+            val content = markdownFile.readText().lines()
+            val markerPos = content.indexOfFirst { it.contains(markerComment) }
+            if (markerPos < 0) {
+                throw IllegalArgumentException("Could not locate the generated diagram in $markdownFile")
+            }
+            val endPos = content.subList(markerPos, content.size).indexOfFirst { it.contains(endDiagram) && !it.contains(startDiagram) }
+            if (endPos < 0) {
+                throw IllegalArgumentException("Could not locate the end of the generated diagram in $markdownFile")
+            }
+            content.subList(0, markerPos)
+        } else {
+            emptyList()
         }
-        val endPos = content.subList(markerPos, content.size).indexOfFirst { it.contains(endDiagram) && !it.contains(startDiagram) }
-        if (endPos < 0) {
-            throw IllegalArgumentException("Could not locate the end of the generated diagram in $markdownFile")
-        }
-        val head = content.subList(0, markerPos)
 
         markdownFile.bufferedWriter().use {
             PrintWriter(it).run {

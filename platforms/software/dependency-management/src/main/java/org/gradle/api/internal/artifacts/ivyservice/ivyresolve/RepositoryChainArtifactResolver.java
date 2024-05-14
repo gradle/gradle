@@ -23,7 +23,7 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.model.CalculatedValue;
-import org.gradle.internal.model.CalculatedValueContainerFactory;
+import org.gradle.internal.model.CalculatedValueFactory;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.result.BuildableArtifactFileResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
@@ -33,14 +33,13 @@ import org.gradle.internal.resolve.result.DefaultBuildableArtifactFileResolveRes
 import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.function.Supplier;
 
 class RepositoryChainArtifactResolver implements ArtifactResolver {
     private final Map<String, ModuleComponentRepository<?>> repositories = new LinkedHashMap<>();
-    private final CalculatedValueContainerFactory calculatedValueContainerFactory;
+    private final CalculatedValueFactory calculatedValueFactory;
 
-    RepositoryChainArtifactResolver(CalculatedValueContainerFactory calculatedValueContainerFactory) {
-        this.calculatedValueContainerFactory = calculatedValueContainerFactory;
+    RepositoryChainArtifactResolver(CalculatedValueFactory calculatedValueFactory) {
+        this.calculatedValueFactory = calculatedValueFactory;
     }
 
     void add(ModuleComponentRepository<?> repository) {
@@ -61,8 +60,8 @@ class RepositoryChainArtifactResolver implements ArtifactResolver {
     public void resolveArtifact(ComponentArtifactResolveMetadata component, ComponentArtifactMetadata artifact, BuildableArtifactResolveResult result) {
         ModuleComponentRepository<?> sourceRepository = findSourceRepository(component.getSources());
         ResolvableArtifact resolvableArtifact = sourceRepository.getArtifactCache().computeIfAbsent(artifact.getId(), id -> {
-            CalculatedValue<File> artifactSource = calculatedValueContainerFactory.create(Describables.of(artifact.getId()), (Supplier<File>)() -> resolveArtifactLater(artifact, component.getSources(), sourceRepository));
-            return new DefaultResolvableArtifact(component.getModuleVersionId(), artifact.getName(), artifact.getId(), context -> context.add(artifact.getBuildDependencies()), artifactSource, calculatedValueContainerFactory);
+            CalculatedValue<File> artifactSource = calculatedValueFactory.create(Describables.of(artifact.getId()), () -> resolveArtifactLater(artifact, component.getSources(), sourceRepository));
+            return new DefaultResolvableArtifact(component.getModuleVersionId(), artifact.getName(), artifact.getId(), context -> context.add(artifact.getBuildDependencies()), artifactSource, calculatedValueFactory);
         });
 
         result.resolved(resolvableArtifact);

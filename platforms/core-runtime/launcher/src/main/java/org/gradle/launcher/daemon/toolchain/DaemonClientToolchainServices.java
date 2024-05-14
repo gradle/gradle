@@ -17,6 +17,7 @@
 package org.gradle.launcher.daemon.toolchain;
 
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.temp.GradleUserHomeTemporaryFileProvider;
 import org.gradle.cache.FileLockManager;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.jvm.inspection.DefaultJavaInstallationRegistry;
@@ -73,7 +74,7 @@ public class DaemonClientToolchainServices {
         return new DefaultJavaInstallationRegistry(toolchainConfiguration, installationSuppliers, jvmMetadataDetector, null, OperatingSystem.current(), progressLoggerFactory, fileResolver, jdkCacheDirectory, new JvmInstallationProblemReporter());
     }
 
-    protected JdkCacheDirectory createJdkCacheDirectory(GradleUserHomeDirProvider gradleUserHomeDirProvider, FileLockManager fileLockManager, JvmMetadataDetector jvmMetadataDetector) {
-        return new DefaultJdkCacheDirectory(gradleUserHomeDirProvider, null, fileLockManager, jvmMetadataDetector);
+    protected JdkCacheDirectory createJdkCacheDirectory(GradleUserHomeDirProvider gradleUserHomeDirProvider, FileLockManager fileLockManager, JvmMetadataDetector jvmMetadataDetector, GradleUserHomeTemporaryFileProvider gradleUserHomeTemporaryFileProvider) {
+        return new DefaultJdkCacheDirectory(gradleUserHomeDirProvider, null, fileLockManager, jvmMetadataDetector, gradleUserHomeTemporaryFileProvider);
     }
 }

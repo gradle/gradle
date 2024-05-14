@@ -18,12 +18,12 @@ package org.gradle.workers.internal;
 
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.ClassPathRegistry;
-import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.concurrent.WorkerLimits;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
@@ -47,6 +47,7 @@ import org.gradle.process.internal.worker.child.DefaultWorkerDirectoryProvider;
 import org.gradle.process.internal.worker.child.WorkerDirectoryProvider;
 import org.gradle.workers.WorkerExecutor;
 
+@SuppressWarnings("UnusedMethod")
 public class WorkersServices extends AbstractPluginServiceRegistry {
     @Override
     public void registerGradleUserHomeServices(ServiceRegistration registration) {
@@ -64,13 +65,14 @@ public class WorkersServices extends AbstractPluginServiceRegistry {
         registration.add(IsolatedClassloaderWorkerFactory.class);
     }
 
+    @SuppressWarnings("unused") // Used by reflection
     private static class BuildSessionScopeServices {
         WorkerDirectoryProvider createWorkerDirectoryProvider(GradleUserHomeDirProvider gradleUserHomeDirProvider) {
             return new DefaultWorkerDirectoryProvider(gradleUserHomeDirProvider);
         }
 
-        ConditionalExecutionQueueFactory createConditionalExecutionQueueFactory(ExecutorFactory executorFactory, ParallelismConfiguration parallelismConfiguration, WorkerLeaseService workerLeaseService) {
-            return new DefaultConditionalExecutionQueueFactory(parallelismConfiguration, executorFactory, workerLeaseService);
+        ConditionalExecutionQueueFactory createConditionalExecutionQueueFactory(ExecutorFactory executorFactory, WorkerLimits workerLimits, WorkerLeaseService workerLeaseService) {
+            return new DefaultConditionalExecutionQueueFactory(workerLimits, executorFactory, workerLeaseService);
         }
 
         WorkerExecutionQueueFactory createWorkerExecutionQueueFactory(ConditionalExecutionQueueFactory conditionalExecutionQueueFactory) {
@@ -78,6 +80,7 @@ public class WorkersServices extends AbstractPluginServiceRegistry {
         }
     }
 
+    @SuppressWarnings("unused") // Used by reflection
     private static class GradleUserHomeServices {
         WorkerDaemonClientsManager createWorkerDaemonClientsManager(WorkerProcessFactory workerFactory,
                                                                     LoggingManagerInternal loggingManager,
@@ -102,6 +105,7 @@ public class WorkersServices extends AbstractPluginServiceRegistry {
         }
     }
 
+    @SuppressWarnings("unused") // Used by reflection
     private static class ProjectScopeServices {
         WorkerExecutor createWorkerExecutor(InstantiatorFactory instantiatorFactory,
                                             WorkerDaemonFactory daemonWorkerFactory,

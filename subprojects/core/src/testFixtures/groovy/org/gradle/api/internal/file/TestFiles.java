@@ -213,7 +213,7 @@ public class TestFiles {
         return new DefaultFileSystemAccess(
             fileHasher(),
             new StringInterner(),
-            fileSystem(),
+            fileSystem()::stat,
             virtualFileSystem,
             locations -> {},
             new DirectorySnapshotterStatistics.Collector()

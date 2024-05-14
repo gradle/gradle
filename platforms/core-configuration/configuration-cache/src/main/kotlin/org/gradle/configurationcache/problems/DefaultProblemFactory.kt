@@ -36,8 +36,9 @@ class DefaultProblemFactory(
         locationForCaller(consumer, userCodeContext.current()?.source)
 
     override fun problem(message: StructuredMessage, exception: Throwable?, documentationSection: DocumentationSection?): PropertyProblem {
-        val trace = locationForCaller(null, problemStream.forCurrentCaller(exception))
-        return PropertyProblem(trace, message, exception, documentationSection)
+        val diagnostics = problemStream.forCurrentCaller(exception)
+        val trace = locationForCaller(null, diagnostics)
+        return PropertyProblem(trace, message, exception, diagnostics.failure, documentationSection)
     }
 
     override fun problem(consumer: String?, messageBuilder: StructuredMessage.Builder.() -> Unit): ProblemFactory.Builder {
@@ -73,13 +74,14 @@ class DefaultProblemFactory(
             }
 
             override fun build(): PropertyProblem {
+                val exceptionMessage = exceptionMessage
                 val diagnostics = if (exceptionMessage == null) {
                     problemStream.forCurrentCaller()
                 } else {
-                    problemStream.forCurrentCaller(Supplier { InvalidUserCodeException(exceptionMessage!!) })
+                    problemStream.forCurrentCaller(Supplier { InvalidUserCodeException(exceptionMessage) })
                 }
                 val location = locationMapper(locationForCaller(consumer, diagnostics))
-                return PropertyProblem(location, message, diagnostics.exception, documentationSection)
+                return PropertyProblem(location, message, diagnostics.exception, diagnostics.failure, documentationSection)
             }
         }
     }

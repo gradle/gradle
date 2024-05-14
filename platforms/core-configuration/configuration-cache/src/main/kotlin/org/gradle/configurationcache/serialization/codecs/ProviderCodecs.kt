@@ -272,22 +272,18 @@ class ValueSourceProviderCodec(
 ) : Codec<ValueSourceProvider<*, *>> {
 
     override suspend fun WriteContext.encode(value: ValueSourceProvider<*, *>) {
-        when (value.obtainedValueOrNull) {
-            null -> {
-                // source has **NOT** been used as build logic input:
-                // serialize the source
-                writeBoolean(true)
-                encodeValueSource(value)
-            }
-
-            else -> {
-                // source has been used as build logic input:
-                // serialize the value directly as it will be part of the
-                // cached state fingerprint.
-                // Currently not necessary due to the unpacking that happens
-                // to the TypeSanitizingProvider put around the ValueSourceProvider.
-                throw IllegalStateException("build logic input")
-            }
+        if (!value.hasBeenObtained()) {
+            // source has **NOT** been used as build logic input:
+            // serialize the source
+            writeBoolean(true)
+            encodeValueSource(value)
+        } else {
+            // source has been used as build logic input:
+            // serialize the value directly as it will be part of the
+            // cached state fingerprint.
+            // Currently not necessary due to the unpacking that happens
+            // to the TypeSanitizingProvider put around the ValueSourceProvider.
+            throw IllegalStateException("build logic input")
         }
     }
 

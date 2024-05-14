@@ -16,57 +16,28 @@
 
 package org.gradle.tooling.events.problems.internal;
 
-import org.gradle.tooling.events.problems.DocumentationLink;
-import org.gradle.tooling.events.problems.Label;
 import org.gradle.tooling.events.problems.ProblemAggregation;
-import org.gradle.tooling.events.problems.ProblemCategory;
 import org.gradle.tooling.events.problems.ProblemContext;
-import org.gradle.tooling.events.problems.Severity;
+import org.gradle.tooling.events.problems.ProblemDefinition;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 public class DefaultProblemAggregation implements ProblemAggregation {
 
-    private final ProblemCategory problemCategory;
-    private final Label problemLabel;
-    private final Severity severity;
-    private final DocumentationLink documentationLink;
+    ProblemDefinition problemDefinition;
     private final List<ProblemContext> problemContextDetails;
 
     public DefaultProblemAggregation(
-        ProblemCategory problemCategory,
-        Label problemLabel,
-        Severity severity,
-        @Nullable DocumentationLink documentationLink,
+        ProblemDefinition problemDefinition,
         List<ProblemContext> problemContextDetails
     ) {
-        this.severity = severity;
-        this.documentationLink = documentationLink;
+        this.problemDefinition = problemDefinition;
         this.problemContextDetails = problemContextDetails;
-        this.problemCategory = problemCategory;
-        this.problemLabel = problemLabel;
     }
 
     @Override
-    public ProblemCategory getCategory() {
-        return problemCategory;
-    }
-
-    @Override
-    public Label getLabel() {
-        return problemLabel;
-    }
-
-    @Override
-    public Severity getSeverity() {
-        return severity;
-    }
-
-    @Nullable
-    @Override
-    public DocumentationLink getDocumentationLink() {
-        return documentationLink;
+    public ProblemDefinition getDefinition() {
+        return problemDefinition;
     }
 
     @Override

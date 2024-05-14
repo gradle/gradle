@@ -24,7 +24,7 @@ class DeprecatedFeatureUsageTest extends Specification {
 
     def "formats messages"() {
         given:
-        def featureUsage = new DeprecatedFeatureUsage(summary, removalDetails, advice, contextualAdvice, documentationReference, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT, "id", "id display name", getClass())
+        def featureUsage = new DeprecatedFeatureUsage(summary, removalDetails, advice, contextualAdvice, documentationReference, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT, "id display name", "id", getClass())
 
         expect:
         featureUsage.formattedMessage() == expected
@@ -39,7 +39,7 @@ class DeprecatedFeatureUsageTest extends Specification {
 
     def "returns documentation url"() {
         given:
-        def featureUsage = new DeprecatedFeatureUsage("summary", "removalDetails", "advice", "contextualAdvice", documentationReference, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT, "id", "id display name", getClass())
+        def featureUsage = new DeprecatedFeatureUsage("summary", "removalDetails", "advice", "contextualAdvice", documentationReference, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT, "id display name", "id", getClass())
 
         expect:
         featureUsage.getDocumentationUrl()?.getUrl() == expected

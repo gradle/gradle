@@ -18,7 +18,6 @@ package org.gradle.cache.internal;
 
 import org.gradle.cache.AsyncCacheAccess;
 import org.gradle.cache.ExclusiveCacheAccessCoordinator;
-import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorPolicy;
 import org.gradle.internal.concurrent.Stoppable;
@@ -29,11 +28,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 public class ExclusiveCacheAccessingWorker implements Runnable, Stoppable, AsyncCacheAccess {
     private final BlockingQueue<Runnable> workQueue;
@@ -74,13 +73,8 @@ public class ExclusiveCacheAccessingWorker implements Runnable, Stoppable, Async
     }
 
     @Override
-    public <T> T read(final Factory<T> task) {
-        FutureTask<T> futureTask = new FutureTask<T>(new Callable<T>() {
-            @Override
-            public T call() throws Exception {
-                return task.create();
-            }
-        });
+    public <T> T read(Supplier<T> task) {
+        FutureTask<T> futureTask = new FutureTask<T>(task::get);
         addToQueue(futureTask);
         try {
             return futureTask.get();
