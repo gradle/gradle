@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.caching
+package org.gradle.kotlin.dsl.integration
 
+import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
 
@@ -27,7 +28,7 @@ import org.junit.Test
 import java.io.File
 
 
-class BuildScanIntegrationTest : AbstractScriptCachingIntegrationTest() {
+class BuildScanIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
     fun `using the gradle enterprise extension is deprecated`() {
