@@ -218,6 +218,9 @@ dependencies {
     testFixturesApi(testFixtures(project(":snapshots"))) {
         because("test fixtures expose file snapshot related functionality")
     }
+    testFixturesApi(project(":unit-test-fixtures")) {
+        because("test fixtures expose ProjectBuilder")
+    }
     testFixturesImplementation(project(":build-option"))
     testFixturesImplementation(project(":enterprise-operations"))
     testFixturesImplementation(project(":messaging"))
@@ -270,8 +273,9 @@ dependencies {
     integTestImplementation(testFixtures(project(":file-temp")))
 
     testRuntimeOnly(project(":distributions-core")) {
-        because("ProjectBuilder tests load services from a Gradle distribution.")
+        because("This is required by ProjectBuilder, but ProjectBuilder cannot declare :distributions-core as a dependency due to conflicts with other distributions.")
     }
+
     integTestDistributionRuntimeOnly(project(":distributions-jvm")) {
         because("Some tests utilise the 'java-gradle-plugin' and with that TestKit, some also use the 'war' plugin")
     }

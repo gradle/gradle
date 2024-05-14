@@ -26,13 +26,13 @@ import org.gradle.initialization.ReportedException;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.nativeintegration.console.ConsoleDetector;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.launcher.exec.BuildActionExecuter;
+import org.gradle.launcher.exec.BuildActionExecutor;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
 import org.gradle.tooling.internal.provider.action.ExecuteBuildAction;
 
 public class RunBuildAction implements Runnable {
-    private final BuildActionExecuter<BuildActionParameters, BuildRequestContext> executer;
+    private final BuildActionExecutor<BuildActionParameters, BuildRequestContext> executer;
     private final StartParameterInternal startParameter;
     private final BuildClientMetaData clientMetaData;
     private final long startTime;
@@ -40,8 +40,9 @@ public class RunBuildAction implements Runnable {
     private final ServiceRegistry sharedServices;
     private final Stoppable stoppable;
 
-    public RunBuildAction(BuildActionExecuter<BuildActionParameters, BuildRequestContext> executer, StartParameterInternal startParameter, BuildClientMetaData clientMetaData, long startTime,
-                          BuildActionParameters buildActionParameters, ServiceRegistry sharedServices, Stoppable stoppable) {
+    public RunBuildAction(
+        BuildActionExecutor<BuildActionParameters, BuildRequestContext> executer, StartParameterInternal startParameter, BuildClientMetaData clientMetaData, long startTime,
+        BuildActionParameters buildActionParameters, ServiceRegistry sharedServices, Stoppable stoppable) {
         this.executer = executer;
         this.startParameter = startParameter;
         this.clientMetaData = clientMetaData;

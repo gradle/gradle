@@ -41,6 +41,7 @@ class DependencyClassPathProviderTest extends Specification {
             "gradle-plugin-use-runtime",
             "gradle-tooling-api-builders-runtime",
             "gradle-configuration-cache-runtime",
+            "gradle-unit-test-fixtures-runtime",
             "plugin1-runtime",
             "plugin2-runtime"
         ]
@@ -53,6 +54,7 @@ class DependencyClassPathProviderTest extends Specification {
         1 * moduleRegistry.getModule("gradle-plugin-use") >> module("gradle-plugin-use")
         1 * moduleRegistry.getModule("gradle-tooling-api-builders") >> module("gradle-tooling-api-builders")
         1 * moduleRegistry.getModule("gradle-configuration-cache") >> module("gradle-configuration-cache")
+        1 * moduleRegistry.getModule("gradle-unit-test-fixtures") >> module("gradle-unit-test-fixtures")
         1 * pluginModuleRegistry.getApiModules() >> ([module("plugin1"), module("plugin2")] as LinkedHashSet)
     }
 
