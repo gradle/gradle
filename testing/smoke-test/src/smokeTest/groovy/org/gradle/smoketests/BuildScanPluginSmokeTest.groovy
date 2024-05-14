@@ -143,7 +143,8 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         "3.16.2",
         "3.17",
         "3.17.1",
-        "3.17.2"
+        "3.17.2",
+        "3.17.3"
     ]
 
     // Current injection scripts support Develocity plugin 3.3 and above
@@ -381,6 +382,9 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
                 "WARNING: The following functionality has been deprecated and will be removed in the next major release of the Develocity Gradle plugin:")
             .maybeExpectLegacyDeprecationWarningIf(FIRST_VERSION_UNDER_DEVELOCITY_BRAND <= versionNumber,
                 "WARNING: The following functionality has been deprecated and will be removed in the next major release of the Develocity Gradle plugin. " +
+                    "For assistance with migration, see https://gradle.com/help/gradle-plugin-develocity-migration.")
+            .maybeExpectLegacyDeprecationWarningIf(FIRST_VERSION_UNDER_DEVELOCITY_BRAND <= versionNumber,
+                "WARNING: The following functionality has been deprecated and will be removed in the next major release of the Develocity Gradle plugin. Run with '-Ddevelocity.deprecation.captureOrigin=true' to see where the deprecated functionality is being used. " +
                     "For assistance with migration, see https://gradle.com/help/gradle-plugin-develocity-migration.")
             .expectLegacyDeprecationWarningIf(FIRST_VERSION_SUPPORTING_CHECK_IN_SERVICE <= versionNumber && versionNumber < FIRST_VERSION_CALLING_BUILD_PATH,
                 "Gradle Enterprise plugin $pluginVersion has been deprecated. " +
