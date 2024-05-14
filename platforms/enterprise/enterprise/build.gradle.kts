@@ -10,6 +10,10 @@ errorprone {
     )
 }
 
+tasks.isolatedProjectsIntegTest {
+    enabled = true
+}
+
 dependencies {
     api(projects.serviceProvider)
     api(project(":build-operations"))
