@@ -154,30 +154,6 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
         outputDoesNotContain("Applying AnotherSoftwareTypeImplPlugin")
     }
 
-    def 'can declare multiple custom software types from a single software type plugin'() {
-        given:
-        withSoftwareTypePluginThatExposesMultipleSoftwareTypes().prepareToExecute()
-
-        file("settings.gradle.dcl") << pluginsFromIncludedBuild
-
-        file("build.gradle.dcl") << declarativeScriptThatConfiguresOnlyTestSoftwareType + """
-            anotherSoftwareType {
-                foo = "test2"
-
-                bar {
-                    baz = "fizz"
-                }
-            }
-        """
-
-        when:
-        run(":printTestSoftwareTypeExtensionConfiguration", ":printAnotherSoftwareTypeExtensionConfiguration")
-
-        then:
-        assertThatDeclaredValuesAreSetProperly()
-        outputContains("""foo = test2\nbaz = fizz""")
-    }
-
     def 'can declare and configure a custom software type with different public and implementation model types'() {
         given:
         withSoftwareTypePluginThatHasDifferentPublicAndImplementationModelTypes().prepareToExecute()

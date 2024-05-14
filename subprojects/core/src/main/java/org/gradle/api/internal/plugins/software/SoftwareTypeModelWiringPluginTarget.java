@@ -18,6 +18,7 @@ package org.gradle.api.internal.plugins.software;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Plugin;
+import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.plugins.PluginTarget;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -106,7 +107,7 @@ public class SoftwareTypeModelWiringPluginTarget implements PluginTarget {
 
     private void applyBuildLevelConventions(ProjectInternal target, SoftwareType softwareType, Object model) {
         Object convention = target.getGradle().getSettings().getExtensions().getByName(softwareType.name());
-        inspectionScheme.getPropertyPairWalker().visitPropertyPairs(softwareType.modelPublicType(), Cast.uncheckedCast(model), Cast.uncheckedCast(convention), new PropertyPairVisitor() {
+        inspectionScheme.getPropertyPairWalker().visitPropertyPairs(publicTypeOf(model, softwareType), Cast.uncheckedCast(model), Cast.uncheckedCast(convention), new PropertyPairVisitor() {
             @Override
             public <T> void visitPropertyTypePair(@Nullable Property<T> model, @Nullable Property<T> convention) {
                 if (model != null && convention != null && convention.isPresent()) {
@@ -145,6 +146,13 @@ public class SoftwareTypeModelWiringPluginTarget implements PluginTarget {
         delegate.applyImperativeRulesHybrid(pluginId, plugin, declaringClass);
     }
 
+    private static Class<?> publicTypeOf(@Nullable Object model, SoftwareType softwareType) {
+        if (model == null) {
+            return softwareType.modelPublicType();
+        }
+        return softwareType.modelPublicType() == Void.class ? GeneratedSubclasses.unpack(model.getClass()) : softwareType.modelPublicType();
+    }
+
     public static class ExtensionAddingVisitor implements PropertyVisitor {
         private final ProjectInternal target;
         private final TypeMetadataStore typeMetadataStore;
@@ -163,8 +171,8 @@ public class SoftwareTypeModelWiringPluginTarget implements PluginTarget {
         public void visitSoftwareTypeProperty(String propertyName, PropertyValue propertyValue, SoftwareType softwareType) {
             // Add software type as an extension
             ExtensionContainer extensions = ((ExtensionAware) target).getExtensions();
-            Class<?> publicType = softwareType.modelPublicType();
             Object model = propertyValue.call();
+            Class<?> publicType = publicTypeOf(model, softwareType);
             extensions.add(publicType, softwareType.name(), Cast.uncheckedNonnullCast(model));
 
             softwareTypes.put(softwareType, model);
