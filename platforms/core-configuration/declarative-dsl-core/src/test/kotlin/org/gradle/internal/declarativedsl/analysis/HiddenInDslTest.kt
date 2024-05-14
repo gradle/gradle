@@ -41,7 +41,7 @@ class HiddenInDslTest {
 
     @Test
     fun `handles the hidden properties correctly`() {
-        val aType = schema.dataClassesByFqName.getValue(FqName.parse(HasHiddenProperty::class.qualifiedName!!))
+        val aType = schema.dataClassesByFqName.getValue(DefaultFqName.parse(HasHiddenProperty::class.qualifiedName!!))
         assertTrue { aType.properties.single { it.name == "y" }.isHiddenInDsl }
 
         val result = schema.resolve(

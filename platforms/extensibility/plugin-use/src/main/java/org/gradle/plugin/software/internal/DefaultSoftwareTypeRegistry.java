@@ -103,11 +103,15 @@ public class DefaultSoftwareTypeRegistry implements SoftwareTypeRegistry {
                 softwareTypeImplementationsBuilder.add(
                     new DefaultSoftwareTypeImplementation(
                         softwareType.name(),
-                        softwareType.modelPublicType(),
+                        publicTypeOf(propertyMetadata, softwareType),
                         Cast.uncheckedNonnullCast(pluginClass)
                     )
                 );
             });
+        }
+
+        private static Class<?> publicTypeOf(PropertyMetadata propertyMetadata, SoftwareType softwareType) {
+            return softwareType.modelPublicType() == Void.class ? propertyMetadata.getDeclaredType().getRawType() : softwareType.modelPublicType();
         }
     }
 }

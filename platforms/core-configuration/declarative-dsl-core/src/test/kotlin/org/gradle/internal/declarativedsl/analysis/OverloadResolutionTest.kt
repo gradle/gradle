@@ -17,9 +17,7 @@
 package org.gradle.internal.declarativedsl.analysis
 
 import org.gradle.declarative.dsl.model.annotations.Adding
-import org.gradle.internal.declarativedsl.analysis.FunctionSemantics.ConfigureSemantics
-import org.gradle.internal.declarativedsl.analysis.FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement.NOT_ALLOWED
-import org.gradle.internal.declarativedsl.analysis.FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement.REQUIRED
+import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin.FunctionInvocationOrigin
 import org.gradle.internal.declarativedsl.demo.resolve
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
@@ -41,8 +39,10 @@ object OverloadResolutionTest {
         val result = schema.resolve(code, resolver)
 
         val addedObjects = result.additions.map { it.dataObject }
-        assertEquals(NOT_ALLOWED, ((addedObjects[0] as FunctionInvocationOrigin).function.semantics as ConfigureSemantics).configureBlockRequirement)
-        assertEquals(REQUIRED, ((addedObjects[1] as FunctionInvocationOrigin).function.semantics as ConfigureSemantics).configureBlockRequirement)
+        assertEquals(FunctionSemanticsInternal.DefaultConfigureBlockRequirement.DefaultNotAllowed,
+            ((addedObjects[0] as FunctionInvocationOrigin).function.semantics as FunctionSemantics.ConfigureSemantics).configureBlockRequirement)
+        assertEquals(FunctionSemanticsInternal.DefaultConfigureBlockRequirement.DefaultRequired,
+            ((addedObjects[1] as FunctionInvocationOrigin).function.semantics as FunctionSemantics.ConfigureSemantics).configureBlockRequirement)
     }
 
     private

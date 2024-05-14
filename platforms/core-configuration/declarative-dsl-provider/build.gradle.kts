@@ -24,6 +24,7 @@ dependencies {
     api(project(":core-api"))
     api(project(":declarative-dsl-api"))
     api(project(":declarative-dsl-core"))
+    api(project(":declarative-dsl-tooling-models"))
     api(libs.futureKotlin("stdlib"))
     api(libs.inject)
 
@@ -41,4 +42,6 @@ dependencies {
     integTestImplementation(project(":logging"))
 
     integTestDistributionRuntimeOnly(project(":distributions-full"))
+
+    integTestImplementation(testFixtures(project(":tooling-api")))
 }

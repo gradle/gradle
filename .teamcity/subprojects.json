@@ -252,6 +252,20 @@
     "crossVersionTests": false
   },
   {
+    "name": "declarative-dsl-tooling-builders",
+    "path": "platforms/core-configuration/declarative-dsl-tooling-builders",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": true
+  },
+  {
+    "name": "declarative-dsl-tooling-models",
+    "path": "platforms/core-configuration/declarative-dsl-tooling-models",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "dependency-management",
     "path": "platforms/software/dependency-management",
     "unitTests": true,
@@ -1003,6 +1017,13 @@
   {
     "name": "testing-base",
     "path": "platforms/software/testing-base",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "testing-base-infrastructure",
+    "path": "platforms/software/testing-base-infrastructure",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false

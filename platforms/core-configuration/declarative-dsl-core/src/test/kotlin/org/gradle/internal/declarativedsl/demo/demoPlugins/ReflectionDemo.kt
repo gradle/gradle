@@ -3,7 +3,7 @@ package org.gradle.internal.declarativedsl.demo.demoPlugins
 import org.gradle.internal.declarativedsl.demo.reflection.printReflection
 import org.gradle.internal.declarativedsl.demo.reflection.reflect
 import org.gradle.internal.declarativedsl.demo.reflection.reflectAndPrint
-import org.gradle.internal.declarativedsl.analysis.FqName
+import org.gradle.internal.declarativedsl.analysis.DefaultFqName
 import org.gradle.internal.declarativedsl.objectGraph.ObjectReflection.ConstantValue
 import org.gradle.internal.declarativedsl.objectGraph.ObjectReflection.DataObjectReflection
 
@@ -63,7 +63,7 @@ fun String.replaceRange(range: IntRange, replacement: String): String {
 
 
 val pluginDefinition = schema.dataClassesByFqName
-    .getValue(FqName.parse("org.gradle.internal.declarativedsl.demo.demoPlugins.PluginDefinition"))
+    .getValue(DefaultFqName.parse("org.gradle.internal.declarativedsl.demo.demoPlugins.PluginDefinition"))
 
 
 val idProp = pluginDefinition.properties.single { it.name == "id" }

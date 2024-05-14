@@ -218,18 +218,22 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
             this.workerProcessContext = workerProcessContext;
         }
 
+        @SuppressWarnings("UnusedMethod")
         protected Clock createClock() {
             return workerProcessContext.getServiceRegistry().get(Clock.class);
         }
 
+        @SuppressWarnings("UnusedMethod")
         protected IdGenerator<Object> createIdGenerator() {
             return new CompositeIdGenerator(workerProcessContext.getWorkerId(), new LongIdGenerator());
         }
 
+        @SuppressWarnings("UnusedMethod")
         protected ExecutorFactory createExecutorFactory() {
             return new DefaultExecutorFactory();
         }
 
+        @SuppressWarnings("UnusedMethod")
         protected ActorFactory createActorFactory(ExecutorFactory executorFactory) {
             return new DefaultActorFactory(executorFactory);
         }

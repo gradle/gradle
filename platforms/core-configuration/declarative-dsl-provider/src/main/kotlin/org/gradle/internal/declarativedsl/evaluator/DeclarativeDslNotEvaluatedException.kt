@@ -96,7 +96,7 @@ class DeclarativeDslNotEvaluatedException(
         is ErrorReason.AmbiguousFunctions ->
             "ambiguous functions: " +
                 errorReason.functions.joinToString(",") { resolution ->
-                    resolution.schemaFunction.simpleName + "(" + resolution.binding.binding.keys.joinToString { it.name?.plus(": ").orEmpty() + it.type } + ")"
+                    resolution.schemaFunction.simpleName + "(" + resolution.binding.binding.keys.joinToString { it.name.plus(": ") + it.type } + ")"
                 }
 
         is ErrorReason.AmbiguousImport -> "ambiguous import '${errorReason.fqName}'"

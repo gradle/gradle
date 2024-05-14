@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.cache.internal;
+package org.gradle.declarative.dsl.schema
 
-import org.gradle.cache.CleanupAction;
+import org.gradle.tooling.ToolingModelContract
+import java.io.Serializable
 
-/**
- * Allows {@link CleanupAction} instances to be decorated with additional functionality, such as checking whether cleanup has been disabled or not.
- */
-public interface CleanupActionDecorator {
-    /**
-     * Decorate the provided {@link CleanupAction}
-     */
-    CleanupAction decorate(CleanupAction cleanupAction);
+
+@ToolingModelContract(subTypes = [
+    SchemaMemberFunction::class,
+    DataTopLevelFunction::class,
+    DataConstructor::class
+])
+sealed interface SchemaFunction : Serializable {
+    val simpleName: String
+    val semantics: FunctionSemantics
+    val parameters: List<DataParameter>
+    val returnValueType: DataTypeRef
+        get() = semantics.returnValueType
 }
