@@ -19,6 +19,7 @@ package org.gradle.jvm.toolchain.internal;
 import com.google.common.collect.Lists;
 import net.rubygrapefruit.platform.MissingRegistryEntryException;
 import net.rubygrapefruit.platform.WindowsRegistry;
+import org.gradle.internal.nativeintegration.NativeIntegrationUnavailableException;
 import org.gradle.internal.os.OperatingSystem;
 
 import java.io.File;
@@ -67,9 +68,9 @@ public class WindowsInstallationSupplier implements InstallationSupplier {
 
     private List<String> find(String sdkSubkey, String path, String value) {
         try {
-            return getVersions(sdkSubkey).stream()
-                .map(version -> getValue(sdkSubkey, path, value, version)).collect(Collectors.toList());
-        } catch (MissingRegistryEntryException e) {
+            List<String> versions = getVersions(sdkSubkey);
+            return versions.stream().map(version -> getValue(sdkSubkey, path, value, version)).collect(Collectors.toList());
+        } catch (MissingRegistryEntryException | NativeIntegrationUnavailableException e) {
             // Ignore
             return Collections.emptyList();
         }

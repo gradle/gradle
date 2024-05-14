@@ -28,7 +28,6 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.configurations.DetachedConfigurationsProvider
 import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
-import org.gradle.internal.component.local.model.LocalComponentMetadata
 import org.gradle.internal.component.model.Exclude
 import org.gradle.internal.component.model.ExcludeMetadata
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata
@@ -48,7 +47,6 @@ class DefaultLocalConfigurationMetadataBuilderTest extends Specification {
     def dependencyConstraintSet = Mock(DependencyConstraintSet)
 
     def cache = new LocalConfigurationMetadataBuilder.DependencyCache();
-    def component = Mock(LocalComponentMetadata)
     def configurationsProvider = new DetachedConfigurationsProvider()
     def componentId = Mock(ComponentIdentifier)
 
@@ -56,8 +54,6 @@ class DefaultLocalConfigurationMetadataBuilderTest extends Specification {
         ConfigurationPublications outgoing = Mock(ConfigurationPublications)
         outgoing.getCapabilities() >> Collections.emptySet()
 
-        component.getId() >> componentId
-        component.getConfigurationNames() >> ["config"]
         configuration.isCanBeDeclared() >> true
         configuration.name >> "config"
         configuration.extendsFrom >> []
@@ -167,6 +163,6 @@ class DefaultLocalConfigurationMetadataBuilderTest extends Specification {
     }
 
     def create() {
-        return converter.create(configuration, configurationsProvider, component, cache, RootScriptDomainObjectContext.INSTANCE, TestUtil.calculatedValueContainerFactory())
+        return converter.create(configuration, configurationsProvider, componentId, cache, RootScriptDomainObjectContext.INSTANCE, TestUtil.calculatedValueContainerFactory())
     }
 }

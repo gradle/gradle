@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.UnknownConfigurationException
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.ConfigurationResolver
-import org.gradle.api.internal.artifacts.ResolveExceptionContextualizer
+import org.gradle.api.internal.artifacts.ResolveExceptionMapper
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory
@@ -80,7 +80,7 @@ class DefaultConfigurationContainerSpec extends Specification {
         buildOperationRunner,
         Stub(PublishArtifactNotationParserFactory),
         immutableAttributesFactory,
-        Stub(ResolveExceptionContextualizer),
+        Stub(ResolveExceptionMapper),
         userCodeApplicationContext,
         projectStateRegistry,
         Mock(WorkerThreadRegistry),

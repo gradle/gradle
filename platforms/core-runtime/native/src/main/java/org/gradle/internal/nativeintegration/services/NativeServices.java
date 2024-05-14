@@ -405,10 +405,10 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         if (useNativeIntegrations && operatingSystem.isWindows()) {
             return net.rubygrapefruit.platform.Native.get(WindowsRegistry.class);
         }
-        return notAvailable(WindowsRegistry.class);
+        return notAvailable(WindowsRegistry.class, operatingSystem);
     }
 
-    public SystemInfo createSystemInfo() {
+    public SystemInfo createSystemInfo(OperatingSystem operatingSystem) {
         if (useNativeIntegrations) {
             try {
                 return net.rubygrapefruit.platform.Native.get(SystemInfo.class);
@@ -416,10 +416,10 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
                 LOGGER.debug("Native-platform system info is not available. Continuing with fallback.");
             }
         }
-        return notAvailable(SystemInfo.class);
+        return notAvailable(SystemInfo.class, operatingSystem);
     }
 
-    protected Memory createMemory() {
+    protected Memory createMemory(OperatingSystem operatingSystem) {
         if (useNativeIntegrations) {
             try {
                 return net.rubygrapefruit.platform.Native.get(Memory.class);
@@ -427,7 +427,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
                 LOGGER.debug("Native-platform memory integration is not available. Continuing with fallback.");
             }
         }
-        return notAvailable(Memory.class);
+        return notAvailable(Memory.class, operatingSystem);
     }
 
     protected ProcessLauncher createProcessLauncher() {
@@ -441,7 +441,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         return new DefaultProcessLauncher();
     }
 
-    protected PosixFiles createPosixFiles() {
+    protected PosixFiles createPosixFiles(OperatingSystem operatingSystem) {
         if (useNativeIntegrations) {
             try {
                 return net.rubygrapefruit.platform.Native.get(PosixFiles.class);
@@ -449,7 +449,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
                 LOGGER.debug("Native-platform posix files integration is not available. Continuing with fallback.");
             }
         }
-        return notAvailable(UnavailablePosixFiles.class);
+        return notAvailable(UnavailablePosixFiles.class, operatingSystem);
     }
 
     protected HostnameLookup createHostnameLookup() {
@@ -505,7 +505,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         };
     }
 
-    protected FileSystems createFileSystems() {
+    protected FileSystems createFileSystems(OperatingSystem operatingSystem) {
         if (useNativeIntegrations) {
             try {
                 return net.rubygrapefruit.platform.Native.get(FileSystems.class);
@@ -513,11 +513,11 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
                 LOGGER.debug("Native-platform file systems information is not available. Continuing with fallback.");
             }
         }
-        return notAvailable(FileSystems.class);
+        return notAvailable(FileSystems.class, operatingSystem);
     }
 
-    private <T> T notAvailable(Class<T> type) {
-        return Cast.uncheckedNonnullCast(Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[]{type}, new BrokenService(type.getSimpleName())));
+    private <T> T notAvailable(Class<T> type, OperatingSystem operatingSystem) {
+        return Cast.uncheckedNonnullCast(Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[]{type}, new BrokenService(type.getSimpleName(), useNativeIntegrations, operatingSystem)));
     }
 
     private static String format(Throwable throwable) {
@@ -533,14 +533,18 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
 
     private static class BrokenService implements InvocationHandler {
         private final String type;
+        private final boolean useNativeIntegrations;
+        private final OperatingSystem operatingSystem;
 
-        private BrokenService(String type) {
+        private BrokenService(String type, boolean useNativeIntegrations, OperatingSystem operatingSystem) {
             this.type = type;
+            this.useNativeIntegrations = useNativeIntegrations;
+            this.operatingSystem = operatingSystem;
         }
 
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-            throw new org.gradle.internal.nativeintegration.NativeIntegrationUnavailableException(String.format("%s is not supported on this operating system.", type));
+            throw new org.gradle.internal.nativeintegration.NativeIntegrationUnavailableException(String.format("Service '%s' is not available (os=%s, enabled=%s).", type, operatingSystem, useNativeIntegrations));
         }
     }
 

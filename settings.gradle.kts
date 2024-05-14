@@ -26,7 +26,7 @@ pluginManagement {
 }
 
 plugins {
-    id("com.gradle.develocity").version("3.17.2") // Sync with `build-logic-commons/build-platform/build.gradle.kts`
+    id("com.gradle.develocity").version("3.17.3") // Sync with `build-logic-commons/build-platform/build.gradle.kts`
     id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.10.0")
     id("org.gradle.toolchains.foojay-resolver-convention") version ("0.8.0")
 //    id("net.ltgt.errorprone").version("3.1.0")
@@ -78,6 +78,7 @@ val core = platform("core") {
         subproject("build-state")
         subproject("cli")
         subproject("concurrent")
+        subproject("daemon-protocol")
         subproject("distributions-basics")
         subproject("distributions-core")
         subproject("file-temp")
@@ -98,6 +99,8 @@ val core = platform("core") {
         subproject("process-services")
         subproject("serialization")
         subproject("time")
+        subproject("client-services")
+        subproject("daemon-services")
         subproject("worker-services")
         subproject("wrapper")
         subproject("wrapper-shared")
@@ -185,6 +188,7 @@ val software = platform("software") {
     subproject("security")
     subproject("signing")
     subproject("testing-base")
+    subproject("testing-base-infrastructure")
     subproject("test-suites-base")
     subproject("version-control")
 }

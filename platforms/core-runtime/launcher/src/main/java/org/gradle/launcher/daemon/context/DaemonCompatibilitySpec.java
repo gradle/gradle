@@ -16,6 +16,7 @@
 package org.gradle.launcher.daemon.context;
 
 import org.gradle.api.internal.specs.ExplainingSpec;
+import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.Jvm;
 
 import java.io.File;
@@ -67,9 +68,10 @@ public class DaemonCompatibilitySpec implements ExplainingSpec<DaemonContext> {
         } else {
             try {
                 File potentialJavaHome = potentialContext.getJavaHome();
-                if (potentialJavaHome.exists()) {
+                JavaInfo desiredJavaHome = desiredContext.getJavaHome();
+                if (potentialJavaHome.exists() && desiredJavaHome != null) {
                     File potentialJava = Jvm.forHome(potentialJavaHome).getJavaExecutable();
-                    File desiredJava = desiredContext.getJavaHome().getJavaExecutable();
+                    File desiredJava = desiredJavaHome.getJavaExecutable();
                     return Files.isSameFile(potentialJava.toPath(), desiredJava.toPath());
                 }
             } catch (IOException e) {

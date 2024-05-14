@@ -174,7 +174,7 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest2 extends Ab
         def sourcePackageProperty = propertyPackage == null ? [] : ['-Porg.gradle.buildinit.source.package=' + propertyPackage]
 
         when:
-        def tasks = ['init', '--type', "${language}-application".toString(), '--split-project', '--dsl', dsl.id] + sourcePackageProperty + sourcePackageOption
+        def tasks = ['init', '--type', "${language}-application".toString(), '--split-project', '--dsl', dsl.id, '--overwrite'] + sourcePackageProperty + sourcePackageOption
         run(tasks)
 
         then:

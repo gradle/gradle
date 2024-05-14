@@ -47,11 +47,6 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         enableProblemsApiCheck()
 
-        propertiesFile << """
-            # Feature flag as of 8.6 to enable the Problems API
-            systemProp.org.gradle.internal.emit-compiler-problems=true
-        """
-
         buildFile << """
             plugins {
                 id 'java'

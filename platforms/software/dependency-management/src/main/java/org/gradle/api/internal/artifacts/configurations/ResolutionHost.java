@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
+import org.gradle.api.artifacts.ResolveException;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 
@@ -49,5 +50,5 @@ public interface ResolutionHost {
         });
     }
 
-    Optional<? extends RuntimeException> mapFailure(String type, Collection<Throwable> failures);
+    Optional<? extends ResolveException> mapFailure(String type, Collection<Throwable> failures);
 }

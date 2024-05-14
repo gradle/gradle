@@ -31,39 +31,25 @@ import java.util.Map;
  */
 public abstract class AbstractBuildOption<T, V extends CommandLineOptionConfiguration> implements BuildOption<T> {
 
-    protected final PropertyOrigin propertyOrigin;
     protected final String property;
     protected final List<V> commandLineOptionConfigurations;
     protected final String deprecatedProperty;
 
     public AbstractBuildOption(String property) {
-        this(property, null, PropertyOrigin.GRADLE_PROPERTIES, Collections.<V>emptyList());
+        this(property, null, Collections.<V>emptyList());
     }
 
     public AbstractBuildOption(String property, String deprecatedProperty, V... commandLineOptionConfiguration) {
-        this(property, deprecatedProperty, PropertyOrigin.GRADLE_PROPERTIES, commandLineOptionConfiguration != null ? Arrays.asList(commandLineOptionConfiguration) : Collections.<V>emptyList());
+        this(property, deprecatedProperty, commandLineOptionConfiguration != null ? Arrays.asList(commandLineOptionConfiguration) : Collections.<V>emptyList());
     }
 
     public AbstractBuildOption(String property, V... commandLineOptionConfiguration) {
-        this(property, null, PropertyOrigin.GRADLE_PROPERTIES, commandLineOptionConfiguration != null ? Arrays.asList(commandLineOptionConfiguration) : Collections.<V>emptyList());
+        this(property, null, commandLineOptionConfiguration != null ? Arrays.asList(commandLineOptionConfiguration) : Collections.<V>emptyList());
     }
 
-    public AbstractBuildOption(String property, PropertyOrigin propertyOrigin) {
-        this(property, null, propertyOrigin, Collections.<V>emptyList());
-    }
-
-    public AbstractBuildOption(String property, String deprecatedProperty, PropertyOrigin propertyOrigin, V... commandLineOptionConfiguration) {
-        this(property, deprecatedProperty, propertyOrigin, commandLineOptionConfiguration != null ? Arrays.asList(commandLineOptionConfiguration) : Collections.<V>emptyList());
-    }
-
-    public AbstractBuildOption(String property, PropertyOrigin propertyOrigin, V... commandLineOptionConfiguration) {
-        this(property, null, propertyOrigin, commandLineOptionConfiguration != null ? Arrays.asList(commandLineOptionConfiguration) : Collections.<V>emptyList());
-    }
-
-    private AbstractBuildOption(String property, String deprecatedProperty, PropertyOrigin propertyOrigin, List<V> commandLineOptionConfigurations) {
+    private AbstractBuildOption(String property, String deprecatedProperty, List<V> commandLineOptionConfigurations) {
         this.property = property;
         this.deprecatedProperty = deprecatedProperty;
-        this.propertyOrigin = propertyOrigin;
         this.commandLineOptionConfigurations = commandLineOptionConfigurations;
     }
 
@@ -99,24 +85,24 @@ public abstract class AbstractBuildOption<T, V extends CommandLineOptionConfigur
     protected OptionValue<String> getFromProperties(Map<String, String> properties) {
         String value = properties.get(property);
         if (value != null) {
-            return new OptionValue<String>(value, property, propertyOrigin);
+            return new OptionValue<String>(value, Origin.forGradleProperty(property));
         }
         if (deprecatedProperty != null) {
             value = properties.get(deprecatedProperty);
             if (value != null) {
-                return new OptionValue<String>(value, deprecatedProperty, propertyOrigin);
+                return new OptionValue<String>(value, Origin.forGradleProperty(deprecatedProperty));
             }
         }
-        return new OptionValue<String>(null, null, propertyOrigin);
+        return new OptionValue<String>(null, null);
     }
 
     protected static class OptionValue<T> {
         private final T value;
         private final Origin origin;
 
-        public OptionValue(T value, String property, PropertyOrigin propertyOrigin) {
+        public OptionValue(T value, Origin origin) {
             this.value = value;
-            this.origin = propertyOrigin.toOrigin(property);
+            this.origin = origin;
         }
 
         public T getValue() {

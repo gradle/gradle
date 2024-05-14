@@ -161,6 +161,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "client-services",
+    "path": "platforms/core-runtime/client-services",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "code-quality",
     "path": "platforms/jvm/code-quality",
     "unitTests": true,
@@ -206,6 +213,20 @@
     "name": "core-platform",
     "path": "subprojects/core-platform",
     "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "daemon-protocol",
+    "path": "platforms/core-runtime/daemon-protocol",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "daemon-services",
+    "path": "platforms/core-runtime/daemon-services",
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
@@ -987,6 +1008,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "testing-base-infrastructure",
+    "path": "platforms/software/testing-base-infrastructure",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "testing-junit-platform",
     "path": "platforms/jvm/testing-junit-platform",
     "unitTests": false,
@@ -1026,7 +1054,7 @@
     "path": "platforms/jvm/toolchains-jvm",
     "unitTests": true,
     "functionalTests": true,
-    "crossVersionTests": false
+    "crossVersionTests": true
   },
   {
     "name": "toolchains-jvm-shared",
