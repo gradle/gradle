@@ -31,6 +31,8 @@ import spock.lang.Issue
 class InProcessGradleExecutorInitialization implements IGlobalExtension {
     @Override
     void start() {
-        AbstractGradleExecuter.GLOBAL_SERVICES.get(ObjectFactory)
+        if (GradleContextualExecuter.embedded ) {
+            AbstractGradleExecuter.GLOBAL_SERVICES.get(ObjectFactory)
+        }
     }
 }
