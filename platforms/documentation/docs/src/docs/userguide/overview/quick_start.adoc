@@ -15,9 +15,15 @@
 [[quick_start]]
 = Gradle Quick Start
 
+== Installing Gradle
+
+Most projects will start with an existing Gradle build which does not require the installation of Gradle.
+However, if you are starting a project from scratch, and you need to install Gradle, check out the <<installation.adoc#installation,installation guide>>.
+
 == DPE University
 
-Want to get up and running with Gradle quickly? Take our free, self-paced Gradle Built Tool courses at DPE University:
+Want to get up and running with Gradle quickly? Take our free, self-paced Gradle Build Tool courses at DPE University:
+
 ++++
 <div class="badge-wrapper">
     <a class="badge" href="https://dpeuniversity.gradle.com/" target="_blank">
@@ -27,32 +33,25 @@ Want to get up and running with Gradle quickly? Take our free, self-paced Gradle
 </div>
 ++++
 
-== Installing Gradle
-
-Most projects will start with an existing Gradle build which does not require the installation of Gradle.
-However, if you are starting a project from scratch, and you need to install Gradle, check out the <<installation.adoc#installation,installation guide>>.
-
 == For Software Developers
 
 For software developers that need to build, test, and publish their app, or add dependencies to their build, get started here:
 
 === 1. Core Concepts
 
-The core concepts section goes through the Gradle basics so that you can quickly understand how to invoke tasks, turn on features, apply plugins, add dependencies to your project, and more.
-
 [sidebar]
-<<gradle_basics.adoc#gradle,*Read Core Concepts*>> +
+_Description_: *Learn how to invoke tasks and add dependencies.* +
 _Training level_: **Beginner** +
-_Reading time_: **25 minutes**
+_Reading time_: **25 minutes** +
+<<gradle_basics.adoc#gradle,-> Read Core Concepts >>
 
 === 2. Hands-on Tutorial
 
-The tutorial will take you from initializing a Gradle build for a basic Java App to enabling and leveraging the Gradle build cache.
-
 [sidebar]
-<<part1_gradle_init#part1_begin,*Take the Tutorial*>> +
+_Description_: *Initialize a Gradle build for a basic Java App.* +
 _Training level_: **Beginner** +
-_Training time_: **55 minutes**
+_Training time_: **45 minutes** +
+<<part1_gradle_init#part1_begin,-> Start the Tutorial >>
 
 == For Build Engineers and Plugin Developers
 
@@ -60,22 +59,19 @@ Build engineers and plugin developers that are ready to configure custom build l
 
 === 1. Core Concepts
 
-The core concepts section goes through some Gradle authoring basics so that you can quickly understand how to configure builds, create tasks, and write plugins.
-
 [sidebar]
-<<gradle_directories.adoc#gradle_directories,*Read Core Concepts*>> +
+_Description_: *Learn to configure builds, create tasks, and write plugins.* +
 _Training level_: **Intermediate** +
-_Reading time_: **35 minutes**
+_Reading time_: **35 minutes** +
+<<gradle_directories.adoc#gradle_directories,-> Read Core Concepts >>
 
 === 2. Hands-on Tutorial
 
-The tutorial will take you from initializing a Gradle build for a basic Java App all the way through authoring a very basic plugin.
-No previous experience is necessary but a basic knowledge of Java, Groovy, or Kotlin is nice to have.
-
 [sidebar]
-<<partr1_gradle_init#part1_begin,*Take the Tutorial*>> +
+_Description_: *Initialize a Gradle project and create a basic plugin.* +
 _Training level_: **Intermediate** +
-_Training time_: **65 minutes**
+_Training time_: **55 minutes** +
+<<partr1_gradle_init#part1_begin,-> Start the Tutorial >>
 
 [[reference]]
 === 3. API Reference
