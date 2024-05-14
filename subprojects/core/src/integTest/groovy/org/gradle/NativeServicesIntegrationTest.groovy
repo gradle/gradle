@@ -57,7 +57,7 @@ class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
 
     def "native services are #description with systemProperties == #systemProperties"() {
         given:
-        executer.requireOwnGradleUserHomeDir().withNoExplicitNativeServicesDir()
+        executer.withGradleUserHomeDir(tmpDir.testDirectory).withNoExplicitNativeServicesDir()
         nativeDir = new File(executer.gradleUserHomeDir, 'native')
         executer.withArguments(systemProperties.collect { it.toString() })
         buildFile << """
