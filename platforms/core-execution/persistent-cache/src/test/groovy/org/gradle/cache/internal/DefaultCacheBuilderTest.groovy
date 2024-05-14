@@ -15,6 +15,7 @@
  */
 package org.gradle.cache.internal
 
+
 import org.gradle.cache.PersistentCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -23,6 +24,7 @@ import spock.lang.Specification
 
 import java.util.function.Consumer
 
+import static org.gradle.cache.CacheCleanupStrategy.NO_CLEANUP
 import static org.gradle.cache.FileLockManager.LockMode.OnDemand
 import static org.gradle.cache.FileLockManager.LockMode.Shared
 import static org.gradle.cache.internal.filelock.DefaultLockOptions.mode
@@ -43,7 +45,7 @@ class DefaultCacheBuilderTest extends Specification {
 
         then:
         result == cache
-        1 * cacheFactory.open(sharedCacheDir, null, [:], mode(Shared), null, null) >> cache
+        1 * cacheFactory.open(sharedCacheDir, null, [:], mode(Shared), _, NO_CLEANUP) >> cache
         0 * cacheFactory._
     }
 
@@ -52,7 +54,7 @@ class DefaultCacheBuilderTest extends Specification {
         builder.withProperties(properties).open()
 
         then:
-        1 * cacheFactory.open(sharedCacheDir, null, properties, mode(Shared), null, null) >> cache
+        1 * cacheFactory.open(sharedCacheDir, null, properties, mode(Shared), _, NO_CLEANUP) >> cache
     }
 
     void canSpecifyInitializerActionForDirectoryCache() {
@@ -62,7 +64,7 @@ class DefaultCacheBuilderTest extends Specification {
         builder.withInitializer(action).open()
 
         then:
-        1 * cacheFactory.open(sharedCacheDir, null, [:], mode(Shared), action, null) >> cache
+        1 * cacheFactory.open(sharedCacheDir, null, [:], mode(Shared), action, NO_CLEANUP) >> cache
     }
 
     void canSpecifyLockModeForDirectoryCache() {
@@ -70,7 +72,7 @@ class DefaultCacheBuilderTest extends Specification {
         builder.withInitialLockMode(OnDemand).open()
 
         then:
-        1 * cacheFactory.open(sharedCacheDir, null, [:], mode(OnDemand), null, null) >> cache
+        1 * cacheFactory.open(sharedCacheDir, null, [:], mode(OnDemand), _, NO_CLEANUP) >> cache
     }
 
     void canSpecifyDisplayNameForDirectoryCache() {
@@ -78,6 +80,6 @@ class DefaultCacheBuilderTest extends Specification {
         builder.withDisplayName("<cache>").open()
 
         then:
-        1 * cacheFactory.open(sharedCacheDir, "<cache>", [:], mode(Shared), null, null) >> cache
+        1 * cacheFactory.open(sharedCacheDir, "<cache>", [:], mode(Shared), _, NO_CLEANUP) >> cache
     }
 }

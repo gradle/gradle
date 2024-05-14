@@ -184,7 +184,7 @@ class DefaultPersistentDirectoryStoreTest extends Specification {
 
     def "does not use gc.properties when no cleanup action is defined"() {
         given:
-        store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", mode(OnDemand), null, lockManager, Mock(ExecutorFactory), buildOperationRunner)
+        store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", mode(OnDemand), CacheCleanupStrategy.NO_CLEANUP, lockManager, Mock(ExecutorFactory), buildOperationRunner)
 
         when:
         store.open()

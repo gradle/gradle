@@ -35,7 +35,7 @@ public class DefaultCacheBuilder implements CacheBuilder {
     private final File baseDir;
     private Map<String, ?> properties = Collections.emptyMap();
     private Consumer<? super PersistentCache> initializer;
-    private CacheCleanupStrategy cacheCleanupStrategy;
+    private CacheCleanupStrategy cacheCleanupStrategy = CacheCleanupStrategy.NO_CLEANUP;
     private LockOptions lockOptions = mode(FileLockManager.LockMode.Shared);
     private String displayName;
 

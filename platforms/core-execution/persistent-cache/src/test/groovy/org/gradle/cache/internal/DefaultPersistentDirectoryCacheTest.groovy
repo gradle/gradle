@@ -38,7 +38,7 @@ class DefaultPersistentDirectoryCacheTest extends AbstractProjectBuilderSpec {
     }
     def lockManager = new DefaultFileLockManager(metaDataProvider, new NoOpFileLockContentionHandler())
     def initializationAction = Mock(Consumer)
-    def cacheCleanup = Stub(CacheCleanupStrategy)
+    def cacheCleanup = CacheCleanupStrategy.NO_CLEANUP
     def buildOperationRunner = Stub(BuildOperationRunner)
 
     def properties = ['prop': 'value', 'prop2': 'other-value']
@@ -245,7 +245,7 @@ class DefaultPersistentDirectoryCacheTest extends AbstractProjectBuilderSpec {
         properties.putAll(this.properties)
         properties.putAll(extraProps)
 
-        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, "<display-name>", properties, mode(FileLockManager.LockMode.Shared), null, null, lockManager, Mock(ExecutorFactory), buildOperationRunner)
+        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, "<display-name>", properties, mode(FileLockManager.LockMode.Shared), { cache -> }, CacheCleanupStrategy.NO_CLEANUP, lockManager, Mock(ExecutorFactory), buildOperationRunner)
 
         try {
             cache.open()
