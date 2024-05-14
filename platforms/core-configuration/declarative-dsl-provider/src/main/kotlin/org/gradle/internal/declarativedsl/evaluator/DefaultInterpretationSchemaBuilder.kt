@@ -36,7 +36,7 @@ class DefaultInterpretationSchemaBuilder(
             is RestrictedScriptContext.UnknownScript -> SchemaNotBuilt
 
             is RestrictedScriptContext.SettingsScript -> InterpretationSequenceAvailable(
-                settingsInterpretationSequence(targetInstance as SettingsInternal, scriptContext.targetScope, scriptContext.scriptSource)
+                settingsInterpretationSequence(targetInstance as SettingsInternal, scriptContext.targetScope, scriptContext.scriptSource, softwareTypeRegistry)
             )
 
             is RestrictedScriptContext.ProjectScript -> InterpretationSequenceAvailable(projectInterpretationSequence)

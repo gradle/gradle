@@ -19,16 +19,16 @@ package org.gradle.internal.declarativedsl.project
 import org.gradle.internal.declarativedsl.analysis.analyzeEverything
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequence
-import org.gradle.internal.declarativedsl.evaluationSchema.SimpleInterpretationSequenceStep
 import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.plus
+import org.gradle.internal.declarativedsl.software.SoftwareTypeComponent
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 
 
 internal
 fun projectInterpretationSequence(
     softwareTypeRegistry: SoftwareTypeRegistry
-) = InterpretationSequence(listOf(SimpleInterpretationSequenceStep("project") { projectEvaluationSchema(softwareTypeRegistry) }))
+) = InterpretationSequence(listOf(ProjectInterpretationSequenceStep("project", softwareTypeRegistry) { projectEvaluationSchema(softwareTypeRegistry) }))
 
 
 fun projectEvaluationSchema(

@@ -16,21 +16,27 @@
 
 package org.gradle.plugin.software.internal;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import prg.gradle.declarative.dsl.model.conventions.Convention;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 /**
  * Represents a resolved software type implementation.  Used by declarative DSL to understand which model types should be exposed for
  * which software types.
  */
-public class DefaultSoftwareTypeImplementation implements SoftwareTypeImplementation {
+public class DefaultSoftwareTypeImplementation<T> implements SoftwareTypeImplementation<T> {
     private final String softwareType;
-    private final Class<?> modelPublicType;
+    private final Class<? extends T> modelPublicType;
     private final Class<? extends Plugin<?>> pluginClass;
 
-    public DefaultSoftwareTypeImplementation(String softwareType, Class<?> modelPublicType, Class<? extends Plugin<Project>> pluginClass) {
+    private final List<Convention<?>> conventionRules = new ArrayList<>();
+
+    public DefaultSoftwareTypeImplementation(String softwareType, Class<? extends T> modelPublicType, Class<? extends Plugin<Project>> pluginClass) {
         this.softwareType = softwareType;
         this.modelPublicType = modelPublicType;
         this.pluginClass = pluginClass;
@@ -42,13 +48,23 @@ public class DefaultSoftwareTypeImplementation implements SoftwareTypeImplementa
     }
 
     @Override
-    public Class<?> getModelPublicType() {
+    public Class<? extends T> getModelPublicType() {
         return modelPublicType;
     }
 
     @Override
     public Class<? extends Plugin<?>> getPluginClass() {
         return pluginClass;
+    }
+
+    @Override
+    public void addConvention(Convention<?> rule) {
+        conventionRules.add(rule);
+    }
+
+    @Override
+    public List<Convention<?>> getConventions() {
+        return ImmutableList.copyOf(conventionRules);
     }
 
     @Override
@@ -59,7 +75,7 @@ public class DefaultSoftwareTypeImplementation implements SoftwareTypeImplementa
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        DefaultSoftwareTypeImplementation that = (DefaultSoftwareTypeImplementation) o;
+        DefaultSoftwareTypeImplementation<?> that = (DefaultSoftwareTypeImplementation<?>) o;
         return Objects.equals(softwareType, that.softwareType) && Objects.equals(modelPublicType, that.modelPublicType) && Objects.equals(pluginClass, that.pluginClass);
     }
 

@@ -206,6 +206,7 @@ class ReflectionContext(
     private
     val allReceiversResolved = run {
         val allReceiverReferences = resolutionResult.additions.map { it.container } +
+            resolutionResult.conventionAssignments.map { it.lhs.receiverObject } +
             resolutionResult.assignments.map { it.lhs.receiverObject } +
             resolutionResult.nestedObjectAccess.map { it.dataObject.accessor.access(it.container, it.dataObject) }
 

@@ -16,6 +16,8 @@
 
 package org.gradle.internal.declarativedsl.evaluationSchema
 
+import org.gradle.internal.declarativedsl.analysis.ResolutionResult
+
 
 internal
 class InterpretationSequence(
@@ -29,6 +31,7 @@ interface InterpretationSequenceStep<R : Any> {
     fun evaluationSchemaForStep(): EvaluationSchema
     fun getTopLevelReceiverFromTarget(target: Any): R
     fun whenEvaluated(resultReceiver: R)
+    fun whenResolved(resolutionResult: ResolutionResult) = Unit
 }
 
 

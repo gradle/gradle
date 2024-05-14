@@ -17,14 +17,21 @@
 package org.gradle.plugin.software.internal;
 
 import org.gradle.api.Plugin;
+import prg.gradle.declarative.dsl.model.conventions.Convention;
+
+import java.util.List;
 
 /**
  * Represents a resolved software type implementation including the public model type and the plugin that exposes it.
  */
-public interface SoftwareTypeImplementation {
+public interface SoftwareTypeImplementation<T> {
     String getSoftwareType();
 
-    Class<?> getModelPublicType();
+    Class<? extends T> getModelPublicType();
 
     Class<? extends Plugin<?>> getPluginClass();
+
+    void addConvention(Convention<?> rule);
+
+    List<Convention<?>> getConventions();
 }

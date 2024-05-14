@@ -27,6 +27,13 @@ import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter.Compa
 import org.gradle.internal.declarativedsl.analysis.and
 import org.gradle.internal.declarativedsl.analysis.implies
 import org.gradle.internal.declarativedsl.analysis.not
+import org.gradle.internal.declarativedsl.analysis.or
+import org.gradle.internal.declarativedsl.conventions.ConventionsConfiguringBlock
+import org.gradle.internal.declarativedsl.conventions.ConventionsInterpretationSequenceStep
+import org.gradle.internal.declarativedsl.conventions.ConventionsTopLevelReceiver
+import org.gradle.internal.declarativedsl.conventions.isConventionsConfiguringCall
+import org.gradle.internal.declarativedsl.conventions.isSoftwareTypeConfiguringCall
+import org.gradle.internal.declarativedsl.conventions.isTopLevelConventionsBlock
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequence
 import org.gradle.internal.declarativedsl.evaluationSchema.SimpleInterpretationSequenceStep
@@ -36,18 +43,22 @@ import org.gradle.internal.declarativedsl.plugins.PluginsInterpretationSequenceS
 import org.gradle.internal.declarativedsl.plugins.isTopLevelPluginsBlock
 import org.gradle.internal.declarativedsl.project.ThirdPartyExtensionsComponent
 import org.gradle.internal.declarativedsl.project.gradleDslGeneralSchemaComponent
+import org.gradle.internal.declarativedsl.software.SoftwareTypeConventionComponent
+import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 
 
 internal
 fun settingsInterpretationSequence(
     settings: SettingsInternal,
     targetScope: ClassLoaderScope,
-    scriptSource: ScriptSource
+    scriptSource: ScriptSource,
+    softwareTypeRegistry: SoftwareTypeRegistry
 ): InterpretationSequence =
     InterpretationSequence(
         listOf(
             SimpleInterpretationSequenceStep("settingsPluginManagement") { pluginManagementEvaluationSchema() },
             PluginsInterpretationSequenceStep("settingsPlugins", targetScope, scriptSource, SettingsBlocksCheck) { settings.services },
+            ConventionsInterpretationSequenceStep("settingsConventions", softwareTypeRegistry) { conventionsEvaluationSchema(softwareTypeRegistry) },
             SimpleInterpretationSequenceStep("settings") { settingsEvaluationSchema(settings) }
         )
     )
@@ -61,6 +72,17 @@ fun pluginManagementEvaluationSchema(): EvaluationSchema =
         isTopLevelPluginManagementBlock
     )
 
+internal
+fun conventionsEvaluationSchema(softwareTypeRegistry: SoftwareTypeRegistry): EvaluationSchema {
+    val schemaBuildingComponent = gradleDslGeneralSchemaComponent() +
+        SoftwareTypeConventionComponent(ConventionsConfiguringBlock::class, "softwareType", softwareTypeRegistry)
+
+    return buildEvaluationSchema(
+        ConventionsTopLevelReceiver::class,
+        schemaBuildingComponent,
+        isConventionsConfiguringCall.or(isSoftwareTypeConfiguringCall)
+    )
+}
 
 internal
 fun settingsEvaluationSchema(settings: Settings): EvaluationSchema {
@@ -70,7 +92,7 @@ fun settingsEvaluationSchema(settings: Settings): EvaluationSchema {
          *  and we use the [SettingsInternal.include] single-argument workaround for now. */
         ThirdPartyExtensionsComponent(SettingsInternal::class, settings, "settingsExtension")
 
-    return buildEvaluationSchema(SettingsInternal::class, schemaBuildingComponent, ignoreTopLevelPluginsAndPluginManagement)
+    return buildEvaluationSchema(SettingsInternal::class, schemaBuildingComponent, ignoreTopLevelPluginsPluginManagementAndConventions)
 }
 
 
@@ -83,4 +105,8 @@ val isTopLevelPluginManagementBlock = isTopLevelElement.implies(isPluginManageme
 
 
 private
-val ignoreTopLevelPluginsAndPluginManagement = isTopLevelElement.implies(isPluginManagementCall.not().and(isTopLevelPluginsBlock.not()))
+val ignoreTopLevelPluginsPluginManagementAndConventions = isTopLevelElement.implies(
+        isPluginManagementCall.not()
+        .and(isTopLevelPluginsBlock.not())
+        .and(isTopLevelConventionsBlock.not())
+)

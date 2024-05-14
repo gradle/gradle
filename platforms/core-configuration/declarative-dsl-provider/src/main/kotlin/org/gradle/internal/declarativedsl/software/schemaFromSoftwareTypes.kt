@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.project
+package org.gradle.internal.declarativedsl.software
 
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.declarative.dsl.schema.ConfigureAccessor
@@ -23,8 +23,11 @@ import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.analysis.ConfigureAccessorInternal
 import org.gradle.internal.declarativedsl.analysis.DefaultDataMemberFunction
 import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsInternal
+import org.gradle.internal.declarativedsl.conventions.ConventionsConfiguringBlock
+import org.gradle.internal.declarativedsl.conventions.ConventionsTopLevelReceiver
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaComponent
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeCustomAccessors
+import org.gradle.internal.declarativedsl.project.FixedTypeDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.DataSchemaBuilder
 import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
@@ -43,7 +46,7 @@ class SoftwareTypeComponent(
 ) : EvaluationSchemaComponent {
     private
     val softwareTypeImplementations = softwareTypeRegistry.getSoftwareTypeImplementations().map {
-        SoftwareTypeInfo(it, accessorIdPrefix) { receiverObject ->
+        SoftwareTypeInfo(it, schemaTypeToExtend, accessorIdPrefix) { receiverObject ->
             require(receiverObject is ProjectInternal) { "unexpected receiver, expected a ProjectInternal instance, got $receiverObject" }
             receiverObject.pluginManager.apply(it.pluginClass)
             receiverObject.extensions.getByName(it.softwareType)
@@ -55,7 +58,7 @@ class SoftwareTypeComponent(
     )
 
     override fun functionExtractors(): List<FunctionExtractor> = listOf(
-        extensionConfiguringFunctions(schemaTypeToExtend, softwareTypeImplementations)
+        softwareTypeConfiguringFunctions(schemaTypeToExtend, softwareTypeImplementations)
     )
 
     override fun runtimeCustomAccessors(): List<RuntimeCustomAccessors> = listOf(
@@ -63,17 +66,50 @@ class SoftwareTypeComponent(
     )
 }
 
+private
+val conventionsFunction = conventionsFunction()
+
+internal
+class SoftwareTypeConventionComponent(
+    private val schemaTypeToExtend: KClass<*>,
+    private val accessorIdPrefix: String,
+    softwareTypeRegistry: SoftwareTypeRegistry
+) : EvaluationSchemaComponent {
+    private
+    val softwareTypeImplementations = softwareTypeRegistry.getSoftwareTypeImplementations().map {
+        SoftwareTypeInfo(it, schemaTypeToExtend, accessorIdPrefix) { receiverObject ->
+            require(receiverObject is ConventionsConfiguringBlock) { "unexpected receiver, expected a ConventionsConfiguringBlock instance, got $receiverObject" }
+            null
+        }
+    }
+
+    override fun typeDiscovery(): List<TypeDiscovery> = listOf(
+        FixedTypeDiscovery(ConventionsTopLevelReceiver::class, listOf( ConventionsConfiguringBlock::class)),
+        FixedTypeDiscovery(schemaTypeToExtend, softwareTypeImplementations.map { it.modelPublicType.kotlin })
+    )
+
+    override fun functionExtractors(): List<FunctionExtractor> = listOf(
+        conventionsFunction,
+        softwareTypeConfiguringFunctions(schemaTypeToExtend, softwareTypeImplementations),
+    )
+
+    override fun runtimeCustomAccessors(): List<RuntimeCustomAccessors> = listOf(
+        ConventionsAccessor(),
+        RuntimeModelTypeAccessors(softwareTypeImplementations)
+    )
+}
 
 private
-data class SoftwareTypeInfo(
-    val delegate: SoftwareTypeImplementation,
+data class SoftwareTypeInfo<T>(
+    val delegate: SoftwareTypeImplementation<T>,
+    val schemaTypeToExtend: KClass<*>,
     val accessorIdPrefix: String,
-    val extensionProvider: (receiverObject: Any) -> Any
-) : SoftwareTypeImplementation by delegate {
+    val extensionProvider: (receiverObject: Any) -> Any?
+) : SoftwareTypeImplementation<T> by delegate {
     val customAccessorId = "$accessorIdPrefix:${delegate.softwareType}"
 
     val schemaFunction = DefaultDataMemberFunction(
-        ProjectTopLevelReceiver::class.toDataTypeRef(),
+        schemaTypeToExtend.toDataTypeRef(),
         delegate.softwareType,
         emptyList(),
         isDirectAccessOnly = true,
@@ -87,21 +123,48 @@ data class SoftwareTypeInfo(
 
 
 private
-fun extensionConfiguringFunctions(typeToExtend: KClass<*>, softwareTypeImplementations: Iterable<SoftwareTypeInfo>): FunctionExtractor = object : FunctionExtractor {
+fun softwareTypeConfiguringFunctions(typeToExtend: KClass<*>, softwareTypeImplementations: Iterable<SoftwareTypeInfo<*>>): FunctionExtractor = object : FunctionExtractor {
     override fun memberFunctions(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<SchemaMemberFunction> =
-        if (kClass == typeToExtend) softwareTypeImplementations.map(SoftwareTypeInfo::schemaFunction) else emptyList()
+        if (kClass == typeToExtend) softwareTypeImplementations.map(SoftwareTypeInfo<*>::schemaFunction) else emptyList()
 
     override fun constructors(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<DataConstructor> = emptyList()
 
     override fun topLevelFunction(function: KFunction<*>, preIndex: DataSchemaBuilder.PreIndex) = null
 }
 
+private
+fun conventionsFunction() : FunctionExtractor = object : FunctionExtractor {
+    override fun memberFunctions(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<SchemaMemberFunction> =
+        if (kClass == ConventionsTopLevelReceiver::class) listOf(
+            DefaultDataMemberFunction(
+                ConventionsTopLevelReceiver::class.toDataTypeRef(),
+                "conventions",
+                emptyList(),
+                isDirectAccessOnly = true,
+                semantics = FunctionSemanticsInternal.DefaultAccessAndConfigure(
+                    accessor = ConfigureAccessorInternal.DefaultCustom(ConventionsConfiguringBlock::class.toDataTypeRef(), "conventions"),
+                    FunctionSemanticsInternal.DefaultAccessAndConfigure.DefaultReturnType.DefaultUnit
+                )
+            )
+        ) else emptyList()
+
+    override fun constructors(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<DataConstructor> = emptyList()
+
+    override fun topLevelFunction(function: KFunction<*>, preIndex: DataSchemaBuilder.PreIndex) = null
+}
 
 private
-class RuntimeModelTypeAccessors(info: List<SoftwareTypeInfo>) : RuntimeCustomAccessors {
+class RuntimeModelTypeAccessors(info: List<SoftwareTypeInfo<*>>) : RuntimeCustomAccessors {
 
     val modelTypeById = info.associate { it.customAccessorId to it.extensionProvider }
 
     override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessor.Custom): Any? =
         modelTypeById[accessor.customAccessorIdentifier]?.invoke(receiverObject)
+}
+
+private
+class ConventionsAccessor : RuntimeCustomAccessors {
+    override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessor.Custom): Any? =
+        null
+
 }

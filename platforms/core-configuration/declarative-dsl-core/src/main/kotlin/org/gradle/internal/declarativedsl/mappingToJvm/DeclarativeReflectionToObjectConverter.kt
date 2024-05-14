@@ -45,8 +45,11 @@ class DeclarativeReflectionToObjectConverter(
             }
 
             objectReflection.customAccessorObjects.forEach { customAccessor ->
-                getObjectByResolvedOrigin(customAccessor.objectOrigin) ?: error("could not get object by custom accessor ${customAccessor.objectOrigin}")
-                apply(customAccessor, conversionFilter)
+                val receiver = getObjectByResolvedOrigin(customAccessor.objectOrigin) //?: error("could not get object by custom accessor ${customAccessor.objectOrigin}")
+                // TODO this is a hack - we need a better way to say that application should be skipped for this accessor
+                if (receiver != null) {
+                    apply(customAccessor, conversionFilter)
+                }
             }
 
             objectReflection.lambdaAccessedObjects.forEach { lambdaAccessedObject ->

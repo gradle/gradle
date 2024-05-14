@@ -13,7 +13,8 @@ class AssignmentTracer(
     fun produceAssignmentTrace(resolutionResult: ResolutionResult): AssignmentTrace {
         val assignmentResolver = assignmentResolverFactory()
         val elementResults = buildList {
-            resolutionResult.assignments.forEach { (lhs, rhs, _, method) ->
+            val assignments = resolutionResult.conventionAssignments + resolutionResult.assignments
+            assignments.forEach { (lhs, rhs, _, method) ->
                 add(
                     when (val additionResult = assignmentResolver.addAssignment(lhs, rhs, method)) {
                         is AssignmentResolver.AssignmentAdditionResult.AssignmentAdded -> AssignmentTraceElement.RecordedAssignment(additionResult.resolvedLhs, rhs, additionResult.assignmentMethod)
