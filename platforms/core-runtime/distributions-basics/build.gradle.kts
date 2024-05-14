@@ -19,6 +19,7 @@ dependencies {
     pluginsRuntimeOnly(project(":build-cache-http"))
 
     pluginsRuntimeOnly(project(":tooling-api-builders"))
+    pluginsRuntimeOnly(project(":declarative-dsl-tooling-builders"))
     pluginsRuntimeOnly(project(":kotlin-dsl-tooling-builders"))
 
     pluginsRuntimeOnly(project(":test-kit"))

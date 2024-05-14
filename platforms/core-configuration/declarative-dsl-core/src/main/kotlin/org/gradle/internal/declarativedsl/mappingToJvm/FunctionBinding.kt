@@ -16,7 +16,7 @@
 
 package org.gradle.internal.declarativedsl.mappingToJvm
 
-import org.gradle.internal.declarativedsl.analysis.DataParameter
+import org.gradle.declarative.dsl.schema.DataParameter
 import org.gradle.internal.declarativedsl.schemaBuilder.ConfigureLambdaHandler
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
