@@ -62,11 +62,10 @@ public class DefaultCacheCleanupExecutor implements CacheCleanupExecutor {
             LOGGER.debug("{} has last been fully cleaned up {} hours ago", cleanableStore.getDisplayName(), timeSinceLastCleanup.toHours());
         }
 
-        boolean requiresCleanup = cacheCleanupStrategy.getCleanupFrequency().requiresCleanup(lastCleanupTime);
         buildOperationRunner.run(new RunnableBuildOperation() {
             @Override
             public void run(BuildOperationContext context) {
-                if (requiresCleanup) {
+                if (cacheCleanupStrategy.getCleanupFrequency().requiresCleanup(lastCleanupTime)) {
                     DefaultCleanupProgressMonitor progressMonitor = new DefaultCleanupProgressMonitor(context);
                     Timer timer = Time.startTimer();
                     try {
@@ -86,7 +85,7 @@ public class DefaultCacheCleanupExecutor implements CacheCleanupExecutor {
             @Override
             public BuildOperationDescriptor.Builder description() {
                 return BuildOperationDescriptor.displayName("Clean up " + cleanableStore.getDisplayName())
-                    .details(new CacheCleanupDetails(requiresCleanup));
+                    .details(new CacheCleanupDetails(cleanableStore.getBaseDir()));
             }
         });
     }
@@ -118,15 +117,15 @@ public class DefaultCacheCleanupExecutor implements CacheCleanupExecutor {
     }
 
     private static class CacheCleanupDetails implements CacheCleanupBuildOperationType.Details {
-        private final boolean requiresCleanup;
+        private final File cacheLocation;
 
-        public CacheCleanupDetails(boolean requiresCleanup) {
-            this.requiresCleanup = requiresCleanup;
+        public CacheCleanupDetails(File cacheLocation) {
+            this.cacheLocation = cacheLocation;
         }
 
         @Override
-        public boolean isCleanupRequired() {
-            return requiresCleanup;
+        public File getCacheLocation() {
+            return cacheLocation;
         }
     }
 

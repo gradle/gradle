@@ -18,6 +18,7 @@ package org.gradle.cache.internal;
 
 import org.gradle.internal.operations.BuildOperationType;
 
+import java.io.File;
 import java.time.Instant;
 
 public final class CacheCleanupBuildOperationType implements BuildOperationType<CacheCleanupBuildOperationType.Details, CacheCleanupBuildOperationType.Result> {
@@ -26,10 +27,11 @@ public final class CacheCleanupBuildOperationType implements BuildOperationType<
      * Sent when the cache is cleaned up.
      */
     public interface Details {
+
         /**
-         * True when a cleanup is due and will be attempted.
+         * Returns the location of the cache.
          */
-        boolean isCleanupRequired();
+        File getCacheLocation();
     }
 
     /**

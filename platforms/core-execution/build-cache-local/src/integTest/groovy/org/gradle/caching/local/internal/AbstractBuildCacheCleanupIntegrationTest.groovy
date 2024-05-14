@@ -317,12 +317,16 @@ abstract class AbstractBuildCacheCleanupIntegrationTest extends AbstractIntegrat
     }
 
     void assertCacheWasCleanedUpSince(long lastCleanupCheck) {
-        operations.only("Clean up ${getBuildCacheName()} ($cacheDir)").details.cleanupRequired == true
+        def buildOp = operations.only("Clean up ${getBuildCacheName()} ($cacheDir)")
+        buildOp.details.cacheLocation == cacheDir
+        buildOp.result.cleanupPerformed == true
         assert gcFile().lastModified() > lastCleanupCheck
     }
 
     void assertCacheWasNotCleanedUpSince(long lastCleanupCheck) {
-        operations.only("Clean up ${getBuildCacheName()} ($cacheDir)").details.cleanupRequired == false
+        def buildOp = operations.only("Clean up ${getBuildCacheName()} ($cacheDir)")
+        buildOp.result.cleanupPerformed == false
+        buildOp.details.cacheLocation == cacheDir
         assert gcFile().lastModified() == lastCleanupCheck
     }
 
