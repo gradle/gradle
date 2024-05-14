@@ -16,6 +16,7 @@
 
 package org.gradle.declarative.dsl.schema
 
+import org.gradle.tooling.ToolingModelContract
 import java.io.Serializable
 
 
@@ -27,7 +28,12 @@ interface DataProperty : Serializable {
     val isHiddenInDsl: Boolean
     val isDirectAccessOnly: Boolean
 
-    sealed interface PropertyMode {
+    @ToolingModelContract(subTypes = [
+        PropertyMode.ReadWrite::class,
+        PropertyMode.ReadOnly::class,
+        PropertyMode.WriteOnly::class
+    ])
+    sealed interface PropertyMode : Serializable {
         interface ReadWrite : PropertyMode
         interface ReadOnly : PropertyMode
         interface WriteOnly : PropertyMode

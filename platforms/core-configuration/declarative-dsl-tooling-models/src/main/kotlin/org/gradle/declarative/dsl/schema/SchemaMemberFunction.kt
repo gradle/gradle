@@ -16,7 +16,13 @@
 
 package org.gradle.declarative.dsl.schema
 
+import org.gradle.tooling.ToolingModelContract
 
+
+@ToolingModelContract(subTypes = [
+    DataMemberFunction::class,
+    DataBuilderFunction::class
+])
 sealed interface SchemaMemberFunction : SchemaFunction {
     override val simpleName: String
     val receiver: DataTypeRef

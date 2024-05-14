@@ -16,9 +16,15 @@
 
 package org.gradle.declarative.dsl.schema
 
+import org.gradle.tooling.ToolingModelContract
 import java.io.Serializable
 
 
+@ToolingModelContract(subTypes = [
+    ConfigureAccessor.Property::class,
+    ConfigureAccessor.Custom::class,
+    ConfigureAccessor.ConfiguringLambdaArgument::class
+])
 sealed interface ConfigureAccessor : Serializable {
     val objectType: DataTypeRef
 

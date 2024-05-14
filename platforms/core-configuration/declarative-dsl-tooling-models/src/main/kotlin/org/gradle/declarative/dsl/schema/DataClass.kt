@@ -18,7 +18,6 @@ package org.gradle.declarative.dsl.schema
 
 
 interface DataClass : DataType {
-
     val name: FqName
     val supertypes: Set<FqName>
     val properties: List<DataProperty>

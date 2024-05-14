@@ -26,7 +26,7 @@ object DataTypeInternal {
     @Serializable
     @SerialName("int")
     data object DefaultIntDataType : DataType.IntDataType {
-        override fun getConstantType(): Class<Int> = Int::class.java
+        override val constantType: Class<Int> = Int::class.java
         override fun toString(): String = "Int"
         private
         fun readResolve(): Any = DefaultIntDataType
@@ -35,7 +35,7 @@ object DataTypeInternal {
     @Serializable
     @SerialName("long")
     data object DefaultLongDataType : DataType.LongDataType {
-        override fun getConstantType(): Class<Long> = Long::class.java
+        override val constantType: Class<Long> = Long::class.java
         override fun toString(): String = "Long"
         private
         fun readResolve(): Any = DefaultLongDataType
@@ -44,7 +44,7 @@ object DataTypeInternal {
     @Serializable
     @SerialName("string")
     data object DefaultStringDataType : DataType.StringDataType {
-        override fun getConstantType(): Class<String> = String::class.java
+        override val constantType: Class<String> = String::class.java
         override fun toString(): String = "String"
         private
         fun readResolve(): Any = DefaultStringDataType
@@ -53,7 +53,7 @@ object DataTypeInternal {
     @Serializable
     @SerialName("boolean")
     data object DefaultBooleanDataType : DataType.BooleanDataType {
-        override fun getConstantType(): Class<Boolean> = Boolean::class.java
+        override val constantType: Class<Boolean> = Boolean::class.java
         override fun toString(): String = "Boolean"
         private
         fun readResolve(): Any = DefaultBooleanDataType

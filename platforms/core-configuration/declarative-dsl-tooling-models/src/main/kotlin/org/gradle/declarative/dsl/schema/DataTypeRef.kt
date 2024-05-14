@@ -20,7 +20,10 @@ import org.gradle.tooling.ToolingModelContract
 import java.io.Serializable
 
 
-@ToolingModelContract(subTypes = [DataTypeRef.Type::class, DataTypeRef.Name::class])
+@ToolingModelContract(subTypes = [
+    DataTypeRef.Type::class,
+    DataTypeRef.Name::class
+])
 sealed interface DataTypeRef : Serializable {
     interface Type : DataTypeRef {
         val dataType: DataType

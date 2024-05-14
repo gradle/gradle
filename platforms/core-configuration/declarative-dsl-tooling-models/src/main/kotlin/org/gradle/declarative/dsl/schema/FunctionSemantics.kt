@@ -16,17 +16,32 @@
 
 package org.gradle.declarative.dsl.schema
 
+import org.gradle.tooling.ToolingModelContract
 import java.io.Serializable
 
 
+@ToolingModelContract(subTypes = [
+    FunctionSemantics.ConfigureSemantics::class,
+    FunctionSemantics.NewObjectFunctionSemantics::class,
+    FunctionSemantics.Builder::class
+])
 sealed interface FunctionSemantics : Serializable {
 
     val returnValueType: DataTypeRef
 
+    @ToolingModelContract(subTypes = [
+        AccessAndConfigure::class,
+        AddAndConfigure::class
+    ])
     sealed interface ConfigureSemantics : FunctionSemantics {
         val configuredType: DataTypeRef
         val configureBlockRequirement: ConfigureBlockRequirement
 
+        @ToolingModelContract(subTypes = [
+            ConfigureBlockRequirement.NotAllowed::class,
+            ConfigureBlockRequirement.Optional::class,
+            ConfigureBlockRequirement.Required::class
+        ])
         sealed interface ConfigureBlockRequirement {
             interface NotAllowed : ConfigureBlockRequirement
             interface Optional : ConfigureBlockRequirement
@@ -45,6 +60,10 @@ sealed interface FunctionSemantics : Serializable {
         }
     }
 
+    @ToolingModelContract(subTypes = [
+        AddAndConfigure::class,
+        Pure::class
+    ])
     sealed interface NewObjectFunctionSemantics : FunctionSemantics
 
     interface Builder : FunctionSemantics
@@ -53,7 +72,11 @@ sealed interface FunctionSemantics : Serializable {
         val accessor: ConfigureAccessor
         val returnType: ReturnType
 
-        sealed interface ReturnType {
+        @ToolingModelContract(subTypes = [
+            ReturnType.Unit::class,
+            ReturnType.ConfiguredObject::class
+        ])
+        sealed interface ReturnType : Serializable {
             interface Unit : ReturnType
             interface ConfiguredObject : ReturnType
         }

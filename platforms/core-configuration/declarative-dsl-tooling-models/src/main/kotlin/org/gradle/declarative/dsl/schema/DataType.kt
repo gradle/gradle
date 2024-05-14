@@ -16,12 +16,19 @@
 
 package org.gradle.declarative.dsl.schema
 
+import org.gradle.tooling.ToolingModelContract
 import java.io.Serializable
 
 
+@ToolingModelContract(subTypes = [
+    DataType.NullType::class,
+    DataType.UnitType::class,
+    DataType.ConstantType::class,
+    DataClass::class
+])
 sealed interface DataType : Serializable {
     sealed interface ConstantType<JvmType> : DataType {
-        fun getConstantType(): Class<*>
+        val constantType: Class<*>
     }
 
     interface IntDataType : ConstantType<Int>

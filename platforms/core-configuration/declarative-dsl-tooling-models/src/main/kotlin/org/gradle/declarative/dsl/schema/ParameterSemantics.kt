@@ -16,9 +16,14 @@
 
 package org.gradle.declarative.dsl.schema
 
+import org.gradle.tooling.ToolingModelContract
 import java.io.Serializable
 
 
+@ToolingModelContract(subTypes = [
+    ParameterSemantics.StoreValueInProperty::class,
+    ParameterSemantics.Unknown::class
+])
 sealed interface ParameterSemantics : Serializable {
     interface StoreValueInProperty : ParameterSemantics {
         val dataProperty: DataProperty

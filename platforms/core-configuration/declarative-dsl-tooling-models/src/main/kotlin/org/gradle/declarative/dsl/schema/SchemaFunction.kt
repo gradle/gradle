@@ -16,9 +16,15 @@
 
 package org.gradle.declarative.dsl.schema
 
+import org.gradle.tooling.ToolingModelContract
 import java.io.Serializable
 
 
+@ToolingModelContract(subTypes = [
+    SchemaMemberFunction::class,
+    DataTopLevelFunction::class,
+    DataConstructor::class
+])
 sealed interface SchemaFunction : Serializable {
     val simpleName: String
     val semantics: FunctionSemantics
