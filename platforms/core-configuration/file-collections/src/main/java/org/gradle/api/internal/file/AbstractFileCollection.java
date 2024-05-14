@@ -67,7 +67,6 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
         this(taskDependencyFactory, PatternSets.getNonCachingPatternSetFactory());
     }
 
-    @SuppressWarnings("deprecation")
     public AbstractFileCollection() {
         this(DefaultTaskDependencyFactory.withNoAssociatedProject());
     }

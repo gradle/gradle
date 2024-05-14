@@ -17,12 +17,14 @@
 package org.gradle.api.internal;
 
 import org.gradle.StartParameter;
+import org.gradle.api.Incubating;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.plugins.PluginAwareInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
+import org.gradle.declarative.dsl.model.annotations.Adding;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.IncludedBuildSpec;
@@ -76,4 +78,14 @@ public interface SettingsInternal extends Settings, PluginAwareInternal, Finaliz
 
     @Override
     CacheConfigurationsInternal getCaches();
+
+    /**
+     * This is a version of {@link Settings#include(String...)} for just one argument.
+     * If varargs get supoprted in Declarative DSL this overload will no longer be needed.
+     */
+    @Adding
+    @Incubating
+    default void include(String projectPath) {
+        include(new String[] {projectPath});
+    }
 }

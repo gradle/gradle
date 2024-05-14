@@ -8,7 +8,6 @@ errorprone {
     disabledChecks.addAll(
         "DateFormatConstant", // 2 occurrences
         "ThreadLocalUsage", // 1 occurrences
-        "UnnecessaryParentheses", // 1 occurrences
     )
 }
 

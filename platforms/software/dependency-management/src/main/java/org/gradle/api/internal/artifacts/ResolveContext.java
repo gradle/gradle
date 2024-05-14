@@ -20,11 +20,13 @@ import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvid
 import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.Conflict;
 import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependenciesResolverFactory;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.internal.component.model.DependencyMetadata;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Represents something that can be resolved.
@@ -76,4 +78,18 @@ public interface ResolveContext extends DependencyMetaDataProvider {
      * and further changes to this context that would change its public state are forbidden.
      */
     void markAsObserved();
+
+    FailureResolutions getFailureResolutions();
+
+    /**
+     * Details about this resolve context to provide additional context during failure cases.
+     */
+    interface FailureResolutions {
+
+        /**
+         * Provide resolutions to add to a failure to assist the user on resolving the provided
+         * version conflicts.
+         */
+        List<String> forVersionConflict(Set<Conflict> conflicts);
+    }
 }

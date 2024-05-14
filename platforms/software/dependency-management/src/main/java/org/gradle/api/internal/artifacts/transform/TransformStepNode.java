@@ -17,9 +17,7 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.Describable;
-import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
@@ -246,17 +244,8 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
                 return new TransformStepBuildOperation() {
                     @Override
                     protected TransformStepSubject transform() {
-                        TransformStepSubject initialSubject;
-                        try {
-                            initialSubject = TransformStepSubject.initial(artifact);
-                        } catch (ResolveException e) {
-                            throw e;
-                        } catch (RuntimeException e) {
-                            throw new DefaultLenientConfiguration.ArtifactResolveException("artifacts", transformStep.getDisplayName(), Collections.singleton(e));
-                        }
-
                         return transformStep
-                            .createInvocation(initialSubject, upstreamDependencies, context)
+                            .createInvocation(TransformStepSubject.initial(artifact), upstreamDependencies, context)
                             .completeAndGet()
                             .get();
                     }
@@ -358,7 +347,7 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
         public TransformStepSubject calculateValue(NodeExecutionContext context) {
             TransformStepBuildOperation buildOperation = createBuildOperation(context);
             ProjectInternal owningProject = transformStep.getOwningProject();
-            return owningProject == null
+            return (owningProject == null || !context.isPartOfExecutionGraph())
                 ? buildOperation.transform()
                 : buildOperationRunner.call(buildOperation);
         }

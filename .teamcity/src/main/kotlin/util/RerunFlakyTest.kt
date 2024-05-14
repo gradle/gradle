@@ -70,7 +70,7 @@ class RerunFlakyTest(os: Os, arch: Arch = Arch.AMD64) : BuildType({
                 executionMode = BuildStep.ExecutionMode.ALWAYS
             }
         }
-        killProcessStep(KILL_PROCESSES_STARTED_BY_GRADLE, os, arch)
+        killProcessStep(KILL_PROCESSES_STARTED_BY_GRADLE, os, arch, BuildStep.ExecutionMode.ALWAYS)
     }
 
     steps {

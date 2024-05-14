@@ -58,6 +58,7 @@ import org.gradle.internal.execution.impl.DefaultFileCollectionFingerprinterRegi
 import org.gradle.internal.execution.impl.DefaultInputFingerprinter;
 import org.gradle.internal.execution.impl.DefaultOutputSnapshotter;
 import org.gradle.internal.file.DefaultFileSystemDefaultExcludesProvider;
+import org.gradle.internal.file.FileMetadataAccessor;
 import org.gradle.internal.file.FileSystemDefaultExcludesProvider;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
@@ -229,7 +230,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
         FileSystemAccess createFileSystemAccess(
             FileHasher hasher,
             VirtualFileSystem virtualFileSystem,
-            Stat stat,
+            FileMetadataAccessor stat,
             StringInterner stringInterner,
             FileSystemAccess.WriteListener writeListener,
             DirectorySnapshotterStatistics.Collector statisticsCollector,
@@ -324,7 +325,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
         FileSystemAccess createFileSystemAccess(
             FileHasher hasher,
             ListenerManager listenerManager,
-            Stat stat,
+            FileMetadataAccessor stat,
             StringInterner stringInterner,
             VirtualFileSystem root,
             FileSystemAccess.WriteListener writeListener,

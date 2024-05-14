@@ -48,9 +48,6 @@ dependencies {
     testImplementation(project(":language-java")) {
         because("need to access JavaCompile task")
     }
-    testImplementation(project(":plugins")) {
-        because("need to access JavaPluginExtension")
-    }
 
     testImplementation(testFixtures(project(":core")))
 

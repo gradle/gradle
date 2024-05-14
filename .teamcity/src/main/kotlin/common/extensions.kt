@@ -177,15 +177,21 @@ fun BuildSteps.checkCleanM2AndAndroidUserHome(os: Os = Os.LINUX, buildType: Buil
         name = "CHECK_CLEAN_M2_ANDROID_USER_HOME"
         executionMode = BuildStep.ExecutionMode.ALWAYS
         scriptContent = if (os == Os.WINDOWS) {
-            checkCleanDirWindows("%teamcity.agent.jvm.user.home%\\.m2\\repository") + checkCleanDirWindows("%teamcity.agent.jvm.user.home%\\.m2\\.gradle-enterprise") + checkCleanDirWindows(
-                "%teamcity.agent.jvm.user.home%\\.android",
-                false
-            )
+            checkCleanDirWindows("%teamcity.agent.jvm.user.home%\\.m2\\repository") +
+                checkCleanDirWindows("%teamcity.agent.jvm.user.home%\\.m2\\.gradle-enterprise") +
+                checkCleanDirWindows("%teamcity.agent.jvm.user.home%\\.m2\\.develocity") +
+                checkCleanDirWindows(
+                    "%teamcity.agent.jvm.user.home%\\.android",
+                    false
+                )
         } else {
-            checkCleanDirUnixLike("%teamcity.agent.jvm.user.home%/.m2/repository") + checkCleanDirUnixLike("%teamcity.agent.jvm.user.home%/.m2/.gradle-enterprise") + checkCleanDirUnixLike(
-                "%teamcity.agent.jvm.user.home%/.android",
-                false
-            )
+            checkCleanDirUnixLike("%teamcity.agent.jvm.user.home%/.m2/repository") +
+                checkCleanDirUnixLike("%teamcity.agent.jvm.user.home%/.m2/.gradle-enterprise") +
+                checkCleanDirUnixLike("%teamcity.agent.jvm.user.home%/.m2/.develocity") +
+                checkCleanDirUnixLike(
+                    "%teamcity.agent.jvm.user.home%/.android",
+                    false
+                )
         }
         skipConditionally(buildType)
     }

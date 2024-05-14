@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler;
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler;
+import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
@@ -212,7 +213,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         void configure(ServiceRegistration registration) {
             registration.add(DefaultTransformedVariantFactory.class);
             registration.add(DefaultRootComponentMetadataBuilder.Factory.class);
-            registration.add(ResolveExceptionContextualizer.class);
+            registration.add(ResolveExceptionMapper.class);
             registration.add(ResolutionStrategyFactory.class);
             registration.add(DefaultLocalComponentRegistry.class);
             registration.add(ProjectDependencyResolver.class);
@@ -522,7 +523,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
             ResolvedArtifactSetResolver artifactSetResolver,
             AttributeDesugaring attributeDesugaring,
-            ResolveExceptionContextualizer resolveExceptionContextualizer,
             ComponentDetailsSerializer componentDetailsSerializer,
             SelectedVariantSerializer selectedVariantSerializer,
             ResolvedVariantCache resolvedVariantCache,
@@ -552,7 +552,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 attributeDesugaring,
                 artifactSetResolver,
                 componentSelectionDescriptorFactory,
-                resolveExceptionContextualizer,
                 componentDetailsSerializer,
                 selectedVariantSerializer,
                 resolvedVariantCache,
@@ -647,6 +646,11 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         @Override
         public ObjectFactory getObjectFactory() {
             return services.get(ObjectFactory.class);
+        }
+
+        @Override
+        public DependencyFactory getDependencyFactory() {
+            return services.get(DependencyFactory.class);
         }
     }
 

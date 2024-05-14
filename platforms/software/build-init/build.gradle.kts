@@ -9,7 +9,6 @@ This project should NOT be used as an implementation dependency anywhere (except
 
 errorprone {
     disabledChecks.addAll(
-        "BadImport", // 1 occurrences
         "DefaultCharset", // 6 occurrences
         "GetClassOnEnum", // 1 occurrences
         "HidingField", // 2 occurrences
@@ -35,8 +34,9 @@ dependencies {
     api(project(":file-collections"))
     api(project(":logging"))
     api(project(":platform-jvm"))
-    api(project(":toolchains-jvm"))
+    api(project(":toolchains-jvm-shared"))
     api(project(":workers"))
+    api(project(":daemon-services"))
 
     implementation(project(":logging-api"))
     implementation(project(":platform-native"))
@@ -44,7 +44,6 @@ dependencies {
         because("Needs access to StartScriptGenerator.")
     }
     implementation(project(":plugins-jvm-test-suite"))
-    implementation(project(":resources"))
     implementation(project(":wrapper"))
     implementation(project(":wrapper-shared"))
 
@@ -91,7 +90,6 @@ dependencies {
     testFixturesImplementation(project(":platform-base"))
     testFixturesImplementation(project(":core-api"))
     testFixturesImplementation(project(":logging"))
-    testFixturesImplementation(project(":plugins"))
     testFixturesImplementation(project(":plugins-java"))
     testFixturesImplementation(project(":testing-base"))
     testFixturesImplementation(project(":test-suites-base"))

@@ -54,11 +54,16 @@ public class InstallationLocation implements Describable {
 
     @Override
     public String getDisplayName() {
-        return "'" + location.getAbsolutePath() + "' (" + source + ")";
+        return "'" + location.getAbsolutePath() + "' (" + source + ")" + (autoDetected? " auto-detected" : "") + (autoProvisioned? " auto-provisioned" : "");
     }
 
     public String getSource() {
         return source;
+    }
+
+    @Override
+    public String toString() {
+        return getDisplayName();
     }
 
     /**

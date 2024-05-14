@@ -115,7 +115,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
     }
 
     private static String getDefaultDeprecationIdDisplayName(DeprecatedFeatureUsage usage) {
-        if(usage.getProblemId() != null) {
+        if (usage.getProblemId() != null) {
             return usage.getProblemId();
         }
         return createDefaultDeprecationId(usage.getProblemIdDisplayName());

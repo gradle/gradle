@@ -16,8 +16,11 @@
 
 package org.gradle.internal.jvm.inspection;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.jvm.toolchain.internal.InstallationLocation;
 
+@ServiceScope(Scope.Global.class)
 public interface JvmMetadataDetector {
 
     JvmInstallationMetadata getMetadata(InstallationLocation javaInstallationLocation);

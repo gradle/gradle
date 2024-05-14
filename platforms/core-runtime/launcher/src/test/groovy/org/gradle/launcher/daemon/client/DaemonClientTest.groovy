@@ -26,6 +26,7 @@ import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.nativeintegration.ProcessEnvironment
 import org.gradle.launcher.daemon.context.DaemonCompatibilitySpec
 import org.gradle.launcher.daemon.context.DaemonConnectDetails
+import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics
 import org.gradle.launcher.daemon.protocol.Build
 import org.gradle.launcher.daemon.protocol.BuildStarted
 import org.gradle.launcher.daemon.protocol.Cancel
@@ -47,7 +48,7 @@ class DaemonClientTest extends ConcurrentSpecification {
     final def idGenerator = new UUIDGenerator()
     final ProcessEnvironment processEnvironment = Mock()
     final GlobalUserInputReceiver userInput = Stub()
-    final DaemonClient client = new DaemonClient(connector, outputEventListener, compatibilitySpec, new ByteArrayInputStream(new byte[0]), userInput, executorFactory, idGenerator, processEnvironment)
+    final DaemonClient client = new DaemonClient(connector, outputEventListener, compatibilitySpec, new ByteArrayInputStream(new byte[0]), userInput, idGenerator, processEnvironment)
 
     def "executes action"() {
         def resultMessage = Stub(BuildActionResult)
@@ -169,6 +170,28 @@ class DaemonClientTest extends ConcurrentSpecification {
         1 * connection.stop()
         _ * connection2.daemon >> Stub(DaemonConnectDetails)
         2 * connection2.receive() >>> [Stub(BuildStarted), new Success(resultMessage)]
+        0 * connection._
+    }
+
+    def "reports daemon disappeared when result is null and cannot write further message to connection"() {
+        def parameters = Stub(BuildActionParameters)
+        parameters.currentDir >> new File(".")
+
+        when:
+        client.execute(Stub(BuildAction), parameters, Stub(BuildRequestContext))
+
+        then:
+        thrown(DaemonDisappearedException)
+
+        and:
+        connector.connect(compatibilitySpec) >> connection
+        _ * connection.daemon >> Stub(DaemonConnectDetails)
+        1 * connection.dispatch({ it instanceof Build })
+        1 * connection.receive() >> new BuildStarted(new DaemonDiagnostics(new File("log"), 123L))
+        1 * connection.receive() >> null
+        1 * connection.markSuspect()
+        1 * connection.dispatch({ it instanceof CloseInput })
+        1 * connection.stop()
         0 * connection._
     }
 

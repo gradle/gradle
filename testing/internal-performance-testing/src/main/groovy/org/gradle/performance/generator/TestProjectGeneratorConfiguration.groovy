@@ -64,7 +64,6 @@ class TestProjectGeneratorConfiguration {
     excludes = [
         'plugins',
         'repositories',
-        'externalApiDependencies',
         'externalImplementationDependencies',
         'minLinesOfCodePerSourceFile',
         'testRunnerMemory',
@@ -87,6 +86,12 @@ class TestProjectGeneratorConfigurationBuilder {
         this.fileToChangeByScenario = [:]
         this.systemProperties = [:]
         this.featurePreviews = [] as String[]
+        this.externalApiDependencies = [
+            commonsLang: 'commons-lang:commons-lang:2.5',
+            commonsHttpClient: 'commons-httpclient:commons-httpclient:3.0',
+            commonsCodec: 'commons-codec:commons-codec:1.2',
+            jclOverSlf4j: 'org.slf4j:jcl-over-slf4j:1.7.10',
+        ]
     }
 
     TestProjectGeneratorConfigurationBuilder assembleChangeFile(int project = 0, int pkg = 0, int file = 0) {
@@ -123,12 +128,7 @@ class TestProjectGeneratorConfigurationBuilder {
 
         config.plugins = this.language == Language.GROOVY ? ['groovy', 'java', 'eclipse', 'idea'] : ['java', 'eclipse', 'idea']
         config.repositories = [mavenCentralRepositoryDefinition(this.dsl)]
-        config.externalApiDependencies = [
-            commonsLang: 'commons-lang:commons-lang:2.5',
-            commonsHttpClient: 'commons-httpclient:commons-httpclient:3.0',
-            commonsCodec: 'commons-codec:commons-codec:1.2',
-            jclOverSlf4j: 'org.slf4j:jcl-over-slf4j:1.7.10',
-        ]
+        config.externalApiDependencies = this.externalApiDependencies
         config.externalImplementationDependencies = [
             reflectasm: 'com.googlecode:reflectasm:1.01',
         ]

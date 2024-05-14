@@ -38,6 +38,7 @@ dependencies {
     implementation(libs.jansi)
     implementation(libs.inject)
 
+    testImplementation(testFixtures(projects.files))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":logging")))
 

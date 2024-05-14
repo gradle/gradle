@@ -5,12 +5,14 @@ on:
     - cron: '0 * * * *' # every hour
   workflow_dispatch:
 
+permissions: {}
+
 jobs:
   feedback:
-    runs-on: ubuntu-latest
     permissions:
       issues: write
       pull-requests: write
+    runs-on: ubuntu-latest
     steps:
       # Feedback loop: ask for something on PR/Issue and close if not provided or return to the queue on update.
       # https://github.com/gradle/issue-management-action/blob/main/src/feedback.ts

@@ -16,7 +16,7 @@
 
 package org.gradle.internal.instrumentation.extensions.property;
 
-import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty.BinaryCompatibility;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
 import org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeAnnotatedMethodReader.DeprecationSpec;
 import org.gradle.internal.instrumentation.model.RequestExtra;
 import org.gradle.internal.instrumentation.processor.codegen.GradleLazyType;

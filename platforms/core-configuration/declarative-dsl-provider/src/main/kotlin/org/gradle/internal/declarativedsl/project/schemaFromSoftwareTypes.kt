@@ -30,7 +30,6 @@ import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.toDataTypeRef
 import org.gradle.plugin.software.internal.SoftwareTypeImplementation
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
-import java.util.function.Supplier
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 
@@ -38,16 +37,15 @@ import kotlin.reflect.KFunction
 internal
 class SoftwareTypeComponent(
     private val schemaTypeToExtend: KClass<*>,
-    private val target: ProjectInternal,
     private val accessorIdPrefix: String,
+    softwareTypeRegistry: SoftwareTypeRegistry
 ) : EvaluationSchemaComponent {
     private
-    val softwareTypeRegistry = target.services.get(SoftwareTypeRegistry::class.java)
-    private
     val softwareTypeImplementations = softwareTypeRegistry.getSoftwareTypeImplementations().map {
-        SoftwareTypeInfo(it, accessorIdPrefix) {
-            target.pluginManager.apply(it.pluginClass)
-            target.extensions.getByName(it.softwareType)
+        SoftwareTypeInfo(it, accessorIdPrefix) { receiverObject ->
+            require(receiverObject is ProjectInternal) { "unexpected receiver, expected a ProjectInternal instance, got $receiverObject" }
+            receiverObject.pluginManager.apply(it.pluginClass)
+            receiverObject.extensions.getByName(it.softwareType)
         }
     }
 
@@ -69,7 +67,7 @@ private
 data class SoftwareTypeInfo(
     val delegate: SoftwareTypeImplementation,
     val accessorIdPrefix: String,
-    val extensionProvider: Supplier<Any>
+    val extensionProvider: (receiverObject: Any) -> Any
 ) : SoftwareTypeImplementation by delegate {
     val customAccessorId = "$accessorIdPrefix:${delegate.softwareType}"
 
@@ -103,5 +101,5 @@ class RuntimeModelTypeAccessors(info: List<SoftwareTypeInfo>) : RuntimeCustomAcc
     val modelTypeById = info.associate { it.customAccessorId to it.extensionProvider }
 
     override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessor.Custom): Any? =
-        modelTypeById[accessor.customAccessorIdentifier]?.get()
+        modelTypeById[accessor.customAccessorIdentifier]?.invoke(receiverObject)
 }

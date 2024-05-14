@@ -129,9 +129,6 @@ public interface ConfigurationInternal extends ResolveContext, DeprecatableConfi
     }
 
     interface VariantVisitor {
-        // The artifacts to use when this configuration is used as a configuration
-        void visitArtifacts(Collection<? extends PublishArtifact> artifacts);
-
         // This configuration as a variant. May not always be present
         void visitOwnVariant(DisplayName displayName, ImmutableAttributes attributes, Collection<? extends PublishArtifact> artifacts);
 

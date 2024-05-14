@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformOutputs;
 import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.file.FileSystemLocation;
-import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.initialization.transform.services.CacheInstrumentationDataBuildService;
 import org.gradle.api.internal.initialization.transform.services.InjectedInstrumentationServices;
 import org.gradle.api.internal.initialization.transform.utils.ClassAnalysisUtils;
@@ -47,7 +46,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -77,14 +75,17 @@ import static org.gradle.internal.classpath.transforms.MrJarUtils.isInUnsupporte
 @DisableCachingByDefault(because = "Not worth caching.")
 public abstract class InstrumentationAnalysisTransform implements TransformAction<InstrumentationAnalysisTransform.Parameters> {
 
+    private static boolean isTypeAccepted(String type) {
+        return type != null && !type.startsWith("java/lang/");
+    }
+
     public interface Parameters extends TransformParameters {
         @Internal
         Property<CacheInstrumentationDataBuildService> getBuildService();
+
         @Internal
         Property<Long> getContextId();
     }
-
-    private static final Predicate<String> ACCEPTED_TYPES = type -> type != null && !type.startsWith("java/lang/");
 
     private final Lazy<InjectedInstrumentationServices> internalServices = Lazy.unsafe().of(() -> getObjects().newInstance(InjectedInstrumentationServices.class));
 
@@ -135,13 +136,13 @@ public abstract class InstrumentationAnalysisTransform implements TransformActio
 
     private static Set<String> collectSuperTypes(ClassReader reader) {
         return Stream.concat(Stream.of(reader.getSuperName()), Stream.of(reader.getInterfaces()))
-            .filter(ACCEPTED_TYPES)
+            .filter(InstrumentationAnalysisTransform::isTypeAccepted)
             .collect(toImmutableSortedSet(Ordering.natural()));
     }
 
     private static void collectArtifactClassDependencies(String className, ClassReader reader, Set<String> collector) {
         ClassAnalysisUtils.getClassDependencies(reader, dependencyDescriptor -> {
-            if (!dependencyDescriptor.equals(className) && ACCEPTED_TYPES.test(dependencyDescriptor)) {
+            if (!dependencyDescriptor.equals(className) && InstrumentationAnalysisTransform.isTypeAccepted(dependencyDescriptor)) {
                 collector.add(dependencyDescriptor);
             }
         });
@@ -152,8 +153,7 @@ public abstract class InstrumentationAnalysisTransform implements TransformActio
      * type hierarchy is an input to {@link MergeInstrumentationAnalysisTransform}.
      */
     private void writeOutput(File artifact, TransformOutputs outputs, Map<String, Set<String>> superTypes, Set<String> dependencies) {
-        StringInterner stringInterner = internalServices.get().getStringInterner();
-        InstrumentationAnalysisSerializer serializer = new InstrumentationAnalysisSerializer(stringInterner);
+        InstrumentationAnalysisSerializer serializer = getParameters().getBuildService().get().getCachedInstrumentationAnalysisSerializer();
         createInstrumentationClasspathMarker(outputs);
 
         // Write type hierarchy analysis separately from dependencies,
@@ -164,7 +164,7 @@ public abstract class InstrumentationAnalysisTransform implements TransformActio
         // Write dependency analysis
         File dependencyAnalysisFile = outputs.file(ANALYSIS_OUTPUT_DIR + "/" + DEPENDENCY_ANALYSIS_FILE_NAME);
         InstrumentationArtifactMetadata metadata = getArtifactMetadata(artifact);
-        serializer.writeDependencyAnalysis(dependencyAnalysisFile, metadata, toMapWithKeys(dependencies));
+        serializer.writeDependencyAnalysis(dependencyAnalysisFile, new InstrumentationDependencyAnalysis(metadata, toMapWithKeys(dependencies)));
         outputOriginalArtifact(outputs, artifact);
     }
 

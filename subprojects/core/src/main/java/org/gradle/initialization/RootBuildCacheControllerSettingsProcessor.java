@@ -19,8 +19,9 @@ package org.gradle.initialization;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.caching.internal.controller.BuildCacheController;
-import org.gradle.caching.internal.controller.impl.RootBuildCacheControllerRef;
+import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
+import org.gradle.caching.internal.controller.impl.LifecycleAwareBuildCacheController;
+import org.gradle.internal.service.ServiceRegistry;
 
 public class RootBuildCacheControllerSettingsProcessor implements SettingsProcessor {
 
@@ -28,11 +29,11 @@ public class RootBuildCacheControllerSettingsProcessor implements SettingsProces
         // The strategy for sharing build cache configuration across included builds in a composite,
         // requires that the cache configuration be finalized (and cache controller available)
         // before configuring them. This achieves that.
-        if (gradle.isRootBuild()) {
-            BuildCacheController rootController = gradle.getServices().get(BuildCacheController.class);
-            RootBuildCacheControllerRef rootControllerRef = gradle.getServices().get(RootBuildCacheControllerRef.class);
-            rootControllerRef.set(rootController);
-        }
+
+        ServiceRegistry services = gradle.getServices();
+        LifecycleAwareBuildCacheController cacheController = services.get(LifecycleAwareBuildCacheController.class);
+        BuildCacheConfigurationInternal buildCacheConfiguration = services.get(BuildCacheConfigurationInternal.class);
+        cacheController.configurationAvailable(buildCacheConfiguration);
     }
 
     private final SettingsProcessor delegate;

@@ -22,7 +22,7 @@ enum GradleDsl {
 
     GROOVY(".gradle"),
     KOTLIN(".gradle.kts"),
-    DECLARATIVE(".gradle.something");
+    DECLARATIVE(".gradle.dcl");
 
     private final String fileExtension;
 

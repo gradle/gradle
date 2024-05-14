@@ -18,10 +18,10 @@ package org.gradle.internal.nativeintegration.filesystem.services
 
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.file.FileException
+import org.gradle.internal.file.FileMetadataAccessor
+import org.gradle.internal.file.FileModeAccessor
+import org.gradle.internal.file.FileModeMutator
 import org.gradle.internal.file.StatStatistics
-import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor
-import org.gradle.internal.nativeintegration.filesystem.FileModeAccessor
-import org.gradle.internal.nativeintegration.filesystem.FileModeMutator
 import org.gradle.internal.nativeintegration.filesystem.Symlink
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule

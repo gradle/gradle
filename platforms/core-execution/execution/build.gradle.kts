@@ -4,20 +4,6 @@ plugins {
 
 description = "Execution engine that takes a unit of work and makes it happen"
 
-errorprone {
-    disabledChecks.addAll(
-        "AnnotateFormatMethod", // 1 occurrences
-        "BadImport", // 2 occurrences
-        "Finally", // 2 occurrences
-        "ReferenceEquality", // 1 occurrences
-        "SameNameButDifferent", // 5 occurrences
-        "StringCaseLocaleUsage", // 8 occurrences
-        "SuperCallToObjectMethod", // 2 occurrences
-        "UndefinedEquals", // 1 occurrences
-        "UnusedVariable", // 1 occurrences
-    )
-}
-
 dependencies {
     api(libs.guava)
     api(libs.jsr305)
@@ -25,6 +11,8 @@ dependencies {
 
     api(projects.concurrent)
     api(projects.javaLanguageExtensions)
+    api(projects.serialization)
+    compileOnly(libs.errorProneAnnotations)
     api(project(":base-services"))
     api(project(":build-cache"))
     api(project(":build-cache-base"))
@@ -34,7 +22,6 @@ dependencies {
     api(project(":files"))
     api(project(":functional"))
     api(project(":hashing"))
-    api(project(":messaging"))
     api(project(":model-core"))
     api(project(":persistent-cache"))
     api(project(":problems-api"))
@@ -55,6 +42,7 @@ dependencies {
     testImplementation(project(":base-services-groovy"))
     testImplementation(project(":resources"))
     testImplementation(libs.commonsIo)
+    testImplementation(testFixtures(projects.serialization))
     testImplementation(testFixtures(project(":base-services")))
     testImplementation(testFixtures(project(":build-operations")))
     testImplementation(testFixtures(project(":file-collections")))

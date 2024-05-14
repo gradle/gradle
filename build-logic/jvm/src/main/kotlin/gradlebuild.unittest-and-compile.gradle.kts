@@ -22,9 +22,9 @@ import gradlebuild.basics.FlakyTestStrategy
 import gradlebuild.basics.accessors.kotlinMainSourceSet
 import gradlebuild.basics.flakyTestStrategy
 import gradlebuild.basics.maxParallelForks
-import gradlebuild.basics.maxTestDistributionRemoteExecutors
 import gradlebuild.basics.maxTestDistributionLocalExecutors
 import gradlebuild.basics.maxTestDistributionPartitionSecond
+import gradlebuild.basics.maxTestDistributionRemoteExecutors
 import gradlebuild.basics.predictiveTestSelectionEnabled
 import gradlebuild.basics.rerunAllTests
 import gradlebuild.basics.testDistributionEnabled
@@ -198,6 +198,10 @@ fun Test.configureJvmForTest() {
     }
     javaLauncher = launcher
     if (jvmVersionForTest().canCompileOrRun(9)) {
+        // Required by JdkTools and JdkJavaCompiler
+        jvmArgs(listOf("--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED"))
+        jvmArgs(listOf("--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED"))
+
         if (isUnitTest() || usesEmbeddedExecuter()) {
             jvmArgs(org.gradle.internal.jvm.JpmsConfiguration.GRADLE_DAEMON_JPMS_ARGS)
         } else {
@@ -257,9 +261,6 @@ fun configureTests() {
                 maxRetries.convention(determineMaxRetries())
                 maxFailures = determineMaxFailures()
             }
-            doFirst {
-                logger.lifecycle("maxParallelForks for '$path' is $maxParallelForks")
-            }
         }
 
         useJUnitPlatform()
@@ -268,8 +269,7 @@ fun configureTests() {
 
         extensions.findByType<DevelocityTestConfiguration>()?.testDistribution {
             this as TestDistributionConfigurationInternal
-            // Dogfooding TD against ge-td-dogfooding in order to test new features and benefit from bug fixes before they are released
-            server = uri("https://ge-td-dogfooding.grdev.net")
+            server = uri("https://ge.gradle.org")
 
             if (project.testDistributionEnabled && !isUnitTest() && !isPerformanceProject() && !isNativeProject()) {
                 enabled = true

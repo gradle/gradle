@@ -19,6 +19,13 @@ package org.gradle.internal.logging.events
 import spock.lang.Specification
 
 class YesNoQuestionPromptEventTest extends Specification {
+    def "formats prompt"() {
+        def event = new YesNoQuestionPromptEvent(123, "question?")
+
+        expect:
+        event.prompt == "question? [yes, no] " // trailing space
+    }
+
     def "accepts valid input"() {
         def event = new YesNoQuestionPromptEvent(123, "question?")
 

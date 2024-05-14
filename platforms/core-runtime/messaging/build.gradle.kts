@@ -16,7 +16,6 @@ errorprone {
         "ReferenceEquality", // 1 occurrences
         "StringCaseLocaleUsage", // 1 occurrences
         "ThreadPriorityCheck", // 1 occurrences
-        "UnnecessaryParentheses", // 2 occurrences
         "UnrecognisedJavadocTag", // 1 occurrences
     )
 }
@@ -24,19 +23,18 @@ errorprone {
 dependencies {
     api(projects.concurrent)
     api(projects.javaLanguageExtensions)
-    api(project(":hashing"))
+    api(projects.serialization)
     api(project(":base-services"))
 
-    api(libs.fastutil)
     api(libs.jsr305)
     api(libs.slf4jApi)
-    api(libs.guava)
 
     implementation(projects.io)
     implementation(project(":build-operations"))
 
-    implementation(libs.kryo)
+    implementation(libs.guava)
 
+    testImplementation(testFixtures(projects.serialization))
     testImplementation(testFixtures(project(":core")))
 
     testFixturesImplementation(project(":base-services"))

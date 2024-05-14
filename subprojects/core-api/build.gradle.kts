@@ -1,12 +1,12 @@
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.instrumented-project")
 }
 
 description = "Public and internal 'core' Gradle APIs that are required by other subprojects"
 
 errorprone {
     disabledChecks.addAll(
-        "BadImport", // 1 occurrences
         "EmptyBlockTag", // 5 occurrences
         "InlineMeSuggester", // 1 occurrences
         "MalformedInlineTag", // 3 occurrences

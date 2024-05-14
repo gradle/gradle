@@ -29,12 +29,15 @@ import org.gradle.internal.properties.annotations.TypeMetadataStore;
 import org.gradle.internal.properties.bean.DefaultPropertyWalker;
 import org.gradle.internal.properties.bean.PropertyWalker;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadataStore;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+@ServiceScope(Scope.Global.class)
 public class InspectionSchemeFactory {
     private final Map<Class<? extends Annotation>, PropertyAnnotationHandler> allKnownPropertyHandlers;
     private final ImmutableList<TypeAnnotationHandler> allKnownTypeHandlers;

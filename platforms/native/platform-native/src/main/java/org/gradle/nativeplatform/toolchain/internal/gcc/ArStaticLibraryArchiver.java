@@ -53,7 +53,7 @@ public class ArStaticLibraryArchiver extends AbstractCompiler<StaticLibraryArchi
         if (!spec.getOutputFile().isFile()) {
             return;
         }
-        if (!(spec.getOutputFile().delete())) {
+        if (!spec.getOutputFile().delete()) {
             throw new GradleException("Create static archive failed: could not delete previous archive");
         }
     }

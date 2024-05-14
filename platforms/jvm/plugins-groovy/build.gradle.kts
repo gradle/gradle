@@ -15,6 +15,7 @@ dependencies {
     api(project(":language-java"))
     api(project(":model-core"))
 
+    implementation(projects.javaLanguageExtensions)
     implementation(project(":file-collections"))
     implementation(project(":language-groovy"))
     implementation(project(":language-jvm"))
@@ -24,6 +25,7 @@ dependencies {
     implementation(project(":plugins-java-base"))
     implementation(project(":reporting"))
     implementation(project(":toolchains-jvm"))
+    implementation(project(":toolchains-jvm-shared"))
 
     implementation(libs.guava)
 

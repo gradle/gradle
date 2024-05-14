@@ -18,6 +18,8 @@ package org.gradle.launcher.daemon.server;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.launcher.daemon.configuration.DaemonServerConfiguration;
 import org.gradle.launcher.daemon.server.expiry.AllDaemonExpirationStrategy;
 import org.gradle.launcher.daemon.server.expiry.AnyDaemonExpirationStrategy;
@@ -28,6 +30,7 @@ import org.gradle.launcher.daemon.server.health.LowMemoryDaemonExpirationStrateg
 
 import java.util.concurrent.TimeUnit;
 
+@ServiceScope(Scope.Global.class)
 public class MasterExpirationStrategy implements DaemonExpirationStrategy {
     private static final int DUPLICATE_DAEMON_GRACE_PERIOD_MS = 10000;
 

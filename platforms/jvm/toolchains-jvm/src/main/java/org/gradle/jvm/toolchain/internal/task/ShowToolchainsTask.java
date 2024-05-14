@@ -25,14 +25,12 @@ import org.gradle.internal.jvm.inspection.JavaInstallationRegistry;
 import org.gradle.internal.jvm.inspection.JvmToolchainMetadata;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
-import org.gradle.jvm.toolchain.internal.AutoDetectingInstallationSupplier;
-import org.gradle.jvm.toolchain.internal.install.DefaultJavaToolchainProvisioningService;
+import org.gradle.jvm.toolchain.internal.ToolchainConfiguration;
 
 import javax.inject.Inject;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
@@ -67,8 +65,8 @@ public abstract class ShowToolchainsTask extends DefaultTask {
     }
 
     private void printOptions(StyledTextOutput output) {
-        boolean detectionEnabled = getBooleanProperty(AutoDetectingInstallationSupplier.AUTO_DETECT);
-        boolean downloadEnabled = getBooleanProperty(DefaultJavaToolchainProvisioningService.AUTO_DOWNLOAD);
+        boolean detectionEnabled = getToolchainConfiguration().isAutoDetectEnabled();
+        boolean downloadEnabled = getToolchainConfiguration().isDownloadEnabled();
         output.withStyle(Identifier).println(" + Options");
         output.withStyle(Normal).format("     | %s", Strings.padEnd("Auto-detection:", 20, ' '));
         output.withStyle(Description).println(detectionEnabled ? "Enabled" : "Disabled");
@@ -77,20 +75,16 @@ public abstract class ShowToolchainsTask extends DefaultTask {
         output.println();
     }
 
-    private Boolean getBooleanProperty(String propertyKey) {
-        return getProviderFactory().gradleProperty(propertyKey).map(Boolean::parseBoolean).getOrElse(true);
+    private static List<JvmToolchainMetadata> invalidToolchains(List<JvmToolchainMetadata> toolchains) {
+        return toolchains.stream().filter(t -> !isValidToolchain(t)).collect(Collectors.toList());
     }
 
-    private List<JvmToolchainMetadata> invalidToolchains(List<JvmToolchainMetadata> toolchains) {
-        return toolchains.stream().filter(t -> !isValidToolchain().test(t)).collect(Collectors.toList());
+    private static List<JvmToolchainMetadata> validToolchains(Collection<JvmToolchainMetadata> toolchains) {
+        return toolchains.stream().filter(ShowToolchainsTask::isValidToolchain).sorted(TOOLCHAIN_COMPARATOR).collect(Collectors.toList());
     }
 
-    private List<JvmToolchainMetadata> validToolchains(Collection<JvmToolchainMetadata> toolchains) {
-        return toolchains.stream().filter(isValidToolchain()).sorted(TOOLCHAIN_COMPARATOR).collect(Collectors.toList());
-    }
-
-    private Predicate<? super JvmToolchainMetadata> isValidToolchain() {
-        return t -> t.metadata.isValidInstallation();
+    private static boolean isValidToolchain(JvmToolchainMetadata t) {
+        return t.metadata.isValidInstallation();
     }
 
     private List<JvmToolchainMetadata> allReportableToolchains() {
@@ -112,5 +106,8 @@ public abstract class ShowToolchainsTask extends DefaultTask {
     protected ProviderFactory getProviderFactory() {
         throw new UnsupportedOperationException();
     }
+
+    @Inject
+    protected abstract ToolchainConfiguration getToolchainConfiguration();
 
 }

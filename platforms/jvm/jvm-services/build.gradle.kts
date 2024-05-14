@@ -43,6 +43,7 @@ dependencies {
     api(libs.nativePlatform)
 
     implementation(project(":functional"))
+    implementation(project(":native"))
 
     implementation(libs.guava)
     implementation(libs.asm)

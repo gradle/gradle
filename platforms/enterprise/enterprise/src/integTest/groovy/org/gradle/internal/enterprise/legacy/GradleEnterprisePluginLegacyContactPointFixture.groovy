@@ -20,7 +20,7 @@ import groovy.json.JsonSlurper
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.internal.scan.config.BuildScanConfig
-import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
+import org.gradle.plugin.management.internal.autoapply.AutoAppliedDevelocityPlugin
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.plugin.PluginBuilder
@@ -29,7 +29,7 @@ import org.gradle.test.fixtures.plugin.PluginBuilder
 class GradleEnterprisePluginLegacyContactPointFixture {
 
     public static final String PLUGIN_NOT_APPLIED_MSG = GradleEnterprisePluginManager.NO_SCAN_PLUGIN_MSG
-    public static final String GRADLE_ENTERPRISE_PLUGIN_ID = AutoAppliedGradleEnterprisePlugin.ID.id
+    public static final String GRADLE_ENTERPRISE_PLUGIN_ID = AutoAppliedDevelocityPlugin.ID.id
     public static final String PUBLISHING_BUILD_SCAN_MESSAGE_PREFIX = 'PUBLISHING BUILD SCAN v'
     public static final String BUILD_SCAN_PLUGIN_APPLIED_MESSAGE = 'APPLIED OLD BUILD SCAN PLUGIN'
 
@@ -48,8 +48,8 @@ class GradleEnterprisePluginLegacyContactPointFixture {
 
     protected boolean added
 
-    String runtimeVersion = AutoAppliedGradleEnterprisePlugin.VERSION
-    String artifactVersion = AutoAppliedGradleEnterprisePlugin.VERSION
+    String runtimeVersion = AutoAppliedDevelocityPlugin.VERSION
+    String artifactVersion = AutoAppliedDevelocityPlugin.VERSION
 
     GradleEnterprisePluginLegacyContactPointFixture(TestFile projectDir, MavenFileRepository mavenRepo, GradleExecuter pluginBuildExecuter) {
         this.projectDir = projectDir
@@ -102,7 +102,7 @@ class GradleEnterprisePluginLegacyContactPointFixture {
             """
         }
 
-        def builder = new PluginBuilder(projectDir.file('plugin-' + AutoAppliedGradleEnterprisePlugin.ID.id))
+        def builder = new PluginBuilder(projectDir.file('plugin-' + AutoAppliedDevelocityPlugin.ID.id))
         builder.addSettingsPlugin("""
             println '${PUBLISHING_BUILD_SCAN_MESSAGE_PREFIX}${runtimeVersion}'
 """, GRADLE_ENTERPRISE_PLUGIN_ID, GRADLE_ENTERPRISE_PLUGIN_CLASS_SIMPLE_NAME)

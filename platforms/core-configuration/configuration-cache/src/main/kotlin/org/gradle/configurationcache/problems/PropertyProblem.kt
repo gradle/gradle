@@ -17,6 +17,7 @@
 package org.gradle.configurationcache.problems
 
 import org.gradle.internal.DisplayName
+import org.gradle.internal.problems.failure.Failure
 import kotlin.reflect.KClass
 
 
@@ -27,6 +28,11 @@ data class PropertyProblem internal constructor(
     val trace: PropertyTrace,
     val message: StructuredMessage,
     val exception: Throwable? = null,
+    /**
+     * A failure containing stack tracing information.
+     * The failure may be synthetic when the cause of the problem was not an exception.
+     */
+    val stackTracingFailure: Failure? = null,
     val documentationSection: DocumentationSection? = null
 )
 
@@ -42,7 +48,6 @@ enum class DocumentationSection(val anchor: String) {
     RequirementsExternalProcess("config_cache:requirements:external_processes"),
     RequirementsTaskAccess("config_cache:requirements:task_access"),
     RequirementsSysPropEnvVarRead("config_cache:requirements:reading_sys_props_and_env_vars"),
-    RequirementsSafeCredentials("config_cache:requirements:safe_credentials"),
     RequirementsUseProjectDuringExecution("config_cache:requirements:use_project_during_execution")
 }
 
@@ -175,27 +180,32 @@ sealed class PropertyTrace {
             is Gradle -> {
                 append("Gradle runtime")
             }
+
             is Property -> {
                 append(trace.kind)
                 append(" ")
                 quoted(trace.name)
                 append(" of ")
             }
+
             is SystemProperty -> {
                 append("system property ")
                 quoted(trace.name)
                 append(" set at ")
             }
+
             is Bean -> {
                 quoted(trace.type.name)
                 append(" bean found in ")
             }
+
             is Task -> {
                 append("task ")
                 quoted(trace.path)
                 append(" of type ")
                 quoted(trace.type.name)
             }
+
             is BuildLogic -> {
                 append(trace.source.displayName)
                 trace.lineNumber?.let {
@@ -203,13 +213,16 @@ sealed class PropertyTrace {
                     append(it)
                 }
             }
+
             is BuildLogicClass -> {
                 append("class ")
                 quoted(trace.name)
             }
+
             is Unknown -> {
                 append("unknown location")
             }
+
             is Project -> {
                 append("project ")
                 quoted(trace.path)

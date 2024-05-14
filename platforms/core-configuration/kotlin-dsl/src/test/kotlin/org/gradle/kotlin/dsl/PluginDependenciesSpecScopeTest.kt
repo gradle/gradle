@@ -3,7 +3,7 @@ package org.gradle.kotlin.dsl
 import org.gradle.groovy.scripts.TextResourceScriptSource
 import org.gradle.internal.resource.StringTextResource
 import org.gradle.plugin.management.internal.PluginRequestInternal
-import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
+import org.gradle.plugin.management.internal.autoapply.AutoAppliedDevelocityPlugin
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.internal.PluginRequestCollector
 import org.hamcrest.CoreMatchers.equalTo
@@ -47,7 +47,7 @@ class PluginDependenciesSpecScopeTest {
     @Test
     @Suppress("DEPRECATION")
     fun `given gradle-enterprise plugin accessor, it should create a single request matching the auto-applied plugin version`() {
-        expecting(plugin(id = "com.gradle.enterprise", version = AutoAppliedGradleEnterprisePlugin.VERSION)) {
+        expecting(plugin(id = "com.gradle.enterprise", version = AutoAppliedDevelocityPlugin.VERSION)) {
             `gradle-enterprise`
         }
     }
@@ -57,20 +57,6 @@ class PluginDependenciesSpecScopeTest {
     fun `given gradle-enterprise plugin accessor with version, it should create a single request with given version`() {
         expecting(plugin(id = "com.gradle.enterprise", version = "1.7.1")) {
             `gradle-enterprise` version "1.7.1"
-        }
-    }
-
-    @Test
-    fun `given develocity plugin accessor, it should create a single request matching the auto-applied plugin version`() {
-        expecting(plugin(id = "com.gradle.develocity", version = AutoAppliedGradleEnterprisePlugin.VERSION)) {
-            develocity
-        }
-    }
-
-    @Test
-    fun `given develocity plugin accessor with version, it should create a single request with given version`() {
-        expecting(plugin(id = "com.gradle.develocity", version = "1.7.1")) {
-            develocity version "1.7.1"
         }
     }
 

@@ -13,6 +13,7 @@ dependencies {
 
     api(libs.inject)
 
+    implementation(projects.javaLanguageExtensions)
     implementation(project(":base-services"))
     implementation(project(":diagnostics"))
     implementation(project(":execution"))
@@ -34,6 +35,7 @@ dependencies {
 
     testImplementation(testFixtures(project(":core")))
 
+    integTestImplementation(testFixtures(projects.messaging))
     integTestImplementation(testFixtures(project(":enterprise-operations")))
     integTestImplementation(testFixtures(project(":language-java")))
     integTestImplementation(testFixtures(project(":language-jvm")))

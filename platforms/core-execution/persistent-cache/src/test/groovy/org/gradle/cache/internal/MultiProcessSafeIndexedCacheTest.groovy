@@ -17,12 +17,13 @@ package org.gradle.cache.internal
 
 import org.gradle.cache.FileAccess
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache
-import org.gradle.internal.Factory
 import spock.lang.Specification
+
+import java.util.function.Supplier
 
 class MultiProcessSafeIndexedCacheTest extends Specification {
     final FileAccess fileAccess = Mock()
-    final Factory<BTreePersistentIndexedCache<String, String>> factory = Mock()
+    final Supplier<BTreePersistentIndexedCache<String, String>> factory = Mock()
     final cache = new DefaultMultiProcessSafeIndexedCache<String, String>(factory, fileAccess)
     final BTreePersistentIndexedCache<String, String> backingCache = Mock()
 
@@ -32,7 +33,7 @@ class MultiProcessSafeIndexedCacheTest extends Specification {
 
         then:
         1 * fileAccess.writeFile(!null) >> { Runnable action -> action.run() }
-        1 * factory.create() >> backingCache
+        1 * factory.get() >> backingCache
     }
 
     def "holds read lock while getting entry from cache"() {
@@ -46,7 +47,7 @@ class MultiProcessSafeIndexedCacheTest extends Specification {
         result == "result"
 
         and:
-        1 * fileAccess.readFile(!null) >> { Factory action -> action.create() }
+        1 * fileAccess.readFile(!null) >> { Supplier action -> action.get() }
         1 * backingCache.get("value") >> "result"
         0 * _._
     }
@@ -131,7 +132,7 @@ class MultiProcessSafeIndexedCacheTest extends Specification {
 
     def cacheOpened() {
         1 * fileAccess.writeFile(!null) >> { Runnable action -> action.run() }
-        1 * factory.create() >> backingCache
+        1 * factory.get() >> backingCache
 
         cache.getIfPresent("something")
     }

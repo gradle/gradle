@@ -19,14 +19,11 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.userinput.UserInputReader;
 import org.gradle.initialization.layout.BuildLayoutFactory;
-import org.gradle.internal.agents.AgentStatus;
-import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.console.GlobalUserInputReceiver;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.launcher.cli.converter.BuildLayoutConverter;
 import org.gradle.launcher.daemon.client.DaemonClientFactory;
 import org.gradle.launcher.daemon.client.DaemonClientGlobalServices;
@@ -48,7 +45,6 @@ import org.gradle.tooling.internal.provider.serialization.WellKnownClassLoaderRe
  */
 public class ConnectionScopeServices {
     void configure(ServiceRegistration serviceRegistration) {
-        serviceRegistration.addProvider(new GlobalScopeServices(true, AgentStatus.disabled()));
         serviceRegistration.addProvider(new DaemonClientGlobalServices());
     }
 
@@ -64,11 +60,10 @@ public class ConnectionScopeServices {
                                                 DaemonClientFactory daemonClientFactory,
                                                 BuildLayoutFactory buildLayoutFactory,
                                                 ServiceRegistry serviceRegistry,
-                                                JvmVersionDetector jvmVersionDetector,
                                                 FileCollectionFactory fileCollectionFactory,
                                                 GlobalUserInputReceiver userInput,
                                                 UserInputReader userInputReader,
-                                                ExecutorFactory executorFactory,
+                                                JvmVersionDetector jvmVersionDetector,
                                                 // This is here to trigger creation of the ShutdownCoordinator. Could do this in a nicer way
                                                 ShutdownCoordinator shutdownCoordinator) {
         ClassLoaderCache classLoaderCache = new ClassLoaderCache();
@@ -89,8 +84,7 @@ public class ConnectionScopeServices {
             jvmVersionDetector,
             fileCollectionFactory,
             userInput,
-            userInputReader,
-            executorFactory
+            userInputReader
         );
     }
 

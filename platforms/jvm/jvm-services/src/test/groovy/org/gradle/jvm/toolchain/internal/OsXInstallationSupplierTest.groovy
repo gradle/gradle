@@ -16,22 +16,17 @@
 
 package org.gradle.jvm.toolchain.internal
 
-import org.gradle.api.internal.provider.Providers
-import org.gradle.api.provider.ProviderFactory
+
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.process.internal.ExecException
-import org.gradle.process.internal.ExecHandleFactory
 import spock.lang.Specification
 
 class OsXInstallationSupplierTest extends Specification {
-
-    def "is marked as auto-detecting"() {
-        createSupplier() instanceof AutoDetectingInstallationSupplier
-    }
+    def osxJavaHomeCommand = Mock(OsXJavaHomeCommand)
 
     def "supplies no installations for absent output"() {
         given:
-        def supplier = createSupplier("")
+        def supplier = new OsXInstallationSupplier(OperatingSystem.MAC_OS, osxJavaHomeCommand)
+        osxJavaHomeCommand.findJavaHomes() >> []
 
         when:
         def directories = supplier.get()
@@ -43,7 +38,7 @@ class OsXInstallationSupplierTest extends Specification {
 
     def "supplies no installations for wrong os"() {
         given:
-        def supplier = createSupplier(null, OperatingSystem.WINDOWS)
+        def supplier = new OsXInstallationSupplier(OperatingSystem.WINDOWS, osxJavaHomeCommand)
 
         when:
         def directories = supplier.get()
@@ -54,74 +49,33 @@ class OsXInstallationSupplierTest extends Specification {
 
     def "supplies single installations for single candidate"() {
         given:
-        def supplier = createSupplier("""
-Matching Java Virtual Machines (1):
-    1.7.0_80, x86_64:\t"Java SE 7"\t/Library/Java/JavaVirtualMachines/jdk1.7.0_80.jdk/Contents/Home
-""")
+        def supplier = new OsXInstallationSupplier(OperatingSystem.MAC_OS, osxJavaHomeCommand)
+        def expectedJavaHome = new File("/Library/Java/JavaVirtualMachines/jdk1.7.0_80.jdk/Contents/Home")
+        osxJavaHomeCommand.findJavaHomes() >> [expectedJavaHome]
 
         when:
         def directories = supplier.get()
 
         then:
-        directories*.location == [new File("/Library/Java/JavaVirtualMachines/jdk1.7.0_80.jdk/Contents/Home")]
-        directories*.source == ["MacOS java_home"]
+        directories.size() == 1
+        directories[0].location == expectedJavaHome
+        directories[0].source == "MacOS java_home"
     }
 
     def "supplies multiple installations for multiple paths"() {
         given:
-        def supplier = createSupplier("""
-Matching Java Virtual Machines (3):
-    9, x86_64:\t"Java SE 9-ea"\t/Library/Java/JavaVirtualMachines/jdk-9.jdk/Contents/Home
-    1.8.0, x86_64:\t"Java SE 8"\t/Library/Java/JavaVirtualMachines/jdk1.8.0.jdk/Contents/Home
-    1.7.0_17, x86_64:\t"Java SE 7"\t/Library/Java/JavaVirtualMachines/jdk1.7.0_17.jdk/Contents/Home
-
-""")
+        def supplier = new OsXInstallationSupplier(OperatingSystem.MAC_OS, osxJavaHomeCommand)
+        def jdk7 = new File("/Library/Java/JavaVirtualMachines/jdk1.7.0_17.jdk/Contents/Home")
+        def jdk8 = new File("/Library/Java/JavaVirtualMachines/jdk1.8.0.jdk/Contents/Home")
+        def jdk9 = new File("/Library/Java/JavaVirtualMachines/jdk-9.jdk/Contents/Home")
+        osxJavaHomeCommand.findJavaHomes() >> [jdk7, jdk8, jdk9]
 
         when:
         def directories = supplier.get()
 
         then:
-        directories*.location.containsAll([
-            new File("/Library/Java/JavaVirtualMachines/jdk-9.jdk/Contents/Home"),
-            new File("/Library/Java/JavaVirtualMachines/jdk1.7.0_17.jdk/Contents/Home"),
-            new File("/Library/Java/JavaVirtualMachines/jdk1.8.0.jdk/Contents/Home")
-        ])
-        directories*.source == ["MacOS java_home", "MacOS java_home", "MacOS java_home"]
+        directories.size() == 3
+        directories*.location.containsAll(jdk7, jdk8, jdk9)
+        directories*.source.unique() == ["MacOS java_home"]
     }
-
-    def 'supplies no installation for failed command'() {
-        given:
-        def supplier = createFailingSupplier()
-
-        when:
-        def directories = supplier.get()
-
-        then:
-        directories.isEmpty()
-    }
-
-    OsXInstallationSupplier createSupplier(String output, OperatingSystem os = OperatingSystem.MAC_OS) {
-        new OsXInstallationSupplier(Mock(ExecHandleFactory), createProviderFactory(), os) {
-            @Override
-            void executeCommand(ByteArrayOutputStream outputStream) {
-                outputStream.write(output.bytes, 0, output.bytes.size())
-            }
-        }
-    }
-
-    OsXInstallationSupplier createFailingSupplier() {
-        new OsXInstallationSupplier(Mock(ExecHandleFactory), createProviderFactory(), OperatingSystem.MAC_OS) {
-            @Override
-            void executeCommand(ByteArrayOutputStream outputStream) {
-                throw new ExecException("Command failed")
-            }
-        }
-    }
-
-    ProviderFactory createProviderFactory() {
-        def providerFactory = Mock(ProviderFactory)
-        providerFactory.gradleProperty("org.gradle.java.installations.auto-detect") >> Providers.ofNullable("true")
-        providerFactory
-    }
-
 }

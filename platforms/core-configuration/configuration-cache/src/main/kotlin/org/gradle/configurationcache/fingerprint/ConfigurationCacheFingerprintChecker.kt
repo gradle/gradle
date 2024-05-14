@@ -56,6 +56,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
         val ignoredFileSystemCheckInputs: String?
         fun gradleProperty(propertyName: String): String?
         fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode
+        fun hashCodeAndTypeOf(file: File): Pair<HashCode, FileType>
         fun hashCodeOf(file: File): HashCode?
         fun hashCodeOfDirectoryContent(file: File): HashCode?
         fun displayNameOf(fileOrDirectory: File): String
@@ -159,8 +160,11 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                 }
             }
             is ConfigurationCacheFingerprint.InputFile -> input.run {
-                if (hasFileChanged(file, hash)) {
-                    return "file '${displayNameOf(file)}' has changed"
+                return when (checkFileUpToDateStatus(file, hash)) {
+                    FileUpToDateStatus.ContentsChanged -> "file '${displayNameOf(file)}' has changed"
+                    FileUpToDateStatus.Removed -> "file '${displayNameOf(file)}' has been removed"
+                    FileUpToDateStatus.TypeChanged -> "file '${displayNameOf(file)}' has been replaced by a directory"
+                    FileUpToDateStatus.Unchanged -> null
                 }
             }
             is ConfigurationCacheFingerprint.DirectoryChildren -> input.run {
@@ -290,7 +294,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
         previous: List<ConfigurationCacheFingerprint.InputFile>,
         current: List<File>
     ): Int = current.zip(previous)
-        .takeWhile { (initScript, fingerprint) -> isUpToDate(initScript, fingerprint.hash) }
+        .takeWhile { (initScript, fingerprint) -> isFileUpToDate(initScript, fingerprint.hash) }
         .count()
 
     private
@@ -311,16 +315,33 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
     }
 
     private
-    fun hasFileChanged(file: File, originalHash: HashCode) =
-        !isUpToDate(file, originalHash)
-
-    private
     fun hasDirectoryChanged(file: File, originalHash: HashCode?) =
         host.hashCodeOfDirectoryContent(file) != originalHash
 
     private
-    fun isUpToDate(file: File, originalHash: HashCode) =
-        host.hashCodeOf(file) == originalHash
+    fun isFileUpToDate(file: File, originalHash: HashCode) =
+        checkFileUpToDateStatus(file, originalHash) == FileUpToDateStatus.Unchanged
+
+    private
+    enum class FileUpToDateStatus {
+        Unchanged,
+        ContentsChanged,
+        TypeChanged,
+        Removed
+    }
+
+    private
+    fun checkFileUpToDateStatus(file: File, originalHash: HashCode): FileUpToDateStatus {
+        val (snapshotHash, snapshotType) = host.hashCodeAndTypeOf(file)
+        if (snapshotHash == originalHash) {
+            return FileUpToDateStatus.Unchanged
+        }
+        return when (snapshotType) {
+            FileType.RegularFile -> FileUpToDateStatus.ContentsChanged
+            FileType.Directory -> FileUpToDateStatus.TypeChanged
+            FileType.Missing -> FileUpToDateStatus.Removed
+        }
+    }
 
     private
     fun displayNameOf(file: File) =

@@ -52,6 +52,7 @@ errorprone {
 dependencies {
     api(projects.concurrent)
     api(projects.javaLanguageExtensions)
+    api(projects.serialization)
     api(project(":base-services"))
     api(project(":build-operations"))
     api(project(":build-option"))
@@ -84,7 +85,6 @@ dependencies {
     api(libs.maven3SettingsBuilder)
     api(libs.slf4jApi)
 
-    implementation(projects.io)
     implementation(projects.time)
     implementation(project(":base-services-groovy"))
     implementation(project(":logging-api"))
@@ -106,6 +106,7 @@ dependencies {
     testImplementation(libs.commonsHttpclient)
     testImplementation(libs.groovyXml)
     testImplementation(libs.jsoup)
+    testImplementation(testFixtures(projects.serialization))
     testImplementation(testFixtures(project(":base-services")))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":core-api")))

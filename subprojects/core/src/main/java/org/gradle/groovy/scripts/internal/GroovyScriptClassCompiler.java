@@ -36,6 +36,9 @@ import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactory
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.caching.CachingDisabledReason;
+import org.gradle.internal.execution.caching.CachingDisabledReasonCategory;
+import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
@@ -54,9 +57,11 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
+import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.File;
 import java.net.URI;
+import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -204,6 +209,8 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
 
     static class GroovyScriptCompilationAndInstrumentation extends BuildScriptCompilationAndInstrumentation {
 
+        private static final CachingDisabledReason NOT_CACHEABLE = new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Not worth caching.");
+
         private final String templateId;
         private final HashCode sourceHashCode;
         private final ClassLoader classLoader;
@@ -239,6 +246,14 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
             this.verifier = verifier;
             this.scriptBaseClass = scriptBaseClass;
             this.scriptCompilationHandler = scriptCompilationHandler;
+        }
+
+        @Override
+        public Optional<CachingDisabledReason> shouldDisableCaching(@Nullable OverlappingOutputs detectedOverlappingOutputs) {
+            // Disabled since enabling it introduced negative savings to Groovy script compilation.
+            // It's not disabled for Kotlin since Kotlin has better compile avoidance, additionally
+            // Kotlin has build cache from the beginning and there was no report of a problem with it.
+            return Optional.of(NOT_CACHEABLE);
         }
 
         @Override

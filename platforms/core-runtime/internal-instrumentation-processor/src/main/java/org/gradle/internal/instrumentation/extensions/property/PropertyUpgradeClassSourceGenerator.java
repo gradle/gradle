@@ -149,7 +149,7 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
                 depreactionBuilder.add(".willBeRemovedInGradle9()\n");
                 break;
             case UNSPECIFIED:
-                depreactionBuilder.add(".startingWithGradle9($S)\n", "Property is replaced with lazy version.");
+                depreactionBuilder.add(".startingWithGradle9($S)\n", "this property is replaced with a lazy version");
                 break;
             default:
                 throw new UnsupportedOperationException("Only unset or 9 is currently supported for removedIn, but was: " + deprecationSpec.getRemovedIn());

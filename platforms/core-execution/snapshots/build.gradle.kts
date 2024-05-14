@@ -5,14 +5,6 @@ plugins {
 
 description = "Tools to take immutable, comparable snapshots of files and other things"
 
-errorprone {
-    disabledChecks.addAll(
-        "ImmutableEnumChecker", // 1 occurrences
-        "LockNotBeforeTry", // 1 occurrences
-        "ReferenceEquality", // 2 occurrences
-    )
-}
-
 dependencies {
     api(projects.javaLanguageExtensions)
     api(project(":files"))

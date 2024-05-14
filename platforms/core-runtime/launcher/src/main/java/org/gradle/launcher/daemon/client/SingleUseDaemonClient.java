@@ -21,7 +21,6 @@ import org.gradle.api.internal.specs.ExplainingSpec;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildRequestContext;
-import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.logging.console.GlobalUserInputReceiver;
@@ -46,12 +45,11 @@ public class SingleUseDaemonClient extends DaemonClient {
         ExplainingSpec<DaemonContext> compatibilitySpec,
         InputStream buildStandardInput,
         GlobalUserInputReceiver userInput,
-        ExecutorFactory executorFactory,
         IdGenerator<UUID> idGenerator,
         DocumentationRegistry documentationRegistry,
         ProcessEnvironment processEnvironment
     ) {
-        super(connector, outputEventListener, compatibilitySpec, buildStandardInput, userInput, executorFactory, idGenerator, processEnvironment);
+        super(connector, outputEventListener, compatibilitySpec, buildStandardInput, userInput, idGenerator, processEnvironment);
         this.documentationRegistry = documentationRegistry;
     }
 

@@ -36,7 +36,7 @@ class UserInputConsoleRendererTest extends Specification {
 
     def "can handle user input request and resume events"() {
         given:
-        def prompt = new PromptOutputEvent(123, 'Please enter:', true)
+        def prompt = Mock(PromptOutputEvent)
         def userInputRequestEvent = new UserInputRequestEvent()
         def userInputResumeEvent = new UserInputResumeEvent(123)
 
@@ -51,6 +51,8 @@ class UserInputConsoleRendererTest extends Specification {
         and:
         0 * console._
         0 * listener.onOutput(_)
+        0 * prompt._
+        0 * textArea._
         0 * userInput._
         renderer.eventQueue.empty
 
@@ -59,14 +61,15 @@ class UserInputConsoleRendererTest extends Specification {
 
         then:
         1 * console.getBuildOutputArea() >> textArea
-        1 * textArea.println()
-        1 * textArea.text(prompt.prompt)
+        1 * prompt.render(textArea)
         1 * console.flush()
         1 * userInput.readAndForwardText(prompt)
 
         and:
         0 * console._
         0 * listener.onOutput(_)
+        0 * prompt._
+        0 * textArea._
         0 * userInput._
         renderer.eventQueue.empty
 
@@ -83,6 +86,8 @@ class UserInputConsoleRendererTest extends Specification {
         and:
         0 * console._
         0 * listener.onOutput(_)
+        0 * prompt._
+        0 * textArea._
         0 * userInput._
         renderer.eventQueue.empty
     }

@@ -28,7 +28,7 @@ import java.io.File
 
 /**
  * In addition to creating the interpretation schema by delegating to [schemaBuilder],
- * stores the produced serialized schema in the file system (under `.gradle/restricted-schema/...` in the project).
+ * stores the produced serialized schema in the file system (under `.gradle/declarative-schema/...` in the project).
  */
 internal
 class StoringInterpretationSchemaBuilder(
@@ -60,11 +60,11 @@ class StoringInterpretationSchemaBuilder(
 
     private
     fun schemaFile(targetInstance: Any, identifier: String) =
-        schemaStoreLocationFor(targetInstance).resolve("$identifier.something.schema")
+        schemaStoreLocationFor(targetInstance).resolve("$identifier.dcl.schema")
 
     private
     fun schemaStoreLocationFor(targetInstance: Any): File {
-        val suffix = ".gradle/restricted-schema"
+        val suffix = ".gradle/declarative-schema"
         return when (targetInstance) {
             is Settings -> targetInstance.settingsDir.resolve(suffix)
             is Project -> targetInstance.projectDir.resolve(suffix)
@@ -79,7 +79,7 @@ class StoringInterpretationSchemaBuilder(
     ) : InterpretationSequenceStep<R> {
         override val stepIdentifier: String = step.stepIdentifier
         override fun evaluationSchemaForStep(): EvaluationSchema = step.evaluationSchemaForStep().also { schemaHandler(stepIdentifier, it.analysisSchema) }
-        override fun topLevelReceiver(): R = step.topLevelReceiver()
+        override fun getTopLevelReceiverFromTarget(target: Any): R = step.getTopLevelReceiverFromTarget(target)
         override fun whenEvaluated(resultReceiver: R) = step.whenEvaluated(resultReceiver)
     }
 }

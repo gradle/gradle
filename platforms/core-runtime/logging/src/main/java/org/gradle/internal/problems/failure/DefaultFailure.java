@@ -22,8 +22,7 @@ import java.util.List;
 
 class DefaultFailure implements Failure {
 
-    private final Class<? extends Throwable> exceptionType;
-    private final String message;
+    private final Throwable original;
     private final List<StackTraceElement> stackTrace;
     private final List<StackTraceRelevance> frameRelevance;
     private final List<Failure> suppressed;
@@ -40,8 +39,7 @@ class DefaultFailure implements Failure {
             throw new IllegalArgumentException("stackTrace and frameRelevance must have the same size.");
         }
 
-        this.exceptionType = original.getClass();
-        this.message = original.getLocalizedMessage(); // TODO: this can be null
+        this.original = original;
         this.stackTrace = ImmutableList.copyOf(stackTrace);
         this.frameRelevance = ImmutableList.copyOf(frameRelevance);
         this.suppressed = ImmutableList.copyOf(suppressed);
@@ -50,12 +48,12 @@ class DefaultFailure implements Failure {
 
     @Override
     public Class<? extends Throwable> getExceptionType() {
-        return exceptionType;
+        return original.getClass();
     }
 
     @Override
     public String getHeader() {
-        return exceptionType.getName() + ": " + message;
+        return original.toString();
     }
 
     @Override
@@ -76,5 +74,16 @@ class DefaultFailure implements Failure {
     @Override
     public List<Failure> getCauses() {
         return causes;
+    }
+
+    @Override
+    public int indexOfStackFrame(int fromIndex, StackFramePredicate predicate) {
+        int size = stackTrace.size();
+        for (int i = fromIndex; i < size; i++) {
+            if (predicate.test(stackTrace.get(i), getStackTraceRelevance(i))) {
+                return i;
+            }
+        }
+        return -1;
     }
 }

@@ -15,11 +15,15 @@
  */
 package org.gradle.internal.time;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 /**
  * A device for obtaining the current time.
  *
  * @see Time#clock()
  */
+@ServiceScope(Scope.Global.class)
 public interface Clock {
 
     /**

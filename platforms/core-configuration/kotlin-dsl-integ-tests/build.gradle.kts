@@ -8,6 +8,7 @@ description = "Kotlin DSL Integration Tests"
 dependencies {
     testImplementation(testFixtures(project(":kotlin-dsl")))
 
+    integTestImplementation(projects.messaging)
     integTestImplementation(project(":base-services"))
     integTestImplementation(project(":core-api"))
     integTestImplementation(project(":core"))

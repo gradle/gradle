@@ -65,24 +65,30 @@ import org.gradle.configurationcache.serialization.withPropertyTrace
 import org.gradle.internal.build.BuildStateRegistry
 
 
+internal
+fun defaultCodecForProviderWithChangingValue(
+    valueSourceProviderCodec: Codec<ValueSourceProvider<*, *>>,
+    buildServiceProviderCodec: Codec<BuildServiceProvider<*, *>>,
+    flowProvidersCodec: Codec<BuildWorkResultProvider>
+) = Bindings.of {
+    bind(valueSourceProviderCodec)
+    bind(buildServiceProviderCodec)
+    bind(flowProvidersCodec)
+    bind(BeanCodec)
+}.build()
+
+
 /**
  * This is not used directly when encoding or decoding the object graph. This codec takes care of substituting a provider whose
  * value is known at configuration time with a fixed value.
  */
 internal
 class FixedValueReplacingProviderCodec(
-    valueSourceProviderCodec: Codec<ValueSourceProvider<*, *>>,
-    buildServiceProviderCodec: Codec<BuildServiceProvider<*, *>>,
-    flowProvidersCodec: Codec<BuildWorkResultProvider>,
-) {
-    private
-    val providerWithChangingValueCodec = Bindings.of {
-        bind(valueSourceProviderCodec)
-        bind(buildServiceProviderCodec)
-        bind(flowProvidersCodec)
-        bind(BeanCodec)
-    }.build()
 
+    private
+    val providerWithChangingValueCodec: Codec<Any?>
+
+) {
     suspend fun WriteContext.encodeProvider(value: ProviderInternal<*>) {
         val state = value.calculateExecutionTimeValue()
         encodeValue(state)
@@ -127,11 +133,11 @@ class FixedValueReplacingProviderCodec(
     suspend fun ReadContext.decodeValue(): ValueSupplier.ExecutionTimeValue<*> =
         when (readByte()) {
             1.toByte() -> ValueSupplier.ExecutionTimeValue.missing<Any>()
-            2.toByte() -> ValueSupplier.ExecutionTimeValue.ofNullable(read()) // nullable because serialization may replace value with null, eg when using provider of Task
+            2.toByte() -> ValueSupplier.ExecutionTimeValue.ofNullable(read()) // nullable because serialization may replace value with null, e.g. when using provider of Task
             3.toByte() -> {
                 val value = read()
                 val sideEffect = readNonNull<ValueSupplier.SideEffect<in Any>>()
-                // nullable because serialization may replace value with null, eg when using provider of Task
+                // nullable because serialization may replace value with null, e.g. when using provider of Task
                 ValueSupplier.ExecutionTimeValue.ofNullable(value).withSideEffect(sideEffect)
             }
 
@@ -266,26 +272,22 @@ class ValueSourceProviderCodec(
 ) : Codec<ValueSourceProvider<*, *>> {
 
     override suspend fun WriteContext.encode(value: ValueSourceProvider<*, *>) {
-        when (value.obtainedValueOrNull) {
-            null -> {
-                // source has **NOT** been used as build logic input:
-                // serialize the source
-                writeBoolean(true)
-                encodeValueSource(value)
-            }
-
-            else -> {
-                // source has been used as build logic input:
-                // serialize the value directly as it will be part of the
-                // cached state fingerprint.
-                // Currently not necessary due to the unpacking that happens
-                // to the TypeSanitizingProvider put around the ValueSourceProvider.
-                throw IllegalStateException("build logic input")
-            }
+        if (!value.hasBeenObtained()) {
+            // source has **NOT** been used as build logic input:
+            // serialize the source
+            writeBoolean(true)
+            encodeValueSource(value)
+        } else {
+            // source has been used as build logic input:
+            // serialize the value directly as it will be part of the
+            // cached state fingerprint.
+            // Currently not necessary due to the unpacking that happens
+            // to the TypeSanitizingProvider put around the ValueSourceProvider.
+            throw IllegalStateException("build logic input")
         }
     }
 
-    override suspend fun ReadContext.decode(): ValueSourceProvider<*, *>? =
+    override suspend fun ReadContext.decode(): ValueSourceProvider<*, *> =
         when (readBoolean()) {
             true -> decodeValueSource()
             false -> throw IllegalStateException()

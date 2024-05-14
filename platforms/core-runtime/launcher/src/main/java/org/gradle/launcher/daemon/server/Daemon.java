@@ -22,6 +22,8 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.remote.Address;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
@@ -49,6 +51,7 @@ import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.*;
  * <p>
  * See {@link org.gradle.launcher.daemon.client.DaemonClient} for a description of the daemon communication protocol.
  */
+@ServiceScope(Scope.Global.class)
 public class Daemon implements Stoppable {
     private static final Logger LOGGER = Logging.getLogger(Daemon.class);
 
@@ -215,10 +218,10 @@ public class Daemon implements Stoppable {
         }
     }
 
-    public void stopOnExpiration(DaemonExpirationStrategy expirationStrategy, int checkIntervalMills) {
+    public DaemonStopState stopOnExpiration(DaemonExpirationStrategy expirationStrategy, int checkIntervalMills) {
         LOGGER.debug("stopOnExpiration() called on daemon");
         scheduleExpirationChecks(expirationStrategy, checkIntervalMills);
-        awaitExpiration();
+        return awaitExpiration();
     }
 
     private void scheduleExpirationChecks(DaemonExpirationStrategy expirationStrategy, int checkIntervalMills) {
@@ -230,7 +233,7 @@ public class Daemon implements Stoppable {
     /**
      * Tell DaemonStateCoordinator to block until it's state is Stopped.
      */
-    private void awaitExpiration() {
+    private DaemonStopState awaitExpiration() {
         LOGGER.debug("awaitExpiration() called on daemon");
 
         DaemonStateCoordinator stateCoordinator;
@@ -244,7 +247,7 @@ public class Daemon implements Stoppable {
             lifecycleLock.unlock();
         }
 
-        stateCoordinator.awaitStop();
+        return stateCoordinator.awaitStop();
     }
 
     public DaemonStateCoordinator getStateCoordinator() {

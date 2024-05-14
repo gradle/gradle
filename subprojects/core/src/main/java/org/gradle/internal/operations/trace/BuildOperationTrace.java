@@ -20,7 +20,6 @@ import com.google.common.base.Charsets;
 import com.google.common.base.StandardSystemProperty;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableMap.Builder;
 import com.google.common.io.Files;
 import com.google.common.io.LineProcessor;
 import groovy.json.JsonGenerator;
@@ -189,7 +188,7 @@ public class BuildOperationTrace implements Stoppable {
                 }
 
                 if (outputTree) {
-                    List<BuildOperationRecord> roots = readLogToTreeRoots(logFile(basePath), true);
+                    List<BuildOperationRecord> roots = readLogToTreeRoots(logFile(basePath), false);
                     writeDetailTree(roots);
                     writeSummaryTree(roots);
                 }
@@ -513,7 +512,7 @@ public class BuildOperationTrace implements Stoppable {
         public Object convert(Object value, String key) {
             Throwable throwable = (Throwable) value;
             String message = throwable.getMessage();
-            Builder<Object, Object> builder = ImmutableMap.builder();
+            ImmutableMap.Builder<Object, Object> builder = ImmutableMap.builder();
             if (message != null) {
                 builder.put("message", message);
             }

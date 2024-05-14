@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.initialization.transform.services.CacheInstrumentationDataBuildService;
-import org.gradle.api.internal.initialization.transform.services.InjectedInstrumentationServices;
 import org.gradle.api.internal.initialization.transform.utils.InstrumentationAnalysisSerializer;
 import org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.InstrumentationInputType;
 import org.gradle.api.model.ObjectFactory;
@@ -112,8 +111,7 @@ public abstract class MergeInstrumentationAnalysisTransform implements Transform
     }
 
     private void doMergeAndOutputAnalysis(File input, TransformOutputs outputs) {
-        InjectedInstrumentationServices services = getObjects().newInstance(InjectedInstrumentationServices.class);
-        InstrumentationAnalysisSerializer serializer = new InstrumentationAnalysisSerializer(services.getStringInterner());
+        InstrumentationAnalysisSerializer serializer = getParameters().getBuildService().get().getCachedInstrumentationAnalysisSerializer();
         InstrumentationTypeRegistry registry = getInstrumentationTypeRegistry();
 
         InstrumentationDependencyAnalysis data = serializer.readDependencyAnalysis(input);
@@ -127,7 +125,7 @@ public abstract class MergeInstrumentationAnalysisTransform implements Transform
 
         createInstrumentationClasspathMarker(outputs);
         File output = outputs.file(MERGE_OUTPUT_DIR + "/" + DEPENDENCY_ANALYSIS_FILE_NAME);
-        serializer.writeDependencyAnalysis(output, data.getMetadata(), dependenciesSuperTypes);
+        serializer.writeDependencyAnalysis(output, new InstrumentationDependencyAnalysis(data.getMetadata(), dependenciesSuperTypes));
     }
 
     private InstrumentationTypeRegistry getInstrumentationTypeRegistry() {

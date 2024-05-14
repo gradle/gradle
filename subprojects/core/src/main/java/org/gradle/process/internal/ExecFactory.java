@@ -24,10 +24,13 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * Manages forking/spawning processes.
  */
+@ServiceScope({Scope.Global.class, Scope.UserHome.class, Scope.BuildSession.class, Scope.Build.class, Scope.Project.class})
 public interface ExecFactory extends ExecActionFactory, ExecHandleFactory, JavaExecHandleFactory, JavaForkOptionsFactory, ProcessOperations {
 
     /**

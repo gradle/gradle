@@ -22,6 +22,7 @@ import spock.lang.TempDir
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.ANALYSIS_OUTPUT_DIR
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.MERGE_OUTPUT_DIR
 import static org.gradle.internal.classpath.TransformedClassPath.FileMarker.INSTRUMENTATION_CLASSPATH_MARKER
+import static org.gradle.performance.mutator.ClearArtifactTransformCacheWithoutInstrumentedJarsMutator.GRADLE_PRE_8_8_CLASSPATH_MAKER
 import static org.gradle.profiler.mutations.AbstractCleanupMutator.CleanupSchedule.BUILD
 
 class ClearArtifactTransformCacheWithoutInstrumentedJarsMutatorTest extends Specification {
@@ -48,6 +49,9 @@ class ClearArtifactTransformCacheWithoutInstrumentedJarsMutatorTest extends Spec
         createFile(new File(cachesDir, "transforms-2/fourth/metadata.bin"))
         createFile(new File(cachesDir, "transforms-2/fourth/transformed/$MERGE_OUTPUT_DIR/${INSTRUMENTATION_CLASSPATH_MARKER.fileName}"))
         createFile(new File(cachesDir, "transforms-2/fourth/transformed/original/file"))
+        createFile(new File(cachesDir, "transforms-2/fifth/transformed/$GRADLE_PRE_8_8_CLASSPATH_MAKER"))
+        createFile(new File(cachesDir, "transforms-2/fifth/transformed/instrumented/file"))
+        createFile(new File(cachesDir, "transforms-2/fifth/transformed/original/file"))
 
         def mutator = ClearArtifactTransformCacheWithoutInstrumentedJarsMutator.create(gradleUserHome, BUILD)
 
@@ -67,6 +71,9 @@ class ClearArtifactTransformCacheWithoutInstrumentedJarsMutatorTest extends Spec
         new File(cachesDir, "transforms-2/fourth/metadata.bin").exists()
         new File(cachesDir, "transforms-2/fourth/transformed/$MERGE_OUTPUT_DIR/${INSTRUMENTATION_CLASSPATH_MARKER.fileName}").exists()
         new File(cachesDir, "transforms-2/fourth/transformed/original/file").exists()
+        new File(cachesDir, "transforms-2/fifth/transformed/$GRADLE_PRE_8_8_CLASSPATH_MAKER").exists()
+        new File(cachesDir, "transforms-2/fifth/transformed/instrumented/file").exists()
+        new File(cachesDir, "transforms-2/fifth/transformed/original/file").exists()
     }
 
     def "should cleanup all version-bound transform folders except the ones with instrumented jars"() {
@@ -88,6 +95,10 @@ class ClearArtifactTransformCacheWithoutInstrumentedJarsMutatorTest extends Spec
         createFile(new File(cachesDir, "8.8/transforms/fourth/metadata.bin"))
         createFile(new File(cachesDir, "8.8/transforms/fourth/transformed/$MERGE_OUTPUT_DIR/${INSTRUMENTATION_CLASSPATH_MARKER.fileName}"))
         createFile(new File(cachesDir, "8.8/transforms/fourth/transformed/original/file"))
+        createFile(new File(cachesDir, "8.8/transforms/fifth/transformed/$GRADLE_PRE_8_8_CLASSPATH_MAKER"))
+        createFile(new File(cachesDir, "8.8/transforms/fifth/transformed/instrumented/file"))
+        createFile(new File(cachesDir, "8.8/transforms/fifth/transformed/original/file"))
+
 
         def mutator = ClearArtifactTransformCacheWithoutInstrumentedJarsMutator.create(gradleUserHome, BUILD)
 
@@ -107,6 +118,9 @@ class ClearArtifactTransformCacheWithoutInstrumentedJarsMutatorTest extends Spec
         new File(cachesDir, "8.8/transforms/fourth/metadata.bin").exists()
         new File(cachesDir, "8.8/transforms/fourth/transformed/$MERGE_OUTPUT_DIR/${INSTRUMENTATION_CLASSPATH_MARKER.fileName}").exists()
         new File(cachesDir, "8.8/transforms/fourth/transformed/original/file").exists()
+        new File(cachesDir, "8.8/transforms/fifth/transformed/$GRADLE_PRE_8_8_CLASSPATH_MAKER").exists()
+        new File(cachesDir, "8.8/transforms/fifth/transformed/instrumented/file").exists()
+        new File(cachesDir, "8.8/transforms/fifth/transformed/original/file").exists()
     }
 
     private static void createFile(File file) {

@@ -164,7 +164,7 @@ public class IdeaScalaConfigurer {
             String originalName = newLibrary.getName();
             int suffix = 1;
             while (containsLibraryWithSameName(existingLibraries, newLibrary.getName())) {
-                newLibrary.setName(originalName + "-" + (suffix++));
+                newLibrary.setName(originalName + "-" + suffix++);
             }
             existingLibraries.add(newLibrary);
         }

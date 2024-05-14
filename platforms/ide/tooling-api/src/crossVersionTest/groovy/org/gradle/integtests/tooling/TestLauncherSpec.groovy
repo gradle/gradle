@@ -318,6 +318,8 @@ abstract class TestLauncherSpec extends ToolingApiSpecification implements WithO
     }
 
     interface TestEventSpec {
+        void operationDisplayName(String displayName)
+
         void testDisplayName(String displayName)
 
         void suite(String name, @DelegatesTo(value = TestEventSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> spec)
@@ -343,7 +345,7 @@ abstract class TestLauncherSpec extends ToolingApiSpecification implements WithO
             if (task == null) {
                 throw new AssertionError("Expected to find a test task $path but none was found")
             }
-            DefaultTestEventSpec.assertSpec(task.parent, testEvents, verifiedEvents, rootSpec)
+            DefaultTestEventSpec.assertSpec(task.parent, testEvents, verifiedEvents, "Task $path", rootSpec)
         }
     }
 
@@ -353,20 +355,26 @@ abstract class TestLauncherSpec extends ToolingApiSpecification implements WithO
         private final Set<OperationDescriptor> verifiedEvents
         private final OperationDescriptor parent
         private String testDisplayName
+        private String operationDisplayName
 
-        static void assertSpec(OperationDescriptor descriptor, List<JvmTestOperationDescriptor> testEvents, Set<OperationDescriptor> verifiedEvents, @DelegatesTo(value = TestEventSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+        static void assertSpec(OperationDescriptor descriptor, List<JvmTestOperationDescriptor> testEvents, Set<OperationDescriptor> verifiedEvents, String expectedOperationDisplayName, @DelegatesTo(value = TestEventSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
             verifiedEvents.add(descriptor)
             DefaultTestEventSpec childSpec = new DefaultTestEventSpec(descriptor, testEvents, verifiedEvents)
             spec.delegate = childSpec
             spec.resolveStrategy = Closure.DELEGATE_FIRST
             spec()
-            childSpec.validate()
+            childSpec.validate(expectedOperationDisplayName)
         }
 
         DefaultTestEventSpec(OperationDescriptor parent, List<JvmTestOperationDescriptor> testEvents, Set<OperationDescriptor> verifiedEvents) {
             this.parent = parent
             this.testEvents = testEvents
             this.verifiedEvents = verifiedEvents
+        }
+
+        @Override
+        void operationDisplayName(String displayName) {
+            this.operationDisplayName = displayName
         }
 
         @Override
@@ -394,12 +402,8 @@ abstract class TestLauncherSpec extends ToolingApiSpecification implements WithO
             if (child == null) {
                 failWith("test suite", name)
             }
-            if (name.startsWith("Gradle Test")) {
-                assert normalizeExecutor(child.displayName) == name
-            } else {
-                assert child.displayName == "Test suite '$name'"
-            }
-            assertSpec(child, testEvents, verifiedEvents, spec)
+            String expectedOperationDisplayName = name.startsWith("Gradle Test") ? normalizeExecutor(child.displayName) : "Test suite '$name'"
+            assertSpec(child, testEvents, verifiedEvents, expectedOperationDisplayName, spec)
         }
 
         @Override
@@ -415,8 +419,7 @@ abstract class TestLauncherSpec extends ToolingApiSpecification implements WithO
             if (child == null) {
                 failWith("test class", name)
             }
-            assert child.displayName == "Test class $name"
-            assertSpec(child, testEvents, verifiedEvents, spec)
+            assertSpec(child, testEvents, verifiedEvents, "Test class $name", spec)
         }
 
         @Override
@@ -434,8 +437,7 @@ abstract class TestLauncherSpec extends ToolingApiSpecification implements WithO
             if (child == null) {
                 failWith("test", name)
             }
-            assert child.displayName == "Test $name($expectedClassName)"
-            assertSpec(child, testEvents, verifiedEvents, spec)
+            assertSpec(child, testEvents, verifiedEvents, "Test $name($expectedClassName)", spec)
         }
 
         @Override
@@ -453,8 +455,7 @@ abstract class TestLauncherSpec extends ToolingApiSpecification implements WithO
             if (child == null) {
                 failWith("test method suite", name)
             }
-            assert child.displayName == "Test method $name"
-            assertSpec(child, testEvents, verifiedEvents, spec)
+            assertSpec(child, testEvents, verifiedEvents, "Test method $name", spec)
         }
 
         private void failWith(String what, String name) {
@@ -471,9 +472,14 @@ abstract class TestLauncherSpec extends ToolingApiSpecification implements WithO
             throw err.build()
         }
 
-        void validate() {
+        void validate(String expectedOperationDisplayName) {
             if (testDisplayName != null && parent.respondsTo("getTestDisplayName")) {
                 assert testDisplayName == ((TestOperationDescriptor) parent).testDisplayName
+            }
+            if (operationDisplayName != null) {
+                assert operationDisplayName == normalizeExecutor(parent.displayName)
+            } else {
+                assert expectedOperationDisplayName == normalizeExecutor(parent.displayName)
             }
         }
     }
