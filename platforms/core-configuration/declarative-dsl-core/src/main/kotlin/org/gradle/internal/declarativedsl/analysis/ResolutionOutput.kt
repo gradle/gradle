@@ -245,9 +245,9 @@ fun functionInvocationString(function: SchemaFunction, receiver: ObjectOrigin?, 
     receiver?.toString()?.plus(".").orEmpty() + buildString {
         if (function is DataConstructor) {
             val fqn = when (val ref = function.dataClass) {
-                is DataTypeRef.Name -> ref.getFqName().toString()
-                is DataTypeRef.Type -> (ref.getDataType() as? DataClass)?.name?.qualifiedName
-                    ?: ref.getDataType().toString()
+                is DataTypeRef.Name -> ref.fqName.toString()
+                is DataTypeRef.Type -> (ref.dataType as? DataClass)?.name?.qualifiedName
+                    ?: ref.dataType.toString()
             }
             append(fqn)
             append(".")

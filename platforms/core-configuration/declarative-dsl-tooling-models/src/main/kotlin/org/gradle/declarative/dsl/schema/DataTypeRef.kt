@@ -16,20 +16,17 @@
 
 package org.gradle.declarative.dsl.schema
 
+import org.gradle.tooling.ToolingModelContract
 import java.io.Serializable
 
 
+@ToolingModelContract(subTypes = [DataTypeRef.Type::class, DataTypeRef.Name::class])
 sealed interface DataTypeRef : Serializable {
+    interface Type : DataTypeRef {
+        val dataType: DataType
+    }
 
-    fun isNamed(): Boolean = false
-
-    fun getDataType(): DataType = error("Not a reference to a named data type")
-
-    fun isTyped(): Boolean = false
-
-    fun getFqName(): FqName = error("Data type only available as a name")
-
-    interface Type : DataTypeRef
-
-    interface Name : DataTypeRef
+    interface Name : DataTypeRef {
+        val fqName: FqName
+    }
 }

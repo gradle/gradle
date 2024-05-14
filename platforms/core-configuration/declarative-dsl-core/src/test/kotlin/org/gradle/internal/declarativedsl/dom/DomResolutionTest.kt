@@ -217,8 +217,8 @@ object DomResolutionTest {
 
     private
     fun typeString(typeRef: DataTypeRef) = when (typeRef) {
-        is DataTypeRef.Type -> typeRef.getDataType().toString()
-        is DataTypeRef.Name -> typeRef.getFqName().simpleName
+        is DataTypeRef.Type -> typeRef.dataType.toString()
+        is DataTypeRef.Name -> typeRef.fqName.simpleName
     }
 
     private

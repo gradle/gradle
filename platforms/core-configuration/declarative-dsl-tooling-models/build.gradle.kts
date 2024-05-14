@@ -25,6 +25,8 @@ plugins {
 description = "Declarative DSL Tooling Models for IDEs"
 
 dependencies {
+    api(project(":tooling-api"))
+
     compileOnly(libs.futureKotlin("stdlib")) {
         because(
             "used by the compiler, but there should be no binary dependency on the stdlib; " +
