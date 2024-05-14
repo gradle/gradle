@@ -30,7 +30,6 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.logging.configuration.WarningMode;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil;
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer;
 import org.gradle.integtests.fixtures.validation.ValidationServicesFixture;
@@ -116,7 +115,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     ).getServices();
 
     private static final JvmVersionDetector JVM_VERSION_DETECTOR = GLOBAL_SERVICES.get(JvmVersionDetector.class);
-    private static final ObjectFactory objectFactory = GLOBAL_SERVICES.get(ObjectFactory.class);
 
     protected final static Set<String> PROPAGATED_SYSTEM_PROPERTIES = new HashSet<>();
 
