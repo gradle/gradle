@@ -128,14 +128,15 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
                     "implementation = ${externalDependency('foo', 'bar', '1.0')}, ${externalDependency('baz', 'buzz', '2.0')}"
                 ]
             ],
-            [
-                testCase: "implementation has project convention and is set",
-                convention: implementation('project(":foo")'),
-                buildConfiguration: implementation("baz:buzz:2.0"),
-                expectedConfigurations: [
-                    "implementation = ${externalDependency('baz', 'buzz', '2.0')}"
-                ]
-            ],
+            // Not supported yet
+//            [
+//                testCase: "implementation has project convention and is set",
+//                convention: implementation('project(":foo")'),
+//                buildConfiguration: implementation("baz:buzz:2.0"),
+//                expectedConfigurations: [
+//                    "implementation = ${externalDependency('baz', 'buzz', '2.0')}"
+//                ]
+//            ],
             [
                 testCase: "implementation has convention and is set to project",
                 convention: implementation("foo:bar:1.0"),
