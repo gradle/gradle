@@ -103,7 +103,6 @@ public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePlu
         }
     }
 
-
     private void createPluginService() {
         pluginService = pluginServiceFactory.create(config, requiredServices, buildState);
         pluginServiceRef.set(pluginService);
@@ -125,31 +124,31 @@ public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePlu
 
         @Override
         public Collection<Problem> getProblems() {
-            return getProblems(buildFailure);
+            return DefaultGradleEnterprisePluginAdapter.getProblems(buildFailure, problems);
         }
 
         @Override
         public Collection<Problem> getProblemsFor(Throwable failure) {
             return problems.get(failure);
         }
+    }
 
-        private @Nonnull Collection<Problem> getProblems(@Nullable Throwable buildFailure) {
-            ImmutableSet.Builder<Problem> builder = ImmutableSet.builder();
-            getProblems(buildFailure, builder);
-            return builder.build();
-        }
+    private static @Nonnull Collection<Problem> getProblems(@Nullable Throwable buildFailure, Multimap<Throwable, Problem> problems) {
+        ImmutableSet.Builder<Problem> builder = ImmutableSet.builder();
+        getProblems(buildFailure, builder, problems);
+        return builder.build();
+    }
 
-        private void getProblems(@Nullable Throwable buildFailure, ImmutableSet.Builder<Problem> builder) {
-            while (buildFailure != null) {
-                if (buildFailure instanceof MultiCauseException) {
-                    MultiCauseException multiCauseException = (MultiCauseException) buildFailure;
-                    for (Throwable cause : multiCauseException.getCauses()) {
-                        getProblems(cause, builder);
-                    }
+    public static void getProblems(@Nullable Throwable buildFailure, ImmutableSet.Builder<Problem> builder, Multimap<Throwable, Problem> problems) {
+        while (buildFailure != null) {
+            if (buildFailure instanceof MultiCauseException) {
+                MultiCauseException multiCauseException = (MultiCauseException) buildFailure;
+                for (Throwable cause : multiCauseException.getCauses()) {
+                    getProblems(cause, builder, problems);
                 }
-                builder.addAll(problems.get(buildFailure));
-                buildFailure = buildFailure.getCause();
             }
+            builder.addAll(problems.get(buildFailure));
+            buildFailure = buildFailure.getCause();
         }
     }
 }

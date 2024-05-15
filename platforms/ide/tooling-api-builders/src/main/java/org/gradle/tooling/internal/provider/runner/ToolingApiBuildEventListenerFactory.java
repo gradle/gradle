@@ -34,7 +34,6 @@ import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.problems.buildtree.ProblemReporter;
 import org.gradle.tooling.events.OperationType;
 
-import javax.annotation.Nonnull;
 import java.io.File;
 import java.util.List;
 import java.util.Optional;
@@ -123,7 +122,6 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
         return NO_OP;
     }
 
-    @Nonnull
     private ProblemsProgressEventConsumer createProblemsProgressConsumer(ProgressEventConsumer progressEventConsumer) {
         Supplier<OperationIdentifier> operationIdentifierSupplier = () -> new OperationIdentifier(idFactory.nextId());
         AggregatingProblemConsumer aggregator = new AggregatingProblemConsumer(progressEventConsumer, operationIdentifierSupplier);

@@ -107,7 +107,7 @@ public class AggregatingProblemConsumer {
             } else {
                 throw new UnsupportedOperationException("Unsupported problem details: " + detailsV2.getClass().getName());
             }
-    }).collect(toImmutableList());
+        }).collect(toImmutableList());
         return new DefaultInternalProblemAggregation(detailsV3.getDefinition(), aggregatedContextDetails);
     }
 
@@ -143,5 +143,4 @@ public class AggregatingProblemConsumer {
             seenProblem.add(problem);
         }
     }
-
 }
