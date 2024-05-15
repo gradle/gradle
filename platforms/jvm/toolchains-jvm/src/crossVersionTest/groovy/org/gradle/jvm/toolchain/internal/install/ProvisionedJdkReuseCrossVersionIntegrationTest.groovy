@@ -16,20 +16,29 @@
 package org.gradle.jvm.toolchain.internal.install
 
 
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.gradle.integtests.fixtures.IgnoreVersions
 import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.internal.jvm.Jvm
+import org.gradle.jvm.toolchain.JdkRepository
 
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.stream.Collectors
 
-// We use foojay to resolve the toolchains, and we need to test specifically versions before the toolchain provisioning was fixed.
-@IgnoreVersions({ !it.isSupportsToolchainsUsingFoojay() || it.isNonFlakyToolchainProvisioning() })
-@LeaksFileHandles
+import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.applyToolchainResolverPlugin
+import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.singleUrlResolverCode
+
+// We need to test specifically versions before the toolchain provisioning was fixed.
+@IgnoreVersions({ it.isNonFlakyToolchainProvisioning() })
 class ProvisionedJdkReuseCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
+
+    JdkRepository jdkRepository
+
+    URI uri
+
     private static final String JAVA_HOME_PREFIX = "The application Java Home is "
 
     private static Path getPrintedJavaHome(ExecutionResult result) {
@@ -40,19 +49,21 @@ class ProvisionedJdkReuseCrossVersionIntegrationTest extends CrossVersionIntegra
     private def jdkDir = userHome.toPath().resolve("jdks")
 
     def setup() {
+        // Use a JVM that will force a provisioning
+        Jvm differentVersion = AvailableJavaHomes.differentVersion
+
+        jdkRepository = new JdkRepository(differentVersion, "not_current_jdk.zip")
+        uri = jdkRepository.start()
+
         userHome.deleteDir()
-        settingsFile << """
-            plugins {
-                id("org.gradle.toolchains.foojay-resolver-convention") version "0.8.0"
-            }
-        """
+        settingsFile << applyToolchainResolverPlugin("CustomToolchainResolver", singleUrlResolverCode(uri))
         buildFile << """
             plugins {
                 id 'application'
                 id 'java'
             }
 
-            java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+            java.toolchain.languageVersion = JavaLanguageVersion.of(${differentVersion.javaVersion.majorVersion})
             application.mainClass = 'printer.JavaHomePrinter'
         """
         file('src/main/java/printer/JavaHomePrinter.java').text = """
@@ -65,14 +76,23 @@ class ProvisionedJdkReuseCrossVersionIntegrationTest extends CrossVersionIntegra
         """
     }
 
+    def cleanup() {
+        jdkRepository.stop()
+    }
+
     def "current version does not use jdk provisioned by previous version"() {
         given:
+        jdkRepository.reset()
+
         when:
         def result = version previous withGradleUserHomeDir userHome withTasks 'run' withArguments '-Porg.gradle.java.installations.auto-download=true' run()
 
         then:
         def previousJavaHome = getPrintedJavaHome(result)
         previousJavaHome.startsWith(jdkDir)
+
+        and:
+        jdkRepository.expectHead()
 
         when:
         result = version current withGradleUserHomeDir userHome withTasks 'run' withArguments '-Porg.gradle.java.installations.auto-download=true' run()
@@ -85,6 +105,8 @@ class ProvisionedJdkReuseCrossVersionIntegrationTest extends CrossVersionIntegra
 
     def "current version's provisioned jdk is used by previous version"() {
         given:
+        jdkRepository.reset()
+
         when:
         def result = version current withGradleUserHomeDir userHome withTasks 'run' withArguments '-Porg.gradle.java.installations.auto-download=true' run()
 
