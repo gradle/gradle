@@ -39,19 +39,19 @@ class CompileOptionsTest extends Specification {
     @SuppressWarnings("GrDeprecatedAPIUsage")
     def "default compile options"() {
         expect:
-        compileOptions.debug
-        compileOptions.failOnError
-        compileOptions.warnings
+        compileOptions.debug.get()
+        compileOptions.failOnError.get()
+        compileOptions.warnings.get()
 
-        !compileOptions.deprecation
-        !compileOptions.listFiles
-        !compileOptions.verbose
-        !compileOptions.fork
+        !compileOptions.deprecation.get()
+        !compileOptions.listFiles.get()
+        !compileOptions.verbose.get()
+        !compileOptions.fork.get()
 
         compileOptions.compilerArgs.empty
-        compileOptions.encoding == null
-        compileOptions.bootstrapClasspath == null
-        compileOptions.extensionDirs == null
+        compileOptions.encoding.getOrNull() == null
+        compileOptions.bootstrapClasspath.isEmpty()
+        compileOptions.extensionDirs.getOrNull() == null
 
         compileOptions.forkOptions != null
         compileOptions.debugOptions != null
@@ -63,12 +63,12 @@ class CompileOptionsTest extends Specification {
 
         expect:
         compileOptions.fork([memoryMaximumSize: '1g'])
-        assertTrue(compileOptions.fork)
+        assertTrue(compileOptions.fork.get())
         assertEquals(compileOptions.forkOptions.memoryMaximumSize, '1g')
     }
 
     def "debug"() {
-        compileOptions.debug = false
+        compileOptions.debug.set(false)
         boolean debugUseCalled = false
 
         compileOptions.debugOptions = [define: {Map args ->
@@ -78,18 +78,18 @@ class CompileOptionsTest extends Specification {
 
         expect:
         assert compileOptions.debug(TEST_DEBUG_OPTION_MAP).is(compileOptions)
-        compileOptions.debug
+        compileOptions.debug.get()
         debugUseCalled
     }
 
     def "define"() {
-        compileOptions.debug = false
+        compileOptions.debug.set(false)
         compileOptions.fork = false
         compileOptions.define(debug: true)
 
         expect:
-        compileOptions.debug
-        !compileOptions.fork
+        compileOptions.debug.get()
+        !compileOptions.fork.get()
     }
 
     def "converts GStrings to Strings when getting all compiler arguments"() {
@@ -97,7 +97,7 @@ class CompileOptionsTest extends Specification {
         compileOptions.compilerArgs << "Foo${23}"
 
         expect:
-        compileOptions.allCompilerArgs.contains('Foo23')
+        compileOptions.allCompilerArgs.get().contains('Foo23')
     }
 
     void "forkOptions closure"() {
@@ -129,7 +129,7 @@ class CompileOptionsTest extends Specification {
 
         expect:
         commandLineArgumentProvider.asArguments().iterator().next() instanceof GString
-        compileOptions.allCompilerArgs.size() == 1
-        compileOptions.allCompilerArgs[0] instanceof String
+        compileOptions.allCompilerArgs.get().size() == 1
+        compileOptions.allCompilerArgs.get()[0] instanceof String
     }
 }
