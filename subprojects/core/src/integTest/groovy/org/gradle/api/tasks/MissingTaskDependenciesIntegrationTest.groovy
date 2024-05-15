@@ -569,6 +569,7 @@ The following types/formats are supported:
     void assertMissingDependency(String producerTask, String consumerTask, File... producedConsumedLocations) {
         expectReindentedValidationMessage()
         if (GradleContextualExecuter.configCache) {
+            // TODO: Remove this workaround once https://github.com/gradle/gradle/issues/27576 is fixed
             // Due to extra parallelism with configuration cache missing dependencies detection mechanism
             // can report multiple errors instead of just one as is the case without configuration cache.
             def messageMatchers = producedConsumedLocations.collect { producedConsumedLocation ->
