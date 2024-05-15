@@ -35,7 +35,7 @@ plugins.withType<JavaBasePlugin> {
 // end::plugin-container[]
 
 tasks.register("printEncoding") {
-    val encoding = tasks.named<JavaCompile>("compileJava").map { it.options.encoding }
+    val encoding = tasks.named<JavaCompile>("compileJava").flatMap { it.options.encoding }
     doLast {
         println("Encoding: ${encoding.get()}")
     }
