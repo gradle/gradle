@@ -16,8 +16,6 @@
 package org.gradle.launcher.daemon.protocol;
 
 import org.gradle.initialization.BuildClientMetaData;
-import org.gradle.initialization.BuildRequestMetaData;
-import org.gradle.initialization.DefaultBuildRequestMetaData;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.launcher.exec.BuildActionParameters;
 
@@ -49,10 +47,6 @@ public class Build extends Command {
 
     public BuildClientMetaData getBuildClientMetaData() {
         return buildClientMetaData;
-    }
-
-    public BuildRequestMetaData getBuildRequestMetaData() {
-        return new DefaultBuildRequestMetaData(buildClientMetaData, startTime, interactive);
     }
 
     public BuildAction getAction() {
