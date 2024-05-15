@@ -31,7 +31,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultExcludeRuleConverter
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultLocalConfigurationMetadataBuilder
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultLocalVariantMetadataBuilder
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyMetadataFactory
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.internal.attributes.AttributeDesugaring
@@ -54,7 +54,7 @@ class LocalComponentGraphResolveStateFactoryTest extends AbstractProjectBuilderS
     ModuleVersionIdentifier id = DefaultModuleVersionIdentifier.newId("group", "module", "version")
     ModuleComponentIdentifier componentIdentifier = DefaultModuleComponentIdentifier.newId(id)
 
-    def metadataBuilder = new DefaultLocalConfigurationMetadataBuilder(
+    def metadataBuilder = new DefaultLocalVariantMetadataBuilder(
         new TestDependencyMetadataFactory(),
         new DefaultExcludeRuleConverter(new DefaultImmutableModuleIdentifierFactory())
     )
@@ -277,8 +277,8 @@ class LocalComponentGraphResolveStateFactoryTest extends AbstractProjectBuilderS
         conf3.getDependencies().add(files3)
 
         expect:
-        state.getConfiguration('child1').metadata.files*.source == [files1, files2, files3]
-        state.getConfiguration('child2').metadata.files*.source == [files1]
+        state.getVariantByConfigurationName('child1').metadata.files*.source == [files1, files2, files3]
+        state.getVariantByConfigurationName('child2').metadata.files*.source == [files1]
     }
 
     def "dependency is attached to configuration and its children"() {
@@ -299,9 +299,9 @@ class LocalComponentGraphResolveStateFactoryTest extends AbstractProjectBuilderS
         conf3.getDependencies().add(dependency3)
 
         then:
-        state.getConfiguration("child1").metadata.dependencies*.source == [dependency1, dependency2, dependency3]
-        state.getConfiguration("child2").metadata.dependencies*.source == [dependency1]
-        state.getConfiguration("other").metadata.dependencies.isEmpty()
+        state.getVariantByConfigurationName("child1").metadata.dependencies*.source == [dependency1, dependency2, dependency3]
+        state.getVariantByConfigurationName("child2").metadata.dependencies*.source == [dependency1]
+        state.getVariantByConfigurationName("other").metadata.dependencies.isEmpty()
     }
 
     def "builds and caches exclude rules for a configuration"() {
@@ -313,7 +313,7 @@ class LocalComponentGraphResolveStateFactoryTest extends AbstractProjectBuilderS
         child.exclude([group: "group2", module: "module2"])
 
         expect:
-        def config = state.getConfiguration("child").metadata
+        def config = state.getVariantByConfigurationName("child").metadata
         def excludes = config.excludes
         config.excludes*.moduleId.group == ["group2", "group1"]
         config.excludes*.moduleId.name == ["module2", "module1"]

@@ -32,7 +32,7 @@ import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory;
-import org.gradle.internal.component.model.ConfigurationGraphResolveState;
+import org.gradle.internal.component.local.model.LocalVariantGraphResolveState;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.model.ModelContainer;
 
@@ -77,11 +77,11 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         Module module = metadataProvider.getModule();
         ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module);
         LocalComponentGraphResolveState state = getComponentState(module, componentIdentifier);
-        ConfigurationGraphResolveState configuration = state.getConfiguration(configurationName);
-        if (configuration == null) {
+        LocalVariantGraphResolveState rootVariant = state.getVariantByConfigurationName(configurationName);
+        if (rootVariant == null) {
             throw new IllegalArgumentException(String.format("Expected configuration '%s' to be present in %s", configurationName, componentIdentifier));
         }
-        VariantGraphResolveState rootVariant = configuration.asVariant();
+        assert rootVariant.getMetadata().isCanBeResolved();
 
         return new RootComponentState() {
             @Override

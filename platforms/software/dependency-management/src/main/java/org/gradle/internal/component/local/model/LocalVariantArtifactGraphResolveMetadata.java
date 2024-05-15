@@ -14,25 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.component.external.model.ivy;
+package org.gradle.internal.component.local.model;
 
-import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
-import org.gradle.internal.component.model.ConfigurationGraphResolveState;
+import com.google.common.collect.ImmutableList;
+import org.gradle.internal.component.model.VariantArtifactGraphResolveMetadata;
+import org.gradle.internal.component.model.VariantResolveMetadata;
 
-import javax.annotation.Nullable;
 import java.util.Set;
 
-public interface IvyComponentGraphResolveState extends ModuleComponentGraphResolveState {
+/**
+ * Artifact metadata for local graph variants.
+ */
+public interface LocalVariantArtifactGraphResolveMetadata extends VariantArtifactGraphResolveMetadata {
+
+    @Override
+    ImmutableList<? extends LocalComponentArtifactMetadata> getArtifacts();
 
     /**
-     * Get all names such that {@link #getConfiguration(String)} return a non-null value.
+     * Returns the "sub variants" of this variant.
+     *
+     * <p>This concept should disappear.</p>
      */
-    Set<String> getConfigurationNames();
-
-    /**
-     * Returns the configuration with the given name.
-     */
-    @Nullable
-    ConfigurationGraphResolveState getConfiguration(String configurationName);
-
+    Set<? extends VariantResolveMetadata> getVariants();
 }

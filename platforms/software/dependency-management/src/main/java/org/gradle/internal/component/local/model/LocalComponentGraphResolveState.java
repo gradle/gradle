@@ -21,8 +21,8 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.GraphSelectionCandidates;
-import org.gradle.internal.component.model.VariantGraphResolveState;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.List;
 
@@ -33,6 +33,10 @@ import java.util.List;
  */
 @ThreadSafe
 public interface LocalComponentGraphResolveState extends ComponentGraphResolveState {
+
+    @Nullable
+    LocalVariantGraphResolveState getVariantByConfigurationName(String configurationName);
+
     ModuleVersionIdentifier getModuleVersionId();
 
     @Override
@@ -69,7 +73,7 @@ public interface LocalComponentGraphResolveState extends ComponentGraphResolveSt
          *     <li>Variant without attributes: those which can be selected by configuration name</li>
          * </ul>
          */
-        List<VariantGraphResolveState> getAllSelectableVariants();
+        List<LocalVariantGraphResolveState> getAllSelectableVariants();
 
     }
 }

@@ -101,13 +101,7 @@ public class DefaultExternalComponentGraphResolveState<G extends ExternalCompone
         return new ExternalGraphSelectionCandidates(this);
     }
 
-    @Override
-    public Set<String> getConfigurationNames() {
-        return getMetadata().getConfigurationNames();
-    }
-
     @Nullable
-    @Override
     public ConfigurationGraphResolveState getConfiguration(String configurationName) {
         ModuleConfigurationMetadata configuration = (ModuleConfigurationMetadata) getMetadata().getConfiguration(configurationName);
         if (configuration == null) {
@@ -262,7 +256,6 @@ public class DefaultExternalComponentGraphResolveState<G extends ExternalCompone
             if (conf == null) {
                 return null;
             }
-            assert conf.getMetadata().isCanBeConsumed() : "External components' configurations are always consumable";
             return conf.asVariant();
         }
     }

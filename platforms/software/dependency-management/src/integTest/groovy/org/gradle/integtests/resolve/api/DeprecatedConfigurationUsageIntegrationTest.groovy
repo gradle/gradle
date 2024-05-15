@@ -109,8 +109,6 @@ class DeprecatedConfigurationUsageIntegrationTest extends AbstractIntegrationSpe
         'getSyntheticDependencies()'       | 'dependencyScope' | "getSyntheticDependencies()"            || [ProperMethodUsage.RESOLVABLE]
         'callAndResetResolutionState()'    | 'consumable'      | "callAndResetResolutionState { 'foo' }" || [ProperMethodUsage.RESOLVABLE]
         'callAndResetResolutionState()'    | 'dependencyScope' | "callAndResetResolutionState { 'foo' }" || [ProperMethodUsage.RESOLVABLE]
-        'toRootComponent()'                | 'consumable'      | "toRootComponent()"                     || [ProperMethodUsage.RESOLVABLE]
-        'toRootComponent()'                | 'dependencyScope' | "toRootComponent()"                     || [ProperMethodUsage.RESOLVABLE]
     }
 
     def "forcing resolve of a non-resolvable configuration via calling invalid internal API method #methodName for role #role warns and then throws an exception"() {

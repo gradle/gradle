@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
-import org.gradle.internal.component.local.model.LocalConfigurationGraphResolveMetadata;
+import org.gradle.internal.component.local.model.LocalVariantGraphResolveMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.VariantGraphResolveState;
@@ -58,8 +58,8 @@ class RootNode extends NodeState implements RootGraphNode {
     }
 
     @Override
-    public LocalConfigurationGraphResolveMetadata getMetadata() {
-        return (LocalConfigurationGraphResolveMetadata) super.getMetadata();
+    public LocalVariantGraphResolveMetadata getMetadata() {
+        return (LocalVariantGraphResolveMetadata) super.getMetadata();
     }
 
     @Override

@@ -24,6 +24,7 @@ import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 
 import javax.annotation.Nullable;
+import java.util.Set;
 
 /**
  * External component state implementation for ivy components.
@@ -32,6 +33,11 @@ public class DefaultIvyComponentGraphResolveState extends DefaultModuleComponent
 
     public DefaultIvyComponentGraphResolveState(long instanceId, IvyModuleResolveMetadata metadata, AttributeDesugaring attributeDesugaring, ComponentIdGenerator idGenerator) {
         super(instanceId, metadata, attributeDesugaring, idGenerator);
+    }
+
+    @Override
+    public Set<String> getConfigurationNames() {
+        return getMetadata().getConfigurationNames();
     }
 
     @Override

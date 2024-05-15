@@ -24,13 +24,13 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
 import org.gradle.api.internal.artifacts.configurations.MutationValidator
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalVariantMetadataBuilder
 import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory
-import org.gradle.internal.component.local.model.LocalConfigurationGraphResolveMetadata
+import org.gradle.internal.component.local.model.LocalVariantGraphResolveMetadata
 import org.gradle.internal.component.model.ComponentIdGenerator
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -42,9 +42,11 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
     }
     ComponentIdentifierFactory componentIdentifierFactory = Mock()
     ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock()
-    LocalConfigurationMetadataBuilder configurationMetadataBuilder = Mock(LocalConfigurationMetadataBuilder) {
+    LocalVariantMetadataBuilder configurationMetadataBuilder = Mock(LocalVariantMetadataBuilder) {
         create(_, _, _, _, _, _) >> { args ->
-            Mock(LocalConfigurationGraphResolveMetadata)
+            Mock(LocalVariantGraphResolveMetadata) {
+                isCanBeResolved() >> true
+            }
         }
     }
 
@@ -100,7 +102,7 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
         configurationsProvider.findByName('conf') >> resolvable()
 
         def root = builder.toRootComponent('root')
-        def variant = root.rootComponent.getConfiguration('conf')
+        def variant = root.rootComponent.getVariantByConfigurationName('conf')
 
         when:
         builder.validator.validateMutation(mutationType)
@@ -109,7 +111,7 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
         then:
         root.rootComponent.is(otherRoot.rootComponent)
         root.rootComponent.metadata.is(otherRoot.rootComponent.metadata)
-        !otherRoot.rootComponent.getConfiguration('conf').is(variant)
+        !otherRoot.rootComponent.getVariantByConfigurationName('conf').is(variant)
 
         when:
 
@@ -132,7 +134,7 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
         configurationsProvider.findByName('conf') >> resolvable()
 
         def root = builder.toRootComponent('root')
-        def variant = root.rootComponent.getConfiguration("conf")
+        def variant = root.rootComponent.getVariantByConfigurationName("conf")
 
         when:
         builder.validator.validateMutation(mutationType)
@@ -141,7 +143,7 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
         then:
         root.rootComponent.is(otherRoot.rootComponent)
         root.rootComponent.metadata.is(otherRoot.rootComponent.metadata)
-        otherRoot.rootComponent.getConfiguration('conf').is(variant)
+        otherRoot.rootComponent.getVariantByConfigurationName('conf').is(variant)
 
         where:
         mutationType << [MutationValidator.MutationType.STRATEGY]

@@ -21,8 +21,8 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider;
 import org.gradle.api.internal.artifacts.configurations.VariantIdentityUniquenessVerifier;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultLocalConfigurationMetadataBuilder;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultLocalVariantMetadataBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalVariantMetadataBuilder;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.component.model.ComponentIdGenerator;
@@ -42,13 +42,13 @@ import java.util.stream.Collectors;
 public class LocalComponentGraphResolveStateFactory {
     private final AttributeDesugaring attributeDesugaring;
     private final ComponentIdGenerator idGenerator;
-    private final LocalConfigurationMetadataBuilder metadataBuilder;
+    private final LocalVariantMetadataBuilder metadataBuilder;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
 
     public LocalComponentGraphResolveStateFactory(
         AttributeDesugaring attributeDesugaring,
         ComponentIdGenerator idGenerator,
-        LocalConfigurationMetadataBuilder metadataBuilder,
+        LocalVariantMetadataBuilder metadataBuilder,
         CalculatedValueContainerFactory calculatedValueContainerFactory
     ) {
         this.attributeDesugaring = attributeDesugaring;
@@ -65,9 +65,9 @@ public class LocalComponentGraphResolveStateFactory {
         ModuleVersionIdentifier moduleVersionId,
         String status,
         AttributesSchemaInternal schema,
-        List<? extends LocalConfigurationGraphResolveMetadata> configurations
+        List<? extends LocalVariantGraphResolveMetadata> variants
     ) {
-        ConfigurationMetadataFactory configurationFactory = new ConfigurationsListMetadataFactory(configurations);
+        VariantMetadataFactory configurationFactory = new VariantsListMetadataFactory(variants);
         return createLocalComponentState(componentIdentifier, moduleVersionId, status, schema, false, configurationFactory);
     }
 
@@ -110,7 +110,7 @@ public class LocalComponentGraphResolveStateFactory {
         AttributesSchemaInternal schema,
         boolean adHoc
     ) {
-        ConfigurationMetadataFactory configurationFactory = new ConfigurationsProviderMetadataFactory(
+        VariantMetadataFactory configurationFactory = new ConfigurationsProviderMetadataFactory(
             componentIdentifier,
             configurations,
             metadataBuilder,
@@ -127,7 +127,7 @@ public class LocalComponentGraphResolveStateFactory {
         String status,
         AttributesSchemaInternal schema,
         boolean adHoc,
-        ConfigurationMetadataFactory configurationFactory
+        VariantMetadataFactory configurationFactory
     ) {
         LocalComponentGraphResolveMetadata metadata = new LocalComponentGraphResolveMetadata(
             moduleVersionId,
@@ -149,20 +149,20 @@ public class LocalComponentGraphResolveStateFactory {
     }
 
     /**
-     * A {@link ConfigurationMetadataFactory} which uses a list of pre-constructed configuration
+     * A {@link VariantMetadataFactory} which uses a list of pre-constructed configuration
      * metadata as its data source.
      */
-    private static class ConfigurationsListMetadataFactory implements ConfigurationMetadataFactory {
-        private final List<? extends LocalConfigurationGraphResolveMetadata> metadata;
+    private static class VariantsListMetadataFactory implements VariantMetadataFactory {
+        private final List<? extends LocalVariantGraphResolveMetadata> metadata;
 
-        public ConfigurationsListMetadataFactory(List<? extends LocalConfigurationGraphResolveMetadata> metadata) {
+        public VariantsListMetadataFactory(List<? extends LocalVariantGraphResolveMetadata> metadata) {
             this.metadata = metadata;
         }
 
         @Override
-        public void visitConsumableConfigurations(Consumer<LocalConfigurationGraphResolveMetadata> visitor) {
-            for (LocalConfigurationGraphResolveMetadata configuration : metadata) {
-                visitor.accept(configuration);
+        public void visitConsumableVariants(Consumer<LocalVariantGraphResolveMetadata> visitor) {
+            for (LocalVariantGraphResolveMetadata variant : metadata) {
+                visitor.accept(variant);
             }
         }
 
@@ -170,7 +170,7 @@ public class LocalComponentGraphResolveStateFactory {
         public void invalidate() {}
 
         @Override
-        public LocalConfigurationGraphResolveMetadata getConfiguration(String name) {
+        public LocalVariantGraphResolveMetadata getVariantByConfigurationName(String name) {
             return metadata.stream()
                 .filter(configuration -> name.equals(configuration.getName()))
                 .findFirst()
@@ -180,29 +180,29 @@ public class LocalComponentGraphResolveStateFactory {
         @Override
         public Set<String> getConfigurationNames() {
             return metadata.stream()
-                .map(LocalConfigurationGraphResolveMetadata::getName)
+                .map(LocalVariantGraphResolveMetadata::getName)
                 .collect(Collectors.toSet());
         }
     }
 
     /**
-     * A {@link ConfigurationMetadataFactory} which uses a {@link ConfigurationsProvider} as its data source.
+     * A {@link VariantMetadataFactory} which uses a {@link ConfigurationsProvider} as its data source.
      *
      * TODO: This class should acquire a project lock before accessing the configurations provider.
      */
-    private static class ConfigurationsProviderMetadataFactory implements ConfigurationMetadataFactory {
+    private static class ConfigurationsProviderMetadataFactory implements VariantMetadataFactory {
 
         private final ComponentIdentifier componentId;
         private final ConfigurationsProvider configurationsProvider;
-        private final LocalConfigurationMetadataBuilder metadataBuilder;
+        private final LocalVariantMetadataBuilder metadataBuilder;
         private final ModelContainer<?> model;
         private final CalculatedValueContainerFactory calculatedValueContainerFactory;
-        private final DefaultLocalConfigurationMetadataBuilder.DependencyCache cache;
+        private final DefaultLocalVariantMetadataBuilder.DependencyCache cache;
 
         public ConfigurationsProviderMetadataFactory(
             ComponentIdentifier componentId,
             ConfigurationsProvider configurationsProvider,
-            LocalConfigurationMetadataBuilder metadataBuilder,
+            LocalVariantMetadataBuilder metadataBuilder,
             ModelContainer<?> model,
             CalculatedValueContainerFactory calculatedValueContainerFactory
         ) {
@@ -211,17 +211,17 @@ public class LocalComponentGraphResolveStateFactory {
             this.metadataBuilder = metadataBuilder;
             this.model = model;
             this.calculatedValueContainerFactory = calculatedValueContainerFactory;
-            this.cache = new LocalConfigurationMetadataBuilder.DependencyCache();
+            this.cache = new DefaultLocalVariantMetadataBuilder.DependencyCache();
         }
 
         @Override
-        public void visitConsumableConfigurations(Consumer<LocalConfigurationGraphResolveMetadata> visitor) {
+        public void visitConsumableVariants(Consumer<LocalVariantGraphResolveMetadata> visitor) {
             model.applyToMutableState(p -> {
                 VariantIdentityUniquenessVerifier.buildReport(configurationsProvider).assertNoConflicts();
 
                 configurationsProvider.visitAll(configuration -> {
                     if (configuration.isCanBeConsumed()) {
-                        visitor.accept(createConfigurationMetadata(configuration));
+                    visitor.accept(createVariantMetadata(configuration));
                     }
                 });
             });
@@ -234,14 +234,14 @@ public class LocalComponentGraphResolveStateFactory {
 
         @Nullable
         @Override
-        public LocalConfigurationGraphResolveMetadata getConfiguration(String name) {
+        public LocalVariantGraphResolveMetadata getVariantByConfigurationName(String name) {
             return model.fromMutableState(p -> {
                 ConfigurationInternal configuration = configurationsProvider.findByName(name);
                 if (configuration == null) {
                     return null;
                 }
 
-                return createConfigurationMetadata(configuration);
+                return createVariantMetadata(configuration);
             });
         }
 
@@ -254,7 +254,7 @@ public class LocalComponentGraphResolveStateFactory {
             return names;
         }
 
-        private LocalConfigurationGraphResolveMetadata createConfigurationMetadata(ConfigurationInternal configuration) {
+        private LocalVariantGraphResolveMetadata createVariantMetadata(ConfigurationInternal configuration) {
             return metadataBuilder.create(
                 configuration,
                 configurationsProvider,
