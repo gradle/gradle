@@ -34,19 +34,19 @@ class CompileOptionsTest extends Specification {
     @SuppressWarnings("GrDeprecatedAPIUsage")
     def "default compile options"() {
         expect:
-        compileOptions.debug
-        compileOptions.failOnError
-        compileOptions.warnings
+        compileOptions.debug.get()
+        compileOptions.failOnError.get()
+        compileOptions.warnings.get()
 
-        !compileOptions.deprecation
-        !compileOptions.listFiles
-        !compileOptions.verbose
-        !compileOptions.fork
+        !compileOptions.deprecation.get()
+        !compileOptions.listFiles.get()
+        !compileOptions.verbose.get()
+        !compileOptions.fork.get()
 
         compileOptions.compilerArgs.empty
-        compileOptions.encoding == null
-        compileOptions.bootstrapClasspath == null
-        compileOptions.extensionDirs == null
+        compileOptions.encoding.getOrNull() == null
+        compileOptions.bootstrapClasspath.isEmpty()
+        compileOptions.extensionDirs.getOrNull() == null
 
         compileOptions.forkOptions != null
         compileOptions.debugOptions != null
@@ -57,7 +57,7 @@ class CompileOptionsTest extends Specification {
         compileOptions.compilerArgs << "Foo${23}"
 
         expect:
-        compileOptions.allCompilerArgs.contains('Foo23')
+        compileOptions.allCompilerArgs.get().contains('Foo23')
     }
 
     void "forkOptions closure"() {
@@ -89,8 +89,8 @@ class CompileOptionsTest extends Specification {
 
         expect:
         commandLineArgumentProvider.asArguments().iterator().next() instanceof GString
-        compileOptions.allCompilerArgs.size() == 1
-        compileOptions.allCompilerArgs[0] instanceof String
+        compileOptions.allCompilerArgs.get().size() == 1
+        compileOptions.allCompilerArgs.get()[0] instanceof String
     }
 
 }
