@@ -45,7 +45,7 @@ dependencies {
         because("Needs access to StartScriptGenerator.")
     }
     implementation(project(":plugins-jvm-test-suite"))
-    implementation(project(":wrapper"))
+    implementation(project(":wrapper-main"))
     implementation(project(":wrapper-shared"))
 
     implementation(libs.groovy)

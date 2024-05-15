@@ -167,7 +167,7 @@
 					"language-native",
 					"tooling-native",
 					"core-api",
-					"wrapper",
+					"wrapper-main",
 					"build-events",
 					"reporting",
 					"resources-s3",
@@ -455,7 +455,7 @@
 				},
 				"subprojects":[
 					"plugins-groovy",
-					"wrapper",
+					"wrapper-main",
 					"resources-gcs",
 					"war",
 					"java-platform",
@@ -771,7 +771,7 @@
 					"ivy",
 					"enterprise",
 					"samples",
-					"wrapper",
+					"wrapper-main",
 					"platform-native",
 					"file-watching",
 					"jacoco",
@@ -1089,7 +1089,7 @@
 				},
 				"subprojects":[
 					"test-kit",
-					"wrapper",
+					"wrapper-main",
 					"platform-native"
 				]
 			},
@@ -1268,7 +1268,7 @@
 				"subprojects":[
 					"language-native",
 					"enterprise",
-					"wrapper",
+					"wrapper-main",
 					"samples",
 					"file-watching"
 				]
@@ -1535,7 +1535,7 @@
 					"ivy",
 					"enterprise",
 					"samples",
-					"wrapper",
+					"wrapper-main",
 					"platform-native",
 					"file-watching",
 					"jacoco",
@@ -1684,7 +1684,7 @@
 				},
 				"subprojects":[
 					"kotlin-dsl-integ-tests",
-					"wrapper",
+					"wrapper-main",
 					"tooling-api",
 					"enterprise",
 					"samples",
@@ -1839,7 +1839,7 @@
 					"build-cache-http",
 					"core-api",
 					"declarative-dsl-provider",
-					"wrapper",
+					"wrapper-main",
 					"signing",
 					"tooling-api",
 					"plugins-java-library"
@@ -2117,7 +2117,7 @@
 				},
 				"subprojects":[
 					"language-groovy",
-					"wrapper",
+					"wrapper-main",
 					"model-groovy",
 					"plugins-java-library"
 				]
@@ -2309,7 +2309,7 @@
 					"problems-api",
 					"plugins-java-base",
 					"build-cache",
-					"wrapper"
+					"wrapper-main"
 				]
 			},
 			{
@@ -2571,7 +2571,7 @@
 					"version-control",
 					"war",
 					"workers",
-					"wrapper",
+					"wrapper-main",
 					"wrapper-shared"
 				]
 			}
@@ -2714,7 +2714,7 @@
 					"version-control",
 					"war",
 					"workers",
-					"wrapper",
+					"wrapper-main",
 					"wrapper-shared"
 				]
 			}
@@ -2929,7 +2929,7 @@
 					"plugin-development",
 					"integ-test",
 					"ivy",
-					"wrapper",
+					"wrapper-main",
 					"kotlin-dsl",
 					"samples",
 					"enterprise",

@@ -1169,8 +1169,8 @@
     "crossVersionTests": false
   },
   {
-    "name": "wrapper",
-    "path": "platforms/core-runtime/wrapper",
+    "name": "wrapper-main",
+    "path": "platforms/core-runtime/wrapper-main",
     "unitTests": false,
     "functionalTests": true,
     "crossVersionTests": true
