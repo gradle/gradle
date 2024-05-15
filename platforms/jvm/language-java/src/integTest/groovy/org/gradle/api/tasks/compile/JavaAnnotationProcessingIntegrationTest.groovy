@@ -147,7 +147,7 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
                 annotationProcessor project(":processor")
             }
 
-            compileJava.options.compilerArgumentProviders << new HelperAnnotationProcessor("fromOptions")
+            compileJava.options.compilerArgumentProviders.add(new HelperAnnotationProcessor("fromOptions"))
         """
 
         when:

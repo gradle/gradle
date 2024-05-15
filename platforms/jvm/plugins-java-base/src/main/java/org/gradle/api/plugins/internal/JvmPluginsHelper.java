@@ -25,11 +25,11 @@ import org.gradle.api.attributes.DocsType;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
-import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput;
 import org.gradle.api.internal.tasks.JvmConstants;
@@ -88,8 +88,7 @@ public class JvmPluginsHelper {
     }
 
     public static void configureAnnotationProcessorPath(final SourceSet sourceSet, SourceDirectorySet sourceDirectorySet, CompileOptions options, final Project target) {
-        final ConventionMapping conventionMapping = new DslObject(options).getConventionMapping();
-        conventionMapping.map("annotationProcessorPath", sourceSet::getAnnotationProcessorPath);
+        options.getAnnotationProcessorPath().setFrom((Callable<FileCollection>) sourceSet::getAnnotationProcessorPath);
         String annotationProcessorGeneratedSourcesChildPath = "generated/sources/annotationProcessor/" + sourceDirectorySet.getName() + "/" + sourceSet.getName();
         options.getGeneratedSourceOutputDirectory().convention(target.getLayout().getBuildDirectory().dir(annotationProcessorGeneratedSourcesChildPath));
     }
