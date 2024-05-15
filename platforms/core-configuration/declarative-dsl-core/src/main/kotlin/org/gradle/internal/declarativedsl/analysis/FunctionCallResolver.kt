@@ -180,22 +180,24 @@ class FunctionCallResolverImpl(
         if (semantics !is FunctionSemantics.ConfigureSemantics)
             return
 
-        val (expectsConfigureLambda, requiresConfigureLambda) = semantics.configureBlockRequirement.run { allows to requires }
+        val configureReceiver = when (semantics) {
+            is FunctionSemantics.AccessAndConfigure -> configureReceiverObject(
+                semantics,
+                function,
+                call,
+                valueBinding,
+                newFunctionCallId
+            ).also {
+                result.receiver?.let { receiver -> recordNestedObjectAccess(receiver, it) }
+            }
+
+            is FunctionSemantics.AddAndConfigure -> ObjectOrigin.AddAndConfigureReceiver(result)
+        }
 
         val lambda = call.args.filterIsInstance<FunctionArgument.Lambda>().singleOrNull()
+        val (expectsConfigureLambda, requiresConfigureLambda) = semantics.configureBlockRequirement.run { allows to requires }
         if (expectsConfigureLambda) {
             if (lambda != null) {
-                val configureReceiver = when (semantics) {
-                    is FunctionSemantics.AccessAndConfigure -> configureReceiverObject(
-                        semantics,
-                        function,
-                        call,
-                        valueBinding,
-                        newFunctionCallId
-                    )
-
-                    is FunctionSemantics.AddAndConfigure -> ObjectOrigin.AddAndConfigureReceiver(result)
-                }
                 withScope(AnalysisScope(currentScopes.last(), configureReceiver, lambda)) {
                     codeAnalyzer.analyzeStatementsInProgramOrder(this, lambda.block.statements)
                 }

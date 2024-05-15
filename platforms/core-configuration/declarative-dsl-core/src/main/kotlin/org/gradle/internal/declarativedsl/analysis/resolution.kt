@@ -12,12 +12,16 @@ import org.gradle.internal.declarativedsl.language.LocalValue
 data class ResolutionResult(
     val topLevelReceiver: ObjectOrigin.TopLevelReceiver,
     val assignments: List<AssignmentRecord>,
-    val additions: List<DataAddition>,
+    val additions: List<DataAdditionRecord>,
+    val nestedObjectAccess: List<NestedObjectAccessRecord>,
     val errors: List<ResolutionError>,
 )
 
 
-data class DataAddition(val container: ObjectOrigin, val dataObject: ObjectOrigin)
+data class DataAdditionRecord(val container: ObjectOrigin, val dataObject: ObjectOrigin)
+
+
+data class NestedObjectAccessRecord(val container: ObjectOrigin, val dataObject: ObjectOrigin.AccessAndConfigureReceiver)
 
 
 data class ResolutionError(

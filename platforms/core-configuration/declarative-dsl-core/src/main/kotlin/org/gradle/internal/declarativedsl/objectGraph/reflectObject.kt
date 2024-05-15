@@ -7,11 +7,12 @@ import org.gradle.declarative.dsl.schema.DataType
 import org.gradle.declarative.dsl.schema.ExternalObjectProviderKey
 import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.internal.declarativedsl.analysis.AssignmentMethod
-import org.gradle.internal.declarativedsl.analysis.DataAddition
+import org.gradle.internal.declarativedsl.analysis.DataAdditionRecord
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
 import org.gradle.internal.declarativedsl.analysis.PropertyReferenceResolution
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 import org.gradle.internal.declarativedsl.analysis.TypeRefContext
+import org.gradle.internal.declarativedsl.analysis.access
 import org.gradle.internal.declarativedsl.analysis.getDataType
 import org.gradle.internal.declarativedsl.language.DataTypeInternal
 import org.gradle.internal.declarativedsl.objectGraph.AssignmentResolver.AssignmentResolutionResult.Assigned
@@ -198,16 +199,22 @@ class ReflectionContext(
         val resolvedContainer = trace.resolver.resolveToObjectOrPropertyReference(it.container)
         val obj = trace.resolver.resolveToObjectOrPropertyReference(it.dataObject)
         if (resolvedContainer is Ok && obj is Ok) {
-            DataAddition(resolvedContainer.objectOrigin, obj.objectOrigin)
+            DataAdditionRecord(resolvedContainer.objectOrigin, obj.objectOrigin)
         } else null
     }.groupBy({ it.container }, valueTransform = { it.dataObject })
 
     private
-    val allReceiversResolved = (resolutionResult.additions.map { it.container } + resolutionResult.assignments.map { it.lhs.receiverObject })
-        .map(trace.resolver::resolveToObjectOrPropertyReference)
-        .filterIsInstance<Ok>()
-        .map { it.objectOrigin }
-        .flatMap { origin -> generateSequence(origin) { (it as? ObjectOrigin.HasReceiver)?.receiver } }
+    val allReceiversResolved = run {
+        val allReceiverReferences = resolutionResult.additions.map { it.container } +
+            resolutionResult.assignments.map { it.lhs.receiverObject } +
+            resolutionResult.nestedObjectAccess.map { it.dataObject.accessor.access(it.container, it.dataObject) }
+
+        allReceiverReferences
+            .map(trace.resolver::resolveToObjectOrPropertyReference)
+            .filterIsInstance<Ok>()
+            .map { it.objectOrigin }
+            .flatMap { origin -> generateSequence(origin) { (it as? ObjectOrigin.HasReceiver)?.receiver } }
+    }
 
     val customAccessorsUsedByReceiver: Map<ObjectOrigin, List<ObjectOrigin.CustomConfigureAccessor>> = run {
         allReceiversResolved.mapNotNull { (it as? ObjectOrigin.CustomConfigureAccessor)?.let { custom -> custom.receiver to custom } }

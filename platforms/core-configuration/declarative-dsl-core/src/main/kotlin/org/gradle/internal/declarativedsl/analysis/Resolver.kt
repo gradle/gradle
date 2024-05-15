@@ -25,7 +25,7 @@ class ResolverImpl(
         val context = AnalysisContext(schema, importFqnBySimpleName, errorCollector)
         context.withScope(topLevelScope) { codeAnalyzer.analyzeStatementsInProgramOrder(context, topLevelBlock.statements) }
 
-        return ResolutionResult(topLevelReceiver, context.assignments, context.additions, errorCollector.errors)
+        return ResolutionResult(topLevelReceiver, context.assignments, context.additions, context.nestedObjectAccess, errorCollector.errors)
     }
 
     fun collectImports(

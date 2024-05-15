@@ -84,7 +84,9 @@ class AnalysisContext(
     private
     val nextInstant = AtomicLong(1)
     private
-    val mutableAdditions = mutableListOf<DataAddition>()
+    val mutableAdditions = mutableListOf<DataAdditionRecord>()
+    private
+    val mutableNestedObjectAccess = mutableListOf<NestedObjectAccessRecord>()
 
     override val currentScopes: List<AnalysisScope>
         get() = mutableScopes
@@ -92,8 +94,11 @@ class AnalysisContext(
     override val assignments: List<AssignmentRecord>
         get() = mutableAssignments
 
-    val additions: List<DataAddition>
+    val additions: List<DataAdditionRecord>
         get() = mutableAdditions
+
+    val nestedObjectAccess: List<NestedObjectAccessRecord>
+        get() = mutableNestedObjectAccess
 
     private
     val typeRefContext = SchemaTypeRefContext(schema)
@@ -111,7 +116,11 @@ class AnalysisContext(
     }
 
     fun recordAddition(container: ObjectOrigin, dataObject: ObjectOrigin) {
-        mutableAdditions += DataAddition(container, dataObject)
+        mutableAdditions += DataAdditionRecord(container, dataObject)
+    }
+
+    fun recordNestedObjectAccess(container: ObjectOrigin, dataObject: ObjectOrigin.AccessAndConfigureReceiver) {
+        mutableNestedObjectAccess += NestedObjectAccessRecord(container, dataObject)
     }
 
     fun nextInstant(): Long = nextInstant.incrementAndGet()
