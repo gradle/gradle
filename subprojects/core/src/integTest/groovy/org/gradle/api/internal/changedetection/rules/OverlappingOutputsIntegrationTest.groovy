@@ -21,11 +21,8 @@ import org.gradle.integtests.fixtures.BuildCacheOperationFixtures
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.internal.ToBeImplemented
 
-@Requires(value = IntegTestPreconditions.NotParallelOrConfigCacheExecutor, reason = "tests rely on order of task execution")
 class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
     def cacheOperations = new BuildCacheOperationFixtures(new BuildOperationsFixture(executer, temporaryFolder))
@@ -663,9 +660,6 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
 
         when:
         cleanBuildDir()
-        // When configuration cache is enabled, the task graph for this build will be loaded from the cache and tasks will run in parallel and start in an arbitrary order
-        // Use max-workers=1 to force non-parallel execution and the tasks to run in the specified order (--no-parallel doesn't have an effect with CC)
-        executer.withArgument("--max-workers=1")
         withBuildCache().run(fileTask, localStateDirTask)
         then:
         // Outcome should look the same again
@@ -799,5 +793,14 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
     private void assertTaskOutputNotCached(String taskName) {
         def cacheKey = cacheOperations.getCacheKeyForTaskOrNull(taskName)
         assert cacheKey == null
+    }
+
+    @Override
+    AbstractIntegrationSpec withBuildCache() {
+        // When configuration cache is enabled, the task graph for cache-hit builds will be loaded from the cache and tasks will run in parallel and start in an arbitrary order
+        // Use max-workers=1 to force non-parallel execution and the tasks to run in the specified order
+        // (--no-parallel doesn't have an effect with CC, but max-workers should affect both CC and parallel executors)
+        args("--max-workers=1")
+        return super.withBuildCache()
     }
 }
