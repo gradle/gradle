@@ -147,7 +147,9 @@ class PerformanceTestPlugin : Plugin<Project> {
 
         val junit by configurations.creating
         dependencies {
-            "performanceTestImplementation"(project(":internal-performance-testing"))
+            if (project.name != "enterprise-plugin-performance") {
+                "performanceTestImplementation"(project(":internal-performance-testing"))
+            }
             junit("junit:junit:4.13")
         }
     }
