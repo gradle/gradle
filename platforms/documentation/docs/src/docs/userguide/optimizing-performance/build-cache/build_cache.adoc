@@ -17,14 +17,12 @@
 
 ++++
 <div class="badge-wrapper">
-    <a class="badge" href="https://dpeuniversity.gradle.com/app/courses/54469478-55ba-416d-9cef-3b5aa33dd2a5/" target="_blank">
+    <a class="badge" href="https://dpeuniversity.gradle.com/app/courses/ec69d0b8-9171-4969-ac3e-82dea16f87b0/" target="_blank">
         <span class="badge-type button--blue">LEARN</span>
-        <span class="badge-text">Gradle Build Cache Deep Dive&nbsp;&nbsp;&nbsp;&gt;</span>
+        <span class="badge-text">Incremental Builds and Build Caching with Gradle&nbsp;&nbsp;&nbsp;&gt;</span>
     </a>
 </div>
 ++++
-
-TIP: Want to learn the tips and tricks top engineering teams use to keep builds fast and performant? https://gradle.org/training/#build-cache-deep-dive[Register here] for our Build Cache Training.
 
 [[sec:build_cache_intro]]
 == Overview
