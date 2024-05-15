@@ -92,7 +92,7 @@ public abstract class AbstractComponentGraphResolveState<T extends ComponentGrap
 
     @Override
     public void resolveArtifactsWithType(ArtifactResolver artifactResolver, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
-        artifactResolver.resolveArtifactsWithType(getResolveMetadata(), artifactType, result);
+        artifactResolver.resolveArtifactsWithType(getArtifactMetadata(), artifactType, result);
     }
 
     protected ImmutableCapabilities capabilitiesFor(ImmutableCapabilities capabilities) {

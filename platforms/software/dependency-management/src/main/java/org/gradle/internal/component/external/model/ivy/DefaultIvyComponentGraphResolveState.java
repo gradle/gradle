@@ -17,38 +17,27 @@
 package org.gradle.internal.component.external.model.ivy;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
-import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
+import org.gradle.internal.component.external.model.DefaultModuleComponentGraphResolveState;
+import org.gradle.internal.component.external.model.ExternalComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.component.model.ConfigurationMetadata;
-import org.gradle.internal.component.model.DefaultComponentGraphResolveState;
 
 import javax.annotation.Nullable;
 
 /**
- * Default implementation of {@link IvyComponentGraphResolveState}.
+ * External component state implementation for ivy components.
  */
-public class DefaultIvyComponentGraphResolveState extends DefaultComponentGraphResolveState<IvyModuleResolveMetadata, IvyModuleResolveMetadata> implements IvyComponentGraphResolveState {
+public class DefaultIvyComponentGraphResolveState extends DefaultModuleComponentGraphResolveState<IvyModuleResolveMetadata> implements ExternalComponentGraphResolveState {
 
     public DefaultIvyComponentGraphResolveState(long instanceId, IvyModuleResolveMetadata metadata, AttributeDesugaring attributeDesugaring, ComponentIdGenerator idGenerator) {
-        super(instanceId, metadata, metadata, attributeDesugaring, idGenerator);
+        super(instanceId, metadata, attributeDesugaring, idGenerator);
     }
 
     @Override
-    public ModuleComponentIdentifier getId() {
-        return getMetadata().getId();
-    }
-
-    @Override
-    public ModuleComponentResolveMetadata getModuleResolveMetadata() {
-        return getMetadata();
-    }
-
-    @Override
-    public IvyComponentArtifactResolveMetadata getResolveMetadata() {
-        return new DefaultIvyComponentArtifactResolveMetadata(getArtifactMetadata());
+    public IvyComponentArtifactResolveMetadata getArtifactMetadata() {
+        return new DefaultIvyComponentArtifactResolveMetadata(getLegacyMetadata());
     }
 
     private static class DefaultIvyComponentArtifactResolveMetadata extends ExternalArtifactResolveMetadata implements IvyComponentArtifactResolveMetadata {

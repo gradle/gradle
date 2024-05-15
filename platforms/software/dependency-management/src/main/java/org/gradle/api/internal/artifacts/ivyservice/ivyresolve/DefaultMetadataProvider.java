@@ -40,7 +40,6 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.ExternalComponentResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
-import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.ivy.IvyModuleResolveMetadata;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.reflect.Instantiator;
@@ -82,7 +81,7 @@ class DefaultMetadataProvider implements MetadataProvider {
         if (metadata != null) {
             metadata = transformThroughComponentMetadataRules(componentMetadataSupplier, metadata);
         } else if (resolve()) {
-            metadata = new ComponentMetadataAdapter(cachedResult.getMetaData().getModuleResolveMetadata());
+            metadata = new ComponentMetadataAdapter(cachedResult.getMetaData().getLegacyMetadata());
         }
         return metadata;
     }
@@ -106,7 +105,7 @@ class DefaultMetadataProvider implements MetadataProvider {
     @Override
     public IvyModuleDescriptor getIvyModuleDescriptor() {
         if (resolve()) {
-            ModuleComponentResolveMetadata metaData = cachedResult.getMetaData().getModuleResolveMetadata();
+            ExternalComponentResolveMetadata metaData = cachedResult.getMetaData().getLegacyMetadata();
             if (metaData instanceof IvyModuleResolveMetadata) {
                 IvyModuleResolveMetadata ivyMetadata = (IvyModuleResolveMetadata) metaData;
                 return new DefaultIvyModuleDescriptor(ivyMetadata.getExtraAttributes(), ivyMetadata.getBranch(), ivyMetadata.getStatus());

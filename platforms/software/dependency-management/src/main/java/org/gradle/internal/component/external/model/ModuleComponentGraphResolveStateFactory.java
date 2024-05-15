@@ -22,7 +22,7 @@ import org.gradle.internal.component.external.model.ivy.IvyModuleResolveMetadata
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentIdGenerator;
-import org.gradle.internal.component.model.DefaultComponentGraphResolveState;
+import org.gradle.internal.component.model.DefaultExternalComponentGraphResolveState;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -42,11 +42,11 @@ public class ModuleComponentGraphResolveStateFactory {
             return new DefaultIvyComponentGraphResolveState(idGenerator.nextComponentId(), ivyMetadata, attributeDesugaring, idGenerator);
         }
 
-        return new DefaultModuleComponentGraphResolveState(idGenerator.nextComponentId(), metadata, attributeDesugaring, idGenerator);
+        return new DefaultModuleComponentGraphResolveState<>(idGenerator.nextComponentId(), metadata, attributeDesugaring, idGenerator);
     }
 
     public ComponentGraphResolveState stateFor(ComponentGraphResolveMetadata graphMetadata, ExternalComponentResolveMetadata artifactMetadata) {
-        return new DefaultComponentGraphResolveState<>(idGenerator.nextComponentId(), graphMetadata, artifactMetadata, attributeDesugaring, idGenerator);
+        return new DefaultExternalComponentGraphResolveState<>(idGenerator.nextComponentId(), graphMetadata, artifactMetadata, attributeDesugaring, idGenerator);
     }
 }
 

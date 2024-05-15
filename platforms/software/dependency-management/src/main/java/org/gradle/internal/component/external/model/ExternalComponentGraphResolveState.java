@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.component.external.model.ivy;
+package org.gradle.internal.component.external.model;
 
-import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 
 /**
- * The {@link ComponentGraphResolveState} for an Ivy component.
- *
- * Eventually, we should move, {@link ComponentGraphResolveState#getConfiguration(String)} to this class. Only
- * Ivy components should advertise configurations.
+ * Holds the resolution state for an external component.
  */
-public interface IvyComponentGraphResolveState extends ModuleComponentGraphResolveState {
+public interface ExternalComponentGraphResolveState extends ComponentGraphResolveState {
 
-    @Override
-    IvyModuleResolveMetadata getMetadata();
+    /**
+     * Try to avoid using this. This method exposes legacy stateful metadata. Usages should be
+     * replaced by using the stateful types like {@link ComponentGraphResolveState} and
+     * {@link org.gradle.internal.component.model.ComponentArtifactResolveState}.
+     */
+    ExternalComponentResolveMetadata getLegacyMetadata();
 
 }

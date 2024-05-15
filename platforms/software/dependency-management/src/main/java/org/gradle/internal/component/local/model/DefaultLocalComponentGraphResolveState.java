@@ -115,13 +115,8 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
     }
 
     @Override
-    public ComponentArtifactResolveMetadata getResolveMetadata() {
+    public ComponentArtifactResolveMetadata getArtifactMetadata() {
         return new LocalComponentArtifactResolveMetadata(getMetadata());
-    }
-
-    @Override
-    public ModuleSources getSources() {
-        return ImmutableModuleSources.of();
     }
 
     @Override
