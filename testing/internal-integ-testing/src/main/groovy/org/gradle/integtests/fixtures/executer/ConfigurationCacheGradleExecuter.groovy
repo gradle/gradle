@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures.executer
 
+import org.gradle.initialization.ParallelismBuildOptions
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheMaxProblemsOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheQuietOption
@@ -27,6 +28,7 @@ class ConfigurationCacheGradleExecuter extends DaemonGradleExecuter {
 
     static final List<String> CONFIGURATION_CACHE_ARGS = [
         "--${ConfigurationCacheOption.LONG_OPTION}",
+        "-D${ParallelismBuildOptions.MaxWorkersOption.GRADLE_PROPERTY}=1",
         "-D${ConfigurationCacheQuietOption.PROPERTY_NAME}=true",
         "-D${ConfigurationCacheMaxProblemsOption.PROPERTY_NAME}=0",
         "-Dorg.gradle.configuration-cache.internal.load-after-store=${testWithLoadAfterStore()}"
@@ -51,7 +53,8 @@ class ConfigurationCacheGradleExecuter extends DaemonGradleExecuter {
         if (args.contains("--no-configuration-cache")) { // Don't enable if explicitly disabled
             return args
         } else {
-            return args + CONFIGURATION_CACHE_ARGS
+            // let custom args to overried CC args
+            return CONFIGURATION_CACHE_ARGS + args
         }
     }
 }
