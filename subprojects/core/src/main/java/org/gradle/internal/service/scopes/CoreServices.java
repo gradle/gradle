@@ -23,4 +23,9 @@ public class CoreServices extends AbstractPluginServiceRegistry {
     public void registerCrossBuildSessionServices(ServiceRegistration registration) {
         registration.addProvider(new CoreCrossBuildSessionServices());
     }
+
+    @Override
+    public void registerBuildSessionServices(ServiceRegistration registration) {
+        registration.addProvider(new CoreBuildSessionServices());
+    }
 }
