@@ -19,17 +19,27 @@ package org.gradle.declarative.dsl.tooling.builders
 import org.gradle.api.Project
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.declarative.dsl.tooling.models.DeclarativeSchemaModel
-import org.gradle.internal.declarativedsl.evaluator.DeclarativeSchemaRegistry
+import org.gradle.internal.build.BuildState
+import org.gradle.internal.declarativedsl.project.projectEvaluationSchema
+import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 import org.gradle.tooling.provider.model.ToolingModelBuilder
+import org.gradle.tooling.provider.model.internal.BuildScopeModelBuilder
 import java.io.Serializable
 
 
-class DeclarativeSchemaModelBuilder(private val registry: DeclarativeSchemaRegistry) : ToolingModelBuilder {
+class DeclarativeSchemaModelBuilder(private val softwareTypeRegistry: SoftwareTypeRegistry) : ToolingModelBuilder, BuildScopeModelBuilder {
+
+    override fun create(target: BuildState?): Any {
+        val schema = projectEvaluationSchema(softwareTypeRegistry).analysisSchema
+        return DefaultDeclarativeSchemaModel(schema)
+    }
+
     override fun canBuild(modelName: String): Boolean =
         modelName == "org.gradle.declarative.dsl.tooling.models.DeclarativeSchemaModel"
 
-    override fun buildAll(modelName: String, project: Project): Any =
-        DefaultDeclarativeSchemaModel(registry.projectSchema())
+    override fun buildAll(modelName: String, project: Project): Any {
+        error("Model should be built before the configuration phase")
+    }
 }
 
 
