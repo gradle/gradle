@@ -59,12 +59,10 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
             @SuppressWarnings("deprecation")
             public final class Task_Adapter {
                 public static int access_get_getMaxErrors(Task self) {
-                    ${getDefaultPropertyUpgradeDeprecation("Task", "maxErrors")}
                     return self.getMaxErrors().getOrElse(0);
                 }
 
                 public static void access_set_setMaxErrors(Task self, int arg0) {
-                    ${getDefaultPropertyUpgradeDeprecation("Task", "maxErrors")}
                     self.getMaxErrors().set(arg0);
                 }
             }
@@ -123,12 +121,10 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
             @SuppressWarnings("deprecation")
             public final class Task_Adapter {
                 public static boolean access_get_isIncremental(Task self) {
-                    ${getDefaultPropertyUpgradeDeprecation("Task", "incremental")}
                     return self.getIncremental().getOrElse(false);
                 }
 
                 public static Task access_set_setIncremental(Task self, boolean arg0) {
-                    ${getDefaultPropertyUpgradeDeprecation("Task", "incremental")}
                     self.getIncremental().set(arg0);
                     return self;
                 }
@@ -184,7 +180,6 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
         def generatedClass = source """
             package $GENERATED_CLASSES_PACKAGE_NAME;
             ${imports.collect { "import $it.name;" }.join("\n")}
-            import org.gradle.internal.deprecation.DeprecationLogger;
             import org.gradle.test.Task;
 
             @Generated
@@ -192,13 +187,11 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
             public final class Task_Adapter {
                 ${hasSuppressWarnings ? '@SuppressWarnings({"unchecked", "rawtypes"})' : ''}
                 public static $originalType access_get_${getterPrefix}Property(Task self) {
-                    ${getDefaultPropertyUpgradeDeprecation("Task", "property")}
                     return $getterBody;
                 }
 
                 ${hasSuppressWarnings ? '@SuppressWarnings({"unchecked", "rawtypes"})' : ''}
                 public static void access_set_setProperty(Task self, $originalType arg0) {
-                    ${getDefaultPropertyUpgradeDeprecation("Task", "property")}
                     self.getProperty()$setterBody;
                 }
             }
@@ -249,7 +242,6 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
         String getterPrefix = originalType == "boolean" ? "is" : "get"
         def generatedClass = source """
             package $GENERATED_CLASSES_PACKAGE_NAME;
-            import org.gradle.internal.deprecation.DeprecationLogger;
             import org.gradle.test.Task;
 
             @Generated
@@ -257,7 +249,6 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
             public final class Task_Adapter {
                 ${hasSuppressWarnings ? '@SuppressWarnings({"unchecked", "rawtypes"})' : ''}
                 public static $originalType access_get_${getterPrefix}Property(Task self) {
-                    ${getDefaultPropertyUpgradeDeprecation("Task", "property")}
                     return $getterBody;
                 }
             }
@@ -464,6 +455,53 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
         assertThat(compilation)
             .generatedSourceFile(fqName(groovyInterceptorClass))
             .containsElementsIn(groovyInterceptorClass)
+    }
+
+    def "should generate deprecation if annotation is present"() {
+        given:
+        def givenSource = source """
+            package org.gradle.test;
+
+            import org.gradle.api.provider.Property;
+            import org.gradle.internal.instrumentation.api.annotations.VisitForInstrumentation;
+            import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+            import org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation;
+
+            @VisitForInstrumentation(value = {Task.class})
+            public abstract class Task {
+                @ReplacesEagerProperty(originalType = int.class, deprecation = @ReplacedDeprecation(enabled = true))
+                public abstract Property<Integer> getMaxErrors();
+            }
+        """
+
+        when:
+        Compilation compilation = compile(givenSource)
+
+        then:
+        def generatedClass = source """
+            package $GENERATED_CLASSES_PACKAGE_NAME;
+            import org.gradle.api.Generated;
+            import org.gradle.internal.deprecation.DeprecationLogger;
+            import org.gradle.test.Task;
+
+            @Generated
+            @SuppressWarnings("deprecation")
+            public final class Task_Adapter {
+                public static int access_get_getMaxErrors(Task self) {
+                    ${getDefaultPropertyUpgradeDeprecation("Task", "maxErrors")}
+                    return self.getMaxErrors().getOrElse(0);
+                }
+
+                public static void access_set_setMaxErrors(Task self, int arg0) {
+                    ${getDefaultPropertyUpgradeDeprecation("Task", "maxErrors")}
+                    self.getMaxErrors().set(arg0);
+                }
+            }
+        """
+        assertThat(compilation).succeededWithoutWarnings()
+        assertThat(compilation)
+            .generatedSourceFile(fqName(generatedClass))
+            .containsElementsIn(generatedClass)
     }
 
     def "should generate correct deprecation for removedIn = GRADLE9"() {
