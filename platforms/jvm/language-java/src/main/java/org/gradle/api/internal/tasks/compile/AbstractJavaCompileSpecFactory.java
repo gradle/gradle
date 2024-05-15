@@ -46,7 +46,7 @@ public abstract class AbstractJavaCompileSpecFactory<T extends JavaCompileSpec> 
             return getCommandLineSpec(Jvm.forHome(toolchainJavaHome).getJavacExecutable());
         }
 
-        if (compileOptions.isFork()) {
+        if (compileOptions.getFork().getOrElse(false)) {
             @SuppressWarnings("deprecation")
             File forkJavaHome = DeprecationLogger.whileDisabled(compileOptions.getForkOptions()::getJavaHome);
             if (forkJavaHome != null) {
