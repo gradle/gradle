@@ -15,8 +15,8 @@
  */
 package org.gradle.initialization;
 
+import org.gradle.configuration.DefaultBuildClientMetaData;
 import org.gradle.configuration.GradleLauncherMetaData;
-import org.gradle.internal.time.Time;
 
 public class DefaultBuildRequestMetaData implements BuildRequestMetaData {
     private final BuildClientMetaData clientMetaData;
@@ -30,15 +30,11 @@ public class DefaultBuildRequestMetaData implements BuildRequestMetaData {
     }
 
     public DefaultBuildRequestMetaData(long startTime) {
-        this(new GradleLauncherMetaData(), startTime, false);
+        this(startTime, false);
     }
 
     public DefaultBuildRequestMetaData(long startTime, boolean interactive) {
-        this(new GradleLauncherMetaData(), startTime, interactive);
-    }
-
-    public DefaultBuildRequestMetaData(BuildClientMetaData buildClientMetaData) {
-        this(buildClientMetaData, Time.currentTimeMillis(), false);
+        this(new DefaultBuildClientMetaData(new GradleLauncherMetaData()), startTime, interactive);
     }
 
     @Override

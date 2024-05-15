@@ -15,12 +15,11 @@
  */
 package org.gradle.configuration;
 
-import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.UncheckedException;
 
 import java.io.IOException;
 
-public class GradleLauncherMetaData implements BuildClientMetaData {
+public class GradleLauncherMetaData {
     private final String appName;
 
     public GradleLauncherMetaData() {
@@ -35,7 +34,6 @@ public class GradleLauncherMetaData implements BuildClientMetaData {
         return appName;
     }
 
-    @Override
     public void describeCommand(Appendable output, String... args) {
         try {
             output.append(appName);
