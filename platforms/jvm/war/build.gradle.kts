@@ -40,7 +40,6 @@ dependencies {
     implementation(projects.platformJvm)
     implementation(projects.pluginsJava)
     implementation(projects.pluginsJvmTestSuite)
-    implementation(projects.logging)
 
     runtimeOnly(projects.testingBase)
 
