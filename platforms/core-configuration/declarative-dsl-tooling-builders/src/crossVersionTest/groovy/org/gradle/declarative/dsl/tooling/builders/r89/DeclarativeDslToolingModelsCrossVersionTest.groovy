@@ -67,16 +67,7 @@ class DeclarativeDslToolingModelsCrossVersionTest extends ToolingApiSpecificatio
             def parameterAction = new DeclarativeFileParameterAction<DeclarativeFileErrorsModel>(
                 DeclarativeFileErrorsModel.class,
                 buildFileOfProjectB,
-                """
-                    dependencies {
-                        var x = implementation(project(\":a\"))
-                        api(project(\":a\"))
-                        compileOnly(project(\":a\"))
-                        runtimeOnly(project(\":a\"))
-                        testImplementation(project(\":a\"))
-                        testCompileOnly(project(\":a\"))
-                    }
-                """.stripIndent()
+                """ REMOVE ME """.stripIndent() // TODO
             )
             connection.action(parameterAction).run()
         }

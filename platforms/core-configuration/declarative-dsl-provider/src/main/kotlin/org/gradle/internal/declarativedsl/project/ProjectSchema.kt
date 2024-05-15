@@ -28,20 +28,6 @@ import org.gradle.internal.declarativedsl.plugins.PluginsInterpretationSequenceS
 import org.gradle.internal.declarativedsl.plugins.ignoreTopLevelPluginsBlock
 
 
-internal
-fun projectInterpretationSequence(
-    target: ProjectInternal,
-    targetScope: ClassLoaderScope,
-    scriptSource: ScriptSource
-) = InterpretationSequence(
-    listOf(
-        PluginsInterpretationSequenceStep("plugins", target, targetScope, scriptSource, ProjectInternal::getServices),
-        SimpleInterpretationSequenceStep("project", target) { projectEvaluationSchema(target, targetScope) }
-    )
-)
-
-
-private
 fun projectEvaluationSchema(
     target: ProjectInternal,
     targetScope: ClassLoaderScope
@@ -54,3 +40,16 @@ fun projectEvaluationSchema(
 
     return buildEvaluationSchema(ProjectTopLevelReceiver::class, component, ignoreTopLevelPluginsBlock)
 }
+
+
+internal
+fun projectInterpretationSequence(
+    target: ProjectInternal,
+    targetScope: ClassLoaderScope,
+    scriptSource: ScriptSource
+) = InterpretationSequence(
+    listOf(
+        PluginsInterpretationSequenceStep("plugins", target, targetScope, scriptSource, ProjectInternal::getServices),
+        SimpleInterpretationSequenceStep("project", target) { projectEvaluationSchema(target, targetScope) }
+    )
+)

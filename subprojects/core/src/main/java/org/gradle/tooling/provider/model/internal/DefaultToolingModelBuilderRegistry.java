@@ -199,12 +199,17 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
         @Nullable
         @Override
         public Class<?> getParameterType() {
-            return null;
+            return buildScopeModelBuilder instanceof ParameterizedToolingModelBuilder ?
+                ((ParameterizedToolingModelBuilder<?>) buildScopeModelBuilder).getParameterType() : null;
         }
 
         @Override
         public Object build(@Nullable Object parameter) {
-            return buildScopeModelBuilder.create(target);
+            if (buildScopeModelBuilder instanceof ParametrizedBuildScopeModelBuilder) {
+                return ((ParametrizedBuildScopeModelBuilder<?>) buildScopeModelBuilder).create(target, Cast.uncheckedCast(parameter));
+            } else {
+                return buildScopeModelBuilder.create(target);
+            }
         }
     }
 
