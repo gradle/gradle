@@ -23,10 +23,5 @@ dependencies {
     compileOnly(libs.groovy)
     // We keep code-quality here, since we would need to separate Groovy and Java sourceset to keep incremental compilation
     compileOnly(project(":code-quality"))
-
-    // TODO: Logging is inherited from `gradlebuild.instrumented-project` plugin,
-    //  but project health says it should be explicitly defined,
-    //  should we change it to compileOnly in instrumented-project?
-    implementation(projects.logging)
 }
 
