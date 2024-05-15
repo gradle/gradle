@@ -49,13 +49,6 @@
     "crossVersionTests": false
   },
   {
-    "name": "bootstrap",
-    "path": "platforms/core-runtime/bootstrap",
-    "unitTests": false,
-    "functionalTests": false,
-    "crossVersionTests": false
-  },
-  {
     "name": "build-cache",
     "path": "platforms/core-execution/build-cache",
     "unitTests": true,
@@ -451,6 +444,13 @@
     "name": "functional",
     "path": "platforms/core-runtime/functional",
     "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "gradle-main",
+    "path": "platforms/core-runtime/gradle-main",
+    "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
