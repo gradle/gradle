@@ -60,7 +60,6 @@ import org.gradle.util.internal.BuildCommencedTimeProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.time.Duration;
 import java.util.Map;
@@ -350,17 +349,9 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         }
     }
 
-    private static ModuleDescriptorHashModuleSource findCachingModuleSource(@Nullable ModuleSources sources) {
-        ModuleDescriptorHashModuleSource moduleSource = null;
-        if (sources != null) {
-            moduleSource = sources.getSource(ModuleDescriptorHashModuleSource.class).orElse(null);
-        }
-
-        if (moduleSource == null) {
-            throw new RuntimeException("Cannot find expected module source " + ModuleDescriptorHashModuleSource.class.getSimpleName() + " in " + sources);
-        }
-
-        return moduleSource;
+    private static ModuleDescriptorHashModuleSource findCachingModuleSource(ModuleSources sources) {
+        return sources.getSource(ModuleDescriptorHashModuleSource.class)
+               .orElseThrow(() -> new RuntimeException("Cannot find expected module source " + ModuleDescriptorHashModuleSource.class.getSimpleName() + " in " + sources));
     }
 
     private class ResolveAndCacheRepositoryAccess implements ModuleComponentRepositoryAccess<ModuleComponentGraphResolveState> {

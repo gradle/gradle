@@ -41,9 +41,9 @@ import java.util.stream.Collectors;
 /**
  * Holds the resolution state for an external component.
  */
-public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMetadata, S extends ExternalComponentResolveMetadata> extends AbstractComponentGraphResolveState<T> {
+public class DefaultComponentGraphResolveState<G extends ComponentGraphResolveMetadata, A extends ExternalComponentResolveMetadata> extends AbstractComponentGraphResolveState<G> {
     private final ComponentIdGenerator idGenerator;
-    private final S artifactMetadata;
+    private final A artifactMetadata;
 
     // The resolve state for each configuration of this component
     private final ConcurrentMap<ModuleConfigurationMetadata, DefaultConfigurationGraphResolveState> variants = new ConcurrentHashMap<>();
@@ -54,7 +54,7 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
     // The public view of all selectable variants of this component
     private final List<ResolvedVariantResult> selectableVariantResults;
 
-    public DefaultComponentGraphResolveState(long instanceId, T graphMetadata, S artifactMetadata, AttributeDesugaring attributeDesugaring, ComponentIdGenerator idGenerator) {
+    public DefaultComponentGraphResolveState(long instanceId, G graphMetadata, A artifactMetadata, AttributeDesugaring attributeDesugaring, ComponentIdGenerator idGenerator) {
         super(instanceId, graphMetadata, attributeDesugaring);
         this.artifactMetadata = artifactMetadata;
         this.allVariantsForGraphResolution = Lazy.locking().of(() ->
@@ -76,7 +76,7 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
             .collect(Collectors.toList());
     }
 
-    public S getArtifactMetadata() {
+    public A getArtifactMetadata() {
         return artifactMetadata;
     }
 

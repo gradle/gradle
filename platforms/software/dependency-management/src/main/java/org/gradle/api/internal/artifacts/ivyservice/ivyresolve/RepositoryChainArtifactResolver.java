@@ -30,7 +30,6 @@ import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactFileResolveResult;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -78,15 +77,10 @@ class RepositoryChainArtifactResolver implements ArtifactResolver {
         return artifactFile.getResult();
     }
 
-    private ModuleComponentRepository<?> findSourceRepository(@Nullable ModuleSources sources) {
-        RepositoryChainModuleSource repositoryChainModuleSource = null;
-        if (sources != null) {
-             repositoryChainModuleSource = sources.getSource(RepositoryChainModuleSource.class).orElse(null);
-        }
-
-        if (repositoryChainModuleSource == null) {
-            throw new IllegalArgumentException("No sources provided for artifact resolution");
-        }
+    private ModuleComponentRepository<?> findSourceRepository(ModuleSources sources) {
+        RepositoryChainModuleSource repositoryChainModuleSource =
+            sources.getSource(RepositoryChainModuleSource.class)
+                   .orElseThrow(() -> new IllegalArgumentException("No sources provided for artifact resolution"));
 
         ModuleComponentRepository<?> moduleVersionRepository = repositories.get(repositoryChainModuleSource.getRepositoryId());
         if (moduleVersionRepository == null) {

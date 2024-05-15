@@ -21,8 +21,6 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 
-import javax.annotation.Nullable;
-
 /**
  * Metadata used to resolve artifacts of a component.
  */
@@ -31,7 +29,6 @@ public interface ComponentArtifactResolveMetadata {
 
     ModuleVersionIdentifier getModuleVersionId();
 
-    @Nullable
     ModuleSources getSources();
 
     ImmutableAttributes getAttributes();

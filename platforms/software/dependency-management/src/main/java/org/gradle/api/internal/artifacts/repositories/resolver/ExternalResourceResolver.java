@@ -286,7 +286,7 @@ public abstract class ExternalResourceResolver implements ConfiguredModuleCompon
         return new DefaultExternalResourceArtifactResolver(repository, locallyAvailableResourceFinder, ivyPatterns, artifactPatterns, artifactFileStore, cachingResourceAccessor);
     }
 
-    protected ExternalResourceArtifactResolver createArtifactResolver(@Nullable ModuleSources moduleSources) {
+    protected ExternalResourceArtifactResolver createArtifactResolver(ModuleSources moduleSources) {
         return createArtifactResolver();
     }
 
