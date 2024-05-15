@@ -84,17 +84,14 @@ fun Project.addDependenciesAndConfigurations(prefix: String) {
         resolver("${prefix}TestAgentsClasspath", LibraryElements.JAR)
     }
 
-    // do not attempt to find projects when the plugin is applied just to generate accessors
-    if (project.name != "gradle-kotlin-dsl-accessors" && project.name != "test" /* remove once wrapper is updated */) {
-        dependencies {
-            "${prefix}TestRuntimeOnly"(project.the<ExternalModulesExtension>().junit5Vintage)
-            "${prefix}TestImplementation"(project(":internal-integ-testing"))
-            "${prefix}TestFullDistributionRuntimeClasspath"(project(":distributions-full"))
-            // Add the agent JAR to the test runtime classpath so the InProcessGradleExecuter can find the module and spawn daemons.
-            // This doesn't apply the agent to the test process.
-            "${prefix}TestRuntimeOnly"(project(":instrumentation-agent"))
-            "${prefix}TestAgentsClasspath"(project(":instrumentation-agent"))
-        }
+    dependencies {
+        "${prefix}TestRuntimeOnly"(project.the<ExternalModulesExtension>().junit5Vintage)
+        "${prefix}TestImplementation"(project(":internal-integ-testing"))
+        "${prefix}TestFullDistributionRuntimeClasspath"(project(":distributions-full"))
+        // Add the agent JAR to the test runtime classpath so the InProcessGradleExecuter can find the module and spawn daemons.
+        // This doesn't apply the agent to the test process.
+        "${prefix}TestRuntimeOnly"(project(":instrumentation-agent"))
+        "${prefix}TestAgentsClasspath"(project(":instrumentation-agent"))
     }
 }
 
