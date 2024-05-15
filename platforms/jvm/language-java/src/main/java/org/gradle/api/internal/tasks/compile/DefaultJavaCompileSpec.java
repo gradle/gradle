@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile;
 
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration;
 import org.gradle.api.tasks.compile.CompileOptions;
 
@@ -56,7 +57,11 @@ public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implem
     }
 
     public void setCompileOptions(CompileOptions compileOptions) {
-        this.compileOptions = new MinimalJavaCompileOptions(compileOptions);
+        this.compileOptions = new MinimalJavaCompileOptions(compileOptions, compileOptions.getSourcepath());
+    }
+
+    public void setCompileOptions(CompileOptions compileOptions, FileCollection sourcepath) {
+        this.compileOptions = new MinimalJavaCompileOptions(compileOptions, sourcepath);
     }
 
     @Override

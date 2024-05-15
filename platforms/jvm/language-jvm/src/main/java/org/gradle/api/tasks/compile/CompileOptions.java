@@ -18,10 +18,11 @@ package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Incubating;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.model.ReplacedBy;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Classpath;
@@ -62,39 +63,10 @@ import static org.gradle.internal.instrumentation.api.annotations.ReplacesEagerP
 public abstract class CompileOptions extends AbstractOptions {
     private static final long serialVersionUID = 0;
 
-    private boolean failOnError = true;
-
-    private boolean verbose;
-
-    private boolean listFiles;
-
-    private boolean deprecation;
-
-    private boolean warnings = true;
-
-    private String encoding;
-
-    private boolean debug = true;
-
     private DebugOptions debugOptions;
 
-    private boolean fork;
-
     private ForkOptions forkOptions;
-
-    private FileCollection bootstrapClasspath;
-
-    private String extensionDirs;
-
     private List<String> compilerArgs = new ArrayList<>();
-    private final List<CommandLineArgumentProvider> compilerArgumentProviders = new ArrayList<>();
-
-    private boolean incremental = true;
-
-    private FileCollection sourcepath;
-
-    private FileCollection annotationProcessorPath;
-
     private final Property<Boolean> incrementalAfterFailure;
     private final Property<String> javaModuleVersion;
     private final Property<String> javaModuleMainClass;
@@ -114,124 +86,150 @@ public abstract class CompileOptions extends AbstractOptions {
         this.incrementalAfterFailure = objectFactory.property(Boolean.class);
         this.forkOptions = objectFactory.newInstance(ForkOptions.class);
         this.debugOptions = new DebugOptions();
-    }
-
-    /**
-     * Tells whether to fail the build when compilation fails. Defaults to {@code true}.
-     */
-    @Input
-    @ToBeReplacedByLazyProperty
-    public boolean isFailOnError() {
-        return failOnError;
+        this.getFailOnError().convention(true);
+        this.getVerbose().convention(false);
+        this.getListFiles().convention(false);
+        this.getDeprecation().convention(false);
+        this.getWarnings().convention(true);
+        this.getDebug().convention(true);
+        this.getIncremental().convention(true);
+        this.getFork().convention(false);
     }
 
     /**
      * Sets whether to fail the build when compilation fails. Defaults to {@code true}.
+     *
+     * @since 8.10
      */
-    public void setFailOnError(boolean failOnError) {
-        this.failOnError = failOnError;
+    @Input
+    @Incubating
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getFailOnError();
+
+    /**
+     * TODO: Add deprecation warning
+     *
+     * @since 8.10
+     */
+    @Incubating
+    @ReplacedBy("failOnError")
+    public Property<Boolean> getIsFailOnError() {
+        return getFailOnError();
     }
 
     /**
      * Tells whether to produce verbose output. Defaults to {@code false}.
+     *
+     * @since 8.10
      */
     @Console
-    @ToBeReplacedByLazyProperty
-    public boolean isVerbose() {
-        return verbose;
-    }
+    @Incubating
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getVerbose();
 
     /**
-     * Sets whether to produce verbose output. Defaults to {@code false}.
+     * TODO: Add deprecation warning
+     *
+     * @since 8.10
      */
-    public void setVerbose(boolean verbose) {
-        this.verbose = verbose;
+    @Incubating
+    @ReplacedBy("verbose")
+    public Property<Boolean> getIsVerbose() {
+        return getVerbose();
     }
 
     /**
      * Tells whether to log the files to be compiled. Defaults to {@code false}.
+     *
+     * @since 8.10
      */
     @Console
-    @ToBeReplacedByLazyProperty
-    public boolean isListFiles() {
-        return listFiles;
-    }
+    @Incubating
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getListFiles();
 
     /**
-     * Sets whether to log the files to be compiled. Defaults to {@code false}.
+     * TODO: Add deprecation warning
+     *
+     * @since 8.10
      */
-    public void setListFiles(boolean listFiles) {
-        this.listFiles = listFiles;
+    @Incubating
+    @ReplacedBy("listFiles")
+    public Property<Boolean> getIsListFiles() {
+        return getListFiles();
     }
 
     /**
      * Tells whether to log details of usage of deprecated members or classes. Defaults to {@code false}.
+     *
+     * @since 8.10
      */
     @Console
-    @ToBeReplacedByLazyProperty
-    public boolean isDeprecation() {
-        return deprecation;
-    }
+    @Incubating
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getDeprecation();
 
     /**
-     * Sets whether to log details of usage of deprecated members or classes. Defaults to {@code false}.
+     * TODO: Add deprecation warning
+     *
+     * @since 8.10
      */
-    public void setDeprecation(boolean deprecation) {
-        this.deprecation = deprecation;
+    @Incubating
+    @ReplacedBy("deprecation")
+    public Property<Boolean> getIsDeprecation() {
+        return getDeprecation();
     }
 
     /**
      * Tells whether to log warning messages. The default is {@code true}.
+     *
+     * @since 8.10
      */
     @Console
-    @ToBeReplacedByLazyProperty
-    public boolean isWarnings() {
-        return warnings;
-    }
+    @Incubating
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getWarnings();
 
     /**
-     * Sets whether to log warning messages. The default is {@code true}.
+     * TODO: Add deprecation warning
+     *
+     * @since 8.10
      */
-    public void setWarnings(boolean warnings) {
-        this.warnings = warnings;
+    @Incubating
+    @ReplacedBy("warnings")
+    public Property<Boolean> getIsWarnings() {
+        return getWarnings();
     }
 
     /**
      * Returns the character encoding to be used when reading source files. Defaults to {@code null}, in which
      * case the platform default encoding will be used.
      */
-    @Nullable
     @Optional
     @Input
-    @ToBeReplacedByLazyProperty
-    public String getEncoding() {
-        return encoding;
-    }
-
-    /**
-     * Sets the character encoding to be used when reading source files. Defaults to {@code null}, in which
-     * case the platform default encoding will be used.
-     */
-    public void setEncoding(@Nullable String encoding) {
-        this.encoding = encoding;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getEncoding();
 
     /**
      * Tells whether to include debugging information in the generated class files. Defaults
      * to {@code true}. See {@link DebugOptions#getDebugLevel()} for which debugging information will be generated.
+     *
+     * @since 8.10
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public boolean isDebug() {
-        return debug;
-    }
+    @Incubating
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getDebug();
 
     /**
-     * Sets whether to include debugging information in the generated class files. Defaults
-     * to {@code true}. See {@link DebugOptions#getDebugLevel()} for which debugging information will be generated.
+     * TODO: Add deprecation warning
+     *
+     * @since 8.10
      */
-    public void setDebug(boolean debug) {
-        this.debug = debug;
+    @Incubating
+    @ReplacedBy("debug")
+    public Property<Boolean> getIsDebug() {
+        return getDebug();
     }
 
     /**
@@ -253,20 +251,22 @@ public abstract class CompileOptions extends AbstractOptions {
      * Tells whether to run the compiler in its own process. Note that this does
      * not necessarily mean that a new process will be created for each compile task.
      * Defaults to {@code false}.
+     *
+     * @since 8.10
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public boolean isFork() {
-        return fork;
-    }
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getFork();
 
     /**
-     * Sets whether to run the compiler in its own process. Note that this does
-     * not necessarily mean that a new process will be created for each compile task.
-     * Defaults to {@code false}.
+     * TODO: Add deprecation warning
+     *
+     * @since 8.10
      */
-    public void setFork(boolean fork) {
-        this.fork = fork;
+    @Incubating
+    @ReplacedBy("fork")
+    public Property<Boolean> getIsFork() {
+        return getFork();
     }
 
     /**
@@ -285,44 +285,22 @@ public abstract class CompileOptions extends AbstractOptions {
     }
 
     /**
-     * Returns the bootstrap classpath to be used for the compiler process. Defaults to {@code null}.
+     * Returns the bootstrap classpath to be used for the compiler process. Defaults to empty.
      *
      * @since 4.3
      */
-    @Nullable
     @Optional
     @CompileClasspath
-    @ToBeReplacedByLazyProperty
-    public FileCollection getBootstrapClasspath() {
-        return bootstrapClasspath;
-    }
-
-    /**
-     * Sets the bootstrap classpath to be used for the compiler process. Defaults to {@code null}.
-     *
-     * @since 4.3
-     */
-    public void setBootstrapClasspath(@Nullable FileCollection bootstrapClasspath) {
-        this.bootstrapClasspath = bootstrapClasspath;
-    }
+    @ReplacesEagerProperty
+    public abstract ConfigurableFileCollection getBootstrapClasspath();
 
     /**
      * Returns the extension dirs to be used for the compiler process. Defaults to {@code null}.
      */
-    @Nullable
     @Optional
     @Input
-    @ToBeReplacedByLazyProperty
-    public String getExtensionDirs() {
-        return extensionDirs;
-    }
-
-    /**
-     * Sets the extension dirs to be used for the compiler process. Defaults to {@code null}.
-     */
-    public void setExtensionDirs(@Nullable String extensionDirs) {
-        this.extensionDirs = extensionDirs;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getExtensionDirs();
 
     /**
      * Returns any additional arguments to be passed to the compiler.
@@ -348,14 +326,16 @@ public abstract class CompileOptions extends AbstractOptions {
      * @since 4.5
      */
     @Internal
-    @ToBeReplacedByLazyProperty
-    public List<String> getAllCompilerArgs() {
-        ImmutableList.Builder<String> builder = ImmutableList.builder();
-        builder.addAll(CollectionUtils.stringize(getCompilerArgs()));
-        for (CommandLineArgumentProvider compilerArgumentProvider : getCompilerArgumentProviders()) {
-            builder.addAll(compilerArgumentProvider.asArguments());
-        }
-        return builder.build();
+    @ReplacesEagerProperty
+    public Provider<List<String>> getAllCompilerArgs() {
+        return getCompilerArgumentProviders().map(providerArgs -> {
+            ImmutableList.Builder<String> builder = ImmutableList.builder();
+            builder.addAll(CollectionUtils.stringize(getCompilerArgs()));
+            for (CommandLineArgumentProvider compilerArgumentProvider : providerArgs) {
+                builder.addAll(compilerArgumentProvider.asArguments());
+            }
+            return builder.build();
+        });
     }
 
     /**
@@ -364,10 +344,8 @@ public abstract class CompileOptions extends AbstractOptions {
      * @since 4.5
      */
     @Nested
-    @ToBeReplacedByLazyProperty(comment = "Should this be lazy?")
-    public List<CommandLineArgumentProvider> getCompilerArgumentProviders() {
-        return compilerArgumentProviders;
-    }
+    @ReplacesEagerProperty(replacedAccessors = @ReplacedAccessor(value = GETTER, name = "getCompilerArgumentProviders"))
+    public abstract ListProperty<CommandLineArgumentProvider> getCompilerArgumentProviders();
 
     /**
      * Sets any additional arguments to be passed to the compiler.
@@ -382,7 +360,7 @@ public abstract class CompileOptions extends AbstractOptions {
      * Calling this method will set {@code fork} to {@code true}.
      */
     public CompileOptions fork(Map<String, Object> forkArgs) {
-        fork = true;
+        getFork().set(true);
         forkOptions.define(forkArgs);
         return this;
     }
@@ -392,26 +370,30 @@ public abstract class CompileOptions extends AbstractOptions {
      * Calling this method will set {@code debug} to {@code true}.
      */
     public CompileOptions debug(Map<String, Object> debugArgs) {
-        debug = true;
+        getDebug().set(true);
         debugOptions.define(debugArgs);
         return this;
     }
 
     /**
-     * Configure the java compilation to be incremental (e.g. compiles only those java classes that were changed or that are dependencies to the changed classes).
-     */
-    public CompileOptions setIncremental(boolean incremental) {
-        this.incremental = incremental;
-        return this;
-    }
-
-    /**
-     * informs whether to use incremental compilation feature. See {@link #setIncremental(boolean)}
+     * informs whether to use incremental compilation feature.
+     *
+     * @since 8.10
      */
     @Internal
-    @ToBeReplacedByLazyProperty
-    public boolean isIncremental() {
-        return incremental;
+    @Incubating
+    @ReplacesEagerProperty(originalType = boolean.class, fluentSetter = true)
+    public abstract Property<Boolean> getIncremental();
+
+    /**
+     * TODO: Add deprecation warning
+     *
+     * @since 8.10
+     */
+    @Incubating
+    @ReplacedBy("incremental")
+    public Property<Boolean> getIsIncremental() {
+        return getIncremental();
     }
 
     /**
@@ -446,26 +428,13 @@ public abstract class CompileOptions extends AbstractOptions {
      * If you wish to use any source path, it must be explicitly set.
      *
      * @return the source path
-     * @see #setSourcepath(FileCollection)
      */
     @Optional
-    @Nullable
     @IgnoreEmptyDirectories
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
-    @ToBeReplacedByLazyProperty
-    public FileCollection getSourcepath() {
-        return sourcepath;
-    }
-
-    /**
-     * Sets the source path to use for the compilation.
-     *
-     * @param sourcepath the source path
-     */
-    public void setSourcepath(@Nullable FileCollection sourcepath) {
-        this.sourcepath = sourcepath;
-    }
+    @ReplacesEagerProperty
+    public abstract ConfigurableFileCollection getSourcepath();
 
     /**
      * Returns the classpath to use to load annotation processors. This path is also used for annotation processor discovery.
@@ -473,23 +442,10 @@ public abstract class CompileOptions extends AbstractOptions {
      * @return The annotation processor path, or {@code null} if annotation processing is disabled.
      * @since 3.4
      */
-    @Nullable
     @Optional
     @Classpath
-    @ToBeReplacedByLazyProperty
-    public FileCollection getAnnotationProcessorPath() {
-        return annotationProcessorPath;
-    }
-
-    /**
-     * Set the classpath to use to load annotation processors. This path is also used for annotation processor discovery.
-     *
-     * @param annotationProcessorPath The annotation processor path, or {@code null} to disable annotation processing.
-     * @since 3.4
-     */
-    public void setAnnotationProcessorPath(@Nullable FileCollection annotationProcessorPath) {
-        this.annotationProcessorPath = annotationProcessorPath;
-    }
+    @ReplacesEagerProperty
+    public abstract ConfigurableFileCollection getAnnotationProcessorPath();
 
     /**
      * Configures the Java language version for this compile task ({@code --release} compiler flag).
