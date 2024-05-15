@@ -31,7 +31,7 @@ class DeclarativeDslToolingModelsCrossVersionTest extends ToolingApiSpecificatio
         settingsFile.delete() //we are using a declarative settings file
     }
 
-    def 'can obtain model containing project schema'() {
+    def 'can obtain model containing project schema, even in the presence of errors in project scripts'() {
         given:
         file("settings.gradle.dcl") << """
             rootProject.name = "test"
@@ -39,7 +39,7 @@ class DeclarativeDslToolingModelsCrossVersionTest extends ToolingApiSpecificatio
             include(":b")
         """
 
-        file("a/build.gradle.dcl") << ""
+        file("a/build.gradle.dcl") << " !%@ unpassable crappy crap"
 
         file("b/build.gradle.dcl") << ""
 
