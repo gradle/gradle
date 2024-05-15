@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider.serialization
+package org.gradle.internal.daemon.serialization
 
 import org.gradle.internal.classloader.VisitableURLClassLoader
 import org.gradle.internal.classpath.CachedClasspathTransformer
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.tooling.internal.provider.serialization.PayloadClassLoaderFactory
 import org.junit.Rule
 import spock.lang.Specification
 

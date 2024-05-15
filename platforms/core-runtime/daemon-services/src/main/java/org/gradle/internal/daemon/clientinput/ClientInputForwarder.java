@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.server.clientinput;
+package org.gradle.internal.daemon.clientinput;
 
 import org.gradle.api.internal.tasks.userinput.UserInputReader;
 import org.gradle.api.logging.Logger;
@@ -24,7 +24,6 @@ import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.launcher.daemon.protocol.ForwardInput;
 import org.gradle.launcher.daemon.protocol.UserResponse;
-import org.gradle.launcher.daemon.server.api.StdinHandler;
 
 import java.io.InputStream;
 import java.util.function.Function;

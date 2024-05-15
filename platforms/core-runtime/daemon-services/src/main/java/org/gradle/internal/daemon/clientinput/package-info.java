@@ -15,4 +15,4 @@
  */
 
 @org.gradle.api.NonNullApi
-package org.gradle.launcher.daemon.server.clientinput;
+package org.gradle.internal.daemon.clientinput;

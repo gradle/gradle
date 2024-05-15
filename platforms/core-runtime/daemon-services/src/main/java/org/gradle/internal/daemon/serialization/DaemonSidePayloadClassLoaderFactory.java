@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider.serialization;
+package org.gradle.internal.daemon.serialization;
 
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClassLoaderSpec;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
+import org.gradle.tooling.internal.provider.serialization.ClientOwnedClassLoaderSpec;
+import org.gradle.tooling.internal.provider.serialization.PayloadClassLoaderFactory;
 
 import java.net.MalformedURLException;
 import java.net.URI;

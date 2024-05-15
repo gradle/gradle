@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.server.clientinput;
+package org.gradle.internal.daemon.clientinput;
 
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.logging.events.OutputEventListener;

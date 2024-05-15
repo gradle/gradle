@@ -1,1 +1,1 @@
-org.gradle.launcher.daemon.DaemonServices
+org.gradle.internal.daemon.services.DaemonServices

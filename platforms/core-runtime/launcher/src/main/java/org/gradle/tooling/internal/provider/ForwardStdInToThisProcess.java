@@ -25,7 +25,7 @@ import org.gradle.launcher.daemon.client.DaemonClientInputForwarder;
 import org.gradle.launcher.daemon.protocol.CloseInput;
 import org.gradle.launcher.daemon.protocol.ForwardInput;
 import org.gradle.launcher.daemon.protocol.UserResponse;
-import org.gradle.launcher.daemon.server.clientinput.ClientInputForwarder;
+import org.gradle.internal.daemon.clientinput.ClientInputForwarder;
 import org.gradle.launcher.exec.BuildActionExecutor;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
