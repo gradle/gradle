@@ -18,11 +18,9 @@ package org.gradle.plugins.ide.tooling.r44
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.eclipse.EclipseOutputLocation
 import org.gradle.tooling.model.eclipse.EclipseProject
 
-@ToolingApiVersion('>=4.4')
 @TargetGradleVersion(">=4.4")
 class ToolingApiEclipseModelOutputLocationCrossVersionSpec extends ToolingApiSpecification {
 

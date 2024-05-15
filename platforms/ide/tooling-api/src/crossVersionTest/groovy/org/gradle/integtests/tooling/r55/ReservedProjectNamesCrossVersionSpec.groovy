@@ -18,14 +18,12 @@ package org.gradle.integtests.tooling.r55
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.eclipse.EclipseWorkspace
 import org.gradle.tooling.model.eclipse.EclipseWorkspaceProject
 import spock.lang.TempDir
 
 @TargetGradleVersion('>=5.5')
-@ToolingApiVersion(">=5.5")
 class ReservedProjectNamesCrossVersionSpec extends ToolingApiSpecification {
 
     @TempDir

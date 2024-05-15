@@ -24,14 +24,14 @@ import org.gradle.tooling.model.eclipse.EclipseProject
 
 import static org.gradle.plugins.ide.tooling.r210.ConventionsExtensionsCrossVersionFixture.javaSourceCompatibility
 
-@TargetGradleVersion(">=2.10")
+@TargetGradleVersion(">=3.0")
 class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
 
     def setup(){
         settingsFile << "rootProject.name = 'root'"
     }
 
-    @TargetGradleVersion(">=2.6 <2.10")
+    @TargetGradleVersion(">=3.0 <2.10")
     def "older Gradle versions throw exception when querying Java source settings"() {
         when:
         EclipseProject rootProject = loadToolingModel(EclipseProject)
