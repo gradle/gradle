@@ -1306,6 +1306,7 @@ Class <org.gradle.configuration.ConfigurationTargetIdentifier$2> is not annotate
 Class <org.gradle.configuration.ConfigurationTargetIdentifier$3> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ConfigurationTargetIdentifier.java:0)
 Class <org.gradle.configuration.ConfigurationTargetIdentifier$Type> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ConfigurationTargetIdentifier.java:0)
 Class <org.gradle.configuration.ConfigurationTargetIdentifier> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ConfigurationTargetIdentifier.java:0)
+Class <org.gradle.configuration.DefaultBuildClientMetaData> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultBuildClientMetaData.java:0)
 Class <org.gradle.configuration.DefaultImportsReader$1> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultImportsReader.java:0)
 Class <org.gradle.configuration.DefaultImportsReader$2> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultImportsReader.java:0)
 Class <org.gradle.configuration.DefaultImportsReader> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultImportsReader.java:0)
