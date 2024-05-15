@@ -143,7 +143,7 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
     @TaskAction
     protected void compile(InputChanges inputs) {
         DefaultJavaCompileSpec spec = createSpec();
-        if (!compileOptions.isIncremental()) {
+        if (!compileOptions.getIncremental().getOrElse(false)) {
             performFullCompilation(spec);
         } else {
             performIncrementalCompilation(inputs, spec);
@@ -230,7 +230,8 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
         List<File> sourcesRoots = CompilationSourceDirs.inferSourceRoots((FileTreeInternal) getStableSources().getAsFileTree());
         JavaModuleDetector javaModuleDetector = getJavaModuleDetector();
         boolean isModule = JavaModuleDetector.isModuleSource(modularity.getInferModulePath().get(), sourcesRoots);
-        boolean isSourcepathUserDefined = compileOptions.getSourcepath() != null && !compileOptions.getSourcepath().isEmpty();
+        boolean isSourcepathUserDefined = !compileOptions.getSourcepath().isEmpty();
+        FileCollection sourcepath = compileOptions.getSourcepath();
 
         DefaultJavaCompileSpec spec = new DefaultJavaCompileSpecFactory(compileOptions, getToolchain()).create();
 
@@ -241,10 +242,10 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
         spec.setModulePath(ImmutableList.copyOf(javaModuleDetector.inferModulePath(isModule, getClasspath())));
 
         if (isModule && !isSourcepathUserDefined) {
-            compileOptions.setSourcepath(getProjectLayout().files(sourcesRoots));
+            sourcepath = getProjectLayout().files(sourcesRoots);
         }
         spec.setAnnotationProcessorPath(compileOptions.getAnnotationProcessorPath() == null ? ImmutableList.of() : ImmutableList.copyOf(compileOptions.getAnnotationProcessorPath()));
-        configureCompileOptions(spec);
+        configureCompileOptions(spec, sourcepath);
         spec.setSourcesRoots(sourcesRoots);
 
         if (!isToolchainCompatibleWithJava8()) {
@@ -254,7 +255,7 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
     }
 
     private void validateForkOptionsMatchToolchain() {
-        if (!getOptions().isFork()) {
+        if (!getOptions().getFork().getOrElse(false)) {
             return;
         }
 
@@ -292,7 +293,7 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
         return JavaVersion.toVersion(getToolchain().getLanguageVersion().asInt());
     }
 
-    private void configureCompileOptions(DefaultJavaCompileSpec spec) {
+    private void configureCompileOptions(DefaultJavaCompileSpec spec, FileCollection sourcepath) {
         if (compileOptions.getRelease().isPresent()) {
             spec.setRelease(compileOptions.getRelease().get());
         } else {
@@ -311,7 +312,7 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
             spec.setSourceCompatibility(sourceCompatibility);
             spec.setTargetCompatibility(targetCompatibility);
         }
-        spec.setCompileOptions(compileOptions);
+        spec.setCompileOptions(compileOptions, sourcepath);
     }
 
     private JavaInstallationMetadata getToolchain() {
