@@ -14,22 +14,21 @@
  * limitations under the License.
  */
 
-plugins {
-    id("gradlebuild.distribution.implementation-java")
-}
+package org.gradle.internal.daemon.client.serialization;
 
-description = "Types for build process and session state management"
+import org.gradle.tooling.BuildAction;
+import org.gradle.tooling.BuildController;
+import org.gradle.tooling.GradleConnectionException;
 
-dependencies {
-    api(project(":core"))
-    api(project(":base-services"))
-    api(project(":java-language-extensions"))
-    api(project(":daemon-protocol"))
-    api(project(":logging"))
+import java.util.List;
 
-    implementation(project(":core-api"))
-    implementation(project(":messaging"))
-    implementation(project(":concurrent"))
-    implementation(project(":logging-api"))
-    implementation(project(":problems-api"))
+public class CustomAction implements BuildAction<Object> {
+    // Some interesting type references
+    byte[][][] buffers;
+    BuildController[][] controllers;
+    List<String> values;
+
+    public Object execute(BuildController controller) throws GradleConnectionException {
+        return new CustomModel(this);
+    }
 }

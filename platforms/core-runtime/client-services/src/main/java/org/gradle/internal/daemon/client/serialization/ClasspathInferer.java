@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider.serialization;
+package org.gradle.internal.daemon.client.serialization;
 
 import com.google.common.collect.MapMaker;
 import com.google.common.io.ByteStreams;

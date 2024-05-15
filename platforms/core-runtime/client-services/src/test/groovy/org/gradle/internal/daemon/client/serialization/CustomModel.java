@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider;
+package org.gradle.internal.daemon.client.serialization;
 
-import org.gradle.tooling.BuildAction;
-import org.gradle.tooling.BuildController;
-import org.gradle.tooling.GradleConnectionException;
+import java.io.Serializable;
 
-import java.util.List;
-
-public class CustomAction implements BuildAction<Object> {
-    // Some interesting type references
-    byte[][][] buffers;
-    BuildController[][] controllers;
-    List<String> values;
-
-    public Object execute(BuildController controller) throws GradleConnectionException {
-        return new CustomModel(this);
+public class CustomModel implements Serializable {
+    public CustomModel(CustomAction customAction) {
     }
 }
