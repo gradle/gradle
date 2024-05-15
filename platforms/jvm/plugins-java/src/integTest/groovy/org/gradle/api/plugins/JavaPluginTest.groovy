@@ -293,7 +293,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         then:
         task dependsOn()
         task.classpath.is(project.sourceSets.main.compileClasspath)
-        task.options.annotationProcessorPath.is(project.sourceSets.main.annotationProcessorPath)
+        task.options.annotationProcessorPath.files == project.sourceSets.main.annotationProcessorPath.files
         task.options.generatedSourceOutputDirectory.asFile.orNull == new File(project.buildDir, 'generated/sources/annotationProcessor/java/main')
         task.options.annotationProcessorGeneratedSourcesDirectory == task.options.generatedSourceOutputDirectory.asFile.orNull
         task.options.headerOutputDirectory.asFile.orNull == new File(project.buildDir, 'generated/sources/headers/java/main')
@@ -322,7 +322,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         then:
         task dependsOn(JvmConstants.CLASSES_TASK_NAME, JvmConstants.COMPILE_JAVA_TASK_NAME)
         task.classpath.is(project.sourceSets.test.compileClasspath)
-        task.options.annotationProcessorPath.is(project.sourceSets.test.annotationProcessorPath)
+        task.options.annotationProcessorPath.files == project.sourceSets.test.annotationProcessorPath.files
         task.options.generatedSourceOutputDirectory.asFile.orNull == new File(project.buildDir, 'generated/sources/annotationProcessor/java/test')
         task.options.annotationProcessorGeneratedSourcesDirectory == task.options.generatedSourceOutputDirectory.asFile.orNull
         task.options.headerOutputDirectory.asFile.orNull == new File(project.buildDir, 'generated/sources/headers/java/test')
