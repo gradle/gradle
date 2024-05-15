@@ -50,6 +50,21 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
         outputDoesNotContain("Applying AnotherSoftwareTypeImplPlugin")
     }
 
+    def 'can configure a custom software type from included build without configuration block'() {
+        given:
+        withSoftwareTypePlugins().prepareToExecute()
+
+        file("settings.gradle.dcl") << pluginsFromIncludedBuild
+
+        file("build.gradle.dcl") << declarativeScriptWithEmptySoftwareTypeConfiguration
+
+        expect:
+        succeeds(":printTestSoftwareTypeExtensionConfiguration")
+
+        and:
+        outputContains("Applying SoftwareTypeImplPlugin")
+    }
+
     def 'can declare and configure a custom software type from published plugin'() {
         given:
         def pluginBuilder = withSoftwareTypePlugins()
@@ -306,6 +321,10 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
                 }
             }
         """
+    }
+
+    static String getDeclarativeScriptWithEmptySoftwareTypeConfiguration() {
+        """testSoftwareType()"""
     }
 
     void assertThatDeclaredValuesAreSetProperly() {
