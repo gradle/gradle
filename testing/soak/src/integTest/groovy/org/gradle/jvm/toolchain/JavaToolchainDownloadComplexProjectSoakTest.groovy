@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.inspection.JvmVendor
+import org.gradle.jvm.toolchain.internal.install.DefaultJdkCacheDirectory
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Ignore
@@ -98,8 +99,8 @@ class JavaToolchainDownloadComplexProjectSoakTest extends AbstractIntegrationSpe
 
 
         then:
-        result.plainTextOutput.matches("(?s).*Compiling with toolchain.*${jdkMetadata.javaHome.fileName}.*")
-        result.plainTextOutput.matches("(?s).*Compiling with toolchain.*${otherJdkMetadata.javaHome.fileName}.*")
+        result.plainTextOutput.matches("(?s).*Compiling with toolchain.*${DefaultJdkCacheDirectory.getInstallFolderName(jdkMetadata)}.*")
+        result.plainTextOutput.matches("(?s).*Compiling with toolchain.*${DefaultJdkCacheDirectory.getInstallFolderName(otherJdkMetadata)}.*")
         otherJdkRepository.stop()
     }
 
