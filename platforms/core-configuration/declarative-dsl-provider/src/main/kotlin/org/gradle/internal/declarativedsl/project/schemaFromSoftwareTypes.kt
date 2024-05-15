@@ -79,7 +79,8 @@ data class SoftwareTypeInfo(
         isDirectAccessOnly = true,
         semantics = FunctionSemanticsInternal.DefaultAccessAndConfigure(
             accessor = ConfigureAccessorInternal.DefaultCustom(delegate.modelPublicType.kotlin.toDataTypeRef(), customAccessorId),
-            FunctionSemanticsInternal.DefaultAccessAndConfigure.DefaultReturnType.DefaultUnit
+            FunctionSemanticsInternal.DefaultAccessAndConfigure.DefaultReturnType.DefaultUnit,
+            FunctionSemanticsInternal.DefaultConfigureBlockRequirement.DefaultRequired
         )
     )
 }

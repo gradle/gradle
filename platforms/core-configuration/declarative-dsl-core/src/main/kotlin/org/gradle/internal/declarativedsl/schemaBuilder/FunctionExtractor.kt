@@ -233,6 +233,14 @@ class DefaultFunctionExtractor(
         preIndex: DataSchemaBuilder.PreIndex,
         configureLambdas: ConfigureLambdaHandler
     ): FunctionSemantics {
+        val lastParam = function.parameters[function.parameters.lastIndex]
+        val configuredType = configureLambdas.getTypeConfiguredByLambda(function.parameters.last().type)
+        val blockRequirement = when {
+            configuredType == null -> FunctionSemanticsInternal.DefaultConfigureBlockRequirement.DefaultNotAllowed
+            lastParam.isOptional -> FunctionSemanticsInternal.DefaultConfigureBlockRequirement.DefaultOptional
+            else -> FunctionSemanticsInternal.DefaultConfigureBlockRequirement.DefaultRequired
+        }
+
         return when {
             function.annotations.any { it is Builder } -> {
                 check(inType != null)
@@ -246,14 +254,6 @@ class DefaultFunctionExtractor(
                     "an @Adding function with a Unit return type may not accept configuring lambdas"
                 }
 
-                val lastParam = function.parameters[function.parameters.lastIndex]
-                val hasConfigureLambda =
-                    configureLambdas.isConfigureLambdaForType(function.returnType, lastParam.type)
-                val blockRequirement = when {
-                    !hasConfigureLambda -> FunctionSemanticsInternal.DefaultConfigureBlockRequirement.DefaultNotAllowed
-                    hasConfigureLambda && lastParam.isOptional -> FunctionSemanticsInternal.DefaultConfigureBlockRequirement.DefaultOptional
-                    else -> FunctionSemanticsInternal.DefaultConfigureBlockRequirement.DefaultRequired
-                }
                 FunctionSemanticsInternal.DefaultAddAndConfigure(returnTypeClassifier.toDataTypeRefOrError(), blockRequirement)
             }
 
@@ -265,7 +265,6 @@ class DefaultFunctionExtractor(
                 val annotationPropertyName = annotation.propertyName
                 val propertyName = annotationPropertyName.ifEmpty { function.name }
 
-                val configuredType = configureLambdas.getTypeConfiguredByLambda(function.parameters.last().type)
                 check(configuredType != null) { "a @Configuring function must accept a configuring lambda" }
 
                 val propertyType = preIndex.getPropertyType(inType, propertyName)
@@ -281,7 +280,7 @@ class DefaultFunctionExtractor(
                 }
                 check(function.parameters.filter { it != function.instanceParameter }.size == 1) { "a configuring function may not accept any other parameters" }
                 val accessor = if (property != null) ConfigureAccessorInternal.DefaultProperty(property) else ConfigureAccessorInternal.DefaultConfiguringLambdaArgument(configuredType.toDataTypeRefOrError())
-                FunctionSemanticsInternal.DefaultAccessAndConfigure(accessor, returnType)
+                FunctionSemanticsInternal.DefaultAccessAndConfigure(accessor, returnType, blockRequirement)
             }
 
             else -> FunctionSemanticsInternal.DefaultPure(returnTypeClassifier.toDataTypeRefOrError())

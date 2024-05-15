@@ -95,8 +95,11 @@ object AccessorTest {
                         "configureCustomInstance",
                         emptyList(),
                         false,
-                        FunctionSemanticsInternal.DefaultAccessAndConfigure(ConfigureAccessorInternal.DefaultCustom(Configured::class.toDataTypeRef(), "test"),
-                            FunctionSemanticsInternal.DefaultAccessAndConfigure.DefaultReturnType.DefaultUnit)
+                        FunctionSemanticsInternal.DefaultAccessAndConfigure(
+                            ConfigureAccessorInternal.DefaultCustom(Configured::class.toDataTypeRef(), "test"),
+                            FunctionSemanticsInternal.DefaultAccessAndConfigure.DefaultReturnType.DefaultUnit,
+                            FunctionSemanticsInternal.DefaultConfigureBlockRequirement.DefaultRequired
+                        )
                     )
                 )
             } else emptyList()

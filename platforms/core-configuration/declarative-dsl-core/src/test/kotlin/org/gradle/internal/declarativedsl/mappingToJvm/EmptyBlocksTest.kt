@@ -42,6 +42,19 @@ object EmptyBlocksTest {
     }
 
     @Test
+    fun `configuring function with no block for Kotlin default param leads to object access`() {
+        val resolution = schema.resolve(
+            """
+            configuring()
+            """.trimIndent()
+        )
+
+        val result = runtimeInstanceFromResult(schema, resolution, kotlinFunctionAsConfigureLambda, RuntimeCustomAccessors.none, ::TopLevel)
+
+        assertTrue { result.configuredLazy.isInitialized() }
+    }
+
+    @Test
     fun `empty adding block ensures that the object is created`() {
         val resolution = schema.resolve(
             """

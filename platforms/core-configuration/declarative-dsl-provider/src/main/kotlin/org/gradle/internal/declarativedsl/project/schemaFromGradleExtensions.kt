@@ -95,7 +95,8 @@ data class ExtensionInfo(
         isDirectAccessOnly = true,
         semantics = FunctionSemanticsInternal.DefaultAccessAndConfigure(
             accessor = ConfigureAccessorInternal.DefaultCustom(type.toDataTypeRef(), customAccessorId),
-            FunctionSemanticsInternal.DefaultAccessAndConfigure.DefaultReturnType.DefaultUnit
+            FunctionSemanticsInternal.DefaultAccessAndConfigure.DefaultReturnType.DefaultUnit,
+            FunctionSemanticsInternal.DefaultConfigureBlockRequirement.DefaultRequired
         )
     )
 }
