@@ -58,5 +58,6 @@ abstract class UnitTestAndCompileExtension(
         }
         // Apply ParameterNamesIndex since 6 doesn't support -parameters
         project.apply(plugin = "gradlebuild.api-parameter-names-index")
+
     }
 }
