@@ -56,7 +56,6 @@ unassigned {
 // Gradle implementation projects
 unassigned {
     subproject("core")
-    subproject("plugins")
     subproject("build-events")
     subproject("diagnostics")
     subproject("composite-builds")
