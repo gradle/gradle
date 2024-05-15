@@ -36,11 +36,11 @@ import org.gradle.launcher.exec.BuildActionResult;
 /**
  * Reports any unreported failure that causes the session to finish.
  */
-public class SessionFailureReportingActionExecuter implements BuildActionExecutor<BuildActionParameters, BuildRequestContext> {
+public class SessionFailureReportingActionExecutor implements BuildActionExecutor<BuildActionParameters, BuildRequestContext> {
     private final BuildActionExecutor<BuildActionParameters, BuildRequestContext> delegate;
     private final BuildLoggerFactory buildLoggerFactory;
 
-    public SessionFailureReportingActionExecuter(BuildLoggerFactory buildLoggerFactory, BuildActionExecutor<BuildActionParameters, BuildRequestContext> delegate) {
+    public SessionFailureReportingActionExecutor(BuildLoggerFactory buildLoggerFactory, BuildActionExecutor<BuildActionParameters, BuildRequestContext> delegate) {
         this.delegate = delegate;
         this.buildLoggerFactory = buildLoggerFactory;
     }
@@ -59,7 +59,7 @@ public class SessionFailureReportingActionExecuter implements BuildActionExecuto
             }
             RuntimeException failure = exceptionAnalyser.transform(e);
             BuildStartedTime buildStartedTime = BuildStartedTime.startingAt(requestContext.getStartTime());
-            BuildLogger buildLogger = buildLoggerFactory.create(Logging.getLogger(SessionFailureReportingActionExecuter.class), action.getStartParameter(), buildStartedTime, requestContext);
+            BuildLogger buildLogger = buildLoggerFactory.create(Logging.getLogger(SessionFailureReportingActionExecutor.class), action.getStartParameter(), buildStartedTime, requestContext);
             buildLogger.buildFinished(new BuildResult(null, failure));
             buildLogger.logResult(failure);
             return BuildActionResult.failed(failure);

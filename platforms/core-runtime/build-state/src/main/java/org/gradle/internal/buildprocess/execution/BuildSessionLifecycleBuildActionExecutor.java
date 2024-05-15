@@ -38,11 +38,11 @@ import java.util.function.Function;
 /**
  * A {@link BuildExecutor} responsible for establishing the {@link BuildSessionState} to execute a {@link BuildAction} within.
  */
-public class BuildSessionLifecycleBuildActionExecuter implements BuildActionExecutor<BuildActionParameters, BuildRequestContext> {
+public class BuildSessionLifecycleBuildActionExecutor implements BuildActionExecutor<BuildActionParameters, BuildRequestContext> {
     private final ServiceRegistry globalServices;
     private final GradleUserHomeScopeServiceRegistry userHomeServiceRegistry;
 
-    public BuildSessionLifecycleBuildActionExecuter(GradleUserHomeScopeServiceRegistry userHomeServiceRegistry, ServiceRegistry globalServices) {
+    public BuildSessionLifecycleBuildActionExecutor(GradleUserHomeScopeServiceRegistry userHomeServiceRegistry, ServiceRegistry globalServices) {
         this.userHomeServiceRegistry = userHomeServiceRegistry;
         this.globalServices = globalServices;
     }

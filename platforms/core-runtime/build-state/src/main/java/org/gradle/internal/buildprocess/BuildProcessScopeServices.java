@@ -25,10 +25,10 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.launcher.exec.BuildExecutor;
-import org.gradle.internal.buildprocess.execution.BuildSessionLifecycleBuildActionExecuter;
-import org.gradle.internal.buildprocess.execution.SessionFailureReportingActionExecuter;
+import org.gradle.internal.buildprocess.execution.BuildSessionLifecycleBuildActionExecutor;
+import org.gradle.internal.buildprocess.execution.SessionFailureReportingActionExecutor;
 import org.gradle.internal.buildprocess.execution.SetupLoggingActionExecutor;
-import org.gradle.internal.buildprocess.execution.StartParamsValidatingActionExecuter;
+import org.gradle.internal.buildprocess.execution.StartParamsValidatingActionExecutor;
 
 import java.util.List;
 
@@ -49,10 +49,10 @@ public class BuildProcessScopeServices {
     ) {
         return new SetupLoggingActionExecutor(
             loggingManager,
-            new SessionFailureReportingActionExecuter(
+            new SessionFailureReportingActionExecutor(
                 buildLoggerFactory,
-                new StartParamsValidatingActionExecuter(
-                    new BuildSessionLifecycleBuildActionExecuter(userHomeServiceRegistry, globalServices)
+                new StartParamsValidatingActionExecutor(
+                    new BuildSessionLifecycleBuildActionExecutor(userHomeServiceRegistry, globalServices)
                 )
             )
         );

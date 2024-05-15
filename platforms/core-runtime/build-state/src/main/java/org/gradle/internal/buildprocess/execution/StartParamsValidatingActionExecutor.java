@@ -29,10 +29,10 @@ import java.io.File;
 /**
  * Validates certain aspects of the start parameters, prior to starting a session using the parameters.
  */
-public class StartParamsValidatingActionExecuter implements BuildActionExecutor<BuildActionParameters, BuildRequestContext> {
+public class StartParamsValidatingActionExecutor implements BuildActionExecutor<BuildActionParameters, BuildRequestContext> {
     private final BuildActionExecutor<BuildActionParameters, BuildRequestContext> delegate;
 
-    public StartParamsValidatingActionExecuter(BuildActionExecutor<BuildActionParameters, BuildRequestContext> delegate) {
+    public StartParamsValidatingActionExecutor(BuildActionExecutor<BuildActionParameters, BuildRequestContext> delegate) {
         this.delegate = delegate;
     }
 
