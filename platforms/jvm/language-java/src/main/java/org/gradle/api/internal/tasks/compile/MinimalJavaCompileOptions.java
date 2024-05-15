@@ -50,21 +50,20 @@ public class MinimalJavaCompileOptions implements Serializable {
     private boolean supportsIncrementalCompilationAfterFailure;
     private File previousCompilationDataFile;
 
-    public MinimalJavaCompileOptions(final CompileOptions compileOptions) {
-        FileCollection sourcepath = compileOptions.getSourcepath();
-        this.sourcepath = sourcepath == null ? null : ImmutableList.copyOf(sourcepath.getFiles());
-        this.compilerArgs = Lists.newArrayList(compileOptions.getAllCompilerArgs());
-        this.encoding = compileOptions.getEncoding();
+    public MinimalJavaCompileOptions(final CompileOptions compileOptions, FileCollection sourcepath) {
+        this.sourcepath = ImmutableList.copyOf(sourcepath.getFiles());
+        this.compilerArgs = Lists.newArrayList(compileOptions.getAllCompilerArgs().get());
+        this.encoding = compileOptions.getEncoding().getOrNull();
         this.bootClasspath = getAsPath(compileOptions.getBootstrapClasspath());
-        this.extensionDirs = compileOptions.getExtensionDirs();
+        this.extensionDirs = compileOptions.getExtensionDirs().getOrNull();
         this.forkOptions = new MinimalJavaCompilerDaemonForkOptions(compileOptions.getForkOptions());
         this.debugOptions = compileOptions.getDebugOptions();
-        this.debug = compileOptions.isDebug();
-        this.deprecation = compileOptions.isDeprecation();
-        this.failOnError = compileOptions.isFailOnError();
-        this.listFiles = compileOptions.isListFiles();
-        this.verbose = compileOptions.isVerbose();
-        this.warnings = compileOptions.isWarnings();
+        this.debug = compileOptions.getDebug().get();
+        this.deprecation = compileOptions.getDeprecation().get();
+        this.failOnError = compileOptions.getFailOnError().get();
+        this.listFiles = compileOptions.getListFiles().get();
+        this.verbose = compileOptions.getVerbose().get();
+        this.warnings = compileOptions.getWarnings().get();
         this.annotationProcessorGeneratedSourcesDirectory = compileOptions.getGeneratedSourceOutputDirectory().getAsFile().getOrNull();
         this.headerOutputDirectory = compileOptions.getHeaderOutputDirectory().getAsFile().getOrNull();
         this.javaModuleVersion = compileOptions.getJavaModuleVersion().getOrNull();
