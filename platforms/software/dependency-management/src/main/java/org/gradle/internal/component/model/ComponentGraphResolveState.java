@@ -52,11 +52,6 @@ public interface ComponentGraphResolveState {
     ComponentIdentifier getId();
 
     /**
-     * Information about the origin of this component.
-     */
-    ModuleSources getSources();
-
-    /**
      * The immutable metadata for this component.
      */
     ComponentGraphResolveMetadata getMetadata();

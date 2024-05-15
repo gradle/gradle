@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,18 @@
 
 package org.gradle.internal.component.external.model;
 
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 
-import javax.annotation.concurrent.ThreadSafe;
-
 /**
- * A specialized {@link ComponentGraphResolveState} for external components.
- *
- * <p>Instances of this type are cached and reused for multiple graph resolutions, possibly in parallel. This means that the implementation must be thread-safe.
+ * Holds the resolution state for an external component.
  */
-@ThreadSafe
-public interface ModuleComponentGraphResolveState extends ExternalComponentGraphResolveState {
-    @Override
-    ModuleComponentIdentifier getId();
+public interface ExternalComponentGraphResolveState extends ComponentGraphResolveState {
 
-    @Override
-    ModuleComponentGraphResolveMetadata getMetadata();
+    /**
+     * Try to avoid using this. This method exposes legacy stateful metadata. Usages should be
+     * replaced by using the stateful types like {@link ComponentGraphResolveState} and
+     * {@link org.gradle.internal.component.model.ComponentArtifactResolveState}.
+     */
+    ExternalComponentResolveMetadata getLegacyMetadata();
+
 }

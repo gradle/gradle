@@ -27,10 +27,7 @@ import org.gradle.api.internal.artifacts.configurations.VariantIdentityUniquenes
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultLocalConfigurationMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
-import org.gradle.internal.component.model.ImmutableModuleSources;
-import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.ModelContainer;
@@ -44,7 +41,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 /**
- * Default implementation of {@link LocalComponentMetadata}. This component is lazy in that it
+ * Default implementation of {@link LocalComponentGraphResolveMetadata}. This component is lazy in that it
  * will only initialize {@link LocalConfigurationMetadata} instances on-demand as they are needed.
  * <p>
  * TODO: Eventually, this class should be updated to only create metadata instances for consumable configurations.
@@ -53,9 +50,7 @@ import java.util.function.Consumer;
  * sources its root component metadata, for a resolvable configuration, from this component metadata.
  */
 @SuppressWarnings("JavadocReference")
-public final class DefaultLocalComponentMetadata implements LocalComponentMetadata {
-
-    private static final ModuleSources MODULE_SOURCES = ImmutableModuleSources.of();
+public final class DefaultLocalComponentGraphResolveMetadata implements LocalComponentGraphResolveMetadata {
 
     private final ComponentIdentifier componentId;
     private final ModuleVersionIdentifier moduleVersionId;
@@ -67,7 +62,7 @@ public final class DefaultLocalComponentMetadata implements LocalComponentMetada
     private final Map<String, LocalConfigurationMetadata> allConfigurations = new LinkedHashMap<>();
     private List<? extends VariantGraphResolveMetadata> consumableConfigurations;
 
-    public DefaultLocalComponentMetadata(
+    public DefaultLocalComponentGraphResolveMetadata(
         ModuleVersionIdentifier moduleVersionId,
         ComponentIdentifier componentId,
         String status,
@@ -97,28 +92,18 @@ public final class DefaultLocalComponentMetadata implements LocalComponentMetada
      * Creates a copy of this metadata, transforming the artifacts of this component.
      */
     @Override
-    public DefaultLocalComponentMetadata copy(ComponentIdentifier componentIdentifier, Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> transformer) {
+    public DefaultLocalComponentGraphResolveMetadata copy(ComponentIdentifier componentIdentifier, Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> transformer) {
         // Keep track of transformed artifacts as a given artifact may appear in multiple variants and configurations
         Map<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> transformedArtifacts = new HashMap<>();
         Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> cachedTransformer = oldArtifact ->
             transformedArtifacts.computeIfAbsent(oldArtifact, transformer::transform);
 
-        return new DefaultLocalComponentMetadata(moduleVersionId, componentIdentifier, status, attributesSchema, configurationFactory, cachedTransformer);
+        return new DefaultLocalComponentGraphResolveMetadata(moduleVersionId, componentIdentifier, status, attributesSchema, configurationFactory, cachedTransformer);
     }
 
     @Override
     public String toString() {
         return componentId.getDisplayName();
-    }
-
-    @Override
-    public ModuleSources getSources() {
-        return MODULE_SOURCES;
-    }
-
-    @Override
-    public boolean isMissing() {
-        return false;
     }
 
     @Override
@@ -129,11 +114,6 @@ public final class DefaultLocalComponentMetadata implements LocalComponentMetada
     @Override
     public String getStatus() {
         return status;
-    }
-
-    @Override
-    public List<String> getStatusScheme() {
-        return DEFAULT_STATUS_SCHEME;
     }
 
     @Override
@@ -183,13 +163,6 @@ public final class DefaultLocalComponentMetadata implements LocalComponentMetada
     @Override
     public AttributesSchemaInternal getAttributesSchema() {
         return attributesSchema;
-    }
-
-    @Override
-    public ImmutableAttributes getAttributes() {
-        // a local component cannot have attributes (for now). However, variants of the component
-        // itself may.
-        return ImmutableAttributes.EMPTY;
     }
 
     @Override
