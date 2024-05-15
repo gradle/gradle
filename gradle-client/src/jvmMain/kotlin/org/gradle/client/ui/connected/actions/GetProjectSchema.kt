@@ -4,9 +4,7 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import org.gradle.declarative.dsl.schema.AnalysisSchema
-import org.gradle.declarative.dsl.schema.DataParameter
-import org.gradle.declarative.dsl.schema.DataTypeRef
+import org.gradle.declarative.dsl.schema.*
 import org.gradle.declarative.dsl.tooling.models.DeclarativeSchemaModel
 
 class GetProjectSchema : GetModelAction<DeclarativeSchemaModel> {
@@ -44,14 +42,14 @@ class GetProjectSchema : GetModelAction<DeclarativeSchemaModel> {
     }
 
     private fun DataTypeRef.toHumanReadable(): String =
-        if (isNamed) {
-            fqName.qualifiedName
-        } else {
-            when {
-                dataType.isNull -> "null"
-                dataType.isUnit -> "void"
-                dataType.isConstant -> dataType.constantType.simpleName
-                else -> dataType.dataClass.name.qualifiedName
+        when (this) {
+            is DataTypeRef.Name -> fqName.qualifiedName
+
+            is DataTypeRef.Type -> when (dataType) {
+                is DataType.NullType -> "null"
+                is DataType.UnitType -> "void"
+                is DataType.ConstantType<*> -> (dataType as DataType.ConstantType<*>).constantType.simpleName
+                is DataClass -> (dataType as DataClass).name.qualifiedName
             }
         }
 

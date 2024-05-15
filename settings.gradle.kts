@@ -30,6 +30,11 @@ dependencyResolutionManagement {
                 includeGroup("org.gradle")
             }
         }
+        maven(url = "https://repo.gradle.org/gradle/libs-snapshots") {
+            content {
+                includeGroup("org.gradle")
+            }
+        }
         mavenCentral()
     }
 }
