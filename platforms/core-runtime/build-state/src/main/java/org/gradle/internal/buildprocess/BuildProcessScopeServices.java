@@ -25,10 +25,10 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.launcher.exec.BuildExecutor;
-import org.gradle.tooling.internal.provider.BuildSessionLifecycleBuildActionExecuter;
-import org.gradle.tooling.internal.provider.SessionFailureReportingActionExecuter;
-import org.gradle.tooling.internal.provider.SetupLoggingActionExecutor;
-import org.gradle.tooling.internal.provider.StartParamsValidatingActionExecuter;
+import org.gradle.internal.buildprocess.execution.BuildSessionLifecycleBuildActionExecuter;
+import org.gradle.internal.buildprocess.execution.SessionFailureReportingActionExecuter;
+import org.gradle.internal.buildprocess.execution.SetupLoggingActionExecutor;
+import org.gradle.internal.buildprocess.execution.StartParamsValidatingActionExecuter;
 
 import java.util.List;
 

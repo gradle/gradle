@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider;
+package org.gradle.internal.buildprocess.execution;
 
 import org.gradle.BuildResult;
 import org.gradle.api.logging.Logging;
