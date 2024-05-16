@@ -16,7 +16,6 @@
 package org.gradle.kotlin.dsl
 
 import org.gradle.internal.deprecation.DeprecationLogger
-import org.gradle.internal.deprecation.Documentation
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec
@@ -39,7 +38,7 @@ val PluginDependenciesSpec.`gradle-enterprise`: PluginDependencySpec
         DeprecationLogger.deprecate("The ${PluginDependencySpec::class.simpleName}.`gradle-enterprise` property")
             .withAdvice("Please use 'id(\"com.gradle.develocity\") version \"${AutoAppliedGradleEnterprisePlugin.VERSION}\"' instead.")
             .willBeRemovedInGradle9()
-            .withDocumentation(Documentation.kotlinDslExtensionReference("gradle-enterprise"))
+            .withUpgradeGuideSection(8, "gradle_enterprise_extension_deprecated")
             .nagUser()
         return this.id(AutoAppliedGradleEnterprisePlugin.GRADLE_ENTERPRISE_PLUGIN_ID.id).version(AutoAppliedGradleEnterprisePlugin.VERSION)
     }
