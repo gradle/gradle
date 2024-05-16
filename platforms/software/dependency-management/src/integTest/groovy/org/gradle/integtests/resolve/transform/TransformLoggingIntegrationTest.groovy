@@ -223,7 +223,7 @@ class TransformLoggingIntegrationTest extends AbstractConsoleGroupedTaskFunction
 
         when:
         def block = server.expectConcurrentAndBlock("lib1.jar", "lib2.jar")
-        def build = executer.withTasks(":util:resolveRed").start()
+        def build = executer.withTasks(":util:resolveRed").withArgument("--max-workers=2") start()
         then:
         block.waitForAllPendingCalls()
         poll {
