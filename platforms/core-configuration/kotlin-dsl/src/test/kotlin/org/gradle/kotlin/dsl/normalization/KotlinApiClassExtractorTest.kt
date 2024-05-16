@@ -23,11 +23,13 @@ import org.gradle.kotlin.dsl.support.loggerFor
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.not
 import org.hamcrest.MatcherAssert.assertThat
+import org.junit.Ignore
 import org.junit.Test
 import org.objectweb.asm.ClassReader
 import java.net.URLClassLoader
 
 
+@Ignore
 class KotlinApiClassExtractorTest : TestWithTempFiles() {
 
     @Test

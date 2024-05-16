@@ -61,8 +61,8 @@ abstract class KotlinDslCompilerPlugins : Plugin<Project> {
                             jvmTarget.set(this@kotlinDslPluginOptions.jvmTarget.map { JvmTarget.fromTarget(it) })
                         }
                     }
-                    apiVersion.set(KotlinVersion.KOTLIN_1_8)
-                    languageVersion.set(KotlinVersion.KOTLIN_1_8)
+                    apiVersion.set(KotlinVersion.KOTLIN_2_0)
+                    languageVersion.set(KotlinVersion.KOTLIN_2_0)
                     freeCompilerArgs.addAll(KotlinDslPluginSupport.kotlinCompilerArgs)
                 }
                 kotlinCompile.setWarningRewriter(ExperimentalCompilerWarningSilencer(listOf(
