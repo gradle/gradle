@@ -39,9 +39,7 @@ apply(from = "gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
 
 val architectureElements = mutableListOf<ArchitectureElementBuilder>()
 
-// If you include a new subproject here, you will need to execute the
-// ./gradlew generateSubprojectsInfo
-// task to update metadata about the build for CI
+// If you include a new subproject here, consult internal documentation "Adding a new Build Tool subproject" page
 
 unassigned {
     subproject("distributions-dependencies") // platform for dependency versions
