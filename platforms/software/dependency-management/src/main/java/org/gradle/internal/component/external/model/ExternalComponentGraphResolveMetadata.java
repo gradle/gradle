@@ -35,13 +35,21 @@ public interface ExternalComponentGraphResolveMetadata extends ComponentGraphRes
 
     /**
      * Returns the set of variants of this component to use for variant aware resolution of the dependency graph nodes.
-     * May be empty, in which case selection falls back to the legacy configurations available via {@link #getConfiguration(String)}.
-     * The component should provide a configuration called {@value Dependency#DEFAULT_CONFIGURATION}.
+     * May be empty, in which case selection falls back to an ecosystem-specific selection strategy.
      */
     List<? extends VariantGraphResolveMetadata> getVariantsForGraphTraversal();
 
+    /**
+     * Returns the names of all legacy configurations for this component.
+     * May be empty, in which case the component should provide at least one variant via {@link #getVariantsForGraphTraversal()}.
+     */
     Set<String> getConfigurationNames();
 
+    /**
+     * Get a configuration by name.
+     *
+     * <p>Configurations are a legacy concept. Only ivy components should expose configurations.</p>
+     */
     @Nullable
     ConfigurationGraphResolveMetadata getConfiguration(String name);
 

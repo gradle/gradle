@@ -38,6 +38,9 @@ public interface LocalComponentGraphResolveState extends ComponentGraphResolveSt
     @Override
     LocalComponentGraphResolveMetadata getMetadata();
 
+    /**
+     * Copies this state, but with the new component ID and the artifacts transformed by the given transformer.
+     */
     LocalComponentGraphResolveState copy(ComponentIdentifier newComponentId, Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> transformer);
 
     /**
