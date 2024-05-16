@@ -14,7 +14,7 @@ dependencies {
     api(projects.loggingApi)
     api(projects.serialization)
     api(projects.time)
-    api(projects.workerProcesses)
+    api(projects.workerMain)
 
     api(libs.jsr305)
 

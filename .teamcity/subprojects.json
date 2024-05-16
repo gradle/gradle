@@ -1155,8 +1155,8 @@
     "crossVersionTests": false
   },
   {
-    "name": "worker-processes",
-    "path": "platforms/core-execution/worker-processes",
+    "name": "worker-main",
+    "path": "platforms/core-execution/worker-main",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false

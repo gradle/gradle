@@ -57,7 +57,7 @@
 				},
 				"subprojects":[
 					"testing-jvm",
-					"worker-processes",
+					"worker-main",
 					"files",
 					"java-language-extensions",
 					"build-cache-packaging",
@@ -360,7 +360,7 @@
 				},
 				"subprojects":[
 					"code-quality",
-					"worker-processes",
+					"worker-main",
 					"files",
 					"java-language-extensions",
 					"build-cache-packaging",
@@ -612,7 +612,7 @@
 				},
 				"subprojects":[
 					"tooling-api",
-					"worker-processes",
+					"worker-main",
 					"files",
 					"java-language-extensions",
 					"build-cache-packaging",
@@ -890,7 +890,7 @@
 				},
 				"subprojects":[
 					"scala",
-					"worker-processes",
+					"worker-main",
 					"files",
 					"java-language-extensions",
 					"build-cache-packaging",
@@ -1376,7 +1376,7 @@
 				},
 				"subprojects":[
 					"tooling-api",
-					"worker-processes",
+					"worker-main",
 					"files",
 					"java-language-extensions",
 					"build-cache-packaging",
@@ -2787,7 +2787,7 @@
 					"language-java",
 					"input-tracking",
 					"base-ide-plugins",
-					"worker-processes",
+					"worker-main",
 					"files",
 					"java-language-extensions",
 					"build-cache-packaging",

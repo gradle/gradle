@@ -147,7 +147,7 @@ val core = platform("core") {
         subproject("hashing")
         subproject("persistent-cache")
         subproject("snapshots")
-        subproject("worker-processes")
+        subproject("worker-main")
         subproject("workers")
     }
 }

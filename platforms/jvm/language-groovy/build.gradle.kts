@@ -27,7 +27,7 @@ dependencies {
     api(project(":toolchains-jvm"))
     api(project(":toolchains-jvm-shared"))
     api(project(":workers"))
-    api(project(":worker-processes"))
+    api(project(":worker-main"))
 
     api(libs.inject)
     api(libs.jsr305)
