@@ -326,6 +326,15 @@ public enum JavaVersion {
         return String.valueOf(ordinal() + 1);
     }
 
+    /**
+     * Returns the major version number.
+     *
+     * @since 8.9
+     */
+    public int getMajorVersionNumber() {
+        return ordinal() + 1;
+    }
+
     private static JavaVersion getVersionForMajor(int major) {
         return major >= values().length ? JavaVersion.VERSION_HIGHER : values()[major - 1];
     }
