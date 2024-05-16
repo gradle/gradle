@@ -279,6 +279,20 @@ In implementing this spec, we have introduced the following breaking changes to 
 
 - The `label(String)` and `description(String)` methods have been replaced with the `id(String, String)` method and its overloaded variants.
 
+[[testing_gradle_8_8_build_with_test_kit]]
+==== Testing Gradle build with TestKit using older Gradle version
+
+Testing a Gradle 8.8 build with TestKit, when the version of Gradle used to run the tests is lower than 8.8, could result in problems with tested build like:
+
+- Environment variables not passed to Gradle build
+- Toolchain discovery failures
+- File system watching not working
+
+This happens because Gradle 8.7 and earlier versions set `org.gradle.native=false` for a test process.
+While previous versions ignored that flag, Gradle 8.8 correctly reads `org.gradle.native` flag, and thus disables native services.
+
+To fix this issue, you should use Gradle 8.8 to run the tests.
+
 ==== Upgrade to Groovy 3.0.21
 
 Groovy has been updated to https://groovy-lang.org/changelogs/changelog-3.0.21.html[Groovy 3.0.21].
