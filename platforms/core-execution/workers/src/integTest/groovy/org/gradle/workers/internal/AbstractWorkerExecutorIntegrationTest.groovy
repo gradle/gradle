@@ -26,6 +26,7 @@ abstract class AbstractWorkerExecutorIntegrationTest extends AbstractIntegration
 
     def setup() {
         fixture.prepareTaskTypeUsingWorker()
+        executer.withArgument("--max-workers=4")
     }
 
     void assertWorkerExecuted(String taskName) {
