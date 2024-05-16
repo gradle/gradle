@@ -33,6 +33,7 @@ dependencies {
     implementation(projects.time)
     implementation(project(":enterprise-logging"))
     implementation(project(":enterprise-operations"))
+    implementation(project(":daemon-services"))
     implementation(project(":logging"))
 
     implementation(libs.slf4jApi)

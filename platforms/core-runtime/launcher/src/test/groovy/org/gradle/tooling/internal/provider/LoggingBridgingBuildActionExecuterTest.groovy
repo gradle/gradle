@@ -17,6 +17,7 @@ package org.gradle.tooling.internal.provider
 
 import org.gradle.api.logging.LogLevel
 import org.gradle.initialization.BuildRequestContext
+import org.gradle.internal.daemon.client.execution.ClientBuildRequestContext
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.launcher.exec.BuildActionExecutor
@@ -27,7 +28,7 @@ class LoggingBridgingBuildActionExecuterTest extends Specification {
     final BuildActionExecutor<ConnectionOperationParameters, BuildRequestContext> target = Mock()
     final LoggingManagerInternal loggingManager = Mock()
     final BuildAction action = Mock()
-    final BuildRequestContext buildRequestContext = Mock()
+    final ClientBuildRequestContext buildRequestContext = Mock()
     final ConnectionOperationParameters parameters = Stub()
     final ProviderOperationParameters providerParameters = Stub()
 

@@ -86,6 +86,7 @@ dependencies {
     implementation(project(":build-state"))
     implementation(project(":cli"))
     implementation(project(":daemon-protocol"))
+    implementation(project(":daemon-services"))
     implementation(project(":enterprise-operations"))
     implementation(project(":enterprise-logging"))
     implementation(project(":files"))

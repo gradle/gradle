@@ -42,7 +42,8 @@ public class BuildProcessState implements Closeable {
         ServiceRegistryBuilder builder = ServiceRegistryBuilder.builder()
             .scopeStrictly(Scope.Global.class)
             .displayName("Global services")
-            .provider(new GlobalScopeServices(longLiving, agentStatus, additionalModuleClassPath));
+            .provider(new GlobalScopeServices(longLiving, agentStatus, additionalModuleClassPath))
+            .provider(new BuildProcessScopeServices());
         for (ServiceRegistry parent : parents) {
             builder.parent(parent);
         }

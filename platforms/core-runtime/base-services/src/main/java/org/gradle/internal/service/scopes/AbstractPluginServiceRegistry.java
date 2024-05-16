@@ -33,6 +33,10 @@ public class AbstractPluginServiceRegistry implements PluginServiceRegistry {
     }
 
     @Override
+    public void registerCrossBuildSessionServices(ServiceRegistration registration) {
+    }
+
+    @Override
     public void registerBuildSessionServices(ServiceRegistration registration) {
 
     }
