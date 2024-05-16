@@ -19,6 +19,34 @@ package org.gradle.internal.declarativedsl.settings
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec implements SoftwareTypeFixture {
+    def "can add to conventional dependencies for a configuration in a project"() {
+        given:
+        withSoftwareTypePluginThatExposesExtensionWithDependencies().prepareToExecute()
+
+        file("foo").createDir()
+        file("settings.gradle.dcl") << getDeclarativeSettingsScriptThatSetsConventions(
+            dependencies(implementation("org.apache.commons:commons-lang3:3.4")),
+            """
+            dependencyResolutionManagement {
+                repositories {
+                    mavenCentral()
+                }
+            }
+            """
+        )
+
+        file("build.gradle.dcl") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(
+            //dependencies(implementation("org.apache.commons:commons-lang3:3.4", "com.google.guava:guava:30.1-jre")) // Works
+            dependencies(implementation("com.google.guava:guava:30.1-jre")) // Fails
+        )
+
+        when:
+        run(":printTestSoftwareTypeExtensionWithDependenciesConfiguration", ":build")
+
+        then:
+        outputContains("implementation = ${externalDependency('org.apache.commons', 'commons-lang3', '3.4')}, ${externalDependency('com.google.guava', 'guava', '30.1-jre')}")
+    }
+
     def "can configure build-level conventions for property objects in a software type (#testCase)"() {
         given:
         withSoftwareTypePlugins().prepareToExecute()
@@ -259,7 +287,7 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
         """
     }
 
-    static String getDeclarativeSettingsScriptThatSetsConventions(String configuration="") {
+    static String getDeclarativeSettingsScriptThatSetsConventions(String conventionConfiguration="", String additionalConfiguration="") {
         return """
             pluginManagement {
                 includeBuild("plugins")
@@ -269,8 +297,10 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
             }
 
             testSoftwareType {
-                ${configuration}
+                ${conventionConfiguration}
             }
+
+            ${additionalConfiguration}
         """
     }
 }

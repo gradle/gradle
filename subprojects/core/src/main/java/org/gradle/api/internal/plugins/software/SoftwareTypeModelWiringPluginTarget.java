@@ -121,6 +121,9 @@ public class SoftwareTypeModelWiringPluginTarget implements PluginTarget {
                     Provider<? extends Iterable<? extends T>> conventionProvider = Cast.uncheckedCast(convention);
                     if (model != null && conventionProvider.isPresent()) {
                         model.convention(conventionProvider);
+                        // Potential fix #1
+//                        Provider<? extends Iterable <? extends T>> conventionMultipleValues = Cast.uncheckedCast(conventionProvider);
+//                        model.addAll(conventionMultipleValues.get());
                     }
                 }
             }

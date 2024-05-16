@@ -86,6 +86,7 @@ public abstract class DefaultDependencyCollector implements DependencyCollector 
     }
 
     private <D extends Dependency> void doAddEager(D dependency, @Nullable Action<? super D> config) {
+        //getDependencies().append(applyConfiguration(dependency, config)); // Potential fix #2
         getDependencies().add(applyConfiguration(dependency, config));
     }
 
