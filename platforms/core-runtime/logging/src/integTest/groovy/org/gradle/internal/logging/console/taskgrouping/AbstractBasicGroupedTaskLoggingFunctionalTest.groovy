@@ -31,6 +31,12 @@ abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractCon
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
 
+    @Override
+    def setup() {
+        // default for CC and parallel executers may be single worker
+        args("--max-workers=4")
+    }
+
     def "multi-project build tasks logs are grouped"() {
         server.start()
 
@@ -181,7 +187,7 @@ abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractCon
         when:
         def waiting = server.expectConcurrentAndBlock("a-waiting", "b-waiting")
         def done = server.expectAndBlock("b-done")
-        def build = executer.withArguments("--parallel").withTasks("run").start()
+        def build = executer.withArguments("--parallel", "--max-workers=4").withTasks("run").start()
 
         waiting.waitForAllPendingCalls()
         waiting.release("b-waiting")
