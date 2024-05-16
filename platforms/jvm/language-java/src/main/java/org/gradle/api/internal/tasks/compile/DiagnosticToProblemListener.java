@@ -97,6 +97,7 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
         String resourceName = diagnostic.getSource() != null ? getPath(diagnostic.getSource()) : null;
         int line = clampLocation(diagnostic.getLineNumber());
         int column = clampLocation(diagnostic.getColumnNumber());
+        int position = clampLocation(diagnostic.getPosition());
         int start = clampLocation(diagnostic.getStartPosition());
         int end = clampLocation(diagnostic.getEndPosition());
 
@@ -104,14 +105,14 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
         if (resourceName != null) {
             spec.fileLocation(resourceName);
             // If we know the line ...
-            if (line > 0) {
+            if (0 < line) {
                 // ... and the column ...
-                if (column > 0) {
+                if (0 < column) {
                     // ... and we know how long the error is (i.e. end - start)
-                    // (end should be greater than start, so we can prevent negative lengths)
-                    if (0 < start && start <= end) {
+                    // (documentation says that getEndPosition() will be NOPOS if and only if the getPosition() is NOPOS)
+                    if (0 < position) {
                         // ... we can report the line, column, and extent ...
-                        spec.lineInFileLocation(resourceName, line, column, end - start);
+                        spec.lineInFileLocation(resourceName, line, column, end - position);
                     } else {
                         // ... otherwise we can still report the line and column
                         spec.lineInFileLocation(resourceName, line, column);
@@ -124,9 +125,10 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
 
             // If we know the offsets ...
             // (offset doesn't require line and column to be set, hence the separate check)
-            if (0 < start && start <= end) {
+            // (documentation says that getEndPosition() will be NOPOS iff getPosition() is NOPOS)
+            if (0 < position) {
                 // ... we can report the start and extent
-                spec.offsetInFileLocation(resourceName, start, end - start);
+                spec.offsetInFileLocation(resourceName, position, end - position);
             }
         }
     }

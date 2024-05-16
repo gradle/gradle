@@ -150,7 +150,7 @@ class DiagnosticToProblemListenerTest extends Specification {
         0 * spec.offsetInFileLocation(_, _, _, _)
     }
 
-    def "when both start and end are defined, an offset location is reported"() {
+    def "when both start, position, and end are defined, an offset location is reported"() {
         given:
         def diagnostic = Mock(Diagnostic)
         diagnostic.kind >> Diagnostic.Kind.ERROR
@@ -160,7 +160,9 @@ class DiagnosticToProblemListenerTest extends Specification {
         diagnostic.lineNumber >> 1
         diagnostic.columnNumber >> 1
         // Start is defined ...
-        diagnostic.startPosition >> 10
+        diagnostic.startPosition >> 5
+        // ... and so is position
+        diagnostic.position >> 10
         // ... and so is end
         diagnostic.endPosition >> 20
 
