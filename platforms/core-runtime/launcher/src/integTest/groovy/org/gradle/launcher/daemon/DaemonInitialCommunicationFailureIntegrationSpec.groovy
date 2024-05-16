@@ -20,6 +20,7 @@ package org.gradle.launcher.daemon
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.internal.remote.internal.inet.InetAddressFactory
 import org.gradle.launcher.daemon.logging.DaemonMessages
+import org.gradle.test.fixtures.Flaky
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.junit.Rule
@@ -38,6 +39,7 @@ class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegration
     @Rule TestServer server = new TestServer()
 
     @Issue("GRADLE-2444")
+    @Flaky(because = "https://github.com/gradle/gradle-private/issues/4202")
     def "behaves if the registry contains connectable port without daemon on the other end"() {
         when:
         buildSucceeds()
