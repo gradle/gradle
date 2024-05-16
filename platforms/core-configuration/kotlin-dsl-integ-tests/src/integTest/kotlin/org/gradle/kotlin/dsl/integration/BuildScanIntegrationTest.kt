@@ -54,7 +54,7 @@ class BuildScanIntegrationTest : AbstractKotlinIntegrationTest() {
         executer.expectDocumentedDeprecationWarning(
             "The PluginDependencySpec.`gradle-enterprise` property has been deprecated. " +
                 "This is scheduled to be removed in Gradle 9.0. Please use 'id(\"com.gradle.develocity\") version \"${AutoAppliedGradleEnterprisePlugin.VERSION}\"' instead. " +
-                "For more information, please refer to https://docs.gradle.org/current/kotlin-dsl/gradle/org.gradle.kotlin.dsl/gradle-enterprise.html in the Gradle documentation.")
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#gradle_enterprise_extension_deprecated")
         executer.expectDeprecationWarning(
             "WARNING: The following functionality has been deprecated and will be removed in the next major release of the Develocity Gradle plugin. " +
                 "Run with '-Ddevelocity.deprecation.captureOrigin=true' to see where the deprecated functionality is being used. " +
