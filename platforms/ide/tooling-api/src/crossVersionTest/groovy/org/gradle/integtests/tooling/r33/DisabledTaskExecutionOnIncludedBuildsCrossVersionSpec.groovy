@@ -18,12 +18,10 @@ package org.gradle.integtests.tooling.r33
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.model.gradle.BuildInvocations
 
-@ToolingApiVersion('>=3.3')
 @TargetGradleVersion('>=3.3')
 class DisabledTaskExecutionOnIncludedBuildsCrossVersionSpec extends ToolingApiSpecification {
 

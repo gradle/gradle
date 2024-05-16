@@ -18,12 +18,10 @@ package org.gradle.integtests.tooling.r70
 
 import org.gradle.integtests.tooling.TestLauncherSpec
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.TestLauncher
 import spock.lang.Timeout
 
 @Timeout(120)
-@ToolingApiVersion('>=6.1')
 @TargetGradleVersion(">=7.0")
 /**
  * @see org.gradle.integtests.tooling.r88.TestDisplayNameJUnit4CrossVersionSpec and

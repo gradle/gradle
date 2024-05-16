@@ -23,7 +23,7 @@ import org.gradle.tooling.model.idea.IdeaProject
 
 import static org.gradle.plugins.ide.tooling.r210.ConventionsExtensionsCrossVersionFixture.javaSourceCompatibility
 
-@TargetGradleVersion(">=2.12")
+@TargetGradleVersion(">=3.0")
 class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
 
     def setup() {

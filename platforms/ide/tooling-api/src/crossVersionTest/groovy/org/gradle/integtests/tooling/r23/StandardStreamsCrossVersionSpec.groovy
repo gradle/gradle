@@ -16,10 +16,9 @@
 
 package org.gradle.integtests.tooling.r23
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+
 import org.gradle.integtests.tooling.fixture.TestOutputStream
 import org.gradle.integtests.tooling.fixture.ToolingApiLoggingSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.RedirectStdOutAndErr
@@ -99,33 +98,6 @@ task log {
         and:
         !stdOutAndErr.stdOut.contains("logging")
         !stdOutAndErr.stdErr.contains("logging")
-    }
-
-    @ToolingApiVersion(">=3.0 <4.0")
-    @TargetGradleVersion(">=2.6 <4.0")
-    def "can specify color output"() {
-        file("build.gradle") << """
-task log {
-    outputs.upToDateWhen { true }
-}
-"""
-
-        when:
-        def output = new TestOutputStream()
-        withConnection { ProjectConnection connection ->
-            def build = connection.newBuild()
-            build.standardOutput = output
-            build.colorOutput = true
-            build.forTasks("log")
-            build.run()
-        }
-
-        then:
-        output.toString().contains("UP-TO-DATE" + escapeHeader)
-
-        and:
-        !stdOutAndErr.stdOut.contains(escapeHeader)
-        !stdOutAndErr.stdErr.contains(escapeHeader)
     }
 
     def "can specify color output when output is being ignored"() {

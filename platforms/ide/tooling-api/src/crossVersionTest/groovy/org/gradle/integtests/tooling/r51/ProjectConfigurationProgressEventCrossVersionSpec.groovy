@@ -20,7 +20,6 @@ import org.gradle.api.Action
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
@@ -39,7 +38,6 @@ import java.util.concurrent.TimeUnit
 
 import static org.gradle.integtests.tooling.fixture.TextUtil.escapeString
 
-@ToolingApiVersion('>=5.1')
 @TargetGradleVersion('>=5.1')
 class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecification {
 

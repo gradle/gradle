@@ -18,7 +18,6 @@ package org.gradle.integtests.tooling.r44
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildActionFailureException
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ResultHandler
@@ -32,16 +31,16 @@ class ParameterizedToolingModelCrossVersionSpec extends ToolingApiSpecification 
             import org.gradle.tooling.provider.model.ToolingModelBuilder
             import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
             import javax.inject.Inject
-            
+
             allprojects {
                 apply plugin: CustomPlugin
             }
-            
+
             interface CustomParameter {
                 void setValue(String str);
                 String getValue();
             }
-            
+
             class DefaultCustomModel implements Serializable {
                 private final boolean builtWithParameter;
                 private final String parameterValue;
@@ -64,24 +63,24 @@ class ParameterizedToolingModelCrossVersionSpec extends ToolingApiSpecification 
                     return parameterValue;
                 }
             }
-            
+
             class DefaultCustomModel2 implements Serializable {
                 String getValue() {
                     return "myValue";
                 }
             }
-            
+
             class CustomPlugin implements Plugin<Project> {
                 @Inject
                 CustomPlugin(ToolingModelBuilderRegistry registry) {
                     registry.register(new CustomBuilder());
                     registry.register(new CustomBuilder2());
                 }
-            
+
                 public void apply(Project project) {
                 }
             }
-            
+
             class CustomBuilder2 implements ToolingModelBuilder {
                 boolean canBuild(String modelName) {
                     return modelName == '${CustomModel2.name}'
@@ -106,7 +105,7 @@ class ParameterizedToolingModelCrossVersionSpec extends ToolingApiSpecification 
         } else {
             buildFile << """
                 import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder
-                
+
                 class CustomBuilder implements ParameterizedToolingModelBuilder<CustomParameter> {
                     boolean canBuild(String modelName) {
                         return modelName == '${CustomModel.name}'
@@ -126,7 +125,6 @@ class ParameterizedToolingModelCrossVersionSpec extends ToolingApiSpecification 
     }
 
     @TargetGradleVersion(">=4.4")
-    @ToolingApiVersion(">=4.4")
     def "can get models with parameters"() {
         when:
         def model = withConnection { connection ->
@@ -150,8 +148,7 @@ class ParameterizedToolingModelCrossVersionSpec extends ToolingApiSpecification 
         model.getParameterValue() == "noParameter"
     }
 
-    @TargetGradleVersion(">=2.6 <4.4")
-    @ToolingApiVersion(">=4.4")
+    @TargetGradleVersion(">=3.0 <4.4")
     def "error when get model with parameters for old gradle versions"() {
         def handler = Mock(ResultHandler)
         def version = targetDist.version.version
@@ -173,7 +170,6 @@ class ParameterizedToolingModelCrossVersionSpec extends ToolingApiSpecification 
     }
 
     @TargetGradleVersion(">=4.4")
-    @ToolingApiVersion(">=4.4")
     def "can use one model output as input for another"() {
         when:
         def model = withConnection { connection ->
@@ -190,7 +186,6 @@ class ParameterizedToolingModelCrossVersionSpec extends ToolingApiSpecification 
     }
 
     @TargetGradleVersion(">=4.4")
-    @ToolingApiVersion(">=4.4")
     def "error when passing parameter to non parameterized builder"() {
         def handler = Mock(ResultHandler)
 
