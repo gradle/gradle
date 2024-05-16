@@ -135,6 +135,7 @@ class CompositeBuildTaskFailureIntegrationTest extends AbstractCompositeBuildInt
         server.expectConcurrent("buildA", "buildB")
 
         when:
+        executer.withArgument("--max-workers=4")
         fails(buildA, "assemble")
 
         then:
