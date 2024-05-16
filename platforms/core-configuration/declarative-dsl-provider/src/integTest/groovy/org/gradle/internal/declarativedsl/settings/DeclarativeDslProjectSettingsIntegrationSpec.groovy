@@ -205,17 +205,16 @@ class DeclarativeDslProjectSettingsIntegrationSpec extends AbstractIntegrationSp
     def "reports reassigned value"() {
         given:
         file("settings.gradle.dcl") << """
-            rootProject.name = "foo"
-            rootProject.name = "bar"
-            rootProject.name = "baz"
-            include(":baz")
-        """
+        rootProject.name = "foo"
+        rootProject.name = "bar"
+        rootProject.name = "baz"
+        include(":baz")""".stripIndent().trim()
 
         when:
         def failure = fails(":projects")
 
         then:
-        failure.assertHasErrorOutput('2:13: Value reassigned in (this:(top-level-object)).rootProject.name := "bar"')
-        failure.assertHasErrorOutput('3:13: Value reassigned in (this:(top-level-object)).rootProject.name := "baz"')
+        failure.assertHasErrorOutput('2:1: Value reassigned in (this:(top-level-object)).rootProject.name := "bar"')
+        failure.assertHasErrorOutput('3:1: Value reassigned in (this:(top-level-object)).rootProject.name := "baz"')
     }
 }
