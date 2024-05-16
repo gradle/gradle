@@ -299,7 +299,7 @@ class GradleBuildTaskIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         runs.times {
-            executer.withArgument("--parallel")
+            executer.withArgument("--parallel").withArgument("--max-workers=4")
             run 'otherBuild'
         }
 
