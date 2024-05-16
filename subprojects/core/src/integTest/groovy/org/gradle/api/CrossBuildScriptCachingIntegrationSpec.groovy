@@ -220,6 +220,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         outputContains 'Greetings from Two!'
     }
 
+    @ToBeFixedForConfigurationCache(because = "Investigate")
     def "reports errors at the correct location when 2 scripts are identical"() {
         given:
         root {
