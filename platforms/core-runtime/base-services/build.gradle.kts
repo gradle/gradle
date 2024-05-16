@@ -51,12 +51,12 @@ dependencies {
     api(projects.concurrent)
     api(projects.javaLanguageExtensions)
     api(projects.fileTemp)
+    api(projects.serviceProvider)
     api(project(":hashing"))
     api(project(":build-operations"))
     api(libs.inject)
     api(libs.jsr305)
     api(libs.guava)
-    api(project(":service-provider"))
 
     implementation(projects.io)
     implementation(projects.time)

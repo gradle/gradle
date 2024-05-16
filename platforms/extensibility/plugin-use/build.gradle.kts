@@ -9,6 +9,7 @@ errorprone {
 }
 
 dependencies {
+    api(projects.serviceProvider)
     api(project(":base-services"))
     api(project(":core-api"))
     api(project(":core"))
@@ -18,7 +19,6 @@ dependencies {
     api(project(":logging"))
     api(project(":messaging"))
     api(project(":model-core"))
-    api(project(":service-provider"))
 
     api(libs.guava)
     api(libs.jsr305)

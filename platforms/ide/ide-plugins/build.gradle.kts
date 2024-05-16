@@ -28,13 +28,13 @@ errorprone {
 
 dependencies {
     api(projects.javaLanguageExtensions)
+    api(projects.serviceProvider)
     api(project(":base-ide-plugins"))
     api(project(":base-services"))
     api(project(":core"))
     api(project(":core-api"))
     api(project(":ide"))
     api(project(":platform-jvm"))
-    api(project(":service-provider"))
     api(project(":tooling-api"))
 
     api(libs.groovy)

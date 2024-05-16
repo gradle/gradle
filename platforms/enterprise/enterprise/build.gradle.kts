@@ -11,6 +11,7 @@ errorprone {
 }
 
 dependencies {
+    api(projects.serviceProvider)
     api(project(":build-operations"))
     api(project(":base-services"))
     api(project(":configuration-cache"))
@@ -23,7 +24,6 @@ dependencies {
     api(project(":jvm-services"))
     api(project(":launcher"))
     api(project(":model-core"))
-    api(project(":service-provider"))
     api(project(":snapshots"))
     api(project(":testing-jvm"))
     api(project(":time"))

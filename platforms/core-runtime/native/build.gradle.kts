@@ -21,6 +21,7 @@ errorprone {
 }
 
 dependencies {
+    api(projects.serviceProvider)
     api(project(":files"))
 
     api(libs.jsr305)
@@ -28,7 +29,6 @@ dependencies {
 
     api(project(":base-services"))
     api(project(":file-temp"))
-    api(project(":service-provider"))
 
     implementation(projects.javaLanguageExtensions)
 

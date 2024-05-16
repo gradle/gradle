@@ -21,6 +21,7 @@ errorprone {
 dependencies {
     api(projects.javaLanguageExtensions)
     api(projects.serialization)
+    api(projects.serviceProvider)
     api(project(":base-services"))
     api(project(":build-events"))
     api(project(":build-operations"))
@@ -36,7 +37,6 @@ dependencies {
     api(project(":platform-jvm"))
     api(project(":problems-api"))
     api(project(":process-services"))
-    api(project(":service-provider"))
     api(project(":snapshots"))
     api(project(":test-suites-base"))
     api(project(":toolchains-jvm"))

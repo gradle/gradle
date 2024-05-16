@@ -17,6 +17,7 @@ dependencies {
     api(projects.concurrent)
     api(projects.javaLanguageExtensions)
     api(projects.serialization)
+    api(projects.serviceProvider)
     api(project(":build-operations"))
     api(project(":base-services"))
     api(project(":core"))
@@ -26,7 +27,6 @@ dependencies {
     api(project(":model-core"))
     api(project(":plugin-use"))
     api(project(":build-state"))
-    api(project(":service-provider"))
 
     api(libs.inject)
     api(libs.jsr305)

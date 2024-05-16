@@ -13,6 +13,7 @@ errorprone {
 }
 
 dependencies {
+    api(projects.serviceProvider)
     api(project(":build-option"))
     api(project(":core-api"))
     api(project(":core"))
@@ -23,7 +24,6 @@ dependencies {
     api(project(":language-jvm"))
     api(project(":problems-api"))
     api(project(":platform-base"))
-    api(project(":service-provider"))
     api(project(":toolchains-jvm"))
     api(project(":toolchains-jvm-shared"))
     api(project(":workers"))

@@ -76,6 +76,7 @@ dependencies {
     api(projects.concurrent)
     api(projects.javaLanguageExtensions)
     api(projects.serialization)
+    api(projects.serviceProvider)
     api(projects.time)
     api(project(":base-services"))
     api(project(":base-services-groovy"))
@@ -110,7 +111,6 @@ dependencies {
     api(project(":problems-api"))
     api(project(":process-services"))
     api(project(":resources"))
-    api(project(":service-provider"))
     api(project(":snapshots"))
     api(project(":worker-processes"))
 

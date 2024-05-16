@@ -13,13 +13,13 @@ errorprone {
 }
 dependencies {
     api(projects.javaLanguageExtensions)
+    api(projects.serviceProvider)
     api(project(":base-services"))
     api(project(":core"))
     api(project(":core-api"))
     api(project(":files"))
     api(project(":logging"))
     api(project(":model-core"))
-    api(project(":service-provider"))
 
     api(libs.guava)
     api(libs.inject)

@@ -13,9 +13,9 @@ errorprone {
 dependencies {
     api(projects.concurrent)
     api(projects.javaLanguageExtensions)
+    api(projects.serviceProvider)
     api(project(":core-api"))
     api(project(":resources"))
-    api(project(":service-provider"))
 
     api(libs.jsch)
 

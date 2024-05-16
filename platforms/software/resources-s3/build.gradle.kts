@@ -15,11 +15,11 @@ errorprone {
 }
 
 dependencies {
+    api(projects.serviceProvider)
     api(project(":core"))
     api(project(":core-api"))
     api(project(":resources"))
     api(project(":resources-http"))
-    api(project(":service-provider"))
 
     api(libs.awsS3Core)
     api(libs.awsS3S3)
@@ -31,7 +31,7 @@ dependencies {
     }
     api(libs.guava)
 
-    implementation(project(":base-services"))
+    implementation(projects.baseServices)
     implementation(project(":hashing"))
 
     implementation(libs.commonsLang)

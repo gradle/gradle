@@ -27,6 +27,7 @@ dependencies {
     api(libs.maven3Settings)
 
     api(projects.javaLanguageExtensions)
+    api(projects.serviceProvider)
     api(project(":base-services"))
     api(project(":core"))
     api(project(":core-api"))
@@ -37,7 +38,6 @@ dependencies {
     api(project(":toolchains-jvm-shared"))
     api(project(":workers"))
     api(project(":daemon-services"))
-    api(project(":service-provider"))
 
     implementation(project(":logging-api"))
     implementation(project(":platform-native"))

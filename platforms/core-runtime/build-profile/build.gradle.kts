@@ -13,12 +13,12 @@ errorprone {
 
 dependencies {
     api(projects.javaLanguageExtensions)
+    api(projects.serviceProvider)
     api(projects.time)
     api(project(":base-services"))
     api(project(":core"))
     api(project(":core-api"))
     api(project(":enterprise-logging"))
-    api(project(":service-provider"))
 
     implementation(project(":logging"))
     implementation(project(":logging-api"))

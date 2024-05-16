@@ -14,11 +14,11 @@ errorprone {
 
 dependencies {
     api(projects.javaLanguageExtensions)
+    api(projects.serviceProvider)
     api(project(":core-api"))
     api(project(":core"))
     api(project(":logging"))
     api(project(":resources"))
-    api(project(":service-provider"))
 
     api(libs.commonsHttpclient)
     api(libs.httpcore)

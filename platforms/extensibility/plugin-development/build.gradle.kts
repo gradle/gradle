@@ -30,6 +30,7 @@ dependencies {
     api(libs.jsr305)
     api(libs.inject)
 
+    implementation(projects.serviceProvider)
     implementation(project(":dependency-management"))
     implementation(project(":execution"))
     implementation(project(":hashing"))
@@ -48,7 +49,6 @@ dependencies {
     implementation(project(":plugin-use"))
     implementation(project(":process-services"))
     implementation(project(":publish"))
-    implementation(project(":service-provider"))
     implementation(project(":testing-jvm"))
     implementation(project(":toolchains-jvm"))
 

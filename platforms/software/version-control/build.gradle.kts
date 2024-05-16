@@ -14,12 +14,12 @@ errorprone {
 
 dependencies {
     api(projects.concurrent)
+    api(projects.serviceProvider)
     api(project(":base-services"))
     api(project(":core"))
     api(project(":core-api"))
     api(project(":dependency-management"))
     api(project(":file-collections"))
-    api(project(":service-provider"))
 
     api(libs.jgit)
     api(libs.inject)

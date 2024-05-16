@@ -31,6 +31,7 @@ dependencies {
     api(project(":serialization"))
     api(project(":time"))
 
+    implementation(projects.serviceProvider)
     implementation(project(":build-state"))
     implementation(project(":file-collections"))
     implementation(project(":file-temp"))
@@ -40,7 +41,6 @@ dependencies {
     implementation(project(":daemon-protocol"))
     implementation(project(":daemon-services"))
     implementation(project(":native"))
-    implementation(project(":service-provider"))
 
     testImplementation(project(":testing-base"))
 

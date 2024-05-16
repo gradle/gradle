@@ -13,6 +13,7 @@ errorprone {
 }
 
 dependencies {
+    api(projects.serviceProvider)
     api(project(":base-services"))
     api(project(":core"))
     api(project(":core-api"))
@@ -22,7 +23,6 @@ dependencies {
     api(project(":logging"))
     api(project(":logging-api"))
     api(project(":model-core"))
-    api(project(":service-provider"))
 
     api(libs.groovy)
     api(libs.inject)

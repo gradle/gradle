@@ -29,6 +29,7 @@ errorprone {
 
 dependencies {
     api(projects.javaLanguageExtensions)
+    api(projects.serviceProvider)
     api(project(":base-services"))
     api(project(":build-operations"))
     api(project(":core"))
@@ -44,7 +45,6 @@ dependencies {
     api(project(":platform-base"))
     api(project(":platform-jvm"))
     api(project(":resources"))
-    api(project(":service-provider"))
     api(project(":toolchains-jvm-shared"))
 
     api(libs.futureKotlin("stdlib"))

@@ -53,6 +53,7 @@ dependencies {
     api(projects.concurrent)
     api(projects.javaLanguageExtensions)
     api(projects.serialization)
+    api(projects.serviceProvider)
     api(project(":base-services"))
     api(project(":build-operations"))
     api(project(":build-option"))
@@ -73,7 +74,6 @@ dependencies {
     api(project(":problems-api"))
     api(project(":resources"))
     api(project(":security"))
-    api(project(":service-provider"))
     api(project(":snapshots"))
 
     api(libs.bouncycastlePgp)
