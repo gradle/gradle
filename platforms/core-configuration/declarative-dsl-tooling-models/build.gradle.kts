@@ -18,7 +18,6 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("gradlebuild.distribution.api-java")
     id("gradlebuild.distribution.api-kotlin")
     id("gradlebuild.publish-public-libraries")
 }
