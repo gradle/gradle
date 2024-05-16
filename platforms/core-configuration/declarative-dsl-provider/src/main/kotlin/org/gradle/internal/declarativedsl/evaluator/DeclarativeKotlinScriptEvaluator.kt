@@ -23,15 +23,18 @@ import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.declarativedsl.analysis.ResolutionError
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 import org.gradle.internal.declarativedsl.analysis.SchemaTypeRefContext
-import org.gradle.internal.declarativedsl.analysis.defaultCodeResolver
+import org.gradle.internal.declarativedsl.analysis.tracingCodeResolver
+import org.gradle.internal.declarativedsl.checks.DocumentCheckFailure
+import org.gradle.internal.declarativedsl.dom.resolvedDocument
+import org.gradle.internal.declarativedsl.dom.toDocument
 import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequence
 import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequenceStep
 import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvaluator.EvaluationContext.ScriptPluginEvaluationContext
 import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvaluator.EvaluationResult.NotEvaluated
+import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure.AssignmentErrors
 import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure.FailuresInLanguageTree
 import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure.FailuresInResolution
 import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure.NoSchemaAvailable
-import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure.UnassignedValuesUsed
 import org.gradle.internal.declarativedsl.language.LanguageTreeResult
 import org.gradle.internal.declarativedsl.language.SingleFailureResult
 import org.gradle.internal.declarativedsl.language.SourceIdentifier
@@ -48,6 +51,7 @@ import org.gradle.internal.declarativedsl.parsing.DefaultLanguageTreeBuilder
 import org.gradle.internal.declarativedsl.parsing.parse
 
 
+internal
 interface DeclarativeKotlinScriptEvaluator {
     fun evaluate(
         target: Any,
@@ -63,7 +67,8 @@ interface DeclarativeKotlinScriptEvaluator {
                 object NoParseResult : StageFailure
                 data class FailuresInLanguageTree(val failures: List<SingleFailureResult>) : StageFailure
                 data class FailuresInResolution(val errors: List<ResolutionError>) : StageFailure
-                data class UnassignedValuesUsed(val usages: List<AssignmentTraceElement.UnassignedValueUsed>) : StageFailure
+                data class DocumentCheckFailures(val failures: List<DocumentCheckFailure>) : StageFailure
+                data class AssignmentErrors(val usages: List<AssignmentTraceElement.FailedToRecordAssignment>) : StageFailure
             }
         } // TODO: make reason more structured
     }
@@ -116,7 +121,7 @@ class DefaultDeclarativeKotlinScriptEvaluator(
 
         val evaluationSchema = step.evaluationSchemaForStep()
 
-        val resolver = defaultCodeResolver(evaluationSchema.analysisStatementFilter)
+        val resolver = tracingCodeResolver(evaluationSchema.analysisStatementFilter)
 
         val languageModel = languageModelFromLightParser(scriptSource)
 
@@ -128,10 +133,16 @@ class DefaultDeclarativeKotlinScriptEvaluator(
             failureReasons += FailuresInResolution(resolution.errors)
         }
 
+        val document = resolvedDocument(evaluationSchema.analysisSchema, resolver.trace, languageModel.toDocument())
+        val checkResults = evaluationSchema.documentChecks.flatMap { it.detectFailures(document) }
+        if (checkResults.isNotEmpty()) {
+            failureReasons += NotEvaluated.StageFailure.DocumentCheckFailures(checkResults)
+        }
+
         val trace = assignmentTrace(resolution)
-        val unassignedValueUsages = trace.elements.filterIsInstance<AssignmentTraceElement.UnassignedValueUsed>()
-        if (unassignedValueUsages.isNotEmpty()) {
-            failureReasons += UnassignedValuesUsed(unassignedValueUsages)
+        val assignmentErrors = trace.elements.filterIsInstance<AssignmentTraceElement.FailedToRecordAssignment>()
+        if (assignmentErrors.isNotEmpty()) {
+            failureReasons += AssignmentErrors(assignmentErrors)
         }
         if (failureReasons.isNotEmpty()) {
             return NotEvaluated(failureReasons)

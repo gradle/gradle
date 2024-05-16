@@ -26,8 +26,9 @@ dependencies {
     api(project(":declarative-dsl-core"))
     api(project(":declarative-dsl-tooling-models"))
     api(libs.futureKotlin("stdlib"))
-    api(libs.inject)
 
+
+    implementation(libs.inject)
     testImplementation(libs.mockitoKotlin2)
 
     implementation(projects.javaLanguageExtensions)
