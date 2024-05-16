@@ -47,3 +47,4 @@ require(JavaVersion.current() == JavaVersion.VERSION_17) {
 rootProject.name = "gradle-client-root"
 
 include(":gradle-client")
+include(":build-action")

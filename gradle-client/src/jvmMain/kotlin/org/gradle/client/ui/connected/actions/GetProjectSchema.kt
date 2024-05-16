@@ -14,7 +14,7 @@ class GetProjectSchema : GetModelAction<DeclarativeSchemaModel> {
     @Composable
     override fun ColumnScope.ModelContent(model: DeclarativeSchemaModel) {
         Text(
-            text = "Gradle Project",
+            text = "Gradle Project Schema",
             style = MaterialTheme.typography.titleMedium
         )
         Text(
