@@ -22,6 +22,8 @@ import org.gradle.integtests.fixtures.IgnoreVersions
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.internal.jvm.Jvm
 import org.gradle.jvm.toolchain.JdkRepository
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
 import java.nio.file.Files
 import java.nio.file.Path
@@ -33,6 +35,7 @@ import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.singleUrlResolv
 
 // We need to test specifically versions before the toolchain provisioning was fixed.
 @IgnoreVersions({ it.isNonFlakyToolchainProvisioning() })
+@Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
 class ProvisionedJdkReuseCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
 
     JdkRepository jdkRepository
