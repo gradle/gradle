@@ -39,6 +39,7 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 
 object AccessorTest {
@@ -50,8 +51,15 @@ object AccessorTest {
                 x = 123
             }""".trimIndent()
         )
-        assertEquals(123, runtimeInstanceFromResult(schema, resolution, configureLambdas, runtimeCustomAccessors, ::MyReceiver).myHiddenInstance.x)
+        assertEquals(123, runtimeInstanceFromResult(schema, resolution, configureLambdas, runtimeCustomAccessors, ::MyReceiver).myHiddenInstance.value.x)
     }
+
+    @Test
+    fun `triggers the custom accessor with empty block`() {
+        val resolution = schema.resolve("configureCustomInstance { }")
+        assertTrue(runtimeInstanceFromResult(schema, resolution, configureLambdas, runtimeCustomAccessors, ::MyReceiver).myHiddenInstance.isInitialized())
+    }
+
 
     @Test
     fun `accesses receiver from runtime lambda argument mapping to JVM`() {
@@ -73,7 +81,7 @@ object AccessorTest {
     val runtimeCustomAccessors = object : RuntimeCustomAccessors {
         override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessor.Custom): Any? =
             if (receiverObject is MyReceiver && accessor.customAccessorIdentifier == "test")
-                receiverObject.myHiddenInstance
+                receiverObject.myHiddenInstance.value
             else null
     }
 
@@ -87,8 +95,11 @@ object AccessorTest {
                         "configureCustomInstance",
                         emptyList(),
                         false,
-                        FunctionSemanticsInternal.DefaultAccessAndConfigure(ConfigureAccessorInternal.DefaultCustom(Configured::class.toDataTypeRef(), "test"),
-                            FunctionSemanticsInternal.DefaultAccessAndConfigure.DefaultReturnType.DefaultUnit)
+                        FunctionSemanticsInternal.DefaultAccessAndConfigure(
+                            ConfigureAccessorInternal.DefaultCustom(Configured::class.toDataTypeRef(), "test"),
+                            FunctionSemanticsInternal.DefaultAccessAndConfigure.DefaultReturnType.DefaultUnit,
+                            FunctionSemanticsInternal.DefaultConfigureBlockRequirement.DefaultRequired
+                        )
                     )
                 )
             } else emptyList()
@@ -109,17 +120,19 @@ object AccessorTest {
     class MyReceiver {
         val myLambdaReceiver = Configured()
 
+        @Suppress("unused")
         @Configuring
         fun configureLambdaArgument(configure: Configured.() -> Unit) {
             configure(myLambdaReceiver)
         }
 
+        @Suppress("unused")
         @Configuring
         fun configureLambdaArgumentWithCustomInterface(configure: MyFunctionalInterface<Configured>) {
             configure.action(myLambdaReceiver)
         }
 
-        val myHiddenInstance = Configured()
+        val myHiddenInstance = lazy { Configured() }
     }
 
     internal

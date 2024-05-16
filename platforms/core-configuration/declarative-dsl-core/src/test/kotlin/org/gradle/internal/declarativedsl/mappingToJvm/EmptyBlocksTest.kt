@@ -24,12 +24,12 @@ import org.gradle.internal.declarativedsl.schemaBuilder.kotlinFunctionAsConfigur
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 
 object EmptyBlocksTest {
     @Test
-    fun `empty configuring block does not lead to object access`() {
+    fun `empty configuring block leads to object access`() {
         val resolution = schema.resolve(
             """
             configuring { }
@@ -38,22 +38,37 @@ object EmptyBlocksTest {
 
         val result = runtimeInstanceFromResult(schema, resolution, kotlinFunctionAsConfigureLambda, RuntimeCustomAccessors.none, ::TopLevel)
 
-        assertFalse { result.configuredLazy.isInitialized() }
+        assertTrue { result.configuredLazy.isInitialized() }
+    }
+
+    @Test
+    fun `configuring function with no block for Kotlin default param leads to object access`() {
+        val resolution = schema.resolve(
+            """
+            configuring()
+            """.trimIndent()
+        )
+
+        val result = runtimeInstanceFromResult(schema, resolution, kotlinFunctionAsConfigureLambda, RuntimeCustomAccessors.none, ::TopLevel)
+
+        assertTrue { result.configuredLazy.isInitialized() }
     }
 
     @Test
     fun `empty adding block ensures that the object is created`() {
         val resolution = schema.resolve(
             """
+            adding()
             adding { }
             adding { x = 2 }
-            addingWithArg(3) { }
+            addingWithArg(3)
+            addingWithArg(4) { }
             """.trimIndent()
         )
 
         val result = runtimeInstanceFromResult(schema, resolution, kotlinFunctionAsConfigureLambda, RuntimeCustomAccessors.none, ::TopLevel)
 
-        assertEquals(listOf(0, 2, 3), result.added.map { it.x })
+        assertEquals(listOf(0, 0, 2, 3, 4), result.added.map { it.x })
     }
 
 
@@ -67,18 +82,18 @@ object EmptyBlocksTest {
 
         @Suppress("unused")
         @Configuring
-        fun configuring(configure: Inner.() -> Unit) {
-            configuredLazy.value.configure()
+        fun configuring(block: Inner.() -> Unit = { }) {
+            configuredLazy.value.block()
         }
 
         @Adding
-        fun adding(configure: Inner.() -> Unit) =
-            Inner().also(configure).also(added::add)
+        fun adding(block: Inner.() -> Unit = { }) =
+            Inner().also(block).also(added::add)
 
         @Suppress("unused")
         @Adding
-        fun addingWithArg(x: Int, configure: Inner.() -> Unit) =
-            Inner().also(configure).also(added::add).also { it.x = x }
+        fun addingWithArg(x: Int = 100, block: Inner.() -> Unit = { }) =
+            Inner().also(block).also(added::add).also { it.x = x }
     }
 
     class Inner {

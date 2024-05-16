@@ -192,16 +192,14 @@ object FunctionSemanticsInternal {
     @SerialName("accessAndConfigure")
     class DefaultAccessAndConfigure(
         override val accessor: ConfigureAccessor,
-        override val returnType: ReturnType
+        override val returnType: ReturnType,
+        override val configureBlockRequirement: ConfigureBlockRequirement
     ) : AccessAndConfigure {
         override val returnValueType: DataTypeRef
             get() = when (returnType) {
                 is ReturnType.ConfiguredObject -> accessor.objectType
                 is ReturnType.Unit -> DataTypeInternal.DefaultUnitType.ref
             }
-
-        override val configureBlockRequirement: ConfigureBlockRequirement.Required
-            get() = DefaultConfigureBlockRequirement.DefaultRequired
 
         /** Implementations for [ReturnType] */
         object DefaultReturnType {

@@ -47,7 +47,7 @@ object FunctionBinding {
                     param == kFunction.instanceParameter -> put(param, receiver)
                     param == kFunction.extensionReceiverParameter -> put(param, receiver)
 
-                    hasLambda && configureLambdaHandler.getTypeConfiguredByLambda(param.type) != null -> {
+                    (hasLambda || param.isOptional) && configureLambdaHandler.getTypeConfiguredByLambda(param.type) != null -> {
                         val newCaptor = configureLambdaHandler.produceValueCaptor(param.type)
                         check(captor == null) { "multiple lambda argument captors are not supported" }
                         captor = newCaptor
