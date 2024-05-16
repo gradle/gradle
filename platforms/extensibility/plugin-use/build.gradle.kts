@@ -18,6 +18,7 @@ dependencies {
     api(project(":logging"))
     api(project(":messaging"))
     api(project(":model-core"))
+    api(project(":declarative-dsl-api"))
 
     api(libs.guava)
     api(libs.jsr305)

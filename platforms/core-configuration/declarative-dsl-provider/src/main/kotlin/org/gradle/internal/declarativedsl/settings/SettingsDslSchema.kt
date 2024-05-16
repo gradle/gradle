@@ -72,6 +72,7 @@ fun pluginManagementEvaluationSchema(): EvaluationSchema =
         isTopLevelPluginManagementBlock
     )
 
+
 internal
 fun conventionsEvaluationSchema(softwareTypeRegistry: SoftwareTypeRegistry): EvaluationSchema {
     val schemaBuildingComponent = gradleDslGeneralSchemaComponent() +
@@ -84,6 +85,7 @@ fun conventionsEvaluationSchema(softwareTypeRegistry: SoftwareTypeRegistry): Eva
         isConventionsConfiguringCall.or(isSoftwareTypeConfiguringCall)
     )
 }
+
 
 internal
 fun settingsEvaluationSchema(settings: Settings): EvaluationSchema {
@@ -107,7 +109,7 @@ val isTopLevelPluginManagementBlock = isTopLevelElement.implies(isPluginManageme
 
 private
 val ignoreTopLevelPluginsPluginManagementAndConventions = isTopLevelElement.implies(
-        isPluginManagementCall.not()
+    isPluginManagementCall.not()
         .and(isTopLevelPluginsBlock.not())
         .and(isTopLevelConventionsBlock.not())
 )

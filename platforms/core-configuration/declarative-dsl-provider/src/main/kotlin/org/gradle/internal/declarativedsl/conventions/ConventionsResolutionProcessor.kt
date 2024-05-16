@@ -20,17 +20,19 @@ import org.gradle.internal.declarativedsl.analysis.AssignmentRecord
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 
+
 class ConventionsResolutionProcessor {
 
-    fun process(resolutionResult: ResolutionResult) : Map<String, AssignmentRecord> {
+    fun process(resolutionResult: ResolutionResult): Map<String, AssignmentRecord> {
         return resolutionResult.assignments.associateBy { assignment ->
             getSoftwareType(assignment.lhs.receiverObject).function.simpleName
         }
     }
 }
 
-fun getSoftwareType(objectOrigin: ObjectOrigin) : ObjectOrigin.AccessAndConfigureReceiver {
-    when(objectOrigin) {
+
+fun getSoftwareType(objectOrigin: ObjectOrigin): ObjectOrigin.AccessAndConfigureReceiver {
+    when (objectOrigin) {
         is ObjectOrigin.ImplicitThisReceiver -> {
             return getSoftwareType(objectOrigin.resolvedTo)
         }
@@ -50,7 +52,8 @@ fun getSoftwareType(objectOrigin: ObjectOrigin) : ObjectOrigin.AccessAndConfigur
     }
 }
 
-fun isSoftwareType(objectOrigin: ObjectOrigin.AccessAndConfigureReceiver) : Boolean {
+
+fun isSoftwareType(objectOrigin: ObjectOrigin.AccessAndConfigureReceiver): Boolean {
     if (objectOrigin.receiver is ObjectOrigin.ImplicitThisReceiver &&
         (objectOrigin.receiver as ObjectOrigin.ImplicitThisReceiver).resolvedTo is ObjectOrigin.AccessAndConfigureReceiver) {
         val parent = (objectOrigin.receiver as ObjectOrigin.ImplicitThisReceiver).resolvedTo as ObjectOrigin.AccessAndConfigureReceiver

@@ -41,7 +41,6 @@ import org.gradle.internal.declarativedsl.language.SourceIdentifier
 import org.gradle.internal.declarativedsl.mappingToJvm.CompositeCustomAccessors
 import org.gradle.internal.declarativedsl.mappingToJvm.CompositeFunctionResolver
 import org.gradle.internal.declarativedsl.mappingToJvm.CompositePropertyResolver
-import org.gradle.internal.declarativedsl.mappingToJvm.DeclarativeReflectionToObjectConverter
 import org.gradle.internal.declarativedsl.objectGraph.AssignmentResolver
 import org.gradle.internal.declarativedsl.objectGraph.AssignmentTraceElement
 import org.gradle.internal.declarativedsl.objectGraph.AssignmentTracer
@@ -157,7 +156,7 @@ class DefaultDeclarativeKotlinScriptEvaluator(
         val customAccessors = CompositeCustomAccessors(evaluationSchema.runtimeCustomAccessors)
 
         val topLevelReceiver = step.getTopLevelReceiverFromTarget(target)
-        val converter = DeclarativeReflectionToObjectConverter(emptyMap(), topLevelReceiver, functionResolver, propertyResolver, customAccessors)
+        val converter = step.getReflectionToObjectConverter(emptyMap(), topLevelReceiver, functionResolver, propertyResolver, customAccessors)
         converter.apply(topLevelObjectReflection)
 
         step.whenEvaluated(topLevelReceiver)

@@ -14,20 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.project
+package org.gradle.internal.declarativedsl.mappingToJvm
 
-import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
-import kotlin.reflect.KClass
+import org.gradle.internal.declarativedsl.objectGraph.ObjectReflection
 
 
-/**
- * Utility [TypeDiscovery] implementation that allows introducing [discoverClasses] as soon as [keyClass] is encountered in type discovery.
- */
-internal
-class FixedTypeDiscovery(private val keyClass: KClass<*>, private val discoverClasses: List<KClass<*>>) : TypeDiscovery {
-    override fun getClassesToVisitFrom(kClass: KClass<*>): Iterable<KClass<*>> =
-        when (kClass) {
-            keyClass -> discoverClasses
-            else -> emptyList()
-        }
+interface ReflectionToObjectConverter {
+    fun apply(objectReflection: ObjectReflection, conversionFilter: DeclarativeReflectionToObjectConverter.ConversionFilter = DeclarativeReflectionToObjectConverter.ConversionFilter.none)
 }

@@ -20,11 +20,13 @@ import org.gradle.internal.declarativedsl.analysis.AssignmentRecord
 import prg.gradle.declarative.dsl.model.conventions.Convention
 import prg.gradle.declarative.dsl.model.conventions.ConventionReceiver
 
+
 class AssignmentRecordConvention(private val assignmentRecord: AssignmentRecord) : Convention<AssignmentRecordConventionReceiver> {
     override fun apply(receiver: AssignmentRecordConventionReceiver) {
         receiver.receive(assignmentRecord)
     }
 }
+
 
 interface AssignmentRecordConventionReceiver : ConventionReceiver {
     fun receive(assignmentRecord: AssignmentRecord)

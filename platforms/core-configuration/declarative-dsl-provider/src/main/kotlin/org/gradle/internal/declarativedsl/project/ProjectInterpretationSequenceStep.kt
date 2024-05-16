@@ -25,10 +25,9 @@ import org.gradle.internal.declarativedsl.conventions.getSoftwareType
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequenceStep
 import org.gradle.internal.declarativedsl.language.Block
-import org.gradle.internal.declarativedsl.language.BlockElement
-import org.gradle.internal.declarativedsl.language.FunctionArgument
 import org.gradle.internal.declarativedsl.language.FunctionCall
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
+
 
 class ProjectInterpretationSequenceStep(
     override val stepIdentifier: String = "project",
@@ -61,7 +60,6 @@ class ProjectInterpretationSequenceStep(
                     })
                 }
             }
-
         }
     }
 }

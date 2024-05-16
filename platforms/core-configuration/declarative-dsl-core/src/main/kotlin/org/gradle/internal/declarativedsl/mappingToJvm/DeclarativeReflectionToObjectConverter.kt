@@ -18,7 +18,7 @@ class DeclarativeReflectionToObjectConverter(
     private val functionResolver: RuntimeFunctionResolver,
     private val propertyResolver: RuntimePropertyResolver,
     private val customAccessors: RuntimeCustomAccessors
-) {
+) : ReflectionToObjectConverter {
     fun interface ConversionFilter {
         fun filterProperties(dataObjectReflection: ObjectReflection.DataObjectReflection): Iterable<DataProperty>
 
@@ -27,7 +27,7 @@ class DeclarativeReflectionToObjectConverter(
         }
     }
 
-    fun apply(objectReflection: ObjectReflection, conversionFilter: ConversionFilter = ConversionFilter.none) {
+    override fun apply(objectReflection: ObjectReflection, conversionFilter: ConversionFilter) {
         if (objectReflection is ObjectReflection.DataObjectReflection) {
             conversionFilter.filterProperties(objectReflection).forEach { property ->
                 val assigned = objectReflection.properties.getValue(property)
@@ -45,11 +45,8 @@ class DeclarativeReflectionToObjectConverter(
             }
 
             objectReflection.customAccessorObjects.forEach { customAccessor ->
-                val receiver = getObjectByResolvedOrigin(customAccessor.objectOrigin) //?: error("could not get object by custom accessor ${customAccessor.objectOrigin}")
-                // TODO this is a hack - we need a better way to say that application should be skipped for this accessor
-                if (receiver != null) {
-                    apply(customAccessor, conversionFilter)
-                }
+                getObjectByResolvedOrigin(customAccessor.objectOrigin) ?: error("could not get object by custom accessor ${customAccessor.objectOrigin}")
+                apply(customAccessor, conversionFilter)
             }
 
             objectReflection.lambdaAccessedObjects.forEach { lambdaAccessedObject ->

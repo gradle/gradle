@@ -16,7 +16,13 @@
 
 package org.gradle.internal.declarativedsl.evaluationSchema
 
+import org.gradle.declarative.dsl.schema.ExternalObjectProviderKey
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
+import org.gradle.internal.declarativedsl.mappingToJvm.DeclarativeReflectionToObjectConverter
+import org.gradle.internal.declarativedsl.mappingToJvm.ReflectionToObjectConverter
+import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeCustomAccessors
+import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeFunctionResolver
+import org.gradle.internal.declarativedsl.mappingToJvm.RuntimePropertyResolver
 
 
 internal
@@ -32,6 +38,19 @@ interface InterpretationSequenceStep<R : Any> {
     fun getTopLevelReceiverFromTarget(target: Any): R
     fun whenEvaluated(resultReceiver: R)
     fun whenResolved(resolutionResult: ResolutionResult) = Unit
+    fun getReflectionToObjectConverter(
+        externalObjectsMap: Map<ExternalObjectProviderKey, Any>,
+        topLevelObject: Any,
+        functionResolver: RuntimeFunctionResolver,
+        propertyResolver: RuntimePropertyResolver,
+        customAccessors: RuntimeCustomAccessors
+    ): ReflectionToObjectConverter = DeclarativeReflectionToObjectConverter(
+        externalObjectsMap,
+        topLevelObject,
+        functionResolver,
+        propertyResolver,
+        customAccessors
+    )
 }
 
 

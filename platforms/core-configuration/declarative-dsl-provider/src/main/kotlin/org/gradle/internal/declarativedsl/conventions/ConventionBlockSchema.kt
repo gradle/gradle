@@ -16,10 +16,9 @@
 
 package org.gradle.internal.declarativedsl.conventions
 
-import org.gradle.declarative.dsl.model.annotations.AccessFromCurrentReceiverOnly
-import org.gradle.declarative.dsl.model.annotations.Configuring
 
 class ConventionsTopLevelReceiver
+
 
 class ConventionsConfiguringBlock
 

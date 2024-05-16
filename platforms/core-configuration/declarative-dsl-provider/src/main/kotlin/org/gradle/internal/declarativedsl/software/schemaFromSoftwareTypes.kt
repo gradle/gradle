@@ -27,7 +27,7 @@ import org.gradle.internal.declarativedsl.conventions.ConventionsConfiguringBloc
 import org.gradle.internal.declarativedsl.conventions.ConventionsTopLevelReceiver
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaComponent
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeCustomAccessors
-import org.gradle.internal.declarativedsl.project.FixedTypeDiscovery
+import org.gradle.internal.declarativedsl.evaluationSchema.FixedTypeDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.DataSchemaBuilder
 import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
@@ -66,8 +66,10 @@ class SoftwareTypeComponent(
     )
 }
 
+
 private
 val conventionsFunction = conventionsFunction()
+
 
 internal
 class SoftwareTypeConventionComponent(
@@ -84,7 +86,7 @@ class SoftwareTypeConventionComponent(
     }
 
     override fun typeDiscovery(): List<TypeDiscovery> = listOf(
-        FixedTypeDiscovery(ConventionsTopLevelReceiver::class, listOf( ConventionsConfiguringBlock::class)),
+        FixedTypeDiscovery(ConventionsTopLevelReceiver::class, listOf(ConventionsConfiguringBlock::class)),
         FixedTypeDiscovery(schemaTypeToExtend, softwareTypeImplementations.map { it.modelPublicType.kotlin })
     )
 
@@ -93,11 +95,9 @@ class SoftwareTypeConventionComponent(
         softwareTypeConfiguringFunctions(schemaTypeToExtend, softwareTypeImplementations),
     )
 
-    override fun runtimeCustomAccessors(): List<RuntimeCustomAccessors> = listOf(
-        ConventionsAccessor(),
-        RuntimeModelTypeAccessors(softwareTypeImplementations)
-    )
+    override fun runtimeCustomAccessors(): List<RuntimeCustomAccessors> = emptyList()
 }
+
 
 private
 data class SoftwareTypeInfo<T>(
@@ -132,8 +132,9 @@ fun softwareTypeConfiguringFunctions(typeToExtend: KClass<*>, softwareTypeImplem
     override fun topLevelFunction(function: KFunction<*>, preIndex: DataSchemaBuilder.PreIndex) = null
 }
 
+
 private
-fun conventionsFunction() : FunctionExtractor = object : FunctionExtractor {
+fun conventionsFunction(): FunctionExtractor = object : FunctionExtractor {
     override fun memberFunctions(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<SchemaMemberFunction> =
         if (kClass == ConventionsTopLevelReceiver::class) listOf(
             DefaultDataMemberFunction(
@@ -143,7 +144,8 @@ fun conventionsFunction() : FunctionExtractor = object : FunctionExtractor {
                 isDirectAccessOnly = true,
                 semantics = FunctionSemanticsInternal.DefaultAccessAndConfigure(
                     accessor = ConfigureAccessorInternal.DefaultCustom(ConventionsConfiguringBlock::class.toDataTypeRef(), "conventions"),
-                    FunctionSemanticsInternal.DefaultAccessAndConfigure.DefaultReturnType.DefaultUnit
+                    FunctionSemanticsInternal.DefaultAccessAndConfigure.DefaultReturnType.DefaultUnit,
+                    FunctionSemanticsInternal.DefaultConfigureBlockRequirement.DefaultRequired
                 )
             )
         ) else emptyList()
@@ -153,6 +155,7 @@ fun conventionsFunction() : FunctionExtractor = object : FunctionExtractor {
     override fun topLevelFunction(function: KFunction<*>, preIndex: DataSchemaBuilder.PreIndex) = null
 }
 
+
 private
 class RuntimeModelTypeAccessors(info: List<SoftwareTypeInfo<*>>) : RuntimeCustomAccessors {
 
@@ -160,11 +163,4 @@ class RuntimeModelTypeAccessors(info: List<SoftwareTypeInfo<*>>) : RuntimeCustom
 
     override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessor.Custom): Any? =
         modelTypeById[accessor.customAccessorIdentifier]?.invoke(receiverObject)
-}
-
-private
-class ConventionsAccessor : RuntimeCustomAccessors {
-    override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessor.Custom): Any? =
-        null
-
 }

@@ -19,11 +19,16 @@ package org.gradle.internal.declarativedsl.evaluator
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.declarative.dsl.schema.AnalysisSchema
+import org.gradle.declarative.dsl.schema.ExternalObjectProviderKey
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequence
 import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequenceStep
 import org.gradle.internal.declarativedsl.serialization.SchemaSerialization
+import org.gradle.internal.declarativedsl.mappingToJvm.ReflectionToObjectConverter
+import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeCustomAccessors
+import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeFunctionResolver
+import org.gradle.internal.declarativedsl.mappingToJvm.RuntimePropertyResolver
 import java.io.File
 
 
@@ -82,5 +87,14 @@ class StoringInterpretationSchemaBuilder(
         override fun getTopLevelReceiverFromTarget(target: Any): R = step.getTopLevelReceiverFromTarget(target)
         override fun whenEvaluated(resultReceiver: R) = step.whenEvaluated(resultReceiver)
         override fun whenResolved(resolutionResult: ResolutionResult) = step.whenResolved(resolutionResult)
+        override fun getReflectionToObjectConverter(
+            externalObjectsMap: Map<ExternalObjectProviderKey, Any>,
+            topLevelObject: Any,
+            functionResolver: RuntimeFunctionResolver,
+            propertyResolver: RuntimePropertyResolver,
+            customAccessors: RuntimeCustomAccessors
+        ): ReflectionToObjectConverter {
+            return step.getReflectionToObjectConverter(externalObjectsMap, topLevelObject, functionResolver, propertyResolver, customAccessors)
+        }
     }
 }
