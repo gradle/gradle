@@ -22,6 +22,8 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.buildinit.plugins.internal.modifiers.Language
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 import static org.gradle.buildinit.plugins.internal.modifiers.Language.GROOVY
 import static org.gradle.buildinit.plugins.internal.modifiers.Language.JAVA
@@ -300,18 +302,21 @@ class GroovyDslMultiProjectGroovyApplicationInitIntegrationTest3 extends Abstrac
     }
 }
 
+@Requires(value = UnitTestPreconditions.Jdk21OrEarlier.class, reason = "Kotlin cannot compile on Java 22 yet")
 class GroovyDslMultiProjectKotlinApplicationInitIntegrationTest1 extends AbstractMultiProjectJvmApplicationInitIntegrationTest1 {
     def setup() {
         setupDslAndLanguage(BuildInitDsl.GROOVY, KOTLIN)
     }
 }
 
+@Requires(value = UnitTestPreconditions.Jdk21OrEarlier.class, reason = "Kotlin cannot compile on Java 22 yet")
 class GroovyDslMultiProjectKotlinApplicationInitIntegrationTest2 extends AbstractMultiProjectJvmApplicationInitIntegrationTest2 {
     def setup() {
         setupDslAndLanguage(BuildInitDsl.GROOVY, KOTLIN)
     }
 }
 
+@Requires(value = UnitTestPreconditions.Jdk21OrEarlier.class, reason = "Kotlin cannot compile on Java 22 yet")
 class GroovyDslMultiProjectKotlinApplicationInitIntegrationTest3 extends AbstractMultiProjectJvmApplicationInitIntegrationTest3 {
     def setup() {
         setupDslAndLanguage(BuildInitDsl.GROOVY, KOTLIN)
@@ -372,18 +377,21 @@ class KotlinDslMultiProjectGroovyApplicationInitIntegrationTest3 extends Abstrac
     }
 }
 
+@Requires(value = UnitTestPreconditions.Jdk21OrEarlier.class, reason = "Kotlin cannot compile on Java 22 yet")
 class KotlinDslMultiProjectKotlinApplicationInitIntegrationTest1 extends AbstractMultiProjectJvmApplicationInitIntegrationTest1 {
     def setup() {
         setupDslAndLanguage(BuildInitDsl.KOTLIN, KOTLIN)
     }
 }
 
+@Requires(value = UnitTestPreconditions.Jdk21OrEarlier.class, reason = "Kotlin cannot compile on Java 22 yet")
 class KotlinDslMultiProjectKotlinApplicationInitIntegrationTest2 extends AbstractMultiProjectJvmApplicationInitIntegrationTest2 {
     def setup() {
         setupDslAndLanguage(BuildInitDsl.KOTLIN, KOTLIN)
     }
 }
 
+@Requires(value = UnitTestPreconditions.Jdk21OrEarlier.class, reason = "Kotlin cannot compile on Java 22 yet")
 class KotlinDslMultiProjectKotlinApplicationInitIntegrationTest3 extends AbstractMultiProjectJvmApplicationInitIntegrationTest3 {
     def setup() {
         setupDslAndLanguage(BuildInitDsl.KOTLIN, KOTLIN)
