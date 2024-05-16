@@ -83,6 +83,8 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
             fqid == 'compilation:java:java-compilation-error'
             details == '\';\' expected'
         }
+
+        result.error.contains("2 errors\n")
     }
 
     def "problems are received when a multi-file compilation failure happens"() {
@@ -115,6 +117,8 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
             fqid == 'compilation:java:java-compilation-error'
             details == '\';\' expected'
         }
+
+        result.error.contains("4 errors\n")
     }
 
     def "problem is received when a single-file warning happens"() {
@@ -135,6 +139,8 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
             fqid == 'compilation:java:java-compilation-warning'
             details == 'redundant cast to java.lang.String'
         }
+
+        result.error.contains("2 warnings\n")
     }
 
     def "problems are received when a multi-file warning happens"() {
@@ -166,6 +172,8 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
             fqid == 'compilation:java:java-compilation-warning'
             details == 'redundant cast to java.lang.String'
         }
+
+        result.error.contains("4 warnings\n")
     }
 
     def "only failures are received when a multi-file compilation failure and warning happens"() {
@@ -197,6 +205,8 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
             fqid == 'compilation:java:java-compilation-error'
             details == '\';\' expected'
         }
+
+        result.error.contains("4 errors\n")
     }
 
     def "problems are received when two separate compilation task is executed"() {
@@ -231,6 +241,9 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
             fqid == 'compilation:java:java-compilation-warning'
             details == 'redundant cast to java.lang.String'
         }
+
+        result.error.contains("2 errors\n")
+        result.error.contains("2 warnings\n")
     }
 
     def "the compiler flag -Werror correctly reports problems"() {
@@ -288,6 +301,9 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
                     String s = (String)"Hello World";
                                ^"""
         }
+
+        result.error.contains("1 error\n")
+        result.error.contains("2 warnings\n")
     }
 
     /**

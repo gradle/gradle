@@ -48,6 +48,9 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
     private final Context context;
     private final Function<Diagnostic<? extends JavaFileObject>, String> messageFormatter;
 
+    private int errorCount = 0;
+    private int warningCount = 0;
+
     DiagnosticToProblemListener(InternalProblemReporter problemReporter, Context context, Function<Diagnostic<? extends JavaFileObject>, String> messageFormatter) {
         this.problemReporter = problemReporter;
         this.context = context;
@@ -65,7 +68,43 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
 
     @Override
     public void report(Diagnostic<? extends JavaFileObject> diagnostic) {
+        switch (diagnostic.getKind()) {
+            case ERROR:
+                errorCount++;
+                break;
+            case WARNING:
+            case MANDATORY_WARNING:
+                warningCount++;
+                break;
+            default:
+                break;
+        }
+
         problemReporter.reporting(spec -> buildProblem(diagnostic, spec));
+    }
+
+    /**
+     * This method is based on {JavaCompiler#printCount()}
+     */
+    public void reportDiagnosticCounts() {
+        Log logger = Log.instance(context);
+        reportDiagnosticCount(logger, "error", errorCount);
+        reportDiagnosticCount(logger, "warn", warningCount);
+    }
+
+    private static void reportDiagnosticCount(Log logger, String kind, int number) {
+        if (number == 0) {
+            return;
+        }
+
+        StringBuilder keyBuilder = new StringBuilder("count.");
+        keyBuilder.append(kind);
+        if (number > 1) {
+            keyBuilder.append(".plural");
+        }
+
+        String localizedMessage = logger.localize(keyBuilder.toString(), number);
+        System.err.println(localizedMessage);
     }
 
     @VisibleForTesting
