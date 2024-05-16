@@ -18,13 +18,20 @@ package org.gradle.operations.configuration
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.configurationcache.options.ConfigurationCacheSettingsFinalizedProgressDetails
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
 class IsolatedProjectsSettingsBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
 
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
 
+    @Requires(
+        value = IntegTestPreconditions.NotIsolatedProjects,
+        reason = "Exercises disabled IP behavior"
+    )
     def "emits settings finalized event when not configured"() {
         given:
         file("buildSrc/src/main/java/Thing.java") << "class Thing {}"
@@ -37,6 +44,7 @@ class IsolatedProjectsSettingsBuildOperationsIntegrationTest extends AbstractInt
         configurationCacheEvents().enabled == [GradleContextualExecuter.configCache]
     }
 
+    @ToBeFixedForIsolatedProjects(because = "One iteration exercises disabled IP behavior, need to have iteration matching")
     def "emits settings finalized event when explicitly #status"() {
         given:
         file("buildSrc/src/main/java/Thing.java") << "class Thing {}"
