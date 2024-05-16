@@ -56,6 +56,7 @@ dependencies {
     api(libs.inject)
     api(libs.jsr305)
     api(libs.guava)
+    api(project(":service-provider"))
 
     implementation(projects.io)
     implementation(projects.time)

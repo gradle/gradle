@@ -73,6 +73,7 @@ dependencies {
     api(project(":problems-api"))
     api(project(":resources"))
     api(project(":security"))
+    api(project(":service-provider"))
     api(project(":snapshots"))
 
     api(libs.bouncycastlePgp)

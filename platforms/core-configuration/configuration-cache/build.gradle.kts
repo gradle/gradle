@@ -64,6 +64,7 @@ dependencies {
     api(project(":plugin-use"))
     api(project(":problems-api"))
     api(project(":resources"))
+    api(project(":service-provider"))
     api(project(":snapshots"))
 
     api(libs.groovy)

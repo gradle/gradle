@@ -44,6 +44,7 @@ dependencies {
     api(project(":platform-base"))
     api(project(":platform-jvm"))
     api(project(":resources"))
+    api(project(":service-provider"))
     api(project(":toolchains-jvm-shared"))
 
     api(libs.futureKotlin("stdlib"))

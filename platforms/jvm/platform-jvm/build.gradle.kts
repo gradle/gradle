@@ -20,6 +20,7 @@ dependencies {
     api(project(":logging"))
     api(project(":model-core"))
     api(project(":platform-base"))
+    api(project(":service-provider"))
 
     api(libs.groovy)
     api(libs.inject)

@@ -14,13 +14,14 @@ dependencies {
     api(projects.concurrent)
     api(projects.javaLanguageExtensions)
     api(project(":build-operations"))
-    api(project(":base-services"))
     api(project(":core"))
     api(project(":core-api"))
     api(project(":messaging"))
     api(project(":tooling-api"))
+    api(project(":service-provider"))
 
     implementation(project(":model-core"))
+    implementation(project(":base-services"))
 
     api(libs.jsr305)
     implementation(libs.guava)

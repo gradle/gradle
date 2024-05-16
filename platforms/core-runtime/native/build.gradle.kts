@@ -28,6 +28,7 @@ dependencies {
 
     api(project(":base-services"))
     api(project(":file-temp"))
+    api(project(":service-provider"))
 
     implementation(projects.javaLanguageExtensions)
 

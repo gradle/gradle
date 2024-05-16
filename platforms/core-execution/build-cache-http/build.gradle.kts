@@ -15,6 +15,7 @@ dependencies {
     api(project(":build-cache-spi"))
     api(project(":core-api"))
     api(project(":resources-http"))
+    api(project(":service-provider"))
 
     implementation(project(":core"))
     implementation(project(":logging"))

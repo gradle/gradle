@@ -19,6 +19,7 @@ dependencies {
     api(project(":files"))
     api(project(":logging"))
     api(project(":model-core"))
+    api(project(":service-provider"))
 
     api(libs.guava)
     api(libs.inject)

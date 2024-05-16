@@ -110,6 +110,7 @@ dependencies {
     api(project(":problems-api"))
     api(project(":process-services"))
     api(project(":resources"))
+    api(project(":service-provider"))
     api(project(":snapshots"))
     api(project(":worker-processes"))
 

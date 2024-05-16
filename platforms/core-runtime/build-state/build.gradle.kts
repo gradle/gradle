@@ -32,4 +32,5 @@ dependencies {
     implementation(project(":concurrent"))
     implementation(project(":logging-api"))
     implementation(project(":problems-api"))
+    implementation(project(":service-provider"))
 }

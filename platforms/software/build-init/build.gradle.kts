@@ -37,6 +37,7 @@ dependencies {
     api(project(":toolchains-jvm-shared"))
     api(project(":workers"))
     api(project(":daemon-services"))
+    api(project(":service-provider"))
 
     implementation(project(":logging-api"))
     implementation(project(":platform-native"))

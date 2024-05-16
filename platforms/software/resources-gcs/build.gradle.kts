@@ -12,8 +12,8 @@ errorprone {
 }
 
 dependencies {
-    api(project(":base-services"))
     api(project(":resources"))
+    api(project(":service-provider"))
 
     api(libs.gcs)
     api(libs.jsr305)

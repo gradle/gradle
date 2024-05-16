@@ -36,6 +36,7 @@ dependencies {
     api(project(":language-jvm"))
     api(project(":model-core"))
     api(project(":platform-jvm"))
+    api(project(":service-provider"))
     api(project(":toolchains-jvm-shared"))
 
     api(libs.groovy)

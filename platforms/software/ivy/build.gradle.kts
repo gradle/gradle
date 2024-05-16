@@ -22,6 +22,7 @@ dependencies {
     api(project(":model-core"))
     api(project(":publish"))
     api(project(":resources"))
+    api(project(":service-provider"))
 
     api(libs.jsr305)
     api(libs.inject)

@@ -18,6 +18,7 @@ dependencies {
     api(project(":core"))
     api(project(":core-api"))
     api(project(":enterprise-logging"))
+    api(project(":service-provider"))
 
     implementation(project(":logging"))
     implementation(project(":logging-api"))

@@ -19,12 +19,12 @@ plugins {
 }
 
 dependencies {
-    api(project(":base-services"))
     api(project(":core"))
     api(project(":core-api"))
     api(project(":declarative-dsl-api"))
     api(project(":declarative-dsl-core"))
     api(project(":declarative-dsl-tooling-models"))
+    api(project(":service-provider"))
     api(libs.futureKotlin("stdlib"))
 
 
@@ -32,6 +32,7 @@ dependencies {
     testImplementation(libs.mockitoKotlin2)
 
     implementation(projects.javaLanguageExtensions)
+    implementation(project(":base-services"))
     implementation(project(":resources"))
     implementation(project(":model-core"))
 

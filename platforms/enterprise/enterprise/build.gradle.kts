@@ -23,6 +23,7 @@ dependencies {
     api(project(":jvm-services"))
     api(project(":launcher"))
     api(project(":model-core"))
+    api(project(":service-provider"))
     api(project(":snapshots"))
     api(project(":testing-jvm"))
     api(project(":time"))

@@ -40,6 +40,7 @@ dependencies {
     implementation(project(":daemon-protocol"))
     implementation(project(":daemon-services"))
     implementation(project(":native"))
+    implementation(project(":service-provider"))
 
     testImplementation(project(":testing-base"))
 

@@ -34,6 +34,7 @@ dependencies {
     api(project(":core-api"))
     api(project(":ide"))
     api(project(":platform-jvm"))
+    api(project(":service-provider"))
     api(project(":tooling-api"))
 
     api(libs.groovy)

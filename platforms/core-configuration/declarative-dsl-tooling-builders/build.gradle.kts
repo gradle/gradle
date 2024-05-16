@@ -5,9 +5,9 @@ plugins {
 description = "Declarative DSL Tooling Builders for IDEs"
 
 dependencies {
-    api(project(":base-services"))
     api(project(":core"))
     api(project(":core-api"))
+    api(project(":service-provider"))
 
     api(libs.futureKotlin("stdlib"))
 

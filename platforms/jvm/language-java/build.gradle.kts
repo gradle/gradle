@@ -36,6 +36,7 @@ dependencies {
     api(project(":platform-jvm"))
     api(project(":problems-api"))
     api(project(":process-services"))
+    api(project(":service-provider"))
     api(project(":snapshots"))
     api(project(":test-suites-base"))
     api(project(":toolchains-jvm"))
