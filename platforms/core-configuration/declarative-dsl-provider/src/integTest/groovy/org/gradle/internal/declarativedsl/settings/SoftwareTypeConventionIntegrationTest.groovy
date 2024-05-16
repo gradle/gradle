@@ -34,13 +34,14 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
         outputContains(expectedConfiguration)
 
         where:
-        testCase                               | convention                           | buildConfiguration    | expectedConfiguration
-        "id has convention and is set"         | setId("convention")                  | setId("test")         | """id = test\nbar = bar"""
-        "id has convention, bar is set"        | setId("convention")                  | setFooBar("baz")      | """id = convention\nbar = baz"""
-        "bar has convention and is set"        | setFooBar("convention")              | setFooBar("baz")      | """id = <no id>\nbar = baz"""
-        "bar has convention, id is set"        | setFooBar("convention")              | setId("test")         | """id = test\nbar = convention"""
-        "no conventions, id is set"            | ""                                   | setId("test")         | """id = test\nbar = bar"""
-        "everything has convention and is set" | setAll("convention", "convention")   | setAll("test", "baz") | """id = test\nbar = baz"""
+        testCase                                    | convention                           | buildConfiguration    | expectedConfiguration
+        "id has convention and is set"              | setId("convention")                  | setId("test")         | """id = test\nbar = bar"""
+        "id has convention, bar is set"             | setId("convention")                  | setFooBar("baz")      | """id = convention\nbar = baz"""
+        "bar has convention and is set"             | setFooBar("convention")              | setFooBar("baz")      | """id = <no id>\nbar = baz"""
+        "bar has convention, id is set"             | setFooBar("convention")              | setId("test")         | """id = test\nbar = convention"""
+        "no conventions, id is set"                 | ""                                   | setId("test")         | """id = test\nbar = bar"""
+        "everything has convention and nothing set" | setAll("convention", "convention")   | ""                    | """id = convention\nbar = convention"""
+        "everything has convention and is set"      | setAll("convention", "convention")   | setAll("test", "baz") | """id = test\nbar = baz"""
     }
 
     def "can configure build-level conventions for dependencies objects in a software type (#testCase)"() {

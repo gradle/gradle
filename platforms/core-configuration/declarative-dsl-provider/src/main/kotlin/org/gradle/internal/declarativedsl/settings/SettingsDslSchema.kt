@@ -75,7 +75,8 @@ fun pluginManagementEvaluationSchema(): EvaluationSchema =
 internal
 fun conventionsEvaluationSchema(softwareTypeRegistry: SoftwareTypeRegistry): EvaluationSchema {
     val schemaBuildingComponent = gradleDslGeneralSchemaComponent() +
-        SoftwareTypeConventionComponent(ConventionsConfiguringBlock::class, "softwareType", softwareTypeRegistry)
+        SoftwareTypeConventionComponent(ConventionsConfiguringBlock::class, "softwareType", softwareTypeRegistry) +
+        SettingsDependencyConfigurationsComponent()
 
     return buildEvaluationSchema(
         ConventionsTopLevelReceiver::class,

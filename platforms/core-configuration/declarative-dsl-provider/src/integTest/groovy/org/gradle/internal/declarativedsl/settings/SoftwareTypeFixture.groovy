@@ -691,7 +691,7 @@ trait SoftwareTypeFixture {
             import org.gradle.api.artifacts.dsl.DependencyCollector;
             import org.gradle.declarative.dsl.model.annotations.Configuring;
             import org.gradle.declarative.dsl.model.annotations.Restricted;
-
+            import org.gradle.api.tasks.Nested;
 
             import javax.inject.Inject;
 
@@ -702,7 +702,7 @@ trait SoftwareTypeFixture {
                     super(objects);
                 }
 
-
+                @Nested
                 abstract public LibraryDependencies getDependencies();
 
                 @Configuring

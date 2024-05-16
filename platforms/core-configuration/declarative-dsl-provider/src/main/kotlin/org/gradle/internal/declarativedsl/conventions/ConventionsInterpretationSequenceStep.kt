@@ -25,8 +25,10 @@ import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequenc
 import org.gradle.internal.declarativedsl.language.FunctionCall
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 
+private const val CONVENTIONS = "conventions"
+
 class ConventionsInterpretationSequenceStep(
-    override val stepIdentifier: String = "conventions",
+    override val stepIdentifier: String = CONVENTIONS,
     private val softwareTypeRegistry: SoftwareTypeRegistry,
     private val buildEvaluationSchema: () -> EvaluationSchema
 ) : InterpretationSequenceStep<ConventionsTopLevelReceiver> {
@@ -51,10 +53,10 @@ class ConventionsInterpretationSequenceStep(
     }
 }
 
-val isConventionsConfiguringCall: AnalysisStatementFilter = AnalysisStatementFilter.isConfiguringCall.and(AnalysisStatementFilter.isCallNamed("conventions"))
+val isConventionsConfiguringCall: AnalysisStatementFilter = AnalysisStatementFilter.isConfiguringCall.and(AnalysisStatementFilter.isCallNamed(CONVENTIONS))
 
 val isSoftwareTypeConfiguringCall: AnalysisStatementFilter = AnalysisStatementFilter { _, scopes ->
-    scopes.any { it.receiver.originElement is FunctionCall && (it.receiver.originElement as FunctionCall).name == "conventions" }
+    scopes.any { it.receiver.originElement is FunctionCall && (it.receiver.originElement as FunctionCall).name == CONVENTIONS }
 }
 
 internal
