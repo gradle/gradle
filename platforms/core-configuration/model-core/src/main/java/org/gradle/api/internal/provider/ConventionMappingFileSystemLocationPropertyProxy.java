@@ -26,5 +26,5 @@ import org.gradle.api.provider.Provider;
  */
 @NonNullApi
 public interface ConventionMappingFileSystemLocationPropertyProxy {
-    void conventionFromAny(Provider<Object> file);
+    void conventionFromAnyFile(Provider<Object> fileProvider);
 }

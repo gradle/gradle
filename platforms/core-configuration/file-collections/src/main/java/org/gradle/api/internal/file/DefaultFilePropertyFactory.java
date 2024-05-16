@@ -42,6 +42,7 @@ import org.gradle.internal.state.Managed;
 import javax.annotation.Nullable;
 import java.io.File;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.gradle.api.internal.lambdas.SerializableLambdas.bifunction;
 import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
 
@@ -183,11 +184,8 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
 
     private static abstract class AbstractFileVar<T extends FileSystemLocation, THIS extends FileSystemLocationProperty<T>> extends DefaultProperty<T> implements FileSystemLocationProperty<T>, ConventionMappingFileSystemLocationPropertyProxy {
 
-        private final Class<T> type;
-
         public AbstractFileVar(PropertyHost host, Class<T> type) {
             super(host, type);
-            this.type = type;
         }
 
         protected abstract T fromFile(File file);
@@ -198,14 +196,14 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
         }
 
         @Override
-        public void conventionFromAny(Provider<Object> file) {
-            convention(file.map(any -> {
-                if (any instanceof File) {
-                    return fromFile((File) any);
-                } else if (type.isAssignableFrom(any.getClass())) {
-                    return Cast.uncheckedNonnullCast(any);
+        public void conventionFromAnyFile(Provider<Object> fileProvider) {
+            convention(fileProvider.map(value -> {
+                if (value instanceof File) {
+                    return fromFile((File) value);
+                } else if (checkNotNull(getType()).isAssignableFrom(value.getClass())) {
+                    return Cast.uncheckedNonnullCast(value);
                 } else {
-                    throw new IllegalArgumentException("Cannot convert " + any.getClass() + " to " + type);
+                    throw new IllegalArgumentException("Cannot convert " + value.getClass() + " to " + getType());
                 }
             }));
         }

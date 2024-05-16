@@ -20,8 +20,7 @@ import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.file.FileSystemLocationProperty;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.provider.ConventionMappingFileSystemLocationPropertyProxy;
@@ -102,9 +101,9 @@ public class ConventionAwareHelper implements ConventionMapping, org.gradle.api.
     }
 
     private boolean mapConventionOn(SupportsConvention target, MappedPropertyImpl mapping) {
-        if (target instanceof DirectoryProperty || target instanceof RegularFileProperty) {
+        if (target instanceof FileSystemLocationProperty) {
             ConventionMappingFileSystemLocationPropertyProxy proxy = Cast.uncheckedNonnullCast(target);
-            proxy.conventionFromAny(new DefaultProvider<>(() -> mapping.getValue(_convention, _source)));
+            proxy.conventionFromAnyFile(new DefaultProvider<>(() -> mapping.getValue(_convention, _source)));
         } else if (target instanceof Property) {
             Property<Object> asProperty = Cast.uncheckedNonnullCast(target);
             asProperty.convention(new DefaultProvider<>(() -> mapping.getValue(_convention, _source)));
