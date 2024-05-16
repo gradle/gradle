@@ -86,6 +86,7 @@ class PmdPluginDependenciesIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Incremental analysis only supports PMD 6.0.0 and newer. Please upgrade from PMD 5.1.1 or disable incremental analysis.")
 
         when:
+        // ensure parallel task execution so build problems from multiple upstream tasks are reported
         executer.withArgument("--max-workers=4")
         fails("check")
 
