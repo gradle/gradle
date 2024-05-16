@@ -411,7 +411,7 @@ The configuration cache now supports:
 * [java.io.Externalizable instances](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/Externalizable.html)
 
 <a name="other"></a>
-### Other improvements
+### Other improvements and changes
 
 #### Allow specifying source encoding for Jacoco report tasks
 
@@ -509,6 +509,12 @@ example {
 This is currently used by the [JVM test suite plugin](userguide/jvm_test_suite_plugin.html).
 
 See the [user manual](userguide/implementing_gradle_plugins_binary.html#custom_dependencies_blocks) to learn more about using this incubating feature.
+
+#### Testing Gradle 8.8 builds with TestKit using older Gradle version
+
+Due to fixes to `org.gradle.native` flag handling in Gradle 8.8, testing Gradle 8.8 builds with TestKit using older Gradle version may cause some troubles.
+
+See the [upgrade guide](userguide/upgrading_version_8.html#testing_gradle_8_8_build_with_test_kit) for more details.
 
 ## Promoted features
 
