@@ -283,7 +283,9 @@ There is no equivalent to this in `settings.gradle` (Groovy DSL).
 
 Gradle Enterprise has been renamed to Develocity and the `com.gradle.enterprise` plugin has been renamed to `com.gradle.develocity`.
 Therefore, the `gradle-enterprise` plugin block extension has been deprecated and will be removed in Gradle 9.0.
-Instead of introducing a `develocity` plugin block extension for the Kotlin DSL, you should use the `com.gradle.develocity` plugin id directly.
+
+The Develocity plugin must be applied with an explicit plugin id and version.
+There is no `develocity` shorthand available in the plugins block.
 ```kotlin
 plugins {
     id("com.gradle.develocity") version "3.17.3"
