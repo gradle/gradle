@@ -17,6 +17,7 @@
 package org.gradle.plugin.devel.tasks.internal;
 
 import com.google.common.base.Charsets;
+import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
 import com.google.gson.Gson;
 import org.gradle.api.Task;
@@ -31,6 +32,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
@@ -45,6 +47,7 @@ import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Opcodes;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
@@ -57,6 +60,8 @@ import static org.gradle.internal.deprecation.Documentation.userManual;
 
 public abstract class ValidateAction implements WorkAction<ValidateAction.Params> {
     private final static Logger LOGGER = Logging.getLogger(ValidateAction.class);
+    private final InternalProblems problemsService;
+
     public interface Params extends WorkParameters {
         ConfigurableFileCollection getClasses();
 
@@ -64,6 +69,11 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
 
         Property<Boolean> getEnableStricterValidation();
 
+    }
+
+    @Inject
+    public ValidateAction(InternalProblems problemsService) {
+        this.problemsService = problemsService;
     }
 
     @Override
@@ -76,15 +86,17 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
         storeResults(taskValidationProblems, params.getOutputFile());
     }
 
-
-    private static void storeResults(List<Problem> problemMessages, RegularFileProperty outputFile) {
+    private void storeResults(List<Problem> problemMessages, RegularFileProperty outputFile) {
         if (outputFile.isPresent()) {
             File output = outputFile.get().getAsFile();
             try {
                 //noinspection ResultOfMethodCallIgnored
                 output.createNewFile();
                 Gson gson = ValidationProblemSerialization.createGsonBuilder().create();
-                Files.asCharSink(output, Charsets.UTF_8).write(gson.toJson(problemMessages));
+                Files.asCharSink(output, Charsets.UTF_8).write(gson.toJson(ImmutableList.of()));
+                for (Problem p : problemMessages) {
+                    problemsService.getInternalReporter().report(p);
+                }
             } catch (IOException ex) {
                 throw new java.io.UncheckedIOException(ex);
             }
