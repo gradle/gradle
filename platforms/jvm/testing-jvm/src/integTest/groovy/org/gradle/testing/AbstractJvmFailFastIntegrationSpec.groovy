@@ -40,6 +40,8 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractTestingMultiVe
     def setup() {
         server.start()
         generator = new JvmBlockingTestClassGenerator(testDirectory, server, testFrameworkImports, testFrameworkDependencies, configureTestFramework)
+        // default for CC and parallel executers may be single worker
+        args("--max-workers=${DEFAULT_MAX_WORKERS}")
     }
 
     def "all tests run with #description"() {
