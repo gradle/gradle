@@ -217,6 +217,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "daemon-main",
+    "path": "platforms/core-runtime/daemon-main",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "daemon-protocol",
     "path": "platforms/core-runtime/daemon-protocol",
     "unitTests": true,

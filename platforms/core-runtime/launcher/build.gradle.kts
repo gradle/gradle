@@ -54,8 +54,8 @@ dependencies {
     api(project(":toolchains-jvm-shared"))
     api(project(":tooling-api"))
 
-    // This project contains the client, daemon and tooling API provider. It should be split up
-    // For now, add dependencies on both the client and daemon pieces
+    // This project contains the Gradle client, daemon and tooling API provider implementations.
+    // It should be split up, but for now, add dependencies on both the client and daemon pieces
     api(project(":client-services"))
     api(project(":daemon-services"))
 
@@ -89,6 +89,7 @@ dependencies {
     manifestClasspath(project(":core-api"))
     manifestClasspath(project(":core"))
     manifestClasspath(project(":persistent-cache"))
+    manifestClasspath(project(":concurrent"))
 
     agentsClasspath(project(":instrumentation-agent"))
 
