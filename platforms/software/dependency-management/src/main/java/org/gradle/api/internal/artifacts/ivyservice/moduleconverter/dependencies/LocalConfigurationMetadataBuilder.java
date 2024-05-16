@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider;
+import org.gradle.internal.component.local.model.LocalConfigurationGraphResolveMetadata;
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
@@ -40,7 +41,7 @@ import java.util.function.Function;
 @ServiceScope(Scope.Global.class)
 public interface LocalConfigurationMetadataBuilder {
 
-    LocalConfigurationMetadata create(
+    LocalConfigurationGraphResolveMetadata create(
         ConfigurationInternal configuration,
         ConfigurationsProvider configurationsProvider,
         ComponentIdentifier componentId,

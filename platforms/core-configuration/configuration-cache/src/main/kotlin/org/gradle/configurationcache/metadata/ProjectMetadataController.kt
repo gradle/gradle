@@ -39,19 +39,17 @@ import org.gradle.configurationcache.serialization.runWriteOperation
 import org.gradle.configurationcache.serialization.writeCollection
 import org.gradle.internal.Describables
 import org.gradle.internal.component.external.model.ImmutableCapabilities
-import org.gradle.internal.component.local.model.DefaultLocalComponentGraphResolveMetadata
 import org.gradle.internal.component.local.model.DefaultLocalConfigurationMetadata
 import org.gradle.internal.component.local.model.DefaultLocalConfigurationMetadata.ConfigurationDependencyMetadata
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata
-import org.gradle.internal.component.local.model.LocalComponentGraphResolveMetadata
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory
 import org.gradle.internal.component.local.model.LocalConfigurationGraphResolveMetadata
-import org.gradle.internal.component.local.model.LocalConfigurationMetadata
 import org.gradle.internal.component.local.model.LocalVariantMetadata
 import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata
+import org.gradle.internal.component.model.VariantGraphResolveState
 import org.gradle.internal.component.model.VariantResolveMetadata
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.model.ValueCalculator
@@ -77,30 +75,23 @@ class ProjectMetadataController(
         context.runWriteOperation {
             write(value.id)
             write(value.moduleVersionId)
-            val configurations = value.metadata.configurationsToPersist()
-            writeConfigurations(configurations)
+            writeConfigurations(value.candidatesForGraphVariantSelection)
         }
     }
 
     private
-    fun LocalComponentGraphResolveMetadata.configurationsToPersist() = configurationNames.mapNotNull {
-        val configuration = getConfiguration(it)!!
-        if (configuration.isCanBeConsumed) configuration else null
-    }
-
-    private
-    suspend fun WriteContext.writeConfigurations(configurations: List<LocalConfigurationGraphResolveMetadata>) {
-        writeCollection(configurations) {
+    suspend fun WriteContext.writeConfigurations(candidates: LocalComponentGraphResolveState.LocalComponentGraphSelectionCandidates) {
+        writeCollection(candidates.allSelectableVariants) {
             writeConfiguration(it)
         }
     }
 
     private
-    suspend fun WriteContext.writeConfiguration(configuration: LocalConfigurationGraphResolveMetadata) {
+    suspend fun WriteContext.writeConfiguration(configuration: VariantGraphResolveState) {
         writeString(configuration.name)
         write(configuration.attributes)
-        writeDependencies(configuration.dependencies)
-        writeVariants(configuration.prepareToResolveArtifacts().variants)
+        writeDependencies(configuration.metadata.dependencies)
+        writeVariants(configuration.prepareForArtifactResolution().artifactVariants)
     }
 
     private
@@ -133,30 +124,26 @@ class ProjectMetadataController(
             val id = readNonNull<ComponentIdentifier>()
             val moduleVersionId = readNonNull<ModuleVersionIdentifier>()
 
-            val configurations = readConfigurations(id, ownerService()).associateBy { it.name }
-            val configurationsFactory = DefaultLocalComponentGraphResolveMetadata.ConfigurationsMapMetadataFactory(configurations)
-
-            val metadata = DefaultLocalComponentGraphResolveMetadata(
-                moduleVersionId,
+            val configurations = readConfigurations(id, ownerService())
+            resolveStateFactory.realizedStateFor(
                 id,
+                moduleVersionId,
                 Project.DEFAULT_STATUS,
                 EmptySchema.INSTANCE,
-                configurationsFactory,
-                null
+                configurations
             )
-            resolveStateFactory.stateFor(metadata)
         }
     }
 
     private
-    suspend fun ReadContext.readConfigurations(componentId: ComponentIdentifier, factory: CalculatedValueContainerFactory): List<LocalConfigurationMetadata> {
+    suspend fun ReadContext.readConfigurations(componentId: ComponentIdentifier, factory: CalculatedValueContainerFactory): List<LocalConfigurationGraphResolveMetadata> {
         return readList {
             readConfiguration(componentId, factory)
         }
     }
 
     private
-    suspend fun ReadContext.readConfiguration(componentId: ComponentIdentifier, factory: CalculatedValueContainerFactory): LocalConfigurationMetadata {
+    suspend fun ReadContext.readConfiguration(componentId: ComponentIdentifier, factory: CalculatedValueContainerFactory): LocalConfigurationGraphResolveMetadata {
         val configurationName = readString()
         val configurationAttributes = readNonNull<ImmutableAttributes>()
         val dependencies = readDependencies()

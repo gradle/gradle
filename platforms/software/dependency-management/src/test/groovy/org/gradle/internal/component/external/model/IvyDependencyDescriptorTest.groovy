@@ -242,7 +242,7 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         def toConfig2 = configuration(toComponent, "to-2")
         def toConfig3 = config('to-3', false)
         toComponent.metadata >> toComponentMetadata
-        toComponentMetadata.getConfigurationNames() >> ["to-1", "to-2", "to-3"]
+        toComponent.getConfigurationNames() >> ["to-1", "to-2", "to-3"]
         toComponent.getConfiguration("to-3") >> toConfig3
 
         def configMapping = LinkedHashMultimap.create()
@@ -334,7 +334,7 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         toConfig1.visible >> true
         toConfig2.visible >> true
         toComponent.metadata >> toComponentMetadata
-        toComponentMetadata.getConfigurationNames() >> ["to-1", "to-2"]
+        toComponent.getConfigurationNames() >> ["to-1", "to-2"]
         toComponent.getConfiguration(_) >> null
 
         def configMapping = LinkedHashMultimap.create()

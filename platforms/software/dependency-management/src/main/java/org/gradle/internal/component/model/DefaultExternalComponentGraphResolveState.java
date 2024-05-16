@@ -26,6 +26,7 @@ import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
+import org.gradle.internal.component.external.model.ExternalComponentGraphResolveMetadata;
 import org.gradle.internal.component.external.model.ExternalComponentGraphResolveState;
 import org.gradle.internal.component.external.model.ExternalComponentResolveMetadata;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
@@ -42,7 +43,7 @@ import java.util.stream.Collectors;
 /**
  * Default implementation of {@link ExternalComponentGraphResolveState}
  */
-public class DefaultExternalComponentGraphResolveState<G extends ComponentGraphResolveMetadata, A extends ExternalComponentResolveMetadata> extends AbstractComponentGraphResolveState<G> implements ExternalComponentGraphResolveState {
+public class DefaultExternalComponentGraphResolveState<G extends ExternalComponentGraphResolveMetadata, A extends ExternalComponentResolveMetadata> extends AbstractComponentGraphResolveState<G> implements ExternalComponentGraphResolveState {
     private final ComponentIdGenerator idGenerator;
     private final A legacyMetadata;
 
@@ -93,8 +94,13 @@ public class DefaultExternalComponentGraphResolveState<G extends ComponentGraphR
     }
 
     @Override
-    protected List<? extends VariantGraphResolveState> getVariantsForGraphTraversal() {
-        return allVariantsForGraphResolution.get();
+    public GraphSelectionCandidates getCandidatesForGraphVariantSelection() {
+        return new ExternalGraphSelectionCandidates(this);
+    }
+
+    @Override
+    public Set<String> getConfigurationNames() {
+        return getMetadata().getConfigurationNames();
     }
 
     @Nullable
@@ -229,6 +235,40 @@ public class DefaultExternalComponentGraphResolveState<G extends ComponentGraphR
         @Override
         public AttributesSchemaInternal getAttributesSchema() {
             return metadata.getAttributesSchema();
+        }
+    }
+
+    private static class ExternalGraphSelectionCandidates implements GraphSelectionCandidates {
+        private final List<? extends VariantGraphResolveState> variants;
+        private final DefaultExternalComponentGraphResolveState<?, ?> component;
+
+        public ExternalGraphSelectionCandidates(DefaultExternalComponentGraphResolveState<?, ?> component) {
+            this.variants = component.allVariantsForGraphResolution.get();
+            this.component = component;
+        }
+
+        @Override
+        public boolean supportsAttributeMatching() {
+            return !variants.isEmpty();
+        }
+
+        @Override
+        public List<? extends VariantGraphResolveState> getVariantsForAttributeMatching() {
+            if (variants.isEmpty()) {
+                throw new IllegalStateException("No variants available for attribute matching.");
+            }
+            return variants;
+        }
+
+        @Nullable
+        @Override
+        public VariantGraphResolveState getVariantByConfigurationName(String name) {
+            ConfigurationGraphResolveState conf = component.getConfiguration(name);
+            if (conf == null) {
+                return null;
+            }
+            assert conf.getMetadata().isCanBeConsumed() : "External components' configurations are always consumable";
+            return conf.asVariant();
         }
     }
 }
