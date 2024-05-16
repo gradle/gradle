@@ -27,6 +27,7 @@ import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.provider.AbstractMinimalProvider;
 import org.gradle.api.internal.provider.BiProvider;
+import org.gradle.api.internal.provider.ConventionMappingFileSystemLocationPropertyProxy;
 import org.gradle.api.internal.provider.DefaultProperty;
 import org.gradle.api.internal.provider.MappingProvider;
 import org.gradle.api.internal.provider.PropertyHost;
@@ -180,10 +181,13 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
         }
     }
 
-    private static abstract class AbstractFileVar<T extends FileSystemLocation, THIS extends FileSystemLocationProperty<T>> extends DefaultProperty<T> implements FileSystemLocationProperty<T> {
+    private static abstract class AbstractFileVar<T extends FileSystemLocation, THIS extends FileSystemLocationProperty<T>> extends DefaultProperty<T> implements FileSystemLocationProperty<T>, ConventionMappingFileSystemLocationPropertyProxy {
+
+        private final Class<T> type;
 
         public AbstractFileVar(PropertyHost host, Class<T> type) {
             super(host, type);
+            this.type = type;
         }
 
         protected abstract T fromFile(File file);
@@ -191,6 +195,19 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
         @Override
         public Provider<File> getAsFile() {
             return new MappingProvider<>(File.class, this, new ToFileTransformer());
+        }
+
+        @Override
+        public void conventionFromAny(Provider<Object> file) {
+            convention(file.map(any -> {
+                if (any instanceof File) {
+                    return fromFile((File) any);
+                } else if (type.isAssignableFrom(any.getClass())) {
+                    return Cast.uncheckedNonnullCast(any);
+                } else {
+                    throw new IllegalArgumentException("Cannot convert " + any.getClass() + " to " + type);
+                }
+            }));
         }
 
         @Override
