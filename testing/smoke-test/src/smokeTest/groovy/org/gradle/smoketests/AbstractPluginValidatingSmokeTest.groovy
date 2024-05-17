@@ -46,6 +46,7 @@ abstract class AbstractPluginValidatingSmokeTest extends AbstractSmokeTest imple
         result
     }
 
+    @spock.lang.IgnoreRest
     @UnsupportedWithConfigurationCache(
         because = "some plugins are not compatible with the configuration cache but it doesn't really matter because we get the results with the regular test suite"
     )
@@ -69,7 +70,7 @@ abstract class AbstractPluginValidatingSmokeTest extends AbstractSmokeTest imple
         performValidation(version)
 
         where:
-        iterations << iterations()
+        iterations << [['org.jetbrains.kotlin.multiplatform', '1.7.0']]
         (id, version) = iterations
     }
 

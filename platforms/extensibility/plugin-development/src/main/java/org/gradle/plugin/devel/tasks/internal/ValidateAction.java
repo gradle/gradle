@@ -17,9 +17,7 @@
 package org.gradle.plugin.devel.tasks.internal;
 
 import com.google.common.base.Charsets;
-import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
-import com.google.gson.Gson;
 import org.gradle.api.Task;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.transform.CacheableTransform;
@@ -38,6 +36,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.UntrackedTask;
 import org.gradle.internal.classanalysis.AsmConstants;
+import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.reflect.DefaultTypeValidationContext;
 import org.gradle.util.internal.TextUtil;
 import org.gradle.work.DisableCachingByDefault;
@@ -92,8 +91,7 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
             try {
                 //noinspection ResultOfMethodCallIgnored
                 output.createNewFile();
-                Gson gson = ValidationProblemSerialization.createGsonBuilder().create();
-                Files.asCharSink(output, Charsets.UTF_8).write(gson.toJson(ImmutableList.of()));
+                Files.asCharSink(output, Charsets.UTF_8).write(Long.toString(CurrentBuildOperationRef.instance().getId().getId()));
                 for (Problem p : problemMessages) {
                     problemsService.getInternalReporter().report(p);
                 }
