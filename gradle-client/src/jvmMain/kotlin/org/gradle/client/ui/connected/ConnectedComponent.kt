@@ -12,6 +12,7 @@ import org.gradle.client.core.gradle.GradleConnectionParameters
 import org.gradle.client.core.gradle.GradleDistribution
 import org.gradle.client.ui.AppDispatchers
 import org.gradle.client.ui.connected.actions.*
+import org.gradle.tooling.BuildAction
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
@@ -21,7 +22,6 @@ import org.slf4j.LoggerFactory
 import java.io.File
 import java.time.Duration
 import java.time.Instant
-import kotlin.reflect.KClass
 
 private val logger = LoggerFactory.getLogger(ConnectedComponent::class.java)
 
@@ -59,7 +59,8 @@ class ConnectedComponent(
         GetBuildEnvironment(),
         GetGradleBuild(),
         GetGradleProject(),
-        GetProjectSchema()
+        GetProjectSchema(),
+        GetResolvedDom()
     )
 
     private val scope = coroutineScope(appDispatchers.main + SupervisorJob())
@@ -104,30 +105,53 @@ class ConnectedComponent(
         }
     }
 
-    fun getModel(modelType: KClass<*>) {
+    fun getModel(modelAction: GetModelAction<out Any>) {
         scope.launch {
             model.value.requireConnected { current ->
                 mutableModel.value = current.copy(events = emptyList(), outcome = Outcome.Building)
                 withContext(appDispatchers.io) {
-                    logger.atDebug().log { "Get ${modelType.simpleName} model!" }
                     @Suppress("TooGenericExceptionCaught")
                     try {
-                        val result = connection.model(modelType.java)
-                            .addArguments(
-                                when (parameters.javaHomeDir) {
-                                    null -> "-Dorg.gradle.java.home=${System.getenv("JAVA_HOME")}"
-                                    else -> "-Dorg.gradle.java.home=${parameters.javaHomeDir}"
+                        if (modelAction is GetModelAction.GetCompositeModelAction) {
+                            logger.atDebug().log { "Run ${modelAction.javaClass.simpleName} build action!" }
+                            val result = connection.action(modelAction.buildAction)
+                                .addArguments(
+                                    when (parameters.javaHomeDir) {
+                                        null -> "-Dorg.gradle.java.home=${System.getenv("JAVA_HOME")}"
+                                        else -> "-Dorg.gradle.java.home=${parameters.javaHomeDir}"
+                                    }
+                                )
+                                .addProgressListener(
+                                    newEventListener(),
+                                    OperationType.entries.toSet() - OperationType.GENERIC
+                                )
+                                .run()
+                            logger.atInfo().log { "Ran ${modelAction.javaClass.simpleName} build action: $result" }
+                            model.value.requireConnected { model ->
+                                withContext(appDispatchers.main) {
+                                    mutableModel.value = model.copy(outcome = Outcome.Result(result))
                                 }
-                            )
-                            .addProgressListener(
-                                newEventListener(),
-                                OperationType.entries.toSet() - OperationType.GENERIC
-                            )
-                            .get()
-                        logger.atInfo().log { "Got ${modelType.simpleName} model: $result" }
-                        model.value.requireConnected { model ->
-                            withContext(appDispatchers.main) {
-                                mutableModel.value = model.copy(outcome = Outcome.Result(result))
+                            }
+                        } else { // todo: refactor, very ugly
+                            val modelType = modelAction.modelType
+                            logger.atDebug().log { "Get ${modelType.simpleName} model!" }
+                            val result = connection.model(modelType.java)
+                                .addArguments(
+                                    when (parameters.javaHomeDir) {
+                                        null -> "-Dorg.gradle.java.home=${System.getenv("JAVA_HOME")}"
+                                        else -> "-Dorg.gradle.java.home=${parameters.javaHomeDir}"
+                                    }
+                                )
+                                .addProgressListener(
+                                    newEventListener(),
+                                    OperationType.entries.toSet() - OperationType.GENERIC
+                                )
+                                .get()
+                            logger.atInfo().log { "Got ${modelType.simpleName} model: $result" }
+                            model.value.requireConnected { model ->
+                                withContext(appDispatchers.main) {
+                                    mutableModel.value = model.copy(outcome = Outcome.Result(result))
+                                }
                             }
                         }
                     } catch (ex: Exception) {

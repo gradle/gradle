@@ -64,7 +64,7 @@ private fun ConnectedMainContent(component: ConnectedComponent, model: Connectio
                     ListItem(
                         modifier = Modifier.selectable(
                             selected = false,
-                            onClick = { component.getModel(action.modelType) }
+                            onClick = { component.getModel(action) }
                         ),
                         leadingContent = { Icon(Icons.Default.PlayCircle, action.displayName) },
                         headlineContent = { Text(action.displayName, style = MaterialTheme.typography.titleSmall) },
