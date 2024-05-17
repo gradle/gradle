@@ -6,6 +6,7 @@ pluginManagement {
         gradlePluginPortal {
             content {
                 includeGroupAndSubgroups("com.gradle")
+                includeGroupAndSubgroups("org.gradle")
                 includeGroupAndSubgroups("io.github.gradle")
             }
         }
@@ -15,6 +16,7 @@ pluginManagement {
 plugins {
     id("com.gradle.enterprise") version "3.16.2"
     id("io.github.gradle.gradle-enterprise-conventions-plugin") version "0.9.1"
+    id("org.gradle.toolchains.foojay-resolver-convention") version "0.8.0"
 }
 
 dependencyResolutionManagement {
