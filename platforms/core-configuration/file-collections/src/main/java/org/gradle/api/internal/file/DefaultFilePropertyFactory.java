@@ -27,7 +27,6 @@ import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.provider.AbstractMinimalProvider;
 import org.gradle.api.internal.provider.BiProvider;
-import org.gradle.api.internal.provider.ConventionMappingFileSystemLocationPropertyProxy;
 import org.gradle.api.internal.provider.DefaultProperty;
 import org.gradle.api.internal.provider.MappingProvider;
 import org.gradle.api.internal.provider.PropertyHost;
@@ -182,7 +181,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
         }
     }
 
-    private static abstract class AbstractFileVar<T extends FileSystemLocation, THIS extends FileSystemLocationProperty<T>> extends DefaultProperty<T> implements FileSystemLocationProperty<T>, ConventionMappingFileSystemLocationPropertyProxy {
+    private static abstract class AbstractFileVar<T extends FileSystemLocation, THIS extends FileSystemLocationProperty<T>> extends DefaultProperty<T> implements FileSystemLocationPropertyInternal<T> {
 
         public AbstractFileVar(PropertyHost host, Class<T> type) {
             super(host, type);
@@ -196,8 +195,8 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
         }
 
         @Override
-        public void conventionFromAnyFile(Provider<Object> fileProvider) {
-            convention(fileProvider.map(value -> {
+        public void conventionFromAnyFile(Provider<Object> provider) {
+            convention(provider.map(value -> {
                 if (value instanceof File) {
                     return fromFile((File) value);
                 } else if (checkNotNull(getType()).isAssignableFrom(value.getClass())) {

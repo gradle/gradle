@@ -14,17 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.provider;
+package org.gradle.api.internal.file;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.api.file.FileSystemLocation;
+import org.gradle.api.file.FileSystemLocationProperty;
 import org.gradle.api.provider.Provider;
 
 /**
- * This class is here just to support FileSystemLocation properties in the convention mapping.
+ * This class was added just to support FileSystemLocation properties in the convention mapping.
  *
  * Should be removed once ConventionMapping is removed.
  */
 @NonNullApi
-public interface ConventionMappingFileSystemLocationPropertyProxy {
-    void conventionFromAnyFile(Provider<Object> fileProvider);
+public interface FileSystemLocationPropertyInternal<T extends FileSystemLocation> extends FileSystemLocationProperty<T> {
+
+    /**
+     * Same as {@link FileSystemLocationProperty#convention(Provider)} but it also works with a Provider of a File.
+     */
+    void conventionFromAnyFile(Provider<Object> provider);
 }
