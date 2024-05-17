@@ -28,7 +28,7 @@ public final class AutoAppliedGradleEnterprisePlugin {
 
     public static final String GROUP = "com.gradle";
     public static final String NAME = "develocity-gradle-plugin";
-    public static final String VERSION = "3.17.3";
+    public static final String VERSION = "3.17.4";
 
 
     public static final PluginId ID = new DefaultPluginId("com.gradle.develocity");
