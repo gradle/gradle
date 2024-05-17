@@ -148,16 +148,17 @@ private fun BuildMainContent(component: BuildComponent, build: Build, snackbarSt
             showSnackbar = { message -> scope.launch { snackbarState.showSnackbar(message) } },
         )
         GradleDistributionField(state = gradleDistSource)
-        when (build.gradleDistribution) {
-            GradleDistribution.Default -> Unit
+        when (gradleDistSource.value) {
 
-            is GradleDistribution.Version -> GradleVersionField(
+            GradleDistSource.DEFAULT -> Unit
+
+            GradleDistSource.VERSION -> GradleVersionField(
                 component = component,
                 state = gradleDistVersion,
                 isError = !isGradleDistVersionValid,
             )
 
-            is GradleDistribution.Local -> DirectoryField(
+            GradleDistSource.LOCAL -> DirectoryField(
                 "Local Gradle Installation",
                 state = gradleDistLocalDir,
                 isError = !isGradleDistLocalDirValid,

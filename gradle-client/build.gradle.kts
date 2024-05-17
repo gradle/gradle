@@ -35,7 +35,7 @@ kotlin {
 
         jvmMain.dependencies {
 
-            implementation(libs.gradle.tooling)
+            implementation(libs.gradle.tooling.api)
 
             implementation(libs.sqldelight.extensions.coroutines)
             implementation(libs.sqldelight.runtime)
@@ -63,6 +63,8 @@ kotlin {
 
             implementation(libs.slf4j.api)
             implementation(libs.logback.classic)
+
+            implementation(libs.gradle.declarative.dsl.tooling.models)
 
             runtimeOnly(libs.kotlinx.coroutines.swing)
         }

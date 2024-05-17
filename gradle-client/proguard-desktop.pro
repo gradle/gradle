@@ -30,6 +30,19 @@
 -dontwarn org.bouncycastle.**
 -dontwarn org.openjsse.**
 
+# Kotlin embedded compiler dependencies
+-dontwarn com.sun.jna.**
+-dontwarn kotlin.annotations.jvm.**
+-dontwarn org.jetbrains.kotlin.com.google.common.**
+-dontwarn org.jetbrains.kotlin.com.google.gson.**
+-dontwarn org.jetbrains.kotlin.com.google.errorprone.**
+-dontwarn org.jetbrains.kotlin.com.google.j2objc.**
+-dontwarn org.jetbrains.kotlin.org.jline.**
+-dontwarn org.jetbrains.kotlin.cli.jvm.javac.**
+-dontwarn org.jetbrains.kotlin.com.intellij.**
+-dontwarn org.jetbrains.kotlin.javac.**
+-dontwarn org.checkerframework.**
+
 # =========================================================================
 # KEEP
 
@@ -70,3 +83,6 @@
 # KTor Client
 -keepclassmembers class io.ktor.** { volatile <fields>; }
 -keep class io.ktor.client.engine.** { *; }
+
+# Kotlin embedded compiler
+#-keep class org.jetbrains.kotlin.** { *; }
