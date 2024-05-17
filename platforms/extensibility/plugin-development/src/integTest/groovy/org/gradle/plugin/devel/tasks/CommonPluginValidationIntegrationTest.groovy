@@ -16,6 +16,6 @@
 
 package org.gradle.plugin.devel.tasks
 
-class CommonPluginValidationIntegrationTest extends AbstractPluginValidationIntegrationSpec implements ValitdatePluginsTrait {
+class CommonPluginValidationIntegrationTest extends AbstractPluginValidationIntegrationSpec implements ValidatePluginsTrait {
 }
 

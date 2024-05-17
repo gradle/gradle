@@ -23,7 +23,7 @@ import org.gradle.util.internal.TextUtil
 import static org.gradle.util.internal.TextUtil.getPluralEnding
 import static org.hamcrest.Matchers.containsString
 
-trait ValitdatePluginsTrait implements CommonPluginValidationTrait {
+trait ValidatePluginsTrait implements CommonPluginValidationTrait {
 
     def setup() {
         enableProblemsApiCheck()
@@ -55,7 +55,7 @@ trait ValitdatePluginsTrait implements CommonPluginValidationTrait {
 
     @Override
     void assertValidationFailsWith(List<AbstractPluginValidationIntegrationSpec.DocumentedProblem> messages) {
-        fails "validatePlugins"
+        fails("validatePlugins")
         def report = new TaskValidationReportFixture(file("build/reports/plugin-development/validation-report.json"))
         report.verify(messages.collectEntries {
             def fullMessage = it.message
