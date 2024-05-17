@@ -95,6 +95,11 @@ public interface InputChanges {
      *     Only input file properties annotated with {@literal @}{@link Incremental} or {@literal @}{@link org.gradle.api.tasks.SkipWhenEmpty} can be queried for changes.
      * </p>
      *
+     * <p>
+     *     Note that for inputs with {@link org.gradle.api.tasks.PathSensitivity#NONE}, instead of a {@link ChangeType#MODIFIED} event,
+     *     file modifications can be reported as a pair of an {@link ChangeType#ADDED} and a {@link ChangeType#REMOVED} event.
+     * </p>
+     *
      * @param parameter The value of the parameter to query.
      */
     Iterable<FileChange> getFileChanges(FileCollection parameter);
@@ -111,6 +116,11 @@ public interface InputChanges {
      *
      * <p>
      *     Only input file properties annotated with {@literal @}{@link Incremental} or {@literal @}{@link org.gradle.api.tasks.SkipWhenEmpty} can be queried for changes.
+     * </p>
+     *
+     * <p>
+     *     Note that for inputs with {@link org.gradle.api.tasks.PathSensitivity#NONE}, instead of a {@link ChangeType#MODIFIED} event,
+     *     file modifications can be reported as a pair of an {@link ChangeType#ADDED} and a {@link ChangeType#REMOVED} event.
      * </p>
      *
      * @param parameter The value of the parameter to query.

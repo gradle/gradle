@@ -1,5 +1,6 @@
 import gradlebuild.basics.BuildEnvironment
 import gradlebuild.basics.accessors.groovy
+import gradlebuild.basics.buildCommitId
 import gradlebuild.integrationtests.addDependenciesAndConfigurations
 import gradlebuild.integrationtests.tasks.SmokeTest
 import gradlebuild.performance.generator.tasks.RemoteProject
@@ -19,6 +20,8 @@ val smokeTestImplementation: Configuration by configurations
 val smokeTestDistributionRuntimeOnly: Configuration by configurations
 
 dependencies {
+    testFixturesImplementation(project(":internal-integ-testing"))
+
     smokeTestImplementation(project(":base-services"))
     smokeTestImplementation(project(":core-api"))
     smokeTestImplementation(project(":test-kit"))
@@ -34,6 +37,7 @@ dependencies {
     smokeTestImplementation(libs.jgit)
     smokeTestImplementation(libs.spock)
     smokeTestImplementation(libs.junitPlatform)
+    smokeTestImplementation(libs.jacksonDatabind)
 
     smokeTestImplementation(testFixtures(project(":core")))
     smokeTestImplementation(testFixtures(project(":plugin-development")))
@@ -54,14 +58,14 @@ tasks {
     val santaGitUri = "https://github.com/gradle/santa-tracker-android.git"
 
     val santaTracker by registering(RemoteProject::class) {
-        remoteUri.set(santaGitUri)
+        remoteUri = santaGitUri
         // Pinned from branch main
-        ref.set("1513dc23b6026c000f80b872b4346b1ba0f6dfa1")
+        ref = "e9419cad3583427caca97958301ff98fc8e9a1c3"
     }
 
     val gradleBuildCurrent by registering(RemoteProject::class) {
-        remoteUri.set(rootDir.absolutePath)
-        ref.set(moduleIdentity.gradleBuildCommitId)
+        remoteUri = rootDir.absolutePath
+        ref = buildCommitId
     }
 
     val remoteProjects = arrayOf(santaTracker, gradleBuildCurrent)
@@ -131,6 +135,7 @@ tasks {
         description = "Runs Smoke tests against the Gradle build"
         configureForSmokeTest(gradleBuildCurrent.map {
             project.fileTree(it.outputDirectory) {
+                exclude("platforms/*/*/src/**")
                 exclude("subprojects/*/src/**")
                 exclude(".idea/**")
                 exclude(".github/**")
@@ -157,6 +162,7 @@ tasks {
     register<SmokeTest>("configCacheSantaTrackerSmokeTest") {
         description = "Runs Santa Tracker Smoke tests with the configuration cache"
         configureForSmokeTest(santaTracker)
+        jvmArgs("-Xmx700m")
         systemProperty("org.gradle.integtest.executer", "configCache")
         useJUnitPlatform {
             filter {
@@ -170,8 +176,8 @@ plugins.withType<IdeaPlugin>().configureEach {
     val smokeTestCompileClasspath: Configuration by configurations
     val smokeTestRuntimeClasspath: Configuration by configurations
     model.module {
-        testSourceDirs = testSourceDirs + smokeTestSourceSet.groovy.srcDirs
-        testResourceDirs = testResourceDirs + smokeTestSourceSet.resources.srcDirs
+        testSources.from(smokeTestSourceSet.groovy.srcDirs)
+        testResources.from(smokeTestSourceSet.resources.srcDirs)
         scopes["TEST"]!!["plus"]!!.add(smokeTestCompileClasspath)
         scopes["TEST"]!!["plus"]!!.add(smokeTestRuntimeClasspath)
     }

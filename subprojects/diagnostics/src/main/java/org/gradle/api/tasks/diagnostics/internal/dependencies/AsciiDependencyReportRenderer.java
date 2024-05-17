@@ -17,8 +17,8 @@ package org.gradle.api.tasks.diagnostics.internal.dependencies;
 
 import org.gradle.api.Action;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.result.ResolutionResult;
+import org.gradle.api.artifacts.result.ResolvedComponentResult;
+import org.gradle.api.tasks.diagnostics.internal.ConfigurationDetails;
 import org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.ProjectDetails;
 import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer;
@@ -27,12 +27,9 @@ import org.gradle.api.tasks.diagnostics.internal.graph.NodeRenderer;
 import org.gradle.api.tasks.diagnostics.internal.graph.SimpleNodeRenderer;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableModuleResult;
-import org.gradle.api.tasks.diagnostics.internal.graph.nodes.UnresolvableConfigurationResult;
 import org.gradle.initialization.StartParameterBuildOptions;
-import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.graph.GraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
-import org.gradle.util.internal.GUtil;
 
 import java.util.Collections;
 
@@ -46,7 +43,7 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
  */
 @NonNullApi
 public class AsciiDependencyReportRenderer extends TextReportRenderer implements DependencyReportRenderer {
-    private final ConfigurationAction configurationAction = new ConfigurationAction();
+    private final ConfigurationDetailsAction configurationDetailsAction = new ConfigurationDetailsAction();
     private boolean hasConfigs;
     private GraphRenderer renderer;
 
@@ -73,37 +70,28 @@ public class AsciiDependencyReportRenderer extends TextReportRenderer implements
     }
 
     @Override
-    public void startConfiguration(final Configuration configuration) {
+    public void startConfiguration(ConfigurationDetails configuration) {
         if (hasConfigs) {
             getTextOutput().println();
         }
         hasConfigs = true;
-        configurationAction.setConfiguration(configuration);
-        renderer.visit(configurationAction, true);
-
-    }
-
-    private String getDescription(Configuration configuration) {
-        return GUtil.isTrue(configuration.getDescription()) ? " - " + configuration.getDescription() : "";
+        configurationDetailsAction.setConfiguration(configuration);
+        renderer.visit(configurationDetailsAction, true);
     }
 
     @Override
-    public void completeConfiguration(Configuration configuration) {}
+    public void completeConfiguration(ConfigurationDetails configuration) {
+    }
 
     @Override
-    public void render(Configuration configuration) {
-        if (canBeResolved(configuration)) {
-            ResolutionResult result = configuration.getIncoming().getResolutionResult();
-            RenderableDependency root = new RenderableModuleResult(result.getRoot());
+    public void render(ConfigurationDetails configuration) {
+        if (configuration.isCanBeResolved()) {
+            ResolvedComponentResult result = configuration.getResolutionResultRoot().get();
+            RenderableModuleResult root = new RenderableModuleResult(result);
             renderNow(root);
         } else {
-            renderNow(new UnresolvableConfigurationResult(configuration));
+            renderNow(configuration.getUnresolvableResult());
         }
-    }
-
-    private boolean canBeResolved(Configuration configuration) {
-        boolean isDeprecatedForResolving = ((DeprecatableConfiguration) configuration).getResolutionAlternatives() != null;
-        return configuration.isCanBeResolved() && !isDeprecatedForResolving;
     }
 
     void renderNow(RenderableDependency root) {
@@ -130,20 +118,31 @@ public class AsciiDependencyReportRenderer extends TextReportRenderer implements
         super.complete();
     }
 
-    private class ConfigurationAction implements Action<StyledTextOutput> {
-        private Configuration configuration;
+    private class ConfigurationDetailsAction implements Action<StyledTextOutput> {
+
+        private ConfigurationDetails configuration;
+
+        public void setConfiguration(ConfigurationDetails configuration) {
+            this.configuration = configuration;
+        }
 
         @Override
         public void execute(StyledTextOutput styledTextOutput) {
             getTextOutput().withStyle(Identifier).text(configuration.getName());
             getTextOutput().withStyle(Description).text(getDescription(configuration));
-            if (!canBeResolved(configuration)) {
+            if (!configuration.isCanBeResolved()) {
                 getTextOutput().withStyle(Info).text(" (n)");
             }
         }
 
-        public void setConfiguration(Configuration configuration) {
-            this.configuration = configuration;
+        private String getDescription(ConfigurationDetails configuration) {
+            String description = configuration.getDescription();
+            if (description != null && !description.isEmpty()) {
+                description = " - " + description;
+            } else {
+                description = "";
+            }
+            return description;
         }
     }
 }

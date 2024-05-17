@@ -5,6 +5,6 @@ plugins {
 description = "Provides a plugin that configures IntelliJ's idea-ext plugin"
 
 dependencies {
-    implementation(project(":basics"))
+    implementation("gradlebuild:basics")
     implementation("gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext")
 }

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.internal.file.collections.MinimalFileSet;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.properties.LifecycleAwareValue;
 
 import java.io.File;
@@ -31,7 +32,8 @@ public class CalculatedTaskInputFileCollection extends AbstractFileCollection im
     private Set<File> cachedFiles;
     private boolean taskIsExecuting;
 
-    public CalculatedTaskInputFileCollection(String taskPath, MinimalFileSet calculatedFiles, Object[] inputs) {
+    public CalculatedTaskInputFileCollection(TaskDependencyFactory taskDependencyFactory, String taskPath, MinimalFileSet calculatedFiles, Object[] inputs) {
+        super(taskDependencyFactory);
         this.taskPath = taskPath;
         this.calculatedFiles = calculatedFiles;
         targets = new ArrayList<>(1 + inputs.length);

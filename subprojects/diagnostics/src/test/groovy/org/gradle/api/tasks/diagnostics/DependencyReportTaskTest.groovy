@@ -45,18 +45,12 @@ class DependencyReportTaskTest extends AbstractProjectBuilderSpec {
 
     def "renders all configurations in the project"() {
         when:
-        task.generate(project)
+        def reportModel = task.calculateReportModelFor(project)
 
-        then: 1 * renderer.startConfiguration(conf1)
-        then: 1 * renderer.render(conf1)
-        then: 1 * renderer.completeConfiguration(conf1)
-
-
-        then: 1 * renderer.startConfiguration(conf2)
-        then: 1 * renderer.render(conf2)
-        then: 1 * renderer.completeConfiguration(conf2)
-
-        0 * renderer._
+        then:
+        reportModel.configurations.size() == 2
+        reportModel.configurations[0].name == conf1.name
+        reportModel.configurations[1].name == conf2.name
     }
 
     def "rendering can be limited to specific configurations"() {
@@ -66,13 +60,11 @@ class DependencyReportTaskTest extends AbstractProjectBuilderSpec {
         task.configurations = [bConf] as Set
 
         when:
-        task.generate(project)
+        def reportModel = task.calculateReportModelFor(project)
 
         then:
-        1 * renderer.startConfiguration(bConf)
-        1 * renderer.render(bConf)
-        1 * renderer.completeConfiguration(bConf)
-        0 * renderer._
+        reportModel.configurations.size() == 1
+        reportModel.configurations[0].name == bConf.name
     }
 
     def "rendering can be limited to a single configuration, specified by name"() {

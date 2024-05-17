@@ -15,16 +15,26 @@
  */
 package org.gradle.api.tasks.diagnostics
 
+
 import org.gradle.cache.internal.BuildScopeCacheDir
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.util.GradleVersion
 import org.junit.Rule
 
+import static org.gradle.api.internal.DocumentationRegistry.BASE_URL
+import static org.gradle.integtests.fixtures.SuggestionsMessages.GET_HELP
+import static org.gradle.integtests.fixtures.SuggestionsMessages.INFO_DEBUG
+import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
+import static org.gradle.integtests.fixtures.SuggestionsMessages.STACKTRACE_MESSAGE
+
 class HelpTaskIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     public final TestResources resources = new TestResources(temporaryFolder)
     def version = GradleVersion.current().version
+    def builtInOptions = """
+     --rerun     Causes the task to be re-run even if up-to-date.
+""".readLines().tail().join("\n")
 
     def "shows help message when tasks #tasks run in a directory with no build definition present"() {
         useTestDirectoryThatIsNotEmbeddedInAnotherBuild()
@@ -43,13 +53,13 @@ Directory '$testDirectory' does not contain a Gradle build.
 
 To create a new build in this directory, run gradle init
 
-For more detail on the 'init' task, see https://docs.gradle.org/$version/userguide/build_init_plugin.html
+For more detail on the 'init' task, see $BASE_URL/userguide/build_init_plugin.html
 
-For more detail on creating a Gradle build, see https://docs.gradle.org/$version/userguide/tutorial_using_tasks.html
+For more detail on creating a Gradle build, see $BASE_URL/userguide/tutorial_using_tasks.html
 
 To see a list of command-line options, run gradle --help
 
-For more detail on using Gradle, see https://docs.gradle.org/$version/userguide/command_line_interface.html
+For more detail on using Gradle, see $BASE_URL/userguide/command_line_interface.html
 
 For troubleshooting, visit https://help.gradle.org
 
@@ -182,6 +192,7 @@ To run a build, run gradle <task> ...
 
     def "shows basic welcome message for current project only"() {
         given:
+        createDirs("a", "b", "c")
         settingsFile << "include 'a', 'b', 'c'"
 
         when:
@@ -202,7 +213,7 @@ To see more detail about a task, run gradle help --task <task>
 
 To see a list of command-line options, run gradle --help
 
-For more detail on using Gradle, see https://docs.gradle.org/$version/userguide/command_line_interface.html
+For more detail on using Gradle, see $BASE_URL/userguide/command_line_interface.html
 
 For troubleshooting, visit https://help.gradle.org
 
@@ -223,6 +234,8 @@ Type
 
 Options
      --configuration     The configuration to generate the report for.
+
+${builtInOptions}
 
 Description
      Displays all dependencies declared in root project '${testDirectory.getName()}'.
@@ -248,6 +261,8 @@ Type
 Options
      --task     The task to show help for.
 
+${builtInOptions}
+
 Description
      Displays a help message.
 
@@ -259,6 +274,7 @@ BUILD SUCCESSFUL"""
 
     def "help for tasks same type different descriptions"() {
         setup:
+        createDirs("someproj")
         settingsFile.text = """
 include ":someproj"
 """
@@ -284,6 +300,9 @@ Paths
 Type
      Task (org.gradle.api.Task)
 
+Options
+${builtInOptions}
+
 Descriptions
      (:hello) hello task from root
      (:someproj:hello) hello task from someproj
@@ -296,6 +315,7 @@ BUILD SUCCESSFUL"""
 
     def "help for tasks same type different groups"() {
         setup:
+        createDirs("someproj1", "someproj2")
         settingsFile.text = """
 include ":someproj1"
 include ":someproj2"
@@ -328,6 +348,9 @@ Paths
 Type
      Task (org.gradle.api.Task)
 
+Options
+${builtInOptions}
+
 Description
      -
 
@@ -341,6 +364,7 @@ BUILD SUCCESSFUL"""
 
     def "matchingTasksOfSameType"() {
         setup:
+        createDirs("subproj1")
         settingsFile << "include ':subproj1'"
         buildFile << "allprojects{ apply plugin:'java'}"
         when:
@@ -354,8 +378,11 @@ Path
 Type
      Jar (org.gradle.api.tasks.bundling.Jar)
 
+Options
+${builtInOptions}
+
 Description
-     Assembles a jar archive containing the main classes.
+     Assembles a jar archive containing the classes of the 'main' feature.
 
 Group
      build
@@ -374,8 +401,11 @@ Paths
 Type
      Jar (org.gradle.api.tasks.bundling.Jar)
 
+Options
+${builtInOptions}
+
 Description
-     Assembles a jar archive containing the main classes.
+     Assembles a jar archive containing the classes of the 'main' feature.
 
 Group
      build
@@ -386,6 +416,7 @@ BUILD SUCCESSFUL"""
 
     def "multipleMatchingTasksOfDifferentType"() {
         setup:
+        createDirs("subproj1")
         settingsFile << "include ':subproj1'"
         buildFile << """task someTask(type:Jar){
             description = "an archiving operation"
@@ -408,6 +439,9 @@ Path
 Type
      Copy (org.gradle.api.tasks.Copy)
 
+Options
+${builtInOptions}
+
 Description
      a copy operation
 
@@ -421,6 +455,9 @@ Path
 
 Type
      Jar (org.gradle.api.tasks.bundling.Jar)
+
+Options
+${builtInOptions}
 
 Description
      an archiving operation
@@ -436,11 +473,29 @@ BUILD SUCCESSFUL"""
     def "error message contains possible candidates"() {
         buildFile.text = """
         task aTask
-"""
+        """
         when:
         fails "help", "--task", "bTask"
         then:
         failure.assertHasCause("Task 'bTask' not found in root project '${testDirectory.getName()}'. Some candidates are: 'aTask', 'tasks'")
+
+        when:
+        run "help", "--task", "aTask"
+        then:
+        output.contains "Detailed task information for aTask"
+
+        when:
+        fails "help", "--task", "bTask"
+        then:
+        failure.assertHasCause("Task 'bTask' not found in root project '${testDirectory.getName()}'. Some candidates are: 'aTask', 'tasks'")
+
+        when:
+        buildFile << """
+        task bTask
+        """
+        run "help", "--task", "bTask"
+        then:
+        output.contains "Detailed task information for bTask"
     }
 
     def "tasks can be defined by camelCase matching"() {
@@ -458,6 +513,9 @@ Path
 
 Type
      Task (org.gradle.api.Task)
+
+Options
+${builtInOptions}
 
 Description
      a description
@@ -478,12 +536,15 @@ BUILD SUCCESSFUL"""
         failure.assertHasCause("Unknown command-line option '--tasssk'.")
         failure.assertHasResolutions(
             "Run gradle help --task :help to get task usage details.",
-            "Run with --info or --debug option to get more log output.",
-            "Run with --scan to get full insights.",
+            STACKTRACE_MESSAGE,
+            INFO_DEBUG,
+            SCAN,
+            GET_HELP,
         )
     }
 
     def "listsEnumAndBooleanCmdOptionValues"() {
+        createDirs("proj1", "proj2")
         when:
         run "help", "--task", "hello"
         then:
@@ -500,11 +561,15 @@ Type
 Options
      --booleanValue     Configures a boolean flag in CustomTask.
 
+     --no-booleanValue     Disables option --booleanValue.
+
      --enumValue     Configures an enum value in CustomTask.
                      Available values are:
                           ABC
                           DEF
                           GHIJKL
+
+${builtInOptions}
 
 Description
      -
@@ -516,6 +581,7 @@ BUILD SUCCESSFUL"""
     }
 
     def "listsCommonDynamicAvailableValues"() {
+        createDirs("sub1", "sub2")
         when:
         run "help", "--task", "hello"
         then:
@@ -535,6 +601,8 @@ Options
                             optionB
                             optionC
 
+${builtInOptions}
+
 Description
      -
 
@@ -553,8 +621,14 @@ BUILD SUCCESSFUL"""
 Options
      --valueA     descA
 
+     --no-valueA     Disables option --valueA.
+
      --valueB     descB
 
-     --valueC     descC"""
+     --no-valueB     Disables option --valueB.
+
+     --valueC     descC
+
+     --no-valueC     Disables option --valueC."""
     }
 }

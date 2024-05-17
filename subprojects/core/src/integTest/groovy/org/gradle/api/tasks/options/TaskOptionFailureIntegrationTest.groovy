@@ -40,6 +40,7 @@ class TaskOptionFailureIntegrationTest extends AbstractOptionIntegrationSpec {
 
     def "different tasks match name but only one accepts the option"() {
         given:
+        createDirs("other")
         settingsFile << "include 'other'"
         buildFile << """
             task someTask(type: SomeTask)
@@ -87,7 +88,7 @@ class TaskOptionFailureIntegrationTest extends AbstractOptionIntegrationSpec {
 
         then:
         failure.assertHasDescription("Problem configuring task :someTask from command line.")
-        failure.assertHasCause("No argument was provided for command-line option '--second'.")
+        failure.assertHasCause("No argument was provided for command-line option '--second' with description: 'configures 'second' field'")
 
         when:
         runAndFail 'someTask', '--second', 'hey', '--second', 'buddy'

@@ -18,11 +18,14 @@ package org.gradle.initialization;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.configuration.ProjectsPreparer;
+import org.gradle.execution.EntryTaskSelector;
 import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.internal.Describables;
 import org.gradle.internal.build.BuildModelController;
 import org.gradle.internal.model.StateTransitionController;
 import org.gradle.internal.model.StateTransitionControllerFactory;
+
+import javax.annotation.Nullable;
 
 public class VintageBuildModelController implements BuildModelController {
     private enum Stage implements StateTransitionController.State {
@@ -31,7 +34,6 @@ public class VintageBuildModelController implements BuildModelController {
 
     private final ProjectsPreparer projectsPreparer;
     private final GradleInternal gradle;
-    private final TaskSchedulingPreparer taskGraphPreparer;
     private final SettingsPreparer settingsPreparer;
     private final TaskExecutionPreparer taskExecutionPreparer;
     private final StateTransitionController<Stage> state;
@@ -39,14 +41,12 @@ public class VintageBuildModelController implements BuildModelController {
     public VintageBuildModelController(
         GradleInternal gradle,
         ProjectsPreparer projectsPreparer,
-        TaskSchedulingPreparer taskSchedulingPreparer,
         SettingsPreparer settingsPreparer,
         TaskExecutionPreparer taskExecutionPreparer,
         StateTransitionControllerFactory controllerFactory
     ) {
         this.gradle = gradle;
         this.projectsPreparer = projectsPreparer;
-        this.taskGraphPreparer = taskSchedulingPreparer;
         this.settingsPreparer = settingsPreparer;
         this.taskExecutionPreparer = taskExecutionPreparer;
         this.state = controllerFactory.newController(Describables.of("vintage state of", gradle.getOwner().getDisplayName()), Stage.Created);
@@ -72,13 +72,8 @@ public class VintageBuildModelController implements BuildModelController {
     }
 
     @Override
-    public void initializeWorkGraph(ExecutionPlan plan) {
-        state.inState(Stage.Configured, () -> taskGraphPreparer.prepareForTaskScheduling(gradle, plan));
-    }
-
-    @Override
-    public void scheduleRequestedTasks(ExecutionPlan plan) {
-        state.inState(Stage.Configured, () -> taskExecutionPreparer.prepareForTaskExecution(gradle, plan));
+    public void scheduleRequestedTasks(@Nullable EntryTaskSelector selector, ExecutionPlan plan) {
+        state.inState(Stage.Configured, () -> taskExecutionPreparer.scheduleRequestedTasks(gradle, selector, plan));
     }
 
     private void prepareSettings() {

@@ -17,10 +17,10 @@
 package org.gradle.internal.scopeids;
 
 import org.gradle.cache.FileLockManager;
-import org.gradle.cache.PersistentStateCache;
-import org.gradle.cache.internal.FileIntegrityViolationSuppressingPersistentStateCacheDecorator;
+import org.gradle.cache.ObjectHolder;
+import org.gradle.cache.internal.FileBackedObjectHolder;
+import org.gradle.cache.internal.FileIntegrityViolationSuppressingObjectHolderDecorator;
 import org.gradle.cache.internal.OnDemandFileAccess;
-import org.gradle.cache.internal.SimpleStateCache;
 import org.gradle.internal.file.Chmod;
 import org.gradle.internal.id.UniqueId;
 
@@ -36,9 +36,9 @@ class PersistentScopeIdStoreFactory {
         this.fileLockManager = fileLockManager;
     }
 
-    PersistentStateCache<UniqueId> create(File file, String description) {
-        return new FileIntegrityViolationSuppressingPersistentStateCacheDecorator<UniqueId>(
-            new SimpleStateCache<UniqueId>(
+    ObjectHolder<UniqueId> create(File file, String description) {
+        return new FileIntegrityViolationSuppressingObjectHolderDecorator<UniqueId>(
+            new FileBackedObjectHolder<UniqueId>(
                 file,
                 new OnDemandFileAccess(file, description, fileLockManager),
                 UniqueIdSerializer.INSTANCE,

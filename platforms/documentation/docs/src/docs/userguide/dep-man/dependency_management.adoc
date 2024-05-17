@@ -1,0 +1,58 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+= Learning the Basics
+include::core_dependency_management.adoc[leveloffset=+1]
+include::declaring_repositories.adoc[leveloffset=+1]
+include::declaring_dependencies.adoc[leveloffset=+1]
+include::library_vs_application.adoc[leveloffset=+1]
+include::viewing_debugging_dependencies.adoc[leveloffset=+1]
+include::dependency_resolution.adoc[leveloffset=+1]
+include::dependency_verification.adoc[leveloffset=+1]
+
+= Declaring Versions
+include::single_versions.adoc[leveloffset=+1]
+include::rich_versions.adoc[leveloffset=+1]
+include::dynamic_versions.adoc[leveloffset=+1]
+include::dependency_locking.adoc[leveloffset=+1]
+
+= Controlling Transitive Dependencies
+include::dependency_constraints.adoc[leveloffset=+1]
+include::dependency_downgrade_and_exclude.adoc[leveloffset=+1]
+include::platforms.adoc[leveloffset=+1]
+include::dependency_version_alignment.adoc[leveloffset=+1]
+include::dependency_capability_conflict.adoc[leveloffset=+1]
+include::component_metadata_rules.adoc[leveloffset=+1]
+include::resolution_rules.adoc[leveloffset=+1]
+
+= Producing and Consuming Variants of Libraries
+include::component_capabilities.adoc[leveloffset=+1]
+include::feature_variants.adoc[leveloffset=+1]
+include::variant_model.adoc[leveloffset=+1]
+include::variant_attributes.adoc[leveloffset=+1]
+include::cross_project_publications.adoc[leveloffset=+1]
+include::artifact_transforms.adoc[leveloffset=+1]
+
+= Working in a Multi-repo Environment
+include::composite_builds.adoc[leveloffset=+1]
+
+= Publishing Libraries
+include::publishing_setup.adoc[leveloffset=+1]
+include::publishing_gradle_module_metadata.adoc[leveloffset=+1]
+include::publishing_signing.adoc[leveloffset=+1]
+include::publishing_customization.adoc[leveloffset=+1]
+
+include::dependency_management_terminology.adoc[leveloffset=+1]
+
+

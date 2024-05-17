@@ -1,0 +1,182 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[sec:daemon_watch_fs]]
+= File System Watching
+
+Gradle maintains a Virtual File System (VFS) to calculate what needs to be rebuilt on repeat builds of a project.
+By watching the file system, Gradle keeps the VFS current between builds.
+
+== Enable
+
+Gradle enables file system watching by default for supported operating systems since Gradle 7.
+
+Run the build with the '--watch-fs' flag to force file system watching for a build.
+
+To force file system watching for all builds (unless disabled with `--no-watch-fs`), add the following value to `gradle.properties`:
+
+====
+.gradle.properties
+[source,properties]
+----
+org.gradle.vfs.watch=true
+----
+====
+
+== Disable
+
+To disable file system watching:
+
+* use the `--no-watch-fs` flag
+* set `org.gradle.vfs.watch=false` in `gradle.properties`
+
+== Supported Operating Systems
+
+Gradle uses native operating system features to watch the file system.
+Gradle supports file system watching on the following operating systems:
+
+* Windows 10, version 1709 and later
+* Linux, tested on the following distributions:
+** Ubuntu 16.04 or later
+** CentOS 8 or later
+** Red Hat Enterprise Linux (RHEL) 8 or later
+** Amazon Linux 2 or later
+* macOS 10.14 (Mojave) or later on Intel and ARM architectures
+
+== Supported File Systems
+
+File system watching supports the following file system types:
+
+* APFS
+* btrfs
+* ext3
+* ext4
+* XFS
+* HFS+
+* NTFS
+
+Gradle also supports VirtualBox's shared folders.
+
+Network file systems like Samba and NFS are not supported.
+
+[NOTE]
+.Symlinks
+====
+
+File system watching is not compatible with symlinks.
+If your project files include symlinks, you must disable `vfs.watch` by setting `org.gradle.vfs.watch=false` in `gradle.properties`.
+
+====
+
+== Unsupported File Systems
+
+When enabled by default, file system watching acts conservatively when it encounters content on unsupported file systems.
+This can happen if you mount a project directory or subdirectory from a network drive.
+Gradle doesn't retain information about unsupported file systems between builds when enabled by default.
+If you explicitly enable file system watching, Gradle retains information about unsupported file systems between builds.
+
+== Logging
+
+To view information about Virtual File System (VFS) changes at the beginning and end of a build, enable verbose VFS logging.
+
+Set the `org.gradle.vfs.verbose` Daemon option to `true` to enable verbose logging.
+
+You can do this on the command line with the following command:
+
+----
+$ gradle <task> -Dorg.gradle.vfs.verbose=true
+----
+
+Or configure the property in the `gradle.properties` file in the project root or your Gradle User Home:
+
+====
+.gradle.properties
+[source,properties]
+----
+org.gradle.vfs.verbose=true
+----
+====
+
+This produces the following output at the start and end of the build:
+
+----
+$ gradle assemble --watch-fs -Dorg.gradle.vfs.verbose=true
+----
+----
+Received 3 file system events since last build while watching 1 locations
+Virtual file system retained information about 2 files, 2 directories and 0 missing files since last build
+> Task :compileJava NO-SOURCE
+> Task :processResources NO-SOURCE
+> Task :classes UP-TO-DATE
+> Task :jar UP-TO-DATE
+> Task :assemble UP-TO-DATE
+
+BUILD SUCCESSFUL in 58ms
+1 actionable task: 1 up-to-date
+Received 5 file system events during the current build while watching 1 locations
+Virtual file system retains information about 3 files, 2 directories and 2 missing files until next build
+----
+
+On Windows and macOS, Gradle might report changes received since the last build, even if you haven't changed anything.
+These are harmless notifications about changes to Gradle's caches and can be safely ignored.
+
+[[sec:daemon_watch_fs_troubleshooting]]
+== Troubleshooting
+
+Gradle does not detect some changes::
+_Please https://gradle-community.slack.com/app_redirect?channel=file-system-watching[let us know on the Gradle community Slack]._
+If a build declares its inputs and outputs correctly, this should not happen.
+So it's either a bug we must fix or your build lacks declaration for some inputs or outputs.
+
+VFS state dropped due to lost state::
+Did you receive a message that reads `Dropped VFS state due to lost state` during a build?
+_Please https://gradle-community.slack.com/app_redirect?channel=file-system-watching[let us know on the Gradle community Slack]._
+This means that your build cannot benefit from file system watching for one of the following reasons:
+
+* the Daemon received an unknown file system event
+* too many changes happened, and the watching API couldn't handle it
+
+Too many open files on macOS::
+If you receive the `java.io.IOException: Too many open files` error on macOS, raise your open files limit.
+See https://superuser.com/a/443168/8117[this post] for more details.
+
+[[sec:inotify_watches_limit]]
+===  Adjust inotify Limits on Linux
+
+File system watching uses http://en.wikipedia.org/wiki/Inotify[inotify] on Linux.
+Depending on the size of your build, it may be necessary to increase inotify limits.
+If you are using an IDE, then you probably already had to increase the limits in the past.
+
+File system watching uses one inotify watch per watched directory.
+You can see the current limit of inotify watches per user by running:
+
+[source,bash]
+----
+cat /proc/sys/fs/inotify/max_user_watches
+----
+
+To increase the limit to e.g. 512K watches run the following:
+
+[source,bash]
+----
+echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf
+----
+[source,bash]
+----
+sudo sysctl -p --system
+----
+
+Each used inotify watch takes up to 1KB of memory.
+Assuming inotify uses all the 512K watches then file system watching could use up to 500MB.
+In a memory-constrained environment, you may want to disable file system watching.

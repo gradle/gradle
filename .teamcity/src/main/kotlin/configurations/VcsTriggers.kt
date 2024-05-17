@@ -22,7 +22,7 @@ val triggerExcludes = """
         -:.idea
         -:.github
         -:.teamcity
-        -:subprojects/docs/src/docs/release
+        -:platforms/documentation/docs/src/docs/release
 """.trimIndent()
 
 fun VersionedSettingsBranch.branchFilter() = """

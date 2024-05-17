@@ -52,6 +52,17 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
         this
     }
 
+    /**
+     * Note that the JUnit XML schema currently does not support both name and display name, so this extra data is effectively ignored for
+     * XML test reports.  See https://github.com/junit-team/junit5/issues/373 for further information.
+     *
+     * This method exists for compatibility purposes, but is equivalent to {@link #assertTestsExecuted(java.lang.String[])}.
+     */
+    @Override
+    TestClassExecutionResult assertTestsExecuted(TestCase... testCases) {
+        return assertTestsExecuted(testCases.collect { it.displayName } as String[])
+    }
+
     TestClassExecutionResult assertTestCount(int tests, int failures, int errors) {
         assert testClassNode.@tests == tests
         assert testClassNode.@failures == failures
@@ -92,6 +103,13 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
         return assertTestFailed(name, messageMatchers)
     }
 
+    @Override
+    TestClassExecutionResult assertTestFailedIgnoreMessages(String name) {
+        def failures = collectTestFailures(name)
+        assert !failures.isEmpty()
+        return this
+    }
+
     TestClassExecutionResult assertTestFailed(String name, Matcher<? super String>... messageMatchers) {
         Map<String, Node> testMethods = findTests()
         assertThat(testMethods.keySet(), CoreMatchers.hasItem(name))
@@ -106,12 +124,11 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
     }
 
     boolean testFailed(String name, Matcher<? super String>... messageMatchers) {
-        Map<String, Node> testMethods = findTests()
-        if (!testMethods.keySet().contains(name)) {
+        def failures = collectTestFailures(name)
+        if (failures == null) {
             return false
         }
 
-        def failures = testMethods[name].failure
         if (failures.size() != messageMatchers.length) {
             return false
         }
@@ -123,6 +140,15 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
         }
 
         return true
+    }
+
+    private Object collectTestFailures(String name) {
+        Map<String, Node> testMethods = findTests()
+        if (!testMethods.keySet().contains(name)) {
+            return null
+        }
+
+        return testMethods[name].failure
     }
 
     @Override

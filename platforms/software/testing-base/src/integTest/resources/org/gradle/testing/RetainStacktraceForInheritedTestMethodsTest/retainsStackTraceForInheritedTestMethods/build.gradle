@@ -1,0 +1,18 @@
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+
+plugins {
+    id 'java-library'
+}
+
+repositories {
+    mavenCentral()
+}
+
+testing.suites.test {
+    useJUnitJupiter()
+    targets.test.testTask.configure {
+        testLogging {
+            exceptionFormat = TestExceptionFormat.FULL
+        }
+    }
+}

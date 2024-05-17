@@ -132,7 +132,7 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
         }
     }
 
-    public static BuildOperationDescriptor.Builder configureProjectBuildOperationBuilderFor(ProjectInternal projectInternal) {
+    private static BuildOperationDescriptor.Builder configureProjectBuildOperationBuilderFor(ProjectInternal projectInternal) {
         Path identityPath = projectInternal.getIdentityPath();
         String displayName = "Configure project " + identityPath;
 

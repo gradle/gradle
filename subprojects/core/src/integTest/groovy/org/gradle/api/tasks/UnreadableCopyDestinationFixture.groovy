@@ -17,17 +17,17 @@
 package org.gradle.api.tasks
 
 import groovy.transform.SelfType
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 @SelfType(AbstractIntegrationSpec)
 trait UnreadableCopyDestinationFixture {
-    private static final String COPY_UNREADABLE_DESTINATION_DEPRECATION = "Cannot access a file in the destination directory (see --info log for details). " +
-        "Copying to a directory which contains unreadable content has been deprecated. " +
-        "This will fail with an error in Gradle 8.0. " +
+    private static final String COPY_UNREADABLE_DESTINATION_FAILURE = "Cannot access a file in the destination directory. " +
+        "Copying to a directory which contains unreadable content is not supported. " +
         "Declare the task as untracked by using Task.doNotTrackState(). " +
-        "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#declare_unreadable_input_output"
+        new DocumentationRegistry().getDocumentationRecommendationFor("information", "incremental_build", "sec:disable-state-tracking")
 
-    void expectUnreadableCopyDestinationDeprecationWarning() {
-        executer.expectDocumentedDeprecationWarning(COPY_UNREADABLE_DESTINATION_DEPRECATION)
+    void expectUnreadableCopyDestinationFailure() {
+        failure.assertHasDocumentedCause(COPY_UNREADABLE_DESTINATION_FAILURE)
     }
 }

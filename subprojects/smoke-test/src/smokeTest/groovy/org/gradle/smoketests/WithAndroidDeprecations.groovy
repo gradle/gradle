@@ -17,43 +17,117 @@
 package org.gradle.smoketests
 
 import groovy.transform.SelfType
+import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
 
 @SelfType(BaseDeprecations)
-trait WithAndroidDeprecations {
-    private static final VersionNumber AGP_VERSION_WITH_FIXED_SKIP_WHEN_EMPTY = VersionNumber.parse('7.1.1')
+trait WithAndroidDeprecations implements WithReportDeprecations {
     private static final VersionNumber AGP_VERSION_WITH_FIXED_NEW_WORKERS_API = VersionNumber.parse('4.2')
+    private static final VersionNumber AGP_VERSION_WITHOUT_CONVENTION_USAGES = VersionNumber.parse('7.4')
+    private static final VersionNumber AGP_VERSION_WITHOUT_CONFIG_UTIL = VersionNumber.parse('8.0.0-rc01')
+    private static final VersionNumber AGP_VERSION_WITHOUT_CLIENT_MODULE = VersionNumber.parse('8.2.0-alpha06')
 
     boolean androidPluginUsesOldWorkerApi(String agpVersion) {
-        VersionNumber agpVersionNumber = VersionNumber.parse(agpVersion)
-        agpVersionNumber < AGP_VERSION_WITH_FIXED_NEW_WORKERS_API
+        versionIsLower(agpVersion, AGP_VERSION_WITH_FIXED_NEW_WORKERS_API)
+    }
+
+    boolean androidPluginUsesConventions(String agpVersion) {
+        versionIsLower(agpVersion, AGP_VERSION_WITHOUT_CONVENTION_USAGES)
+    }
+
+    private boolean versionIsLower(String version, VersionNumber threshold) {
+        VersionNumber versionNumber = VersionNumber.parse(version)
+        versionNumber < threshold
     }
 
     void expectAndroidWorkerExecutionSubmitDeprecationWarning(String agpVersion) {
         runner.expectLegacyDeprecationWarningIf(androidPluginUsesOldWorkerApi(agpVersion), WORKER_SUBMIT_DEPRECATION)
     }
 
-    void expectAndroidFileTreeForEmptySourcesDeprecationWarnings(String agpVersion, String... properties) {
-        VersionNumber agpVersionNumber = VersionNumber.parse(agpVersion)
-        properties.each {
-            if (it == "sourceFiles" || it == "sourceDirs" || it == "inputFiles") {
-                runner.expectDeprecationWarningIf(agpVersionNumber.getBaseVersion() < AGP_VERSION_WITH_FIXED_SKIP_WHEN_EMPTY, getFileTreeForEmptySourcesDeprecationForProperty(it), "https://issuetracker.google.com/issues/205285261")
-            } else if (it == "resources") {
-                runner.expectDeprecationWarningIf(agpVersionNumber.getBaseVersion() < AGP_VERSION_WITH_FIXED_SKIP_WHEN_EMPTY, getFileTreeForEmptySourcesDeprecationForProperty(it), "https://issuetracker.google.com/issues/204425803")
-            } else if (it == "projectNativeLibs") {
-                runner.expectLegacyDeprecationWarningIf(agpVersionNumber.getMajor() == 4, getFileTreeForEmptySourcesDeprecationForProperty(it))
-            }
-        }
+    void expectProjectConventionDeprecationWarning(String agpVersion) {
+        runner.expectLegacyDeprecationWarningIf(androidPluginUsesConventions(agpVersion), PROJECT_CONVENTION_DEPRECATION)
     }
 
-    void expectAndroidIncrementalTaskInputsDeprecation(String agpVersion) {
-        def agpVersionNumber = VersionNumber.parse(agpVersion)
-        def method = agpVersionNumber < VersionNumber.parse("4.2")
-            ? 'taskAction$gradle'
-            : 'taskAction$gradle_core'
-        // https://issuetracker.google.com/218478028
-        runner.expectLegacyDeprecationWarningIf(
-            agpVersionNumber < VersionNumber.parse("7.3.0-alpha08"),
-            getIncrementalTaskInputsDeprecationWarning("IncrementalTask.${method}"))
+    void maybeExpectProjectConventionDeprecationWarning(String agpVersion) {
+        runner.maybeExpectLegacyDeprecationWarningIf(androidPluginUsesConventions(agpVersion), PROJECT_CONVENTION_DEPRECATION)
     }
+
+    void expectAndroidConventionTypeDeprecationWarning(String agpVersion) {
+        runner.expectLegacyDeprecationWarningIf(androidPluginUsesConventions(agpVersion), CONVENTION_TYPE_DEPRECATION)
+    }
+
+    void maybeExpectAndroidConventionTypeDeprecationWarning(String agpVersion) {
+        runner.maybeExpectLegacyDeprecationWarningIf(androidPluginUsesConventions(agpVersion), CONVENTION_TYPE_DEPRECATION)
+    }
+
+    void maybeExpectBasePluginConventionDeprecation(String agpVersion) {
+        runner.maybeExpectLegacyDeprecationWarningIf(androidPluginUsesConventions(agpVersion), BASE_PLUGIN_CONVENTION_DEPRECATION)
+    }
+
+    void expectBasePluginConventionDeprecation(String agpVersion) {
+        runner.expectLegacyDeprecationWarningIf(androidPluginUsesConventions(agpVersion), BASE_PLUGIN_CONVENTION_DEPRECATION)
+    }
+
+    void expectConfigUtilDeprecationWarning(String agpVersion) {
+        runner.expectLegacyDeprecationWarningIf(
+            versionIsLower(agpVersion, AGP_VERSION_WITHOUT_CONFIG_UTIL),
+            "The org.gradle.util.ConfigureUtil type has been deprecated. " +
+                "This is scheduled to be removed in Gradle 9.0. " +
+                "Consult the upgrading guide for further information: " +
+                "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#org_gradle_util_reports_deprecations",
+        )
+    }
+
+    private static getBuildIdentifierIsCurrentBuildDeprecationMessage() {
+        return "The BuildIdentifier.isCurrentBuild() method has been deprecated. " +
+            "This is scheduled to be removed in Gradle 9.0. " +
+            "Use getBuildPath() to get a unique identifier for the build. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation"
+    }
+
+    void maybeExpectBuildIdentifierIsCurrentBuildDeprecation(String agpVersion) {
+        VersionNumber agpVersionNumber = VersionNumber.parse(agpVersion)
+        runner.maybeExpectLegacyDeprecationWarningIf(
+            agpVersionNumber < VersionNumber.parse("8.0.0-rc01"),
+            getBuildIdentifierIsCurrentBuildDeprecationMessage()
+        )
+    }
+
+    void expectBuildIdentifierIsCurrentBuildDeprecation(String agpVersion, String fixedVersion = '8.0.0') {
+        VersionNumber agpVersionNumber = VersionNumber.parse(agpVersion)
+        runner.expectLegacyDeprecationWarningIf(
+            agpVersionNumber.baseVersion < VersionNumber.parse(fixedVersion),
+            getBuildIdentifierIsCurrentBuildDeprecationMessage()
+        )
+    }
+
+    void expectBuildIdentifierNameDeprecation(String agpVersion) {
+        VersionNumber agpVersionNumber = VersionNumber.parse(agpVersion)
+        runner.expectLegacyDeprecationWarningIf(
+            agpVersionNumber.baseVersion < VersionNumber.parse("8.2.0"),
+            "The BuildIdentifier.getName() method has been deprecated. " +
+                "This is scheduled to be removed in Gradle 9.0. " +
+                "Use getBuildPath() to get a unique identifier for the build. " +
+                "Consult the upgrading guide for further information: " +
+                "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation"
+        )
+    }
+
+    void maybeExpectOrgGradleUtilGUtilDeprecation(String agpVersion) {
+        runner.maybeExpectLegacyDeprecationWarningIf(
+            VersionNumber.parse(agpVersion) < VersionNumber.parse("7.5"),
+            GUTIL_DEPRECATION
+        )
+    }
+
+    void expectAndroidBasePluginExtensionArchivesBaseNameDeprecation(VersionNumber versionNumber) {
+        runner.expectLegacyDeprecationWarningIf(
+            versionNumber < VersionNumber.parse('7.4.0'),
+            "The BasePluginExtension.archivesBaseName property has been deprecated. " +
+                "This is scheduled to be removed in Gradle 9.0. " +
+                "Please use the archivesName property instead. " +
+                "For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.plugins.BasePluginExtension.html#org.gradle.api.plugins.BasePluginExtension:archivesName in the Gradle documentation."
+        )
+    }
+
 }

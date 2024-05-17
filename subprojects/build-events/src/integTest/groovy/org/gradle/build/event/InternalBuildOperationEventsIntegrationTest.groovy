@@ -19,7 +19,6 @@ package org.gradle.build.event
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 import org.gradle.api.services.BuildServiceParameters
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheTest
 import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.BuildOperationListener
 import org.gradle.internal.operations.OperationFinishEvent
@@ -28,10 +27,9 @@ import org.gradle.internal.operations.OperationProgressEvent
 import org.gradle.internal.operations.OperationStartEvent
 import org.gradle.test.fixtures.file.TestFile
 
-@ConfigurationCacheTest
 class InternalBuildOperationEventsIntegrationTest extends AbstractIntegrationSpec {
     def "init script can inject listener via use internal API to subscribe to build operation events"() {
-        def initScript = file("init.gradle")
+        def initScript = initScriptFile
         loggingListener(initScript)
         initScript << """
             def listener = gradle.sharedServices.registerIfAbsent("listener", LoggingListener) { }
@@ -73,7 +71,7 @@ class InternalBuildOperationEventsIntegrationTest extends AbstractIntegrationSpe
     }
 
     def "init script listener receives events from buildSrc and main build"() {
-        def initScript = file("init.gradle")
+        def initScript = initScriptFile
         loggingListener(initScript)
         initScript << """
             if (gradle.parent == null) {
@@ -97,7 +95,7 @@ class InternalBuildOperationEventsIntegrationTest extends AbstractIntegrationSpe
         run("a")
 
         then:
-        output.count("EVENT:") == 14
+        output.count("EVENT:") == 6
         outputContains("EVENT: task ':a'")
 
         when:

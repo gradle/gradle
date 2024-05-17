@@ -16,16 +16,17 @@
 
 package org.gradle.smoketests
 
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class PlayPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
-    @Requires(TestPrecondition.JDK11_OR_EARLIER)
+    @Requires(UnitTestPreconditions.Jdk11OrEarlier)
     @ToBeFixedForConfigurationCache(because = "unsupported Configuration field")
     def 'build basic Play project'() {
         given:
@@ -52,11 +53,25 @@ class PlayPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
         when:
         def result = runner('build')
+            .expectLegacyDeprecationWarning(orgGradleUtilTypeDeprecation("VersionNumber", 7))
+            .expectLegacyDeprecationWarning(orgGradleUtilTypeDeprecation("CollectionUtils", 7))
+            .expectLegacyDeprecationWarning(BaseDeprecations.ABSTRACT_ARCHIVE_TASK_ARCHIVE_PATH_DEPRECATION)
+            .expectLegacyDeprecationWarning(BaseDeprecations.PROJECT_CONVENTION_DEPRECATION)
+            .expectLegacyDeprecationWarning(BaseDeprecations.CONVENTION_TYPE_DEPRECATION)
+            .expectLegacyDeprecationWarning(BaseDeprecations.JAVA_PLUGIN_CONVENTION_DEPRECATION)
+            .expectLegacyDeprecationWarning(orgGradleUtilTypeDeprecation("VersionNumber", 8))
             .build()
 
         then:
         result.task(':build').outcome == SUCCESS
     }
+
+    private String orgGradleUtilTypeDeprecation(String type, int major) {
+        return "The org.gradle.util.$type type has been deprecated. " +
+            "This is scheduled to be removed in Gradle 9.0. " +
+            "Consult the upgrading guide for further information: ${new DocumentationRegistry().getDocumentationFor("upgrading_version_${major}","org_gradle_util_reports_deprecations")}"
+    }
+
 
     @Override
     Map<String, Versions> getPluginsToValidate() {

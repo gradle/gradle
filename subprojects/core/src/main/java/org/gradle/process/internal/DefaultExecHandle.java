@@ -24,7 +24,7 @@ import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.nativeintegration.services.NativeServices;
-import org.gradle.internal.operations.CurrentBuildOperationPreservingRunnable;
+import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.shutdown.ShutdownHooks;
 
@@ -264,8 +264,10 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
             setState(ExecHandleState.STARTING);
 
             broadcast.getSource().beforeExecutionStarted(this);
-            execHandleRunner = new ExecHandleRunner(this, new CompositeStreamsHandler(), processLauncher, executor);
-            executor.execute(new CurrentBuildOperationPreservingRunnable(execHandleRunner));
+            execHandleRunner = new ExecHandleRunner(
+                this, new CompositeStreamsHandler(), processLauncher, executor, CurrentBuildOperationRef.instance().get()
+            );
+            executor.execute(execHandleRunner);
 
             while (stateIn(ExecHandleState.STARTING)) {
                 LOGGER.debug("Waiting until process started: {}.", displayName);
@@ -286,6 +288,20 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
             lock.unlock();
         }
         return this;
+    }
+
+    @Override
+    public void removeStartupContext() {
+        lock.lock();
+        try {
+            if (!stateIn(ExecHandleState.STARTED)) {
+                throw new IllegalStateException(
+                    format("Cannot remove start context of process '%s' because it is not in started state", displayName));
+            }
+            execHandleRunner.removeStartupContext();
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
@@ -442,6 +458,12 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
         public void start() {
             inputHandler.start();
             outputHandler.start();
+        }
+
+        @Override
+        public void removeStartupContext() {
+            inputHandler.removeStartupContext();
+            outputHandler.removeStartupContext();
         }
 
         @Override

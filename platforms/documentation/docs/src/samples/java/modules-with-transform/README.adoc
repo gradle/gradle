@@ -1,0 +1,24 @@
+NOTE: You can open this sample inside an IDE using the https://www.jetbrains.com/help/idea/gradle.html#gradle_import_project_start[IntelliJ's Gradle import] or https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship].
+
+This sample shows how link:{userManualPath}/artifact_transforms.html[artifact transforms] can be utilised to turn traditional Java libraries into Java Modules by adding additional information to the corresponding Jars.
+For that, a plugin called `extra-java-module-info` is defined in the `buildSrc` folder.
+This plugin can be copied into another project and adjusted as needed to solve use cases where it is desired to treat every dependency as a Java Module.
+
+The example defines an application that relies on libraries from Maven central where some of them are not available as modules.
+It uses `commons-cli` (not a module) to parse the command line arguments, which can contain a JSON String, and `gson` (a proper module) to parse the JSON string.
+It also utilises `commons-lang3` (an automatic module) and `commons-beanutils` (not a module) which brings in some additional dependencies that are also not modules.
+
+By configuring our own `extra-java-module-info` plugin, we add information to turn the legacy libraries into modules.
+
+====
+include::sample[dir="kotlin",files="application/build.gradle.kts[tags=extraModuleInfo]"]
+include::sample[dir="groovy",files="application/build.gradle[tags=extraModuleInfo]"]
+====
+
+You can run the example application like this:
+
+```
+run --args='-json {"message":"Hello","receivers":["Lisa","John"]} -debug'
+```
+
+For more information, see link:{userManualPath}/java_library_plugin.html#sec:java_library_modular[Java Module support in the Java Library Plugin] and link:{userManualPath}/application_plugin.html#sec:application_modular[Java Module support in the Application Plugin].

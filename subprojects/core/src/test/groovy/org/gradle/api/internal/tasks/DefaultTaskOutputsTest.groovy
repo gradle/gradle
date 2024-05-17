@@ -15,85 +15,30 @@
  */
 package org.gradle.api.internal.tasks
 
-import org.gradle.api.file.ConfigurableFileCollection
-import org.gradle.api.internal.TaskInputsInternal
-import org.gradle.api.internal.TaskInternal
-import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.tasks.properties.DefaultPropertyWalker
-import org.gradle.api.internal.tasks.properties.DefaultTypeMetadataStore
-import org.gradle.api.internal.tasks.properties.OutputFilePropertyType
-import org.gradle.api.internal.tasks.properties.PropertyValue
-import org.gradle.api.internal.tasks.properties.PropertyVisitor
-import org.gradle.api.internal.tasks.properties.annotations.NoOpPropertyAnnotationHandler
-import org.gradle.api.provider.Property
-import org.gradle.api.tasks.Internal
-import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
-import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
-import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.UsesNativeServices
-import org.junit.Rule
+import org.gradle.internal.properties.OutputFilePropertyType
+import org.gradle.internal.properties.PropertyValue
+import org.gradle.internal.properties.PropertyVisitor
 import spock.lang.Issue
-import spock.lang.Specification
-
-import java.util.concurrent.Callable
 
 import static org.gradle.internal.file.TreeType.DIRECTORY
 import static org.gradle.internal.file.TreeType.FILE
 
-@UsesNativeServices
-class DefaultTaskOutputsTest extends Specification {
+class DefaultTaskOutputsTest extends AbstractTaskInputsAndOutputsTest {
 
-    @Rule
-    final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
-
-    private def taskStatusNagger = Stub(TaskMutator) {
-        mutate(_ as String, _ as Runnable) >> { String method, Runnable action ->
-            action.run()
-        }
-        mutate(_ as String, _ as Callable) >> { String method, Callable<?> action ->
-            return action.call()
-        }
-    }
-    private final fileCollectionFactory = TestFiles.fileCollectionFactory(temporaryFolder.testDirectory)
-
-    def task = Mock(TaskInternal) {
-        getName() >> "task"
-        toString() >> "task 'task'"
-        getOutputs() >> { outputs }
-        getInputs() >> Stub(TaskInputsInternal)
-        getDestroyables() >> Stub(TaskDestroyablesInternal)
-        getLocalState() >> Stub(TaskLocalStateInternal)
+    def "has no output by default"() {
+        expect:
+        outputs.files.files.isEmpty()
+        !outputs.hasOutput
     }
 
-    def cacheFactory = new TestCrossBuildInMemoryCacheFactory()
-    def typeAnnotationMetadataStore = new DefaultTypeAnnotationMetadataStore(
-        [],
-        [:],
-        ["java", "groovy"],
-        [],
-        [Object, GroovyObject],
-        [ConfigurableFileCollection, Property],
-        [Internal],
-        { false },
-        cacheFactory
-    )
-    def walker = new DefaultPropertyWalker(new DefaultTypeMetadataStore([], [new NoOpPropertyAnnotationHandler(Internal)], [], typeAnnotationMetadataStore, cacheFactory))
-    def outputs = new DefaultTaskOutputs(task, taskStatusNagger, walker, fileCollectionFactory)
-
-    void hasNoOutputsByDefault() {
-        setup:
-        assert outputs.files.files.isEmpty()
-        assert !outputs.hasOutput
-    }
-
-    void outputFileCollectionIsBuiltByTask() {
-        setup:
-        assert outputs.files.buildDependencies.getDependencies(task).toList() == [task]
+    def "output file collection is built by task"() {
+        expect:
+        outputs.files.buildDependencies.getDependencies(task).toList() == [task]
     }
 
     def "can register output file"() {
-        when: outputs.file("a")
+        when:
+        outputs.file("a")
         then:
         outputs.files.files == files('a')
         outputs.fileProperties*.propertyName == ['$1']
@@ -103,7 +48,8 @@ class DefaultTaskOutputsTest extends Specification {
     }
 
     def "can register output file with property name"() {
-        when: outputs.file("a").withPropertyName("prop")
+        when:
+        outputs.file("a").withPropertyName("prop")
         then:
         outputs.files.files == files('a')
         outputs.fileProperties*.propertyName == ['prop']
@@ -113,7 +59,8 @@ class DefaultTaskOutputsTest extends Specification {
     }
 
     def "can register output dir"() {
-        when: outputs.dir("a")
+        when:
+        outputs.dir("a")
         then:
         outputs.files.files == files('a')
         outputs.fileProperties*.propertyName == ['$1']
@@ -123,7 +70,8 @@ class DefaultTaskOutputsTest extends Specification {
     }
 
     def "can register output dir with property name"() {
-        when: outputs.dir("a").withPropertyName("prop")
+        when:
+        outputs.dir("a").withPropertyName("prop")
         then:
         outputs.files.files == files('a')
         outputs.fileProperties*.propertyName == ['prop']
@@ -143,7 +91,8 @@ class DefaultTaskOutputsTest extends Specification {
     }
 
     def "can register unnamed output files"() {
-        when: outputs.files("a", "b")
+        when:
+        outputs.files("a", "b")
         then:
         outputs.files.files == files('a', "b")
         outputs.fileProperties*.propertyName == ['$1$1', '$1$2']
@@ -151,7 +100,8 @@ class DefaultTaskOutputsTest extends Specification {
     }
 
     def "can register unnamed output files with property name"() {
-        when: outputs.files("a", "b").withPropertyName("prop")
+        when:
+        outputs.files("a", "b").withPropertyName("prop")
         then:
         outputs.files.files == files('a', "b")
         outputs.fileProperties*.propertyName == ['prop$1', 'prop$2']
@@ -159,7 +109,8 @@ class DefaultTaskOutputsTest extends Specification {
     }
 
     def "can register named output files"() {
-        when: outputs.files("fileA": "a", "fileB": "b")
+        when:
+        outputs.files("fileA": "a", "fileB": "b")
         then:
         outputs.files.files == files('a', "b")
         outputs.fileProperties*.propertyName == ['$1.fileA', '$1.fileB']
@@ -169,7 +120,8 @@ class DefaultTaskOutputsTest extends Specification {
     }
 
     def "can register named #name with property name"() {
-        when: outputs."$name"("fileA": "a", "fileB": "b").withPropertyName("prop")
+        when:
+        outputs."$name"("fileA": "a", "fileB": "b").withPropertyName("prop")
         then:
         outputs.files.files == files('a', "b")
         outputs.fileProperties*.propertyName == ['prop.fileA', 'prop.fileB']
@@ -183,7 +135,8 @@ class DefaultTaskOutputsTest extends Specification {
     }
 
     def "can register future named output #name"() {
-        when: outputs."$name"({ [one: "a", two: "b"] })
+        when:
+        outputs."$name"({ [one: "a", two: "b"] })
         then:
         outputs.files.files == files('a', 'b')
         outputs.fileProperties*.propertyName == ['$1.one', '$1.two']
@@ -197,7 +150,8 @@ class DefaultTaskOutputsTest extends Specification {
     }
 
     def "can register future named output #name with property name"() {
-        when: outputs."$name"({ [one: "a", two: "b"] }).withPropertyName("prop")
+        when:
+        outputs."$name"({ [one: "a", two: "b"] }).withPropertyName("prop")
         then:
         outputs.files.files == files('a', "b")
         outputs.fileProperties*.propertyName == ['prop.one', 'prop.two']
@@ -211,8 +165,10 @@ class DefaultTaskOutputsTest extends Specification {
     }
 
     def "fails when #name registers mapped file with null key"() {
-        when:
+        given:
         outputs."$name"({ [(null): "a"] }).withPropertyName("prop")
+
+        when:
         outputs.fileProperties
         then:
         def ex = thrown IllegalArgumentException
@@ -232,7 +188,7 @@ class DefaultTaskOutputsTest extends Specification {
         def names = []
 
         when:
-        outputs.visitRegisteredProperties(new PropertyVisitor.Adapter() {
+        outputs.visitRegisteredProperties(new PropertyVisitor() {
             @Override
             void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
                 names += propertyName
@@ -300,13 +256,5 @@ class DefaultTaskOutputsTest extends Specification {
         then:
         def e = thrown(IllegalStateException)
         e.message == 'Task history is currently not available for this task.'
-    }
-
-    TestFile file(Object path) {
-        temporaryFolder.file(path)
-    }
-
-    Set<File> files(Object... paths) {
-        paths.collect { file(it) } as Set
     }
 }

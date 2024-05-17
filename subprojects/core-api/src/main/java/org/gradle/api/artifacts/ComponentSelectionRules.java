@@ -17,10 +17,11 @@
 package org.gradle.api.artifacts;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.internal.HasInternalProtocol;
 
-/***
+/**
  * Represents a container for component selection rules.  Rules can be applied as part of the
  * resolutionStrategy of a configuration and individual components can be explicitly accepted
  * or rejected by rule.  Components that are neither accepted or rejected will be subject to
@@ -73,7 +74,7 @@ public interface ComponentSelectionRules {
      * @param closure the Closure that implements a rule to be applied
      * @return this
      */
-    ComponentSelectionRules all(Closure<?> closure);
+    ComponentSelectionRules all(@DelegatesTo(ComponentSelection.class) Closure<?> closure);
 
     /**
      * Adds a rule-source backed component selection rule that will apply to all resolved components.
@@ -110,7 +111,7 @@ public interface ComponentSelectionRules {
      * @param closure the Closure that implements a rule to be applied
      * @return this
      */
-    ComponentSelectionRules withModule(Object id, Closure<?> closure);
+    ComponentSelectionRules withModule(Object id, @DelegatesTo(ComponentSelection.class) Closure<?> closure);
 
     /**
      * Adds a rule-source backed component selection rule that will apply to the specified module.

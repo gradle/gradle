@@ -29,6 +29,7 @@ import org.gradle.internal.build.AbstractBuildState;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.CompositeBuildParticipantBuildState;
 import org.gradle.internal.buildtree.BuildTreeState;
+import org.gradle.util.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,12 +71,8 @@ public abstract class AbstractCompositeParticipantBuildState extends AbstractBui
 
     @Override
     public ProjectComponentIdentifier idToReferenceProjectFromAnotherBuild(ProjectComponentIdentifier identifier) {
-        // Need to use a 'foreign' build id to make BuildIdentifier.isCurrentBuild and BuildIdentifier.name work in dependency results
         DefaultProjectComponentIdentifier original = (DefaultProjectComponentIdentifier) identifier;
-        String name = getIdentityPath().getName();
-        if (name == null) {
-            name = getBuildIdentifier().getName();
-        }
-        return new DefaultProjectComponentIdentifier(new ForeignBuildIdentifier(getBuildIdentifier().getName(), name), original.getIdentityPath(), original.projectPath(), original.getProjectName());
+        Path foreignBuildPath = Path.path(getBuildIdentifier().getBuildPath());
+        return new DefaultProjectComponentIdentifier(new ForeignBuildIdentifier(foreignBuildPath), original.getIdentityPath(), original.projectPath(), original.getProjectName());
     }
 }

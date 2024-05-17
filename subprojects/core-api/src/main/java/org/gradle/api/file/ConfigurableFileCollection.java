@@ -15,6 +15,7 @@
  */
 package org.gradle.api.file;
 
+import org.gradle.api.SupportsKotlinAssignmentOverloading;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.HasConfigurableValue;
 
@@ -27,6 +28,7 @@ import java.util.Set;
  *
  * <p><b>Note:</b> This interface is not intended for implementation by build script or plugin authors.</p>
  */
+@SupportsKotlinAssignmentOverloading
 public interface ConfigurableFileCollection extends FileCollection, HasConfigurableValue {
     /**
      * Returns the set of source paths for this collection. The paths are evaluated as per {@link org.gradle.api.Project#files(Object...)}.

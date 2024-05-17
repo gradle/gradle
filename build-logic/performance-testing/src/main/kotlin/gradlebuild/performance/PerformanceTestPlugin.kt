@@ -17,6 +17,7 @@
 package gradlebuild.performance
 
 import com.google.common.annotations.VisibleForTesting
+import com.gradle.enterprise.gradleplugin.testretry.TestRetryExtension
 import gradlebuild.basics.BuildEnvironment.isIntel
 import gradlebuild.basics.BuildEnvironment.isLinux
 import gradlebuild.basics.BuildEnvironment.isMacOsX
@@ -24,15 +25,21 @@ import gradlebuild.basics.BuildEnvironment.isWindows
 import gradlebuild.basics.accessors.groovy
 import gradlebuild.basics.androidStudioHome
 import gradlebuild.basics.autoDownloadAndroidStudio
+import gradlebuild.basics.buildBranch
+import gradlebuild.basics.buildCommitId
+import gradlebuild.basics.capitalize
+import gradlebuild.basics.defaultPerformanceBaselines
 import gradlebuild.basics.includePerformanceTestScenarios
+import gradlebuild.basics.logicalBranch
 import gradlebuild.basics.performanceBaselines
 import gradlebuild.basics.performanceDependencyBuildIds
 import gradlebuild.basics.performanceGeneratorMaxProjects
 import gradlebuild.basics.performanceTestVerbose
 import gradlebuild.basics.propertiesForPerformanceDb
+import gradlebuild.basics.releasedVersionsFile
 import gradlebuild.basics.repoRoot
 import gradlebuild.basics.runAndroidStudioInHeadlessMode
-import gradlebuild.identity.extension.ModuleIdentityExtension
+import gradlebuild.basics.toLowerCase
 import gradlebuild.integrationtests.addDependenciesAndConfigurations
 import gradlebuild.performance.Config.androidStudioVersion
 import gradlebuild.performance.Config.defaultAndroidStudioJvmArgs
@@ -44,12 +51,12 @@ import gradlebuild.performance.tasks.BuildCommitDistribution
 import gradlebuild.performance.tasks.DetermineBaselines
 import gradlebuild.performance.tasks.PerformanceTest
 import gradlebuild.performance.tasks.PerformanceTestReport
-import gradlebuild.performance.tasks.RebaselinePerformanceTests
 import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
@@ -87,11 +94,12 @@ import javax.xml.parsers.DocumentBuilderFactory
 
 
 object Config {
-    const val performanceTestScenarioListFileName = "performance-tests/scenario-list.csv"
     const val performanceTestReportsDir = "performance-tests/report"
     const val performanceTestResultsJsonName = "perf-results.json"
     const val performanceTestResultsJson = "performance-tests/$performanceTestResultsJsonName"
-    const val androidStudioVersion = "2021.1.1.19"
+
+    // Android Studio Giraffe 2022.3.1.18
+    const val androidStudioVersion = "2022.3.1.18"
     val defaultAndroidStudioJvmArgs = listOf("-Xms256m", "-Xmx4096m")
 }
 
@@ -107,7 +115,6 @@ class PerformanceTestPlugin : Plugin<Project> {
 
         createAndWireCommitDistributionTask(performanceTestExtension)
         createAdditionalTasks(performanceTestSourceSet)
-        createRebaselineTask(performanceTestSourceSet)
         configureIdePlugins(performanceTestSourceSet)
         configureAndroidStudioInstallation()
     }
@@ -116,15 +123,8 @@ class PerformanceTestPlugin : Plugin<Project> {
     fun Project.createExtension(performanceTestSourceSet: SourceSet, cleanTestProjectsTask: TaskProvider<Delete>): PerformanceTestExtension {
         val buildService = registerBuildService()
         val performanceTestExtension = extensions.create<PerformanceTestExtension>("performanceTest", this, performanceTestSourceSet, cleanTestProjectsTask, buildService)
-        performanceTestExtension.baselines.set(project.performanceBaselines)
+        performanceTestExtension.baselines = project.performanceBaselines
         return performanceTestExtension
-    }
-
-    private
-    fun Project.createRebaselineTask(performanceTestSourceSet: SourceSet) {
-        project.tasks.register("rebaselinePerformanceTests", RebaselinePerformanceTests::class) {
-            source(performanceTestSourceSet.allSource)
-        }
     }
 
     private
@@ -182,21 +182,20 @@ class PerformanceTestPlugin : Plugin<Project> {
 
         tasks.withType<PerformanceTestReport>().configureEach {
             classpath.from(performanceSourceSet.runtimeClasspath)
-            performanceResultsDirectory.set(repoRoot().dir("perf-results"))
-            reportDir.set(project.layout.buildDirectory.dir(this@configureEach.name))
-            databaseParameters.set(project.propertiesForPerformanceDb)
-            val moduleIdentity = project.the<ModuleIdentityExtension>()
-            branchName.set(moduleIdentity.gradleBuildBranch)
+            performanceResultsDirectory = repoRoot().dir("perf-results")
+            reportDir = project.layout.buildDirectory.dir(this@configureEach.name)
+            databaseParameters = project.propertiesForPerformanceDb
+            branchName = buildBranch
             channel.convention(branchName.map { "commits-$it" })
-            channelPatterns.add(moduleIdentity.logicalBranch)
-            channelPatterns.add(moduleIdentity.logicalBranch.map { "commits-pre-test/$it/%" })
-            commitId.set(moduleIdentity.gradleBuildCommitId)
-            projectName.set(project.name)
+            channelPatterns.add(logicalBranch)
+            channelPatterns.add(logicalBranch.map { "commits-pre-test/$it/%" })
+            commitId = buildCommitId
+            projectName = project.name
         }
 
         tasks.register<JavaExec>("writePerformanceTimes") {
             classpath(performanceSourceSet.runtimeClasspath)
-            mainClass.set("org.gradle.performance.results.PerformanceTestRuntimesGenerator")
+            mainClass = "org.gradle.performance.results.PerformanceTestRuntimesGenerator"
             systemProperties(project.propertiesForPerformanceDb)
             args(repoRoot().file(".teamcity/performance-test-durations.json").asFile.absolutePath)
             doNotTrackState("Reads data from the database")
@@ -210,7 +209,7 @@ class PerformanceTestPlugin : Plugin<Project> {
         tasks.register<JavaExec>("verifyPerformanceScenarioDefinitions") {
             dependsOn(writeTmpPerformanceScenarioDefinitions)
             classpath(performanceSourceSet.runtimeClasspath)
-            mainClass.set("org.gradle.performance.fixture.PerformanceTestScenarioDefinitionVerifier")
+            mainClass = "org.gradle.performance.fixture.PerformanceTestScenarioDefinitionVerifier"
             args(performanceScenarioJson.absolutePath, tmpPerformanceScenarioJson.absolutePath)
             inputs.files(performanceSourceSet.runtimeClasspath).withNormalizer(ClasspathNormalizer::class)
             inputs.file(performanceScenarioJson.absolutePath)
@@ -229,14 +228,14 @@ class PerformanceTestPlugin : Plugin<Project> {
             outputs.cacheIf { false }
             outputs.file(outputJson)
 
-            predictiveSelection.enabled.set(false)
+            predictiveSelection.enabled = false
         }
 
     private
     fun Project.createPerformanceTestReportTask(name: String, reportGeneratorClass: String): TaskProvider<PerformanceTestReport> {
         val performanceTestReport = tasks.register<PerformanceTestReport>(name) {
-            this.reportGeneratorClass.set(reportGeneratorClass)
-            this.dependencyBuildIds.set(project.performanceDependencyBuildIds)
+            this.reportGeneratorClass = reportGeneratorClass
+            this.dependencyBuildIds = project.performanceDependencyBuildIds
         }
         val performanceTestReportZipTask = performanceReportZipTaskFor(performanceTestReport)
         performanceTestReport {
@@ -270,9 +269,8 @@ class PerformanceTestPlugin : Plugin<Project> {
         plugins.withType<IdeaPlugin> {
             configure<IdeaModel> {
                 module {
-                    testSourceDirs = testSourceDirs + performanceTestSourceSet.java.srcDirs
-                    testSourceDirs = testSourceDirs + performanceTestSourceSet.groovy.srcDirs
-                    testResourceDirs = testResourceDirs + performanceTestSourceSet.resources.srcDirs
+                    testSources.from(performanceTestSourceSet.java.srcDirs, performanceTestSourceSet.groovy.srcDirs)
+                    testResources.from(performanceTestSourceSet.resources.srcDirs)
                 }
             }
         }
@@ -315,15 +313,21 @@ class PerformanceTestPlugin : Plugin<Project> {
                         else -> zipTree(singleFile)
                     }
                 }
-            )
-            into("$buildDir/android-studio")
+            ) {
+                eachFile {
+                    // Remove top folder when unzipping, that way we get rid of Android Studio.app folder that can cause issues on Mac
+                    // where MacOS would kill the Android Studio process right after start, issue: https://github.com/gradle/gradle-profiler/issues/469
+                    relativePath = RelativePath(true, *relativePath.segments.drop(1).toTypedArray())
+                }
+            }
+            into(layout.buildDirectory.dir("android-studio"))
         }
     }
 
     private
     fun Project.registerBuildService(): Provider<PerformanceTestService> =
         gradle.sharedServices.registerIfAbsent("performanceTestService", PerformanceTestService::class) {
-            maxParallelUsages.set(1)
+            maxParallelUsages = 1
         }
 
     private
@@ -334,19 +338,26 @@ class PerformanceTestPlugin : Plugin<Project> {
         // determineBaselines.determinedBaselines -> buildCommitDistribution.baselines
         val determineBaselines = tasks.register("determineBaselines", DetermineBaselines::class, false)
         val buildCommitDistribution = tasks.register("buildCommitDistribution", BuildCommitDistribution::class)
+        val buildCommitDistributionsDir = project.rootProject.layout.buildDirectory.dir("commit-distributions")
 
         determineBaselines.configure {
-            configuredBaselines.set(extension.baselines)
+            configuredBaselines = extension.baselines
+            defaultBaselines = project.defaultPerformanceBaselines
+            logicalBranch = project.logicalBranch
         }
 
         buildCommitDistribution.configure {
             dependsOn(determineBaselines)
-            commitBaseline.set(determineBaselines.flatMap { it.determinedBaselines })
+            releasedVersionsFile = project.releasedVersionsFile()
+            commitBaseline = determineBaselines.flatMap { it.determinedBaselines }
+            commitDistribution = buildCommitDistributionsDir.zip(commitBaseline) { dir, version -> dir.file("gradle-$version.zip") }
+            commitDistributionToolingApiJar = buildCommitDistributionsDir.zip(commitBaseline) { dir, version -> dir.file("gradle-$version-tooling-api.jar") }
         }
 
         tasks.withType<PerformanceTest>().configureEach {
             dependsOn(buildCommitDistribution)
-            baselines.set(determineBaselines.flatMap { it.determinedBaselines })
+            commitDistributionsDir = buildCommitDistributionsDir
+            baselines = determineBaselines.flatMap { it.determinedBaselines }
         }
     }
 }
@@ -361,8 +372,8 @@ fun Project.performanceReportZipTaskFor(performanceReport: TaskProvider<out Perf
         from(performanceReport.get().performanceResults) {
             into("perf-results")
         }
-        destinationDirectory.set(buildDir)
-        archiveFileName.set("performance-test-results.zip")
+        destinationDirectory = layout.buildDirectory
+        archiveFileName = "performance-test-results.zip"
     }
 
 
@@ -431,9 +442,7 @@ class PerformanceTestExtension(
                 mustRunAfter(currentlyRegisteredTestProjects)
                 testSpecificConfigurator(this)
 
-                retry {
-                    maxRetries.set(0)
-                }
+                extensions.findByType<TestRetryExtension>()?.maxRetries = 0
             }
         )
 
@@ -444,9 +453,7 @@ class PerformanceTestExtension(
                 description = "Runs performance tests on $testProject - supposed to be used on CI"
                 channel = "commits$channelSuffix"
 
-                retry {
-                    maxRetries.set(1)
-                }
+                extensions.findByType<TestRetryExtension>()?.maxRetries = 1
 
                 if (project.includePerformanceTestScenarios) {
                     val scenariosFromFile = project.loadScenariosFromFile(testProject)
@@ -477,17 +484,16 @@ class PerformanceTestExtension(
             classpath = performanceSourceSet.runtimeClasspath
 
             usesService(buildService)
-            performanceTestService.set(buildService)
+            performanceTestService = buildService
 
-            testProjectName.set(generatorTask.name)
+            testProjectName = generatorTask.name
             testProjectFiles.from(generatorTask)
 
-            val identityExtension = project.the<ModuleIdentityExtension>()
-            val gradleBuildBranch = identityExtension.gradleBuildBranch.get()
+            val gradleBuildBranch = project.buildBranch.get()
             branchName = gradleBuildBranch
-            commitId.set(identityExtension.gradleBuildCommitId)
+            commitId = project.buildCommitId
 
-            reportGeneratorClass.set("org.gradle.performance.results.report.DefaultReportGenerator")
+            reportGeneratorClass = "org.gradle.performance.results.report.DefaultReportGenerator"
 
             maxParallelForks = 1
             useJUnitPlatform()
@@ -536,8 +542,8 @@ class PerformanceTestExtension(
                 // Rename the json file specific per task, so we can copy multiple of those files from one build on Teamcity
                 rename(Config.performanceTestResultsJsonName, "perf-results-${performanceTest.name}.json")
             }
-            destinationDirectory.set(project.layout.buildDirectory)
-            archiveFileName.set("test-results-${junitXmlDir.name}.zip")
+            destinationDirectory = project.layout.buildDirectory
+            archiveFileName = "test-results-${junitXmlDir.name}.zip"
         }
 }
 
@@ -577,15 +583,7 @@ class AndroidStudioSystemProperties(
         val systemProperties = mutableListOf<String>()
         if (autoDownloadAndroidStudio) {
             val androidStudioPath = studioInstallation.studioInstallLocation.asFile.get().absolutePath
-            val macOsAndroidStudioPath = "$androidStudioPath/Android Studio.app"
-            val macOsAndroidStudioPathPreview = "$androidStudioPath/Android Studio Preview.app"
-            val windowsAndLinuxPath = "$androidStudioPath/android-studio"
-            val studioHome = when {
-                isMacOsX && File(macOsAndroidStudioPath).exists() -> macOsAndroidStudioPath
-                isMacOsX -> macOsAndroidStudioPathPreview
-                else -> windowsAndLinuxPath
-            }
-            systemProperties.add("-Dstudio.home=$studioHome")
+            systemProperties.add("-Dstudio.home=$androidStudioPath")
         } else {
             if (androidStudioHome.isPresent) {
                 systemProperties.add("-Dstudio.home=${androidStudioHome.get()}")

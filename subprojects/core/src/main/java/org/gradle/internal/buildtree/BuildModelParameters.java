@@ -16,11 +16,13 @@
 
 package org.gradle.internal.buildtree;
 
+import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 @ServiceScope(Scopes.BuildTree.class)
 public class BuildModelParameters {
+    private final boolean parallelProjectExecution;
     private final boolean configureOnDemand;
     private final boolean configurationCache;
     private final boolean isolatedProjects;
@@ -28,16 +30,20 @@ public class BuildModelParameters {
     private final boolean intermediateModelCache;
     private final boolean parallelToolingApiActions;
     private final boolean invalidateCoupledProjects;
+    private final LogLevel configurationCacheLogLevel;
 
     public BuildModelParameters(
+        boolean parallelProjectExecution,
         boolean configureOnDemand,
         boolean configurationCache,
         boolean isolatedProjects,
         boolean requiresBuildModel,
         boolean intermediateModelCache,
         boolean parallelToolingApiActions,
-        boolean invalidateCoupledProjects
+        boolean invalidateCoupledProjects,
+        LogLevel configurationCacheLogLevel
     ) {
+        this.parallelProjectExecution = parallelProjectExecution;
         this.configureOnDemand = configureOnDemand;
         this.configurationCache = configurationCache;
         this.isolatedProjects = isolatedProjects;
@@ -45,6 +51,11 @@ public class BuildModelParameters {
         this.intermediateModelCache = intermediateModelCache;
         this.parallelToolingApiActions = parallelToolingApiActions;
         this.invalidateCoupledProjects = invalidateCoupledProjects;
+        this.configurationCacheLogLevel = configurationCacheLogLevel;
+    }
+
+    public boolean isParallelProjectExecution() {
+        return parallelProjectExecution;
     }
 
     /**
@@ -64,6 +75,10 @@ public class BuildModelParameters {
         return configurationCache;
     }
 
+    public LogLevel getConfigurationCacheLogLevel() {
+        return configurationCacheLogLevel;
+    }
+
     public boolean isIsolatedProjects() {
         return isolatedProjects;
     }
@@ -77,7 +92,7 @@ public class BuildModelParameters {
     }
 
     /**
-     * Force parallel tooling API actions? When true, always use parallel execution, when false use a default value.
+     * When {@link #isParallelProjectExecution()} is true, should Tooling API actions run in parallel?
      */
     public boolean isParallelToolingApiActions() {
         return parallelToolingApiActions;

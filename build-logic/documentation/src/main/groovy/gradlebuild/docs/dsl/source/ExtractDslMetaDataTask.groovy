@@ -58,7 +58,7 @@ abstract class ExtractDslMetaDataTask extends SourceTask {
         //and placing them in the repository object
         SimpleClassMetaDataRepository<gradlebuild.docs.dsl.source.model.ClassMetaData> repository = new SimpleClassMetaDataRepository<gradlebuild.docs.dsl.source.model.ClassMetaData>()
         int counter = 0
-        source.each { File f ->
+        source.filter { File f -> f.name.endsWith(".java") || f.name.endsWith(".groovy") }.each { File f ->
             parse(f, repository)
             counter++
         }

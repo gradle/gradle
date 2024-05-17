@@ -46,7 +46,17 @@ class WindowsStartScriptGeneratorTest extends Specification {
         generator.generateScript(details, destination)
 
         then:
-        destination.toString().split(TextUtil.windowsLineSeparator).length == 91
+        def scriptText = destination.toString()
+        def carriageLineEndings = scriptText.split('\r').length - 1 // over counts the final line
+        def newlineEndings = scriptText.split('\n').length
+        def windowsLineEndings = scriptText.split(TextUtil.windowsLineSeparator).length
+
+        // Windows line endings are made up of two characters,
+        // we should see an equal number of lines unless
+        // the generator is using the wrong line ending entirely
+        // or has generated some lines with one or the other character
+        carriageLineEndings == newlineEndings
+        windowsLineEndings == newlineEndings
     }
 
     def "defaultJvmOpts is expanded properly in windows script"() {

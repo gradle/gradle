@@ -73,7 +73,12 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter withArgument(String arg);
 
     /**
-     * Sets the environment variables to use when executing the build. Defaults to the environment of this process.
+     * Sets the additional environment variables to use when executing the build.
+     * <p>
+     * The provided environment is added to the environment variables of this process, so it is only possible to add new variables or modify values of existing ones.
+     * Not propagating a variable of this process to the executed build at all is not supported.
+     * <p>
+     * Setting "JAVA_HOME" this way is not supported.
      */
     GradleExecuter withEnvironmentVars(Map<String, ?> environment);
 
@@ -114,6 +119,11 @@ public interface GradleExecuter extends Stoppable {
      * it just modifies result of DefaultGradleVersion.current() for the Gradle that is run by the executer.
      */
     GradleExecuter withGradleVersionOverride(GradleVersion gradleVersion);
+
+    /**
+     * Sets the java home dir. Setting to null requests that the executer use the real default java home dir rather than the default used for testing.
+     */
+    GradleExecuter withJavaHome(String userHomeDir);
 
     /**
      * Sets the java home dir. Setting to null requests that the executer use the real default java home dir rather than the default used for testing.
@@ -335,13 +345,25 @@ public interface GradleExecuter extends Stoppable {
 
     /**
      * Expects exactly the given deprecation warning.
+     *
+     * This may show up with a strikethrough in IntelliJ as if it were deprecated.  This method is still okay to use.  You can
+     * also switch to the more specific {@link #expectDocumentedDeprecationWarning(String)} if the warning includes a documentation
+     * link and you don't want to (ironically) see code testing deprecation appearing as if it itself were deprecated.
      */
-    GradleExecuter expectDeprecationWarning(String warning);
+    default GradleExecuter expectDeprecationWarning(String warning) {
+        return expectDeprecationWarning(new ExpectedDeprecationWarning(warning));
+    }
+
+    GradleExecuter expectDeprecationWarning(ExpectedDeprecationWarning warning);
 
     /**
      * Expects the given deprecation warning, allowing to pass documentation url with /current/ version and asserting against the actual current version instead.
      */
-    GradleExecuter expectDocumentedDeprecationWarning(String warning);
+    default GradleExecuter expectDocumentedDeprecationWarning(String warning) {
+        return expectDocumentedDeprecationWarning(new ExpectedDeprecationWarning(warning));
+    }
+
+    GradleExecuter expectDocumentedDeprecationWarning(ExpectedDeprecationWarning warning);
 
     /**
      * Expects exactly the given number of deprecation warnings. If fewer or more warnings are produced during
@@ -371,6 +393,11 @@ public interface GradleExecuter extends Stoppable {
      * Disables asserting that no unexpected stacktraces are present in the output.
      */
     GradleExecuter withStackTraceChecksDisabled();
+
+    /**
+     * Enables checks for warnings emitted by the JDK itself. Including illegal access warnings.
+     */
+    GradleExecuter withJdkWarningChecksEnabled();
 
     /**
      * An executer may decide to implicitly bump the logging level, unless this is called.
@@ -426,6 +453,11 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter copyTo(GradleExecuter executer);
 
     /**
+     * Where possible, starts the Gradle build process in debug mode with the provided options.
+     */
+    GradleExecuter startBuildProcessInDebugger(Action<JavaDebugOptionsInternal> action);
+
+    /**
      * Where possible, starts the Gradle build process in suspended debug mode.
      */
     GradleExecuter startBuildProcessInDebugger(boolean flag);
@@ -445,6 +477,11 @@ public interface GradleExecuter extends Stoppable {
      * Starts the launcher JVM (daemon client) in suspended debug mode
      */
     GradleExecuter startLauncherInDebugger(boolean debugLauncher);
+
+    /**
+     * Starts the launcher JVM (daemon client) in debug mode with the provided options
+     */
+    GradleExecuter startLauncherInDebugger(Action<JavaDebugOptionsInternal> action);
 
     boolean isDebugLauncher();
 
@@ -490,9 +527,9 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter withWarningMode(WarningMode warningMode);
 
     /**
-     * Execute the builds without adding the {@code "--stacktrace"} argument.
+     * Execute the builds with adding the {@code "--stacktrace"} argument.
      */
-    GradleExecuter withStacktraceDisabled();
+    GradleExecuter withStacktraceEnabled();
 
     /**
      * Renders the welcome message users see upon first invocation of a Gradle distribution with a given Gradle user home directory.

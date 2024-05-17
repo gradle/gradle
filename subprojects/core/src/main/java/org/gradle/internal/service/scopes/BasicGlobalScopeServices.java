@@ -39,12 +39,15 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.DefaultListenerManager;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.jvm.inspection.CachingJvmMetadataDetector;
 import org.gradle.internal.jvm.inspection.DefaultJvmMetadataDetector;
 import org.gradle.internal.jvm.inspection.DefaultJvmVersionDetector;
+import org.gradle.internal.jvm.inspection.InvalidInstallationWarningReporter;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
+import org.gradle.internal.jvm.inspection.ReportingJvmMetadataDetector;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
@@ -89,7 +92,12 @@ public class BasicGlobalScopeServices {
     }
 
     JvmMetadataDetector createJvmMetadataDetector(ExecHandleFactory execHandleFactory, TemporaryFileProvider temporaryFileProvider) {
-        return new CachingJvmMetadataDetector(new DefaultJvmMetadataDetector(execHandleFactory, temporaryFileProvider));
+        return new CachingJvmMetadataDetector(
+            new ReportingJvmMetadataDetector(
+                new DefaultJvmMetadataDetector(execHandleFactory, temporaryFileProvider),
+                new InvalidInstallationWarningReporter()
+            )
+        );
     }
 
     JvmVersionDetector createJvmVersionDetector(JvmMetadataDetector detector) {
@@ -116,8 +124,10 @@ public class BasicGlobalScopeServices {
         return new DefaultFileCollectionFactory(fileResolver, DefaultTaskDependencyFactory.withNoAssociatedProject(), directoryFileTreeFactory, patternSetFactory, propertyHost, fileSystem);
     }
 
-    PatternSpecFactory createPatternSpecFactory() {
-        return PatternSpecFactory.INSTANCE;
+    PatternSpecFactory createPatternSpecFactory(ListenerManager listenerManager) {
+        PatternSpecFactory patternSpecFactory = PatternSpecFactory.INSTANCE;
+        listenerManager.addListener(patternSpecFactory);
+        return patternSpecFactory;
     }
 
     protected Factory<PatternSet> createPatternSetFactory(final PatternSpecFactory patternSpecFactory) {

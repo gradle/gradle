@@ -30,15 +30,21 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.test.fixtures.ivy.IvyFileRepository;
 import org.gradle.test.fixtures.maven.M2Installation;
 import org.gradle.test.fixtures.maven.MavenFileRepository;
+import org.gradle.test.precondition.PreconditionVerifier;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.experimental.categories.Category;
 
 import java.io.File;
+import java.util.List;
 
 @IntegrationTest
 @Category(IntegrationTest.class)
 public abstract class AbstractIntegrationTest {
+
+    @Rule
+    public final PreconditionVerifier preconditionVerifier = new PreconditionVerifier();
+
     @Rule
     public final TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider(getClass());
 
@@ -92,6 +98,10 @@ public abstract class AbstractIntegrationTest {
 
     public TestFile testFile(String name) {
         return file(name);
+    }
+
+    public List<TestFile> createDirs(String... names) {
+        return getTestDirectory().createDirs(names);
     }
 
     protected GradleExecuter inTestDirectory() {

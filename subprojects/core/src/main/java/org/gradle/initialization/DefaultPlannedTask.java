@@ -16,51 +16,90 @@
 
 package org.gradle.initialization;
 
-import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
+import org.gradle.execution.plan.PlannedNodeInternal;
+import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.PlannedTask;
+import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.TaskIdentity;
+import org.gradle.internal.taskgraph.NodeIdentity;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
-public class DefaultPlannedTask implements CalculateTaskGraphBuildOperationType.PlannedTask {
-    private final CalculateTaskGraphBuildOperationType.TaskIdentity taskIdentity;
-    private final List<CalculateTaskGraphBuildOperationType.TaskIdentity> dependencies;
-    private final List<CalculateTaskGraphBuildOperationType.TaskIdentity> mustRunAfter;
-    private final List<CalculateTaskGraphBuildOperationType.TaskIdentity> shouldRunAfter;
-    private final List<CalculateTaskGraphBuildOperationType.TaskIdentity> finalizers;
+/**
+ * Default implementation of {@link PlannedTask}.
+ */
+public class DefaultPlannedTask implements PlannedTask, PlannedNodeInternal {
 
-    public DefaultPlannedTask(CalculateTaskGraphBuildOperationType.TaskIdentity taskIdentity,
-                              List<CalculateTaskGraphBuildOperationType.TaskIdentity> dependencies,
-                              List<CalculateTaskGraphBuildOperationType.TaskIdentity> mustRunAfter,
-                              List<CalculateTaskGraphBuildOperationType.TaskIdentity> shouldRunAfter,
-                              List<CalculateTaskGraphBuildOperationType.TaskIdentity> finalizers) {
+    private final TaskIdentity taskIdentity;
+    private final List<? extends NodeIdentity> nodeDependencies;
+    private final List<TaskIdentity> mustRunAfter;
+    private final List<TaskIdentity> shouldRunAfter;
+    private final List<TaskIdentity> finalizers;
+
+    public DefaultPlannedTask(
+        TaskIdentity taskIdentity,
+        List<? extends NodeIdentity> nodeDependencies,
+        List<TaskIdentity> mustRunAfter,
+        List<TaskIdentity> shouldRunAfter,
+        List<TaskIdentity> finalizers
+    ) {
         this.taskIdentity = taskIdentity;
-        this.dependencies = dependencies;
+        this.nodeDependencies = nodeDependencies;
         this.mustRunAfter = mustRunAfter;
         this.shouldRunAfter = shouldRunAfter;
         this.finalizers = finalizers;
     }
 
     @Override
-    public CalculateTaskGraphBuildOperationType.TaskIdentity getTask() {
+    public TaskIdentity getTask() {
         return taskIdentity;
     }
 
+    @SuppressWarnings("deprecation")
     @Override
-    public List<CalculateTaskGraphBuildOperationType.TaskIdentity> getDependencies() {
-        return dependencies;
+    public List<TaskIdentity> getDependencies() {
+        if (!nodeDependencies.stream().allMatch(TaskIdentity.class::isInstance)) {
+            List<? extends NodeIdentity> nonTaskDependencies = nodeDependencies.stream().filter(it -> !(it instanceof TaskIdentity)).collect(Collectors.toList());
+            throw new IllegalStateException("Task-only dependencies are available only for task plans." +
+                " '" + taskIdentity + "' from the requested execution plan has dependencies with higher detail level: " + nonTaskDependencies);
+        }
+
+        @SuppressWarnings("unchecked")
+        List<TaskIdentity> taskDependencies = (List<TaskIdentity>) nodeDependencies;
+        return taskDependencies;
     }
 
     @Override
-    public List<CalculateTaskGraphBuildOperationType.TaskIdentity> getMustRunAfter() {
+    public List<TaskIdentity> getMustRunAfter() {
         return mustRunAfter;
     }
 
     @Override
-    public List<CalculateTaskGraphBuildOperationType.TaskIdentity> getShouldRunAfter() {
+    public List<TaskIdentity> getShouldRunAfter() {
         return shouldRunAfter;
     }
 
     @Override
-    public List<CalculateTaskGraphBuildOperationType.TaskIdentity> getFinalizedBy() {
+    public List<TaskIdentity> getFinalizedBy() {
         return finalizers;
+    }
+
+    @Override
+    public NodeIdentity getNodeIdentity() {
+        return getTask();
+    }
+
+    @Override
+    public List<? extends NodeIdentity> getNodeDependencies() {
+        return nodeDependencies;
+    }
+
+    @Override
+    public String toString() {
+        return taskIdentity.toString();
+    }
+
+    @Override
+    public DefaultPlannedTask withNodeDependencies(List<? extends NodeIdentity> nodeDependencies) {
+        return new DefaultPlannedTask(taskIdentity, nodeDependencies, mustRunAfter, shouldRunAfter, finalizers);
     }
 }

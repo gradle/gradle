@@ -19,6 +19,7 @@ package org.gradle.initialization.buildsrc
 import org.gradle.api.internal.artifacts.configurations.ResolveConfigurationDependenciesBuildOperationType
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 import org.gradle.execution.taskgraph.NotifyTaskGraphWhenReadyBuildOperationType
+import org.gradle.initialization.BuildIdentifiedProgressDetails
 import org.gradle.initialization.ConfigureBuildBuildOperationType
 import org.gradle.initialization.LoadBuildBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -57,6 +58,11 @@ class BuildSrcBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         loadOps[1].displayName == "Load build (:buildSrc)"
         loadOps[1].details.buildPath == ':buildSrc'
         loadOps[1].parentId == buildSrcOps[0].id
+
+        def buildIdentifiedEvents = ops.progress(BuildIdentifiedProgressDetails)
+        buildIdentifiedEvents.size() == 2
+        buildIdentifiedEvents[0].details.buildPath == ':'
+        buildIdentifiedEvents[1].details.buildPath == ':buildSrc'
 
         def configureOps = ops.all(ConfigureBuildBuildOperationType)
         configureOps.size() == 2

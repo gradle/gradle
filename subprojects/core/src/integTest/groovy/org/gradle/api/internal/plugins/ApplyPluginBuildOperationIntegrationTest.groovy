@@ -46,10 +46,11 @@ class ApplyPluginBuildOperationIntegrationTest extends AbstractIntegrationSpec {
             "org.gradle.api.plugins.JavaPlugin": "org.gradle.java",
             "org.gradle.api.plugins.JavaBasePlugin": null,
             "org.gradle.api.plugins.JvmEcosystemPlugin": null,
+            "org.gradle.api.plugins.JvmToolchainsPlugin": null,
             "org.gradle.api.plugins.BasePlugin": null,
             "org.gradle.language.base.plugins.LifecycleBasePlugin": null,
             "org.gradle.api.plugins.ReportingBasePlugin": null,
-            "org.gradle.testing.base.plugins.TestSuiteBasePlugin": "org.gradle.test-suite-base",
+            "org.gradle.testing.base.plugins.TestSuiteBasePlugin": null,
             "org.gradle.api.plugins.JvmTestSuitePlugin": "org.gradle.jvm-test-suite",
         ]
 
@@ -107,6 +108,7 @@ class ApplyPluginBuildOperationIntegrationTest extends AbstractIntegrationSpec {
 
     def "uses target instead of parent"() {
         when:
+        createDirs("a", "b")
         settingsFile << """
             include "a"
             include "b"

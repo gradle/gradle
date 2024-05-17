@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,50 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.changedetection;
 
-import javax.annotation.Nullable;
 import java.util.Optional;
 
-/**
- * Keeps information about the execution mode of a task.
- */
-public enum TaskExecutionMode {
-    INCREMENTAL(null, true, true),
-    NO_OUTPUTS("Task has not declared any outputs despite executing actions.", false, false),
-    RERUN_TASKS_ENABLED("Executed with '--rerun-tasks'.", true, false),
-    UP_TO_DATE_WHEN_FALSE("Task.upToDateWhen is false.", true, false),
-    UNTRACKED("Task state is not tracked.", false, false);
-
-    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-    private final Optional<String> rebuildReason;
-    private final boolean taskHistoryMaintained;
-    private final boolean allowedToUseCachedResults;
-
-    TaskExecutionMode(@Nullable String rebuildReason, boolean taskHistoryMaintained, boolean allowedToUseCachedResults) {
-        this.rebuildReason = Optional.ofNullable(rebuildReason);
-        this.taskHistoryMaintained = taskHistoryMaintained;
-        this.allowedToUseCachedResults = allowedToUseCachedResults;
-    }
-
+public interface TaskExecutionMode {
     /**
      * Return rebuild reason if any.
      */
-    public Optional<String> getRebuildReason() {
-        return rebuildReason;
-    }
+    Optional<String> getRebuildReason();
 
     /**
      * Returns whether the execution history should be stored.
      */
-    public boolean isTaskHistoryMaintained() {
-        return taskHistoryMaintained;
-    }
+    boolean isTaskHistoryMaintained();
 
     /**
      * Returns whether it is okay to use results loaded from cache instead of executing the task.
      */
-    public boolean isAllowedToUseCachedResults() {
-        return allowedToUseCachedResults;
-    }
+    boolean isAllowedToUseCachedResults();
 }

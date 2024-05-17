@@ -48,12 +48,18 @@ import java.util.regex.Pattern;
  */
 @CacheableTask
 public abstract class FindBrokenInternalLinks extends DefaultTask {
+
     private final Pattern linkPattern = Pattern.compile("<<([^,>]+)[^>]*>>");
     private final Pattern linkWithHashPattern = Pattern.compile("([a-zA-Z_0-9-.]*)#(.*)");
+    private final Pattern javadocLinkPattern = Pattern.compile("link:\\{javadocPath\\}/(.*?\\.html)");
 
     @InputDirectory
     @PathSensitive(PathSensitivity.RELATIVE)
     public abstract DirectoryProperty getDocumentationRoot();
+
+    @InputDirectory
+    @PathSensitive(PathSensitivity.RELATIVE)
+    public abstract DirectoryProperty getJavadocRoot();
 
     @OutputFile
     public abstract RegularFileProperty getReportFile();
@@ -61,10 +67,9 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
     @TaskAction
     public void checkDeadLinks() {
         Map<File, List<Error>> errors = new TreeMap<>();
-        File documentationRoot = getDocumentationRoot().get().getAsFile();
 
         getDocumentationRoot().getAsFileTree().matching(pattern -> pattern.include("**/*.adoc")).forEach(file -> {
-            hasDeadLink(documentationRoot, file, errors);
+            gatherDeadLinksInFile(file, errors);
         });
         reportErrors(errors, getReportFile().get().getAsFile());
     }
@@ -102,7 +107,7 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
         fw.println("# The checker does not handle implicit section names, so they must be explicit and declared as: [[section-name]]");
     }
 
-    private void hasDeadLink(File baseDir, File sourceFile, Map<File, List<Error>> errors) {
+    private void gatherDeadLinksInFile(File sourceFile, Map<File, List<Error>> errors) {
         int lineNumber = 0;
         List<Error> errorsForFile = new ArrayList<>();
 
@@ -110,35 +115,8 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
             String line = br.readLine();
             while (line != null) {
                 lineNumber++;
-                Matcher matcher = linkPattern.matcher(line);
-                while (matcher.find()) {
-                    MatchResult xrefMatcher = matcher.toMatchResult();
-                    String link = xrefMatcher.group(1);
-                    if (link.contains("#")) {
-                        Matcher linkMatcher = linkWithHashPattern.matcher(link);
-                        if (linkMatcher.matches()) {
-                            MatchResult result = linkMatcher.toMatchResult();
-                            String fileName = getFileName(result.group(1), sourceFile);
-                            File referencedFile = new File(baseDir, fileName);
-                            if (!referencedFile.exists() || referencedFile.isDirectory()) {
-                                errorsForFile.add(new Error(lineNumber, line, "Looking for file named " + fileName));
-                            } else {
-                                String idName = result.group(2);
-                                if (idName.isEmpty()) {
-                                    errorsForFile.add(new Error(lineNumber, line, "Missing section reference for link to " + fileName));
-                                } else {
-                                    if (!fileContainsText(referencedFile, "[[" + idName + "]]")) {
-                                        errorsForFile.add(new Error(lineNumber, line, "Looking for section named " + idName + " in " + fileName));
-                                    }
-                                }
-                            }
-                        }
-                    } else {
-                        if (!fileContainsText(sourceFile, "[[" + link + "]]")) {
-                            errorsForFile.add(new Error(lineNumber, line, "Looking for section named " + link + " in " + sourceFile.getName()));
-                        }
-                    }
-                }
+                gatherDeadLinksInLine(sourceFile, line, lineNumber, errorsForFile);
+                gatherDeadJavadocLinksInLine(sourceFile, line, lineNumber, errorsForFile);
 
                 line = br.readLine();
             }
@@ -148,6 +126,55 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
 
         if (!errorsForFile.isEmpty()) {
             errors.put(sourceFile, errorsForFile);
+        }
+    }
+
+    private void gatherDeadLinksInLine(File sourceFile, String line, int lineNumber, List<Error> errorsForFile) {
+        Matcher matcher = linkPattern.matcher(line);
+        while (matcher.find()) {
+            MatchResult xrefMatcher = matcher.toMatchResult();
+            String link = xrefMatcher.group(1);
+            if (link.contains("#")) {
+                Matcher linkMatcher = linkWithHashPattern.matcher(link);
+                if (linkMatcher.matches()) {
+                    MatchResult result = linkMatcher.toMatchResult();
+                    String fileName = getFileName(result.group(1), sourceFile);
+                    File referencedFile = new File(getDocumentationRoot().get().getAsFile(), fileName);
+                    if (!referencedFile.exists() || referencedFile.isDirectory()) {
+                        errorsForFile.add(new Error(lineNumber, line, "Looking for file named " + fileName));
+                    } else {
+                        String idName = result.group(2);
+                        if (idName.isEmpty()) {
+                            errorsForFile.add(new Error(lineNumber, line, "Missing section reference for link to " + fileName));
+                        } else {
+                            if (!fileContainsText(referencedFile, "[[" + idName + "]]")) {
+                                errorsForFile.add(new Error(lineNumber, line, "Looking for section named " + idName + " in " + fileName));
+                            }
+                        }
+                    }
+                }
+            } else {
+                if (!fileContainsText(sourceFile, "[[" + link + "]]")) {
+                    errorsForFile.add(new Error(lineNumber, line, "Looking for section named " + link + " in " + sourceFile.getName()));
+                }
+            }
+        }
+    }
+
+    private void gatherDeadJavadocLinksInLine(File sourceFile, String line, int lineNumber, List<Error> errorsForFile) {
+        Matcher matcher = javadocLinkPattern.matcher(line);
+        while (matcher.find()) {
+            MatchResult linkMatcher = matcher.toMatchResult();
+            String link = linkMatcher.group(1);
+            File referencedFile = new File(getJavadocRoot().get().getAsFile(), link);
+            if (!referencedFile.exists() || referencedFile.isDirectory()) {
+                String errMsg = "Missing Javadoc file for " + link + " in " + sourceFile.getName();
+                if (link.startsWith("javadoc")) {
+                    errMsg += " (You may need to remove the leading `javadoc` path component)";
+                }
+                errorsForFile.add(new Error(lineNumber, line, errMsg));
+            }
+            // TODO: Also parse the HTML in the javadoc file to check if the specific method is present
         }
     }
 

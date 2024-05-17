@@ -16,6 +16,7 @@
 package org.gradle.api.invocation;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.StartParameter;
@@ -24,8 +25,10 @@ import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.execution.TaskExecutionGraph;
+import org.gradle.api.flow.FlowProviders;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.initialization.Settings;
+import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.PluginAware;
 import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.internal.HasInternalProtocol;
@@ -40,7 +43,7 @@ import java.util.Collection;
  * <p>You can obtain a {@code Gradle} instance by calling {@link Project#getGradle()}.</p>
  */
 @HasInternalProtocol
-public interface Gradle extends PluginAware {
+public interface Gradle extends PluginAware, ExtensionAware {
     /**
      * Returns the current Gradle version.
      *
@@ -178,7 +181,7 @@ public interface Gradle extends PluginAware {
      * @param closure The action to execute.
      * @since 6.0
      */
-    void beforeSettings(Closure<?> closure);
+    void beforeSettings(@DelegatesTo(Settings.class) Closure<?> closure);
 
     /**
      * Adds an action to be called before the build settings have been loaded and evaluated.
@@ -270,6 +273,7 @@ public interface Gradle extends PluginAware {
      *
      * @param closure The closure to execute.
      * @deprecated This method is not supported when configuration caching is enabled.
+     * @see FlowProviders#getBuildWorkResult()
      */
     @Deprecated
     void buildFinished(Closure closure);
@@ -282,6 +286,7 @@ public interface Gradle extends PluginAware {
      * @param action The action to execute.
      * @since 3.4
      * @deprecated This method is not supported when configuration caching is enabled.
+     * @see FlowProviders#getBuildWorkResult()
      */
     @Deprecated
     void buildFinished(Action<? super BuildResult> action);
@@ -299,10 +304,8 @@ public interface Gradle extends PluginAware {
      * Adds the given listener to this build. The listener may implement any of the given listener interfaces:
      *
      * <ul>
-     * <li>{@link org.gradle.BuildListener}
      * <li>{@link org.gradle.api.execution.TaskExecutionGraphListener}
      * <li>{@link org.gradle.api.ProjectEvaluationListener}
-     * <li>{@link org.gradle.api.logging.StandardOutputListener}
      * <li>{@link org.gradle.api.artifacts.DependencyResolutionListener}
      * </ul>
      *
@@ -310,6 +313,7 @@ public interface Gradle extends PluginAware {
      * Their usage is deprecated and adding a listener of these types become an error in a future Gradle version:</p>
      *
      * <ul>
+     * <li>{@link org.gradle.BuildListener}
      * <li>{@link org.gradle.api.execution.TaskExecutionListener}
      * <li>{@link org.gradle.api.execution.TaskActionListener}
      * <li>{@link org.gradle.api.tasks.testing.TestListener}

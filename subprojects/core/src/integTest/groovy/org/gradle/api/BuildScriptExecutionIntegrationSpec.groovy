@@ -17,7 +17,9 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 
+@DoesNotSupportNonAsciiPaths(reason = "Using non-Unicode default character set encoding")
 class BuildScriptExecutionIntegrationSpec extends AbstractIntegrationSpec {
 
     def "build scripts must be encoded using utf-8"() {

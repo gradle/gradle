@@ -45,7 +45,7 @@ import static org.gradle.model.internal.type.ModelTypes.modelMap;
  */
 @Deprecated
 @DisableCachingByDefault(because = "Produces only non-cacheable console output")
-public class ComponentReport extends DefaultTask {
+public abstract class ComponentReport extends DefaultTask {
     @Inject
     protected StyledTextOutputFactory getTextOutputFactory() {
         throw new UnsupportedOperationException();

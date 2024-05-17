@@ -16,7 +16,6 @@
 package org.gradle.api.file;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.internal.HasInternalProtocol;
@@ -26,7 +25,6 @@ import org.gradle.internal.HasInternalProtocol;
  *
  * @since 7.5
  */
-@Incubating
 @HasInternalProtocol
 public interface SyncSpec extends CopySpec {
 

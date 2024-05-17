@@ -18,7 +18,7 @@ package org.gradle.smoketests
 
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 
-import static org.gradle.internal.reflect.validation.Severity.ERROR
+import static org.gradle.api.problems.Severity.ERROR
 
 class NodePluginsSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
     @Override

@@ -17,25 +17,18 @@
 package org.gradle.internal.classpath;
 
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.file.archive.ZipEntry;
-import org.gradle.api.internal.file.archive.ZipInput;
-import org.gradle.api.internal.file.archive.impl.FileZipInput;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
-import org.gradle.internal.Pair;
-import org.gradle.internal.file.FileException;
+import org.gradle.internal.classanalysis.AsmConstants;
+import org.gradle.internal.classpath.transforms.ClassTransform;
+import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactory;
+import org.gradle.internal.classpath.types.GradleCoreInstrumentingTypeRegistry;
+import org.gradle.internal.classpath.types.InstrumentingTypeRegistry;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
-import org.gradle.util.internal.GFileUtils;
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.ClassWriter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -43,38 +36,52 @@ import java.io.IOException;
 import static java.lang.String.format;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
-class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer {
-    private static final Logger LOGGER = LoggerFactory.getLogger(InstrumentingClasspathFileTransformer.class);
-    private static final int CACHE_FORMAT = 5;
+public class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer {
+    private static final int CACHE_FORMAT = 6;
 
     private final FileLockManager fileLockManager;
-    private final ClasspathWalker classpathWalker;
-    private final ClasspathBuilder classpathBuilder;
-    private final CachedClasspathTransformer.Transform transform;
-    private final HashCode configHash;
+    private final ClasspathFileHasher fileHasher;
+    private final ClasspathElementTransformFactory classpathElementTransformFactory;
+    private final ClassTransform transform;
 
     public InstrumentingClasspathFileTransformer(
         FileLockManager fileLockManager,
-        ClasspathWalker classpathWalker,
-        ClasspathBuilder classpathBuilder,
-        CachedClasspathTransformer.Transform transform
+        ClasspathFileHasher classpathFileHasher,
+        ClasspathElementTransformFactory classpathElementTransformFactory,
+        ClassTransform transform,
+        GradleCoreInstrumentingTypeRegistry gradleCoreInstrumentingTypeRegistry
     ) {
         this.fileLockManager = fileLockManager;
-        this.classpathWalker = classpathWalker;
-        this.classpathBuilder = classpathBuilder;
+
+        this.fileHasher = createFileHasherWithConfig(
+            configHashFor(classpathElementTransformFactory, transform, gradleCoreInstrumentingTypeRegistry),
+            classpathFileHasher);
+        this.classpathElementTransformFactory = classpathElementTransformFactory;
         this.transform = transform;
-        this.configHash = configHashFor(transform);
     }
 
-    private HashCode configHashFor(CachedClasspathTransformer.Transform transform) {
+    private static HashCode configHashFor(ClasspathElementTransformFactory classpathElementTransformFactory, ClassTransform transform, GradleCoreInstrumentingTypeRegistry gradleCoreInstrumentingTypeRegistry) {
         Hasher hasher = Hashing.defaultFunction().newHasher();
         hasher.putInt(CACHE_FORMAT);
+        hasher.putInt(AsmConstants.MAX_SUPPORTED_JAVA_VERSION);
+        gradleCoreInstrumentingTypeRegistry.getInstrumentedTypesHash().ifPresent(hasher::putHash);
+        gradleCoreInstrumentingTypeRegistry.getUpgradedPropertiesHash().ifPresent(hasher::putHash);
+        classpathElementTransformFactory.applyConfigurationTo(hasher);
         transform.applyConfigurationTo(hasher);
         return hasher.hash();
     }
 
+    private static ClasspathFileHasher createFileHasherWithConfig(HashCode configHash, ClasspathFileHasher fileHasher) {
+        return sourceSnapshot -> {
+            Hasher hasher = Hashing.defaultFunction().newHasher();
+            hasher.putHash(configHash);
+            hasher.putHash(fileHasher.hashOf(sourceSnapshot));
+            return hasher.hash();
+        };
+    }
+
     @Override
-    public File transform(File source, FileSystemLocationSnapshot sourceSnapshot, File cacheDir) {
+    public File transform(File source, FileSystemLocationSnapshot sourceSnapshot, File cacheDir, InstrumentingTypeRegistry typeRegistry) {
         String destDirName = hashOf(sourceSnapshot);
         File destDir = new File(cacheDir, destDirName);
         String destFileName = sourceSnapshot.getType() == FileType.Directory ? source.getName() + ".jar" : source.getName();
@@ -93,7 +100,7 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
                 // Lock was acquired after a concurrent writer had already finished.
                 return transformed;
             }
-            transform(source, transformed);
+            transform(source, transformed, typeRegistry);
             try {
                 receipt.createNewFile();
             } catch (IOException e) {
@@ -108,6 +115,11 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
         }
     }
 
+    @Override
+    public ClasspathFileHasher getFileHasher() {
+        return fileHasher;
+    }
+
     private FileLock exclusiveLockFor(File file) {
         return fileLockManager.lock(
             file,
@@ -117,68 +129,10 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
     }
 
     private String hashOf(FileSystemLocationSnapshot sourceSnapshot) {
-        Hasher hasher = Hashing.defaultFunction().newHasher();
-        hasher.putHash(configHash);
-        // TODO - apply runtime classpath normalization?
-        hasher.putHash(sourceSnapshot.getHash());
-        return hasher.hash().toString();
+        return fileHasher.hashOf(sourceSnapshot).toString();
     }
 
-    private void transform(File source, File dest) {
-        if (isSignedJar(source)) {
-            LOGGER.debug("Signed archive '{}'. Skipping instrumentation.", source.getName());
-            GFileUtils.copyFile(source, dest);
-        } else {
-            instrument(source, dest);
-        }
-    }
-
-    private void instrument(File source, File dest) {
-        classpathBuilder.jar(dest, builder -> {
-            try {
-                visitEntries(source, builder);
-            } catch (FileException e) {
-                // Badly formed archive, so discard the contents and produce an empty JAR
-                LOGGER.debug("Malformed archive '{}'. Discarding contents.", source.getName(), e);
-            }
-        });
-    }
-
-    private void visitEntries(File source, ClasspathBuilder.EntryBuilder builder) throws IOException, FileException {
-        classpathWalker.visit(source, entry -> {
-            try {
-                if (entry.getName().endsWith(".class")) {
-                    ClassReader reader = new ClassReader(entry.getContent());
-                    ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-                    Pair<RelativePath, ClassVisitor> chain = transform.apply(entry, classWriter);
-                    reader.accept(chain.right, 0);
-                    byte[] bytes = classWriter.toByteArray();
-                    builder.put(chain.left.getPathString(), bytes);
-                } else {
-                    builder.put(entry.getName(), entry.getContent());
-                }
-            } catch (Throwable e) {
-                throw new IOException("Failed to process the entry '" + entry.getName() + "' from '" + source + "'", e);
-            }
-        });
-    }
-
-    private boolean isSignedJar(File source) {
-        if (!source.isFile()) {
-            return false;
-        }
-        try (ZipInput entries = FileZipInput.create(source)) {
-            for (ZipEntry entry : entries) {
-                String entryName = entry.getName();
-                if (entryName.startsWith("META-INF/") && entryName.endsWith(".SF")) {
-                    return true;
-                }
-            }
-        } catch (FileException e) {
-            // Ignore malformed archive
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-        return false;
+    private void transform(File source, File dest, InstrumentingTypeRegistry typeRegistry) {
+        classpathElementTransformFactory.createTransformer(source, this.transform, typeRegistry).transform(dest);
     }
 }

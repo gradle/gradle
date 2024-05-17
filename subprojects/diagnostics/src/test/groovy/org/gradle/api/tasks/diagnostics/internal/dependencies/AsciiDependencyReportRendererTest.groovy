@@ -15,10 +15,10 @@
  */
 package org.gradle.api.tasks.diagnostics.internal.dependencies
 
+import org.gradle.api.tasks.diagnostics.internal.ConfigurationDetails
 import org.gradle.api.tasks.diagnostics.internal.ProjectDetails
 import org.gradle.api.tasks.diagnostics.internal.graph.DependencyGraphsRenderer
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.SimpleDependency
-import org.gradle.internal.deprecation.DeprecatableConfiguration
 import org.gradle.internal.logging.text.TestStyledTextOutput
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
@@ -43,26 +43,22 @@ class AsciiDependencyReportRendererTest extends AbstractProjectBuilderSpec {
     }
 
     def "shows configuration header"() {
-        DeprecatableConfiguration configuration1 = Mock()
-        configuration1.getName() >> 'config1'
-        configuration1.getDescription() >> 'description'
-        configuration1.isCanBeResolved() >> true
-        DeprecatableConfiguration configuration2 = Mock()
-        configuration2.getName() >> 'config2'
-        configuration2.isCanBeResolved() >> true
+        given:
+        def conf1 = new ConfigurationDetails('config1', 'description', true, null, null)
+        def conf2 = new ConfigurationDetails('config2', null, false, null, null)
 
         when:
         renderer.prepareVisit()
-        renderer.startConfiguration(configuration1);
-        renderer.completeConfiguration(configuration1);
-        renderer.startConfiguration(configuration2);
-        renderer.completeConfiguration(configuration2);
+        renderer.startConfiguration(conf1);
+        renderer.completeConfiguration(conf1);
+        renderer.startConfiguration(conf2);
+        renderer.completeConfiguration(conf2);
 
         then:
         textOutput.value.readLines() == [
                 'config1 - description',
                 '',
-                'config2'
+                'config2 (n)'
         ]
     }
 

@@ -27,11 +27,12 @@ import me.champeau.gradle.japicmp.report.Violation;
 
 import java.util.Map;
 
-
 public class SinceAnnotationMissingRule extends AbstractGradleViolationRule {
 
-    public SinceAnnotationMissingRule(Map<String, String> acceptedViolations) {
-        super(acceptedViolations);
+    public static final String SINCE_ERROR_MESSAGE = "Is not annotated with @since ";
+
+    public SinceAnnotationMissingRule(Map<String, Object> params) {
+        super(params);
     }
 
     @Override
@@ -41,7 +42,7 @@ public class SinceAnnotationMissingRule extends AbstractGradleViolationRule {
             return null;
         }
 
-        return acceptOrReject(member, Violation.error(member, "Is not annotated with @since " + getCurrentVersion()));
+        return acceptOrReject(member, Violation.error(member, SINCE_ERROR_MESSAGE + getCurrentVersion()));
     }
 
     private boolean shouldSkipViolationCheckFor(JApiCompatibility member) {

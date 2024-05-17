@@ -133,6 +133,7 @@ trait HttpServerFixture {
             handlers.addHandler(securityHandlerWrapper)
             handlers.addHandler(getCustomHandler())
             server.setHandler(handlers)
+            server.setStopTimeout(0)
             configured = true
         }
 
@@ -223,7 +224,7 @@ trait HttpServerFixture {
 
     }
 
-    void requireAuthentication(String path, String username, String password) {
+    void requireAuthentication(String path = '/*', String username, String password) {
         securityHandlerWrapper.requireAuthentication(path, username, password)
     }
 

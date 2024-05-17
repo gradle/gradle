@@ -18,6 +18,7 @@ package promotion
 
 import common.VersionedSettingsBranch
 import common.gradleWrapper
+import common.pluginPortalUrlOverride
 import jetbrains.buildServer.configs.kotlin.v2019_2.triggers.schedule
 import jetbrains.buildServer.configs.kotlin.v2019_2.triggers.vcs
 import vcsroots.gradlePromotionBranches
@@ -33,11 +34,11 @@ object StartReleaseCycleTest : BasePromotionBuildType(vcsRootId = gradlePromotio
                 name = "PromoteTest"
                 tasks = "clean promoteStartReleaseCycle"
                 useGradleWrapper = true
-                gradleParams = """-PconfirmationCode=startCycle -PtestRun=1 "-PgitUserName=test" "-PgitUserEmail=test@example.com""""
+                gradleParams = """-PconfirmationCode=startCycle -PtestRun=1 "-PgitUserName=test" "-PgitUserEmail=test@example.com" $pluginPortalUrlOverride"""
             }
         }
 
-        val enableTriggers = VersionedSettingsBranch.fromDslContext().enableTriggers
+        val enableTriggers = VersionedSettingsBranch.fromDslContext().enableVcsTriggers
         triggers {
             vcs {
                 branchFilter = "+:master"

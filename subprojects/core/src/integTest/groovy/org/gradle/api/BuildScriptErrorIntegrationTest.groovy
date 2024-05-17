@@ -72,6 +72,7 @@ class BuildScriptErrorIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "produces reasonable error message when nested buildFile evaluation fails"() {
+        createDirs("child")
         settingsFile << """
 include 'child'
 """
@@ -98,6 +99,7 @@ include 'child'
     }
 
     def "produces reasonable error message from a method inherited from a script containing only methods"() {
+        createDirs("child")
         settingsFile << """
 include 'child'
 """

@@ -16,13 +16,14 @@
 
 package org.gradle.execution.plan;
 
+import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.snapshot.CaseSensitivity;
 
 @ServiceScope(Scopes.Build.class)
-public class ExecutionNodeAccessHierarchies {
+public class ExecutionNodeAccessHierarchies implements HoldsProjectState {
     private final ExecutionNodeAccessHierarchy outputHierarchy;
     private final ExecutionNodeAccessHierarchy destroyableHierarchy;
     private final CaseSensitivity caseSensitivity;
@@ -33,6 +34,12 @@ public class ExecutionNodeAccessHierarchies {
         this.stat = stat;
         outputHierarchy = new ExecutionNodeAccessHierarchy(caseSensitivity, stat);
         destroyableHierarchy = new ExecutionNodeAccessHierarchy(caseSensitivity, stat);
+    }
+
+    @Override
+    public void discardAll() {
+        outputHierarchy.clear();
+        destroyableHierarchy.clear();
     }
 
     /**

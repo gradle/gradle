@@ -24,6 +24,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 public class ExecutionPlanFactory {
     private final String displayName;
     private final TaskNodeFactory taskNodeFactory;
+    private final OrdinalGroupFactory ordinalGroupFactory;
     private final TaskDependencyResolver dependencyResolver;
     private final ExecutionNodeAccessHierarchy outputHierarchy;
     private final ExecutionNodeAccessHierarchy destroyableHierarchy;
@@ -32,6 +33,7 @@ public class ExecutionPlanFactory {
     public ExecutionPlanFactory(
         String displayName,
         TaskNodeFactory taskNodeFactory,
+        OrdinalGroupFactory ordinalGroupFactory,
         TaskDependencyResolver dependencyResolver,
         ExecutionNodeAccessHierarchy outputHierarchy,
         ExecutionNodeAccessHierarchy destroyableHierarchy,
@@ -39,6 +41,7 @@ public class ExecutionPlanFactory {
     ) {
         this.displayName = displayName;
         this.taskNodeFactory = taskNodeFactory;
+        this.ordinalGroupFactory = ordinalGroupFactory;
         this.dependencyResolver = dependencyResolver;
         this.outputHierarchy = outputHierarchy;
         this.destroyableHierarchy = destroyableHierarchy;
@@ -46,6 +49,6 @@ public class ExecutionPlanFactory {
     }
 
     public ExecutionPlan createPlan() {
-        return new DefaultExecutionPlan(displayName, taskNodeFactory, dependencyResolver, outputHierarchy, destroyableHierarchy, lockCoordinationService);
+        return new DefaultExecutionPlan(displayName, taskNodeFactory, ordinalGroupFactory, dependencyResolver, outputHierarchy, destroyableHierarchy, lockCoordinationService);
     }
 }

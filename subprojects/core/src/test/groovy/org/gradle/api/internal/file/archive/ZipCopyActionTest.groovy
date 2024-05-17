@@ -15,11 +15,12 @@
  */
 package org.gradle.api.internal.file.archive
 
-import org.apache.tools.zip.Zip64RequiredException
-import org.apache.tools.zip.ZipOutputStream
+import org.apache.commons.compress.archivers.zip.Zip64RequiredException
+import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream
 import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction
+import org.gradle.api.internal.file.DefaultFilePermissions
 import org.gradle.api.internal.file.copy.CopyActionProcessingStream
 import org.gradle.api.internal.file.copy.DefaultZipCompressor
 import org.gradle.api.internal.file.copy.FileCopyDetailsInternal
@@ -44,7 +45,7 @@ class ZipCopyActionTest extends Specification {
 
     def setup() {
         zipFile = tmpDir.getTestDirectory().file("test.zip")
-        visitor = new ZipCopyAction(zipFile, new DefaultZipCompressor(false, ZipOutputStream.STORED), new DocumentationRegistry(), encoding, false)
+        visitor = new ZipCopyAction(zipFile, new DefaultZipCompressor(false, ZipArchiveOutputStream.STORED), new DocumentationRegistry(), encoding, false)
     }
 
     void createsZipFile() {
@@ -86,7 +87,7 @@ class ZipCopyActionTest extends Specification {
     void wrapsFailureToOpenOutputFile() {
         given:
         def invalidZipFile = tmpDir.createDir("test.zip")
-        visitor = new ZipCopyAction(invalidZipFile, new DefaultZipCompressor(false, ZipOutputStream.STORED), new DocumentationRegistry(), encoding, false)
+        visitor = new ZipCopyAction(invalidZipFile, new DefaultZipCompressor(false, ZipArchiveOutputStream.STORED), new DocumentationRegistry(), encoding, false)
 
         when:
         visitor.execute(new CopyActionProcessingStream() {
@@ -102,14 +103,14 @@ class ZipCopyActionTest extends Specification {
 
     void wrapsZip64Failure() {
         given:
-        def zipOutputStream = Mock(ZipOutputStream)
+        def zipOutputStream = Mock(ZipArchiveOutputStream)
         zipOutputStream.close() >> {
             throw new Zip64RequiredException("xyz")
         }
 
-        def compressor = new DefaultZipCompressor(false, ZipOutputStream.STORED) {
+        def compressor = new DefaultZipCompressor(false, ZipArchiveOutputStream.STORED) {
             @Override
-            ZipOutputStream createArchiveOutputStream(File destination) {
+            ZipArchiveOutputStream createArchiveOutputStream(File destination) {
                 zipOutputStream
             }
         }
@@ -157,7 +158,7 @@ class ZipCopyActionTest extends Specification {
         mock.getRelativePath() >> RelativePath.parse(false, path)
         mock.getLastModified() >> 1000L
         mock.isDirectory() >> false
-        mock.getMode() >> 1
+        mock.getPermissions() >> new DefaultFilePermissions(1)
         mock.copyTo(_ as OutputStream) >> { OutputStream out ->
             out << "contents of $path"
         }
@@ -169,7 +170,7 @@ class ZipCopyActionTest extends Specification {
         mock.getRelativePath() >> RelativePath.parse(false, path)
         mock.getLastModified() >> 1000L
         mock.isDirectory() >> true
-        mock.getMode() >> 2
+        mock.getPermissions() >> new DefaultFilePermissions(2)
         mock
     }
 
@@ -178,7 +179,7 @@ class ZipCopyActionTest extends Specification {
         mock.getRelativePath() >> RelativePath.parse(false, path)
         mock.getLastModified() >> 1000L
         mock.isDirectory() >> false
-        mock.getMode() >> 1
+        mock.getPermissions() >> new DefaultFilePermissions(1)
         mock.copyTo(_ as OutputStream) >> { OutputStream out ->
             failure.fillInStackTrace()
             throw failure

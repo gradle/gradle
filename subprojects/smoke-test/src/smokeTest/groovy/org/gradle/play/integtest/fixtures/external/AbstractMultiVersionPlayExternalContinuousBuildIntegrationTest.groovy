@@ -16,11 +16,12 @@
 
 package org.gradle.play.integtest.fixtures.external
 
-
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.compatibility.MultiVersionTest
 import org.gradle.play.integtest.fixtures.PlayCoverage
 import org.gradle.util.internal.VersionNumber
+import org.junit.Assume
 
 @TargetCoverage({ PlayCoverage.DEFAULT })
 @MultiVersionTest
@@ -34,6 +35,9 @@ abstract class AbstractMultiVersionPlayExternalContinuousBuildIntegrationTest ex
     def setup() {
         buildFile << playPlatformConfiguration(version.toString())
         executer.expectDeprecationWarning("The ProjectLayout.configurableFiles() method has been deprecated. This is scheduled to be removed in Gradle 7.0. Please use the ObjectFactory.fileCollection() method instead.")
+
+        // Play Framework supports up to Java 11.
+        Assume.assumeTrue(JavaVersion.current() <= JavaVersion.VERSION_11)
     }
 
     private static String playPlatformConfiguration(String version) {

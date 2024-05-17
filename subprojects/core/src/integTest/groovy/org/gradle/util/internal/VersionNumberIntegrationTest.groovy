@@ -17,12 +17,16 @@
 package org.gradle.util.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.dsl.GradleDsl
+
+import static org.junit.Assume.assumeFalse
 
 
 class VersionNumberIntegrationTest extends AbstractIntegrationSpec {
 
     def "nullability with Kotlin jsr-305 strict"() {
+        assumeFalse(GradleContextualExecuter.embedded)
 
         given:
         file("src/main/kotlin/Test.kt") << """
@@ -50,8 +54,8 @@ class VersionNumberIntegrationTest extends AbstractIntegrationSpec {
             }
 
             tasks.withType<KotlinCompile>().configureEach {
-                kotlinOptions {
-                    freeCompilerArgs = listOf("-Xjsr305=strict")
+                compilerOptions {
+                    freeCompilerArgs.add("-Xjsr305=strict")
                 }
             }
 

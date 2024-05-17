@@ -56,7 +56,7 @@ public class ResolvedDependencyEdge implements DependencyEdge {
 
     @Override
     public List<ResolvedVariantResult> getAllVariants() {
-        return ((ResolvedComponentResultInternal) dependency.getSelected()).getAllVariants();
+        return ((ResolvedComponentResultInternal) dependency.getSelected()).getAvailableVariants();
     }
 
     @Override

@@ -20,9 +20,9 @@ package org.gradle.cache.internal
 import org.gradle.cache.AsyncCacheAccess
 import org.gradle.cache.CacheDecorator
 import org.gradle.cache.CrossProcessCacheAccess
-import org.gradle.cache.MultiProcessSafePersistentIndexedCache
+import org.gradle.cache.MultiProcessSafeIndexedCache
 import org.gradle.cache.internal.scopes.DefaultCacheScopeMapping
-import org.gradle.cache.internal.scopes.DefaultGlobalScopedCache
+import org.gradle.cache.internal.scopes.DefaultGlobalScopedCacheBuilderFactory
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.hash.HashCode
@@ -37,6 +37,8 @@ import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
+import javax.annotation.Nullable
+
 @UsesNativeServices
 class DefaultFileContentCacheFactoryTest extends Specification {
     @Rule
@@ -45,15 +47,15 @@ class DefaultFileContentCacheFactoryTest extends Specification {
     def fileSystemAccess = Mock(FileSystemAccess)
     def cachesDir = tmpDir.file("caches")
     def cacheScopeMapping = new DefaultCacheScopeMapping(cachesDir, GradleVersion.current())
-    def cacheRepository = new DefaultCacheRepository(cacheScopeMapping, new TestInMemoryCacheFactory())
-    def globalScopedCache = new DefaultGlobalScopedCache(cachesDir, cacheRepository)
+    def cacheRepository = new DefaultUnscopedCacheBuilderFactory(cacheScopeMapping, new TestInMemoryCacheFactory())
+    def globalScopedCache = new DefaultGlobalScopedCacheBuilderFactory(cachesDir, cacheRepository)
     def inMemoryTaskArtifactCache = new DefaultInMemoryCacheDecoratorFactory(false, new TestCrossBuildInMemoryCacheFactory()) {
         @Override
         CacheDecorator decorator(int maxEntriesToKeepInMemory, boolean cacheInMemoryForShortLivedProcesses) {
             return new CacheDecorator() {
                 @Override
-                public <K, V> MultiProcessSafePersistentIndexedCache<K, V> decorate(String cacheId, String cacheName, MultiProcessSafePersistentIndexedCache<K, V> persistentCache, CrossProcessCacheAccess crossProcessCacheAccess, AsyncCacheAccess asyncCacheAccess) {
-                    return persistentCache
+                public <K, V> MultiProcessSafeIndexedCache<K, V> decorate(String cacheId, String cacheName, MultiProcessSafeIndexedCache<K, V> indexedCache, CrossProcessCacheAccess crossProcessCacheAccess, AsyncCacheAccess asyncCacheAccess) {
+                    return indexedCache
                 }
             }
         }
@@ -97,7 +99,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         result == 12
 
         and:
-        1 * fileSystemAccess.readRegularFileContentHash(file.absolutePath, _) >> Optional.empty()
+        1 * fileSystemAccess.readRegularFileContentHash(file.absolutePath) >> Optional.empty()
         1 * calculator.calculate(file, false) >> 12
         0 * _
 
@@ -209,7 +211,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         result == 12
 
         and:
-        1 * fileSystemAccess.readRegularFileContentHash(file.getAbsolutePath(), _) >> Optional.empty()
+        1 * fileSystemAccess.readRegularFileContentHash(file.getAbsolutePath()) >> Optional.empty()
         1 * calculator.calculate(file, false) >> 12
         0 * _
 
@@ -221,7 +223,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         result == 10
 
         and:
-        1 * fileSystemAccess.readRegularFileContentHash(file.getAbsolutePath(), _) >> Optional.empty()
+        1 * fileSystemAccess.readRegularFileContentHash(file.getAbsolutePath()) >> Optional.empty()
         1 * calculator.calculate(file, false) >> 10
         0 * _
     }
@@ -258,9 +260,9 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         0 * _
     }
 
-    def snapshotRegularFile(File file, HashCode hashCode = TestHashCodes.hashCodeFrom(123)) {
-        1 * fileSystemAccess.readRegularFileContentHash(file.getAbsolutePath(), _) >> { location, function ->
-            return Optional.ofNullable(function.apply(hashCode))
+    def snapshotRegularFile(File file, @Nullable HashCode hashCode = TestHashCodes.hashCodeFrom(123)) {
+        1 * fileSystemAccess.readRegularFileContentHash(file.getAbsolutePath()) >> { location ->
+            return Optional.ofNullable(hashCode)
         }
     }
 }

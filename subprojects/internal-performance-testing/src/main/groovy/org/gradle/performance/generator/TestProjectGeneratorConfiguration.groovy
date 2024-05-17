@@ -34,8 +34,8 @@ class TestProjectGeneratorConfiguration {
 
     String[] plugins
     String[] repositories
-    String[] externalApiDependencies
-    String[] externalImplementationDependencies
+    Map<String, String> externalApiDependencies
+    Map<String, String> externalImplementationDependencies
 
     boolean buildSrc
 
@@ -122,9 +122,15 @@ class TestProjectGeneratorConfigurationBuilder {
 
         config.plugins = this.language == Language.GROOVY ? ['groovy', 'java', 'eclipse', 'idea'] : ['java', 'eclipse', 'idea']
         config.repositories = [mavenCentralRepositoryDefinition(this.dsl)]
-        config.externalApiDependencies = ['commons-lang:commons-lang:2.5', 'commons-httpclient:commons-httpclient:3.0',
-                                          'commons-codec:commons-codec:1.2', 'org.slf4j:jcl-over-slf4j:1.7.10']
-        config.externalImplementationDependencies = ['com.googlecode:reflectasm:1.01']
+        config.externalApiDependencies = [
+            commonsLang: 'commons-lang:commons-lang:2.5',
+            commonsHttpClient: 'commons-httpclient:commons-httpclient:3.0',
+            commonsCodec: 'commons-codec:commons-codec:1.2',
+            jclOverSlf4j: 'org.slf4j:jcl-over-slf4j:1.7.10',
+        ]
+        config.externalImplementationDependencies = [
+            reflectasm: 'com.googlecode:reflectasm:1.01',
+        ]
 
         config.subProjects = this.subProjects
         config.sourceFiles = this.sourceFiles

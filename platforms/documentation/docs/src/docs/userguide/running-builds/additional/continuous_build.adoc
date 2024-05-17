@@ -1,0 +1,76 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[continous_build]]
+= Continuous Build
+
+Continuous Build allows you to automatically re-execute the requested tasks when file inputs change.
+You can execute the build in this mode using the `-t` or `--continuous` command-line option.
+
+For example, you can continuously run the `test` task and all dependent tasks by running:
+
+----
+$ gradle test --continuous
+----
+
+Gradle will behave as if you ran `gradle test` after a change to sources or tests that contribute to the requested tasks.
+This means unrelated changes (such as changes to build scripts) will not trigger a rebuild.
+To incorporate build logic changes, the continuous build must be restarted manually.
+
+Continuous build uses <<file_system_watching.adoc#sec:daemon_watch_fs,file system watching>> to detect changes to the inputs.
+If file system watching does not work on your system, then continuous build won't work either.
+In particular, continuous build does not work when using `--no-daemon`.
+
+When Gradle detects a change to the inputs, it will not trigger the build immediately.
+Instead, it will wait until no additional changes are detected for a certain period of time - the quiet period.
+You can configure the quiet period in milliseconds by the Gradle property `<<build_environment.adoc#sec:gradle_configuration_properties,org.gradle.continuous.quietperiod>>`.
+
+== Terminating Continuous Build
+If Gradle is attached to an interactive input source, such as a terminal, the continuous build can be exited by pressing `CTRL-D` (On Microsoft Windows, it is required to also press `ENTER` or `RETURN` after `CTRL-D`).
+
+If Gradle is not attached to an interactive input source (e.g. is running as part of a script), the build process must be terminated (e.g. using the `kill` command or similar).
+
+If the build is being executed via the Tooling API, the build can be cancelled using the Tooling API's cancellation mechanism.
+
+[[continuous_build_limitations]]
+== Limitations
+Under some circumstances, continuous build may not detect changes to inputs.
+
+[[sec:continuous_build_missing_files]]
+=== Creating input directories
+Sometimes, creating an input directory that was previously missing does not trigger a build, due to the way file system watching works.
+For example, creating the `src/main/java` directory may not trigger a build.
+Similarly, if the input is a <<working_with_files.adoc#filtering_files,filtered file tree>> and no files are matching the filter, the creation of matching files may not trigger a build.
+
+[[sec:continuous_build_untracked]]
+=== Inputs of untracked tasks
+Changes to the inputs of <<incremental_build.adoc#sec:disable-state-tracking,untracked tasks>> or tasks that have no outputs may not trigger a build.
+
+[[sec:continuous_build_project_dir]]
+=== Changes to files outside of project directories
+Gradle only watches for changes to files inside the project directory.
+Changes to files outside the project directory will go undetected and not trigger a build.
+
+[[sec:build_cycles]]
+=== Build cycles
+Gradle starts watching for changes just before a task executes.
+If a task modifies its own inputs while executing, Gradle will detect the change and trigger a new build.
+If every time the task executes, the inputs are modified again, the build will be triggered again.
+This isn't unique to continuous build.
+A task that modifies its own inputs will never be considered up-to-date when run "normally" without continuous build.
+
+If your build enters a build cycle like this, you can track down the task by looking at the list of files reported changed by Gradle.
+After identifying the file(s) that are changed during each build, you should look for a task that has that file as an input.
+In some cases, it may be obvious (e.g., a Java file is compiled with `compileJava`).
+In other cases, you can use `--info` logging to find the task that is out-of-date due to the identified files.

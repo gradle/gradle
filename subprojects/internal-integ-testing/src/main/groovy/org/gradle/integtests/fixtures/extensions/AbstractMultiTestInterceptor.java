@@ -15,24 +15,17 @@
  */
 package org.gradle.integtests.fixtures.extensions;
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec;
-import org.junit.AssumptionViolatedException;
-import org.spockframework.lang.SpecInternals;
-import org.spockframework.mock.runtime.MockController;
 import org.spockframework.runtime.extension.AbstractMethodInterceptor;
-import org.spockframework.runtime.extension.IMethodInterceptor;
+import org.spockframework.runtime.extension.IDataDriver;
 import org.spockframework.runtime.extension.IMethodInvocation;
-import org.spockframework.runtime.extension.MethodInvocation;
 import org.spockframework.runtime.model.FeatureInfo;
 import org.spockframework.runtime.model.IterationInfo;
 import org.spockframework.runtime.model.NameProvider;
 import org.spockframework.runtime.model.SpecInfo;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -44,7 +37,9 @@ public abstract class AbstractMultiTestInterceptor extends AbstractMethodInterce
     private final boolean runAllExecutions;
 
     private boolean executionsInitialized;
-    private IMethodInvocation initInvocation;
+
+    // Yay, mutable state for storing the current execution.
+    private Execution currentExecution;
 
     protected AbstractMultiTestInterceptor(Class<?> target) {
         this(target, true);
@@ -58,31 +53,46 @@ public abstract class AbstractMultiTestInterceptor extends AbstractMethodInterce
     public void interceptFeature(FeatureInfo feature) {
         initExecutions();
 
+        if (!feature.isParameterized()) {
+            // Treat all features as parameterized, so we can use the data driver.
+            feature.setForceParameterized(true);
+        }
+
         NameProvider<IterationInfo> iterationNameProvider = feature.getIterationNameProvider();
         if (iterationNameProvider == null) {
-            feature.setName(feature.getName() + " " + executions);
+            feature.setIterationNameProvider(p -> feature.getName() + " " + currentExecution);
         } else {
-            feature.setIterationNameProvider(p -> iterationNameProvider.getName(p) + " " + executions);
+            feature.setIterationNameProvider(iteration -> iterationNameProvider.getName(iteration) + " " + currentExecution);
         }
+
+        feature.setDataDriver((dataIterator, iterationRunner, parameters) -> {
+            TestDetails testDetails = new TestDetails(feature);
+            while(dataIterator.hasNext()) {
+                Object[] arguments = dataIterator.next();
+                Object[] actualArguments = IDataDriver.prepareArgumentArray(arguments, parameters);
+                for (Execution execution : executions) {
+                    if (execution.isTestEnabled(testDetails)) {
+                        currentExecution = execution;
+                        try {
+                            iterationRunner.runIteration(actualArguments);
+                        } catch (Throwable t) {
+                            currentExecution = null;
+                        }
+
+                        if (!runAllExecutions) {
+                            break;
+                        }
+                    }
+                }
+            }
+        });
 
         if (canSkipFeature(feature, executions)) {
             feature.skip(executions.toString());
             return;
         }
 
-        if (feature.isParameterized()) {
-            feature.getIterationInterceptors().add(0, new ParameterizedFeatureMultiVersionInterceptor());
-        } else {
-            IMethodInterceptor interceptor = new NonParameterizedFeatureMultiVersionInterceptor();
-            feature.addInterceptor(interceptor);
-            feature.addIterationInterceptor(interceptor);
-        }
-    }
-
-    @Override
-    public void interceptInitializerMethod(IMethodInvocation invocation) throws Throwable {
-        this.initInvocation = invocation;
-        initInvocation.proceed();
+        feature.getIterationInterceptors().add(0, new ParameterizedFeatureMultiVersionInterceptor());
     }
 
     protected abstract void createExecutions();
@@ -166,59 +176,7 @@ public abstract class AbstractMultiTestInterceptor extends AbstractMethodInterce
         }
     }
 
-    private static class IterationExceptionInterceptor implements IMethodInterceptor {
-
-        private boolean hasThrown = false;
-
-        @Override
-        public void intercept(IMethodInvocation invocation) throws Throwable {
-            try {
-                invocation.proceed();
-            } catch (AssumptionViolatedException e) {
-                System.out.println("Skipping iteration: assumption not satisfied");
-                throw e;
-            } catch (Throwable t) {
-                hasThrown = true;
-                throw t;
-            }
-        }
-    }
-
-    private abstract class MultiVersionIterationInterceptor extends AbstractMethodInterceptor {
-        private Execution currentExecution;
-
-        @Override
-        public void interceptFeatureExecution(IMethodInvocation invocation) throws Throwable {
-            IterationExceptionInterceptor iterationExceptionInterceptor = new IterationExceptionInterceptor();
-            invocation.getFeature().getFeatureMethod().addInterceptor(iterationExceptionInterceptor);
-
-            TestDetails testDetails = new TestDetails(invocation.getFeature());
-
-            for (Execution execution : executions) {
-                if (!execution.isTestEnabled(testDetails)) {
-                    continue;
-                }
-                // Spock 2 does not treat a test repeatedly invoked from an interceptor as a new test iteration
-                // Until we can solve this in a better way, the printout below indicates the start of an iteration with a different configuration
-                if (executions.size() > 1) {
-                    System.out.println("\nRUNNING ITERATION [" + execution.getDisplayName() + "]\n");
-                }
-                if (AbstractIntegrationSpec.class.isAssignableFrom(target)) {
-                    ((AbstractIntegrationSpec) invocation.getInstance()).resetExecuter();
-                }
-                if (initInvocation != null) { // null happens when a test class contains only features with 'where' clause
-                    initInvocation.proceed();
-                }
-                currentExecution = execution;
-                interceptIteration(invocation, currentExecution);
-                // When the current iteration fails, we abort the following executions, which is far from ideal
-                // This, however, makes it evident which iteration failed in this loop
-                if (!runAllExecutions || iterationExceptionInterceptor.hasThrown) {
-                    break;
-                }
-                ((MockController) ((SpecInternals) invocation.getInstance()).getSpecificationContext().getMockController()).enterScope();
-            }
-        }
+    private class ParameterizedFeatureMultiVersionInterceptor extends AbstractMethodInterceptor {
 
         @Override
         public void interceptIterationExecution(IMethodInvocation invocation) throws Throwable {
@@ -227,42 +185,5 @@ public abstract class AbstractMultiTestInterceptor extends AbstractMethodInterce
             invocation.proceed();
             currentExecution.after();
         }
-
-        abstract void interceptIteration(IMethodInvocation invocation, Execution currentExecution) throws Throwable;
     }
-
-    private class NonParameterizedFeatureMultiVersionInterceptor extends MultiVersionIterationInterceptor {
-        @Override
-        void interceptIteration(IMethodInvocation invocation, Execution currentExecution) throws Throwable {
-            invocation.proceed();
-        }
-    }
-
-    private class ParameterizedFeatureMultiVersionInterceptor extends MultiVersionIterationInterceptor {
-        @Override
-        public void interceptIterationExecution(IMethodInvocation invocation) throws Throwable {
-            interceptFeatureExecution(invocation);
-        }
-
-        @Override
-        void interceptIteration(IMethodInvocation invocation, Execution currentExecution) throws Throwable {
-            currentExecution.assertCanExecute();
-            currentExecution.before(invocation);
-            resetInterceptors(invocation);
-            invocation.proceed();
-            currentExecution.after();
-        }
-
-        private void resetInterceptors(IMethodInvocation invocation) throws NoSuchFieldException, IllegalAccessException {
-            Iterator<IMethodInterceptor> iterator = invocation.getMethod().getInterceptors().iterator();
-            IMethodInterceptor thisInterceptor = iterator.next(); // This interceptor should be the first - skip it
-            assert this.getClass().isInstance(thisInterceptor);
-            assert invocation instanceof MethodInvocation;
-
-            Field interceptorsField = MethodInvocation.class.getDeclaredField("interceptors");
-            interceptorsField.setAccessible(true);
-            interceptorsField.set(invocation, iterator);
-        }
-    }
-
 }

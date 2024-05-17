@@ -149,11 +149,12 @@ public interface TaskExecutionGraph {
     boolean hasTask(Task task);
 
     /**
-     * <p>Returns the tasks which are included in the execution plan. The tasks are returned in the order that they will
-     * be executed.</p>
+     * <p>Returns the tasks which are included in the execution plan.
+     * The order of the tasks in the result is compatible with the constraints (dependsOn/mustRunAfter/etc) set in the build configuration.
+     * However, Gradle may execute tasks in a slightly different order to speed up the overall execution while still respecting the constraints.
+     * </p>
      *
-     * @return The tasks. Returns an empty set if no tasks are to be executed.
-     * @throws IllegalStateException When this graph has not been populated.
+     * @return The tasks. Returns an empty list if no tasks are to be executed.
      */
     List<Task> getAllTasks();
 

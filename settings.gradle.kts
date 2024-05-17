@@ -1,15 +1,22 @@
 import org.gradle.api.internal.FeaturePreviews
 
 pluginManagement {
-    includeBuild("build-logic-settings")
     repositories {
         maven {
             url = uri("https://repo.gradle.org/gradle/enterprise-libs-release-candidates")
             content {
                 val rcAndMilestonesPattern = "\\d{1,2}?\\.\\d{1,2}?(\\.\\d{1,2}?)?-((rc-\\d{1,2}?)|(milestone-\\d{1,2}?))"
+                // GE plugin marker artifact
+                includeVersionByRegex("com.gradle.enterprise", "com.gradle.enterprise.gradle.plugin", rcAndMilestonesPattern)
+                // GE plugin jar
                 includeVersionByRegex("com.gradle", "gradle-enterprise-gradle-plugin", rcAndMilestonesPattern)
-                includeVersionByRegex("com.gradle.enterprise", "test-distribution-gradle-plugin", rcAndMilestonesPattern)
-                includeVersionByRegex("com.gradle.enterprise.test-distribution", "com.gradle.enterprise.test-distribution.gradle.plugin", rcAndMilestonesPattern)
+            }
+        }
+        maven {
+            name = "Gradle public repository"
+            url = uri("https://repo.gradle.org/gradle/public")
+            content {
+                includeModule("org.openmbee.junit", "junit-xml-parser")
             }
         }
         gradlePluginPortal()
@@ -17,11 +24,9 @@ pluginManagement {
 }
 
 plugins {
-    id("com.gradle.enterprise").version("3.10")
+    id("com.gradle.enterprise").version("3.15.1") // Sync with `build-logic-commons/build-platform/build.gradle.kts`
     id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.7.6")
-    id("gradlebuild.base.allprojects")
-    id("com.gradle.enterprise.test-distribution").version("2.3.1") // Sync with `build-logic/build-platform/build.gradle.kts`
-    id("gradlebuild.internal.cc-experiment")
+    id("org.gradle.toolchains.foojay-resolver-convention") version("0.7.0")
 }
 
 includeBuild("build-logic-commons")
@@ -33,137 +38,203 @@ apply(from = "gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
 // ./gradlew generateSubprojectsInfo
 // task to update metadata about the build for CI
 
-include("distributions-dependencies") // platform for dependency versions
-include("core-platform")              // platform for Gradle distribution core
+unassigned {
+    subproject("distributions-dependencies") // platform for dependency versions
+    subproject("core-platform")              // platform for Gradle distribution core
+}
 
 // Gradle Distributions - for testing and for publishing a full distribution
-include("distributions-core")
-include("distributions-basics")
-include("distributions-publishing")
-include("distributions-jvm")
-include("distributions-native")
-include("distributions-full")
+unassigned {
+    subproject("distributions-core")
+    subproject("distributions-basics")
+    subproject("distributions-full")
+}
 
 // Gradle implementation projects
-include("configuration-cache")
-include("functional")
-include("api-metadata")
-include("base-services")
-include("base-services-groovy")
-include("worker-services")
-include("logging-api")
-include("logging")
-include("process-services")
-include("jvm-services")
-include("core")
-include("dependency-management")
-include("wrapper")
-include("wrapper-shared")
-include("cli")
-include("launcher")
-include("bootstrap")
-include("messaging")
-include("resources")
-include("resources-http")
-include("resources-gcs")
-include("resources-s3")
-include("resources-sftp")
-include("plugins")
-include("scala")
-include("ide")
-include("ide-native")
-include("maven")
-include("code-quality")
-include("antlr")
-include("tooling-api")
-include("build-events")
-include("tooling-api-builders")
-include("signing")
-include("ear")
-include("native")
-include("reporting")
-include("diagnostics")
-include("publish")
-include("ivy")
-include("jacoco")
-include("build-init")
-include("build-option")
-include("platform-base")
-include("platform-native")
-include("platform-jvm")
-include("language-jvm")
-include("language-java")
-include("java-compiler-plugin")
-include("language-groovy")
-include("language-native")
-include("tooling-native")
-include("plugin-use")
-include("plugin-development")
-include("model-core")
-include("model-groovy")
-include("build-cache-http")
-include("testing-base")
-include("testing-native")
-include("testing-jvm")
-include("testing-junit-platform")
-include("test-kit")
-include("installation-beacon")
-include("composite-builds")
-include("workers")
-include("persistent-cache")
-include("build-cache-base")
-include("build-cache")
-include("core-api")
-include("version-control")
-include("file-collections")
-include("file-temp")
-include("files")
-include("hashing")
-include("snapshots")
-include("file-watching")
-include("build-cache-packaging")
-include("execution")
-include("build-profile")
-include("kotlin-compiler-embeddable")
-include("kotlin-dsl")
-include("kotlin-dsl-provider-plugins")
-include("kotlin-dsl-tooling-models")
-include("kotlin-dsl-tooling-builders")
-include("worker-processes")
-include("base-annotations")
-include("security")
-include("normalization-java")
-include("enterprise")
-include("enterprise-operations")
-include("enterprise-logging")
-include("enterprise-workers")
-include("build-operations")
-include("problems")
+unassigned {
+    subproject("core")
+    subproject("plugins")
+    subproject("build-events")
+    subproject("diagnostics")
+    subproject("installation-beacon")
+    subproject("composite-builds")
+    subproject("core-api")
+    subproject("build-profile")
+    subproject("instrumentation-declarations")
+}
 
-// Plugin portal projects
-include("kotlin-dsl-plugins")
+// Core Runtime Platform
+platform("core-runtime") {
+    subproject("base-annotations")
+    subproject("base-services")
+    subproject("bootstrap")
+    subproject("build-operations")
+    subproject("build-option")
+    subproject("cli")
+    subproject("file-temp")
+    subproject("files")
+    subproject("functional")
+    subproject("instrumentation-agent")
+    subproject("internal-instrumentation-api")
+    subproject("internal-instrumentation-processor")
+    subproject("launcher")
+    subproject("logging")
+    subproject("logging-api")
+    subproject("messaging")
+    subproject("native")
+    subproject("process-services")
+    subproject("worker-services")
+    subproject("wrapper")
+    subproject("wrapper-shared")
+}
+
+// Core Configuration Platform
+platform("core-configuration") {
+    subproject("api-metadata")
+    subproject("base-services-groovy")
+    subproject("configuration-cache")
+    subproject("file-collections")
+    subproject("input-tracking")
+    subproject("kotlin-dsl")
+    subproject("kotlin-dsl-provider-plugins")
+    subproject("kotlin-dsl-tooling-builders")
+    subproject("kotlin-dsl-tooling-models")
+    subproject("kotlin-dsl-plugins")
+    subproject("kotlin-dsl-integ-tests")
+    subproject("model-core")
+    subproject("model-groovy")
+}
+
+// Core Execution Platform
+platform("core-execution") {
+    subproject("build-cache")
+    subproject("build-cache-base")
+    subproject("build-cache-http")
+    subproject("build-cache-packaging")
+    subproject("file-watching")
+    subproject("execution")
+    subproject("hashing")
+    subproject("persistent-cache")
+    subproject("snapshots")
+    subproject("worker-processes")
+    subproject("workers")
+}
+
+// Documentation Platform
+platform("documentation") {
+    subproject("docs")
+    subproject("docs-asciidoctor-extensions-base")
+    subproject("docs-asciidoctor-extensions")
+    subproject("samples")
+}
+
+// Extensibility Platform
+platform("extensibility") {
+    subproject("plugin-use")
+    subproject("plugin-development")
+    subproject("test-kit")
+}
+
+// IDE Platform
+platform("ide") {
+    subproject("base-ide-plugins")
+    subproject("ide")
+    subproject("ide-native")
+    subproject("ide-plugins")
+    subproject("problems")
+    subproject("problems-api")
+    subproject("tooling-api")
+    subproject("tooling-api-builders")
+}
+
+// Native Platform
+platform("native") {
+    subproject("distributions-native")
+    subproject("platform-native")
+    subproject("language-native")
+    subproject("tooling-native")
+    subproject("testing-native")
+}
+
+// Software Platform
+platform("software") {
+    subproject("antlr")
+    subproject("build-init")
+    subproject("dependency-management")
+    subproject("plugins-distribution")
+    subproject("distributions-publishing")
+    subproject("ivy")
+    subproject("maven")
+    subproject("platform-base")
+    subproject("plugins-version-catalog")
+    subproject("publish")
+    subproject("resources")
+    subproject("resources-http")
+    subproject("resources-gcs")
+    subproject("resources-s3")
+    subproject("resources-sftp")
+    subproject("reporting")
+    subproject("security")
+    subproject("signing")
+    subproject("testing-base")
+    subproject("test-suites-base")
+    subproject("version-control")
+}
+
+// JVM Platform
+platform("jvm") {
+    subproject("code-quality")
+    subproject("distributions-jvm")
+    subproject("ear")
+    subproject("jacoco")
+    subproject("jvm-services")
+    subproject("language-groovy")
+    subproject("language-java")
+    subproject("language-jvm")
+    subproject("toolchains-jvm")
+    subproject("java-compiler-plugin")
+    subproject("java-platform")
+    subproject("normalization-java")
+    subproject("platform-jvm")
+    subproject("plugins-groovy")
+    subproject("plugins-java")
+    subproject("plugins-java-base")
+    subproject("plugins-jvm-test-fixtures")
+    subproject("plugins-jvm-test-suite")
+    subproject("plugins-test-report-aggregation")
+    subproject("scala")
+    subproject("testing-jvm")
+    subproject("testing-jvm-infrastructure")
+    subproject("testing-junit-platform")
+    subproject("war")
+}
+
+// Develocity Platform
+platform("enterprise") {
+    subproject("enterprise")
+    subproject("enterprise-logging")
+    subproject("enterprise-operations")
+    subproject("enterprise-plugin-performance")
+    subproject("enterprise-workers")
+}
 
 // Internal utility and verification projects
-include("docs")
-include("samples")
-include("architecture-test")
-include("internal-testing")
-include("internal-integ-testing")
-include("internal-performance-testing")
-include("internal-build-reports")
-include("integ-test")
-include("kotlin-dsl-integ-tests")
-include("distributions-integ-tests")
-include("soak")
-include("smoke-test")
-include("performance")
-include("build-scan-performance")
+unassigned {
+    subproject("architecture-test")
+    subproject("internal-testing")
+    subproject("internal-integ-testing")
+    subproject("internal-performance-testing")
+    subproject("internal-architecture-testing")
+    subproject("internal-build-reports")
+    subproject("integ-test")
+    subproject("distributions-integ-tests")
+    subproject("soak")
+    subproject("smoke-test")
+    subproject("performance")
+    subproject("precondition-tester")
+}
 
 rootProject.name = "gradle"
-
-for (project in rootProject.children) {
-    project.projectDir = file("subprojects/${project.name}")
-}
 
 FeaturePreviews.Feature.values().forEach { feature ->
     if (feature.isActive) {
@@ -181,6 +252,25 @@ gradle.settingsEvaluated {
     }
 
     if (!JavaVersion.current().isJava11) {
-        throw GradleException("This build requires JDK 11. It's currently ${getBuildJavaHome()}. You can ignore this check by passing '-Dorg.gradle.ignoreBuildJavaVersionCheck'.")
+        throw GradleException("This build requires JDK 11. It's currently ${getBuildJavaHome()}. You can ignore this check by passing '-Dorg.gradle.ignoreBuildJavaVersionCheck=true'.")
     }
 }
+
+// region platform include DSL
+
+fun platform(platformName: String, platformConfiguration: PlatformScope.() -> Unit) =
+    PlatformScope("platforms/$platformName").platformConfiguration()
+
+fun unassigned(platformConfiguration: PlatformScope.() -> Unit) =
+    PlatformScope("subprojects").platformConfiguration()
+
+class PlatformScope(
+    private val basePath: String
+) {
+    fun subproject(projectName: String) {
+        include(projectName)
+        project(":$projectName").projectDir = file("$basePath/$projectName")
+    }
+}
+
+// endregion

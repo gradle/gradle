@@ -39,7 +39,7 @@ import javax.inject.Inject;
  */
 @Deprecated
 @DisableCachingByDefault(because = "Produces only non-cacheable console output")
-public class ModelReport extends DefaultTask {
+public abstract class ModelReport extends DefaultTask {
 
     /**
      * The report format.

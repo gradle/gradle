@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures.executer;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableList.Builder;
 import net.rubygrapefruit.ansi.AnsiParser;
 import net.rubygrapefruit.ansi.console.AnsiConsole;
 import net.rubygrapefruit.ansi.console.DiagnosticConsole;
@@ -38,17 +39,13 @@ import java.util.regex.Pattern;
 public class LogContent {
     // see org.gradle.internal.logging.console.StyledTextOutputBackedRenderer.ISO_8601_DATE_TIME_FORMAT
     private final static Pattern DEBUG_PREFIX = Pattern.compile("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}[-+]\\d{4} \\[\\w+] \\[.+?] ");
-    private final static Pattern JAVA_ILLEGAL_ACCESS_WARNING_PATTERN = Pattern.compile("(?ms)WARNING: An illegal reflective access operation has occurred$.+?"
-        + "^WARNING: All illegal access operations will be denied in a future release\r?\n");
 
     private final ImmutableList<String> lines;
     private final boolean definitelyNoDebugPrefix;
     private final boolean definitelyNoAnsiChars;
-    private final LogContent rawContent;
 
-    private LogContent(ImmutableList<String> lines, boolean definitelyNoDebugPrefix, boolean definitelyNoAnsiChars, LogContent rawContent) {
+    private LogContent(ImmutableList<String> lines, boolean definitelyNoDebugPrefix, boolean definitelyNoAnsiChars) {
         this.lines = lines;
-        this.rawContent = rawContent == null ? this : rawContent;
         this.definitelyNoDebugPrefix = definitelyNoDebugPrefix || lines.isEmpty();
         this.definitelyNoAnsiChars = definitelyNoAnsiChars || lines.isEmpty();
     }
@@ -57,12 +54,11 @@ public class LogContent {
      * Creates a new instance, from raw characters.
      */
     public static LogContent of(String chars) {
-        LogContent raw = new LogContent(toLines(chars), false, false, null);
-        return new LogContent(toLines(stripJavaIllegalAccessWarnings(chars)), false, false, raw);
+        return new LogContent(toLines(chars), false, false);
     }
 
     private static ImmutableList<String> toLines(String chars) {
-        List<String> lines = new ArrayList<String>();
+        Builder<String> lines = ImmutableList.builder();
         int pos = 0;
         while (pos < chars.length()) {
             int next = chars.indexOf('\n', pos);
@@ -71,30 +67,33 @@ public class LogContent {
                 pos = chars.length();
                 continue;
             }
-            if (next > pos && chars.charAt(next - 1) == '\r') {
-                lines.add(chars.substring(pos, next - 1));
-                pos = next + 1;
-            } else {
-                lines.add(chars.substring(pos, next));
-                pos = next + 1;
-            }
+
+            lines.add(chars.substring(pos, getSubstringEnd(chars, pos, next)));
+            pos = next + 1;
             if (pos == chars.length()) {
                 // trailing EOL
                 lines.add("");
             }
         }
-        return ImmutableList.copyOf(lines);
+        return lines.build();
+    }
+
+    private static int getSubstringEnd(String chars, int pos, int next) {
+        if (next > pos && chars.charAt(next - 1) == '\r') {
+             return next - 1;
+        }
+        return next;
     }
 
     /**
      * Creates a new instance from a sequence of lines (without the line separators).
      */
     public static LogContent of(List<String> lines) {
-        return new LogContent(ImmutableList.copyOf(lines), false, false, null);
+        return new LogContent(ImmutableList.copyOf(lines), false, false);
     }
 
     public static LogContent empty() {
-        return new LogContent(ImmutableList.of(), true, true, null);
+        return new LogContent(ImmutableList.of(), true, true);
     }
 
     /**
@@ -149,8 +148,8 @@ public class LogContent {
         for (int i = 0; i < lines.size(); i++) {
             String line = lines.get(i);
             if (pattern.matcher(line).matches()) {
-                LogContent before = new LogContent(lines.subList(0, i), definitelyNoDebugPrefix, definitelyNoAnsiChars, rawContent);
-                LogContent after = new LogContent(lines.subList(i, lines.size()), definitelyNoDebugPrefix, definitelyNoAnsiChars, rawContent);
+                LogContent before = new LogContent(lines.subList(0, i), definitelyNoDebugPrefix, definitelyNoAnsiChars);
+                LogContent after = new LogContent(lines.subList(i, lines.size()), definitelyNoDebugPrefix, definitelyNoAnsiChars);
                 return Pair.of(before, after);
             }
         }
@@ -174,7 +173,7 @@ public class LogContent {
      * Drops the first n lines.
      */
     public LogContent drop(int i) {
-        return new LogContent(lines.subList(i, lines.size()), definitelyNoDebugPrefix, definitelyNoAnsiChars, rawContent);
+        return new LogContent(lines.subList(i, lines.size()), definitelyNoDebugPrefix, definitelyNoAnsiChars);
     }
 
     /**
@@ -193,7 +192,7 @@ public class LogContent {
                 result.add(line);
             }
         }
-        return new LogContent(ImmutableList.copyOf(result), true, definitelyNoAnsiChars, rawContent);
+        return new LogContent(ImmutableList.copyOf(result), true, definitelyNoAnsiChars);
     }
 
     /**
@@ -213,7 +212,7 @@ public class LogContent {
                     result.append("\n");
                 }
             });
-            return new LogContent(toLines(result.toString()), definitelyNoDebugPrefix, true, rawContent);
+            return new LogContent(toLines(result.toString()), definitelyNoDebugPrefix, true);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -236,7 +235,7 @@ public class LogContent {
                 }
                 row.visit(diagnosticConsole);
             }
-            return new LogContent(toLines(diagnosticConsole.toString()), definitelyNoDebugPrefix, true, rawContent);
+            return new LogContent(toLines(diagnosticConsole.toString()), definitelyNoDebugPrefix, true);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -254,9 +253,5 @@ public class LogContent {
         }
         writer.flush();
         return console;
-    }
-
-    public static String stripJavaIllegalAccessWarnings(String result) {
-        return JAVA_ILLEGAL_ACCESS_WARNING_PATTERN.matcher(result).replaceAll("");
     }
 }

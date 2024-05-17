@@ -22,7 +22,7 @@ import java.util.List;
 
 public class LongCommandLineDetectionUtil {
     // See http://msdn.microsoft.com/en-us/library/windows/desktop/ms682425(v=vs.85).aspx
-    public static final int MAX_COMMAND_LINE_LENGTH_WINDOWS = 32767;
+    public static final int MAX_COMMAND_LINE_LENGTH_WINDOWS = 32766;
     // Derived from default when running getconf ARG_MAX in OSX
     public static final int MAX_COMMAND_LINE_LENGTH_OSX = 262144;
     // Dervied from MAX_ARG_STRLEN as per http://man7.org/linux/man-pages/man2/execve.2.html

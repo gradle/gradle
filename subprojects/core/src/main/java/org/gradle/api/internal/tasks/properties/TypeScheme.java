@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.properties;
 
+import org.gradle.internal.properties.annotations.TypeMetadataStore;
+
 /**
  * Metadata about a particular set of types.
  */

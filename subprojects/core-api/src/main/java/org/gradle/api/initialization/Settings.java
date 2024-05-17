@@ -20,6 +20,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.UnknownProjectException;
+import org.gradle.api.file.BuildLayout;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.initialization.resolve.DependencyResolutionManagement;
 import org.gradle.api.invocation.Gradle;
@@ -27,6 +28,8 @@ import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.PluginAware;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.toolchain.management.ToolchainManagement;
+import org.gradle.api.cache.CacheConfigurations;
 import org.gradle.caching.configuration.BuildCacheConfiguration;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.plugin.management.PluginManagementSpec;
@@ -195,6 +198,14 @@ public interface Settings extends PluginAware, ExtensionAware {
     Settings getSettings();
 
     /**
+     * Provides access to important locations for a Gradle build.
+     *
+     * @since 8.5
+     */
+    @Incubating
+    BuildLayout getLayout();
+
+    /**
      * Returns the build script handler for settings. You can use this handler to query details about the build
      * script for settings, and manage the classpath used to compile and execute the settings script.
      *
@@ -274,7 +285,6 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @since 6.8
      */
-    @Incubating
     ProviderFactory getProviders();
 
     /**
@@ -358,7 +368,6 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @since 6.8
      */
-    @Incubating
     void dependencyResolutionManagement(Action<? super DependencyResolutionManagement> dependencyResolutionConfiguration);
 
     /**
@@ -366,6 +375,39 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @since 6.8
      */
-    @Incubating
     DependencyResolutionManagement getDependencyResolutionManagement();
+
+    /**
+     * Configures toolchain management.
+     *
+     * @since 7.6
+     */
+    @Incubating
+    void toolchainManagement(Action<? super ToolchainManagement> toolchainManagementConfiguration);
+
+    /**
+     * Returns the toolchain management configuration.
+     *
+     * @since 7.6
+     */
+    @Incubating
+    ToolchainManagement getToolchainManagement();
+
+    /**
+     * Returns the configuration for caches stored in the user home directory.
+     *
+     * @since 8.0
+     */
+    @Incubating
+    CacheConfigurations getCaches();
+
+    /**
+     * Configures the settings for caches stored in the user home directory.
+     *
+     * @param cachesConfiguration the configuration
+     *
+     * @since 8.0
+     */
+    @Incubating
+    void caches(Action<? super CacheConfigurations> cachesConfiguration);
 }

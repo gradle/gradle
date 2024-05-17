@@ -16,6 +16,8 @@
 
 package org.gradle.integtests
 
+import org.gradle.api.attributes.Usage
+import org.gradle.api.tasks.TasksWithInputsAndOutputs
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
@@ -26,7 +28,7 @@ import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.any
 import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.exact
 import static org.hamcrest.CoreMatchers.startsWith
 
-class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
+class TaskExecutionIntegrationTest extends AbstractIntegrationSpec implements TasksWithInputsAndOutputs {
 
     @UnsupportedWithConfigurationCache
     def taskCanAccessTaskGraph() {
@@ -111,6 +113,7 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def executesMultiProjectsTasksInASingleBuildAndEachTaskAtMostOnce() {
+        createDirs("child1", "child2", "child1-2", "child1-2-2")
         settingsFile << "include 'child1', 'child2', 'child1-2', 'child1-2-2'"
         buildFile << """
             task a
@@ -128,6 +131,7 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def executesMultiProjectDefaultTasksInASingleBuildAndEachTaskAtMostOnce() {
+        createDirs("child1", "child2")
         settingsFile << "include 'child1', 'child2'"
         buildFile << """
             defaultTasks 'a', 'b'
@@ -164,7 +168,7 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             // An action attached to built-in task
             task a { doLast { assert Thread.currentThread().contextClassLoader == getClass().classLoader } }
-        
+
             // An action defined by a custom task
             task b(type: CustomTask)
             class CustomTask extends DefaultTask {
@@ -172,7 +176,7 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
                     assert Thread.currentThread().contextClassLoader == getClass().classLoader
                 }
             }
-        
+
             // An action implementation
             task c
             class DoLast implements Action<Task> {
@@ -181,7 +185,7 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
             c.doLast new DoLast()
-        
+
             // The following is NOT compatible with the configuration cache because anonymous inner classes
             // in a groovy script always capture the script object reference:
             //   c.doLast new Action<Task>() {
@@ -197,7 +201,11 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def excludesTasksWhenExcludePatternSpecified() {
-        settingsFile << "include 'sub'"
+        createDirs("sub")
+        settingsFile << """
+            include 'sub'
+            rootProject.name = 'root'
+        """
         buildFile << """
             task a
             task b(dependsOn: a)
@@ -224,11 +232,12 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
             // Project defaults
             executer.withArguments("-x", "b").run().assertTasksExecuted(":a", ":c", ":d", ":sub:c", ":sub:d")
             // Unknown task
-            executer.withTasks("d").withArguments("-x", "unknown").runWithFailure().assertThatDescription(startsWith("Task 'unknown' not found in root project"))
+            executer.withTasks("d").withArguments("-x", "unknown").runWithFailure().assertThatDescription(startsWith("Task 'unknown' not found in root project 'root' and its subprojects."))
         }
     }
 
     def "unqualified exclude task name does not exclude tasks from parent projects"() {
+        createDirs("sub")
         settingsFile << "include 'sub'"
         buildFile << """
             task a
@@ -276,6 +285,7 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue(["https://issues.gradle.org/browse/GRADLE-3031", "https://issues.gradle.org/browse/GRADLE-2974"])
     def 'excluding a task that is a dependency of multiple tasks'() {
+        createDirs("sub")
         settingsFile << "include 'sub'"
         buildFile << """
             task a
@@ -291,18 +301,6 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         2.times {
             executer.withTasks("d").withArguments("-x", "a").run().assertTasksExecuted(":b", ":c", ":d")
             executer.withTasks("b", "a").withArguments("-x", ":a").run().assertTasksExecuted(":b", ":sub:a")
-        }
-    }
-
-    @Issue("https://issues.gradle.org/browse/GRADLE-2022")
-    def tryingToInstantiateTaskDirectlyFailsWithGoodErrorMessage() {
-        buildFile << """
-            new DefaultTask()
-        """
-        expect:
-        2.times {
-            fails "tasks"
-            failure.assertHasCause("Task of type 'org.gradle.api.DefaultTask' has been instantiated directly which is not supported")
         }
     }
 
@@ -332,12 +330,49 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
             task c(dependsOn: ['a', 'b'])
             task d
             c.mustRunAfter d
-        
+
         """
         expect:
         2.times {
             succeeds 'c', 'd'
             result.assertTasksExecutedInOrder(any(':d', ':b', ':a'), ':c')
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/21962")
+    def "honours mustRunAfter task ordering declared via dependency resolution"() {
+        createDirs("a", "b")
+        settingsFile << """
+            include('a')
+            include('b')
+        """
+        taskTypeWithOutputFileProperty()
+        buildFile << """
+            subprojects {
+                configurations.create("implementation") {
+                    attributes.attribute(${Usage.name}.USAGE_ATTRIBUTE, objects.named(${Usage.name}, "test"))
+                }
+            }
+            project('a') {
+                task producer(type: FileProducer) {
+                    output = layout.buildDirectory.file("out.txt")
+                }
+                artifacts { implementation producer.output }
+            }
+            project('b') {
+                dependencies {
+                    implementation project(':a')
+                }
+                task resolve {
+                    mustRunAfter configurations.implementation
+                    doLast {  }
+                }
+            }
+        """
+        expect:
+        2.times {
+            succeeds 'resolve', 'producer'
+            result.assertTasksExecutedInOrder(':a:producer', ':b:resolve')
         }
     }
 
@@ -598,12 +633,13 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
               dependsOn ":b:jar"
             }
         """
+        createDirs("a", "b")
         settingsFile << "include 'a', 'b'"
 
         expect:
         2.times {
             succeeds ':build'
-            result.assertTasksExecutedInOrder ':b:jar', ':a:compileJava', any(':a:compileFinalizer', ':a:jar'), ':build'
+            result.assertTasksExecutedInOrder ':b:jar', ':a:compileJava', any(':a:compileFinalizer', ':a:jar', ':build')
         }
     }
 

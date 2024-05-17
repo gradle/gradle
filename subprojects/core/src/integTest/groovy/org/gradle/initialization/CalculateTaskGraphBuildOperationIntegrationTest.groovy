@@ -31,6 +31,7 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
     final operationNotificationsFixture = new BuildOperationNotificationsFixture(executer, temporaryFolder)
 
     def "requested and filtered tasks are exposed"() {
+        createDirs("a", "b", "a/c")
         settingsFile << """
             include "a"
             include "b"
@@ -81,6 +82,7 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
     }
 
     def "task plan is exposed"() {
+        createDirs("a", "b", "a/c")
         settingsFile << """
             include "a"
             include "b"
@@ -110,6 +112,7 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
     }
 
     def "build path for calculated task graph is exposed"() {
+        createDirs("b")
         settingsFile << """
             includeBuild "b"
         """
@@ -139,7 +142,7 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
         then:
         taskGraphCalculations.size() == 3
         taskGraphCalculations[0].details.buildPath == ":buildSrc"
-        taskGraphCalculations[0].result.requestedTaskPaths == [":build"]
+        taskGraphCalculations[0].result.requestedTaskPaths == [":jar"]
         taskGraphCalculations[1].details.buildPath == ":"
         taskGraphCalculations[1].result.requestedTaskPaths == [":build"]
         taskGraphCalculations[2].details.buildPath == ":b"
@@ -161,6 +164,7 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
             class Library {
             }
         """
+        createDirs("included-build")
         settingsFile << """
             includeBuild 'included-build'
         """
@@ -302,6 +306,7 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
             }
         """
 
+        createDirs("producer")
         settingsFile << """
             include 'producer'
         """
@@ -312,7 +317,7 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
         then:
         with(operations()[0].result.taskPlan) {
             task.taskPath == [":producer:compileJava", ":producer:processResources", ":producer:classes", ":producer:jar", ":compileJava", ":processResources", ":classes", ":jar", ":startScripts", ":distZip"]
-            dependencies.taskPath.collect { it.sort() } == [[], [], [":producer:compileJava", ":producer:processResources"], [":producer:classes"], [":producer:compileJava"], [], [":compileJava", ":processResources"], [":classes"], [":jar", ":producer:jar"], [":jar", ":producer:jar", ":startScripts"]]
+            dependencies.taskPath.collect { it.sort() } == [[], [], [":producer:compileJava", ":producer:processResources"], [":producer:classes", ":producer:compileJava"], [":producer:compileJava"], [], [":compileJava", ":processResources"], [":classes", ":compileJava"], [":jar", ":producer:jar"], [":jar", ":producer:jar", ":startScripts"]]
         }
     }
 

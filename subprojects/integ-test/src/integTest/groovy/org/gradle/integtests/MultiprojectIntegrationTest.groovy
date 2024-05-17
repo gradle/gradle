@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationTest
 class MultiprojectIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void canInjectConfigurationFromParentProject() {
+        createDirs("a", "b")
         testFile('settings.gradle') << 'include "a", "b"'
         testFile('build.gradle') << '''
             allprojects {

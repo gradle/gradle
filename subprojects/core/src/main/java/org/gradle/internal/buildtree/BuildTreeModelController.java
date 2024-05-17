@@ -19,10 +19,10 @@ package org.gradle.internal.buildtree;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.build.BuildState;
-import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.tooling.provider.model.internal.ToolingModelScope;
 
-import java.util.Collection;
+import java.util.List;
+import java.util.function.Supplier;
 
 public interface BuildTreeModelController {
     /**
@@ -40,6 +40,8 @@ public interface BuildTreeModelController {
 
     /**
      * Runs the given actions, possibly in parallel.
+     *
+     * @see #queryModelActionsRunInParallel()
      */
-    void runQueryModelActions(Collection<? extends RunnableBuildOperation> actions);
+    <T> List<T> runQueryModelActions(List<Supplier<T>> actions);
 }

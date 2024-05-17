@@ -18,12 +18,11 @@ package org.gradle.api.internal.file;
 
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.vfs.impl.AbstractVirtualFileSystem;
-import org.gradle.internal.vfs.impl.VfsRootReference;
 
 public class TestVirtualFileSystem extends AbstractVirtualFileSystem {
 
     public TestVirtualFileSystem(SnapshotHierarchy root) {
-        super(new VfsRootReference(root));
+        super(root);
     }
 
     @Override
@@ -32,10 +31,10 @@ public class TestVirtualFileSystem extends AbstractVirtualFileSystem {
     }
 
     public void setRoot(SnapshotHierarchy newRoot) {
-        rootReference.updateUnderLock(root -> newRoot);
+        updateRootUnderLock(root -> newRoot);
     }
 
     public SnapshotHierarchy getRoot() {
-        return rootReference.getRoot();
+        return root;
     }
 }

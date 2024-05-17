@@ -35,13 +35,13 @@ dependencies {
     implementation(project(":cli"))
     implementation(project(":process-services"))
     implementation(project(":core-api"))
-    implementation(project(":model-core"))
     implementation(project(":base-services-groovy"))
     implementation(project(":files"))
     implementation(project(":file-collections"))
     implementation(project(":resources"))
     implementation(project(":build-cache"))
     implementation(project(":persistent-cache"))
+    implementation(project(":platform-jvm"))
     implementation(project(":dependency-management"))
     implementation(project(":configuration-cache"))
     implementation(project(":launcher"))
@@ -69,7 +69,7 @@ dependencies {
     implementation(libs.jacksonAnnotations)
     implementation(libs.jacksonDatabind)
     implementation(libs.ivy)
-    implementation(libs.ant)
+    implementation(libs.commonsCompress)
     implementation(libs.jgit) {
         because("Some tests require a git reportitory - see AbstractIntegrationSpec.initGitDir(")
     }
@@ -98,40 +98,63 @@ dependencies {
     }
     implementation(testFixtures(project(":core")))
 
+    implementation(libs.mavenResolverApi) {
+        because("For ApiMavenResolver. API we interact with to resolve Maven graphs & artifacts")
+    }
+    implementation(libs.mavenResolverSupplier) {
+        because("For ApiMavenResolver. Wires together implementation for maven-resolver-api")
+    }
+    implementation(libs.maven3ResolverProvider) {
+        because("For ApiMavenResolver. Provides MavenRepositorySystemUtils")
+    }
+    runtimeOnly(libs.mavenResolverImpl) {
+        because("For ApiMavenResolver. Implements maven-resolver-api")
+    }
+    runtimeOnly(libs.mavenResolverConnectorBasic) {
+        because("For ApiMavenResolver. To use resolver transporters")
+    }
+    runtimeOnly(libs.mavenResolverTransportFile) {
+        because("For ApiMavenResolver. To resolve file:// URLs")
+    }
+    runtimeOnly(libs.mavenResolverTransportHttp) {
+        because("For ApiMavenResolver. To resolve http:// URLs")
+    }
+
     testRuntimeOnly(project(":distributions-core")) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
     integTestDistributionRuntimeOnly(project(":distributions-core"))
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/**")
 }
 
 val prepareVersionsInfo = tasks.register<PrepareVersionsInfo>("prepareVersionsInfo") {
-    destFile.set(layout.buildDirectory.file("generated-resources/all-released-versions/all-released-versions.properties"))
-    versions.set(moduleIdentity.releasedVersions.map {
+    destFile = layout.buildDirectory.file("generated-resources/all-released-versions/all-released-versions.properties")
+    versions = moduleIdentity.releasedVersions.map {
         it.allPreviousVersions.joinToString(" ") { it.version }
-    })
-    mostRecent.set(moduleIdentity.releasedVersions.map { it.mostRecentRelease.version })
-    mostRecentSnapshot.set(moduleIdentity.releasedVersions.map { it.mostRecentSnapshot.version })
+    }
+    mostRecent = moduleIdentity.releasedVersions.map { it.mostRecentRelease.version }
+    mostRecentSnapshot = moduleIdentity.releasedVersions.map { it.mostRecentSnapshot.version }
 }
 
-val copyAgpVersionsInfo by tasks.registering(Copy::class) {
+val copyTestedVersionsInfo by tasks.registering(Copy::class) {
     from(rootProject.layout.projectDirectory.file("gradle/dependency-management/agp-versions.properties"))
-    into(layout.buildDirectory.dir("generated-resources/agp-versions"))
+    from(rootProject.layout.projectDirectory.file("gradle/dependency-management/kotlin-versions.properties"))
+    into(layout.buildDirectory.dir("generated-resources/tested-versions"))
 }
 
 val generateLanguageAnnotations by tasks.registering(GenerateLanguageAnnotations::class) {
     classpath.from(configurations.integTestDistributionRuntimeClasspath)
-    packageName.set("org.gradle.integtests.fixtures")
-    destDir.set(layout.buildDirectory.dir("generated/sources/language-annotations/groovy/main"))
+    packageName = "org.gradle.integtests.fixtures"
+    destDir = layout.buildDirectory.dir("generated/sources/language-annotations/groovy/main")
 }
 
 sourceSets.main {
     groovy.srcDir(generateLanguageAnnotations.flatMap { it.destDir })
     output.dir(prepareVersionsInfo.map { it.destFile.get().asFile.parentFile })
-    output.dir(copyAgpVersionsInfo)
+    output.dir(copyTestedVersionsInfo)
 }
 
 @CacheableTask

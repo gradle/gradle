@@ -20,6 +20,10 @@ import org.gradle.cache.internal.BuildScopeCacheDir
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 
+import static org.gradle.integtests.fixtures.SuggestionsMessages.GET_HELP
+import static org.gradle.integtests.fixtures.SuggestionsMessages.INFO_DEBUG
+import static org.gradle.integtests.fixtures.SuggestionsMessages.STACKTRACE_MESSAGE
+
 class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         useTestDirectoryThatIsNotEmbeddedInAnotherBuild()
@@ -34,7 +38,9 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasDescription("Directory '$testDirectory' does not contain a Gradle build.")
         failure.assertHasResolutions(
             "Run gradle init to create a new Gradle build in this directory.",
-            "Run with --info or --debug option to get more log output.") // Don't suggest running with --scan for a missing build
+            STACKTRACE_MESSAGE,
+            INFO_DEBUG,
+            GET_HELP) // Don't suggest running with --scan for a missing build
 
         testDirectory.assertIsEmptyDir()
         assertNoProjectCaches(executer.gradleUserHomeDir)

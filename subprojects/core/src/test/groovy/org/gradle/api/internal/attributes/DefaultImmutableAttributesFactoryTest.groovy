@@ -18,6 +18,7 @@ package org.gradle.api.internal.attributes
 
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.Usage
+import org.gradle.api.internal.artifacts.JavaEcosystemSupport
 import org.gradle.internal.snapshot.impl.CoercingStringValueSnapshot
 import org.gradle.util.SnapshotTestUtil
 import org.gradle.util.TestUtil
@@ -275,14 +276,14 @@ class DefaultImmutableAttributesFactoryTest extends Specification {
     }
 
     def "translates deprecated usage values"() {
-        def result = factory.concat(factory.of(FOO, "foo"), Usage.USAGE_ATTRIBUTE, instantiator.named(Usage, Usage.JAVA_API_JARS))
+        def result = factory.concat(factory.of(FOO, "foo"), Usage.USAGE_ATTRIBUTE, instantiator.named(Usage, JavaEcosystemSupport.DEPRECATED_JAVA_API_JARS))
 
         expect:
         result.findEntry(Usage.USAGE_ATTRIBUTE).get().name == "java-api"
     }
 
     def "translates deprecated usage values as Isolatable"() {
-        def result = factory.concat(factory.of(FOO, "foo"), Usage.USAGE_ATTRIBUTE, new CoercingStringValueSnapshot("java-runtime-jars", instantiator))
+        def result = factory.concat(factory.of(FOO, "foo"), Usage.USAGE_ATTRIBUTE, new CoercingStringValueSnapshot(JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_JARS, instantiator))
 
         expect:
         result.findEntry(Usage.USAGE_ATTRIBUTE).get().toString() == "java-runtime"

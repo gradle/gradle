@@ -68,10 +68,10 @@ class TaskNameResolverTest extends Specification {
         def childTasks = Mock(TaskContainerInternal)
         def childProject = Mock(ProjectInternal) {
             _ * getTasks() >> childTasks
-            _ * getChildProjects() >> [:]
+            _ * getChildProjectsUnchecked() >> [:]
         }
 
-        _ * project.childProjects >> [child: childProject]
+        _ * project.childProjectsUnchecked >> [child: childProject]
 
         when:
         def results = resolver.selectWithName('task', project, true)
@@ -104,10 +104,10 @@ class TaskNameResolverTest extends Specification {
         def childTasks = Mock(TaskContainerInternal)
         def childProject = Mock(ProjectInternal) {
             _ * getTasks() >> childTasks
-            _ * getChildProjects() >> [:]
+            _ * getChildProjectsUnchecked() >> [:]
         }
 
-        _ * project.childProjects >> [child: childProject]
+        _ * project.childProjectsUnchecked >> [child: childProject]
 
         when:
         def results = resolver.selectWithName('task', project, true)
@@ -136,9 +136,9 @@ class TaskNameResolverTest extends Specification {
         def childTasks = Mock(TaskContainerInternal)
         def childProject = Mock(ProjectInternal) {
             _ * getTasks() >> childTasks
-            _ * getChildProjects() >> [:]
+            _ * getChildProjectsUnchecked() >> [:]
         }
-        _ * project.childProjects >> [child: childProject]
+        _ * project.childProjectsUnchecked >> [child: childProject]
 
         when:
         def results = resolver.selectWithName('task', project, true)
@@ -197,9 +197,9 @@ class TaskNameResolverTest extends Specification {
         def childTasks = Mock(TaskContainerInternal)
         def childProject = Mock(ProjectInternal) {
             _ * getTasks() >> childTasks
-            _ * getChildProjects() >> [:]
+            _ * getChildProjectsUnchecked() >> [:]
         }
-        _ * project.childProjects >> [child: childProject]
+        _ * project.childProjectsUnchecked >> [child: childProject]
 
         when:
         def result = resolver.selectAll(project, true)
@@ -237,9 +237,9 @@ class TaskNameResolverTest extends Specification {
         def childTasks = Mock(TaskContainerInternal)
         def childProject = Mock(ProjectInternal) {
             _ * getTasks() >> childTasks
-            _ * getChildProjects() >> [:]
+            _ * getChildProjectsUnchecked() >> [:]
         }
-        _ * project.childProjects >> [child: childProject]
+        _ * project.childProjectsUnchecked >> [child: childProject]
 
         when:
         def result = resolver.selectAll(project, true)

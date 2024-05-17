@@ -16,6 +16,7 @@
 
 package gradlebuild.binarycompatibility.sources
 
+import gradlebuild.basics.decapitalize
 import gradlebuild.binarycompatibility.isSynthetic
 import gradlebuild.binarycompatibility.metadata.KotlinMetadataQueries
 import japicmp.model.JApiClass

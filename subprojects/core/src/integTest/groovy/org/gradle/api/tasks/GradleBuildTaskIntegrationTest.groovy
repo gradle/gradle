@@ -100,7 +100,8 @@ class GradleBuildTaskIntegrationTest extends AbstractIntegrationSpec {
             println "other build file"
         '''
 
-        executer.expectDocumentedDeprecationWarning("Specifying custom build file location has been deprecated. This is scheduled to be removed in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#configuring_custom_build_layout");
+        executer.expectDocumentedDeprecationWarning("The GradleBuild.buildFile property has been deprecated. This is scheduled to be removed in Gradle 9.0. Setting custom build file to select the root of the nested build has been deprecated. Please use the dir property instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configuring_custom_build_layout")
+        executer.expectDocumentedDeprecationWarning("Specifying custom build file location has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#configuring_custom_build_layout");
 
         when:
         run 'otherBuild'
@@ -151,7 +152,7 @@ class GradleBuildTaskIntegrationTest extends AbstractIntegrationSpec {
         run 'otherBuild'
 
         then:
-        result.assertTaskExecuted(":other:buildSrc:assemble")
+        result.assertTaskExecuted(":other:buildSrc:jar")
     }
 
     def "buildSrc can have nested build"() {
@@ -214,6 +215,7 @@ class GradleBuildTaskIntegrationTest extends AbstractIntegrationSpec {
                 tasks = ['resolve']
             }
         """
+        createDirs("other", "other/a", "other/b")
         file("other/settings.gradle") << """
             include 'a', 'b'
         """
@@ -245,7 +247,7 @@ class GradleBuildTaskIntegrationTest extends AbstractIntegrationSpec {
         /**
          * Setup a build where a `GradleBuild` task while another `GradleBuild` is currently running another build but has not yet finished running the settings file for that build.
          */
-
+        createDirs("1", "2")
         settingsFile << """
             rootProject.name = 'root'
             include '1', '2'

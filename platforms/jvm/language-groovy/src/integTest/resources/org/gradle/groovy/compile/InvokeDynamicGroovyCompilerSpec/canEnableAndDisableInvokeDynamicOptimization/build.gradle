@@ -1,0 +1,29 @@
+apply plugin: "groovy"
+
+repositories {
+    mavenCentral()
+}
+
+task compileWithOptimization(type: GroovyCompile) {
+    source = sourceSets.main.groovy
+    classpath = configurations.compileClasspath
+    destinationDirectory = file("$buildDir/classes/optimized")
+    groovyOptions.optimizationOptions.indy = true
+}
+
+task compileWithoutOptimization(type: GroovyCompile) {
+    source = sourceSets.main.groovy
+    classpath = configurations.compileClasspath
+    destinationDirectory = file("$buildDir/classes/unoptimized")
+    groovyOptions.optimizationOptions.indy = false
+}
+
+task sanityCheck(dependsOn: [compileWithOptimization, compileWithoutOptimization]) {
+    def optDestDir = compileWithOptimization.destinationDirectory
+    def noOptDestDir = compileWithoutOptimization.destinationDirectory
+    doLast {
+        def optFile = optDestDir.file("MethodInvocations.class").get().asFile
+        def noOptFile = noOptDestDir.file("MethodInvocations.class").get().asFile
+        assert optFile.size() != noOptFile.size()
+    }
+}

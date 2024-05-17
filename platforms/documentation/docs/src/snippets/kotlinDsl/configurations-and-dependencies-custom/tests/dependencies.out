@@ -1,0 +1,4 @@
+db
+\--- org.postgresql:postgresql FAILED
+integTestImplementation
+\--- com.example:integ-test-support:1.3 FAILED

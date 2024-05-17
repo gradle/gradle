@@ -16,15 +16,15 @@
 
 package org.gradle.process.internal
 
-import org.gradle.api.JavaVersion
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
-import org.gradle.internal.os.OperatingSystem
-import spock.lang.IgnoreIf
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Issue
 
 @Issue("https://github.com/gradle/gradle-private/issues/3247")
-@IgnoreIf({ OperatingSystem.current().macOsX && JavaVersion.current() == JavaVersion.VERSION_1_8})
+@Requires(UnitTestPreconditions.NotJava8OnMacOs)
 @IntegrationTestTimeout(180)
 class ErrorInWorkerSocketIntegrationTest extends AbstractIntegrationSpec {
     private static final String MESSAGE = 'This breaks socket connection threads in worker process deliberately'

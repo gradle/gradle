@@ -1,6 +1,0 @@
-plugins {
-    id 'java'
-    id 'jacoco'
-    id 'maven-publish'
-    id 'org.springframework.boot' version '2.4.1'
-}

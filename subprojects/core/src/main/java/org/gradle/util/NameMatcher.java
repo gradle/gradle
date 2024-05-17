@@ -20,17 +20,31 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.util.internal.GUtil;
 
 /**
  * This class is only here to maintain binary compatibility with existing plugins.
  *
- * @deprecated Will be removed in Gradle 8.0.
+ * @deprecated Will be removed in Gradle 9.0.
  */
 @Deprecated
 public class NameMatcher {
+
+    static {
+        DeprecationLogger.deprecateType(NameMatcher.class)
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(7, "org_gradle_util_reports_deprecations")
+            .nagUser();
+    }
+
     private final SortedSet<String> matches = new TreeSet<>();
     private final Set<String> candidates = new TreeSet<>();
     private String pattern;
+
+    public NameMatcher() {
+        // TODO log deprecation once nebula.dependency-lock plugin is fixed
+    }
 
     /**
      * Locates the best match for a camel case pattern in a key set of a map and returns the corresponding value.

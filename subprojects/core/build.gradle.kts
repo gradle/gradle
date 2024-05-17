@@ -16,13 +16,31 @@ tasks.classpathManifest {
     optionalProjects.add("gradle-runtime-api-info")
 }
 
+// Instrumentation interceptors for tests
+// Separated from the test source set since we don't support incremental annotation processor with Java/Groovy joint compilation
+sourceSets {
+    val testInterceptors = create("testInterceptors") {
+        compileClasspath += sourceSets.main.get().output
+        runtimeClasspath += sourceSets.main.get().output
+    }
+    getByName("test") {
+        compileClasspath += testInterceptors.output
+        runtimeClasspath += testInterceptors.output
+    }
+}
+val testInterceptorsImplementation: Configuration by configurations.getting {
+    extendsFrom(configurations.implementation.get())
+}
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":base-services-groovy"))
+    implementation(project(":build-operations"))
     implementation(project(":enterprise-operations"))
     implementation(project(":functional"))
     implementation(project(":messaging"))
     implementation(project(":logging"))
+    implementation(project(":problems-api"))
     implementation(project(":resources"))
     implementation(project(":cli"))
     implementation(project(":build-option"))
@@ -44,6 +62,8 @@ dependencies {
     implementation(project(":worker-processes"))
     implementation(project(":normalization-java"))
     implementation(project(":wrapper-shared"))
+    implementation(project(":internal-instrumentation-api"))
+    implementation(project(":input-tracking"))
 
     implementation(libs.groovy)
     implementation(libs.groovyAnt)
@@ -59,13 +79,15 @@ dependencies {
     implementation(libs.groovyTest)
     implementation(libs.groovyXml)
     implementation(libs.ant)
+    implementation(libs.fastutil)
     implementation(libs.guava)
     implementation(libs.inject)
-    implementation(libs.asm)
+    implementation(libs.asmTree)
     implementation(libs.asmCommons)
     implementation(libs.slf4jApi)
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
+    implementation(libs.commonsCompress)
     implementation(libs.nativePlatform)
     implementation(libs.xmlApis)
     implementation(libs.tomlj)
@@ -73,7 +95,11 @@ dependencies {
         because("The Groovy compiler inspects the dependencies at compile time")
     }
 
-    testImplementation(project(":plugins"))
+    compileOnly(libs.futureKotlin("stdlib")) {
+        because("it needs to forward calls from instrumented code to the Kotlin standard library")
+    }
+
+    testImplementation(project(":platform-jvm"))
     testImplementation(project(":testing-base"))
     testImplementation(project(":platform-native"))
     testImplementation(libs.jsoup)
@@ -113,26 +139,40 @@ dependencies {
     testFixturesApi(project(":resources")) {
         because("test fixtures expose file resource types")
     }
+    testFixturesApi(testFixtures(project(":persistent-cache"))) {
+        because("test fixtures expose cross-build cache factory")
+    }
     testFixturesApi(project(":process-services")) {
         because("test fixtures expose exec handler types")
     }
     testFixturesApi(testFixtures(project(":hashing"))) {
         because("test fixtures expose test hash codes")
     }
+    testFixturesApi(testFixtures(project(":snapshots"))) {
+        because("test fixtures expose file snapshot related functionality")
+    }
+    testFixturesApi(testFixtures(project(":problems-api"))) {
+
+    }
+    testFixturesImplementation(project(":build-option"))
+    testFixturesImplementation(project(":functional"))
     testFixturesImplementation(project(":messaging"))
     testFixturesImplementation(project(":persistent-cache"))
     testFixturesImplementation(project(":snapshots"))
     testFixturesImplementation(project(":normalization-java"))
+    testFixturesImplementation(project(":enterprise-operations"))
+    testFixturesImplementation(project(":internal-instrumentation-api"))
     testFixturesImplementation(libs.ivy)
     testFixturesImplementation(libs.slf4jApi)
     testFixturesImplementation(libs.guava)
     testFixturesImplementation(libs.ant)
     testFixturesImplementation(libs.groovyAnt)
+    testFixturesImplementation(libs.asm)
+    testFixturesImplementation(project(":dependency-management")) {
+        because("Used in VersionCatalogErrorMessages for org.gradle.api.internal.catalog.DefaultVersionCatalogBuilder.getExcludedNames")
+    }
 
     testFixturesRuntimeOnly(project(":plugin-use")) {
-        because("This is a core extension module (see DynamicModulesClassPathProvider.GRADLE_EXTENSION_MODULES)")
-    }
-    testFixturesRuntimeOnly(project(":dependency-management")) {
         because("This is a core extension module (see DynamicModulesClassPathProvider.GRADLE_EXTENSION_MODULES)")
     }
     testFixturesRuntimeOnly(project(":workers")) {
@@ -157,6 +197,7 @@ dependencies {
     integTestImplementation(project(":dependency-management"))
     integTestImplementation(project(":launcher"))
     integTestImplementation(project(":plugins"))
+    integTestImplementation(project(":war"))
     integTestImplementation(libs.jansi)
     integTestImplementation(libs.jetbrainsAnnotations)
     integTestImplementation(libs.jetty)
@@ -168,17 +209,25 @@ dependencies {
     testRuntimeOnly(project(":distributions-core")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-basics")) {
-        because("Some tests utilise the 'java-gradle-plugin' and with that TestKit")
+    integTestDistributionRuntimeOnly(project(":distributions-jvm")) {
+        because("Some tests utilise the 'java-gradle-plugin' and with that TestKit, some also use the 'war' plugin")
     }
     crossVersionTestDistributionRuntimeOnly(project(":distributions-core"))
+
+    annotationProcessor(project(":internal-instrumentation-processor"))
+    annotationProcessor(platform(project(":distributions-dependencies")))
+
+    testInterceptorsImplementation(platform(project(":distributions-dependencies")))
+    "testInterceptorsAnnotationProcessor"(project(":internal-instrumentation-processor"))
+    "testInterceptorsAnnotationProcessor"(platform(project(":distributions-dependencies")))
 }
 
 strictCompile {
     ignoreRawTypes() // raw types used in public API
+    ignoreAnnotationProcessing() // Without this, javac will complain about unclaimed annotations
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/**")
 }
 
@@ -190,5 +239,10 @@ tasks.compileTestGroovy {
     groovyOptions.fork("memoryInitialSize" to "128M", "memoryMaximumSize" to "1G")
 }
 
-integTest.usesJavadocCodeSnippets.set(true)
-testFilesCleanup.reportOnly.set(true)
+integTest.usesJavadocCodeSnippets = true
+testFilesCleanup.reportOnly = true
+
+// Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
+tasks.configCacheIntegTest {
+    systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
+}

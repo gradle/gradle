@@ -1,0 +1,70 @@
+
+plugins {
+    id 'java-library'
+}
+
+repositories {
+    ivy {
+        url = uri("$projectDir/repo")
+    }
+}
+
+// tag::ivy-component-metadata-rule[]
+abstract class IvyVariantDerivationRule implements ComponentMetadataRule {
+    final LibraryElements jarLibraryElements
+    final Category libraryCategory
+    final Usage javaRuntimeUsage
+    final Usage javaApiUsage
+
+    @Inject
+    IvyVariantDerivationRule(ObjectFactory objectFactory) {
+        jarLibraryElements = objectFactory.named(LibraryElements, LibraryElements.JAR)
+        libraryCategory = objectFactory.named(Category, Category.LIBRARY)
+        javaRuntimeUsage = objectFactory.named(Usage, Usage.JAVA_RUNTIME)
+        javaApiUsage = objectFactory.named(Usage, Usage.JAVA_API)
+    }
+
+    void execute(ComponentMetadataContext context) {
+        // This filters out any non Ivy module
+        if(context.getDescriptor(IvyModuleDescriptor) == null) {
+            return
+        }
+
+        context.details.addVariant("runtimeElements", "default") {
+            attributes {
+                attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, jarLibraryElements)
+                attribute(Category.CATEGORY_ATTRIBUTE, libraryCategory)
+                attribute(Usage.USAGE_ATTRIBUTE, javaRuntimeUsage)
+            }
+        }
+        context.details.addVariant("apiElements", "compile") {
+            attributes {
+                attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, jarLibraryElements)
+                attribute(Category.CATEGORY_ATTRIBUTE, libraryCategory)
+                attribute(Usage.USAGE_ATTRIBUTE, javaApiUsage)
+            }
+        }
+    }
+}
+
+dependencies {
+    components { all(IvyVariantDerivationRule) }
+}
+// end::ivy-component-metadata-rule[]
+
+dependencies {
+    implementation("org.sample:api:2.0")
+}
+
+tasks.register("compileClasspathArtifacts") {
+    FileCollection compileClasspath = configurations["compileClasspath"]
+    doLast {
+        compileClasspath.forEach { println(it.name) }
+    }
+}
+tasks.register("runtimeClasspathArtifacts") {
+    FileCollection runtimeClasspath = configurations["runtimeClasspath"]
+    doLast {
+        runtimeClasspath.forEach { println(it.name) }
+    }
+}

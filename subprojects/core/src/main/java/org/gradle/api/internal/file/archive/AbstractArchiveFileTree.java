@@ -21,26 +21,32 @@ import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
+import org.gradle.cache.internal.DecompressionCache;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
-public abstract class AbstractArchiveFileTree implements FileSystemMirroringFileTree, TaskDependencyContainer {
+/**
+ * Abstract base class for a {@link org.gradle.api.file.FileTree FileTree} that is backed by an archive file.
+ *
+ * Will decompress the archive file to the given cache.
+ */
+/* package */ abstract class AbstractArchiveFileTree implements FileSystemMirroringFileTree, TaskDependencyContainer {
+    protected final DecompressionCache decompressionCache;
+
+    protected AbstractArchiveFileTree(DecompressionCache decompressionCache) {
+        this.decompressionCache = decompressionCache;
+    }
+
     abstract protected Provider<File> getBackingFileProvider();
 
-    @Nullable
     private File getBackingFile() {
-        return getBackingFileProvider().getOrNull();
+        return getBackingFileProvider().get();
     }
 
     @Override
     public void visitStructure(MinimalFileTreeStructureVisitor visitor, FileTreeInternal owner) {
         File backingFile = getBackingFile();
-        if (backingFile != null) {
-            visitor.visitFileTreeBackedByFile(backingFile, owner, this);
-        } else {
-            visitor.visitGenericFileTree(owner, this);
-        }
+        visitor.visitFileTreeBackedByFile(backingFile, owner, this);
     }
 
     @Override

@@ -21,14 +21,16 @@ import org.gradle.api.Action;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.scopes.GlobalScopedCache;
+import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Pair;
 import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
+import org.gradle.internal.classpath.ClassData;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.ClasspathEntryVisitor;
 import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.internal.classpath.transforms.ClassTransform;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
@@ -41,6 +43,7 @@ import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
+import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -60,15 +63,15 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
     private static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
     private final ScriptCompilationHandler scriptCompilationHandler;
     private final ProgressLoggerFactory progressLoggerFactory;
-    private final GlobalScopedCache cacheRepository;
+    private final GlobalScopedCacheBuilderFactory cacheBuilderFactory;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final CachedClasspathTransformer classpathTransformer;
 
     public FileCacheBackedScriptClassCompiler(
-        GlobalScopedCache cacheRepository, ScriptCompilationHandler scriptCompilationHandler,
-        ProgressLoggerFactory progressLoggerFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-        CachedClasspathTransformer classpathTransformer) {
-        this.cacheRepository = cacheRepository;
+            GlobalScopedCacheBuilderFactory cacheBuilderFactory, ScriptCompilationHandler scriptCompilationHandler,
+            ProgressLoggerFactory progressLoggerFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+            CachedClasspathTransformer classpathTransformer) {
+        this.cacheBuilderFactory = cacheBuilderFactory;
         this.scriptCompilationHandler = scriptCompilationHandler;
         this.progressLoggerFactory = progressLoggerFactory;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
@@ -107,7 +110,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         // Both caches can be closed directly after use because:
         // For 1, if the script changes or its compile classpath changes, a different directory will be used
         // For 2, if the script changes, a different cache is used. If the classpath changes, the cache is invalidated, but classes are remapped to 1. anyway so never directly used
-        final PersistentCache cache = cacheRepository.cache("scripts/" + key)
+        final PersistentCache cache = cacheBuilderFactory.createCacheBuilder("scripts/" + key)
             .withDisplayName(dslId + " generic class cache for " + source.getDisplayName())
             .withInitializer(new ProgressReportingInitializer(
                 progressLoggerFactory,
@@ -131,7 +134,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
     private ClassPath remapClasses(File genericClassesDir, RemappingScriptSource source) {
         ScriptSource origin = source.getSource();
         String className = origin.getClassName();
-        return classpathTransformer.transform(DefaultClassPath.of(genericClassesDir), BuildLogic, new CachedClasspathTransformer.Transform() {
+        return classpathTransformer.transform(DefaultClassPath.of(genericClassesDir), BuildLogic, new ClassTransform() {
             @Override
             public void applyConfigurationTo(Hasher hasher) {
                 hasher.putString(FileCacheBackedScriptClassCompiler.class.getSimpleName());
@@ -140,7 +143,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
             }
 
             @Override
-            public Pair<RelativePath, ClassVisitor> apply(ClasspathEntryVisitor.Entry entry, ClassVisitor visitor) throws IOException {
+            public Pair<RelativePath, ClassVisitor> apply(ClasspathEntryVisitor.Entry entry, ClassVisitor visitor, ClassData classData) throws IOException {
                 String renamed = entry.getPath().getLastName();
                 if (renamed.startsWith(RemappingScriptSource.MAPPED_SCRIPT)) {
                     renamed = className + renamed.substring(RemappingScriptSource.MAPPED_SCRIPT.length());
@@ -410,6 +413,11 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
             @Override
             public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean intf) {
                 mv.visitMethodInsn(opcode, remap(owner), name, remap(desc), intf);
+            }
+
+            @Override
+            public void visitInvokeDynamicInsn(String name, String descriptor, Handle bootstrapMethodHandle, Object... bootstrapMethodArguments) {
+                mv.visitInvokeDynamicInsn(remap(name), remap(descriptor), bootstrapMethodHandle, bootstrapMethodArguments);
             }
 
             @Override

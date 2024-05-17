@@ -1,0 +1,34 @@
+// tag::all[]
+// tag::task[]
+abstract class GreetingToFileTask extends DefaultTask {
+
+    @OutputFile
+    abstract RegularFileProperty getDestination()
+
+    @TaskAction
+    def greet() {
+        def file = getDestination().get().asFile
+        file.parentFile.mkdirs()
+        file.write 'Hello!'
+    }
+}
+// end::task[]
+
+// tag::config[]
+def greetingFile = objects.fileProperty()
+
+tasks.register('greet', GreetingToFileTask) {
+    destination = greetingFile
+}
+
+tasks.register('sayGreeting') {
+    dependsOn greet
+    doLast {
+        def file = greetingFile.get().asFile
+        println "${file.text} (file: ${file.name})"
+    }
+}
+
+greetingFile = layout.buildDirectory.file('hello.txt')
+// end::config[]
+// end::all[]

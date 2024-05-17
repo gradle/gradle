@@ -1,0 +1,77 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[gradle_wrapper]]
+= Gradle Wrapper Basics
+
+The **recommended way to execute any Gradle build** is with the Gradle Wrapper.
+
+image::gradle-basic-2.png[]
+
+The _Wrapper_ script invokes a declared version of Gradle, downloading it beforehand if necessary.
+
+image::wrapper-workflow.png[]
+
+The Wrapper is available as a `gradlew` or `gradle.bat` file.
+
+The Wrapper provides the following benefits:
+
+- Standardizes a project on a given Gradle version.
+- Provisions the same Gradle version for different users.
+- Provisions the Gradle version for different execution environments (IDEs, CI servers...).
+
+[[sec:using_wrapper]]
+== Using the Gradle Wrapper
+
+It is always recommended to execute a build with the Wrapper to ensure a reliable, controlled, and standardized execution of the build.
+
+Depending on the operating system, you run `gradlew` or `gradlew.bat` instead of the `gradle` command.
+
+Typical Gradle invocation:
+
+----
+$ gradle build
+----
+
+To run the Wrapper on a Linux or OSX machine:
+
+----
+$ ./gradlew build
+----
+
+To run the Wrapper on Windows PowerShell:
+
+----
+$ .\gradlew.bat build
+----
+
+The command is run in the same directory that the Wrapper is located in.
+If you want to run the command in a different directory, you must provide the relative path to the Wrapper:
+
+----
+$ ../gradlew build
+----
+
+The following console output demonstrates the use of the Wrapper on a Windows machine, in the command prompt (cmd), for a Java-based project:
+
+----
+$ gradlew.bat build
+
+include::{snippetsPath}/wrapper/simple/tests/wrapperBatchFileExecution.out[]
+----
+
+Consult the <<gradle_wrapper.adoc#gradle_wrapper,Gradle Wrapper reference>> to learn more.
+
+[.text-right]
+**Next Step:** <<command_line_interface_basics.adoc#command_line_interface,Learn about the Gradle CLI>> >>

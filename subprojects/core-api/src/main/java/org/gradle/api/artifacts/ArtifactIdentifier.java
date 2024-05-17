@@ -15,9 +15,14 @@
  */
 package org.gradle.api.artifacts;
 
+import javax.annotation.Nullable;
+
 /**
  * The identifier for a module artifact.
+ *
+ * @deprecated Will be removed in Gradle 9.0.
  */
+@Deprecated
 public interface ArtifactIdentifier {
     /**
      * Returns the identifier of the module that owns this artifact.
@@ -45,11 +50,13 @@ public interface ArtifactIdentifier {
      *
      * @see #getType()
      */
+    @Nullable
     String getExtension();
 
     /**
      * Returns the classifier of this artifact, if any.
      */
+    @Nullable
     String getClassifier();
 
 }

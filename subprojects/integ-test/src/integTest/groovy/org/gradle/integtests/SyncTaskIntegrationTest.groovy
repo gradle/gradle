@@ -18,8 +18,8 @@ package org.gradle.integtests
 import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Issue
 
 class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
@@ -406,7 +406,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         !file('dest/extra.txt').exists()
     }
 
-    @Requires(TestPrecondition.WINDOWS)
+    @Requires(UnitTestPreconditions.Windows)
     @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "sync fails when unable to clean-up files"() {
         given:
@@ -437,8 +437,8 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         ins.close()
     }
 
-    @Requires(TestPrecondition.FILE_PERMISSIONS)
-    def "sync emits a deprecation warning when the output contains unreadable files"() {
+    @Requires(UnitTestPreconditions.FilePermissions)
+    def "sync fails when the output contains unreadable files"() {
         given:
         def input = file("readableFile.txt").createFile()
 
@@ -458,22 +458,16 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         executer.withStackTraceChecksDisabled()
-        executer.expectDocumentedDeprecationWarning("Cannot access a file in the destination directory (see --info log for details). " +
-            "Syncing to a directory which contains unreadable content has been deprecated. " +
-            "This will fail with an error in Gradle 8.0. " +
-            "Use a Copy task with Task.doNotTrackState() instead. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#declare_unreadable_input_output")
-        run "sync", "--info"
+        runAndFail "sync"
         then:
-        outputDirectory.list().contains input.name
-        outputContains("Cannot access output property 'destinationDir' of task ':sync'")
-        executedAndNotSkipped(":sync")
+        failure.assertHasDocumentedCause("Cannot access a file in the destination directory. " +
+            "Syncing to a directory which contains unreadable content is not supported. " +
+            "Use a Copy task with Task.doNotTrackState() instead. " +
+            documentationRegistry.getDocumentationRecommendationFor("information", "incremental_build", "sec:disable-state-tracking"))
+        failureHasCause("Failed to create MD5 hash for file '${unreadableOutput}' as it does not exist.")
 
         cleanup:
-        // The Sync task should delete the unreadable output, though that doesn't work every time.
-        if (unreadableOutput.exists()) {
-            unreadableOutput.makeReadable()
-        }
+        unreadableOutput.makeReadable()
     }
 
     @Issue("https://github.com/gradle/gradle/issues/9586")
@@ -674,6 +668,32 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         !file('ignore/file5.txt').exists()
         !file('dest/extra1.txt').exists()
         !file('dest/dir1/extra2.txt').exists()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/5748")
+    def "works correctly when . is a path segment"() {
+        given:
+        defaultSourceFileTree()
+        file('dest').create {
+            file 'extra.txt'
+        }
+
+        buildScript '''
+            task sync(type: Sync) {
+                into 'dest'
+                into ('.') {
+                    from 'source/dir1'
+                }
+            }
+        '''.stripIndent()
+
+        when:
+        run 'sync'
+
+        then:
+        file('dest').assertHasDescendants(
+            'file1.txt'
+        )
     }
 
     def defaultSourceFileTree() {

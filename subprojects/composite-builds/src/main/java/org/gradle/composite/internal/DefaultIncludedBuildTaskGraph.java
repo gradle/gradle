@@ -16,14 +16,19 @@
 package org.gradle.composite.internal;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.specs.Spec;
+import org.gradle.execution.EntryTaskSelector;
 import org.gradle.execution.plan.PlanExecutor;
+import org.gradle.execution.plan.QueryableExecutionPlan;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.build.ExportedTaskNode;
 import org.gradle.internal.buildtree.BuildTreeWorkGraph;
+import org.gradle.internal.buildtree.BuildTreeWorkGraphPreparer;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
@@ -37,7 +42,9 @@ import org.gradle.internal.work.WorkerLeaseService;
 import javax.inject.Inject;
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -47,10 +54,12 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
         NotPrepared, Preparing, ReadyToRun, Running, Finished
     }
 
+    private static final int MONITORING_POLL_TIME = 30;
     private final BuildOperationExecutor buildOperationExecutor;
     private final BuildStateRegistry buildRegistry;
     private final WorkerLeaseService workerLeaseService;
     private final PlanExecutor planExecutor;
+    private final BuildTreeWorkGraphPreparer workGraphPreparer;
     private final int monitoringPollTime;
     private final TimeUnit monitoringPollTimeUnit;
     private final ManagedExecutor executorService;
@@ -62,9 +71,10 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
         BuildOperationExecutor buildOperationExecutor,
         BuildStateRegistry buildRegistry,
         WorkerLeaseService workerLeaseService,
-        PlanExecutor planExecutor
+        PlanExecutor planExecutor,
+        BuildTreeWorkGraphPreparer workGraphPreparer
     ) {
-        this(executorFactory, buildOperationExecutor, buildRegistry, workerLeaseService, planExecutor, 30, TimeUnit.SECONDS);
+        this(executorFactory, buildOperationExecutor, buildRegistry, workerLeaseService, planExecutor, workGraphPreparer, MONITORING_POLL_TIME, TimeUnit.SECONDS);
     }
 
     @VisibleForTesting
@@ -74,6 +84,7 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
         BuildStateRegistry buildRegistry,
         WorkerLeaseService workerLeaseService,
         PlanExecutor planExecutor,
+        BuildTreeWorkGraphPreparer workGraphPreparer,
         int monitoringPollTime,
         TimeUnit monitoringPollTimeUnit
     ) {
@@ -82,6 +93,7 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
         this.executorService = executorFactory.create("included builds");
         this.workerLeaseService = workerLeaseService;
         this.planExecutor = planExecutor;
+        this.workGraphPreparer = workGraphPreparer;
         this.monitoringPollTime = monitoringPollTime;
         this.monitoringPollTimeUnit = monitoringPollTimeUnit;
     }
@@ -138,11 +150,37 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
 
         @Override
         public void withWorkGraph(BuildState target, Consumer<? super BuildLifecycleController.WorkGraphBuilder> action) {
-            owner.controllers.getBuildController(target).populateWorkGraph(action);
+            buildControllerOf(target).populateWorkGraph(action);
+        }
+
+        @Override
+        public void addFilter(BuildState target, Spec<Task> filter) {
+            buildControllerOf(target).addFilter(filter);
+        }
+
+        @Override
+        public void addFinalization(BuildState target, BiConsumer<EntryTaskSelector.Context, QueryableExecutionPlan> finalization) {
+            buildControllerOf(target).addFinalization(finalization);
+        }
+
+        @Override
+        public void scheduleTasks(Collection<TaskIdentifier.TaskBasedTaskIdentifier> tasksToBuild) {
+            for (TaskIdentifier.TaskBasedTaskIdentifier identifier : tasksToBuild) {
+                // This check should live lower down, and should have some kind of synchronization around it, as other threads may be
+                // running tasks at the same time
+                if (identifier.getTask().getState().getExecuted()) {
+                    continue;
+                }
+                locateTask(identifier).queueForExecution();
+            }
+        }
+
+        private BuildController buildControllerOf(BuildState target) {
+            return owner.controllers.getBuildController(target);
         }
     }
 
-    private class DefaultBuildTreeWorkGraph implements BuildTreeWorkGraph, AutoCloseable {
+    private class DefaultBuildTreeWorkGraph implements BuildTreeWorkGraph, BuildTreeWorkGraph.FinalizedGraph, AutoCloseable {
         private final Thread owner;
         private final BuildControllers controllers;
         private State state = State.NotPrepared;
@@ -159,14 +197,16 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
         }
 
         @Override
-        public void scheduleWork(Consumer<? super Builder> action) {
+        public FinalizedGraph scheduleWork(Consumer<? super Builder> action) {
             assertIsOwner();
             expectInState(State.NotPrepared);
             state = State.Preparing;
             buildOperationExecutor.run(new RunnableBuildOperation() {
                 @Override
                 public void run(BuildOperationContext context) {
-                    action.accept(new DefaultBuildTreeWorkGraphBuilder(DefaultBuildTreeWorkGraph.this));
+                    DefaultBuildTreeWorkGraphBuilder graphBuilder = new DefaultBuildTreeWorkGraphBuilder(DefaultBuildTreeWorkGraph.this);
+                    workGraphPreparer.prepareToScheduleTasks(graphBuilder);
+                    action.accept(graphBuilder);
                     controllers.populateWorkGraphs();
                     context.setResult(new CalculateTreeTaskGraphBuildOperationType.Result() {
                     });
@@ -180,6 +220,7 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
                 }
             });
             state = State.ReadyToRun;
+            return this;
         }
 
         @Override
@@ -250,6 +291,11 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
         @Override
         public State getTaskState() {
             return taskNode.getTaskState();
+        }
+
+        @Override
+        public String healthDiagnostics() {
+            return taskNode.healthDiagnostics();
         }
     }
 }

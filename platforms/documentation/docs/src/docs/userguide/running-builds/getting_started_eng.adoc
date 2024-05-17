@@ -1,0 +1,67 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[introduction]]
+= Getting Started
+
+Everyone has to start somewhere, and if you're new to Gradle, this is where to begin.
+
+To get started using Gradle:
+
+1. Read the <<gradle_intro,core concepts chapters>>.
+2. Follow the <<getting_started,tutorial>> for a hands-on approach.
+
+[[gradle_intro]]
+== 1. Gradle Core Concepts
+
+The core concepts section goes through the Gradle basics so that you can quickly understand how to invoke tasks, turn on features, apply plugins, add dependencies to your project, and more.
+
+[sidebar]
+_Training level_: **Beginner** +
+_Reading time_: **25 minutes**
+
+The core concepts cover:
+
+<<gradle_basics.adoc#gradle,Part 1.>> Gradle Overview +
+<<gradle_wrapper_basics.adoc#gradle_wrapper,Part 2.>> Gradle's Wrapper +
+<<command_line_interface_basics.adoc#command_line_interface,Part 3.>> Gradle's Command Line Interface +
+<<settings_file_basics.adoc#settings_file_basics,Part 4.>> Settings File +
+<<build_file_basics.adoc#build_file_basics,Part 5.>> Build Files +
+<<dependency_management_basics.adoc#dependency_management_basics,Part 6.>> Dependency Management +
+<<task_basics.adoc#task_basics,Part 7.>> Tasks +
+<<plugin_basics.adoc#plugin_basics,Part 8.>> Plugins +
+<<build_scans.adoc#build_scans,Part 9.>> Build Scans +
+<<gradle_optimizations.adoc#gradle_optimizations,Part 10.>> Gradle Optimizations +
+
+[[getting_started]]
+== 2. Gradle Tutorial
+
+The tutorial will take you from Gradle initialization all the way through to utilizing Gradle's task caching for your basic Java App.
+No previous experience is necessary but a basic knowledge of Java and Kotlin is nice to have.
+
+If you need to install Gradle before the tutorial, you can do so in the <<installation.adoc#installation,installation section>>.
+
+[sidebar]
+_Training level_: **Beginner** +
+_Training time_: **55 minutes**
+
+The tutorial covers:
+
+<<part1_gradle_init#part1_begin,Part 1.>> Initializing the Project +
+<<part2_gradle_tasks#part2_begin,Part 2.>> Running Tasks +
+<<part3_gradle_dep_man#part3_begin,Part 3.>> Understanding Dependencies +
+<<part4_gradle_plugins#part4_begin,Part 4.>> Applying Plugins +
+<<part5_gradle_inc_builds#part5_begin,Part 5.>> Exploring Incremental Builds +
+<<part6_gradle_caching#part6_begin,Part 6.>> Enabling the Cache +
+<<part7_gradle_refs#part7_begin,Part 7.>> Using Reference Materials +

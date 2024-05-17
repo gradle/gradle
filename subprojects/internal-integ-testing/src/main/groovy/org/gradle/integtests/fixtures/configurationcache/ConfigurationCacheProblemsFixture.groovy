@@ -208,8 +208,8 @@ final class ConfigurationCacheProblemsFixture {
     private static Matcher<String> failureDescriptionMatcherForTooManyProblems(HasConfigurationCacheProblemsSpec spec) {
         return buildMatcherForProblemsFailureDescription(
             "Maximum number of configuration cache problems has been reached.\n" +
-                "This behavior can be adjusted, " +
-                "see ${new DocumentationRegistry().getDocumentationFor("configuration_cache", "config_cache:usage:max_problems")}",
+                "This behavior can be adjusted. " +
+                new DocumentationRegistry().getDocumentationRecommendationFor("on this", "configuration_cache", "config_cache:usage:max_problems"),
             spec
         )
     }

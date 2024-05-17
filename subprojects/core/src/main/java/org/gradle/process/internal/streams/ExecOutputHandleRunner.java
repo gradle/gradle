@@ -19,6 +19,8 @@ package org.gradle.process.internal.streams;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.operations.BuildOperationRef;
+import org.gradle.internal.operations.CurrentBuildOperationRef;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -34,6 +36,7 @@ public class ExecOutputHandleRunner implements Runnable {
     private final int bufferSize;
     private final CountDownLatch completed;
     private volatile boolean closed;
+    private volatile BuildOperationRef associatedBuildOperation;
 
     public ExecOutputHandleRunner(String displayName, InputStream inputStream, OutputStream outputStream, CountDownLatch completed) {
         this(displayName, inputStream, outputStream, 8192, completed);
@@ -45,6 +48,14 @@ public class ExecOutputHandleRunner implements Runnable {
         this.outputStream = outputStream;
         this.bufferSize = bufferSize;
         this.completed = completed;
+    }
+
+    public void associateBuildOperation(BuildOperationRef startupRef) {
+        this.associatedBuildOperation = startupRef;
+    }
+
+    public void clearAssociatedBuildOperation() {
+        this.associatedBuildOperation = null;
     }
 
     @Override
@@ -64,8 +75,15 @@ public class ExecOutputHandleRunner implements Runnable {
                 if (nread < 0) {
                     break;
                 }
-                outputStream.write(buffer, 0, nread);
-                outputStream.flush();
+                BuildOperationRef startupRef = this.associatedBuildOperation;
+                if (startupRef != null) {
+                    CurrentBuildOperationRef.instance().with(startupRef, () -> {
+                        writeBuffer(buffer, nread);
+                        return null;
+                    });
+                } else {
+                    writeBuffer(buffer, nread);
+                }
             }
             CompositeStoppable.stoppable(inputStream, outputStream).stop();
         } catch (Throwable t) {
@@ -73,6 +91,11 @@ public class ExecOutputHandleRunner implements Runnable {
                 LOGGER.error(String.format("Could not %s.", displayName), t);
             }
         }
+    }
+
+    private void writeBuffer(byte[] buffer, int nread) throws IOException {
+        outputStream.write(buffer, 0, nread);
+        outputStream.flush();
     }
 
     /**

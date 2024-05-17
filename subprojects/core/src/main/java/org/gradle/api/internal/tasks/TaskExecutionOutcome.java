@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.internal.execution.ExecutionOutcome;
-
 import javax.annotation.Nullable;
 
 public enum TaskExecutionOutcome {
@@ -48,21 +46,5 @@ public enum TaskExecutionOutcome {
     @Nullable
     public String getMessage() {
         return message;
-    }
-
-    public static TaskExecutionOutcome valueOf(ExecutionOutcome outcome) {
-        switch (outcome) {
-            case FROM_CACHE:
-                return FROM_CACHE;
-            case UP_TO_DATE:
-                return UP_TO_DATE;
-            case SHORT_CIRCUITED:
-                return NO_SOURCE;
-            case EXECUTED_INCREMENTALLY:
-            case EXECUTED_NON_INCREMENTALLY:
-                return EXECUTED;
-            default:
-                throw new AssertionError();
-        }
     }
 }

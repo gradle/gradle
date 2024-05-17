@@ -1,0 +1,117 @@
+import javax.inject.Inject
+
+plugins {
+    id 'java-base'
+}
+
+
+abstract class TaskThatRequiresJavaExecutable extends DefaultTask {
+
+    @Internal
+    abstract RegularFileProperty getJavaExecutable()
+
+    @Inject
+    protected abstract ExecOperations getExecOps()
+
+    @TaskAction
+    void action() {
+        def outputBytes = new ByteArrayOutputStream()
+        execOps.exec {
+            executable = javaExecutable.get().asFile.absolutePath
+            args = ["-version"]
+            standardOutput = outputBytes
+            errorOutput = outputBytes
+        }
+        assert outputBytes.toString("UTF-8").contains("version \"11"):
+            "unexpected '${javaExecutable.get().asFile.absolutePath} -version' output"
+    }
+}
+
+tasks.register("sampleTask", TaskThatRequiresJavaExecutable)
+
+
+abstract class TaskThatRequiresJavaHome extends DefaultTask {
+
+    @Internal
+    abstract DirectoryProperty getJavaHome()
+
+    @Inject
+    protected abstract ExecOperations getExecOps()
+
+    @TaskAction
+    void action() {
+        def outputBytes = new ByteArrayOutputStream()
+        def javaExecutable = javaHome.file("bin/java")
+        execOps.exec {
+            executable = javaExecutable.get().asFile.absolutePath
+            args = ["-version"]
+            standardOutput = outputBytes
+            errorOutput = outputBytes
+        }
+        assert outputBytes.toString("UTF-8").contains("version \"11"):
+            "unexpected '${javaExecutable.get().asFile.absolutePath} -version' output"
+    }
+}
+
+tasks.register("anotherSampleTask", TaskThatRequiresJavaHome)
+
+
+abstract class TaskThatRequiresJavaCompiler extends DefaultTask {
+
+    @Internal
+    abstract RegularFileProperty getJavaCompilerExecutable()
+
+    @Inject
+    protected abstract ExecOperations getExecOps()
+
+    @TaskAction
+    void action() {
+        def outputBytes = new ByteArrayOutputStream()
+        execOps.exec {
+            executable = javaCompilerExecutable.get().asFile.absolutePath
+            args = ["-version"]
+            standardOutput = outputBytes
+            errorOutput = outputBytes
+        }
+        assert outputBytes.toString("UTF-8").contains("javac 11"):
+            "unexpected '${javaCompilerExecutable.get().asFile.absolutePath} -version' output"
+    }
+}
+
+tasks.register("yetAnotherSampleTask", TaskThatRequiresJavaCompiler)
+
+
+// tag::java-executable[]
+// tag::java-home[]
+def launcher = javaToolchains.launcherFor {
+    languageVersion = JavaLanguageVersion.of(11)
+}
+// end::java-executable[]
+// end::java-home[]
+
+
+// tag::java-executable[]
+
+tasks.named('sampleTask') {
+    javaExecutable = launcher.map { it.executablePath }
+}
+// end::java-executable[]
+
+
+// tag::java-home[]
+
+tasks.named('anotherSampleTask') {
+    javaHome = launcher.map { it.metadata.installationPath }
+}
+// end::java-home[]
+
+
+// tag::java-compiler[]
+def compiler = javaToolchains.compilerFor {
+    languageVersion = JavaLanguageVersion.of(11)
+}
+
+tasks.named('yetAnotherSampleTask') {
+    javaCompilerExecutable = compiler.map { it.executablePath }
+}
+// end::java-compiler[]

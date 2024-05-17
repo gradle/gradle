@@ -34,6 +34,12 @@ public interface TaskCollection<T extends Task> extends NamedDomainObjectSet<T> 
      * {@inheritDoc}
      */
     @Override
+    TaskCollection<T> named(Spec<String> nameFilter);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     TaskCollection<T> matching(Spec<? super T> spec);
 
     /**

@@ -19,13 +19,23 @@ dependencies {
     implementation(project(":language-jvm"))
     implementation(project(":language-java"))
     implementation(project(":language-groovy"))
+    implementation(project(":plugins-distribution"))
+    implementation(project(":plugins-groovy"))
+    implementation(project(":plugins-java"))
+    implementation(project(":plugins-java-base"))
     implementation(project(":diagnostics"))
     implementation(project(":testing-base"))
     implementation(project(":testing-jvm"))
+    implementation(project(":test-suites-base"))
     implementation(project(":snapshots"))
+    implementation(project(":publish"))
+    implementation(project(":ivy"))
+    implementation(project(":maven"))
     implementation(project(":execution")) {
         because("We need it for BuildOutputCleanupRegistry")
     }
+    implementation(project(":toolchains-jvm"))
+    implementation(project(":plugins-jvm-test-suite"))
 
     implementation(libs.groovy)
     implementation(libs.groovyTemplates)
@@ -43,25 +53,24 @@ dependencies {
     testImplementation(libs.jsoup)
     testImplementation(libs.commonsIo)
     testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":dependency-management")))
-    testImplementation(testFixtures(project(":resources-http")))
-    testImplementation(testFixtures(project(":platform-native")))
     testImplementation(testFixtures(project(":jvm-services")))
-    testImplementation(testFixtures(project(":language-jvm")))
-    testImplementation(testFixtures(project(":language-java")))
-    testImplementation(testFixtures(project(":language-groovy")))
-    testImplementation(testFixtures(project(":diagnostics")))
 
     testFixturesImplementation(testFixtures(project(":core")))
     testFixturesImplementation(project(":base-services-groovy"))
     testFixturesImplementation(project(":file-collections"))
+    testFixturesImplementation(testFixtures(project(":language-groovy")))
     testFixturesImplementation(project(":language-jvm"))
     testFixturesImplementation(project(":internal-integ-testing"))
     testFixturesImplementation(project(":process-services"))
     testFixturesImplementation(project(":resources"))
     testFixturesImplementation(libs.guava)
 
+    integTestImplementation(testFixtures(project(":enterprise-operations")))
+    integTestImplementation(testFixtures(project(":language-java")))
     integTestImplementation(testFixtures(project(":model-core")))
+    integTestImplementation(testFixtures(project(":plugins-java")))
+    integTestImplementation(testFixtures(project(":plugins-java-base")))
+    integTestImplementation(testFixtures(project(":resources-http")))
 
     testRuntimeOnly(project(":distributions-core")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
@@ -74,11 +83,11 @@ strictCompile {
     ignoreDeprecations() // uses deprecated software model types
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/**")
 }
 
-integTest.usesJavadocCodeSnippets.set(true)
-testFilesCleanup.reportOnly.set(true)
+integTest.usesJavadocCodeSnippets = true
+testFilesCleanup.reportOnly = true
 
-description = """Provides core Gradle plugins such as the base plugin and version catalog plugin, as well as JVM-related plugins for building different types of Java and Groovy projects."""
+description = """Provides core Gradle plugins, as well as many JVM-related plugins for building different types of Java and Groovy projects."""

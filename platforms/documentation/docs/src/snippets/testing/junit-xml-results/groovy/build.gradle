@@ -1,0 +1,34 @@
+plugins {
+    id 'java'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'junit:junit:4.13'
+}
+
+// tag::configure-location-task[]
+test {
+    reports {
+        junitXml.outputLocation = layout.buildDirectory.dir("test-junit-xml")
+    }
+}
+// end::configure-location-task[]
+
+// tag::configure-location-convention[]
+java.testResultsDir = layout.buildDirectory.dir("junit-xml")
+// end::configure-location-convention[]
+
+// tag::configure-content[]
+test {
+    reports {
+        junitXml {
+            outputPerTestCase = true // defaults to false
+            mergeReruns = true // defaults to false
+        }
+    }
+}
+// tag::configure-content[]

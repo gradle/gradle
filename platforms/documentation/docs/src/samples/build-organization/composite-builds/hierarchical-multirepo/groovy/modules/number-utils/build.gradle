@@ -1,0 +1,18 @@
+plugins {
+    id 'java'
+    id 'maven-publish'
+}
+
+group "org.sample"
+version "1.0"
+
+publishing {
+    repositories {
+        maven {
+            url file("../../local-repo")
+        }
+    }
+    publications {
+        maven(MavenPublication) { from components.java }
+    }
+}

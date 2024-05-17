@@ -1,0 +1,88 @@
+<!--
+  ~ Copyright 2019 the original author or authors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<section>
+    <section>
+        <title>Properties</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                    <td>Default with <literal>java</literal> plugin</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>sourceCompatibility</td>
+                <td>Value of the current used JVM (e.g. <literal>JavaVersion.JAVA_1_6</literal> on a 1.6 JVM).</td>
+            </tr>
+            <tr>
+                <td>targetCompatibility</td>
+                <td><literal>project.sourceCompatibility</literal></td>
+            </tr>
+            <tr>
+                <td>toolchain</td>
+                <td/>
+            </tr>
+            <tr>
+                <td>docsDir</td>
+                <td><literal><replaceable>${project.layout.buildDirectory}</replaceable>/docs</literal></td>
+            </tr>
+            <tr>
+                <td>testResultsDir</td>
+                <td><literal><replaceable>${project.layout.buildDirectory}</replaceable>/test-results</literal></td>
+            </tr>
+            <tr>
+                <td>testReportDir</td>
+                <td><literal><replaceable>${project.reporting.baseDir}</replaceable>/tests</literal></td>
+            </tr>
+            <tr>
+                <td>sourceSets</td>
+                <td/>
+            </tr>
+        </table>
+    </section>
+    <section>
+        <title>Methods</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>disableAutoTargetJvm</td>
+            </tr>
+            <tr>
+                <td>withJavadocJar</td>
+            </tr>
+            <tr>
+                <td>withSourcesJar</td>
+            </tr>
+            <tr>
+                <td>registerFeature</td>
+            </tr>
+            <tr>
+                <td>toolchain</td>
+            </tr>
+            <tr>
+                <td>sourceSets</td>
+            </tr>
+            <tr>
+                <td>manifest</td>
+            </tr>
+        </table>
+    </section>
+</section>

@@ -17,10 +17,11 @@
 package org.gradle.integtests.composite
 
 import com.google.common.collect.Lists
+import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.build.BuildTestFile
-import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
+import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.internal.operations.BuildOperationType
 import org.gradle.launcher.exec.RunBuildBuildOperationType
 import org.gradle.test.fixtures.file.TestFile
@@ -41,7 +42,7 @@ abstract class AbstractCompositeBuildIntegrationTest extends AbstractIntegration
                 repositories {
                     maven { url "${mavenRepo.uri}" }
                 }
-"""
+            """
         }
     }
 
@@ -50,7 +51,7 @@ abstract class AbstractCompositeBuildIntegrationTest extends AbstractIntegration
             dependencies {
                 implementation '${notation}'
             }
-"""
+        """
     }
 
     def platformDependency(BuildTestFile sourceBuild = buildA, String notation) {
@@ -58,7 +59,7 @@ abstract class AbstractCompositeBuildIntegrationTest extends AbstractIntegration
             dependencies {
                 implementation platform('${notation}')
             }
-"""
+        """
     }
 
     def includeBuildAs(File build, String name) {
@@ -82,40 +83,43 @@ abstract class AbstractCompositeBuildIntegrationTest extends AbstractIntegration
                     }
                 }
             """
-
         }
     }
 
     def includePluginBuild(File build) {
-            buildA.settingsFile.setText("""
-                pluginManagement {
-                    includeBuild('${build.toURI()}')
-                }
-                ${buildA.settingsFile.text}
-            """)
+        buildA.settingsFile.setText("""
+            pluginManagement {
+                includeBuild('${build.toURI()}')
+            }
+            ${buildA.settingsFile.text}
+        """)
     }
 
     protected void execute(BuildTestFile build, String[] tasks, Iterable<String> arguments = []) {
-        prepare(build, arguments)
-        succeeds(tasks)
+        prepare(arguments)
+        succeeds(build, tasks)
         assertSingleBuildOperationsTreeOfType(RunBuildBuildOperationType)
     }
 
     protected void execute(BuildTestFile build, String task, Iterable<String> arguments = []) {
-        prepare(build, arguments)
-        succeeds(task)
+        prepare(arguments)
+        succeeds(build, task)
         assertSingleBuildOperationsTreeOfType(RunBuildBuildOperationType)
     }
 
+    protected ExecutionResult succeeds(BuildTestFile build, String... tasks) {
+        executer.inDirectory(build)
+        return succeeds(tasks)
+    }
+
     protected void fails(BuildTestFile build, String task, Iterable<String> arguments = []) {
-        prepare(build, arguments)
+        prepare(arguments)
+        executer.inDirectory(build)
         fails(task)
         assertSingleBuildOperationsTreeOfType(RunBuildBuildOperationType)
     }
 
-    private void prepare(BuildTestFile build, Iterable<String> arguments) {
-        executer.inDirectory(build)
-
+    private void prepare(Iterable<String> arguments) {
         List<File> includedBuilds = Lists.newArrayList(includedBuilds)
         includedBuilds.each {
             includeBuild(it)
@@ -157,7 +161,6 @@ abstract class AbstractCompositeBuildIntegrationTest extends AbstractIntegration
         temporaryFolder.testDirectory
     }
 
-
     def applyPlugin(BuildTestFile build, String name = "pluginBuild") {
         build.buildFile << """
             buildscript {
@@ -166,7 +169,7 @@ abstract class AbstractCompositeBuildIntegrationTest extends AbstractIntegration
                 }
             }
             apply plugin: 'org.test.plugin.$name'
-"""
+        """
     }
 
     def pluginProjectBuild(String name) {

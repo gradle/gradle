@@ -30,11 +30,6 @@ interface TestFilesCleanupBuildServiceRootExtension {
     val projectStates: MapProperty<String, TestFilesCleanupProjectState>
 
     /**
-     * Whether current build is a "clean up runner step" on CI.
-     */
-    val cleanupRunnerStep: Property<Boolean>
-
-    /**
      * Key is the path of a task, value is the possible report dirs it generates.
      */
     val taskPathToReports: MapProperty<String, List<File>>

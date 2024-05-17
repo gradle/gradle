@@ -124,7 +124,7 @@ class FileOrUriNotationConverterTest extends Specification {
         object.toURI().toURL() == testFileURL
     }
 
-    def "with non File URI URI instance is returned"() {
+    def "with non File URI instance is returned"() {
         setup:
         def unsupportedURI = URI.create("http://gradle.org")
         when:

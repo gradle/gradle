@@ -124,35 +124,34 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
             // Ignore
             return;
         }
-        try {
-            CurrentBuildOperationRef.instance().set(request.getBuildOperation());
-            Object result;
+        CurrentBuildOperationRef.instance().with(request.getBuildOperation(), () -> {
             try {
-                // We want to use the responder as the logging protocol object here because log messages from the
-                // action will have the build operation associated.  By using the responder, we ensure that all
-                // messages arrive on the same incoming queue in the build process and the completed message will only
-                // arrive after all log messages have been processed.
-                result = workerLogEventListener.withWorkerLoggingProtocol(responder, new Callable<Object>() {
-                    @Override
-                    public Object call() throws Exception {
-                        return implementation.run(request.getArg());
+                Object result;
+                try {
+                    // We want to use the responder as the logging protocol object here because log messages from the
+                    // action will have the build operation associated.  By using the responder, we ensure that all
+                    // messages arrive on the same incoming queue in the build process and the completed message will only
+                    // arrive after all log messages have been processed.
+                    result = workerLogEventListener.withWorkerLoggingProtocol(responder, new Callable<Object>() {
+                        @Override
+                        public Object call() throws Exception {
+                            return implementation.run(request.getArg());
+                        }
+                    });
+                } catch (Throwable failure) {
+                    if (failure instanceof NoClassDefFoundError) {
+                        // Assume an infrastructure problem
+                        responder.infrastructureFailed(failure);
+                    } else {
+                        responder.failed(failure);
                     }
-                });
-            } catch (Throwable failure) {
-                if (failure instanceof NoClassDefFoundError) {
-                    // Assume an infrastructure problem
-                    responder.infrastructureFailed(failure);
-                } else {
-                    responder.failed(failure);
+                    return;
                 }
-                return;
+                responder.completed(result);
+            } catch (Throwable t) {
+                responder.infrastructureFailed(t);
             }
-            responder.completed(result);
-        } catch (Throwable t) {
-            responder.infrastructureFailed(t);
-        } finally {
-            CurrentBuildOperationRef.instance().clear();
-        }
+        });
     }
 
     @Override

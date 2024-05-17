@@ -24,13 +24,14 @@ import org.gradle.performance.measure.MeasuredOperation;
 import org.gradle.performance.results.GradleProfilerReporter;
 import org.gradle.performance.results.MeasuredOperationList;
 import org.gradle.performance.results.OutputDirSelector;
+import org.gradle.performance.results.OutputDirSelectorUtil;
 import org.gradle.profiler.BenchmarkResultCollector;
 import org.gradle.profiler.BuildMutator;
 import org.gradle.profiler.InvocationSettings;
 import org.gradle.profiler.Profiler;
 import org.gradle.profiler.ProfilerFactory;
 import org.gradle.profiler.ScenarioDefinition;
-import org.gradle.profiler.report.CsvGenerator;
+import org.gradle.profiler.report.Format;
 import org.gradle.profiler.result.BuildInvocationResult;
 
 import java.io.File;
@@ -123,7 +124,7 @@ public abstract class AbstractBuildExperimentRunner implements BuildExperimentRu
             .setSysProperties(emptyMap())
             .setWarmupCount(warmupsForExperiment(experiment))
             .setIterations(invocationsForExperiment(experiment))
-            .setCsvFormat(CsvGenerator.Format.LONG);
+            .setCsvFormat(Format.LONG);
     }
 
     private File outputDirFor(String testId, BuildExperimentSpec spec) {
@@ -133,7 +134,7 @@ public abstract class AbstractBuildExperimentRunner implements BuildExperimentRu
             String version = ((GradleBuildExperimentSpec) spec).getInvocation().getGradleDistribution().getVersion().getVersion();
             outputDir = new File(outputDirSelector.outputDirFor(testId), version);
         } else {
-            outputDir = new File(outputDirSelector.outputDirFor(testId), OutputDirSelector.fileSafeNameFor(spec.getDisplayName()));
+            outputDir = new File(outputDirSelector.outputDirFor(testId), OutputDirSelectorUtil.fileSafeNameFor(spec.getDisplayName()));
         }
         outputDir.mkdirs();
         return outputDir;
@@ -186,7 +187,7 @@ public abstract class AbstractBuildExperimentRunner implements BuildExperimentRu
         MeasuredOperationList results,
         Consumer<T> scenarioReporter
     ) {
-        AtomicInteger iterationCount = new AtomicInteger(0);
+        AtomicInteger iterationCount = new AtomicInteger();
         return invocationResult -> {
             int currentIteration = iterationCount.incrementAndGet();
             if (currentIteration > scenarioDefinition.getWarmUpCount()) {

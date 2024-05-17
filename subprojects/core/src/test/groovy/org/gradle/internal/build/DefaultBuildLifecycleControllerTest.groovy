@@ -21,9 +21,9 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.execution.BuildWorkExecutor
 import org.gradle.execution.plan.ExecutionPlan
+import org.gradle.execution.plan.FinalizedExecutionPlan
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import org.gradle.initialization.exception.ExceptionAnalyser
-import org.gradle.initialization.internal.InternalBuildFinishedListener
 import org.gradle.internal.execution.BuildOutputCleanupRegistry
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -34,7 +34,8 @@ import java.util.function.Consumer
 import java.util.function.Function
 
 class DefaultBuildLifecycleControllerTest extends Specification {
-    def buildBroadcaster = Mock(BuildListener)
+    def buildListener = Mock(BuildListener)
+    def buildModelLifecycleListener = Mock(BuildModelLifecycleListener)
     def workExecutor = Mock(BuildWorkExecutor)
     def workPreparer = Mock(BuildWorkPreparer)
 
@@ -43,8 +44,8 @@ class DefaultBuildLifecycleControllerTest extends Specification {
 
     def buildModelController = Mock(BuildModelController)
     def exceptionAnalyser = Mock(ExceptionAnalyser)
-    def buildFinishedListener = Mock(InternalBuildFinishedListener.class)
     def executionPlan = Mock(ExecutionPlan)
+    def finalizedPlan = Mock(FinalizedExecutionPlan)
     def toolingControllerFactory = Mock(BuildToolingModelControllerFactory)
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
@@ -62,8 +63,8 @@ class DefaultBuildLifecycleControllerTest extends Specification {
     }
 
     DefaultBuildLifecycleController controller() {
-        return new DefaultBuildLifecycleController(gradleMock, buildModelController, exceptionAnalyser, buildBroadcaster,
-            buildFinishedListener, workPreparer, workExecutor, toolingControllerFactory, TestUtil.stateTransitionControllerFactory())
+        return new DefaultBuildLifecycleController(gradleMock, buildModelController, exceptionAnalyser, buildListener,
+            buildModelLifecycleListener, workPreparer, workExecutor, toolingControllerFactory, TestUtil.stateTransitionControllerFactory())
     }
 
     void testCanFinishBuildWhenNothingHasBeenDone() {
@@ -74,6 +75,9 @@ class DefaultBuildLifecycleControllerTest extends Specification {
 
         def finishResult = controller.finishBuild(null)
         finishResult.failures.empty
+
+        def discardResult = controller.beforeModelDiscarded(false)
+        discardResult.failures.empty
     }
 
     void testScheduleAndRunRequestedTasks() {
@@ -93,6 +97,9 @@ class DefaultBuildLifecycleControllerTest extends Specification {
 
         def finishResult = controller.finishBuild(null)
         finishResult.failures.empty
+
+        def discardResult = controller.beforeModelDiscarded(false)
+        discardResult.failures.empty
     }
 
     void testScheduleAndRunRequestedTasksMultipleTimes() {
@@ -121,6 +128,43 @@ class DefaultBuildLifecycleControllerTest extends Specification {
 
         def finishResult = controller.finishBuild(null)
         finishResult.failures.empty
+
+        def discardResult = controller.beforeModelDiscarded(false)
+        discardResult.failures.empty
+    }
+
+    void testResetModelAfterSchedulingTasks() {
+        expect:
+        expectRequestedTasksScheduled()
+        expectTasksRun()
+        expectTasksScheduled()
+        expectModelReset()
+        expectBuildFinished()
+
+        def controller = controller()
+
+        controller.prepareToScheduleTasks()
+        def plan1 = controller.newWorkGraph()
+        controller.populateWorkGraph(plan1) { b -> b.addRequestedTasks() }
+        controller.finalizeWorkGraph(plan1)
+
+        def resetResult = controller.beforeModelReset()
+        resetResult.failures.empty
+
+        controller.resetModel()
+
+        controller.prepareToScheduleTasks()
+        def plan2 = controller.newWorkGraph()
+        controller.populateWorkGraph(plan2) {}
+        controller.finalizeWorkGraph(plan2)
+        def executionResult = controller.executeTasks(plan2)
+        executionResult.failures.empty
+
+        def finishResult = controller.finishBuild(null)
+        finishResult.failures.empty
+
+        def discardResult = controller.beforeModelDiscarded(false)
+        discardResult.failures.empty
     }
 
     void testLoadSettings() {
@@ -133,6 +177,9 @@ class DefaultBuildLifecycleControllerTest extends Specification {
 
         def finishResult = controller.finishBuild(null)
         finishResult.failures.empty
+
+        def discardResult = controller.beforeModelDiscarded(false)
+        discardResult.failures.empty
     }
 
     void testWithSettings() {
@@ -154,6 +201,9 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         expectBuildFinished("Configure")
         def finishResult = controller.finishBuild(null)
         finishResult.failures.empty
+
+        def discardResult = controller.beforeModelDiscarded(false)
+        discardResult.failures.empty
     }
 
     void testNotifiesListenerOnLoadSettingsFailure() {
@@ -174,8 +224,15 @@ class DefaultBuildLifecycleControllerTest extends Specification {
 
         then:
         1 * exceptionAnalyser.transform([failure]) >> transformedException
-        1 * buildBroadcaster.buildFinished({ it.failure == transformedException })
+        1 * buildListener.buildFinished({ it.failure == transformedException })
         finishResult.failures.empty
+
+        when:
+        def discardResult = controller.beforeModelDiscarded(true)
+
+        then:
+        1 * buildModelLifecycleListener.beforeModelDiscarded(gradleMock, true)
+        discardResult.failures.empty
     }
 
     void testLoadSettingsRethrowsPreviousFailure() {
@@ -219,6 +276,9 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         expectBuildFinished("Configure")
         def finishResult = controller.finishBuild(null)
         finishResult.failures.empty
+
+        def discardResult = controller.beforeModelDiscarded(false)
+        discardResult.failures.empty
     }
 
     void testWithConfiguredBuild() {
@@ -236,6 +296,9 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         expectBuildFinished("Configure")
         def finishResult = controller.finishBuild(null)
         finishResult.failures.empty
+
+        def discardResult = controller.beforeModelDiscarded(false)
+        discardResult.failures.empty
     }
 
     void testGetConfiguredBuild() {
@@ -252,6 +315,9 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         expectBuildFinished("Configure")
         def finishResult = controller.finishBuild(null)
         finishResult.failures.empty
+
+        def discardResult = controller.beforeModelDiscarded(false)
+        discardResult.failures.empty
     }
 
     void testNotifiesListenerOnConfigureBuildFailure() {
@@ -272,8 +338,15 @@ class DefaultBuildLifecycleControllerTest extends Specification {
 
         then:
         1 * exceptionAnalyser.transform([failure]) >> transformedException
-        1 * buildBroadcaster.buildFinished({ it.failure == transformedException })
+        1 * buildListener.buildFinished({ it.failure == transformedException })
         finishResult.failures.empty
+
+        when:
+        def discardResult = controller.beforeModelDiscarded(true)
+
+        then:
+        1 * buildModelLifecycleListener.beforeModelDiscarded(gradleMock, true)
+        discardResult.failures.empty
     }
 
     void testConfigureBuildRethrowsPreviousFailure() {
@@ -304,28 +377,35 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         t3 == failure
     }
 
-    void testCannotExecuteTasksWhenNothingHasBeenScheduled() {
+    void testCanExecuteTasksWhenNothingHasBeenScheduled() {
         when:
         def controller = controller()
         def workGraph = controller.newWorkGraph()
-        controller.executeTasks(workGraph)
+        def result = controller.executeTasks(workGraph)
 
         then:
-        def t = thrown IllegalStateException
+        result.failures.empty
 
         when:
         def finishResult = controller.finishBuild(null)
 
         then:
-        1 * buildBroadcaster.buildFinished({ it.failure == null })
+        1 * buildListener.buildFinished({ it.failure == null })
         finishResult.failures.empty
+
+        when:
+        def discardResult = controller.beforeModelDiscarded(false)
+
+        then:
+        1 * buildModelLifecycleListener.beforeModelDiscarded(gradleMock, false)
+        discardResult.failures.empty
     }
 
     void testNotifiesListenerOnTaskSchedulingFailure() {
         given:
         1 * workPreparer.newExecutionPlan() >> executionPlan
         1 * workPreparer.populateWorkGraph(gradleMock, executionPlan, _) >> { GradleInternal gradle, ExecutionPlan executionPlan, Consumer consumer -> consumer.accept(executionPlan) }
-        1 * buildModelController.scheduleRequestedTasks(executionPlan) >> { throw failure }
+        1 * buildModelController.scheduleRequestedTasks(null, executionPlan) >> { throw failure }
 
         when:
         def controller = this.controller()
@@ -342,8 +422,15 @@ class DefaultBuildLifecycleControllerTest extends Specification {
 
         then:
         1 * exceptionAnalyser.transform([failure]) >> transformedException
-        1 * buildBroadcaster.buildFinished({ it.failure == transformedException && it.action == "Build" })
+        1 * buildListener.buildFinished({ it.failure == transformedException && it.action == "Build" })
         finishResult.failures.empty
+
+        when:
+        def discardResult = controller.beforeModelDiscarded(true)
+
+        then:
+        1 * buildModelLifecycleListener.beforeModelDiscarded(gradleMock, true)
+        discardResult.failures.empty
     }
 
     void testNotifiesListenerOnTaskExecutionFailure() {
@@ -367,8 +454,15 @@ class DefaultBuildLifecycleControllerTest extends Specification {
 
         then:
         1 * exceptionAnalyser.transform([failure]) >> transformedException
-        1 * buildBroadcaster.buildFinished({ it.failure == transformedException })
+        1 * buildListener.buildFinished({ it.failure == transformedException })
         finishResult.failures.empty
+
+        when:
+        def discardResult = controller.beforeModelDiscarded(true)
+
+        then:
+        1 * buildModelLifecycleListener.beforeModelDiscarded(gradleMock, true)
+        discardResult.failures.empty
     }
 
     void testNotifiesListenerOnBuildCompleteWithMultipleFailures() {
@@ -394,8 +488,15 @@ class DefaultBuildLifecycleControllerTest extends Specification {
 
         then:
         1 * exceptionAnalyser.transform([failure, failure2]) >> transformedException
-        1 * buildBroadcaster.buildFinished({ it.failure == transformedException })
+        1 * buildListener.buildFinished({ it.failure == transformedException })
         finishResult.failures.empty
+
+        when:
+        def discardResult = controller.beforeModelDiscarded(true)
+
+        then:
+        1 * buildModelLifecycleListener.beforeModelDiscarded(gradleMock, true)
+        discardResult.failures.empty
     }
 
     void testTransformsBuildFinishedListenerFailure() {
@@ -415,8 +516,15 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         def finishResult = controller.finishBuild(null)
 
         then:
-        1 * buildBroadcaster.buildFinished({ it.failure == null }) >> { throw failure }
+        1 * buildListener.buildFinished({ it.failure == null }) >> { throw failure }
         finishResult.failures == [failure]
+
+        when:
+        def discardResult = controller.beforeModelDiscarded(true)
+
+        then:
+        1 * buildModelLifecycleListener.beforeModelDiscarded(gradleMock, true)
+        discardResult.failures.empty
     }
 
     void testNotifiesListenersOnMultipleBuildFailuresAndBuildListenerFailure() {
@@ -445,14 +553,22 @@ class DefaultBuildLifecycleControllerTest extends Specification {
 
         then:
         1 * exceptionAnalyser.transform([failure, failure2]) >> transformedException
-        1 * buildBroadcaster.buildFinished({ it.failure == transformedException }) >> { throw failure3 }
+        1 * buildListener.buildFinished({ it.failure == transformedException }) >> { throw failure3 }
         finishResult.failures == [failure3]
+
+        when:
+        def discardResult = controller.beforeModelDiscarded(true)
+
+        then:
+        1 * buildModelLifecycleListener.beforeModelDiscarded(gradleMock, true)
+        discardResult.failures.empty
     }
 
     void testCannotGetModelAfterFinished() {
         given:
         def controller = controller()
         controller.finishBuild(null)
+        controller.beforeModelDiscarded(false)
 
         when:
         controller.gradle
@@ -465,6 +581,7 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         given:
         def controller = controller()
         controller.finishBuild(null)
+        controller.beforeModelDiscarded(false)
 
         when:
         controller.loadSettings()
@@ -477,6 +594,7 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         given:
         def controller = controller()
         controller.finishBuild(null)
+        controller.beforeModelDiscarded(false)
 
         when:
         controller.configureProjects()
@@ -489,6 +607,7 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         given:
         def controller = controller()
         controller.finishBuild(null)
+        controller.beforeModelDiscarded(false)
 
         when:
         controller.prepareToScheduleTasks()
@@ -505,32 +624,36 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         1 * buildModelController.loadedSettings >> { throw failure }
     }
 
+    private void expectModelReset() {
+        1 * gradleMock.resetState()
+    }
+
     private void expectRequestedTasksScheduled() {
         1 * workPreparer.newExecutionPlan() >> executionPlan
         1 * buildModelController.prepareToScheduleTasks()
-        1 * buildModelController.initializeWorkGraph(executionPlan)
         1 * workPreparer.populateWorkGraph(gradleMock, executionPlan, _) >> { GradleInternal gradle, ExecutionPlan executionPlan, Consumer consumer -> consumer.accept(executionPlan) }
-        1 * buildModelController.scheduleRequestedTasks(executionPlan)
+        1 * buildModelController.scheduleRequestedTasks(null, executionPlan)
+        1 * workPreparer.finalizeWorkGraph(gradleMock, executionPlan) >> finalizedPlan
     }
 
     private void expectTasksScheduled() {
         1 * workPreparer.newExecutionPlan() >> executionPlan
         1 * buildModelController.prepareToScheduleTasks()
-        1 * buildModelController.initializeWorkGraph(executionPlan)
         1 * workPreparer.populateWorkGraph(gradleMock, executionPlan, _) >> { GradleInternal gradle, ExecutionPlan executionPlan, Consumer consumer -> consumer.accept(executionPlan) }
+        1 * workPreparer.finalizeWorkGraph(gradleMock, executionPlan) >> finalizedPlan
     }
 
     private void expectTasksRun() {
-        1 * workExecutor.execute(gradleMock, executionPlan) >> ExecutionResult.succeeded()
+        1 * workExecutor.execute(gradleMock, finalizedPlan) >> ExecutionResult.succeeded()
     }
 
     private void expectTasksRunWithFailure(Throwable failure, Throwable other = null) {
         def failures = other == null ? [failure] : [failure, other]
-        1 * workExecutor.execute(gradleMock, executionPlan) >> ExecutionResult.maybeFailed(failures)
+        1 * workExecutor.execute(gradleMock, finalizedPlan) >> ExecutionResult.maybeFailed(failures)
     }
 
     private void expectBuildFinished(String action = "Build") {
-        1 * buildBroadcaster.buildFinished({ it.failure == null && it.action == action })
-        1 * buildFinishedListener.buildFinished(_, false)
+        1 * buildListener.buildFinished({ it.failure == null && it.action == action })
+        1 * buildModelLifecycleListener.beforeModelDiscarded(_, false)
     }
 }

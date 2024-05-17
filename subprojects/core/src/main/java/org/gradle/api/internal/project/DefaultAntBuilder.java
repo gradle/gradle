@@ -28,11 +28,12 @@ import org.apache.tools.ant.Target;
 import org.gradle.api.*;
 import org.gradle.api.internal.project.ant.AntLoggingAdapter;
 import org.gradle.api.internal.project.ant.BasicAntBuilder;
+import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.ant.AntTarget;
 import org.gradle.internal.Transformers;
 
+import javax.annotation.Nullable;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -190,7 +191,7 @@ public class DefaultAntBuilder extends BasicAntBuilder implements GroovyObject {
         return loggingAdapter.getLifecycleLogLevel();
     }
 
-    private static class AntTargetsTaskDependency implements TaskDependency {
+    private static class AntTargetsTaskDependency implements TaskDependencyInternal {
         private final List<String> taskDependencyNames;
 
         public AntTargetsTaskDependency(List<String> taskDependencyNames) {
@@ -198,7 +199,7 @@ public class DefaultAntBuilder extends BasicAntBuilder implements GroovyObject {
         }
 
         @Override
-        public Set<? extends Task> getDependencies(Task task) {
+        public Set<? extends Task> getDependenciesForInternalUse(@Nullable Task task) {
             Set<Task> tasks = Sets.newHashSetWithExpectedSize(taskDependencyNames.size());
             for (String dependedOnTaskName : taskDependencyNames) {
                 Task dependency = task.getProject().getTasks().findByName(dependedOnTaskName);
@@ -208,6 +209,11 @@ public class DefaultAntBuilder extends BasicAntBuilder implements GroovyObject {
                 tasks.add(dependency);
             }
             return tasks;
+        }
+
+        @Override
+        public Set<? extends Task> getDependencies(Task task) {
+            return getDependenciesForInternalUse(task);
         }
     }
 }

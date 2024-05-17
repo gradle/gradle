@@ -150,6 +150,7 @@ class DefaultMultiRequestWorkerProcessBuilder<IN, OUT> implements MultiRequestWo
 
             @Override
             public WorkerProcess start() {
+                // Note -- leaks current build operation to worker thread, it will be cleared after the worker is started
                 try {
                     workerProcess.start();
                 } catch (Exception e) {

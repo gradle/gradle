@@ -16,20 +16,22 @@
 
 package configurations
 
+import common.KillProcessMode.KILL_ALL_GRADLE_PROCESSES
 import common.Os
 import common.applyPerformanceTestSettings
 import common.buildToolGradleParameters
 import common.checkCleanM2AndAndroidUserHome
 import common.gradleWrapper
 import common.individualPerformanceTestArtifactRules
-import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
+import common.killProcessStep
+import common.skipConditionally
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
-import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.script
 import model.CIBuildModel
 import model.Stage
 
 class TestPerformanceTest(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(stage, init = {
     val os = Os.LINUX
+    val buildTypeThis = this
     val testProject = "smallJavaMultiProject"
 
     fun BuildSteps.gradleStep(tasks: List<String>) {
@@ -39,13 +41,13 @@ class TestPerformanceTest(model: CIBuildModel, stage: Stage) : BaseGradleBuildTy
                 tasks +
                     buildToolGradleParameters(isContinue = false)
                 ).joinToString(separator = " ")
+            skipConditionally()
         }
     }
 
     fun BuildSteps.adHocPerformanceTest(tests: List<String>) {
         gradleStep(
             listOf(
-                "-PperformanceBaselines=force-defaults",
                 "clean",
                 "performance:${testProject}PerformanceAdHocTest",
                 tests.map { """--tests "$it"""" }.joinToString(" "),
@@ -67,11 +69,7 @@ class TestPerformanceTest(model: CIBuildModel, stage: Stage) : BaseGradleBuildTy
     artifactRules = individualPerformanceTestArtifactRules
 
     steps {
-        script {
-            name = "KILL_GRADLE_PROCESSES"
-            executionMode = BuildStep.ExecutionMode.ALWAYS
-            scriptContent = os.killAllGradleProcesses
-        }
+        killProcessStep(buildTypeThis, KILL_ALL_GRADLE_PROCESSES, os)
         adHocPerformanceTest(
             listOf(
                 "org.gradle.performance.regression.java.JavaIDEModelPerformanceTest.get IDE model for IDEA",

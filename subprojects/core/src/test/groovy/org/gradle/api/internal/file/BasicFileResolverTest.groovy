@@ -23,7 +23,7 @@ import spock.lang.Specification
 
 class BasicFileResolverTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
-    def baseDir = tmpDir.createDir("base-dir")
+    def baseDir = tmpDir.createDir("teŝt dir")
     def resolver = new BasicFileResolver(baseDir)
 
     def "converts relative path"() {
@@ -44,7 +44,7 @@ class BasicFileResolverTest extends Specification {
         def target = tmpDir.file("some-file")
 
         expect:
-        resolver.transform(target.toURI().toString()) == target
+        resolver.transform(target.toURI().toASCIIString()) == target
     }
 
     def "does not convert http URI"() {

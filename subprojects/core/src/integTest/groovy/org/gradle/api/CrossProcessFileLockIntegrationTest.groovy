@@ -19,9 +19,10 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
-public class CrossProcessFileLockIntegrationTest extends AbstractIntegrationSpec {
+class CrossProcessFileLockIntegrationTest extends AbstractIntegrationSpec {
 
     def "the task history lock can be acquired when the initial owner is busy executing tasks"() {
+        createDirs("a", "b")
         settingsFile << "include 'a', 'b'"
 
         file("a/src/main/java/A.java") << "public class A {}"

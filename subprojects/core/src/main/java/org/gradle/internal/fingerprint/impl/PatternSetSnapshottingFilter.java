@@ -19,7 +19,9 @@ package org.gradle.internal.fingerprint.impl;
 import com.google.common.collect.Iterables;
 import org.gradle.api.Describable;
 import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.file.FilePermissions;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.internal.file.DefaultFilePermissions;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.UncheckedException;
@@ -143,7 +145,13 @@ public class PatternSetSnapshottingFilter implements SnapshottingFilter {
 
         @Override
         public int getMode() {
-            return stat.getUnixMode(getFile());
+            return getPermissions().toUnixNumeric();
+        }
+
+        @Override
+        public FilePermissions getPermissions() {
+            int unixNumeric = stat.getUnixMode(getFile());
+            return new DefaultFilePermissions(unixNumeric);
         }
     }
 
@@ -218,7 +226,13 @@ public class PatternSetSnapshottingFilter implements SnapshottingFilter {
 
         @Override
         public int getMode() {
-            return stat.getUnixMode(path.toFile());
+            return getPermissions().toUnixNumeric();
+        }
+
+        @Override
+        public FilePermissions getPermissions() {
+            int unixNumeric = stat.getUnixMode(path.toFile());
+            return new DefaultFilePermissions(unixNumeric);
         }
     }
 }

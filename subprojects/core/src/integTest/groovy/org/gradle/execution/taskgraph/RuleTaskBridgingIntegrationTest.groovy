@@ -392,6 +392,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
 
     def "can depend on a rule-source task in a project which has already evaluated"() {
         given:
+        createDirs("sub1", "sub2")
         settingsFile << 'include "sub1", "sub2"'
         buildFile << """
         ${ruleBasedTasks()}

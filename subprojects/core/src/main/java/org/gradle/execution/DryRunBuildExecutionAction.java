@@ -18,7 +18,7 @@ package org.gradle.execution;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.execution.plan.ExecutionPlan;
+import org.gradle.execution.plan.FinalizedExecutionPlan;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
@@ -36,9 +36,9 @@ public class DryRunBuildExecutionAction implements BuildWorkExecutor {
     }
 
     @Override
-    public ExecutionResult<Void> execute(GradleInternal gradle, ExecutionPlan plan) {
+    public ExecutionResult<Void> execute(GradleInternal gradle, FinalizedExecutionPlan plan) {
         if (gradle.getStartParameter().isDryRun()) {
-            for (Task task : plan.getTasks()) {
+            for (Task task : plan.getContents().getTasks()) {
                 textOutputFactory.create(DryRunBuildExecutionAction.class)
                     .append(((TaskInternal) task).getIdentityPath().getPath())
                     .append(" ")

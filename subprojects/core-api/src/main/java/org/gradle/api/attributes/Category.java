@@ -23,7 +23,7 @@ import org.gradle.internal.scan.UsedByScanPlugin;
 /**
  * This attribute describes the categories of variants for a given module.
  * <p>
- * Three values are found in published components:
+ * Four values are found in published components:
  * <ul>
  *     <li>{@code library}: Indicates that the variant is a library, that usually means a binary and a set of dependencies</li>
  *     <li>{@code platform}: Indicates that the variant is a platform, that usually means a definition of dependency constraints</li>

@@ -16,14 +16,13 @@
 
 package org.gradle.testfixtures
 
-
 import org.gradle.api.internal.tasks.testing.worker.TestWorker
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.internal.TextUtil
-import spock.lang.IgnoreIf
 
-@IgnoreIf({ GradleContextualExecuter.isEmbedded()}) // this requires a full distribution
+@Requires(IntegTestPreconditions.NotEmbeddedExecutor) // this requires a full distribution
 class ProjectBuilderEndUserIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
@@ -33,17 +32,37 @@ class ProjectBuilderEndUserIntegrationTest extends AbstractIntegrationSpec {
         dependencies {
             implementation localGroovy()
             implementation gradleApi()
-            testImplementation(platform("org.spockframework:spock-bom:2.1-groovy-3.0"))
-            testImplementation("org.spockframework:spock-core")
         }
 
         ${mavenCentralRepository()}
 
+        testing {
+            suites {
+                test {
+                    useSpock()
+                }
+            }
+        }
         test {
-            useJUnitPlatform()
             testLogging.exceptionFormat = 'full'
         }
 
+        // Needed when using ProjectBuilder
+        class AddOpensArgProvider implements CommandLineArgumentProvider {
+            private final Test test;
+            public AddOpensArgProvider(Test test) {
+                this.test = test;
+            }
+            @Override
+            Iterable<String> asArguments() {
+                return test.javaVersion.isCompatibleWith(JavaVersion.VERSION_1_9)
+                    ? ["--add-opens=java.base/java.lang=ALL-UNNAMED"]
+                    : []
+            }
+        }
+        tasks.withType(Test).configureEach {
+            jvmArgumentProviders.add(new AddOpensArgProvider(it))
+        }
         """
     }
 

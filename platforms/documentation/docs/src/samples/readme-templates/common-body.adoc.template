@@ -1,0 +1,166 @@
+NOTE: You can open this sample inside an IDE using the https://www.jetbrains.com/help/idea/gradle.html#gradle_import_project_start[IntelliJ native importer] or https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship].
+
+This guide demonstrates how to create a ${language.raw} ${componentType.raw} with Gradle using `gradle init`.
+You can follow the guide step-by-step to create a new project from scratch or download the complete sample project using the links above.
+
+${configurationCacheCompatibility.raw}
+
+== What you’ll build
+
+You'll generate a ${language.raw} ${componentType.raw} that follows Gradle's conventions.
+
+== What you’ll need
+
+* A text editor or IDE - for example link:https://www.jetbrains.com/idea/download/[IntelliJ IDEA]
+* A Java Development Kit (JDK), version 8 or higher - for example link:https://adoptopenjdk.net/[AdoptOpenJDK]
+* The latest https://gradle.org/install[Gradle distribution]
+${toolChain.raw}
+
+== Create a project folder
+
+Gradle comes with a built-in task, called `init`, that initializes a new Gradle project in an empty folder.
+The `init` task uses the (also built-in) `wrapper` task to create a Gradle wrapper script, `gradlew`.
+
+The first step is to create a folder for the new project and change directory into it.
+
+[listing.terminal.sample-command]
+----
+\$ mkdir demo
+\$ cd demo
+----
+
+== Run the init task
+
+From inside the new project directory, run the `init` task using the following command in a terminal: `gradle init`.
+When prompted, select the `${componentTypeIndex.raw}: ${componentType.raw}` project type and `${languageIndex.raw}: ${language.raw}` as implementation language.
+Next you can choose the DSL for writing buildscripts -  `1  : Groovy` or `2: Kotlin`.
+For the other questions, press enter to use the default values.
+
+The output will look like this:
+
+[listing.terminal.sample-command,user-inputs="${componentTypeIndex.raw}|${languageIndex.raw}|1|||"]
+----
+\$ gradle init
+
+Select type of project to generate:
+  1: basic
+  2: application
+  3: library
+  4: Gradle plugin
+Enter selection (default: basic) [1..4] ${componentTypeIndex.raw}
+
+Select implementation language:
+  1: C++
+  2: Groovy
+  3: Java
+  4: Kotlin
+  5: Scala
+  6: Swift
+Enter selection (default: Java) [1..6] ${languageIndex.raw}
+
+Select build script DSL:
+  1: Groovy
+  2: Kotlin
+Enter selection (default: Groovy) [1..2] 1
+${testFrameworkChoice.raw}
+Project name (default: demo):
+${packageNameChoice.raw}
+
+BUILD SUCCESSFUL
+2 actionable tasks: 2 executed
+----
+
+The `init` task generates the new project with the following structure:
+
+[source.multi-language-sample,kotlin]
+----
+├── gradle // <1>
+│   ├── libs.versions.toml // <2>
+│   └── wrapper
+│       ├── gradle-wrapper.jar
+│       └── gradle-wrapper.properties
+├── gradlew // <3>
+├── gradlew.bat // <3>
+├── settings.gradle.kts // <4>
+└── ${subprojectName.raw}
+    ├── build.gradle.kts // <5>
+    └── src
+        ├── main
+        │   └── ${languageLC.raw} // <6>
+${sourceFileTree.raw}
+        └── test
+            └── ${languageLC.raw} // <7>
+${testSourceFileTree.raw}
+----
+
+[source.multi-language-sample,groovy]
+----
+├── gradle // <1>
+│   ├── libs.versions.toml // <2>
+│   └── wrapper
+│       ├── gradle-wrapper.jar
+│       └── gradle-wrapper.properties
+├── gradlew // <3>
+├── gradlew.bat // <3>
+├── settings.gradle // <4>
+└── ${subprojectName.raw}
+    ├── build.gradle // <5>
+    └── src
+        ├── main
+        │   └── ${languageLC.raw} // <6>
+${sourceFileTree.raw}
+        └── test
+            └── ${languageLC.raw} // <7>
+${testSourceFileTree.raw}
+----
+
+<1> Generated folder for wrapper files
+<2> Generated version catalog
+<3> Gradle wrapper start scripts
+<4> Settings file to define build name and subprojects
+<5> Build script of `${subprojectName.raw}` project
+<6> Default ${language.raw} source folder
+<7> Default ${language.raw} test source folder
+
+You now have the project setup to build a ${language.raw} ${componentType.raw}.
+
+== Review the project files
+
+The `settings.gradle(.kts)` file has two interesting lines:
+
+====
+include::sample[dir="kotlin",files="settings.gradle.kts[]"]
+include::sample[dir="groovy",files="settings.gradle[]"]
+====
+- `rootProject.name` assigns a name to the build, which overrides the default behavior of naming the build after the directory it's in.
+  It's recommended to set a fixed name as the folder might change if the project is shared - e.g. as root of a Git repository.
+- `include("${subprojectName.raw}")` defines that the build consists of one subproject called `${subprojectName.raw}` that contains the actual code and build logic.
+  More subprojects can be added by additional `include(...)` statements.
+
+Our build contains one subproject called `${subprojectName.raw}` that represents the ${language.raw} ${componentType.raw} we are building.
+It is configured in the `${subprojectName.raw}/build.gradle(.kts)` file:
+
+====
+include::sample[dir="kotlin",files="${subprojectName.raw}/build.gradle.kts[]"]
+include::sample[dir="groovy",files="${subprojectName.raw}/build.gradle[]"]
+====
+${buildFileComments.raw}
+
+The file `src/main/${languageLC.raw}/${sourceFile.raw}` is shown here:
+
+.Generated src/main/${languageLC.raw}/${sourceFile.raw}
+[source,${languageLC.raw}]
+----
+include::{samples-dir}/groovy/${subprojectName.raw}/src/main/${languageLC.raw}/${sourceFile.raw}[]
+----
+
+The generated test, `src/test/${languageLC.raw}/${sourceFile.raw}` is shown next:
+
+.Generated src/test/${languageLC.raw}/${testSourceFile.raw}
+[source,${languageLC.raw}]
+----
+include::{samples-dir}/groovy/${subprojectName.raw}/src/test/${languageLC.raw}/${testSourceFile.raw}[]
+----
+
+The generated test class has a single ${testFramework.raw} test.
+The test instantiates the `${exampleClass.raw}` class, invokes a method on it, and checks that it returns the expected value.

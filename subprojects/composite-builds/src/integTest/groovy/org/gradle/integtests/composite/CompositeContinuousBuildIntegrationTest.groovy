@@ -168,7 +168,7 @@ class CompositeContinuousBuildIntegrationTest extends AbstractContinuousIntegrat
 
         when:
         succeeds("--status")
-        succeeds("tasks", "--debug")
+        succeeds("tasks")
         then:
         outputContains("Hello World")
 

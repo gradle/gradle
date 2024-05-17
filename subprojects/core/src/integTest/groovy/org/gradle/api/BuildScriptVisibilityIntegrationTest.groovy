@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 class BuildScriptVisibilityIntegrationTest extends AbstractIntegrationSpec {
     @ToBeFixedForConfigurationCache(because = "test expects scripts evaluation")
     def "methods defined in project build script are visible to descendant projects"() {
+        createDirs("child1")
         settingsFile << "include 'child1'"
         buildFile """
 def doSomething(def value) {
@@ -56,6 +57,7 @@ println "child: " + doSomethingElse(11)
 
     @ToBeFixedForConfigurationCache(because = "test expects scripts evaluation")
     def "methods defined in project build script are visible to script plugins applied to project and descendants"() {
+        createDirs("child1")
         settingsFile << "include 'child1'"
         buildFile << """
 def doSomething(def value) {
@@ -92,6 +94,7 @@ println project.path + " - " + doSomethingElse(12)
 
     @ToBeFixedForConfigurationCache(because = "test expects scripts evaluation")
     def "methods defined in project build script are visible to descendant projects when script contains only methods"() {
+        createDirs("child1")
         settingsFile << "include 'child1'"
         buildFile << """
 def doSomething(def value) {
@@ -114,6 +117,7 @@ println "child: " + doSomething(11)
 
     @ToBeFixedForConfigurationCache(because = "test expects scripts evaluation")
     def "methods defined in project build script are visible to descendant projects when script contains only methods and model block"() {
+        createDirs("child1")
         settingsFile << "include 'child1'"
         buildFile << """
 def doSomething(def value) {
@@ -142,6 +146,7 @@ println "child: " + doSomething(11)
 
     @ToBeFixedForConfigurationCache(because = "test expects scripts evaluation")
     def "properties defined in project build script are not visible to descendant projects"() {
+        createDirs("child1")
         settingsFile << "include 'child1'"
         buildFile << """
 def getProp1() {
@@ -203,6 +208,7 @@ println "child1 ok"
 
     @ToBeFixedForConfigurationCache(because = "test expects scripts evaluation")
     def "properties defined in project build script are not visible to script plugins"() {
+        createDirs("child1")
         settingsFile << "include 'child1'"
         buildFile << """
 def getProp1() {

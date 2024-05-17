@@ -15,14 +15,18 @@
  */
 package org.gradle.process;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ReplacedBy;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -31,6 +35,18 @@ import java.util.List;
  * Specifies the options for executing a Java application.
  */
 public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
+
+    /**
+     * Extra JVM arguments to be to use to launch the JVM for the process.
+     *
+     * Must be used to set a convention for JVM arguments.
+     *
+     * @since 8.1
+     */
+    @Incubating
+    @Optional
+    @Internal
+    ListProperty<String> getJvmArguments();
 
     /**
      * The name of the main module to be executed if the application should run as a Java module.
@@ -46,7 +62,6 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
      * <p>
      * This does not need to be set if using an <a href="https://docs.oracle.com/javase/tutorial/deployment/jar/appman.html">Executable Jar</a> with a {@code Main-Class} attribute.
      * <p>
-     * Use this property instead of {@link #getMain()} and {@link #setMain(String)}.
      *
      * @since 6.4
      */
@@ -55,30 +70,26 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
     Property<String> getMainClass();
 
     /**
-     * Returns the fully qualified name of the Main class to be executed.
-     * <p>
-     * This does not need to be set if using an <a href="https://docs.oracle.com/javase/tutorial/deployment/jar/appman.html">Executable Jar</a> with a {@code Main-Class} attribute.
-     * </p>
-     *
-     * @deprecated Use {@link #getMainClass()} instead. This method will be removed in Gradle 8.0.
-     */
-    @Deprecated
-    @Nullable @Optional
-    @ReplacedBy("mainClass")
-    String getMain();
-
-    /**
      * Sets the fully qualified name of the main class to be executed.
      *
      * @param main the fully qualified name of the main class to be executed.
      *
      * @return this
      *
-     * @deprecated Use {@link #getMainClass()}.set(main) instead. This method will be removed in Gradle 8.0.
+     * @deprecated Use {@link #getMainClass()}.set(main) instead. This method will be removed in Gradle 9.0.
      */
     @Deprecated
     @ReplacedBy("mainClass")
-    JavaExecSpec setMain(@Nullable String main);
+    default JavaExecSpec setMain(@Nullable String main) {
+        DeprecationLogger.deprecateProperty(JavaExecSpec.class, "main")
+                .replaceWith("mainClass")
+                .willBeRemovedInGradle9()
+                .withDslReference()
+                .nagUser();
+
+        getMainClass().set(main);
+        return this;
+    }
 
     /**
      * Returns the arguments passed to the main class to be executed.

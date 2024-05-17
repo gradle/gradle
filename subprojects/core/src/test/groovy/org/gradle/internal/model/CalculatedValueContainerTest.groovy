@@ -17,9 +17,7 @@
 package org.gradle.internal.model
 
 
-import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.NodeExecutionContext
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.internal.Describables
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.work.TestWorkerLeaseService
@@ -181,20 +179,6 @@ class CalculatedValueContainerTest extends ConcurrentSpec {
             def changed = value.compareAndSet(0, 1)
             assert changed
             return 1
-        }
-
-        @Override
-        boolean usesMutableProjectState() {
-            return false
-        }
-
-        @Override
-        ProjectInternal getOwningProject() {
-            return null
-        }
-
-        @Override
-        void visitDependencies(TaskDependencyResolveContext context) {
         }
     }
 

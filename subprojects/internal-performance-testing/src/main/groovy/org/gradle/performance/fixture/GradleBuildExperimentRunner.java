@@ -25,17 +25,18 @@ import org.gradle.internal.jvm.Jvm;
 import org.gradle.performance.results.GradleProfilerReporter;
 import org.gradle.performance.results.MeasuredOperationList;
 import org.gradle.performance.results.OutputDirSelector;
+import org.gradle.performance.results.OutputDirSelectorUtil;
 import org.gradle.profiler.BuildAction;
-import org.gradle.profiler.DaemonControl;
 import org.gradle.profiler.GradleBuildConfiguration;
-import org.gradle.profiler.GradleBuildInvoker;
-import org.gradle.profiler.GradleScenarioDefinition;
-import org.gradle.profiler.GradleScenarioInvoker;
 import org.gradle.profiler.InvocationSettings;
 import org.gradle.profiler.Logging;
-import org.gradle.profiler.RunTasksAction;
 import org.gradle.profiler.ScenarioDefinition;
 import org.gradle.profiler.ScenarioInvoker;
+import org.gradle.profiler.gradle.DaemonControl;
+import org.gradle.profiler.gradle.GradleBuildInvoker;
+import org.gradle.profiler.gradle.GradleScenarioDefinition;
+import org.gradle.profiler.gradle.GradleScenarioInvoker;
+import org.gradle.profiler.gradle.RunTasksAction;
 import org.gradle.profiler.instrument.PidInstrumentation;
 import org.gradle.profiler.result.BuildInvocationResult;
 import org.gradle.profiler.studio.invoker.StudioGradleScenarioDefinition;
@@ -101,7 +102,11 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
             GradleScenarioInvoker scenarioInvoker = createScenarioInvoker(invocationSettings.getGradleUserHome());
             Logging.setupLogging(workingDirectory);
             if (buildSpec.isUseAndroidStudio()) {
-                StudioGradleScenarioDefinition studioScenarioDefinition = new StudioGradleScenarioDefinition(scenarioDefinition, buildSpec.getStudioJvmArgs());
+                StudioGradleScenarioDefinition studioScenarioDefinition = new StudioGradleScenarioDefinition(
+                    scenarioDefinition,
+                    buildSpec.getStudioJvmArgs(),
+                    buildSpec.getStudioIdeaProperties()
+                );
                 StudioGradleScenarioInvoker studioScenarioInvoker = new StudioGradleScenarioInvoker(scenarioInvoker);
                 doRunScenario(studioScenarioDefinition, studioScenarioInvoker, invocationSettings, results);
             } else {
@@ -211,7 +216,7 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
             .addAll(invocationSpec.getJvmArguments())
             .build();
         return new GradleScenarioDefinition(
-            OutputDirSelector.fileSafeNameFor(experimentSpec.getDisplayName()),
+            OutputDirSelectorUtil.fileSafeNameFor(experimentSpec.getDisplayName()),
             experimentSpec.getDisplayName(),
             (GradleBuildInvoker) invocationSettings.getInvoker(),
             new GradleBuildConfiguration(gradleDistribution.getVersion(), gradleDistribution.getGradleHomeDir(), Jvm.current().getJavaHome(), actualJvmArgs, false, invocationSpec.getClientJvmArguments()),

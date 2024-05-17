@@ -47,6 +47,13 @@ public interface WorkerProcessSettings {
 
     WorkerProcessSettings sharedPackages(Iterable<String> packages);
 
+    /**
+     * The packages which are allowed to leak from the application classpath into the implementation classpath.
+     * These packages affect both classes and resources.
+     * Subpackages of the provided packages are also shared with the implementation classpath.
+     *
+     * @return The list of packages which are shared from the application to the implementation classpath.
+     */
     Set<String> getSharedPackages();
 
     JavaExecHandleBuilder getJavaCommand();

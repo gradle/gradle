@@ -1,0 +1,168 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[part6_gradle_caching]]
+= Part 6: Enabling the Gradle Build Cache
+
+Learn the basics of Gradle's caching system.
+
+****
+**In this section you will:**
+
+- Turn on the local Build Cache
+- Understand caching
+- Explore remote build caching
+****
+
+[[part6_begin]]
+== Step 0. Before you Begin
+
+1. You initialized your Java app in <<part1_gradle_init.adoc#part1_begin,part 1>>.
+2. You ran several tasks in <<part2_gradle_tasks#part2_begin,part 2>>.
+3. You learned about dependency management in <<part3_gradle_dep_man#part3_begin,part 3>>.
+4. You applied a plugin to your app in <<part4_gradle_plugins#part4_begin,part 4>>.
+5. You learned about incremental builds in <<part5_gradle_inc_builds#part5_begin,part 5>>.
+
+== Step 1. Understanding Caching
+Incremental Builds are a great optimization that helps avoid work that is already done.
+If a developer is continuously making changes in a single file, there is likely no need to rebuild all the other files in the project.
+
+However, what happens when the same developer decides to switch to a new branch created last week?
+The files are rebuilt, even though the developer is building something that has been built before.
+
+This is where a Build Cache is helpful. The cache stores previous build results, and greatly reduces the need to rebuild things when they have already been built locally.
+
+Let's start by turning on the local Build Cache for your app.
+
+== Step 2. Enabling the Local Build Cache
+Run the clean task and then the build task using the `./gradlew :app:clean :app:build` command:
+[source]
+----
+$ ./gradlew :app:clean :app:build
+> Task :app:clean
+> Task :app:compileJava
+> Task :app:processResources NO-SOURCE
+> Task :app:classes
+> Task :app:jar
+> Task :app:startScripts
+> Task :app:distTar
+> Task :app:distZip
+> Task :app:assemble
+> Task :app:compileTestJava
+> Task :app:processTestResources NO-SOURCE
+> Task :app:testClasses
+> Task :app:test
+> Task :app:check
+> Task :app:build
+
+BUILD SUCCESSFUL in 1s
+8 actionable tasks: 8 executed
+----
+
+Add `org.gradle.caching=true` to the `gradle.properties` file:
+[source]
+----
+org.gradle.console=verbose
+org.gradle.caching=true
+----
+
+== Step 3. Using the Local Build Cache
+Run the build task to populate the local Build Cache:
+[source]
+----
+$ ./gradlew :app:build
+
+> Task :app:compileJava UP-TO-DATE
+> Task :app:processResources NO-SOURCE
+> Task :app:classes UP-TO-DATE
+> Task :app:jar UP-TO-DATE
+> Task :app:startScripts UP-TO-DATE
+> Task :app:distTar UP-TO-DATE
+> Task :app:distZip UP-TO-DATE
+> Task :app:assemble UP-TO-DATE
+> Task :app:compileTestJava UP-TO-DATE
+> Task :app:processTestResources NO-SOURCE
+> Task :app:testClasses UP-TO-DATE
+> Task :app:test UP-TO-DATE
+> Task :app:check UP-TO-DATE
+> Task :app:build UP-TO-DATE
+
+BUILD SUCCESSFUL in 409ms
+7 actionable tasks: 7 up-to-date
+----
+
+No surprise here, thanks to incremental builds, Gradle noticed nothing changed.
+However, in the background, the local build cache has been populated.
+
+Let's run the clean and build again:
+[source]
+----
+$ ./gradlew :app:clean :app:build
+
+> Task :app:clean
+> Task :app:compileJava FROM-CACHE
+> Task :app:processResources NO-SOURCE
+> Task :app:classes UP-TO-DATE
+> Task :app:jar
+> Task :app:startScripts
+> Task :app:distTar
+> Task :app:distZip
+> Task :app:assemble
+> Task :app:compileTestJava FROM-CACHE
+> Task :app:processTestResources NO-SOURCE
+> Task :app:testClasses UP-TO-DATE
+> Task :app:test FROM-CACHE
+> Task :app:check UP-TO-DATE
+> Task :app:build
+
+BUILD SUCCESSFUL in 525ms
+8 actionable tasks: 5 executed, 3 from cache
+----
+
+Gradle lets us know the outcome of each task in the console output:
+
+- `FROM-CACHE` - tasks have been fetched from the local build cache.
+- `UP-TO-DATE` - tasks that used incremental build and were not re-run.
+
+To summarize:
+
+1. First, we used the `build` task to populate our local cache with task inputs and outputs -- we can imagine this was done a week ago.
+2. Then, we used the `clean` task to mimic switching branches -- overriding previous outputs.
+3. Finally, we used the `build` task -- unlike incremental builds, the previous outputs were stored in the local cache and could be reused.
+
+Gradle is efficient, especially with the local build cache turned on.
+Gradle will look at the cache directory on your machine to check for output files that may already exist. If they do, instead of running that task, it will copy its (output) results into your project `build` directory.
+
+The _outcome label_ `FROM-CACHE` lets the user know that Gradle has fetched the task results from the local build cache.
+
+The local Gradle Build Cache is located at:
+
+- **On Windows**: %USERPROFILE%\.gradle\caches
+- **On OS X / UNIX**: ~/.gradle/caches/
+
+Gradle will periodically clean up the local build cache directory by removing entries that have not been used recently to conserve disk space.
+
+== Step 4. Understanding Remote Caching
+In addition to the local build cache present on a developer's machine, Gradle can make use of remote build caches which can be used by multiple developers.
+
+The idea of a remote cache is to share commonly built task outputs across remote builds to improve build times.
+
+When both remote and local caches are enabled, then the build output is first checked in the local cache.
+If the output isn't present in the local cache, it'll be downloaded from the remote cache and also stored in the local cache.
+
+To try out the remote Build Cache, Gradle provides a free link:https://hub.docker.com/r/gradle/build-cache-node[Docker image] for a single remote Build Cache node.
+For production grade deployments, link:https://gradle.com/gradle-enterprise-solutions/build-cache/[Develocity] is recommended.
+
+[.text-right]
+**Next Step:** <<part7_gradle_refs.adoc#part7_begin,Using Reference Materials>> >>

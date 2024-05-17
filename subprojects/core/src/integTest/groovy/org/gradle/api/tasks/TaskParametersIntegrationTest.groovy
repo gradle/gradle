@@ -27,11 +27,10 @@ import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.Actions
-import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
-import org.gradle.internal.reflect.validation.ValidationTestFor
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
-import spock.lang.Requires
 
 class TaskParametersIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
 
@@ -150,7 +149,10 @@ class TaskParametersIntegrationTest extends AbstractIntegrationSpec implements V
                 @OutputDirectory File outputs1
                 @OutputDirectory File outputs2
 
-                @TaskAction void action() {}
+                @TaskAction void action() {
+                    new File(outputs1, "output1.txt").text = "output1"
+                    new File(outputs2, "output2.txt").text = "output2"
+                }
             }
         """
 
@@ -188,6 +190,7 @@ class TaskParametersIntegrationTest extends AbstractIntegrationSpec implements V
         then:
         executedAndNotSkipped ':test'
         outputContains "Output property 'outputs1' file ${file("build/output1")} has been removed."
+        outputContains "Output property 'outputs1' file ${file("build/output1/output1.txt")} has been removed."
         outputContains "Output property 'outputs2' file ${file("build/output2")} has been removed."
 
         when:
@@ -376,7 +379,7 @@ task someTask {
         "123"                | "123 as short"
     }
 
-    @Requires({ GradleContextualExecuter.embedded })
+    @Requires(IntegTestPreconditions.IsEmbeddedExecutor)
     // this test only works in embedded mode because of the use of validation test fixtures
     def "invalid task causes VFS to drop"() {
         buildFile << """
@@ -402,7 +405,7 @@ task someTask {
         outputContains("Invalidating VFS because task ':invalid' failed validation")
     }
 
-    @Requires({ GradleContextualExecuter.embedded })
+    @Requires(IntegTestPreconditions.IsEmbeddedExecutor)
     // this test only works in embedded mode because of the use of validation test fixtures
     def "validation warnings are displayed once"() {
         buildFile << """
@@ -428,7 +431,7 @@ task someTask {
         output.count("- Type 'InvalidTask' property 'inputFile' test problem. Reason: This is a test.") == 1
     }
 
-    @Requires({ GradleContextualExecuter.embedded })
+    @Requires(IntegTestPreconditions.IsEmbeddedExecutor)
     // this test only works in embedded mode because of the use of validation test fixtures
     def "validation warnings are reported even when task is skipped"() {
         buildFile << """
@@ -453,10 +456,6 @@ task someTask {
         skipped(":invalid")
     }
 
-    @ValidationTestFor([
-        ValidationProblemId.MUTABLE_TYPE_WITH_SETTER,
-        ValidationProblemId.INCORRECT_USE_OF_INPUT_ANNOTATION
-    ])
     def "task can use input property of type #type"() {
         file("buildSrc/src/main/java/SomeTask.java") << """
 import org.gradle.api.DefaultTask;
@@ -554,9 +553,6 @@ task someTask(type: SomeTask) {
         "${MapProperty.name}<String, Number>" | "objects.mapProperty(String, Number); v.set([a: 12])" | "objects.mapProperty(String, Number); v.set([a: 10])"        | null
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.VALUE_NOT_SET
-    )
     def "null input properties registered via TaskInputs.property are not allowed"() {
         expectReindentedValidationMessage()
         buildFile << """
@@ -582,9 +578,6 @@ task someTask(type: SomeTask) {
         succeeds "test"
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.VALUE_NOT_SET
-    )
     def "null input files registered via TaskInputs.#method are not allowed"() {
         expectReindentedValidationMessage()
         buildFile << """
@@ -616,9 +609,6 @@ task someTask(type: SomeTask) {
         method << ["file", "files", "dir"]
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.VALUE_NOT_SET
-    )
     def "null output files registered via TaskOutputs.#method are not allowed"() {
         expectReindentedValidationMessage()
         buildFile << """
@@ -650,9 +640,6 @@ task someTask(type: SomeTask) {
         method << ["file", "files", "dir", "dirs"]
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.INPUT_FILE_DOES_NOT_EXIST
-    )
     def "missing input files registered via TaskInputs.#method are not allowed"() {
         expectReindentedValidationMessage()
         buildFile << """
@@ -679,9 +666,6 @@ task someTask(type: SomeTask) {
         "dir"  | "Directory"
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.UNEXPECTED_INPUT_FILE_TYPE
-    )
     def "wrong input file type registered via TaskInputs.#method is not allowed"() {
         expectReindentedValidationMessage()
         file("input-file.txt").touch()
@@ -710,9 +694,6 @@ task someTask(type: SomeTask) {
         "dir"  | "input-file.txt" | "directory"
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.CANNOT_WRITE_OUTPUT
-    )
     def "wrong output file type registered via TaskOutputs.#method is not allowed (files)"() {
         expectReindentedValidationMessage()
         def outputDir = file("output-dir")
@@ -739,9 +720,6 @@ task someTask(type: SomeTask) {
         "files" | "output-dir"
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.CANNOT_WRITE_OUTPUT
-    )
     def "wrong output file type registered via TaskOutputs.#method is not allowed (directories)"() {
         expectReindentedValidationMessage()
         def outputFile = file("output-file.txt")
@@ -763,14 +741,11 @@ task someTask(type: SomeTask) {
         })
 
         where:
-        method  | path
-        "dir"   | "output-file.txt"
-        "dirs"  | "output-file.txt"
+        method | path
+        "dir"  | "output-file.txt"
+        "dirs" | "output-file.txt"
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.CANNOT_WRITE_OUTPUT
-    )
     @Issue("https://github.com/gradle/gradle/issues/15679")
     def "fileTrees with regular file roots cannot be used as output files"() {
         expectReindentedValidationMessage()
@@ -853,12 +828,14 @@ task someTask(type: SomeTask) {
 
         when:
         fails "failingTask"
+
         then:
-        failureHasCause("Failed to calculate the value of task ':failingTask' property 'stringInput'.")
-        failureHasCause("BOOM")
         if (GradleContextualExecuter.isConfigCache()) {
-            failureDescriptionContains("Configuration cache problems found in this build.")
+            failureDescriptionContains("Configuration cache state could not be cached: field `__stringInput__` of task `:failingTask` of type `FailingTask`: error writing value of type 'org.gradle.api.internal.provider.DefaultProperty'")
+        } else {
+            failureHasCause("Failed to calculate the value of task ':failingTask' property 'stringInput'.")
         }
+        failureHasCause("BOOM")
     }
 
     @ToBeFixedForConfigurationCache
@@ -959,47 +936,45 @@ task someTask(type: SomeTask) {
                 evaluationCountService = evaluationCount
             }
 
-            task assertInputCounts {
+            task printCounts {
                 dependsOn myTask
-                def propertyNames = ['outputFileCount', 'inputFileCount', 'inputValueCount', 'nestedInputCount', 'nestedInputValueCount']
-                def gradleProperties = propertyNames.collectEntries { [(it) : providers.gradleProperty(it)]}
                 doLast {
-                    ['outputFileCount', 'inputFileCount', 'inputValueCount', 'nestedInputCount', 'nestedInputValueCount'].each { name ->
+                    println(['outputFileCount', 'inputFileCount', 'inputValueCount', 'nestedInputCount', 'nestedInputValueCount'].collect { name ->
                         def actualCount = evaluationCount.get()."\$name"
-                        def expectedCount = gradleProperties[name].get() as Integer
-                        assert actualCount == expectedCount : name
-                    }
+                        return "\$name = \$actualCount"
+                    }.join(", "))
                 }
             }
         """
         def inputFile = file('input.txt')
         inputFile.text = "input"
-        def expectedCounts = [inputFile: 3, outputFile: 2, nestedInput: 3, inputValue: 1, nestedInputValue: 1]
-        def expectedIncrementalCounts = expectedCounts
-        def expectedUpToDateCounts = [inputFile: 2, outputFile: 1, nestedInput: 3, inputValue: 1, nestedInputValue: 1]
-        def arguments = ["assertInputCounts"] + expectedCounts.collect { name, count -> "-P${name}Count=${count}" }
-        def incrementalBuildArguments = ["assertInputCounts"] + expectedIncrementalCounts.collect { name, count -> "-P${name}Count=${count}" }
-        def upToDateArguments = ["assertInputCounts"] + expectedUpToDateCounts.collect { name, count -> "-P${name}Count=${count}" }
         def localCache = new TestBuildCache(file('cache-dir'))
         settingsFile << localCache.localCacheConfiguration()
 
-        expect:
-        succeeds(*arguments)
+        when:
+        succeeds("printCounts")
+        then:
         executedAndNotSkipped(':myTask')
+        outputContains("outputFileCount = 2, inputFileCount = 3, inputValueCount = 1, nestedInputCount = 3, nestedInputValueCount = 1")
 
         when:
         inputFile.text = "changed"
+        withBuildCache().succeeds("printCounts")
         then:
-        withBuildCache().succeeds(*incrementalBuildArguments)
         executedAndNotSkipped(':myTask')
-        and:
-        succeeds(*upToDateArguments)
+        outputContains("outputFileCount = 2, inputFileCount = 3, inputValueCount = 1, nestedInputCount = 3, nestedInputValueCount = 1")
+
+        when:
+        succeeds("printCounts")
+        then:
         skipped(':myTask')
+        outputContains("outputFileCount = 1, inputFileCount = 2, inputValueCount = 1, nestedInputCount = 3, nestedInputValueCount = 1")
 
         when:
         file('build').deleteDir()
+        withBuildCache().succeeds("printCounts")
         then:
-        withBuildCache().succeeds(*upToDateArguments)
         skipped(':myTask')
+        outputContains("outputFileCount = 1, inputFileCount = 2, inputValueCount = 1, nestedInputCount = 3, nestedInputValueCount = 1")
     }
 }

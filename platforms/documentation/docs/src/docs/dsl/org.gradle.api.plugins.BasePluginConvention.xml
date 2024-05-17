@@ -1,0 +1,43 @@
+<section>
+    <section>
+        <title>Properties</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                    <td>Default with <literal>java</literal> plugin</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>distsDirectory</td>
+                <td><literal><replaceable>${project.layout.buildDirectory}</replaceable>/<replaceable>${project.distsDirName}</replaceable></literal></td>
+            </tr>
+            <tr>
+                <td>distsDirName</td>
+                <td><literal>'distributions'</literal></td>
+            </tr>
+            <tr>
+                <td>libsDirectory</td>
+                <td><literal><replaceable>${project.layout.buildDirectory}</replaceable>/<replaceable>${project.libsDirName}</replaceable></literal></td>
+            </tr>
+            <tr>
+                <td>libsDirName</td>
+                <td><literal>'libs'</literal></td>
+            </tr>
+            <tr>
+                <td>archivesBaseName</td>
+                <td><literal>project.name</literal></td>
+            </tr>
+        </table>
+    </section>
+    <section>
+        <title>Methods</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                </tr>
+            </thead>
+        </table>
+    </section>
+</section>

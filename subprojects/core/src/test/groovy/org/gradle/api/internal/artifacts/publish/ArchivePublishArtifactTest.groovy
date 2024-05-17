@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.publish
 
-
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.copy.CopyAction
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -34,7 +34,7 @@ class ArchivePublishArtifactTest extends Specification {
         quiteEmptyJar.destinationDirectory.set(temporaryFolder.testDirectory)
 
         when:
-        def a = new ArchivePublishArtifact(quiteEmptyJar)
+        def a = new ArchivePublishArtifact(TestFiles.taskDependencyFactory(), quiteEmptyJar)
 
         then:
         a.archiveTask == quiteEmptyJar
@@ -56,16 +56,17 @@ class ArchivePublishArtifactTest extends Specification {
         withAppendix.archiveAppendix.set("javadoc")
         def withAppendixOnly = testUtil.task(DummyJar)
         withAppendixOnly.archiveAppendix.set("javadoc")
+        def taskDependencyFactory = TestFiles.taskDependencyFactory()
 
         expect:
-        new ArchivePublishArtifact(noName).name == null
-        new ArchivePublishArtifact(withArchiveName).name == null
-        def baseNameArtifact = new ArchivePublishArtifact(withBaseName)
+        new ArchivePublishArtifact(taskDependencyFactory, noName).name == null
+        new ArchivePublishArtifact(taskDependencyFactory, withArchiveName).name == null
+        def baseNameArtifact = new ArchivePublishArtifact(taskDependencyFactory, withBaseName)
         baseNameArtifact.name == "foo"
         baseNameArtifact.setName("haha")
         baseNameArtifact.name == "haha"
-        new ArchivePublishArtifact(withAppendix).name == "foo-javadoc"
-        new ArchivePublishArtifact(withAppendixOnly).name == "javadoc"
+        new ArchivePublishArtifact(taskDependencyFactory, withAppendix).name == "foo-javadoc"
+        new ArchivePublishArtifact(taskDependencyFactory, withAppendixOnly).name == "javadoc"
     }
 
     static class DummyJar extends AbstractArchiveTask {

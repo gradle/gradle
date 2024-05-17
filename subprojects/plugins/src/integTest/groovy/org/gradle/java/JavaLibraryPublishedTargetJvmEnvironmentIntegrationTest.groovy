@@ -168,6 +168,7 @@ class JavaLibraryPublishedTargetJvmEnvironmentIntegrationTest extends AbstractHt
                         'org.gradle.dependency.bundling': 'external',
                         'org.gradle.status': 'release'
                     ])
+                    byConstraint()
                     artifact(classifier: 'jre')
                 }
             }
@@ -197,7 +198,6 @@ class JavaLibraryPublishedTargetJvmEnvironmentIntegrationTest extends AbstractHt
                         'org.gradle.usage': 'java-api',
                         'org.gradle.status': 'release'
                     ])
-                    artifact([:])
                 }
             }
         }

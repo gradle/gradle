@@ -18,6 +18,7 @@ package org.gradle.plugin.management.internal;
 
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.plugin.management.PluginRequest;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
 
@@ -31,7 +32,8 @@ public class DefaultPluginRequest implements PluginRequestInternal {
     private final Integer lineNumber;
     private final String scriptDisplayName;
     private final ModuleVersionSelector artifact;
-    private final PluginRequestInternal originalRequest;
+    private final PluginRequest originalRequest;
+    private final Origin origin;
 
     public DefaultPluginRequest(PluginId id, String version, boolean apply, Integer lineNumber, ScriptSource scriptSource) {
         this(id, version, apply, lineNumber, scriptSource.getDisplayName(), null);
@@ -42,11 +44,19 @@ public class DefaultPluginRequest implements PluginRequestInternal {
     }
 
     public DefaultPluginRequest(PluginId id, String version, boolean apply, Integer lineNumber, String scriptDisplayName, ModuleVersionSelector artifact) {
-        this(id, version, apply, lineNumber, scriptDisplayName, artifact, null);
+        this(id, version, apply, lineNumber, scriptDisplayName, artifact, null, Origin.OTHER);
     }
 
-    public DefaultPluginRequest(PluginId id, String version, boolean apply, Integer lineNumber, String scriptDisplayName, ModuleVersionSelector artifact,
-                                PluginRequestInternal originalRequest) {
+    public DefaultPluginRequest(
+        PluginId id,
+        String version,
+        boolean apply,
+        Integer lineNumber,
+        String scriptDisplayName,
+        ModuleVersionSelector artifact,
+        PluginRequest originalRequest,
+        Origin origin
+    ) {
         this.id = id;
         this.version = version;
         this.apply = apply;
@@ -54,6 +64,7 @@ public class DefaultPluginRequest implements PluginRequestInternal {
         this.scriptDisplayName = scriptDisplayName;
         this.artifact = artifact;
         this.originalRequest = originalRequest != null ? originalRequest : this;
+        this.origin = origin;
     }
 
     @Override
@@ -111,7 +122,12 @@ public class DefaultPluginRequest implements PluginRequestInternal {
     }
 
     @Override
-    public PluginRequestInternal getOriginalRequest() {
+    public PluginRequest getOriginalRequest() {
         return originalRequest;
+    }
+
+    @Override
+    public Origin getOrigin() {
+        return origin;
     }
 }

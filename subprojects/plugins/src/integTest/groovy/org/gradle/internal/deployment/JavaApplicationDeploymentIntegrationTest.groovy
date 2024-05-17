@@ -16,10 +16,12 @@
 
 package org.gradle.internal.deployment
 
+import com.gradle.enterprise.testing.annotations.LocalOnly
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestFile
 
+@LocalOnly(because = "https://github.com/gradle/gradle-private/issues/3499")
 class JavaApplicationDeploymentIntegrationTest extends AbstractContinuousIntegrationTest {
     TestFile messageSrc
 

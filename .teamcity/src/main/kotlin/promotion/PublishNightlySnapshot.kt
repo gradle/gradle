@@ -17,14 +17,14 @@
 package promotion
 
 import common.VersionedSettingsBranch
-import configurations.branchFilter
+import jetbrains.buildServer.configs.kotlin.v2019_2.triggers.ScheduleTrigger
 import jetbrains.buildServer.configs.kotlin.v2019_2.triggers.schedule
 import vcsroots.gradlePromotionBranches
 
-class PublishNightlySnapshot(branch: VersionedSettingsBranch) : PublishGradleDistributionBothSteps(
+class PublishNightlySnapshot(branch: VersionedSettingsBranch) : PublishGradleDistributionFullBuild(
     promotedBranch = branch.branchName,
     prepTask = branch.prepNightlyTaskName(),
-    step2TargetTask = branch.promoteNightlyTaskName(),
+    promoteTask = branch.promoteNightlyTaskName(),
     triggerName = "ReadyforNightly",
     vcsRootId = gradlePromotionBranches
 ) {
@@ -34,24 +34,28 @@ class PublishNightlySnapshot(branch: VersionedSettingsBranch) : PublishGradleDis
         description = "Promotes the latest successful changes on '${branch.branchName}' from Ready for Nightly as a new nightly snapshot"
 
         triggers {
-            branch.triggeredHour()?.apply {
+            branch.nightlyPromotionTriggerHour?.let { triggerHour ->
                 schedule {
-                    schedulingPolicy = daily {
-                        this.hour = this@apply
+                    if (branch.isMainBranch) {
+                        schedulingPolicy = daily {
+                            this.hour = triggerHour
+                        }
+                    } else {
+                        schedulingPolicy = weekly {
+                            this.dayOfWeek = ScheduleTrigger.DAY.Saturday
+                            this.hour = triggerHour
+                        }
                     }
                     triggerBuild = always()
-                    withPendingChangesOnly = true
-                    enabled = branch.enableTriggers
-                    branchFilter = branch.branchFilter()
+                    withPendingChangesOnly = branch.isMainBranch
+                    enabled = branch.enableVcsTriggers
+                    // https://www.jetbrains.com/help/teamcity/2022.04/configuring-schedule-triggers.html#general-syntax-1
+                    // We want it to be triggered only when there're pending changes in the specific vcs root, i.e. GradleMaster/GradleRelease
+                    triggerRules = "+:root=${VersionedSettingsBranch.fromDslContext().vcsRootId()}:."
+                    // The promotion itself will be triggered on gradle-promote's master branch
+                    branchFilter = "+:master"
                 }
             }
         }
     }
-}
-
-// Avoid two jobs running at the same time and causing troubles
-private fun VersionedSettingsBranch.triggeredHour() = when {
-    isMaster -> 0
-    isRelease -> 1
-    else -> null
 }

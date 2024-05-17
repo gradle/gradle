@@ -1,0 +1,15 @@
+class UserInfo {
+    String name
+    String email
+}
+
+tasks.register('configure') {
+    def user = configure(new UserInfo()) {
+        name = "Isaac Newton"
+        email = "isaac@newton.me"
+    }
+    doLast {
+        println user.name
+        println user.email
+    }
+}

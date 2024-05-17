@@ -29,7 +29,7 @@ import java.lang.annotation.Target;
  *
  * <p>Consider using {@link IgnoreEmptyDirectories} as well, if the task only works on files and not on directories.</p>
  *
- * <p>Inputs annotated with this annotation can be queried for changes via {@link org.gradle.work.InputChanges#getFileChanges(org.gradle.api.file.FileCollection)} or {@link org.gradle.work.InputChanges#getFileChanges(org.gradle.api.provider.Provider)}.</p>
+ * <p>This annotation implies {@link org.gradle.work.Incremental}, and thus inputs annotated with this annotation can also be queried for changes.</p>
  *
  * <p>This annotation should be attached to the getter method in Java or the property in Groovy.
  * Annotations on setters or just the field in Java are ignored.</p>

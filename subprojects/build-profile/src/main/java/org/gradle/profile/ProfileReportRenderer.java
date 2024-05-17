@@ -169,7 +169,7 @@ public class ProfileReportRenderer {
                                     htmlWriter.startElement("td").attribute("class", "numeric").characters(TimeFormatting.formatDurationVeryTerse(model.getElapsedArtifactTransformTime())).endElement();
                                 htmlWriter.endElement();
 
-                                for (Operation operation : model.getTransformations()) {
+                                for (Operation operation : model.getTransforms()) {
                                     htmlWriter.startElement("tr");
                                         htmlWriter.startElement("td").characters(operation.getDescription()).endElement();
                                         htmlWriter.startElement("td").attribute("class", "numeric").characters(TimeFormatting.formatDurationVeryTerse(operation.getElapsedTime())).endElement();

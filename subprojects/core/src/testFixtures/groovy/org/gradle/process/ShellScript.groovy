@@ -178,7 +178,7 @@ abstract class ShellScript {
 
         @Override
         Builder printText(String text) {
-            return addLine("echo \"$text\"")
+            return addLine("echo $text")
         }
 
         @Override

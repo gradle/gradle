@@ -95,9 +95,11 @@ import java.util.Map;
  * }
  *
  * dependencies {
- *   implementation('org.hibernate:hibernate:3.1') {
+ *   implementation('org.hibernate:hibernate') {
  *     //in case of versions conflict '3.1' version of hibernate wins:
- *     force = true
+ *     version {
+ *       strictly('3.1')
+ *     }
  *
  *     //excluding a particular transitive dependency:
  *     exclude module: 'cglib' //by artifact name
@@ -193,8 +195,9 @@ import java.util.Map;
  * <p>The notation <code>project(':project-a')</code> is similar to the syntax you use
  * when configuring a projectA in a multi-module gradle project.
  *
- * <p>By default, when you declare dependency to projectA, you actually declare dependency to the 'default' configuration of the projectA.
- * If you need to depend on a specific configuration of projectA, use map notation for projects:
+ * <p>Project dependencies are resolved by treating each consumable configuration in the target
+ * project as a variant and performing variant-aware attribute matching against them.
+ * However, in order to override this process, an explicit target configuration can be specified:
  * <p><code><i>configurationName</i> project(path: ':project-a', configuration: 'someOtherConfiguration')</code>
  *
  * <p>Project dependencies are represented using a {@link org.gradle.api.artifacts.ProjectDependency}.
@@ -255,6 +258,9 @@ import java.util.Map;
  *
  * <h3>Client module dependencies</h3>
  *
+ * <strong>Client module dependencies are deprecated and will be removed in Gradle 9.0.
+ * Use component metadata rules instead.</strong>
+ *
  * <p>To add a client module to a configuration you can use the notation:</p>
  *
  * <pre>
@@ -288,6 +294,7 @@ public interface DependencyHandler extends ExtensionAware {
      * @param configureClosure The closure to use to configure the dependency.
      * @return The dependency, or null if dependencyNotation is a provider.
      */
+    @Nullable
     Dependency add(String configurationName, Object dependencyNotation, Closure configureClosure);
 
     /**
@@ -355,7 +362,10 @@ public interface DependencyHandler extends ExtensionAware {
      *
      * @param notation The module notation, in one of the notations described above.
      * @return The dependency.
+     *
+     * @deprecated Use component metadata rules instead. This method will be removed in Gradle 9.0.
      */
+    @Deprecated
     Dependency module(Object notation);
 
     /**
@@ -365,7 +375,10 @@ public interface DependencyHandler extends ExtensionAware {
      * @param notation The module notation, in one of the notations described above.
      * @param configureClosure The closure to use to configure the dependency.
      * @return The dependency.
+     *
+     * @deprecated Use component metadata rules instead. This method will be removed in Gradle 9.0.
      */
+    @Deprecated
     Dependency module(Object notation, Closure configureClosure);
 
     /**
@@ -489,17 +502,6 @@ public interface DependencyHandler extends ExtensionAware {
      * @since 4.0
      */
     void artifactTypes(Action<? super ArtifactTypeContainer> configureAction);
-
-    /**
-     * Registers an artifact transform.
-     *
-     * @deprecated use {@link #registerTransform(Class, Action)} instead.
-     * @see org.gradle.api.artifacts.transform.ArtifactTransform
-     * @since 3.5
-     */
-    @Deprecated
-    @SuppressWarnings("deprecation")
-    void registerTransform(Action<? super org.gradle.api.artifacts.transform.VariantTransform> registrationAction);
 
     /**
      * Registers an <a href="https://docs.gradle.org/current/userguide/artifact_transforms.html">artifact transform</a>.

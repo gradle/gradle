@@ -1,3 +1,6 @@
+import gradlebuild.basics.buildBranch
+import gradlebuild.basics.buildCommitId
+
 plugins {
     id("gradlebuild.internal.java")
 }
@@ -22,6 +25,6 @@ dependencies {
 }
 
 tasks.forkingIntegTest {
-    systemProperty("gradleBuildBranch", moduleIdentity.gradleBuildBranch.get())
-    systemProperty("gradleBuildCommitId", moduleIdentity.gradleBuildCommitId.get())
+    systemProperty("gradleBuildBranch", buildBranch.get())
+    systemProperty("gradleBuildCommitId", buildCommitId.get())
 }

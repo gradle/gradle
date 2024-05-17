@@ -15,7 +15,6 @@
  */
 package org.gradle.initialization.layout
 
-
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule

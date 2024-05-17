@@ -18,7 +18,6 @@ package org.gradle.initialization;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.controller.RootBuildCacheControllerRef;
@@ -43,9 +42,9 @@ public class RootBuildCacheControllerSettingsProcessor implements SettingsProces
     }
 
     @Override
-    public SettingsInternal process(GradleInternal gradle, SettingsLocation settingsLocation, ClassLoaderScope buildRootClassLoaderScope, StartParameter startParameter) {
-        SettingsInternal settings = delegate.process(gradle, settingsLocation, buildRootClassLoaderScope, startParameter);
+    public SettingsState process(GradleInternal gradle, SettingsLocation settingsLocation, ClassLoaderScope buildRootClassLoaderScope, StartParameter startParameter) {
+        SettingsState state = delegate.process(gradle, settingsLocation, buildRootClassLoaderScope, startParameter);
         process(gradle);
-        return settings;
+        return state;
     }
 }

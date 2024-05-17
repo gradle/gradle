@@ -17,96 +17,92 @@ package org.gradle.api.internal.file.archive;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.file.EmptyFileVisitor;
+import org.gradle.cache.internal.TestCaches;
 import org.gradle.test.fixtures.file.TestFile;
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.TestUtil;
-import org.gradle.util.internal.Resources;
-import org.junit.Rule;
 import org.junit.Test;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.gradle.api.file.FileVisitorUtil.*;
-import static org.gradle.api.internal.file.TestFiles.*;
-import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContainsForAllTypes;
-import static org.gradle.util.internal.WrapUtil.toList;
+import static org.gradle.api.file.FileVisitorUtil.assertVisitsPermissions;
+import static org.gradle.api.internal.file.TestFiles.directoryFileTreeFactory;
+import static org.gradle.api.internal.file.TestFiles.fileHasher;
+import static org.gradle.api.internal.file.TestFiles.fileSystem;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.fail;
 
-public class ZipFileTreeTest {
-    @Rule public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass());
-    @Rule public final Resources resources = new Resources();
-    private final TestFile zipFile = tmpDir.getTestDirectory().file("test.zip");
-    private final TestFile rootDir = tmpDir.getTestDirectory().file("root");
-    private final TestFile expandDir = tmpDir.getTestDirectory().file("tmp");
-    private final ZipFileTree tree = new ZipFileTree(TestUtil.providerFactory().provider(()->zipFile), expandDir, fileSystem(), directoryFileTreeFactory(), fileHasher());
+public class ZipFileTreeTest extends AbstractArchiveFileTreeTest {
+    private final TestFile archiveFile = tempDirProvider.getTestDirectory().file("test.zip");
+    private final ZipFileTree tree = new ZipFileTree(
+            TestUtil.providerFactory().provider(() -> archiveFile),
+            fileSystem(),
+            directoryFileTreeFactory(),
+            fileHasher(),
+            TestCaches.decompressionCache(tempDirProvider.getTestDirectory().createDir("cache-dir")));
+
+    @Override
+    protected void archiveFileToRoot(TestFile file) {
+        rootDir.zipTo(file);
+    }
+
+    @Override
+    protected TestFile getArchiveFile() {
+        return archiveFile;
+    }
+
+    @Override
+    protected ZipFileTree getTree() {
+        return tree;
+    }
 
     @Test
     public void displayName() {
-        assertThat(tree.getDisplayName(), equalTo("ZIP '" + zipFile + "'"));
+        assertThat(tree.getDisplayName(), equalTo("ZIP '" + archiveFile + "'"));
     }
 
     @Test
-    public void visitsContentsOfZipFile() {
-        rootDir.file("subdir/file1.txt").write("content");
-        rootDir.file("subdir2/file2.txt").write("content");
-        rootDir.zipTo(zipFile);
-
-        assertVisits(tree, toList("subdir/file1.txt", "subdir2/file2.txt"), toList("subdir", "subdir2"));
-        assertSetContainsForAllTypes(tree, toList("subdir/file1.txt", "subdir2/file2.txt"));
-    }
-
-    @Test
-    public void canStopVisitingFiles() {
-        rootDir.file("subdir/file1.txt").write("content");
-        rootDir.file("subdir/other/file2.txt").write("content");
-        rootDir.zipTo(zipFile);
-
-        assertCanStopVisiting(tree);
-    }
-
-    @Test
-    public void failsWhenZipFileDoesNotExist() {
+    public void failsWhenArchiveFileDoesNotExist() {
         try {
-            tree.visit(null);
+            getTree().visit(new EmptyFileVisitor());
             fail();
         } catch (InvalidUserDataException e) {
-            assertThat(e.getMessage(), equalTo("Cannot expand ZIP '" + zipFile + "' as it does not exist."));
+            assertThat(e.getMessage(), equalTo("Cannot expand " + getTree().getDisplayName() + " as it does not exist."));
         }
     }
 
     @Test
-    public void failsWhenZipFileIsADirectory() {
-        zipFile.createDir();
+    public void failsWhenArchiveFileIsADirectory() {
+        getArchiveFile().createDir();
 
         try {
-            tree.visit(null);
+            getTree().visit(new EmptyFileVisitor());
             fail();
         } catch (InvalidUserDataException e) {
-            assertThat(e.getMessage(), equalTo("Cannot expand ZIP '" + zipFile + "' as it is not a file."));
+            assertThat(e.getMessage(), equalTo("Cannot expand " + getTree().getDisplayName() + " as it is not a file."));
         }
     }
 
     @Test
-    public void wrapsFailureToUnzipFile() {
-        zipFile.write("not a zip file");
+    public void wrapsFailureToUnarchiveFile() {
+        tmpDir.write("not a directory");
+        getArchiveFile().write("not an archive file");
 
         try {
-            tree.visit(null);
+            getTree().visit(new EmptyFileVisitor());
             fail();
         } catch (GradleException e) {
-            assertThat(e.getMessage(), equalTo("Could not expand ZIP '" + zipFile + "'."));
+            assertThat(e.getMessage(), equalTo("Cannot expand " + getTree().getDisplayName() + "."));
         }
     }
 
     @Test
     public void expectedFilePermissionsAreFound() {
-        resources.findResource("permissions.zip").copyTo(zipFile);
+        resources.findResource("permissions.zip").copyTo(archiveFile);
 
-        final Map<String, Integer> expected = new HashMap<String, Integer>();
+        final Map<String, Integer> expected = new HashMap<>();
         expected.put("file", 0644);
         expected.put("folder", 0755);
 
@@ -115,25 +111,12 @@ public class ZipFileTreeTest {
 
     @Test
     public void expectedDefaultForNoModeZips() {
-        resources.findResource("nomodeinfos.zip").copyTo(zipFile);
+        resources.findResource("nomodeinfos.zip").copyTo(archiveFile);
 
-        final Map<String, Integer> expected = new HashMap<String, Integer>();
+        final Map<String, Integer> expected = new HashMap<>();
         expected.put("file.txt", 0644);
         expected.put("folder", 0755);
 
         assertVisitsPermissions(tree, expected);
-    }
-
-    @Test
-    public void doesNotOverwriteFilesOnSecondVisit() throws InterruptedException {
-        rootDir.file("file1.txt").write("content");
-        rootDir.zipTo(zipFile);
-
-        assertVisits(tree, toList("file1.txt"), new ArrayList<String>());
-        TestFile content = expandDir.listFiles()[0].listFiles()[0];
-        content.makeOlder();
-        TestFile.Snapshot snapshot = content.snapshot();
-        assertVisits(tree, toList("file1.txt"), new ArrayList<String>());
-        content.assertHasNotChangedSince(snapshot);
     }
 }

@@ -16,11 +16,10 @@
 
 package org.gradle.api.internal
 
-
 import org.gradle.api.NamedDomainObjectContainer
-import org.gradle.configuration.internal.UserCodeApplicationId
 import org.gradle.internal.Actions
-import org.gradle.internal.DisplayName
+import org.gradle.internal.code.UserCodeApplicationId
+import org.gradle.internal.code.UserCodeSource
 
 abstract class AbstractNamedDomainObjectContainerSpec<T> extends AbstractNamedDomainObjectCollectionSpec<T> {
     abstract NamedDomainObjectContainer<T> getContainer()
@@ -38,7 +37,6 @@ abstract class AbstractNamedDomainObjectContainerSpec<T> extends AbstractNamedDo
 
     def "allow query and mutating methods from create using #methods.key"() {
         setupContainerDefaults()
-        String methodUnderTest = methods.key
         Closure method = bind(methods.value)
 
         when:
@@ -68,7 +66,6 @@ abstract class AbstractNamedDomainObjectContainerSpec<T> extends AbstractNamedDo
 
     def "allow query methods from register using #queryMethods.key"() {
         setupContainerDefaults()
-        String methodUnderTest = queryMethods.key
         Closure method = bind(queryMethods.value)
 
         when:
@@ -88,13 +85,13 @@ abstract class AbstractNamedDomainObjectContainerSpec<T> extends AbstractNamedDo
         UserCodeApplicationId id1 = null
         UserCodeApplicationId id2 = null
         List<UserCodeApplicationId> ids = []
-        userCodeApplicationContext.apply(Stub(DisplayName)) {
+        userCodeApplicationContext.apply(Stub(UserCodeSource)) {
             id1 = it
             container.register("a") {
                 ids << userCodeApplicationContext.current()
             }
         }
-        userCodeApplicationContext.apply(Stub(DisplayName)) {
+        userCodeApplicationContext.apply(Stub(UserCodeSource)) {
             id2 = it
             container.named("a").configure {
                 ids << userCodeApplicationContext.current()

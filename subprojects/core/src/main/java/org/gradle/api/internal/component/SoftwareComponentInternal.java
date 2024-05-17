@@ -24,5 +24,15 @@ import java.util.Set;
  * This will be replaced by {@link org.gradle.api.component.ComponentWithVariants} and other public APIs.
  */
 public interface SoftwareComponentInternal extends SoftwareComponent {
+    /**
+     * This should be called {@code getVariants} and return a set of {@link org.gradle.api.component.SoftwareComponentVariant}s,
+     * though this is currently used by KMP due to there being a missing public API. However, renaming is
+     * difficult since {@link org.gradle.api.component.ComponentWithVariants} already defines a {@code getVariants} method.
+     * The existing {@code getVariants} method however is misnamed and should probably be called {@code getChildren}, and its
+     * interface called {@code ComponentWithChildren}. The existing {@code ComponentWithVariants} actually defines an API for
+     * declaring child components, which contribute their variants as defined by this method, as remote variants in GMM.
+     * <p>
+     * This method and {@link UsageContext} should both be deprecated in favor of a new public API.
+     */
     Set<? extends UsageContext> getUsages();
 }

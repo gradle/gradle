@@ -18,6 +18,7 @@ package org.gradle.api.tasks
 
 class DeferredTaskFailureIntegrationTest extends AbstractDeferredTaskDefinitionIntegrationTest {
     def "reports failure in task constructor when task realized"() {
+        createDirs("child")
         settingsFile << """
             include "child"
         """
@@ -39,6 +40,7 @@ class DeferredTaskFailureIntegrationTest extends AbstractDeferredTaskDefinitionI
     }
 
     def "reports failure in task configuration block when task created"() {
+        createDirs("child")
         settingsFile << """
             include "child"
         """
@@ -56,6 +58,7 @@ class DeferredTaskFailureIntegrationTest extends AbstractDeferredTaskDefinitionI
     }
 
     def "reports failure in configure block when task created"() {
+        createDirs("child")
         settingsFile << """
             include "child"
         """
@@ -177,6 +180,7 @@ class DeferredTaskFailureIntegrationTest extends AbstractDeferredTaskDefinitionI
     }
 
     def "cannot execute #description during lazy task creation action execution"() {
+        createDirs("nested")
         settingsFile << "include 'nested'"
         buildFile << """
             tasks.register("foo") {
@@ -194,6 +198,7 @@ class DeferredTaskFailureIntegrationTest extends AbstractDeferredTaskDefinitionI
     }
 
     def "cannot execute #description during lazy task configuration action execution"() {
+        createDirs("nested")
         settingsFile << "include 'nested'"
         buildFile << """
             tasks.register("foo").configure {
@@ -211,6 +216,7 @@ class DeferredTaskFailureIntegrationTest extends AbstractDeferredTaskDefinitionI
     }
 
     def "cannot execute #description on another project during lazy task creation action execution"() {
+        createDirs("nested", "other")
         settingsFile << "include 'nested', 'other'"
         buildFile << """
             project(":other") {
@@ -230,6 +236,7 @@ class DeferredTaskFailureIntegrationTest extends AbstractDeferredTaskDefinitionI
     }
 
     def "cannot execute #description on another project during lazy task configuration action execution"() {
+        createDirs("nested", "other")
         settingsFile << "include 'nested', 'other'"
         buildFile << """
             project(":other") {

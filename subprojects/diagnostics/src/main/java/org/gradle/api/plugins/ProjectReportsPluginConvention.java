@@ -24,7 +24,7 @@ import java.util.Set;
 /**
  * The conventional configuration for the `ProjectReportsPlugin`.
  *
- *  @deprecated Please configure the tasks directly. This class is scheduled for removal in Gradle 8.0.
+ *  @deprecated Please configure the tasks directly. This class is scheduled for removal in Gradle 9.0.
  */
 @Deprecated
 public abstract class ProjectReportsPluginConvention {

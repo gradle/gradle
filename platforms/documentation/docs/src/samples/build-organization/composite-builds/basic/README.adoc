@@ -1,0 +1,66 @@
+NOTE: You can open this sample inside an IDE using the https://www.jetbrains.com/help/idea/gradle.html#gradle_import_project_start[IntelliJ native importer] or https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship].
+
+== Defining and using a composite build
+
+This sample shows how 2 Gradle builds that are normally developed separately and combined using binary integration can be wired together into a composite build with source integration. The `my-utils` multiproject build produces 2 different java libraries, and the `my-app` build produces an executable using functions from those libraries.
+
+Note that the `my-app` build does not have direct dependencies on `my-utils`. Instead, it declares module dependencies on the libraries produced by `my-utils`:
+
+====
+include::sample[dir="kotlin",files="my-app/app/build.gradle.kts[tags=app_dependencies]"]
+include::sample[dir="groovy",files="my-app/app/build.gradle[tags=app_dependencies]"]
+====
+
+== Using command-line composite build
+
+When using a composite build, no shared repository is required for the builds, and no changes need to be made to the build scripts.
+
+1. Change the sources of `Number.java`
+2. Run the `my-app` application, including the `my-utils` build.
+
+```
+cd my-app
+gradle --include-build ../my-utils run
+```
+
+Using _dependency substitution_, the module dependencies on the util libraries are replaced by project dependencies on `my-utils`.
+
+== Converting `my-app` to a composite build
+
+It's possible to make the above arrangement persistent, by making `my-app` a composite build that includes `my-utils`.
+
+```
+cd my-app
+echo "includeBuild '../my-utils'" >> settings.gradle
+gradle run
+```
+
+With this configuration, the module dependencies from `my-app` to `my-utils` will always be substituted with project dependencies.
+
+While simple, this approach has the downside of modifying the `my-app` build.
+
+== Using separate composite build
+
+It is also possible to create a separate composite build that includes both the `my-app` and `my-utils` builds.
+
+====
+include::sample[dir="kotlin",files="settings.gradle.kts[]"]
+include::sample[dir="groovy",files="settings.gradle[]"]
+====
+
+After doing so, you can reference any tasks in the included builds directly on the command line in order to execute.
+
+```
+gradle :my-app:app:run
+```
+
+Alternately, you can create delegating tasks in the composite project to execute tasks without specifying the full task path.
+
+====
+include::sample[dir="kotlin",files="build.gradle.kts[tags=run]"]
+include::sample[dir="groovy",files="build.gradle[tags=run]"]
+====
+
+```
+gradle run
+```

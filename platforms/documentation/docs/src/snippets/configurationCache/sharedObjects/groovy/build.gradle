@@ -1,0 +1,26 @@
+class StateObject {
+    // ...
+}
+
+abstract class StatefulTask extends DefaultTask {
+    @Internal
+    StateObject stateObject
+
+    @Internal
+    List<String> strings
+}
+
+
+tasks.register("checkEquality", StatefulTask) {
+    def objectValue = new StateObject()
+    def stringsValue = ["a", "b"] as ArrayList<String>
+
+    stateObject = objectValue
+    strings = stringsValue
+
+    doLast { // <1>
+        println("POJO reference equality: ${stateObject === objectValue}") // <2>
+        println("Collection reference equality: ${strings === stringsValue}") // <3>
+        println("Collection equality: ${strings == stringsValue}") // <4>
+    }
+}

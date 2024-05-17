@@ -29,10 +29,6 @@ class KotlinDslFileContentGenerator extends FileContentGenerator {
         return ""
     }
 
-    @Override
-    protected String noJavaLibraryPluginFlag() {
-        'val noJavaLibraryPlugin = hasProperty("noJavaLibraryPlugin")'
-    }
 
     @Override
     protected String tasksConfiguration() {
@@ -75,8 +71,8 @@ class KotlinDslFileContentGenerator extends FileContentGenerator {
     }
 
     @Override
-    protected String imperativelyApplyPlugin(String plugin) {
-        "apply(plugin = \"$plugin\")"
+    protected String pluginBlockApply(String plugin) {
+        "id(\"$plugin\")"
     }
 
     @Override
@@ -88,21 +84,10 @@ class KotlinDslFileContentGenerator extends FileContentGenerator {
         """
     }
 
-    @Override
-    protected String addJavaLibraryConfigurationsIfNecessary(boolean hasParent) {
-        """
-        if (noJavaLibraryPlugin) {
-            configurations {
-                ${hasParent ? '"api"()' : ''}
-                ${hasParent ? '"compile" { extendsFrom(configurations["api"]) }' : ''}
-            }
-        }
-        """
-    }
 
     @Override
-    protected String directDependencyDeclaration(String configuration, String notation) {
-        notation.endsWith('()') ? "\"$configuration\"($notation)" : "\"$configuration\"(\"$notation\")"
+    protected String versionCatalogDependencyDeclaration(String configuration, String alias) {
+        "\"$configuration\"(libs.$alias)"
     }
 
     @Override

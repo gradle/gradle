@@ -7,6 +7,8 @@ description = "The collector project for the 'core' portion of the Gradle distri
 dependencies {
     coreRuntimeOnly(platform(project(":core-platform")))
 
+    agentsRuntimeOnly(project(":instrumentation-agent"))
+
     pluginsRuntimeOnly(project(":plugin-use")) {
         because("This is a core extension module (see DynamicModulesClassPathProvider.GRADLE_EXTENSION_MODULES)")
     }
@@ -33,5 +35,8 @@ dependencies {
     }
     pluginsRuntimeOnly(project(":kotlin-dsl-provider-plugins")) {
         because("We need a KotlinScriptBasePluginsApplicator service implementation to use Kotlin DSL scripts.")
+    }
+    pluginsRuntimeOnly(project(":instrumentation-declarations")) {
+        because("Property upgrades for core plugins reference types on plugin classpath and that is why interceptors need to be loaded from plugins' classpath.")
     }
 }

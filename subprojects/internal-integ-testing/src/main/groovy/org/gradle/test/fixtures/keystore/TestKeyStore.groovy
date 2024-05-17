@@ -17,7 +17,6 @@
 package org.gradle.test.fixtures.keystore
 
 import groovy.transform.CompileStatic
-import org.apache.commons.io.FileUtils
 import org.eclipse.jetty.util.ssl.SslContextFactory
 import org.gradle.api.Action
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -31,7 +30,9 @@ import javax.net.ssl.KeyManagerFactory
 import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManager
 import javax.net.ssl.TrustManagerFactory
+import java.security.Key
 import java.security.KeyStore
+import java.security.cert.Certificate
 
 @CompileStatic
 class TestKeyStore {
@@ -39,9 +40,11 @@ class TestKeyStore {
     String trustStorePassword = "asdfgh"
     TestFile keyStore
     String keyStorePassword = "asdfgh"
+    String keyStoreType
+    String trustStoreType
 
-    static TestKeyStore init(TestFile rootDir) {
-        new TestKeyStore(rootDir)
+    static TestKeyStore init(TestFile rootDir, String keyStoreType = "PKCS12", String trustStoreType = keyStoreType) {
+        new TestKeyStore(rootDir, keyStoreType, trustStoreType)
     }
 
     /*
@@ -58,17 +61,36 @@ class TestKeyStore {
      The current trustStore-adoptopenjdk-8 is created from AdoptOpenJDK8 cacerts.
      */
 
-    private TestKeyStore(TestFile rootDir) {
+    private TestKeyStore(TestFile rootDir, String keyStoreType = "PKCS12", String trustStoreType = keyStoreType) {
+        this.keyStoreType = keyStoreType
+        this.trustStoreType = trustStoreType
+        rootDir.mkdirs()
         keyStore = rootDir.file("clientStore")
         trustStore = rootDir.file("serverStore")
 
-        copyCertFile("test-key-store/keyStore", keyStore)
-        copyCertFile("test-key-store/trustStore-adoptopenjdk-8.bin", trustStore)
+        copyCertFile("test-key-store/keyStore", keyStore, keyStoreType, keyStorePassword)
+        copyCertFile("test-key-store/trustStore-adoptopenjdk-8.bin", trustStore, trustStoreType, trustStorePassword)
     }
 
-    private static void copyCertFile(String s, TestFile clientStore) {
-        URL fileUrl = ClassLoader.getSystemResource(s);
-        FileUtils.copyURLToFile(fileUrl, clientStore);
+    private static void copyCertFile(String path, TestFile clientStore, String type, String password) {
+        URL fileUrl = ClassLoader.getSystemResource(path);
+        KeyStore original = KeyStore.getInstance("JKS");
+        original.load(fileUrl.openStream(), password.toCharArray());
+
+        KeyStore target = KeyStore.getInstance(type);
+        target.load(null, null);
+        for (alias in original.aliases()) {
+            if (original.isKeyEntry(alias)) {
+                Key key = original.getKey(alias, password.toCharArray())
+                target.setKeyEntry(alias, key, password.toCharArray(), original.getCertificateChain(alias));
+            } else {
+                Certificate cert = original.getCertificate(alias);
+                target.setCertificateEntry(alias, cert);
+            }
+        }
+        OutputStream os = clientStore.newOutputStream();
+        target.store(os, password.toCharArray());
+        os.close()
     }
 
     void enableSslWithServerCert(
@@ -94,72 +116,104 @@ class TestKeyStore {
     }
 
     void configureServerCert(GradleExecuter executer) {
+        def args = getTrustStoreArguments()
         if (GradleContextualExecuter.embedded) {
-            executer.withArgument("-Djavax.net.ssl.trustStore=$trustStore.path")
-            executer.withArgument("-Djavax.net.ssl.trustStorePassword=$trustStorePassword")
+            args.each {
+                executer.withArgument(it)
+            }
         } else {
-            executer.withBuildJvmOpts("-Djavax.net.ssl.trustStore=$trustStore.path")
-            executer.withBuildJvmOpts("-Djavax.net.ssl.trustStorePassword=$trustStorePassword")
+            executer.withBuildJvmOpts(args)
         }
     }
 
     void configureIncorrectServerCert(GradleExecuter executer) {
         // intentionally use wrong trust store
+        def args = getTrustStoreSettings()
+            .tap { it["javax.net.ssl.trustStore"] = keyStore.path }
+            .collect { "-D${it.key}=${it.value}".toString() }
         if (GradleContextualExecuter.embedded) {
-            executer.withArgument("-Djavax.net.ssl.trustStore=$keyStore.path")
-            executer.withArgument("-Djavax.net.ssl.trustStorePassword=$trustStorePassword")
+            args.each {
+                executer.withArgument(it)
+            }
         } else {
-            executer.withBuildJvmOpts("-Djavax.net.ssl.trustStore=$keyStore.path")
-            executer.withBuildJvmOpts("-Djavax.net.ssl.trustStorePassword=$trustStorePassword")
+            executer.withBuildJvmOpts(args)
         }
     }
 
     void configureServerAndClientCerts(GradleExecuter executer) {
+        def args = getServerAndClientCertArgs()
         if (GradleContextualExecuter.embedded) {
-            executer.withArgument("-Djavax.net.ssl.trustStore=$trustStore.path")
-                .withArgument("-Djavax.net.ssl.trustStorePassword=$trustStorePassword")
-                .withArgument("-Djavax.net.ssl.keyStore=$keyStore.path")
-                .withArgument("-Djavax.net.ssl.keyStorePassword=$keyStorePassword")
+            args.each {
+                executer.withArgument(it)
+            }
         } else {
-            executer.withBuildJvmOpts("-Djavax.net.ssl.trustStore=$trustStore.path")
-                .withBuildJvmOpts("-Djavax.net.ssl.trustStorePassword=$trustStorePassword")
-                .withBuildJvmOpts("-Djavax.net.ssl.keyStore=$keyStore.path")
-                .withBuildJvmOpts("-Djavax.net.ssl.keyStorePassword=$keyStorePassword")
+            executer.withBuildJvmOpts(args)
         }
     }
 
-    List<String> getServerAndClientCertArgs() {
-        ["-Djavax.net.ssl.trustStore=$trustStore.path",
-         "-Djavax.net.ssl.trustStorePassword=$trustStorePassword",
-         "-Djavax.net.ssl.keyStore=$keyStore.path",
-         "-Djavax.net.ssl.keyStorePassword=$keyStorePassword"
-        ].collect { it.toString() }
+    Map<String, String> getTrustStoreSettings() {
+        [
+            "javax.net.ssl.trustStore": trustStore.path,
+            "javax.net.ssl.trustStorePassword": trustStorePassword,
+            "javax.net.ssl.trustStoreType": trustStoreType,
+        ]
     }
 
-    SSLContext asSSLContext() {
-        return createSSLContext(this)
+    Map<String, String> getKeyStoreSettings() {
+        [
+            "javax.net.ssl.keyStore": keyStore.path,
+            "javax.net.ssl.keyStorePassword": keyStorePassword,
+            "javax.net.ssl.keyStoreType": keyStoreType,
+        ]
+    }
+
+    Map<String, String> getServerAndClientCertSettings() {
+        getTrustStoreSettings() + getKeyStoreSettings()
+    }
+
+    List<String> getTrustStoreArguments() {
+        getTrustStoreSettings().collect { "-D${it.key}=${it.value}".toString() }
+    }
+
+    List<String> getKeyStoreArguments() {
+        getKeyStoreSettings().collect { "-D${it.key}=${it.value}".toString() }
+    }
+
+    List<String> getServerAndClientCertArgs() {
+        getServerAndClientCertSettings().collect { "-D${it.key}=${it.value}".toString() }
+    }
+
+    SSLContext asServerSSLContext() {
+        return createServerSSLContext(this)
     }
 
     /**
      * Create the and initialize the SSLContext
      */
-    private static SSLContext createSSLContext(TestKeyStore testKeyStore) {
+    private static SSLContext createServerSSLContext(TestKeyStore testKeyStore) {
         try {
-            KeyStore keyStore = KeyStore.getInstance("JKS");
-            char[] keyStorePassword = testKeyStore.getKeyStorePassword().toCharArray();
+            // Create key manager
+            KeyStore keyStore = KeyStore.getInstance(testKeyStore.getTrustStoreType());
+            char[] keyStorePassword = testKeyStore.getTrustStorePassword().toCharArray();
 
-            testKeyStore.getKeyStore().withInputStream {keyStoreIn ->
+            testKeyStore.getTrustStore().withInputStream {keyStoreIn ->
                 keyStore.load(keyStoreIn, keyStorePassword)
             }
 
-            // Create key manager
             KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
             keyManagerFactory.init(keyStore, keyStorePassword);
             KeyManager[] km = keyManagerFactory.getKeyManagers();
 
             // Create trust manager
+            KeyStore trustStore = KeyStore.getInstance(testKeyStore.getKeyStoreType());
+            char[] trustStorePassword = testKeyStore.getKeyStorePassword().toCharArray();
+
+            testKeyStore.getKeyStore().withInputStream {keyStoreIn ->
+                trustStore.load(keyStoreIn, trustStorePassword)
+            }
+
             TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance("SunX509");
-            trustManagerFactory.init(keyStore);
+            trustManagerFactory.init(trustStore);
             TrustManager[] tm = trustManagerFactory.getTrustManagers();
 
             // Initialize SSLContext

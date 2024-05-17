@@ -18,6 +18,7 @@ package org.gradle.test.fixtures
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.ManagedExecutor
 import org.gradle.internal.concurrent.ManagedScheduledExecutor
+import org.gradle.internal.concurrent.ManagedThreadPoolExecutor
 import org.junit.rules.ExternalResource
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -105,15 +106,23 @@ class ConcurrentTestUtil extends ExternalResource {
 
     ExecutorFactory getExecutorFactory() {
         return new ExecutorFactory() {
+            @Override
             ManagedExecutor create(String displayName) {
                 return new ManagedExecutorStub(ConcurrentTestUtil.this)
             }
 
+            @Override
             ManagedExecutor create(String displayName, int fixedSize) {
                 // Ignores size of thread pool
                 return new ManagedExecutorStub(ConcurrentTestUtil.this)
             }
 
+            @Override
+            ManagedThreadPoolExecutor createThreadPool(String displayName, int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit timeUnit) {
+                throw new UnsupportedOperationException()
+            }
+
+            @Override
             ManagedScheduledExecutor createScheduled(String displayName, int fixedSize) {
                 throw new UnsupportedOperationException()
             }

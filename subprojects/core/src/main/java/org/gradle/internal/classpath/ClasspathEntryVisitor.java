@@ -27,9 +27,26 @@ public interface ClasspathEntryVisitor {
     void visit(Entry entry) throws IOException;
 
     interface Entry {
+        enum CompressionMethod {
+            /**
+             * The entry is compressed with DEFLATE algorithm.
+             */
+            DEFLATED,
+            /**
+             * The entry is not compressed and stored as is.
+             */
+            STORED,
+            /**
+             * The entry is compressed with some other algorithm or the source doesn't support compression at all.
+             */
+            UNDEFINED,
+        }
+
         String getName();
 
         RelativePath getPath();
+
+        CompressionMethod getCompressionMethod();
 
         /**
          * Can be called at most once for a given entry. If not called, content is skipped.

@@ -1,0 +1,11 @@
+repositories {
+    mavenCentral()
+}
+
+tasks.register('showRepos') {
+    def repositoryNames = repositories.collect { it.name }
+    doLast {
+        println "All repos:"
+        println repositoryNames
+    }
+}

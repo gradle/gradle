@@ -15,18 +15,16 @@
  */
 package org.gradle.api.tasks
 
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.PreconditionVerifier
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Assert
-import org.junit.Rule
 import org.junit.Test
 
 class CopyErrorIntegrationTest extends AbstractIntegrationTest {
-    @Rule public PreconditionVerifier verifier = new PreconditionVerifier()
 
     @Test
     void givesReasonableErrorMessageWhenPathCannotBeConverted() {
@@ -55,7 +53,7 @@ The following types/formats are supported:
     }
 
     @Test
-    @Requires(TestPrecondition.SYMLINKS)
+    @Requires(UnitTestPreconditions.Symlinks)
     void reportsSymLinkWhichPointsToNothing() {
         TestFile link = testFile('src/file')
         link.createLink(testFile('missing'))
@@ -77,7 +75,7 @@ The following types/formats are supported:
     }
 
     @Test
-    @Requires(TestPrecondition.FILE_PERMISSIONS)
+    @Requires(UnitTestPreconditions.FilePermissions)
     void reportsUnreadableSourceDir() {
         TestFile dir = testFile('src').createDir()
         def oldPermissions = dir.permissions
@@ -98,7 +96,12 @@ The following types/formats are supported:
 
             ExecutionFailure failure = inTestDirectory().withTasks('copy').runWithFailure()
             failure.assertHasDescription("Execution failed for task ':copy'.")
-            failure.assertHasCause("Cannot fingerprint input file property 'rootSpec\$1': java.nio.file.AccessDeniedException: ${dir}")
+            failure.assertHasDocumentedCause("Cannot access input property 'rootSpec\$1' of task ':copy'. " +
+                "Accessing unreadable inputs or outputs is not supported. " +
+                "Declare the task as untracked by using Task.doNotTrackState(). " +
+                new DocumentationRegistry().getDocumentationRecommendationFor("information", "incremental_build", "sec:disable-state-tracking")
+            )
+            failure.assertHasCause("java.nio.file.AccessDeniedException: ${dir}")
         } finally {
             dir.permissions = oldPermissions
         }

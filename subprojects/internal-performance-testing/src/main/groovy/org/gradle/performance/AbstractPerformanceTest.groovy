@@ -17,6 +17,7 @@
 package org.gradle.performance
 
 import org.gradle.performance.fixture.AbstractBuildExperimentRunner
+import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
 import org.gradle.performance.results.DataReporter
 import org.gradle.performance.results.DefaultOutputDirSelector
 import org.gradle.performance.results.GradleProfilerReporter
@@ -25,7 +26,7 @@ import org.gradle.performance.results.PerformanceTestResult
 import org.gradle.profiler.flamegraph.DifferentialStacksGenerator
 import org.gradle.profiler.flamegraph.FlameGraphGenerator
 import org.gradle.test.fixtures.file.CleanupTestDirectory
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Rule
 import spock.lang.Specification
 
 @CleanupTestDirectory
@@ -34,6 +35,9 @@ abstract class AbstractPerformanceTest extends Specification {
     OutputDirSelector outputDirSelector
     GradleProfilerReporter gradleProfilerReporter
     DataReporter<PerformanceTestResult> dataReporter
+
+    @Rule
+    PerformanceTestDirectoryProvider temporaryFolder = new PerformanceTestDirectoryProvider(getClass())
 
     protected DifferentialStacksGenerator differentialStacksGenerator
     protected FlameGraphGenerator flameGraphGenerator
@@ -57,6 +61,4 @@ abstract class AbstractPerformanceTest extends Specification {
             }
         })
     }
-
-    abstract TestNameTestDirectoryProvider getTemporaryFolder()
 }

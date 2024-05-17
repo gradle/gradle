@@ -52,6 +52,38 @@ class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements Direc
         metadata.contains("userName=")
     }
 
+    def "storing in the cache can be disabled"() {
+        buildFile << defineCacheableTask()
+        buildFile << """
+            apply plugin: 'base'
+
+            def storeInCache = project.hasProperty('storeInCache')
+            cacheable.doLast {
+                if (!storeInCache) {
+                    outputs.doNotStoreInCache()
+                }
+            }
+        """
+
+        when:
+        withBuildCache().run("cacheable")
+
+        then:
+        listCacheFiles().empty
+
+        when:
+        withBuildCache().run("clean", "cacheable", "-PstoreInCache")
+
+        then:
+        listCacheFiles().size() == 1
+
+        when:
+        withBuildCache().run("clean", "cacheable")
+
+        then:
+        skipped ":cacheable"
+    }
+
     def "task is cacheable after previous failure"() {
         buildFile << """
             task foo {

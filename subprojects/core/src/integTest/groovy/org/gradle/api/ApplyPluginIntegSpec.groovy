@@ -17,18 +17,19 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.internal.os.OperatingSystem
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.GradleVersion
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 // TODO: This needs a better home - Possibly in the test kit package in the future
 @Issue("https://github.com/gradle/gradle-private/issues/3247")
-@IgnoreIf({ OperatingSystem.current().macOsX && JavaVersion.current() == JavaVersion.VERSION_1_8})
+// The gradleApi() dependency has missing JARs unless the test is run with the full Gradle distribution
+@Requires([IntegTestPreconditions.NotEmbeddedExecutor, UnitTestPreconditions.NotJava8OnMacOs])
 class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
 
     def testProjectPath
@@ -42,7 +43,7 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
 
         given:
         file("src/main/groovy/org/acme/TestPlugin.groovy") << """
-            package com.acme
+            package org.acme
             import org.gradle.api.*
 
             class TestPlugin implements Plugin<Project> {
@@ -58,7 +59,7 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
             import spock.lang.Specification
             import ${ProjectBuilder.name}
             import ${Project.name}
-            import com.acme.TestPlugin
+            import org.acme.TestPlugin
 
             class TestPluginSpec extends Specification {
                 def "can apply plugin by id"() {
@@ -75,13 +76,13 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
 
         and:
         buildFile << spockBasedBuildScript()
+        buildFile << addOpens()
 
         expect:
         succeeds("test")
     }
 
     @Issue("GRADLE-3068")
-    @IgnoreIf({ GradleContextualExecuter.embedded }) // Requires a Gradle distribution on the test-under-test classpath, but gradleApi() does not offer the full distribution
     def "can use gradleApi in test"() {
         given:
         file("src/test/groovy/org/acme/ProjectBuilderTest.groovy") << """
@@ -107,13 +108,13 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
 
         and:
         buildFile << junitBasedBuildScript()
+        buildFile << addOpens()
 
         expect:
         executer.withArgument("--info")
         succeeds("test")
     }
 
-    @IgnoreIf({ GradleContextualExecuter.embedded }) // Gradle API JAR is not generated when running embedded
     def "generated Gradle API JAR in custom Gradle user home is reused across multiple invocations"() {
         requireOwnGradleUserHomeDir()
 
@@ -158,6 +159,7 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
 
         and:
         buildFile << spockBasedBuildScript()
+        buildFile << addOpens()
 
         expect:
         succeeds('test')
@@ -177,11 +179,40 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
         """
             ${basicBuildScript()}
 
-            dependencies {
-                testImplementation ('org.spockframework:spock-core:2.1-groovy-3.0') {
-                    exclude group: 'org.codehaus.groovy'
+            configurations.all { exclude group: 'org.codehaus.groovy' }
+
+            testing {
+                suites {
+                    test {
+                        useSpock()
+                    }
                 }
             }
+        """
+    }
+
+    /**
+     * Configures tests to include open access to java.base/java.lang modules
+     * ProjectBuilder usages will fail without this
+     */
+    static String addOpens() {
+        """
+        // Needed when using ProjectBuilder
+        class AddOpensArgProvider implements CommandLineArgumentProvider {
+            private final Test test;
+            public AddOpensArgProvider(Test test) {
+                this.test = test;
+            }
+            @Override
+            Iterable<String> asArguments() {
+                return test.javaVersion.isCompatibleWith(JavaVersion.VERSION_1_9)
+                    ? ["--add-opens=java.base/java.lang=ALL-UNNAMED"]
+                    : []
+            }
+        }
+        tasks.withType(Test).configureEach {
+            jvmArgumentProviders.add(new AddOpensArgProvider(it))
+        }
         """
     }
 

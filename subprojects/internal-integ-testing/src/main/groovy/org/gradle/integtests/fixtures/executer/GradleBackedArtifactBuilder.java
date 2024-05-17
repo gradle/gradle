@@ -31,6 +31,8 @@ public class GradleBackedArtifactBuilder implements ArtifactBuilder {
     private final TestFile rootDir;
     private final Map<String, String> manifestAttributes = new LinkedHashMap<>();
 
+    private Boolean shouldPreserveTimestamps;
+
     public GradleBackedArtifactBuilder(GradleExecuter executer, File rootDir) {
         this.executer = executer;
         this.rootDir = new TestFile(rootDir);
@@ -52,10 +54,18 @@ public class GradleBackedArtifactBuilder implements ArtifactBuilder {
     }
 
     @Override
+    public void preserveTimestamps(boolean preserveTimestamps) {
+        if (isGradleExecuterVersionLessThan("3.4")) {
+            throw new IllegalArgumentException("Cannot set up timestamps on Gradle before 3.4");
+        }
+        shouldPreserveTimestamps = preserveTimestamps;
+    }
+
+    @Override
     public void buildJar(File jarFile) {
-        String conf = executer.getDistribution().getVersion().compareTo(GradleVersion.version("3.4")) < 0 ? "compile" : "implementation";
-        String destinationDir = executer.getDistribution().getVersion().compareTo(GradleVersion.version("5.1")) < 0 ? "destinationDir" : "destinationDirectory";
-        String archiveName = executer.getDistribution().getVersion().compareTo(GradleVersion.version("5.0")) < 0 ? "archiveName" : "archiveFileName";
+        String conf = isGradleExecuterVersionLessThan("3.4") ? "compile" : "implementation";
+        String destinationDir = isGradleExecuterVersionLessThan("5.1") ? "destinationDir" : "destinationDirectory";
+        String archiveName = isGradleExecuterVersionLessThan("5.0") ? "archiveName" : "archiveFileName";
 
         rootDir.mkdirs();
         rootDir.file("settings.gradle").touch();
@@ -64,6 +74,9 @@ public class GradleBackedArtifactBuilder implements ArtifactBuilder {
                 writer.println("apply plugin: 'java'");
                 writer.println(String.format("dependencies { %s gradleApi() }", conf));
                 writer.println("jar {");
+                if (shouldPreserveTimestamps != null) {
+                    writer.println(String.format("preserveFileTimestamps = %s", shouldPreserveTimestamps));
+                }
                 writer.println(String.format("%s = file('%s')", destinationDir, jarFile.getParentFile().toURI()));
                 writer.println(String.format("%s = '%s'", archiveName, jarFile.getName()));
                 if (!manifestAttributes.isEmpty()) {
@@ -79,5 +92,9 @@ public class GradleBackedArtifactBuilder implements ArtifactBuilder {
             throw UncheckedException.throwAsUncheckedException(e);
         }
         executer.inDirectory(rootDir).withTasks("clean", "jar").run();
+    }
+
+    private boolean isGradleExecuterVersionLessThan(String version) {
+        return executer.getDistribution().getVersion().compareTo(GradleVersion.version(version)) < 0;
     }
 }

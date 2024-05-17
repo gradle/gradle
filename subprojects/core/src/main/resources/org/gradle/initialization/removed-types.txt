@@ -19,3 +19,9 @@ org.gradle.api.internal.tasks.testing.junit.report.TestReporter
 org.gradle.api.internal.tasks.execution.TaskValidator
 org.gradle.api.artifacts.transform.ArtifactTransformDependencies
 org.gradle.internal.filewatch.FileWatcherFactory
+org.gradle.api.artifacts.transform.ArtifactTransform
+org.gradle.api.artifacts.transform.ArtifactTransformException
+org.gradle.api.artifacts.transform.VariantTransform
+org.gradle.api.tasks.incremental.IncrementalTaskInputs
+org.gradle.workers.WorkerConfiguration
+org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep$Operation$Details

@@ -37,8 +37,13 @@ public interface BuildWorkGraphController {
     /**
      * Creates a new, empty work graph for this build.
      *
-     * Note: Only one graph can be in use at any given time. This method blocks if some other thread is using a graph for this build.
+     * Note: Only one thread can be using worker graphs from a build, and this method blocks if some other thread is using a graph for this build.
      * Eventually, this constraint should be removed, so that it is possible to populate and run multiple work graphs concurrently.
      */
     BuildWorkGraph newWorkGraph();
+
+    /**
+     * Discards all work state, discarding any cached models and other state
+     */
+    void resetState();
 }

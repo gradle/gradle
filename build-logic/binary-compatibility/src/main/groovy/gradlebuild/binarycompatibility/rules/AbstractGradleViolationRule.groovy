@@ -23,6 +23,7 @@ import gradlebuild.binarycompatibility.AcceptedApiChanges
 import gradlebuild.binarycompatibility.ApiChange
 import gradlebuild.binarycompatibility.BinaryCompatibilityRepository
 import gradlebuild.binarycompatibility.BinaryCompatibilityRepositorySetupRule
+import gradlebuild.binarycompatibility.upgrades.UpgradedProperties
 import groovy.transform.CompileStatic
 import japicmp.model.JApiChangeStatus
 import japicmp.model.JApiClass
@@ -38,13 +39,23 @@ import org.gradle.api.Incubating
 
 import javax.inject.Inject
 
+import static gradlebuild.binarycompatibility.upgrades.UpgradedProperties.SEEN_OLD_METHODS_OF_UPGRADED_PROPERTIES
+import static gradlebuild.binarycompatibility.upgrades.UpgradedProperty.UpgradedMethodKey
+
 @CompileStatic
 abstract class AbstractGradleViolationRule extends AbstractContextAwareViolationRule {
 
     private final Map<ApiChange, String> acceptedApiChanges
+    private final File apiChangesJsonFile
+    private final File projectRootDir
 
-    AbstractGradleViolationRule(Map<String, String> acceptedApiChanges) {
-        this.acceptedApiChanges = AcceptedApiChanges.fromAcceptedChangesMap(acceptedApiChanges)
+    AbstractGradleViolationRule(Map<String, Object> params) {
+        Map<String, String> acceptedApiChanges = (Map<String, String>)params.get("acceptedApiChanges")
+        this.acceptedApiChanges = acceptedApiChanges ? AcceptedApiChanges.fromAcceptedChangesMap(acceptedApiChanges) : [:]
+
+        // Tests will not supply these
+        this.apiChangesJsonFile = params.get("apiChangesJsonFile") ? new File(params.get("apiChangesJsonFile") as String) : null
+        this.projectRootDir = params.get("projectRootDir") ? new File(params.get("projectRootDir") as String) : null
     }
 
     protected BinaryCompatibilityRepository getRepository() {
@@ -125,6 +136,9 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
 
     Violation acceptOrReject(JApiCompatibility member, List<String> changes, Violation rejection) {
         Set<ApiChange> seenApiChanges = (Set<ApiChange>) context.userData["seenApiChanges"]
+        Set<UpgradedMethodKey> seenOldMethodsOfUpgradedProperties = (Set<UpgradedMethodKey>) context.userData[SEEN_OLD_METHODS_OF_UPGRADED_PROPERTIES]
+        UpgradedProperties.maybeGetKeyOfOldMethodOfUpgradedProperty(member, context).ifPresent { seenOldMethodsOfUpgradedProperties.add(it) }
+
         def change = new ApiChange(
             context.className,
             Violation.describe(member),
@@ -134,7 +148,11 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
         if (acceptationReason != null) {
             seenApiChanges.add(change)
             return Violation.accept(member, "${rejection.getHumanExplanation()}. Reason for accepting this: <b>$acceptationReason</b>")
+        } else if (member instanceof JApiMethod && UpgradedProperties.shouldAcceptForUpgradedProperty(member, rejection, context)) {
+            seenApiChanges.add(change)
+            return Violation.accept(member, "${rejection.getHumanExplanation()}. Reason for accepting this: <b>Upgraded property</b>")
         }
+
         def acceptanceJson = new AcceptedApiChange(
             change.type,
             change.member,
@@ -152,7 +170,7 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
                 <a class="btn btn-info" role="button" data-toggle="collapse" href="#accept-${changeId}" aria-expanded="false" aria-controls="collapseExample">Accept this change</a>
                 <div class="collapse" id="accept-${changeId}">
                   <div class="well">
-                      In order to accept this change add the following to <code>architecture-test/src/changes/accepted-public-api-changes.json</code>:
+                      In order to accept this change add the following to <code>${relativePathToApiChanges()}</code>:
                     <pre>${prettyPrintJson(acceptanceJson)}</pre>
                   </div>
                 </div>
@@ -194,5 +212,13 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
 
     String getCurrentVersion() {
         return context.getUserData().get("currentVersion")
+    }
+
+    private String relativePathToApiChanges() {
+        if (null != apiChangesJsonFile && null != projectRootDir) {
+            return projectRootDir.relativePath(apiChangesJsonFile)
+        } else {
+            return "<PATHS TO API CHANGES JSON NOT PROVIDED>"
+        }
     }
 }

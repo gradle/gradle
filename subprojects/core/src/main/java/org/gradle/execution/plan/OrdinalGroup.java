@@ -17,20 +17,33 @@
 package org.gradle.execution.plan;
 
 import javax.annotation.Nullable;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * Represents a set of nodes reachable from a particular entry point node (a "requested task")
  */
 public class OrdinalGroup extends NodeGroup {
     private final int ordinal;
+    @Nullable
+    private final OrdinalGroup previous;
+    private final Set<Node> entryNodes = new LinkedHashSet<>();
+    private OrdinalNode producerLocationsNode;
+    private OrdinalNode destroyerLocationsNode;
 
-    public OrdinalGroup(int ordinal) {
+    OrdinalGroup(int ordinal, @Nullable OrdinalGroup previous) {
         this.ordinal = ordinal;
+        this.previous = previous;
     }
 
     @Override
     public String toString() {
         return "task group " + ordinal;
+    }
+
+    @Nullable
+    public OrdinalGroup getPrevious() {
+        return previous;
     }
 
     @Nullable
@@ -45,11 +58,52 @@ public class OrdinalGroup extends NodeGroup {
     }
 
     @Override
+    public NodeGroup reachableFrom(OrdinalGroup newOrdinal) {
+        return newOrdinal;
+    }
+
+    public OrdinalNode getProducerLocationsNode() {
+        if (producerLocationsNode == null) {
+            producerLocationsNode = new OrdinalNode(OrdinalNode.Type.PRODUCER, this);
+            if (previous != null) {
+                producerLocationsNode.addDependencySuccessor(previous.getProducerLocationsNode());
+            }
+        }
+        return producerLocationsNode;
+    }
+
+    public OrdinalNode getDestroyerLocationsNode() {
+        if (destroyerLocationsNode == null) {
+            destroyerLocationsNode = new OrdinalNode(OrdinalNode.Type.DESTROYER, this);
+            if (previous != null) {
+                destroyerLocationsNode.addDependencySuccessor(previous.getDestroyerLocationsNode());
+            }
+        }
+        return destroyerLocationsNode;
+    }
+
+    @Override
     public boolean isReachableFromEntryPoint() {
         return true;
     }
 
     public int getOrdinal() {
         return ordinal;
+    }
+
+    public void addEntryNode(Node node) {
+        entryNodes.add(node);
+    }
+
+    public String diagnostics() {
+        return "group " + ordinal + " entry nodes: " + Node.formatNodes(entryNodes);
+    }
+
+    public OrdinalNode locationsNode(OrdinalNode.Type ordinalType) {
+        if (ordinalType == OrdinalNode.Type.PRODUCER) {
+            return getProducerLocationsNode();
+        } else {
+            return getDestroyerLocationsNode();
+        }
     }
 }

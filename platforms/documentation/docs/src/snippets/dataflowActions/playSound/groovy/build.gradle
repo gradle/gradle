@@ -1,0 +1,11 @@
+tasks.register("success") {
+    doLast {
+        "Hello"
+    }
+}
+
+tasks.register("failure") {
+    doLast {
+        throw new GradleException("This task failed")
+    }
+}

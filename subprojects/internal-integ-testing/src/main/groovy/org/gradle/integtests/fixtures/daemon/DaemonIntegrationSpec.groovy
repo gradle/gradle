@@ -44,7 +44,7 @@ abstract class DaemonIntegrationSpec extends AbstractIntegrationSpec {
 
     GradleHandle startAForegroundDaemon() {
         int currentSize = daemons.getRegistry().getAll().size()
-        def daemon = executer.withArguments("--foreground").start()
+        def daemon = executer.withArgument("--foreground").start()
         // Wait for foreground daemon to be ready
         ConcurrentTestUtil.poll() { assert daemons.getRegistry().getAll().size() == (currentSize + 1) }
         return daemon

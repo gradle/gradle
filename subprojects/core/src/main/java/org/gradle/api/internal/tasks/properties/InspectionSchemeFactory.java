@@ -18,11 +18,15 @@ package org.gradle.api.internal.tasks.properties;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import org.gradle.api.internal.tasks.properties.annotations.NoOpPropertyAnnotationHandler;
-import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler;
-import org.gradle.api.internal.tasks.properties.annotations.TypeAnnotationHandler;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.instantiation.InstantiationScheme;
+import org.gradle.internal.properties.annotations.DefaultTypeMetadataStore;
+import org.gradle.internal.properties.annotations.NoOpPropertyAnnotationHandler;
+import org.gradle.internal.properties.annotations.PropertyAnnotationHandler;
+import org.gradle.internal.properties.annotations.TypeAnnotationHandler;
+import org.gradle.internal.properties.annotations.TypeMetadataStore;
+import org.gradle.internal.properties.bean.DefaultPropertyWalker;
+import org.gradle.internal.properties.bean.PropertyWalker;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadataStore;
 
 import java.lang.annotation.Annotation;
@@ -77,8 +81,9 @@ public class InspectionSchemeFactory {
         private final DefaultTypeMetadataStore metadataStore;
 
         public InspectionSchemeImpl(List<TypeAnnotationHandler> typeHandlers, List<PropertyAnnotationHandler> propertyHandlers, Collection<Class<? extends Annotation>> propertyModifiers, TypeAnnotationMetadataStore typeAnnotationMetadataStore, CrossBuildInMemoryCacheFactory cacheFactory) {
-            metadataStore = new DefaultTypeMetadataStore(typeHandlers, propertyHandlers, propertyModifiers, typeAnnotationMetadataStore, cacheFactory);
-            propertyWalker = new DefaultPropertyWalker(metadataStore);
+            DefaultPropertyTypeResolver propertyTypeResolver = new DefaultPropertyTypeResolver();
+            metadataStore = new DefaultTypeMetadataStore(typeHandlers, propertyHandlers, propertyModifiers, typeAnnotationMetadataStore, propertyTypeResolver, cacheFactory);
+            propertyWalker = new DefaultPropertyWalker(metadataStore, new ScriptSourceAwareImplementationResolver(), propertyHandlers);
         }
 
         @Override

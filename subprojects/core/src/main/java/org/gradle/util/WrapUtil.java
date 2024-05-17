@@ -18,6 +18,7 @@ package org.gradle.util;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultDomainObjectSet;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -35,16 +36,29 @@ import java.util.TreeSet;
 /**
  * This class is only here to maintain binary compatibility with existing plugins.
  *
- * @deprecated Will be removed in Gradle 8.0.
+ * @deprecated Will be removed in Gradle 9.0.
  */
 @Deprecated
 public class WrapUtil {
+
+    private static void logDeprecation(int majorVersion) {
+        DeprecationLogger.deprecateType(WrapUtil.class)
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(7, "org_gradle_util_reports_deprecations")
+            .nagUser();
+    }
+
+    public WrapUtil() {
+        logDeprecation(7);
+    }
+
     /**
      * Wraps the given items in a mutable unordered set.
      */
     @SafeVarargs
     @SuppressWarnings("varargs")
     public static <T> Set<T> toSet(T... items) {
+        logDeprecation(7);
         Set<T> coll = new HashSet<T>();
         Collections.addAll(coll, items);
         return coll;
@@ -56,6 +70,7 @@ public class WrapUtil {
     @SafeVarargs
     @SuppressWarnings("varargs")
     public static <T> DomainObjectSet<T> toDomainObjectSet(Class<T> type, T... items) {
+        logDeprecation(8);
         DefaultDomainObjectSet<T> set = new DefaultDomainObjectSet<T>(type, CollectionCallbackActionDecorator.NOOP);
         set.addAll(Arrays.asList(items));
         return set;
@@ -67,6 +82,7 @@ public class WrapUtil {
     @SafeVarargs
     @SuppressWarnings("varargs")
     public static <T> Set<T> toLinkedSet(T... items) {
+        logDeprecation(7);
         Set<T> coll = new LinkedHashSet<T>();
         Collections.addAll(coll, items);
         return coll;
@@ -78,6 +94,7 @@ public class WrapUtil {
     @SafeVarargs
     @SuppressWarnings("varargs")
     public static <T> SortedSet<T> toSortedSet(T... items) {
+        logDeprecation(7);
         SortedSet<T> coll = new TreeSet<T>();
         Collections.addAll(coll, items);
         return coll;
@@ -89,6 +106,7 @@ public class WrapUtil {
     @SafeVarargs
     @SuppressWarnings("varargs")
     public static <T> SortedSet<T> toSortedSet(Comparator<T> comp, T... items) {
+        logDeprecation(7);
         SortedSet<T> coll = new TreeSet<T>(comp);
         Collections.addAll(coll, items);
         return coll;
@@ -100,6 +118,7 @@ public class WrapUtil {
     @SafeVarargs
     @SuppressWarnings("varargs")
     public static <T> List<T> toList(T... items) {
+        logDeprecation(7);
         ArrayList<T> coll = new ArrayList<T>();
         Collections.addAll(coll, items);
         return coll;
@@ -109,6 +128,7 @@ public class WrapUtil {
      * Wraps the given items in a mutable list.
      */
     public static <T> List<T> toList(Iterable<? extends T> items) {
+        logDeprecation(7);
         ArrayList<T> coll = new ArrayList<T>();
         for (T item : items) {
             coll.add(item);
@@ -120,6 +140,7 @@ public class WrapUtil {
      * Wraps the given key and value in a mutable unordered map.
      */
     public static <K, V> Map<K, V> toMap(K key, V value) {
+        logDeprecation(7);
         Map<K, V> map = new HashMap<K, V>();
         map.put(key, value);
         return map;
@@ -128,6 +149,7 @@ public class WrapUtil {
     @SafeVarargs
     @SuppressWarnings("varargs")
     public static <T> T[] toArray(T... items) {
+        logDeprecation(7);
         return items;
     }
 

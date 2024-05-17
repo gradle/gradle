@@ -16,59 +16,150 @@
 
 package org.gradle.jvm.toolchain
 
+
+import org.gradle.api.JavaVersion
+import org.gradle.api.file.FileVisitDetails
+import org.gradle.api.file.FileVisitor
+import org.gradle.api.internal.file.collections.SingleIncludePatternFileTree
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+
+import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.applyToolchainResolverPlugin
+import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.singleUrlResolverCode
 
 class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
+    public static final JavaVersion JAVA_VERSION = JavaVersion.VERSION_17
+
+
+    public static final String TOOLCHAIN_WITH_VERSION = """
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of($JAVA_VERSION)
+                }
+            }
+        """
+
+    static JdkRepository jdkRepository
+
+    static URI uri
+
+    def setupSpec() {
+        jdkRepository = new JdkRepository(JAVA_VERSION)
+        uri = jdkRepository.start()
+    }
+
+    def cleanupSpec() {
+        jdkRepository.stop()
+    }
+
     def setup() {
+        jdkRepository.reset()
+
+        settingsFile << """
+            ${applyToolchainResolverPlugin("CustomToolchainResolver", singleUrlResolverCode(uri))}
+        """
+
         buildFile << """
             plugins {
                 id "java"
             }
 
-            java {
-                toolchain {
-                    languageVersion = JavaLanguageVersion.of(14)
-                }
-            }
+            $TOOLCHAIN_WITH_VERSION
         """
 
         file("src/main/java/Foo.java") << "public class Foo {}"
 
         executer.requireOwnGradleUserHomeDir()
-        executer.withToolchainDownloadEnabled()
+                .withToolchainDownloadEnabled()
+    }
+
+    def cleanup() {
+        executer.gradleUserHomeDir.file("jdks").deleteDir()
     }
 
     def "can download missing jdk automatically"() {
         when:
-        succeeds("compileJava", "-Porg.gradle.java.installations.auto-detect=false")
+        result = executer
+                .withTasks("compileJava")
+                .run()
 
         then:
         javaClassFile("Foo.class").assertExists()
-        assertJdkWasDownloaded("hotspot")
+        assertJdkWasDownloaded()
     }
 
-    def "can download missing j9 jdk automatically"() {
-        buildFile << """
-            java {
-                toolchain {
-                    implementation = JvmImplementation.J9
+    def "clean destination folder when downloading toolchain"() {
+        when: "build runs and doesn't have a local JDK to use for compilation"
+        result = executer
+                .withTasks("compileJava", "-Porg.gradle.java.installations.auto-detect=false")
+                .run()
+
+        then: "suitable JDK gets auto-provisioned"
+        javaClassFile("Foo.class").assertExists()
+        assertJdkWasDownloaded()
+
+        when: "the marker file of the auto-provisioned JDK is deleted, making the JDK not detectable"
+        //delete marker file to make the previously downloaded installation undetectable
+        def markerFile = findMarkerFile(executer.gradleUserHomeDir.file("jdks"))
+        markerFile.delete()
+        assert !markerFile.exists()
+
+        and: "build runs again"
+        jdkRepository.expectHead()
+        executer
+                .withTasks("compileJava", "-Porg.gradle.java.installations.auto-detect=false", "-Porg.gradle.java.installations.auto-download=true")
+                .run()
+
+        then: "the JDK is auto-provisioned again and its files, even though they are already there don't trigger an error, they just get overwritten"
+        markerFile.exists()
+    }
+
+    def "issue warning on using auto-provisioned toolchain with no configured repositories"() {
+        when: "build runs and doesn't have a local JDK to use for compilation"
+        result = executer
+                .withTasks("compileJava", "-Porg.gradle.java.installations.auto-detect=false")
+                .run()
+
+        then: "suitable JDK gets auto-provisioned"
+        javaClassFile("Foo.class").assertExists()
+        assertJdkWasDownloaded()
+
+        when: "build has no toolchain repositories configured"
+        settingsFile.text = ''
+
+        then: "build runs again, uses previously auto-provisioned toolchain and warns about toolchain repositories not being configured"
+        executer
+                .expectDocumentedDeprecationWarning("Using a toolchain installed via auto-provisioning, but having no toolchain repositories configured. " +
+                        "This behavior is deprecated. Consider defining toolchain download repositories, otherwise the build might fail in clean environments; " +
+                        "see https://docs.gradle.org/current/userguide/toolchains.html#sub:download_repositories")
+                .withTasks("compileJava", "-Porg.gradle.java.installations.auto-detect=false", "-Porg.gradle.java.installations.auto-download=true")
+                .run()
+    }
+
+    private void assertJdkWasDownloaded(String implementation = null) {
+        assert executer.gradleUserHomeDir.file("jdks").listFiles({ file ->
+            file.name.contains("-$JAVA_VERSION-") && (implementation == null || file.name.contains(implementation))
+        } as FileFilter)
+    }
+
+    private static File findMarkerFile(File directory) {
+        File markerFile
+        new SingleIncludePatternFileTree(directory, "**").visit(new FileVisitor() {
+            @Override
+            void visitDir(FileVisitDetails dirDetails) {
+            }
+
+            @Override
+            void visitFile(FileVisitDetails fileDetails) {
+                if (fileDetails.file.name == "provisioned.ok") {
+                    markerFile = fileDetails.file
                 }
             }
-        """
-
-        when:
-        succeeds("compileJava", "-Porg.gradle.java.installations.auto-detect=false")
-
-        then:
-        javaClassFile("Foo.class").assertExists()
-        assertJdkWasDownloaded("openj9")
-    }
-
-    private void assertJdkWasDownloaded(String implementation) {
-        assert executer.gradleUserHomeDir.file("jdks").listFiles({ file ->
-            file.name.contains("-14-") && file.name.contains(implementation)
-        } as FileFilter)
+        })
+        if (markerFile == null) {
+            throw new RuntimeException("Marker file not found in " + directory.getAbsolutePath() + "")
+        }
+        return markerFile
     }
 
 }

@@ -16,13 +16,30 @@
 
 package org.gradle.integtests.fixtures
 
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+
 class AbstractAutoTestedSamplesTest extends AbstractIntegrationTest {
 
     def util = new AutoTestedSamplesUtil()
 
     void runSamplesFrom(String dir) {
+        // make sure all project directories exist
+        def settingsEvaluatedHook = file("settingsEvaluatedHook.gradle") << """
+            def collectChildren(def obj) {
+                [obj] + obj.getChildren().collectMany { collectChildren(it) }
+            }
+            gradle.settingsEvaluated { settings ->
+                collectChildren(settings.rootProject).each { project ->
+                    project.projectDir.mkdirs()
+                }
+            }
+        """
         util.findSamples(dir) { file, sample, tagSuffix ->
             println "Found sample: ${sample.split("\n")[0]} (...) in $file"
+            if (tagSuffix.contains('WithoutCC') && GradleContextualExecuter.configCache) {
+                println 'Skipping sample tagged WithoutCC'
+                return
+            }
             def buildFile = testFile('build.gradle')
             def settingsFile = testFile('settings.gradle')
             def fileToTest = tagSuffix.contains('Settings') ? settingsFile : buildFile
@@ -32,15 +49,15 @@ class AbstractAutoTestedSamplesTest extends AbstractIntegrationTest {
             fileToTest.text = sample
             executer
                 .withTasks('help')
-                .withArguments("--stacktrace")
-            beforeSample()
+                .withArguments("--stacktrace", "--init-script", settingsEvaluatedHook.absolutePath)
+            beforeSample(file, tagSuffix)
             executer.run()
             fileToTest.delete()
         }
     }
 
-    void beforeSample() {
-
+    protected void beforeSample(File file, String tagSuffix) {
+        // default is no-op
     }
 
     /**

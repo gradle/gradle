@@ -3,6 +3,7 @@ package promotion
 import common.BuildToolBuildJvm
 import common.Os
 import common.VersionedSettingsBranch
+import common.cleanupRule
 import common.javaHome
 import jetbrains.buildServer.configs.kotlin.v2019_2.Project
 
@@ -10,11 +11,14 @@ class PromotionProject(branch: VersionedSettingsBranch) : Project({
     id("Promotion")
     name = "Promotion"
 
+    cleanupRule(historyDays = 28, artifactsDays = 14)
+
     buildType(SanityCheck)
     buildType(PublishNightlySnapshot(branch))
     buildType(PublishNightlySnapshotFromQuickFeedback(branch))
-    buildType(PublishNightlySnapshotFromQuickFeedbackStep1(branch))
-    buildType(PublishNightlySnapshotFromQuickFeedbackStep2(branch))
+    buildType(PublishNightlySnapshotFromQuickFeedbackStepCheckReady(branch))
+    buildType(PublishNightlySnapshotFromQuickFeedbackStepUpload(branch))
+    buildType(PublishNightlySnapshotFromQuickFeedbackStepPromote(branch))
     buildType(PublishBranchSnapshotFromQuickFeedback)
     buildType(PublishMilestone(branch))
 
@@ -27,11 +31,11 @@ class PromotionProject(branch: VersionedSettingsBranch) : Project({
     }
 
     params {
+        password("env.ORG_GRADLE_PROJECT_gradleS3AccessKey", "%gradleS3AccessKey%")
         password("env.ORG_GRADLE_PROJECT_gradleS3SecretKey", "%gradleS3SecretKey%")
         password("env.ORG_GRADLE_PROJECT_artifactoryUserPassword", "%gradle.internal.repository.build-tool.publish.password%")
-        param("env.ORG_GRADLE_PROJECT_gradleS3AccessKey", "AKIAQBZWBNAJCJGCAMFL")
+        password("env.DOTCOM_DEV_DOCS_AWS_ACCESS_KEY", "%dotcomDevDocsAwsAccessKey%")
         password("env.DOTCOM_DEV_DOCS_AWS_SECRET_KEY", "%dotcomDevDocsAwsSecretKey%")
-        param("env.DOTCOM_DEV_DOCS_AWS_ACCESS_KEY", "AKIAX5VJCER2X7DPYFXF")
         password("env.ORG_GRADLE_PROJECT_sdkmanToken", "%sdkmanToken%")
         param("env.JAVA_HOME", javaHome(BuildToolBuildJvm, Os.LINUX))
         param("env.ORG_GRADLE_PROJECT_artifactoryUserName", "%gradle.internal.repository.build-tool.publish.username%")

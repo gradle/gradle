@@ -1,0 +1,78 @@
+import java.nio.file.Paths
+
+// tag::simple-params[]
+FileCollection collection = layout.files('src/file1.txt',
+                                  new File('src/file2.txt'),
+                                  ['src/file3.csv', 'src/file4.csv'],
+                                  Paths.get('src', 'file5.txt'))
+// end::simple-params[]
+
+file('src').mkdirs()
+file('src/dir1').mkdirs()
+file('src/file1.txt').mkdirs()
+file('src2').mkdirs()
+file('src2/dir1').mkdirs()
+file('src2/dir2').mkdirs()
+
+// tag::closure[]
+tasks.register('list') {
+    Directory projectDirectory = layout.projectDirectory
+    doLast {
+        File srcDir
+
+        // Create a file collection using a closure
+        collection = projectDirectory.files { srcDir.listFiles() }
+
+        srcDir = projectDirectory.file('src').asFile
+        println "Contents of $srcDir.name"
+        collection.collect { projectDirectory.asFile.relativePath(it) }.sort().each { println it }
+
+        srcDir = projectDirectory.file('src2').asFile
+        println "Contents of $srcDir.name"
+        collection.collect { projectDirectory.asFile.relativePath(it) }.sort().each { println it }
+    }
+}
+// end::closure[]
+
+tasks.register('usage') {
+    ProjectLayout projectLayout = layout
+    doLast {
+        collection = projectLayout.files('src/file1.txt')
+
+        // tag::usage[]
+        // Iterate over the files in the collection
+        collection.each { File file ->
+            println file.name
+        }
+
+        // Convert the collection to various types
+        Set set = collection.files
+        Set set2 = collection as Set
+        List list = collection as List
+        String path = collection.asPath
+        File file = collection.singleFile
+
+        // Add and subtract collections
+        def union = collection + projectLayout.files('src/file2.txt')
+        def difference = collection - projectLayout.files('src/file2.txt')
+
+        // end::usage[]
+    }
+}
+
+tasks.register('filterTextFiles') {
+    Directory projectDirectory = layout.projectDirectory
+    doLast {
+        // tag::filtering-file-collections[]
+        FileCollection textFiles = collection.filter { File f ->
+            f.name.endsWith(".txt")
+        }
+        // end::filtering-file-collections[]
+
+        textFiles.collect { projectDirectory.asFile.relativePath(it).toString() }.sort().each { String path ->
+            println path
+        }
+
+        assert textFiles.files*.name.sort() == ['file1.txt', 'file2.txt', 'file5.txt']
+    }
+}

@@ -26,6 +26,7 @@ class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
 
     @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def canAddDynamicPropertiesToProject() {
+        createDirs("child")
         file("settings.gradle").writelns("include 'child'")
         file("build.gradle").writelns(
                 "ext.rootProperty = 'root'",
@@ -66,13 +67,16 @@ class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
                 "}"
         )
 
+        expectProjectConventionDeprecationWarnings()
+        expectConventionTypeDeprecationWarnings(2)
+
         expect:
         succeeds("testTask")
     }
 
     @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def canAddDynamicMethodsToProject() {
-
+        createDirs("child")
         file("settings.gradle").writelns("include 'child'")
         file("build.gradle").writelns(
                 "def rootMethod(p) { 'root' + p }",
@@ -101,6 +105,9 @@ class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
                 "}"
         )
 
+        expectProjectConventionDeprecationWarnings()
+        expectConventionTypeDeprecationWarnings()
+
         expect:
         succeeds("testTask")
     }
@@ -118,6 +125,9 @@ class ConventionBean {
     def conventionMethod(String value) { "[$value]" }
 }
 '''
+
+        expectProjectConventionDeprecationWarnings()
+        expectConventionTypeDeprecationWarnings(2)
 
         expect:
         succeeds()
@@ -142,7 +152,7 @@ class ExtensionBean {
     }
 
     def canAddPropertiesToProjectUsingGradlePropertiesFile() {
-
+        createDirs("child")
         file("settings.gradle").writelns("include 'child'")
         file("gradle.properties") << '''
 global=some value
@@ -281,6 +291,8 @@ assert 'overridden value' == global
             }
 '''
 
+        expectConventionTypeDeprecationWarnings(7)
+        expectAbstractTaskConventionDeprecationWarnings(3)
 
         expect:
         succeeds("defaultTask")
@@ -434,6 +446,7 @@ assert 'overridden value' == global
     }
 
     def canAddMethodsUsingAPropertyWhoseValueIsAClosure() {
+        createDirs("child1", "child2")
         file("settings.gradle").writelns("include 'child1', 'child2'");
         buildFile """
             class Thing {
@@ -451,6 +464,9 @@ assert 'overridden value' == global
             assert prop2(12) == 6
             assert prop3(12) == 24
         """
+
+        expectProjectConventionDeprecationWarnings()
+        expectConventionTypeDeprecationWarnings(2)
 
         expect:
         succeeds()
@@ -472,7 +488,7 @@ assert 'overridden value' == global
     }
 
     def canInjectMethodsFromParentProject() {
-
+        createDirs("child1", "child2")
         file("settings.gradle").writelns("include 'child1', 'child2'");
         buildFile """
             subprojects {
@@ -890,6 +906,9 @@ task print(type: MyTask) {
             }
         """
 
+        expectProjectConventionDeprecationWarnings(4)
+        expectConventionTypeDeprecationWarnings(4)
+
         expect:
         succeeds()
     }
@@ -1046,5 +1065,38 @@ task print(type: MyTask) {
 
         expect:
         succeeds("run")
+    }
+
+    private void expectProjectConventionDeprecationWarnings(int repeated = 1) {
+        repeated.times {
+            executer.expectDocumentedDeprecationWarning(
+                "The Project.getConvention() method has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 9.0. " +
+                    "Consult the upgrading guide for further information: " +
+                    "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions"
+            )
+        }
+    }
+
+    private void expectConventionTypeDeprecationWarnings(int repeated = 1) {
+        repeated.times {
+            executer.expectDocumentedDeprecationWarning(
+                "The org.gradle.api.plugins.Convention type has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 9.0. " +
+                    "Consult the upgrading guide for further information: " +
+                    "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions"
+            )
+        }
+    }
+
+    private void expectAbstractTaskConventionDeprecationWarnings(int repeated = 1) {
+        repeated.times {
+            executer.expectDocumentedDeprecationWarning(
+                "The AbstractTask.getConvention() method has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 9.0. " +
+                    "Consult the upgrading guide for further information: " +
+                    "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions"
+            )
+        }
     }
 }

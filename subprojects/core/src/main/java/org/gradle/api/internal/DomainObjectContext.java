@@ -22,7 +22,7 @@ import org.gradle.util.Path;
 import javax.annotation.Nullable;
 
 /**
- * Represents a position in the tree of builds/projects.
+ * Represents a node in the tree of builds/projects.
  */
 public interface DomainObjectContext {
 

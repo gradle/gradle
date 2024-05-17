@@ -25,7 +25,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.result.DependencyResult;
-import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
@@ -33,13 +32,17 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.artifacts.configurations.ResolutionResultProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolvableDependenciesInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
@@ -57,7 +60,6 @@ import org.gradle.api.tasks.diagnostics.internal.insight.DependencyInsightReport
 import org.gradle.api.tasks.diagnostics.internal.text.StyledTable;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.initialization.StartParameterBuildOptions;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.graph.GraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
@@ -67,6 +69,7 @@ import org.gradle.work.DisableCachingByDefault;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -115,17 +118,22 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
  * {@link #setShowSinglePathToDependency(boolean)}, and {@link #getShowingAllVariants()}.
  */
 @DisableCachingByDefault(because = "Produces only non-cacheable console output")
-public class DependencyInsightReportTask extends DefaultTask {
+public abstract class DependencyInsightReportTask extends DefaultTask {
 
     private Spec<DependencyResult> dependencySpec;
     private boolean showSinglePathToDependency;
     private final Property<Boolean> showingAllVariants = getProject().getObjects().property(Boolean.class);
     private transient Configuration configuration;
     private final Property<ResolvedComponentResult> rootComponentProperty = getProject().getObjects().property(ResolvedComponentResult.class);
+
+    // this field is named with a starting `z` to be serialized after `rootComponentProperty`
+    // because the serialization of `rootComponentProperty` can still trigger callback that can affect
+    // a value of `configuration.getAttributes()`.
+    // TODO:configuration-cache find a way to clean up this #23732
+    private Provider<AttributeContainer> zConfigurationAttributes;
     private ResolutionErrorRenderer errorHandler;
     private String configurationName;
     private String configurationDescription;
-    private AttributeContainer configurationAttributes;
 
     /**
      * The root component of the dependency graph to be inspected.
@@ -147,14 +155,24 @@ public class DependencyInsightReportTask extends DefaultTask {
                         "In order to use the '--all-variants' option, the configuration must not be resolved before this task is executed."
                     );
                 }
-                configurationInternal.setReturnAllVariants(true);
+                configurationInternal.getResolutionStrategy().setReturnAllVariants(true);
             }
             configurationName = configuration.getName();
             configurationDescription = configuration.toString();
-            configurationAttributes = configuration.getAttributes();
-            ResolvableDependenciesInternal incoming = (ResolvableDependenciesInternal) configuration.getIncoming();
-            ResolutionResult result = incoming.getResolutionResult(errorHandler);
-            rootComponentProperty.set(result.getRootComponent());
+            zConfigurationAttributes = getProject().provider(configuration::getAttributes);
+
+            ProviderFactory providerFactory = getProject().getProviders();
+            ResolutionResultProvider<VisitedGraphResults> graphResultsProvider =
+                ((ResolvableDependenciesInternal) configuration.getIncoming()).getGraphResultsProvider();
+            errorHandler.addErrorSource(providerFactory.provider(() ->
+                graphResultsProvider.getValue().getResolutionFailure()
+                    .map(Collections::singletonList)
+                    .orElse(Collections.emptyList()))
+            );
+            rootComponentProperty.set(providerFactory.provider(() -> {
+                // We do not use the public resolution result API to avoid throwing exceptions that we visit above
+                return graphResultsProvider.getValue().getResolutionResult().getRootSource().get();
+            }));
         }
         return rootComponentProperty;
     }
@@ -250,27 +268,10 @@ public class DependencyInsightReportTask extends DefaultTask {
     }
 
     /**
-     * Legacy option name for {@link #setShowSinglePathToDependency(boolean)}. This is not considered API, and should not be used.
-     *
-     * @since 7.5
-     * @deprecated should not be used, call {@link #setShowSinglePathToDependency(boolean)} instead
-     */
-    @Deprecated
-    @Option(option = "singlepath", description = "Show at most one path to each dependency")
-    public void setLegacyShowSinglePathToDependency(boolean showSinglePathToDependency) {
-        DeprecationLogger.deprecate("--singlepath")
-            .withAdvice("Use --single-path instead.")
-            .willBeRemovedInGradle8()
-            .withUpgradeGuideSection(7, "dependencyinsight_singlepath")
-            .nagUser();
-        this.showSinglePathToDependency = showSinglePathToDependency;
-    }
-
-    /**
      * Show all variants of each displayed dependency.
      *
      * <p>
-     * Due to internal limitations, this option only works when the {@linkplain #getConfiguration() configuration} is
+     * Due to internal limitations, this option only works when the {@link #getConfiguration() configuration} is
      * unresolved before the execution of this task.
      * </p>
      *
@@ -338,7 +339,7 @@ public class DependencyInsightReportTask extends DefaultTask {
         GraphRenderer renderer = new GraphRenderer(output);
         DependencyInsightReporter reporter = new DependencyInsightReporter(getVersionSelectorScheme(), getVersionComparator(), getVersionParser());
         Collection<RenderableDependency> itemsToRender = reporter.convertToRenderableItems(selectedDependencies, isShowSinglePathToDependency());
-        RootDependencyRenderer rootRenderer = new RootDependencyRenderer(this, configurationAttributes, getAttributesFactory());
+        RootDependencyRenderer rootRenderer = new RootDependencyRenderer(this, zConfigurationAttributes.get(), getAttributesFactory());
         ReplaceProjectWithConfigurationNameRenderer dependenciesRenderer = new ReplaceProjectWithConfigurationNameRenderer(configurationName);
         DependencyGraphsRenderer dependencyGraphRenderer = new DependencyGraphsRenderer(output, renderer, rootRenderer, dependenciesRenderer);
         dependencyGraphRenderer.setShowSinglePath(showSinglePathToDependency);

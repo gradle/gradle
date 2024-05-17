@@ -22,6 +22,7 @@ import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
+import org.gradle.api.internal.project.taskfactory.TaskIdentityFactory;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.BiAction;
 import org.gradle.internal.Factory;
@@ -53,6 +54,7 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
     private static final ModelReference<Task> TASK_MODEL_REFERENCE = ModelReference.of(TASK_MODEL_TYPE);
     private static final SimpleModelRuleDescriptor COPY_TO_TASK_CONTAINER_DESCRIPTOR = new SimpleModelRuleDescriptor("copyToTaskContainer");
     private final Instantiator instantiator;
+    private final TaskIdentityFactory taskIdentityFactory;
     private final ITaskFactory taskFactory;
     private final CollectionCallbackActionDecorator callbackDecorator;
     private final ProjectInternal project;
@@ -60,14 +62,18 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
     private final BuildOperationExecutor buildOperationExecutor;
     private final CrossProjectConfigurator crossProjectConfigurator;
 
-    public DefaultTaskContainerFactory(Instantiator instantiator,
-                                       ITaskFactory taskFactory,
-                                       ProjectInternal project,
-                                       TaskStatistics statistics,
-                                       BuildOperationExecutor buildOperationExecutor,
-                                       CrossProjectConfigurator crossProjectConfigurator,
-                                       CollectionCallbackActionDecorator callbackDecorator) {
+    public DefaultTaskContainerFactory(
+        Instantiator instantiator,
+        TaskIdentityFactory taskIdentityFactory,
+        ITaskFactory taskFactory,
+        ProjectInternal project,
+        TaskStatistics statistics,
+        BuildOperationExecutor buildOperationExecutor,
+        CrossProjectConfigurator crossProjectConfigurator,
+        CollectionCallbackActionDecorator callbackDecorator
+    ) {
         this.instantiator = instantiator;
+        this.taskIdentityFactory = taskIdentityFactory;
         this.taskFactory = taskFactory;
         this.project = project;
         this.statistics = statistics;
@@ -78,7 +84,7 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
 
     @Override
     public TaskContainerInternal create() {
-        DefaultTaskContainer tasks = instantiator.newInstance(DefaultTaskContainer.class, project, instantiator, taskFactory, statistics, buildOperationExecutor, crossProjectConfigurator, callbackDecorator);
+        DefaultTaskContainer tasks = instantiator.newInstance(DefaultTaskContainer.class, project, instantiator, taskIdentityFactory, taskFactory, statistics, buildOperationExecutor, crossProjectConfigurator, callbackDecorator);
         bridgeIntoSoftwareModelWhenNeeded(tasks);
         return tasks;
     }

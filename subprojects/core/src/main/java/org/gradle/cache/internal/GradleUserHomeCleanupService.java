@@ -16,64 +16,67 @@
 
 package org.gradle.cache.internal;
 
-import org.gradle.cache.scopes.GlobalScopedCache;
+import org.gradle.api.internal.cache.CacheConfigurationsInternal;
+import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.initialization.GradleUserHomeDirProvider;
+import org.gradle.internal.cache.MonitoredCleanupAction;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
-import org.gradle.util.internal.GUtil;
 
 import java.io.File;
-import java.util.Properties;
 
 public class GradleUserHomeCleanupService implements Stoppable {
-
-    private static final long MAX_UNUSED_DAYS_FOR_RELEASES = 30;
-    private static final long MAX_UNUSED_DAYS_FOR_SNAPSHOTS = 7;
-    private static final String CACHE_CLEANUP_PROPERTY = "org.gradle.cache.cleanup";
-
     private final Deleter deleter;
     private final GradleUserHomeDirProvider userHomeDirProvider;
-    private final GlobalScopedCache globalScopedCache;
+    private final GlobalScopedCacheBuilderFactory cacheBuilderFactory;
     private final UsedGradleVersions usedGradleVersions;
     private final ProgressLoggerFactory progressLoggerFactory;
+    private final CacheConfigurationsInternal cacheConfigurations;
+    private boolean alreadyCleaned;
 
     public GradleUserHomeCleanupService(
         Deleter deleter,
         GradleUserHomeDirProvider userHomeDirProvider,
-        GlobalScopedCache globalScopedCache,
+        GlobalScopedCacheBuilderFactory cacheBuilderFactory,
         UsedGradleVersions usedGradleVersions,
-        ProgressLoggerFactory progressLoggerFactory
+        ProgressLoggerFactory progressLoggerFactory,
+        CacheConfigurationsInternal cacheConfigurations
     ) {
         this.deleter = deleter;
         this.userHomeDirProvider = userHomeDirProvider;
-        this.globalScopedCache = globalScopedCache;
+        this.cacheBuilderFactory = cacheBuilderFactory;
         this.usedGradleVersions = usedGradleVersions;
         this.progressLoggerFactory = progressLoggerFactory;
+        this.cacheConfigurations = cacheConfigurations;
+    }
+
+    public void cleanup() {
+        File cacheBaseDir = cacheBuilderFactory.getRootDir();
+        boolean wasCleanedUp = execute(
+            new VersionSpecificCacheCleanupAction(
+                cacheBaseDir,
+                cacheConfigurations.getReleasedWrappers().getRemoveUnusedEntriesOlderThanAsSupplier(),
+                cacheConfigurations.getSnapshotWrappers().getRemoveUnusedEntriesOlderThanAsSupplier(),
+                deleter,
+                cacheConfigurations.getCleanupFrequency().get()
+            )
+        );
+        if (wasCleanedUp) {
+            execute(new WrapperDistributionCleanupAction(userHomeDirProvider.getGradleUserHomeDirectory(), usedGradleVersions));
+        }
+        alreadyCleaned = true;
     }
 
     @Override
     public void stop() {
-        // TODO Will be implemented without hard-coded access to `$GRADLE_USER_HOME/gradle.properties` for 5.1 in #6084
-        File gradleUserHomeDirectory = userHomeDirProvider.getGradleUserHomeDirectory();
-        File gradleProperties = new File(gradleUserHomeDirectory, "gradle.properties");
-        if (gradleProperties.isFile()) {
-            Properties properties = GUtil.loadProperties(gradleProperties);
-            String cleanup = properties.getProperty(CACHE_CLEANUP_PROPERTY);
-            if (cleanup != null && cleanup.equals("false")) {
-                return;
-            }
-        }
-        File cacheBaseDir = globalScopedCache.getRootDir();
-        boolean wasCleanedUp = execute(
-            new VersionSpecificCacheCleanupAction(cacheBaseDir, MAX_UNUSED_DAYS_FOR_RELEASES, MAX_UNUSED_DAYS_FOR_SNAPSHOTS, deleter));
-        if (wasCleanedUp) {
-            execute(new WrapperDistributionCleanupAction(gradleUserHomeDirectory, usedGradleVersions));
+        if (!alreadyCleaned) {
+            cleanup();
         }
     }
 
-    private boolean execute(DirectoryCleanupAction action) {
+    private boolean execute(MonitoredCleanupAction action) {
         ProgressLogger progressLogger = startNewOperation(action.getClass(), action.getDisplayName());
         try {
             return action.execute(new DefaultCleanupProgressMonitor(progressLogger));

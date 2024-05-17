@@ -33,7 +33,7 @@ public interface ResolvedComponentResult extends ComponentResult {
      * <p>Returns the dependencies of this component. Includes resolved and unresolved dependencies (if any).
      *
      * <p>The elements of the returned collection are declared as {@link DependencyResult}, however the dependency instances will also implement one of the
-     * following instances:</p>
+     * following interfaces:</p>
      *
      * <ul>
      *     <li>{@link ResolvedDependencyResult} for dependencies which were successfully resolved.</li>
@@ -67,19 +67,6 @@ public interface ResolvedComponentResult extends ComponentResult {
      */
     @Nullable
     ModuleVersionIdentifier getModuleVersion();
-
-    /**
-     * Returns the variant that was selected for this component. When Gradle metadata is not used, this usually only refers to the target
-     * "configuration" (for an Ivy dependency) or "scope" (for a Maven dependency).
-     *
-     * @return the resolved variant for this component
-     *
-     * @since 4.6
-     *
-     * @deprecated Use {@link #getVariants()} instead}
-     */
-    @Deprecated
-    ResolvedVariantResult getVariant();
 
     /**
      * Returns the variants that were selected for this component. When Gradle metadata is not used, this usually only refers to the target

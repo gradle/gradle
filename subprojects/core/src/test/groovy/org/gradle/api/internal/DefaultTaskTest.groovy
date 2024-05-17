@@ -22,15 +22,15 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.internal.project.taskfactory.TaskIdentity
+import org.gradle.api.internal.project.taskfactory.TestTaskIdentities
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.tasks.AbstractTaskTest
 import org.gradle.api.tasks.TaskExecutionException
-import org.gradle.api.tasks.TaskInstantiationException
 import org.gradle.internal.Actions
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.logging.slf4j.ContextAwareTaskLogger
+import org.gradle.util.TestUtil
 import spock.lang.Issue
 
 import java.util.concurrent.Callable
@@ -59,8 +59,8 @@ class DefaultTaskTest extends AbstractTaskTest {
 
     def "default task"() {
         given:
-        def identity = TaskIdentity.create(TEST_TASK_NAME, Task, project)
-        Task task = AbstractTask.injectIntoNewInstance(project, identity, { new DefaultTask() } as Callable)
+        def identity = TestTaskIdentities.create(TEST_TASK_NAME, Task, project)
+        Task task = AbstractTask.injectIntoNewInstance(project, identity, { TestUtil.newInstance(DefaultTask) } as Callable)
 
         expect:
         task.dependsOn.isEmpty()
@@ -75,8 +75,8 @@ class DefaultTaskTest extends AbstractTaskTest {
 
     def "can inject values into task when using no-args constructor"() {
         given:
-        def identity = TaskIdentity.create(TEST_TASK_NAME, Task, project)
-        def task = AbstractTask.injectIntoNewInstance(project, identity, { new DefaultTask() } as Callable)
+        def identity = TestTaskIdentities.create(TEST_TASK_NAME, Task, project)
+        def task = AbstractTask.injectIntoNewInstance(project, identity, { TestUtil.newInstance(DefaultTask) } as Callable)
 
         expect:
         task.project.is(project)
@@ -446,16 +446,6 @@ class DefaultTaskTest extends AbstractTaskTest {
     def "can access services"() {
         expect:
         defaultTask.services.get(ListenerManager) != null
-    }
-
-    @Issue("https://issues.gradle.org/browse/GRADLE-2022")
-    def "good error message when task instantiated directly"() {
-        when:
-        new DefaultTask()
-
-        then:
-        TaskInstantiationException e = thrown()
-        e.message.contains("has been instantiated directly which is not supported")
     }
 
     def "unnamed task action are named similar by all action definition methods"() {

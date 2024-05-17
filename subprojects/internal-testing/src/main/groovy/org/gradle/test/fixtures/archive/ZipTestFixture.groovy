@@ -16,15 +16,21 @@
 
 package org.gradle.test.fixtures.archive
 
-import org.apache.tools.zip.ZipEntry
-import org.apache.tools.zip.ZipFile
+import com.google.common.collect.ArrayListMultimap
+import com.google.common.collect.ListMultimap
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry
+import org.apache.commons.compress.archivers.zip.ZipFile
 import org.gradle.test.fixtures.file.TestFile
 
 import java.nio.charset.Charset
 
+import static org.hamcrest.CoreMatchers.equalTo
+import static org.hamcrest.MatcherAssert.assertThat
+
 class ZipTestFixture extends ArchiveTestFixture {
     protected final String metadataCharset
     protected final String contentCharset
+    private final ListMultimap<String, Integer> compressionMethodsByRelativePath = ArrayListMultimap.create()
 
     ZipTestFixture(File file, String metadataCharset = null, String contentCharset = null) {
         new TestFile(file).assertIsFile()
@@ -42,13 +48,24 @@ class ZipTestFixture extends ArchiveTestFixture {
                     addDir(entry.name)
                 }
                 addMode(entry.name, entry.getUnixMode())
+                addCompressionMethod(entry.name, entry.getMethod())
             }
         } finally {
             zipFile.close();
         }
     }
 
-    private String getContentForEntry(ZipEntry entry, ZipFile zipFile) {
+    void hasCompression(String relativePath, int compressionMethod) {
+        def methods = compressionMethodsByRelativePath.get(relativePath)
+        assert methods.size() == 1
+        assertThat(methods.get(0), equalTo(compressionMethod))
+    }
+
+    private void addCompressionMethod(String relativePath, int compressionMethod) {
+        compressionMethodsByRelativePath.put(relativePath, compressionMethod)
+    }
+
+    private String getContentForEntry(ZipArchiveEntry entry, ZipFile zipFile) {
         def extension = entry.name.tokenize(".").last()
         if (!(extension in ["jar", "zip"])) {
             return zipFile.getInputStream(entry).getText(contentCharset)

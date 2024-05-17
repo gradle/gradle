@@ -19,14 +19,12 @@ package org.gradle.composite.internal;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.internal.Describables;
-import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.io.File;
 
-public class CompositeProjectComponentArtifactMetadata implements LocalComponentArtifactMetadata, ComponentArtifactIdentifier, DisplayName {
+public class CompositeProjectComponentArtifactMetadata implements LocalComponentArtifactMetadata, ComponentArtifactIdentifier {
     private final ProjectComponentIdentifier componentIdentifier;
     private final LocalComponentArtifactMetadata delegate;
     private final File file;
@@ -68,12 +66,12 @@ public class CompositeProjectComponentArtifactMetadata implements LocalComponent
 
     @Override
     public String getDisplayName() {
-        return delegate.getId().getDisplayName();
+        return delegate.getDisplayName();
     }
 
     @Override
     public String getCapitalizedDisplayName() {
-        return Describables.of(delegate.getId()).getCapitalizedDisplayName();
+        return delegate.getCapitalizedDisplayName();
     }
 
     @Override

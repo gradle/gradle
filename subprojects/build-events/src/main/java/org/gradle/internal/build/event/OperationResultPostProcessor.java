@@ -16,10 +16,10 @@
 
 package org.gradle.internal.build.event;
 
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.internal.build.event.types.AbstractTaskResult;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.OperationFinishEvent;
-import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationStartEvent;
 
 /**
@@ -33,5 +33,5 @@ public interface OperationResultPostProcessor {
 
     void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent);
 
-    AbstractTaskResult process(AbstractTaskResult taskResult, OperationIdentifier taskBuildOperationId);
+    AbstractTaskResult process(AbstractTaskResult taskResult, TaskInternal taskInternal);
 }

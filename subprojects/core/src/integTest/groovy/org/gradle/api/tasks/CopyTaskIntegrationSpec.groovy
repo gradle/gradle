@@ -1650,6 +1650,32 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         file('dest/path/file.txt').assertContents(Matchers.containsText("file1"))
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/5748")
+    def "duplicate detection works when . is a path segment"() {
+        // FAIL
+        given:
+        file('dir1/path/file.txt').createFile() << 'f1'
+        file('dir2/path/file.txt').createFile() << 'f2'
+        buildScript '''
+            task copy(type: Copy) {
+                into 'dest'
+                into ('subdir') {
+                    from 'dir1'
+                }
+                into ('./subdir') {
+                    from 'dir2'
+                }
+                duplicatesStrategy = 'fail'
+            }
+        '''.stripIndent()
+
+        when:
+        fails 'copy'
+
+        then:
+        failure.assertHasCause "Encountered duplicate path \"subdir/path/file.txt\" during copy operation configured with DuplicatesStrategy.FAIL"
+    }
+
     def "each chained matching rule always matches against initial source path"() {
         given:
         file('path/abc.txt').createFile() << 'test file with $attr'
@@ -1804,57 +1830,6 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
 
         then:
         !file('dest/two.b').readLines().iterator().hasNext()
-    }
-
-    @Issue("https://issues.gradle.org/browse/GRADLE-2181")
-    def "can copy files with unicode characters in name with non-unicode platform encoding"() {
-        given:
-        def weirdFileName = "القيادة والسيطرة - الإدارة.lnk"
-
-        buildFile << """
-            task copyFiles {
-                doLast {
-                    copy {
-                        from 'res'
-                        into 'build/resources'
-                    }
-                }
-            }
-        """
-
-        file("res", weirdFileName) << "foo"
-
-        when:
-        executer.withDefaultCharacterEncoding("ISO-8859-1").withTasks("copyFiles")
-        executer.run()
-
-        then:
-        file("build/resources", weirdFileName).exists()
-    }
-
-    @Issue("https://issues.gradle.org/browse/GRADLE-2181")
-    def "can copy files with unicode characters in name with default platform encoding"() {
-        given:
-        def weirdFileName = "القيادة والسيطرة - الإدارة.lnk"
-
-        buildFile << """
-            task copyFiles {
-                doLast {
-                    copy {
-                        from 'res'
-                        into 'build/resources'
-                    }
-                }
-            }
-        """
-
-        file("res", weirdFileName) << "foo"
-
-        when:
-        executer.withTasks("copyFiles").run()
-
-        then:
-        file("build/resources", weirdFileName).exists()
     }
 
     def "nested specs and details arent extensible objects"() {
@@ -2166,7 +2141,11 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
             task (copy, type:Copy) {
                from ('src') {
                   def newValue = providers.systemProperty('new-value').present
-                  $property = newValue ? $newValue : $oldValue
+                  if (newValue) {
+                        $newValue
+                  } else {
+                        $oldValue
+                  }
                }
                into 'dest'
             }
@@ -2194,13 +2173,13 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         skipped(':copy')
 
         where:
-        property             | oldValue                     | newValue
-        "caseSensitive"      | false                        | true
-        "includeEmptyDirs"   | false                        | true
-        "duplicatesStrategy" | "DuplicatesStrategy.EXCLUDE" | "DuplicatesStrategy.INCLUDE"
-        "dirMode"            | "0700"                       | "0755"
-        "fileMode"           | "0600"                       | "0644"
-        "filteringCharset"   | "'iso8859-1'"                | "'utf-8'"
+        property             | oldValue                                          | newValue
+        "caseSensitive"      | "caseSensitive = false"                           | "caseSensitive = true"
+        "includeEmptyDirs"   | "includeEmptyDirs = false"                        | "includeEmptyDirs = true"
+        "duplicatesStrategy" | "duplicatesStrategy = DuplicatesStrategy.EXCLUDE" | "duplicatesStrategy = DuplicatesStrategy.INCLUDE"
+        "dirPermissions"     | "dirPermissions { unix(\"0700\") }"               | "dirPermissions { unix(\"0755\") }"
+        "filePermissions"    | "filePermissions { unix(\"0600\") }"              | "filePermissions { unix(\"0644\") }"
+        "filteringCharset"   | "filteringCharset = 'iso8859-1'"                  | "filteringCharset = 'utf-8'"
     }
 
     def "null action is forbidden for #method"() {

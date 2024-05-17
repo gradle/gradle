@@ -25,10 +25,6 @@ abstract class ForkCapableRelocationIntegrationTest extends AbstractProjectReloc
 
     abstract String getForkOptionsObject()
 
-    String getDaemonTask() {
-        return taskName.split(':').last()
-    }
-
     def "can provide relocatable command line arguments to forked daemons"() {
         def originalDir = file("original-dir")
         originalDir.file("settings.gradle") << localCacheConfiguration()
@@ -66,47 +62,12 @@ abstract class ForkCapableRelocationIntegrationTest extends AbstractProjectReloc
     void setupProjectWithJavaAgentIn(TestFile directory) {
         setupProjectIn(directory)
         def javaAgent = new JavaAgentFixture()
-        javaAgent.writeProjectTo(directory.createDir('javaagent'))
+        javaAgent.writeProjectTo(directory)
 
-        directory.file('settings.gradle') << """
-            include(':javaagent')
-        """
         directory.file('build.gradle') << """
-            configurations {
-                javaagent
-            }
-
-            dependencies {
-                javaagent project(':javaagent')
-            }
-
+            // Use a daemon to build things
             ${daemonConfiguration}
-            ${daemonTask}.dependsOn configurations.javaagent
-            ${forkOptionsObject}.jvmArgumentProviders.add(new JavaAgentCommandLineArgumentProvider(configurations.javaagent.singleFile))
-            ${commandLineArgumentProviderClassContent}
-        """
-    }
-
-    static String getCommandLineArgumentProviderClassContent() {
-        return """
-            class JavaAgentCommandLineArgumentProvider implements CommandLineArgumentProvider {
-                @Internal
-                final File javaAgentJarFile
-
-                JavaAgentCommandLineArgumentProvider(File javaAgentJarFile) {
-                    this.javaAgentJarFile = javaAgentJarFile
-                }
-
-                @Classpath
-                Iterable<File> getClasspath() {
-                    return [javaAgentJarFile]
-                }
-
-                @Override
-                List<String> asArguments() {
-                    ["-javaagent:\${javaAgentJarFile.absolutePath}".toString()]
-                }
-            }
+            ${javaAgent.useJavaAgent(forkOptionsObject)}
         """
     }
 }

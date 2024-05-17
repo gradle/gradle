@@ -17,6 +17,7 @@
 package org.gradle.api;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.LoggingManager;
@@ -274,12 +275,11 @@ public interface Task extends Comparable<Task>, ExtensionAware {
     /**
      * Do not track the state of the task.
      *
-     * Instructs Gradle to treat the task as untracked.
+     * <p>Instructs Gradle to treat the task as untracked.
      *
      * @see org.gradle.api.tasks.UntrackedTask
      * @since 7.3
      */
-    @Incubating
     void doNotTrackState(String reasonNotToTrackState);
 
     /**
@@ -302,7 +302,6 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      *
      * @since 7.4
      */
-    @Incubating
     void notCompatibleWithConfigurationCache(String reason);
 
     /**
@@ -324,6 +323,28 @@ public interface Task extends Comparable<Task>, ExtensionAware {
     void onlyIf(Spec<? super Task> onlyIfSpec);
 
     /**
+     * <p>Execute the task only if the given spec is satisfied. The spec will be evaluated at task execution time, not
+     * during configuration. If the Spec is not satisfied, the task will be skipped.</p>
+     *
+     * <p>You may add multiple such predicates. The task is skipped if any of the predicates return false.</p>
+     *
+     * <p>Typical usage (from Java):</p>
+     * <pre>myTask.onlyIf("run only in production environment", new Spec&lt;Task&gt;() {
+     *    boolean isSatisfiedBy(Task task) {
+     *       return isProductionEnvironment();
+     *    }
+     * });
+     * </pre>
+     *
+     * @param onlyIfReason specifies the reason for a task to run, which is used for logging
+     * @param onlyIfSpec specifies if a task should be run
+     *
+     * @since 7.6
+     */
+    @Incubating
+    void onlyIf(String onlyIfReason, Spec<? super Task> onlyIfSpec);
+
+    /**
      * <p>Execute the task only if the given closure returns true.  The closure will be evaluated at task execution
      * time, not during configuration.  The closure will be passed a single parameter, this task. If the closure returns
      * false, the task will be skipped.</p>
@@ -343,6 +364,20 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      * @param onlyIfSpec specifies if a task should be run
      */
     void setOnlyIf(Spec<? super Task> onlyIfSpec);
+
+    /**
+     * <p>Execute the task only if the given spec is satisfied. The spec will be evaluated at task execution time, not
+     * during configuration. If the Spec is not satisfied, the task will be skipped.</p>
+     *
+     * <p>The given predicate replaces all such predicates for this task.</p>
+     *
+     * @param onlyIfReason specifies the reason for a task to run, which is used for logging
+     * @param onlyIfSpec specifies if a task should be run
+     *
+     * @since 7.6
+     */
+    @Incubating
+    void setOnlyIf(String onlyIfReason, Spec<? super Task> onlyIfSpec);
 
     /**
      * Returns the execution state of this task. This provides information about the execution of this task, such as
@@ -394,7 +429,7 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      * @param action The action closure to execute.
      * @return This task.
      */
-    Task doFirst(Closure action);
+    Task doFirst(@DelegatesTo(Task.class) Closure action);
 
     /**
      * <p>Adds the given {@link Action} to the beginning of this task's action list.</p>
@@ -433,7 +468,7 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      * @param action The action closure to execute.
      * @return This task.
      */
-    Task doLast(Closure action);
+    Task doLast(@DelegatesTo(Task.class) Closure action);
 
     /**
      * <p>Returns if this task is enabled or not.</p>
@@ -796,6 +831,5 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      * @param service The service provider.
      * @since 6.1
      */
-    @Incubating
     void usesService(Provider<? extends BuildService<?>> service);
 }

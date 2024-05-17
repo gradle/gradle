@@ -21,7 +21,7 @@ import org.gradle.api.internal.collections.IterationOrderRetainingSetElementSour
 import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.internal.provider.ValueSupplier
 import org.gradle.api.specs.Spec
-import org.gradle.internal.Describables
+import org.gradle.internal.code.UserCodeSource
 
 import static org.gradle.util.internal.WrapUtil.toList
 
@@ -179,11 +179,11 @@ class DefaultDomainObjectCollectionTest extends AbstractDomainObjectCollectionSp
 
     def restoresUserCodeApplicationWhenFilterSpecIsEvaluated() {
         def spec = Mock(Spec)
-        def displayName = Describables.of("plugin")
+        def source = Stub(UserCodeSource)
         def collection = null
 
         given:
-        userCodeApplicationContext.apply(displayName) {
+        userCodeApplicationContext.apply(source) {
             collection = container.matching(spec)
         }
         assert userCodeApplicationContext.current() == null
@@ -194,7 +194,7 @@ class DefaultDomainObjectCollectionTest extends AbstractDomainObjectCollectionSp
 
         then:
         1 * spec.isSatisfiedBy("a") >> {
-            assert userCodeApplicationContext.current().displayName == displayName
+            assert userCodeApplicationContext.current().source == source
             true
         }
     }

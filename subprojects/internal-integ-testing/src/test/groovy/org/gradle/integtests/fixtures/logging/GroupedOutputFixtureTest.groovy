@@ -17,6 +17,9 @@
 package org.gradle.integtests.fixtures.logging
 
 import org.gradle.integtests.fixtures.executer.LogContent
+import org.gradle.integtests.fixtures.logging.GroupedWorkOutputFixture.ComparisonFailureFormat
+import org.gradle.integtests.fixtures.logging.comparison.LineSearchFailures
+import org.gradle.integtests.fixtures.logging.comparison.LineSearchFailures.PotentialMatchesExistComparisonFailure
 import spock.lang.Specification
 
 class GroupedOutputFixtureTest extends Specification {
@@ -24,7 +27,7 @@ class GroupedOutputFixtureTest extends Specification {
     def "parses task names"() {
         given:
         def consoleOutput = """
-\u001B[2A\u001B[1m<-------------> 0% INITIALIZING [0s]\u001B[m\u001B[36D\u001B[1B\u001B[1m> settings\u001B[m\u001B[10D\u001B[1B\u001B[1A\u001B[1m> settings > Compiling /Users/daniel/gradle/gradle/build/tmp/test files/BasicGroupedTaskLoggingFunctionalSpec/test/oww7k/settings.gradle into local compilation cache > Compiling settings file '/Users/daniel/gradle/gradle/build/tmp/test files/BasicGroupedTaskLoggingFunctionalSpec/test/oww7k/settings.gradle' to cross build script cache\u001B[m\u001B[335D\u001B[1B\u001B[1A\u001B[1m> settings > Compiling /Users/daniel/gradle/gradle/build/tmp/test files/BasicGroupedTaskLoggingFunctionalSpec/test/oww7k/settings.gradle into local compilation cache\u001B[m\u001B[0K\u001B[165D\u001B[1B\u001B[1A\u001B[1m> settings\u001B[m\u001B[0K\u001B[10D\u001B[1B\u001B[1A\u001B[90m> IDLE\u001B[39m\u001B[0K\u001B[6D\u001B[1B\u001B[2A\u001B[1m<-------------> 0% CONFIGURING [0s]\u001B[m\u001B[0K\u001B[35D\u001B[2B\u001B[1A\u001B[1m> root project > Compiling /Users/daniel/gradle/gradle/build/tmp/test files/BasicGroupedTaskLoggingFunctionalSpec/test/oww7k/build.gradle into local compilation cache\u001B[m\u001B[166D\u001B[1B\u001B[2A\u001B[1m<-------------> 0% CONFIGURING [1s]\u001B[m\u001B[35D\u001B[1B\u001B[1m> root project\u001B[m\u001B[0K\u001B[14D\u001B[1B\u001B[2A\u001B[1m<-------------> 0% EXECUTING [1s]\u001B[m\u001B[0K\u001B[33D\u001B[1B\u001B[90m> IDLE\u001B[39m\u001B[0K\u001B[6D\u001B[1B\u001B[2A\u001B[0K
+\u001B[2A\u001B[1m<-------------> 0% INITIALIZING [0s]\u001B[m\u001B[36D\u001B[1B\u001B[1m> settings\u001B[m\u001B[10D\u001B[1B\u001B[1A\u001B[1m> settings > Compiling /Users/daniel/gradle/gradle/build/tmp/teŝt files/BasicGroupedTaskLoggingFunctionalSpec/test/oww7k/settings.gradle into local compilation cache > Compiling settings file '/Users/daniel/gradle/gradle/build/tmp/teŝt files/BasicGroupedTaskLoggingFunctionalSpec/test/oww7k/settings.gradle' to cross build script cache\u001B[m\u001B[335D\u001B[1B\u001B[1A\u001B[1m> settings > Compiling /Users/daniel/gradle/gradle/build/tmp/teŝt files/BasicGroupedTaskLoggingFunctionalSpec/test/oww7k/settings.gradle into local compilation cache\u001B[m\u001B[0K\u001B[165D\u001B[1B\u001B[1A\u001B[1m> settings\u001B[m\u001B[0K\u001B[10D\u001B[1B\u001B[1A\u001B[90m> IDLE\u001B[39m\u001B[0K\u001B[6D\u001B[1B\u001B[2A\u001B[1m<-------------> 0% CONFIGURING [0s]\u001B[m\u001B[0K\u001B[35D\u001B[2B\u001B[1A\u001B[1m> root project > Compiling /Users/daniel/gradle/gradle/build/tmp/teŝt files/BasicGroupedTaskLoggingFunctionalSpec/test/oww7k/build.gradle into local compilation cache\u001B[m\u001B[166D\u001B[1B\u001B[2A\u001B[1m<-------------> 0% CONFIGURING [1s]\u001B[m\u001B[35D\u001B[1B\u001B[1m> root project\u001B[m\u001B[0K\u001B[14D\u001B[1B\u001B[2A\u001B[1m<-------------> 0% EXECUTING [1s]\u001B[m\u001B[0K\u001B[33D\u001B[1B\u001B[90m> IDLE\u001B[39m\u001B[0K\u001B[6D\u001B[1B\u001B[2A\u001B[0K
 \u001B[1m> Task :1:log\u001B[m\u001B[0K
 Output from 1
 
@@ -82,7 +85,7 @@ First incremental output
     def "parses tasks with progress bar interference"() {
         given:
         def consoleOutput = """
-\u001B[2A\u001B[1m<-------------> 0% INITIALIZING [0s]\u001B[m\u001B[36D\u001B[1B\u001B[1m> settings\u001B[m\u001B[10D\u001B[1B\u001B[1A\u001B[90m> IDLE\u001B[39m\u001B[0K\u001B[6D\u001B[1B\u001B[2A\u001B[1m<-------------> 0% CONFIGURING [0s]\u001B[m\u001B[0K\u001B[35D\u001B[2B\u001B[1A\u001B[1m> root project > Compiling /Users/daniel/gradle/gradle/build/tmp/test files/BasicGroupedTaskLoggingFunctionalSpec/test/rxozi/build.gradle into local compilation cache > Compiling build file '/Users/daniel/gradle/gradle/build/tmp/test files/BasicGroupedTaskLoggingFunctionalSpec/test/rxozi/build.gradle' to cross build script cache\u001B[m\u001B[330D\u001B[1B\u001B[1A\u001B[1m> root project > Compiling /Users/daniel/gradle/gradle/build/tmp/test files/BasicGroupedTaskLoggingFunctionalSpec/test/rxozi/build.gradle into local compilation cache\u001B[m\u001B[0K\u001B[166D\u001B[1B\u001B[1A\u001B[1m> root project > Compiling /Users/daniel/gradle/gradle/build/tmp/test files/BasicGroupedTaskLoggingFunctionalSpec/test/rxozi/build.gradle into local compilation cache > Compiling build file '/Users/daniel/gradle/gradle/build/tmp/test files/BasicGroupedTaskLoggingFunctionalSpec/test/rxozi/build.gradle' to cross build script cache\u001B[m\u001B[330D\u001B[1B\u001B[2A\u001B[1m<-------------> 0% CONFIGURING [1s]\u001B[m\u001B[35D\u001B[1B\u001B[1m> root project\u001B[m\u001B[0K\u001B[14D\u001B[1B\u001B[2A\u001B[1m<-------------> 0% EXECUTING [1s]\u001B[m\u001B[0K\u001B[33D\u001B[1B\u001B[90m> IDLE\u001B[39m\u001B[0K\u001B[6D\u001B[1B\u001B[2A\u001B[0K
+\u001B[2A\u001B[1m<-------------> 0% INITIALIZING [0s]\u001B[m\u001B[36D\u001B[1B\u001B[1m> settings\u001B[m\u001B[10D\u001B[1B\u001B[1A\u001B[90m> IDLE\u001B[39m\u001B[0K\u001B[6D\u001B[1B\u001B[2A\u001B[1m<-------------> 0% CONFIGURING [0s]\u001B[m\u001B[0K\u001B[35D\u001B[2B\u001B[1A\u001B[1m> root project > Compiling /Users/daniel/gradle/gradle/build/tmp/teŝt files/BasicGroupedTaskLoggingFunctionalSpec/test/rxozi/build.gradle into local compilation cache > Compiling build file '/Users/daniel/gradle/gradle/build/tmp/teŝt files/BasicGroupedTaskLoggingFunctionalSpec/test/rxozi/build.gradle' to cross build script cache\u001B[m\u001B[330D\u001B[1B\u001B[1A\u001B[1m> root project > Compiling /Users/daniel/gradle/gradle/build/tmp/teŝt files/BasicGroupedTaskLoggingFunctionalSpec/test/rxozi/build.gradle into local compilation cache\u001B[m\u001B[0K\u001B[166D\u001B[1B\u001B[1A\u001B[1m> root project > Compiling /Users/daniel/gradle/gradle/build/tmp/teŝt files/BasicGroupedTaskLoggingFunctionalSpec/test/rxozi/build.gradle into local compilation cache > Compiling build file '/Users/daniel/gradle/gradle/build/tmp/teŝt files/BasicGroupedTaskLoggingFunctionalSpec/test/rxozi/build.gradle' to cross build script cache\u001B[m\u001B[330D\u001B[1B\u001B[2A\u001B[1m<-------------> 0% CONFIGURING [1s]\u001B[m\u001B[35D\u001B[1B\u001B[1m> root project\u001B[m\u001B[0K\u001B[14D\u001B[1B\u001B[2A\u001B[1m<-------------> 0% EXECUTING [1s]\u001B[m\u001B[0K\u001B[33D\u001B[1B\u001B[90m> IDLE\u001B[39m\u001B[0K\u001B[6D\u001B[1B\u001B[2A\u001B[0K
 \u001B[1m> Task :1:log\u001B[m\u001B[0K
 Output from 1
 \u001B[0K
@@ -113,7 +116,7 @@ Output from 3
         def consoleOutput = """
 \u001B[2A\u001B[1m<-------------> 0% INITIALIZING [0s]\u001B[m\u001B[36D\u001B[1B\u001B[1m> settings\u001B[m\u001B[10D\u001B[1B\u001B[1A\u001B[90m> IDLE\u001B[39m\u001B[0K\u001B[6D\u001B[1B\u001B[2A\u001B[1m<-------------> 0% CONFIGURING [0s]\u001B[m\u001B[0K\u001B[35D\u001B[2B\u001B[2AParallel execution is an incubating feature.\u001B[0K
 \u001B[1B\u001B[0K
-\u001B[2A\u001B[1m<-------------> 0% CONFIGURING [0s]\u001B[m\u001B[35D\u001B[1B\u001B[1m> root project > Compiling /Users/daniel/gradle/gradle/build/tmp/test files/BasicGroupedTaskLoggingFunctionalSpec/test/u4jgn/build.gradle into local compilation cache > Compiling build file '/Users/daniel/gradle/gradle/build/tmp/test files/BasicGroupedTaskLoggingFunctionalSpec/test/u4jgn/build.gradle' to cross build script cache\u001B[m\u001B[330D\u001B[1B\u001B[1A\u001B[1m> root project > Compiling /Users/daniel/gradle/gradle/build/tmp/test files/BasicGroupedTaskLoggingFunctionalSpec/test/u4jgn/build.gradle into local compilation cache\u001B[m\u001B[0K\u001B[166D\u001B[1B\u001B[1A\u001B[1m> root project > Compiling /Users/daniel/gradle/gradle/build/tmp/test files/BasicGroupedTaskLoggingFunctionalSpec/test/u4jgn/build.gradle into local compilation cache > Compiling build file '/Users/daniel/gradle/gradle/build/tmp/test files/BasicGroupedTaskLoggingFunctionalSpec/test/u4jgn/build.gradle' to cross build script cache\u001B[m\u001B[330D\u001B[1B\u001B[1A\u001B[1m> root project\u001B[m\u001B[0K\u001B[14D\u001B[1B\u001B[2A\u001B[1m<-------------> 0% EXECUTING [1s]\u001B[m\u001B[0K\u001B[33D\u001B[1B\u001B[1m> :log\u001B[m\u001B[0K\u001B[6D\u001B[1B
+\u001B[2A\u001B[1m<-------------> 0% CONFIGURING [0s]\u001B[m\u001B[35D\u001B[1B\u001B[1m> root project > Compiling /Users/daniel/gradle/gradle/build/tmp/teŝt files/BasicGroupedTaskLoggingFunctionalSpec/test/u4jgn/build.gradle into local compilation cache > Compiling build file '/Users/daniel/gradle/gradle/build/tmp/teŝt files/BasicGroupedTaskLoggingFunctionalSpec/test/u4jgn/build.gradle' to cross build script cache\u001B[m\u001B[330D\u001B[1B\u001B[1A\u001B[1m> root project > Compiling /Users/daniel/gradle/gradle/build/tmp/teŝt files/BasicGroupedTaskLoggingFunctionalSpec/test/u4jgn/build.gradle into local compilation cache\u001B[m\u001B[0K\u001B[166D\u001B[1B\u001B[1A\u001B[1m> root project > Compiling /Users/daniel/gradle/gradle/build/tmp/teŝt files/BasicGroupedTaskLoggingFunctionalSpec/test/u4jgn/build.gradle into local compilation cache > Compiling build file '/Users/daniel/gradle/gradle/build/tmp/teŝt files/BasicGroupedTaskLoggingFunctionalSpec/test/u4jgn/build.gradle' to cross build script cache\u001B[m\u001B[330D\u001B[1B\u001B[1A\u001B[1m> root project\u001B[m\u001B[0K\u001B[14D\u001B[1B\u001B[2A\u001B[1m<-------------> 0% EXECUTING [1s]\u001B[m\u001B[0K\u001B[33D\u001B[1B\u001B[1m> :log\u001B[m\u001B[0K\u001B[6D\u001B[1B
 
 
 \u001B[3A\u001B[1m> :1:log\u001B[m\u001B[8D\u001B[1B\u001B[1m> :3:log\u001B[m\u001B[8D\u001B[1B\u001B[1m> :2:log\u001B[m\u001B[8D\u001B[1B\u001B[5A\u001B[1m<-------------> 0% EXECUTING [2s]\u001B[m\u001B[33D\u001B[5B\u001B[5A\u001B[0K
@@ -145,7 +148,7 @@ Last line of text
     def "handles erase directly before progress bar right before end of build"() {
         given:
         def consoleOutput = """
-\u001B[2A\u001B[1m<-------------> 0% INITIALIZING [0s]\u001B[m\u001B[36D\u001B[1B\u001B[1m> settings\u001B[m\u001B[10D\u001B[1B\u001B[1A\u001B[90m> IDLE\u001B[39m\u001B[0K\u001B[6D\u001B[1B\u001B[2A\u001B[1m<-------------> 0% CONFIGURING [0s]\u001B[m\u001B[0K\u001B[35D\u001B[2B\u001B[1A\u001B[1m> root project > Compiling /Users/daniel/gradle/gradle/build/tmp/test files/BasicGroupedTaskLoggingFunctionalSpec/test/7n483/build.gradle into local compilation cache > Compiling build file '/Users/daniel/gradle/gradle/build/tmp/test files/BasicGroupedTaskLoggingFunctionalSpec/test/7n483/build.gradle' to cross build script cache\u001B[m\u001B[330D\u001B[1B\u001B[1A\u001B[1m> root project > Compiling /Users/daniel/gradle/gradle/build/tmp/test files/BasicGroupedTaskLoggingFunctionalSpec/test/7n483/build.gradle into local compilation cache\u001B[m\u001B[0K\u001B[166D\u001B[1B\u001B[1A\u001B[1m> root project > Compiling /Users/daniel/gradle/gradle/build/tmp/test files/BasicGroupedTaskLoggingFunctionalSpec/test/7n483/build.gradle into local compilation cache > Compiling build file '/Users/daniel/gradle/gradle/build/tmp/test files/BasicGroupedTaskLoggingFunctionalSpec/test/7n483/build.gradle' to cross build script cache\u001B[m\u001B[330D\u001B[1B\u001B[1A\u001B[1m> root project\u001B[m\u001B[0K\u001B[14D\u001B[1B\u001B[2A\u001B[1m<-------------> 0% EXECUTING [1s]\u001B[m\u001B[0K\u001B[33D\u001B[1B\u001B[90m> IDLE\u001B[39m\u001B[0K\u001B[6D\u001B[1B\u001B[2A\u001B[0K
+\u001B[2A\u001B[1m<-------------> 0% INITIALIZING [0s]\u001B[m\u001B[36D\u001B[1B\u001B[1m> settings\u001B[m\u001B[10D\u001B[1B\u001B[1A\u001B[90m> IDLE\u001B[39m\u001B[0K\u001B[6D\u001B[1B\u001B[2A\u001B[1m<-------------> 0% CONFIGURING [0s]\u001B[m\u001B[0K\u001B[35D\u001B[2B\u001B[1A\u001B[1m> root project > Compiling /Users/daniel/gradle/gradle/build/tmp/teŝt files/BasicGroupedTaskLoggingFunctionalSpec/test/7n483/build.gradle into local compilation cache > Compiling build file '/Users/daniel/gradle/gradle/build/tmp/teŝt files/BasicGroupedTaskLoggingFunctionalSpec/test/7n483/build.gradle' to cross build script cache\u001B[m\u001B[330D\u001B[1B\u001B[1A\u001B[1m> root project > Compiling /Users/daniel/gradle/gradle/build/tmp/teŝt files/BasicGroupedTaskLoggingFunctionalSpec/test/7n483/build.gradle into local compilation cache\u001B[m\u001B[0K\u001B[166D\u001B[1B\u001B[1A\u001B[1m> root project > Compiling /Users/daniel/gradle/gradle/build/tmp/teŝt files/BasicGroupedTaskLoggingFunctionalSpec/test/7n483/build.gradle into local compilation cache > Compiling build file '/Users/daniel/gradle/gradle/build/tmp/teŝt files/BasicGroupedTaskLoggingFunctionalSpec/test/7n483/build.gradle' to cross build script cache\u001B[m\u001B[330D\u001B[1B\u001B[1A\u001B[1m> root project\u001B[m\u001B[0K\u001B[14D\u001B[1B\u001B[2A\u001B[1m<-------------> 0% EXECUTING [1s]\u001B[m\u001B[0K\u001B[33D\u001B[1B\u001B[90m> IDLE\u001B[39m\u001B[0K\u001B[6D\u001B[1B\u001B[2A\u001B[0K
 \u001B[1m> Task :1:log\u001B[m\u001B[0K
 Output from 1
 \u001B[0K
@@ -168,7 +171,7 @@ Output from 1
         def consoleOutput = """
 \u001B[2A\u001B[1m<-------------> 0% INITIALIZING [0s]\u001B[m\u001B[36D\u001B[1B\u001B[1m> settings\u001B[m\u001B[10D\u001B[1B\u001B[1A\u001B[90m> IDLE\u001B[39m\u001B[0K\u001B[6D\u001B[1B\u001B[2A\u001B[1m<-------------> 0% CONFIGURING [0s]\u001B[m\u001B[0K\u001B[35D\u001B[2B\u001B[2AParallel execution is an incubating feature.\u001B[0K
 \u001B[1B\u001B[0K
-\u001B[2A\u001B[1m<-------------> 0% CONFIGURING [0s]\u001B[m\u001B[35D\u001B[1B\u001B[1m> root project > Compiling /Users/daniel/gradle/gradle/build/tmp/test files/BasicGroupedTaskLoggingFunctionalSpec/test/omm11/build.gradle into local compilation cache > Compiling build file '/Users/daniel/gradle/gradle/build/tmp/test files/BasicGroupedTaskLoggingFunctionalSpec/test/omm11/build.gradle' to cross build script cache\u001B[m\u001B[330D\u001B[1B\u001B[1A\u001B[1m> root project > Compiling /Users/daniel/gradle/gradle/build/tmp/test files/BasicGroupedTaskLoggingFunctionalSpec/test/omm11/build.gradle into local compilation cache\u001B[m\u001B[0K\u001B[166D\u001B[1B\u001B[1A\u001B[1m> root project > Compiling /Users/daniel/gradle/gradle/build/tmp/test files/BasicGroupedTaskLoggingFunctionalSpec/test/omm11/build.gradle into local compilation cache > Compiling build file '/Users/daniel/gradle/gradle/build/tmp/test files/BasicGroupedTaskLoggingFunctionalSpec/test/omm11/build.gradle' to cross build script cache\u001B[m\u001B[330D\u001B[1B\u001B[2A\u001B[1m<-------------> 0% CONFIGURING [1s]\u001B[m\u001B[35D\u001B[1B\u001B[1m> root project\u001B[m\u001B[0K\u001B[14D\u001B[1B\u001B[2A\u001B[1m<-------------> 0% EXECUTING [1s]\u001B[m\u001B[0K\u001B[33D\u001B[1B\u001B[90m> IDLE\u001B[39m\u001B[0K\u001B[6D\u001B[1B
+\u001B[2A\u001B[1m<-------------> 0% CONFIGURING [0s]\u001B[m\u001B[35D\u001B[1B\u001B[1m> root project > Compiling /Users/daniel/gradle/gradle/build/tmp/teŝt files/BasicGroupedTaskLoggingFunctionalSpec/test/omm11/build.gradle into local compilation cache > Compiling build file '/Users/daniel/gradle/gradle/build/tmp/teŝt files/BasicGroupedTaskLoggingFunctionalSpec/test/omm11/build.gradle' to cross build script cache\u001B[m\u001B[330D\u001B[1B\u001B[1A\u001B[1m> root project > Compiling /Users/daniel/gradle/gradle/build/tmp/teŝt files/BasicGroupedTaskLoggingFunctionalSpec/test/omm11/build.gradle into local compilation cache\u001B[m\u001B[0K\u001B[166D\u001B[1B\u001B[1A\u001B[1m> root project > Compiling /Users/daniel/gradle/gradle/build/tmp/teŝt files/BasicGroupedTaskLoggingFunctionalSpec/test/omm11/build.gradle into local compilation cache > Compiling build file '/Users/daniel/gradle/gradle/build/tmp/teŝt files/BasicGroupedTaskLoggingFunctionalSpec/test/omm11/build.gradle' to cross build script cache\u001B[m\u001B[330D\u001B[1B\u001B[2A\u001B[1m<-------------> 0% CONFIGURING [1s]\u001B[m\u001B[35D\u001B[1B\u001B[1m> root project\u001B[m\u001B[0K\u001B[14D\u001B[1B\u001B[2A\u001B[1m<-------------> 0% EXECUTING [1s]\u001B[m\u001B[0K\u001B[33D\u001B[1B\u001B[90m> IDLE\u001B[39m\u001B[0K\u001B[6D\u001B[1B
 
 \u001B[3A\u001B[1m> :1:log\u001B[m\u001B[8D\u001B[1B\u001B[1m> :2:log\u001B[m\u001B[8D\u001B[1B\u001B[1m> :3:log\u001B[m\u001B[8D\u001B[1B\u001B[4A\u001B[0K
 \u001B[1m> Task :1:log\u001B[m\u001B[0K
@@ -198,7 +201,7 @@ Output from 2
     def "throws exception if task group could not be parsed"() {
         given:
         def consoleOutput = """
-\u001B[2A\u001B[1m<-------------> 0% INITIALIZING [0s]\u001B[m\u001B[36D\u001B[1B\u001B[1m> settings\u001B[m\u001B[10D\u001B[1B\u001B[1A\u001B[1m> settings > Compiling /Users/daniel/gradle/gradle/build/tmp/test files/BasicGroupedTaskLoggingFunctionalSpec/test/oww7k/settings.gradle into local compilation cache > Compiling settings file '/Users/daniel/gradle/gradle/build/tmp/test files/BasicGroupedTaskLoggingFunctionalSpec/test/oww7k/settings.gradle' to cross build script cache\u001B[m\u001B[335D\u001B[1B\u001B[1A\u001B[1m> settings > Compiling /Users/daniel/gradle/gradle/build/tmp/test files/BasicGroupedTaskLoggingFunctionalSpec/test/oww7k/settings.gradle into local compilation cache\u001B[m\u001B[0K\u001B[165D\u001B[1B\u001B[1A\u001B[1m> settings\u001B[m\u001B[0K\u001B[10D\u001B[1B\u001B[1A\u001B[90m> IDLE\u001B[39m\u001B[0K\u001B[6D\u001B[1B\u001B[2A\u001B[1m<-------------> 0% CONFIGURING [0s]\u001B[m\u001B[0K\u001B[35D\u001B[2B\u001B[1A\u001B[1m> root project > Compiling /Users/daniel/gradle/gradle/build/tmp/test files/BasicGroupedTaskLoggingFunctionalSpec/test/oww7k/build.gradle into local compilation cache\u001B[m\u001B[166D\u001B[1B\u001B[2A\u001B[1m<-------------> 0% CONFIGURING [1s]\u001B[m\u001B[35D\u001B[1B\u001B[1m> root project\u001B[m\u001B[0K\u001B[14D\u001B[1B\u001B[2A\u001B[1m<-------------> 0% EXECUTING [1s]\u001B[m\u001B[0K\u001B[33D\u001B[1B\u001B[90m> IDLE\u001B[39m\u001B[0K\u001B[6D\u001B[1B\u001B[2A\u001B[0K
+\u001B[2A\u001B[1m<-------------> 0% INITIALIZING [0s]\u001B[m\u001B[36D\u001B[1B\u001B[1m> settings\u001B[m\u001B[10D\u001B[1B\u001B[1A\u001B[1m> settings > Compiling /Users/daniel/gradle/gradle/build/tmp/teŝt files/BasicGroupedTaskLoggingFunctionalSpec/test/oww7k/settings.gradle into local compilation cache > Compiling settings file '/Users/daniel/gradle/gradle/build/tmp/teŝt files/BasicGroupedTaskLoggingFunctionalSpec/test/oww7k/settings.gradle' to cross build script cache\u001B[m\u001B[335D\u001B[1B\u001B[1A\u001B[1m> settings > Compiling /Users/daniel/gradle/gradle/build/tmp/teŝt files/BasicGroupedTaskLoggingFunctionalSpec/test/oww7k/settings.gradle into local compilation cache\u001B[m\u001B[0K\u001B[165D\u001B[1B\u001B[1A\u001B[1m> settings\u001B[m\u001B[0K\u001B[10D\u001B[1B\u001B[1A\u001B[90m> IDLE\u001B[39m\u001B[0K\u001B[6D\u001B[1B\u001B[2A\u001B[1m<-------------> 0% CONFIGURING [0s]\u001B[m\u001B[0K\u001B[35D\u001B[2B\u001B[1A\u001B[1m> root project > Compiling /Users/daniel/gradle/gradle/build/tmp/teŝt files/BasicGroupedTaskLoggingFunctionalSpec/test/oww7k/build.gradle into local compilation cache\u001B[m\u001B[166D\u001B[1B\u001B[2A\u001B[1m<-------------> 0% CONFIGURING [1s]\u001B[m\u001B[35D\u001B[1B\u001B[1m> root project\u001B[m\u001B[0K\u001B[14D\u001B[1B\u001B[2A\u001B[1m<-------------> 0% EXECUTING [1s]\u001B[m\u001B[0K\u001B[33D\u001B[1B\u001B[90m> IDLE\u001B[39m\u001B[0K\u001B[6D\u001B[1B\u001B[2A\u001B[0K
 \u001B[1m> Task :1:log\u001B[m\u001B[0K
 Output from 1
 
@@ -246,7 +249,7 @@ Output from :log
         def consoleOutput = """\u001B[1A\u001B[1m> Connecting to Daemon\u001B[m\u001B[22D
 \u001B[1A\u001B[90m> IDLE\u001B[39m\u001B[0K\u001B[6D
 \u001B[1A\u001B[1m<-------------> 0% CONFIGURING [0s]\u001B[m\u001B[35D\u001B[1B\u001B[1m> root project\u001B[m\u001B[14D
-\u001B[1A\u001B[1m> root project > Compiling /home/tcagent2/agent/work/1c72cb73edd79150/subprojects/logging/build/tmp/test files/BasicGroupedTaskLoggingFunctionalSpec/long_running_task_o..._5s_delay/m5mh7/build.gradle into local compilation cache\u001B[m\u001B[228D
+\u001B[1A\u001B[1m> root project > Compiling /home/tcagent2/agent/work/1c72cb73edd79150/subprojects/logging/build/tmp/teŝt files/BasicGroupedTaskLoggingFunctionalSpec/long_running_task_o..._5s_delay/m5mh7/build.gradle into local compilation cache\u001B[m\u001B[228D
 \u001B[2A\u001B[1m<-------------> 0% CONFIGURING [1s]\u001B[m\u001B[35D\u001B[1B
 \u001B[2A\u001B[1m<-------------> 0% EXECUTING [1s]\u001B[m\u001B[0K\u001B[33D\u001B[1B\u001B[1m> :log\u001B[m\u001B[0K\u001B[6D
 \u001B[2A\u001B[1m<-------------> 0% EXECUTING [2s]\u001B[m\u001B[33D\u001B[1B
@@ -283,7 +286,7 @@ Before\u001B[0K
 Hello world
 
 
-\u001B[2A\u001B[1m<-------------> 0% CONFIGURING [0s]\u001B[m\u001B[35D\u001B[1B\u001B[1m> root project > Compiling /Users/daniel/gradle/gradle/build/tmp/test files/ConsoleBuildSrcFunctionalTest/can_group_task_outp..._buildSrc/pco71/build.gradle into local compilation cache\u001B[m\u001B[185D\u001B[1B\u001B[2A\u001B[0K
+\u001B[2A\u001B[1m<-------------> 0% CONFIGURING [0s]\u001B[m\u001B[35D\u001B[1B\u001B[1m> root project > Compiling /Users/daniel/gradle/gradle/build/tmp/teŝt files/ConsoleBuildSrcFunctionalTest/can_group_task_outp..._buildSrc/pco71/build.gradle into local compilation cache\u001B[m\u001B[185D\u001B[1B\u001B[2A\u001B[0K
 \u001B[1m> Task :byeWorld\u001B[m\u001B[0K
 Bye world
 
@@ -305,7 +308,7 @@ Bye world
 Hello world
 
 
-\u001B[2A\u001B[1m<-------------> 0% CONFIGURING [0s]\u001B[m\u001B[35D\u001B[1B\u001B[1m> root project > Compiling /Users/daniel/gradle/gradle/build/tmp/test files/ConsoleBuildSrcFunctionalTest/can_group_task_outp..._buildSrc/pco71/build.gradle into local compilation cache\u001B[m\u001B[185D\u001B[1B\u001B[2A\u001B[0K
+\u001B[2A\u001B[1m<-------------> 0% CONFIGURING [0s]\u001B[m\u001B[35D\u001B[1B\u001B[1m> root project > Compiling /Users/daniel/gradle/gradle/build/tmp/teŝt files/ConsoleBuildSrcFunctionalTest/can_group_task_outp..._buildSrc/pco71/build.gradle into local compilation cache\u001B[m\u001B[185D\u001B[1B\u001B[2A\u001B[0K
 \u001B[1m> Task :byeWorld\u001B[m\u001B[0K
 Bye world
 
@@ -393,13 +396,13 @@ Hello, World!
         groupedOutput.task(':helloWorld').output == 'Hello, World!'
     }
 
-    def "does not fail with with stack overflow error"() {
+    def "does not fail with stack overflow error"() {
         def consoleOutput = """
  [1m> Task :xx:
- [3A [1m< [0;32;1;0;39;1m-------------> build\\tmp\\test files\\ConsoleBuildSrcFunctionalTest\\can_group_task_outp... 'C\\tcagent1\\work\\4b92f910977a653d\\subprojects\\logging\\build\\tmp\\test files\\ConsoleBuildSrcFunctionalTest\\can_group_task_outp..._buildSrc\\j2q4s\\build.gradle' to cross build script cache [m [420D [2B
- [3A [1m< [0;32;1;0;39;1m-------------> build\\tmp\\test files\\ConsoleBuildSrcFunctionalTest\\can_group_task_outp..._buildSrc\\j2q4s\\build.gradle into local compilation cache > Compiling build file 'C:\\tcagent1\\work\\4b92f910977a653d\\subprojects\\logging\\build\\tmp\\test files\\ConsoleBuildSrcFunctionalTest\\can_group_task_outp..._buildSrc\\j2q4s\\build.gradle' to cross build script cache [m [420D [2B
- [3A [1m< [0;32;1;0;39;1m-------------> build\\tmp\\test files\\ConsoleBuildSrcFunctionalTest\\can_group_task_outp..._buildSrc\\j2q4s\\build.gradle into local compilation cache > Compiling build file 'C:\\tcagent1\\work\\4b92f910977a653d\\subprojects\\logging\\build\\tmp\\test files\\ConsoleBuildSrcFunctionalTest\\can_group_task_outp..._buildSrc\\j2q4s\\build.gradle' to cross build script cache [m [420D [2B
- [3A [1m< [0;32;1;0;39;1m-------------> 0% CONFIGURING [5s] [m [35D [1B [1m> root project > Compiling C:\\tcagent1\\work\\4b92f910977a653d\\subprojects\\logging\\build\\tmp\\test files\\ConsoleBuildSrcFunctionalTest\\can_group_task_outp..._buildSrc\\j2q4s\\build.gradle into local compilation cache > Compiling build file 'C:\\tcagent1\\work\\4b92f910977a653d\\subprojects\\logging\\build\\tmp\\test files\\ConsoleBuildSrcFunctionalTest\\can_group_task_outp..._buildSrc\\j2q4s\\build.gradle' to cross build script cache [m [420D [2B
+ [3A [1m< [0;32;1;0;39;1m-------------> build\\tmp\\teŝt files\\ConsoleBuildSrcFunctionalTest\\can_group_task_outp... 'C\\tcagent1\\work\\4b92f910977a653d\\subprojects\\logging\\build\\tmp\\teŝt files\\ConsoleBuildSrcFunctionalTest\\can_group_task_outp..._buildSrc\\j2q4s\\build.gradle' to cross build script cache [m [420D [2B
+ [3A [1m< [0;32;1;0;39;1m-------------> build\\tmp\\teŝt files\\ConsoleBuildSrcFunctionalTest\\can_group_task_outp..._buildSrc\\j2q4s\\build.gradle into local compilation cache > Compiling build file 'C:\\tcagent1\\work\\4b92f910977a653d\\subprojects\\logging\\build\\tmp\\teŝt files\\ConsoleBuildSrcFunctionalTest\\can_group_task_outp..._buildSrc\\j2q4s\\build.gradle' to cross build script cache [m [420D [2B
+ [3A [1m< [0;32;1;0;39;1m-------------> build\\tmp\\teŝt files\\ConsoleBuildSrcFunctionalTest\\can_group_task_outp..._buildSrc\\j2q4s\\build.gradle into local compilation cache > Compiling build file 'C:\\tcagent1\\work\\4b92f910977a653d\\subprojects\\logging\\build\\tmp\\teŝt files\\ConsoleBuildSrcFunctionalTest\\can_group_task_outp..._buildSrc\\j2q4s\\build.gradle' to cross build script cache [m [420D [2B
+ [3A [1m< [0;32;1;0;39;1m-------------> 0% CONFIGURING [5s] [m [35D [1B [1m> root project > Compiling C:\\tcagent1\\work\\4b92f910977a653d\\subprojects\\logging\\build\\tmp\\teŝt files\\ConsoleBuildSrcFunctionalTest\\can_group_task_outp..._buildSrc\\j2q4s\\build.gradle into local compilation cache > Compiling build file 'C:\\tcagent1\\work\\4b92f910977a653d\\subprojects\\logging\\build\\tmp\\teŝt files\\ConsoleBuildSrcFunctionalTest\\can_group_task_outp..._buildSrc\\j2q4s\\build.gradle' to cross build script cache [m [420D [2B
 """
         when:
         new GroupedOutputFixture(LogContent.of(consoleOutput))
@@ -407,4 +410,139 @@ Hello, World!
         then:
         noExceptionThrown()
     }
+
+    // region assertOutputContains
+    def "test assertOutputContains searching for single expected line"() {
+        given: "sample output for a task not containing the expected line"
+        def consoleOutput = """> Task :example1
+toast
+bacon
+eggs
+toast
+ham
+eggs
+> Task :example2
+toast
+ham
+eggs
+toast
+eggs
+"""
+        GroupedOutputFixture groupedOutput = new GroupedOutputFixture(LogContent.of(consoleOutput))
+
+        when:
+        groupedOutput.task(':example1').assertOutputContains("waffles")
+
+        then:
+        thrown(LineSearchFailures.NoMatchingLinesExistComparisonFailure)
+    }
+
+    def "test assertOutputContains using LINEWISE format searching for multiple expected lines"() {
+        given: "sample output for a task not containing the expected lines in a continuous sequence"
+        def consoleOutput = """> Task :example1
+toast
+bacon
+eggs
+toast
+ham
+eggs
+> Task :example2
+toast
+ham
+eggs
+toast
+eggs
+"""
+        GroupedOutputFixture groupedOutput = new GroupedOutputFixture(LogContent.of(consoleOutput))
+
+        when:
+        groupedOutput.task(':example1').assertOutputContains(ComparisonFailureFormat.LINEWISE, """eggs
+bacon""")
+
+        then:
+        def e = thrown(PotentialMatchesExistComparisonFailure)
+        e.message == """Lines not found.  Similar sections:
+
+Potential Match (actual lines):
+ [ X   1: toast
+expected:<[eggs]> but was:<[toast]>
+     ] 2: bacon
+       3: eggs
+       4: toast
+       5: ham
+
+Potential Match (actual lines):
+       1: toast
+       2: bacon
+ [     3: eggs
+   X ] 4: toast
+expected:<[bacon]> but was:<[toast]>
+       5: ham
+       6: eggs
+"""
+        e.numPotentialMatches == 2
+    }
+
+    def "test assertOutputContains using UNIFIED format searching for multiple expected lines"() {
+        given: "sample output for a task not containing the expected lines in a continuous sequence"
+        def consoleOutput = """> Task :example1
+toast
+bacon
+eggs
+toast
+ham
+eggs
+> Task :example2
+toast
+ham
+eggs
+toast
+eggs
+"""
+        GroupedOutputFixture groupedOutput = new GroupedOutputFixture(LogContent.of(consoleOutput))
+
+        when:
+        groupedOutput.task(':example1').assertOutputContains(ComparisonFailureFormat.UNIFIED, """eggs
+bacon""")
+
+        then:
+        def e = thrown(PotentialMatchesExistComparisonFailure)
+        e.message == """Lines not found.  Similar sections:
+
+@@ -1,2 +1,6 @@
+-eggs
++toast
+ bacon
++eggs
++toast
++ham
++eggs"""
+        e.numPotentialMatches == 2
+    }
+
+    def "test assertOutputContains using legacy format where expected lines (#expected) are each present, but not in a continuous sequence"() {
+        given: "sample output for a task not containing the expected lines in a continuous sequence"
+        def consoleOutput = """> Task :example1
+toast
+bacon
+eggs
+toast
+ham
+eggs
+> Task :example2
+toast
+ham
+eggs
+toast
+eggs
+"""
+        GroupedOutputFixture groupedOutput = new GroupedOutputFixture(LogContent.of(consoleOutput))
+
+        expect:
+        groupedOutput.task(':example1').assertOutputContains("""toast
+bacon
+eggs
+""")
+    }
+    // endregion assertOutputContains
 }

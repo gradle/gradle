@@ -56,7 +56,7 @@ public interface ProviderFactory {
      * @param value The {@code java.util.concurrent.Callable} use to calculate the value.
      * @return The provider. Never returns null.
      */
-    <T> Provider<T> provider(Callable<? extends T> value);
+    <T> Provider<T> provider(Callable<? extends @org.jetbrains.annotations.Nullable T> value);
 
     /**
      * Creates a {@link Provider} whose value is fetched from the environment variable with the given name.
@@ -157,6 +157,28 @@ public interface ProviderFactory {
     Provider<String> gradleProperty(Provider<String> propertyName);
 
     /**
+     * Creates a {@link Provider} whose value is a name-to-value map of the Gradle properties with the names starting with the given prefix.
+     * The prefix comparison is case-sensitive. The returned map is immutable.
+     *
+     * @param variableNamePrefix The prefix of the Gradle property names
+     * @return The provider. Never returns null.
+     * @since 8.0
+     */
+    @Incubating
+    Provider<Map<String, String>> gradlePropertiesPrefixedBy(String variableNamePrefix);
+
+    /**
+     * Creates a {@link Provider} whose value is a name-to-value map of the Gradle properties with the names starting with the given prefix.
+     * The prefix comparison is case-sensitive. The returned map is immutable.
+     *
+     * @param variableNamePrefix The prefix of the Gradle property names
+     * @return The provider. Never returns null.
+     * @since 8.0
+     */
+    @Incubating
+    Provider<Map<String, String>> gradlePropertiesPrefixedBy(Provider<String> variableNamePrefix);
+
+    /**
      * Allows lazy access to the contents of the given file.
      *
      * When the file contents are read at configuration time the file is automatically considered
@@ -232,7 +254,6 @@ public interface ProviderFactory {
      * @return the provider, never returns null
      * @since 6.1
      */
-    @Incubating
     <T, P extends ValueSourceParameters>
     Provider<T> of(
         Class<? extends ValueSource<T, P>> valueSourceType,
@@ -295,17 +316,19 @@ public interface ProviderFactory {
      * Returns a provider which value will be computed by combining a provider value with another
      * provider value using the supplied combiner function.
      *
+     * <p>
      * If the supplied providers represents a task or the output of a task, the resulting provider
      * will carry the dependency information.
+     * </p>
      *
      * @param first the first provider to combine with
      * @param second the second provider to combine with
-     * @param combiner the combiner of values
+     * @param combiner the combiner of values. May return {@code null}, in which case the provider
+     * will have no value.
      * @param <A> the type of the first provider
      * @param <B> the type of the second provider
      * @param <R> the type of the result of the combiner
      * @return a combined provider
-     *
      * @since 6.6
      */
     <A, B, R> Provider<R> zip(Provider<A> first, Provider<B> second, BiFunction<? super A, ? super B, ? extends R> combiner);

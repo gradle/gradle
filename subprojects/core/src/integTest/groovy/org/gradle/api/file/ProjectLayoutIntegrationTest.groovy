@@ -16,7 +16,6 @@
 
 package org.gradle.api.file
 
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
@@ -327,6 +326,7 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
+        executer.withStacktraceEnabled()
         fails('help')
         errorOutput.contains('java.lang.NullPointerException')
 

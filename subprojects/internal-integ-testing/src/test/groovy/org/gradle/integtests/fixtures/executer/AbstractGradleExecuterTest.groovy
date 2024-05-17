@@ -16,6 +16,8 @@
 
 package org.gradle.integtests.fixtures.executer
 
+
+import org.gradle.process.internal.JvmOptions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.UsesNativeServices
 import org.junit.Assume
@@ -114,7 +116,6 @@ class AbstractGradleExecuterTest extends Specification {
         def allArgs = executer.getAllArgs()
 
         then:
-        !allArgs.toString().contains("-Porg.gradle.java.installations.auto-detect")
         !allArgs.toString().contains("-Porg.gradle.java.installations.auto-download")
     }
 
@@ -126,5 +127,29 @@ class AbstractGradleExecuterTest extends Specification {
         then:
         def e = thrown(IllegalArgumentException)
         e.message.contains("Builds cannot be started with the debugger enabled on CI")
+    }
+
+    def "start build process in debugger options"() {
+        when:
+        executer.startBuildProcessInDebugger { it.server = false }
+
+        then:
+        def debugArgument = JvmOptions.getDebugArgument(false, true, "5005")
+        executer.implicitBuildJvmArgs.contains(debugArgument)
+        executer.buildInvocation().launcherJvmArgs.contains(debugArgument)
+    }
+
+    def "start launcher process in debugger options"() {
+        when:
+        executer.startLauncherInDebugger {
+            it.server = false
+            it.host = "myHost"
+        }
+
+        then:
+        def launcherArgs = executer.buildInvocation().launcherJvmArgs
+        def debugArgument = JvmOptions.getDebugArgument(false, true, "myHost:5005")
+        launcherArgs.contains(debugArgument)
+        !executer.implicitBuildJvmArgs.contains(debugArgument)
     }
 }

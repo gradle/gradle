@@ -18,26 +18,42 @@ package org.gradle.api.internal.artifacts;
 
 import com.google.common.base.Objects;
 import org.gradle.api.artifacts.component.BuildIdentifier;
+import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.util.Path;
 
 public class DefaultBuildIdentifier implements BuildIdentifier {
-    public static final BuildIdentifier ROOT = new DefaultBuildIdentifier(":");
-    private final String name;
+    public static final BuildIdentifier ROOT = new DefaultBuildIdentifier(Path.ROOT);
+    private final Path buildPath;
 
-    public DefaultBuildIdentifier(String name) {
-        this.name = name;
+    public DefaultBuildIdentifier(Path buildPath) {
+        if (!buildPath.isAbsolute()) {
+            throw new IllegalArgumentException("Build path must be absolute: " + buildPath);
+        }
+
+        this.buildPath = buildPath;
     }
 
-    public String getIdName() {
-        return name;
+    @Override
+    public String getBuildPath() {
+        return buildPath.toString();
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public String getName() {
-        return name;
+        DeprecationLogger.deprecateMethod(BuildIdentifier.class, "getName()")
+            .withAdvice("Use getBuildPath() to get a unique identifier for the build.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "build_identifier_name_and_current_deprecation")
+            .nagUser();
+
+        return buildPath.getName() == null ? ":" : buildPath.getName();
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public boolean isCurrentBuild() {
+        nagAboutDeprecatedIsCurrentBuild();
         return true;
     }
 
@@ -50,16 +66,24 @@ public class DefaultBuildIdentifier implements BuildIdentifier {
             return false;
         }
         DefaultBuildIdentifier that = (DefaultBuildIdentifier) o;
-        return name.equals(that.name);
+        return buildPath.equals(that.buildPath);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(name);
+        return Objects.hashCode(buildPath);
     }
 
     @Override
     public String toString() {
-        return "build '" + name + "'";
+        return "build '" + buildPath + "'";
+    }
+
+    protected static void nagAboutDeprecatedIsCurrentBuild() {
+        DeprecationLogger.deprecateMethod(BuildIdentifier.class, "isCurrentBuild()")
+            .withAdvice("Use getBuildPath() to get a unique identifier for the build.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "build_identifier_name_and_current_deprecation")
+            .nagUser();
     }
 }

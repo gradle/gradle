@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.properties;
 
 import org.gradle.api.Task;
 import org.gradle.internal.instantiation.InstantiationScheme;
+import org.gradle.internal.properties.annotations.TypeMetadataStore;
 
 public class TaskScheme implements TypeScheme {
     private final InstantiationScheme instantiationScheme;

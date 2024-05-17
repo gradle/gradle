@@ -16,16 +16,15 @@
 package org.gradle.api.tasks.diagnostics
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class DependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         executer.requireOwnGradleUserHomeDir()
     }
 
-    @ToBeFixedForConfigurationCache
     def "omits repeated dependencies in case of circular dependencies"() {
         given:
+        createDirs("client", "a", "b", "c")
         file("settings.gradle") << "include 'client', 'a', 'b', 'c'"
 
         buildFile << """
@@ -35,6 +34,8 @@ allprojects {
     group = "group"
     version = 1.0
 }
+
+dependencies { compile project(":c") }
 
 project(":a") {
     dependencies { compile project(":b") }
@@ -51,22 +52,23 @@ project(":c") {
 """
 
         when:
-        run ":c:dependencies"
+        run ":dependencies"
 
         then:
         output.contains """
 compile
-\\--- project :a
-     +--- project :b
-     |    \\--- project :c (*)
-     \\--- project :c (*)
+\\--- project :c
+     \\--- project :a
+          +--- project :b
+          |    \\--- project :c (*)
+          \\--- project :c (*)
 """
-        output.contains '(*) - dependencies omitted (listed previously)'
+        output.contains '(*) - Indicates repeated occurrences of a transitive dependency subtree. Gradle expands transitive dependency subtrees only once per project; repeat occurrences only display the root of the subtree, followed by this annotation.'
     }
 
-    @ToBeFixedForConfigurationCache
     def "marks project dependency that can't be resolved as 'FAILED'"() {
         given:
+        createDirs("A", "B", "C")
         settingsFile << "include 'A', 'B', 'C'"
 
         // Fail due to missing target configurations
@@ -96,7 +98,6 @@ conf
 """
     }
 
-    @ToBeFixedForConfigurationCache
     def "marks modules that can't be resolved as 'FAILED'"() {
         given:
         mavenRepo.module("foo", "bar", "1.0").dependsOnModules("unknown").publish()
@@ -127,7 +128,6 @@ foo
 """
     }
 
-    @ToBeFixedForConfigurationCache
     def "marks dynamic versions that can't be resolved as 'FAILED'"() {
         given:
         file("build.gradle") << """
@@ -161,7 +161,6 @@ foo
 """
     }
 
-    @ToBeFixedForConfigurationCache
     def "marks modules that can't be resolved after conflict resolution as 'FAILED'"() {
         given:
         mavenRepo.module("foo", "bar", "1.0").dependsOn("foo", "baz", "2.0").publish()
@@ -191,7 +190,6 @@ config
 """
     }
 
-    @ToBeFixedForConfigurationCache
     def "marks modules that can't be resolved after forcing a different version as 'FAILED'"() {
         given:
         mavenRepo.module("org", "libA", "1.0").dependsOn("org", "libB", "1.0").dependsOn("org", "libC", "1.0").publish()
@@ -228,7 +226,6 @@ config
 """
     }
 
-    @ToBeFixedForConfigurationCache
     def "renders dependencies even if the configuration was already resolved"() {
         given:
         mavenRepo.module("foo", "bar", "1.0").publish()
@@ -245,8 +242,9 @@ config
             }
 
             task resolveConf {
+                def foo = configurations.foo
                 doLast {
-                    configurations.foo.each { println it }
+                    foo.each { println it }
                 }
             }
         """
@@ -258,7 +256,6 @@ config
         output.contains "foo:bar:1.0 -> 2.0"
     }
 
-    @ToBeFixedForConfigurationCache
     def "renders selected versions in case of a conflict"() {
         given:
         mavenRepo.module("foo", "bar", "1.0").publish()
@@ -268,6 +265,7 @@ config
 
         mavenRepo.module("foo", "baz", "5.0").publish()
 
+        createDirs("a", "b", "c", "d", "e")
         file("settings.gradle") << """include 'a', 'b', 'c', 'd', 'e'
 rootProject.name = 'root'
 """
@@ -336,7 +334,6 @@ compileClasspath - Compile classpath for source set 'main'.
 """
     }
 
-    @ToBeFixedForConfigurationCache
     def "renders the dependency tree"() {
         given:
         mavenRepo.module("org", "leaf1").publish()
@@ -378,7 +375,6 @@ conf
 """
     }
 
-    @ToBeFixedForConfigurationCache
     def "mentions web-based dependency report after legend"() {
         given:
         mavenRepo.module("org", "leaf1").publish()
@@ -404,12 +400,11 @@ conf
         run "dependencies"
 
         then:
-        output.contains """(*) - dependencies omitted (listed previously)
+        output.contains """(*) - Indicates repeated occurrences of a transitive dependency subtree. Gradle expands transitive dependency subtrees only once per project; repeat occurrences only display the root of the subtree, followed by this annotation.
 
 A web-based, searchable dependency report is available by adding the --scan option."""
     }
 
-    @ToBeFixedForConfigurationCache
     def "shows selected versions in case of a multi-phase conflict"() {
         given:
         mavenRepo.module("foo", "foo", "1.0").publish()
@@ -450,7 +445,6 @@ conf
 """
     }
 
-    @ToBeFixedForConfigurationCache
     def "deals with dynamic versions with conflicts"() {
         given:
         mavenRepo.module("foo", "bar", "1.0").publish()
@@ -486,7 +480,6 @@ conf
 """
     }
 
-    @ToBeFixedForConfigurationCache
     def "renders ivy tree with custom configurations"() {
         given:
         def module = ivyRepo.module("org", "child")
@@ -522,7 +515,6 @@ conf
 """
     }
 
-    @ToBeFixedForConfigurationCache
     def "renders the ivy tree with conflicts"() {
         given:
         ivyRepo.module("org", "leaf1").publish()
@@ -567,7 +559,6 @@ conf
 """
     }
 
-    @ToBeFixedForConfigurationCache
     def "tells if there are no dependencies"() {
         given:
         buildFile << "configurations { foo }"
@@ -582,7 +573,6 @@ No dependencies
 """
     }
 
-    @ToBeFixedForConfigurationCache
     def "tells if there are no configurations"() {
         when:
         run "dependencies"
@@ -591,9 +581,9 @@ No dependencies
         output.contains "No configurations"
     }
 
-    @ToBeFixedForConfigurationCache
     def "dependencies report does not run for subprojects by default"() {
         given:
+        createDirs("a")
         file("settings.gradle") << "include 'a'"
 
         file("build.gradle") << """
@@ -612,7 +602,6 @@ No dependencies
         //note that 'a' project dependencies are not being resolved
     }
 
-    @ToBeFixedForConfigurationCache
     def "report can be limited to a single configuration via command-line parameter"() {
         given:
         mavenRepo.module("org", "leaf1").publish()
@@ -653,7 +642,6 @@ conf2
         !output.contains("conf1")
     }
 
-    @ToBeFixedForConfigurationCache
     void "marks module that cannot be resolved due to broken dependency rule as 'FAILED'"() {
         mavenRepo.module("org.utils", "impl", '1.3').publish()
 
@@ -685,12 +673,12 @@ conf
 """
     }
 
-    @ToBeFixedForConfigurationCache
     def "renders a mix of project and external dependencies"() {
         given:
         mavenRepo.module("foo", "bar", "1.0").publish()
         mavenRepo.module("foo", "bar", "2.0").publish()
 
+        createDirs("a", "b", "a/c", "d", "e")
         file("settings.gradle") << """include 'a', 'b', 'a:c', 'd', 'e'
 rootProject.name = 'root'
 """
@@ -757,10 +745,10 @@ compileClasspath - Compile classpath for source set 'main'.
 """
     }
 
-    @ToBeFixedForConfigurationCache
     def "reports external dependency replaced with project dependency"() {
         mavenRepo.module("org.utils", "api",  '1.3').publish()
 
+        createDirs("client", "api2", "impl")
         file("settings.gradle") << "include 'client', 'api2', 'impl'"
 
         buildFile << """
@@ -802,10 +790,10 @@ compile
 """
     }
 
-    @ToBeFixedForConfigurationCache
     def "reports external dependency with version updated by resolve rule"() {
         mavenRepo.module("org.utils", "api", '0.1').publish()
 
+        createDirs("client", "impl")
         file("settings.gradle") << "include 'client', 'impl'"
 
         buildFile << """
@@ -845,11 +833,11 @@ compile
 """
     }
 
-    @ToBeFixedForConfigurationCache
     def "reports external dependency substituted with another"() {
         mavenRepo.module("org.utils", "api", '0.1').publish()
         mavenRepo.module("org.other", "another", '0.1').publish()
 
+        createDirs("client", "impl")
         file("settings.gradle") << "include 'client', 'impl'"
 
         buildFile << """
@@ -890,7 +878,6 @@ compile
 """
     }
 
-    @ToBeFixedForConfigurationCache
     void "doesn't fail if a configuration is not resolvable"() {
         mavenRepo.module("foo", "foo", '1.0').publish()
         mavenRepo.module("foo", "bar", '2.0').publish()
@@ -922,7 +909,7 @@ compile
 +--- foo:foo:1.0
 \\--- foo:bar:2.0
 
-(n) - Not resolved (configuration is not meant to be resolved)
+(n) - A dependency or dependency configuration that cannot be resolved.
 """
 
         when:
@@ -933,11 +920,10 @@ compile
 api (n)
 \\--- foo:foo:1.0 (n)
 
-(n) - Not resolved (configuration is not meant to be resolved)
+(n) - A dependency or dependency configuration that cannot be resolved.
 """
     }
 
-    @ToBeFixedForConfigurationCache
     def "renders dependency constraints non-transitively"() {
         def moduleC = mavenRepo.module('group', 'moduleC', '1.0').publish()
         def moduleB = mavenRepo.module('group', 'moduleB', '1.0').dependsOn(moduleC).publish()
@@ -972,7 +958,6 @@ conf
 """
     }
 
-    @ToBeFixedForConfigurationCache
     def "renders version constraints"() {
         mavenRepo.module('group', 'moduleA', '1.0').publish()
         mavenRepo.module('group', 'moduleB', '1.0').publish()
@@ -1019,7 +1004,6 @@ conf
 """
     }
 
-    @ToBeFixedForConfigurationCache
     def "reports imported BOM as a set of dependency constraints"() {
         def moduleC = mavenRepo.module('group', 'moduleC', '1.0').publish()
         def moduleB = mavenRepo.module('group', 'moduleB', '1.0').dependsOn(moduleC).publish()
@@ -1053,25 +1037,19 @@ compileClasspath - Compile classpath for source set 'main'.
      \\--- group:moduleB:1.0
           \\--- group:moduleC:1.0
 
-(c) - dependency constraint
+(c) - A dependency constraint, not a dependency. The dependency affected by the constraint occurs elsewhere in the tree.
 """
     }
 
-    @ToBeFixedForConfigurationCache
-    def "excludes fully deprecated configurations"() {
-        executer.expectDeprecationWarning()
-
+    def "adding declarations to deprecated configurations for declaration will warn"() {
         given:
+        createDirs("a", "b")
         file("settings.gradle") << "include 'a', 'b'"
 
         buildFile << """
             subprojects {
                 configurations {
-                    compile.deprecateForDeclaration('implementation')
-                    compile.deprecateForConsumption { builder ->
-                        builder.willBecomeAnErrorInGradle8().withUpgradeGuideSection(8, "foo")
-                    }
-                    compile.deprecateForResolution('compileClasspath')
+                    migratingUnlocked('compile', org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE)
                     'default' { extendsFrom compile }
                 }
                 group = "group"
@@ -1082,14 +1060,36 @@ compileClasspath - Compile classpath for source set 'main'.
             }
         """
 
-        when:
-        run ":a:dependencies"
+        executer.expectDocumentedDeprecationWarning("The compile configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
 
-        then:
-        !output.contains("\ncompile\n")
+        expect:
+        succeeds ':a:dependencies'
     }
 
-    @ToBeFixedForConfigurationCache
+    def "adding declarations to invalid configurations for declaration will fail"() {
+        given:
+        createDirs("a", "b")
+        file("settings.gradle") << "include 'a', 'b'"
+
+        buildFile << """
+            subprojects {
+                configurations {
+                    compile.canBeDeclared = false
+                    'default' { extendsFrom compile }
+                }
+                group = "group"
+                version = 1.0
+            }
+            project(":a") {
+                dependencies { compile project(":b") }
+            }
+        """
+        expect:
+        fails ':a:dependencies'
+        result.assertHasErrorOutput("Dependencies can not be declared against the `compile` configuration.")
+    }
+
+
     void "treats a configuration that is deprecated for resolving as not resolvable"() {
         mavenRepo.module("foo", "foo", '1.0').publish()
         mavenRepo.module("foo", "bar", '2.0').publish()
@@ -1099,42 +1099,41 @@ compileClasspath - Compile classpath for source set 'main'.
                maven { url "${mavenRepo.uri}" }
             }
             configurations {
-                compileOnly.deprecateForResolution("compileClasspath")
-                compileOnly.deprecateForConsumption { builder ->
-                    builder.willBecomeAnErrorInGradle8().withUpgradeGuideSection(8, "foo")
-                }
-                implementation.extendsFrom compileOnly
+                migratingUnlocked('variant', org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.LEGACY_TO_CONSUMABLE)
+                implementation.extendsFrom variant
             }
             dependencies {
-                compileOnly 'foo:foo:1.0'
+                variant 'foo:foo:1.0'
                 implementation 'foo:bar:2.0'
             }
         """
 
         when:
+        executer.expectDocumentedDeprecationWarning("The variant configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
         run ":dependencies"
 
         then:
         output.contains """
-compileOnly (n)
+implementation
++--- foo:bar:2.0
+\\--- foo:foo:1.0
+
+variant (n)
 \\--- foo:foo:1.0 (n)
 
-implementation
-+--- foo:foo:1.0
-\\--- foo:bar:2.0
-
-(n) - Not resolved (configuration is not meant to be resolved)
+(n) - A dependency or dependency configuration that cannot be resolved.
 """
 
         when:
-        run ":dependencies", "--configuration", "compileOnly"
+        executer.expectDocumentedDeprecationWarning("The variant configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
+        run ":dependencies", "--configuration", "variant"
 
         then:
         output.contains """
-compileOnly (n)
+variant (n)
 \\--- foo:foo:1.0 (n)
 
-(n) - Not resolved (configuration is not meant to be resolved)
+(n) - A dependency or dependency configuration that cannot be resolved.
 """
     }
 }

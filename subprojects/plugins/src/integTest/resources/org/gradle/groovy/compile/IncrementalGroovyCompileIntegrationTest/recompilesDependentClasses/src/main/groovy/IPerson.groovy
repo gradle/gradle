@@ -1,3 +1,0 @@
-interface IPerson {
-    String getName()
-}

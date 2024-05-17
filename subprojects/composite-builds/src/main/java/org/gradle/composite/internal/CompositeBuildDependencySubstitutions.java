@@ -36,6 +36,7 @@ import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -77,6 +78,7 @@ public class CompositeBuildDependencySubstitutions implements Action<DependencyS
         }
     }
 
+    @Nullable
     private ProjectComponentIdentifier getReplacementFor(ModuleComponentSelector selector) {
         ModuleIdentifier candidateId = selector.getModuleIdentifier();
         Collection<ProjectComponentIdentifier> providingProjects = replacementMap.get(candidateId);

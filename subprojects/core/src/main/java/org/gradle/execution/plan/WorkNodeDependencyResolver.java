@@ -18,6 +18,7 @@ package org.gradle.execution.plan;
 
 import org.gradle.api.Action;
 import org.gradle.api.Task;
+import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.api.internal.tasks.WorkNodeAction;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -26,7 +27,7 @@ import java.util.IdentityHashMap;
 import java.util.Map;
 
 @ServiceScope(Scopes.Build.class)
-public class WorkNodeDependencyResolver implements DependencyResolver {
+public class WorkNodeDependencyResolver implements DependencyResolver, HoldsProjectState {
     private final Map<WorkNodeAction, ActionNode> nodesForAction = new IdentityHashMap<WorkNodeAction, ActionNode>();
 
     @Override
@@ -39,6 +40,11 @@ public class WorkNodeDependencyResolver implements DependencyResolver {
         ActionNode actionNode = actionNodeFor(action);
         resolveAction.execute(actionNode);
         return true;
+    }
+
+    @Override
+    public void discardAll() {
+        nodesForAction.clear();
     }
 
     private ActionNode actionNodeFor(WorkNodeAction action) {

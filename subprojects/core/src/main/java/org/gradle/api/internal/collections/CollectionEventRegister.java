@@ -21,8 +21,10 @@ import org.gradle.internal.ImmutableActionSet;
 
 import javax.annotation.Nullable;
 
-public interface CollectionEventRegister<T> {
-    boolean isSubscribed(@Nullable Class<?> type);
+public interface CollectionEventRegister<T> extends EventSubscriptionVerifier<T> {
+
+    @Override
+    boolean isSubscribed(@Nullable Class<? extends T> type);
 
     /**
      * Returns a snapshot of the <em>current</em> set of actions to run when an element is added.

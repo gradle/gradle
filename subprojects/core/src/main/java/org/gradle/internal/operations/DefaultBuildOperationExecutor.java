@@ -42,7 +42,6 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
     private final BuildOperationQueueFactory buildOperationQueueFactory;
     private final Map<BuildOperationConstraint, ManagedExecutor> managedExecutors = new HashMap<>();
     private final CurrentBuildOperationRef currentBuildOperationRef = CurrentBuildOperationRef.instance();
-
     public DefaultBuildOperationExecutor(
         BuildOperationListener listener,
         Clock clock,
@@ -52,6 +51,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         ParallelismConfiguration parallelismConfiguration,
         BuildOperationIdFactory buildOperationIdFactory
     ) {
+
         this.runner = new DefaultBuildOperationRunner(
             currentBuildOperationRef,
             clock::getCurrentTime,

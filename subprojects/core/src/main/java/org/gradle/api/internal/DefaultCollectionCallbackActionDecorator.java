@@ -18,8 +18,8 @@ package org.gradle.api.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.specs.Spec;
-import org.gradle.configuration.internal.UserCodeApplicationContext;
-import org.gradle.configuration.internal.UserCodeApplicationId;
+import org.gradle.internal.code.UserCodeApplicationContext;
+import org.gradle.internal.code.UserCodeApplicationId;
 import org.gradle.internal.InternalListener;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;

@@ -20,6 +20,7 @@ import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.DefaultBuildCancellationToken;
+import org.gradle.initialization.DefaultProjectDescriptorRegistry;
 import org.gradle.initialization.GradlePropertiesController;
 import org.gradle.internal.build.BuildModelControllerServices;
 import org.gradle.internal.installation.CurrentGradleInstallation;
@@ -29,6 +30,7 @@ import org.gradle.internal.service.scopes.BuildScopeServices;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.Collections;
 import java.util.Map;
 
 public class TestBuildScopeServices extends BuildScopeServices {
@@ -37,6 +39,9 @@ public class TestBuildScopeServices extends BuildScopeServices {
     public TestBuildScopeServices(ServiceRegistry parent, File homeDir, BuildModelControllerServices.Supplier supplier) {
         super(parent, supplier);
         this.homeDir = homeDir;
+        register(registration -> {
+            registration.add(DefaultProjectDescriptorRegistry.class);
+        });
     }
 
     @Override
@@ -66,6 +71,11 @@ public class TestBuildScopeServices extends BuildScopeServices {
         @Override
         public Map<String, Object> mergeProperties(Map<String, Object> properties) {
             return properties;
+        }
+
+        @Override
+        public Map<String, Object> getProperties() {
+            return Collections.emptyMap();
         }
     }
 }

@@ -28,7 +28,7 @@ public class RootClassLoaderScope extends AbstractClassLoaderScope {
     private final CachingClassLoader cachingExportClassLoader;
 
     public RootClassLoaderScope(String name, ClassLoader localClassLoader, ClassLoader exportClassLoader, ClassLoaderCache classLoaderCache, ClassLoaderScopeRegistryListener listener) {
-        super(new ClassLoaderScopeIdentifier(null, name), classLoaderCache, listener);
+        super(new ClassLoaderScopeIdentifier(null, name), null, classLoaderCache, listener);
         this.localClassLoader = localClassLoader;
         this.cachingLocalClassLoader = new CachingClassLoader(localClassLoader);
         this.exportClassLoader = exportClassLoader;
@@ -68,5 +68,10 @@ public class RootClassLoaderScope extends AbstractClassLoaderScope {
     @Override
     public void onReuse() {
         // Nothing to do
+    }
+
+    @Override
+    public MutableClassLoaderScope asMutable(String childSuffix) {
+        throw new UnsupportedOperationException("RootClassLoaderScope is not mutable");
     }
 }

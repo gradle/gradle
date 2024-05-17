@@ -16,12 +16,13 @@
 
 package org.gradle.smoketests
 
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import spock.lang.Issue
+import org.gradle.util.internal.VersionNumber
+
+import static org.gradle.api.internal.DocumentationRegistry.BASE_URL
 
 class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
-
-    @Issue('https://github.com/asciidoctor/asciidoctor-gradle-plugin/releases')
     @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def 'asciidoctor plugin #version'() {
         given:
@@ -43,7 +44,7 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
         when:
         runner('asciidoc').deprecations(AsciidocDeprecations) {
-            expectAsciiDocDeprecationWarnings()
+            expectAsciiDocDeprecationWarnings(version)
         }.build()
 
         then:
@@ -85,9 +86,20 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
             super(runner)
         }
 
-        void expectAsciiDocDeprecationWarnings() {
-            runner.expectDeprecationWarning(JAVAEXEC_SET_MAIN_DEPRECATION, "https://github.com/asciidoctor/asciidoctor-gradle-plugin/issues/602")
-            runner.expectDeprecationWarning(getFileTreeForEmptySourcesDeprecationForProperty("sourceFileTree"), "https://github.com/asciidoctor/asciidoctor-gradle-plugin/issues/629")
+        void expectAsciiDocDeprecationWarnings(String asciidoctorVersion) {
+            runner.expectLegacyDeprecationWarningIf(
+                VersionNumber.parse(asciidoctorVersion).major < 4,
+                "The JavaExecSpec.main property has been deprecated." +
+                    " This is scheduled to be removed in Gradle 9.0." +
+                    " Please use the mainClass property instead." +
+                    " ${String.format(DocumentationRegistry.RECOMMENDATION, "information", "${BASE_URL}/dsl/org.gradle.process.JavaExecSpec.html#org.gradle.process.JavaExecSpec:main")}"
+            )
+
+            runner.expectDeprecationWarningIf(
+                VersionNumber.parse(asciidoctorVersion).major >= 4,
+                FOR_USE_AT_CONFIGURATION_TIME_DEPRECATION,
+                "Seems to be fixed in main branch, but no releases with a fix"
+            )
         }
     }
 }

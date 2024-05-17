@@ -16,14 +16,13 @@
 
 package org.gradle.test.fixtures.server.http
 
+import org.gradle.api.credentials.PasswordCredentials
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.resource.RemoteArtifact
-import org.gradle.test.fixtures.resource.RemoteResource
 
 abstract class HttpArtifact extends HttpResource implements RemoteArtifact {
-
     String modulePath
 
     public HttpArtifact(HttpServer server, String modulePath) {
@@ -31,24 +30,27 @@ abstract class HttpArtifact extends HttpResource implements RemoteArtifact {
         this.modulePath = modulePath
     }
 
+    @Override
     HttpResource getMd5() {
         return new BasicHttpResource(server, getMd5File(), "${path}.md5")
     }
 
+    @Override
     HttpResource getSha1() {
         return new BasicHttpResource(server, getSha1File(), "${path}.sha1")
     }
 
     @Override
-    RemoteResource getSha256() {
+    HttpResource getSha256() {
         new BasicHttpResource(server, getSha256File(), "${path}.sha256")
     }
 
     @Override
-    RemoteResource getSha512() {
+    HttpResource getSha512() {
         new BasicHttpResource(server, getSha512File(), "${path}.sha512")
     }
 
+    @Override
     String getPath() {
         return "${modulePath}/${file.name}"
     }
@@ -64,21 +66,33 @@ abstract class HttpArtifact extends HttpResource implements RemoteArtifact {
     abstract TestFile getFile();
 
     void verifyChecksums() {
-        def sha1File = getSha1File()
-        sha1File.assertIsFile()
-        assert HashCode.fromString(sha1File.text) == Hashing.sha1().hashFile(getFile())
-        def md5File = getMd5File()
-        md5File.assertIsFile()
-        assert HashCode.fromString(md5File.text) == Hashing.md5().hashFile(getFile())
+        if (server.supportsHash(HttpServer.SupportedHash.SHA1)) {
+            def sha1File = getSha1File()
+            sha1File.assertIsFile()
+            assert HashCode.fromString(sha1File.text) == Hashing.sha1().hashFile(getFile())
+        }
+        if (server.supportsHash(HttpServer.SupportedHash.MD5)) {
+            def md5File = getMd5File()
+            md5File.assertIsFile()
+            assert HashCode.fromString(md5File.text) == Hashing.md5().hashFile(getFile())
+        }
     }
 
-    void expectPublish(boolean extraChecksums = true) {
-        expectPut()
-        sha1.expectPut()
-        if (extraChecksums) {
-            sha256.expectPut()
-            sha512.expectPut()
+    void expectPublish(boolean extraChecksums = true, PasswordCredentials credentials = null) {
+        expectPut(credentials)
+        if (server.supportsHash(HttpServer.SupportedHash.SHA1)) {
+            sha1.expectPut(credentials)
         }
-        md5.expectPut()
+        if (extraChecksums) {
+            if (server.supportsHash(HttpServer.SupportedHash.SHA256)) {
+                sha256.expectPut(credentials)
+            }
+            if (server.supportsHash(HttpServer.SupportedHash.SHA512)) {
+                sha512.expectPut(credentials)
+            }
+        }
+        if (server.supportsHash(HttpServer.SupportedHash.MD5)) {
+            md5.expectPut(credentials)
+        }
     }
 }

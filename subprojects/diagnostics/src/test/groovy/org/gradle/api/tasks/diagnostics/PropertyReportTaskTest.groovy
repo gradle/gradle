@@ -15,7 +15,6 @@
  */
 package org.gradle.api.tasks.diagnostics
 
-import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.tasks.diagnostics.internal.PropertyReportRenderer
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
@@ -27,76 +26,64 @@ class PropertyReportTaskTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
-    private ProjectInternal project
     private PropertyReportRenderer renderer
     private PropertyReportTask task
 
     def setup() {
-        project = Mock()
         renderer = Mock()
         task = TestUtil.create(temporaryFolder).task(PropertyReportTask.class)
         task.setRenderer(renderer)
     }
 
     def "passes each project property to renderer"() {
-        given:
-        project.properties >> ['b': 'value2', 'a': 'value1']
-
         when:
-        task.generate(project)
+        task.action()
 
         then:
-        1 * renderer.addProperty('a', 'value1')
-        1 * renderer.addProperty('b', 'value2')
+        1 * renderer.addProperty('group', '')
+        1 * renderer.addProperty('version', 'unspecified')
     }
 
     def "uses placeholder for rendering 'properties' property"() {
-        given:
-        project.properties >> ['prop': 'value', 'properties': 'prop']
-
         when:
-        task.generate(project)
+        task.action()
 
         then:
-        1 * renderer.addProperty('prop', 'value')
         1 * renderer.addProperty('properties', '{...}')
     }
 
     def "can show a single property"() {
         given:
-        project.properties >> ['b': 'value2', 'a': 'value1']
-        task.property = 'b'
+        task.property = 'version'
 
         when:
-        task.generate(project)
+        task.action()
 
         then:
-        1 * renderer.addProperty('b', 'value2')
-        0 * renderer.addProperty('a', 'value2')
+        1 * renderer.addProperty('version', 'unspecified')
+        0 * renderer.addProperty('group', _)
     }
 
     def "uses placeholder for rendering 'properties' property even if it's selected via PropertyReportTask.property"() {
         given:
-        project.properties >> ['prop': 'value', 'properties': 'prop']
         task.property = 'properties'
 
         when:
-        task.generate(project)
+        task.action()
 
         then:
-        0 * renderer.addProperty('prop', 'value')
+        0 * renderer.addProperty('version', _)
         1 * renderer.addProperty('properties', '{...}')
     }
 
     def "passes unavailable properties to renderer"() {
         given:
-        project.properties >> [:]
         task.property = 'not-found'
 
         when:
-        task.generate(project)
+        task.action()
 
         then:
-        1 * renderer.addProperty('not-found', null)
+        1 * renderer.addProperty('not-found', 'null')
     }
 }

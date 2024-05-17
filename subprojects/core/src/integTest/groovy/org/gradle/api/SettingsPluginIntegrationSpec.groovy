@@ -17,16 +17,16 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Rule
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 @Issue("https://github.com/gradle/gradle-private/issues/3247")
-@IgnoreIf({ OperatingSystem.current().macOsX && JavaVersion.current() == JavaVersion.VERSION_1_8})
+@Requires(UnitTestPreconditions.NotJava8OnMacOs)
 class SettingsPluginIntegrationSpec extends AbstractIntegrationSpec {
 
     @Rule
@@ -45,6 +45,7 @@ class SettingsPluginIntegrationSpec extends AbstractIntegrationSpec {
 
     def "can apply plugin class from settings.gradle"() {
         when:
+        createDirs("moduleA")
         relocatedSettingsFile << """
         apply plugin: SimpleSettingsPlugin
 
@@ -63,6 +64,7 @@ class SettingsPluginIntegrationSpec extends AbstractIntegrationSpec {
         setup:
         testDirectory.createFile("settings/somePath/settingsPlugin.gradle") << "apply from: 'path2/settings.gradle'";
         testDirectory.createFile("settings/somePath/path2/settings.gradle") << "include 'moduleA'";
+        createDirs("moduleA")
 
         when:
         relocatedSettingsFile << "apply from: 'somePath/settingsPlugin.gradle'"

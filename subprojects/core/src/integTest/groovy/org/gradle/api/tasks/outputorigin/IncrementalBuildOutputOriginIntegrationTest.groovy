@@ -42,7 +42,7 @@ class IncrementalBuildOutputOriginIntegrationTest extends AbstractIntegrationSpe
         given:
         buildScript """
             def write = tasks.create("write", WriteProperties) {
-                outputFile = "out.properties"
+                destinationFile = file("out.properties")
                 properties = [v: 1]
             }
         """
@@ -89,11 +89,11 @@ class IncrementalBuildOutputOriginIntegrationTest extends AbstractIntegrationSpe
         given:
         buildScript """
             def w1 = tasks.create("w1", WriteProperties) {
-                outputFile = "w1.properties"
+                destinationFile = file("w1.properties")
                 properties = [v: 1]
             }
             def w2 = tasks.create("w2", WriteProperties) {
-                outputFile = "w2.properties"
+                destinationFile = file("w2.properties")
                 properties = [v: 1]
             }
 
@@ -139,10 +139,10 @@ class IncrementalBuildOutputOriginIntegrationTest extends AbstractIntegrationSpe
         given:
         file("buildSrc/build.gradle").text = """
             tasks.create("w", WriteProperties) {
-                outputFile = "w.properties"
+                destinationFile = file("w.properties")
                 properties = [v: 1]
             }
-            build.dependsOn "w"
+            jar.dependsOn "w"
         """
 
         when:
@@ -164,7 +164,7 @@ class IncrementalBuildOutputOriginIntegrationTest extends AbstractIntegrationSpe
         ["a", "b"].each {
             file("$it/build.gradle").text = """
                 tasks.create("w", WriteProperties) {
-                    outputFile = "w.properties"
+                    destinationFile = file("w.properties")
                     properties = [v: 1]
                 }
             """

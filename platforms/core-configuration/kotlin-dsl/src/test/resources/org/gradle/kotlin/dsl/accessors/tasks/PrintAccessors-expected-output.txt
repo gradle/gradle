@@ -1,0 +1,393 @@
+
+    /**
+     * Retrieves the [extra][org.gradle.api.plugins.ExtraPropertiesExtension] extension.
+     */
+    val org.gradle.api.Project.`extra`: org.gradle.api.plugins.ExtraPropertiesExtension get() =
+        (this as org.gradle.api.plugins.ExtensionAware).extensions.getByName("extra") as org.gradle.api.plugins.ExtraPropertiesExtension
+
+    /**
+     * Configures the [extra][org.gradle.api.plugins.ExtraPropertiesExtension] extension.
+     */
+    fun org.gradle.api.Project.`extra`(configure: Action<org.gradle.api.plugins.ExtraPropertiesExtension>): Unit =
+        (this as org.gradle.api.plugins.ExtensionAware).extensions.configure("extra", configure)
+
+
+    /**
+     * Retrieves the [customConvention][org.gradle.kotlin.dsl.accessors.tasks.PrintAccessorsTest.CustomConvention] convention.
+     *
+     * @deprecated The concept of conventions is deprecated. Use extensions instead.
+     */
+    val org.gradle.api.Project.`customConvention`: org.gradle.kotlin.dsl.accessors.tasks.PrintAccessorsTest.CustomConvention get() =
+        ((this as? Project)?.convention ?: (this as org.gradle.api.internal.HasConvention).convention).getPluginByName<org.gradle.kotlin.dsl.accessors.tasks.PrintAccessorsTest.CustomConvention>("customConvention")
+
+    /**
+     * Configures the [customConvention][org.gradle.kotlin.dsl.accessors.tasks.PrintAccessorsTest.CustomConvention] convention.
+     *
+     * @deprecated The concept of conventions is deprecated. Use extensions instead.
+     */
+    fun org.gradle.api.Project.`customConvention`(configure: Action<org.gradle.kotlin.dsl.accessors.tasks.PrintAccessorsTest.CustomConvention>): Unit =
+        configure.execute(`customConvention`)
+
+
+
+    /**
+     * Provides the existing [delete][org.gradle.api.tasks.Delete] task.
+     */
+    val TaskContainer.`delete`: TaskProvider<org.gradle.api.tasks.Delete>
+        get() = named<org.gradle.api.tasks.Delete>("delete")
+
+
+
+    /**
+     * Provides the existing [main][org.gradle.api.tasks.SourceSet] element.
+     */
+    val org.gradle.api.tasks.SourceSetContainer.`main`: NamedDomainObjectProvider<org.gradle.api.tasks.SourceSet>
+        get() = named<org.gradle.api.tasks.SourceSet>("main")
+
+
+
+    /**
+     * Provides the existing [api][org.gradle.api.artifacts.Configuration] element.
+     */
+    val org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>.`api`: NamedDomainObjectProvider<org.gradle.api.artifacts.Configuration>
+        get() = named<org.gradle.api.artifacts.Configuration>("api")
+
+
+
+    /**
+     * Provides the existing [compile][org.gradle.api.artifacts.Configuration] element.
+     */
+    val org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>.`compile`: NamedDomainObjectProvider<org.gradle.api.artifacts.Configuration>
+        get() = named<org.gradle.api.artifacts.Configuration>("compile")
+
+
+
+    /**
+     * Adds a dependency to the 'api' configuration.
+     *
+     * @param dependencyNotation notation for the dependency to be added.
+     * @return The dependency.
+     *
+     * @see [DependencyHandler.add]
+     */
+    fun DependencyHandler.`api`(dependencyNotation: Any): Dependency? =
+        add("api", dependencyNotation)
+
+
+    /**
+     * Adds a dependency to the 'api' configuration.
+     *
+     * @param dependencyNotation notation for the dependency to be added.
+     * @param dependencyConfiguration expression to use to configure the dependency.
+     * @return The dependency.
+     *
+     * @see [DependencyHandler.add]
+     */
+    fun DependencyHandler.`api`(
+        dependencyNotation: String,
+        dependencyConfiguration: Action<ExternalModuleDependency>
+    ): ExternalModuleDependency = addDependencyTo(
+        this, "api", dependencyNotation, dependencyConfiguration
+    ) as ExternalModuleDependency
+
+
+    /**
+     * Adds a dependency to the 'api' configuration.
+     *
+     * @param dependencyNotation notation for the dependency to be added.
+     * @param dependencyConfiguration expression to use to configure the dependency.
+     * @return The dependency.
+     *
+     * @see [DependencyHandler.add]
+     */
+    fun DependencyHandler.`api`(
+        dependencyNotation: Provider<*>,
+        dependencyConfiguration: Action<ExternalModuleDependency>
+    ): Unit = addConfiguredDependencyTo(
+        this, "api", dependencyNotation, dependencyConfiguration
+    )
+
+
+    /**
+     * Adds a dependency to the 'api' configuration.
+     *
+     * @param dependencyNotation notation for the dependency to be added.
+     * @param dependencyConfiguration expression to use to configure the dependency.
+     * @return The dependency.
+     *
+     * @see [DependencyHandler.add]
+     */
+    fun DependencyHandler.`api`(
+        dependencyNotation: ProviderConvertible<*>,
+        dependencyConfiguration: Action<ExternalModuleDependency>
+    ): Unit = addConfiguredDependencyTo(
+        this, "api", dependencyNotation, dependencyConfiguration
+    )
+
+
+    /**
+     * Adds a dependency to the 'api' configuration.
+     *
+     * @param group the group of the module to be added as a dependency.
+     * @param name the name of the module to be added as a dependency.
+     * @param version the optional version of the module to be added as a dependency.
+     * @param configuration the optional configuration of the module to be added as a dependency.
+     * @param classifier the optional classifier of the module artifact to be added as a dependency.
+     * @param ext the optional extension of the module artifact to be added as a dependency.
+     * @param dependencyConfiguration expression to use to configure the dependency.
+     * @return The dependency.
+     *
+     * @see [DependencyHandler.create]
+     * @see [DependencyHandler.add]
+     */
+    fun DependencyHandler.`api`(
+        group: String,
+        name: String,
+        version: String? = null,
+        configuration: String? = null,
+        classifier: String? = null,
+        ext: String? = null,
+        dependencyConfiguration: Action<ExternalModuleDependency>? = null
+    ): ExternalModuleDependency = addExternalModuleDependencyTo(
+        this, "api", group, name, version, configuration, classifier, ext, dependencyConfiguration
+    )
+
+
+    /**
+     * Adds a dependency to the 'api' configuration.
+     *
+     * @param dependency dependency to be added.
+     * @param dependencyConfiguration expression to use to configure the dependency.
+     * @return The dependency.
+     *
+     * @see [DependencyHandler.add]
+     */
+    fun <T : ModuleDependency> DependencyHandler.`api`(
+        dependency: T,
+        dependencyConfiguration: T.() -> Unit
+    ): T = add("api", dependency, dependencyConfiguration)
+
+
+    /**
+     * Adds a dependency constraint to the 'api' configuration.
+     *
+     * @param constraintNotation the dependency constraint notation
+     *
+     * @return the added dependency constraint
+     *
+     * @see [DependencyConstraintHandler.add]
+     */
+    fun DependencyConstraintHandler.`api`(constraintNotation: Any): DependencyConstraint =
+        add("api", constraintNotation)
+
+
+    /**
+     * Adds a dependency constraint to the 'api' configuration.
+     *
+     * @param constraintNotation the dependency constraint notation
+     * @param block the block to use to configure the dependency constraint
+     *
+     * @return the added dependency constraint
+     *
+     * @see [DependencyConstraintHandler.add]
+     */
+    fun DependencyConstraintHandler.`api`(constraintNotation: Any, block: DependencyConstraint.() -> Unit): DependencyConstraint =
+        add("api", constraintNotation, block)
+
+
+    /**
+     * Adds an artifact to the 'api' configuration.
+     *
+     * @param artifactNotation the group of the module to be added as a dependency.
+     * @return The artifact.
+     *
+     * @see [ArtifactHandler.add]
+     */
+    fun ArtifactHandler.`api`(artifactNotation: Any): PublishArtifact =
+        add("api", artifactNotation)
+
+
+    /**
+     * Adds an artifact to the 'api' configuration.
+     *
+     * @param artifactNotation the group of the module to be added as a dependency.
+     * @param configureAction The action to execute to configure the artifact.
+     * @return The artifact.
+     *
+     * @see [ArtifactHandler.add]
+     */
+    fun ArtifactHandler.`api`(
+        artifactNotation: Any,
+        configureAction:  ConfigurablePublishArtifact.() -> Unit
+    ): PublishArtifact =
+        add("api", artifactNotation, configureAction)
+
+
+    /**
+     * Adds a dependency to the 'compile' configuration.
+     *
+     * @param dependencyNotation notation for the dependency to be added.
+     * @return The dependency.
+     *
+     * @see [DependencyHandler.add]
+     */
+    @Deprecated(message = "The compile configuration has been deprecated for dependency declaration. Please use the 'api' or 'implementation' configuration instead.")
+    fun DependencyHandler.`compile`(dependencyNotation: Any): Dependency? =
+        add("compile", dependencyNotation)
+
+
+    /**
+     * Adds a dependency to the 'compile' configuration.
+     *
+     * @param dependencyNotation notation for the dependency to be added.
+     * @param dependencyConfiguration expression to use to configure the dependency.
+     * @return The dependency.
+     *
+     * @see [DependencyHandler.add]
+     */
+    @Deprecated(message = "The compile configuration has been deprecated for dependency declaration. Please use the 'api' or 'implementation' configuration instead.")
+    fun DependencyHandler.`compile`(
+        dependencyNotation: String,
+        dependencyConfiguration: Action<ExternalModuleDependency>
+    ): ExternalModuleDependency = addDependencyTo(
+        this, "compile", dependencyNotation, dependencyConfiguration
+    ) as ExternalModuleDependency
+
+
+    /**
+     * Adds a dependency to the 'compile' configuration.
+     *
+     * @param dependencyNotation notation for the dependency to be added.
+     * @param dependencyConfiguration expression to use to configure the dependency.
+     * @return The dependency.
+     *
+     * @see [DependencyHandler.add]
+     */
+    @Deprecated(message = "The compile configuration has been deprecated for dependency declaration. Please use the 'api' or 'implementation' configuration instead.")
+    fun DependencyHandler.`compile`(
+        dependencyNotation: Provider<*>,
+        dependencyConfiguration: Action<ExternalModuleDependency>
+    ): Unit = addConfiguredDependencyTo(
+        this, "compile", dependencyNotation, dependencyConfiguration
+    )
+
+
+    /**
+     * Adds a dependency to the 'compile' configuration.
+     *
+     * @param dependencyNotation notation for the dependency to be added.
+     * @param dependencyConfiguration expression to use to configure the dependency.
+     * @return The dependency.
+     *
+     * @see [DependencyHandler.add]
+     */
+    @Deprecated(message = "The compile configuration has been deprecated for dependency declaration. Please use the 'api' or 'implementation' configuration instead.")
+    fun DependencyHandler.`compile`(
+        dependencyNotation: ProviderConvertible<*>,
+        dependencyConfiguration: Action<ExternalModuleDependency>
+    ): Unit = addConfiguredDependencyTo(
+        this, "compile", dependencyNotation, dependencyConfiguration
+    )
+
+
+    /**
+     * Adds a dependency to the 'compile' configuration.
+     *
+     * @param group the group of the module to be added as a dependency.
+     * @param name the name of the module to be added as a dependency.
+     * @param version the optional version of the module to be added as a dependency.
+     * @param configuration the optional configuration of the module to be added as a dependency.
+     * @param classifier the optional classifier of the module artifact to be added as a dependency.
+     * @param ext the optional extension of the module artifact to be added as a dependency.
+     * @param dependencyConfiguration expression to use to configure the dependency.
+     * @return The dependency.
+     *
+     * @see [DependencyHandler.create]
+     * @see [DependencyHandler.add]
+     */
+    @Deprecated(message = "The compile configuration has been deprecated for dependency declaration. Please use the 'api' or 'implementation' configuration instead.")
+    fun DependencyHandler.`compile`(
+        group: String,
+        name: String,
+        version: String? = null,
+        configuration: String? = null,
+        classifier: String? = null,
+        ext: String? = null,
+        dependencyConfiguration: Action<ExternalModuleDependency>? = null
+    ): ExternalModuleDependency = addExternalModuleDependencyTo(
+        this, "compile", group, name, version, configuration, classifier, ext, dependencyConfiguration
+    )
+
+
+    /**
+     * Adds a dependency to the 'compile' configuration.
+     *
+     * @param dependency dependency to be added.
+     * @param dependencyConfiguration expression to use to configure the dependency.
+     * @return The dependency.
+     *
+     * @see [DependencyHandler.add]
+     */
+    @Deprecated(message = "The compile configuration has been deprecated for dependency declaration. Please use the 'api' or 'implementation' configuration instead.")
+    fun <T : ModuleDependency> DependencyHandler.`compile`(
+        dependency: T,
+        dependencyConfiguration: T.() -> Unit
+    ): T = add("compile", dependency, dependencyConfiguration)
+
+
+    /**
+     * Adds a dependency constraint to the 'compile' configuration.
+     *
+     * @param constraintNotation the dependency constraint notation
+     *
+     * @return the added dependency constraint
+     *
+     * @see [DependencyConstraintHandler.add]
+     */
+    @Deprecated(message = "The compile configuration has been deprecated for dependency declaration. Please use the 'api' or 'implementation' configuration instead.")
+    fun DependencyConstraintHandler.`compile`(constraintNotation: Any): DependencyConstraint =
+        add("compile", constraintNotation)
+
+
+    /**
+     * Adds a dependency constraint to the 'compile' configuration.
+     *
+     * @param constraintNotation the dependency constraint notation
+     * @param block the block to use to configure the dependency constraint
+     *
+     * @return the added dependency constraint
+     *
+     * @see [DependencyConstraintHandler.add]
+     */
+    @Deprecated(message = "The compile configuration has been deprecated for dependency declaration. Please use the 'api' or 'implementation' configuration instead.")
+    fun DependencyConstraintHandler.`compile`(constraintNotation: Any, block: DependencyConstraint.() -> Unit): DependencyConstraint =
+        add("compile", constraintNotation, block)
+
+
+    /**
+     * Adds an artifact to the 'compile' configuration.
+     *
+     * @param artifactNotation the group of the module to be added as a dependency.
+     * @return The artifact.
+     *
+     * @see [ArtifactHandler.add]
+     */
+    fun ArtifactHandler.`compile`(artifactNotation: Any): PublishArtifact =
+        add("compile", artifactNotation)
+
+
+    /**
+     * Adds an artifact to the 'compile' configuration.
+     *
+     * @param artifactNotation the group of the module to be added as a dependency.
+     * @param configureAction The action to execute to configure the artifact.
+     * @return The artifact.
+     *
+     * @see [ArtifactHandler.add]
+     */
+    fun ArtifactHandler.`compile`(
+        artifactNotation: Any,
+        configureAction:  ConfigurablePublishArtifact.() -> Unit
+    ): PublishArtifact =
+        add("compile", artifactNotation, configureAction)
+

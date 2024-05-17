@@ -1,0 +1,17 @@
+name: Opened issue labels
+
+on:
+  issues:
+    types: opened
+
+jobs:
+  add_label:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: add label for issue without labels
+        uses: actions-ecosystem/action-add-labels@v1
+        if: ${{ github.event.issue.labels[0] == null }}
+        with:
+          labels: to-triage

@@ -2,13 +2,14 @@ package util
 
 import common.Arch
 import common.JvmVendor
+import common.KillProcessMode.KILL_ALL_GRADLE_PROCESSES
 import common.Os
 import common.applyPerformanceTestSettings
 import common.buildToolGradleParameters
 import common.checkCleanM2AndAndroidUserHome
 import common.gradleWrapper
 import common.individualPerformanceTestArtifactRules
-import common.killGradleProcessesStep
+import common.killProcessStep
 import common.performanceTestCommandLine
 import common.removeSubstDirOnWindows
 import common.substDirOnWindows
@@ -16,21 +17,21 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
 import jetbrains.buildServer.configs.kotlin.v2019_2.ParameterDisplay
 import jetbrains.buildServer.configs.kotlin.v2019_2.ParametrizedWithType
 
-abstract class AdHocPerformanceScenario(os: Os) : BuildType({
-    val id = "Util_Performance_AdHocPerformanceScenario${os.asName()}"
-    name = "AdHoc Performance Scenario - ${os.asName()}"
+abstract class AdHocPerformanceScenario(os: Os, arch: Arch = Arch.AMD64) : BuildType({
+    val id = "Util_Performance_AdHocPerformanceScenario${os.asName()}${arch.asName()}"
+    name = "AdHoc Performance Scenario - ${os.asName()} ${arch.asName()}"
     id(id)
 
-    applyPerformanceTestSettings(os = os, timeout = 420)
+    applyPerformanceTestSettings(os = os, arch = arch, timeout = 420)
     artifactRules = individualPerformanceTestArtifactRules
 
     params {
         text(
-            "baselines",
-            "defaults",
+            "performance.baselines",
+            "",
             display = ParameterDisplay.PROMPT,
-            allowEmpty = false,
-            description = "The baselines you want to compare against. Can be a Gradle version number. Use force-defaults to not use the commit distribution as a baseline on a branch other than master or release."
+            allowEmpty = true,
+            description = "The baselines you want to run performance tests against. Empty means default baseline."
         )
         text(
             "testProject",
@@ -50,7 +51,7 @@ abstract class AdHocPerformanceScenario(os: Os) : BuildType({
             allowEmpty = false,
             description = "Which performance test to run. Should be the fully qualified class name dot (unrolled) method name. E.g. org.gradle.performance.regression.java.JavaUpToDatePerformanceTest.up-to-date assemble (parallel true)"
         )
-        text("testJavaVersion", "8", display = ParameterDisplay.PROMPT, allowEmpty = false, description = "The java version to run the performance tests, e.g. 8/11/17")
+        text("testJavaVersion", "17", display = ParameterDisplay.PROMPT, allowEmpty = false, description = "The java version to run the performance tests, e.g. 8/11/17")
         select(
             "testJavaVendor",
             JvmVendor.openjdk.name,
@@ -63,6 +64,7 @@ abstract class AdHocPerformanceScenario(os: Os) : BuildType({
                 profilerParam("jprofiler")
                 param("env.JPROFILER_HOME", "C:\\Program Files\\jprofiler\\jprofiler11.1.4")
             }
+
             else -> {
                 profilerParam("async-profiler")
                 param("env.FG_HOME_DIR", "/opt/FlameGraph")
@@ -75,8 +77,9 @@ abstract class AdHocPerformanceScenario(os: Os) : BuildType({
         param("additional.gradle.parameters", "")
     }
 
+    val buildTypeThis = this
     steps {
-        killGradleProcessesStep(os)
+        killProcessStep(buildTypeThis, KILL_ALL_GRADLE_PROCESSES, os)
         substDirOnWindows(os)
         gradleWrapper {
             name = "GRADLE_RUNNER"
@@ -84,10 +87,9 @@ abstract class AdHocPerformanceScenario(os: Os) : BuildType({
             gradleParams = (
                 performanceTestCommandLine(
                     "clean performance:%testProject%PerformanceAdHocTest --tests \"%scenario%\"",
-                    "%baselines%",
+                    "%performance.baselines%",
                     """--warmups %warmups% --runs %runs% --checks %checks% --channel %channel% --profiler %profiler% %additional.gradle.parameters%""",
                     os,
-                    Arch.AMD64,
                     "%testJavaVersion%",
                     "%testJavaVendor%",
                 ) + buildToolGradleParameters(isContinue = false)
@@ -111,4 +113,5 @@ fun ParametrizedWithType.profilerParam(defaultProfiler: String) {
 
 object AdHocPerformanceScenarioLinux : AdHocPerformanceScenario(Os.LINUX)
 object AdHocPerformanceScenarioWindows : AdHocPerformanceScenario(Os.WINDOWS)
-object AdHocPerformanceScenarioMacOS : AdHocPerformanceScenario(Os.MACOS)
+object AdHocPerformanceScenarioMacOS : AdHocPerformanceScenario(Os.MACOS, Arch.AMD64)
+object AdHocPerformanceScenarioMacM1 : AdHocPerformanceScenario(Os.MACOS, Arch.AARCH64)

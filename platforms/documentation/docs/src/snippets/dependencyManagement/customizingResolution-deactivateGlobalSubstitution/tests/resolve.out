@@ -1,0 +1,5 @@
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+> Could not resolve all files for configuration ':publishedRuntimeClasspath'.
+   > Could not find org.test:module-a:1.0.

@@ -16,13 +16,11 @@
 
 package org.gradle.api.tasks
 
-import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
-import org.gradle.work.InputChanges
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture, ValidationMessageChecker {
 
@@ -51,19 +49,19 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
         then:
         executedAndNotSkipped(":myTask")
         outputContains("Task ':myTask' is not up-to-date because:")
-        outputContains("Task state is not tracked.")
+        outputContains("Task is untracked because: For testing")
 
         when:
         run("myTask", "--info")
         then:
         executedAndNotSkipped(":myTask")
         outputContains("Task ':myTask' is not up-to-date because:")
-        outputContains("Task state is not tracked.")
+        outputContains("Task is untracked because: For testing")
     }
 
     def "fails when incremental task is marked as untracked"() {
         file("input/input.txt") << "Content"
-        buildFile(generateUntrackedIncrementalConsumerTask(inputChangesType))
+        buildFile(generateUntrackedIncrementalConsumerTask())
         buildFile("""
             tasks.register("consumer", IncrementalConsumer) {
                 inputDir = file("input")
@@ -73,16 +71,9 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
         file("input.txt").text = "input"
 
         when:
-        if (inputChangesType == IncrementalTaskInputs) {
-            executer.expectDocumentedDeprecationWarning """IncrementalTaskInputs has been deprecated. This is scheduled to be removed in Gradle 8.0. On method 'IncrementalConsumer.execute' use 'org.gradle.work.InputChanges' instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#incremental_task_inputs_deprecation"""
-        }
         fails("consumer", "--info")
         then:
         failureHasCause("Changes are not tracked, unable determine incremental changes.")
-
-        where:
-        //noinspection UnnecessaryQualifiedReference, GrDeprecatedAPIUsage
-        inputChangesType << [InputChanges, org.gradle.api.tasks.incremental.IncrementalTaskInputs]
     }
 
     def "can register untracked tasks via the runtime API"() {
@@ -112,7 +103,7 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
         then:
         executedAndNotSkipped(":myTask")
         outputContains("Task ':myTask' is not up-to-date because:")
-        outputContains("Task state is not tracked.")
+        outputContains("Task is untracked because: For testing")
     }
 
     def "untracked task is not cached"() {
@@ -185,7 +176,7 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
         skipped(":mySubclassOfUntrackedTask")
     }
 
-    @Requires(TestPrecondition.FILE_PERMISSIONS)
+    @Requires(UnitTestPreconditions.FilePermissions)
     def "untracked tasks can produce and consume unreadable content"() {
         def rootDir = file("build/root")
         def unreadableDir = rootDir.file("unreadable")
@@ -210,18 +201,12 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
         unreadableDir.setReadable(true)
     }
 
-    @Requires(TestPrecondition.FILE_PERMISSIONS)
-    def "tracked task producing unreadable content is not stored in execution history"() {
-        executer.beforeExecute {
-            executer.withStackTraceChecksDisabled()
-            executer.expectDeprecationWarning("Cannot access output property 'outputDir' of task ':producer' (see --info log for details). " +
-                "Accessing unreadable inputs or outputs has been deprecated. " +
-                "This will fail with an error in Gradle 8.0. " +
-                "Declare the task as untracked by using Task.doNotTrackState().")
-        }
-
+    @Requires(UnitTestPreconditions.FilePermissions)
+    def "tracked task producing unreadable content fails"() {
         def rootDir = file("build/root")
         def unreadableDir = rootDir.file("unreadable")
+        unreadableDir.mkdirs()
+        unreadableDir.setReadable(false)
 
         buildFile generateProducerTask(false)
 
@@ -232,109 +217,49 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
         """)
 
         when:
-        run "producer", "--info"
+        executer.withStackTraceChecksDisabled()
+        runAndFail "producer"
         then:
         executedAndNotSkipped(":producer")
-        outputContains("Cannot access output property 'outputDir' of task ':producer'")
-        outputContains("java.io.UncheckedIOException: java.nio.file.AccessDeniedException: ${unreadableDir.absolutePath}")
-
-        when:
-        unreadableDir.setReadable(true)
-        run "producer", "--info"
-        then:
-        executedAndNotSkipped(":producer")
-        outputContains("Task ':producer' is not up-to-date because:")
-        outputContains("No history is available.")
-        outputContains("Cannot access output property 'outputDir' of task ':producer'")
-        outputContains("java.io.UncheckedIOException: java.nio.file.AccessDeniedException: ${unreadableDir.absolutePath}")
+        failure.assertHasDocumentedCause("Cannot access output property 'outputDir' of task ':producer'. " +
+            "Accessing unreadable inputs or outputs is not supported. " +
+            "Declare the task as untracked by using Task.doNotTrackState(). " +
+            getDisableStateTrackingLink())
+        failureHasCause("java.nio.file.AccessDeniedException: ${unreadableDir.absolutePath}")
 
         cleanup:
         unreadableDir.setReadable(true)
     }
 
-    @Requires(TestPrecondition.UNIX_DERIVATIVE)
-    def "pipe as output file emits deprecation message"() {
-        executer.beforeExecute {
-            executer.withStackTraceChecksDisabled()
-            executer.expectDeprecationWarning("Cannot access output property 'outputFile' of task ':producer' (see --info log for details). " +
-                "Accessing unreadable inputs or outputs has been deprecated. " +
-                "This will fail with an error in Gradle 8.0. " +
-                "Declare the task as untracked by using Task.doNotTrackState().")
-        }
-
-        def rootDir = createDir("build")
-        def unreadableFile = rootDir.file("unreadable")
-        unreadableFile.createNamedPipe()
-
-        buildFile("""
-            abstract class Producer extends DefaultTask {
-                @OutputFile
-                abstract RegularFileProperty getOutputFile()
-
-                @TaskAction
-                void execute() {
-                    outputFile.get().asFile
-                }
-            }
-
-            tasks.register("producer", Producer) {
-                outputFile = project.layout.buildDirectory.file("unreadable")
-            }
-        """)
-
-        when:
-        run "producer", "--info"
-        then:
-        executedAndNotSkipped(":producer")
-        outputContains("Cannot access output property 'outputFile' of task ':producer'")
-        outputContains("org.gradle.api.UncheckedIOException: Unsupported file type for ${unreadableFile.absolutePath}")
-    }
-
-    @Requires(TestPrecondition.FILE_PERMISSIONS)
-    def "task producing unreadable content is not stored in cache"() {
-        executer.beforeExecute {
-            executer.withStackTraceChecksDisabled()
-            executer.expectDeprecationWarning("Cannot access output property 'outputDir' of task ':producer' (see --info log for details). " +
-                "Accessing unreadable inputs or outputs has been deprecated. " +
-                "This will fail with an error in Gradle 8.0. " +
-                "Declare the task as untracked by using Task.doNotTrackState().")
-        }
-
+    @Requires(UnitTestPreconditions.UnixDerivative)
+    def "tracked task producing named pipe fails"() {
         def rootDir = file("build/root")
-        def unreadableDir = rootDir.file("unreadable")
+        def namedPipe = rootDir.file("unreadable")
+        rootDir.mkdirs()
+        namedPipe.createNamedPipe()
 
         buildFile generateProducerTask(false)
 
         buildFile("""
             tasks.register("producer", Producer) {
-                outputs.cacheIf { true }
                 outputDir = project.layout.buildDirectory.dir("root")
             }
         """)
 
         when:
-        withBuildCache().run "producer", "--info"
+        executer.withStackTraceChecksDisabled()
+        runAndFail "producer"
         then:
         executedAndNotSkipped(":producer")
-        outputContains("Cannot access output property 'outputDir' of task ':producer'")
-        outputContains("java.io.UncheckedIOException: java.nio.file.AccessDeniedException: ${unreadableDir.absolutePath}")
-
-        when:
-        unreadableDir.setReadable(true)
-        assert rootDir.deleteDir()
-
-        withBuildCache().run "producer", "--info"
-        then:
-        executedAndNotSkipped(":producer")
-        outputContains("Cannot access output property 'outputDir' of task ':producer'")
-        outputContains("java.io.UncheckedIOException: java.nio.file.AccessDeniedException: ${unreadableDir.absolutePath}")
-
-        cleanup:
-        unreadableDir.setReadable(true)
+        failure.assertHasDocumentedCause("Cannot access output property 'outputDir' of task ':producer'. " +
+            "Accessing unreadable inputs or outputs is not supported. " +
+            "Declare the task as untracked by using Task.doNotTrackState(). " +
+            getDisableStateTrackingLink())
+        failureHasCause("java.io.IOException: Cannot snapshot ${namedPipe}: not a regular file")
     }
 
-    @Requires(TestPrecondition.FILE_PERMISSIONS)
-    def "task consuming unreadable content is not tracked"() {
+    @Requires(UnitTestPreconditions.FilePermissions)
+    def "tracked task consuming unreadable content fails"() {
         def rootDir = file("build/root")
         def unreadableDir = rootDir.file("unreadable")
         assert unreadableDir.mkdirs()
@@ -351,57 +276,20 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
 
         when:
         executer.withStackTraceChecksDisabled()
-        executer.expectDeprecationWarning("Cannot access input property 'inputDir' of task ':consumer' (see --info log for details). " +
-            "Accessing unreadable inputs or outputs has been deprecated. " +
-            "This will fail with an error in Gradle 8.0. " +
-            "Declare the task as untracked by using Task.doNotTrackState().")
-        run "consumer", "--info"
+        runAndFail "consumer"
         then:
-        executedAndNotSkipped(":consumer")
-        outputContains("Task ':consumer' is not up-to-date because:")
-        outputContains("Change tracking is disabled.")
-        outputContains("Cannot access input property 'inputDir' of task ':consumer'")
-        outputContains("java.io.UncheckedIOException: java.nio.file.AccessDeniedException: ${unreadableDir.absolutePath}")
+        failure.assertHasDocumentedCause("Cannot access input property 'inputDir' of task ':consumer'. " +
+            "Accessing unreadable inputs or outputs is not supported. " +
+            "Declare the task as untracked by using Task.doNotTrackState(). " +
+            getDisableStateTrackingLink())
+        failureHasCause("java.nio.file.AccessDeniedException: ${unreadableDir.absolutePath}")
 
         cleanup:
         unreadableDir.setReadable(true)
     }
 
-    @Requires(TestPrecondition.FILE_PERMISSIONS)
-    def "task consuming unreadable content is not stored in cache"() {
-        def rootDir = file("build/root")
-        def unreadableDir = rootDir.file("unreadable")
-        assert unreadableDir.mkdirs()
-        assert unreadableDir.setReadable(false)
-
-        buildFile generateConsumerTask(false)
-
-        buildFile("""
-            tasks.register("consumer", Consumer) {
-                outputs.cacheIf { true }
-                inputDir = project.layout.buildDirectory.dir("root")
-                outputFile = project.layout.buildDirectory.file("output.txt")
-            }
-        """)
-
-        when:
-        executer.withStackTraceChecksDisabled()
-        executer.expectDeprecationWarning("Cannot access input property 'inputDir' of task ':consumer' (see --info log for details). " +
-            "Accessing unreadable inputs or outputs has been deprecated. " +
-            "This will fail with an error in Gradle 8.0. " +
-            "Declare the task as untracked by using Task.doNotTrackState().")
-        withBuildCache().run "consumer", "--info"
-        then:
-        executedAndNotSkipped(":consumer")
-        outputContains("Task ':consumer' is not up-to-date because:")
-        outputContains("Change tracking is disabled.")
-        outputContains("Caching disabled for task ':consumer' because:")
-        outputContains("Cacheability was not determined")
-        outputContains("Cannot access input property 'inputDir' of task ':consumer'")
-        outputContains("java.io.UncheckedIOException: java.nio.file.AccessDeniedException: ${unreadableDir.absolutePath}")
-
-        cleanup:
-        unreadableDir.setReadable(true)
+    def getDisableStateTrackingLink() {
+        documentationRegistry.getDocumentationRecommendationFor("information", "incremental_build", "sec:disable-state-tracking")
     }
 
     def "does not clean up stale outputs for untracked tasks"() {
@@ -549,7 +437,7 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
         """
     }
 
-    static generateUntrackedIncrementalConsumerTask(Class<?> inputChangesType) {
+    static generateUntrackedIncrementalConsumerTask() {
         """
             @UntrackedTask(because = "For testing")
             abstract class IncrementalConsumer extends DefaultTask {
@@ -561,7 +449,7 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
                 abstract RegularFileProperty getOutputFile()
 
                 @TaskAction
-                void execute(${inputChangesType.name} changes) {
+                void execute(InputChanges changes) {
                     assert changes != null
                     def unreadableDir = inputDir.get().dir("unreadable").asFile
                     assert !unreadableDir.canRead()

@@ -25,7 +25,7 @@ import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.tasks.TaskPropertyUtils
 import org.gradle.api.internal.tasks.properties.GetInputFilesVisitor
 import org.gradle.api.internal.tasks.properties.GetInputPropertiesVisitor
-import org.gradle.api.internal.tasks.properties.PropertyWalker
+import org.gradle.internal.properties.bean.PropertyWalker
 
 import java.util.function.Consumer
 

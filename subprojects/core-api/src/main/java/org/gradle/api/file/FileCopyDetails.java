@@ -15,6 +15,8 @@
  */
 package org.gradle.api.file;
 
+import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.NonExtensible;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -62,8 +64,29 @@ public interface FileCopyDetails extends FileTreeElement, ContentFilterable {
      * Sets the Unix permissions of this file.
      *
      * @param mode the Unix permissions, e.g. {@code 0644}.
+     *
+     * @apiNote Consider using {@link #permissions(Action)} instead.
      */
     void setMode(int mode);
+
+    /**
+     * Configuration action for specifying file and directory access permissions.
+     * For details see {@link ConfigurableFilePermissions}.
+     *
+     * @since 8.3
+     */
+    @Incubating
+    void permissions(Action<? super ConfigurableFilePermissions> configureAction);
+
+    /**
+     * Set file and directory access permissions based on an externally
+     * provided permission instance.
+     * For details see {@link ConfigurableFilePermissions}.
+     *
+     * @since 8.3
+     */
+    @Incubating
+    void setPermissions(FilePermissions permissions);
 
     /**
      * The strategy to use if there is already a file at this file's destination.
@@ -73,7 +96,7 @@ public interface FileCopyDetails extends FileTreeElement, ContentFilterable {
     /**
      * The strategy to use if there is already a file at this file's destination.
      * <p>
-     * The value can be set with a case insensitive string of the enum value (e.g. {@code 'exclude'} for {@link DuplicatesStrategy#EXCLUDE}).
+     * The value can be set with a case-insensitive string of the enum value (e.g. {@code 'exclude'} for {@link DuplicatesStrategy#EXCLUDE}).
      *
      * @see DuplicatesStrategy
      * @return the strategy to use for this file.

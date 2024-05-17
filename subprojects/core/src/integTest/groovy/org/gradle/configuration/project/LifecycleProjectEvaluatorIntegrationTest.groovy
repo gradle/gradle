@@ -155,8 +155,4 @@ class LifecycleProjectEvaluatorIntegrationTest extends AbstractIntegrationSpec {
             parentId == configureIncludedBuild.id
         }
     }
-
-    String relativePath(String path) {
-        return path.replace('/', File.separator)
-    }
 }

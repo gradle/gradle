@@ -47,14 +47,28 @@ public class DefaultNamedDomainObjectSet<T> extends DefaultNamedDomainObjectColl
         this(collection, filter, instantiator, namer, MutationGuards.identity());
     }
 
+    // should be protected, but use of the class generator forces it to be public
+    public DefaultNamedDomainObjectSet(DefaultNamedDomainObjectSet<? super T> objects, Spec<String> nameFilter, CollectionFilter<T> elementFilter, Instantiator instantiator, Namer<? super T> namer) {
+        this(objects, nameFilter, elementFilter, instantiator, namer, MutationGuards.identity());
+    }
+
     public DefaultNamedDomainObjectSet(DefaultNamedDomainObjectSet<? super T> collection, CollectionFilter<T> filter, Instantiator instantiator, Namer<? super T> namer, MutationGuard parentMutationGuard) {
-        super(collection, filter, instantiator, namer);
+        this(collection, Specs.satisfyAll(), filter, instantiator, namer, parentMutationGuard);
+    }
+
+    public DefaultNamedDomainObjectSet(DefaultNamedDomainObjectSet<? super T> collection, Spec<String> nameFilter, CollectionFilter<T> elementFilter, Instantiator instantiator, Namer<? super T> namer, MutationGuard parentMutationGuard) {
+        super(collection, nameFilter, elementFilter, instantiator, namer);
         this.parentMutationGuard = parentMutationGuard;
     }
 
     @Override
-    protected <S extends T> DefaultNamedDomainObjectSet<S> filtered(CollectionFilter<S> filter) {
-        return Cast.uncheckedNonnullCast(getInstantiator().newInstance(DefaultNamedDomainObjectSet.class, this, filter, getInstantiator(), getNamer()));
+    protected <S extends T> DefaultNamedDomainObjectSet<S> filtered(CollectionFilter<S> elementFilter) {
+        return Cast.uncheckedNonnullCast(getInstantiator().newInstance(DefaultNamedDomainObjectSet.class, this, elementFilter, getInstantiator(), getNamer()));
+    }
+
+    @Override
+    protected <S extends T> DefaultNamedDomainObjectSet<S> filtered(Spec<String> nameFilter, CollectionFilter<S> elementFilter) {
+        return Cast.uncheckedNonnullCast(getInstantiator().newInstance(DefaultNamedDomainObjectSet.class, this, nameFilter, elementFilter, getInstantiator(), getNamer()));
     }
 
     @Override
@@ -65,6 +79,12 @@ public class DefaultNamedDomainObjectSet<T> extends DefaultNamedDomainObjectColl
     @Override
     public <S extends T> NamedDomainObjectSet<S> withType(Class<S> type) {
         return filtered(createFilter(type));
+    }
+
+    @Override
+    public NamedDomainObjectSet<T> named(Spec<String> nameFilter) {
+        Spec<T> spec = convertNameToElementFilter(nameFilter);
+        return filtered(nameFilter, createFilter(spec));
     }
 
     @Override

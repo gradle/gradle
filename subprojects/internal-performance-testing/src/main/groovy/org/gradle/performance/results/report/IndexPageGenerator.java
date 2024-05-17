@@ -47,7 +47,7 @@ public class IndexPageGenerator extends AbstractTablePageGenerator {
         long successCount = executionDataProvider.getReportScenarios().stream().filter(PerformanceReportScenario::isSuccessful).count();
         long smallRegressions = executionDataProvider.getReportScenarios().stream()
             .filter(PerformanceReportScenario::isRegressed)
-            .filter(this::failsBuild)
+            .filter(scenario -> !failsBuild(scenario))
             .count();
         long failureCount = executionDataProvider.getReportScenarios().size() - successCount - smallRegressions;
 

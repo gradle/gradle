@@ -1,0 +1,77 @@
+<!--
+  ~ Copyright 2023 the original author or authors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<section>
+    <section>
+        <title>Properties</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                </tr>
+            </thead>
+        </table>
+    </section>
+    <section>
+        <title>Methods</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>credentials</td>
+            </tr>
+            <tr>
+                <td>environmentVariable</td>
+            </tr>
+            <tr>
+                <td>environmentVariablesPrefixedBy</td>
+            </tr>
+            <tr>
+                <td>exec</td>
+            </tr>
+            <tr>
+                <td>fileContents</td>
+            </tr>
+            <tr>
+                <td>gradleProperty</td>
+            </tr>
+            <tr>
+                <td>gradlePropertiesPrefixedBy</td>
+            </tr>
+            <tr>
+                <td>javaexec</td>
+            </tr>
+            <tr>
+                <td>of</td>
+            </tr>
+            <tr>
+                <td>provider</td>
+            </tr>
+            <tr>
+                <td>systemProperty</td>
+            </tr>
+            <tr>
+                <td>systemPropertiesPrefixedBy</td>
+            </tr>
+            <tr>
+                <td>zip</td>
+            </tr>
+        </table>
+    </section>
+</section>

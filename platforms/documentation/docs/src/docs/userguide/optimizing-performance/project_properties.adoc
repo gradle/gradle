@@ -1,0 +1,81 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[sec:project_properties]]
+== Project properties
+
+Project properties are available on the link:{groovyDslPath}/org.gradle.api.Project.html[Project] object.
+They can be set from the command line using the `-P` / `--project-prop` <<command_line_interface.adoc#sec:environment_options, environment option>>.
+
+The following examples demonstrate how to set project properties in different ways.
+
+*Example 1:* Setting a project property via the *command line*:
+====
+----
+$ gradle -PgradlePropertiesProp=commandLineValue
+----
+====
+
+Gradle can also set project properties when it sees specially-named system properties or environment variables.
+If the environment variable name looks like `ORG_GRADLE_PROJECT___prop__=somevalue`, then Gradle will set a `prop` property on your project object, with the value of `somevalue`.
+Gradle also supports this for system properties, but with a different naming pattern, which looks like `org.gradle.project.__prop__`.
+Both of the following will set the `foo' property on your Project object to `"bar"`.
+
+*Example 2:* Setting a project property via a *system property*:
+====
+----
+org.gradle.project.foo=bar
+----
+====
+
+*Example 3:* Setting a project property via an *environment variable*:
+====
+----
+ORG_GRADLE_PROJECT_foo=bar
+----
+====
+
+This feature is useful when you don't have admin rights to a continuous integration server and you need to set property values that should not be easily visible.
+Since you cannot use the `-P` option in that scenario nor change the system-level configuration files, the correct strategy is to change the configuration of your continuous integration build job, adding an environment variable setting that matches an expected pattern.
+This won't be visible to normal users on the system.
+
+The following examples demonstrate how to use project properties.
+
+*Example 1:* Reading project properties at configuration time:
+====
+include::sample[dir="snippets/tutorial/projectProperties/kotlin",files="build.gradle.kts[tags=configuration]"]
+include::sample[dir="snippets/tutorial/projectProperties/groovy",files="build.gradle[tags=configuration]"]
+====
+
+[.multi-language-text.lang-kotlin]
+The link:https://kotlinlang.org/docs/delegated-properties.html[Kotlin delegated properties] are part of the Gradle Kotlin DSL.
+You need to explicitly specify the type as `String`.
+If you need to branch depending on the presence of the property, you can also use `String?` and check for `null`.
+
+[.multi-language-text.lang-groovy]
+Note that if a Project property has a dot in its name, using the dynamic Groovy names is not possible.
+You have to use the API or the dynamic array notation instead.
+
+*Example 2:* Reading project properties for consumption at execution time:
+====
+include::sample[dir="snippets/tutorial/projectProperties/kotlin",files="build.gradle.kts[tags=execution]"]
+include::sample[dir="snippets/tutorial/projectProperties/groovy",files="build.gradle[tags=execution]"]
+====
+
+[NOTE]
+====
+If a project property is referenced but does not exist, an exception will be thrown, and the build will fail.
+
+You should check for the existence of optional project properties before you access them using the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:hasProperty(java.lang.String)[Project.hasProperty(java.lang.String)] method.
+====

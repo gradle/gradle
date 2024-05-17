@@ -18,13 +18,13 @@ package org.gradle.initialization
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.internal.operations.trace.BuildOperationRecord
 
 class LoadBuildStructureBuildOperationIntegrationTest extends AbstractIntegrationSpec {
 
     final buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
 
-    def "multiproject settings with customizations are are exposed correctly"() {
+    def "multiproject settings with customizations are exposed correctly"() {
+        createDirs("b", "a", "a/c", "d")
         settingsFile << """
         include "b"
         include "a"
@@ -42,19 +42,33 @@ class LoadBuildStructureBuildOperationIntegrationTest extends AbstractIntegratio
         succeeds('help')
 
         then:
-        opResult.buildPath == ":"
-        opResult.rootProject.path == ":"
+        def loadProjectsOp = buildOperations.only(LoadProjectsBuildOperationType)
+        loadProjectsOp.result.buildPath == ":"
+        def rootProject = loadProjectsOp.result.rootProject
+        rootProject.path == ":"
 
-        verifyProject(opResult.rootProject, 'root', ':', [':a', ':b'], testDirectory, 'root.gradle')
-        verifyProject(project(':a'), 'a', ':a', [':a:c'])
-        verifyProject(project(':b'), 'b')
-        verifyProject(project(':a:c'), 'c', ':a:c', [':a:c:d'], testDirectory.file('a/c'))
-        verifyProject(project(':a:c:d'), 'd', ':a:c:d', [], testDirectory.file('d'), 'd.gradle')
+        verifyProject(rootProject, 'root', ':', [':a', ':b'], testDirectory, 'root.gradle')
+        verifyProject(project(':a', rootProject), 'a', ':a', [':a:c'])
+        verifyProject(project(':b', rootProject), 'b')
+        verifyProject(project(':a:c', rootProject), 'c', ':a:c', [':a:c:d'], testDirectory.file('a/c'))
+        verifyProject(project(':a:c:d', rootProject), 'd', ':a:c:d', [], testDirectory.file('d'), 'd.gradle')
+
+        def events = buildOperations.progress(ProjectsIdentifiedProgressDetails)
+        events.size() == 1
+        def identityProjectsEvent = events[0]
+        identityProjectsEvent.details.buildPath == ":"
+
+        def eventRootProject = identityProjectsEvent.details.rootProject
+        verifyProject(eventRootProject, 'root', ':', [':a', ':b'], testDirectory, 'root.gradle')
+        verifyProject(project(':a', eventRootProject), 'a', ':a', [':a:c'])
+        verifyProject(project(':b', eventRootProject), 'b')
+        verifyProject(project(':a:c', eventRootProject), 'c', ':a:c', [':a:c:d'], testDirectory.file('a/c'))
+        verifyProject(project(':a:c:d', eventRootProject), 'd', ':a:c:d', [], testDirectory.file('d'), 'd.gradle')
     }
 
     def "settings set via cmdline flag are exposed correctly"() {
+        createDirs("custom", "custom/a")
         def customSettingsDir = file("custom")
-        customSettingsDir.mkdirs()
         def customSettingsFile = new File(customSettingsDir, "settings.gradle")
         customSettingsFile << """
         rootProject.name = "root"
@@ -64,24 +78,31 @@ class LoadBuildStructureBuildOperationIntegrationTest extends AbstractIntegratio
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("Specifying custom settings file location has been deprecated. This is scheduled to be removed in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#configuring_custom_build_layout")
+        executer.expectDocumentedDeprecationWarning("Specifying custom settings file location has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#configuring_custom_build_layout")
         executer.usingSettingsFile(customSettingsFile)
         succeeds('help')
 
         then:
-        operation().result.buildPath == ":"
-        operation().result.rootProject.name == "root"
-        operation().result.rootProject.path == ":"
-        operation().result.rootProject.projectDir == customSettingsDir.absolutePath
-        operation().result.rootProject.buildFile == customSettingsDir.file("root.gradle").absolutePath
-
+        def operation = buildOperations.only(LoadProjectsBuildOperationType)
+        def opResult = operation.result
         opResult.buildPath == ":"
+
+        def rootProject = opResult.rootProject
+        rootProject.name == "root"
         opResult.rootProject.path == ":"
-        verifyProject(opResult.rootProject, 'root', ':', [':a'], customSettingsDir, 'root.gradle')
-        verifyProject(project(':a'), 'a', ':a', [], customSettingsDir.file('a'))
+        opResult.rootProject.projectDir == customSettingsDir.absolutePath
+        opResult.rootProject.buildFile == customSettingsDir.file("root.gradle").absolutePath
+
+        verifyProject(rootProject, 'root', ':', [':a'], customSettingsDir, 'root.gradle')
+        verifyProject(project(':a', rootProject), 'a', ':a', [], customSettingsDir.file('a'))
+
+        def events = buildOperations.progress(ProjectsIdentifiedProgressDetails)
+        events.size() == 1
+        events[0].details.buildPath == ":"
     }
 
     def "composite participants expose their project structure"() {
+        createDirs("a", "nested", "nested/b")
         settingsFile << """
         include "a"
         includeBuild "nested"
@@ -106,51 +127,44 @@ class LoadBuildStructureBuildOperationIntegrationTest extends AbstractIntegratio
 
 
         then:
-        def buildOperations = operations()
+        def buildOperations = buildOperations.all(LoadProjectsBuildOperationType)
         buildOperations.size() == 2
 
-        def rootBuildOperation = operations()[0]
+        def rootBuildOperation = buildOperations[0]
         rootBuildOperation.result.buildPath == ":"
-        rootBuildOperation.result.rootProject.path == ":"
-        verifyProject(rootBuildOperation.result.rootProject, 'root', ':', [':a'], testDirectory, 'root.gradle')
-        verifyProject(project(":a", rootBuildOperation), 'a')
 
-        def nestedBuildOperation = operations()[1]
+        def rootProject = rootBuildOperation.result.rootProject
+        rootProject.path == ":"
+        verifyProject(rootProject, 'root', ':', [':a'], testDirectory, 'root.gradle')
+        verifyProject(project(":a", rootProject), 'a')
+
+        def nestedBuildOperation = buildOperations[1]
         nestedBuildOperation.result.buildPath == ":nested"
-        nestedBuildOperation.result.rootProject.path == ":"
-        verifyProject(nestedBuildOperation.result.rootProject, 'nested', ':nested', [':b'], testDirectory.file('nested'))
-        verifyProject(project(":b", nestedBuildOperation), 'b', ':nested:b', [], testDirectory.file('nested/b'))
+
+        def nestedRootProject = nestedBuildOperation.result.rootProject
+        nestedRootProject.path == ":"
+        verifyProject(nestedRootProject, 'nested', ':nested', [':b'], testDirectory.file('nested'))
+        verifyProject(project(":b", nestedRootProject), 'b', ':nested:b', [], testDirectory.file('nested/b'))
     }
 
     private void verifyProject(def project, String name, String identityPath = null, List<String> children = [], File projectDir = testDirectory.file(name), String buildFileName = 'build.gradle') {
         assert project.name == name
         assert project.identityPath == identityPath ?: project.path
+        assert project.buildTreePath == identityPath ?: project.path
         assert project.projectDir == projectDir.absolutePath
         assert project.buildFile == new File(projectDir, buildFileName).absolutePath
         assert project.children*.path == children
+        assert project.buildTreePath == identityPath ?: project.path
     }
 
-    def project(String path, BuildOperationRecord operation = operation(), Map parent = null) {
+    Map project(String path, Map rootProject, Map parent = null) {
         if (parent == null) {
             if (path.lastIndexOf(':') == 0) {
-                return operation.result.rootProject.children.find { it.path == path }
+                return rootProject.children.find { it.path == path }
             } else {
-                return project(path, operation, project(path.substring(0, path.lastIndexOf(':'))))
+                return project(path, rootProject, project(path.substring(0, path.lastIndexOf(':')), rootProject))
             }
         }
         return parent.children.find { it.path == path }
-    }
-
-    private BuildOperationRecord operation(){
-        def operationRecords = operations()
-        assert operationRecords.size() == 1
-        operationRecords.iterator().next()
-    }
-
-    private getOpResult() {
-        operation().result
-    }
-    private List<BuildOperationRecord> operations() {
-        buildOperations.all(LoadProjectsBuildOperationType)
     }
 }

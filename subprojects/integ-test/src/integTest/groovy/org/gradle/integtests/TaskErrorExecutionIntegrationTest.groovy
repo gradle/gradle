@@ -15,18 +15,29 @@
  */
 package org.gradle.integtests
 
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
-import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.file.TestFile
 
+import static org.gradle.integtests.fixtures.SuggestionsMessages.GET_HELP
+import static org.gradle.integtests.fixtures.SuggestionsMessages.INFO_DEBUG
+import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
+
 class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
+
+    public static final String LIST_OF_PROJECTS = "Run gradle projects to get a list of available projects."
+    public static final String GET_TASKS = "Run gradle tasks to get a list of available tasks."
+    public static final String NAME_EXPANSION = new DocumentationRegistry().getDocumentationRecommendationFor("on name expansion", "command_line_interface", "sec:name_abbreviation")
+
     def setup() {
         expectReindentedValidationMessage()
+        executer.beforeExecute {
+            withStacktraceEnabled()
+        }
     }
 
-    def reportsTaskActionExecutionFailsWithError() {
+    def "reports task action execution fails with error"() {
         buildFile << """
             task('do-stuff').doFirst {
                 throw new ArithmeticException('broken')
@@ -41,7 +52,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         failure.assertHasCause("broken")
     }
 
-    def reportsTaskActionExecutionFailsWithRuntimeException() {
+    def "reports task action execution fails with runtime exception"() {
         buildFile << """
             task brokenClosure {
                 doLast {
@@ -58,7 +69,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         failure.assertHasCause("broken closure")
     }
 
-    def reportsTaskActionExecutionFailsFromJavaWithRuntimeException() {
+    def "reports task action execution fails from java with runtime exception"() {
         file("buildSrc/src/main/java/org/gradle/BrokenTask.java") << """
             package org.gradle;
 
@@ -87,7 +98,8 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         failure.assertHasCause("broken action")
     }
 
-    def reportsTaskInjectedByOtherProjectFailsWithRuntimeException() {
+    def "reports task injected by other project fails with runtime exception"() {
+        createDirs("a", "b")
         file("settings.gradle") << "include 'a', 'b'"
         TestFile buildFile = file("b/build.gradle")
         buildFile << """
@@ -108,10 +120,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         failure.assertHasCause("broken")
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.VALUE_NOT_SET
-    )
-    def reportsTaskValidationFailure() {
+    def "reports task validation failure"() {
         buildFile << '''
             class CustomTask extends DefaultTask {
                 @InputFile File srcFile
@@ -131,7 +140,8 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         failureDescriptionContains(missingValueMessage { type('CustomTask').property('destFile') })
     }
 
-    def reportsUnknownTask() {
+    def "reports unknown task"() {
+        createDirs("a", "b")
         settingsFile << """
             rootProject.name = 'test'
             include 'a', 'b'
@@ -146,31 +156,122 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         fails "someTest"
 
         then:
-        failure.assertHasDescription("Task 'someTest' not found in root project 'test'. Some candidates are: 'someTask', 'someTaskA', 'someTaskB'.")
+        failure.assertHasDescription("Task 'someTest' not found in root project 'test' and its subprojects. Some candidates are: 'someTask', 'someTaskA', 'someTaskB'.")
         failure.assertHasResolutions(
-            "Run gradle tasks to get a list of available tasks.",
-            "Run with --info or --debug option to get more log output.",
-            "Run with --scan to get full insights.",
+            GET_TASKS,
+            NAME_EXPANSION,
+            INFO_DEBUG,
+            SCAN,
+            GET_HELP
         )
 
         when:
         fails ":someTest"
         then:
-        failure.assertHasDescription("Task 'someTest' not found in root project 'test'. Some candidates are: 'someTask'.")
+        failure.assertHasDescription("Cannot locate tasks that match ':someTest' as task 'someTest' not found in root project 'test'. Some candidates are: 'someTask'.")
         failure.assertHasResolutions(
-            "Run gradle tasks to get a list of available tasks.",
-            "Run with --info or --debug option to get more log output.",
-            "Run with --scan to get full insights.",
+            GET_TASKS,
+            NAME_EXPANSION,
+            INFO_DEBUG,
+            SCAN,
+            GET_HELP
         )
 
         when:
         fails "a:someTest"
         then:
-        failure.assertHasDescription("Task 'someTest' not found in project ':a'. Some candidates are: 'someTask', 'someTaskA'.")
+        failure.assertHasDescription("Cannot locate tasks that match 'a:someTest' as task 'someTest' not found in project ':a'. Some candidates are: 'someTask', 'someTaskA'.")
         failure.assertHasResolutions(
-            "Run gradle tasks to get a list of available tasks.",
-            "Run with --info or --debug option to get more log output.",
-            "Run with --scan to get full insights.",
+            GET_TASKS,
+            NAME_EXPANSION,
+            INFO_DEBUG,
+            SCAN,
+            GET_HELP
+        )
+    }
+
+    def "reports ambiguous task"() {
+        createDirs("a", "b")
+        settingsFile << """
+            rootProject.name = 'test'
+            include 'a', 'b'
+        """
+        buildFile << """
+            allprojects { task someTaskAll }
+            project(':a') { task someTaskA }
+            project(':b') { task someTaskB }
+        """
+
+        when:
+        fails "soTa"
+        then:
+        failure.assertHasDescription("Task 'soTa' is ambiguous in root project 'test' and its subprojects. Candidates are: 'someTaskA', 'someTaskAll', 'someTaskB'.")
+        failure.assertHasResolutions(
+            GET_TASKS,
+            NAME_EXPANSION,
+            INFO_DEBUG,
+            SCAN,
+            GET_HELP
+        )
+
+        when:
+        fails "a:soTa"
+        then:
+        failure.assertHasDescription("Cannot locate tasks that match 'a:soTa' as task 'soTa' is ambiguous in project ':a'. Candidates are: 'someTaskA', 'someTaskAll'.")
+        failure.assertHasResolutions(
+            GET_TASKS,
+            NAME_EXPANSION,
+            INFO_DEBUG,
+            SCAN,
+            GET_HELP
+        )
+    }
+
+    def "reports unknown project"() {
+        createDirs("projA", "projB")
+        settingsFile << """
+            rootProject.name = 'test'
+            include 'projA', 'projB'
+        """
+        buildFile << """
+            allprojects { task someTask }
+        """
+
+        when:
+        fails "prog:someTask"
+
+        then:
+        failure.assertHasDescription("Cannot locate tasks that match 'prog:someTask' as project 'prog' not found in root project 'test'. Some candidates are: 'projA', 'projB'.")
+        failure.assertHasResolutions(
+            LIST_OF_PROJECTS,
+            NAME_EXPANSION,
+            INFO_DEBUG,
+            SCAN,
+            GET_HELP
+        )
+    }
+
+    def "reports ambiguous project"() {
+        createDirs("projA", "projB")
+        settingsFile << """
+            rootProject.name = 'test'
+            include 'projA', 'projB'
+        """
+        buildFile << """
+            allprojects { task someTask }
+        """
+
+        when:
+        fails "proj:someTask"
+
+        then:
+        failure.assertHasDescription("Cannot locate tasks that match 'proj:someTask' as project 'proj' is ambiguous in root project 'test'. Candidates are: 'projA', 'projB'.")
+        failure.assertHasResolutions(
+            LIST_OF_PROJECTS,
+            NAME_EXPANSION,
+            INFO_DEBUG,
+            SCAN,
+            GET_HELP
         )
     }
 }

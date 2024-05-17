@@ -41,7 +41,7 @@ public class FileSystemWatchingHelper {
     }
 
     public static String getDropVfsArgument(boolean drop) {
-        return systemProperty(VFS_DROP_PROPERTY, drop);
+        return systemProperty(VFS_DROP_PROPERTY.getSystemPropertyName(), drop);
     }
 
     public static String getVerboseVfsLoggingArgument() {

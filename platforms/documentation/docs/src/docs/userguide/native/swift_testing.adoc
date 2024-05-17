@@ -1,0 +1,158 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[swift_testing]]
+= Testing in Swift projects
+
+WARNING: The Swift testing support is not compatible with the <<configuration_cache.adoc#config_cache:plugins:core,configuration cache>>.
+
+Testing in the native ecosystem is a rich subject matter.
+There are many different testing libraries and frameworks, as well as many different types of test.
+All need to be part of the build, whether they are executed frequently or infrequently.
+This chapter is dedicated to explaining how Gradle handles differing requirements between and within builds, with significant coverage of how it integrates with XCTest on both macOS and Linux.
+
+It explains:
+- Ways to control how the tests are run (Test execution)
+- How to select specific tests to run (Test filtering)
+- What test reports are generated and how to influence the process (Test reporting)
+- How Gradle finds tests to run (Test detection)
+
+But first, we look at the basics of native testing in Gradle.
+
+[[sec:swift_testing_basics]]
+== The basics
+
+Gradle supports deep integration with XCTest testing framework for the Swift language and revolves around the link:{groovyDslPath}/org.gradle.nativeplatform.test.xctest.tasks.XCTest.html[XCTest] task type.
+This runs a collection of test cases using the https://developer.apple.com/documentation/xctest[Xcode XCTest] on macOS or the https://github.com/apple/swift-corelibs-xctest[open source Swift core library alternative] on Linux and collates the results.
+You can then turn those results into a report via an instance of the link:{groovyDslPath}/org.gradle.api.tasks.testing.TestReport.html[TestReport] task type.
+
+In order to operate, the link:{groovyDslPath}/org.gradle.nativeplatform.test.xctest.tasks.XCTest.html[XCTest] task type requires three pieces of information:
+- Where to find the built testable bundle (on macOS) or executable (on Linux) (property: link:{groovyDslPath}/org.gradle.nativeplatform.test.xctest.tasks.XCTest.html#org.gradle.nativeplatform.test.xctest.tasks.XCTest:testInstallDirectory[XCTest.getTestInstalledDirectory()])
+- The run script for executing the bundle or executable (property: link:{groovyDslPath}/org.gradle.nativeplatform.test.xctest.tasks.XCTest.html#org.gradle.nativeplatform.test.xctest.tasks.XCTest:runScriptFile[XCTest.getRunScriptFile()])
+- The working directory to execution the bundle or executable (property: link:{groovyDslPath}/org.gradle.nativeplatform.test.xctest.tasks.XCTest.html#org.gradle.nativeplatform.test.xctest.tasks.XCTest:workingDirectory[XCTest.getWorkingDirectory()])
+
+When you’re using the <<xctest_plugin.adoc#xctest_plugin,XCTest Plugin>> you will automatically get the following:
+- A dedicated `xctest` extension of type link:{groovyDslPath}/org.gradle.nativeplatform.test.xctest.SwiftXCTestSuite.html[SwiftXCTestSuite] for configuring test component and its variants
+- A `xcTest` task of type link:{groovyDslPath}/org.gradle.nativeplatform.test.xctest.tasks.XCTest.html[XCTest] that runs those unit tests
+- A testable bundle or executable linked with the main component’s object files
+
+The test plugins configure the required pieces of information appropriately.
+In addition, they attach the `xcTest` or `run` task to the `check` lifecycle task.
+It also create the `testImplementation` dependency configuration.
+Dependencies that are only needed for test compilation, linking and runtime may be added to this configuration.
+The `xctest` script block behave similarly to a `application` or `library` script block.
+
+The link:{groovyDslPath}/org.gradle.nativeplatform.test.xctest.tasks.XCTest.html[XCTest] task has many configuration options.
+We cover a significant number of them in the rest of the chapter.
+
+[sec:swift_test_execution]]
+== Test execution
+
+Gradle executes tests in a separate (‘forked’) process.
+
+You can control how the test process is launched via several properties on the link:{groovyDslPath}/org.gradle.nativeplatform.test.xctest.tasks.XCTest.html[XCTest] task, including the following:
+
+`ignoreFailures` - default: false::
+If this property is `true`, Gradle will continue with the project’s build once the tests have completed, even if some of them have failed.
+Note that, by default, both task type always executes every test that it detects, irrespective of this setting.
+
+`testLogging` - default: not set::
+This property represents a set of options that control which test events are logged and at what level.
+You can also configure other logging behavior via this property.
+Set link:{javadocPath}/org/gradle/api/tasks/testing/logging/TestLoggingContainer.html[TestLoggingContainer] for more detail.
+
+See link:{groovyDslPath}/org.gradle.nativeplatform.test.xctest.tasks.XCTest.html[XCTest] for details on all the available configuration options.
+
+[[sec:swift_test_filtering]]
+== Test filtering
+It’s a common requirement to run subsets of a test suite, such as when you’re fixing a bug or developing a new test case.
+Gradle provides filtering to do this.
+You can select tests to run based on:
+
+- A simple class name or method name, e.g. `SomeTest`, `SomeTest.someMethod`
+- ‘*’ wildcard matching
+
+You can enable filtering either in the build script or via the `--tests` command-line option.
+Here’s an example of some filters that are applied every time the build runs:
+
+.Filter tests on every build
+====
+include::sample[dir="snippets/swift/testFiltering/kotlin",files="build.gradle.kts[tags=test-filtering]"]
+include::sample[dir="snippets/swift/testFiltering/groovy",files="build.gradle[tags=test-filtering]"]
+====
+
+For more details and examples of declaring filters in the build script, please see the TestFilter reference.
+
+The command-line option is especially useful to execute a single test method.
+It is also possible to supply multiple `--tests` options, all of whose patterns will take effect.
+The following sections have several examples of using command-line option.
+
+NOTE: The test filtering only support XCTest compatible filters at the moment.
+It means the same filter will differ between macOS and Linux.
+On macOS, the bundle base name needs to be prepended to the filter, e.g. `TestBundle.SomeTest`, `TestBundle.SomeTest.someMethod`
+See the <<#sec:swift_test_filtering_simple_name_pattern,Simple name pattern>> section below for more information about valid filtering pattern.
+
+The following section looks at the specific cases of simple class/method names.
+
+[[sec:swift_test_filtering_simple_name_pattern]]
+=== Simple name pattern
+
+Gradle support simple class name, or a class name + method name test filtering.
+For example, the following command lines run either all or exactly one of the tests in the `SomeTestClass` test case:
+
+```
+# Executes all tests in SomeTestClass
+gradle xcTest --tests SomeTestClass
+# or `gradle xcTest --tests TestBundle.SomeTestClass` on macOS
+
+# Executes a single specified test in SomeTestClass
+gradle xcTest --tests TestBundle.SomeTestClass.someSpecificMethod
+# or `gradle xcTest --tests TestBundle.SomeTestClass.someSpecificMethod` on macOS
+```
+
+You can also combine filters defined at the command line with <<command_line_interface.adoc#sec:continuous_build,continuous build>> to re-execute a subset of tests immediately after every change to a production or test source file.
+The following executes all tests in the ‘SomeTestClass’ test class whenever a change triggers the tests to run:
+
+```
+gradle test --continuous --tests SomeTestClass
+```
+
+[[sec:swift_test_reporting]]
+== Test reporting
+The link:{groovyDslPath}/org.gradle.nativeplatform.test.xctest.tasks.XCTest.html[XCTest] task generates the following results by default:
+
+- An HTML test report
+- XML test results in a format compatible with the Ant JUnit report task - one that is supported by many other tools, such as CI servers
+- An efficient binary format of the results used by the `XCTest` task to generate the other formats
+
+In most cases, you’ll work with the standard HTML report, which automatically includes the result from your `XCTest` tasks.
+
+There is also a standalone link:{groovyDslPath}/org.gradle.api.tasks.testing.TestReport.html[TestReport] task type that you can use to generate a custom HTML test report.
+All it requires are a value for `destinationDir` and the test results you want included in the report.
+Here is a sample which generates a combined report for the unit tests from all subprojects:
+
+.Combine test reports from all subprojects
+====
+include::sample[dir="snippets/swift/testReport/kotlin",files="buildSrc/src/main/kotlin/myproject.xctest-conventions.gradle.kts[tags=test-report];build.gradle.kts[tags=test-report]"]
+include::sample[dir="snippets/swift/testReport/groovy",files="buildSrc/src/main/groovy/myproject.xctest-conventions.gradle[tags=test-report];build.gradle[tags=test-report]"]
+====
+
+In this example, we use a convention plugin `myproject.xctest-conventions` to expose the test results from a project to Gradle's <<variant_model.adoc#understanding-variant-selection,variant aware dependency management engine>>.
+
+The plugin declares a consumable `binaryTestResultsElements` configuration that represents the binary test results of the `test` task.
+In the aggregation project's build file, we declare the `testReportData` configuration and depend on all of the projects that we want to aggregate the results from. Gradle will automatically select the binary test result variant from each of the subprojects instead of the project's jar file.
+Lastly, we add a `testReport` task that aggregates the test results from the `testResultsDirs` property, which contains all of the binary test results resolved from the `testReportData` configuration.
+
+You should note that the link:{groovyDslPath}/org.gradle.api.tasks.testing.TestReport.html[TestReport] type combines the results from multiple test tasks and needs to aggregate the results of individual test classes.
+This means that it a given test class is executed by multiple test tasks, then the test report will include executions of that class, but it can be hard to distinguish individual executions of that class and their output.

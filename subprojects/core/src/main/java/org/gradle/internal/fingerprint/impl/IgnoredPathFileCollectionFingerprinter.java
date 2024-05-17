@@ -16,9 +16,9 @@
 
 package org.gradle.internal.fingerprint.impl;
 
-import org.gradle.api.tasks.FileNormalizer;
-import org.gradle.internal.execution.fingerprint.FileCollectionSnapshotter;
-import org.gradle.internal.fingerprint.IgnoredPathInputNormalizer;
+import org.gradle.internal.execution.FileCollectionSnapshotter;
+import org.gradle.internal.execution.model.InputNormalizer;
+import org.gradle.internal.fingerprint.FileNormalizer;
 import org.gradle.internal.fingerprint.hashing.FileSystemLocationSnapshotHasher;
 
 public class IgnoredPathFileCollectionFingerprinter extends AbstractFileCollectionFingerprinter {
@@ -28,7 +28,7 @@ public class IgnoredPathFileCollectionFingerprinter extends AbstractFileCollecti
     }
 
     @Override
-    public Class<? extends FileNormalizer> getRegisteredType() {
-        return IgnoredPathInputNormalizer.class;
+    public FileNormalizer getNormalizer() {
+        return InputNormalizer.IGNORE_PATH;
     }
 }

@@ -20,8 +20,8 @@ import org.gradle.api.provider.Provider
 import org.gradle.internal.typeconversion.UnsupportedNotationException
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.UsesNativeServices
 import org.junit.Assume
 import org.junit.Rule
@@ -36,7 +36,7 @@ class BaseDirFileResolverSpec extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
-    @Requires(TestPrecondition.SYMLINKS)
+    @Requires(UnitTestPreconditions.Symlinks)
     def "normalizes absolute path which points to an absolute link"() {
         def target = createFile(new File(tmpDir.testDirectory, 'target.txt'))
         def file = new File(tmpDir.testDirectory, 'a/other.txt')
@@ -47,7 +47,7 @@ class BaseDirFileResolverSpec extends Specification {
         normalize(file) == file
     }
 
-    @Requires(TestPrecondition.SYMLINKS)
+    @Requires(UnitTestPreconditions.Symlinks)
     def "normalizes absolute path which points to a relative link"() {
         def target = createFile(new File(tmpDir.testDirectory, 'target.txt'))
         def file = new File(tmpDir.testDirectory, 'a/other.txt')
@@ -58,7 +58,7 @@ class BaseDirFileResolverSpec extends Specification {
         normalize(file) == file
     }
 
-    @Requires(TestPrecondition.CASE_INSENSITIVE_FS)
+    @Requires(UnitTestPreconditions.CaseInsensitiveFs)
     def "does not normalize case"() {
         def file = createFile(new File(tmpDir.testDirectory, 'dir/file.txt'))
         def path = new File(tmpDir.testDirectory, 'dir/FILE.txt')
@@ -68,7 +68,7 @@ class BaseDirFileResolverSpec extends Specification {
         normalize(path) == path
     }
 
-    @Requires(TestPrecondition.SYMLINKS)
+    @Requires(UnitTestPreconditions.Symlinks)
     def "normalizes path which points to a link to something that does not exist"() {
         def file = new File(tmpDir.testDirectory, 'a/other.txt')
         createLink(file, 'unknown.txt')
@@ -78,7 +78,7 @@ class BaseDirFileResolverSpec extends Specification {
         normalize(file) == file
     }
 
-    @Requires(TestPrecondition.SYMLINKS)
+    @Requires(UnitTestPreconditions.Symlinks)
     def "normalizes path when ancestor is an absolute link"() {
         def target = createFile(new File(tmpDir.testDirectory, 'target/file.txt'))
         def file = new File(tmpDir.testDirectory, 'a/b/file.txt')
@@ -105,7 +105,7 @@ class BaseDirFileResolverSpec extends Specification {
         normalize(".", baseDir) == baseDir
     }
 
-    @Requires(TestPrecondition.SYMLINKS)
+    @Requires(UnitTestPreconditions.Symlinks)
     def "normalizes relative path when base dir is a link"() {
         createFile(new File(tmpDir.testDirectory, 'target/file.txt'))
         def baseDir = new File(tmpDir.testDirectory, 'base')
@@ -117,7 +117,7 @@ class BaseDirFileResolverSpec extends Specification {
         normalize('file.txt', baseDir) == file
     }
 
-    @Requires(TestPrecondition.WINDOWS)
+    @Requires(UnitTestPreconditions.Windows)
     def "does not normalize windows 8.3 names"() {
         createFile(new File(tmpDir.testDirectory, 'dir/file-with-long-name.txt'))
         def path = new File(tmpDir.testDirectory, 'dir/FILE-W~1.TXT')
@@ -135,7 +135,7 @@ class BaseDirFileResolverSpec extends Specification {
         root << getFsRoots().collect { it.absolutePath }
     }
 
-    @Requires(TestPrecondition.WINDOWS)
+    @Requires(UnitTestPreconditions.Windows)
     def "normalizes non-existent file system root"() {
         def file = nonexistentFsRoot()
         assert !file.exists()

@@ -1,0 +1,77 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[sec:understanding-diff-libraries-and-apps]]
+= Understanding the difference between libraries and applications
+
+[[sub:producers-vs-consumers]]
+== Producers vs consumers
+
+A key concept in dependency management with Gradle is the difference between consumers and producers.
+
+When you _build_ a library, you are effectively on the _producer_ side: you are producing _artifacts_ which are going to be _consumed_ by someone else, the _consumer_.
+
+A lot of problems with traditional build systems is that they don't make the difference between a producer and a consumer.
+
+A _consumer_ needs to be understood in the large sense:
+
+- a project that depends on another project is a _consumer_
+- a _task_ that depends on an artifact is a finer grained consumer
+
+In dependency management, a lot of the decisions we make depend on the type of project we are building, that is to say, <<#sub:being-respectful-consumers,what kind of _consumer_ we are>>.
+
+[[sub:producer-variants]]
+== Producer variants
+
+A producer may want to generate different artifacts for different kinds of consumers: for the same source code, different _binaries_ are produced.
+Or, a project may produce artifacts which are for consumption by other projects (same repository) but not for external use.
+
+A typical example in the Java world is the Guava library which is published in different versions: one for Java projects, and one for Android projects.
+
+However, it's the consumer responsibility to tell what version to use, and it's the dependency management engine responsibility to ensure _consistency of the graph_ (for example making sure that you don't end up with both Java and Android versions of Guava on your classpath).
+This is where the <<variant_model.adoc#understanding-variant-selection,variant model>> of Gradle comes into play.
+
+In Gradle, _producer variants_ are exposed via <<declaring_dependencies.adoc#sec:resolvable-consumable-configs,consumable configurations>>.
+
+[[sub:strong-encapsulation]]
+== Strong encapsulation
+
+In order for a producer to compile a library, it needs all its _implementation dependencies_ on the compile classpath.
+There are dependencies which are only required _as an implementation detail_ of the library and there are libraries which are effectively part of the API.
+
+However, a library _depending_ on this produced library only needs to "see" the public API of your library and therefore the dependencies of this API.
+It's a subset of the compile classpath of the producer: this is strong encapsulation of dependencies.
+
+The consequence is that a dependency which is assigned to the `implementation` configuration of a library _does not end up on the compile classpath of the consumer_.
+On the other hand, a dependency which is assigned to the `api` configuration of a library _would end up on the compile classpath of the consumer_.
+At _runtime_, however, all dependencies are required.
+Gradle makes the difference between different kinds of consumer even within a single project: the Java compile task, for example, is a different consumer than the Java exec task.
+
+More details on the segregation of API and runtime dependencies in the Java world <<java_library_plugin.adoc#java_library_plugin,can be found here>>.
+
+[[sub:being-respectful-consumers]]
+== Being respectful of consumers
+
+Whenever, as a developer, you decide to include a dependency, you must understand that there are _consequences for your consumers_.
+For example, if you add a dependency to your project, it becomes a _transitive dependency_ of your consumers, and therefore may participate in conflict resolution if the consumer needs a different version.
+
+A lot of the problems Gradle handles are about fixing the mismatch between the expectations of a consumer and a producer.
+
+However, some projects are easier than others:
+
+- if you are at the end of the consumption chain, that is to say you build an _application_, then there are effectively _no consumer_ of your project (apart from final customers): adding <<dependency_downgrade_and_exclude.adoc#sec:excluding-transitive-deps,exclusions>> will have no other consequence than fixing your problem.
+- however if you are a library, adding <<dependency_downgrade_and_exclude.adoc#sec:excluding-transitive-deps,exclusions>> may prevent consumers from working properly, because they would exercise a path of the code that you don't
+
+Always keep in mind that the solution you choose to fix a problem can "leak" to your consumers.
+This documentation aims at guiding you to find the right solution to the right problem, and more importantly, make decisions which help the resolution engine to take the right decisions in case of conflicts.

@@ -21,6 +21,7 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.util.PatternSet;
 
@@ -29,10 +30,11 @@ import java.nio.charset.Charset;
 
 public class FileCollectionBackedArchiveTextResource extends FileCollectionBackedTextResource {
     public FileCollectionBackedArchiveTextResource(final FileOperations fileOperations,
+                                                   final TaskDependencyFactory taskDependencyFactory,
                                                    final TemporaryFileProvider tempFileProvider,
                                                    final FileCollection fileCollection,
                                                    final String path, Charset charset) {
-        super(tempFileProvider, new LazilyInitializedFileCollection() {
+        super(tempFileProvider, new LazilyInitializedFileCollection(taskDependencyFactory) {
             @Override
             public String getDisplayName() {
                 return String.format("entry '%s' in archive %s", path, fileCollection);

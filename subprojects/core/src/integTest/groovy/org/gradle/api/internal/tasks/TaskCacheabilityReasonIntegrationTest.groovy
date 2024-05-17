@@ -22,26 +22,27 @@ import org.gradle.api.tasks.OutputFiles
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
+import org.gradle.operations.execution.CachingDisabledReasonCategory
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
 import javax.annotation.Nullable
 
-import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.BUILD_CACHE_DISABLED
-import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.CACHE_IF_SPEC_NOT_SATISFIED
-import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.DO_NOT_CACHE_IF_SPEC_SATISFIED
-import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.NON_CACHEABLE_TREE_OUTPUT
-import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.NOT_ENABLED_FOR_TASK
-import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.NO_OUTPUTS_DECLARED
-import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.OVERLAPPING_OUTPUTS
-import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.UNKNOWN
-import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.VALIDATION_FAILURE
+import static org.gradle.operations.execution.CachingDisabledReasonCategory.BUILD_CACHE_DISABLED
+import static org.gradle.operations.execution.CachingDisabledReasonCategory.CACHE_IF_SPEC_NOT_SATISFIED
+import static org.gradle.operations.execution.CachingDisabledReasonCategory.DO_NOT_CACHE_IF_SPEC_SATISFIED
+import static org.gradle.operations.execution.CachingDisabledReasonCategory.NON_CACHEABLE_TREE_OUTPUT
+import static org.gradle.operations.execution.CachingDisabledReasonCategory.NOT_ENABLED_FOR_TASK
+import static org.gradle.operations.execution.CachingDisabledReasonCategory.NO_OUTPUTS_DECLARED
+import static org.gradle.operations.execution.CachingDisabledReasonCategory.OVERLAPPING_OUTPUTS
+import static org.gradle.operations.execution.CachingDisabledReasonCategory.UNKNOWN
+import static org.gradle.operations.execution.CachingDisabledReasonCategory.VALIDATION_FAILURE
 
 class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
     def operations = new BuildOperationsFixture(executer, testDirectoryProvider)
 
     def setup() {
         buildFile """
-            import org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory
-
             class UnspecifiedCacheabilityTask extends DefaultTask {
                 @Input
                 String message = "Hello World"
@@ -59,6 +60,13 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
 
             @DisableCachingByDefault(because = 'do-not-cache-by-default reason')
             class NotCacheableByDefaultWithReason extends UnspecifiedCacheabilityTask {}
+
+            @UntrackedTask(because = 'untracked-task reason')
+            class UntrackedTrackWithReason extends UnspecifiedCacheabilityTask {}
+
+            @UntrackedTask(because = 'untracked-task-with-cacheable reason')
+            @CacheableTask
+            class UntrackedTrackWithReasonWithCacheable extends UnspecifiedCacheabilityTask {}
 
             @CacheableTask
             class Cacheable extends UnspecifiedCacheabilityTask {}
@@ -154,6 +162,41 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
         then:
         assertCachingDisabledFor NO_OUTPUTS_DECLARED, "No outputs declared"
     }
+
+
+    def "cacheability for a untracked task via API is NOT_ENABLED_FOR_TASK with message"() {
+        buildFile """
+            task untrackedTrackWithReason(type: UnspecifiedCacheabilityTask) {
+                doNotTrackState("Untracked for testing from API")
+            }
+        """
+        when:
+        withBuildCache().run "untrackedTrackWithReason"
+        then:
+        assertCachingDisabledFor NOT_ENABLED_FOR_TASK, "Task is untracked because: Untracked for testing from API"
+    }
+
+
+    def "cacheability for a untracked task is NOT_ENABLED_FOR_TASK with message"() {
+        buildFile """
+            task untrackedTrackWithReason(type: UntrackedTrackWithReason) {}
+        """
+        when:
+        withBuildCache().run "untrackedTrackWithReason"
+        then:
+        assertCachingDisabledFor NOT_ENABLED_FOR_TASK, "Task is untracked because: untracked-task reason"
+    }
+
+    def "cacheability for a untracked task is NOT_ENABLED_FOR_TASK with message when marked cacheable"() {
+        buildFile """
+            task untrackedTrackWithReasonWithCacheable(type: UntrackedTrackWithReasonWithCacheable) {}
+        """
+        when:
+        withBuildCache().run "untrackedTrackWithReasonWithCacheable"
+        then:
+        assertCachingDisabledFor DO_NOT_CACHE_IF_SPEC_SATISFIED, "Task is untracked because: untracked-task-with-cacheable reason"
+    }
+
 
     def "cacheability for a task with no outputs is NOT_ENABLED_FOR_TASK"() {
         buildFile """
@@ -341,34 +384,38 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
         assertCachingDisabledFor NOT_ENABLED_FOR_TASK, "Caching has not been enabled for the task"
     }
 
-    def "cacheability for task with disabled optimizations is FAILED_VALIDATION"() {
+    // This test only works in embedded mode because of the use of validation test fixtures
+    @Requires(IntegTestPreconditions.IsEmbeddedExecutor)
+    def "cacheability for task with disabled optimizations is VALIDATION_FAILURE"() {
         when:
         executer.noDeprecationChecks()
         buildFile """
-            task producer {
-                def outputFile = file("out.txt")
-                outputs.file(outputFile)
-                doLast {
-                    outputFile.parentFile.mkdirs()
-                    outputFile.text = "produced"
+            import org.gradle.integtests.fixtures.validation.ValidationProblem
+            import org.gradle.api.problems.Severity
+
+            @CacheableTask
+            abstract class InvalidTask extends DefaultTask {
+                @ValidationProblem(value = Severity.WARNING)
+                abstract Property<String> getInput()
+
+                @OutputFile
+                abstract RegularFileProperty getOutput()
+
+                @TaskAction
+                void doSomething() {
+                    output.get().asFile.text = input.get()
                 }
             }
 
-            task consumer {
-                def inputFile = file("out.txt")
-                def outputFile = file("consumerOutput.txt")
-                inputs.files(inputFile)
-                outputs.file(outputFile)
-                outputs.cacheIf { true }
-                doLast {
-                    outputFile.text = "consumed"
-                }
+            task invalid(type: InvalidTask) {
+                input = "invalid"
+                output = file("out.txt")
             }
         """
 
         then:
-        withBuildCache().succeeds("producer", "consumer")
-        assertCachingDisabledFor VALIDATION_FAILURE, "Caching has been disabled to ensure correctness. Please consult deprecation warnings for more details.", ":consumer"
+        withBuildCache().succeeds("invalid")
+        assertCachingDisabledFor VALIDATION_FAILURE, "Caching has been disabled to ensure correctness. Please consult deprecation warnings for more details.", ":invalid"
     }
 
     def "cacheability for a cacheable task can be disabled via #condition"() {
@@ -404,7 +451,7 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
         [taskType, condition] << [["UnspecifiedCacheabilityTask", "NotCacheableByDefault", "NotCacheableByDefaultWithReason"], ["cacheIf { true }", "cacheIf('cache-if reason') { true }"]].combinations()
     }
 
-    private void assertCachingDisabledFor(@Nullable TaskOutputCachingDisabledReasonCategory category, @Nullable String message, @Nullable String taskPath = null) {
+    private void assertCachingDisabledFor(@Nullable CachingDisabledReasonCategory category, @Nullable String message, @Nullable String taskPath = null) {
         operations.only(ExecuteTaskBuildOperationType, {
             if (taskPath && taskPath != it.details.taskPath) {
                 return false

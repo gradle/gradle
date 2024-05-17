@@ -1,0 +1,7 @@
+When creating configurations during sourceSet myCode setup, Gradle found that configuration myCodeCompileClasspath already exists with permitted usage(s):
+	Consumable - this configuration can be selected by another project as a dependency
+	Resolvable - this configuration can be resolved by this project to a set of files
+	Declarable - this configuration can have dependencies added to it
+Yet Gradle expected to create it with the usage(s):
+	Resolvable - this configuration can be resolved by this project to a set of files
+Gradle will mutate the usage of configuration myCodeCompileClasspath to match the expected usage. This may cause unexpected behavior. Creating configurations with reserved names has been deprecated. This will fail with an error in Gradle 9.0. Create source set myCode prior to creating or accessing the configurations associated with it. For more information, please refer to https://docs.gradle.org/0.0.0/userguide/building_java_projects.html#sec:implicit_sourceset_configurations in the Gradle documentation.

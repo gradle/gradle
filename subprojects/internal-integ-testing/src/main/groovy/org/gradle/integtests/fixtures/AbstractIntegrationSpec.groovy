@@ -16,7 +16,10 @@
 package org.gradle.integtests.fixtures
 
 import org.eclipse.jgit.api.Git
+import org.eclipse.jgit.lib.Config
 import org.gradle.api.Action
+import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.api.problems.internal.DefaultProblemProgressDetails
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.build.BuildTestFixture
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheBuildOperationsFixture
@@ -40,10 +43,12 @@ import org.gradle.test.fixtures.ivy.IvyFileRepository
 import org.gradle.test.fixtures.maven.M2Installation
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.maven.MavenLocalRepository
+import org.gradle.util.internal.VersionNumber
 import org.hamcrest.CoreMatchers
 import org.hamcrest.Matcher
 import org.intellij.lang.annotations.Language
 import org.junit.Rule
+import org.opentest4j.AssertionFailedError
 import spock.lang.Specification
 
 import java.nio.file.Files
@@ -53,6 +58,7 @@ import static org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout.DEFA
 import static org.gradle.test.fixtures.dsl.GradleDsl.GROOVY
 import static org.gradle.util.Matchers.matchesRegexp
 import static org.gradle.util.Matchers.normalizedLineSeparators
+
 /**
  * Spockified version of AbstractIntegrationTest.
  *
@@ -61,15 +67,20 @@ import static org.gradle.util.Matchers.normalizedLineSeparators
 @CleanupTestDirectory
 @SuppressWarnings("IntegrationTestFixtures")
 @IntegrationTestTimeout(DEFAULT_TIMEOUT_SECONDS)
-class AbstractIntegrationSpec extends Specification {
+abstract class AbstractIntegrationSpec extends Specification {
 
     @Rule
     public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
     private TestFile testDirOverride = null
 
+    protected DocumentationRegistry documentationRegistry = new DocumentationRegistry()
+
     GradleDistribution distribution = new UnderDevelopmentGradleDistribution(getBuildContext())
     private GradleExecuter executor
     private boolean ignoreCleanupAssertions
+
+    private boolean enableProblemsApiCheck = false
+    private BuildOperationsFixture buildOperationsFixture = null
 
     GradleExecuter getExecuter() {
         if (executor == null) {
@@ -97,6 +108,9 @@ class AbstractIntegrationSpec extends Specification {
     protected int maxHttpRetries = 1
     protected Integer maxUploadAttempts
 
+    @Lazy
+    private isAtLeastGroovy4 = VersionNumber.parse(GroovySystem.version).major >= 4
+
     def setup() {
         // Verify that the previous test (or fixtures) has cleaned up state correctly
         m2.assertNoLeftoverState()
@@ -111,6 +125,9 @@ class AbstractIntegrationSpec extends Specification {
     }
 
     def cleanup() {
+        buildOperationsFixture = null
+        disableProblemsApiCheck()
+
         executer.cleanup()
         m2.cleanupState()
 
@@ -135,6 +152,11 @@ class AbstractIntegrationSpec extends Specification {
      */
     void initGitDir() {
         Git.init().setDirectory(testDirectory).call().withCloseable { Git git ->
+            // Clear config hierarchy to avoid global configuration loaded from user home
+            for (Config config = git.repository.config; config != null; config = config.getBaseConfig()) {
+                //noinspection GroovyAccessibility
+                config.clear()
+            }
             testDirectory.file('initial-commit').createNewFile()
             git.add().addFilepattern("initial-commit").call()
             git.commit().setMessage("Initial commit").call()
@@ -148,20 +170,32 @@ class AbstractIntegrationSpec extends Specification {
         testDirectory.file(getDefaultBuildFileName())
     }
 
+    String getTestJunitCoordinates() {
+        return "junit:junit:4.13"
+    }
+
+    void buildFile(@GroovyBuildScriptLanguage String script) {
+        groovyFile(buildFile, script)
+    }
+
+    void settingsFile(@GroovyBuildScriptLanguage String script) {
+        groovyFile(settingsFile, script)
+    }
+
     /**
      * Provides best-effort groovy script syntax highlighting.
      * The highlighting is imperfect since {@link GroovyBuildScriptLanguage} uses stub methods to create a simulated script target environment.
      */
-    void buildFile(@GroovyBuildScriptLanguage String script) {
-        buildFile << script
+    void groovyFile(TestFile targetBuildFile, @GroovyBuildScriptLanguage String script) {
+        targetBuildFile << script
     }
 
-    void settingsFile(@GroovyBuildScriptLanguage String script) {
-        settingsFile << script
+    String groovyScript(@GroovyBuildScriptLanguage String script) {
+        script
     }
 
     TestFile getBuildKotlinFile() {
-        testDirectory.file(getDefaultBuildKotlinFileName())
+        testDirectory.file(defaultBuildKotlinFileName)
     }
 
     protected String getDefaultBuildFileName() {
@@ -172,14 +206,40 @@ class AbstractIntegrationSpec extends Specification {
         'build.gradle.kts'
     }
 
+    /**
+     * Sets (replacing) the contents of the build.gradle file.
+     *
+     * To append, use #buildFile(String).
+     */
     protected TestFile buildScript(@GroovyBuildScriptLanguage String script) {
         buildFile.text = script
         buildFile
     }
 
+    /**
+     * Sets (replacing) the contents of the settings.gradle file.
+     *
+     * To append, use #settingsFile(String)
+     */
+    protected TestFile settingsScript(@GroovyBuildScriptLanguage String script) {
+        settingsFile.text = script
+        settingsFile
+    }
+
+    protected TestFile initScript(@GroovyBuildScriptLanguage String script) {
+        initScriptFile.text = script
+        initScriptFile
+    }
+
+
     protected TestFile getSettingsFile() {
         testDirectory.file(settingsFileName)
     }
+
+    protected TestFile getInitScriptFile() {
+        testDirectory.file(initScriptFileName)
+    }
+
 
     protected TestFile getSettingsKotlinFile() {
         testDirectory.file(settingsKotlinFileName)
@@ -195,6 +255,10 @@ class AbstractIntegrationSpec extends Specification {
 
     protected static String getSettingsKotlinFileName() {
         return 'settings.gradle.kts'
+    }
+
+    protected static String getInitScriptFileName() {
+        return 'init.gradle'
     }
 
     def singleProjectBuild(String projectName, @DelegatesTo(value = BuildTestFile, strategy = Closure.DELEGATE_FIRST) Closure cl = {}) {
@@ -215,6 +279,10 @@ class AbstractIntegrationSpec extends Specification {
 
     protected ConfigurationCacheBuildOperationsFixture newConfigurationCacheFixture() {
         return new ConfigurationCacheBuildOperationsFixture(new BuildOperationsFixture(executer, temporaryFolder))
+    }
+
+    String relativePath(String path) {
+        return path.replace('/', File.separator)
     }
 
     TestFile getTestDirectory() {
@@ -417,6 +485,11 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
 
     protected ExecutionFailure fails(String... tasks) {
         failure = executer.withTasks(*tasks).runWithFailure()
+
+        if (enableProblemsApiCheck && buildOperationsFixture.problems().isEmpty()) {
+            throw new AssertionFailedError("Expected to find a problem emitted via the 'Problems' service for the failing build, but none was received.")
+        }
+
         return failure
     }
 
@@ -530,6 +603,24 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         return new MavenLocalRepository(file(repo))
     }
 
+    protected configureRepositoryCredentials(String username, String password, String repositoryName = "maven") {
+        // configuration property prefix - the identity - is determined from the repository name
+        // https://docs.gradle.org/current/userguide/userguide_single.html#sec:handling_credentials
+        propertiesFile << """
+        ${repositoryName}Username=${username}
+        ${repositoryName}Password=${password}
+        """
+    }
+
+    protected configureRepositoryKeys(String accessKey, String secretKey, String repositoryName) {
+        // configuration property prefix - the identity - is determined from the repository name
+        // https://docs.gradle.org/current/userguide/userguide_single.html#sec:handling_credentials
+        propertiesFile << """
+        ${repositoryName}AccessKey=${accessKey}
+        ${repositoryName}SecretKey=${secretKey}
+        """
+    }
+
     public MavenFileRepository publishedMavenModules(String... modulesToPublish) {
         modulesToPublish.each { String notation ->
             def modules = notation.split("->").reverse()
@@ -565,9 +656,15 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         return zip
     }
 
-    def createDir(String name, @DelegatesTo(value = TestWorkspaceBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure cl = {}) {
+    TestFile createDir(String name, @DelegatesTo(value = TestWorkspaceBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure cl = {}) {
         TestFile root = file(name)
         root.create(cl)
+    }
+
+    List<TestFile> createDirs(String... names) {
+        names.collect { name ->
+            createDir(name)
+        }
     }
 
     /**
@@ -604,6 +701,11 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         result.assertHasPostBuildOutput(string.trim())
     }
 
+    void postBuildOutputDoesNotContain(String string) {
+        assertHasResult()
+        result.assertNotPostBuildOutput(string.trim())
+    }
+
     void outputDoesNotContain(String string) {
         assertHasResult()
         result.assertNotOutput(string.trim())
@@ -633,5 +735,70 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
     void resetExecuter() {
         this.ignoreCleanupAssertions = false
         recreateExecuter()
+    }
+
+    void assumeGroovy3() {
+        Assume.assumeFalse('Requires Groovy 3', isAtLeastGroovy4)
+    }
+
+    void assumeGroovy4() {
+        Assume.assumeTrue('Requires Groovy 4', isAtLeastGroovy4)
+    }
+
+    def enableProblemsApiCheck() {
+        enableProblemsApiCheck = true
+        buildOperationsFixture = new BuildOperationsFixture(executer, temporaryFolder)
+    }
+
+    def disableProblemsApiCheck() {
+        enableProblemsApiCheck = false
+    }
+
+    List<Map<String, Object>> getCollectedProblems() {
+        if (!enableProblemsApiCheck) {
+            throw new IllegalStateException('Problems API check is not enabled')
+        }
+        return buildOperationsFixture.all().collectMany {
+            it.progress(DefaultProblemProgressDetails.class)
+        }.collect {
+            it.details["problem"]
+        }
+    }
+
+    /**
+     * Generates a `repositories` block pointing to the standard maven repo fixture.
+     *
+     * This is often required for running with configuration cache enabled, as
+     * configuration cache eagerly resolves dependencies when storing the classpath.
+     */
+    protected String mavenTestRepository(GradleDsl dsl = GROOVY) {
+        """
+        repositories {
+            ${RepoScriptBlockUtil.repositoryDefinition(dsl, "maven", mavenRepo.rootDir.name, mavenRepo.uri.toString())}
+        }
+        """
+    }
+
+    /**
+     * Generates a `repositories` block pointing to the standard Ivy repo fixture.
+     *
+     * This is often required for running with configuration cache enabled, as
+     * configuration cache eagerly resolves dependencies when storing the classpath.
+     */
+    protected String ivyTestRepository(GradleDsl dsl = GROOVY) {
+        """
+        repositories {
+            ${RepoScriptBlockUtil.repositoryDefinition(dsl, "ivy", ivyRepo.rootDir.name, ivyRepo.uri.toString())}
+        }
+        """
+    }
+
+    protected String emptyJavaClasspath() {
+        """
+            tasks.compileJava {
+                // Avoid resolving the classpath when caching the configuration
+                classpath = files()
+            }
+        """
     }
 }

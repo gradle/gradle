@@ -19,7 +19,9 @@ package org.gradle.api.internal.catalog.problems
 import groovy.transform.CompileStatic
 import org.gradle.api.internal.DocumentationRegistry
 
-import static org.gradle.problems.internal.RenderingUtils.oxfordListOf
+import static org.gradle.api.internal.catalog.DefaultVersionCatalogBuilder.getExcludedNames
+import static org.gradle.internal.RenderingUtils.oxfordListOf
+import static org.gradle.util.internal.TextUtil.getPluralEnding
 import static org.gradle.util.internal.TextUtil.normaliseLineSeparators
 
 @CompileStatic
@@ -46,6 +48,10 @@ trait VersionCatalogErrorMessages {
     }
 
     String reservedAlias(@DelegatesTo(value = ReservedAlias, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+        buildMessage(ReservedAlias, VersionCatalogProblemId.RESERVED_ALIAS_NAME, spec)
+    }
+
+    String aliasContainsReservedName(@DelegatesTo(value = ReservedAlias, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         buildMessage(ReservedAlias, VersionCatalogProblemId.RESERVED_ALIAS_NAME, spec)
     }
 
@@ -77,19 +83,19 @@ trait VersionCatalogErrorMessages {
         buildMessage(MissingCatalogFile, VersionCatalogProblemId.CATALOG_FILE_DOES_NOT_EXIST, spec)
     }
 
-    String parseError(@DelegatesTo(value=ParseError, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+    String parseError(@DelegatesTo(value = ParseError, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         buildMessage(ParseError, VersionCatalogProblemId.TOML_SYNTAX_ERROR, spec)
     }
 
-    String noImportFiles(@DelegatesTo(value=NoImportFiles, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+    String noImportFiles(@DelegatesTo(value = NoImportFiles, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         buildMessage(NoImportFiles, VersionCatalogProblemId.NO_IMPORT_FILES, spec)
     }
 
-    String tooManyImportFiles(@DelegatesTo(value=NoImportFiles, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+    String tooManyImportFiles(@DelegatesTo(value = NoImportFiles, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         buildMessage(TooManyImportFiles, VersionCatalogProblemId.TOO_MANY_IMPORT_FILES, spec)
     }
 
-    String tooManyImportInvokation(@DelegatesTo(value=TooManyFromInvokation, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+    String tooManyImportInvokation(@DelegatesTo(value = TooManyFromInvokation, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         buildMessage(TooManyFromInvokation, VersionCatalogProblemId.TOO_MANY_IMPORT_INVOCATION, spec)
     }
 
@@ -121,7 +127,7 @@ trait VersionCatalogErrorMessages {
         }
 
         String getDocumentation() {
-            "Please refer to ${doc.getDocumentationFor("version_catalog_problems", section)} for more details about this problem."
+            doc.getDocumentationRecommendationFor("information", "version_catalog_problems", section)
         }
 
         abstract String build()
@@ -143,7 +149,7 @@ trait VersionCatalogErrorMessages {
 
         @Override
         String build() {
-            """${intro}  - Problem: In version catalog $catalog, parsing failed with ${errors.size()} error${errors.size() > 1 ? "s" : ""}.
+            """${intro}  - Problem: In version catalog $catalog, parsing failed with ${errors.size()} error${getPluralEnding(errors)}.
 
     Reason: ${errors.join('\n    ')}.
 
@@ -234,6 +240,11 @@ trait VersionCatalogErrorMessages {
             this
         }
 
+        ReservedAlias shouldNotContain(String name) {
+            this.alias(name)
+            this
+        }
+
         ReservedAlias reservedAliasPrefix(String... suffixes) {
             this.solution = "Use a different alias which prefix is not equal to ${oxfordListOf(suffixes as List, 'or')}"
             this
@@ -241,6 +252,11 @@ trait VersionCatalogErrorMessages {
 
         ReservedAlias reservedAliases(String... aliases) {
             this.solution = "Use a different alias which isn't in the reserved names ${oxfordListOf(aliases as List, "or")}"
+            this.reservedNames(aliases)
+        }
+
+        ReservedAlias reservedNames(String... names) {
+            this.solution = "Use a different alias which doesn't contain ${getExcludedNames(names as List)}"
             this
         }
 

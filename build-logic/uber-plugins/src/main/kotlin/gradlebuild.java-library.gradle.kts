@@ -26,6 +26,7 @@ plugins {
     id("gradlebuild.incubation-report")
     id("gradlebuild.strict-compile")
     id("gradlebuild.code-quality")
+    id("gradlebuild.arch-test")
     id("gradlebuild.integration-tests")
     id("gradlebuild.cross-version-tests")
     id("gradlebuild.ci-lifecycle")

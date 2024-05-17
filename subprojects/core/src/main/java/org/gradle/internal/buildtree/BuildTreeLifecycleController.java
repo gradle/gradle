@@ -18,6 +18,7 @@ package org.gradle.internal.buildtree;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.execution.EntryTaskSelector;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -44,6 +45,11 @@ public interface BuildTreeLifecycleController {
      * <p>This method may or may nor configure the build. When a cached task graph is available, this may be used instead of configuring the build.
      */
     void scheduleAndRunTasks();
+
+    /**
+     * A for {@link #scheduleAndRunTasks()}, but includes the tasks selected by the given selector <em>before</em> those specified in the {@link org.gradle.StartParameter}.
+     */
+    void scheduleAndRunTasks(EntryTaskSelector selector);
 
     /**
      * Configures the build, optionally schedules and runs any tasks specified in the {@link org.gradle.StartParameter} associated with the build, calls the given action and finally finishes up the build.

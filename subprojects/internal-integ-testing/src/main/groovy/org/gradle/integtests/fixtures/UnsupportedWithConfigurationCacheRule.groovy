@@ -21,10 +21,9 @@ import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
 
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCacheExtension.iterationMatches
 import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCacheExtension.isEnabledBottomSpec
-import static org.junit.Assume.assumeFalse
-
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCacheExtension.iterationMatches
+import static org.junit.Assume.assumeTrue
 
 class UnsupportedWithConfigurationCacheRule implements TestRule {
 
@@ -37,23 +36,22 @@ class UnsupportedWithConfigurationCacheRule implements TestRule {
         def enabledBottomSpec = isEnabledBottomSpec(annotation.bottomSpecs(), { description.className.endsWith(".$it") })
         def enabledIteration = iterationMatches(annotation.iterationMatchers(), description.methodName)
         if (enabledBottomSpec && enabledIteration) {
-            return new SkippingRuleStatement(base)
+            return new SkippingRuleStatement(annotation.because())
         }
         return base
     }
 
     static class SkippingRuleStatement extends Statement {
 
-        private final Statement next
+        private final String reason
 
-        SkippingRuleStatement(Statement next) {
-            this.next = next
+        SkippingRuleStatement(String reason) {
+            this.reason = reason
         }
 
         @Override
         void evaluate() throws Throwable {
-            assumeFalse(GradleContextualExecuter.isConfigCache())
-            next.evaluate()
+            assumeTrue("Test does not support configuration cache: $reason", false)
         }
     }
 }

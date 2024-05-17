@@ -1,0 +1,28 @@
+name: Closed issue labels
+
+on:
+  issues:
+    types: closed
+
+jobs:
+  remove_triage_label:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: remove label for closed issue
+        uses: actions-ecosystem/action-remove-labels@v1
+        if: ${{ github.event.issue.state_reason == 'not_planned' }}
+        with:
+          labels: to-triage
+
+  add_triage_label:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: add label for issue without milestone
+        uses: actions-ecosystem/action-add-labels@v1
+        if: ${{ github.event.issue.state_reason == 'completed' && github.event.issue.milestone == null }}
+        with:
+          labels: to-triage

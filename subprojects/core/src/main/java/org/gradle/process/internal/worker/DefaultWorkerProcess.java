@@ -212,6 +212,10 @@ public class DefaultWorkerProcess implements WorkerProcess {
         } finally {
             lock.unlock();
         }
+
+        // Inform the exec handle to clear the startup context, so that it can be garbage collected
+        // This may contain references to tasks, projects, and builds which we don't want to keep around
+        execHandle.removeStartupContext();
     }
 
     @Override

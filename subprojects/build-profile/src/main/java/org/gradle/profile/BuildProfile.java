@@ -52,7 +52,7 @@ public class BuildProfile {
 
     private final Map<String, ProjectProfile> projects = new LinkedHashMap<>();
     private final Map<String, ContinuousOperation> dependencySets = new LinkedHashMap<>();
-    private final Map<String, FragmentedOperation> transformations = Maps.newLinkedHashMap();
+    private final Map<String, FragmentedOperation> transforms = Maps.newLinkedHashMap();
     private long profilingStarted;
     private long buildStarted;
     private long settingsEvaluated;
@@ -146,17 +146,17 @@ public class BuildProfile {
         return new CompositeOperation<>(profiles);
     }
 
-    public FragmentedOperation getTransformationProfile(String transformationDescription) {
-        FragmentedOperation profile = transformations.get(transformationDescription);
+    public FragmentedOperation getTransformProfile(String transformDescription) {
+        FragmentedOperation profile = transforms.get(transformDescription);
         if (profile == null) {
-            profile = new FragmentedOperation(transformationDescription);
-            transformations.put(transformationDescription, profile);
+            profile = new FragmentedOperation(transformDescription);
+            transforms.put(transformDescription, profile);
         }
         return profile;
     }
 
-    public CompositeOperation<FragmentedOperation> getTransformations() {
-        final List<FragmentedOperation> profiles = CollectionUtils.sort(transformations.values(), Operation.slowestFirst());
+    public CompositeOperation<FragmentedOperation> getTransforms() {
+        final List<FragmentedOperation> profiles = CollectionUtils.sort(transforms.values(), Operation.slowestFirst());
         return new CompositeOperation<>(profiles);
     }
 
@@ -244,11 +244,11 @@ public class BuildProfile {
     }
 
     /**
-     * Get the total artifact transformation time.
+     * Get the total artifact transform time.
      */
     public long getElapsedArtifactTransformTime() {
         long result = 0;
-        for (FragmentedOperation transform : transformations.values()) {
+        for (FragmentedOperation transform : transforms.values()) {
             result += transform.getElapsedTime();
         }
         return result;

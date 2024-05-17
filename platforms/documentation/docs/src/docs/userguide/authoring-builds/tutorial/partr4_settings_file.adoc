@@ -1,0 +1,93 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[partr4_settings_file]]
+= Part 4: Writing the Settings File
+
+Learn the basics of authoring Gradle by developing the Settings File.
+
+****
+**In this section, you will:**
+
+- Understand the Settings object
+- Understand the Settings file
+- Understand Gradle scripting
+****
+
+[[part4_begin]]
+== Step 0. Before you Begin
+
+1. You initialized your Java app in <<partr1_gradle_init.adoc#part1_begin,part 1>>.
+2. You understand the Gradle Build Lifecycle from <<partr2_build_lifecycle.adoc#part2_begin,part 2>>.
+3. You added a subproject and a separate Build in <<partr3_multi_project_builds#part3_begin, part3>>.
+
+== Step 1. Gradle scripts
+
+Build scripts and setting files are code.
+They are written in Kotlin or Groovy.
+
+You use the link:{kotlinDslPath}[Kotlin DSL], link:{groovyDslPath}[Groovy DSL] and link:{javadocPath}[Gradle APIs] to write the scripts.
+
+The methods that can be used within a Gradle script primarily include:
+
+- Gradle APIs - such as `getRootProject()` from the link:{javadocPath}/org/gradle/api/initialization/Settings.html[Settings API]
+- Blocks defined in the DSL - such as the `plugins{}` block from link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/-kotlin-settings-script/index.html[KotlinSettingsScript]
+- Extensions defined by Plugins - such as `implementation()` and `api()` provided by the `java` plugin when applied
+
+== Step 2. The `Settings` object
+
+The settings file is the entry point of every Gradle build.
+
+During the initialization phase, Gradle finds the settings file in your project root directory.
+
+When the settings file, `settings.gradle(.kts)`, is found, Gradle instantiates a link:{groovyDslPath}/org.gradle.api.initialization.Settings.html[Settings] object.
+
+One of the purposes of the link:{groovyDslPath}/org.gradle.api.initialization.Settings.html[Settings] object is to allow you to declare all the projects to be included in the build.
+
+You can use any of the methods and properties on the link:{groovyDslPath}/org.gradle.api.initialization.Settings.html[Settings] interface directly in your settings file.
+
+For example:
+
+[source,kotlin]
+----
+ includeBuild("some-build")                         // Delegates to Settings.includeBuild()
+ reportsDir = findProject("/myInternalProject")     // Delegates to Settings.findProject()
+----
+
+== Step 3. The Settings file
+
+Let's break down the settings file in our project root directory:
+
+.settings.gradle.kts
+[source,kotlin]
+----
+plugins {                                                                   // <1>
+    id("org.gradle.toolchains.foojay-resolver-convention") version "0.4.0"  // <2>
+}
+
+rootProject.name = "authoring-tutorial"                                     // <3>
+
+include("app")                                                              // <4>
+include("lib")
+
+includeBuild("gradle/license-plugin")                                       // <5>
+----
+<1> `plugins({})` method from link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/-kotlin-settings-script/index.html[KotlinSettingsScript] in the Kotlin DSL
+<2> `id()` method from the link:{kotlinDslPath}/gradle/org.gradle.plugin.use/-plugin-dependencies-spec/index.html[PluginDependenciesSpec API]
+<3> `getRootProject()` method from the link:{kotlinDslPath}/gradle/org.gradle.api.initialization/-settings/index.html[Settings API]
+<4> `include()` method from the link:{kotlinDslPath}/gradle/org.gradle.api.initialization/-settings/index.html[Settings API]
+<5> `includeBuild()` method from the link:{kotlinDslPath}/gradle/org.gradle.api.initialization/-settings/index.html[Settings API]
+
+[.text-right]
+**Next Step:** <<partr5_build_scripts#partr5_build_scripts,Writing a Build Script>> >>

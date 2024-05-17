@@ -17,7 +17,6 @@
 package org.gradle.execution.plan;
 
 import javax.annotation.Nullable;
-import java.util.Collections;
 
 /**
  * <p>Represents the reason why a node is included in the work graph. In general, nodes are included in the graph because they are either a "root node" or they are reachable from one or more "root nodes"
@@ -32,7 +31,7 @@ import java.util.Collections;
  *
  * <p>A node may be included in more than one group, for example when it is reachable from both a requested task and a finalizer.</p>
  *
- * <p>The the groups that the node belongs to can affect how the node is scheduled relative to other nodes in the graph.</p>
+ * <p>The groups that the node belongs to can affect how the node is scheduled relative to other nodes in the graph.</p>
  */
 public abstract class NodeGroup {
     public static final NodeGroup DEFAULT_GROUP = new NodeGroup() {
@@ -53,6 +52,11 @@ public abstract class NodeGroup {
         }
 
         @Override
+        public NodeGroup reachableFrom(OrdinalGroup newOrdinal) {
+            return newOrdinal;
+        }
+
+        @Override
         public boolean isReachableFromEntryPoint() {
             return false;
         }
@@ -68,19 +72,12 @@ public abstract class NodeGroup {
         return null;
     }
 
-    /**
-     * Returns the set of nodes which must complete before any node in this group can start.
-     */
-    public Iterable<? extends Node> getSuccessors() {
-        return Collections.emptyList();
-    }
-
-    public Iterable<? extends Node> getSuccessorsInReverseOrder() {
-        return Collections.emptyList();
-    }
-
     public Node.DependenciesState checkSuccessorsCompleteFor(Node node) {
         return Node.DependenciesState.COMPLETE_AND_SUCCESSFUL;
+    }
+
+    public boolean isCanCancel() {
+        return true;
     }
 
     public void addMember(Node node) {
@@ -89,5 +86,16 @@ public abstract class NodeGroup {
     public void removeMember(Node node) {
     }
 
+    /**
+     * Sets the ordinal of this group, without affecting reachability and other state of this group.
+     */
     public abstract NodeGroup withOrdinalGroup(OrdinalGroup newOrdinal);
+
+    /**
+     * Merges the ordinal group and reachability from the given group.
+     */
+    public abstract NodeGroup reachableFrom(OrdinalGroup newOrdinal);
+
+    public void onNodeStart(Node finalizer, Node node) {
+    }
 }

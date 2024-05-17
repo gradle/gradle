@@ -1,0 +1,185 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[partr7_writing_plugins]]
+= Part 7: Writing Plugins
+
+Learn the basics of writing and applying Gradle plugins.
+
+****
+**In this section, you will:**
+
+- Add a custom task to the Plugin
+- Apply the Plugin to a subproject
+- Use the Plugin
+****
+
+[[part7_begin]]
+== Step 0. Before you Begin
+
+1. You initialized your Java app in <<partr1_gradle_init.adoc#part1_begin,part 1>>.
+2. You understand the Gradle Build Lifecycle from <<partr2_build_lifecycle.adoc#part2_begin,part 2>>.
+3. You added a subproject and a separate Build in <<partr3_multi_project_builds#part3_begin, part3>>.
+4. You viewed a Settings file in <<partr4_settings_file.adoc#part4_begin,part 4>>.
+5. You authored a Build script in <<partr5_build_scripts.adoc#part5_begin,part 5>>.
+6. You authored a Task in <<partr6_writing_tasks.adoc#part6_begin,part 6>>.
+
+== Step 1. Develop the Plugin
+
+Let's tie our custom `LicenseTask` to our plugin.
+
+Update the `LicensePlugin` with the code below:
+
+.gradle/license-plugin/plugin/src/main/kotlin/com/gradle/LicensePlugin.kt
+[source,kotlin]
+----
+class LicensePlugin: Plugin<Project> {
+    override fun apply(project: Project) {
+        project.tasks.register("license", LicenseTask::class.java) { task ->
+            task.description = "add a license header to source code"   // Add description
+            task.group = "from license plugin"                          // Add group
+        }
+    }
+}
+----
+
+== Step 2. Add a license.txt file
+
+Add a file called `license.txt` to the root directory of the project and add the following text to it:
+
+.license.txt
+[source,text]
+----
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+----
+
+== Step 3. Apply the Plugin
+
+Apply the plugin to the `app` subproject:
+
+.app/build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    application
+    id("com.gradle.license") // Apply custom plugin
+}
+----
+
+Make sure the plugin is correctly applied by listing the available tasks in the `app` subproject:
+
+[source]
+----
+$ ./gradlew :app:tasks
+
+------------------------------------------------------------
+Tasks runnable from project ':app'
+------------------------------------------------------------
+
+...
+
+From license plugin tasks
+-------------------------
+license - add a license header to source code
+----
+
+== Step 4. Run the custom Task
+
+Finally, it's time to run the new task.
+
+First, let's inspect some source code:
+
+.app/src/main/java/authoring/tutorial/App.java
+[source,java]
+----
+package authoring.tutorial;
+
+import com.gradle.CustomLib;
+
+public class App {
+    public String getGreeting() {
+        return "CustomLib identifier is: " + CustomLib.identifier;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(new App().getGreeting());
+    }
+}
+----
+
+Next, let's run the task with `./gradlew :app:license`:
+
+[source]
+----
+$ ./gradlew :app:license
+
+> Task :license-plugin:plugin:compileKotlin UP-TO-DATE
+> Task :license-plugin:plugin:compileJava NO-SOURCE
+> Task :license-plugin:plugin:pluginDescriptors UP-TO-DATE
+> Task :license-plugin:plugin:processResources UP-TO-DATE
+> Task :license-plugin:plugin:classes UP-TO-DATE
+> Task :license-plugin:plugin:jar UP-TO-DATE
+
+> Configure project :app
+
+> Task :app:license
+
+BUILD SUCCESSFUL in 410ms
+5 actionable tasks: 1 executed, 4 up-to-date
+----
+
+Now inspect the same source code, which should include a license header:
+
+.app/src/main/java/authoring/tutorial/App.java
+[source,java]
+----
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package authoring.tutorial;
+
+import com.gradle.CustomLib;
+
+public class App {
+    public String getGreeting() {
+        return "CustomLib identifier is: " + CustomLib.identifier;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(new App().getGreeting());
+    }
+}
+----

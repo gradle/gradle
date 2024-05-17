@@ -22,7 +22,7 @@ import org.gradle.internal.service.ServiceRegistry;
  */
 public interface ServiceRegistryFactory {
     /**
-     * Creates the services for the given domain object.
+     * Creates the services for the given domain object. The caller is responsible for closing the registry.
      *
      * @param domainObject The domain object.
      * @return The registry containing the services for the domain object.

@@ -15,11 +15,15 @@
  */
 package org.gradle.util.internal;
 
-import java.util.*;
+import org.apache.commons.lang.StringUtils;
+
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.apache.commons.lang.StringUtils;
 
 /**
  * Selects a single item from a collection based on a camel case pattern.
@@ -193,13 +197,12 @@ public class NameMatcher {
      * @return The error message.
      */
     public String formatErrorMessage(String singularItemDescription, Object container) {
-        String capItem = StringUtils.capitalize(singularItemDescription);
         if (!matches.isEmpty()) {
-            return String.format("%s '%s' is ambiguous in %s. Candidates are: %s.", capItem, pattern, container, GUtil.toString(matches));
+            return String.format("%s '%s' is ambiguous in %s. Candidates are: %s.", singularItemDescription, pattern, container, GUtil.toString(matches));
         }
         if (!candidates.isEmpty()) {
-            return String.format("%s '%s' not found in %s. Some candidates are: %s.", capItem, pattern, container, GUtil.toString(candidates));
+            return String.format("%s '%s' not found in %s. Some candidates are: %s.", singularItemDescription, pattern, container, GUtil.toString(candidates));
         }
-        return String.format("%s '%s' not found in %s.", capItem, pattern, container);
+        return String.format("%s '%s' not found in %s.", singularItemDescription, pattern, container);
     }
 }
