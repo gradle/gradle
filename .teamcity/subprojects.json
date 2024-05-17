@@ -1127,6 +1127,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "tooling-api-provider",
+    "path": "platforms/core-runtime/tooling-api-provider",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "tooling-native",
     "path": "platforms/native/tooling-native",
     "unitTests": false,

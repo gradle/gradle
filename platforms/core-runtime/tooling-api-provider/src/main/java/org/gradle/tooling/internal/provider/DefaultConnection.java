@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,7 +72,6 @@ public class DefaultConnection implements ConnectionVersion4,
     StoppableConnection, InternalTestExecutionConnection, InternalPhasedActionConnection, InternalInvalidatableVirtualFileSystemConnection, InternalStopWhenIdleConnection {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConnection.class);
-    private static final String UNSUPPORTED_MESSAGE = "Support for clients using a tooling API version older than 3.0 was removed in Gradle 5.0. %sYou should upgrade your tooling API client to version 3.0 or later.";
 
     private static final GradleVersion MIN_CLIENT_VERSION = GradleVersion.version("3.0");
     private ProtocolToModelAdapter adapter;
@@ -217,7 +216,7 @@ public class DefaultConnection implements ConnectionVersion4,
     }
 
     private UnsupportedVersionException unsupportedConnectionException() {
-        return new UnsupportedVersionException(String.format(UNSUPPORTED_MESSAGE, createCurrentVersionMessage()));
+        return new UnsupportedVersionException(String.format("Support for clients using a tooling API version older than 3.0 was removed in Gradle 5.0. %sYou should upgrade your tooling API client to version 3.0 or later.", createCurrentVersionMessage()));
     }
 
     private String createCurrentVersionMessage() {
