@@ -5,7 +5,7 @@ plugins {
 description = "Declarative DSL Tooling Builders for IDEs"
 
 dependencies {
-    api(project(":base-services"))
+    api(projects.serviceProvider)
     api(project(":core"))
     api(project(":core-api"))
 

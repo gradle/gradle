@@ -11,6 +11,7 @@ errorprone {
 }
 
 dependencies {
+    api(projects.serviceProvider)
     api(project(":build-operations"))
     api(project(":base-services"))
     api(project(":configuration-cache"))

@@ -27,6 +27,7 @@ dependencies {
     api(libs.maven3Settings)
 
     api(projects.javaLanguageExtensions)
+    api(projects.serviceProvider)
     api(project(":base-services"))
     api(project(":core"))
     api(project(":core-api"))

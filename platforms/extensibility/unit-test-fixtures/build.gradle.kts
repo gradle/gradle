@@ -31,6 +31,7 @@ dependencies {
     api(project(":serialization"))
     api(project(":time"))
 
+    implementation(projects.serviceProvider)
     implementation(project(":build-state"))
     implementation(project(":file-collections"))
     implementation(project(":file-temp"))

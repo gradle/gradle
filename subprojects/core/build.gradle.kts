@@ -76,6 +76,7 @@ dependencies {
     api(projects.concurrent)
     api(projects.javaLanguageExtensions)
     api(projects.serialization)
+    api(projects.serviceProvider)
     api(projects.time)
     api(project(":base-services"))
     api(project(":base-services-groovy"))

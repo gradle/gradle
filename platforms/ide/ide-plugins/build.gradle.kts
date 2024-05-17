@@ -28,6 +28,7 @@ errorprone {
 
 dependencies {
     api(projects.javaLanguageExtensions)
+    api(projects.serviceProvider)
     api(project(":base-ide-plugins"))
     api(project(":base-services"))
     api(project(":core"))
