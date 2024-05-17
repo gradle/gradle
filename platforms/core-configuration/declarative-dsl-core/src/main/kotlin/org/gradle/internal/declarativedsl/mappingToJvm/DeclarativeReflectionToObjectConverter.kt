@@ -1,9 +1,10 @@
 package org.gradle.internal.declarativedsl.mappingToJvm
 
+import org.gradle.declarative.dsl.schema.DataBuilderFunction
+import org.gradle.declarative.dsl.schema.DataProperty
+import org.gradle.declarative.dsl.schema.ExternalObjectProviderKey
+import org.gradle.declarative.dsl.schema.SchemaFunction
 import org.gradle.internal.declarativedsl.analysis.AssignmentMethod
-import org.gradle.internal.declarativedsl.analysis.DataBuilderFunction
-import org.gradle.internal.declarativedsl.analysis.DataProperty
-import org.gradle.internal.declarativedsl.analysis.ExternalObjectProviderKey
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
 import org.gradle.internal.declarativedsl.analysis.ParameterValueBinding
 import org.gradle.internal.declarativedsl.mappingToJvm.DeclarativeReflectionToObjectConverter.ConversionFilter
@@ -56,18 +57,18 @@ class DeclarativeReflectionToObjectConverter(
     }
 
     private
-    val reflectionIdentityObjects = mutableMapOf<Long, Any?>()
+    val reflectionIdentityObjects = mutableMapOf<ObjectAccessKey, Any?>()
 
     private
-    fun objectByIdentity(identity: Long, newObject: () -> Any?): Any? {
+    fun objectByIdentity(key: ObjectAccessKey, newObject: () -> Any?): Any? {
         // This code does not use `computeIfAbsent` because `newObject` can make reentrant calls, leading to CME.
         // Also, it does not check for the value being null, because null values are potentially allowed
-        if (identity !in reflectionIdentityObjects) {
+        if (key !in reflectionIdentityObjects) {
             val newInstance = newObject()
-            reflectionIdentityObjects[identity] = newInstance
+            reflectionIdentityObjects[key] = newInstance
             return newInstance
         } else {
-            return reflectionIdentityObjects[identity]
+            return reflectionIdentityObjects[key]
         }
     }
 
@@ -85,21 +86,26 @@ class DeclarativeReflectionToObjectConverter(
         return when (objectOrigin) {
             is ObjectOrigin.DelegatingObjectOrigin -> getObjectByResolvedOrigin(objectOrigin.delegate)
             is ObjectOrigin.ConstantOrigin -> objectOrigin.literal.value
-            is ObjectOrigin.External -> {
-                externalObjectsMap[objectOrigin.key] ?: error("No external object provided for external object key of ${objectOrigin.key}")
-            }
-            is ObjectOrigin.NewObjectFromMemberFunction -> objectByIdentity(objectOrigin.invocationId) { objectFromMemberFunction(objectOrigin) }
-            is ObjectOrigin.NewObjectFromTopLevelFunction -> objectByIdentity(objectOrigin.invocationId) { objectFromTopLevelFunction(/*objectOrigin*/) }
+            is ObjectOrigin.External -> externalObjectsMap[objectOrigin.key] ?: error("No external object provided for external object key of ${objectOrigin.key}")
+            is ObjectOrigin.NewObjectFromMemberFunction -> objectByIdentity(ObjectAccessKey.Identity(objectOrigin.invocationId)) { objectFromMemberFunction(objectOrigin) }
+            is ObjectOrigin.NewObjectFromTopLevelFunction -> objectByIdentity(ObjectAccessKey.Identity(objectOrigin.invocationId)) { objectFromTopLevelFunction(/*objectOrigin*/) }
             is ObjectOrigin.NullObjectOrigin -> null
             is ObjectOrigin.PropertyDefaultValue -> getPropertyValue(objectOrigin.receiver, objectOrigin.property)
             is ObjectOrigin.PropertyReference -> getPropertyValue(objectOrigin.receiver, objectOrigin.property)
             is ObjectOrigin.TopLevelReceiver -> topLevelObject
             is ObjectOrigin.ConfiguringLambdaReceiver -> objectFromConfiguringLambda(objectOrigin)
-            is ObjectOrigin.CustomConfigureAccessor -> customAccessors.getObjectFromCustomAccessor(
-                getObjectByResolvedOrigin(objectOrigin.receiver) ?: error("receiver for custom accessor is null"), objectOrigin.accessor
-            )
+            is ObjectOrigin.CustomConfigureAccessor -> objectFromCustomAccessor(objectOrigin)
         }
     }
+
+
+    private
+    sealed interface ObjectAccessKey {
+        data class Identity(val id: Long) : ObjectAccessKey
+        data class CustomAccessor(val owner: ObjectOrigin, val accessorId: String) : ObjectAccessKey
+        data class ConfiguringLambda(val owner: ObjectOrigin, val function: SchemaFunction) : ObjectAccessKey
+    }
+
 
     private
     fun objectFromMemberFunction(
@@ -133,12 +139,21 @@ class DeclarativeReflectionToObjectConverter(
     private
     fun objectFromConfiguringLambda(
         origin: ObjectOrigin.ConfiguringLambdaReceiver
-    ): Any? {
+    ): Any? = objectByIdentity(ObjectAccessKey.ConfiguringLambda(origin.receiver, origin.function)) {
         val function = origin.function
         val receiverInstance = getObjectByResolvedOrigin(origin.receiver)
             ?: error("Tried to invoke a function $function on a null receiver ${origin.receiver}")
 
-        return invokeFunctionAndGetResult(receiverInstance, origin).capturedValue
+        invokeFunctionAndGetResult(receiverInstance, origin).capturedValue
+    }
+
+    private
+    fun objectFromCustomAccessor(
+        origin: ObjectOrigin.CustomConfigureAccessor
+    ): Any? = objectByIdentity(ObjectAccessKey.CustomAccessor(origin.receiver, origin.accessor.customAccessorIdentifier)) {
+        customAccessors.getObjectFromCustomAccessor(
+            getObjectByResolvedOrigin(origin.receiver) ?: error("receiver for custom accessor is null"), origin.accessor
+        )
     }
 
     private

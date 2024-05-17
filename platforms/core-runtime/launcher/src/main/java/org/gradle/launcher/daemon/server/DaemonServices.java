@@ -62,7 +62,7 @@ import org.gradle.launcher.daemon.server.health.gc.GarbageCollectorMonitoringStr
 import org.gradle.launcher.daemon.server.scaninfo.DaemonScanInfo;
 import org.gradle.launcher.daemon.server.scaninfo.DefaultDaemonScanInfo;
 import org.gradle.launcher.daemon.server.stats.DaemonRunningStats;
-import org.gradle.launcher.exec.BuildExecuter;
+import org.gradle.launcher.exec.BuildExecutor;
 import org.gradle.tooling.internal.provider.action.BuildActionSerializer;
 
 import java.io.File;
@@ -133,7 +133,7 @@ public class DaemonServices {
     }
 
     protected ImmutableList<DaemonCommandAction> createDaemonCommandActions(
-        BuildExecuter buildActionExecuter,
+        BuildExecutor buildActionExecuter,
         DaemonContext daemonContext,
         DaemonHealthCheck healthCheck,
         DaemonHealthStats healthStats,

@@ -15,9 +15,7 @@
  */
 package org.gradle.launcher.daemon.protocol;
 
-import org.gradle.initialization.BuildClientMetaData;
-import org.gradle.initialization.BuildRequestMetaData;
-import org.gradle.initialization.DefaultBuildRequestMetaData;
+import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.launcher.exec.BuildActionParameters;
 
@@ -25,12 +23,12 @@ import java.util.UUID;
 
 public class Build extends Command {
     private final BuildAction action;
-    private final BuildClientMetaData buildClientMetaData;
+    private final GradleLauncherMetaData buildClientMetaData;
     private final long startTime;
     private final boolean interactive;
     private final BuildActionParameters parameters;
 
-    public Build(UUID identifier, byte[] token, BuildAction action, BuildClientMetaData buildClientMetaData, long startTime, boolean interactive, BuildActionParameters parameters) {
+    public Build(UUID identifier, byte[] token, BuildAction action, GradleLauncherMetaData buildClientMetaData, long startTime, boolean interactive, BuildActionParameters parameters) {
         super(identifier, token);
         this.action = action;
         this.buildClientMetaData = buildClientMetaData;
@@ -47,12 +45,8 @@ public class Build extends Command {
         return interactive;
     }
 
-    public BuildClientMetaData getBuildClientMetaData() {
+    public GradleLauncherMetaData getBuildClientMetaData() {
         return buildClientMetaData;
-    }
-
-    public BuildRequestMetaData getBuildRequestMetaData() {
-        return new DefaultBuildRequestMetaData(buildClientMetaData, startTime, interactive);
     }
 
     public BuildAction getAction() {

@@ -22,7 +22,7 @@ import org.junit.runner.Description
 import org.junit.runners.model.Statement
 
 import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCacheExtension.isEnabledBottomSpec
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCacheExtension.iterationMatches
+import static ToBeFixedSpecInterceptor.iterationMatches
 
 /**
  * JUnit Rule supporting the {@link ToBeFixedForConfigurationCache} annotation.
@@ -60,8 +60,8 @@ class ToBeFixedForConfigurationCacheRule implements TestRule {
         void evaluate() throws Throwable {
             try {
                 next.evaluate()
-                throw new ToBeFixedForConfigurationCacheExtension.UnexpectedSuccessException()
-            } catch (ToBeFixedForConfigurationCacheExtension.UnexpectedSuccessException ex) {
+                throw new ToBeFixedSpecInterceptor.UnexpectedSuccessException("Configuration Cache")
+            } catch (ToBeFixedSpecInterceptor.UnexpectedSuccessException ex) {
                 throw ex
             } catch (Throwable ex) {
                 System.err.println("Failed with configuration cache as expected:")

@@ -254,6 +254,7 @@ fun configureTests() {
 
         configureJvmForTest()
         addOsAsInputs()
+        configureRerun()
 
         configureRerun()
 

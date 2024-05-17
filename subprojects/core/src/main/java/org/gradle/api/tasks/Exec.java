@@ -24,7 +24,7 @@ import org.gradle.work.DisableCachingByDefault;
  *   workingDir '../tomcat/bin'
  *
  *   //on windows:
- *   commandLine 'cmd', '/c', 'stop.bat'
+ *   commandLine 'cmd.exe', '/d', '/c', 'stop.bat'
  *
  *   //on linux
  *   commandLine './stop.sh'

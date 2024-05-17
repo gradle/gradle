@@ -10,6 +10,7 @@ import org.gradle.internal.declarativedsl.objectGraph.AssignmentResolver.Express
 class AssignmentResolver {
     private
     val assignmentByNode = mutableMapOf<ResolutionNode.Property, ResolutionNode>()
+
     private
     val assignmentMethodByProperty = mutableMapOf<ResolutionNode.Property, AssignmentMethod>()
 
@@ -17,6 +18,10 @@ class AssignmentResolver {
         data class AssignmentAdded(
             val resolvedLhs: PropertyReferenceResolution,
             val assignmentMethod: AssignmentMethod
+        ) : AssignmentAdditionResult
+
+        data class Reassignment(
+            val resolvedLhs: PropertyReferenceResolution
         ) : AssignmentAdditionResult
 
         data class UnresolvedValueUsedInLhs(
@@ -38,7 +43,9 @@ class AssignmentResolver {
                 val lhsPropertyWithResolvedReceiver = PropertyReferenceResolution(lhsOwner.objectOrigin, lhsProperty.property)
                 val lhsNode = ResolutionNode.Property(lhsPropertyWithResolvedReceiver)
 
-                when (val rhsResult = resolveToObjectOrPropertyReference(rhsOrigin)) {
+                if (lhsNode in assignmentByNode) {
+                    AssignmentAdditionResult.Reassignment(lhsPropertyWithResolvedReceiver)
+                } else when (val rhsResult = resolveToObjectOrPropertyReference(rhsOrigin)) {
                     is Ok -> {
                         val rhsNode: ResolutionNode = when (val rhs = rhsResult.objectOrigin) {
                             is ObjectOrigin.PropertyReference ->

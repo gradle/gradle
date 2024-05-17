@@ -31,7 +31,7 @@ dependencies {
     api(projects.time)
     api(project(":base-services"))
     api(project(":messaging"))
-    api(project(":testing-base"))
+    api(project(":testing-base-infrastructure"))
 
     api(libs.jsr305)
     api(libs.junit)

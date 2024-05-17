@@ -32,9 +32,10 @@ import javax.annotation.concurrent.ThreadSafe;
 public interface LocalComponentGraphResolveState extends ComponentGraphResolveState {
     ModuleVersionIdentifier getModuleVersionId();
 
-    LocalComponentMetadata getArtifactMetadata();
+    @Override
+    LocalComponentGraphResolveMetadata getMetadata();
 
-    LocalComponentMetadata copy(ComponentIdentifier componentIdentifier, Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> artifacts);
+    LocalComponentGraphResolveMetadata copy(ComponentIdentifier componentIdentifier, Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> artifacts);
 
     /**
      * @see LocalComponentGraphResolveState#reevaluate()

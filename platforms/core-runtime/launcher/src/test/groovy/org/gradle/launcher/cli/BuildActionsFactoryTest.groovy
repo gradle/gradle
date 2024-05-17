@@ -35,11 +35,11 @@ import org.gradle.launcher.daemon.client.SingleUseDaemonClient
 import org.gradle.launcher.daemon.configuration.DaemonParameters
 import org.gradle.launcher.daemon.context.DaemonRequestContext
 import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria
-import org.gradle.launcher.exec.BuildActionExecuter
+import org.gradle.launcher.exec.BuildActionExecutor
 import org.gradle.process.internal.CurrentProcess
 import org.gradle.process.internal.JvmOptions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.tooling.internal.provider.ForwardStdInToThisProcess
+import org.gradle.tooling.internal.provider.RunInProcess
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
@@ -186,7 +186,7 @@ class BuildActionsFactoryTest extends Specification {
     void isInProcess(def action) {
         def runnable = unwrapAction(action)
         def executor = unwrapExecutor(runnable)
-        assert executor instanceof ForwardStdInToThisProcess
+        assert executor instanceof RunInProcess
     }
 
     void isSingleUseDaemon(def action) {
@@ -200,8 +200,8 @@ class BuildActionsFactoryTest extends Specification {
         return action.runnable
     }
 
-    private BuildActionExecuter unwrapExecutor(Runnable runnable) {
+    private BuildActionExecutor unwrapExecutor(Runnable runnable) {
         assert runnable instanceof RunBuildAction
-        return runnable.executer
+        return runnable.executor
     }
 }

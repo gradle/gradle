@@ -24,9 +24,11 @@ dependencies {
     api(project(":core-api"))
     api(project(":declarative-dsl-api"))
     api(project(":declarative-dsl-core"))
+    api(project(":declarative-dsl-tooling-models"))
     api(libs.futureKotlin("stdlib"))
-    api(libs.inject)
 
+
+    implementation(libs.inject)
     testImplementation(libs.mockitoKotlin2)
 
     implementation(projects.javaLanguageExtensions)
@@ -34,11 +36,12 @@ dependencies {
     implementation(project(":model-core"))
 
     implementation(libs.guava)
-    implementation(libs.futureKotlin("compiler-embeddable"))
     implementation(libs.futureKotlin("reflect"))
 
     integTestImplementation(project(":internal-testing"))
     integTestImplementation(project(":logging"))
 
     integTestDistributionRuntimeOnly(project(":distributions-full"))
+
+    integTestImplementation(testFixtures(project(":tooling-api")))
 }

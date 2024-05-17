@@ -16,9 +16,10 @@
 
 package org.gradle.internal.declarativedsl.evaluationSchema
 
-import org.gradle.internal.declarativedsl.analysis.AnalysisSchema
+import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter
 import org.gradle.internal.declarativedsl.analysis.analyzeEverything
+import org.gradle.internal.declarativedsl.checks.DocumentCheck
 import org.gradle.internal.declarativedsl.mappingToJvm.MemberFunctionResolver
 import org.gradle.internal.declarativedsl.mappingToJvm.ReflectionRuntimePropertyResolver
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeCustomAccessors
@@ -29,7 +30,8 @@ import org.gradle.internal.declarativedsl.mappingToJvm.RuntimePropertyResolver
 class EvaluationSchema(
     val analysisSchema: AnalysisSchema,
     val analysisStatementFilter: AnalysisStatementFilter = analyzeEverything,
+    val documentChecks: List<DocumentCheck> = listOf(),
     val runtimePropertyResolvers: List<RuntimePropertyResolver> = listOf(ReflectionRuntimePropertyResolver),
     val runtimeFunctionResolvers: List<RuntimeFunctionResolver> = listOf(MemberFunctionResolver(gradleConfigureLambdas)),
-    val runtimeCustomAccessors: List<RuntimeCustomAccessors> = emptyList()
+    val runtimeCustomAccessors: List<RuntimeCustomAccessors> = emptyList(),
 )

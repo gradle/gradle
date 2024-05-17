@@ -62,7 +62,7 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
     }
 
     @Override
-    public PersistentCache open(File cacheDir, String displayName, Map<String, ?> properties, LockOptions lockOptions, @Nullable Consumer<? super PersistentCache> initializer, @Nullable CacheCleanupStrategy cacheCleanupStrategy) throws CacheOpenException {
+    public PersistentCache open(File cacheDir, String displayName, Map<String, ?> properties, LockOptions lockOptions, @Nullable Consumer<? super PersistentCache> initializer, CacheCleanupStrategy cacheCleanupStrategy) throws CacheOpenException {
         lock.lock();
         try {
             return doOpen(cacheDir, displayName, properties, lockOptions, initializer, cacheCleanupStrategy);
@@ -93,7 +93,7 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
         Map<String, ?> properties,
         LockOptions lockOptions,
         @Nullable Consumer<? super PersistentCache> initializer,
-        @Nullable CacheCleanupStrategy cacheCleanupStrategy
+        CacheCleanupStrategy cacheCleanupStrategy
     ) {
         File canonicalDir;
         try {
@@ -105,7 +105,8 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
         if (dirCacheReference == null) {
             ReferencablePersistentCache cache;
             if (!properties.isEmpty() || initializer != null) {
-                cache = new DefaultPersistentDirectoryCache(canonicalDir, displayName, properties, lockOptions, initializer, cacheCleanupStrategy, lockManager, executorFactory, buildOperationRunner);
+                Consumer<? super PersistentCache> initAction = initializer != null ? initializer : __ -> {};
+                cache = new DefaultPersistentDirectoryCache(canonicalDir, displayName, properties, lockOptions, initAction, cacheCleanupStrategy, lockManager, executorFactory, buildOperationRunner);
             } else {
                 cache = new DefaultPersistentDirectoryStore(canonicalDir, displayName, lockOptions, cacheCleanupStrategy, lockManager, executorFactory, buildOperationRunner);
             }

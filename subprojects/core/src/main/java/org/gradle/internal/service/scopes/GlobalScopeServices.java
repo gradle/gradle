@@ -132,12 +132,9 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
         this.environment = () -> longLiving;
     }
 
-    void configure(ServiceRegistration registration, ClassLoaderRegistry classLoaderRegistry) {
-        final List<PluginServiceRegistry> pluginServiceFactories = new DefaultServiceLocator(classLoaderRegistry.getRuntimeClassLoader(), classLoaderRegistry.getPluginsClassLoader()).getAll(PluginServiceRegistry.class);
-        for (PluginServiceRegistry pluginServiceRegistry : pluginServiceFactories) {
-            registration.add(PluginServiceRegistry.class, pluginServiceRegistry);
-            pluginServiceRegistry.registerGlobalServices(registration);
-        }
+    @Override
+    void configure(ServiceRegistration registration) {
+        super.configure(registration);
         registration.add(DefaultScriptFileResolverListeners.class);
         registration.add(BuildLayoutFactory.class);
     }

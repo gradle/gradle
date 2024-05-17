@@ -19,7 +19,6 @@ package org.gradle.integtests.tooling.r32
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import spock.lang.Issue
 
@@ -68,7 +67,6 @@ class CustomPlugin implements Plugin<Project> {
     }
 
     @Issue("GRADLE-3307")
-    @ToolingApiVersion(">=3.2")
     @TargetGradleVersion(">=3.2")
     def "serializes exception when dependencies aren't resolved"() {
         when:

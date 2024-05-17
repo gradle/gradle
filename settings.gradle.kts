@@ -26,7 +26,7 @@ pluginManagement {
 }
 
 plugins {
-    id("com.gradle.develocity").version("3.17.2") // Sync with `build-logic-commons/build-platform/build.gradle.kts`
+    id("com.gradle.develocity").version("3.17.3") // Sync with `build-logic-commons/build-platform/build.gradle.kts`
     id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.10.0")
     id("org.gradle.toolchains.foojay-resolver-convention") version ("0.8.0")
 //    id("net.ltgt.errorprone").version("3.1.0")
@@ -111,6 +111,11 @@ val core = platform("core") {
         subproject("api-metadata")
         subproject("base-services-groovy")
         subproject("configuration-cache")
+        subproject("declarative-dsl-api")
+        subproject("declarative-dsl-core")
+        subproject("declarative-dsl-provider")
+        subproject("declarative-dsl-tooling-models")
+        subproject("declarative-dsl-tooling-builders")
         subproject("file-collections")
         subproject("input-tracking")
         subproject("kotlin-dsl")
@@ -121,9 +126,6 @@ val core = platform("core") {
         subproject("kotlin-dsl-integ-tests")
         subproject("model-core")
         subproject("model-groovy")
-        subproject("declarative-dsl-api")
-        subproject("declarative-dsl-provider")
-        subproject("declarative-dsl-core")
     }
 
     // Core Execution Module
@@ -188,6 +190,7 @@ val software = platform("software") {
     subproject("security")
     subproject("signing")
     subproject("testing-base")
+    subproject("testing-base-infrastructure")
     subproject("test-suites-base")
     subproject("version-control")
 }
@@ -231,6 +234,7 @@ platform("extensibility") {
     uses(jvm)
     subproject("plugin-use")
     subproject("plugin-development")
+    subproject("unit-test-fixtures")
     subproject("test-kit")
 }
 

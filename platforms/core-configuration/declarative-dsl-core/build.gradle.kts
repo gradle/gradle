@@ -18,6 +18,8 @@ tasks.withType<KotlinCompile>().configureEach {
 }
 
 dependencies {
+    api(project(":declarative-dsl-tooling-models"))
+
     api(libs.futureKotlin("compiler-embeddable"))
     api(libs.futureKotlin("stdlib"))
 

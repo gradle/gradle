@@ -21,10 +21,11 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildEventConsumer;
-import org.gradle.initialization.BuildRequestContext;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.daemon.client.clientinput.DaemonClientInputForwarder;
+import org.gradle.internal.daemon.client.execution.ClientBuildRequestContext;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.logging.ConsoleRenderer;
@@ -46,7 +47,7 @@ import org.gradle.launcher.daemon.protocol.OutputMessage;
 import org.gradle.launcher.daemon.protocol.Result;
 import org.gradle.launcher.daemon.protocol.Stop;
 import org.gradle.launcher.daemon.server.api.DaemonStoppedException;
-import org.gradle.launcher.exec.BuildActionExecuter;
+import org.gradle.launcher.exec.BuildActionExecutor;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
 
@@ -93,7 +94,7 @@ import java.util.UUID;
  * <p>
  * If the daemon returns a {@code null} message before returning a {@link Result} object, it has terminated unexpectedly for some reason.
  */
-public class DaemonClient implements BuildActionExecuter<BuildActionParameters, BuildRequestContext> {
+public class DaemonClient implements BuildActionExecutor<BuildActionParameters, ClientBuildRequestContext> {
     private static final Logger LOGGER = Logging.getLogger(DaemonClient.class);
     private final DaemonConnector connector;
     private final OutputEventListener outputEventListener;
@@ -137,7 +138,7 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters, 
      * @param action The action
      */
     @Override
-    public BuildActionResult execute(BuildAction action, BuildActionParameters parameters, BuildRequestContext requestContext) {
+    public BuildActionResult execute(BuildAction action, BuildActionParameters parameters, ClientBuildRequestContext requestContext) {
         UUID buildId = idGenerator.generateId();
         List<DaemonInitialConnectException> accumulatedExceptions = new ArrayList<>();
 

@@ -21,12 +21,12 @@ import org.gradle.initialization.BuildRequestContext;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.logging.console.GlobalUserInputReceiver;
 import org.gradle.internal.logging.events.ReadStdInEvent;
-import org.gradle.launcher.daemon.client.DaemonClientInputForwarder;
+import org.gradle.internal.daemon.client.clientinput.DaemonClientInputForwarder;
 import org.gradle.launcher.daemon.protocol.CloseInput;
 import org.gradle.launcher.daemon.protocol.ForwardInput;
 import org.gradle.launcher.daemon.protocol.UserResponse;
-import org.gradle.launcher.daemon.server.clientinput.ClientInputForwarder;
-import org.gradle.launcher.exec.BuildActionExecuter;
+import org.gradle.internal.daemon.clientinput.ClientInputForwarder;
+import org.gradle.launcher.exec.BuildActionExecutor;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
 
@@ -36,17 +36,17 @@ import java.io.InputStream;
  * Used in tooling API embedded mode to forward client provided user input to this process's System.in and other relevant services.
  * Reuses the services used by the daemon client and daemon server to forward user input.
  */
-public class ForwardStdInToThisProcess implements BuildActionExecuter<BuildActionParameters, BuildRequestContext> {
+public class ForwardStdInToThisProcess implements BuildActionExecutor<BuildActionParameters, BuildRequestContext> {
     private final GlobalUserInputReceiver userInputReceiver;
     private final UserInputReader userInputReader;
     private final InputStream finalStandardInput;
-    private final BuildActionExecuter<BuildActionParameters, BuildRequestContext> delegate;
+    private final BuildActionExecutor<BuildActionParameters, BuildRequestContext> delegate;
 
     public ForwardStdInToThisProcess(
         GlobalUserInputReceiver userInputReceiver,
         UserInputReader userInputReader,
         InputStream finalStandardInput,
-        BuildActionExecuter<BuildActionParameters, BuildRequestContext> delegate
+        BuildActionExecutor<BuildActionParameters, BuildRequestContext> delegate
     ) {
         this.userInputReceiver = userInputReceiver;
         this.userInputReader = userInputReader;

@@ -18,12 +18,12 @@ package org.gradle.plugins.ide.tooling.r31
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.idea.IdeaModuleDependency
 import org.gradle.tooling.model.idea.IdeaProject
+
 /**
  * Dependency substitution is performed for models in a composite build
  */
@@ -99,7 +99,6 @@ class PersistentCompositeDependencySubstitutionCrossVersionSpec extends ToolingA
         eclipseProject.projectDependencies.collect {it.path}.sort()  == ['b1-renamed', 'b2-renamed']
     }
 
-    @ToolingApiVersion(">=3.2")
     def "Idea model has dependencies substituted in composite"() {
         when:
         def ideaModule = loadToolingModel(IdeaProject).modules[0]
@@ -112,7 +111,6 @@ class PersistentCompositeDependencySubstitutionCrossVersionSpec extends ToolingA
         }
     }
 
-    @ToolingApiVersion(">=3.2")
     def "Idea model honours custom module name"() {
         when:
         buildB.buildFile << """
@@ -138,7 +136,6 @@ class PersistentCompositeDependencySubstitutionCrossVersionSpec extends ToolingA
 
     }
 
-    @ToolingApiVersion(">=3.3")
     @TargetGradleVersion(">=3.3")
     def "Idea models for included builds have dependencies substituted"() {
         when:
@@ -175,7 +172,6 @@ class PersistentCompositeDependencySubstitutionCrossVersionSpec extends ToolingA
         projectC.modules[0].name == 'buildC'
     }
 
-    @ToolingApiVersion(">=3.3")
     @TargetGradleVersion(">=4.0")
     def "ensures unique name for all Idea modules in composite"() {
         given:

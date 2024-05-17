@@ -31,7 +31,6 @@ fun projectInterpretationSequence(
 ) = InterpretationSequence(listOf(SimpleInterpretationSequenceStep("project") { projectEvaluationSchema(softwareTypeRegistry) }))
 
 
-private
 fun projectEvaluationSchema(
     softwareTypeRegistry: SoftwareTypeRegistry
 ): EvaluationSchema {

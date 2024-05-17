@@ -275,6 +275,10 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
                 it.line == 5
                 it.length == 21
             }
+            verifyAll(getSingleLocation(ReceivedProblem.ReceivedOffsetInFileLocation)) {
+                it.offset == 189
+                it.length == 21
+            }
             additionalData["formatted"] == """$fooFileLocation:5: warning: [cast] redundant cast to $expectedType
                     String s = (String)"Hello World";
                                ^"""

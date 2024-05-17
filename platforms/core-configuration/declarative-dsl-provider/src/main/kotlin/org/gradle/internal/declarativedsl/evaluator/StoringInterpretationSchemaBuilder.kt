@@ -16,13 +16,13 @@
 
 package org.gradle.internal.declarativedsl.evaluator
 
-import org.gradle.internal.declarativedsl.analysis.AnalysisSchema
-import org.gradle.internal.declarativedsl.serialization.SchemaSerialization
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
+import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequence
 import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequenceStep
+import org.gradle.internal.declarativedsl.serialization.SchemaSerialization
 import java.io.File
 
 
@@ -32,7 +32,7 @@ import java.io.File
  */
 internal
 class StoringInterpretationSchemaBuilder(
-    private val schemaBuilder: InterpretationSchemaBuilder
+    private val schemaBuilder: InterpretationSchemaBuilder,
 ) : InterpretationSchemaBuilder {
     override fun getEvaluationSchemaForScript(targetInstance: Any, scriptContext: RestrictedScriptContext): InterpretationSchemaBuildingResult =
         addSerializationToSteps(targetInstance, schemaBuilder.getEvaluationSchemaForScript(targetInstance, scriptContext))
@@ -53,7 +53,6 @@ class StoringInterpretationSchemaBuilder(
     private
     fun storeSchemaResult(targetInstance: Any, identifier: String, analysisSchema: AnalysisSchema) {
         val file = schemaFile(targetInstance, identifier)
-
         file.parentFile.mkdirs()
         file.writeText(SchemaSerialization.schemaToJsonString(analysisSchema))
     }

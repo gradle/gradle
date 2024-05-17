@@ -17,7 +17,6 @@ package org.gradle.plugins.ide.tooling.m5
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.tooling.model.idea.BasicIdeaProject
@@ -121,7 +120,7 @@ idea.module.testOutputDir = file('someTestDir')
         module.compilerOutput.testOutputDir == file('someTestDir')
     }
 
-    @TargetGradleVersion(">=2.6 <5.0")
+    @TargetGradleVersion(">=3.0 <5.0")
     def "provides source dir information"() {
 
         file('build.gradle').text = "apply plugin: 'java'"
@@ -171,7 +170,6 @@ idea.module.excludeDirs += file('foo')
         module.contentRoots[0].excludeDirectories.any { it.path.endsWith 'foo' }
     }
 
-    @ToolingApiVersion(">3.1")
     def "provides dependencies"() {
 
         def fakeRepo = file("repo")
@@ -266,7 +264,6 @@ project(':impl') {
         !impl.gradleProject.tasks.find { it.name == 'rootTask' }
     }
 
-    @ToolingApiVersion(">3.1")
     def "offline model should not resolve external dependencies"() {
 
         file('build.gradle').text = """

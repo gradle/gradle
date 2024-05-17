@@ -17,6 +17,7 @@
 package org.gradle.configurationcache.isolated
 
 import org.gradle.api.provider.Property
+import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
 class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
@@ -644,6 +645,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
                 println("project path = " + path)
                 println("project projectDir = " + projectDir)
                 println("project rootDir = " + rootDir)
+                println("project toString = " + it)
                 it.name
                 project.name
                 project.path
@@ -663,6 +665,46 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         outputContains("project name = b")
     }
 
+    @ToBeImplemented
+    def "build script can query basic details of projects in a #description called from allprojects block"() {
+        createDirs("a", "b")
+        settingsFile << """
+            rootProject.name = "root"
+            include("a")
+            include("b")
+        """
+        buildFile << """
+            $declaration printInfo(def p) {
+                println("project name = " + p.name)
+            }
+
+            allprojects {
+                printInfo(it)
+            }
+
+            task something {}
+        """
+
+        when:
+        // TODO:isolated should succeed without problems
+        isolatedProjectsFails("something")
+
+        then:
+        outputContains("project name = root")
+        outputContains("project name = a")
+        outputContains("project name = b")
+
+        fixture.assertStateStoredAndDiscarded {
+            projectsConfigured(":", ":a", ":b")
+            problem("Build file 'build.gradle': line 7: Project ':' cannot access 'printInfo' extension on subprojects via 'allprojects'", 2)
+        }
+
+        where:
+        description       | declaration
+        "function"        | "def"
+        "static function" | "static def"
+    }
+
     def "build script can query basic details of isolated projects in allprojects block"() {
         createDirs("a", "b")
         settingsFile << """
@@ -679,6 +721,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
 
                 println("project name = " + isolatedProject.name)
                 println("project path = " + isolatedProject.path)
+                println("project buildTreePath = " + isolatedProject.buildTreePath)
                 println("project projectDir = " + isolatedProject.projectDirectory)
                 println("project rootDir = " + isolatedProject.rootProject.projectDirectory)
             }

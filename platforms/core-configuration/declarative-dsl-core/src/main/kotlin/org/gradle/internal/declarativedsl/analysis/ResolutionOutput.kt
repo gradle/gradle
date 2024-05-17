@@ -1,6 +1,17 @@
 package org.gradle.internal.declarativedsl.analysis
 
-import org.gradle.internal.declarativedsl.language.DataType
+import org.gradle.declarative.dsl.schema.ConfigureAccessor
+import org.gradle.declarative.dsl.schema.DataBuilderFunction
+import org.gradle.declarative.dsl.schema.DataClass
+import org.gradle.declarative.dsl.schema.DataConstructor
+import org.gradle.declarative.dsl.schema.DataParameter
+import org.gradle.declarative.dsl.schema.DataProperty
+import org.gradle.declarative.dsl.schema.DataType
+import org.gradle.declarative.dsl.schema.DataTypeRef
+import org.gradle.declarative.dsl.schema.ExternalObjectProviderKey
+import org.gradle.declarative.dsl.schema.FunctionSemantics
+import org.gradle.declarative.dsl.schema.SchemaFunction
+import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.language.FunctionCall
 import org.gradle.internal.declarativedsl.language.LanguageTreeElement
 import org.gradle.internal.declarativedsl.language.Literal
@@ -54,6 +65,8 @@ sealed interface ObjectOrigin {
 
         override val originElement: LanguageTreeElement
             get() = resolvedTo.originElement
+
+        override fun toString(): String = "(this:$resolvedTo)"
     }
 
     sealed interface ReceiverOrigin : ObjectOrigin
@@ -218,7 +231,7 @@ sealed interface ObjectOrigin {
     }
 
     data class External(val key: ExternalObjectProviderKey, override val originElement: PropertyAccess) : ObjectOrigin {
-        override fun toString(): String = "${key.type}"
+        override fun toString(): String = "${key.objectType}"
     }
 }
 
