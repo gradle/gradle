@@ -234,15 +234,21 @@ object FunctionSemanticsInternal {
     object DefaultConfigureBlockRequirement {
         @Serializable
         @SerialName("notAllowed")
-        data object DefaultNotAllowed : ConfigureBlockRequirement.NotAllowed
+        data object DefaultNotAllowed : ConfigureBlockRequirement.NotAllowed {
+            private fun readResolve(): Any = DefaultNotAllowed
+        }
 
         @Serializable
         @SerialName("optional")
-        data object DefaultOptional : ConfigureBlockRequirement.Optional
+        data object DefaultOptional : ConfigureBlockRequirement.Optional {
+            private fun readResolve(): Any = DefaultOptional
+        }
 
         @Serializable
         @SerialName("required")
-        data object DefaultRequired : ConfigureBlockRequirement.Required
+        data object DefaultRequired : ConfigureBlockRequirement.Required {
+            private fun readResolve(): Any = DefaultRequired
+        }
     }
 }
 
