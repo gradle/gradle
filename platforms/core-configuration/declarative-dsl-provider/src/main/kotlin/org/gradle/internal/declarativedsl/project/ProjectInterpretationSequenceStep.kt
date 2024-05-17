@@ -16,6 +16,7 @@
 
 package org.gradle.internal.declarativedsl.project
 
+import org.gradle.internal.declarativedsl.analysis.AssignmentGenerationId
 import org.gradle.internal.declarativedsl.analysis.AssignmentRecord
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
@@ -31,6 +32,7 @@ import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 
 class ProjectInterpretationSequenceStep(
     override val stepIdentifier: String = "project",
+    override val assignmentGeneration: AssignmentGenerationId = AssignmentGenerationId.PROPERTY_ASSIGNMENT,
     private val softwareTypeRegistry: SoftwareTypeRegistry,
     private val buildEvaluationSchema: () -> EvaluationSchema
 ) : InterpretationSequenceStep<Any> {
@@ -65,7 +67,8 @@ class ProjectInterpretationSequenceStep(
         }
     }
 
-    private fun remapSoftwareTypeToTopLevelReceiver(assignmentRecord: AssignmentRecord, topLevelReceiver: ObjectOrigin.ImplicitThisReceiver) {
+    private
+    fun remapSoftwareTypeToTopLevelReceiver(assignmentRecord: AssignmentRecord, topLevelReceiver: ObjectOrigin.ImplicitThisReceiver) {
         val softwareTypeReceiver = getSoftwareType(assignmentRecord.lhs.receiverObject)
         softwareTypeReceiver.receiver = topLevelReceiver
     }

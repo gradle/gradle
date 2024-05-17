@@ -34,6 +34,7 @@ data class AssignmentRecord(
     val rhs: ObjectOrigin,
     val assignmentOrder: Long,
     val assignmentMethod: AssignmentMethod,
+    val generationId: AssignmentGenerationId,
     val originElement: LanguageTreeElement
 )
 

@@ -17,6 +17,7 @@
 package org.gradle.internal.declarativedsl.evaluationSchema
 
 import org.gradle.declarative.dsl.schema.ExternalObjectProviderKey
+import org.gradle.internal.declarativedsl.analysis.AssignmentGenerationId
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 import org.gradle.internal.declarativedsl.mappingToJvm.DeclarativeReflectionToObjectConverter
 import org.gradle.internal.declarativedsl.mappingToJvm.ReflectionToObjectConverter
@@ -34,6 +35,7 @@ class InterpretationSequence(
 internal
 interface InterpretationSequenceStep<R : Any> {
     val stepIdentifier: String
+    val assignmentGeneration: AssignmentGenerationId
     fun evaluationSchemaForStep(): EvaluationSchema
     fun getTopLevelReceiverFromTarget(target: Any): R
     fun whenEvaluated(resultReceiver: R)
@@ -61,6 +63,7 @@ interface InterpretationSequenceStep<R : Any> {
 internal
 class SimpleInterpretationSequenceStep(
     override val stepIdentifier: String,
+    override val assignmentGeneration: AssignmentGenerationId = AssignmentGenerationId.PROPERTY_ASSIGNMENT,
     private val buildEvaluationSchema: () -> EvaluationSchema
 ) : InterpretationSequenceStep<Any> {
     override fun evaluationSchemaForStep(): EvaluationSchema = buildEvaluationSchema()

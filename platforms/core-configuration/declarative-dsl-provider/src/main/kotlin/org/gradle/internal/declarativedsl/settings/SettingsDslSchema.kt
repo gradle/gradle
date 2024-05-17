@@ -24,6 +24,7 @@ import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter
 import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter.Companion.isCallNamed
 import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter.Companion.isConfiguringCall
 import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter.Companion.isTopLevelElement
+import org.gradle.internal.declarativedsl.analysis.AssignmentGenerationId
 import org.gradle.internal.declarativedsl.analysis.and
 import org.gradle.internal.declarativedsl.analysis.implies
 import org.gradle.internal.declarativedsl.analysis.not
@@ -57,8 +58,8 @@ fun settingsInterpretationSequence(
     InterpretationSequence(
         listOf(
             SimpleInterpretationSequenceStep("settingsPluginManagement") { pluginManagementEvaluationSchema() },
-            PluginsInterpretationSequenceStep("settingsPlugins", targetScope, scriptSource, SettingsBlocksCheck) { settings.services },
-            ConventionsInterpretationSequenceStep("settingsConventions", softwareTypeRegistry) { conventionsEvaluationSchema(softwareTypeRegistry) },
+            PluginsInterpretationSequenceStep("settingsPlugins", AssignmentGenerationId.PROPERTY_ASSIGNMENT, targetScope, scriptSource, SettingsBlocksCheck) { settings.services },
+            ConventionsInterpretationSequenceStep("settingsConventions", AssignmentGenerationId.CONVENTION_ASSIGNMENT, softwareTypeRegistry) { conventionsEvaluationSchema(softwareTypeRegistry) },
             SimpleInterpretationSequenceStep("settings") { settingsEvaluationSchema(settings) }
         )
     )

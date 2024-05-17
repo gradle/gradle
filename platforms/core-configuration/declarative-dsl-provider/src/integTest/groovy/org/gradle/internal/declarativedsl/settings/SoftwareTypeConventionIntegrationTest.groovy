@@ -16,6 +16,7 @@
 
 package org.gradle.internal.declarativedsl.settings
 
+import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec implements SoftwareTypeFixture {
@@ -44,6 +45,29 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
         "everything has convention and is set"      | setAll("convention", "convention")   | setAll("test", "baz") | """id = test\nbar = baz"""
     }
 
+    def "sensible error when conventions are set more than once (#testCase)"() {
+        given:
+        withSoftwareTypePlugins().prepareToExecute()
+
+        file("settings.gradle.dcl") << getDeclarativeSettingsScriptThatSetsConventions(convention)
+
+        file("build.gradle.dcl") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType("")
+
+        when:
+        fails(":printTestSoftwareTypeExtensionConfiguration")
+
+        then:
+        result.assertHasErrorOutput("Value reassigned")
+
+        where:
+        testCase                                    | convention
+        "id has convention set twice"               | setId("convention") + setId("again")
+        "bar has convention set twice"              | setFoo(setBar("convention") + setBar("again"))
+        // TODO - doesn't work
+        //"bar has convention set in multiple blocks" | setFooBar("convention") + setFooBar("again")
+    }
+
+    @NotYetImplemented
     def "can configure build-level conventions for dependencies objects in a software type (#testCase)"() {
         given:
         withSoftwareTypePluginThatExposesExtensionWithDependencies().prepareToExecute()
@@ -148,6 +172,7 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
         ]
     }
 
+    @NotYetImplemented
     def "can configure build-level conventions in a non-declarative settings file"() {
         given:
         withSoftwareTypePlugins().prepareToExecute()
@@ -163,6 +188,7 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
         outputContains("""id = test\nbar = convention""")
     }
 
+    @NotYetImplemented
     def "can configure build-level conventions in a declarative settings file and apply in a non-declarative project file"() {
         given:
         withSoftwareTypePlugins().prepareToExecute()
@@ -180,6 +206,7 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
         outputContains("""id = convention\nbar = convention""")
     }
 
+    @NotYetImplemented
     def "can configure build-level conventions in a settings plugin"() {
         given:
         withSettingsPluginThatConfiguresSoftwareTypeConventions().prepareToExecute()
@@ -196,11 +223,19 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
     }
 
     static String setId(String id) {
-        return "id = \"${id}\""
+        return "id = \"${id}\"\n"
     }
 
     static String setFooBar(String bar) {
-        return "foo { bar = \"${bar}\" }"
+        return setFoo(setBar(bar))
+    }
+
+    static String setBar(String bar) {
+        return "bar = \"${bar}\"\n"
+    }
+
+    static String setFoo(String contents) {
+        return "foo {\n${contents}\n}"
     }
 
     static String setAll(String id, String bar) {

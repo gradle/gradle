@@ -120,7 +120,7 @@ class DefaultDeclarativeKotlinScriptEvaluator(
 
         val evaluationSchema = step.evaluationSchemaForStep()
 
-        val resolver = tracingCodeResolver(evaluationSchema.analysisStatementFilter)
+        val resolver = tracingCodeResolver(step.assignmentGeneration, evaluationSchema.analysisStatementFilter)
 
         val languageModel = languageModelFromLightParser(scriptSource)
 

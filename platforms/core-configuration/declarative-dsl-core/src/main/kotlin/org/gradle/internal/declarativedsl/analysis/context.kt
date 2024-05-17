@@ -73,7 +73,8 @@ class SchemaTypeRefContext(val schema: AnalysisSchema) : TypeRefContext {
 class AnalysisContext(
     override val schema: AnalysisSchema,
     override val imports: Map<String, FqName>,
-    val errorCollector: ErrorCollector
+    val errorCollector: ErrorCollector,
+    private val generationId: AssignmentGenerationId
 ) : AnalysisContextView {
 
     // TODO: thread safety?
@@ -110,7 +111,7 @@ class AnalysisContext(
     }
 
     fun recordAssignment(resolvedTarget: PropertyReferenceResolution, resolvedRhs: ObjectOrigin, assignmentMethod: AssignmentMethod, originElement: LanguageTreeElement): AssignmentRecord {
-        val result = AssignmentRecord(resolvedTarget, resolvedRhs, nextInstant(), assignmentMethod, originElement)
+        val result = AssignmentRecord(resolvedTarget, resolvedRhs, nextInstant(), assignmentMethod, generationId, originElement)
         mutableAssignments.add(result)
         return result
     }

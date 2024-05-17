@@ -55,3 +55,9 @@ sealed interface ErrorReason {
     data object UnitAssignment : ErrorReason
     data object DanglingPureExpression : ErrorReason
 }
+
+
+enum class AssignmentGenerationId {
+    CONVENTION_ASSIGNMENT,
+    PROPERTY_ASSIGNMENT
+}
