@@ -53,24 +53,23 @@ class DefaultIsolatedProjectEvaluationListenerProvider(
 
     override fun beforeProject(action: IsolatedProjectAction) {
         // TODO:isolated encode Application instances as part of the Environment to avoid waste
-        beforeProject.add(reapplyLater(action))
+        beforeProject.add(withUserCodeApplicationContext(action))
     }
 
     override fun afterProject(action: IsolatedProjectAction) {
-        afterProject.add(reapplyLater(action))
+        afterProject.add(withUserCodeApplicationContext(action))
     }
 
     private
-    fun reapplyLater(action: IsolatedAction<in Project>): IsolatedAction<in Project> {
-        val current = userCodeApplicationContext.current()
-            ?: return action
-        return IsolatedProjectAction {
-            val target = this
-            current.reapply {
-                action.execute(target)
+    fun withUserCodeApplicationContext(action: IsolatedProjectAction): IsolatedProjectAction =
+        userCodeApplicationContext.current()?.let { context ->
+            IsolatedProjectAction {
+                val target = this
+                context.reapply {
+                    action.execute(target)
+                }
             }
-        }
-    }
+        } ?: action
 
     override fun isolateFor(gradle: Gradle): ProjectEvaluationListener? = when {
         beforeProject.isEmpty() && afterProject.isEmpty() -> null
