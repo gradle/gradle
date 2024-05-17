@@ -275,7 +275,7 @@ trait SoftwareTypeFixture {
 
     static String getProjectPluginThatProvidesSoftwareType(
         String implementationTypeClassName = "TestSoftwareTypeExtension",
-        String publicTypeClassName = "TestSoftwareTypeExtension",
+        String publicTypeClassName = null,
         String softwareTypePluginClassName = "SoftwareTypeImplPlugin",
         String softwareType = "testSoftwareType"
     ) {
@@ -293,7 +293,7 @@ trait SoftwareTypeFixture {
 
             abstract public class ${softwareTypePluginClassName} implements Plugin<Project> {
 
-                @SoftwareType(name="${softwareType}", modelPublicType=${publicTypeClassName}.class)
+                @SoftwareType(${getSoftwareTypeArguments(softwareType, publicTypeClassName)})
                 abstract public ${implementationTypeClassName} getTestSoftwareTypeExtension();
 
                 @Override
@@ -309,6 +309,11 @@ trait SoftwareTypeFixture {
                 }
             }
         """
+    }
+
+    private static getSoftwareTypeArguments(String name, String modelPublicType) {
+        return "name=\"${name}\"" +
+            (modelPublicType ? ", modelPublicType=${modelPublicType}.class" : "")
     }
 
     static String getProjectPluginThatDoesNotProvideSoftwareType(String implementationTypeClassName = "TestSoftwareTypeExtension", String softwareTypePluginClassName = "SoftwareTypeImplPlugin") {

@@ -16,14 +16,11 @@
 
 package org.gradle.integtests.tooling.r54
 
-
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.plugins.ide.eclipse.model.EclipseModel
 
 @TargetGradleVersion(">=5.4")
-@ToolingApiVersion(">=5.4")
 class RunEclipseSynchronizationTasksCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
         file("sub1").mkdirs()

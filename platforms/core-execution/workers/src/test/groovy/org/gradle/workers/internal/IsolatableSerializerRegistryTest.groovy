@@ -367,6 +367,6 @@ class IsolatableSerializerRegistryTest extends Specification {
     }
 
     enum EnumType {
-        FOO, BAR
+        FOO {}, BAR
     }
 }

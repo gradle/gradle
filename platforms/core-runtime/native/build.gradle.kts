@@ -21,6 +21,7 @@ errorprone {
 }
 
 dependencies {
+    api(projects.serviceProvider)
     api(project(":files"))
 
     api(libs.jsr305)

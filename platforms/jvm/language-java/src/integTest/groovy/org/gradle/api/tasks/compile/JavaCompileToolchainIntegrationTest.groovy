@@ -436,7 +436,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
      */
     @Requires(UnitTestPreconditions.Jdk9OrLater)
     def "Java deprecation messages with different JDKs"() {
-        def jdk = AvailableJavaHomes.getJdk(javaVersion)
+        def jdk = javaVersion == JavaVersion.current() ? Jvm.current() : AvailableJavaHomes.getJdk(javaVersion)
 
         buildFile << """
             plugins {
@@ -469,7 +469,6 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
             }
         """
 
-        //noinspection GrDeprecatedAPIUsage
         executer.expectDeprecationWarning("$fileWithDeprecation:5: warning: $deprecationMessage")
 
         when:

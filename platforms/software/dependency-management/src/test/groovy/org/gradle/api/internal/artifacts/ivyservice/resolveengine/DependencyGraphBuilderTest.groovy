@@ -20,7 +20,6 @@ import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.Action
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ModuleVersionIdentifier
-import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter
@@ -53,22 +52,24 @@ import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ImmutableCapabilities
 import org.gradle.internal.component.local.model.DefaultLocalComponentGraphResolveState
-import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata
+import org.gradle.internal.component.local.model.DefaultLocalComponentGraphResolveMetadata
 import org.gradle.internal.component.local.model.DefaultLocalConfigurationMetadata
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadataWrapper
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory
+import org.gradle.internal.component.local.model.LocalComponentGraphResolveMetadata
 import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata
+import org.gradle.internal.component.model.ComponentGraphResolveMetadata
 import org.gradle.internal.component.model.ComponentGraphSpecificResolveState
 import org.gradle.internal.component.model.ComponentIdGenerator
 import org.gradle.internal.component.model.ComponentOverrideMetadata
-import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.component.model.ExcludeMetadata
 import org.gradle.internal.component.model.GraphVariantSelector
 import org.gradle.internal.component.model.IvyArtifactName
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata
+import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.model.CalculatedValue
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.BuildOperationQueue
@@ -780,7 +781,7 @@ class DependencyGraphBuilderTest extends Specification {
         result.rethrowFailure()
 
         then:
-        ResolveException e = thrown()
+        DefaultMultiCauseException e = thrown()
         e.cause instanceof ModuleVersionResolveException
         e.cause.message.contains "project :root > group:a:1.0"
         e.cause.message.contains "project :root > group:b:1.0"
@@ -807,7 +808,7 @@ class DependencyGraphBuilderTest extends Specification {
         result.rethrowFailure()
 
         then:
-        ResolveException e = thrown()
+        DefaultMultiCauseException e = thrown()
         e.cause instanceof ModuleVersionResolveException
         e.cause.message.contains "project :root > group:a:1.0"
         e.cause.message.contains "project :root > group:b:1.0"
@@ -833,7 +834,7 @@ class DependencyGraphBuilderTest extends Specification {
         result.rethrowFailure()
 
         then:
-        ResolveException e = thrown()
+        DefaultMultiCauseException e = thrown()
         e.cause instanceof ModuleVersionResolveException
         e.cause.message.contains "project :root > group:a:1.0"
         e.cause.message.contains "project :root > group:b:1.0"
@@ -860,7 +861,7 @@ class DependencyGraphBuilderTest extends Specification {
         result.rethrowFailure()
 
         then:
-        ResolveException e = thrown()
+        DefaultMultiCauseException e = thrown()
         e.cause instanceof ModuleVersionNotFoundException
         e.cause.message.contains "project :root > group:a:1.0"
         e.cause.message.contains "project :root > group:b:1.0"
@@ -887,7 +888,7 @@ class DependencyGraphBuilderTest extends Specification {
         result.rethrowFailure()
 
         then:
-        ResolveException e = thrown()
+        DefaultMultiCauseException e = thrown()
         e.cause instanceof ModuleVersionNotFoundException
         e.cause.message.contains "project :root > group:a:1.0"
         e.cause.message.contains "project :root > group:b:1.0"
@@ -913,7 +914,7 @@ class DependencyGraphBuilderTest extends Specification {
         result.rethrowFailure()
 
         then:
-        ResolveException e = thrown()
+        DefaultMultiCauseException e = thrown()
         e.cause instanceof ModuleVersionNotFoundException
         e.cause.message.contains "project :root > group:a:1.0 > group:b:1.0"
     }
@@ -948,7 +949,7 @@ class DependencyGraphBuilderTest extends Specification {
         result.rethrowFailure()
 
         then:
-        ResolveException ex = thrown()
+        DefaultMultiCauseException ex = thrown()
         ex.cause instanceof ModuleVersionNotFoundException
         !ex.cause.message.contains("group:a:1.1")
         ex.cause.message.contains "project :root > group:a:1.2"
@@ -978,7 +979,7 @@ class DependencyGraphBuilderTest extends Specification {
         }
 
         and:
-        ResolveException e = thrown()
+        DefaultMultiCauseException e = thrown()
         e.cause instanceof ModuleVersionNotFoundException
         e.cause.message.contains("project :root")
     }
@@ -1058,8 +1059,8 @@ class DependencyGraphBuilderTest extends Specification {
         def artifacts = [new PublishArtifactLocalArtifactMetadata(componentId, new DefaultPublishArtifact("art1", "zip", "art", null, new Date(), new File("art1.zip")))]
         def defaultConfiguration = newConfiguration("default", componentId, [], [], artifacts)
 
-        def configurations = new DefaultLocalComponentMetadata.ConfigurationsMapMetadataFactory(["default": defaultConfiguration])
-        return new DefaultLocalComponentMetadata(id, componentId, "release", attributesSchema, configurations, null)
+        def configurations = new DefaultLocalComponentGraphResolveMetadata.ConfigurationsMapMetadataFactory(["default": defaultConfiguration])
+        return new DefaultLocalComponentGraphResolveMetadata(id, componentId, "release", attributesSchema, configurations, null)
     }
 
     def rootProject() {
@@ -1071,8 +1072,8 @@ class DependencyGraphBuilderTest extends Specification {
 
         def rootConfiguration = newConfiguration("root", componentId, ["default"], defaultConfiguration.getDependencies(), [])
 
-        def configurations = new DefaultLocalComponentMetadata.ConfigurationsMapMetadataFactory(["default": defaultConfiguration, "root": rootConfiguration])
-        return new DefaultLocalComponentMetadata(newId("group", "root", "1.0"), componentId, "release", attributesSchema, configurations, null)
+        def configurations = new DefaultLocalComponentGraphResolveMetadata.ConfigurationsMapMetadataFactory(["default": defaultConfiguration, "root": rootConfiguration])
+        return new DefaultLocalComponentGraphResolveMetadata(newId("group", "root", "1.0"), componentId, "release", attributesSchema, configurations, null)
     }
 
     def newConfiguration(String name, ComponentIdentifier componentId, List<String> extendsFrom, List<LocalOriginDependencyMetadata> dependencies, List<LocalComponentArtifactMetadata> artifacts) {
@@ -1093,7 +1094,7 @@ class DependencyGraphBuilderTest extends Specification {
         )
     }
 
-    def traverses(Map<String, ?> args = [:], def from, ComponentResolveMetadata to) {
+    def traverses(Map<String, ?> args = [:], def from, ComponentGraphResolveMetadata to) {
         def dependencyMetaData = dependsOn(args, from, to.moduleVersionId)
         selectorResolvesTo(dependencyMetaData, to.id, to.moduleVersionId)
         println "Traverse $from to ${to.id}"
@@ -1103,19 +1104,19 @@ class DependencyGraphBuilderTest extends Specification {
         }
     }
 
-    def doesNotTraverse(Map<String, ?> args = [:], def from, ComponentResolveMetadata to) {
+    def doesNotTraverse(Map<String, ?> args = [:], def from, ComponentGraphResolveMetadata to) {
         def dependencyMetaData = dependsOn(args, from, to.moduleVersionId)
         selectorResolvesTo(dependencyMetaData, to.id, to.moduleVersionId)
         0 * metaDataResolver.resolve(to.id, _, _)
     }
 
-    def doesNotResolve(Map<String, ?> args = [:], def from, ComponentResolveMetadata to) {
+    def doesNotResolve(Map<String, ?> args = [:], def from, ComponentGraphResolveMetadata to) {
         def dependencyMetaData = dependsOn(args, from, to.moduleVersionId)
         0 * idResolver.resolve(dependencyMetaData, _, _, _)
         0 * metaDataResolver.resolve(to.id, _, _)
     }
 
-    def traversesMissing(Map<String, ?> args = [:], def from, ComponentResolveMetadata to) {
+    def traversesMissing(Map<String, ?> args = [:], def from, ComponentGraphResolveMetadata to) {
         def dependencyMetaData = dependsOn(args, from, to.moduleVersionId)
         selectorResolvesTo(dependencyMetaData, to.id, to.moduleVersionId)
         1 * metaDataResolver.resolve(to.id, _, _) >> { ComponentIdentifier id, ComponentOverrideMetadata requestMetaData, BuildableComponentResolveResult result ->
@@ -1123,7 +1124,7 @@ class DependencyGraphBuilderTest extends Specification {
         }
     }
 
-    def traversesBroken(Map<String, ?> args = [:], def from, ComponentResolveMetadata to) {
+    def traversesBroken(Map<String, ?> args = [:], def from, ComponentGraphResolveMetadata to) {
         def dependencyMetaData = dependsOn(args, from, to.moduleVersionId)
         selectorResolvesTo(dependencyMetaData, to.id, to.moduleVersionId)
         1 * metaDataResolver.resolve(to.id, _, _) >> { ComponentIdentifier id, ComponentOverrideMetadata requestMetaData, BuildableComponentResolveResult result ->
@@ -1148,7 +1149,7 @@ class DependencyGraphBuilderTest extends Specification {
         }
     }
 
-    def dependsOn(Map<String, ?> args = [:], ComponentResolveMetadata from, ModuleVersionIdentifier to) {
+    def dependsOn(Map<String, ?> args = [:], LocalComponentGraphResolveMetadata from, ModuleVersionIdentifier to) {
         ModuleVersionIdentifier dependencyId = args.revision ? newId(DefaultModuleIdentifier.newId(to.group, to.name), args.revision) : to
         boolean transitive = args.transitive == null || args.transitive
         boolean force = args.force
@@ -1156,7 +1157,7 @@ class DependencyGraphBuilderTest extends Specification {
         ComponentSelector componentSelector = newSelector(DefaultModuleIdentifier.newId(dependencyId.group, dependencyId.name), new DefaultMutableVersionConstraint(dependencyId.version))
         List<ExcludeMetadata> excludeRules = []
         if (args.exclude) {
-            ComponentResolveMetadata excluded = args.exclude
+            ComponentGraphResolveMetadata excluded = args.exclude
             excludeRules << new DefaultExclude(moduleIdentifierFactory.module(excluded.moduleVersionId.group, excluded.moduleVersionId.name))
         }
         def dependencyMetaData = new LocalComponentDependencyMetadata(componentSelector,
@@ -1175,7 +1176,7 @@ class DependencyGraphBuilderTest extends Specification {
         }
     }
 
-    def ids(ComponentResolveMetadata... descriptors) {
+    def ids(ComponentGraphResolveMetadata... descriptors) {
         return descriptors.collect { it.moduleVersionId } as Set
     }
 
@@ -1217,7 +1218,7 @@ class DependencyGraphBuilderTest extends Specification {
                 return
             }
 
-            throw new ResolveException("config", failures.values().collect {
+            throw new DefaultMultiCauseException("message", failures.values().collect {
                 it.failure.withIncomingPaths(DependencyGraphPathResolver.calculatePaths(it.requiredBy, root))
             })
         }

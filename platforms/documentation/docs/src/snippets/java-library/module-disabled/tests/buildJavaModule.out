@@ -7,7 +7,6 @@
 /home/user/gradle/samples/src/main/java/module-info.java:3: error: module not found: org.apache.commons.lang3
     requires org.apache.commons.lang3; // automatic module
                                ^
-2 errors
 
 FAILURE: Build failed with an exception.
 

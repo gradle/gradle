@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.provider.runner;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.tasks.testing.AbstractTestDescriptor;
 import org.gradle.api.internal.tasks.testing.DecoratingTestDescriptor;
+import org.gradle.api.internal.tasks.testing.DefaultParameterizedTestDescriptor;
 import org.gradle.api.internal.tasks.testing.operations.ExecuteTestBuildOperationType;
 import org.gradle.api.tasks.testing.TestDescriptor;
 import org.gradle.api.tasks.testing.TestFailure;
@@ -37,6 +38,7 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationStartEvent;
+import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.OperationType;
 import org.gradle.tooling.internal.protocol.InternalFailure;
 import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
@@ -93,6 +95,7 @@ class TestOperationMapper implements BuildOperationMapper<ExecuteTestBuildOperat
         TestDescriptor originalDescriptor = getOriginalDescriptor(suite);
         if (originalDescriptor instanceof AbstractTestDescriptor) {
             methodName = ((AbstractTestDescriptor) originalDescriptor).getMethodName();
+            operationDisplayName = adjustOperationDisplayNameForIntelliJ(operationDisplayName, (AbstractTestDescriptor) originalDescriptor);
         } else {
             operationDisplayName = getLegacyOperationDisplayName(operationDisplayName, originalDescriptor);
         }
@@ -103,10 +106,29 @@ class TestOperationMapper implements BuildOperationMapper<ExecuteTestBuildOperat
         String operationDisplayName = test.toString();
 
         TestDescriptor originalDescriptor = getOriginalDescriptor(test);
-        if (!(originalDescriptor instanceof AbstractTestDescriptor)) {
+        if (originalDescriptor instanceof AbstractTestDescriptor) {
+            operationDisplayName = adjustOperationDisplayNameForIntelliJ(operationDisplayName, (AbstractTestDescriptor) originalDescriptor);
+        } else {
             operationDisplayName = getLegacyOperationDisplayName(operationDisplayName, originalDescriptor);
         }
         return new DefaultTestDescriptor(buildOperationId, test.getName(), operationDisplayName, test.getDisplayName(), InternalJvmTestDescriptor.KIND_ATOMIC, null, test.getClassName(), test.getName(), parentId, taskTracker.getTaskPath(buildOperationId));
+    }
+
+    /**
+     * This is a workaround to preserve backward compatibility with IntelliJ IDEA.
+     * The problem only occurs in IntelliJ IDEA because it parses {@link OperationDescriptor#getDisplayName()} to get the test display name.
+     * Once its code is updated to use {@link org.gradle.tooling.events.test.TestOperationDescriptor#getTestDisplayName()}, the workaround can be removed as well.
+     * Alternatively, it can be removed in Gradle 9.0.
+     * See <a href="https://github.com/gradle/gradle/issues/24538">this issue</a> for more details.
+     */
+    private String adjustOperationDisplayNameForIntelliJ(String operationDisplayName, AbstractTestDescriptor descriptor) {
+        String displayName = descriptor.getDisplayName();
+        if (!descriptor.getName().equals(displayName) && !(descriptor.getClassDisplayName() != null && descriptor.getName().endsWith(descriptor.getClassDisplayName()))) {
+            return descriptor.getDisplayName();
+        } else if (descriptor instanceof DefaultParameterizedTestDescriptor) { // for spock parameterized tests
+            return descriptor.getDisplayName();
+        }
+        return operationDisplayName;
     }
 
     /**
@@ -125,7 +147,8 @@ class TestOperationMapper implements BuildOperationMapper<ExecuteTestBuildOperat
     }
 
     /**
-     * can be removed once {@link #getLegacyOperationDisplayName(String, TestDescriptor) the workaround above} is removed
+     * can be removed once the workaround above ({@link #getLegacyOperationDisplayName(String, TestDescriptor) 1} and
+     * {@link #adjustOperationDisplayNameForIntelliJ(String, AbstractTestDescriptor) 2}) are removed
      */
     private static TestDescriptor getOriginalDescriptor(TestDescriptor testDescriptor) {
         if (testDescriptor instanceof DecoratingTestDescriptor) {

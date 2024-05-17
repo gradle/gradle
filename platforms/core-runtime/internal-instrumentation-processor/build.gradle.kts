@@ -24,7 +24,6 @@ errorprone {
         "DoNotClaimAnnotations", // 1 occurrences
         "ReferenceEquality", // 1 occurrences
         "ReturnValueIgnored", // 3 occurrences
-        "ShortCircuitBoolean", // 1 occurrences
         "StringCaseLocaleUsage", // 2 occurrences
         "ImmutableEnumChecker" // 1 occurrences
     )

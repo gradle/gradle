@@ -70,10 +70,16 @@ class TestUtil {
     private static ServiceRegistry services
 
     private final File rootDir
+    private final File userHomeDir
 
     private TestUtil(File rootDir) {
+        this(rootDir, new File(rootDir, "userHome"))
+    }
+
+    private TestUtil(File rootDir, File userHomeDir) {
         NativeServicesTestFixture.initialize()
         this.rootDir = rootDir
+        this.userHomeDir = userHomeDir
     }
 
     static InstantiatorFactory instantiatorFactory() {
@@ -214,16 +220,16 @@ class TestUtil {
         return new FeaturePreviews()
     }
 
-    static TestUtil create(File rootDir) {
-        return new TestUtil(rootDir)
+    static TestUtil create(File rootDir, File userHomeDir = null) {
+        return new TestUtil(rootDir, userHomeDir)
     }
 
     static TestUtil create(TestDirectoryProvider testDirectoryProvider) {
         return new TestUtil(testDirectoryProvider.testDirectory)
     }
 
-    public <T extends Task> T task(Class<T> type) {
-        return createTask(type, createRootProject(this.rootDir))
+    <T extends Task> T task(Class<T> type) {
+        return createTask(type, createRootProject(this.rootDir, this.userHomeDir))
     }
 
     static <T extends Task> T createTask(Class<T> type, ProjectInternal project) {
@@ -243,15 +249,18 @@ class TestUtil {
     }
 
     ProjectInternal rootProject() {
-        createRootProject(rootDir)
+        createRootProject(rootDir, userHomeDir)
     }
 
-    static ProjectInternal createRootProject(File rootDir) {
-        return ProjectBuilder
+    static ProjectInternal createRootProject(File rootDir, File userHomeDir = null) {
+        def builder = ProjectBuilder
             .builder()
             .withProjectDir(rootDir)
             .withName("test-project")
-            .build()
+        if (userHomeDir != null) {
+            builder.withGradleUserHomeDir(userHomeDir)
+        }
+        return builder.build()
     }
 
     static ProjectInternal createChildProject(ProjectInternal parent, String name, File projectDir = null) {

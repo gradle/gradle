@@ -1,0 +1,82 @@
+// tag::dos[]
+abstract class MyPluginExtensionDomainObjectSet {
+    // Define a domain object set to hold strings
+    DomainObjectSet<String> myStrings = project.objects.domainObjectSet(String)
+
+    // Add some strings to the domain object set
+    void addString(String value) {
+        myStrings.add(value)
+    }
+}
+// end::dos[]
+
+// tag::ndos[]
+// tag::ndol[]
+// tag::ndoc[]
+abstract class Person {
+    String name
+}
+// end::ndol[]
+// end::ndoc[]
+
+abstract class MyPluginExtensionNamedDomainObjectSet {
+    // Define a named domain object set to hold Person objects
+    NamedDomainObjectSet<Person> people = project.objects.namedDomainObjectSet(Person)
+
+    // Add a person to the set
+    void addPerson(String name) {
+        people.create(name)
+    }
+}
+// end::ndos[]
+
+// tag::ndol[]
+
+abstract class MyPluginExtensionNamedDomainObjectList {
+    // Define a named domain object container to hold Person objects
+    NamedDomainObjectList<Person> people = project.container(Person)
+
+    // Add a person to the container
+    void addPerson(String name) {
+        people.create(name: name)
+    }
+}
+// end::ndol[]
+
+// tag::ndoc[]
+
+abstract class MyPluginExtensionNamedDomainObjectContainer {
+    // Define a named domain object container to hold Person objects
+    NamedDomainObjectContainer<Person> people = project.container(Person)
+
+    // Add a person to the container
+    void addPerson(String name) {
+        people.create(name: name)
+    }
+}
+// end::ndoc[]
+
+// tag::epdoc[]
+abstract class Animal {
+    String name
+}
+
+abstract class Dog extends Animal {
+    String breed
+}
+
+abstract class MyPluginExtensionExtensiblePolymorphicDomainObjectContainer {
+    // Define a container for animals
+    ExtensiblePolymorphicDomainObjectContainer<Animal> animals
+
+    MyPluginExtensionExtensiblePolymorphicDomainObjectContainer(ObjectFactory objectFactory) {
+        // Create the container
+        animals = objectFactory.polymorphicDomainObjectContainer(Animal)
+    }
+
+    // Add a dog to the container
+    void addDog(String name, String breed) {
+        animals.create(Dog, name: name, breed: breed)
+    }
+}
+// end::epdoc[]

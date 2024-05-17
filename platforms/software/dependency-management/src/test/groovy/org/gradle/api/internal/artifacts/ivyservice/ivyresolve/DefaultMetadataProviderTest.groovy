@@ -54,7 +54,7 @@ class DefaultMetadataProviderTest extends Specification {
     }
     def metaData = Stub(ModuleComponentResolveMetadata)
     def componentState = Stub(ModuleComponentGraphResolveState) {
-        getModuleResolveMetadata() >> metaData
+        getLegacyMetadata() >> metaData
     }
     def resolveState = Mock(ModuleComponentResolveState)
     def metadataProvider = new DefaultMetadataProvider(resolveState)
@@ -134,7 +134,7 @@ class DefaultMetadataProviderTest extends Specification {
         metaData.extraAttributes >> ImmutableMap.copyOf(extraInfo)
 
         def componentState = Stub(ModuleComponentGraphResolveState)
-        componentState.moduleResolveMetadata >> metaData
+        componentState.legacyMetadata >> metaData
 
         resolveState.resolve() >> {
             def result = new DefaultBuildableModuleComponentMetaDataResolveResult()

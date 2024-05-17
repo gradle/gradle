@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures
 
+import junit.framework.AssertionFailedError
 import org.gradle.api.specs.Spec
 import org.gradle.api.specs.Specs
 import org.gradle.internal.logging.events.StyledTextOutputEvent
@@ -95,7 +96,11 @@ class BuildOperationTreeFixture extends BuildOperationTreeQueries {
     @Override
     BuildOperationRecord only(Pattern displayName) {
         def records = all(displayName)
-        assert records.size() == 1: "Error matching pattern: $displayName"
+        if (records.isEmpty()) {
+            throw new AssertionFailedError("No operations found with display name that matches $displayName")
+        } else if (records.size() > 1) {
+            throw new AssertionFailedError("Multiple operations found with display name that matches $displayName")
+        }
         return records.first()
     }
 

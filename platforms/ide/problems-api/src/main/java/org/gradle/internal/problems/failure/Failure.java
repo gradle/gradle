@@ -60,4 +60,9 @@ public interface Failure {
      */
     List<Failure> getCauses();
 
+    /**
+     * Returns the index of the first matching frame in the stack trace, or {@code -1} if not found.
+     */
+    int indexOfStackFrame(int start, StackFramePredicate predicate);
+
 }

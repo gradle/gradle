@@ -19,15 +19,15 @@ package org.gradle.launcher.daemon
 import groovy.test.NotYetImplemented
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.buildconfiguration.BuildPropertiesDefaults
-import org.gradle.internal.buildconfiguration.fixture.BuildPropertiesFixture
+import org.gradle.internal.buildconfiguration.DaemonJvmPropertiesDefaults
+import org.gradle.internal.buildconfiguration.fixture.DaemonJvmPropertiesFixture
 import org.gradle.internal.jvm.Jvm
 
-class DaemonToolchainInvalidCriteriaIntegrationTest extends AbstractIntegrationSpec implements BuildPropertiesFixture {
+class DaemonToolchainInvalidCriteriaIntegrationTest extends AbstractIntegrationSpec implements DaemonJvmPropertiesFixture {
 
-    def "Given empty build properties file When execute any task Then succeeds using the current java home"() {
+    def "Given empty daemon-jvm properties file When execute any task Then succeeds using the current java home"() {
         given:
-        buildPropertiesFile.touch()
+        daemonJvmPropertiesFile.touch()
         captureJavaHome()
 
         expect:
@@ -37,20 +37,20 @@ class DaemonToolchainInvalidCriteriaIntegrationTest extends AbstractIntegrationS
 
     def "Given non-integer toolchain version When execute any task Then fails with expected exception message"() {
         given:
-        buildPropertiesFile.writeProperties((BuildPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY): "stringVersion")
+        daemonJvmPropertiesFile.writeProperties((DaemonJvmPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY): "stringVersion")
         when:
         fails 'help'
         then:
-        failure.assertHasDescription("Value 'stringVersion' given for daemon.jvm.toolchain.version is an invalid Java version")
+        failure.assertHasDescription("Value 'stringVersion' given for toolchainVersion is an invalid Java version")
     }
 
     def "Given negative toolchain version When execute any task Then fails with expected exception message"() {
         given:
-        buildPropertiesFile.writeProperties((BuildPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY): "-1")
+        daemonJvmPropertiesFile.writeProperties((DaemonJvmPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY): "-1")
         when:
         fails 'help'
         then:
-        failure.assertHasDescription("Value '-1' given for daemon.jvm.toolchain.version is an invalid Java version")
+        failure.assertHasDescription("Value '-1' given for toolchainVersion is an invalid Java version")
     }
 
     @NotYetImplemented
@@ -62,7 +62,7 @@ class DaemonToolchainInvalidCriteriaIntegrationTest extends AbstractIntegrationS
         fails 'help'
 
         then:
-        failureDescriptionContains("Option daemon.jvm.toolchain.vendor doesn't accept value 'unexpectedVendor'. Possible values are " +
+        failureDescriptionContains("Option toolchainVendor doesn't accept value 'unexpectedVendor'. Possible values are " +
             "[ADOPTIUM, ADOPTOPENJDK, AMAZON, APPLE, AZUL, BELLSOFT, GRAAL_VM, HEWLETT_PACKARD, IBM, JETBRAINS, MICROSOFT, ORACLE, SAP, TENCENT, UNKNOWN]")
     }
 
@@ -75,6 +75,6 @@ class DaemonToolchainInvalidCriteriaIntegrationTest extends AbstractIntegrationS
         fails 'help'
 
         then:
-        failureDescriptionContains("Option daemon.jvm.toolchain.implementation doesn't accept value 'unknownImplementation'. Possible values are [VENDOR_SPECIFIC, J9]")
+        failureDescriptionContains("Option toolchainImplementation doesn't accept value 'unknownImplementation'. Possible values are [VENDOR_SPECIFIC, J9]")
     }
 }

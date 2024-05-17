@@ -1,6 +1,9 @@
 package org.gradle.internal.declarativedsl.analysis
 
-import org.gradle.internal.declarativedsl.language.DataType
+import org.gradle.declarative.dsl.schema.AnalysisSchema
+import org.gradle.declarative.dsl.schema.DataType
+import org.gradle.declarative.dsl.schema.DataTypeRef
+import org.gradle.declarative.dsl.schema.FqName
 import org.gradle.internal.declarativedsl.language.LanguageTreeElement
 import org.gradle.internal.declarativedsl.language.LocalValue
 import java.util.concurrent.atomic.AtomicLong
@@ -81,7 +84,9 @@ class AnalysisContext(
     private
     val nextInstant = AtomicLong(1)
     private
-    val mutableAdditions = mutableListOf<DataAddition>()
+    val mutableAdditions = mutableListOf<DataAdditionRecord>()
+    private
+    val mutableNestedObjectAccess = mutableListOf<NestedObjectAccessRecord>()
 
     override val currentScopes: List<AnalysisScope>
         get() = mutableScopes
@@ -89,8 +94,11 @@ class AnalysisContext(
     override val assignments: List<AssignmentRecord>
         get() = mutableAssignments
 
-    val additions: List<DataAddition>
+    val additions: List<DataAdditionRecord>
         get() = mutableAdditions
+
+    val nestedObjectAccess: List<NestedObjectAccessRecord>
+        get() = mutableNestedObjectAccess
 
     private
     val typeRefContext = SchemaTypeRefContext(schema)
@@ -108,7 +116,11 @@ class AnalysisContext(
     }
 
     fun recordAddition(container: ObjectOrigin, dataObject: ObjectOrigin) {
-        mutableAdditions += DataAddition(container, dataObject)
+        mutableAdditions += DataAdditionRecord(container, dataObject)
+    }
+
+    fun recordNestedObjectAccess(container: ObjectOrigin, dataObject: ObjectOrigin.AccessAndConfigureReceiver) {
+        mutableNestedObjectAccess += NestedObjectAccessRecord(container, dataObject)
     }
 
     fun nextInstant(): Long = nextInstant.incrementAndGet()

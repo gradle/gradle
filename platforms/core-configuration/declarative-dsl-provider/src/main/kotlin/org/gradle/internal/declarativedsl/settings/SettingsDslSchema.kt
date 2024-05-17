@@ -46,24 +46,31 @@ fun settingsInterpretationSequence(
 ): InterpretationSequence =
     InterpretationSequence(
         listOf(
-            SimpleInterpretationSequenceStep("settingsPluginManagement", settings) { pluginManagementEvaluationSchema() },
-            PluginsInterpretationSequenceStep("settingsPlugins", settings, targetScope, scriptSource) { it.services },
-            SimpleInterpretationSequenceStep("settings", settings) { settingsEvaluationSchema(settings) }
+            SimpleInterpretationSequenceStep("settingsPluginManagement") { pluginManagementEvaluationSchema() },
+            PluginsInterpretationSequenceStep("settingsPlugins", targetScope, scriptSource, SettingsBlocksCheck) { settings.services },
+            SimpleInterpretationSequenceStep("settings") { settingsEvaluationSchema(settings) }
         )
     )
 
 
 internal
 fun pluginManagementEvaluationSchema(): EvaluationSchema =
-    buildEvaluationSchema(Settings::class, gradleDslGeneralSchemaComponent(), isTopLevelPluginManagementBlock)
+    buildEvaluationSchema(
+        Settings::class,
+        gradleDslGeneralSchemaComponent() + SettingsBlocksCheck,
+        isTopLevelPluginManagementBlock
+    )
 
 
 internal
 fun settingsEvaluationSchema(settings: Settings): EvaluationSchema {
     val schemaBuildingComponent = gradleDslGeneralSchemaComponent() +
-        ThirdPartyExtensionsComponent(Settings::class, settings, "settingsExtension")
+        /** TODO: Instead of [SettingsInternal], this should rely on the public API of [Settings];
+         *  missing single-arg [Settings.include] (or missing vararg support) prevents this from happening,
+         *  and we use the [SettingsInternal.include] single-argument workaround for now. */
+        ThirdPartyExtensionsComponent(SettingsInternal::class, settings, "settingsExtension")
 
-    return buildEvaluationSchema(Settings::class, schemaBuildingComponent, ignoreTopLevelPluginsAndPluginManagement)
+    return buildEvaluationSchema(SettingsInternal::class, schemaBuildingComponent, ignoreTopLevelPluginsAndPluginManagement)
 }
 
 

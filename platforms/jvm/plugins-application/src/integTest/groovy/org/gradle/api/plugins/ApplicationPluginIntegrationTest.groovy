@@ -235,7 +235,7 @@ task execStartScript(type: Exec) {
         buildFile << """
 task execStartScript(type: Exec) {
     workingDir '$escapedStartScriptDir'
-    commandLine 'cmd', '/c', 'sample.bat'
+    commandLine 'cmd.exe', '/d', '/c', 'sample.bat'
     environment JAVA_OPTS: ''
 }
 """
@@ -534,7 +534,7 @@ build/install/sample/bin/sample "$BUILD_FILE" "$SRC_DIR"
 '''
         buildFile << """
 task execStartScript(type: Exec) {
-    commandLine 'cmd', '/c', 'sh', 'run.sh'
+    commandLine 'cmd.exe', '/d', '/c', 'sh', 'run.sh'
 }
 """
         when:

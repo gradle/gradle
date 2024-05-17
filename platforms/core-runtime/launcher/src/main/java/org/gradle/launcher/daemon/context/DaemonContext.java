@@ -17,6 +17,8 @@ package org.gradle.launcher.daemon.context;
 
 import org.gradle.api.JavaVersion;
 import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 
 import java.io.File;
@@ -36,6 +38,7 @@ import java.util.Collection;
  * @see DaemonCompatibilitySpec
  * @see DaemonRequestContext
  */
+@ServiceScope(Scope.Global.class)
 public interface DaemonContext {
 
     /**

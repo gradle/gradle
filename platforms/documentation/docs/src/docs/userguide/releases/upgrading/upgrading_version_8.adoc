@@ -40,6 +40,9 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Potential breaking changes
 
+==== Change to toolchain provisioning
+In previous versions of Gradle, toolchain provisioning could leave a partially provisioned toolchain in place **with a marker file indicating that the toolchain was fully provisioned**. This could lead to strange behavior with the toolchain. In Gradle 8.9, the toolchain is now fully provisioned before the marker file is written. However, in order to not detect potentially broken toolchains, a different marker file (`.ready`) is used. This means that all of your existing toolchains will be re-provisioned the first time you use them with Gradle 8.9. Gradle 8.9 also writes the old marker file (`provisioned.ok`) to indicate that the toolchain was fully provisioned. This means that if you go back to an older version of Gradle, a 8.9-provisioned toolchain will **not** be re-provisioned.
+
 ==== Upgrade to Kotlin 1.9.23
 
 The embedded Kotlin has been updated from 1.9.22 to link:https://github.com/JetBrains/kotlin/releases/tag/v1.9.23[Kotlin 1.9.23].
@@ -282,9 +285,10 @@ If set to a non-default value, this deprecated setting will take precedence over
 ==== Changes in the Problems API
 
 We have implemented several refactorings of the Problems API, including a significant change in the way problem definitions and contextual information are handled.
-The complete design specification can be found [here](https://docs.google.com/document/d/1T_vM-Upa23aA21sanFTTLZa3j9xV6R32djJk6-muWzI/edit#heading=h.610fausqnpu6).
+The complete design specification can be found https://docs.google.com/document/d/1T_vM-Upa23aA21sanFTTLZa3j9xV6R32djJk6-muWzI/edit#heading=h.610fausqnpu6[here].
 
 In implementing this spec, we have introduced the following breaking changes to the `ProblemSpec` interface:
+
 - The `label(String)` and `description(String)` methods have been replaced with the `id(String, String)` method and its overloaded variants.
 
 In addition, the corresponding Tooling API events are changed to reflect the new design.
@@ -2357,7 +2361,7 @@ These properties will be removed in Gradle 9.0.
 Setting custom build file using link:{groovyDslPath}/org.gradle.api.tasks.GradleBuild.html#org.gradle.api.tasks.GradleBuild:buildFile[buildFile] property in link:{groovyDslPath}/org.gradle.api.tasks.GradleBuild.html[GradleBuild] task has been deprecated.
 
 Please use the link:{groovyDslPath}/org.gradle.api.tasks.GradleBuild.html#org.gradle.api.tasks.GradleBuild:dir[dir] property instead to specify the root of the nested build.
-Alternatively, consider using one of the recommended alternatives for link:{groovyDslPath}/org.gradle.api.tasks.GradleBuild.html[GradleBuild] task as suggested in <<authoring_maintainable_build_scripts#sec:avoiding_use_of_gradlebuild, Avoid using the GradleBuild task type>> section.
+Alternatively, consider using one of the recommended alternatives for link:{groovyDslPath}/org.gradle.api.tasks.GradleBuild.html[GradleBuild] task.
 
 Setting custom build layout using link:{javadocPath}/org/gradle/StartParameter.html[StartParameter] methods link:{javadocPath}/org/gradle/StartParameter.html#setBuildFile-java.io.File-[setBuildFile(File)] and link:{javadocPath}/org/gradle/StartParameter.html#setSettingsFile-java.io.File-[setSettingsFile(File)] as well as the counterpart getters link:{javadocPath}/org/gradle/StartParameter.html#getBuildFile--[getBuildFile()] and link:{javadocPath}/org/gradle/StartParameter.html#getSettingsFile--[getSettingsFile()] have been deprecated.
 

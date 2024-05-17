@@ -24,7 +24,6 @@ errorprone {
         "ThreadLocalUsage", // 1 occurrences
         "TypeParameterUnusedInFormals", // 1 occurrences
         "UnusedMethod", // 3 occurrences
-        "UnusedVariable", // 1 occurrences
     )
 }
 

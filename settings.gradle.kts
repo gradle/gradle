@@ -28,8 +28,8 @@ pluginManagement {
 
 plugins {
     id("gradlebuild.build-environment")
-    id("com.gradle.develocity").version("3.17.1") // Sync with `build-logic-commons/build-platform/build.gradle.kts`
-    id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.9.1")
+    id("com.gradle.develocity").version("3.17.3") // Sync with `build-logic-commons/build-platform/build.gradle.kts`
+    id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.10.0")
     id("org.gradle.toolchains.foojay-resolver-convention") version ("0.8.0")
 //    id("net.ltgt.errorprone").version("3.1.0")
 }
@@ -41,9 +41,7 @@ apply(from = "gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
 
 val architectureElements = mutableListOf<ArchitectureElementBuilder>()
 
-// If you include a new subproject here, you will need to execute the
-// ./gradlew generateSubprojectsInfo
-// task to update metadata about the build for CI
+// If you include a new subproject here, consult internal documentation "Adding a new Build Tool subproject" page
 
 unassigned {
     subproject("distributions-dependencies") // platform for dependency versions
@@ -77,8 +75,10 @@ val core = platform("core") {
         subproject("build-operations")
         subproject("build-option")
         subproject("build-profile")
+        subproject("build-state")
         subproject("cli")
         subproject("concurrent")
+        subproject("daemon-protocol")
         subproject("distributions-basics")
         subproject("distributions-core")
         subproject("file-temp")
@@ -98,7 +98,10 @@ val core = platform("core") {
         subproject("native")
         subproject("process-services")
         subproject("serialization")
+        subproject("service-provider")
         subproject("time")
+        subproject("client-services")
+        subproject("daemon-services")
         subproject("worker-services")
         subproject("wrapper")
         subproject("wrapper-shared")
@@ -109,6 +112,11 @@ val core = platform("core") {
         subproject("api-metadata")
         subproject("base-services-groovy")
         subproject("configuration-cache")
+        subproject("declarative-dsl-api")
+        subproject("declarative-dsl-core")
+        subproject("declarative-dsl-provider")
+        subproject("declarative-dsl-tooling-models")
+        subproject("declarative-dsl-tooling-builders")
         subproject("file-collections")
         subproject("input-tracking")
         subproject("kotlin-dsl")
@@ -119,9 +127,6 @@ val core = platform("core") {
         subproject("kotlin-dsl-integ-tests")
         subproject("model-core")
         subproject("model-groovy")
-        subproject("declarative-dsl-api")
-        subproject("declarative-dsl-provider")
-        subproject("declarative-dsl-core")
     }
 
     // Core Execution Module
@@ -186,6 +191,7 @@ val software = platform("software") {
     subproject("security")
     subproject("signing")
     subproject("testing-base")
+    subproject("testing-base-infrastructure")
     subproject("test-suites-base")
     subproject("version-control")
 }
@@ -229,6 +235,7 @@ platform("extensibility") {
     uses(jvm)
     subproject("plugin-use")
     subproject("plugin-development")
+    subproject("unit-test-fixtures")
     subproject("test-kit")
 }
 
@@ -300,7 +307,7 @@ gradle.settingsEvaluated {
 gradle.rootProject {
     tasks.register("architectureDoc", GeneratorTask::class.java) {
         description = "Generates the architecture documentation"
-        outputFile = layout.projectDirectory.file("architecture/README.md")
+        outputFile = layout.projectDirectory.file("architecture/platforms.md")
         elements = provider { architectureElements.map { it.build() } }
     }
 }
@@ -319,16 +326,20 @@ abstract class GeneratorTask : DefaultTask() {
     @TaskAction
     fun generate() {
         val markdownFile = outputFile.asFile.get()
-        val content = markdownFile.readText().lines()
-        val markerPos = content.indexOfFirst { it.contains(markerComment) }
-        if (markerPos < 0) {
-            throw IllegalArgumentException("Could not locate the generated diagram in $markdownFile")
+        val head = if (markdownFile.exists()) {
+            val content = markdownFile.readText().lines()
+            val markerPos = content.indexOfFirst { it.contains(markerComment) }
+            if (markerPos < 0) {
+                throw IllegalArgumentException("Could not locate the generated diagram in $markdownFile")
+            }
+            val endPos = content.subList(markerPos, content.size).indexOfFirst { it.contains(endDiagram) && !it.contains(startDiagram) }
+            if (endPos < 0) {
+                throw IllegalArgumentException("Could not locate the end of the generated diagram in $markdownFile")
+            }
+            content.subList(0, markerPos)
+        } else {
+            emptyList()
         }
-        val endPos = content.subList(markerPos, content.size).indexOfFirst { it.contains(endDiagram) && !it.contains(startDiagram) }
-        if (endPos < 0) {
-            throw IllegalArgumentException("Could not locate the end of the generated diagram in $markdownFile")
-        }
-        val head = content.subList(0, markerPos)
 
         markdownFile.bufferedWriter().use {
             PrintWriter(it).run {

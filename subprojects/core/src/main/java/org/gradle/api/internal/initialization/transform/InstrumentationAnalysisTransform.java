@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformOutputs;
 import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.file.FileSystemLocation;
-import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.initialization.transform.services.CacheInstrumentationDataBuildService;
 import org.gradle.api.internal.initialization.transform.services.InjectedInstrumentationServices;
 import org.gradle.api.internal.initialization.transform.utils.ClassAnalysisUtils;
@@ -154,8 +153,7 @@ public abstract class InstrumentationAnalysisTransform implements TransformActio
      * type hierarchy is an input to {@link MergeInstrumentationAnalysisTransform}.
      */
     private void writeOutput(File artifact, TransformOutputs outputs, Map<String, Set<String>> superTypes, Set<String> dependencies) {
-        StringInterner stringInterner = internalServices.get().getStringInterner();
-        InstrumentationAnalysisSerializer serializer = new InstrumentationAnalysisSerializer(stringInterner);
+        InstrumentationAnalysisSerializer serializer = getParameters().getBuildService().get().getCachedInstrumentationAnalysisSerializer();
         createInstrumentationClasspathMarker(outputs);
 
         // Write type hierarchy analysis separately from dependencies,
@@ -166,7 +164,7 @@ public abstract class InstrumentationAnalysisTransform implements TransformActio
         // Write dependency analysis
         File dependencyAnalysisFile = outputs.file(ANALYSIS_OUTPUT_DIR + "/" + DEPENDENCY_ANALYSIS_FILE_NAME);
         InstrumentationArtifactMetadata metadata = getArtifactMetadata(artifact);
-        serializer.writeDependencyAnalysis(dependencyAnalysisFile, metadata, toMapWithKeys(dependencies));
+        serializer.writeDependencyAnalysis(dependencyAnalysisFile, new InstrumentationDependencyAnalysis(metadata, toMapWithKeys(dependencies)));
         outputOriginalArtifact(outputs, artifact);
     }
 

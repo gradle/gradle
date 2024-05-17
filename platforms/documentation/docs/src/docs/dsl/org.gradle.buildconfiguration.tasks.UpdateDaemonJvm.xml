@@ -25,7 +25,7 @@
                 </tr>
             </thead>
             <tr>
-                <td>toolchainVersion</td>
+                <td>jvmVersion</td>
                 <td><literal>defaults to current JVM version</literal></td>
             </tr>
         </table>

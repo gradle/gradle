@@ -147,8 +147,22 @@
     "crossVersionTests": false
   },
   {
+    "name": "build-state",
+    "path": "platforms/core-runtime/build-state",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "cli",
     "path": "platforms/core-runtime/cli",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "client-services",
+    "path": "platforms/core-runtime/client-services",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
@@ -203,6 +217,20 @@
     "crossVersionTests": false
   },
   {
+    "name": "daemon-protocol",
+    "path": "platforms/core-runtime/daemon-protocol",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "daemon-services",
+    "path": "platforms/core-runtime/daemon-services",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "declarative-dsl-api",
     "path": "platforms/core-configuration/declarative-dsl-api",
     "unitTests": false,
@@ -221,6 +249,20 @@
     "path": "platforms/core-configuration/declarative-dsl-provider",
     "unitTests": true,
     "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "declarative-dsl-tooling-builders",
+    "path": "platforms/core-configuration/declarative-dsl-tooling-builders",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": true
+  },
+  {
+    "name": "declarative-dsl-tooling-models",
+    "path": "platforms/core-configuration/declarative-dsl-tooling-models",
+    "unitTests": false,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {
@@ -749,13 +791,6 @@
     "crossVersionTests": false
   },
   {
-    "name": "plugins",
-    "path": "subprojects/plugins",
-    "unitTests": false,
-    "functionalTests": true,
-    "crossVersionTests": false
-  },
-  {
     "name": "plugins-application",
     "path": "platforms/jvm/plugins-application",
     "unitTests": true,
@@ -931,6 +966,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "service-provider",
+    "path": "platforms/core-runtime/service-provider",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "signing",
     "path": "platforms/software/signing",
     "unitTests": true,
@@ -987,6 +1029,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "testing-base-infrastructure",
+    "path": "platforms/software/testing-base-infrastructure",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "testing-junit-platform",
     "path": "platforms/jvm/testing-junit-platform",
     "unitTests": false,
@@ -1026,7 +1075,7 @@
     "path": "platforms/jvm/toolchains-jvm",
     "unitTests": true,
     "functionalTests": true,
-    "crossVersionTests": false
+    "crossVersionTests": true
   },
   {
     "name": "toolchains-jvm-shared",
@@ -1055,6 +1104,13 @@
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": true
+  },
+  {
+    "name": "unit-test-fixtures",
+    "path": "platforms/extensibility/unit-test-fixtures",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
   },
   {
     "name": "version-control",

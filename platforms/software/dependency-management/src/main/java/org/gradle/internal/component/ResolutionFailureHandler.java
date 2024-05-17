@@ -148,6 +148,11 @@ public class ResolutionFailureHandler {
         return describeFailure(schema, failure);
     }
 
+    public AbstractResolutionFailureException noVariantsExistFailure(AttributesSchemaInternal schema, AttributeContainerInternal requestedAttributes, ComponentIdentifier targetComponent) {
+        IncompatibleGraphVariantFailure failure = new IncompatibleGraphVariantFailure(targetComponent.getDisplayName(), requestedAttributes, Collections.emptyList());
+        return describeFailure(schema, failure);
+    }
+
     // region Configuration by name
     // These are cases where a configuration is requested by name in a target component, so there is sometimes no relevant schema to provide to this handler method.
 

@@ -41,6 +41,7 @@ dependencies {
     api(projects.concurrent)
     api(projects.javaLanguageExtensions)
     api(projects.serialization)
+    api(projects.serviceProvider)
     api(project(":base-services"))
     api(project(":build-operations"))
     // TODO - it might be good to allow projects to contribute state to save and restore, rather than have this project know about everything

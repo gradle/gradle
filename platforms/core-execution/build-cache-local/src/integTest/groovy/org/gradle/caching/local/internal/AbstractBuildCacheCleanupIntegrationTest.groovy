@@ -21,6 +21,7 @@ import org.gradle.cache.internal.GradleUserHomeCleanupFixture
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.internal.hash.Hashing
@@ -84,6 +85,7 @@ abstract class AbstractBuildCacheCleanupIntegrationTest extends AbstractIntegrat
         )
     }
 
+    @ToBeFixedForConfigurationCache(because = "Cache is cleaned twice on load after store")
     def "cleans up entries when #cleanupTrigger"() {
         long lastCleanupCheck = initializeHome()
 
@@ -315,7 +317,8 @@ abstract class AbstractBuildCacheCleanupIntegrationTest extends AbstractIntegrat
     }
 
     void assertCacheWasCleanedUpSince(long lastCleanupCheck) {
-        operations.only("Clean up ${getBuildCacheName()} ($cacheDir)")
+        def buildOp = operations.only("Clean up ${getBuildCacheName()} ($cacheDir)")
+        buildOp.details.cacheLocation == cacheDir
         assert gcFile().lastModified() > lastCleanupCheck
     }
 

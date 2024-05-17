@@ -187,7 +187,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
         if (os.isUnix()) {
             return Arrays.asList("nice", "-n", "10");
         } else if (os.isWindows()) {
-            return Arrays.asList("cmd", "/C", "start", "\"Gradle build daemon\"", "/B", "/belownormal", "/WAIT");
+            return Arrays.asList("cmd.exe", "/d", "/c", "start", "\"Gradle build daemon\"", "/b", "/belownormal", "/wait");
         } else {
             return Collections.emptyList();
         }

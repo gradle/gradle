@@ -31,10 +31,11 @@ import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.AbstractComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
+import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentIdGenerator;
-import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationGraphResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationGraphResolveState;
+import org.gradle.internal.component.model.ImmutableModuleSources;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.component.model.VariantArtifactGraphResolveMetadata;
@@ -45,9 +46,7 @@ import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.resolve.resolver.VariantArtifactResolver;
 
 import javax.annotation.Nullable;
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -58,7 +57,7 @@ import java.util.stream.Collectors;
  *
  * <p>The aim is to create only a single instance of this type per project and reuse that for all resolution that happens in a build tree. This isn't quite the case yet.
  */
-public class DefaultLocalComponentGraphResolveState extends AbstractComponentGraphResolveState<LocalComponentMetadata, LocalComponentMetadata> implements LocalComponentGraphResolveState {
+public class DefaultLocalComponentGraphResolveState extends AbstractComponentGraphResolveState<LocalComponentGraphResolveMetadata> implements LocalComponentGraphResolveState {
     private final ComponentIdGenerator idGenerator;
     private final boolean adHoc;
 
@@ -66,21 +65,21 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
     private final ConcurrentMap<String, DefaultLocalConfigurationGraphResolveState> configurations = new ConcurrentHashMap<>();
 
     // The variants to use for variant selection during graph resolution
-    private final Lazy<Optional<List<? extends VariantGraphResolveState>>> allVariantsForGraphResolution;
+    private final Lazy<List<? extends VariantGraphResolveState>> allVariantsForGraphResolution;
 
     // The public view of all selectable variants of this component
     private final Lazy<List<ResolvedVariantResult>> selectableVariantResults;
 
-    public DefaultLocalComponentGraphResolveState(long instanceId, LocalComponentMetadata metadata, AttributeDesugaring attributeDesugaring, ComponentIdGenerator idGenerator, boolean adHoc) {
-        super(instanceId, metadata, metadata, attributeDesugaring);
-        this.allVariantsForGraphResolution = Lazy.locking().of(() -> metadata.getVariantsForGraphTraversal().map(variants ->
-            variants.stream()
+    public DefaultLocalComponentGraphResolveState(long instanceId, LocalComponentGraphResolveMetadata metadata, AttributeDesugaring attributeDesugaring, ComponentIdGenerator idGenerator, boolean adHoc) {
+        super(instanceId, metadata, attributeDesugaring);
+        this.allVariantsForGraphResolution = Lazy.locking().of(() ->
+            metadata.getVariantsForGraphTraversal().stream()
                 .map(variant -> getConfiguration(variant.getName()).asVariant())
                 .collect(Collectors.toList())
-        ));
+        );
         this.idGenerator = idGenerator;
         this.adHoc = adHoc;
-        this.selectableVariantResults = Lazy.locking().of(() -> metadata.getVariantsForGraphTraversal().orElse(Collections.emptyList()).stream()
+        this.selectableVariantResults = Lazy.locking().of(() -> metadata.getVariantsForGraphTraversal().stream()
             .map(LocalConfigurationGraphResolveMetadata.class::cast)
             .flatMap(variant -> variant.getVariants().stream())
             .map(variant -> new DefaultResolvedVariantResult(
@@ -97,7 +96,7 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
     @Override
     public void reevaluate() {
         configurations.clear();
-        getArtifactMetadata().reevaluate();
+        getMetadata().reevaluate();
     }
 
     @Override
@@ -111,18 +110,13 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
     }
 
     @Override
-    public LocalComponentMetadata copy(ComponentIdentifier componentIdentifier, Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> artifacts) {
+    public LocalComponentGraphResolveMetadata copy(ComponentIdentifier componentIdentifier, Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> artifacts) {
         return getMetadata().copy(componentIdentifier, artifacts);
     }
 
     @Override
-    public ComponentArtifactResolveMetadata getResolveMetadata() {
+    public ComponentArtifactResolveMetadata getArtifactMetadata() {
         return new LocalComponentArtifactResolveMetadata(getMetadata());
-    }
-
-    @Override
-    public ModuleSources getSources() {
-        return getMetadata().getSources();
     }
 
     @Override
@@ -131,7 +125,7 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
     }
 
     @Override
-    protected Optional<List<? extends VariantGraphResolveState>> getVariantsForGraphTraversal() {
+    protected List<? extends VariantGraphResolveState> getVariantsForGraphTraversal() {
         return allVariantsForGraphResolution.get();
     }
 
@@ -153,7 +147,7 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
         private final LocalConfigurationMetadata configuration;
         private final Lazy<DefaultLocalConfigurationArtifactResolveState> artifactResolveState;
 
-        public DefaultLocalConfigurationGraphResolveState(long instanceId, AbstractComponentGraphResolveState<?, ?> componentState, LocalComponentMetadata component, LocalConfigurationMetadata configuration) {
+        public DefaultLocalConfigurationGraphResolveState(long instanceId, AbstractComponentGraphResolveState<?> componentState, ComponentGraphResolveMetadata component, LocalConfigurationMetadata configuration) {
             super(componentState);
             this.instanceId = instanceId;
             this.configuration = configuration;
@@ -217,11 +211,11 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
     }
 
     private static class DefaultLocalConfigurationArtifactResolveState implements VariantArtifactResolveState, VariantArtifactGraphResolveMetadata {
-        private final LocalComponentMetadata component;
+        private final ComponentGraphResolveMetadata component;
         private final LocalConfigurationGraphResolveMetadata graphSelectedConfiguration;
         private final Set<? extends VariantResolveMetadata> variants;
 
-        public DefaultLocalConfigurationArtifactResolveState(LocalComponentMetadata component, LocalConfigurationGraphResolveMetadata graphSelectedConfiguration, Set<? extends VariantResolveMetadata> variants) {
+        public DefaultLocalConfigurationArtifactResolveState(ComponentGraphResolveMetadata component, LocalConfigurationGraphResolveMetadata graphSelectedConfiguration, Set<? extends VariantResolveMetadata> variants) {
             this.component = component;
             this.graphSelectedConfiguration = graphSelectedConfiguration;
             this.variants = variants;
@@ -248,9 +242,9 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
     }
 
     private static class LocalComponentArtifactResolveMetadata implements ComponentArtifactResolveMetadata {
-        private final LocalComponentMetadata metadata;
+        private final ComponentGraphResolveMetadata metadata;
 
-        public LocalComponentArtifactResolveMetadata(LocalComponentMetadata metadata) {
+        public LocalComponentArtifactResolveMetadata(ComponentGraphResolveMetadata metadata) {
             this.metadata = metadata;
         }
 
@@ -266,22 +260,17 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
 
         @Override
         public ModuleSources getSources() {
-            return metadata.getSources();
+            return ImmutableModuleSources.of();
         }
 
         @Override
         public ImmutableAttributes getAttributes() {
-            return metadata.getAttributes();
+            return ImmutableAttributes.EMPTY;
         }
 
         @Override
         public AttributesSchemaInternal getAttributesSchema() {
             return metadata.getAttributesSchema();
-        }
-
-        @Override
-        public ComponentResolveMetadata getMetadata() {
-            return metadata;
         }
     }
 }

@@ -33,6 +33,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
+import org.gradle.api.IsolatedAction;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.artifacts.dsl.DependencyCollector;
@@ -42,6 +43,7 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.IConventionAware;
+import org.gradle.api.internal.plugins.software.SoftwareType;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.ListProperty;
@@ -53,7 +55,6 @@ import org.gradle.api.provider.SupportsConvention;
 import org.gradle.api.reflect.InjectionPointQualifier;
 import org.gradle.api.tasks.Nested;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
-import org.gradle.api.internal.plugins.software.SoftwareType;
 import org.gradle.internal.Cast;
 import org.gradle.internal.extensibility.NoConventionMapping;
 import org.gradle.internal.instantiation.ClassGenerationException;
@@ -776,6 +777,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
     }
 
     private static class ClassGenerationHandler {
+         // used in subclasses
         void startType(Class<?> type) {
         }
 
@@ -871,12 +873,17 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         @Override
         public void visitInstanceMethod(Method method) {
             Class<?>[] parameterTypes = method.getParameterTypes();
-            if (parameterTypes.length > 0 && parameterTypes[parameterTypes.length - 1].equals(Action.class)) {
-                actionMethods.add(method);
-            } else if (parameterTypes.length > 0 && parameterTypes[parameterTypes.length - 1].equals(Closure.class)) {
-                closureMethods.put(method.getName(), method);
-            } else if (method.getName().equals("toString") && parameterTypes.length == 0 && method.getDeclaringClass() != Object.class) {
-                providesOwnToString = true;
+            if (parameterTypes.length == 0) {
+                if (method.getName().equals("toString") && method.getDeclaringClass() != Object.class) {
+                    providesOwnToString = true;
+                }
+            } else {
+                Class<?> lastParameterType = parameterTypes[parameterTypes.length - 1];
+                if (lastParameterType.equals(Action.class) || lastParameterType.equals(IsolatedAction.class)) {
+                    actionMethods.add(method);
+                } else if (lastParameterType.equals(Closure.class)) {
+                    closureMethods.put(method.getName(), method);
+                }
             }
         }
 
@@ -1191,8 +1198,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             // For ConfigurableFileCollection we generate setters just for readonly properties,
             // since we want to support += for mutable FileCollection properties, but we don't support += for ConfigurableFileCollection (yet).
             // And if we generate setter override for ConfigurableFileCollection, it's difficult to distinguish between these two cases in setFromAnyValue method.
-            if (property.isReadable() && hasPropertyType(property) ||
-                property.isReadOnly() && isConfigurableFileCollectionType(property.getType())) {
+            if ((property.isReadable() && hasPropertyType(property)) ||
+                (property.isReadOnly() && isConfigurableFileCollectionType(property.getType()))) {
                 lazyGroovySupportTyped.add(property);
             }
         }

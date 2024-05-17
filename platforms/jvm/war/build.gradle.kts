@@ -41,7 +41,6 @@ dependencies {
     implementation(project(":plugins-java"))
     implementation(project(":plugins-jvm-test-suite"))
 
-    runtimeOnly(project(":plugins"))
     runtimeOnly(project(":testing-base"))
 
 

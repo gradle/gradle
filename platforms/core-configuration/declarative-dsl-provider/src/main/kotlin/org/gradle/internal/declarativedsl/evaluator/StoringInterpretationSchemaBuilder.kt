@@ -16,23 +16,23 @@
 
 package org.gradle.internal.declarativedsl.evaluator
 
-import org.gradle.internal.declarativedsl.analysis.AnalysisSchema
-import org.gradle.internal.declarativedsl.serialization.SchemaSerialization
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
+import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequence
 import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequenceStep
+import org.gradle.internal.declarativedsl.serialization.SchemaSerialization
 import java.io.File
 
 
 /**
  * In addition to creating the interpretation schema by delegating to [schemaBuilder],
- * stores the produced serialized schema in the file system (under `.gradle/restricted-schema/...` in the project).
+ * stores the produced serialized schema in the file system (under `.gradle/declarative-schema/...` in the project).
  */
 internal
 class StoringInterpretationSchemaBuilder(
-    private val schemaBuilder: InterpretationSchemaBuilder
+    private val schemaBuilder: InterpretationSchemaBuilder,
 ) : InterpretationSchemaBuilder {
     override fun getEvaluationSchemaForScript(targetInstance: Any, scriptContext: RestrictedScriptContext): InterpretationSchemaBuildingResult =
         addSerializationToSteps(targetInstance, schemaBuilder.getEvaluationSchemaForScript(targetInstance, scriptContext))
@@ -53,18 +53,17 @@ class StoringInterpretationSchemaBuilder(
     private
     fun storeSchemaResult(targetInstance: Any, identifier: String, analysisSchema: AnalysisSchema) {
         val file = schemaFile(targetInstance, identifier)
-
         file.parentFile.mkdirs()
         file.writeText(SchemaSerialization.schemaToJsonString(analysisSchema))
     }
 
     private
     fun schemaFile(targetInstance: Any, identifier: String) =
-        schemaStoreLocationFor(targetInstance).resolve("$identifier.something.schema")
+        schemaStoreLocationFor(targetInstance).resolve("$identifier.dcl.schema")
 
     private
     fun schemaStoreLocationFor(targetInstance: Any): File {
-        val suffix = ".gradle/restricted-schema"
+        val suffix = ".gradle/declarative-schema"
         return when (targetInstance) {
             is Settings -> targetInstance.settingsDir.resolve(suffix)
             is Project -> targetInstance.projectDir.resolve(suffix)
@@ -79,7 +78,7 @@ class StoringInterpretationSchemaBuilder(
     ) : InterpretationSequenceStep<R> {
         override val stepIdentifier: String = step.stepIdentifier
         override fun evaluationSchemaForStep(): EvaluationSchema = step.evaluationSchemaForStep().also { schemaHandler(stepIdentifier, it.analysisSchema) }
-        override fun topLevelReceiver(): R = step.topLevelReceiver()
+        override fun getTopLevelReceiverFromTarget(target: Any): R = step.getTopLevelReceiverFromTarget(target)
         override fun whenEvaluated(resultReceiver: R) = step.whenEvaluated(resultReceiver)
     }
 }

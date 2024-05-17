@@ -55,6 +55,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val commonsMath = "org.apache.commons:commons-math3"
     val configurationCacheReport = "org.gradle.buildtool.internal:configuration-cache-report:$configurationCacheReportVersion"
     val eclipseSisuPlexus = "org.eclipse.sisu:org.eclipse.sisu.plexus"
+    val errorProneAnnotations = "com.google.errorprone:error_prone_annotations"
     val fastutil = "it.unimi.dsi:fastutil"
     val gcs = "com.google.apis:google-api-services-storage"
     val googleApiClient = "com.google.api-client:google-api-client"
@@ -82,7 +83,8 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val gson = "com.google.code.gson:gson"
     val guava = "com.google.guava:guava"
     val h2Database = "com.h2database:h2"
-    val hamcrest = "org.hamcrest:hamcrest-core"
+    val hamcrest = "org.hamcrest:hamcrest"
+    val hamcrestCore = "org.hamcrest:hamcrest-core"
     val httpcore = "org.apache.httpcomponents:httpcore"
     val inject = "javax.inject:javax.inject"
     val ivy = "org.apache.ivy:ivy"
@@ -174,6 +176,9 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val javaParser = "com.github.javaparser:javaparser-core"
     val jetty = "org.eclipse.jetty:jetty-http"
     val jettySecurity = "org.eclipse.jetty:jetty-security"
+    val jettyServer = "org.eclipse.jetty:jetty-server"
+    val jettyServlet = "org.eclipse.jetty:jetty-servlet"
+    val jettyUtil = "org.eclipse.jetty:jetty-util"
     val jettyWebApp = "org.eclipse.jetty:jetty-webapp"
     val joptSimple = "net.sf.jopt-simple:jopt-simple"
     val jsoup = "org.jsoup:jsoup"
@@ -187,7 +192,10 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val mockitoKotlin2 = "com.nhaarman.mockitokotlin2:mockito-kotlin"
     val mockwebserver = "com.squareup.okhttp3:mockwebserver"
     val mySqlConnector = "mysql:mysql-connector-java"
+    val netty = "io.netty:netty-all"
+    val opentest4j = "org.opentest4j:opentest4j"
     val samplesCheck = "org.gradle.exemplar:samples-check"
+    val samplesDiscovery = "org.gradle.exemplar:samples-discovery"
     val snappy = "org.iq80.snappy:snappy"
     val servletApi = "javax.servlet:javax.servlet-api"
     val socksProxy = "com.github.bbottema:java-socks-proxy-server"
@@ -197,6 +205,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val sshdOsgi = "org.apache.sshd:sshd-osgi"
     val sshdScp = "org.apache.sshd:sshd-scp"
     val sshdSftp = "org.apache.sshd:sshd-sftp"
+    val testcontainers = "org.testcontainers:testcontainers"
     val testcontainersSpock = "org.testcontainers:spock"
     val typesafeConfig = "com.typesafe:config"
     val xerces = "xerces:xercesImpl"
@@ -243,6 +252,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
         guava to License.Apache2,
         h2Database to License.EPL,
         hamcrest to License.BSD3,
+        hamcrestCore to License.BSD3,
         httpcore to License.Apache2,
         hikariCP to License.Apache2,
         inject to License.Apache2,

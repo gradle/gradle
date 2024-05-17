@@ -39,13 +39,13 @@ import org.gradle.configurationcache.serialization.runWriteOperation
 import org.gradle.configurationcache.serialization.writeCollection
 import org.gradle.internal.Describables
 import org.gradle.internal.component.external.model.ImmutableCapabilities
-import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata
+import org.gradle.internal.component.local.model.DefaultLocalComponentGraphResolveMetadata
 import org.gradle.internal.component.local.model.DefaultLocalConfigurationMetadata
 import org.gradle.internal.component.local.model.DefaultLocalConfigurationMetadata.ConfigurationDependencyMetadata
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata
+import org.gradle.internal.component.local.model.LocalComponentGraphResolveMetadata
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory
-import org.gradle.internal.component.local.model.LocalComponentMetadata
 import org.gradle.internal.component.local.model.LocalConfigurationGraphResolveMetadata
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata
 import org.gradle.internal.component.local.model.LocalVariantMetadata
@@ -77,13 +77,13 @@ class ProjectMetadataController(
         context.runWriteOperation {
             write(value.id)
             write(value.moduleVersionId)
-            val configurations = value.artifactMetadata.configurationsToPersist()
+            val configurations = value.metadata.configurationsToPersist()
             writeConfigurations(configurations)
         }
     }
 
     private
-    fun LocalComponentMetadata.configurationsToPersist() = configurationNames.mapNotNull {
+    fun LocalComponentGraphResolveMetadata.configurationsToPersist() = configurationNames.mapNotNull {
         val configuration = getConfiguration(it)!!
         if (configuration.isCanBeConsumed) configuration else null
     }
@@ -134,9 +134,16 @@ class ProjectMetadataController(
             val moduleVersionId = readNonNull<ModuleVersionIdentifier>()
 
             val configurations = readConfigurations(id, ownerService()).associateBy { it.name }
-            val configurationsFactory = DefaultLocalComponentMetadata.ConfigurationsMapMetadataFactory(configurations)
+            val configurationsFactory = DefaultLocalComponentGraphResolveMetadata.ConfigurationsMapMetadataFactory(configurations)
 
-            val metadata = DefaultLocalComponentMetadata(moduleVersionId, id, Project.DEFAULT_STATUS, EmptySchema.INSTANCE, configurationsFactory, null)
+            val metadata = DefaultLocalComponentGraphResolveMetadata(
+                moduleVersionId,
+                id,
+                Project.DEFAULT_STATUS,
+                EmptySchema.INSTANCE,
+                configurationsFactory,
+                null
+            )
             resolveStateFactory.stateFor(metadata)
         }
     }

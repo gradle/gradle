@@ -97,7 +97,8 @@ import org.jetbrains.kotlin.utils.doNothing
 class GrammarToTree(
     private val sourceIdentifier: SourceIdentifier,
     private val sourceCode: String,
-    private val sourceOffset: Int
+    private val sourceOffset: Int,
+    private val suffixLength: Int
 ) {
 
     inner
@@ -108,6 +109,11 @@ class GrammarToTree(
         fun sourceData(node: LighterASTNode, offset: Int = sourceOffset): LightTreeSourceData =
             sourceData.computeIfAbsent(node) {
                 it.sourceData(sourceIdentifier, sourceCode, offset)
+            }
+
+        fun rootSourceData(): LightTreeSourceData =
+            sourceData.computeIfAbsent(root) {
+                LightTreeSourceData(sourceIdentifier, sourceCode, sourceOffset, sourceOffset..sourceCode.lastIndex - suffixLength)
             }
 
         fun parsingError(node: LighterASTNode, message: String): ParsingError {
@@ -159,7 +165,7 @@ class GrammarToTree(
 
         return LanguageTreeResult(
             imports = imports.filterIsInstance<Element<Import>>().map { it.element },
-            topLevelBlock = Block(statements.map { it.asBlockElement() }, tree.sourceData(tree.root)),
+            topLevelBlock = Block(statements.map { it.asBlockElement() }, tree.rootSourceData()),
             headerFailures = headerFailures,
             codeFailures = collectFailures(statements)
         )

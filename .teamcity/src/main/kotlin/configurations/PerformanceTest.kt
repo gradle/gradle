@@ -17,6 +17,7 @@
 package configurations
 
 import common.KillProcessMode.KILL_ALL_GRADLE_PROCESSES
+import common.KillProcessMode.KILL_PROCESSES_STARTED_BY_GRADLE
 import common.Os
 import common.applyPerformanceTestSettings
 import common.buildToolGradleParameters
@@ -27,6 +28,7 @@ import common.killProcessStep
 import common.performanceTestCommandLine
 import common.removeSubstDirOnWindows
 import common.substDirOnWindows
+import jetbrains.buildServer.configs.kotlin.BuildStep
 import jetbrains.buildServer.configs.kotlin.BuildSteps
 import jetbrains.buildServer.configs.kotlin.ParameterDisplay
 import model.CIBuildModel
@@ -102,6 +104,7 @@ class PerformanceTest(
                     }
                 }
                 removeSubstDirOnWindows(os)
+                killProcessStep(buildTypeThis, KILL_PROCESSES_STARTED_BY_GRADLE, os, executionMode = BuildStep.ExecutionMode.ALWAYS)
                 checkCleanM2AndAndroidUserHome(os)
             }
         }

@@ -23,12 +23,12 @@ description = "Plugins that add support for generating IDE project files used fo
 errorprone {
     disabledChecks.addAll(
         "MixedMutabilityReturnType", // 2 occurrences
-        "ShortCircuitBoolean", // 2 occurrences
     )
 }
 
 dependencies {
     api(projects.javaLanguageExtensions)
+    api(projects.serviceProvider)
     api(project(":base-ide-plugins"))
     api(project(":base-services"))
     api(project(":core"))
@@ -59,7 +59,6 @@ dependencies {
     implementation(libs.commonsLang)
 
     runtimeOnly(project(":language-jvm"))
-    runtimeOnly(project(":plugins"))
     runtimeOnly(project(":testing-base"))
 
     testImplementation(testFixtures(project(":core")))

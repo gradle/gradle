@@ -29,6 +29,7 @@ dependencies {
     implementation(project(":enterprise-workers"))
     implementation(project(":cli"))
     implementation(project(":messaging"))
+    implementation(project(":daemon-protocol"))
     implementation(project(":build-configuration"))
     implementation(project(":build-option"))
     implementation(project(":native"))
@@ -45,12 +46,18 @@ dependencies {
     implementation(project(":bootstrap"))
     implementation(project(":jvm-services"))
     implementation(project(":build-events"))
+    implementation(project(":build-state"))
     implementation(project(":tooling-api"))
     implementation(project(":file-watching"))
     implementation(project(":problems-api"))
     implementation(project(":problems"))
     implementation(project(":toolchains-jvm-shared"))
     implementation(project(":declarative-dsl-provider"))
+
+    // This project contains the client, daemon and tooling API provider. It should be split up
+    // For now, add dependencies on both the client and daemon pieces
+    implementation(project(":client-services"))
+    implementation(project(":daemon-services"))
 
     implementation(libs.groovy) // for 'ReleaseInfo.getVersion()'
     implementation(libs.slf4jApi)

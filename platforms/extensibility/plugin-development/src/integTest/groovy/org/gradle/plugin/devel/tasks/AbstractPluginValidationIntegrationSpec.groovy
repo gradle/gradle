@@ -44,9 +44,6 @@ import org.gradle.test.fixtures.file.TestFile
 
 import javax.inject.Inject
 
-import static org.gradle.api.problems.Severity.ERROR
-import static org.gradle.api.problems.Severity.WARNING
-
 abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrationSpec implements ValidationMessageChecker {
 
     def "detects missing annotations on Java properties"() {
@@ -961,44 +958,6 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
     abstract void assertValidationFailsWith(List<DocumentedProblem> messages)
 
     abstract TestFile source(String path)
-
-    static <T extends ValidationMessageDisplayConfiguration> DocumentedProblem error(T message, String id = "incremental_build", String section = "") {
-        new DocumentedProblem(message, ERROR, id, section)
-    }
-
-    static <T extends ValidationMessageDisplayConfiguration> DocumentedProblem warning(T message, String id = "incremental_build", String section = "") {
-        new DocumentedProblem(message, WARNING, id, section)
-    }
-
-    static <T extends ValidationMessageDisplayConfiguration> DocumentedProblem warning(String message, String id = "incremental_build", String section = "") {
-        new DocumentedProblem(message, WARNING, id, section)
-    }
-
-    TestFile getJavaTaskSource() {
-        source("src/main/java/MyTask.java")
-    }
-
-    TestFile getGroovyTaskSource() {
-        buildFile  """
-            apply plugin: "groovy"
-        """
-        source("src/main/groovy/MyTask.groovy")
-    }
-
-    TestFile getKotlinTaskSource() {
-        buildFile.delete()
-        buildKotlinFile << """
-            plugins {
-                id("java-gradle-plugin")
-                `kotlin-dsl`
-            }
-
-            repositories {
-                mavenCentral()
-            }
-        """
-        source("src/main/kotlin/MyTask.kt")
-    }
 
     static class DocumentedProblem {
         final String message

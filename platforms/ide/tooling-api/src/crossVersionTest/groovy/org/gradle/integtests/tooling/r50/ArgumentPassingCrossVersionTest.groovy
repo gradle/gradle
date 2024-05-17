@@ -19,11 +19,9 @@ package org.gradle.integtests.tooling.r50
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.model.build.BuildEnvironment
 
-@ToolingApiVersion('>=5.0')
 class ArgumentPassingCrossVersionTest extends ToolingApiSpecification {
 
     static final String JVM_ARG_1 = '-verbosegc'

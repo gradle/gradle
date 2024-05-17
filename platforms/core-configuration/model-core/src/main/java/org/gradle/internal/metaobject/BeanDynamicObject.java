@@ -296,6 +296,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             }
         }
 
+        // used in subclasses
         protected DynamicInvokeResult getOpaqueProperty(String name) {
             return DynamicInvokeResult.notFound();
         }
@@ -465,10 +466,13 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             throw setGetterOnlyProperty(name);
         }
 
+        @SuppressWarnings("unused")
         protected DynamicInvokeResult setOpaqueProperty(MetaClass metaClass, String name, @Nullable Object value) {
             return DynamicInvokeResult.notFound();
         }
 
+        @SuppressWarnings("MixedMutabilityReturnType")
+        // This might be too invasive to fix properly because it is in the dynamic code.
         public Map<String, ?> getProperties() {
             if (!includeProperties) {
                 return Collections.emptyMap();
@@ -502,6 +506,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             return properties;
         }
 
+        // used in subclasses
         protected void getOpaqueProperties(Map<String, Object> properties) {
         }
 

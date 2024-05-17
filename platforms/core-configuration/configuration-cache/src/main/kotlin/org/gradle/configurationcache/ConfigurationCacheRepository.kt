@@ -22,7 +22,6 @@ import org.gradle.cache.CacheBuilder
 import org.gradle.cache.DefaultCacheCleanupStrategy
 import org.gradle.cache.FileLockManager
 import org.gradle.cache.PersistentCache
-import org.gradle.cache.internal.CleanupActionDecorator
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup
 import org.gradle.cache.internal.SingleDepthFilesFinder
 import org.gradle.cache.internal.streams.DefaultValueStore
@@ -50,7 +49,6 @@ import java.util.function.Supplier
 internal
 class ConfigurationCacheRepository(
     cacheBuilderFactory: BuildTreeScopedCacheBuilderFactory,
-    cleanupActionDecorator: CleanupActionDecorator,
     private val fileAccessTimeJournal: FileAccessTimeJournal,
     private val fileSystem: FileSystem
 ) : Stoppable {
@@ -216,19 +214,17 @@ class ConfigurationCacheRepository(
         .createCrossVersionCacheBuilder("configuration-cache")
         .withDisplayName("Configuration Cache")
         .withInitialLockMode(FileLockManager.LockMode.OnDemand) // Don't need to lock anything until we use the caches
-        .withLruCacheCleanup(cleanupActionDecorator)
+        .withLruCacheCleanup()
         .open()
 
     private
-    fun CacheBuilder.withLruCacheCleanup(cleanupActionDecorator: CleanupActionDecorator): CacheBuilder =
+    fun CacheBuilder.withLruCacheCleanup(): CacheBuilder =
         withCleanupStrategy(
             DefaultCacheCleanupStrategy.from(
-                cleanupActionDecorator.decorate(
-                    LeastRecentlyUsedCacheCleanup(
-                        SingleDepthFilesFinder(cleanupDepth),
-                        fileAccessTimeJournal,
-                        TimestampSuppliers.daysAgo(cleanupMaxAgeDays)
-                    )
+                LeastRecentlyUsedCacheCleanup(
+                    SingleDepthFilesFinder(cleanupDepth),
+                    fileAccessTimeJournal,
+                    TimestampSuppliers.daysAgo(cleanupMaxAgeDays)
                 )
             )
         )

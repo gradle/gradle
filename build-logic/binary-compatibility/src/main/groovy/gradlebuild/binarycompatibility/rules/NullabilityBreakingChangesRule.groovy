@@ -29,10 +29,13 @@ import javassist.bytecode.annotation.AnnotationImpl
 import me.champeau.gradle.japicmp.report.Violation
 
 import javax.annotation.Nullable
+import java.lang.annotation.Annotation
 import java.lang.reflect.Proxy
 
 @CompileStatic
 class NullabilityBreakingChangesRule extends AbstractGradleViolationRule {
+
+    private static final List<Class<? extends Annotation>> NULLABLE_ANNOTATIONS = [Nullable, org.jetbrains.annotations.Nullable]
 
     NullabilityBreakingChangesRule(Map<String, Object> params) {
         super(params)
@@ -70,8 +73,8 @@ class NullabilityBreakingChangesRule extends AbstractGradleViolationRule {
             CtField oldField = field.oldFieldOptional.get()
             CtField newField = field.newFieldOptional.get()
 
-            def oldNullability = oldField.annotations.any { isNullableCtAnnotation(it) }
-            def newNullability = newField.annotations.any { isNullableCtAnnotation(it) }
+            def oldNullability = hasNullableAnnotation(oldField)
+            def newNullability = hasNullableAnnotation(newField)
 
             if (Modifier.isFinal(oldField.modifiers) && Modifier.isFinal(newField.modifiers)) {
                 if (!oldNullability && newNullability) {
@@ -96,8 +99,8 @@ class NullabilityBreakingChangesRule extends AbstractGradleViolationRule {
 
             inspectParametersNullabilityOf(oldMethod, newMethod)
 
-            def oldNullability = oldMethod.annotations.any { isNullableCtAnnotation(it) }
-            def newNullability = newMethod.annotations.any { isNullableCtAnnotation(it) }
+            def oldNullability = hasNullableAnnotation(oldMethod)
+            def newNullability = hasNullableAnnotation(newMethod)
 
             if (!oldNullability && newNullability) {
                 errors << "From non-null returning to null returning breaking change"
@@ -123,10 +126,18 @@ class NullabilityBreakingChangesRule extends AbstractGradleViolationRule {
         }
     }
 
+    private static boolean hasNullableAnnotation(CtField field) {
+        return NULLABLE_ANNOTATIONS.any { field.hasAnnotation(it) }
+    }
+
+    private static boolean hasNullableAnnotation(CtMethod method) {
+        return NULLABLE_ANNOTATIONS.any { method.hasAnnotation(it) }
+    }
+
     private static boolean isNullableCtAnnotation(Object ann) {
         if (Proxy.isProxyClass(ann.class)) {
             def typeName = (Proxy.getInvocationHandler(ann) as AnnotationImpl).annotation.typeName
-            return Nullable.name == typeName || org.jetbrains.annotations.Nullable.name == typeName
+            return NULLABLE_ANNOTATIONS.any { it.name == typeName }
         }
         return false
     }

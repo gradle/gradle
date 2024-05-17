@@ -126,7 +126,7 @@ class CppLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
             }
         """
         when:
-        run('init', '--type', 'cpp-library', '--project-name', 'hello', '--dsl', scriptDsl.id)
+        run('init', '--type', 'cpp-library', '--project-name', 'hello', '--dsl', scriptDsl.id, '--overwrite')
 
         then:
         subprojectDir.file("src/main/cpp").assertHasDescendants("hola.cpp")

@@ -18,10 +18,8 @@ package org.gradle.integtests.tooling.r55
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.eclipse.EclipseProject
 
-@ToolingApiVersion(">=5.5")
 @TargetGradleVersion(">=4.0")
 class CompositeDeduplicationCrossVersionSpec extends ToolingApiSpecification {
 

@@ -1,13 +1,12 @@
 package org.gradle.internal.declarativedsl.demo
 
-import org.gradle.internal.declarativedsl.analysis.AnalysisSchema
-import org.gradle.internal.declarativedsl.language.DataType
-import org.gradle.internal.declarativedsl.analysis.DataTypeRef
-import org.gradle.internal.declarativedsl.analysis.FqName
+import org.gradle.declarative.dsl.schema.AnalysisSchema
+import org.gradle.declarative.dsl.schema.DataType
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 import org.gradle.internal.declarativedsl.analysis.Resolver
 import org.gradle.internal.declarativedsl.analysis.ref
 import org.gradle.internal.declarativedsl.analysis.tracingCodeResolver
+import org.gradle.internal.declarativedsl.language.DataTypeInternal
 import org.gradle.internal.declarativedsl.language.FailingResult
 import org.gradle.internal.declarativedsl.language.MultipleFailuresResult
 import org.gradle.internal.declarativedsl.language.ParsingError
@@ -24,23 +23,23 @@ import org.gradle.internal.declarativedsl.parsing.DefaultLanguageTreeBuilder
 import org.gradle.internal.declarativedsl.parsing.parse
 
 
-val int = DataType.IntDataType.ref
+val int = DataTypeInternal.DefaultIntDataType.ref
 
 
-val string = DataType.StringDataType.ref
+val string = DataTypeInternal.DefaultStringDataType.ref
 
 
-val boolean = DataType.BooleanDataType.ref
+val boolean = DataTypeInternal.DefaultBooleanDataType.ref
 
 
 fun AnalysisSchema.resolve(
     code: String,
     resolver: Resolver = tracingCodeResolver()
 ): ResolutionResult {
-    val (parseTree, sourceCode, sourceOffset) = parse(code)
+    val parsedTree = parse(code)
 
     val languageBuilder = DefaultLanguageTreeBuilder()
-    val tree = languageBuilder.build(parseTree, sourceCode, sourceOffset, SourceIdentifier("demo"))
+    val tree = languageBuilder.build(parsedTree, SourceIdentifier("demo"))
 
     val failures = tree.allFailures
 
@@ -52,7 +51,7 @@ fun AnalysisSchema.resolve(
                     "Parsing error: " + failure.message
                 )
                 is UnsupportedConstruct -> println(
-                    failure.languageFeature.toString() + " in " + sourceCode.slice(sourceOffset..sourceOffset + 100)
+                    failure.languageFeature.toString() + " in " + parsedTree.wrappedCode.slice(parsedTree.originalCodeOffset..parsedTree.originalCodeOffset + 100)
                 )
                 is MultipleFailuresResult -> failure.failures.forEach { printFailures(it) }
             }
@@ -84,11 +83,15 @@ fun printAssignmentTrace(trace: AssignmentTrace) {
         when (element) {
             is AssignmentTraceElement.UnassignedValueUsed -> {
                 val locationString = when (val result = element.assignmentAdditionResult) {
+                    is AssignmentResolver.AssignmentAdditionResult.Reassignment,
                     is AssignmentAdded -> error("unexpected")
                     is AssignmentResolver.AssignmentAdditionResult.UnresolvedValueUsedInLhs -> "lhs: ${result.value}"
                     is AssignmentResolver.AssignmentAdditionResult.UnresolvedValueUsedInRhs -> "rhs: ${result.value}"
                 }
                 println("${element.lhs} !:= ${element.rhs} -- unassigned property in $locationString")
+            }
+            is AssignmentTraceElement.Reassignment -> {
+                println("${element.lhs} !:= ${element.rhs} -- reassignment")
             }
             is AssignmentTraceElement.RecordedAssignment -> {
                 val assigned = trace.resolvedAssignments.getValue(element.lhs) as Assigned
@@ -105,12 +108,6 @@ fun printResolvedAssignments(result: ResolutionResult) {
 }
 
 
-inline fun <reified T> typeRef(): DataTypeRef.Name {
-    val parts = T::class.qualifiedName!!.split(".")
-    return DataTypeRef.Name(FqName(parts.dropLast(1).joinToString("."), parts.last()))
-}
-
-
 fun prettyStringFromReflection(objectReflection: ObjectReflection): String {
     val visitedIdentity = mutableSetOf<Long>()
 
@@ -119,7 +116,7 @@ fun prettyStringFromReflection(objectReflection: ObjectReflection): String {
         fun nextIndent() = "    ".repeat(depth + 1)
         when (current) {
             is ObjectReflection.ConstantValue -> append(
-                if (current.type == DataType.StringDataType)
+                if (current.type is DataType.StringDataType)
                     "\"${current.value}\""
                 else current.value.toString()
             )
@@ -143,7 +140,7 @@ fun prettyStringFromReflection(objectReflection: ObjectReflection): String {
                 }
             }
 
-            is ObjectReflection.External -> append("(external ${current.key.type}})")
+            is ObjectReflection.External -> append("(external ${current.key.objectType}})")
             is ObjectReflection.PureFunctionInvocation -> {
                 append(current.objectOrigin.function.simpleName)
                 append("#" + current.objectOrigin.invocationId)

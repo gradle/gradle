@@ -36,7 +36,7 @@ class NMToolFixture {
         }
 
         // Windows need to use cmd /c to correctly search inside the process's PATH environment variable
-        return ["cmd", "/c", exe]
+        return ["cmd.exe", "/d", "/c", exe]
     }
 
     List<BinaryInfo.Symbol> listSymbols(File binaryFile) {

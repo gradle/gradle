@@ -146,6 +146,7 @@ fun applyDefaults(
     gradleTasks: String,
     dependsOnQuickFeedbackLinux: Boolean = false,
     os: Os = Os.LINUX,
+    arch: Arch = Arch.AMD64,
     extraParameters: String = "",
     timeout: Int = 90,
     daemon: Boolean = true,
@@ -159,6 +160,7 @@ fun applyDefaults(
 
     buildType.steps {
         extraSteps()
+        killProcessStep(buildType, KILL_PROCESSES_STARTED_BY_GRADLE, os, arch, executionMode = ExecutionMode.ALWAYS)
         checkCleanM2AndAndroidUserHome(os, buildType)
     }
 
@@ -203,7 +205,7 @@ fun applyTestDefaults(
     buildType.killProcessStep(KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS, os, arch)
     buildType.gradleRunnerStep(model, gradleTasks, os, extraParameters, daemon, maxParallelForks = maxParallelForks)
     buildType.addRetrySteps(model, gradleTasks, os, arch, extraParameters)
-    buildType.killProcessStep(KILL_PROCESSES_STARTED_BY_GRADLE, os, arch)
+    buildType.killProcessStep(KILL_PROCESSES_STARTED_BY_GRADLE, os, arch, executionMode = ExecutionMode.ALWAYS)
 
     buildType.steps {
         extraSteps()

@@ -18,6 +18,8 @@ package org.gradle.launcher.daemon.registry;
 
 import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.internal.remote.Address;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.Collection;
 import java.util.List;
@@ -30,6 +32,7 @@ import static org.gradle.launcher.daemon.server.api.DaemonStateControl.*;
  * Implementations should be thread-safe.
  */
 @ThreadSafe
+@ServiceScope(Scope.Global.class)
 public interface DaemonRegistry {
 
     List<DaemonInfo> getAll();

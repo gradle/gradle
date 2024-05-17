@@ -34,7 +34,7 @@ class ReleasedVersionsDetails(currentBaseVersion: GradleVersion, releasedVersion
 
     init {
         val lowestInterestingVersion = GradleVersion.version("0.8")
-        val lowestTestedVersion = GradleVersion.version("1.0")
+        val lowestTestedVersion = GradleVersion.version("3.0")
 
         val releasedVersions = releasedVersionsFile.asFile.reader().use {
             Gson().fromJson(it, ReleasedVersions::class.java)

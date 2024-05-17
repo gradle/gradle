@@ -21,7 +21,6 @@ import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.DefaultCacheCleanupStrategy;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.internal.CleanupActionDecorator;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
 import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory;
@@ -48,20 +47,18 @@ import static org.gradle.internal.time.TimestampSuppliers.daysAgo;
 public class DefaultVersionControlRepositoryFactory implements VersionControlRepositoryConnectionFactory, Stoppable {
     private final PersistentCache vcsWorkingDirCache;
 
-    public DefaultVersionControlRepositoryFactory(BuildTreeScopedCacheBuilderFactory cacheBuilderFactory, CleanupActionDecorator cleanupActionDecorator) {
+    public DefaultVersionControlRepositoryFactory(BuildTreeScopedCacheBuilderFactory cacheBuilderFactory) {
         this.vcsWorkingDirCache = cacheBuilderFactory
             .createCrossVersionCacheBuilder("vcs-1")
             .withInitialLockMode(FileLockManager.LockMode.OnDemand)
             .withDisplayName("VCS Checkout Cache")
-            .withCleanupStrategy(createCacheCleanupStrategy(cleanupActionDecorator))
+            .withCleanupStrategy(createCacheCleanupStrategy())
             .open();
     }
 
-    private CacheCleanupStrategy createCacheCleanupStrategy(CleanupActionDecorator cleanupActionDecorator) {
+    private CacheCleanupStrategy createCacheCleanupStrategy() {
         return DefaultCacheCleanupStrategy.from(
-            cleanupActionDecorator.decorate(
-                new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(1), new ModificationTimeFileAccessTimeJournal(), daysAgo(DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES))
-            )
+            new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(1), new ModificationTimeFileAccessTimeJournal(), daysAgo(DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES))
         );
     }
 

@@ -44,7 +44,6 @@ errorprone {
         "URLEqualsHashCode", // 1 occurrences
         "UnsynchronizedOverridesSynchronized", // 2 occurrences
         "UnusedMethod", // 2 occurrences
-        "UnusedVariable", // 3 occurrences
     )
 }
 
@@ -52,6 +51,7 @@ dependencies {
     api(projects.concurrent)
     api(projects.javaLanguageExtensions)
     api(projects.fileTemp)
+    api(projects.serviceProvider)
     api(project(":hashing"))
     api(project(":build-operations"))
     api(libs.inject)

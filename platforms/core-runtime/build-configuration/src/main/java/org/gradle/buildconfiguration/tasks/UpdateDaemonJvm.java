@@ -26,7 +26,7 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
-import org.gradle.internal.buildconfiguration.BuildPropertiesDefaults;
+import org.gradle.internal.buildconfiguration.DaemonJvmPropertiesDefaults;
 import org.gradle.internal.buildconfiguration.tasks.UpdateDaemonJvmModifier;
 import org.gradle.util.internal.IncubationLogger;
 import org.gradle.work.DisableCachingByDefault;
@@ -36,7 +36,7 @@ import javax.inject.Inject;
 /**
  * Generates or updates the Gradle Daemon JVM criteria.
  *
- * This controls the version of Java required to run the Gradle Daemon.
+ * This controls the version of the JVM required to run the Gradle Daemon.
  *
  * @since 8.8
  */
@@ -58,7 +58,7 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
         IncubationLogger.incubatingFeatureUsed("Daemon JVM criteria");
         UpdateDaemonJvmModifier.updateJvmCriteria(
             getPropertiesFile().get().getAsFile(),
-            getToolchainVersion().get(),
+            getJvmVersion().get(),
             null,
             null
         );
@@ -67,7 +67,7 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
     /**
      * The file to write the requested daemon JVM criteria to.
      *
-     * {@value BuildPropertiesDefaults#BUILD_PROPERTIES_FILE}
+     * {@value DaemonJvmPropertiesDefaults#DAEMON_JVM_PROPERTIES_FILE}
      *
      * @since 8.8
      */
@@ -76,13 +76,13 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
     public abstract RegularFileProperty getPropertiesFile();
 
     /**
-     * The version of Java required to run the Gradle Daemon.
+     * The version of the JVM required to run the Gradle Daemon.
      *
      * @since 8.8
      */
     @Input
     @Optional
-    @Option(option = "toolchain-version", description = "The version of Java required to run the Gradle Daemon.")
+    @Option(option = "jvm-version", description = "The version of the JVM required to run the Gradle Daemon.")
     @Incubating
-    public abstract Property<JavaVersion> getToolchainVersion();
+    public abstract Property<JavaVersion> getJvmVersion();
 }

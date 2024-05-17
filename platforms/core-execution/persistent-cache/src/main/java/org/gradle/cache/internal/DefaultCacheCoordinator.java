@@ -59,9 +59,6 @@ import static org.gradle.cache.FileLockManager.LockMode.Exclusive;
 @ThreadSafe
 public class DefaultCacheCoordinator implements CacheCreationCoordinator, ExclusiveCacheAccessCoordinator {
     private final static Logger LOG = LoggerFactory.getLogger(DefaultCacheCoordinator.class);
-    private final static Runnable NO_OP = () -> {
-        // Empty initial operation to trigger onStartWork calls
-    };
 
     private final String cacheDisplayName;
     private final File baseDir;
@@ -235,34 +232,34 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
 
     @Override
     public <T> T useCache(Supplier<? extends T> factory) {
-            boolean wasStarted;
+        boolean wasStarted;
+        stateLock.lock();
+        try {
+            takeOwnership();
+            try {
+                wasStarted = onStartWork();
+            } catch (Throwable t) {
+                releaseOwnership();
+                throw UncheckedException.throwAsUncheckedException(t);
+            }
+        } finally {
+            stateLock.unlock();
+        }
+        try {
+            return factory.get();
+        } finally {
             stateLock.lock();
             try {
-                takeOwnership();
                 try {
-                    wasStarted = onStartWork();
-                } catch (Throwable t) {
+                    if (wasStarted) {
+                        onEndWork();
+                    }
+                } finally {
                     releaseOwnership();
-                    throw UncheckedException.throwAsUncheckedException(t);
                 }
             } finally {
                 stateLock.unlock();
             }
-            try {
-                return factory.get();
-            } finally {
-                stateLock.lock();
-                try {
-                    try {
-                        if (wasStarted) {
-                            onEndWork();
-                        }
-                    } finally {
-                        releaseOwnership();
-                    }
-                } finally {
-                    stateLock.unlock();
-                }
         }
     }
 
@@ -309,8 +306,8 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
     @Override
     public <K, V> MultiProcessSafeIndexedCache<K, V> newCache(final IndexedCacheParameters<K, V> parameters) {
         stateLock.lock();
-        IndexedCacheEntry<K, V> entry = Cast.uncheckedCast(caches.get(parameters.getCacheName()));
         try {
+            IndexedCacheEntry<K, V> entry = Cast.uncheckedCast(caches.get(parameters.getCacheName()));
             if (entry == null) {
                 File cacheFile = findCacheFile(parameters);
                 LOG.debug("Creating new cache for {}, path {}, access {}", parameters.getCacheName(), cacheFile, this);
@@ -321,7 +318,9 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
                 if (decorator != null) {
                     indexedCache = decorator.decorate(cacheFile.getAbsolutePath(), parameters.getCacheName(), indexedCache, crossProcessCacheAccess, getCacheAccessWorker());
                     if (fileLock == null) {
-                        useCache(NO_OP);
+                        useCache(() -> {
+                            // Empty initial operation to trigger onStartWork calls
+                        });
                     }
                 }
                 entry = new IndexedCacheEntry<>(parameters, indexedCache);
@@ -496,10 +495,6 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
 
         public MultiProcessSafeIndexedCache<K, V> getCache() {
             return cache;
-        }
-
-        public IndexedCacheParameters<K, V> getParameters() {
-            return parameters;
         }
 
         void assertCompatibleCacheParameters(IndexedCacheParameters<K, V> parameters) {

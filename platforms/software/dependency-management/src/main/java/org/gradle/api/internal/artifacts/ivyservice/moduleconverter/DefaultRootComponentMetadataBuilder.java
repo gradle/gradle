@@ -31,10 +31,10 @@ import org.gradle.api.internal.initialization.RootScriptDomainObjectContext;
 import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
-import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
+import org.gradle.internal.component.local.model.DefaultLocalComponentGraphResolveMetadata;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory;
-import org.gradle.internal.component.local.model.LocalComponentMetadata;
+import org.gradle.internal.component.local.model.LocalComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationGraphResolveState;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
@@ -138,11 +138,16 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
 
     private LocalComponentGraphResolveState createRootComponentMetadata(Module module, ComponentIdentifier componentIdentifier, AttributesSchemaInternal schema, ModelContainer<?> model) {
         ModuleVersionIdentifier moduleVersionIdentifier = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getName(), module.getVersion());
-        DefaultLocalComponentMetadata.ConfigurationsProviderMetadataFactory configurationMetadataFactory =
-            new DefaultLocalComponentMetadata.ConfigurationsProviderMetadataFactory(
-                configurationsProvider, configurationMetadataBuilder, model, calculatedValueContainerFactory);
+        DefaultLocalComponentGraphResolveMetadata.ConfigurationsProviderMetadataFactory configurationMetadataFactory =
+            new DefaultLocalComponentGraphResolveMetadata.ConfigurationsProviderMetadataFactory(
+                componentIdentifier,
+                configurationsProvider,
+                configurationMetadataBuilder,
+                model,
+                calculatedValueContainerFactory
+            );
 
-        LocalComponentMetadata metadata = new DefaultLocalComponentMetadata(moduleVersionIdentifier, componentIdentifier, module.getStatus(), schema, configurationMetadataFactory, null);
+        LocalComponentGraphResolveMetadata metadata = new DefaultLocalComponentGraphResolveMetadata(moduleVersionIdentifier, componentIdentifier, module.getStatus(), schema, configurationMetadataFactory, null);
         if (shouldCacheResolutionState()) {
             return localResolveStateFactory.stateFor(metadata);
         } else {

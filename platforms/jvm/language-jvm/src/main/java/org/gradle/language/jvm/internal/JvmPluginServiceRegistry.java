@@ -18,6 +18,10 @@ package org.gradle.language.jvm.internal;
 
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
+import org.gradle.api.internal.tasks.DefaultSourceSetContainer;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.plugins.jvm.internal.DefaultJvmPluginServices;
+import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.jvm.JvmLibrary;
@@ -28,6 +32,18 @@ public class JvmPluginServiceRegistry extends AbstractPluginServiceRegistry {
     @Override
     public void registerBuildServices(ServiceRegistration registration) {
         registration.addProvider(new ComponentRegistrationAction());
+    }
+
+    @Override
+    public void registerProjectServices(ServiceRegistration registration) {
+        registration.addProvider(new ProjectScopeServices());
+        registration.add(DefaultJvmPluginServices.class);
+    }
+
+    private static class ProjectScopeServices {
+        SourceSetContainer createSourceSetContainer(ObjectFactory objectFactory) {
+            return objectFactory.newInstance(DefaultSourceSetContainer.class);
+        }
     }
 
     private static class ComponentRegistrationAction {

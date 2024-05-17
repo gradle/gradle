@@ -35,7 +35,6 @@ import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
 import spock.lang.Ignore
-
 /**
  * These tests demonstrate the behavior of the [ResolutionFailureHandler] when a project has various
  * variant selection failures.
@@ -177,6 +176,26 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
         assertSuggestsViewingDocs("Incompatible variant errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-incompatible.")
+    }
+
+    def "demonstrate no variants exist"() {
+        noGraphVariantsExistForProject.prepare()
+
+        expect:
+        assertResolutionFailsAsExpected(noGraphVariantsExistForProject)
+
+        and: "Has error output"
+        failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
+        failure.assertHasCause("Could not resolve project :producer.")
+        assertFullMessageCorrect("""     Required by:
+         project :
+      > No matching variant of project :producer was found. The consumer was configured to find attribute 'color' with value 'green' but:
+          - No variants exist.""")
+
+        and: "Helpful resolutions are provided"
+        assertSuggestsReviewingAlgorithm()
+        assertSuggestsViewingDocs("Creating consumable variants is explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_dependencies.html#sec:resolvable-consumable-configs.")
     }
 
     // region Configuration requested by name
@@ -406,6 +425,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
     private final Demonstration ambiguousGraphVariantForExternalDep = new Demonstration("Ambiguous graph variant (external)", VariantSelectionException.class, VariantAwareAmbiguousResolutionFailure.class, this.&setupAmbiguousGraphVariantFailureForExternalDep)
     private final Demonstration noMatchingGraphVariantsForProject = new Demonstration("No matching graph variants (project dependency)", VariantSelectionException.class, IncompatibleGraphVariantFailure.class, this.&setupNoMatchingGraphVariantsFailureForProject)
     private final Demonstration noMatchingGraphVariantsForExternalDep = new Demonstration("No matching graph variants (external dependency)", VariantSelectionException.class, IncompatibleGraphVariantFailure.class, this.&setupNoMatchingGraphVariantsFailureForExternalDep)
+    private final Demonstration noGraphVariantsExistForProject = new Demonstration("Blah", VariantSelectionException.class, IncompatibleGraphVariantFailure.class, this.&setupNoGraphVariantsExistFailureForProject)
 
     private final Demonstration incompatibleRequestedConfiguration = new Demonstration("Incompatible requested configuration", VariantSelectionException.class, IncompatibleRequestedConfigurationFailure.class, this.&setupIncompatibleRequestedConfigurationFailureForProject)
 
@@ -422,6 +442,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         ambiguousGraphVariantForExternalDep,
         noMatchingGraphVariantsForProject,
         noMatchingGraphVariantsForExternalDep,
+        noGraphVariantsExistForProject,
         incompatibleRequestedConfiguration,
         incompatibleArtifactVariants,
         noMatchingArtifactVariants,
@@ -706,6 +727,38 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
             ${forceConsumerResolution()}
         """
+    }
+
+    private void setupNoGraphVariantsExistFailureForProject() {
+        settingsKotlinFile << """
+            rootProject.name = "example"
+            include("producer")
+        """
+
+        buildKotlinFile << """
+            plugins {
+                id("base")
+            }
+
+            val color = Attribute.of("color", String::class.java)
+
+            configurations {
+                dependencyScope("defaultDependencies")
+
+                resolvable("resolveMe") {
+                    extendsFrom(configurations.getByName("defaultDependencies"))
+                    attributes.attribute(color, "green")
+                }
+            }
+
+            dependencies {
+                add("defaultDependencies", project(":producer"))
+            }
+
+            ${forceConsumerResolution()}
+        """
+
+        file("producer/build.gradle.kts").touch()
     }
 
     private void setupIncompatibleRequestedConfigurationFailureForProject() {

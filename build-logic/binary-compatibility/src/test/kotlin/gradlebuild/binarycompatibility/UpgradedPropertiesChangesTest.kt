@@ -100,7 +100,7 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
                             "methodName": "getSourceCompatibility",
                             "methodDescriptor": "()Lorg/gradle/api/provider/Property;",
                             "propertyName": "sourceCompatibility",
-                            "upgradedAccessors": [{
+                            "replacedAccessors": [{
                                 "binaryCompatibility": "ACCESSORS_REMOVED",
                                 "descriptor": "()Ljava/lang/String;",
                                 "name": "getSourceCompatibility"
@@ -164,7 +164,7 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
                             "methodName": "getFailOnError",
                             "methodDescriptor": "()Lorg/gradle/api/provider/Property;",
                             "propertyName": "failOnError",
-                            "upgradedAccessors": [{
+                            "replacedAccessors": [{
                                 "binaryCompatibility": "ACCESSORS_REMOVED",
                                 "descriptor": "()Z",
                                 "name": "isFailOnError"
@@ -224,7 +224,7 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
                             "methodName": "getFailOnError",
                             "methodDescriptor": "()Lorg/gradle/api/provider/Property;",
                             "propertyName": "failOnError",
-                            "upgradedAccessors": [{
+                            "replacedAccessors": [{
                                 "binaryCompatibility": "ACCESSORS_REMOVED",
                                 "descriptor": "()Z",
                                 "name": "isFailOnError"
@@ -283,7 +283,7 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
                             "methodName": "getSourceCompatibility",
                             "methodDescriptor": "()Lorg/gradle/api/provider/Property;",
                             "propertyName": "sourceCompatibility",
-                            "upgradedAccessors": [{
+                            "replacedAccessors": [{
                                 "binaryCompatibility": "ACCESSORS_REMOVED",
                                 "descriptor": "()Ljava/lang/String;",
                                 "name": "getSourceCompatibility"
@@ -342,7 +342,7 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
                             "methodName": "getSourceCompatibility",
                             "methodDescriptor": "()Lorg/gradle/api/provider/Property;",
                             "propertyName": "sourceCompatibility",
-                            "upgradedAccessors": [{
+                            "replacedAccessors": [{
                                 "binaryCompatibility": "ACCESSORS_REMOVED",
                                 "descriptor": "()Ljava/lang/String;",
                                 "name": "getSourceCompatibility"
@@ -404,7 +404,7 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
                             "methodName": "getSourceCompatibility",
                             "methodDescriptor": "()Lorg/gradle/api/provider/Property;",
                             "propertyName": "sourceCompatibility",
-                            "upgradedAccessors": [{
+                            "replacedAccessors": [{
                                 "binaryCompatibility": "ACCESSORS_REMOVED",
                                 "descriptor": "()Ljava/lang/String;",
                                 "name": "getSourceCompatibility"
@@ -467,7 +467,7 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
                             "methodName": "getSourceCompatibility",
                             "methodDescriptor": "()Lorg/gradle/api/provider/Property;",
                             "propertyName": "sourceCompatibility",
-                            "upgradedAccessors": [{
+                            "replacedAccessors": [{
                                 "binaryCompatibility": "ACCESSORS_REMOVED",
                                 "descriptor": "()Ljava/lang/String;",
                                 "name": "getSourceCompat"

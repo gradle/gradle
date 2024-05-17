@@ -31,7 +31,7 @@ class DefaultSoftwareTypeRegistryTest extends Specification {
     def inspectionScheme = Mock(InspectionScheme)
     def registry = new DefaultSoftwareTypeRegistry(inspectionScheme)
 
-    def "can register and retrieve a software type"() {
+    def "can register and retrieve a software type (public type = #modelPublicType.simpleName)"() {
         def pluginTypeMetadata = Mock(TypeMetadata)
         def modelTypeMetadata = Mock(TypeMetadata)
         def propertyMetadata = Mock(PropertyMetadata)
@@ -48,10 +48,10 @@ class DefaultSoftwareTypeRegistryTest extends Specification {
         1 * metadataStore.getTypeMetadata(SoftwareTypeImpl) >> pluginTypeMetadata
         1 * pluginTypeMetadata.getPropertiesMetadata() >> [propertyMetadata]
         1 * propertyMetadata.getPropertyType() >> SoftwareType.class
-        1 * propertyMetadata.getDeclaredType() >> TypeToken.of(TestModel.class)
+        (1..2) * propertyMetadata.getDeclaredType() >> TypeToken.of(TestModel.class)
         1 * propertyMetadata.getAnnotation(SoftwareType.class) >> Optional.of(softwareType)
         2 * softwareType.name() >> "test"
-        1 * softwareType.modelPublicType() >> TestModel
+        (1..2) * softwareType.modelPublicType() >> modelPublicType
         1 * metadataStore.getTypeMetadata(TestModel) >> modelTypeMetadata
         1 * modelTypeMetadata.getPropertiesMetadata() >> []
 
@@ -59,6 +59,9 @@ class DefaultSoftwareTypeRegistryTest extends Specification {
         implementations.size() == 1
         implementations[0].modelPublicType == TestModel
         implementations[0].softwareType == "test"
+
+        where:
+        modelPublicType << [TestModel, Void]
     }
 
     def "cannot register a plugin that is not a software type"() {
@@ -96,7 +99,7 @@ class DefaultSoftwareTypeRegistryTest extends Specification {
         1 * propertyMetadata.getDeclaredType() >> TypeToken.of(TestModel.class)
         1 * propertyMetadata.getAnnotation(SoftwareType.class) >> Optional.of(softwareType)
         2 * softwareType.name() >> "test"
-        1 * softwareType.modelPublicType() >> TestModel
+        2 * softwareType.modelPublicType() >> TestModel
         1 * metadataStore.getTypeMetadata(TestModel) >> modelTypeMetadata
         1 * modelTypeMetadata.getPropertiesMetadata() >> []
 
@@ -130,7 +133,7 @@ class DefaultSoftwareTypeRegistryTest extends Specification {
         1 * duplicatePropertyMetadata.getDeclaredType() >> TypeToken.of(TestModel.class)
         1 * duplicatePropertyMetadata.getAnnotation(SoftwareType.class) >> Optional.of(softwareType)
         4 * softwareType.name() >> "test"
-        1 * softwareType.modelPublicType() >> TestModel
+        2 * softwareType.modelPublicType() >> TestModel
         2 * metadataStore.getTypeMetadata(TestModel) >> modelTypeMetadata
         1 * modelTypeMetadata.getPropertiesMetadata() >> []
 

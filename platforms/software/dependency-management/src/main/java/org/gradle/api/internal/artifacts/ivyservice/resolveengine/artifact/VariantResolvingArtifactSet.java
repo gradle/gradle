@@ -170,7 +170,7 @@ public class VariantResolvingArtifactSet implements ArtifactSet {
         Set<? extends VariantResolveMetadata> artifactVariants = variantState.getArtifactVariants();
         ImmutableSet.Builder<ResolvedVariant> resolved = ImmutableSet.builderWithExpectedSize(artifactVariants.size());
 
-        ComponentArtifactResolveMetadata componentMetadata = component.prepareForArtifactResolution().getResolveMetadata();
+        ComponentArtifactResolveMetadata componentMetadata = component.prepareForArtifactResolution().getArtifactMetadata();
         if (exclusions.mayExcludeArtifacts()) {
             for (VariantResolveMetadata artifactVariant : artifactVariants) {
                 resolved.add(variantResolver.resolveVariant(componentMetadata, artifactVariant, exclusions));
