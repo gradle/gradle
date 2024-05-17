@@ -20,6 +20,7 @@ import com.nhaarman.mockitokotlin2.mock
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.extensions.useToRun
+import org.gradle.configurationcache.problems.AbstractProblemsListener
 import org.gradle.configurationcache.problems.ProblemsListener
 import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.serialization.Codec
@@ -56,7 +57,7 @@ abstract class AbstractUserTypeCodecTest {
                 NullOutputStream.INSTANCE,
                 bean,
                 codec,
-                object : ProblemsListener {
+                object : AbstractProblemsListener() {
                     override fun onProblem(problem: PropertyProblem) {
                         problems += problem
                     }
@@ -81,7 +82,7 @@ abstract class AbstractUserTypeCodecTest {
         val outputStream = ByteArrayOutputStream()
         writeTo(
             outputStream, graph, codec,
-            object : ProblemsListener {
+            object : AbstractProblemsListener() {
                 override fun onProblem(problem: PropertyProblem) {
                     println(problem)
                 }

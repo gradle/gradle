@@ -24,7 +24,7 @@ import kotlin.reflect.KClass
 /**
  * A problem that does not necessarily compromise the execution of the build.
  */
-data class PropertyProblem internal constructor(
+data class PropertyProblem(
     val trace: PropertyTrace,
     val message: StructuredMessage,
     val exception: Throwable? = null,
@@ -37,6 +37,7 @@ data class PropertyProblem internal constructor(
 )
 
 
+// TODO:configuration-cache extract interface and move enum back to :configuration-cache
 enum class DocumentationSection(val anchor: String) {
     NotYetImplemented("config_cache:not_yet_implemented"),
     NotYetImplementedSourceDependencies("config_cache:not_yet_implemented:source_dependencies"),

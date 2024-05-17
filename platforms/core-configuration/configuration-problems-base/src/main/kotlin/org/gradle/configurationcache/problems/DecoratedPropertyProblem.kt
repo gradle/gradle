@@ -22,7 +22,6 @@ import org.gradle.internal.problems.failure.FailurePrinterListener
 import org.gradle.internal.problems.failure.StackTraceRelevance
 
 
-internal
 data class DecoratedPropertyProblem(
     val trace: PropertyTrace,
     val message: StructuredMessage,
@@ -31,7 +30,6 @@ data class DecoratedPropertyProblem(
 )
 
 
-internal
 data class DecoratedFailure(
     val summary: StructuredMessage?,
     val parts: List<StackTracePart>?
@@ -42,14 +40,12 @@ data class DecoratedFailure(
 }
 
 
-internal
 data class StackTracePart(
     val isInternal: Boolean,
     val text: String
 )
 
 
-internal
 class FailureDecorator {
 
     private

@@ -16,11 +16,9 @@
 
 package org.gradle.configurationcache.extensions
 
+import java.lang.reflect.InvocationTargetException
 
-/**
- * Thread unsafe version of [lazy].
- *
- * @see LazyThreadSafetyMode.NONE
- */
-internal
-fun <T> unsafeLazy(initializer: () -> T): Lazy<T> = lazy(LazyThreadSafetyMode.NONE, initializer)
+
+fun Throwable.maybeUnwrapInvocationTargetException() =
+    if (this is InvocationTargetException) targetException
+    else this

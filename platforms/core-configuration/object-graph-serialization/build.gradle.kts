@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,21 @@
  */
 
 plugins {
-    id("gradlebuild.kotlin-library")
-    id("gradlebuild.distribution-module")
-    id("gradlebuild.distribution.implementation")
+    id("gradlebuild.distribution.implementation-kotlin")
+    id("gradlebuild.kotlin-dsl-sam-with-receiver")
 }
 
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
-    compilerOptions {
-        freeCompilerArgs.addAll(
-            "-opt-in=kotlin.contracts.ExperimentalContracts",
-        )
-    }
+description = "Efficient and extensible serialization for object graphs"
+
+dependencies {
+    api(projects.baseServices)
+    api(projects.configurationProblemsBase)
+
+    implementation(projects.javaLanguageExtensions)
+    implementation(projects.kotlinLanguageExtensions)
+    implementation(projects.logging)
+
+    implementation(libs.inject)
+    implementation(libs.fastutil)
+    implementation(libs.futureKotlin("stdlib"))
 }

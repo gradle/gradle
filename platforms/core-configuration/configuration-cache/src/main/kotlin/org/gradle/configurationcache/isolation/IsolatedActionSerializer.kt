@@ -22,7 +22,7 @@ import org.gradle.configurationcache.extensions.invert
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.extensions.useToRun
 import org.gradle.configurationcache.logger
-import org.gradle.configurationcache.problems.ProblemsListener
+import org.gradle.configurationcache.problems.AbstractProblemsListener
 import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.serialization.ClassDecoder
 import org.gradle.configurationcache.serialization.ClassEncoder
@@ -172,7 +172,7 @@ class EnvironmentDecoder(
  * TODO: report problems via the Problems API
  */
 private
-object ThrowingProblemsListener : ProblemsListener {
+object ThrowingProblemsListener : AbstractProblemsListener() {
     override fun onProblem(problem: PropertyProblem) {
         // TODO: consider throwing more specific exception
         throw ConfigurationCacheError("Failed to isolate 'GradleLifecycle' action: ${problem.message}")

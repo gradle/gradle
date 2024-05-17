@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.problems
+package org.gradle.configurationcache.serialization
 
-import org.gradle.internal.service.scopes.EventScope
-import org.gradle.internal.service.scopes.Scope
-
-
-@EventScope(Scope.BuildTree::class)
-interface ProblemsListener {
-
-    fun onProblem(problem: PropertyProblem)
-
-    fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder)
-
-    fun forIncompatibleTask(path: String): ProblemsListener
-}
+import org.gradle.api.invocation.Gradle
 
 
+internal
+inline fun <T : MutableIsolateContext, R> T.withGradleIsolate(
+    gradle: Gradle,
+    codec: Codec<Any?>,
+    block: T.() -> R
+): R =
+    withIsolate(IsolateOwner.OwnerGradle(gradle), codec) {
+        block()
+    }

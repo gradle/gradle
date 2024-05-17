@@ -29,19 +29,13 @@ tasks.configCacheIntegTest {
     enabled = false
 }
 
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
-    compilerOptions {
-        freeCompilerArgs.addAll(
-            "-opt-in=kotlin.contracts.ExperimentalContracts",
-        )
-    }
-}
 
 dependencies {
     api(projects.concurrent)
     api(projects.javaLanguageExtensions)
     api(projects.serialization)
     api(projects.serviceProvider)
+    api(projects.configurationProblemsBase)
     api(project(":base-services"))
     api(project(":build-operations"))
     // TODO - it might be good to allow projects to contribute state to save and restore, rather than have this project know about everything
@@ -77,7 +71,9 @@ dependencies {
     implementation(project(":build-events"))
     implementation(project(":execution"))
     implementation(project(":file-watching"))
+    implementation(projects.kotlinLanguageExtensions)
     implementation(project(":input-tracking"))
+    implementation(projects.objectGraphSerialization)
     implementation(project(":platform-jvm"))
     implementation(project(":process-services"))
     implementation(project(":publish"))

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,10 @@
 
 package org.gradle.configurationcache.extensions
 
-import org.gradle.internal.Cast
 
-
-internal
-fun <T> Any.uncheckedCast(): T =
-    Cast.uncheckedNonnullCast(this)
+/**
+ * Thread unsafe version of [lazy].
+ *
+ * @see LazyThreadSafetyMode.NONE
+ */
+fun <T> unsafeLazy(initializer: () -> T): Lazy<T> = lazy(LazyThreadSafetyMode.NONE, initializer)

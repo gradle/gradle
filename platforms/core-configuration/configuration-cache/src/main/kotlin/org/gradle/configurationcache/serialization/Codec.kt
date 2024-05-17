@@ -16,12 +16,8 @@
 
 package org.gradle.configurationcache.serialization
 
-import org.gradle.api.Task
-import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logger
-import org.gradle.configurationcache.DefaultConfigurationCache
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.problems.PropertyTrace
@@ -110,38 +106,6 @@ interface IsolateContext {
 }
 
 
-sealed class IsolateOwner {
-
-    abstract fun <T> service(type: Class<T>): T
-
-    abstract val delegate: Any
-
-    class OwnerTask(
-        override val delegate: Task,
-        // TODO:configuration-cache - consider immutability
-        var allowTaskReferences: Boolean = false
-    ) : IsolateOwner() {
-        override fun <T> service(type: Class<T>): T = (delegate.project as ProjectInternal).services.get(type)
-    }
-
-    class OwnerGradle(override val delegate: Gradle) : IsolateOwner() {
-        override fun <T> service(type: Class<T>): T = (delegate as GradleInternal).services.get(type)
-    }
-
-    class OwnerHost(override val delegate: DefaultConfigurationCache.Host) : IsolateOwner() {
-        override fun <T> service(type: Class<T>): T = delegate.service(type)
-    }
-
-    class OwnerFlowScope(override val delegate: Gradle) : IsolateOwner() {
-        override fun <T> service(type: Class<T>): T = (delegate as GradleInternal).services.get(type)
-    }
-
-    class OwnerFlowAction(override val delegate: OwnerFlowScope) : IsolateOwner() {
-        override fun <T> service(type: Class<T>): T = delegate.service(type)
-    }
-}
-
-
 internal
 inline fun <reified T> IsolateOwner.serviceOf() = service(T::class.java)
 
@@ -192,17 +156,6 @@ inline fun <T : ReadContext, R> T.withImmediateMode(block: T.() -> R): R {
         this.immediateMode = immediateMode
     }
 }
-
-
-internal
-inline fun <T : MutableIsolateContext, R> T.withGradleIsolate(
-    gradle: Gradle,
-    codec: Codec<Any?>,
-    block: T.() -> R
-): R =
-    withIsolate(IsolateOwner.OwnerGradle(gradle), codec) {
-        block()
-    }
 
 
 internal

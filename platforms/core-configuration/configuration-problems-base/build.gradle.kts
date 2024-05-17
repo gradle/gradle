@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.problems
-
-import org.gradle.internal.service.scopes.EventScope
-import org.gradle.internal.service.scopes.Scope
-
-
-@EventScope(Scope.BuildTree::class)
-interface ProblemsListener {
-
-    fun onProblem(problem: PropertyProblem)
-
-    fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder)
-
-    fun forIncompatibleTask(path: String): ProblemsListener
+plugins {
+    id("gradlebuild.distribution.implementation-kotlin")
+    id("gradlebuild.kotlin-dsl-sam-with-receiver")
 }
 
+description = "Base utilities and services to report and track configuration problems"
 
+dependencies {
+    api(projects.baseServices)
+    api(projects.problemsApi)
+
+    implementation(projects.javaLanguageExtensions)
+    implementation(projects.kotlinLanguageExtensions)
+    implementation(projects.logging)
+
+    implementation(libs.inject)
+    implementation(libs.futureKotlin("stdlib"))
+}
