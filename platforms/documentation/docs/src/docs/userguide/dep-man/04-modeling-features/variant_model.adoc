@@ -51,14 +51,13 @@ Gradle differentiates between two kind of components:
 For local components, <<#sec:abm_configuration_attributes, variants are mapped to consumable configurations>>.
 For external components, variants are defined by published Gradle Module Metadata or <<#sec:mapping-maven-ivy-to-variants,are derived from Ivy/Maven metadata>>.
 
-[NOTE]
 .Variants vs configurations
-====
+--
 Variants and configurations are sometimes used interchangeably in the documentation, DSL or API for historical reasons.
 
 All components provide _variants_ and those variants may be backed by a consumable configuration.
 Not all configurations are variants because they may be used for declaring or resolving dependencies.
-====
+--
 
 [[sec:abm_configuration_attributes]]
 == Variant attributes
@@ -77,12 +76,11 @@ It is not unusual for a variant to have more attributes than the consumer needs 
 [[sec:variant-aware-matching]]
 == Variant attribute matching
 
-[NOTE]
 .About producer variants
-====
+--
 The variant _name_ is mostly for debugging purposes and error messages.
 The name does not participate variant matching--only its attributes do.
-====
+--
 
 There are no restrictions on the number of variants a component can define.
 Usually, a component has at least an implementation variant, but it could also expose test fixtures, documentation or source code.
@@ -93,6 +91,7 @@ Gradle performs _variant aware selection_ by matching the attributes requested b
 [NOTE]
 ====
 There are two exceptions to this rule that bypass variant aware resolution:
+
 - when a producer has no variants, a default artifact is chosen.
 - when a consumer _explicitly selects a configuration by name_, the artifacts of the configuration are chosen.
 ====
@@ -103,18 +102,18 @@ Let's consider an example where a consumer is trying to use a library for compil
 
 First, the consumer needs to explain how it's going to use the result of dependency resolution. This is done by setting _attributes_ on the resolvable configuration of the consumer.
 
-The consumer wants to resolve a variant that matches: `org.gradle.usage=JAVA_API`
+The consumer wants to resolve a variant that matches: `org.gradle.usage=java-api`
 
 Second, the producer needs to expose the different variants of the component.
 
 The producer component exposes 2 variants:
 
-- its API (named `apiElements`) with attribute `org.gradle.usage=JAVA_API`
-- its runtime (named `runtimeElements`) with attribute `org.gradle.usage=JAVA_RUNTIME`
+- its API (named `apiElements`) with attribute `org.gradle.usage=java-api`
+- its runtime (named `runtimeElements`) with attribute `org.gradle.usage=java-runtime`
 
 Finally, Gradle selects the appropriate variant by looking at the variant attributes:
 
-- the consumer wants a variant with attributes `org.gradle.usage=JAVA_API`
+- the consumer wants a variant with attributes `org.gradle.usage=java-api`
 - the producer has a matching variant (`apiElements`)
 - the producer has a non-matching variant (`runtimeElements`)
 
@@ -138,38 +137,37 @@ First, the consumer needs to explain which version of the Java it needs.
 
 The consumer wants to resolve a variant that:
 
-- can be used at runtime (has `org.gradle.usage=JAVA_RUNTIME`)
+- can be used at runtime (has `org.gradle.usage=java-runtime`)
 - can be run on _at least_ Java 8 (`org.gradle.jvm.version=8`)
 
 Second, the producer needs to expose the different variants of the component.
 
 Like in the simple example, there is both a API (compilation) and runtime variant. These exist for both the Java 8 and Java 11 version of the component.
 
-- its API for Java 8 consumers (named `apiJava8Elements`) with attribute `org.gradle.usage=JAVA_API` and `org.gradle.jvm.version=8`
-- its runtime for Java 8 consumers (named `runtime8Elements`) with attribute `org.gradle.usage=JAVA_RUNTIME` and `org.gradle.jvm.version=8`
-- its API for Java 11 consumers (named `apiJava11Elements`) with attribute `org.gradle.usage=JAVA_API` and `org.gradle.jvm.version=11`
-- its runtime for Java 11 consumers (named `runtime11Elements`) with attribute `org.gradle.usage=JAVA_RUNTIME` and `org.gradle.jvm.version=11`
+- its API for Java 8 consumers (named `apiJava8Elements`) with attribute `org.gradle.usage=java-api` and `org.gradle.jvm.version=8`
+- its runtime for Java 8 consumers (named `runtime8Elements`) with attribute `org.gradle.usage=java-runtime` and `org.gradle.jvm.version=8`
+- its API for Java 11 consumers (named `apiJava11Elements`) with attribute `org.gradle.usage=java-api` and `org.gradle.jvm.version=11`
+- its runtime for Java 11 consumers (named `runtime11Elements`) with attribute `org.gradle.usage=java-runtime` and `org.gradle.jvm.version=11`
 
 Finally, Gradle selects the best matching variant by looking at all of the attributes:
 
-- the consumer wants a variant with compatible attributes to `org.gradle.usage=JAVA_RUNTIME` and `org.gradle.jvm.version=8`
-- the variants `runtime8Elements` and `runtime11Elements` have `org.gradle.usage=JAVA_RUNTIME`
+- the consumer wants a variant with compatible attributes to `org.gradle.usage=java-runtime` and `org.gradle.jvm.version=8`
+- the variants `runtime8Elements` and `runtime11Elements` have `org.gradle.usage=java-runtime
 - the variants `apiJava8Elements` and `apiJava11Elements` are incompatible
 - the variant `runtime8Elements` is compatible because it can run on Java 8
 - the variant `runtime11Elements` is incompatible because it cannot run on Java 8
 
 Gradle provides the artifacts and dependencies from the `runtime8Elements` variant to the consumer.
 
-[NOTE]
 .Compatibility of variants
-====
+--
 What if the consumer sets `org.gradle.jvm.version` to 7?
 
 Dependency resolution would _fail_ with an error message explaining that there's no suitable variant.
 Gradle recognizes that the consumer wants a Java 7 compatible library and the _minimal_ version of Java available on the producer is 8.
 
 If the consumer requested `org.gradle.jvm.version=15`, then Gradle knows either the Java 8 or Java 11 variants could work. Gradle select the highest compatible Java version (11).
-====
+--
 
 [[sec:variant-select-errors]]
 == Variant selection errors
@@ -276,7 +274,7 @@ An incompatible variant error looks like the following example, where a consumer
 
 [listing]
 ----
-> Could not resolve all task dependencies for configuration ':resolveMe'.
+> Could not resolve all dependencies for configuration ':resolveMe'.
    > Could not resolve project :.
      Required by:
          project :
@@ -294,7 +292,7 @@ Unfortunately one variant has `color=blue` and the other has `color=green`:
 
 [listing]
 ----
-> Could not resolve all task dependencies for configuration ':resolveMe'.
+> Could not resolve all dependencies for configuration ':resolveMe'.
    > Could not resolve project :.
      Required by:
          project :
@@ -320,7 +318,7 @@ If a project registers multiple artifact transforms, needs to use an artifact tr
 
 [listing]
 ----
-> Could not resolve all task dependencies for configuration ':resolveMe'.
+> Could not resolve all dependencies for configuration ':resolveMe'.
    > Found multiple transforms that can produce a variant of project : with requested attributes:
        - color 'red'
        - shape 'round'
@@ -627,14 +625,13 @@ From this you can see the two main configurations used to resolve dependencies, 
 Neither Maven nor Ivy have the concept of _variants_, which are only natively supported by Gradle Module Metadata.
 Gradle can still work with Maven and Ivy by using different variant derivation strategies.
 
-[NOTE]
 .Relationship with Gradle Module Metadata
-====
+--
 Gradle Module Metadata is a metadata format for modules published on Maven, Ivy and other kinds of repositories.
 It is similar to the `pom.xml` or `ivy.xml` metadata file, but this format contains details about variants.
 
 See the {metadata-file-spec}[Gradle Module Metadata specification] for more information.
-====
+--
 
 [[sub:maven-mapping-to-variants]]
 === Mapping of Maven POM metadata to variants

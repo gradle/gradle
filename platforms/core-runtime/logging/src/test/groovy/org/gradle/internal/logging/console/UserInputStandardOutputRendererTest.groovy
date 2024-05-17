@@ -26,12 +26,13 @@ import spock.lang.Subject
 
 class UserInputStandardOutputRendererTest  extends Specification {
     def listener = Mock(OutputEventListener)
-    @Subject def renderer = new UserInputStandardOutputRenderer(listener)
+    def userInput = Mock(GlobalUserInputReceiver)
+    @Subject def renderer = new UserInputStandardOutputRenderer(listener, userInput)
 
     def "can handle user input request and resume events"() {
         given:
         def userInputRequestEvent = new UserInputRequestEvent()
-        def userInputResumeEvent = new UserInputResumeEvent()
+        def userInputResumeEvent = new UserInputResumeEvent(123)
 
         when:
         renderer.onOutput(userInputRequestEvent)
@@ -43,13 +44,15 @@ class UserInputStandardOutputRendererTest  extends Specification {
         renderer.onOutput(userInputResumeEvent)
 
         then:
+        1 * listener.onOutput(userInputResumeEvent)
         0 * listener.onOutput(_)
+        0 * userInput._
         renderer.eventQueue.empty
     }
 
     def "throws exception if user input resume event has been received but event handling hasn't been paused"() {
         given:
-        def event = new UserInputResumeEvent()
+        def event = new UserInputResumeEvent(123)
 
         when:
         renderer.onOutput(event)
@@ -58,13 +61,14 @@ class UserInputStandardOutputRendererTest  extends Specification {
         def t = thrown(IllegalStateException)
         t.message == 'Cannot resume user input if not paused yet'
         0 * listener.onOutput(_)
+        0 * userInput._
         renderer.eventQueue.empty
     }
 
     def "can replay queued events if event handling is paused"() {
         given:
         def userInputRequestEvent = new UserInputRequestEvent()
-        def userInputResumeEvent = new UserInputResumeEvent()
+        def userInputResumeEvent = new UserInputResumeEvent(123)
 
         when:
         renderer.onOutput(userInputRequestEvent)
@@ -80,15 +84,18 @@ class UserInputStandardOutputRendererTest  extends Specification {
 
         then:
         0 * listener.onOutput(_)
+        0 * userInput._
         renderer.eventQueue.size() == 2
 
         when:
         renderer.onOutput(userInputResumeEvent)
 
         then:
+        1 * listener.onOutput(userInputResumeEvent)
         1 * listener.onOutput(testOutputEvent1)
         1 * listener.onOutput(testOutputEvent2)
         0 * listener.onOutput(_)
+        0 * userInput._
         renderer.eventQueue.empty
     }
 
@@ -101,6 +108,7 @@ class UserInputStandardOutputRendererTest  extends Specification {
 
         then:
         1 * listener.onOutput(testOutputEvent)
+        0 * userInput._
         renderer.eventQueue.empty
     }
 

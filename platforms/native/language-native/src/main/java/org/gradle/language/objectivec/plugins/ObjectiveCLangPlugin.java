@@ -15,7 +15,6 @@
  */
 package org.gradle.language.objectivec.plugins;
 
-import com.google.common.collect.Maps;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -39,6 +38,7 @@ import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.platform.base.ComponentType;
 import org.gradle.platform.base.TypeBuilder;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -73,7 +73,7 @@ public abstract class ObjectiveCLangPlugin implements Plugin<Project> {
 
         @Override
         public Map<String, Class<?>> getBinaryTools() {
-            Map<String, Class<?>> tools = Maps.newLinkedHashMap();
+            Map<String, Class<?>> tools = new LinkedHashMap<>();
             tools.put("objcCompiler", DefaultPreprocessingTool.class);
             return tools;
         }

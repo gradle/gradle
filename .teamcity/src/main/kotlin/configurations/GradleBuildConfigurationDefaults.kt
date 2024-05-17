@@ -12,22 +12,22 @@ import common.applyDefaultSettings
 import common.buildToolGradleParameters
 import common.checkCleanM2AndAndroidUserHome
 import common.cleanUpGitUntrackedFilesAndDirectories
-import common.cleanUpReadOnlyDir
 import common.compileAllDependency
 import common.dependsOn
 import common.functionalTestParameters
 import common.gradleWrapper
 import common.killProcessStep
-import common.onlyRunOnPreTestedCommitBuildBranch
-import jetbrains.buildServer.configs.kotlin.v2019_2.BuildFeatures
-import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep.ExecutionMode
-import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
-import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
-import jetbrains.buildServer.configs.kotlin.v2019_2.ProjectFeatures
-import jetbrains.buildServer.configs.kotlin.v2019_2.RelativeId
-import jetbrains.buildServer.configs.kotlin.v2019_2.buildFeatures.PullRequests
-import jetbrains.buildServer.configs.kotlin.v2019_2.buildFeatures.commitStatusPublisher
-import jetbrains.buildServer.configs.kotlin.v2019_2.buildFeatures.pullRequests
+import common.onlyRunOnGitHubMergeQueueBranch
+import jetbrains.buildServer.configs.kotlin.BuildFeatures
+import jetbrains.buildServer.configs.kotlin.BuildStep.ExecutionMode
+import jetbrains.buildServer.configs.kotlin.BuildSteps
+import jetbrains.buildServer.configs.kotlin.BuildType
+import jetbrains.buildServer.configs.kotlin.ProjectFeatures
+import jetbrains.buildServer.configs.kotlin.RelativeId
+import jetbrains.buildServer.configs.kotlin.buildFeatures.PullRequests
+import jetbrains.buildServer.configs.kotlin.buildFeatures.commitStatusPublisher
+import jetbrains.buildServer.configs.kotlin.buildFeatures.parallelTests
+import jetbrains.buildServer.configs.kotlin.buildFeatures.pullRequests
 import model.CIBuildModel
 import model.StageName
 
@@ -68,6 +68,19 @@ fun BuildFeatures.enablePullRequestFeature() {
             }
             filterAuthorRole = PullRequests.GitHubRoleFilter.EVERYBODY
             filterTargetBranch = "+:refs/heads/${VersionedSettingsBranch.fromDslContext().branchName}"
+        }
+    }
+}
+
+fun BaseGradleBuildType.tcParallelTests(numberOfBatches: Int) {
+    if (numberOfBatches > 1) {
+        params {
+            param("env.TEAMCITY_PARALLEL_TESTS_ENABLED", "1")
+        }
+        features {
+            parallelTests {
+                this.numberOfBatches = numberOfBatches
+            }
         }
     }
 }
@@ -121,7 +134,7 @@ fun BaseGradleBuildType.gradleRunnerStep(
             gradleParams = parameters
             executionMode = stepExecutionMode
             if (isRetry) {
-                onlyRunOnPreTestedCommitBuildBranch()
+                onlyRunOnGitHubMergeQueueBranch()
             }
         }
     }
@@ -133,6 +146,7 @@ fun applyDefaults(
     gradleTasks: String,
     dependsOnQuickFeedbackLinux: Boolean = false,
     os: Os = Os.LINUX,
+    arch: Arch = Arch.AMD64,
     extraParameters: String = "",
     timeout: Int = 90,
     daemon: Boolean = true,
@@ -142,11 +156,11 @@ fun applyDefaults(
     buildType.applyDefaultSettings(os, timeout = timeout, buildJvm = buildJvm)
 
     buildType.killProcessStep(KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS, os)
-    buildType.steps.cleanUpReadOnlyDir(os)
     buildType.gradleRunnerStep(model, gradleTasks, os, extraParameters, daemon)
 
     buildType.steps {
         extraSteps()
+        killProcessStep(buildType, KILL_PROCESSES_STARTED_BY_GRADLE, os, arch, executionMode = ExecutionMode.ALWAYS)
         checkCleanM2AndAndroidUserHome(os, buildType)
     }
 
@@ -189,10 +203,9 @@ fun applyTestDefaults(
     }
 
     buildType.killProcessStep(KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS, os, arch)
-    buildType.steps.cleanUpReadOnlyDir(os)
     buildType.gradleRunnerStep(model, gradleTasks, os, extraParameters, daemon, maxParallelForks = maxParallelForks)
     buildType.addRetrySteps(model, gradleTasks, os, arch, extraParameters)
-    buildType.killProcessStep(KILL_PROCESSES_STARTED_BY_GRADLE, os, arch)
+    buildType.killProcessStep(KILL_PROCESSES_STARTED_BY_GRADLE, os, arch, executionMode = ExecutionMode.ALWAYS)
 
     buildType.steps {
         extraSteps()

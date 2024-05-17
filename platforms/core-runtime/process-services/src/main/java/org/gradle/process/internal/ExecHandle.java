@@ -16,13 +16,15 @@
 
 package org.gradle.process.internal;
 
+import org.gradle.api.Describable;
 import org.gradle.process.ExecResult;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
 
-public interface ExecHandle {
+public interface ExecHandle extends Describable {
 
     File getDirectory();
 
@@ -54,6 +56,12 @@ public interface ExecHandle {
      * @return result
      */
     ExecResult waitForFinish();
+
+    /**
+     * Returns the result of the process execution, if it has finished.  If the process has not finished, returns null.
+     */
+    @Nullable
+    ExecResult getExecResult();
 
     void addListener(ExecHandleListener listener);
 

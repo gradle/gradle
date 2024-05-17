@@ -365,7 +365,7 @@ link:{gradle-issues}13455[[.green]#✓#]:: <<base_plugin.adoc#base_plugin,Base>>
 link:{gradle-issues}13456[[.green]#✓#]:: <<build_init_plugin.adoc#build_init_plugin,Build Init>>
 link:{gradle-issues}13470[[.green]#✓#]:: <<signing_plugin.adoc#signing_plugin,Signing>>
 link:{gradle-issues}24537[[.green]#✓#]:: <<java_gradle_plugin.adoc#java_gradle_plugin,Java Plugin Development>>
-link:{gradle-issues}23029[[.green]#✓#]:: <<custom_plugins.adoc#sec:precompiled_plugins,Groovy DSL Plugin Development>>
+link:{gradle-issues}23029[[.green]#✓#]:: <<implementing_gradle_plugins_precompiled.adoc#implemention_precompiled_plugins,Groovy DSL Plugin Development>>
 link:{gradle-issues}13472[[.green]#✓#]:: <<kotlin_dsl.adoc#sec:kotlin-dsl_plugin,Kotlin DSL Plugin Development>>
 link:{gradle-issues}13473[[.green]#✓#]:: <<project_report_plugin.adoc#project_report_plugin,Project Report Plugin>>
 
@@ -697,6 +697,8 @@ In all cases the reason these types are disallowed is that their state cannot ea
 
 Live JVM state types (e.g. `ClassLoader`, `Thread`, `OutputStream`, `Socket` etc...) are simply disallowed.
 These types almost never represent a task input or output.
+The only exceptions are the standard streams: `System.in`, `System.out`, and `System.err`.
+These streams can be used, for example, as parameters to link:{groovyDslPath}/org.gradle.api.tasks.Exec.html[`Exec`] and link:{groovyDslPath}/org.gradle.api.tasks.JavaExec.html[`JavaExec`] tasks.
 
 Gradle model types (e.g. `Gradle`, `Settings`, `Project`, `SourceSet`, `Configuration` etc...) are usually used to carry some task input that should be explicitly and precisely declared instead.
 
@@ -1083,21 +1085,14 @@ When process isolation is used, the worker action is executed in a separate work
 
 In simple cases, when the libraries also provide command-line entry points (`public static void main()` method), you can also use the link:{javadocPath}/org/gradle/api/tasks/JavaExec.html[JavaExec] task to isolate the library.
 
-[[config_cache:not_yet_implemented]]
-== Not yet implemented
-
-Support for using configuration caching with certain Gradle features is not yet implemented.
-Support for these features will be added in later Gradle releases.
-
-[[config_cache:not_yet_implemented:secrets]]
-=== Handling of credentials and secrets
+[[config_cache:secrets]]
+== Handling of credentials and secrets
 
 The configuration cache has currently no option to prevent storing secrets that are used as inputs, and so they might end up in the serialized configuration cache entry which, by default, is stored under `.gradle/configuration-cache` in your project directory.
 
 To mitigate the risk of accidental exposure, Gradle encrypts the configuration cache.
 Gradle transparently generates a machine-specific secret key as required, caches it under the
 `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>` directory and uses it to encrypt the data in the project specific caches.
-
 
 To enhance security further, make sure to:
 
@@ -1107,6 +1102,45 @@ The content of that file is not part of the configuration cache, only its finger
 If you store secrets in that file, care must be taken to protect access to the file content.
 
 See link:{gradle-issues}22618[gradle/gradle#22618].
+
+[[config_cache:secrets:configuring_encryption_key]]
+=== Providing an encryption key via `GRADLE_ENCRYPTION_KEY` environment variable
+
+By default, Gradle automatically generates and manages the encryption key as a Java keystore stored under the `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>` directory.
+
+For environments where this is undesirable (for instance, when the `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>` directory is shared across machines),
+you may provide Gradle with the exact encryption key to use when
+reading or writing the cached configuration data via the `GRADLE_ENCRYPTION_KEY` environment variable.
+
+[IMPORTANT]
+====
+You must ensure that the same encryption key is consistently provided across multiple Gradle runs,
+or else Gradle will not be able to reuse existing cached configurations.
+====
+
+[[config_cache:secrets:generating_encryption_key]]
+=== Generating an encryption key that is compatible with GRADLE_ENCRYPTION_KEY
+
+For Gradle to encrypt the configuration cache using a user-specified encryption key,
+you must run Gradle while having the GRADLE_ENCRYPTION_KEY environment variable set with a valid AES key, encoded as a Base64 string.
+
+One way of generating a Base64-encoded AES-compatible key is by using a command like this:
+
+```
+❯ openssl rand -base64 16
+```
+
+This command should work on Linux, Mac OS, or on Windows, if using a tool like Cygwin.
+
+You can then use the Base64-encoded key produced by that command and set it as the value of the
+`GRADLE_ENCRYPTION_KEY` environment variable.
+
+
+[[config_cache:not_yet_implemented]]
+== Not yet implemented
+
+Support for using configuration caching with certain Gradle features is not yet implemented.
+Support for these features will be added in later Gradle releases.
 
 [[config_cache:not_yet_implemented:sharing]]
 === Sharing the configuration cache
@@ -1145,7 +1179,8 @@ See link:{gradle-issues}20969[gradle/gradle#20969].
 
 Gradle allows objects that support the link:https://docs.oracle.com/javase/8/docs/platform/serialization/spec/serialTOC.html[Java Object Serialization] protocol to be stored in the configuration cache.
 
-The implementation is currently limited to serializable classes that implement the `java.io.Serializable` interface and define one of the following combination of methods:
+The implementation is currently limited to serializable classes that
+either implement the `java.io.Externalizable` interface, or implement the `java.io.Serializable` interface and define one of the following combination of methods:
 
 - a `writeObject` method combined with a `readObject` method to control exactly which information to store;
 - a `writeObject` method with no corresponding `readObject`; `writeObject` must eventually call `ObjectOutputStream.defaultWriteObject`;
@@ -1155,7 +1190,6 @@ The implementation is currently limited to serializable classes that implement t
 
 The following _Java Object Serialization_ features are **not** supported:
 
-- serializable classes implementing the `java.io.Externalizable` interface; objects of such classes are discarded by the configuration cache during serialization and reported as problems;
 - the `serialPersistentFields` member to explicitly declare which fields are serializable; the member, if present, is ignored; the configuration cache considers all but `transient` fields serializable;
 - the following methods of `ObjectOutputStream` are not supported and will throw `UnsupportedOperationException`:
 ** `reset()`, `writeFields()`, `putFields()`, `writeChars(String)`, `writeBytes(String)` and `writeUnshared(Any?)`.

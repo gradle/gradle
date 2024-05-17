@@ -18,22 +18,22 @@ package org.gradle.api.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.InternalListener;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.code.UserCodeApplicationId;
-import org.gradle.internal.InternalListener;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
 import javax.annotation.Nullable;
 
 public class DefaultCollectionCallbackActionDecorator implements CollectionCallbackActionDecorator {
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationRunner buildOperationRunner;
     private final UserCodeApplicationContext userCodeApplicationContext;
 
-    public DefaultCollectionCallbackActionDecorator(BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext) {
-        this.buildOperationExecutor = buildOperationExecutor;
+    public DefaultCollectionCallbackActionDecorator(BuildOperationRunner buildOperationRunner, UserCodeApplicationContext userCodeApplicationContext) {
+        this.buildOperationRunner = buildOperationRunner;
         this.userCodeApplicationContext = userCodeApplicationContext;
     }
 
@@ -104,7 +104,7 @@ public class DefaultCollectionCallbackActionDecorator implements CollectionCallb
 
         @Override
         public void execute(final T arg) {
-            buildOperationExecutor.run(new Operation(applicationId) {
+            buildOperationRunner.run(new Operation(applicationId) {
                 @Override
                 public void run(final BuildOperationContext context) {
                     delegate.execute(arg);

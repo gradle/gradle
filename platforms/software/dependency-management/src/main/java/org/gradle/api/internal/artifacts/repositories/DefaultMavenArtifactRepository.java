@@ -98,7 +98,6 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     private final ChecksumService checksumService;
     private final MavenMetadataSources metadataSources = new MavenMetadataSources();
     private final InstantiatorFactory instantiatorFactory;
-    private final VersionParser versionParser;
 
     public DefaultMavenArtifactRepository(FileResolver fileResolver,
                                           RepositoryTransportFactory transportFactory,
@@ -158,7 +157,6 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         this.checksumService = checksumService;
         this.metadataSources.setDefaults();
         this.instantiatorFactory = instantiatorFactory;
-        this.versionParser = versionParser;
     }
 
     @Override
@@ -344,13 +342,8 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     }
 
     @Override
-    public RepositoryContentDescriptorInternal createRepositoryDescriptor() {
+    public RepositoryContentDescriptorInternal createRepositoryDescriptor(VersionParser versionParser) {
         return new DefaultMavenRepositoryContentDescriptor(this::getDisplayName, versionParser);
-    }
-
-    @Override
-    public RepositoryContentDescriptorInternal getRepositoryDescriptorCopy() {
-        return getRepositoryDescriptor().asMutableCopy();
     }
 
     private static class DefaultDescriber implements Transformer<String, MavenArtifactRepository> {

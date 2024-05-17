@@ -23,10 +23,10 @@ import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.service.scopes.EventScope;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 
 @UsedByScanPlugin
-@EventScope(Scopes.Build.class)
+@EventScope(Scope.Build.class)
 public interface TestListenerInternal {
     void started(TestDescriptorInternal testDescriptor, TestStartEvent startEvent);
 

@@ -26,7 +26,7 @@ class DefaultGradleEnterprisePluginBackgroundJobExecutorsTest extends Specificat
     DefaultGradleEnterprisePluginBackgroundJobExecutors jobExecutors
 
     void setup() {
-        jobExecutors = new DefaultGradleEnterprisePluginBackgroundJobExecutors(new InputTrackingState())
+        jobExecutors = new DefaultGradleEnterprisePluginBackgroundJobExecutors(new DefaultDevelocityPluginUnsafeConfigurationService(new InputTrackingState()))
     }
 
     void cleanup() {

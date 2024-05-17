@@ -27,6 +27,7 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.internal.taskgraph.CalculateTreeTaskGraphBuildOperationType
 import org.gradle.launcher.exec.RunBuildBuildOperationType
+import org.gradle.operations.lifecycle.RunRequestedWorkBuildOperationType
 import org.gradle.vcs.fixtures.GitFileRepository
 import org.junit.Rule
 
@@ -114,7 +115,7 @@ class SourceDependencyBuildOperationIntegrationTest extends AbstractIntegrationS
         taskGraphOps[1].details.buildPath == ":${buildName}"
         taskGraphOps[1].parentId == treeGraphOps[0].id
 
-        def runMainTasks = operations.first(Pattern.compile("Run main tasks"))
+        def runMainTasks = operations.only(RunRequestedWorkBuildOperationType)
         runMainTasks.parentId == root.id
 
         def runTasksOps = operations.all(Pattern.compile("Run tasks.*"))

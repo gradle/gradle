@@ -46,7 +46,7 @@ public class DefaultProblemCategory implements InternalProblemCategory, Serializ
     }
 
     @Override
-    public List<String> getSubCategories() {
+    public List<String> getSubcategories() {
         return subcategories;
     }
 }

@@ -25,6 +25,8 @@ import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.configurationcache.problems.ConfigurationCacheReport
 import org.gradle.configurationcache.serialization.beans.BeanConstructors
+import org.gradle.configurationcache.services.DefaultIsolatedProjectEvaluationListenerProvider
+import org.gradle.configurationcache.services.IsolatedActionCodecsFactory
 import org.gradle.configurationcache.services.RemoteScriptUpToDateChecker
 import org.gradle.execution.ExecutionAccessChecker
 import org.gradle.execution.ExecutionAccessListener
@@ -38,6 +40,8 @@ import org.gradle.internal.resource.transfer.ExternalResourceConnector
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry
 import java.io.File
+import org.gradle.configurationcache.extensions.add
+import org.gradle.invocation.IsolatedProjectEvaluationListenerProvider
 
 
 class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
@@ -65,6 +69,7 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
             add(InputTrackingState::class.java)
             add(InstrumentedInputAccessListener::class.java)
             add(InstrumentedExecutionAccessListener::class.java)
+            add(IsolatedActionCodecsFactory::class.java)
             addProvider(IgnoredConfigurationInputsProvider)
             addProvider(RemoteScriptUpToDateCheckerProvider)
             addProvider(ExecutionAccessCheckerProvider)
@@ -75,13 +80,9 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
         registration.run {
             add(RelevantProjectsRegistry::class.java)
             addProvider(TaskExecutionAccessCheckerProvider)
-        }
-    }
-
-    override fun registerGradleServices(registration: ServiceRegistration) {
-        registration.run {
             add(ConfigurationCacheHost::class.java)
             add(ConfigurationCacheIO::class.java)
+            add<IsolatedProjectEvaluationListenerProvider, DefaultIsolatedProjectEvaluationListenerProvider>()
         }
     }
 

@@ -778,11 +778,11 @@ h3.releaseinfo {
     left: 25px;
 }
 
-.docs-navigation .algolia-autocomplete .ds-dropdown-menu [class^="ds-dataset-"] {
+.docs-navigation .algolia-autocomplete .ds-dropdown-menu [class^=ds-dataset-] {
     padding: 0 !important;
     overflow: visible !important;
     background-color: transparent !important;
-    border: 0 !important;
+    border: 1px solid #d9d9d9 !important;
     position: inherit !important;
     top: 112px;
     left: 25px;

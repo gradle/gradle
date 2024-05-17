@@ -31,7 +31,7 @@ class DomainObjectCollectionBackedModelMapTest extends Specification {
         given:
         def backingCollection = Mock(DomainObjectCollection)
         def instantiator = Mock(NamedEntityInstantiator)
-        def modelMap = DomainObjectCollectionBackedModelMap.wrap("thing", SomeType, backingCollection, instantiator, new Named.Namer(), Actions.doNothing())
+        def modelMap = DomainObjectCollectionBackedModelMap.wrap("thing", SomeType, backingCollection, instantiator, Named.Namer.INSTANCE, Actions.doNothing())
 
         when:
         modelMap.create("alma")
@@ -56,7 +56,7 @@ class DomainObjectCollectionBackedModelMapTest extends Specification {
                 return new SomeType(name: name)
             }
         })
-        def modelMap = new DomainObjectCollectionBackedModelMap("thing", SomeType, backingCollection, instantiator, new Named.Namer(), Actions.doNothing())
+        def modelMap = new DomainObjectCollectionBackedModelMap("thing", SomeType, backingCollection, instantiator, Named.Namer.INSTANCE, Actions.doNothing())
 
         when:
         modelMap.create("alma", List)

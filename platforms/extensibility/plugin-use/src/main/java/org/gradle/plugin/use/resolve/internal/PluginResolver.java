@@ -23,7 +23,11 @@ import org.gradle.plugin.management.internal.PluginRequestInternal;
  * A repository of plugins.
  */
 public interface PluginResolver {
-
-    void resolve(PluginRequestInternal pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException;
+    /**
+     * Resolve the given plugin request.
+     *
+     * @throws InvalidPluginRequestException If the plugin request was invalid.
+     */
+    PluginResolutionResult resolve(PluginRequestInternal pluginRequest);
 
 }

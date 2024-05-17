@@ -11,10 +11,10 @@ import common.gradleWrapper
 import common.requiresNotEc2Agent
 import common.requiresNotSharedHost
 import common.skipConditionally
-import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
-import jetbrains.buildServer.configs.kotlin.v2019_2.RelativeId
-import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.GradleBuildStep
-import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.script
+import jetbrains.buildServer.configs.kotlin.BuildSteps
+import jetbrains.buildServer.configs.kotlin.RelativeId
+import jetbrains.buildServer.configs.kotlin.buildSteps.GradleBuildStep
+import jetbrains.buildServer.configs.kotlin.buildSteps.script
 import model.CIBuildModel
 import model.Stage
 
@@ -130,7 +130,7 @@ class Gradleception(
 
             localGradle {
                 name = "QUICKCHECK_WITH_GRADLE_BUILT_BY_GRADLE"
-                tasks = "clean sanityCheck test " + if (bundleGroovy4) "--dry-run" else ""
+                tasks = "clean sanityCheck test -PflakyTests=exclude " + if (bundleGroovy4) "--dry-run" else ""
                 gradleHome = "%teamcity.build.checkoutDir%/dogfood-second"
                 gradleParams = defaultParameters
             }

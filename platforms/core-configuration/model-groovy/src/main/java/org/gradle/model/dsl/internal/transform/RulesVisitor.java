@@ -17,7 +17,6 @@
 package org.gradle.model.dsl.internal.transform;
 
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import org.codehaus.groovy.ast.AnnotationNode;
 import org.codehaus.groovy.ast.ClassHelper;
 import org.codehaus.groovy.ast.ClassNode;
@@ -43,6 +42,7 @@ import org.gradle.internal.Pair;
 import org.gradle.model.internal.core.ModelPath;
 
 import javax.annotation.Nullable;
+import java.util.LinkedList;
 import java.util.List;
 
 public class RulesVisitor extends RestrictiveCodeVisitor {
@@ -104,7 +104,7 @@ public class RulesVisitor extends RestrictiveCodeVisitor {
         if (classArg != null) {
             // path(Type)
             String displayName = RuleVisitor.displayName(call);
-            List<Statement> statements = Lists.newLinkedList();
+            List<Statement> statements = new LinkedList<>();
             statements.add(new EmptyStatement());
             BlockStatement block = new BlockStatement(statements, new VariableScope());
             closureExpression = new ClosureExpression(Parameter.EMPTY_ARRAY, block);
@@ -148,7 +148,7 @@ public class RulesVisitor extends RestrictiveCodeVisitor {
     @Nullable // if the target was invalid
     private String extractModelPathFromMethodTarget(MethodCallExpression call) {
         Expression target = call.getMethod();
-        List<String> names = Lists.newLinkedList();
+        List<String> names = new LinkedList<>();
         while (true) {
             if (target instanceof ConstantExpression) {
                 if (target.getType().equals(ClassHelper.STRING_TYPE)) {

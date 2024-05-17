@@ -112,10 +112,10 @@ public class GUtil {
                 flatten((Collection<?>) element, addTo, flattenMaps, flattenArrays);
             } else if ((element instanceof Map) && flattenMaps) {
                 flatten(((Map<?, ?>) element).values(), addTo, flattenMaps, flattenArrays);
-            } else if ((element.getClass().isArray()) && flattenArrays) {
+            } else if (element.getClass().isArray() && flattenArrays) {
                 flatten(asList((Object[]) element), addTo, flattenMaps, flattenArrays);
             } else {
-                (Cast.<Collection<Object>>uncheckedNonnullCast(addTo)).add(element);
+                Cast.<Collection<Object>>uncheckedNonnullCast(addTo).add(element);
             }
         }
         return addTo;

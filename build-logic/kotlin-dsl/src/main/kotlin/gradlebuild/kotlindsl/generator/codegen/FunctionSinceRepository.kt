@@ -23,7 +23,7 @@ import com.thoughtworks.qdox.model.JavaClass
 import org.gradle.internal.classloader.DefaultClassLoaderFactory
 import org.gradle.internal.classpath.DefaultClassPath
 import java.io.File
-import java.lang.IllegalArgumentException
+import java.io.StringReader
 import java.net.URLClassLoader
 
 
@@ -32,10 +32,15 @@ import java.net.URLClassLoader
  */
 class FunctionSinceRepository(classPath: Set<File>, sourcePath: Set<File>) : AutoCloseable {
 
+    // https://github.com/paul-hammant/qdox/issues/182
     private
-    val unsupportedTypeSimpleNames = listOf(
-        "Transformer", // https://github.com/paul-hammant/qdox/issues/182
-        "Provider", // https://github.com/paul-hammant/qdox/issues/182
+    val filesWithUnsupportedAnnotations = listOf(
+        "Transformer.java",
+        "Provider.java",
+        "ListProperty.java",
+        "MapProperty.java",
+        "Property.java",
+        "SetProperty.java",
     )
 
     private
@@ -53,13 +58,12 @@ class FunctionSinceRepository(classPath: Set<File>, sourcePath: Set<File>) : Aut
         val matchingType = builder.sources
             .flatMap { it.classes }
             .singleOrNull { javaFunction.typeName == it.binaryName }
-            ?: throw IllegalArgumentException("Class for function '$functionSignature' not found in since repository!")
+            ?: throw IllegalArgumentException("Class for function '$functionSignature' not found in since repository! See FunctionSinceRepository.kt")
 
         val matchingFunction = javaFunction
             .run { matchingType.getMethodsBySignature(name, parameterTypes, false, isVararg) }
             .singleOrNull()
-            ?: throw IllegalArgumentException("Function '$functionSignature' not found in @since repository!")
-
+            ?: throw IllegalArgumentException("Function '$functionSignature' not found in @since repository! See FunctionSinceRepository.kt")
 
         return matchingFunction.since ?: matchingType.since
     }
@@ -83,8 +87,23 @@ class FunctionSinceRepository(classPath: Set<File>, sourcePath: Set<File>) : Aut
         JavaProjectBuilder(OrderedClassLibraryBuilder().apply {
             appendClassLoader(loader)
         }).apply {
-            sourcePath.filter { it.extension == "java" && it.nameWithoutExtension !in unsupportedTypeSimpleNames }
-                .forEach { addSource(it) }
+            sourcePath.filter { it.extension == "java" }
+                .forEach { sourceFile ->
+                    if (sourceFile.name in filesWithUnsupportedAnnotations) {
+                        // This is a hack.
+                        //
+                        // qdox doesn't understand annotations placed in generic type parameters
+                        // The only place we use this is with Nullable, so this hackily removes the annotation when
+                        // the source file is processed by qdox.
+                        //
+                        // https://github.com/paul-hammant/qdox/issues/182
+                        val filteredSourceCode =
+                            sourceFile.bufferedReader().readText().replace("@org.jetbrains.annotations.Nullable", "")
+                        addSource(StringReader(filteredSourceCode))
+                    } else {
+                        addSource(sourceFile)
+                    }
+                }
         }
 
     override fun close() =

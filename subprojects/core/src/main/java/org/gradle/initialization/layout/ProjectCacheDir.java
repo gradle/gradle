@@ -16,36 +16,32 @@
 
 package org.gradle.initialization.layout;
 
-import org.gradle.internal.time.TimestampSuppliers;
 import org.gradle.cache.CleanupFrequency;
 import org.gradle.cache.internal.DefaultCleanupProgressMonitor;
 import org.gradle.cache.internal.VersionSpecificCacheCleanupAction;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.file.Deleter;
-import org.gradle.internal.logging.progress.ProgressLogger;
-import org.gradle.internal.logging.progress.ProgressLoggerFactory;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.gradle.internal.time.TimestampSuppliers;
 
 import java.io.File;
-import java.io.IOException;
 
-@ServiceScope(Scopes.BuildSession.class)
+@ServiceScope(Scope.BuildSession.class)
 public class ProjectCacheDir implements Stoppable {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ProjectCacheDir.class);
-
     private static final int MAX_UNUSED_DAYS_FOR_RELEASES_AND_SNAPSHOTS = 7;
 
     private final File dir;
-    private final ProgressLoggerFactory progressLoggerFactory;
+    private final BuildOperationRunner buildOperationRunner;
     private final Deleter deleter;
-    private boolean deleteOnStop = false;
 
-    public ProjectCacheDir(File dir, ProgressLoggerFactory progressLoggerFactory, Deleter deleter) {
+    public ProjectCacheDir(File dir, BuildOperationRunner buildOperationRunner, Deleter deleter) {
         this.dir = dir;
-        this.progressLoggerFactory = progressLoggerFactory;
+        this.buildOperationRunner = buildOperationRunner;
         this.deleter = deleter;
     }
 
@@ -53,32 +49,24 @@ public class ProjectCacheDir implements Stoppable {
         return dir;
     }
 
-    public void delete() {
-        deleteOnStop = true;
-    }
-
     @Override
     public void stop() {
-        if (deleteOnStop) {
-            try {
-                deleter.deleteRecursively(dir);
-            } catch (IOException e) {
-                LOGGER.debug("Failed to delete unused project cache dir " + dir.getAbsolutePath(), e);
-            }
-            return;
-        }
         VersionSpecificCacheCleanupAction cleanupAction = new VersionSpecificCacheCleanupAction(
             dir,
             TimestampSuppliers.daysAgo(MAX_UNUSED_DAYS_FOR_RELEASES_AND_SNAPSHOTS),
             deleter,
             CleanupFrequency.DAILY
         );
-        String description = cleanupAction.getDisplayName();
-        ProgressLogger progressLogger = progressLoggerFactory.newOperation(ProjectCacheDir.class).start(description, description);
-        try {
-            cleanupAction.execute(new DefaultCleanupProgressMonitor(progressLogger));
-        } finally {
-            progressLogger.completed();
-        }
+        buildOperationRunner.run(new RunnableBuildOperation() {
+            @Override
+            public void run(BuildOperationContext context) {
+                cleanupAction.execute(new DefaultCleanupProgressMonitor(context));
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor.displayName(cleanupAction.getDisplayName());
+            }
+        });
     }
 }

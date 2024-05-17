@@ -35,6 +35,7 @@ public interface InternalTestFailure extends InternalFailure {
      * @return The failure message
      */
     @Nullable
+    @Override
     String getMessage();
 
     /**

@@ -17,13 +17,11 @@
 package org.gradle.internal.buildtree;
 
 import org.gradle.StartParameter;
-import org.gradle.api.internal.cache.DefaultDecompressionCacheFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FilePropertyFactory;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.FileCollectionObservationListener;
-import org.gradle.api.internal.initialization.BuildLogicBuildQueue;
 import org.gradle.api.internal.initialization.DefaultBuildLogicBuildQueue;
 import org.gradle.api.internal.model.DefaultObjectFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
@@ -36,11 +34,9 @@ import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.api.model.BuildTreeObjectFactory;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.cache.FileLockManager;
-import org.gradle.cache.internal.DecompressionCacheFactory;
-import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory;
-import org.gradle.composite.internal.BuildTreeWorkGraphController;
+import org.gradle.configuration.project.BuiltInCommand;
 import org.gradle.execution.DefaultTaskSelector;
 import org.gradle.execution.ProjectConfigurer;
 import org.gradle.execution.TaskNameResolver;
@@ -60,8 +56,8 @@ import org.gradle.internal.buildoption.DefaultFeatureFlags;
 import org.gradle.internal.buildoption.DefaultInternalOptions;
 import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
-import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.event.ScopedListenerManager;
 import org.gradle.internal.id.ConfigurationCacheableIdFactory;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.problems.DefaultProblemDiagnosticsFactory;
@@ -69,7 +65,7 @@ import org.gradle.internal.problems.DefaultProblemLocationAnalyzer;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 
 import java.util.List;
 
@@ -97,7 +93,6 @@ public class BuildTreeScopeServices {
         registration.add(DefaultBuildLifecycleControllerFactory.class);
         registration.add(BuildOptionBuildOperationProgressEventsEmitter.class);
         registration.add(BuildInclusionCoordinator.class);
-        registration.add(DefaultBuildTaskSelector.class);
         registration.add(DefaultProjectStateRegistry.class);
         registration.add(DefaultConfigurationTimeBarrier.class);
         registration.add(DeprecationsReporter.class);
@@ -108,6 +103,7 @@ public class BuildTreeScopeServices {
         registration.add(DefaultExceptionAnalyser.class);
         registration.add(ConfigurationCacheableIdFactory.class);
         registration.add(TaskIdentityFactory.class);
+        registration.add(DefaultBuildLogicBuildQueue.class);
         modelServices.applyServicesTo(registration);
     }
 
@@ -128,6 +124,8 @@ public class BuildTreeScopeServices {
             domainObjectCollectionFactory);
     }
 
+
+
     protected InternalOptions createInternalOptions(StartParameter startParameter) {
         return new DefaultInternalOptions(startParameter.getSystemPropertiesArgs());
     }
@@ -136,8 +134,12 @@ public class BuildTreeScopeServices {
         return objectFactory.newInstance(DefaultTaskSelector.class, new TaskNameResolver(), projectConfigurer);
     }
 
-    protected DefaultListenerManager createListenerManager(DefaultListenerManager parent) {
-        return parent.createChild(Scopes.BuildTree.class);
+    protected DefaultBuildTaskSelector createBuildTaskSelector(BuildStateRegistry buildRegistry, TaskSelector taskSelector, List<BuiltInCommand> commands, InternalProblems problemsService) {
+        return new DefaultBuildTaskSelector(buildRegistry, taskSelector, commands, problemsService);
+    }
+
+    protected ScopedListenerManager createListenerManager(ScopedListenerManager parent) {
+        return parent.createChild(Scope.BuildTree.class);
     }
 
     protected ExceptionAnalyser createExceptionAnalyser(LoggingConfiguration loggingConfiguration, ExceptionCollector exceptionCollector) {
@@ -150,17 +152,5 @@ public class BuildTreeScopeServices {
 
     protected FileCollectionFactory createFileCollectionFactory(FileCollectionFactory parent, ListenerManager listenerManager) {
         return parent.forChildScope(listenerManager.getBroadcaster(FileCollectionObservationListener.class));
-    }
-
-    protected DecompressionCacheFactory createDecompressionCacheFactory(BuildTreeScopedCacheBuilderFactory cacheBuilderFactory) {
-        return new DefaultDecompressionCacheFactory(() -> cacheBuilderFactory);
-    }
-
-    protected BuildLogicBuildQueue createBuildLogicBuildQueue(
-        FileLockManager fileLockManager,
-        BuildStateRegistry buildStateRegistry,
-        BuildTreeWorkGraphController buildTreeWorkGraphController
-    ) {
-        return new DefaultBuildLogicBuildQueue(fileLockManager, buildStateRegistry, buildTreeWorkGraphController);
     }
 }

@@ -98,7 +98,8 @@ public class GccMetadataProvider extends AbstractMetadataProvider<GccMetadata> {
         String line;
         try {
             while ((line = reader.readLine()) != null) {
-                if (line.contains(majorMinorOnly)
+                // allowing win32 to bypass the check is due to the mingw compiler on linux not including major.minor in the version string.
+                if ((line.contains(majorMinorOnly) || line.contains("win32"))
                     && line.contains(" version ")
                     && line.contains(compilerType.getIdentifier())
                     && !line.contains(" default target ")) {

@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Interner;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import org.gradle.internal.file.FileMetadata;
 import org.gradle.internal.file.FileMetadata.AccessType;
 import org.gradle.internal.file.FileType;
@@ -49,6 +48,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.EnumSet;
@@ -187,9 +187,9 @@ public class DirectorySnapshotter {
         private final Predicate<String> excludedFileNameSpec;
 
         public DefaultExcludes(Collection<String> defaultExcludes) {
-            final List<String> excludeFiles = Lists.newArrayList();
-            final List<String> excludeDirs = Lists.newArrayList();
-            final List<Predicate<String>> excludeFileSpecs = Lists.newArrayList();
+            final List<String> excludeFiles = new ArrayList<>();
+            final List<String> excludeDirs = new ArrayList<>();
+            final List<Predicate<String>> excludeFileSpecs = new ArrayList<>();
             for (String defaultExclude : defaultExcludes) {
                 if (defaultExclude.startsWith("**/")) {
                     defaultExclude = defaultExclude.substring(3);

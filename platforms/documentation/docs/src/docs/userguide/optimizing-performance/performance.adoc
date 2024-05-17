@@ -29,7 +29,7 @@ TIP: Want faster Gradle Builds? https://gradle.org/training/#build-cache-deep-di
 
 == Inspect your build
 
-Before you make any changes, <<inspect.adoc#build_scans,inspect your build>> with a build scan or profile report. A proper build inspection helps
+Before you make any changes, <<inspect.adoc#inspecting_build_scans,inspect your build>> with a build scan or profile report. A proper build inspection helps
 you understand:
 
 * how long it takes to build your project
@@ -97,9 +97,6 @@ A build whose execution time is dominated by a single subproject won't benefit m
 Neither will a project with lots of inter-subproject dependencies.
 But most multi-subproject builds see a reduction in build times.
 
-For more information about parallel builds, check out the
-<<multi_project_configuration_and_execution.adoc#sec:parallel_execution,parallel builds documentation>>.
-
 === Visualize parallelism with build scans
 
 Build scans give you a visual timeline of task execution. In the following
@@ -157,8 +154,8 @@ Daemons automatically shut down on memory pressure in Gradle 3.0 and above, so i
 ====
 This feature has the following limitations:
 
-* The configuration cache does not support all <<configuration_cache#config_cache:plugins:core, core Gradle plugins>> and <<configuration_cache#config_cache:not_yet_implemented, features>>. Full support is a work in progress.
-* Your build and the plugins you depend on might require changes to fulfill the <<configuration_cache#config_cache:requirements, requirements>>.
+* The configuration cache does not support all <<configuration_cache#config_cache:plugins:core, core Gradle plugins>> and <<configuration_cache#config_cache:not_yet_implemented, features>>. Full support is a work in progress. +
+* Your build and the plugins you depend on might require changes to fulfill the <<configuration_cache#config_cache:requirements, requirements>>. +
 * IDE imports and syncs do not use the configuration cache.
 ====
 
@@ -369,7 +366,7 @@ In this situation, there are several ways to reduce the delay:
   by two seconds in each Gradle invocation.
 
 * If multiple subprojects, but not all, use the script, you could refactor the script and
-  all surrounding logic into a custom plugin located in <<organizing_gradle_projects#sec:build_sources,`buildSrc`>>.
+  all surrounding logic into a custom plugin located in <<sharing_build_logic_between_subprojects.adoc#sec:using_buildsrc,`buildSrc`>>.
   Apply the custom plugin to only the relevant subprojects, reducing configuration delay and avoiding code duplication.
 
 === Statically compile tasks and plugins

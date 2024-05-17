@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache.serialization.codecs
 
+import org.gradle.api.project.IsolatedProject
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ArtifactView
 import org.gradle.api.artifacts.ConfigurationContainer
@@ -68,8 +69,6 @@ import org.gradle.internal.event.ListenerBroadcast
 import org.gradle.internal.scripts.GradleScript
 import org.gradle.internal.service.DefaultServiceRegistry
 import java.io.FileDescriptor
-import java.io.InputStream
-import java.io.OutputStream
 import java.io.RandomAccessFile
 import java.net.ServerSocket
 import java.net.Socket
@@ -85,8 +84,6 @@ fun BindingsBuilder.unsupportedTypes() {
     bind(unsupported<Thread>())
     bind(unsupported<ThreadFactory>())
     bind(unsupported<Executor>())
-    bind(unsupported<InputStream>())
-    bind(unsupported<OutputStream>())
     bind(unsupported<FileDescriptor>())
     bind(unsupported<RandomAccessFile>())
     bind(unsupported<Socket>())
@@ -99,6 +96,7 @@ fun BindingsBuilder.unsupportedTypes() {
     bind(unsupported<Gradle>())
     bind(unsupported<Settings>())
     bind(unsupported<Project>())
+    bind(unsupported<IsolatedProject>())
     bind(unsupported<TaskContainer>())
     bind(unsupported<TaskDependency>())
     bind(unsupported<SourceSetContainer>())
@@ -154,8 +152,10 @@ fun BindingsBuilder.unsupportedTypes() {
 internal
 object UnsupportedFingerprintBuildServiceProviderCodec : Codec<BuildServiceProvider<*, *>> {
     override suspend fun WriteContext.encode(value: BuildServiceProvider<*, *>) {
-        logUnsupported("serialize",
-            documentationSection = DocumentationSection.NotYetImplementedBuildServiceInFingerprint) {
+        logUnsupported(
+            "serialize",
+            documentationSection = DocumentationSection.NotYetImplementedBuildServiceInFingerprint
+        ) {
             text(" BuildServiceProvider of service ")
             reference(value.serviceDetails.implementationType)
             text(" with name ")

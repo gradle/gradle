@@ -103,11 +103,8 @@ Though moving the files around wouldn't have an effect on the result of the comp
 Therefore, the path sensitivity for the sources of the `JavaCompile` task is `RELATIVE`.
 Because of this only the normalized (relative) paths of the Java source files are considered as inputs to the `JavaCompile` task.
 
-[NOTE]
-====
-The Java compiler only respects the package declaration in the Java source files, not the relative path of the sources.
+NOTE: The Java compiler only respects the package declaration in the Java source files, not the relative path of the sources.
 As a consequence, path sensitivity for Java sources is `NAME_ONLY` and not `RELATIVE`.
-====
 
 === Content normalization
 

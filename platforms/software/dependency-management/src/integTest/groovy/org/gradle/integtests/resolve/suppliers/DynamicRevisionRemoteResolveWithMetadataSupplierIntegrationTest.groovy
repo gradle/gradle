@@ -1054,6 +1054,9 @@ group:projectB:2.2;release
         }
 
         when:
+        // bouncycastle has .properties files that are actually binary files
+        // see https://github.com/bcgit/bc-java/commit/0aacc38aefe7e79a6d9cca76bd690c24671c3feb
+        executer.withStackTraceChecksDisabled()
         run 'checkDeps', '--debug'
 
         then:
@@ -1175,7 +1178,7 @@ group:projectB:2.2;release
         run '--stop'
         // bust the artifact cache because we don't want to fall into the smart behavior
         // of reusing metadata from cache for a different repository
-        getUserHomeCacheDir().file(CacheLayout.ROOT.getKey()).deleteDir()
+        getUserHomeCacheDir().file(CacheLayout.MODULES.getKey()).deleteDir()
         resetExpectations()
         // Changing the host makes Gradle consider that the 2 repositories are distinct
         buildFile.text = buildFile.text.replaceAll("(?m)http://localhost", "http://127.0.0.1")

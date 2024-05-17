@@ -17,7 +17,6 @@
 package org.gradle.internal.typeconversion;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
 import org.gradle.internal.Cast;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.file.PathToFileResolver;
@@ -25,6 +24,7 @@ import org.gradle.internal.file.PathToFileResolver;
 import java.io.File;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.HashMap;
 import java.util.Map;
 
 public class DefaultTypeConverter implements TypeConverter {
@@ -38,7 +38,7 @@ public class DefaultTypeConverter implements TypeConverter {
         .put(Double.class, double.class)
         .put(Long.class, long.class)
         .build();
-    private final Map<Class<?>, NotationParser<Object, ?>> parsers = Maps.newHashMap();
+    private final Map<Class<?>, NotationParser<Object, ?>> parsers = new HashMap<>();
 
     private static <T> NotationParser<Object, T> build(NotationConverter<Object, T> converter, Class<T> type) {
         return NotationParserBuilder

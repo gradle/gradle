@@ -94,12 +94,25 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
     protected abstract boolean handleVirtualFileSystemContentsChanged(Collection<FileSystemLocationSnapshot> removedSnapshots, Collection<FileSystemLocationSnapshot> addedSnapshots, SnapshotHierarchy root);
 
     @Override
-    public SnapshotHierarchy updateVfsOnBuildFinished(SnapshotHierarchy root, WatchMode watchMode, int maximumNumberOfWatchedHierarchies, List<File> unsupportedFileSystems) {
-        SnapshotHierarchy newRoot = watchableHierarchies.removeUnwatchableContentOnBuildFinished(
+    public SnapshotHierarchy updateVfsBeforeBuildFinished(SnapshotHierarchy root, int maximumNumberOfWatchedHierarchies, List<File> unsupportedFileSystems) {
+        SnapshotHierarchy newRoot = watchableHierarchies.removeUnwatchableContentBeforeBuildFinished(
             root,
             watchedFiles::contains,
             maximumNumberOfWatchedHierarchies,
             unsupportedFileSystems,
+            createInvalidator()
+        );
+
+        if (root != newRoot) {
+            update(newRoot);
+        }
+        return newRoot;
+    }
+
+    @Override
+    public SnapshotHierarchy updateVfsBeforeAfterFinished(SnapshotHierarchy root) {
+        SnapshotHierarchy newRoot = WatchableHierarchies.removeUnwatchableContentAfterBuildFinished(
+            root,
             createInvalidator()
         );
 

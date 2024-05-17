@@ -45,24 +45,30 @@ class JsonModelWriter(val writer: Writer) {
         beginArray()
     }
 
-    fun endModel(cacheAction: String, requestedTasks: String, totalProblemCount: Int) {
+    fun endModel(buildDisplayName: String?, cacheAction: String, requestedTasks: String?, totalProblemCount: Int) {
         endArray()
 
         comma()
         property("totalProblemCount") {
             write(totalProblemCount.toString())
         }
+        if (buildDisplayName != null) {
+            comma()
+            property("buildName", buildDisplayName)
+        }
+        if (requestedTasks != null) {
+            comma()
+            property("requestedTasks", requestedTasks)
+        }
         comma()
         property("cacheAction", cacheAction)
-        comma()
-        property("requestedTasks", requestedTasks)
         comma()
         property("documentationLink", documentationRegistry.getDocumentationFor("configuration_cache"))
 
         endObject()
     }
 
-    fun writeDiagnostic(kind: DiagnosticKind, details: PropertyProblem) {
+    fun writeDiagnostic(kind: DiagnosticKind, details: DecoratedPropertyProblem) {
         if (first) first = false else comma()
         jsonObject {
             property("trace") {
@@ -72,18 +78,47 @@ class JsonModelWriter(val writer: Writer) {
             }
             comma()
             property(keyFor(kind)) {
-                jsonObjectList(details.message.fragments) { fragment ->
-                    writeFragment(fragment)
-                }
+                writeStructuredMessage(details.message)
             }
             details.documentationSection?.let {
                 comma()
                 property("documentationLink", documentationLinkFor(it))
             }
-            stackTraceStringOf(details)?.let {
+            details.failure?.let { failure ->
                 comma()
-                property("error", it)
+                writeError(failure)
             }
+        }
+    }
+
+    private
+    fun writeError(failure: DecoratedFailure) {
+        val summary = failure.summary
+        val parts = failure.parts
+        property("error") {
+            jsonObject {
+                if (summary != null) {
+                    property("summary") {
+                        writeStructuredMessage(summary)
+                    }
+                }
+
+                if (parts != null) {
+                    if (summary != null) comma()
+                    property("parts") {
+                        jsonObjectList(parts) { (isInternal, text) ->
+                            property(if (isInternal) "internalText" else "text", text)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private
+    fun writeStructuredMessage(message: StructuredMessage) {
+        jsonObjectList(message.fragments) { fragment ->
+            writeFragment(fragment)
         }
     }
 
@@ -113,6 +148,7 @@ class JsonModelWriter(val writer: Writer) {
                         comma()
                         property("declaringType", firstTypeFrom(trace.trace).name)
                     }
+
                     PropertyKind.PropertyUsage -> {
                         property("kind", trace.kind.name)
                         comma()
@@ -120,6 +156,7 @@ class JsonModelWriter(val writer: Writer) {
                         comma()
                         property("from", projectPathFrom(trace.trace))
                     }
+
                     else -> {
                         property("kind", trace.kind.name)
                         comma()
@@ -129,11 +166,13 @@ class JsonModelWriter(val writer: Writer) {
                     }
                 }
             }
+
             is PropertyTrace.SystemProperty -> {
                 property("kind", "SystemProperty")
                 comma()
                 property("name", trace.name)
             }
+
             is PropertyTrace.Task -> {
                 property("kind", "Task")
                 comma()
@@ -141,29 +180,35 @@ class JsonModelWriter(val writer: Writer) {
                 comma()
                 property("type", trace.type.name)
             }
+
             is PropertyTrace.Bean -> {
                 property("kind", "Bean")
                 comma()
                 property("type", trace.type.name)
             }
+
             is PropertyTrace.Project -> {
                 property("kind", "Project")
                 comma()
                 property("path", trace.path)
             }
+
             is PropertyTrace.BuildLogic -> {
                 property("kind", "BuildLogic")
                 comma()
                 property("location", trace.source.displayName)
             }
+
             is PropertyTrace.BuildLogicClass -> {
                 property("kind", "BuildLogicClass")
                 comma()
                 property("type", trace.name)
             }
+
             PropertyTrace.Gradle -> {
                 property("kind", "Gradle")
             }
+
             PropertyTrace.Unknown -> {
                 property("kind", "Unknown")
             }
@@ -262,19 +307,6 @@ class JsonModelWriter(val writer: Writer) {
     private
     fun documentationLinkFor(section: DocumentationSection) =
         documentationRegistry.documentationLinkFor(section)
-
-    private
-    fun stackTraceStringOf(problem: PropertyProblem): String? =
-        problem.exception?.let {
-            stackTraceStringFor(it)
-        }
-
-    private
-    val stackTraceExtractor = StackTraceExtractor()
-
-    private
-    fun stackTraceStringFor(error: Throwable): String =
-        stackTraceExtractor.stackTraceStringFor(error)
 
     private
     fun write(csq: CharSequence) = writer.append(csq)

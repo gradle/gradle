@@ -1,3 +1,4 @@
-[libraries]
-guava = { group = "com.google.guava", name = "guava" }
-guava.invalid = '18'
+[libraries.guava]
+group = "com.google.guava"
+name = "guava"
+invalid = '18'

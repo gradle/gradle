@@ -17,6 +17,8 @@
 package org.gradle.configurationcache.problems
 
 import com.google.common.collect.Sets.newConcurrentHashSet
+import org.gradle.api.initialization.Settings
+import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.logging.Logging
 import org.gradle.configurationcache.ConfigurationCacheAction
 import org.gradle.configurationcache.ConfigurationCacheAction.LOAD
@@ -27,15 +29,17 @@ import org.gradle.configurationcache.ConfigurationCacheProblemsException
 import org.gradle.configurationcache.TooManyConfigurationCacheProblemsException
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.initialization.RootBuildLifecycleListener
+import org.gradle.internal.InternalBuildAdapter
 import org.gradle.internal.event.ListenerManager
-import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.problems.failure.FailureFactory
+import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.problems.buildtree.ProblemReporter
+import org.gradle.problems.buildtree.ProblemReporter.ProblemConsumer
 import java.io.File
-import java.util.function.Consumer
 
 
-@ServiceScope(Scopes.BuildTree::class)
+@ServiceScope(Scope.BuildTree::class)
 internal
 class ConfigurationCacheProblems(
 
@@ -49,14 +53,24 @@ class ConfigurationCacheProblems(
     val cacheKey: ConfigurationCacheKey,
 
     private
-    val listenerManager: ListenerManager
+    val listenerManager: ListenerManager,
+
+    private
+    val failureFactory: FailureFactory
 
 ) : ProblemsListener, ProblemReporter, AutoCloseable {
+
     private
     val summarizer = ConfigurationCacheProblemsSummary()
 
     private
+    val buildNameHandler = BuildNameHandler()
+
+    private
     val postBuildHandler = PostBuildProblemsHandler()
+
+    private
+    var buildName: String? = null
 
     private
     var isFailOnProblems = startParameter.failOnProblems
@@ -89,10 +103,12 @@ class ConfigurationCacheProblems(
         }
 
     init {
+        listenerManager.addListener(buildNameHandler)
         listenerManager.addListener(postBuildHandler)
     }
 
     override fun close() {
+        listenerManager.removeListener(buildNameHandler)
         listenerManager.removeListener(postBuildHandler)
     }
 
@@ -118,7 +134,8 @@ class ConfigurationCacheProblems(
             }
 
             override fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder) {
-                onProblem(PropertyProblem(trace, StructuredMessage.build(message), error))
+                val failure = failureFactory.create(error)
+                onProblem(PropertyProblem(trace, StructuredMessage.build(message), error, failure))
             }
         }
     }
@@ -138,49 +155,51 @@ class ConfigurationCacheProblems(
         return "configuration-cache"
     }
 
+    fun queryFailure(summary: Summary = summarizer.get(), htmlReportFile: File? = null): Throwable? {
+        val failDueToProblems = summary.failureCount > 0 && isFailOnProblems
+        val hasTooManyProblems = hasTooManyProblems(summary)
+        val summaryText = { summary.textForConsole(cacheAction.summaryText(), htmlReportFile) }
+        return when {
+            // TODO - always include this as a build failure;
+            //  currently it is disabled when a serialization problem happens
+            failDueToProblems -> {
+                ConfigurationCacheProblemsException(summary.causes, summaryText)
+            }
+
+            hasTooManyProblems -> {
+                TooManyConfigurationCacheProblemsException(summary.causes, summaryText)
+            }
+
+            else -> null
+        }
+    }
+
     /**
      * Writes the report to the given [reportDir] if any [diagnostics][DiagnosticKind] have
      * been reported in which case a warning is also logged with the location of the report.
      */
-    override fun report(reportDir: File, validationFailures: Consumer<in Throwable>) {
+    override fun report(reportDir: File, validationFailures: ProblemConsumer) {
         val summary = summarizer.get()
-        val failDueToProblems = summary.failureCount > 0 && isFailOnProblems
-        val hasTooManyProblems = hasTooManyProblems(summary)
         val hasNoProblems = summary.problemCount == 0
         val outputDirectory = outputDirectoryFor(reportDir)
         val cacheActionText = cacheAction.summaryText()
         val requestedTasks = startParameter.requestedTasksOrDefault()
-        val htmlReportFile = report.writeReportFileTo(outputDirectory, cacheActionText, requestedTasks, summary.problemCount)
+        val buildDisplayName = buildName
+        val htmlReportFile = report.writeReportFileTo(outputDirectory, buildDisplayName, cacheActionText, requestedTasks, summary.problemCount)
         if (htmlReportFile == null) {
             // there was nothing to report (no problems, no build configuration inputs)
             require(hasNoProblems)
             return
         }
 
-        when {
-            failDueToProblems -> {
-                // TODO - always include this as a build failure;
-                //  currently it is disabled when a serialization problem happens
-                validationFailures.accept(
-                    ConfigurationCacheProblemsException(summary.causes) {
-                        summary.textForConsole(cacheActionText, htmlReportFile)
-                    }
-                )
-            }
-
-            hasTooManyProblems -> {
-                validationFailures.accept(
-                    TooManyConfigurationCacheProblemsException(summary.causes) {
-                        summary.textForConsole(cacheActionText, htmlReportFile)
-                    }
-                )
-            }
-
-            else -> {
+        when (val failure = queryFailure(summary, htmlReportFile)) {
+            null -> {
                 val logReportAsInfo = hasNoProblems && !startParameter.alwaysLogReportLinkAsWarning
                 val log: (String) -> Unit = if (logReportAsInfo) logger::info else logger::warn
                 log(summary.textForConsole(cacheActionText, htmlReportFile))
             }
+
+            else -> validationFailures.accept(failure)
         }
     }
 
@@ -194,11 +213,20 @@ class ConfigurationCacheProblems(
 
     private
     fun ConfigurationCacheStartParameter.requestedTasksOrDefault() =
-        requestedTaskNames.takeIf { it.isNotEmpty() }?.joinToString(" ") ?: "default tasks"
+        requestedTaskNames.takeIf { it.isNotEmpty() }?.joinToString(" ")
 
     private
     fun outputDirectoryFor(buildDir: File): File =
         buildDir.resolve("reports/configuration-cache/$cacheKey")
+
+    private
+    inner class BuildNameHandler : InternalBuildAdapter() {
+        override fun settingsEvaluated(settings: Settings) {
+            if ((settings as SettingsInternal).gradle.isRootBuild) {
+                buildName = settings.rootProject.name
+            }
+        }
+    }
 
     private
     inner class PostBuildProblemsHandler : RootBuildLifecycleListener {

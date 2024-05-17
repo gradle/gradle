@@ -16,7 +16,10 @@
 package org.gradle.internal.remote.internal;
 
 import org.gradle.internal.remote.Address;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
+@ServiceScope(Scope.Global.class)
 public interface OutgoingConnector {
     /**
      * Creates a connection to the given address. Blocks until the connection with the peer has been established.

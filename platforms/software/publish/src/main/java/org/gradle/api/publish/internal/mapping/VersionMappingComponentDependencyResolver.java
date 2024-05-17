@@ -16,8 +16,6 @@
 
 package org.gradle.api.publish.internal.mapping;
 
-import com.google.common.annotations.VisibleForTesting;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -27,18 +25,22 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.artifacts.result.DependencyResult;
-import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.internal.artifacts.ProjectComponentIdentifierInternal;
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependencyConstraint;
 import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
+import org.gradle.internal.Actions;
 import org.gradle.internal.component.local.model.ProjectComponentSelectorInternal;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
+
+import static org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult.eachElement;
 
 /**
  * A {@link VariantDependencyResolver} that performs version mapping.
@@ -48,14 +50,14 @@ import java.util.Set;
 public class VersionMappingComponentDependencyResolver implements ComponentDependencyResolver {
 
     private final ProjectDependencyPublicationResolver projectDependencyResolver;
-    private final Configuration versionMappingConfiguration;
+    private final ResolvedComponentResult root;
 
     public VersionMappingComponentDependencyResolver(
         ProjectDependencyPublicationResolver projectDependencyResolver,
-        Configuration versionMappingConfiguration
+        ResolvedComponentResult root
     ) {
         this.projectDependencyResolver = projectDependencyResolver;
-        this.versionMappingConfiguration = versionMappingConfiguration;
+        this.root = root;
     }
 
     @Nullable
@@ -94,10 +96,9 @@ public class VersionMappingComponentDependencyResolver implements ComponentDepen
 
     @Nullable
     public ModuleVersionIdentifier maybeResolveVersion(String group, String module, @Nullable Path identityPath) {
-        ResolutionResult resolutionResult = versionMappingConfiguration
-            .getIncoming()
-            .getResolutionResult();
-        Set<? extends ResolvedComponentResult> resolvedComponentResults = resolutionResult.getAllComponents();
+        final Set<ResolvedComponentResult> resolvedComponentResults = new LinkedHashSet<>();
+        eachElement(root, Actions.doNothing(), Actions.doNothing(), resolvedComponentResults);
+
         for (ResolvedComponentResult selected : resolvedComponentResults) {
             ModuleVersionIdentifier moduleVersion = selected.getModuleVersion();
             if (moduleVersion != null && group.equals(moduleVersion.getGroup()) && module.equals(moduleVersion.getName())) {
@@ -105,11 +106,13 @@ public class VersionMappingComponentDependencyResolver implements ComponentDepen
             }
         }
 
+        final Set<DependencyResult> allDependencies = new LinkedHashSet<>();
+        eachElement(root, Actions.doNothing(), allDependencies::add, new HashSet<>());
+
         // If we reach this point it means we have a dependency which doesn't belong to the resolution result
         // Which can mean two things:
         // 1. the graph used to get the resolved version has nothing to do with the dependencies we're trying to get versions for (likely user error)
         // 2. the graph contains first-level dependencies which have been substituted (likely) so we're going to iterate on dependencies instead
-        Set<? extends DependencyResult> allDependencies = resolutionResult.getAllDependencies();
         for (DependencyResult dependencyResult : allDependencies) {
             if (dependencyResult instanceof ResolvedDependencyResult) {
                 ComponentSelector rcs = dependencyResult.getRequested();
@@ -139,10 +142,5 @@ public class VersionMappingComponentDependencyResolver implements ComponentDepen
             return projectDependencyResolver.resolveComponent(ModuleVersionIdentifier.class, identityPath);
         }
         return selected.getModuleVersion();
-    }
-
-    @VisibleForTesting
-    public Configuration getVersionMappingConfiguration() {
-        return versionMappingConfiguration;
     }
 }

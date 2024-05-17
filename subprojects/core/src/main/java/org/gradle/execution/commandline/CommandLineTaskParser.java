@@ -16,20 +16,20 @@
 
 package org.gradle.execution.commandline;
 
-import com.google.common.collect.Lists;
 import org.gradle.TaskExecutionRequest;
 import org.gradle.api.Task;
 import org.gradle.execution.TaskSelection;
 import org.gradle.execution.selection.BuildTaskSelector;
 import org.gradle.internal.build.BuildState;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-@ServiceScope(Scopes.Gradle.class)
+@ServiceScope(Scope.Gradle.class)
 public class CommandLineTaskParser {
     private final CommandLineTaskConfigurer taskConfigurer;
     private final BuildTaskSelector taskSelector;
@@ -42,7 +42,7 @@ public class CommandLineTaskParser {
     }
 
     public List<TaskSelection> parseTasks(TaskExecutionRequest taskExecutionRequest) {
-        List<TaskSelection> out = Lists.newArrayList();
+        List<TaskSelection> out = new ArrayList<>();
         List<String> remainingPaths = new LinkedList<String>(taskExecutionRequest.getArgs());
         while (!remainingPaths.isEmpty()) {
             String path = remainingPaths.remove(0);

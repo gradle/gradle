@@ -19,11 +19,11 @@ package org.gradle.internal.nativeintegration.filesystem.services;
 import net.rubygrapefruit.platform.file.PosixFiles;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
+import org.gradle.internal.file.FileCanonicalizer;
+import org.gradle.internal.file.FileMetadataAccessor;
+import org.gradle.internal.file.FileModeAccessor;
+import org.gradle.internal.file.FileModeMutator;
 import org.gradle.internal.file.StatStatistics;
-import org.gradle.internal.nativeintegration.filesystem.FileCanonicalizer;
-import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor;
-import org.gradle.internal.nativeintegration.filesystem.FileModeAccessor;
-import org.gradle.internal.nativeintegration.filesystem.FileModeMutator;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.filesystem.Symlink;
 import org.gradle.internal.nativeintegration.filesystem.jdk7.Jdk7Symlink;
@@ -45,7 +45,7 @@ public class FileSystemServices {
 
     @SuppressWarnings("UnusedDeclaration")
     public FileCanonicalizer createFileCanonicalizer() {
-        return newInstanceOrFallback("org.gradle.internal.nativeintegration.filesystem.jdk7.Jdk7FileCanonicalizer", FileSystemServices.class.getClassLoader(), FallbackFileCanonicalizer.class);
+        return newInstanceOrFallback("org.gradle.internal.file.nio.Jdk7FileCanonicalizer", FileSystemServices.class.getClassLoader(), FallbackFileCanonicalizer.class);
     }
 
     private static Symlink createWindowsJdkSymlink() {
@@ -90,7 +90,7 @@ public class FileSystemServices {
         LOGGER.debug("Using {} implementation as symlink.", symlink.getClass().getSimpleName());
 
         // Use java 7 APIs, if available, otherwise fallback to no-op
-        Object handler = newInstanceOrFallback("org.gradle.internal.nativeintegration.filesystem.jdk7.PosixJdk7FilePermissionHandler", FileSystemServices.class.getClassLoader(), UnsupportedFilePermissions.class);
+        Object handler = newInstanceOrFallback("org.gradle.internal.file.nio.PosixJdk7FilePermissionHandler", FileSystemServices.class.getClassLoader(), UnsupportedFilePermissions.class);
         return genericFileSystemFactory.create((FileModeMutator) handler, (FileModeAccessor) handler, symlink);
     }
 

@@ -113,7 +113,7 @@ fun TaskContainer.registerDistributionsPromotionTasks() {
         description = "Build production distros and smoke test them"
         group = "build"
         dependsOn(
-            ":distributions-full:verifyIsProductionBuildEnvironment", ":distributions-full:buildDists",
+            ":distributions-full:verifyIsProductionBuildEnvironment", ":distributions-full:buildDists", ":distributions-full:copyDistributionsToRootBuild",
             ":distributions-integ-tests:forkingIntegTest", ":docs:releaseNotes", ":docs:incubationReport", ":docs:checkDeadInternalLinks"
         )
     }

@@ -20,24 +20,26 @@ import java.util.Arrays;
 import java.util.List;
 
 public enum ComponentType {
-    BASIC(),
-    APPLICATION("app", "list", "utilities"),
-    LIBRARY("lib"),
-    GRADLE_PLUGIN("plugin") {
-        @Override
-        public String toString() {
-            return "Gradle plugin";
-        }
-    };
+    // These are in display order
+    APPLICATION("Application", "app", "list", "utilities"),
+    LIBRARY("Library", "lib"),
+    GRADLE_PLUGIN("Gradle plugin", "plugin"),
+    BASIC("Basic (build structure only)");
 
+    private final String displayName;
     private final List<String> defaultProjectNames;
 
-    ComponentType(String... defaultProjectNames) {
+    ComponentType(String displayName, String... defaultProjectNames) {
+        this.displayName = displayName;
         this.defaultProjectNames = Arrays.asList(defaultProjectNames);
     }
 
     public List<String> getDefaultProjectNames() {
         return defaultProjectNames;
+    }
+
+    public String getDisplayName() {
+        return displayName;
     }
 
     @Override

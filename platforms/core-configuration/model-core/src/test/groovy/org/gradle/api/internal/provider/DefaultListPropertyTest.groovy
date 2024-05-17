@@ -38,6 +38,11 @@ class DefaultListPropertyTest extends CollectionPropertySpec<List<String>> {
     }
 
     @Override
+    String getCollectionName() {
+        return "list"
+    }
+
+    @Override
     protected Class<? extends ImmutableCollection<?>> getImmutableCollectionType() {
         return ImmutableList.class
     }
@@ -55,5 +60,12 @@ class DefaultListPropertyTest extends CollectionPropertySpec<List<String>> {
     @Override
     ManagedFactory managedFactory() {
         return new ManagedFactories.ListPropertyManagedFactory(TestUtil.propertyFactory())
+    }
+
+    static class ListPropertyCircularFunctionEvaluationTest extends CollectionPropertySpec.CollectionPropertyCircularChainEvaluationTest<String, List<String>> {
+        @Override
+        DefaultListProperty<String> property() {
+            return new DefaultListProperty<String>(host, String)
+        }
     }
 }

@@ -16,7 +16,7 @@
 
 package org.gradle.plugin.use.resolve.internal;
 
-import org.gradle.api.Action;
+import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.plugin.use.PluginId;
 
 import javax.annotation.Nullable;
@@ -24,8 +24,22 @@ import javax.annotation.Nullable;
 /**
  * The result of attempting to resolve a plugin to a classpath.
  */
-public interface PluginResolution extends Action<PluginResolveContext> {
+public interface PluginResolution {
+
+    /**
+     * The ID of the resolved plugin.
+     */
     PluginId getPluginId();
+
+    /**
+     * Accepts a visitor and visits the resolved plugin.
+     */
+    default void accept(PluginResolutionVisitor visitor) { }
+
+    /**
+     * Apply the plugin to the provided plugin manager.
+     */
+    void applyTo(PluginManagerInternal pluginManager);
 
     /**
      * The resolved plugin version, if known.

@@ -18,8 +18,8 @@ package org.gradle.internal.resource.transfer;
 
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationInvocationException;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ExternalResourceWriteBuildOperationType;
@@ -31,17 +31,17 @@ import java.net.URI;
 
 public class ProgressLoggingExternalResourceUploader extends AbstractProgressLoggingHandler implements ExternalResourceUploader {
     private final ExternalResourceUploader delegate;
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationRunner buildOperationRunner;
 
-    public ProgressLoggingExternalResourceUploader(ExternalResourceUploader delegate, BuildOperationExecutor buildOperationExecutor) {
+    public ProgressLoggingExternalResourceUploader(ExternalResourceUploader delegate, BuildOperationRunner buildOperationRunner) {
         this.delegate = delegate;
-        this.buildOperationExecutor = buildOperationExecutor;
+        this.buildOperationRunner = buildOperationRunner;
     }
 
     @Override
     public void upload(final ReadableContent resource, ExternalResourceName destination) throws IOException {
         try {
-            buildOperationExecutor.run(new UploadOperation(destination, resource));
+            buildOperationRunner.run(new UploadOperation(destination, resource));
         } catch (BuildOperationInvocationException e) {
             if (e.getCause() instanceof IOException) {
                 throw (IOException) e.getCause();

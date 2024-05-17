@@ -61,11 +61,8 @@ The goal is to achieve <<build_cache_concepts.adoc#stable_task_inputs,stable tas
 When you are happy with the up-to-date performance then you can repeat the experiment above, but this time with a clean build, and the build cache turned on.
 The goal with clean builds and the build cache turned on is to retrieve all cacheable tasks from the cache.
 
-[WARNING]
-====
-When running this test make sure that you have no `remote` cache configured, and storing in the `local` cache is enabled.
+WARNING: When running this test make sure that you have no `remote` cache configured, and storing in the `local` cache is enabled.
 These are the default settings.
-====
 
 This would look something like this on the command-line:
 
@@ -109,10 +106,7 @@ NOTE: Tasks that should be relocatable but aren't are usually a result of absolu
 To discover these problems, first check out the same commit of your project in two different directories on your machine.
 For the following example let's assume we have a checkout in `\~/checkout-1` and `\~/checkout-2`.
 
-[WARNING]
-====
-Like with the previous test, you should have no `remote` cache configured, and storing in the `local` cache should be enabled.
-====
+WARNING: Like with the previous test, you should have no `remote` cache configured, and storing in the `local` cache should be enabled.
 
 [listing]
 ----
@@ -275,7 +269,4 @@ include::sample[dir="snippets/buildCache/normalization/groovy",files="build.grad
 Since properties files stored by Java's `Properties.store` method contain a timestamp, this will cause a change to the runtime classpath every time the build runs.
 In order to solve this problem see <<common_caching_problems.adoc#volatile_outputs,non-repeatable task outputs>> or use <<build_cache_concepts.adoc#normalization,input normalization>>.
 
-[NOTE]
-====
-The compile classpath is not affected since compile avoidance ignores non-class files on the classpath.
-====
+NOTE: The compile classpath is not affected since compile avoidance ignores non-class files on the classpath.

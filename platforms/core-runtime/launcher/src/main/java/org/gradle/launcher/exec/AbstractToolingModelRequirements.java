@@ -20,15 +20,25 @@ import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.buildtree.BuildActionModelRequirements;
+import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hasher;
+
+import java.util.function.Supplier;
 
 public abstract class AbstractToolingModelRequirements implements BuildActionModelRequirements {
+
     private final StartParameterInternal startParameter;
     private final boolean runsTasks;
+    private final Supplier<HashCode> payloadHashProvider;
 
-    public AbstractToolingModelRequirements(StartParameterInternal startParameter,
-                                            boolean runsTasks) {
+    public AbstractToolingModelRequirements(
+        StartParameterInternal startParameter,
+        boolean runsTasks,
+        Supplier<HashCode> payloadHashProvider
+    ) {
         this.startParameter = startParameter;
         this.runsTasks = runsTasks;
+        this.payloadHashProvider = payloadHashProvider;
     }
 
     @Override
@@ -55,4 +65,15 @@ public abstract class AbstractToolingModelRequirements implements BuildActionMod
     public DisplayName getConfigurationCacheKeyDisplayName() {
         return Describables.of("the requested model");
     }
+
+    @Override
+    public void appendKeyTo(Hasher hasher) {
+        hasher.putByte(getActionTypeId());
+        hasher.putHash(payloadHashProvider.get());
+    }
+
+    /**
+     * Each inheriting action must provide a unique value.
+     */
+    protected abstract byte getActionTypeId();
 }

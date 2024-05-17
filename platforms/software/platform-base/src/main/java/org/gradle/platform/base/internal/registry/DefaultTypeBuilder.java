@@ -16,20 +16,20 @@
 
 package org.gradle.platform.base.internal.registry;
 
-import com.google.common.collect.Sets;
 import org.gradle.model.internal.manage.schema.ManagedImplSchema;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.platform.base.InvalidModelException;
 import org.gradle.platform.base.TypeBuilder;
 import org.gradle.platform.base.internal.builder.TypeBuilderInternal;
 
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class DefaultTypeBuilder<T> implements TypeBuilderInternal<T> {
     private final Class<?> markerAnnotation;
     private final ModelSchema<? extends T> schema;
     private Class<?> implementation;
-    private final Set<Class<?>> internalViews = Sets.newLinkedHashSet();
+    private final Set<Class<?>> internalViews = new LinkedHashSet<>();
 
     public DefaultTypeBuilder(Class<?> markerAnnotation, ModelSchema<? extends T> schema) {
         this.markerAnnotation = markerAnnotation;

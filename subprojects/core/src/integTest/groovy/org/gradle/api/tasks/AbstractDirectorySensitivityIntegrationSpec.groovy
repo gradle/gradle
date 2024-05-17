@@ -212,6 +212,9 @@ abstract class AbstractDirectorySensitivityIntegrationSpec extends AbstractInteg
     }
 
     def "artifact transforms are sensitive to empty directories by default"() {
+        // Immutable artifact transforms are cached to the GradleUserHome,
+        // so to avoid flakiness we need to request own GradleUserHome
+        executer.requireOwnGradleUserHomeDir()
         createParameterizedTransformWithSensitivity(DirectorySensitivity.DEFAULT)
         file('augmented').mkdir()
         file('augmented/a').mkdir()
@@ -251,6 +254,9 @@ abstract class AbstractDirectorySensitivityIntegrationSpec extends AbstractInteg
     }
 
     def "artifact transforms ignore empty directories when specified"() {
+        // Immutable artifact transforms are cached to the GradleUserHome,
+        // so to avoid flakiness we need to request own GradleUserHome
+        executer.requireOwnGradleUserHomeDir()
         createParameterizedTransformWithSensitivity(DirectorySensitivity.IGNORE_DIRECTORIES)
         file('augmented').mkdir()
         file('augmented/a').mkdir()

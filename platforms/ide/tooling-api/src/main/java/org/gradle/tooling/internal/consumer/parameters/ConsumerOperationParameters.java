@@ -20,6 +20,7 @@ import org.gradle.api.GradleException;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.tooling.CancellationToken;
+import org.gradle.tooling.StreamedValueListener;
 import org.gradle.tooling.events.OperationType;
 import org.gradle.tooling.events.ProgressListener;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
@@ -32,6 +33,7 @@ import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;
 import org.gradle.tooling.model.Launchable;
 import org.gradle.tooling.model.Task;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -71,6 +73,8 @@ public class ConsumerOperationParameters implements BuildParameters {
         private List<InternalLaunchable> launchables;
         private ClassPath injectedPluginClasspath = ClassPath.EMPTY;
         private Map<String, String> systemProperties;
+        @Nullable
+        private StreamedValueListener streamedValueListener;
 
         private Builder() {
         }
@@ -133,7 +137,7 @@ public class ConsumerOperationParameters implements BuildParameters {
 
         private static List<String> concat(List<String> first, List<String> second) {
             List<String> result = new ArrayList<String>();
-            if (first  != null) {
+            if (first != null) {
                 result.addAll(first);
             }
             if (second != null) {
@@ -154,7 +158,7 @@ public class ConsumerOperationParameters implements BuildParameters {
 
         public Builder setLaunchables(Iterable<? extends Launchable> launchables) {
             Set<String> taskPaths = new LinkedHashSet<String>();
-            List<InternalLaunchable> launchablesParams = Lists.newArrayList();
+            List<InternalLaunchable> launchablesParams = new ArrayList<>();
             for (Launchable launchable : launchables) {
                 Object original = new ProtocolToModelAdapter().unpack(launchable);
                 if (original instanceof InternalLaunchable) {
@@ -207,13 +211,17 @@ public class ConsumerOperationParameters implements BuildParameters {
             this.cancellationToken = cancellationToken;
         }
 
+        public void setStreamedValueListener(StreamedValueListener streamedValueListener) {
+            this.streamedValueListener = streamedValueListener;
+        }
+
         public ConsumerOperationParameters build() {
             if (entryPoint == null) {
                 throw new IllegalStateException("No entry point specified.");
             }
 
             return new ConsumerOperationParameters(entryPoint, parameters, stdout, stderr, colorOutput, stdin, javaHome, jvmArguments, envVariables, arguments, tasks, launchables, injectedPluginClasspath,
-                legacyProgressListeners, progressListeners, cancellationToken, systemProperties);
+                legacyProgressListeners, progressListeners, cancellationToken, systemProperties, new FailsafeStreamedValueListener(streamedValueListener));
         }
 
         public void copyFrom(ConsumerOperationParameters operationParameters) {
@@ -259,11 +267,14 @@ public class ConsumerOperationParameters implements BuildParameters {
     private final Map<OperationType, List<ProgressListener>> progressListeners;
 
     private final Map<String, String> systemProperties;
+    private final FailsafeStreamedValueListener streamedValueListener;
 
-    private ConsumerOperationParameters(String entryPointName, ConnectionParameters parameters, OutputStream stdout, OutputStream stderr, Boolean colorOutput, InputStream stdin,
-                                        File javaHome, List<String> jvmArguments,  Map<String, String> envVariables, List<String> arguments, List<String> tasks, List<InternalLaunchable> launchables, ClassPath injectedPluginClasspath,
-                                        List<org.gradle.tooling.ProgressListener> legacyProgressListeners, Map<OperationType, List<ProgressListener>> progressListeners, CancellationToken cancellationToken,
-                                        Map<String, String> systemProperties) {
+    private ConsumerOperationParameters(
+        String entryPointName, ConnectionParameters parameters, OutputStream stdout, OutputStream stderr, Boolean colorOutput, InputStream stdin,
+        File javaHome, List<String> jvmArguments, Map<String, String> envVariables, List<String> arguments, List<String> tasks, List<InternalLaunchable> launchables, ClassPath injectedPluginClasspath,
+        List<org.gradle.tooling.ProgressListener> legacyProgressListeners, Map<OperationType, List<ProgressListener>> progressListeners, CancellationToken cancellationToken,
+        Map<String, String> systemProperties, FailsafeStreamedValueListener streamedValueListener
+    ) {
         this.entryPointName = entryPointName;
         this.parameters = parameters;
         this.stdout = stdout;
@@ -281,6 +292,7 @@ public class ConsumerOperationParameters implements BuildParameters {
         this.legacyProgressListeners = legacyProgressListeners;
         this.progressListeners = progressListeners;
         this.systemProperties = systemProperties;
+        this.streamedValueListener = streamedValueListener;
 
         // create the listener adapters right when the ConsumerOperationParameters are instantiated but no earlier,
         // this ensures that when multiple requests are issued that are built from the same builder, such requests do not share any state kept in the listener adapters
@@ -442,8 +454,18 @@ public class ConsumerOperationParameters implements BuildParameters {
     /**
      * @since 7.6
      */
-    public  Map<String, ?> getSystemProperties() {
+    public Map<String, ?> getSystemProperties() {
         return systemProperties;
     }
 
+    public FailsafeStreamedValueListener getStreamedValueListener() {
+        return streamedValueListener;
+    }
+
+    /**
+     * @since 8.6
+     */
+    public void onStreamedValue(Object model) {
+        streamedValueListener.onValue(model);
+    }
 }

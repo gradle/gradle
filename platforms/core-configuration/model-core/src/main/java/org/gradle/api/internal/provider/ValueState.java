@@ -23,23 +23,51 @@ import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.state.ModelObject;
 
 import javax.annotation.Nullable;
+import java.util.function.Function;
 
 /**
- * Manages values that are finalizable and support conventions.
+ * Provides a state pattern implementation for values that are finalizable and support conventions.
  *
- * @param <S>
+ * <h3>Finalization</h3>
+ * See {@link org.gradle.api.provider.HasConfigurableValue} and {@link HasConfigurableValueInternal}.
+ *
+ * <h3>Conventions</h3>
+ * See {@link org.gradle.api.provider.SupportsConvention}.
+ *
+ * @param <S> the type of the value
  */
 public abstract class ValueState<S> {
     private static final ValueState<Object> FINALIZED_VALUE = new FinalizedValue<>();
 
+    /**
+     * Creates a new non-finalized state.
+     */
     public static <S> ValueState<S> newState(PropertyHost host) {
-        return new ValueState.NonFinalizedValue<>(host);
+        return new ValueState.NonFinalizedValue<>(host, Function.identity());
+    }
+
+    /**
+     * Creates a new non-finalized state.
+     *
+     * @param copier when the value is mutable, a shallow-copying function should be provided to avoid
+     * sharing of mutable state between effective values and convention values
+     */
+    public static <S> ValueState<S> newState(PropertyHost host, Function<S, S> copier) {
+        return new ValueState.NonFinalizedValue<>(host, copier);
     }
 
     public abstract boolean shouldFinalize(Describable displayName, @Nullable ModelObject producer);
 
+    /**
+     * Returns the state to replace this state once is finalized.
+     */
     public abstract ValueState<S> finalState();
 
+    /**
+     * Sets a new convention value, replacing the existing one if set.
+     *
+     * @param convention the new convention value
+     */
     public abstract void setConvention(S convention);
 
     public abstract void disallowChanges();
@@ -48,15 +76,47 @@ public abstract class ValueState<S> {
 
     public abstract void disallowUnsafeRead();
 
+    /**
+     * Marks this value state as being explicitly assigned. Does not remember the given value in any way.
+     *
+     * @param value the new explicitly assigned value
+     * @return the very <code>value</code> given
+     */
+    //TODO-RC rename this or the overload as they have significantly different semantics
     public abstract S explicitValue(S value);
 
+    /**
+     * Returns <code>value</code> if this value state is marked as explicit, otherwise returns the given <code>defaultValue</code>.
+     *
+     * Note that "default value" is not related to the convention value, though they are easy to confuse.
+     * A default value is a fallback value that is sensible to the caller, in the absence of the explicit value.
+     * The default value is not related in any way to the convention value.
+     *
+     * @param value the current explicit value
+     * @param defaultValue the default value
+     * @return the given value, if this value state is not explicit, or given default value
+     */
+    //TODO-RC rename this or the overload as they have significantly different semantics
     public abstract S explicitValue(S value, S defaultValue);
 
+    /**
+     * Applies a new convention value, which replaces the existing convention value.
+     *
+     * Returns the given <code>value</code> if this value state is explicit, otherwise returns the new convention value.
+     *
+     * This is similar to calling {@link #setConvention(Object)} followed by {@link #explicitValue(Object, Object)}.
+     *
+     * @param value the current explicit value
+     * @param convention the new convention
+     * @return the given value, if this value state is not explicit, otherwise the new convention value
+     */
     public abstract S applyConvention(S value, S convention);
 
     /**
      * Marks this value state as being non-explicit. Returns the convention, if any.
      */
+    public abstract S implicitValue(S convention);
+
     public abstract S implicitValue();
 
     public abstract boolean maybeFinalizeOnRead(Describable displayName, @Nullable ModelObject producer, ValueSupplier.ValueConsumer consumer);
@@ -85,16 +145,38 @@ public abstract class ValueState<S> {
         finalizeOnNextGet();
     }
 
+    public abstract boolean isExplicit();
+
+    /**
+     * Retrieves the current convention.
+     */
+    public abstract S convention();
+
+    /**
+     * Marks this value as being explicitly set with
+     * the current value assigned to the convention.
+     */
+    public abstract S setToConvention();
+
+    /**
+     * Marks this value as being explicitly set with
+     * the current value assigned to the convention,
+     * unless it is already an explicit value.
+     */
+    public abstract S setToConventionIfUnset(S value);
+
     private static class NonFinalizedValue<S> extends ValueState<S> {
         private final PropertyHost host;
+        private final Function<S, S> copier;
         private boolean explicitValue;
         private boolean finalizeOnNextGet;
         private boolean disallowChanges;
         private boolean disallowUnsafeRead;
         private S convention;
 
-        public NonFinalizedValue(PropertyHost host) {
+        public NonFinalizedValue(PropertyHost host, Function<S, S> copier) {
             this.host = host;
+            this.copier = copier;
         }
 
         @Override
@@ -162,6 +244,34 @@ public abstract class ValueState<S> {
         }
 
         @Override
+        public boolean isExplicit() {
+            return explicitValue;
+        }
+
+        @Override
+        public S convention() {
+            return convention;
+        }
+
+        @Override
+        public S setToConvention() {
+            explicitValue = true;
+            return shallowCopy(convention);
+        }
+
+        private S shallowCopy(S toCopy) {
+            return copier.apply(toCopy);
+        }
+
+        @Override
+        public S setToConventionIfUnset(S value) {
+            if (!explicitValue) {
+                return setToConvention();
+            }
+            return value;
+        }
+
+        @Override
         public S explicitValue(S value) {
             explicitValue = true;
             return value;
@@ -178,14 +288,20 @@ public abstract class ValueState<S> {
         @Override
         public S implicitValue() {
             explicitValue = false;
-            return convention;
+            return shallowCopy(convention);
+        }
+
+        @Override
+        public S implicitValue(S newConvention) {
+            setConvention(newConvention);
+            return implicitValue();
         }
 
         @Override
         public S applyConvention(S value, S convention) {
             this.convention = convention;
             if (!explicitValue) {
-                return convention;
+                return shallowCopy(convention);
             } else {
                 return value;
             }
@@ -273,8 +389,33 @@ public abstract class ValueState<S> {
         }
 
         @Override
+        public S implicitValue(S defaultValue) {
+            throw unexpected();
+        }
+
+        @Override
         public boolean isFinalizing() {
             return true;
+        }
+
+        @Override
+        public boolean isExplicit() {
+            return true;
+        }
+
+        @Override
+        public S convention() {
+            return null;
+        }
+
+        @Override
+        public S setToConvention() {
+            throw unexpected();
+        }
+
+        @Override
+        public S setToConventionIfUnset(S value) {
+            throw unexpected();
         }
 
         @Override

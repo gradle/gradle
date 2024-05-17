@@ -34,7 +34,6 @@ import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler;
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler;
-import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.ExternalModuleDependencyVariantSpec;
 import org.gradle.api.artifacts.query.ArtifactResolutionQuery;
 import org.gradle.api.artifacts.transform.TransformAction;
@@ -48,16 +47,18 @@ import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.artifacts.dependencies.AbstractExternalModuleDependency;
 import org.gradle.api.internal.artifacts.dependencies.DefaultMinimalDependencyVariant;
+import org.gradle.api.internal.artifacts.dsl.DependencyHandlerInternal;
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
+import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
-import org.gradle.internal.Factory;
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.component.external.model.ProjectTestFixtures;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.internal.metaobject.MethodMixIn;
 import org.gradle.util.internal.ConfigureUtil;
@@ -69,7 +70,7 @@ import java.util.Map;
 import static org.gradle.api.artifacts.type.ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE;
 import static org.gradle.internal.component.external.model.TestFixturesSupport.TEST_FIXTURES_CAPABILITY_APPENDIX;
 
-public abstract class DefaultDependencyHandler implements DependencyHandler, MethodMixIn {
+public abstract class DefaultDependencyHandler implements DependencyHandlerInternal, MethodMixIn {
     private final ConfigurationContainer configurationContainer;
     private final DependencyFactoryInternal dependencyFactory;
     private final ProjectFinder projectFinder;
@@ -79,7 +80,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     private final ArtifactResolutionQueryFactory resolutionQueryFactory;
     private final AttributesSchema attributesSchema;
     private final VariantTransformRegistry transforms;
-    private final Factory<ArtifactTypeContainer> artifactTypeContainer;
+    private final ArtifactTypeRegistry artifactTypeContainer;
     private final ObjectFactory objects;
     private final PlatformSupport platformSupport;
     private final DynamicAddDependencyMethods dynamicMethods;
@@ -93,7 +94,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
                                     ArtifactResolutionQueryFactory resolutionQueryFactory,
                                     AttributesSchema attributesSchema,
                                     VariantTransformRegistry transforms,
-                                    Factory<ArtifactTypeContainer> artifactTypeContainer,
+                                    ArtifactTypeRegistry artifactTypeContainer,
                                     ObjectFactory objects,
                                     PlatformSupport platformSupport) {
         this.configurationContainer = configurationContainer;
@@ -244,6 +245,13 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     @Override
     @SuppressWarnings("rawtypes")
     public Dependency module(Object notation, @Nullable Closure configureClosure) {
+
+        DeprecationLogger.deprecateAction("Declaring client module dependencies")
+            .replaceWith("component metadata rules")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "declaring_client_module_dependencies")
+            .nagUser();
+
         return dependencyFactory.createModule(notation, configureClosure);
     }
 
@@ -328,6 +336,11 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     }
 
     @Override
+    public AttributeContainer getDefaultArtifactAttributes() {
+        return artifactTypeContainer.getDefaultArtifactAttributes();
+    }
+
+    @Override
     public <T extends TransformParameters> void registerTransform(Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction) {
         transforms.registerTransform(actionType, registrationAction);
     }
@@ -336,6 +349,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     public Dependency platform(Object notation) {
         Dependency dependency = create(notation);
         if (dependency instanceof ModuleDependency) {
+            // Changes here may require changes in DefaultExternalModuleDependencyVariantSpec
             ModuleDependency moduleDependency = (ModuleDependency) dependency;
             moduleDependency.endorseStrictVersions();
             platformSupport.addPlatformAttribute(moduleDependency, toCategory(Category.REGULAR_PLATFORM));
@@ -357,6 +371,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     public Dependency enforcedPlatform(Object notation) {
         Dependency platformDependency = create(notation);
         if (platformDependency instanceof ExternalModuleDependency) {
+            // Changes here may require changes in DefaultExternalModuleDependencyVariantSpec
             AbstractExternalModuleDependency externalModuleDependency = (AbstractExternalModuleDependency) platformDependency;
             MutableVersionConstraint constraint = (MutableVersionConstraint) externalModuleDependency.getVersionConstraint();
             constraint.strictly(externalModuleDependency.getVersion());
@@ -381,6 +396,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
             ProjectDependency projectDependency = (ProjectDependency) testFixturesDependency;
             projectDependency.capabilities(new ProjectTestFixtures(projectDependency.getDependencyProject()));
         } else if (testFixturesDependency instanceof ModuleDependency) {
+            // Changes here may require changes in DefaultExternalModuleDependencyVariantSpec
             ModuleDependency moduleDependency = (ModuleDependency) testFixturesDependency;
             moduleDependency.capabilities(capabilities -> capabilities.requireCapability(new DefaultImmutableCapability(
                 moduleDependency.getGroup(),
@@ -416,6 +432,8 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     public Provider<MinimalExternalModuleDependency> enforcedPlatform(Provider<MinimalExternalModuleDependency> dependencyProvider) {
         return variantOf(dependencyProvider, spec -> {
             DefaultExternalModuleDependencyVariantSpec defaultSpec = (DefaultExternalModuleDependencyVariantSpec) spec;
+            MutableVersionConstraint versionConstraint = (MutableVersionConstraint) defaultSpec.dep.getVersionConstraint();
+            versionConstraint.strictly(defaultSpec.dep.getVersion());
             defaultSpec.attributesAction = attrs -> attrs.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.ENFORCED_PLATFORM));
         });
     }
@@ -450,6 +468,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
 
         @Override
         public void platform() {
+            this.dep.endorseStrictVersions();
             this.attributesAction = attrs -> attrs.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.REGULAR_PLATFORM));
         }
 

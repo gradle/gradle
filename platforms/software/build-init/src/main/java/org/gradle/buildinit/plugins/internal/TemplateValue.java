@@ -16,7 +16,7 @@
 
 package org.gradle.buildinit.plugins.internal;
 
-import org.gradle.util.internal.TextUtil;
+import static org.gradle.util.internal.TextUtil.getPlatformLineSeparator;
 
 public class TemplateValue {
     private final String value;
@@ -66,7 +66,7 @@ public class TemplateValue {
         if (value.isEmpty()) {
             return "";
         } else {
-            return value + TextUtil.getPlatformLineSeparator();
+            return value + getPlatformLineSeparator();
         }
     }
 
@@ -74,12 +74,30 @@ public class TemplateValue {
         if (value.isEmpty()) {
             return "";
         } else {
-            return value + ";" + TextUtil.getPlatformLineSeparator();
+            return value + ";" + getPlatformLineSeparator();
         }
     }
 
     public String getJavaIdentifier() {
         return value;
+    }
+
+    public String getMultilineComment() {
+        if (value.isEmpty()) {
+            return "";
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("/*").append(getPlatformLineSeparator());
+        for (String line : value.split("\n")) {
+            sb.append(" *");
+            if (!line.isEmpty()) {
+                sb.append(" ").append(line);
+            }
+            sb.append(getPlatformLineSeparator());
+        }
+        sb.append(" */").append(getPlatformLineSeparator());
+        return sb.toString();
     }
 
     public String getRaw() {

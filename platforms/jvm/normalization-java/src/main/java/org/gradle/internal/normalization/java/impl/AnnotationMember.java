@@ -18,14 +18,14 @@ package org.gradle.internal.normalization.java.impl;
 
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.ImmutableSortedSet;
-import com.google.common.collect.Sets;
 
 import java.util.Collection;
 import java.util.SortedSet;
+import java.util.TreeSet;
 
 public class AnnotationMember extends Member implements Comparable<AnnotationMember> {
 
-    private final SortedSet<AnnotationValue<?>> values = Sets.newTreeSet();
+    private final SortedSet<AnnotationValue<?>> values = new TreeSet<>();
     private final boolean visible;
 
     public AnnotationMember(String name, boolean visible) {

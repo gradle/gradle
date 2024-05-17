@@ -13,6 +13,7 @@ dependencies {
     api(libs.futureKotlin("stdlib"))
     api(libs.futureKotlin("reflect"))
 
+    implementation(projects.io)
     implementation(project(":base-services"))
     implementation(project(":enterprise-operations"))
     implementation(project(":functional"))
@@ -74,6 +75,7 @@ dependencies {
     }
 
     testImplementation(project(":build-cache-http"))
+    testImplementation(project(":build-cache-local"))
     testImplementation(project(":build-init"))
     testImplementation(project(":jacoco"))
     testImplementation(project(":platform-native")) {

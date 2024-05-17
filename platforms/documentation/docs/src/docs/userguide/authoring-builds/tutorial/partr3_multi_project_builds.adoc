@@ -43,19 +43,38 @@ In Gradle, a multi-project build consists of:
 
 Our build currently consists of a root project called `authoring-tutorial`, which has a single `app` subproject:
 
-[source]
+[.multi-language-sample]
+=====
+[source, kotlin]
 ----
-.                           // <1>
-├── app                         // <2>
-│   ...                     // <3>
-│   └── build.gradle.kts        // <4>
-└── settings.gradle.kts     // <5>
+.   // <1>
+├── app // <2>
+│   ... // <3>
+│   └── build.gradle.kts // <4>
+└── settings.gradle.kts  // <5>
 ----
 <1> The `authoring-tutorial` root project
 <2> The `app` subproject
 <3> The `app` source code
 <4> The `app` build script
 <5> The optional settings file
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+.   // <1>
+├── app // <2>
+│   ... // <3>
+│   └── build.gradle // <4>
+└── settings.gradle  // <5>
+----
+<1> The `authoring-tutorial` root project
+<2> The `app` subproject
+<3> The `app` source code
+<4> The `app` build script
+<5> The optional settings file
+=====
 
 == Step 2. Add another Subproject to the Build
 Imagine that our project is growing and requires a custom library to function.
@@ -63,18 +82,20 @@ Imagine that our project is growing and requires a custom library to function.
 Let's create this imaginary `lib`.
 First, create a `lib` folder:
 
-[source]
+[source,text]
 ----
 mkdir lib
 ----
 
-[source]
+[source,text]
 ----
 cd lib
 ----
 
-Create a file called `build.gradle.kts` and add the following lines to it:
+Create a file called `build.gradle(.kts)` and add the following lines to it:
 
+[.multi-language-sample]
+=====
 .lib/build.gradle.kts
 [source,kotlin]
 ----
@@ -83,7 +104,6 @@ plugins {
 }
 
 repositories {
-    // Use Maven Central for resolving dependencies.
     mavenCentral()
 }
 
@@ -94,7 +114,6 @@ dependencies {
 }
 
 tasks.named<Test>("test") {
-    // Use JUnit Platform for unit tests.
     useJUnitPlatform()
 }
 
@@ -112,9 +131,51 @@ tasks.named("task3"){
     }
 }
 ----
+=====
+[.multi-language-sample]
+=====
+.lib/build.gradle
+[source, groovy]
+----
+plugins {
+    id 'java'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.9.3'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    implementation 'com.google.guava:guava:32.1.1-jre'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+tasks.register('task3') {
+    println('REGISTER TASK3: This is executed during the configuration phase')
+}
+
+tasks.named('task3') {
+    println('NAMED TASK3: This is executed during the configuration phase')
+    doFirst {
+        println('NAMED TASK3 - doFirst: This is executed during the execution phase')
+    }
+    doLast {
+        println('NAMED TASK3 - doLast: This is executed during the execution phase')
+    }
+}
+----
+=====
 
 Your project should look like this:
 
+[.multi-language-sample]
+=====
+[source, kotlin]
 ----
 .
 ├── app
@@ -124,11 +185,25 @@ Your project should look like this:
 │   └── build.gradle.kts
 └── settings.gradle.kts
 ----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+.
+├── app
+│   ...
+│   └── build.gradle
+├── lib
+│   └── build.gradle
+└── settings.gradle
+----
+=====
 
 Let's add some code to the `lib` subproject.
 Create a new directory:
 
-[source]
+[source,text]
 ----
 mkdir -p lib/src/main/java/com/gradle
 ----
@@ -147,6 +222,9 @@ public class CustomLib {
 
 The project should now have the following file and directory structure:
 
+[.multi-language-sample]
+=====
+[source, kotlin]
 ----
 .
 ├── app
@@ -167,16 +245,43 @@ The project should now have the following file and directory structure:
 │                       └── CustomLib.java
 └── settings.gradle.kts
 ----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+.
+├── app
+│   ├── build.gradle
+│   └── src
+│       └── main
+│           └── java
+│               └── authoring
+│                   └── tutorial
+│                       └── App.java
+├── lib
+│   ├── build.gradle
+│   └── src
+│       └── main
+│           └── java
+│               └── com
+│                   └── gradle
+│                       └── CustomLib.java
+└── settings.gradle
+----
+=====
 
-However, the `lib` subproject does not belong to the build, and you won't be able to execute `task3`, until it is added to the `settings.gradle.kts` file.
+However, the `lib` subproject does not belong to the build, and you won't be able to execute `task3`, until it is added to the `settings.gradle(.kts)` file.
 
-To add `lib` to the build, update the `settings.gradle.kts` file in the root accordingly:
+To add `lib` to the build, update the `settings.gradle(.kts)` file in the root accordingly:
 
+[.multi-language-sample]
+=====
 .settings.gradle.kts
 [source,kotlin]
 ----
 plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention") version "0.4.0"
+    id("org.gradle.toolchains.foojay-resolver-convention") version "0.7.0"
 }
 
 rootProject.name = "authoring-tutorial"
@@ -184,9 +289,27 @@ rootProject.name = "authoring-tutorial"
 include("app")
 include("lib") // Add lib to the build
 ----
+=====
+[.multi-language-sample]
+=====
+.settings.gradle
+[source, groovy]
+----
+plugins {
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '0.7.0'
+}
 
-Let's add the `lib` subproject as an `app` dependency in `app/build.gradle.kts`:
+rootProject.name = 'authoring-tutorial'
 
+include('app')
+include('lib') // Add lib to the build
+----
+=====
+
+Let's add the `lib` subproject as an `app` dependency in `app/build.gradle(.kts)`:
+
+[.multi-language-sample]
+=====
 .app/build.gradle.kts
 [source,kotlin]
 ----
@@ -194,6 +317,17 @@ dependencies {
     implementation(project(":lib")) // Add lib as an app dependency
 }
 ----
+=====
+[.multi-language-sample]
+=====
+.app/build.gradle
+[source, groovy]
+----
+dependencies {
+    implementation(project(':lib')) // Add lib as an app dependency
+}
+----
+=====
 
 Update the `app` source code so that it imports the `lib`:
 
@@ -275,35 +409,28 @@ cd license-plugin
 Once in the `gradle/license-plugin` directory, run `gradle init`.
 Make sure that you select the `Gradle plugin` project as well as the other options for the `init` task below:
 
-[source]
+[.multi-language-sample]
+=====
+[source, kotlin]
 ----
-$ gradle init
-
-Select type of project to generate:
-  1: basic
-  2: application
-  3: library
-  4: Gradle plugin
-Enter selection (default: basic) [1..4] 4
-
-Select implementation language:
-  1: Groovy
-  2: Java
-  3: Kotlin
-Enter selection (default: Java) [1..3] 3
-
-Select build script DSL:
-  1: Kotlin
-  2: Groovy
-Enter selection (default: Kotlin) [1..2] 1
-
-Project name (default: license-plugin): license
-Source package (default: license): com.gradle
-Generate build using new APIs and behavior (some features may change in the next minor release)? (default: no) [yes, no]
+$ gradle init --dsl kotlin --type kotlin-gradle-plugin --project-name license
 ----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+$ gradle init --dsl groovy --type groovy-gradle-plugin --project-name license
+----
+=====
+
+Select defaults for any additional prompts.
 
 Your project should look like this:
 
+[.multi-language-sample]
+=====
+[source, kotlin]
 ----
 .
 ├── app
@@ -313,39 +440,90 @@ Your project should look like this:
 │   ...
 │   └── build.gradle.kts
 ├── gradle
+│    ├── ...
 │    └── license-plugin
 │        ├── settings.gradle.kts
 │        └── plugin
-│            ├── build.gradle.kts
+│            ├── gradle
+│            │   └── ....
 │            ├── src
+│            │   ├── functionalTest
+│            │   │   └── ....
 │            │   ├── main
-│            │   └── kotlin
-│            │       └── com.gradle
-│            │           └── LicensePlugin.kt
-│            └── test
-│                └── kotlin
-│                    └── com.gradle
-│                        └── LicencePluginTest.kt
+│            │   │   └── kotlin
+│            │   │       └── license
+│            │   │           └── LicensePlugin.kt
+│            │   └── test
+│            │       └── ...
+│            └── build.gradle.kts
+│
 └── settings.gradle.kts
 ----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+.
+├── app
+│   ...
+│   └── build.gradle
+├── lib
+│   ...
+│   └── build.gradle
+├── gradle
+│    ├── ...
+│    └── license-plugin
+│        ├── settings.gradle
+│        └── plugin
+│            ├── gradle
+│            │   └── ....
+│            ├── src
+│            │   ├── functionalTest
+│            │   │   └── ....
+│            │   ├── main
+│            │   │   └── groovy
+│            │   │       └── license
+│            │   │           └── LicensePlugin.groovy
+│            │   └── test
+│            │       └── ...
+│            └── build.gradle
+│
+└── settings.gradle
+----
+=====
 
-Take the time to look at the `LicensePlugin.kt` code and the `gradle/license-plugin/settings.gradle.kts` file.
-It's important to note that this is an entirely separate build with its own Settings file and Build script:
+Take the time to look at the `LicensePlugin.kt` or `LicensePlugin.groovy` code and the `gradle/license-plugin/settings.gradle(.kts)` file.
+It's important to note that this is an entirely separate build with its own settings file and build script:
 
+[.multi-language-sample]
+=====
 .gradle/license-plugin/settings.gradle.kts
 [source,kotlin]
 ----
 rootProject.name = "license"
 include("plugin")
 ----
+=====
+[.multi-language-sample]
+=====
+.gradle/license-plugin/settings.gradle
+[source, groovy]
+----
+rootProject.name = 'license'
+include('plugin')
+----
+=====
 
-To add our `license-plugin` build to the root project, update the root `settings.gradle.kts` file accordingly:
+To add our `license-plugin` build to the root project, update the root `settings.gradle(.kts)` file accordingly:
 
+[.multi-language-sample]
+=====
 .settings.gradle.kts
 [source,kotlin]
 ----
 plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention") version "0.4.0"
+    id("org.gradle.toolchains.foojay-resolver-convention") version "0.7.0"
 }
 
 rootProject.name = "authoring-tutorial"
@@ -355,6 +533,24 @@ include("subproject")
 
 includeBuild("gradle/license-plugin") // Add the new build
 ----
+=====
+[.multi-language-sample]
+=====
+.settings.gradle
+[source, groovy]
+----
+plugins {
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '0.7.0'
+}
+
+rootProject.name = 'running-tutorial-groovy'
+
+include('app')
+include('lib')
+
+includeBuild('gradle/license-plugin')
+----
+=====
 
 You can view the structure of the root project by running `./gradlew projects` in the root folder `authoring-tutorial`:
 

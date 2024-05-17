@@ -23,17 +23,18 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ProjectDependency;
-import org.gradle.api.internal.artifacts.CachingDependencyResolveContext;
-import org.gradle.api.internal.artifacts.DependencyResolveContext;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
+import org.gradle.internal.component.resolution.failure.exception.ConfigurationSelectionException;
+import org.gradle.internal.component.resolution.failure.type.ConfigurationNotConsumableFailure;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
-import org.gradle.internal.component.ConfigurationNotConsumableException;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.util.Path;
 import org.gradle.util.internal.GUtil;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collections;
 import java.util.Set;
@@ -51,7 +52,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
         this(dependencyProject, null, buildProjectDependencies, DefaultTaskDependencyFactory.withNoAssociatedProject());
     }
 
-    public DefaultProjectDependency(ProjectInternal dependencyProject, String configuration, boolean buildProjectDependencies, TaskDependencyFactory taskDependencyFactory) {
+    public DefaultProjectDependency(ProjectInternal dependencyProject, @Nullable String configuration, boolean buildProjectDependencies, TaskDependencyFactory taskDependencyFactory) {
         super(configuration);
         this.dependencyProject = dependencyProject;
         this.buildProjectDependencies = buildProjectDependencies;
@@ -83,16 +84,37 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
         return dependencyProject.getIdentityPath();
     }
 
-    @Override
-    public Configuration findProjectConfiguration() {
+    private Configuration findProjectConfiguration() {
         ConfigurationContainer dependencyConfigurations = getDependencyProject().getConfigurations();
         String declaredConfiguration = getTargetConfiguration();
         Configuration selectedConfiguration = dependencyConfigurations.getByName(GUtil.elvis(declaredConfiguration, Dependency.DEFAULT_CONFIGURATION));
         if (!selectedConfiguration.isCanBeConsumed()) {
-            throw new ConfigurationNotConsumableException(dependencyProject.getDisplayName(), selectedConfiguration.getName());
+            failDueToNonConsumableConfigurationSelection(selectedConfiguration);
         }
         ((DeprecatableConfiguration) selectedConfiguration).maybeEmitConsumptionDeprecation();
         return selectedConfiguration;
+    }
+
+    /**
+     * Fails the resolution of the project dependency because the selected configuration is not consumable by
+     * throwing the appropriate exception.
+     *
+     * This method is kind of ugly.  If we could get a hold of the ResolutionFailureHandler in this class, we could use the typical
+     * failure handling mechanism.  But we can't, so we have to throw the exception ourselves.  And as the describer
+     * for this failure is abstract, we need to create an anonymous instance of it ourselves here, since there are
+     * no instantiator types available here.
+     *
+     * NOTE: This should all be going away in Gradle 9, so it's okay to remain ugly for a little while.
+     *
+     * @param selectedConfiguration the non-consumable configuration that was selected
+     */
+    private void failDueToNonConsumableConfigurationSelection(Configuration selectedConfiguration) {
+        ConfigurationNotConsumableFailure failure = new ConfigurationNotConsumableFailure(selectedConfiguration.getName(), dependencyProject.getDisplayName());
+        String message = String.format(
+            "Selected configuration '" + failure.getRequestedName() + "' on '" + failure.getRequestedComponentDisplayName() +
+            "' but it can't be used as a project dependency because it isn't intended for consumption by other components."
+        );
+        throw new ConfigurationSelectionException(message, failure, Collections.emptyList());
     }
 
     @Override
@@ -103,19 +125,31 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     }
 
     @Override
+    @Deprecated
     public Set<File> resolve() {
         return resolve(true);
     }
 
     @Override
+    @Deprecated
     public Set<File> resolve(boolean transitive) {
-        CachingDependencyResolveContext context = new CachingDependencyResolveContext(taskDependencyFactory, transitive, Collections.emptyMap());
+
+        DeprecationLogger.deprecate("Directly resolving the files of project dependency '" + getIdentityPath() + "'")
+            .withAdvice("Add the dependency to a resolvable configuration and resolve the configuration.")
+            .willBecomeAnErrorInGradle9()
+            .withUpgradeGuideSection(8, "deprecate_self_resolving_dependency")
+            .nagUser();
+
+        org.gradle.api.internal.artifacts.CachingDependencyResolveContext context =
+            new org.gradle.api.internal.artifacts.CachingDependencyResolveContext(taskDependencyFactory, transitive, Collections.emptyMap());
         context.add(this);
         return context.resolve().getFiles();
     }
 
     @Override
-    public void resolve(DependencyResolveContext context) {
+    @Deprecated
+    @SuppressWarnings("deprecation")
+    public void resolve(org.gradle.api.internal.artifacts.CachingDependencyResolveContext context) {
         boolean transitive = isTransitive() && context.isTransitive();
         if (transitive) {
             Configuration projectConfiguration = findProjectConfiguration();
@@ -129,7 +163,15 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     }
 
     @Override
+    @Deprecated
     public TaskDependencyInternal getBuildDependencies() {
+
+        DeprecationLogger.deprecate("Accessing the build dependencies of project dependency '" + getIdentityPath() + "'")
+            .withAdvice("Add the dependency to a resolvable configuration and use the configuration to track task dependencies.")
+            .willBecomeAnErrorInGradle9()
+            .withUpgradeGuideSection(8, "deprecate_self_resolving_dependency")
+            .nagUser();
+
         return taskDependencyFactory.visitingDependencies(context -> {
             if (!buildProjectDependencies) {
                 return;
@@ -150,12 +192,12 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
             return false;
         }
 
-        ProjectDependency that = (ProjectDependency) dependency;
+        DefaultProjectDependency that = (DefaultProjectDependency) dependency;
         if (!isCommonContentEquals(that)) {
             return false;
         }
 
-        return dependencyProject.equals(that.getDependencyProject());
+        return getIdentityPath().equals(that.getIdentityPath());
     }
 
     @Override
@@ -168,7 +210,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
         }
 
         DefaultProjectDependency that = (DefaultProjectDependency) o;
-        if (!this.getDependencyProject().equals(that.getDependencyProject())) {
+        if (!this.getIdentityPath().equals(that.getIdentityPath())) {
             return false;
         }
         if (getTargetConfiguration() != null ? !this.getTargetConfiguration().equals(that.getTargetConfiguration())
@@ -189,12 +231,12 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
 
     @Override
     public int hashCode() {
-        return getDependencyProject().hashCode() ^ (getTargetConfiguration() != null ? getTargetConfiguration().hashCode() : 31) ^ (buildProjectDependencies ? 1 : 0);
+        return getIdentityPath().hashCode() ^ (getTargetConfiguration() != null ? getTargetConfiguration().hashCode() : 31) ^ (buildProjectDependencies ? 1 : 0);
     }
 
     @Override
     public String toString() {
-        return "DefaultProjectDependency{" + "dependencyProject='" + dependencyProject + '\'' + ", configuration='"
+        return "DefaultProjectDependency{" + "identityPath='" + getIdentityPath() + '\'' + ", configuration='"
             + (getTargetConfiguration() == null ? Dependency.DEFAULT_CONFIGURATION : getTargetConfiguration()) + '\'' + '}';
     }
 }

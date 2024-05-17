@@ -18,7 +18,6 @@ package org.gradle.internal.resource.transport.sftp;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Lists;
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.HostKey;
@@ -31,20 +30,24 @@ import org.gradle.api.credentials.PasswordCredentials;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 
 @ThreadSafe
+@ServiceScope(Scope.Global.class)
 public class SftpClientFactory implements Stoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(SftpClientFactory.class);
 
     private SftpClientCreator sftpClientCreator = new SftpClientCreator();
     private final Object lock = new Object();
-    private final List<LockableSftpClient> allClients = Lists.newArrayList();
+    private final List<LockableSftpClient> allClients = new ArrayList<>();
     private final ListMultimap<SftpHost, LockableSftpClient> idleClients = ArrayListMultimap.create();
 
     public LockableSftpClient createSftpClient(URI uri, PasswordCredentials credentials) {

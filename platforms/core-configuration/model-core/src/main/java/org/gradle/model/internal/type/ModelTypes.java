@@ -19,12 +19,12 @@ package org.gradle.model.internal.type;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Ordering;
-import com.google.common.collect.Sets;
 import groovy.lang.GroovyObject;
 import org.gradle.model.ModelMap;
 import org.gradle.model.ModelSet;
 
 import java.util.ArrayDeque;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
@@ -93,7 +93,7 @@ public abstract class ModelTypes {
     public static Set<ModelType<?>> collectHierarchy(Iterable<? extends ModelType<?>> types) {
         Queue<ModelType<?>> queue = new ArrayDeque<ModelType<?>>(Iterables.size(types) * 2);
         Iterables.addAll(queue, types);
-        Set<ModelType<?>> seenTypes = Sets.newLinkedHashSet();
+        Set<ModelType<?>> seenTypes = new LinkedHashSet<>();
         ModelType<?> type;
         while ((type = queue.poll()) != null) {
             // Do not process Object's or GroovyObject's methods

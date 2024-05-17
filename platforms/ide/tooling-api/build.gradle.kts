@@ -20,11 +20,22 @@ shadedJar {
     ignoredPackages = setOf("org.gradle.tooling.provider.model")
 }
 
+errorprone {
+    disabledChecks.addAll(
+        "EqualsUnsafeCast", // 1 occurrences
+        "FutureReturnValueIgnored", // 1 occurrences
+        "LockNotBeforeTry", // 1 occurrences
+        "StringCaseLocaleUsage", // 1 occurrences
+        "ThreadLocalUsage", // 2 occurrences
+    )
+}
+
 dependencies {
     shadedImplementation(libs.slf4jApi)
 
     implementation(project(":base-services"))
     implementation(project(":enterprise-operations"))
+    implementation(project(":enterprise-workers"))
     implementation(project(":messaging"))
     implementation(project(":logging"))
     implementation(project(":core-api"))
@@ -33,7 +44,6 @@ dependencies {
     implementation(project(":persistent-cache"))
 
     implementation(libs.guava)
-    implementation(libs.jsr305)
 
     testFixturesImplementation(project(":core-api"))
     testFixturesImplementation(project(":core"))
@@ -50,6 +60,7 @@ dependencies {
     integTestImplementation(project(":persistent-cache"))
 
     crossVersionTestImplementation(project(":jvm-services"))
+    crossVersionTestImplementation(testFixtures(project(":problems-api")))
     crossVersionTestImplementation(libs.jettyWebApp)
     crossVersionTestImplementation(libs.commonsIo)
     crossVersionTestRuntimeOnly(libs.cglib) {

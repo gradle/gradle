@@ -18,6 +18,7 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.jvm.JavaToolchainBuildOperationsFixture
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
@@ -397,8 +398,14 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
 
     @Issue("https://github.com/gradle/gradle/issues/21368")
     @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+    @UnsupportedWithConfigurationCache(because = "See KotlinGradlePluginVersions#hasConfigurationCacheWarnings()", iterationMatchers = [/.* 1\.6 Kotlin plugin .*/, /.* 1\.7 Kotlin plugin .*/])
     def "emits toolchain usages when configuring toolchains for #kotlinPlugin Kotlin plugin '#kotlinPluginVersion'"() {
-        JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
+        // Kotlin <1.9 doesn't support JDK21
+        // e: Unknown JVM target version: 21
+        // Supported versions: 1.6, 1.8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18
+        JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.getDifferentVersion({
+            it.languageVersion.majorVersion.toInteger() <= 17
+        }))
 
         given:
         // override setup
@@ -457,18 +464,9 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
             executer.expectDocumentedDeprecationWarning(
                 "The AbstractCompile.destinationDir property has been deprecated. " +
                     "This is scheduled to be removed in Gradle 9.0. " +
+                    "Property was automatically upgraded to the lazy version. " +
                     "Please use the destinationDirectory property instead. " +
                     "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#compile_task_wiring")
-            executer.expectDocumentedDeprecationWarning(
-                "The Project.getConvention() method has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 9.0. " +
-                    "Consult the upgrading guide for further information: " +
-                    "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions")
-            executer.expectDocumentedDeprecationWarning(
-                "The org.gradle.api.plugins.Convention type has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 9.0. " +
-                    "Consult the upgrading guide for further information: " +
-                    "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions")
             executer.expectDocumentedDeprecationWarning(
                 "The BasePluginExtension.archivesBaseName property has been deprecated. " +
                     "This is scheduled to be removed in Gradle 9.0. " +
@@ -485,6 +483,14 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
                         "Consult the upgrading guide for further information: " +
                         "https://docs.gradle.org/current/userguide/upgrading_version_7.html#for_use_at_configuration_time_deprecation")
             }
+        }
+        // KGP performed convention registration at config time until 1.9.20
+        if (kotlinVersionNumber <= VersionNumber.parse("1.9.20")) {
+            executer.expectDocumentedDeprecationWarning(
+                "The org.gradle.api.plugins.Convention type has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 9.0. " +
+                    "Consult the upgrading guide for further information: " +
+                    "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions")
         }
         withInstallations(jdkMetadata).run(":compileKotlin", ":test")
         def eventsOnCompile = toolchainEvents(":compileKotlin")
@@ -510,11 +516,8 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
                 "The org.gradle.api.plugins.JavaPluginConvention type has been deprecated. " +
                     "This is scheduled to be removed in Gradle 9.0. " +
                     "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#java_convention_deprecation")
-            executer.expectDocumentedDeprecationWarning(
-                "The Project.getConvention() method has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 9.0. " +
-                    "Consult the upgrading guide for further information: " +
-                    "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions")
+        }
+        if (kotlinVersionNumber <= VersionNumber.parse("1.9.20") && GradleContextualExecuter.notConfigCache) {
             executer.expectDocumentedDeprecationWarning(
                 "The org.gradle.api.plugins.Convention type has been deprecated. " +
                     "This is scheduled to be removed in Gradle 9.0. " +
@@ -539,6 +542,8 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         kotlinPlugin | _
         "1.6"        | _
         "1.7"        | _
+        "1.8"        | _
+        "1.9"        | _
         "latest"     | _
 
         kotlinPluginVersion = kotlinPlugin == "latest" ? kgpLatestVersions.last() : latestStableKotlinPluginVersion(kotlinPlugin)
@@ -662,7 +667,16 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         """
     }
 
-    private static String latestStableKotlinPluginVersion(String major) {
-        return kgpLatestVersions.findAll { it.startsWith(major) && !it.contains("-") }.last()
+    private static String latestStableKotlinPluginVersion(String kotlinMajorMinor) {
+        def stable = kgpLatestVersions.findAll { it.startsWith(kotlinMajorMinor) && !it.contains("-") }
+        println("================")
+        println(kgpLatestVersions)
+        println(kotlinMajorMinor)
+        if (stable.isEmpty()) {
+            throw new IllegalStateException("No stable Kotlin plugin version found for version $kotlinMajorMinor. " +
+                "Please, use major.minor version in the test and make sure it has corresponding version in kotlin-versions.properties.")
+        }
+        println(stable)
+        return stable.last()
     }
 }

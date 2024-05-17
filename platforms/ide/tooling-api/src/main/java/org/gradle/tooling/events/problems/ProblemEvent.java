@@ -20,13 +20,13 @@ import org.gradle.api.NonNullApi;
 import org.gradle.tooling.events.ProgressEvent;
 
 /**
- * A problem.
+ *
+ * An event representing a problem.
  *
  * @since 8.4
  */
 @NonNullApi
 @Incubating
 public interface ProblemEvent extends ProgressEvent {
-    @Override
-    ProblemDescriptor getDescriptor();
+
 }

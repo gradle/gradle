@@ -17,9 +17,9 @@
 package org.gradle.deployment.internal;
 
 import org.gradle.internal.service.scopes.EventScope;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 
-@EventScope(Scopes.BuildSession.class)
+@EventScope(Scope.BuildSession.class)
 public interface PendingChangesListener {
     void onPendingChanges();
 }

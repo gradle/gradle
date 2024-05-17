@@ -30,7 +30,11 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Encapsulates the production of some value.
+ * Encapsulates the production of some value by some producer.
+ * <p>
+ * All providers implement this interface, but this interface may be implemented whenever
+ * lazy evaluation is required.
+ * </p>
  */
 public interface ValueSupplier {
     /**
@@ -54,8 +58,6 @@ public interface ValueSupplier {
         default boolean isKnown() {
             return true;
         }
-
-        boolean isProducesDifferentValueOverTime();
 
         void visitProducerTasks(Action<? super Task> visitor);
 
@@ -85,7 +87,8 @@ public interface ValueSupplier {
         }
 
         static ValueProducer externalValue() {
-            return new ExternalValueProducer();
+            // At the moment, external values do not differ from values without the producer.
+            return NO_PRODUCER;
         }
 
         /**
@@ -103,30 +106,13 @@ public interface ValueSupplier {
         }
     }
 
-    class ExternalValueProducer implements ValueProducer {
-
-        @Override
-        public boolean isProducesDifferentValueOverTime() {
-            return true;
-        }
-
-        @Override
-        public void visitProducerTasks(Action<? super Task> visitor) {
-        }
-    }
-
     class TaskProducer implements ValueProducer {
         private final Task task;
-        private boolean content;
+        private final boolean content;
 
         public TaskProducer(Task task, boolean content) {
             this.task = task;
             this.content = content;
-        }
-
-        @Override
-        public boolean isProducesDifferentValueOverTime() {
-            return false;
         }
 
         @Override
@@ -157,11 +143,6 @@ public interface ValueSupplier {
         }
 
         @Override
-        public boolean isProducesDifferentValueOverTime() {
-            return left.isProducesDifferentValueOverTime() || right.isProducesDifferentValueOverTime();
-        }
-
-        @Override
         public void visitProducerTasks(Action<? super Task> visitor) {
             left.visitProducerTasks(visitor);
             right.visitProducerTasks(visitor);
@@ -175,22 +156,11 @@ public interface ValueSupplier {
         }
 
         @Override
-        public boolean isProducesDifferentValueOverTime() {
-            return false;
-        }
-
-        @Override
         public void visitProducerTasks(Action<? super Task> visitor) {
         }
     }
 
     class NoProducer implements ValueProducer {
-
-        @Override
-        public boolean isProducesDifferentValueOverTime() {
-            return false;
-        }
-
         @Override
         public void visitProducerTasks(Action<? super Task> visitor) {
         }

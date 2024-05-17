@@ -109,6 +109,15 @@ public class Hashing {
     }
 
     /**
+     * Hash the given {@code hashable} instance with the default hash function.
+     */
+    public static HashCode hashHashable(Hashable hashable) {
+        Hasher hasher = newHasher();
+        hasher.put(hashable);
+        return hasher.hash();
+    }
+
+    /**
      * The default hashing function.
      */
     public static HashFunction defaultFunction() {
@@ -159,7 +168,7 @@ public class Hashing {
             }
             int hashBits = prototype.getDigestLength() * 8;
             try {
-                prototype.clone();
+                Object ignored = prototype.clone();
                 return new CloningMessageDigestHashFunction(prototype, hashBits);
             } catch (CloneNotSupportedException e) {
                 return new RegularMessageDigestHashFunction(algorithm, hashBits);

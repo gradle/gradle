@@ -16,7 +16,6 @@
 
 package org.gradle.caching.internal.controller
 
-import org.gradle.api.Action
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
@@ -36,7 +35,8 @@ import org.gradle.caching.internal.services.DefaultBuildCacheControllerFactory
 import org.gradle.caching.local.DirectoryBuildCache
 import org.gradle.caching.local.internal.LocalBuildCacheService
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.operations.TestBuildOperationExecutor
+import org.gradle.internal.operations.NoOpBuildOperationProgressEventEmitter
+import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -46,14 +46,13 @@ import java.util.function.Consumer
 class DefaultBuildCacheControllerFactoryTest extends Specification {
 
     def buildCacheEnabled = true
-    def buildOperationExecuter = new TestBuildOperationExecutor()
+    def buildOperationRunner = new TestBuildOperationRunner()
+    def buildOperationProgressEmitter = new NoOpBuildOperationProgressEventEmitter()
     def config = new DefaultBuildCacheConfiguration(TestUtil.instantiatorFactory().inject(), [
         new DefaultBuildCacheServiceRegistration(DirectoryBuildCache, TestDirectoryBuildCacheServiceFactory),
         new DefaultBuildCacheServiceRegistration(TestOtherRemoteBuildCache, TestOtherRemoteBuildCacheServiceFactory),
         new DefaultBuildCacheServiceRegistration(TestRemoteBuildCache, TestRemoteBuildCacheServiceFactory),
     ])
-
-    boolean emitDebugLogging
 
     private DefaultBuildCacheController createController() {
         createController(DefaultBuildCacheController)
@@ -63,9 +62,9 @@ class DefaultBuildCacheControllerFactoryTest extends Specification {
         def controller = new DefaultBuildCacheControllerFactory(
             Stub(StartParameterInternal) {
                 isBuildCacheEnabled() >> buildCacheEnabled
-                isBuildCacheDebugLogging() >> emitDebugLogging
             },
-            buildOperationExecuter,
+            buildOperationRunner,
+            buildOperationProgressEmitter,
             Stub(OriginMetadataFactory),
             Stub(StringInterner),
             Stub(TemporaryFileProvider),
@@ -76,7 +75,7 @@ class DefaultBuildCacheControllerFactoryTest extends Specification {
     }
 
     private FinalizeBuildCacheConfigurationBuildOperationType.Result buildOpResult() {
-        buildOperationExecuter.log.mostRecentResult(FinalizeBuildCacheConfigurationBuildOperationType)
+        buildOperationRunner.log.mostRecentResult(FinalizeBuildCacheConfigurationBuildOperationType)
     }
 
     def 'local cache service is created when remote is not configured'() {
@@ -141,19 +140,6 @@ class DefaultBuildCacheControllerFactoryTest extends Specification {
             local.type == "directory"
             remote.type == "remote"
         }
-    }
-
-    def "respects debug logging setting - #setting"() {
-        when:
-        emitDebugLogging = setting
-        config.remote(TestRemoteBuildCache)
-        def c = createController()
-
-        then:
-        c.emitDebugLogging == setting
-
-        where:
-        setting << [true, false]
     }
 
     def 'when caching is disabled no services are created'() {
@@ -234,8 +220,7 @@ class DefaultBuildCacheControllerFactoryTest extends Specification {
         }
 
         @Override
-        void loadLocally(BuildCacheKey key, Action<? super File> reader) {
-
+        void loadLocally(BuildCacheKey key, Consumer<? super File> reader) {
         }
 
         @Override
@@ -245,7 +230,6 @@ class DefaultBuildCacheControllerFactoryTest extends Specification {
 
         @Override
         void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
-
         }
 
         @Override
@@ -255,7 +239,6 @@ class DefaultBuildCacheControllerFactoryTest extends Specification {
 
         @Override
         void withTempFile(HashCode key, Consumer<? super File> action) {
-
         }
     }
 }

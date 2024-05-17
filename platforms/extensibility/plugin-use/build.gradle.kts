@@ -2,19 +2,31 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
-dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":logging"))
-    implementation(project(":messaging"))
-    implementation(project(":file-collections"))
-    implementation(project(":core-api"))
-    implementation(project(":core"))
-    implementation(project(":dependency-management"))
-    implementation(project(":build-option"))
-    implementation(project(":problems-api"))
+errorprone {
+    disabledChecks.addAll(
+        "UnusedMethod", // 7 occurrences
+    )
+}
 
-    implementation(libs.groovy)
-    implementation(libs.guava)
+dependencies {
+    api(projects.serviceProvider)
+    api(project(":base-services"))
+    api(project(":core-api"))
+    api(project(":core"))
+    api(project(":dependency-management"))
+    api(project(":file-collections"))
+    api(project(":java-language-extensions"))
+    api(project(":logging"))
+    api(project(":messaging"))
+    api(project(":model-core"))
+
+    api(libs.guava)
+    api(libs.jsr305)
+
+    implementation(project(":functional"))
+
+    implementation(project(":jvm-services"))
+    implementation(project(":problems-api"))
 
     testImplementation(testFixtures(project(":resources-http")))
 

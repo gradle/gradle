@@ -19,8 +19,23 @@ class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest(
                 ${SourceDistributionResolver::class.qualifiedName}(project).run {
                     sourceDirs()
                 }
+
             require(sourceDirs.isNotEmpty()) {
                 "Expected source directories but got none"
+            }
+
+            val subprojectSourcePath = "org/gradle/StartParameter.java"
+            val subprojectFound = sourceDirs.find { it.resolve(subprojectSourcePath).isFile }
+            require(subprojectFound != null) {
+                "Source directories do not contain subproject file '${'$'}subprojectSourcePath'. Searched in:\n  " +
+                    sourceDirs.joinToString("  \n")
+            }
+
+            val platformSourcePath = "org/gradle/api/Action.java"
+            val platformFound = sourceDirs.find { it.resolve(platformSourcePath).isFile }
+            require(platformFound != null) {
+                "Source directories do not contain platform file '${'$'}platformSourcePath'. Searched in:\n  " +
+                    sourceDirs.joinToString("\n  ")
             }
 
             """

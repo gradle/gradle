@@ -18,29 +18,45 @@ package org.gradle.plugin.devel.tasks.internal;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSerializer;
 import com.google.gson.TypeAdapter;
 import com.google.gson.TypeAdapterFactory;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
-import org.gradle.api.problems.DocLink;
-import org.gradle.api.problems.ReportableProblem;
-import org.gradle.api.problems.internal.DefaultReportableProblem;
-import org.gradle.api.problems.internal.InternalProblems;
-import org.gradle.api.problems.locations.FileLocation;
-import org.gradle.api.problems.locations.PluginIdLocation;
-import org.gradle.api.problems.locations.ProblemLocation;
-import org.gradle.api.problems.locations.TaskPathLocation;
+import org.gradle.api.problems.internal.DefaultProblemGroup;
+import org.gradle.api.problems.ProblemGroup;
+import org.gradle.api.problems.ProblemId;
+import org.gradle.api.problems.internal.DefaultFileLocation;
+import org.gradle.api.problems.internal.DefaultLineInFileLocation;
+import org.gradle.api.problems.internal.DefaultOffsetInFileLocation;
+import org.gradle.api.problems.internal.DefaultPluginIdLocation;
+import org.gradle.api.problems.internal.DefaultProblem;
+import org.gradle.api.problems.internal.DefaultProblemCategory;
+import org.gradle.api.problems.internal.DefaultProblemId;
+import org.gradle.api.problems.internal.DefaultTaskPathLocation;
+import org.gradle.api.problems.internal.DocLink;
+import org.gradle.api.problems.internal.FileLocation;
+import org.gradle.api.problems.internal.LineInFileLocation;
+import org.gradle.api.problems.internal.OffsetInFileLocation;
+import org.gradle.api.problems.internal.Problem;
+import org.gradle.api.problems.internal.ProblemCategory;
+import org.gradle.api.problems.internal.ProblemLocation;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
-import org.gradle.util.Path;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -49,27 +65,29 @@ import java.util.stream.Stream;
 public class ValidationProblemSerialization {
     private static final GsonBuilder GSON_BUILDER = createGsonBuilder();
 
-    public static List<? extends ReportableProblem> parseMessageList(String lines, InternalProblems problemService) {
+    public static List<? extends Problem> parseMessageList(String lines) {
         Gson gson = GSON_BUILDER.create();
-        Type type = new TypeToken<List<DefaultReportableProblem>>() {}.getType();
-        List<DefaultReportableProblem> reportableProblems = gson.fromJson(lines, type);
-        reportableProblems.forEach(problem -> problem.setProblemService(problemService));
-        return reportableProblems;
+        Type type = new TypeToken<List<DefaultProblem>>() {}.getType();
+        return gson.<List<DefaultProblem>>fromJson(lines, type);
     }
 
     public static GsonBuilder createGsonBuilder() {
         GsonBuilder gsonBuilder = new GsonBuilder();
-
+        gsonBuilder.registerTypeAdapterFactory(new ProblemReportAdapterFactory());
+        gsonBuilder.registerTypeAdapter(ProblemId.class, new ProblemIdInstanceCreator());
         gsonBuilder.registerTypeHierarchyAdapter(DocLink.class, new DocLinkAdapter());
         gsonBuilder.registerTypeHierarchyAdapter(ProblemLocation.class, new LocationAdapter());
+        gsonBuilder.registerTypeHierarchyAdapter(ProblemCategory.class, new ProblemCategoryAdapter());
         gsonBuilder.registerTypeAdapterFactory(new ThrowableAdapterFactory());
 
         return gsonBuilder;
     }
 
-    public static Stream<String> toPlainMessage(List<? extends ReportableProblem> problems) {
+
+
+    public static Stream<String> toPlainMessage(List<? extends Problem> problems) {
         return problems.stream()
-            .map(problem -> problem.getSeverity() + ": " + TypeValidationProblemRenderer.renderMinimalInformationAbout(problem));
+            .map(problem -> problem.getDefinition().getSeverity() + ": " + TypeValidationProblemRenderer.renderMinimalInformationAbout(problem));
     }
 
     /**
@@ -205,11 +223,22 @@ public class ValidationProblemSerialization {
             }
 
             out.beginObject();
-            out.name("type").value(value.getType());
+            out.name("type").value("file");
             out.name("path").value(value.getPath());
-            out.name("line").value(value.getLine());
-            out.name("column").value(value.getColumn());
-            out.name("length").value(value.getLength());
+            if (value instanceof LineInFileLocation) {
+                out.name("subtype").value("lineInFile");
+                LineInFileLocation l = (LineInFileLocation) value;
+                out.name("line").value(l.getLine());
+                out.name("column").value(l.getColumn());
+                out.name("length").value(l.getLength());
+            } else if (value instanceof OffsetInFileLocation) {
+                out.name("subtype").value("offsetInFile");
+                OffsetInFileLocation l = (OffsetInFileLocation) value;
+                out.name("offset").value(l.getOffset());
+                out.name("length").value(l.getLength());
+            } else {
+                out.name("subtype").value("file");
+            }
             out.endObject();
         }
 
@@ -225,15 +254,25 @@ public class ValidationProblemSerialization {
 
         @Nonnull
         private static FileLocation readObject(JsonReader in) throws IOException {
+            String subtype = null;
             String path = null;
+            Integer offset = null;
             Integer line = null;
             Integer column = null;
             Integer length = null;
             while (in.hasNext()) {
                 String name = in.nextName();
                 switch (name) {
+                    case "subtype": {
+                        subtype = in.nextString();
+                        break;
+                    }
                     case "path": {
                         path = in.nextString();
+                        break;
+                    }
+                    case "offset": {
+                        offset = in.nextInt();
                         break;
                     }
                     case "line": {
@@ -252,36 +291,43 @@ public class ValidationProblemSerialization {
                         in.skipValue();
                 }
             }
-            return new FileLocation(path, line, column, length);
+
+            if (subtype.equals("lineInFile")) {
+                return DefaultLineInFileLocation.from(path, line, column, length);
+            } else if (subtype.equals("offsetInFile")) {
+                return DefaultOffsetInFileLocation.from(path, offset, length);
+            } else {
+                return DefaultFileLocation.from(path);
+            }
         }
     }
 
-    public static class PluginIdLocationAdapter extends TypeAdapter<PluginIdLocation> {
+    public static class PluginIdLocationAdapter extends TypeAdapter<DefaultPluginIdLocation> {
 
         @Override
-        public void write(JsonWriter out, @Nullable PluginIdLocation value) throws IOException {
+        public void write(JsonWriter out, @Nullable DefaultPluginIdLocation value) throws IOException {
             if (value == null) {
                 out.nullValue();
                 return;
             }
 
             out.beginArray();
-            out.name("type").value(value.getType());
+            out.name("type").value("pluginId");
             out.name("pluginId").value(value.getPluginId());
             out.endObject();
         }
 
         @Override
-        public PluginIdLocation read(JsonReader in) throws IOException {
+        public DefaultPluginIdLocation read(JsonReader in) throws IOException {
             in.beginObject();
-            PluginIdLocation problemLocation = readObject(in);
+            DefaultPluginIdLocation problemLocation = readObject(in);
             in.endObject();
 
             Objects.requireNonNull(problemLocation, "pluginId must not be null");
             return problemLocation;
         }
 
-        private static PluginIdLocation readObject(JsonReader in) throws IOException {
+        private static DefaultPluginIdLocation readObject(JsonReader in) throws IOException {
             String pluginId = null;
             while (in.hasNext()) {
                 String name = in.nextName();
@@ -291,47 +337,47 @@ public class ValidationProblemSerialization {
                     in.skipValue();
                 }
             }
-            return new PluginIdLocation(pluginId);
+            return new DefaultPluginIdLocation(pluginId);
         }
     }
 
-    public static class TaskLocationAdapter extends TypeAdapter<TaskPathLocation> {
+    public static class TaskLocationAdapter extends TypeAdapter<DefaultTaskPathLocation> {
 
         @Override
-        public void write(JsonWriter out, @Nullable TaskPathLocation value) throws IOException {
+        public void write(JsonWriter out, @Nullable DefaultTaskPathLocation value) throws IOException {
             if (value == null) {
                 out.nullValue();
                 return;
             }
 
             out.beginArray();
-            out.name("type").value(value.getType());
-            out.name("identityPath").value(value.getIdentityPath().getPath());
+            out.name("type").value("task");
+            out.name("buildTreePath").value(value.getBuildTreePath());
             out.endObject();
         }
 
         @Override
-        public TaskPathLocation read(JsonReader in) throws IOException {
+        public DefaultTaskPathLocation read(JsonReader in) throws IOException {
             in.beginObject();
-            TaskPathLocation identityPath = readObject(in);
+            DefaultTaskPathLocation buildTreePath = readObject(in);
             in.endObject();
 
-            Objects.requireNonNull(identityPath, "identityPath must not be null");
-            return identityPath;
+            Objects.requireNonNull(buildTreePath, "buildTreePath must not be null");
+            return buildTreePath;
         }
 
         @Nonnull
-        private static TaskPathLocation readObject(JsonReader in) throws IOException {
-            String identityPath = null;
+        private static DefaultTaskPathLocation readObject(JsonReader in) throws IOException {
+            String buildTreePath = null;
             while (in.hasNext()) {
                 String name = in.nextName();
-                if (name.equals("identityPath")) {
-                    identityPath = in.nextString();
+                if (name.equals("buildTreePath")) {
+                    buildTreePath = in.nextString();
                 } else {
                     in.skipValue();
                 }
             }
-            return new TaskPathLocation(Path.path(identityPath));
+            return new DefaultTaskPathLocation(buildTreePath);
         }
     }
 
@@ -388,6 +434,61 @@ public class ValidationProblemSerialization {
         }
     }
 
+    public static class ProblemCategoryAdapter extends TypeAdapter<ProblemCategory> {
+
+        @Override
+        public void write(JsonWriter out, @Nullable ProblemCategory value) throws IOException {
+            if (value == null) {
+                out.nullValue();
+                return;
+            }
+
+            out.beginObject();
+            out.name("namespace").value(value.getNamespace());
+            out.name("category").value(value.getCategory());
+            out.name("subcategories").beginArray();
+            for (String sc : value.getSubcategories()) {
+                out.value(sc);
+            }
+            out.endArray();
+            out.endObject();
+        }
+
+        @Override
+        public ProblemCategory read(JsonReader in) throws IOException {
+            in.beginObject();
+            String namespace = null;
+            String category = null;
+            List<String> subcategories = new ArrayList<>();
+            String name;
+            while (in.hasNext()) {
+                name = in.nextName();
+                switch (name) {
+                    case "namespace": {
+                        namespace = in.nextString();
+                        break;
+                    }
+                    case "category": {
+                        category = in.nextString();
+                        break;
+                    }
+                    case "subcategories": {
+                        in.beginArray();
+                        while (in.hasNext()) {
+                            subcategories.add(in.nextString());
+                        }
+                        in.endArray();
+                        break;
+                    }
+                    default:
+                        in.skipValue();
+                }
+            }
+            in.endObject();
+            return DefaultProblemCategory.create(namespace, category, subcategories.toArray(new String[0]));
+        }
+    }
+
     private static class LocationAdapter extends TypeAdapter<ProblemLocation> {
         @Override
         public void write(JsonWriter out, ProblemLocation value) throws IOException {
@@ -396,16 +497,16 @@ public class ValidationProblemSerialization {
                 return;
             }
 
-            if (value instanceof FileLocation) {
-                new FileLocationAdapter().write(out, (FileLocation) value);
+            if (value instanceof DefaultFileLocation) {
+                new FileLocationAdapter().write(out, (DefaultFileLocation) value);
                 return;
             }
-            if (value instanceof PluginIdLocation) {
-                new PluginIdLocationAdapter().write(out, (PluginIdLocation) value);
+            if (value instanceof DefaultPluginIdLocation) {
+                new PluginIdLocationAdapter().write(out, (DefaultPluginIdLocation) value);
                 return;
             }
-            if (value instanceof TaskPathLocation) {
-                new TaskLocationAdapter().write(out, (TaskPathLocation) value);
+            if (value instanceof DefaultTaskPathLocation) {
+                new TaskLocationAdapter().write(out, (DefaultTaskPathLocation) value);
             }
         }
 
@@ -433,12 +534,55 @@ public class ValidationProblemSerialization {
                         default:
                             throw new JsonParseException("Unknown type: " + type);
                     }
-
                 } finally {
                     in.endObject();
                 }
             }
             return null;
+        }
+    }
+
+    private static class ProblemIdInstanceCreator implements JsonDeserializer<ProblemId>, JsonSerializer<ProblemId> {
+
+        @Override
+        public ProblemId deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
+            JsonObject problemObject = jsonElement.getAsJsonObject();
+            String name = problemObject.get("name").getAsString();
+            String displayName = problemObject.get("displayName").getAsString();
+            ProblemGroup group = deserializeGroup(problemObject.get("group"));
+            return new DefaultProblemId(name, displayName, group);
+        }
+
+        private static ProblemGroup deserializeGroup(JsonElement groupObject) {
+            JsonObject group = groupObject.getAsJsonObject();
+            String name = group.get("name").getAsString();
+            String displayName = group.get("displayName").getAsString();
+            JsonElement parent = group.get("parent");
+            if (parent == null) {
+                return new DefaultProblemGroup(name, displayName);
+            }
+            return new DefaultProblemGroup(name, displayName, deserializeGroup(parent));
+        }
+
+        @Override
+        public JsonElement serialize(ProblemId problemId, Type type, JsonSerializationContext jsonSerializationContext) {
+            JsonObject result = new JsonObject();
+            result.addProperty("name", problemId.getName());
+            result.addProperty("displayName", problemId.getDisplayName());
+            result.add("group", serializeGroup(problemId.getGroup()));
+            return result;
+        }
+
+
+        private static JsonObject serializeGroup(ProblemGroup group) {
+            JsonObject groupObject = new JsonObject();
+            groupObject.addProperty("name", group.getName());
+            groupObject.addProperty("displayName", group.getDisplayName());
+            ProblemGroup parent = group.getParent();
+            if (parent != null) {
+                groupObject.add("parent", serializeGroup(parent));
+            }
+            return groupObject;
         }
     }
 }

@@ -32,7 +32,7 @@ public interface AsyncWorkTracker {
      *
      * @param operation - The build operation to associate the asynchronous work with
      * @param completion - The completion of the asynchronous work
-     * @throws IllegalStateException when new work is submitted for an operation while another thread is waiting in {@link #waitForCompletion(BuildOperationRef, boolean)} for the same operation.
+     * @throws IllegalStateException when new work is submitted for an operation while another thread is waiting in {@link #waitForCompletion(BuildOperationRef, ProjectLockRetention)} for the same operation.
      */
     void registerWork(BuildOperationRef operation, AsyncWorkCompletion completion);
 

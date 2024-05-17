@@ -20,11 +20,13 @@ import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
+import org.gradle.api.artifacts.dsl.DependencyCollector;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.HasInternalProtocol;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -102,12 +104,25 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
     State getState();
 
     /**
-     * A {@link org.gradle.api.Namer} namer for configurations that returns {@link #getName()}.
+     * An implementation of the namer interface for configurations that returns {@link #getName()}.
+     *
+     * @deprecated Use {@link Named.Namer#INSTANCE} instead (since {@link Configuration} now extends {@link Named}).
      */
+    @Deprecated
     class Namer implements org.gradle.api.Namer<Configuration> {
+
+        public Namer() {
+            DeprecationLogger.deprecateType(Namer.class)
+                .replaceWith("Named.Namer.INSTANCE")
+                .withContext("Configuration implements Named, so you can use Named.Namer.INSTANCE instead of Configuration.Namer")
+                .willBeRemovedInGradle9()
+                .withUpgradeGuideSection(8, "deprecated_namers")
+                .nagUser();
+        }
+
         @Override
-        public String determineName(Configuration c) {
-            return c.getName();
+        public String determineName(Configuration configuration) {
+            return Named.Namer.INSTANCE.determineName(configuration);
         }
     }
 
@@ -216,7 +231,10 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      *
      * @param dependencySpecClosure The closure describing a filter applied to the all the dependencies of this configuration (including dependencies from extended configurations).
      * @return The files of a subset of dependencies of this configuration.
+     *
+     * @deprecated Use {@code getIncoming().artifactView(Action)} with a {@code componentFilter} instead.
      */
+    @Deprecated
     Set<File> files(Closure dependencySpecClosure);
 
     /**
@@ -230,7 +248,10 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      *
      * @param dependencySpec The spec describing a filter applied to the all the dependencies of this configuration (including dependencies from extended configurations).
      * @return The files of a subset of dependencies of this configuration.
+     *
+     * @deprecated Use {@code getIncoming().artifactView(Action)} with a {@code componentFilter} instead.
      */
+    @Deprecated
     Set<File> files(Spec<? super Dependency> dependencySpec);
 
     /**
@@ -244,7 +265,10 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      *
      * @param dependencies The dependencies to be resolved
      * @return The files of a subset of dependencies of this configuration.
+     *
+     * @deprecated Use {@code getIncoming().artifactView(Action)} with a {@code componentFilter} instead.
      */
+    @Deprecated
     Set<File> files(Dependency... dependencies);
 
     /**
@@ -258,7 +282,10 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      *
      * @param dependencySpec The spec describing a filter applied to the all the dependencies of this configuration (including dependencies from extended configurations).
      * @return The FileCollection with a subset of dependencies of this configuration.
+     *
+     * @deprecated Use {@code getIncoming().artifactView(Action)} with a {@code componentFilter} instead.
      */
+    @Deprecated
     FileCollection fileCollection(Spec<? super Dependency> dependencySpec);
 
     /**
@@ -271,7 +298,10 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      *
      * @param dependencySpecClosure The closure describing a filter applied to the all the dependencies of this configuration (including dependencies from extended configurations).
      * @return The FileCollection with a subset of dependencies of this configuration.
+     *
+     * @deprecated Use {@code getIncoming().artifactView(Action)} with a {@code componentFilter} instead.
      */
+    @Deprecated
     FileCollection fileCollection(Closure dependencySpecClosure);
 
     /**
@@ -285,7 +315,10 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      *
      * @param dependencies The dependencies for which the FileCollection should contain the files.
      * @return The FileCollection with a subset of dependencies of this configuration.
+     *
+     * @deprecated Use {@code getIncoming().artifactView(Action)} with a {@code componentFilter} instead.
      */
+    @Deprecated
     FileCollection fileCollection(Dependency... dependencies);
 
     /**
@@ -381,6 +414,18 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * @since 4.6
      */
     DependencyConstraintSet getAllDependencyConstraints();
+
+    /**
+     * Use the given collector as a source for dependencies and dependency constraints.
+     *
+     * @param collector the collector to use
+     * @since 8.7
+     */
+    @Incubating
+    default void fromDependencyCollector(DependencyCollector collector) {
+        getDependencies().addAllLater(collector.getDependencies());
+        getDependencyConstraints().addAllLater(collector.getDependencyConstraints());
+    }
 
     /**
      * Returns the artifacts of this configuration excluding the artifacts of extended configurations.

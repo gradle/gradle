@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[publishing_ivy]]
-= Ivy Publish Plugin
+= The Ivy Publish Plugin
 
 The Ivy Publish Plugin provides the ability to publish build artifacts in the http://ant.apache.org/ivy/[Apache Ivy] format, usually to a repository for consumption by other builds or projects. What is published is one or more artifacts created by the build, and an Ivy _module descriptor_ (normally `ivy.xml`) that describes the artifacts and the dependencies of the artifacts, if any.
 
@@ -82,10 +82,7 @@ include::sample[dir="snippets/ivy-publish/customize-identity/kotlin",files="buil
 include::sample[dir="snippets/ivy-publish/customize-identity/groovy",files="build.gradle[tags=customize-identity]"]
 ====
 
-[TIP]
-====
-Certain repositories are not able to handle all supported characters. For example, the `:` character cannot be used as an identifier when publishing to a filesystem-backed repository on Windows.
-====
+TIP: Certain repositories are not able to handle all supported characters. For example, the `:` character cannot be used as an identifier when publishing to a filesystem-backed repository on Windows.
 
 Gradle will handle any valid Unicode character for `organisation`, `module` and `revision` (as well as the artifact's `name`, `extension` and `classifier`). The only values that are explicitly prohibited are `\`, `/` and any ISO control character. The supplied values are validated early during publication.
 

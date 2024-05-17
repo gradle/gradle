@@ -17,97 +17,136 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.api.problems.DocLink;
-import org.gradle.api.problems.Problem;
-import org.gradle.api.problems.ProblemCategory;
+import org.gradle.api.problems.ProblemGroup;
+import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.DefaultProblemProgressDetails;
-import org.gradle.api.problems.locations.FileLocation;
-import org.gradle.api.problems.locations.PluginIdLocation;
-import org.gradle.api.problems.locations.ProblemLocation;
-import org.gradle.api.problems.locations.TaskPathLocation;
+import org.gradle.api.problems.internal.DocLink;
+import org.gradle.api.problems.internal.FileLocation;
+import org.gradle.api.problems.internal.LineInFileLocation;
+import org.gradle.api.problems.internal.OffsetInFileLocation;
+import org.gradle.api.problems.internal.PluginIdLocation;
+import org.gradle.api.problems.internal.Problem;
+import org.gradle.api.problems.internal.ProblemDefinition;
+import org.gradle.api.problems.internal.ProblemLocation;
+import org.gradle.api.problems.internal.TaskPathLocation;
 import org.gradle.internal.build.event.types.DefaultAdditionalData;
+import org.gradle.internal.build.event.types.DefaultContextualLabel;
 import org.gradle.internal.build.event.types.DefaultDetails;
 import org.gradle.internal.build.event.types.DefaultDocumentationLink;
-import org.gradle.internal.build.event.types.DefaultFileLocation;
-import org.gradle.internal.build.event.types.DefaultLabel;
-import org.gradle.internal.build.event.types.DefaultPluginIdLocation;
-import org.gradle.internal.build.event.types.DefaultProblemCategory;
+import org.gradle.internal.build.event.types.DefaultFailure;
+import org.gradle.internal.build.event.types.DefaultProblemDefinition;
 import org.gradle.internal.build.event.types.DefaultProblemDescriptor;
 import org.gradle.internal.build.event.types.DefaultProblemDetails;
 import org.gradle.internal.build.event.types.DefaultProblemEvent;
+import org.gradle.internal.build.event.types.DefaultProblemGroup;
+import org.gradle.internal.build.event.types.DefaultProblemId;
 import org.gradle.internal.build.event.types.DefaultSeverity;
 import org.gradle.internal.build.event.types.DefaultSolution;
-import org.gradle.internal.build.event.types.DefaultTaskPathLocation;
-import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationIdFactory;
-import org.gradle.internal.operations.BuildOperationListener;
-import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
+import org.gradle.tooling.internal.protocol.InternalFailure;
+import org.gradle.tooling.internal.protocol.InternalProblemDefinition;
+import org.gradle.tooling.internal.protocol.InternalProblemEventVersion2;
+import org.gradle.tooling.internal.protocol.InternalProblemGroup;
+import org.gradle.tooling.internal.protocol.InternalProblemId;
+import org.gradle.tooling.internal.protocol.events.InternalProblemDescriptor;
 import org.gradle.tooling.internal.protocol.problem.InternalAdditionalData;
+import org.gradle.tooling.internal.protocol.problem.InternalContextualLabel;
 import org.gradle.tooling.internal.protocol.problem.InternalDetails;
 import org.gradle.tooling.internal.protocol.problem.InternalDocumentationLink;
-import org.gradle.tooling.internal.protocol.problem.InternalLabel;
 import org.gradle.tooling.internal.protocol.problem.InternalLocation;
-import org.gradle.tooling.internal.protocol.problem.InternalProblemCategory;
 import org.gradle.tooling.internal.protocol.problem.InternalSeverity;
 import org.gradle.tooling.internal.protocol.problem.InternalSolution;
 
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.Optional;
+import java.util.function.Supplier;
+
+import static com.google.common.collect.ImmutableList.toImmutableList;
+import static java.util.Optional.empty;
+import static java.util.stream.Collectors.toMap;
 
 @NonNullApi
-public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperationListener implements BuildOperationListener {
+public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperationListener {
 
     private static final InternalSeverity ADVICE = new DefaultSeverity(0);
     private static final InternalSeverity WARNING = new DefaultSeverity(1);
     private static final InternalSeverity ERROR = new DefaultSeverity(2);
 
-    private final BuildOperationIdFactory idFactory;
+    private final Supplier<OperationIdentifier> operationIdentifierSupplier;
+    private final AggregatingProblemConsumer aggregator;
 
-    public ProblemsProgressEventConsumer(ProgressEventConsumer progressEventConsumer, BuildOperationIdFactory idFactory) {
+    ProblemsProgressEventConsumer(ProgressEventConsumer progressEventConsumer, Supplier<OperationIdentifier> operationIdentifierSupplier, AggregatingProblemConsumer aggregator) {
         super(progressEventConsumer);
-        this.idFactory = idFactory;
+        this.operationIdentifierSupplier = operationIdentifierSupplier;
+        this.aggregator = aggregator;
     }
 
     @Override
     public void progress(OperationIdentifier buildOperationId, OperationProgressEvent progressEvent) {
         Object details = progressEvent.getDetails();
+        createProblemEvent(buildOperationId, details)
+            .ifPresent(aggregator::emit);
+    }
+
+    private Optional<InternalProblemEventVersion2> createProblemEvent(OperationIdentifier buildOperationId, @Nullable Object details) {
         if (details instanceof DefaultProblemProgressDetails) {
             Problem problem = ((DefaultProblemProgressDetails) details).getProblem();
-            eventConsumer.progress(
-                new DefaultProblemEvent(
-                    new DefaultProblemDescriptor(
-                        new OperationIdentifier(
-                            idFactory.nextId()
-                        ),
-                        buildOperationId),
-                    new DefaultProblemDetails(
-                        toInternalCategory(problem.getProblemCategory()),
-                        toInternalLabel(problem.getLabel()),
-                        toInternalDetails(problem.getDetails()),
-                        toInternalSeverity(problem.getSeverity()),
-                        toInternalLocations(problem.getLocations()),
-                        toInternalDocumentationLink(problem.getDocumentationLink()),
-                        toInternalSolutions(problem.getSolutions()),
-                        toInternalAdditionalData(problem.getAdditionalData()),
-                        problem.getException()
-                    )
-                )
-            );
+            return Optional.of(createProblemEvent(buildOperationId, problem));
         }
+        return empty();
     }
 
-    private static InternalProblemCategory toInternalCategory(ProblemCategory category) {
-        return new DefaultProblemCategory(category.getNamespace(), category.getCategory(), category.getSubCategories());
+    private InternalProblemEventVersion2 createProblemEvent(OperationIdentifier buildOperationId, Problem problem) {
+        return new DefaultProblemEvent(
+            createDefaultProblemDescriptor(buildOperationId),
+            new DefaultProblemDetails(
+                toInternalDefinition(problem.getDefinition()),
+                toInternalDetails(problem.getDetails()),
+                toInternalContextualLabel(problem.getContextualLabel()),
+                toInternalLocations(problem.getLocations()),
+                toInternalSolutions(problem.getSolutions()),
+                toInternalAdditionalData(problem.getAdditionalData()),
+                toInternalFailure(problem.getException())
+            )
+        );
     }
 
-    private static InternalLabel toInternalLabel(String label) {
-        return new DefaultLabel(label);
+    @Nullable
+    private static InternalFailure toInternalFailure(@Nullable RuntimeException ex) {
+        if (ex == null) {
+            return null;
+        }
+        return DefaultFailure.fromThrowable(ex);
+    }
+
+    private InternalProblemDescriptor createDefaultProblemDescriptor(OperationIdentifier parentBuildOperationId) {
+        return new DefaultProblemDescriptor(
+            operationIdentifierSupplier.get(),
+            parentBuildOperationId);
+    }
+
+    private static InternalProblemDefinition toInternalDefinition(ProblemDefinition definition) {
+        return new DefaultProblemDefinition(
+            toInternalId(definition.getId()),
+            toInternalSeverity(definition.getSeverity()),
+            toInternalDocumentationLink(definition.getDocumentationLink())
+        );
+    }
+
+    private static InternalProblemId toInternalId(ProblemId problemId) {
+        return new DefaultProblemId(problemId.getName(), problemId.getDisplayName(), toInternalGroup(problemId.getGroup()));
+    }
+
+    private static InternalProblemGroup toInternalGroup(ProblemGroup group) {
+        return new DefaultProblemGroup(group.getName(), group.getDisplayName(), group.getParent() == null ? null : toInternalGroup(group.getParent()));
+    }
+
+    private static @Nullable InternalContextualLabel toInternalContextualLabel(@Nullable String contextualLabel) {
+        return contextualLabel == null ? null : new DefaultContextualLabel(contextualLabel);
     }
 
     private static @Nullable InternalDetails toInternalDetails(@Nullable String details) {
@@ -116,51 +155,60 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
 
     private static InternalSeverity toInternalSeverity(Severity severity) {
         switch (severity) {
-            case ADVICE: return ADVICE;
-            case WARNING: return WARNING;
-            case ERROR: return ERROR;
-            default: throw new RuntimeException("No mapping defined for severity level " + severity);
+            case ADVICE:
+                return ADVICE;
+            case WARNING:
+                return WARNING;
+            case ERROR:
+                return ERROR;
+            default:
+                throw new RuntimeException("No mapping defined for severity level " + severity);
         }
     }
 
     private static List<InternalLocation> toInternalLocations(List<ProblemLocation> locations) {
-        return locations.stream().map((Function<ProblemLocation, InternalLocation>) location -> {
-            if (location instanceof FileLocation) {
+        return locations.stream().map(location -> {
+            if (location instanceof LineInFileLocation) {
+                LineInFileLocation fileLocation = (LineInFileLocation) location;
+                return new org.gradle.internal.build.event.types.DefaultLineInFileLocation(fileLocation.getPath(), fileLocation.getLine(), fileLocation.getColumn(), fileLocation.getLength());
+            } else if (location instanceof OffsetInFileLocation) {
+                OffsetInFileLocation fileLocation = (OffsetInFileLocation) location;
+                return new org.gradle.internal.build.event.types.DefaultOffsetInFileLocation(fileLocation.getPath(), fileLocation.getOffset(), fileLocation.getLength());
+            } else if (location instanceof FileLocation) { // generic class must be after the subclasses in the if-elseif chain.
                 FileLocation fileLocation = (FileLocation) location;
-                return new DefaultFileLocation(fileLocation.getPath(), fileLocation.getLine(), fileLocation.getColumn(), fileLocation.getLength());
+                return new org.gradle.internal.build.event.types.DefaultFileLocation(fileLocation.getPath());
             } else if (location instanceof PluginIdLocation) {
                 PluginIdLocation pluginLocation = (PluginIdLocation) location;
-                return new DefaultPluginIdLocation(pluginLocation.getPluginId());
+                return new org.gradle.internal.build.event.types.DefaultPluginIdLocation(pluginLocation.getPluginId());
             } else if (location instanceof TaskPathLocation) {
                 TaskPathLocation taskLocation = (TaskPathLocation) location;
-                return new DefaultTaskPathLocation(taskLocation.getIdentityPath().toString());
+                return new org.gradle.internal.build.event.types.DefaultTaskPathLocation(taskLocation.getBuildTreePath());
             } else {
                 throw new RuntimeException("No mapping defined for " + location.getClass().getName());
             }
-        }).collect(Collectors.toList());
+        }).collect(toImmutableList());
     }
 
-    private static @Nullable InternalDocumentationLink toInternalDocumentationLink(@Nullable DocLink link) {
+    @Nullable
+    private static InternalDocumentationLink toInternalDocumentationLink(@Nullable DocLink link) {
         return (link == null || link.getUrl() == null) ? null : new DefaultDocumentationLink(link.getUrl());
     }
 
     private static List<InternalSolution> toInternalSolutions(List<String> solutions) {
-        return solutions.stream().map(DefaultSolution::new).collect(Collectors.toList());
+        return solutions.stream()
+            .map(DefaultSolution::new)
+            .collect(toImmutableList());
     }
 
     private static InternalAdditionalData toInternalAdditionalData(Map<String, Object> additionalData) {
         return new DefaultAdditionalData(
-            additionalData.entrySet().stream().filter(entry -> isSupportedType(entry.getValue())).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
+            additionalData.entrySet().stream()
+                .filter(entry -> isSupportedType(entry.getValue()))
+                .collect(toMap(Map.Entry::getKey, Map.Entry::getValue))
         );
     }
 
     private static boolean isSupportedType(Object type) {
         return type instanceof String;
     }
-
-    @Override
-    public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent result) {
-        super.finished(buildOperation, result);
-    }
-
 }

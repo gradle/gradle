@@ -58,7 +58,7 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.jvm.toolchain.JavaCompiler;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 import org.gradle.jvm.toolchain.JavaToolchainService;
@@ -217,7 +217,7 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
     }
 
     private void performCompilation(JavaCompileSpec spec, Compiler<JavaCompileSpec> compiler) {
-        WorkResult result = new CompileJavaBuildOperationReportingCompiler(this, compiler, getServices().get(BuildOperationExecutor.class)).execute(spec);
+        WorkResult result = new CompileJavaBuildOperationReportingCompiler(this, compiler, getServices().get(BuildOperationRunner.class)).execute(spec);
         setDidWork(result.getDidWork());
     }
 
@@ -236,6 +236,7 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
         spec.setTempDir(getTemporaryDir());
         spec.setCompileClasspath(ImmutableList.copyOf(javaModuleDetector.inferClasspath(isModule, getClasspath())));
         spec.setModulePath(ImmutableList.copyOf(javaModuleDetector.inferModulePath(isModule, getClasspath())));
+
         if (isModule && !isSourcepathUserDefined) {
             compileOptions.setSourcepath(getProjectLayout().files(sourcesRoots));
         }
@@ -334,6 +335,7 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
      * @return The compilation options.
      */
     @Nested
+    @Override
     public CompileOptions getOptions() {
         return compileOptions;
     }

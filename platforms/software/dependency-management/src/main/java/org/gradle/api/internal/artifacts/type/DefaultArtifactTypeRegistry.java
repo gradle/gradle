@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.type;
 import com.google.common.io.Files;
 import org.gradle.api.artifacts.type.ArtifactTypeContainer;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.artifacts.TransformRegistration;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
@@ -40,6 +41,7 @@ public class DefaultArtifactTypeRegistry implements ArtifactTypeRegistry {
     private final ImmutableAttributesFactory attributesFactory;
     private final CollectionCallbackActionDecorator callbackActionDecorator;
     private final VariantTransformRegistry transformRegistry;
+    private final AttributeContainerInternal defaultArtifactAttributes;
     private ArtifactTypeContainer artifactTypeDefinitions;
 
     public DefaultArtifactTypeRegistry(Instantiator instantiator, ImmutableAttributesFactory attributesFactory, CollectionCallbackActionDecorator callbackActionDecorator, VariantTransformRegistry transformRegistry) {
@@ -47,18 +49,24 @@ public class DefaultArtifactTypeRegistry implements ArtifactTypeRegistry {
         this.attributesFactory = attributesFactory;
         this.callbackActionDecorator = callbackActionDecorator;
         this.transformRegistry = transformRegistry;
+        this.defaultArtifactAttributes = attributesFactory.mutable();
     }
 
     @Override
     public void visitArtifactTypes(Consumer<? super ImmutableAttributes> action) {
-        Set<String> seen = new HashSet<>();
+        // Apply default attributes before visiting
+        Consumer<? super ImmutableAttributes> visitor = attributes -> {
+            ImmutableAttributes attributesPlusDefaults = attributesFactory.concat(defaultArtifactAttributes.asImmutable(), attributes);
+            action.accept(attributesPlusDefaults);
+        };
 
+        Set<String> seen = new HashSet<>();
         if (artifactTypeDefinitions != null) {
             for (ArtifactTypeDefinition artifactTypeDefinition : artifactTypeDefinitions) {
                 if (seen.add(artifactTypeDefinition.getName())) {
                     ImmutableAttributes attributes = ((AttributeContainerInternal) artifactTypeDefinition.getAttributes()).asImmutable();
                     attributes = attributesFactory.concat(attributesFactory.of(ARTIFACT_TYPE_ATTRIBUTE, artifactTypeDefinition.getName()), attributes);
-                    action.accept(attributes);
+                    visitor.accept(attributes);
                 }
             }
         }
@@ -69,14 +77,19 @@ public class DefaultArtifactTypeRegistry implements ArtifactTypeRegistry {
             if (format != null && seen.add(format)) {
                 // Some artifact type that has not already been visited
                 ImmutableAttributes attributes = attributesFactory.of(ARTIFACT_TYPE_ATTRIBUTE, format);
-                action.accept(attributes);
+                visitor.accept(attributes);
             }
         }
 
         if (seen.add(ArtifactTypeDefinition.DIRECTORY_TYPE)) {
             ImmutableAttributes directory = attributesFactory.of(ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.DIRECTORY_TYPE);
-            action.accept(directory);
+            visitor.accept(directory);
         }
+    }
+
+    @Override
+    public AttributeContainer getDefaultArtifactAttributes() {
+        return defaultArtifactAttributes;
     }
 
     @Override
@@ -89,6 +102,11 @@ public class DefaultArtifactTypeRegistry implements ArtifactTypeRegistry {
 
     @Override
     public ImmutableAttributes mapAttributesFor(File file) {
+        ImmutableAttributes withoutDefaultAttributes = mapWithoutDefaultAttributesFor(file);
+        return attributesFactory.concat(defaultArtifactAttributes.asImmutable(), withoutDefaultAttributes);
+    }
+
+    private ImmutableAttributes mapWithoutDefaultAttributesFor(File file) {
         if (file.isDirectory()) {
             return attributesFactory.of(ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.DIRECTORY_TYPE);
         } else {
@@ -103,6 +121,11 @@ public class DefaultArtifactTypeRegistry implements ArtifactTypeRegistry {
 
     @Override
     public ImmutableAttributes mapAttributesFor(ImmutableAttributes attributes, Iterable<? extends ComponentArtifactMetadata> artifacts) {
+        ImmutableAttributes withoutDefaultAttributes = mapWithoutDefaultAttributesFor(attributes, artifacts);
+        return attributesFactory.concat(defaultArtifactAttributes.asImmutable(), withoutDefaultAttributes);
+    }
+
+    private ImmutableAttributes mapWithoutDefaultAttributesFor(ImmutableAttributes attributes, Iterable<? extends ComponentArtifactMetadata> artifacts) {
         // Add attributes to be applied given the extension
         if (artifactTypeDefinitions != null) {
             String extension = null;

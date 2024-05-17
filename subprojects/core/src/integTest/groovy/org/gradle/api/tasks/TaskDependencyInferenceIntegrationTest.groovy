@@ -929,7 +929,6 @@ The following types/formats are supported:
         file("out.txt").text == "22"
     }
 
-    @ToBeFixedForConfigurationCache(because = "queries mapped value of task output before it has completed")
     def "ad hoc input property with value of mapped task output implies dependency on the task"() {
         taskTypeWithOutputFileProperty()
         buildFile << """

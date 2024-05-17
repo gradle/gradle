@@ -18,15 +18,15 @@ package promotion
 
 import common.gradleWrapper
 import common.promotionBuildParameters
-import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
-import jetbrains.buildServer.configs.kotlin.v2019_2.FailureAction
-import jetbrains.buildServer.configs.kotlin.v2019_2.RelativeId
+import jetbrains.buildServer.configs.kotlin.BuildSteps
+import jetbrains.buildServer.configs.kotlin.FailureAction
+import jetbrains.buildServer.configs.kotlin.RelativeId
 import vcsroots.gradlePromotionMaster
 
 abstract class BasePublishGradleDistribution(
     // The branch to be promoted
     val promotedBranch: String,
-    val prepTask: String,
+    val prepTask: String?,
     val triggerName: String,
     val gitUserName: String = "bot-teamcity",
     val gitUserEmail: String = "bot-teamcity@gradle.com",
@@ -53,15 +53,17 @@ abstract class BasePublishGradleDistribution(
             }
         }
 
-        steps {
-            buildStep(
-                this@BasePublishGradleDistribution.extraParameters,
-                this@BasePublishGradleDistribution.gitUserName,
-                this@BasePublishGradleDistribution.gitUserEmail,
-                this@BasePublishGradleDistribution.triggerName,
-                this@BasePublishGradleDistribution.prepTask,
-                "checkNeedToPromote"
-            )
+        if (this@BasePublishGradleDistribution.prepTask != null) {
+            steps {
+                buildStep(
+                    this@BasePublishGradleDistribution.extraParameters,
+                    this@BasePublishGradleDistribution.gitUserName,
+                    this@BasePublishGradleDistribution.gitUserEmail,
+                    this@BasePublishGradleDistribution.triggerName,
+                    this@BasePublishGradleDistribution.prepTask,
+                    "checkNeedToPromote"
+                )
+            }
         }
     }
 }

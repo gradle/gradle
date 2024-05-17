@@ -17,7 +17,7 @@ package org.gradle.api.file;
 
 import org.gradle.api.Project;
 import org.gradle.api.resources.ReadableResource;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 
@@ -28,7 +28,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  *
  * @since 6.6
  */
-@ServiceScope(Scopes.Build.class)
+@ServiceScope({Scope.Build.class, Scope.Project.class})
 public interface ArchiveOperations {
 
     /**

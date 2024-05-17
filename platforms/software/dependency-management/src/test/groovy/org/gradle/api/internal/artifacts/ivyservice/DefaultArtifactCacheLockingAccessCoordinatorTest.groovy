@@ -20,7 +20,7 @@ import org.gradle.api.internal.cache.CacheConfigurationsInternal
 import org.gradle.api.internal.cache.CacheResourceConfigurationInternal
 import org.gradle.cache.internal.DefaultUnscopedCacheBuilderFactory
 import org.gradle.cache.internal.UsedGradleVersions
-import org.gradle.internal.resource.local.ModificationTimeFileAccessTimeJournal
+import org.gradle.internal.file.nio.ModificationTimeFileAccessTimeJournal
 import org.gradle.internal.time.TimestampSuppliers
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.TestInMemoryCacheFactory
@@ -32,8 +32,8 @@ import spock.lang.Subject
 class DefaultArtifactCacheLockingAccessCoordinatorTest extends Specification {
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
-    def cacheRepository = new DefaultUnscopedCacheBuilderFactory(null, new TestInMemoryCacheFactory())
-    def cacheDir = temporaryFolder.createDir(CacheLayout.ROOT.key)
+    def cacheRepository = new DefaultUnscopedCacheBuilderFactory(new TestInMemoryCacheFactory())
+    def cacheDir = temporaryFolder.createDir(CacheLayout.MODULES.key)
     def resourcesDir = cacheDir.createDir(CacheLayout.RESOURCES.key)
     def filesDir = cacheDir.createDir(CacheLayout.FILE_STORE.key)
     def metaDataDir = cacheDir.createDir(CacheLayout.META_DATA.key)

@@ -51,6 +51,7 @@ public class OperationIdentifier implements Serializable {
         return id == that.id;
     }
 
+    @Override
     public int hashCode() {
         return (int) (id ^ (id >>> 32));
     }

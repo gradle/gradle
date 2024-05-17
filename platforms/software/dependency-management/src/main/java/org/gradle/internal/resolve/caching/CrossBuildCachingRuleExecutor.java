@@ -28,14 +28,12 @@ import org.gradle.cache.IndexedCache;
 import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
-import org.gradle.cache.internal.filelock.LockOptionsBuilder;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.action.ConfigurableRule;
 import org.gradle.internal.action.ConfigurableRules;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.reflect.Instantiator;
@@ -66,21 +64,23 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
     private final BuildCommencedTimeProvider timeProvider;
     private final EntryValidator<RESULT> validator;
 
-    public CrossBuildCachingRuleExecutor(String name,
-                                         GlobalScopedCacheBuilderFactory cacheBuilderFactory,
-                                         InMemoryCacheDecoratorFactory cacheDecoratorFactory,
-                                         ValueSnapshotter snapshotter,
-                                         BuildCommencedTimeProvider timeProvider,
-                                         EntryValidator<RESULT> validator,
-                                         Transformer<?, KEY> keyToSnapshottable,
-                                         Serializer<RESULT> resultSerializer) {
+    public CrossBuildCachingRuleExecutor(
+        String name,
+        GlobalScopedCacheBuilderFactory cacheBuilderFactory,
+        InMemoryCacheDecoratorFactory cacheDecoratorFactory,
+        ValueSnapshotter snapshotter,
+        BuildCommencedTimeProvider timeProvider,
+        EntryValidator<RESULT> validator,
+        Transformer<?, KEY> keyToSnapshottable,
+        Serializer<RESULT> resultSerializer
+    ) {
         this.snapshotter = snapshotter;
         this.validator = validator;
         this.keyToSnapshottable = keyToSnapshottable;
         this.timeProvider = timeProvider;
         this.cache = cacheBuilderFactory
             .createCacheBuilder(name)
-            .withLockOptions(LockOptionsBuilder.mode(FileLockManager.LockMode.OnDemand))
+            .withInitialLockMode(FileLockManager.LockMode.OnDemand)
             .open();
         IndexedCacheParameters<HashCode, CachedEntry<RESULT>> cacheParams = createCacheConfiguration(name, resultSerializer, cacheDecoratorFactory);
         this.store = this.cache.createIndexedCache(cacheParams);
@@ -144,6 +144,7 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
     /**
      * This method computes a snapshot of the explicit inputs of the rule, which consist of the rule implementation,
      * the rule key (for example, a module identifier) and the optional rule parameters.
+     *
      * @param key the primary key
      * @param rules the rules to be snapshotted
      * @return a snapshot of the inputs
@@ -157,9 +158,8 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
             toBeSnapshotted.add(ruleClass);
             toBeSnapshotted.add(ruleParams);
         }
-        Hasher hasher = Hashing.newHasher();
-        snapshotter.snapshot(toBeSnapshotted).appendToHasher(hasher);
-        return hasher.hash();
+
+        return Hashing.hashHashable(snapshotter.snapshot(toBeSnapshotted));
     }
 
     private ImplicitInputsCapturingInstantiator findInputCapturingInstantiator(InstantiatingAction<DETAILS> action) {
@@ -324,7 +324,7 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
     private static class AnySerializer implements Serializer<Object> {
         private static final BaseSerializerFactory SERIALIZER_FACTORY = new BaseSerializerFactory();
 
-        private static final Class<?>[] USUAL_TYPES = new Class<?>[] {
+        private static final Class<?>[] USUAL_TYPES = new Class<?>[]{
             String.class,
             Boolean.class,
             Long.class,

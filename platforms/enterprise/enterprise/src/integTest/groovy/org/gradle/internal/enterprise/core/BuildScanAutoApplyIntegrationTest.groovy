@@ -18,10 +18,11 @@ package org.gradle.internal.enterprise.core
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.internal.enterprise.DevelocityPluginCheckInFixture
 import org.gradle.internal.enterprise.GradleEnterprisePluginCheckInFixture
 import org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService
 import org.gradle.internal.enterprise.impl.legacy.LegacyGradleEnterprisePluginCheckInService
-import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
+import org.gradle.plugin.management.internal.autoapply.AutoAppliedDevelocityPlugin
 import org.gradle.util.internal.VersionNumber
 import spock.lang.Issue
 
@@ -29,13 +30,14 @@ import static org.gradle.initialization.StartParameterBuildOptions.BuildScanOpti
 
 class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
 
-    private static final String PLUGIN_AUTO_APPLY_VERSION = AutoAppliedGradleEnterprisePlugin.VERSION
+    private static final String PLUGIN_AUTO_APPLY_VERSION = AutoAppliedDevelocityPlugin.VERSION
     private static final String PLUGIN_MINIMUM_VERSION = LegacyGradleEnterprisePluginCheckInService.FIRST_GRADLE_ENTERPRISE_PLUGIN_VERSION_DISPLAY
     private static final String PLUGIN_NEWER_VERSION = newerThanAutoApplyPluginVersion()
 
     private static final VersionNumber PLUGIN_MINIMUM_NON_DEPRECATED_VERSION = DefaultGradleEnterprisePluginCheckInService.MINIMUM_SUPPORTED_PLUGIN_VERSION_SINCE_GRADLE_9
 
-    private final GradleEnterprisePluginCheckInFixture fixture = new GradleEnterprisePluginCheckInFixture(testDirectory, mavenRepo, createExecuter())
+    private final DevelocityPluginCheckInFixture fixture = new DevelocityPluginCheckInFixture(testDirectory, mavenRepo, createExecuter())
+    private final GradleEnterprisePluginCheckInFixture gradleEnterpriseFixture = new GradleEnterprisePluginCheckInFixture(testDirectory, mavenRepo, createExecuter())
 
     def setup() {
         buildFile << """
@@ -120,7 +122,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         if (!GradleContextualExecuter.configCache && VersionNumber.parse(version) < PLUGIN_MINIMUM_NON_DEPRECATED_VERSION) {
-            executer.expectDocumentedDeprecationWarning("Develocity plugin $version has been deprecated. Starting with Gradle 9.0, only Develocity plugin 3.13.1 or newer is supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#unsupported_ge_plugin_3.13")
+            executer.expectDocumentedDeprecationWarning("Gradle Enterprise plugin $version has been deprecated. Starting with Gradle 9.0, only Gradle Enterprise plugin 3.13.1 or newer is supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#unsupported_ge_plugin_3.13")
         }
 
         and:
@@ -146,7 +148,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
                     maven { url '${mavenRepo.uri}' }
                 }
                 dependencies {
-                    classpath '${"com.gradle:gradle-enterprise-gradle-plugin:$version"}'
+                    classpath '${"com.gradle:develocity-gradle-plugin:$version"}'
                 }
             }
             apply plugin: '$fixture.id'
@@ -154,7 +156,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         if (!GradleContextualExecuter.configCache && VersionNumber.parse(version) < PLUGIN_MINIMUM_NON_DEPRECATED_VERSION) {
-            executer.expectDocumentedDeprecationWarning("Develocity plugin $version has been deprecated. Starting with Gradle 9.0, only Develocity plugin 3.13.1 or newer is supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#unsupported_ge_plugin_3.13")
+            executer.expectDocumentedDeprecationWarning("Gradle Enterprise plugin $version has been deprecated. Starting with Gradle 9.0, only Gradle Enterprise plugin 3.13.1 or newer is supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#unsupported_ge_plugin_3.13")
         }
 
         and:
@@ -181,7 +183,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 dependencies {
-                    classpath '${"com.gradle:gradle-enterprise-gradle-plugin:$version"}'
+                    classpath '${"com.gradle:develocity-gradle-plugin:$version"}'
                 }
             }
 
@@ -192,7 +194,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         if (!GradleContextualExecuter.configCache && VersionNumber.parse(version) < PLUGIN_MINIMUM_NON_DEPRECATED_VERSION) {
-            executer.expectDocumentedDeprecationWarning("Develocity plugin $version has been deprecated. Starting with Gradle 9.0, only Develocity plugin 3.13.1 or newer is supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#unsupported_ge_plugin_3.13")
+            executer.expectDocumentedDeprecationWarning("Gradle Enterprise plugin $version has been deprecated. Starting with Gradle 9.0, only Gradle Enterprise plugin 3.13.1 or newer is supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#unsupported_ge_plugin_3.13")
         }
 
         and:
@@ -320,6 +322,82 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         fixture.issuedNoPluginWarningCount(output, 1)
+    }
+
+    def "does not auto-apply plugin when Gradle Enterprise plugin is applied using plugin ID"() {
+        when:
+        gradleEnterpriseFixture.publishDummyPlugin(executer)
+        settingsFile << gradleEnterpriseFixture.plugins()
+
+        and:
+        runBuildWithScanRequest()
+
+        then:
+        pluginNotApplied()
+    }
+
+    def "does not auto-apply plugin when Gradle Enterprise plugin is applied using plugin class name"() {
+        when:
+        gradleEnterpriseFixture.publishDummyPlugin(executer)
+        settingsFile.text = """
+            buildscript {
+                repositories {
+                    maven { url '${mavenRepo.uri}' }
+                }
+                dependencies {
+                    classpath '${"com.gradle:gradle-enterprise-gradle-plugin:${gradleEnterpriseFixture.runtimeVersion}"}'
+                }
+            }
+            apply plugin: $gradleEnterpriseFixture.className
+        """
+
+        and:
+        runBuildWithScanRequest()
+
+        then:
+        pluginNotApplied()
+    }
+
+    def "does not auto-apply plugin when Gradle Enterprise plugin explicitly requested and not applied"() {
+        when:
+        gradleEnterpriseFixture.publishDummyPlugin(executer)
+        settingsFile << """
+            plugins {
+                id '$gradleEnterpriseFixture.id' version '${gradleEnterpriseFixture.artifactVersion}' apply false
+            }
+        """
+
+        and:
+        runBuildWithScanRequest()
+
+        then:
+        pluginNotApplied()
+    }
+
+    def "does not auto-apply plugin when Gradle Enterprise plugin is added to initscript classpath"() {
+        when:
+        gradleEnterpriseFixture.publishDummyPlugin(executer)
+        file('init.gradle') << """
+            initscript {
+                repositories {
+                    maven { url '${mavenRepo.uri}' }
+                }
+
+                dependencies {
+                    classpath '${"com.gradle:gradle-enterprise-gradle-plugin:${gradleEnterpriseFixture.runtimeVersion}"}'
+                }
+            }
+
+            beforeSettings {
+                it.apply plugin: $gradleEnterpriseFixture.className
+            }
+        """
+
+        and:
+        runBuildWithScanRequest('-I', 'init.gradle')
+
+        then:
+        pluginNotApplied()
     }
 
     private void runBuildWithScanRequest(String... additionalArgs) {

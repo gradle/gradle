@@ -109,7 +109,7 @@ import java.util.function.BiFunction;
  * <p>There are further optimizations that could be implemented with configuration caching. For example, when a work node has only fixed inputs, the node could be executed prior to writing the work graph to
  * the configuration cache, so that its outputs in turn become fixed. The node can then be discarded from the graph and replaced with its (now fixed) outputs.</p>
  */
-public interface ProviderInternal<T> extends Provider<T>, ValueSupplier, TaskDependencyContainer {
+public interface ProviderInternal<T> extends Provider<T>, ValueSupplier, TaskDependencyContainer, EvaluationContext.EvaluationOwner {
     /**
      * Return the upper bound on the type of all values that this provider may produce, if known.
      *
@@ -150,6 +150,7 @@ public interface ProviderInternal<T> extends Provider<T>, ValueSupplier, TaskDep
      */
     ExecutionTimeValue<? extends T> calculateExecutionTimeValue();
 
+    @Override
     default <U, R> Provider<R> zip(Provider<U> right, BiFunction<? super T, ? super U, ? extends R> combiner) {
         return new BiProvider<>(null, this, right, combiner);
     }

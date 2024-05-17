@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.internal.tasks.TaskPropertyRegistration;
 import org.gradle.api.tasks.TaskFilePropertyBuilder;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -28,7 +28,7 @@ import java.util.List;
  * ensures that whenever parameters are iterated they are always assigned a name.
  */
 public class FilePropertyContainer<T extends TaskFilePropertyBuilder & TaskPropertyRegistration> implements Iterable<T> {
-    private final List<T> properties = Lists.newArrayList();
+    private final List<T> properties = new ArrayList<>();
     private boolean changed;
     private int unnamedPropertyCounter;
 
@@ -50,7 +50,7 @@ public class FilePropertyContainer<T extends TaskFilePropertyBuilder & TaskPrope
             for (T propertySpec : properties) {
                 String propertyName = propertySpec.getPropertyName();
                 if (propertyName == null) {
-                    propertyName = "$" + (++unnamedPropertyCounter);
+                    propertyName = "$" + ++unnamedPropertyCounter;
                     propertySpec.withPropertyName(propertyName);
                 }
             }

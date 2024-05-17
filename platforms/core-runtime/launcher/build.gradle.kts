@@ -5,12 +5,32 @@ plugins {
 
 description = "Implementation for launching, controlling and communicating with Gradle Daemon from CLI and TAPI"
 
+errorprone {
+    disabledChecks.addAll(
+        "DefaultCharset", // 5 occurrences
+        "FutureReturnValueIgnored", // 2 occurrences
+        "InlineFormatString", // 1 occurrences
+        "LockNotBeforeTry", // 7 occurrences
+        "MissingCasesInEnumSwitch", // 1 occurrences
+        "NarrowCalculation", // 1 occurrences
+        "StringCaseLocaleUsage", // 1 occurrences
+        "StringSplitter", // 1 occurrences
+        "URLEqualsHashCode", // 3 occurrences
+        "UndefinedEquals", // 1 occurrences
+        "UnusedVariable", // 3 occurrences
+    )
+}
+
 dependencies {
+    implementation(projects.io)
     implementation(project(":base-services"))
     implementation(project(":functional"))
     implementation(project(":enterprise-operations"))
+    implementation(project(":enterprise-workers"))
     implementation(project(":cli"))
     implementation(project(":messaging"))
+    implementation(project(":daemon-protocol"))
+    implementation(project(":build-configuration"))
     implementation(project(":build-option"))
     implementation(project(":native"))
     implementation(project(":logging"))
@@ -26,10 +46,18 @@ dependencies {
     implementation(project(":bootstrap"))
     implementation(project(":jvm-services"))
     implementation(project(":build-events"))
+    implementation(project(":build-state"))
     implementation(project(":tooling-api"))
     implementation(project(":file-watching"))
     implementation(project(":problems-api"))
     implementation(project(":problems"))
+    implementation(project(":toolchains-jvm-shared"))
+    implementation(project(":declarative-dsl-provider"))
+
+    // This project contains the client, daemon and tooling API provider. It should be split up
+    // For now, add dependencies on both the client and daemon pieces
+    implementation(project(":client-services"))
+    implementation(project(":daemon-services"))
 
     implementation(libs.groovy) // for 'ReleaseInfo.getVersion()'
     implementation(libs.slf4jApi)
@@ -45,6 +73,7 @@ dependencies {
     runtimeOnly(libs.slf4jApi)
 
     manifestClasspath(project(":bootstrap"))
+    manifestClasspath(projects.javaLanguageExtensions)
     manifestClasspath(project(":base-services"))
     manifestClasspath(project(":worker-services"))
     manifestClasspath(project(":core-api"))
@@ -63,6 +92,7 @@ dependencies {
     testImplementation(project(":snapshots"))
     testImplementation(project(":base-services-groovy")) // for 'Specs'
 
+    testImplementation(testFixtures(projects.serialization))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":language-java")))
     testImplementation(testFixtures(project(":messaging")))
@@ -74,6 +104,7 @@ dependencies {
     integTestImplementation(libs.guava)
     integTestImplementation(libs.commonsLang)
     integTestImplementation(libs.commonsIo)
+    integTestImplementation(testFixtures(project(":build-configuration")))
 
     testRuntimeOnly(project(":distributions-core")) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
@@ -88,4 +119,3 @@ strictCompile {
 }
 
 testFilesCleanup.reportOnly = true
-

@@ -23,14 +23,12 @@ import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal.BUILD_SRC
 import org.gradle.api.internal.TaskInternal
-import org.gradle.api.internal.credentials.CredentialListener
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener
 import org.gradle.configurationcache.InputTrackingState
 import org.gradle.configurationcache.problems.DocumentationSection
 import org.gradle.configurationcache.problems.DocumentationSection.RequirementsBuildListeners
 import org.gradle.configurationcache.problems.DocumentationSection.RequirementsExternalProcess
-import org.gradle.configurationcache.problems.DocumentationSection.RequirementsSafeCredentials
 import org.gradle.configurationcache.problems.DocumentationSection.RequirementsUseProjectDuringExecution
 import org.gradle.configurationcache.problems.ProblemFactory
 import org.gradle.configurationcache.problems.ProblemsListener
@@ -40,12 +38,12 @@ import org.gradle.configurationcache.serialization.Workarounds.canAccessConventi
 import org.gradle.execution.ExecutionAccessListener
 import org.gradle.internal.execution.WorkExecutionTracker
 import org.gradle.internal.service.scopes.ListenerService
-import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 
 
-@ServiceScope(Scopes.BuildTree::class)
-interface ConfigurationCacheProblemsListener : ExecutionAccessListener, TaskExecutionAccessListener, BuildScopeListenerRegistrationListener, ExternalProcessStartedListener, CredentialListener
+@ServiceScope(Scope.BuildTree::class)
+interface ConfigurationCacheProblemsListener : ExecutionAccessListener, TaskExecutionAccessListener, BuildScopeListenerRegistrationListener, ExternalProcessStartedListener
 
 
 @ListenerService
@@ -160,19 +158,6 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
                     "Listener registration '$invocationDescription' by $invocationSource is unsupported."
                 )
             )
-        )
-    }
-
-    override fun onUnsafeCredentials(locationSpecificReason: String, task: TaskInternal) {
-        problems.onProblem(
-            problemFactory.problem {
-                text("Credential values found in configuration for: ")
-                text(locationSpecificReason)
-            }
-                .exception()
-                .documentationSection(RequirementsSafeCredentials)
-                .mapLocation { locationForTask(it, task) }
-                .build()
         )
     }
 

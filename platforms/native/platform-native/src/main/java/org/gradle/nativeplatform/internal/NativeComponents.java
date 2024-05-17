@@ -15,7 +15,6 @@
  */
 package org.gradle.nativeplatform.internal;
 
-import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
@@ -43,6 +42,7 @@ import org.gradle.platform.base.internal.dependents.DependentBinariesResolvedRes
 import org.gradle.platform.base.internal.dependents.DependentBinariesResolver;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -167,7 +167,7 @@ public class NativeComponents {
     }
 
     private static List<Task> getDependentTaskDependencies(String dependedOnBinaryTaskName, BinarySpecInternal binary, DependentBinariesResolver dependentsResolver, ProjectModelResolver projectModelResolver) {
-        List<Task> dependencies = Lists.newArrayList();
+        List<Task> dependencies = new ArrayList<>();
         DependentBinariesResolvedResult result = dependentsResolver.resolve(binary).getRoot();
         for (DependentBinariesResolvedResult dependent : result.getChildren()) {
             if (dependent.isBuildable()) {
@@ -198,7 +198,7 @@ public class NativeComponents {
 
         @Override
         public List<FileCollection> call() throws Exception {
-            List<FileCollection> runtimeFiles = Lists.newArrayList();
+            List<FileCollection> runtimeFiles = new ArrayList<>();
             for (NativeDependencySet nativeDependencySet : binary.getLibs()) {
                 runtimeFiles.add(getFiles(nativeDependencySet));
             }

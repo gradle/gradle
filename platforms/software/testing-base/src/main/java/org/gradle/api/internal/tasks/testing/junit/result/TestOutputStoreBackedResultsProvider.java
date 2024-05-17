@@ -16,11 +16,11 @@
 
 package org.gradle.api.internal.tasks.testing.junit.result;
 
-import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.internal.concurrent.CompositeStoppable;
 
 import java.io.IOException;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 public abstract class TestOutputStoreBackedResultsProvider implements TestResultsProvider {
@@ -29,7 +29,7 @@ public abstract class TestOutputStoreBackedResultsProvider implements TestResult
 
     public TestOutputStoreBackedResultsProvider(TestOutputStore outputStore) {
         this.outputStore = outputStore;
-        this.readers = Maps.newConcurrentMap();
+        this.readers = new ConcurrentHashMap<Thread, TestOutputStore.Reader>();
     }
 
     protected void withReader(Action<TestOutputStore.Reader> action) {

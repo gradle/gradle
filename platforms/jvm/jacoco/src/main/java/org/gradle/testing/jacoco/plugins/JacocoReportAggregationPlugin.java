@@ -23,6 +23,7 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.Category;
@@ -35,6 +36,7 @@ import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.reporting.ReportingExtension;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.jacoco.DefaultJacocoCoverageReport;
 import org.gradle.testing.base.TestSuite;
 import org.gradle.testing.base.TestingExtension;
@@ -42,12 +44,14 @@ import org.gradle.testing.jacoco.tasks.JacocoReport;
 
 import javax.inject.Inject;
 
+import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
+
 /**
  * Adds configurations to for resolving variants containing JaCoCo code coverage results, which may span multiple subprojects.  Reacts to the presence of the jvm-test-suite plugin and creates
  * tasks to collect code coverage results for each named test-suite.
  *
- * @since 7.4
  * @see <a href="https://docs.gradle.org/current/userguide/jacoco_report_aggregation_plugin.html">JaCoCo Report Aggregation Plugin reference</a>
+ * @since 7.4
  */
 @Incubating
 public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
@@ -83,12 +87,12 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
 
         ArtifactView sourceDirectories = codeCoverageResultsConf.getIncoming().artifactView(view -> {
             view.withVariantReselection();
-            view.componentFilter(id -> id instanceof ProjectComponentIdentifier);
+            view.componentFilter(projectComponent());
             getEcosystemUtilities().configureAsSources(view);
         });
 
         ArtifactView classDirectories = codeCoverageResultsConf.getIncoming().artifactView(view -> {
-            view.componentFilter(id -> id instanceof ProjectComponentIdentifier);
+            view.componentFilter(projectComponent());
             view.attributes(attributes -> {
                 attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.class, LibraryElements.CLASSES));
             });
@@ -102,7 +106,7 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
             report.getReportTask().configure(task -> {
                 ArtifactView executionData = codeCoverageResultsConf.getIncoming().artifactView(view -> {
                     view.withVariantReselection();
-                    view.componentFilter(id -> id instanceof ProjectComponentIdentifier);
+                    view.componentFilter(projectComponent());
                     view.attributes(attributes -> {
                         attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.VERIFICATION));
                         attributes.attributeProvider(TestSuiteType.TEST_SUITE_TYPE_ATTRIBUTE, report.getTestType().map(tt -> objects.named(TestSuiteType.class, tt)));
@@ -129,6 +133,10 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
                 });
             });
         });
+    }
+
+    private static Spec<ComponentIdentifier> projectComponent() {
+        return spec(id -> id instanceof ProjectComponentIdentifier);
     }
 
     private void configureReportTaskInputs(JacocoReport task, ArtifactView classDirectories, ArtifactView sourceDirectories, ArtifactView executionData) {

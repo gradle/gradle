@@ -23,6 +23,7 @@ import org.gradle.profiler.InvocationSettings
 import org.gradle.profiler.Phase
 import org.gradle.profiler.ScenarioContext
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.internal.VersionNumber
 
 class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceTest {
 
@@ -49,7 +50,7 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
                 if (withFailure) {
                     expectFailure()
                 }
-                addBuildMutator { invocationSettings -> new InjectBuildScanPlugin(invocationSettings.projectDir, pluginVersionNumber) }
+                addBuildMutator { invocationSettings -> new InjectDevelocityPlugin(invocationSettings.projectDir, pluginVersionNumber) }
                 addBuildMutator { invocationSettings -> new SaveScanSpoolFile(invocationSettings, scenario) }
                 if (manageCacheState) {
                     addBuildMutator { new ManageLocalCacheState(it.projectDir) }
@@ -70,7 +71,7 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
                 if (withFailure) {
                     expectFailure()
                 }
-                addBuildMutator { invocationSettings -> new InjectBuildScanPlugin(invocationSettings.projectDir, pluginVersionNumber) }
+                addBuildMutator { invocationSettings -> new InjectDevelocityPlugin(invocationSettings.projectDir, pluginVersionNumber) }
                 addBuildMutator { invocationSettings -> new SaveScanSpoolFile(invocationSettings, scenario) }
                 if (manageCacheState) {
                     addBuildMutator { new ManageLocalCacheState(it.projectDir) }
@@ -162,14 +163,26 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
         }
     }
 
-    static class InjectBuildScanPlugin implements BuildMutator {
-        final File projectDir
-        final String buildScanPluginVersion
+    static class InjectDevelocityPlugin implements BuildMutator {
+        private static final VersionNumber DEVELOCITY_PLUGIN_RENAME_VERSION = VersionNumber.parse("3.17")
 
-        InjectBuildScanPlugin(File projectDir, String buildScanPluginVersion) {
+        final File projectDir
+        final String develocityPluginVersion
+        final boolean isDevelocity
+
+        InjectDevelocityPlugin(File projectDir, String develocityPluginVersion) {
             this.projectDir = projectDir
-            this.buildScanPluginVersion = buildScanPluginVersion
-            println "InjectBuildScanPlugin buildScanPluginVersion = $buildScanPluginVersion"
+            this.develocityPluginVersion = develocityPluginVersion
+            this.isDevelocity = VersionNumber.parse(develocityPluginVersion).baseVersion >= DEVELOCITY_PLUGIN_RENAME_VERSION
+            println "InjectDevelocityPlugin develocityPluginVersion = $develocityPluginVersion"
+        }
+
+        private String getDevelocityPluginArtifactName() {
+            isDevelocity ? 'develocity-gradle-plugin' : 'gradle-enterprise-gradle-plugin'
+        }
+
+        private String getDevelocityPluginId() {
+            isDevelocity ? 'com.gradle.develocity' : 'com.gradle.enterprise'
         }
 
         @Override
@@ -193,12 +206,12 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
                         }
 
                         dependencies {
-                            classpath "com.gradle:gradle-enterprise-gradle-plugin:${buildScanPluginVersion}"
+                            classpath "com.gradle:${develocityPluginArtifactName}:${develocityPluginVersion}"
                         }
                     }
 
                     if (System.getProperty('enableScan')) {
-                        apply plugin: 'com.gradle.enterprise'
+                        apply plugin: '${develocityPluginId}'
                     }
                     """ + settingsScript.text
         }

@@ -18,7 +18,6 @@ package org.gradle.api.publish.internal.mapping;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleIdentifier;
@@ -31,7 +30,6 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.artifacts.result.DependencyResult;
-import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
@@ -47,11 +45,9 @@ import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.publish.internal.validation.VariantWarningCollector;
 import org.gradle.internal.component.local.model.ProjectComponentSelectorInternal;
-import org.gradle.internal.lazy.Lazy;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -73,51 +69,42 @@ import java.util.function.Consumer;
  */
 public class ResolutionBackedVariantDependencyResolver implements VariantDependencyResolver {
 
-    private final ProjectDependencyPublicationResolver projectDependencyResolver;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
-    private final Configuration resolutionConfiguration;
     private final AttributeDesugaring attributeDesugaring;
     private final ComponentDependencyResolver fallback;
 
-    private final Lazy<ResolvedMappings> mappings;
+    private final ResolvedMappings mappings;
 
     public ResolutionBackedVariantDependencyResolver(
         ProjectDependencyPublicationResolver projectDependencyResolver,
         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-        Configuration resolutionConfiguration,
+        ResolvedComponentResult rootComponent,
+        ResolvedVariantResult rootVariant,
         AttributeDesugaring attributeDesugaring,
         ComponentDependencyResolver fallback
     ) {
-        this.projectDependencyResolver = projectDependencyResolver;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
-        this.resolutionConfiguration = resolutionConfiguration;
         this.attributeDesugaring = attributeDesugaring;
         this.fallback = fallback;
 
-        this.mappings = Lazy.unsafe().of(this::calculateMappings);
+        this.mappings = calculateMappings(rootComponent, rootVariant, projectDependencyResolver, moduleIdentifierFactory);
     }
 
-    private ResolvedMappings calculateMappings() {
+    private static ResolvedMappings calculateMappings(
+        ResolvedComponentResult rootComponent,
+        ResolvedVariantResult rootVariant,
+        ProjectDependencyPublicationResolver projectDependencyResolver,
+        ImmutableModuleIdentifierFactory moduleIdentifierFactory
+    ) {
         Map<ModuleDependencyKey, ModuleVersionIdentifier> resolvedModules = new HashMap<>();
         Map<ProjectDependencyKey, ModuleVersionIdentifier> resolvedProjects = new HashMap<>();
         Set<ModuleDependencyKey> incompatibleModules = new HashSet<>();
         Set<ProjectDependencyKey> incompatibleProjects = new HashSet<>();
 
-        ResolutionResult resolutionResult = resolutionConfiguration.getIncoming().getResolutionResult();
-        ResolvedComponentResult rootComponent = resolutionResult.getRoot();
-        ResolvedVariantResult rootVariant = rootComponent.getVariants().stream()
-            .filter(x -> x.getDisplayName().equals(resolutionConfiguration.getName()))
-            .findFirst().orElse(null);
-
-        if (rootVariant == null) {
-            // Happens when the resolved configuration has no dependencies.
-            return new ResolvedMappings(Collections.emptyMap(), Collections.emptyMap(), Collections.emptySet(), Collections.emptySet());
-        }
-
         visitFirstLevelEdges(rootComponent, rootVariant, edge -> {
 
             ComponentSelector requested = edge.getRequested();
-            ModuleVersionIdentifier coordinates = getVariantCoordinates(edge);
+            ModuleVersionIdentifier coordinates = getVariantCoordinates(edge, projectDependencyResolver, moduleIdentifierFactory);
             if (requested instanceof ModuleComponentSelector) {
                 ModuleComponentSelector requestedModule = (ModuleComponentSelector) requested;
 
@@ -170,7 +157,11 @@ public class ResolutionBackedVariantDependencyResolver implements VariantDepende
         }
     }
 
-    private ModuleVersionIdentifier getVariantCoordinates(ResolvedDependencyResult edge) {
+    private static ModuleVersionIdentifier getVariantCoordinates(
+        ResolvedDependencyResult edge,
+        ProjectDependencyPublicationResolver projectDependencyResolver,
+        ImmutableModuleIdentifierFactory moduleIdentifierFactory
+    ) {
         ResolvedVariantResult variant = edge.getResolvedVariant();
         ComponentIdentifier componentId = variant.getOwner();
 
@@ -178,15 +169,19 @@ public class ResolutionBackedVariantDependencyResolver implements VariantDepende
         // artifact information like type or classifier.
 
         if (componentId instanceof ProjectComponentIdentifier) {
-            return getProjectCoordinates(variant, (ProjectComponentIdentifierInternal) componentId);
+            return getProjectCoordinates(variant, (ProjectComponentIdentifierInternal) componentId, projectDependencyResolver);
         } else if (componentId instanceof ModuleComponentIdentifier) {
-            return getModuleCoordinates(variant, (ModuleComponentIdentifier) componentId);
+            return getModuleCoordinates(variant, (ModuleComponentIdentifier) componentId, moduleIdentifierFactory);
         } else {
             throw new UnsupportedOperationException("Unexpected component identifier type: " + componentId);
         }
     }
 
-    private ModuleVersionIdentifier getModuleCoordinates(ResolvedVariantResult variant, ModuleComponentIdentifier componentId) {
+    private static ModuleVersionIdentifier getModuleCoordinates(
+        ResolvedVariantResult variant,
+        ModuleComponentIdentifier componentId,
+        ImmutableModuleIdentifierFactory moduleIdentifierFactory
+    ) {
         ResolvedVariantResult externalVariant = variant.getExternalVariant().orElse(null);
         if (externalVariant != null) {
             ComponentIdentifier owningComponent = externalVariant.getOwner();
@@ -200,7 +195,11 @@ public class ResolutionBackedVariantDependencyResolver implements VariantDepende
         return moduleIdentifierFactory.moduleWithVersion(componentId.getModuleIdentifier(), componentId.getVersion());
     }
 
-    private ModuleVersionIdentifier getProjectCoordinates(ResolvedVariantResult variant, ProjectComponentIdentifierInternal componentId) {
+    private static ModuleVersionIdentifier getProjectCoordinates(
+        ResolvedVariantResult variant,
+        ProjectComponentIdentifierInternal componentId,
+        ProjectDependencyPublicationResolver projectDependencyResolver
+    ) {
         Path identityPath = componentId.getIdentityPath();
 
         // TODO: Using the display name here is not great, however it is the same as the variant name.
@@ -224,12 +223,12 @@ public class ResolutionBackedVariantDependencyResolver implements VariantDepende
         ModuleIdentifier module = moduleIdentifierFactory.module(dependency.getGroup(), dependency.getName());
         ModuleDependencyKey key = new ModuleDependencyKey(module, ModuleDependencyDetails.from(dependency, attributeDesugaring));
 
-        ModuleVersionIdentifier resolved = mappings.get().resolvedModules.get(key);
+        ModuleVersionIdentifier resolved = mappings.resolvedModules.get(key);
         if (resolved != null) {
             return ResolvedCoordinates.create(resolved);
         }
 
-        if (mappings.get().incompatibleModules.contains(key)) {
+        if (mappings.incompatibleModules.contains(key)) {
             // TODO: We should enhance this warning to list the conflicting dependencies.
             warnings.addIncompatible(String.format(
                 "Cannot determine variant coordinates for dependency '%s' since " +
@@ -254,12 +253,12 @@ public class ResolutionBackedVariantDependencyResolver implements VariantDepende
         Path identityPath = ((ProjectDependencyInternal) dependency).getIdentityPath();
         ProjectDependencyKey key = new ProjectDependencyKey(identityPath, ModuleDependencyDetails.from(dependency, attributeDesugaring));
 
-        ModuleVersionIdentifier resolved = mappings.get().resolvedProjects.get(key);
+        ModuleVersionIdentifier resolved = mappings.resolvedProjects.get(key);
         if (resolved != null) {
             return ResolvedCoordinates.create(resolved);
         }
 
-        if (mappings.get().incompatibleProjects.contains(key)) {
+        if (mappings.incompatibleProjects.contains(key)) {
             // TODO: We should enhance this warning to list the conflicting dependencies.
             warnings.addIncompatible(String.format(
                 "Cannot determine variant coordinates for Project dependency '%s' since " +

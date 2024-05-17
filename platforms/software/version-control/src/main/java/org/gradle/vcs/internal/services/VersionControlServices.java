@@ -29,7 +29,6 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.notations.ModuleIdentifierNotationConverter;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.cache.internal.CleanupActionDecorator;
 import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.PublicBuildPath;
@@ -57,6 +56,7 @@ import org.gradle.vcs.internal.resolver.VcsDependencyResolver;
 import org.gradle.vcs.internal.resolver.VcsVersionSelectionCache;
 import org.gradle.vcs.internal.resolver.VcsVersionWorkingDirResolver;
 
+import javax.inject.Inject;
 import java.util.Collection;
 
 public class VersionControlServices extends AbstractPluginServiceRegistry {
@@ -111,8 +111,8 @@ public class VersionControlServices extends AbstractPluginServiceRegistry {
                 .toComposite();
         }
 
-        VersionControlRepositoryConnectionFactory createVersionControlSystemFactory(CleanupActionDecorator cleanupActionDecorator, BuildTreeScopedCacheBuilderFactory cacheBuilderFactory) {
-            return new DefaultVersionControlRepositoryFactory(cacheBuilderFactory, cleanupActionDecorator);
+        VersionControlRepositoryConnectionFactory createVersionControlSystemFactory(BuildTreeScopedCacheBuilderFactory cacheBuilderFactory) {
+            return new DefaultVersionControlRepositoryFactory(cacheBuilderFactory);
         }
 
         VcsDirectoryLayout createVcsWorkingDirectoryRoot(BuildTreeScopedCacheBuilderFactory cacheBuilderFactory) {
@@ -135,35 +135,52 @@ public class VersionControlServices extends AbstractPluginServiceRegistry {
     }
 
     private static class VersionControlBuildServices {
-        VcsDependencyResolver createVcsDependencyResolver(LocalComponentRegistry localComponentRegistry, VcsResolver vcsResolver, VersionControlRepositoryConnectionFactory versionControlSystemFactory, VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, BuildStateRegistry buildRegistry, VersionParser versionParser, VcsVersionSelectionCache versionSelectionCache, PersistentVcsMetadataCache persistentCache, StartParameter startParameter, PublicBuildPath publicBuildPath) {
+
+        void configure(ServiceRegistration registration) {
+            registration.add(VcsResolverFactory.class);
+        }
+
+        VcsVersionWorkingDirResolver createVcsVersionWorkingDirResolver(VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, VersionParser versionParser, VcsVersionSelectionCache versionSelectionCache, PersistentVcsMetadataCache persistentCache, StartParameter startParameter) {
             VcsVersionWorkingDirResolver workingDirResolver;
             if (startParameter.isOffline()) {
                 workingDirResolver = new OfflineVcsVersionWorkingDirResolver(persistentCache);
             } else {
                 workingDirResolver = new DefaultVcsVersionWorkingDirResolver(versionSelectorScheme, versionComparator, versionParser, versionSelectionCache, persistentCache);
             }
-            workingDirResolver = new OncePerBuildInvocationVcsVersionWorkingDirResolver(versionSelectionCache, workingDirResolver);
-            return new VcsDependencyResolver(localComponentRegistry, vcsResolver, versionControlSystemFactory, buildRegistry, workingDirResolver, publicBuildPath);
-        }
-
-        ResolverProviderFactory createVcsResolverProviderFactory(VcsDependencyResolver vcsDependencyResolver, VcsResolver vcsResolver) {
-            return new VcsResolverFactory(vcsDependencyResolver, vcsResolver);
+            return new OncePerBuildInvocationVcsVersionWorkingDirResolver(versionSelectionCache, workingDirResolver);
         }
     }
 
-    private static class VcsResolverFactory implements ResolverProviderFactory {
-        private final VcsDependencyResolver vcsDependencyResolver;
-        private final VcsResolver vcsResolver;
+    protected static class VcsResolverFactory implements ResolverProviderFactory {
 
-        private VcsResolverFactory(VcsDependencyResolver vcsDependencyResolver, VcsResolver vcsResolver) {
-            this.vcsDependencyResolver = vcsDependencyResolver;
+        private final VcsResolver vcsResolver;
+        private final BuildStateRegistry buildRegistry;
+        private final PublicBuildPath publicBuildPath;
+        private final VersionControlRepositoryConnectionFactory versionControlSystemFactory;
+        private final VcsVersionWorkingDirResolver workingDirResolver;
+
+        @Inject
+        public VcsResolverFactory(
+            VcsResolver vcsResolver,
+            BuildStateRegistry buildRegistry,
+            PublicBuildPath publicBuildPath,
+            VersionControlRepositoryConnectionFactory versionControlSystemFactory,
+            VcsVersionWorkingDirResolver workingDirResolver
+        ) {
             this.vcsResolver = vcsResolver;
+            this.buildRegistry = buildRegistry;
+            this.publicBuildPath = publicBuildPath;
+            this.versionControlSystemFactory = versionControlSystemFactory;
+            this.workingDirResolver = workingDirResolver;
         }
 
         @Override
-        public void create(Collection<ComponentResolvers> resolvers) {
+        public void create(Collection<ComponentResolvers> resolvers, LocalComponentRegistry localComponentRegistry) {
             if (vcsResolver.hasRules()) {
-                resolvers.add(vcsDependencyResolver);
+                resolvers.add(new VcsDependencyResolver(
+                    localComponentRegistry, vcsResolver, versionControlSystemFactory,
+                    buildRegistry, workingDirResolver, publicBuildPath
+                ));
             }
         }
     }

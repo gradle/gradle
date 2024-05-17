@@ -16,7 +16,6 @@
 
 package org.gradle.vcs.fixtures;
 
-import com.google.common.collect.Lists;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.CommitCommand;
 import org.eclipse.jgit.api.Git;
@@ -34,6 +33,7 @@ import org.junit.rules.ExternalResource;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 
 public class GitFileRepository extends ExternalResource implements Named, GitRepository {
@@ -116,7 +116,7 @@ public class GitFileRepository extends ExternalResource implements Named, GitRep
      * Updates any submodules in this repository to the latest in the submodule origin repository
      */
     public RevCommit updateSubmodulesToLatest() throws GitAPIException {
-        List<String> submodulePaths = Lists.newArrayList();
+        List<String> submodulePaths = new ArrayList<>();
         try {
             SubmoduleWalk walker = SubmoduleWalk.forIndex(git.getRepository());
             try {

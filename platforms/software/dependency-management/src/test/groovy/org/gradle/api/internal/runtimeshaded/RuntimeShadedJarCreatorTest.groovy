@@ -22,8 +22,8 @@ import org.apache.ivy.core.settings.IvySettings
 import org.gradle.api.Action
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.IoActions
-import org.gradle.internal.classpath.ClasspathBuilder
 import org.gradle.internal.classpath.ClasspathWalker
+import org.gradle.internal.classpath.DefaultClasspathBuilder
 import org.gradle.internal.installation.GradleRuntimeShadedJarDetector
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.test.fixtures.file.CleanupTestDirectory
@@ -58,7 +58,7 @@ class RuntimeShadedJarCreatorTest extends Specification {
             progressLoggerFactory,
             new ImplementationDependencyRelocator(RuntimeShadedJarType.API),
             new ClasspathWalker(TestFiles.fileSystem()),
-            new ClasspathBuilder(TestFiles.tmpDirTemporaryFileProvider(tmpDir.createDir("tmp")))
+            new DefaultClasspathBuilder(TestFiles.tmpDirTemporaryFileProvider(tmpDir.createDir("tmp")))
         )
     }
 

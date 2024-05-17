@@ -58,6 +58,7 @@ import org.gradle.internal.execution.impl.DefaultFileCollectionFingerprinterRegi
 import org.gradle.internal.execution.impl.DefaultInputFingerprinter;
 import org.gradle.internal.execution.impl.DefaultOutputSnapshotter;
 import org.gradle.internal.file.DefaultFileSystemDefaultExcludesProvider;
+import org.gradle.internal.file.FileMetadataAccessor;
 import org.gradle.internal.file.FileSystemDefaultExcludesProvider;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
@@ -71,6 +72,7 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.nativeintegration.NativeCapabilities;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
+import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.service.ServiceRegistration;
@@ -228,7 +230,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
         FileSystemAccess createFileSystemAccess(
             FileHasher hasher,
             VirtualFileSystem virtualFileSystem,
-            Stat stat,
+            FileMetadataAccessor stat,
             StringInterner stringInterner,
             FileSystemAccess.WriteListener writeListener,
             DirectorySnapshotterStatistics.Collector statisticsCollector,
@@ -263,7 +265,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                         return Optional.of(new LinuxFileWatcherRegistryFactory(immutableLocationsFilter));
                     }
                 } catch (NativeIntegrationUnavailableException e) {
-                    LOGGER.debug("Native file system watching is not available for this operating system.", e);
+                    NativeServices.logFileSystemWatchingUnavailable(e);
                 }
             }
             return Optional.empty();
@@ -323,7 +325,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
         FileSystemAccess createFileSystemAccess(
             FileHasher hasher,
             ListenerManager listenerManager,
-            Stat stat,
+            FileMetadataAccessor stat,
             StringInterner stringInterner,
             VirtualFileSystem root,
             FileSystemAccess.WriteListener writeListener,

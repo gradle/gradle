@@ -24,12 +24,14 @@ public class TransportableActionExecutionSpec {
     private final ClassLoaderStructure classLoaderStructure;
     private final File baseDir;
     private final boolean usesInternalServices;
+    private final File projectCacheDir;
 
-    public TransportableActionExecutionSpec(String implementationClassName, byte[] serializedParameters, ClassLoaderStructure classLoaderStructure, File baseDir, boolean usesInternalServices) {
+    public TransportableActionExecutionSpec(String implementationClassName, byte[] serializedParameters, ClassLoaderStructure classLoaderStructure, File baseDir, File projectCacheDir, boolean usesInternalServices) {
         this.implementationClassName = implementationClassName;
         this.serializedParameters = serializedParameters;
         this.classLoaderStructure = classLoaderStructure;
         this.baseDir = baseDir;
+        this.projectCacheDir = projectCacheDir;
         this.usesInternalServices = usesInternalServices;
     }
 
@@ -51,5 +53,9 @@ public class TransportableActionExecutionSpec {
 
     public byte[] getSerializedParameters() {
         return serializedParameters;
+    }
+
+    public File getProjectCacheDir() {
+        return projectCacheDir;
     }
 }

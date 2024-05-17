@@ -4,22 +4,37 @@ plugins {
 
 description = "Implementation for interacting with repositories over HTTP"
 
-dependencies {
-    api(project(":resources"))
-    implementation(project(":base-services"))
-    implementation(project(":core-api"))
-    implementation(project(":core"))
-    implementation(project(":model-core"))
-    implementation(project(":logging"))
+errorprone {
+    disabledChecks.addAll(
+        "StringCaseLocaleUsage", // 2 occurrences
+        "UnusedMethod", // 4 occurrences
+        "UnusedVariable", // 1 occurrences
+    )
+}
 
-    implementation(libs.commonsHttpclient)
-    implementation(libs.slf4jApi)
-    implementation(libs.jclToSlf4j)
-    implementation(libs.jcifs)
-    implementation(libs.guava)
-    implementation(libs.commonsLang)
+dependencies {
+    api(projects.javaLanguageExtensions)
+    api(projects.serviceProvider)
+    api(project(":core-api"))
+    api(project(":core"))
+    api(project(":logging"))
+    api(project(":resources"))
+
+    api(libs.commonsHttpclient)
+    api(libs.httpcore)
+    api(libs.jsr305)
+
+    implementation(project(":base-services"))
+    implementation(project(":hashing"))
+    implementation(project(":logging-api"))
+    implementation(project(":model-core"))
+
     implementation(libs.commonsIo)
+    implementation(libs.commonsLang)
+    implementation(libs.guava)
+    implementation(libs.jcifs)
     implementation(libs.jsoup)
+    implementation(libs.slf4jApi)
 
     testImplementation(project(":internal-integ-testing"))
     testImplementation(libs.jettyWebApp)

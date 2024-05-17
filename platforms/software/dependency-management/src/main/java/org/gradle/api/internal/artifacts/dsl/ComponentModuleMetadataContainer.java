@@ -26,18 +26,18 @@ import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 
 import javax.annotation.Nullable;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static com.google.common.collect.Maps.newHashMap;
-import static com.google.common.collect.Sets.newHashSet;
 import static java.lang.String.format;
 
 public class ComponentModuleMetadataContainer implements ModuleReplacementsData {
 
-    private final Map<ModuleIdentifier, Replacement> replacements = newHashMap();
-    private final Set<ModuleIdentifier> targets = newHashSet();
+    private final Map<ModuleIdentifier, Replacement> replacements = new HashMap<>();
+    private final Set<ModuleIdentifier> targets = new HashSet<>();
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
 
     public ComponentModuleMetadataContainer(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {

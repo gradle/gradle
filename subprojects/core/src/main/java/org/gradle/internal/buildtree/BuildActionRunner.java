@@ -18,7 +18,7 @@ package org.gradle.internal.buildtree;
 
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.internal.invocation.BuildAction;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
@@ -29,7 +29,7 @@ import java.util.List;
 /**
  * Responsible for executing a {@link BuildAction} and generating the result.
  */
-@ServiceScope(Scopes.BuildTree.class)
+@ServiceScope(Scope.Global.class)
 public interface BuildActionRunner {
     /**
      * Runs the given action, returning a result that describes the build outcome and the result that should be returned to the client.
@@ -51,7 +51,7 @@ public interface BuildActionRunner {
         private static final Result NOTHING = new Result(false, null, null, null);
         private static final Result NULL = new Result(true, null, null, null);
 
-        private Result(boolean hasResult, Object result, Throwable buildFailure, Throwable clientFailure) {
+        private Result(boolean hasResult, @Nullable Object result, @Nullable Throwable buildFailure, @Nullable Throwable clientFailure) {
             this.hasResult = hasResult;
             this.result = result;
             this.buildFailure = buildFailure;

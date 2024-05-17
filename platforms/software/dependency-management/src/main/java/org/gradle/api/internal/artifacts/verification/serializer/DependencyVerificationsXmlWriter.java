@@ -172,9 +172,13 @@ public class DependencyVerificationsXmlWriter {
         Set<IgnoredKey> ignoredKeys = configuration.getIgnoredKeys();
         if (!ignoredKeys.isEmpty()) {
             writer.startElement(IGNORED_KEYS);
-            for (IgnoredKey ignoredKey : ignoredKeys) {
-                writeIgnoredKey(ignoredKey);
-            }
+            ignoredKeys.stream().sorted().forEach(ignoredKey -> {
+                try {
+                    writeIgnoredKey(ignoredKey);
+                } catch (IOException ex) {
+                    throw new UncheckedIOException(ex);
+                }
+            });
             writer.endElement();
         }
     }

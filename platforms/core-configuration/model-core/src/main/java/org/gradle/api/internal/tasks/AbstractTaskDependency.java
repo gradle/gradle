@@ -66,6 +66,7 @@ public abstract class AbstractTaskDependency implements TaskDependencyContainerI
         return result;
     }
 
+    @Override
     public Set<? extends Task> getDependenciesForInternalUse(@Nullable Task task) {
         CachingTaskDependencyResolveContext<Task> context = new CachingTaskDependencyResolveContext<Task>(
             asList(TASK_AS_TASK, IGNORE_ARTIFACT_TRANSFORM_RESOLVER)

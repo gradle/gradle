@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[gradle_wrapper]]
+[[gradle_wrapper_reference]]
 = Gradle Wrapper Reference
 
 The **recommended way to execute any Gradle build** is with the help of the Gradle Wrapper (referred to as "Wrapper").
@@ -203,10 +203,7 @@ include::{snippetsPath}/wrapper/simple/tests/wrapperBatchFileExecution.out[]
 If the Gradle distribution is unavailable on the machine, the Wrapper will download it and store it in the local file system.
 Any subsequent build invocation will reuse the existing local distribution as long as the distribution URL in the Gradle properties doesn't change.
 
-[NOTE]
-====
-The Wrapper shell script and batch file reside in the root directory of a single or multi-project Gradle build. You will need to reference the correct path to those files in case you want to execute the build from a subproject directory e.g. `../../gradlew tasks`.
-====
+NOTE: The Wrapper shell script and batch file reside in the root directory of a single or multi-project Gradle build. You will need to reference the correct path to those files in case you want to execute the build from a subproject directory e.g. `../../gradlew tasks`.
 
 [[sec:upgrading_wrapper]]
 == Upgrading the Gradle Wrapper
@@ -243,7 +240,7 @@ include::{snippetsPath}/wrapper/simple/tests/wrapperGradleVersionUpgrade.out[]
 
 Once you have upgraded the wrapper, you can check that it's the version you expected by executing `./gradlew --version`.
 
-Don't forget to run the `wrapper` task again to download the Gradle distribution binaries (if needed) and update the `gradlew` and `gradle.bat` files.
+Don't forget to run the `wrapper` task again to download the Gradle distribution binaries (if needed) and update the `gradlew` and `gradlew.bat` files.
 
 [[customizing_wrapper]]
 == Customizing the Gradle Wrapper
@@ -336,11 +333,8 @@ distributionSha256Sum=371cb9fbebbe9880d147f59bab36d61eee122854ef8c9ee1ecf12b8236
 Gradle will report a build failure if the configured checksum does not match the checksum found on the server hosting the distribution.
 Checksum verification is only performed if the configured Wrapper distribution hasn't been downloaded yet.
 
-[NOTE]
-====
-The `Wrapper` task fails if `gradle-wrapper.properties` contains `distributionSha256Sum`, but the task configuration does not define a sum.
+NOTE: The `Wrapper` task fails if `gradle-wrapper.properties` contains `distributionSha256Sum`, but the task configuration does not define a sum.
 Executing the `Wrapper` task preserves the `distributionSha256Sum` configuration when the Gradle version does not change.
-====
 
 [[wrapper_checksum_verification]]
 == Verifying the integrity of the Gradle Wrapper JAR
@@ -373,7 +367,7 @@ $ curl --location --output gradle-wrapper.jar.sha256 \
        https://services.gradle.org/distributions/gradle-{gradleVersion}-wrapper.jar.sha256
 ----
 ----
-$ echo "gradle-wrapper.jar" >> gradle-wrapper.jar.sha256
+$ echo " gradle-wrapper.jar" >> gradle-wrapper.jar.sha256
 ----
 ----
 $ sha256sum --check gradle-wrapper.jar.sha256
@@ -393,7 +387,7 @@ $ curl --location --output gradle-wrapper.jar.sha256 \
        https://services.gradle.org/distributions/gradle-{gradleVersion}-wrapper.jar.sha256
 ----
 ----
-$ echo "gradle-wrapper.jar" >> gradle-wrapper.jar.sha256
+$ echo " gradle-wrapper.jar" >> gradle-wrapper.jar.sha256
 ----
 ----
 $ shasum --check gradle-wrapper.jar.sha256

@@ -16,13 +16,12 @@
 
 package org.gradle.external.javadoc.internal
 
-import com.google.common.collect.Lists
 import spock.lang.Specification
 
 class OptionLessStringsJavadocOptionFileOptionTest extends Specification {
     private JavadocOptionFileWriterContext writerContextMock = Mock()
 
-    private OptionLessStringsJavadocOptionFileOption optionLessStringsOption = new OptionLessStringsJavadocOptionFileOption(Lists.<String>newArrayList())
+    private OptionLessStringsJavadocOptionFileOption optionLessStringsOption = new OptionLessStringsJavadocOptionFileOption(new ArrayList<>())
 
     def writeNonNullValue() throws IOException {
         final String firstValue = "firstValue"

@@ -68,6 +68,7 @@ public class CompositeFileSystemSnapshot implements FileSystemSnapshot {
         return SnapshotVisitResult.CONTINUE;
     }
 
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;

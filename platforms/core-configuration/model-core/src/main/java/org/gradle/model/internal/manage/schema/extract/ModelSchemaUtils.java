@@ -26,6 +26,7 @@ import com.google.common.collect.Multimaps;
 import com.google.common.collect.Ordering;
 import groovy.lang.GroovyObject;
 import org.gradle.internal.reflect.GroovyMethods;
+import org.gradle.internal.reflect.Types.TypeVisitResult;
 import org.gradle.internal.reflect.Types.TypeVisitor;
 import org.gradle.model.Managed;
 
@@ -63,7 +64,7 @@ public class ModelSchemaUtils {
         final ImmutableListMultimap.Builder<String, Method> methodsByNameBuilder = ImmutableListMultimap.builder();
         walkTypeHierarchy(clazz, IGNORED_OBJECT_TYPES, new TypeVisitor<T>() {
             @Override
-            public void visitType(Class<? super T> type) {
+            public TypeVisitResult visitType(Class<? super T> type) {
                 Method[] declaredMethods = type.getDeclaredMethods();
                 // Sort of determinism
                 Arrays.sort(declaredMethods, Ordering.usingToString());
@@ -73,6 +74,7 @@ public class ModelSchemaUtils {
                     }
                     methodsByNameBuilder.put(method.getName(), method);
                 }
+                return TypeVisitResult.CONTINUE;
             }
         });
         ImmutableListMultimap<String, Method> methodsByName = methodsByNameBuilder.build();

@@ -16,15 +16,15 @@
 
 package org.gradle.internal.normalization.java.impl;
 
-import com.google.common.collect.Lists;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Opcodes;
 
+import java.util.LinkedList;
 import java.util.List;
 
 public class SortingAnnotationVisitor extends AnnotationVisitor {
 
-    private final List<AnnotationValue<?>> annotationValues = Lists.newLinkedList();
+    private final List<AnnotationValue<?>> annotationValues = new LinkedList<>();
     private final AnnotationMember annotation;
 
     private SortingAnnotationVisitor parentVisitor;

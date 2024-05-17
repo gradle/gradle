@@ -22,7 +22,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import javax.annotation.Nullable;
 import java.io.File;
 
-@ServiceScope(Scope.Global.class)
+@ServiceScope(Scope.Project.class)
 public interface TemporaryFileProvider {
     /**
      * Allocates a new temporary file with the exact specified path,

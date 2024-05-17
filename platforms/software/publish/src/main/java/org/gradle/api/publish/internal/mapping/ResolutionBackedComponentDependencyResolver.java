@@ -16,7 +16,7 @@
 
 package org.gradle.api.publish.internal.mapping;
 
-import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.ModuleIdentifier;
@@ -24,17 +24,20 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.artifacts.result.ResolutionResult;
+import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependencyConstraint;
 import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
-import org.gradle.internal.lazy.Lazy;
+import org.gradle.internal.Actions;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+
+import static org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult.eachElement;
 
 /**
  * A {@link ComponentDependencyResolver} backed by a resolution result.
@@ -44,17 +47,17 @@ public class ResolutionBackedComponentDependencyResolver implements ComponentDep
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final ProjectDependencyPublicationResolver projectDependencyResolver;
 
-    private final Lazy<Map<ModuleIdentifier, String>> resolvedComponentVersions;
+    private final Map<ModuleIdentifier, String> resolvedComponentVersions;
 
     public ResolutionBackedComponentDependencyResolver(
-        Configuration resolutionConfiguration,
+        ResolvedComponentResult root,
         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
         ProjectDependencyPublicationResolver projectDependencyResolver
     ) {
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.projectDependencyResolver = projectDependencyResolver;
 
-        this.resolvedComponentVersions = Lazy.unsafe().of(() -> getResolvedComponentVersions(resolutionConfiguration));
+        this.resolvedComponentVersions = getResolvedComponentVersions(root);
     }
 
     @Nullable
@@ -86,7 +89,7 @@ public class ResolutionBackedComponentDependencyResolver implements ComponentDep
 
     @Nullable
     private ResolvedCoordinates resolveModuleComponentCoordinates(String group, String name) {
-        String resolvedVersion = resolvedComponentVersions.get().get(
+        String resolvedVersion = resolvedComponentVersions.get(
             moduleIdentifierFactory.module(group, name)
         );
 
@@ -97,11 +100,10 @@ public class ResolutionBackedComponentDependencyResolver implements ComponentDep
         return ResolvedCoordinates.create(group, name, resolvedVersion);
     }
 
-    private static Map<ModuleIdentifier, String> getResolvedComponentVersions(Configuration resolutionConfiguration) {
+    private static Map<ModuleIdentifier, String> getResolvedComponentVersions(ResolvedComponentResult root) {
         Map<ModuleIdentifier, String> resolvedComponentVersions = new HashMap<>();
 
-        ResolutionResult resolutionResult = resolutionConfiguration.getIncoming().getResolutionResult();
-        resolutionResult.allComponents(component -> {
+        eachElement(root, (Action<? super ResolvedComponentResult>) component -> {
 
             ComponentIdentifier componentId = component.getId();
             if (componentId instanceof ModuleComponentIdentifier) {
@@ -109,7 +111,7 @@ public class ResolutionBackedComponentDependencyResolver implements ComponentDep
                 resolvedComponentVersions.put(moduleId.getModuleIdentifier(), moduleId.getVersion());
             }
 
-        });
+        }, Actions.doNothing(), new HashSet<>());
 
         return resolvedComponentVersions;
     }

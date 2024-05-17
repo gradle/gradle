@@ -17,11 +17,17 @@ package org.gradle.api.internal.artifacts.verification.verifier;
 
 import org.gradle.internal.logging.text.TreeFormatter;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 public interface VerificationFailure {
 
     File getFilePath();
+
+    @Nullable
+    default File getSignatureFile() {
+        return null;
+    }
 
     default boolean isFatal() {
         return true;

@@ -17,7 +17,7 @@
 package promotion
 
 import common.VersionedSettingsBranch
-import jetbrains.buildServer.configs.kotlin.v2019_2.ParameterDisplay
+import jetbrains.buildServer.configs.kotlin.ParameterDisplay
 
 abstract class PublishRelease(
     prepTask: String,

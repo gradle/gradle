@@ -40,6 +40,6 @@ class PluginRequestsHandlerTest {
         subject.handle(initialRequests, scriptHandler, target, targetScope)
 
         // then:
-        verify(pluginRequestApplicator).applyPlugins(initialRequests, autoAppliedPlugins, scriptHandler, pluginManager, targetScope)
+        verify(pluginRequestApplicator).applyPlugins(initialRequests.mergeWith(autoAppliedPlugins), scriptHandler, pluginManager, targetScope)
     }
 }

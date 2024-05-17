@@ -20,29 +20,33 @@ plugins {
 
 description = "Contains the JVM Test Suite plugin"
 
+errorprone {
+    disabledChecks.addAll(
+        "OverridesJavaxInjectableMethod", // 1 occurrences
+    )
+}
+
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":core-api"))
+    api(projects.javaLanguageExtensions)
+    api(project(":base-services"))
+    api(project(":core-api"))
+    api(project(":language-jvm"))
+    api(project(":model-core"))
+    api(project(":platform-jvm"))
+    api(project(":testing-jvm"))
+    api(project(":test-suites-base"))
+
+    api(libs.inject)
+
     implementation(project(":core"))
-    implementation(project(":language-java"))
-    implementation(project(":language-jvm"))
     implementation(project(":logging"))
-    implementation(project(":model-core"))
-    implementation(project(":platform-base"))
-    implementation(project(":platform-jvm"))
     implementation(project(":plugins-java-base"))
-    implementation(project(":reporting"))
     implementation(project(":testing-base"))
-    implementation(project(":testing-jvm"))
-    implementation(project(":test-suites-base"))
-    implementation(project(":tooling-api"))
 
     implementation(libs.commonsLang)
 
     implementation(libs.ant)
-    implementation(libs.groovy)
     implementation(libs.guava)
-    implementation(libs.inject)
 
     integTestDistributionRuntimeOnly(project(":distributions-jvm"))
 }

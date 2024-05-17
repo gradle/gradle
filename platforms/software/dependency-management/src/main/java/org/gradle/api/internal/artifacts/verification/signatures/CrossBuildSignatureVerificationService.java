@@ -36,11 +36,11 @@ import org.gradle.security.internal.PublicKeyService;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 import static org.gradle.api.internal.artifacts.verification.signatures.CrossBuildCachingKeyService.MISSING_KEY_TIMEOUT;
-import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class CrossBuildSignatureVerificationService implements SignatureVerificationService {
     private final SignatureVerificationService delegate;
@@ -68,7 +68,7 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
         this.keyringFileHash = keyringFileHash;
         store = cacheBuilderFactory.createCacheBuilder("signature-verification")
             .withDisplayName("Signature verification cache")
-            .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Lock on demand
+            .withInitialLockMode(FileLockManager.LockMode.OnDemand)
             .open();
         InterningStringSerializer stringSerializer = new InterningStringSerializer(new StringInterner());
         cache = store.createIndexedCache(
@@ -213,6 +213,7 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
         private List<PGPPublicKey> validKeys = null;
         private List<PGPPublicKey> failedKeys = null;
         private List<String> ignoredKeys = null;
+        private boolean hasNoSignatures = false;
 
         private CacheEntryBuilder(long timestamp, HashCode originHash, HashCode signatureHash) {
             this.timestamp = timestamp;
@@ -223,7 +224,7 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
         @Override
         public void missingKey(String keyId) {
             if (missingKeys == null) {
-                missingKeys = Lists.newArrayList();
+                missingKeys = new ArrayList<>();
             }
             missingKeys.add(keyId);
         }
@@ -232,12 +233,12 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
         public void verified(PGPPublicKey key, boolean trusted) {
             if (trusted) {
                 if (trustedKeys == null) {
-                    trustedKeys = Lists.newArrayList();
+                    trustedKeys = new ArrayList<>();
                 }
                 trustedKeys.add(key);
             } else {
                 if (validKeys == null) {
-                    validKeys = Lists.newArrayList();
+                    validKeys = new ArrayList<>();
                 }
                 validKeys.add(key);
             }
@@ -246,7 +247,7 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
         @Override
         public void failed(PGPPublicKey pgpPublicKey) {
             if (failedKeys == null) {
-                failedKeys = Lists.newArrayList();
+                failedKeys = new ArrayList<>();
             }
             failedKeys.add(pgpPublicKey);
         }
@@ -254,13 +255,18 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
         @Override
         public void ignored(String keyId) {
             if (ignoredKeys == null) {
-                ignoredKeys = Lists.newArrayList();
+                ignoredKeys = new ArrayList<>();
             }
             ignoredKeys.add(keyId);
         }
 
+        @Override
+        public void noSignatures() {
+            hasNoSignatures = true;
+        }
+
         CacheEntry build() {
-            return new CacheEntry(timestamp, originHash, signatureHash, missingKeys, trustedKeys, validKeys, failedKeys, ignoredKeys);
+            return new CacheEntry(timestamp, originHash, signatureHash, missingKeys, trustedKeys, validKeys, failedKeys, ignoredKeys, hasNoSignatures);
         }
     }
 
@@ -273,8 +279,9 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
         private final List<PGPPublicKey> validKeys;
         private final List<PGPPublicKey> failedKeys;
         private final List<String> ignoredKeys;
+        private final boolean hasNoSignatures;
 
-        public CacheEntry(long timestamp, HashCode originHash, HashCode signatureHash, List<String> missingKeys, List<PGPPublicKey> trustedKeys, List<PGPPublicKey> validKeys, List<PGPPublicKey> failedKeys, List<String> ignoredKeys) {
+        public CacheEntry(long timestamp, HashCode originHash, HashCode signatureHash, List<String> missingKeys, List<PGPPublicKey> trustedKeys, List<PGPPublicKey> validKeys, List<PGPPublicKey> failedKeys, List<String> ignoredKeys, boolean hasNoSignatures) {
             this.timestamp = timestamp;
             this.originHash = originHash;
             this.signatureHash = signatureHash;
@@ -283,6 +290,7 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
             this.validKeys = validKeys;
             this.failedKeys = failedKeys;
             this.ignoredKeys = ignoredKeys;
+            this.hasNoSignatures = hasNoSignatures;
         }
 
         void applyTo(SignatureVerificationResultBuilder builder) {
@@ -311,6 +319,9 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
                     builder.ignored(ignoredKey);
                 }
             }
+            if (hasNoSignatures) {
+                builder.noSignatures();
+            }
         }
 
         public boolean updated(HashCode originHash, HashCode signatureHash) {
@@ -337,7 +348,8 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
             List<PGPPublicKey> validKeys = readKeys(decoder);
             List<PGPPublicKey> failedKeys = readKeys(decoder);
             List<String> ignoredKeys = readStringKeys(decoder);
-            return new CacheEntry(timestamp, originHash, signatureHash, missingKeys, trustedKeys, validKeys, failedKeys, ignoredKeys);
+            boolean hasNoSignatures = decoder.readBoolean();
+            return new CacheEntry(timestamp, originHash, signatureHash, missingKeys, trustedKeys, validKeys, failedKeys, ignoredKeys, hasNoSignatures);
         }
 
         private List<String> readStringKeys(Decoder decoder) throws Exception {
@@ -374,6 +386,7 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
             writeKeys(encoder, value.validKeys);
             writeKeys(encoder, value.failedKeys);
             writeStringKeys(encoder, value.ignoredKeys);
+            encoder.writeBoolean(value.hasNoSignatures);
         }
 
         private void writeStringKeys(Encoder encoder, List<String> keys) throws Exception {

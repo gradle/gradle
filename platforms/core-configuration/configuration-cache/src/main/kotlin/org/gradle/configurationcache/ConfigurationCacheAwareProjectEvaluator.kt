@@ -28,7 +28,7 @@ class ConfigurationCacheAwareProjectEvaluator(
     private val controller: ConfigurationCacheFingerprintController
 ) : ProjectEvaluator {
     override fun evaluate(project: ProjectInternal, state: ProjectStateInternal) {
-        controller.collectFingerprintForProject(project.identityPath) {
+        controller.runCollectingFingerprintForProject(project.identityPath) {
             delegate.evaluate(project, state)
         }
     }

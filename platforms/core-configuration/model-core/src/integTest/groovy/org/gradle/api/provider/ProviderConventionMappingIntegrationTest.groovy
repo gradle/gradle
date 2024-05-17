@@ -19,7 +19,10 @@ package org.gradle.api.provider
 import org.gradle.api.internal.provider.DefaultProvider
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-// TODO: Also do this for FileCollection types eventually
+/**
+ * See {@link FileCollectionConventionMappingIntegrationTest} for similar coverage for
+ * file collections.
+ */
 class ProviderConventionMappingIntegrationTest extends AbstractIntegrationSpec {
     private void expectDocumentedFailure() {
         failure.assertHasDocumentedCause('Using internal convention mapping with a Provider backed property. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#convention_mapping')
@@ -72,6 +75,34 @@ class ProviderConventionMappingIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'mytask'
     }
 
+    def "convention mapping can be used with FileSystemLocation properties and a #valueType value"() {
+        buildFile << """
+            abstract class MyTask extends DefaultTask {
+                @Internal abstract DirectoryProperty getFoo()
+                @Internal abstract RegularFileProperty getBar()
+
+                @TaskAction
+                void useIt() {
+                    assert foo.asFile.get().name == "foo"
+                    assert bar.asFile.get().name == "bar"
+                }
+            }
+            tasks.register("mytask", MyTask) {
+                def layout = project.layout
+                conventionMapping.map("foo") { $directoryExpression }
+                conventionMapping.map("bar") { $fileExpression }
+            }
+        """
+
+        expect:
+        succeeds 'mytask'
+
+        where:
+        valueType            | directoryExpression                      | fileExpression
+        "File"               | 'file("foo")'                            | 'file("bar")'
+        "FileSystemLocation" | 'layout.buildDirectory.dir("foo").get()' | 'layout.buildDirectory.file("bar").get()'
+    }
+
     def "convention mapping cannot be used with Property and a Provider value"() {
         buildFile << """
             abstract class MyTask extends DefaultTask {
@@ -93,7 +124,7 @@ class ProviderConventionMappingIntegrationTest extends AbstractIntegrationSpec {
         failureHasCause("Cannot get the value of task ':mytask' property 'bar' of type $String.name as the provider associated with this property returned a value of type $DefaultProvider.name.")
     }
 
-    def "emits deprecation warning when convention mapping is used with MapProperty"() {
+    def "convention mapping can be used with MapProperty"() {
         buildFile << """
             abstract class MyTask extends DefaultTask {
                 @Internal abstract MapProperty<String, String> getFoo()
@@ -111,11 +142,10 @@ class ProviderConventionMappingIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        runAndFail 'mytask'
-        expectDocumentedFailure()
+        succeeds 'mytask'
     }
 
-    def "emits deprecation warning when convention mapping is used with ListProperty"() {
+    def "convention mapping can be used with ListProperty"() {
         buildFile << """
             abstract class MyTask extends DefaultTask {
                 @Internal abstract ListProperty<String> getFoo()
@@ -133,8 +163,7 @@ class ProviderConventionMappingIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        runAndFail 'mytask'
-        expectDocumentedFailure()
+        succeeds 'mytask'
     }
 
     def "convention mapping works with Property in a ConventionTask"() {

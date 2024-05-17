@@ -21,17 +21,14 @@ import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.event.ListenerManager
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.UsesNativeServices
-import spock.util.concurrent.PollingConditions
 
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 
 @UsesNativeServices
 class DefaultMemoryManagerTest extends ConcurrentSpec {
-
     def osMemoryInfo = new TestOsMemoryInfo()
     def jvmMemoryInfo = new DefaultJvmMemoryInfo()
-    def conditions = new PollingConditions(timeout: DefaultMemoryManager.STATUS_INTERVAL_SECONDS * 2)
     OsMemoryStatusListener osMemoryStatusListener
 
     def setup() {
@@ -43,16 +40,20 @@ class DefaultMemoryManagerTest extends ConcurrentSpec {
      * Disable auto free memory request to prevent flakiness.
      * Registers an OS memory status update to initialize the values.
      */
-    def newMemoryManager() {
+    def newMemoryManager(OsMemoryInfo memoryInfo) {
         def listenerManager = Mock(ListenerManager) {
             1 * addListener(_) >> { args -> osMemoryStatusListener = args[0] }
         }
-        def memoryManager = new DefaultMemoryManager(osMemoryInfo, jvmMemoryInfo, listenerManager, Stub(ExecutorFactory), 0.25, false)
-        osMemoryStatusListener.onOsMemoryStatus(osMemoryInfo.getOsSnapshot())
+        def memoryManager = new DefaultMemoryManager(memoryInfo, jvmMemoryInfo, listenerManager, Stub(ExecutorFactory), 0.25, false)
+        osMemoryStatusListener.onOsMemoryStatus(memoryInfo.getOsSnapshot())
         return memoryManager
     }
 
-    def "does not attempt to release memory when claiming 0 memory and free system memory is below threshold"() {
+    def newMemoryManager() {
+        newMemoryManager(osMemoryInfo)
+    }
+
+    def "does not attempt to release memory when claiming 0 memory and free physical memory is available"() {
         given:
         osMemoryInfo.freeMemory = MemoryAmount.of('4g').bytes
         def memoryManager = newMemoryManager()
@@ -71,10 +72,56 @@ class DefaultMemoryManagerTest extends ConcurrentSpec {
         memoryManager.stop()
     }
 
-    def "attempt to release memory when claiming 0 memory and free system memory is above threshold"() {
+    def "does not attempt to release memory when claiming 0 memory and free virtual memory is available"() {
+        given:
+        def windowsMemoryInfo = new TestWindowsOsMemoryInfo()
+        windowsMemoryInfo.totalMemory =  MemoryAmount.of('8g').bytes
+        windowsMemoryInfo.freeMemory =  MemoryAmount.of('7g').bytes
+        windowsMemoryInfo.totalVirtual =  MemoryAmount.of('12g').bytes
+        windowsMemoryInfo.freeVirtual =  MemoryAmount.of('6g').bytes
+        def memoryManager = newMemoryManager(windowsMemoryInfo)
+
+        and:
+        def holder = Mock(MemoryHolder)
+        memoryManager.addMemoryHolder(holder)
+
+        when:
+        memoryManager.requestFreeMemory(0)
+
+        then:
+        0 * holder.attemptToRelease(_)
+
+        //cleanup:
+        //memoryManager.stop()
+    }
+
+    def "attempt to release memory when claiming 0 memory and free physical memory is not available"() {
         given:
         osMemoryInfo.freeMemory =  MemoryAmount.of('1g').bytes
         def memoryManager = newMemoryManager()
+
+        and:
+        def holder = Mock(MemoryHolder)
+        memoryManager.addMemoryHolder(holder)
+
+        when:
+        memoryManager.requestFreeMemory(0)
+
+        then:
+        1 * holder.attemptToRelease(_) >> MemoryAmount.ofGigaBytes(2).bytes
+
+        cleanup:
+        memoryManager.stop()
+    }
+
+    def "attempt to release memory when claiming 0 memory and free virtual memory is not available"() {
+        given:
+        def windowsMemoryInfo = new TestWindowsOsMemoryInfo()
+        windowsMemoryInfo.totalMemory =  MemoryAmount.of('4g').bytes
+        windowsMemoryInfo.freeMemory =  MemoryAmount.of('3g').bytes
+        windowsMemoryInfo.totalVirtual =  MemoryAmount.of('8g').bytes
+        windowsMemoryInfo.freeVirtual =  MemoryAmount.of('1g').bytes
+        def memoryManager = newMemoryManager(windowsMemoryInfo)
 
         and:
         def holder = Mock(MemoryHolder)
@@ -243,6 +290,18 @@ class DefaultMemoryManagerTest extends ConcurrentSpec {
         @Override
         OsMemoryStatus getOsSnapshot() {
             new OsMemoryStatusSnapshot(totalMemory, freeMemory)
+        }
+    }
+
+    private static class TestWindowsOsMemoryInfo implements OsMemoryInfo {
+        long totalMemory = 0
+        long freeMemory = 0
+        long totalVirtual = 0
+        long freeVirtual = 0
+
+        @Override
+        OsMemoryStatus getOsSnapshot() {
+            return new OsMemoryStatusSnapshot(totalMemory, freeMemory, totalVirtual, freeVirtual)
         }
     }
 }

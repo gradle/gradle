@@ -41,7 +41,7 @@ class DefaultFileAccessTimeJournalTest extends Specification {
 
     def cachesDir = tmpDir.createDir("caches")
     def cacheScopeMapping = new DefaultCacheScopeMapping(cachesDir, GradleVersion.current())
-    def cacheRepository = new DefaultUnscopedCacheBuilderFactory(cacheScopeMapping, new TestInMemoryCacheFactory())
+    def cacheRepository = new DefaultUnscopedCacheBuilderFactory(new TestInMemoryCacheFactory())
     def globalScopedCache = new DefaultGlobalScopedCacheBuilderFactory(cachesDir, cacheRepository)
     def cacheDecoratorFactory = Stub(DefaultInMemoryCacheDecoratorFactory) {
         decorator(_, _) >> Stub(CacheDecorator) {

@@ -16,7 +16,7 @@
 package org.gradle.api.file;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
+import org.gradle.api.Describable;
 import org.gradle.api.NonExtensible;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -33,7 +33,7 @@ import org.gradle.internal.HasInternalProtocol;
  */
 @HasInternalProtocol
 @NonExtensible
-public interface FileCopyDetails extends FileTreeElement, ContentFilterable {
+public interface FileCopyDetails extends FileTreeElement, ContentFilterable, Describable {
     /**
      * Excludes this file from the copy.
      */
@@ -65,8 +65,9 @@ public interface FileCopyDetails extends FileTreeElement, ContentFilterable {
      *
      * @param mode the Unix permissions, e.g. {@code 0644}.
      *
-     * @apiNote Consider using {@link #permissions(Action)} instead.
+     * @deprecated Use {@link #permissions(Action)} instead. This method is scheduled for removal in Gradle 9.0.
      */
+    @Deprecated
     void setMode(int mode);
 
     /**
@@ -75,7 +76,6 @@ public interface FileCopyDetails extends FileTreeElement, ContentFilterable {
      *
      * @since 8.3
      */
-    @Incubating
     void permissions(Action<? super ConfigurableFilePermissions> configureAction);
 
     /**
@@ -85,7 +85,6 @@ public interface FileCopyDetails extends FileTreeElement, ContentFilterable {
      *
      * @since 8.3
      */
-    @Incubating
     void setPermissions(FilePermissions permissions);
 
     /**

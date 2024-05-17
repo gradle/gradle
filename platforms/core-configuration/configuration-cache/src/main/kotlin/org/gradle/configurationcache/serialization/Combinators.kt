@@ -73,10 +73,10 @@ inline fun <reified T : Any> unsupported(
     noinline unsupportedMessage: StructuredMessageBuilder
 ): Codec<T> = codec(
     encode = {
-        logUnsupported("serialize", documentationSection, unsupportedMessage)
+        logUnsupported("serialize", documentationSection, unsupportedThings = unsupportedMessage)
     },
     decode = {
-        logUnsupported("deserialize", documentationSection, unsupportedMessage)
+        logUnsupported("deserialize", documentationSection, unsupportedThings = unsupportedMessage)
         null
     }
 )
@@ -366,6 +366,13 @@ fun Decoder.readStrings(): List<String> =
 
 
 internal
+fun Decoder.readStringsSet(): Set<String> =
+    readCollectionInto({ size -> LinkedHashSet(size) }) {
+        readString()
+    }
+
+
+internal
 inline fun <T> Encoder.writeCollection(collection: Collection<T>, writeElement: (T) -> Unit) {
     writeSmallInt(collection.size)
     for (element in collection) {
@@ -426,33 +433,6 @@ fun <E : Enum<E>> Encoder.writeEnum(value: E) {
 
 inline fun <reified E : Enum<E>> Decoder.readEnum(): E =
     readSmallInt().let { ordinal -> enumValues<E>()[ordinal] }
-
-
-fun Encoder.writeShort(value: Short) {
-    BaseSerializerFactory.SHORT_SERIALIZER.write(this, value)
-}
-
-
-fun Decoder.readShort(): Short =
-    BaseSerializerFactory.SHORT_SERIALIZER.read(this)
-
-
-fun Encoder.writeFloat(value: Float) {
-    BaseSerializerFactory.FLOAT_SERIALIZER.write(this, value)
-}
-
-
-fun Decoder.readFloat(): Float =
-    BaseSerializerFactory.FLOAT_SERIALIZER.read(this)
-
-
-fun Encoder.writeDouble(value: Double) {
-    BaseSerializerFactory.DOUBLE_SERIALIZER.write(this, value)
-}
-
-
-fun Decoder.readDouble(): Double =
-    BaseSerializerFactory.DOUBLE_SERIALIZER.read(this)
 
 
 inline

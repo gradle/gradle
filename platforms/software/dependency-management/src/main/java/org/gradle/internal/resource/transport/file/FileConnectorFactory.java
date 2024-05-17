@@ -22,6 +22,7 @@ import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.resource.connector.ResourceConnectorSpecification;
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;
 
+import java.util.HashSet;
 import java.util.Set;
 
 public class FileConnectorFactory implements ResourceConnectorFactory {
@@ -32,7 +33,7 @@ public class FileConnectorFactory implements ResourceConnectorFactory {
 
     @Override
     public Set<Class<? extends Authentication>> getSupportedAuthentication() {
-        return Sets.newHashSet();
+        return new HashSet<>();
     }
 
     @Override

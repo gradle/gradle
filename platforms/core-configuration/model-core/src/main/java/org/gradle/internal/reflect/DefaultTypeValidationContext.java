@@ -18,10 +18,10 @@ package org.gradle.internal.reflect;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.problems.Problem;
-import org.gradle.api.problems.ProblemCategory;
-import org.gradle.api.problems.ReportableProblem;
-import org.gradle.api.problems.internal.DefaultProblemCategory;
+import org.gradle.api.problems.ProblemId;
+import org.gradle.api.problems.internal.DefaultProblemId;
+import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.api.problems.internal.Problem;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 import org.gradle.model.internal.type.ModelType;
@@ -30,8 +30,6 @@ import javax.annotation.Nullable;
 import java.util.Optional;
 
 import static java.util.stream.Collectors.toList;
-import static org.gradle.api.problems.internal.DefaultProblemCategory.SEPARATOR;
-import static org.gradle.api.problems.internal.DefaultProblemCategory.VALIDATION;
 
 public class DefaultTypeValidationContext extends ProblemRecordingTypeValidationContext {
 
@@ -52,16 +50,16 @@ public class DefaultTypeValidationContext extends ProblemRecordingTypeValidation
         this.reportCacheabilityProblems = reportCacheabilityProblems;
     }
 
-    public static final String MISSING_NORMALIZATION_CATEGORY_DETAILS = "property" + SEPARATOR + "missing-normalization-annotation";
-    public static final DefaultProblemCategory MISSING_NORMALIZATION_CATEGORY = new DefaultProblemCategory(VALIDATION + SEPARATOR  + MISSING_NORMALIZATION_CATEGORY_DETAILS);
+    public static final ProblemId MISSING_NORMALIZATION_ID = new DefaultProblemId("missing-normalization-annotation", "Missing normalization", GradleCoreProblemGroup.validation().property());
 
-    public static boolean onlyAffectsCacheableWork(ProblemCategory problemCategory) {
-        return MISSING_NORMALIZATION_CATEGORY.equals(problemCategory);
+    public static boolean onlyAffectsCacheableWork(ProblemId id) {
+        return MISSING_NORMALIZATION_ID.equals(id);
     }
 
+
     @Override
-    protected void recordProblem(ReportableProblem problem) {
-        if (onlyAffectsCacheableWork(problem.getProblemCategory()) && !reportCacheabilityProblems) { // TODO (donat) is is already fixed on master
+    protected void recordProblem(Problem problem) {
+        if (onlyAffectsCacheableWork(problem.getDefinition().getId()) && !reportCacheabilityProblems) { // TODO (donat) is is already fixed on master
             return;
         }
         problems.add(problem);

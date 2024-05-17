@@ -18,10 +18,10 @@ package org.gradle.plugins.ide.eclipse.model;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
 import groovy.util.Node;
 import org.gradle.plugins.ide.eclipse.model.internal.PathUtil;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -55,7 +55,7 @@ public class Output implements ClasspathEntry {
 
     @Override
     public void appendNode(Node node) {
-        Map<String, Object> attributes = Maps.newLinkedHashMap();
+        Map<String, Object> attributes = new LinkedHashMap<>();
         attributes.put("kind", getKind());
         attributes.put("path", path);
         node.appendNode("classpathentry", attributes);
@@ -83,4 +83,3 @@ public class Output implements ClasspathEntry {
         return "Output{path='" + path + "'}";
     }
 }
-

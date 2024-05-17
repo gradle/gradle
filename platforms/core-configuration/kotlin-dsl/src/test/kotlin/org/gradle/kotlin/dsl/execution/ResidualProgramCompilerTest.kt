@@ -94,8 +94,10 @@ class ResidualProgramCompilerTest : TestWithCompiler() {
         )
 
         val target = mock<Settings>()
-        val programHost = safeMockProgramHost()
         val scriptHost = scriptHostWith(target)
+        val programHost = safeMockProgramHost {
+            on { accessorsClassPathFor(scriptHost) } doReturn ClassPath.EMPTY
+        }
 
         withExecutableProgramFor(Static(CloseTargetScope, Eval(source))) {
             execute(programHost, scriptHost)
@@ -138,8 +140,10 @@ class ResidualProgramCompilerTest : TestWithCompiler() {
         val source = ProgramSource("settings.gradle.kts", "include(\"foo\", \"bar\")")
         val sourceHash = TestHashCodes.hashCodeFrom(42)
         val target = mock<Settings>()
-        val programHost = safeMockProgramHost()
         val scriptHost = scriptHostWith(target)
+        val programHost = safeMockProgramHost {
+            on { accessorsClassPathFor(scriptHost) } doReturn ClassPath.EMPTY
+        }
         val stage2ProgramId = ProgramId(stage2SettingsTemplateId, sourceHash, mock())
 
         withExecutableProgramFor(
@@ -240,12 +244,13 @@ class ResidualProgramCompilerTest : TestWithCompiler() {
             on { repositories } doReturn mock<RepositoryHandler>()
         }
 
-        val programHost = safeMockProgramHost()
-
         val scriptHost = scriptHostWith(
             target = mock<Settings>(),
             scriptHandler = scriptHandler
         )
+        val programHost = safeMockProgramHost {
+            on { accessorsClassPathFor(scriptHost) } doReturn ClassPath.EMPTY
+        }
 
         withExecutableProgramFor(
             Dynamic(
@@ -549,7 +554,7 @@ class ResidualProgramCompilerTest : TestWithCompiler() {
                     scriptTemplateId = stage2SettingsTemplateId,
                     // localClassPathHash = emptyHashCode, // only applicable once we have accessors
                     sourceHash = sourceHash,
-                    accessorsClassPath = ClassPath.EMPTY
+                    accessorsClassPath = accessorsClassPath
                 )
 
                 verify(programHost).compileSecondStageOf(

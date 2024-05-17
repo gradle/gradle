@@ -175,6 +175,7 @@ public class ModuleVersionNotFoundException extends ModuleVersionResolveExceptio
         return resolutions;
     }
 
+    @Override
     protected ModuleVersionResolveException createCopy() {
         try {
             String message = getMessage();

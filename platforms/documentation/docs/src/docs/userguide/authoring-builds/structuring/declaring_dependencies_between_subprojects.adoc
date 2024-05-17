@@ -1,0 +1,101 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[declaring_dependencies_between_subprojects]]
+= Declaring Dependencies between Subprojects
+
+What if one subproject depends on another subproject?
+What if one project needs the artifact produced by another project?
+
+image::structuring-builds-2.png[]
+
+This is a common use case for multi-project builds.
+Gradle offers <<declaring_dependencies.adoc#sub:project_dependencies,project dependencies>> for this.
+
+[[sec:project_jar_dependencies]]
+== Depending on another project
+
+Let's explore a theoretical multi-project build with the following layout:
+
+[.multi-language-sample]
+=====
+[source, kotlin]
+----
+.
+├── api
+│   ├── src
+│   │   └──...
+│   └── build.gradle.kts
+├── services
+│   └── person-service
+│       ├── src
+│       │   └──...
+│       └── build.gradle.kts
+├── shared
+│   ├── src
+│   │   └──...
+│   └── build.gradle.kts
+└── settings.gradle.kts
+----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+.
+├── api
+│   ├── src
+│   │   └──...
+│   └── build.gradle
+├── services
+│   └── person-service
+│       ├── src
+│       │   └──...
+│       └── build.gradle
+├── shared
+│   ├── src
+│   │   └──...
+│   └── build.gradle
+└── settings.gradle
+----
+=====
+
+In this example, there are three subprojects called `shared`, `api`, and `person-service`:
+
+1. The `person-service` subproject depends on the other two subprojects, `shared` and `api`.
+2. The `api` subproject depends on the `shared` subproject.
+
+We use the `:` separator to define a <<intro_multi_project_builds#sec:project_path,project path>> such as `services:person-service` or `:shared`.
+Consult the DSL documentation of link:{groovyDslPath}++/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:include(java.lang.String[])++[Settings.include(java.lang.String[\])] for more information about defining project paths.
+
+[[javadependencies_2]]
+====
+include::sample[dir="snippets/multiproject/basic-dependencies/kotlin",files="settings.gradle.kts[];shared/build.gradle.kts[];api/build.gradle.kts[];services/person-service/build.gradle.kts[]"]
+include::sample[dir="snippets/multiproject/basic-dependencies/groovy",files="settings.gradle[];shared/build.gradle[];api/build.gradle[];services/person-service/build.gradle[]"]
+====
+
+A project dependency affects execution order.
+It causes the other project to be built first and adds the output with the classes of the other project to the classpath.
+It also adds the dependencies of the other project to the classpath.
+
+If you execute `./gradlew :api:compile`, first the `shared` project is built, and then the `api` project is built.
+
+[[sec:depending_on_output_of_another_project]]
+== Depending on artifacts produced by another project
+
+Sometimes, you might want to depend on the output of a specific task within another project rather than the entire project.
+However, explicitly declaring a task dependency from one project to another is discouraged as it introduces unnecessary coupling between tasks.
+
+The recommended way to model dependencies, where a task in one project depends on the output of another, is to produce the output and mark it as an "outgoing" artifact.
+Gradle's <<cross_project_publications#cross_project_publications,dependency management engine>> allows you to share arbitrary artifacts between projects and build them on demand.

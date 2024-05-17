@@ -17,7 +17,7 @@
 package org.gradle.cache.internal
 
 import org.gradle.cache.FileLockManager
-import org.gradle.cache.internal.filelock.LockOptionsBuilder
+import org.gradle.cache.internal.filelock.DefaultLockOptions
 import org.gradle.test.fixtures.file.TestFile
 
 import static org.gradle.cache.FileLockManager.LockMode.Exclusive
@@ -25,8 +25,8 @@ import static org.gradle.cache.FileLockManager.LockMode.Shared
 
 class DefaultFileLockManagerWithNewProtocolTest extends AbstractFileLockManagerTest {
     @Override
-    protected LockOptionsBuilder options() {
-        return LockOptionsBuilder.mode(FileLockManager.LockMode.OnDemand)
+    protected DefaultLockOptions options() {
+        return DefaultLockOptions.mode(FileLockManager.LockMode.OnDemand)
     }
 
     def "a lock has been updated when never written to"() {

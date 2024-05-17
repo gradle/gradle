@@ -162,7 +162,7 @@ class XcodeSwiftApplicationProjectIntegrationTest extends AbstractXcodeSwiftProj
                 .fails()
 
         then:
-        resultApp.assertHasCause("Could not resolve all task dependencies for configuration ':app:nativeRuntimeDebug'.")
+        resultApp.assertHasCause("Could not resolve all dependencies for configuration ':app:nativeRuntimeDebug'.")
         resultApp.assertHasCause("Could not resolve project :greeter.")
 
 

@@ -16,8 +16,6 @@
 
 package org.gradle.api.reporting.dependencies.internal;
 
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import groovy.json.JsonBuilder;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -131,11 +129,11 @@ class JsonProjectDependencyRenderer {
     // Historic note: this class still uses the Groovy JsonBuilder, as it was originally developed as a Groovy class.
     private void renderProject(ProjectNameAndPath project, Iterable<ConfigurationDetails> configurations, JsonBuilder json) {
 
-        Map<String, Object> overall = Maps.newLinkedHashMap();
+        Map<String, Object> overall = new LinkedHashMap<>();
         overall.put("gradleVersion", GradleVersion.current().toString());
         overall.put("generationDate", new Date().toString());
 
-        Map<String, Object> projectOut = Maps.newLinkedHashMap();
+        Map<String, Object> projectOut = new LinkedHashMap<>();
         projectOut.put("name", project.getName());
         projectOut.put("description", project.getDescription());
         projectOut.put("configurations", createConfigurations(configurations));
@@ -207,8 +205,8 @@ class JsonProjectDependencyRenderer {
         } else {
             root = configuration.getUnresolvableResult();
         }
-        Set<ModuleIdentifier> modules = Sets.newHashSet();
-        Set<ComponentIdentifier> visited = Sets.newHashSet();
+        Set<ModuleIdentifier> modules = new HashSet<>();
+        Set<ComponentIdentifier> visited = new HashSet<>();
         populateModulesWithChildDependencies(root, visited, modules);
         return modules;
     }

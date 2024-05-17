@@ -18,7 +18,7 @@ package org.gradle.configurationcache
 
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
-import org.gradle.internal.service.scopes.Scopes.BuildTree
+import org.gradle.internal.service.scopes.Scope.BuildTree
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.util.internal.GFileUtils
 import java.io.File

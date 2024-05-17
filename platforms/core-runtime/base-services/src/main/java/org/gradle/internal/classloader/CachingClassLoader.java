@@ -106,6 +106,7 @@ public class CachingClassLoader extends ClassLoader implements ClassLoaderHierar
         }
     }
 
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -118,6 +119,7 @@ public class CachingClassLoader extends ClassLoader implements ClassLoaderHierar
         return parent.equals(that.parent);
     }
 
+    @Override
     public int hashCode() {
         return parent.hashCode();
     }

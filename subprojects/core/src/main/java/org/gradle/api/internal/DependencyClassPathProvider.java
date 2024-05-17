@@ -39,7 +39,8 @@ public class DependencyClassPathProvider implements ClassPathProvider {
         "gradle-dependency-management",
         "gradle-plugin-use",
         "gradle-tooling-api-builders",
-        "gradle-configuration-cache"
+        "gradle-configuration-cache",
+        "gradle-unit-test-fixtures"
     );
 
     private final ModuleRegistry moduleRegistry;

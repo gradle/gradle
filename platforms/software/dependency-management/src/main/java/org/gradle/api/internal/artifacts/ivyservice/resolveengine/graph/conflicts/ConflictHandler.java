@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflic
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 
-public interface ConflictHandler<CANDIDATE, RESULT, RESOLVER> {
+public interface ConflictHandler<CANDIDATE, RESULT> {
 
     /**
      * Registers new module and returns information about any potential conflict
@@ -35,11 +35,6 @@ public interface ConflictHandler<CANDIDATE, RESULT, RESOLVER> {
      * Resolves next conflict and trigger provided action after the resolution
      */
     void resolveNextConflict(Action<RESULT> resolutionAction);
-
-    /**
-     * Registers a conflict resolver that is used for resolving conflicts. It is possible to register multiple resolvers.
-     */
-    void registerResolver(RESOLVER conflictResolver);
 
     /**
      * Indicates if the identifier is a known participant in a conflict

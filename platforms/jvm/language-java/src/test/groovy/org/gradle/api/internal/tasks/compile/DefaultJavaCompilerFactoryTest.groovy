@@ -17,7 +17,8 @@ package org.gradle.api.internal.tasks.compile
 
 import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetector
-import org.gradle.api.problems.Problems
+import org.gradle.api.problems.internal.InternalProblems
+import org.gradle.initialization.layout.ProjectCacheDir
 import org.gradle.process.internal.ExecHandleFactory
 import org.gradle.process.internal.JavaForkOptionsFactory
 import org.gradle.workers.internal.ActionExecutionSpecFactory
@@ -35,7 +36,8 @@ class DefaultJavaCompilerFactoryTest extends Specification {
         Stub(AnnotationProcessorDetector),
         Stub(ClassPathRegistry),
         Stub(ActionExecutionSpecFactory),
-        Stub(Problems)
+        Stub(InternalProblems),
+        Stub(ProjectCacheDir)
     )
 
     def "creates in-process compiler when JavaCompileSpec is provided"() {
@@ -81,14 +83,21 @@ class DefaultJavaCompilerFactoryTest extends Specification {
 
     private static class TestForkingJavaCompileSpec extends DefaultJavaCompileSpec implements ForkingJavaCompileSpec {
         private final File javaHome;
+        private final int javaLanguageVersion;
 
-        private TestForkingJavaCompileSpec(File javaHome) {
-            this.javaHome = javaHome;
+        private TestForkingJavaCompileSpec(File javaHome, int javaLanguageVersion) {
+            this.javaHome = javaHome
+            this.javaLanguageVersion = javaLanguageVersion
         }
 
         @Override
-        public File getJavaHome() {
-            return javaHome;
+        File getJavaHome() {
+            return javaHome
+        }
+
+        @Override
+        int getJavaLanguageVersion() {
+            return javaLanguageVersion
         }
     }
 }

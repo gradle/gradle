@@ -366,7 +366,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
             getAttributes() >> AttributeTestUtil.attributes(attributes)
         }
         def state = Stub(ModuleComponentGraphResolveState) {
-            getModuleResolveMetadata() >> meta
+            getLegacyMetadata() >> meta
         }
         def result = new DefaultBuildableModuleComponentMetaDataResolveResult()
         result.resolved(state)

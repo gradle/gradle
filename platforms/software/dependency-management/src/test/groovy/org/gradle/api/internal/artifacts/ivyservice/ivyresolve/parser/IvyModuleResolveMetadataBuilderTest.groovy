@@ -57,7 +57,7 @@ class IvyModuleResolveMetadataBuilderTest extends Specification {
         md.addConfiguration(new Configuration("runtime"))
 
         when:
-        meta.addArtifact(unattached, newHashSet())
+        meta.addArtifact(unattached, new HashSet<String>())
         meta.build()
 
         then: thrown(IllegalArgumentException)

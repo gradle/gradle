@@ -23,7 +23,7 @@ import java.util.Set;
  * a client module you can declare a module dependency without the need of a module descriptor in a
  * remote repository.
  *
- * <p>Client modules dependencies are deprecated and will be removed in Gradle 9.0. Use component metadata rules instead.</p>
+ * <p>Client modules dependencies are deprecated and will be removed in Gradle 9.0. Please use component metadata rules instead.</p>
  *
  * @see org.gradle.api.artifacts.dsl.DependencyHandler
  */

@@ -17,12 +17,11 @@
 package org.gradle.plugin.management.internal;
 
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.plugin.management.PluginRequest;
 import org.gradle.plugin.use.PluginId;
-import org.gradle.plugin.use.internal.DefaultPluginId;
 
 import javax.annotation.Nullable;
+import java.util.Optional;
 
 public class DefaultPluginRequest implements PluginRequestInternal {
 
@@ -31,40 +30,31 @@ public class DefaultPluginRequest implements PluginRequestInternal {
     private final boolean apply;
     private final Integer lineNumber;
     private final String scriptDisplayName;
-    private final ModuleVersionSelector artifact;
+    private final ModuleVersionSelector module;
     private final PluginRequest originalRequest;
     private final Origin origin;
-
-    public DefaultPluginRequest(PluginId id, String version, boolean apply, Integer lineNumber, ScriptSource scriptSource) {
-        this(id, version, apply, lineNumber, scriptSource.getDisplayName(), null);
-    }
-
-    public DefaultPluginRequest(String id, String version, boolean apply, Integer lineNumber, String scriptDisplayName) {
-        this(DefaultPluginId.of(id), version, apply, lineNumber, scriptDisplayName, null);
-    }
-
-    public DefaultPluginRequest(PluginId id, String version, boolean apply, Integer lineNumber, String scriptDisplayName, ModuleVersionSelector artifact) {
-        this(id, version, apply, lineNumber, scriptDisplayName, artifact, null, Origin.OTHER);
-    }
+    private final PluginCoordinates alternativeCoordinates;
 
     public DefaultPluginRequest(
         PluginId id,
-        String version,
         boolean apply,
-        Integer lineNumber,
-        String scriptDisplayName,
-        ModuleVersionSelector artifact,
-        PluginRequest originalRequest,
-        Origin origin
+        Origin origin,
+        @Nullable String scriptDisplayName,
+        @Nullable Integer lineNumber,
+        @Nullable String version,
+        @Nullable ModuleVersionSelector module,
+        @Nullable PluginRequest originalRequest,
+        @Nullable PluginCoordinates alternativeCoordinates
     ) {
         this.id = id;
         this.version = version;
         this.apply = apply;
         this.lineNumber = lineNumber;
         this.scriptDisplayName = scriptDisplayName;
-        this.artifact = artifact;
-        this.originalRequest = originalRequest != null ? originalRequest : this;
+        this.module = module;
+        this.originalRequest = originalRequest;
         this.origin = origin;
+        this.alternativeCoordinates = alternativeCoordinates;
     }
 
     @Override
@@ -72,6 +62,7 @@ public class DefaultPluginRequest implements PluginRequestInternal {
         return id;
     }
 
+    @Nullable
     @Override
     public String getVersion() {
         return version;
@@ -80,7 +71,7 @@ public class DefaultPluginRequest implements PluginRequestInternal {
     @Nullable
     @Override
     public ModuleVersionSelector getModule() {
-        return artifact;
+        return module;
     }
 
     @Override
@@ -88,11 +79,13 @@ public class DefaultPluginRequest implements PluginRequestInternal {
         return apply;
     }
 
+    @Nullable
     @Override
     public Integer getLineNumber() {
         return lineNumber;
     }
 
+    @Nullable
     @Override
     public String getScriptDisplayName() {
         return scriptDisplayName;
@@ -100,13 +93,18 @@ public class DefaultPluginRequest implements PluginRequestInternal {
 
     @Override
     public String toString() {
+        return getDisplayName();
+    }
+
+    @Override
+    public String getDisplayName() {
         StringBuilder b = new StringBuilder();
         b.append("[id: '").append(id).append("'");
         if (version != null) {
             b.append(", version: '").append(version).append("'");
         }
-        if (artifact != null) {
-            b.append(", artifact: '").append(artifact).append("'");
+        if (module != null) {
+            b.append(", artifact: '").append(module).append("'");
         }
         if (!apply) {
             b.append(", apply: false");
@@ -116,11 +114,7 @@ public class DefaultPluginRequest implements PluginRequestInternal {
         return b.toString();
     }
 
-    @Override
-    public String getDisplayName() {
-        return toString();
-    }
-
+    @Nullable
     @Override
     public PluginRequest getOriginalRequest() {
         return originalRequest;
@@ -129,5 +123,10 @@ public class DefaultPluginRequest implements PluginRequestInternal {
     @Override
     public Origin getOrigin() {
         return origin;
+    }
+
+    @Override
+    public Optional<PluginCoordinates> getAlternativeCoordinates() {
+        return Optional.ofNullable(alternativeCoordinates);
     }
 }

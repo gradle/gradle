@@ -8,6 +8,5 @@ description = "Develocity plugin dependencies that also need to be exposed to wo
 gradlebuildJava.usedInWorkers()
 
 dependencies {
-    implementation(project(":base-annotations"))
-    implementation(libs.jsr305)
+    api(libs.jsr305)
 }

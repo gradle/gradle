@@ -24,12 +24,12 @@ import java.util.List;
 public class InvalidLockFileException extends RuntimeException implements ResolutionProvider {
     private final String resolutionMessage;
 
-    public InvalidLockFileException(String name, Exception cause, String resolutionMessage) {
-        super("Invalid lock state for " + name, cause);
+    public InvalidLockFileException(String displayName, Exception cause, String resolutionMessage) {
+        super("Invalid lock state for " + displayName, cause);
         this.resolutionMessage = resolutionMessage;
     }
-    public InvalidLockFileException(String name, String resolutionMessage) {
-        super("Invalid lock state for " + name);
+    public InvalidLockFileException(String displayName, String resolutionMessage) {
+        super("Invalid lock state for " + displayName);
         this.resolutionMessage = resolutionMessage;
     }
 

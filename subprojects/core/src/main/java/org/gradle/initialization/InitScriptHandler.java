@@ -20,7 +20,7 @@ import org.gradle.configuration.InitScriptProcessor;
 import org.gradle.groovy.scripts.TextResourceScriptSource;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.resource.TextFileResourceLoader;
 import org.gradle.internal.resource.TextResource;
@@ -33,12 +33,12 @@ import java.util.List;
  */
 public class InitScriptHandler {
     private final InitScriptProcessor processor;
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationRunner buildOperationRunner;
     private final TextFileResourceLoader resourceLoader;
 
-    public InitScriptHandler(InitScriptProcessor processor, BuildOperationExecutor buildOperationExecutor, TextFileResourceLoader resourceLoader) {
+    public InitScriptHandler(InitScriptProcessor processor, BuildOperationRunner buildOperationRunner, TextFileResourceLoader resourceLoader) {
         this.processor = processor;
-        this.buildOperationExecutor = buildOperationExecutor;
+        this.buildOperationRunner = buildOperationRunner;
         this.resourceLoader = resourceLoader;
     }
 
@@ -48,7 +48,7 @@ public class InitScriptHandler {
             return;
         }
 
-        buildOperationExecutor.run(new RunnableBuildOperation() {
+        buildOperationRunner.run(new RunnableBuildOperation() {
             @Override
             public void run(BuildOperationContext context) {
                 for (File script : initScripts) {

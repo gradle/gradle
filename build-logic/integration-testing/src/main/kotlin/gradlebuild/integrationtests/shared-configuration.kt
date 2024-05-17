@@ -16,7 +16,6 @@
 
 package gradlebuild.integrationtests
 
-import gradlebuild.basics.accessors.groovy
 import gradlebuild.basics.capitalize
 import gradlebuild.basics.repoRoot
 import gradlebuild.basics.testSplitExcludeTestClasses
@@ -36,6 +35,7 @@ import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.Directory
+import org.gradle.api.tasks.GroovySourceDirectorySet
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.PathSensitive
@@ -85,7 +85,7 @@ fun Project.addDependenciesAndConfigurations(prefix: String) {
     }
 
     // do not attempt to find projects when the plugin is applied just to generate accessors
-    if (project.name != "gradle-kotlin-dsl-accessors" && project.name != "test" /* remove once wrapper is updated */) {
+    if (project.name != "gradle-kotlin-dsl-accessors" && project.name != "enterprise-plugin-performance" && project.name != "test" /* remove once wrapper is updated */) {
         dependencies {
             "${prefix}TestRuntimeOnly"(project.the<ExternalModulesExtension>().junit5Vintage)
             "${prefix}TestImplementation"(project(":internal-integ-testing"))
@@ -174,7 +174,16 @@ fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet,
             jvmArgumentProviders.add(SamplesBaseDirPropertyProvider(samplesDir))
         }
         setUpAgentIfNeeded(testType, executer)
+        disableIfNeeded(testType, executer)
     }
+
+
+internal
+fun IntegrationTest.disableIfNeeded(testType: TestType, executer: String) {
+    if (testType == TestType.INTEGRATION && executer == "isolatedProjects") {
+        isEnabled = false
+    }
+}
 
 
 private
@@ -232,7 +241,7 @@ fun Project.configureIde(testType: TestType) {
     plugins.withType<IdeaPlugin> {
         with(model) {
             module {
-                testSources.from(sourceSet.java.srcDirs, sourceSet.groovy.srcDirs)
+                testSources.from(sourceSet.java.srcDirs, sourceSet.the<GroovySourceDirectorySet>().srcDirs)
                 testResources.from(sourceSet.resources.srcDirs)
             }
         }

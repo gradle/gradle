@@ -17,7 +17,7 @@
 package org.gradle.kotlin.dsl.provider
 
 import org.gradle.api.Project
-import org.gradle.api.artifacts.SelfResolvingDependency
+import org.gradle.api.artifacts.FileCollectionDependency
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal
@@ -148,7 +148,7 @@ class KotlinScriptClassPathProvider(
 
 internal
 fun gradleApiJarsProviderFor(dependencyFactory: DependencyFactoryInternal): JarsProvider =
-    { (dependencyFactory.gradleApi() as SelfResolvingDependency).resolve() }
+    { (dependencyFactory.gradleApi() as FileCollectionDependency).files.files }
 
 
 private

@@ -16,14 +16,14 @@
 
 package org.gradle.api.reporting.components.internal;
 
-import com.google.common.collect.Sets;
 import org.gradle.reporting.ReportRenderer;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Set;
 
 public class TrackingReportRenderer<T, E> extends ReportRenderer<T, E> {
-    private final Set<T> items = Sets.newHashSet();
+    private final Set<T> items = new HashSet<>();
     private final ReportRenderer<? super T, ? super E> delegate;
 
     public TrackingReportRenderer(ReportRenderer<? super T, ? super E> delegate) {

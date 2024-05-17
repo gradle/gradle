@@ -21,10 +21,11 @@ import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.artifacts.ResolvedModuleVersion
 import org.gradle.api.internal.artifacts.DependencyGraphNodeResult
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.DependencyVerificationOverride
+import org.gradle.api.internal.artifacts.configurations.ResolutionHost
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSelectionSpec
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactsResults
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSetResolver
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactResults
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedFileDependencyResults
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.DefaultVisitedGraphResults
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults
@@ -32,24 +33,14 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.Tran
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsLoader
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult
 import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector
-import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.specs.Spec
-import org.gradle.internal.operations.BuildOperationExecutor
-import org.gradle.test.fixtures.work.TestWorkerLeaseService
 import spock.lang.Specification
 
 class DefaultLenientConfigurationTest extends Specification {
     def transientConfigurationResults = Mock(TransientConfigurationResults)
     def resultsLoader = Mock(TransientConfigurationResultsLoader)
-    def artifactsResults = Stub(VisitedArtifactsResults)
+    def artifactsResults = Stub(VisitedArtifactResults)
     def fileDependencyResults = Stub(VisitedFileDependencyResults)
-    def configuration = Stub(ConfigurationInternal)
-    def buildOperationExecutor = Mock(BuildOperationExecutor)
-    def dependencyVerificationOverride = DependencyVerificationOverride.NO_VERIFICATION
-
-    def setup() {
-        _ * configuration.attributes >> ImmutableAttributes.EMPTY
-    }
 
     def "should resolve first level dependencies in tree"() {
         given:
@@ -122,7 +113,7 @@ class DefaultLenientConfigurationTest extends Specification {
 
     private DefaultLenientConfiguration newConfiguration() {
         VisitedGraphResults visitedGraphResults = new DefaultVisitedGraphResults(Stub(MinimalResolutionResult), [] as Set, null)
-        new DefaultLenientConfiguration(configuration, visitedGraphResults, artifactsResults, fileDependencyResults, resultsLoader, buildOperationExecutor, dependencyVerificationOverride, new TestWorkerLeaseService(), Mock(ArtifactVariantSelector))
+        new DefaultLenientConfiguration(Stub(ResolutionHost), visitedGraphResults, artifactsResults, fileDependencyResults, resultsLoader, Mock(ResolvedArtifactSetResolver), Mock(ArtifactVariantSelector), Mock(ArtifactSelectionSpec))
     }
 
     def generateDependenciesWithChildren(Map treeStructure) {

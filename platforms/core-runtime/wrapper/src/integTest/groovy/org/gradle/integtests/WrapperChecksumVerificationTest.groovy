@@ -16,7 +16,7 @@
 
 package org.gradle.integtests
 
-import com.gradle.enterprise.testing.annotations.LocalOnly
+import com.gradle.develocity.testing.annotations.LocalOnly
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
@@ -111,7 +111,7 @@ Expected checksum: 'bad'
 
         then:
         result.assertHasErrorOutput("gradle-wrapper.properties contains distributionSha256Sum property, but the wrapper configuration does not have one. " +
-            "Specify one in the wrapped task configuration or with the --gradle-distribution-sha256-sum task option")
+            "Specify one in the wrapper task configuration or with the --gradle-distribution-sha256-sum task option")
     }
 
     private writeValidDistributionHash() {

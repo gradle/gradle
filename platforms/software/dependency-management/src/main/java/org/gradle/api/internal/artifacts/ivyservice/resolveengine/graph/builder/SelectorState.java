@@ -48,6 +48,7 @@ import org.gradle.internal.resolve.result.ComponentIdResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableComponentIdResolveResult;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -298,7 +299,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
                 String version = rejectedVersion.getId().getVersion();
                 if (rejectedVersion instanceof RejectedBySelectorVersion) {
                     if (rejectedBySelector == null) {
-                        rejectedBySelector = Lists.newArrayList();
+                        rejectedBySelector = new ArrayList<>();
                     }
                     rejectedBySelector.add(version);
                 } else if (rejectedVersion instanceof RejectedByRuleVersion) {
@@ -368,6 +369,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         return fromLock;
     }
 
+    @Override
     public boolean hasStrongOpinion() {
         return forced || (versionConstraint != null && versionConstraint.isStrict());
     }

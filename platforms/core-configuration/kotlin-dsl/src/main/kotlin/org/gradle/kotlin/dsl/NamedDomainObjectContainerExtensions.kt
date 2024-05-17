@@ -20,6 +20,7 @@ import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.PolymorphicDomainObjectContainer
+import org.gradle.internal.deprecation.DeprecationLogger
 
 import org.gradle.kotlin.dsl.support.delegates.NamedDomainObjectContainerDelegate
 
@@ -254,15 +255,23 @@ internal constructor(
      * @see [NamedDomainObjectProvider.configure]
      */
     operator fun String.invoke(configuration: T.() -> Unit): NamedDomainObjectProvider<T> =
-        this().apply { configure(configuration) }
+        named(this).apply { configure(configuration) }
 
     /**
      * Locates an object by name, without triggering its creation or configuration, failing if there is no such object.
      *
      * @see [NamedDomainObjectContainer.named]
      */
-    operator fun String.invoke(): NamedDomainObjectProvider<T> =
-        delegate.named(this)
+    @Deprecated("Use named(String) instead.", ReplaceWith("named(this)"))
+    operator fun String.invoke(): NamedDomainObjectProvider<T> {
+        DeprecationLogger.deprecateBehaviour(String.format("Domain object '%s' found by String.invoke() notation.", this))
+            .withContext("The \"name\"() notation can cause confusion with methods provided by Kotlin or the JDK.")
+            .withAdvice("Use named(String) instead.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "string_invoke")
+            .nagUser()
+        return delegate.named(this)
+    }
 
     /**
      * Configures an object by name, without triggering its creation or configuration, failing if there is no such object.

@@ -474,23 +474,26 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         project.pluginManager.apply(JavaPlugin)
         commonProject.pluginManager.apply(JavaPlugin)
         commonProject.group = "group"
-        commonProject.extensions.configure(JavaPluginExtension) {
-            it.registerFeature("other") {
-                it.usingSourceSet(commonProject.sourceSets.main)
+        commonProject.extensions.configure(JavaPluginExtension) { java ->
+            java.sourceSets.create("other")
+            java.registerFeature("other") {
+                it.usingSourceSet(java.sourceSets.other)
             }
         }
         middleProject.pluginManager.apply(JavaPlugin)
         middleProject.group = "group"
-        middleProject.extensions.configure(JavaPluginExtension) {
-            it.registerFeature("other") {
-                it.usingSourceSet(middleProject.sourceSets.main)
+        middleProject.extensions.configure(JavaPluginExtension) { java ->
+            java.sourceSets.create("other")
+            java.registerFeature("other") {
+                it.usingSourceSet(java.sourceSets.other)
             }
         }
         appProject.pluginManager.apply(JavaPlugin)
         appProject.group = "group"
-        appProject.extensions.configure(JavaPluginExtension) {
-            it.registerFeature("other") {
-                it.usingSourceSet(appProject.sourceSets.main)
+        appProject.extensions.configure(JavaPluginExtension) { java ->
+            java.sourceSets.create("other")
+            java.registerFeature("other") {
+                it.usingSourceSet(java.sourceSets.other)
             }
         }
 

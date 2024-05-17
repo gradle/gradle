@@ -18,9 +18,9 @@ package org.gradle.plugins.ide.eclipse.model;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
 
 import java.io.Serializable;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -31,7 +31,7 @@ public class BuildCommand implements Serializable {
     private Map<String, String> arguments;
 
     public BuildCommand(String name) {
-        this(name, Maps.<String, String>newLinkedHashMap());
+        this(name, new LinkedHashMap<>());
     }
 
     public BuildCommand(String name, Map<String, String> arguments) {

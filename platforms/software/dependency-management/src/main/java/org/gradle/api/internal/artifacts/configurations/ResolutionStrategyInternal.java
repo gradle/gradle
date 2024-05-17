@@ -28,7 +28,15 @@ public interface ResolutionStrategyInternal extends ResolutionStrategy {
     /**
      * Discard any configuration state that is not required after graph resolution has been attempted.
      */
-    void discardStateRequiredForGraphResolution();
+    void maybeDiscardStateRequiredForGraphResolution();
+
+    /**
+     * Sets whether or not any configuration resolution is final and the state required for resolution can be
+     * discarded.  Setting this to true implies that the configuration may be re-resolved again in the future.
+     *
+     * Defaults to false.
+     */
+    void setKeepStateRequiredForGraphResolution(boolean keepStateRequiredForGraphResolution);
 
     /**
      * Gets the current expiry policy for dynamic revisions.
@@ -94,14 +102,6 @@ public interface ResolutionStrategyInternal extends ResolutionStrategy {
      * @return {@code true} if dependency locking is enabled, {@code false} otherwise
      */
     boolean isDependencyLockingEnabled();
-
-    /**
-     * Confirms that an unlocked configuration has been resolved.
-     * This allows the lock state for said configuration to be dropped if it existed before.
-     *
-     * @param configurationName the unlocked configuration
-     */
-    void confirmUnlockedConfigurationResolved(String configurationName);
 
     CapabilitiesResolutionInternal getCapabilitiesResolutionRules();
 

@@ -21,31 +21,44 @@ plugins {
 
 description = "Adds support for using JVM toolchains in projects"
 
-dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":core"))
-    implementation(project(":core-api"))
-    implementation(project(":dependency-management"))
-    implementation(project(":diagnostics"))
-    implementation(project(":enterprise-operations"))
-    implementation(project(":file-collections"))
-    implementation(project(":jvm-services"))
-    implementation(project(":logging"))
-    implementation(project(":model-core"))
-    implementation(project(":persistent-cache"))
-    implementation(project(":platform-base"))
-    implementation(project(":platform-jvm"))
-    implementation(project(":resources"))
+errorprone {
+    disabledChecks.addAll(
+        "StringCaseLocaleUsage", // 2 occurrences
+    )
+}
 
-    implementation(libs.commonsIo)
-    implementation(libs.commonsLang)
-    implementation(libs.groovy)
-    implementation(libs.guava)
-    implementation(libs.inject)
-    implementation(libs.nativePlatform) {
+dependencies {
+    api(projects.javaLanguageExtensions)
+    api(projects.serviceProvider)
+    api(project(":base-services"))
+    api(project(":build-operations"))
+    api(project(":core"))
+    api(project(":core-api"))
+    api(project(":dependency-management"))
+    api(project(":diagnostics"))
+    api(project(":enterprise-operations"))
+    api(project(":enterprise-logging"))
+    api(project(":file-collections"))
+    api(project(":jvm-services"))
+    api(project(":model-core"))
+    api(project(":persistent-cache"))
+    api(project(":platform-base"))
+    api(project(":platform-jvm"))
+    api(project(":resources"))
+    api(project(":toolchains-jvm-shared"))
+
+    api(libs.futureKotlin("stdlib"))
+    api(libs.inject)
+    api(libs.jsr305)
+    api(libs.nativePlatform) {
         because("Required for SystemInfo")
     }
-    implementation(libs.futureKotlin("stdlib"))
+
+    implementation(project(":logging"))
+
+    implementation(libs.commonsIo)
+    implementation(libs.guava)
+    implementation(libs.slf4jApi)
 
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":logging")))
@@ -61,11 +74,11 @@ dependencies {
     integTestImplementation(libs.slf4jApi)
 
     integTestDistributionRuntimeOnly(project(":distributions-jvm"))
+    crossVersionTestDistributionRuntimeOnly(project(":distributions-jvm"))
 }
 
 packageCycles {
     // Needed for the factory methods in the interface
-    excludePatterns.add("org/gradle/jvm/toolchain/JavaLanguageVersion**")
     excludePatterns.add("org/gradle/jvm/toolchain/**")
 }
 

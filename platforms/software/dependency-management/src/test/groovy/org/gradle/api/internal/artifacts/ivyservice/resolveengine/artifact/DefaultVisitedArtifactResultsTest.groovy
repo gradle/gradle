@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact
 
-import org.gradle.api.artifacts.ResolutionStrategy
 import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector
 import spock.lang.Specification
 
@@ -33,8 +32,8 @@ class DefaultVisitedArtifactResultsTest extends Specification {
         artifacts1.select(selector, _) >> variant1Artifacts
         artifacts2.select(selector, _) >> variant2Artifacts
 
-        def results = new DefaultVisitedArtifactResults(ResolutionStrategy.SortOrder.CONSUMER_FIRST, [artifacts1, artifacts2])
-        def selected = results.select(selector, Mock(ArtifactSelectionSpec))
+        def results = new DefaultVisitedArtifactResults([artifacts1, artifacts2])
+        def selected = results.select(selector, Mock(ArtifactSelectionSpec), false)
 
         expect:
         selected.getArtifacts() instanceof CompositeResolvedArtifactSet
@@ -56,8 +55,8 @@ class DefaultVisitedArtifactResultsTest extends Specification {
         artifacts1.select(selector, _) >> variant1Artifacts
         artifacts2.select(selector, _) >> variant2Artifacts
 
-        def results = new DefaultVisitedArtifactResults(ResolutionStrategy.SortOrder.CONSUMER_FIRST, [artifacts1, artifacts2])
-        def selected = results.select(selector, Mock(ArtifactSelectionSpec))
+        def results = new DefaultVisitedArtifactResults([artifacts1, artifacts2])
+        def selected = results.select(selector, Mock(ArtifactSelectionSpec), false)
 
         expect:
         selected.getArtifacts() instanceof CompositeResolvedArtifactSet
@@ -79,8 +78,8 @@ class DefaultVisitedArtifactResultsTest extends Specification {
         artifacts1.select(selector, _) >> variant1Artifacts
         artifacts2.select(selector, _) >> variant2Artifacts
 
-        def results = new DefaultVisitedArtifactResults(ResolutionStrategy.SortOrder.CONSUMER_FIRST, [artifacts1, artifacts2])
-        def selected = results.selectLenient(selector, Mock(ArtifactSelectionSpec))
+        def results = new DefaultVisitedArtifactResults([artifacts1, artifacts2])
+        def selected = results.select(selector, Mock(ArtifactSelectionSpec), true)
 
         expect:
         selected.getArtifacts() instanceof CompositeResolvedArtifactSet
@@ -102,8 +101,8 @@ class DefaultVisitedArtifactResultsTest extends Specification {
         artifacts1.select(selector, _) >> variant1Artifacts
         artifacts2.select(selector, _) >> variant2Artifacts
 
-        def results = new DefaultVisitedArtifactResults(ResolutionStrategy.SortOrder.CONSUMER_FIRST, [artifacts1, artifacts2])
-        def selected = results.selectLenient(selector, Mock(ArtifactSelectionSpec))
+        def results = new DefaultVisitedArtifactResults([artifacts1, artifacts2])
+        def selected = results.select(selector, Mock(ArtifactSelectionSpec), true)
 
         expect:
         selected.getArtifacts() == variant2Artifacts
@@ -121,8 +120,8 @@ class DefaultVisitedArtifactResultsTest extends Specification {
         artifacts1.select(selector, _) >> variant1Artifacts
         artifacts2.select(selector, _) >> variant2Artifacts
 
-        def results = new DefaultVisitedArtifactResults(ResolutionStrategy.SortOrder.CONSUMER_FIRST, [artifacts1, artifacts2])
-        def selected = results.selectLenient(selector, Mock(ArtifactSelectionSpec))
+        def results = new DefaultVisitedArtifactResults([artifacts1, artifacts2])
+        def selected = results.select(selector, Mock(ArtifactSelectionSpec), true)
 
         expect:
         selected.getArtifacts() instanceof CompositeResolvedArtifactSet

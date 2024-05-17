@@ -20,13 +20,13 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
 import org.gradle.api.artifacts.component.LibraryComponentSelector;
 import org.gradle.platform.base.Binary;
 import org.gradle.platform.base.VariantComponent;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -51,8 +51,8 @@ public class LibraryResolutionResult {
 
     private LibraryResolutionResult(Class<? extends Binary> binaryType) {
         this.binaryType = binaryType;
-        this.libsMatchingRequirements = Maps.newHashMap();
-        this.libsNotMatchingRequirements = Maps.newHashMap();
+        this.libsMatchingRequirements = new HashMap<>();
+        this.libsNotMatchingRequirements = new HashMap<>();
     }
 
     private VariantComponent getSingleMatchingLibrary() {

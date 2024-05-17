@@ -16,12 +16,12 @@
 
 package org.gradle.api.testing.toolchains.internal;
 
-import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.util.Path;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -32,7 +32,7 @@ import java.util.Map;
  */
 public class FrameworkCachingJvmTestToolchain<T extends JvmTestToolchainParameters> implements JvmTestToolchain<T> {
     private final JvmTestToolchain<T> delegate;
-    private final Map<Path, TestFramework> testFrameworks = Maps.newHashMap();
+    private final Map<Path, TestFramework> testFrameworks = new HashMap<>();
 
     public FrameworkCachingJvmTestToolchain(JvmTestToolchain<T> delegate) {
         this.delegate = delegate;

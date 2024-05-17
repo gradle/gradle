@@ -25,7 +25,9 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.capabilities.Capability;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.artifacts.configurations.VariantIdentityUniquenessVerifier;
 import org.gradle.api.internal.attributes.DefaultCompatibilityRuleChain;
 import org.gradle.api.internal.attributes.DefaultDisambiguationRuleChain;
 import org.gradle.api.internal.file.FileResolver;
@@ -56,30 +58,33 @@ public final class ConfigurationReportModelFactory {
         final List<ReportAttribute> attributesWithCompatibilityRules = scanner.getAttributesWithCompatibilityRules();
         final List<ReportAttribute> attributesWithDisambiguationRules = scanner.getAttributesWithDisambiguationRules();
 
-        final Map<String, ReportConfiguration> convertedConfigurations = new HashMap<>(project.getConfigurations().size());
-        project.getConfigurations().stream()
+        ConfigurationContainerInternal configurations = (ConfigurationContainerInternal) project.getConfigurations();
+        final Map<String, ReportConfiguration> convertedConfigurations = new HashMap<>(configurations.size());
+
+        VariantIdentityUniquenessVerifier.VerificationReport uniquenessReport = VariantIdentityUniquenessVerifier.buildReport(configurations);
+        configurations.stream()
             .map(ConfigurationInternal.class::cast)
-            .forEach(configuration -> getOrConvert(configuration, project, convertedConfigurations));
+            .forEach(configuration -> getOrConvert(configuration, uniquenessReport, project, convertedConfigurations));
 
         return new ConfigurationReportModel(project.getName(),
             convertedConfigurations.values().stream().sorted(Comparator.comparing(ReportConfiguration::getName)).collect(Collectors.toList()),
             attributesWithCompatibilityRules, attributesWithDisambiguationRules);
     }
 
-    private ReportConfiguration getOrConvert(ConfigurationInternal configuration, Project project, Map<String, ReportConfiguration> convertedConfigurations) {
+    private ReportConfiguration getOrConvert(ConfigurationInternal configuration, VariantIdentityUniquenessVerifier.VerificationReport uniquenessReport, Project project, Map<String, ReportConfiguration> convertedConfigurations) {
         return computeIfAbsentExternal(convertedConfigurations, configuration.getName(), name -> {
             final List<ReportConfiguration> extendedConfigurations = new ArrayList<>(configuration.getExtendsFrom().size());
             configuration.getExtendsFrom().stream()
                 .map(ConfigurationInternal.class::cast)
-                .forEach(c -> extendedConfigurations.add(getOrConvert(c, project, convertedConfigurations)));
+                .forEach(c -> extendedConfigurations.add(getOrConvert(c, uniquenessReport, project, convertedConfigurations)));
 
-            return convertConfiguration(configuration, project, fileResolver, extendedConfigurations);
+            return convertConfiguration(configuration, uniquenessReport, project, fileResolver, extendedConfigurations);
         });
     }
 
-    private ReportConfiguration convertConfiguration(ConfigurationInternal configuration, Project project, FileResolver fileResolver, List<ReportConfiguration> extendedConfigurations) {
-        // Important to lock the config prior to extracting the attributes, as some attributes, such as TargetJvmVersion, are actually added by this locking process
-        List<? extends GradleException> lenientErrors = configuration.preventFromFurtherMutationLenient();
+    private ReportConfiguration convertConfiguration(ConfigurationInternal configuration, VariantIdentityUniquenessVerifier.VerificationReport uniquenessReport, Project project, FileResolver fileResolver, List<ReportConfiguration> extendedConfigurations) {
+        GradleException duplicateFailure = uniquenessReport.failureFor(configuration, false);
+        List<? extends GradleException> lenientErrors = duplicateFailure != null ? Collections.singletonList(duplicateFailure) : Collections.emptyList();
 
         final List<ReportAttribute> attributes = configuration.getAttributes().keySet().stream()
             .map(a -> convertAttributeInContainer(a, configuration.getAttributes(), project.getDependencies().getAttributesSchema()))

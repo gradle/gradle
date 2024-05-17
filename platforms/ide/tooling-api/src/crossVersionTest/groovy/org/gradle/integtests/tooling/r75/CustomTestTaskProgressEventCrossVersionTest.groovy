@@ -53,8 +53,10 @@ class CustomTestTaskProgressEventCrossVersionTest extends ToolingApiSpecificatio
                 testEvent = event
             }
         }
-        boolean receivedCustomTestTaskProgressEvents() {
-            suiteEvent != null && testEvent != null
+
+        void receivedCustomTestTaskProgressEvents() {
+            assert suiteEvent != null
+            assert testEvent != null
         }
     }
 }

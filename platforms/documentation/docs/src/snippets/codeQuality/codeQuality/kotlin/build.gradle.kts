@@ -25,10 +25,16 @@ repositories {
     mavenCentral()
 }
 
+// tag::specify-groovy-version[]
 dependencies {
+// end::specify-groovy-version[]
     implementation(localGroovy())
     testImplementation("junit:junit:4.13")
+// tag::specify-groovy-version[]
+    "codenarc"("org.codehaus.groovy:groovy-all:3.0.3")
+    "codenarc"("org.codenarc:CodeNarc:1.6.1")
 }
+// end::specify-groovy-version[]
 
 // tag::customize-checkstyle-memory[]
 tasks.withType<Checkstyle>().configureEach {
@@ -63,7 +69,7 @@ tasks.withType<Checkstyle>().configureEach {
 // tag::customize-pmd[]
 pmd {
     isConsoleOutput = true
-    toolVersion = "6.21.0"
+    toolVersion = "7.0.0"
     rulesMinimumPriority = 5
     ruleSets = listOf("category/java/errorprone.xml", "category/java/bestpractices.xml")
 }

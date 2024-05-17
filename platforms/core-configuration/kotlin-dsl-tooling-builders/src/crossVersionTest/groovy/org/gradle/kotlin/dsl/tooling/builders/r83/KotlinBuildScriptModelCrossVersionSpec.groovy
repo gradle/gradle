@@ -18,6 +18,7 @@ package org.gradle.kotlin.dsl.tooling.builders.r83
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVersionTest
+import org.gradle.kotlin.dsl.tooling.fixtures.KotlinScriptModelParameters
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 import spock.lang.Issue
 
@@ -43,7 +44,31 @@ class KotlinBuildScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCr
         loadValidatedToolingModel(KotlinDslScriptsModel)
     }
 
-    private String getGradleProperties() {
+    def 'exceptions in different scripts are reported on the corresponding scripts'() {
+
+        given:
+        requireIsolatedUserHome()
+
+        when:
+        def spec = withMultipleSubprojects()
+        spec.scripts["a"] << "throw RuntimeException(\"ex1\")"
+        spec.scripts["b"] << "throw RuntimeException(\"ex2\")"
+
+
+        def model = loadValidatedToolingModel(KotlinDslScriptsModel) {
+            KotlinScriptModelParameters.setModelParameters(it, true, true, [])
+        }
+
+        Map<File, KotlinDslScriptsModel> singleRequestModels = model.scriptModels
+
+        then:
+
+        singleRequestModels[spec.scripts["a"]].exceptions.size() == 1
+        singleRequestModels[spec.scripts["b"]].exceptions.size() == 1
+        singleRequestModels[spec.scripts["settings"]].exceptions.isEmpty()
+    }
+
+    private static String getGradleProperties() {
         """
         org.gradle.warning.mode=all
         org.gradle.parallel=true

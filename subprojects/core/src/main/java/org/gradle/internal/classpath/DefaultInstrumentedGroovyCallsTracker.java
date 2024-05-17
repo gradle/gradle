@@ -67,12 +67,14 @@ public class DefaultInstrumentedGroovyCallsTracker implements InstrumentedGroovy
      * Registers the current call in the thread-specific instrumented call stack.
      * @return an entry point call site token that must later be passed to {@link InstrumentedGroovyCallsTracker#leaveCall}
      */
+    @Override
     public EntryPointCallSite enterCall(String callerClassName, String callableName, CallKind callKind) {
         EntryPointCallSiteImpl entryPoint = new EntryPointCallSiteImpl(callableName, callerClassName, callKind);
         callSiteStack.push(entryPoint);
         return entryPoint;
     }
 
+    @Override
     public void leaveCall(EntryPointCallSite entryPoint) {
         if (callSiteStack.isEmpty()) {
             throwMismatchedLeaveCallException(entryPoint);
@@ -101,6 +103,7 @@ public class DefaultInstrumentedGroovyCallsTracker implements InstrumentedGroovy
     }
 
     @Nullable
+    @Override
     public String findCallerForCurrentCallIfNotIntercepted(String callableName, CallKind kind) {
         if (callSiteStack.isEmpty()) {
             return null;
@@ -119,6 +122,7 @@ public class DefaultInstrumentedGroovyCallsTracker implements InstrumentedGroovy
         return top.getCallerClassName();
     }
 
+    @Override
     public void markCurrentCallAsIntercepted(String callableName, CallKind kind) {
         String result = findCallerForCurrentCallIfNotIntercepted(callableName, kind);
         if (result == null) {

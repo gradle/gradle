@@ -28,7 +28,7 @@ import java.util.List;
  */
 public class FailsafePhasedActionResultListener implements PhasedActionResultListener {
     private final PhasedActionResultListener delegate;
-    private List<Throwable> listenerFailures = new ArrayList<Throwable>();
+    private final List<Throwable> listenerFailures = new ArrayList<Throwable>();
 
     public FailsafePhasedActionResultListener(PhasedActionResultListener delegate) {
         this.delegate = delegate;

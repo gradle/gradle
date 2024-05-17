@@ -1,0 +1,270 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[multi_project_builds]]
+= Structuring Projects with Gradle
+
+It is important to structure your Gradle project to optimize build performance.
+A multi-project build is the standard in Gradle.
+
+image::structuring-builds-1.png[]
+
+A multi-project build consists of one root project and one or more subprojects.
+Gradle can build the root project and any number of the subprojects in a single execution.
+
+[[sub:project_locations]]
+== Project locations
+
+Multi-project builds contain a single root project in a directory that Gradle views as the root path: `.`.
+
+Subprojects are located physically under the root path: `./subproject`.
+
+A subproject has <<intro_multi_project_builds#sec:project_path,a path>>, which denotes the position of that subproject in the multi-project build.
+In most cases, the project path is consistent with its location in the file system.
+
+The project structure is created in the `settings.gradle(.kts)` file.
+The settings file must be present in the root directory.
+
+[[sec:creating_multi_project_builds]]
+== A simple multi-project build
+
+Let's look at a _basic_ multi-project build example that contains a root project and a single subproject.
+
+The root project is called `basic-multiproject`, located somewhere on your machine.
+From Gradle's perspective, the root is the top-level directory `.`.
+
+The project contains a single subproject called `./app`:
+
+[.multi-language-sample]
+=====
+[source, kotlin]
+----
+.
+├── app
+│   ...
+│   └── build.gradle.kts
+└── settings.gradle.kts
+----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+.
+├── app
+│   ...
+│   └── build.gradle
+└── settings.gradle
+----
+=====
+
+This is the recommended project structure for starting any Gradle project.
+The <<build_init_plugin#build_init_plugin,build init plugin>> also generates skeleton projects that follow this structure - a root project with a single subproject:
+
+The `settings.gradle(.kts)` file describes the project structure to Gradle:
+
+====
+include::sample[dir="snippets/multiproject/basic-multiproject/kotlin",files="settings.gradle.kts[]"]
+include::sample[dir="snippets/multiproject/basic-multiproject/groovy",files="settings.gradle[]"]
+====
+
+In this case, Gradle will look for a build file for the `app` subproject in the `./app` directory.
+
+You can view the structure of a multi-project build by running the `projects` command:
+
+----
+$ ./gradlew -q projects
+include::{snippetsPath}/multiproject/basic-multiproject/tests/projects.out[]
+----
+
+In this example, the `app` subproject is a Java application that applies the <<application_plugin#application_plugin,application plugin>> and configures the main class.
+The application prints `Hello World` to the console:
+
+====
+include::sample[dir="snippets/multiproject/basic-multiproject/kotlin",files="app/build.gradle.kts[]"]
+include::sample[dir="snippets/multiproject/basic-multiproject/groovy",files="app/build.gradle[]"]
+.app/src/main/java/com/example/Hello.java
+[source, java]
+----
+include::{snippetsPath}/multiproject/basic-multiproject/groovy/app/src/main/java/com/example/Hello.java[]
+----
+====
+
+You can run the application by executing the `run` task from the <<application_plugin#application_plugin,application plugin>> in the project root:
+----
+$ ./gradlew -q run
+include::{snippetsPath}/multiproject/basic-multiproject/tests/run.out[]
+----
+
+[[sub:building_the_tree]]
+== Adding a subproject
+
+In the settings file, you can use the `include` method to add another subproject to the root project:
+
+====
+include::sample[dir="snippets/multiproject/standardLayouts/kotlin",files="settings.gradle.kts[tags=hierarchical-layout]"]
+include::sample[dir="snippets/multiproject/standardLayouts/groovy",files="settings.gradle[tags=hierarchical-layout]"]
+====
+
+The `include` method takes <<intro_multi_project_builds#sec:project_path,project paths>> as arguments.
+The project path is assumed to be equal to the relative physical file system path.
+For example, a path `services:api` is mapped by default to a folder `./services/api` (relative to the project root `.`).
+
+More examples of how to work with the project path can be found in the DSL documentation of link:{groovyDslPath}++/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:include(java.lang.String[])++[Settings.include(java.lang.String[\])].
+
+Let's add another subproject called `lib` to the previously created project.
+
+All we need to do is add another `include` statement in the root settings file:
+====
+include::sample[dir="snippets/multiproject/multiple-subprojects/kotlin",files="settings.gradle.kts[]"]
+include::sample[dir="snippets/multiproject/multiple-subprojects/groovy",files="settings.gradle[]"]
+====
+
+Gradle will then look for the build file of the new `lib` subproject in the `./lib/` directory:
+
+[.multi-language-sample]
+=====
+[source, kotlin]
+----
+.
+├── app
+│   ...
+│   └── build.gradle.kts
+├── lib
+│   ...
+│   └── build.gradle.kts
+└── settings.gradle.kts
+----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+.
+├── app
+│   ...
+│   └── build.gradle
+├── lib
+│   ...
+│   └── build.gradle
+└── settings.gradle
+----
+=====
+
+[[sub:modifying_element_of_the_project_tree]]
+== Project Descriptors
+
+To further describe the project architecture to Gradle, the settings file provides _project descriptors_.
+
+You can modify these descriptors in the settings file at any time.
+
+To access a descriptor, you can:
+
+====
+include::sample[dir="snippets/multiproject/customLayout/kotlin",files="settings.gradle.kts[tags=lookup-project]"]
+include::sample[dir="snippets/multiproject/customLayout/groovy",files="settings.gradle[tags=lookup-project]"]
+====
+
+Using this descriptor, you can change the name, project directory, and build file of a project:
+
+====
+include::sample[dir="snippets/multiproject/customLayout/kotlin",files="settings.gradle.kts[tags=change-project]"]
+include::sample[dir="snippets/multiproject/customLayout/groovy",files="settings.gradle[tags=change-project]"]
+====
+
+Consult the link:{javadocPath}/org/gradle/api/initialization/ProjectDescriptor.html[ProjectDescriptor] class in the API documentation for more information.
+
+== Modifying a subproject path
+
+Let's take a hypothetical project with the following structure:
+
+[.multi-language-sample]
+=====
+[source, kotlin]
+----
+.
+├── app
+│   ...
+│   └── build.gradle.kts
+├── subs // Gradle may see this as a subproject
+│   └── web // Gradle may see this as a subproject
+│       └── my-web-module // Intended subproject
+│           ...
+│           └── build.gradle.kts
+└── settings.gradle.kts
+----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+.
+├── app
+│   ...
+│   └── build.gradle
+├── subs // Gradle may see this as a subproject
+│   └── web // Gradle may see this as a subproject
+│       └── my-web-module // Intended subproject
+│           ...
+│           └── build.gradle
+└── settings.gradle
+----
+=====
+
+If your `settings.gradle(.kts)` looks like this:
+
+```
+include(':subs:web:my-web-module')
+```
+
+Gradle sees a subproject with a logical project name of `:subs:web:my-web-module` and two, possibly unintentional, other subprojects logically named `:subs` and `:subs:web`.
+This can lead to phantom build directories, especially when using `allprojects{}` or `subproject{}`.
+
+To avoid this, you can use:
+
+```
+include(':subs:web:my-web-module')
+project(':subs:web:my-web-module').projectDir = "subs/web/my-web-module"
+```
+
+So that you only end up with a single subproject named `:subs:web:my-web-module`.
+
+Or you can use:
+
+```
+include(':my-web-module')
+project(':my-web-module').projectDir = "subs/web/my-web-module"
+```
+
+So that you only end up with a single subproject named `:my-web-module`.
+
+So, while the physical project layout is the same, the logical results are different.
+
+[[sec:naming_recommendations]]
+== Naming recommendations
+
+As your project grows, naming and consistency get increasingly more important.
+To keep your builds maintainable, we recommend the following:
+
+1. *Keep default project names for subprojects*:
+It is possible to configure custom project names in the settings file.
+However, it’s an unnecessary extra effort for the developers to track which projects belong to what folders.
+
+2. *Use lower case hyphenation for all project names*:
+All letters are lowercase, and words are separated with a dash (`-`) character.
+
+3. *Define the root project name in the settings file*:
+The `rootProject.name` effectively assigns a name to the build, used in reports like Build Scans.
+If the root project name is not set, the name will be the container directory name, which can be unstable (i.e., you can check out your project in any directory).
+The name will be generated randomly if the root project name is not set and checked out to a file system's root (e.g., `/` or `C:\`).

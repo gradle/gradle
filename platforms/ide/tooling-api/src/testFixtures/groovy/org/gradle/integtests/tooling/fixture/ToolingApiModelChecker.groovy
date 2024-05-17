@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.tooling.fixture
 
-import org.gradle.tooling.model.DomainObjectSet
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.GradleTask
 import org.gradle.tooling.model.ProjectIdentifier
@@ -32,9 +31,17 @@ class ToolingApiModelChecker {
             return
         }
 
-        if (expected instanceof DomainObjectSet) {
-            assert actual instanceof DomainObjectSet
-            checkDomainObjectSet(actual, expected) { actualItem, expectedItem ->
+        if (expected instanceof Collection) {
+            assert actual instanceof Collection
+            checkCollection(actual, expected) { actualItem, expectedItem ->
+                checkModel(actualItem, expectedItem, specs)
+            }
+            return
+        }
+
+        if (expected instanceof Map) {
+            assert actual instanceof Map
+            checkMap(actual, expected) { actualItem, expectedItem ->
                 checkModel(actualItem, expectedItem, specs)
             }
             return
@@ -45,12 +52,22 @@ class ToolingApiModelChecker {
         }
     }
 
-    static void checkDomainObjectSet(DomainObjectSet<?> actual, DomainObjectSet<?> expected, Closure checker) {
+    static void checkCollection(Collection<?> actual, Collection<?> expected, Closure checker) {
         assert actual.size() == expected.size()
-        [actual, expected].collect { it.all }
+        [actual, expected].collect { new ArrayList<>(it) }
             .transpose()
             .each { actualItem, expectedItem ->
                 checker(actualItem, expectedItem)
+            }
+    }
+
+    static void checkMap(Map<?, ?> actual, Map<?, ?> expected, Closure checker) {
+        assert actual.size() == expected.size()
+        [actual, expected].collect { new ArrayList<>(it.entrySet()) }
+            .transpose()
+            .each { actualKeyValue, expectedKeyValue ->
+                assert actualKeyValue.key == expectedKeyValue.key
+                checker(actualKeyValue.value, expectedKeyValue.value)
             }
     }
 
@@ -65,9 +82,12 @@ class ToolingApiModelChecker {
             def actualValue = getter(actual)
             def expectedValue = getter(expected)
             if (checker instanceof Closure) {
-                if (expectedValue instanceof DomainObjectSet) {
-                    assert actualValue instanceof DomainObjectSet
-                    checkDomainObjectSet(actualValue, expectedValue, checker)
+                if (expectedValue instanceof Collection) {
+                    assert actualValue instanceof Collection
+                    checkCollection(actualValue, expectedValue, checker)
+                } else if (expectedValue instanceof Map) {
+                    assert actualValue instanceof Map
+                    checkMap(actualValue, expectedValue, checker)
                 } else {
                     checker(actualValue, expectedValue)
                 }

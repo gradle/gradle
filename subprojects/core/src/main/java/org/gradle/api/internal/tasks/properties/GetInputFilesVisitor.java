@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.properties;
 
 import com.google.common.collect.ImmutableSortedSet;
-import com.google.common.collect.Lists;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.tasks.PropertyFileCollection;
@@ -30,10 +29,11 @@ import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
 
 public class GetInputFilesVisitor implements PropertyVisitor {
-    private final List<InputFilePropertySpec> specs = Lists.newArrayList();
+    private final List<InputFilePropertySpec> specs = new ArrayList<>();
     private final FileCollectionFactory fileCollectionFactory;
     private final String ownerDisplayName;
     private boolean hasSourceFiles;

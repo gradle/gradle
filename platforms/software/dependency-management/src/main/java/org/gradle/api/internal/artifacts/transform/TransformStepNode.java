@@ -17,9 +17,7 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.Describable;
-import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
@@ -37,7 +35,7 @@ import org.gradle.internal.model.ValueCalculator;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.operations.dependencies.transforms.ExecutePlannedTransformStepBuildOperationType;
@@ -217,11 +215,11 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
             TransformStep transformStep,
             ResolvableArtifact artifact,
             TransformUpstreamDependencies upstreamDependencies,
-            BuildOperationExecutor buildOperationExecutor,
+            BuildOperationRunner buildOperationRunner,
             CalculatedValueContainerFactory calculatedValueContainerFactory
         ) {
             super(transformStepNodeId, targetComponentVariant, sourceAttributes, transformStep, artifact, upstreamDependencies);
-            result = calculatedValueContainerFactory.create(Describables.of(this), new TransformInitialArtifact(buildOperationExecutor));
+            result = calculatedValueContainerFactory.create(Describables.of(this), new TransformInitialArtifact(buildOperationRunner));
         }
 
         @Override
@@ -231,8 +229,8 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
 
         protected class TransformInitialArtifact extends AbstractTransformArtifacts {
 
-            public TransformInitialArtifact(BuildOperationExecutor buildOperationExecutor) {
-                super(buildOperationExecutor);
+            public TransformInitialArtifact(BuildOperationRunner buildOperationRunner) {
+                super(buildOperationRunner);
             }
 
             @Override
@@ -246,17 +244,8 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
                 return new TransformStepBuildOperation() {
                     @Override
                     protected TransformStepSubject transform() {
-                        TransformStepSubject initialSubject;
-                        try {
-                            initialSubject = TransformStepSubject.initial(artifact);
-                        } catch (ResolveException e) {
-                            throw e;
-                        } catch (RuntimeException e) {
-                            throw new DefaultLenientConfiguration.ArtifactResolveException("artifacts", transformStep.getDisplayName(), Collections.singleton(e));
-                        }
-
                         return transformStep
-                            .createInvocation(initialSubject, upstreamDependencies, context)
+                            .createInvocation(TransformStepSubject.initial(artifact), upstreamDependencies, context)
                             .completeAndGet()
                             .get();
                     }
@@ -281,7 +270,7 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
             TransformStep transformStep,
             TransformStepNode previousTransformStepNode,
             TransformUpstreamDependencies upstreamDependencies,
-            BuildOperationExecutor buildOperationExecutor,
+            BuildOperationRunner buildOperationExecutor,
             CalculatedValueContainerFactory calculatedValueContainerFactory
         ) {
             super(transformStepNodeId, targetComponentVariant, sourceAttributes, transformStep, previousTransformStepNode.artifact, upstreamDependencies);
@@ -307,8 +296,8 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
 
         protected class TransformPreviousArtifacts extends AbstractTransformArtifacts {
 
-            public TransformPreviousArtifacts(BuildOperationExecutor buildOperationExecutor) {
-                super(buildOperationExecutor);
+            public TransformPreviousArtifacts(BuildOperationRunner buildOperationRunner) {
+                super(buildOperationRunner);
             }
 
             @Override
@@ -341,10 +330,10 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
     }
 
     protected abstract class AbstractTransformArtifacts implements ValueCalculator<TransformStepSubject> {
-        private final BuildOperationExecutor buildOperationExecutor;
+        private final BuildOperationRunner buildOperationRunner;
 
-        protected AbstractTransformArtifacts(BuildOperationExecutor buildOperationExecutor) {
-            this.buildOperationExecutor = buildOperationExecutor;
+        protected AbstractTransformArtifacts(BuildOperationRunner buildOperationRunner) {
+            this.buildOperationRunner = buildOperationRunner;
         }
 
         @OverridingMethodsMustInvokeSuper
@@ -358,9 +347,9 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
         public TransformStepSubject calculateValue(NodeExecutionContext context) {
             TransformStepBuildOperation buildOperation = createBuildOperation(context);
             ProjectInternal owningProject = transformStep.getOwningProject();
-            return owningProject == null
+            return (owningProject == null || !context.isPartOfExecutionGraph())
                 ? buildOperation.transform()
-                : buildOperationExecutor.call(buildOperation);
+                : buildOperationRunner.call(buildOperation);
         }
 
         protected abstract TransformStepBuildOperation createBuildOperation(NodeExecutionContext context);

@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
-import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
@@ -24,10 +23,11 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Visit
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class FileDependencyCollectingGraphVisitor implements DependencyArtifactsVisitor {
-    private final Map<FileCollectionDependency, Integer> rootFiles = Maps.newLinkedHashMap();
+    private final Map<FileCollectionDependency, Integer> rootFiles = new LinkedHashMap<>();
 
     @Override
     public void visitArtifacts(DependencyGraphNode node, LocalFileDependencyMetadata fileDependency, int artifactSetId, ArtifactSet artifactSet) {

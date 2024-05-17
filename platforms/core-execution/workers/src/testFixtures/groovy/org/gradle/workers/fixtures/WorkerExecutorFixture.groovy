@@ -20,10 +20,33 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.internal.TextUtil
 
 class WorkerExecutorFixture {
-    public static final ISOLATION_MODES = ["'noIsolation'", "'classLoaderIsolation'", "'processIsolation'"]
+
+    enum IsolationMode {
+        NO_ISOLATION("no"),
+        CLASSLOADER_ISOLATION("classLoader"),
+        PROCESS_ISOLATION("process");
+
+        private final String prefix
+
+        IsolationMode(String prefix) {
+            this.prefix = prefix
+        }
+
+        String getMethod() {
+            "${prefix}Isolation"
+        }
+
+        @Override
+        String toString() {
+            prefix
+        }
+    }
+
+    public static final ISOLATION_MODES = IsolationMode.values().collect { "'${it.method}'" }
+
     def outputFileDir
     def outputFileDirPath
-    def list = [ 1, 2, 3 ]
+    def list = [1, 2, 3]
     private final TestNameTestDirectoryProvider temporaryFolder
     final WorkParameterClass testParameterType
     final WorkActionClass workActionThatCreatesFiles
@@ -37,9 +60,9 @@ class WorkerExecutorFixture {
         testParameterType = workParameterClass("TestParameters", "org.gradle.test")
         testParameterType.imports += ["java.io.File", "java.util.List", "org.gradle.other.Foo"]
         testParameterType.fields += [
-                "files": "List<String>",
-                "outputDir": "File",
-                "bar": "Foo"
+            "files": "List<String>",
+            "outputDir": "File",
+            "bar": "Foo"
         ]
 
         workActionThatCreatesFiles = getWorkActionThatCreatesFiles("TestWorkAction")
@@ -115,7 +138,7 @@ class WorkerExecutorFixture {
     }
 
     WorkActionClass workActionClass(String name, String packageName, WorkParameterClass parameterClass) {
-       return new WorkActionClass(name, packageName, parameterClass)
+        return new WorkActionClass(name, packageName, parameterClass)
     }
 
     WorkParameterClass workParameterClass(String name, String packageName) {
@@ -125,8 +148,8 @@ class WorkerExecutorFixture {
     WorkActionClass getWorkActionThatCreatesFiles(String name) {
         def workerClass = workActionClass(name, "org.gradle.test", testParameterType)
         workerClass.imports += [
-                "java.io.File",
-                "java.util.UUID"
+            "java.io.File",
+            "java.util.UUID"
         ]
         workerClass.extraFields = """
             private static final String id = UUID.randomUUID().toString();

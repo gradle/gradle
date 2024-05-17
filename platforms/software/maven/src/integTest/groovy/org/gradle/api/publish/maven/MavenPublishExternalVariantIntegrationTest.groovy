@@ -706,19 +706,33 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
             compilation("first")
         })
 
+        settingsFile << """
+            include 'third'
+        """
+
+        file("third/build.gradle") << """
+            ${header()}
+            ${multiCoordinateComponent {
+                compilation("first")
+            }}
+        """
+
         buildFile << """
             configurations {
-                resolvable("noDeps")
+                dependencyScope("someConf")
+                resolvable("resolvableConf") {
+                    extendsFrom(someConf)
+                }
             }
 
             firstChildComponent.withVariantsFromConfiguration(configurations.firstRuntimeElements) {
                 dependencyMapping {
-                    fromResolutionOf(configurations.noDeps)
+                    fromResolutionOf(configurations.resolvableConf)
                 }
             }
 
-
             dependencies {
+                someConf project(":third")
                 firstImplementation project(':other')
             }
         """
@@ -740,23 +754,28 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
     def "warns when declared module dependency is not in resolution configuration"() {
         given:
         mavenRepo.module("org", "foo").publish()
+        mavenRepo.module("org", "bar").publish()
         publishes(multiCoordinateComponent {
             compilation("first")
         })
 
         buildFile << """
             configurations {
-                resolvable("noDeps")
+                dependencyScope("someConf")
+                resolvable("resolvableConf") {
+                    extendsFrom(someConf)
+                }
             }
 
             firstChildComponent.withVariantsFromConfiguration(configurations.firstRuntimeElements) {
                 dependencyMapping {
-                    fromResolutionOf(configurations.noDeps)
+                    fromResolutionOf(configurations.resolvableConf)
                 }
             }
 
             repositories { maven { url "${mavenRepo.uri}" } }
             dependencies {
+                someConf "org:bar:1.0"
                 firstImplementation "org:foo:1.0"
             }
         """
@@ -789,13 +808,7 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
         """
 
         when:
-        fails("publish")
-
-        then:
-        failure.assertHasCause("Could not find org:foo:1.0")
-
-        when:
-        fails("publish", "--stacktrace")
+        fails("generatePomFileForFirstPubPublication", "--stacktrace")
 
         then:
         // Not sure why this does not show up without stacktrace

@@ -154,6 +154,7 @@ public abstract class Ear extends Jar {
     }
 
     @Inject
+    @Override
     protected ObjectFactory getObjectFactory() {
         throw new UnsupportedOperationException();
     }

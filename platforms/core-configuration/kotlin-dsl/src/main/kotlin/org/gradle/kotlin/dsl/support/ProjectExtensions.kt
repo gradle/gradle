@@ -32,7 +32,6 @@ fun serviceRegistryOf(project: Project) =
     (project as ProjectInternal).services
 
 
-internal
 fun isGradleKotlinDslJar(file: File) =
     isGradleKotlinDslJarName(file.name)
 

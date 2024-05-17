@@ -16,20 +16,19 @@
 
 package org.gradle.internal.reflect;
 
-import com.google.common.collect.Maps;
-
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 
 import static java.util.Collections.unmodifiableCollection;
 
 public class MethodSet implements Iterable<Method> {
-    private final Map<MethodKey, Method> methods = Maps.newLinkedHashMap();
+    private final Map<MethodKey, Method> methods = new LinkedHashMap<>();
 
     public void add(Method method) {
         MethodKey key = new MethodKey(method);

@@ -405,7 +405,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         failedResolve.assertFailurePresent(failure)
         def op = operations.first(ResolveConfigurationDependenciesBuildOperationType)
         op.details.configurationName == "compile"
-        op.failure == "org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration\$ArtifactResolveException: Could not resolve all dependencies for configuration ':compile'."
+        op.failure == "org.gradle.api.internal.artifacts.ivyservice.TypedResolveException: Could not resolve all dependencies for configuration ':compile'."
         failure.assertHasCause("""Conflict found for the following module:
   - org:leaf between versions 2.0 and 1.0""")
         op.result != null

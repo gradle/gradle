@@ -21,10 +21,11 @@ import org.gradle.api.Task
 import org.gradle.api.flow.FlowParameters
 import org.gradle.api.internal.tasks.AbstractTaskDependencyResolveContext
 import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory
-import org.gradle.api.problems.Problem
 import org.gradle.api.problems.Problems
-import org.gradle.api.problems.ReportableProblem
 import org.gradle.api.problems.Severity
+import org.gradle.api.problems.internal.GradleCoreProblemGroup
+import org.gradle.api.problems.internal.InternalProblems
+import org.gradle.api.problems.internal.Problem
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.ServiceReference
 import org.gradle.api.tasks.Input
@@ -34,12 +35,12 @@ import org.gradle.internal.properties.PropertyVisitor
 import org.gradle.internal.reflect.DefaultTypeValidationContext
 import org.gradle.internal.reflect.ProblemRecordingTypeValidationContext
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import java.util.Optional
 
 
-@ServiceScope(Scopes.Build::class)
+@ServiceScope(Scope.Build::class)
 internal
 class FlowParametersInstantiator(
     inspectionSchemeFactory: InspectionSchemeFactory,
@@ -59,7 +60,7 @@ class FlowParametersInstantiator(
         inspection.propertyWalker.visitProperties(
             parameters,
             object : ProblemRecordingTypeValidationContext(type, { Optional.empty() }) {
-                override fun recordProblem(problem: ReportableProblem) {
+                override fun recordProblem(problem: Problem) {
                     problems.add(problem)
                 }
             },
@@ -75,13 +76,10 @@ class FlowParametersInstantiator(
                         object : AbstractTaskDependencyResolveContext() {
                             override fun add(dependency: Any) {
                                 problems.add(
-                                    problemsService.create { builder ->
-                                        builder
-                                            .label("Property '$propertyName' cannot carry a dependency on $dependency as these are not yet supported.")
-                                            .undocumented()
-                                            .noLocation()
-                                            .category("validation", "property", "invalid-dependency")
-                                            .severity(Severity.ERROR)
+                                    (problemsService as InternalProblems).internalReporter.create {
+                                        id("invalid-dependency", "Property cannot carry dependency", GradleCoreProblemGroup.validation().property())
+                                        contextualLabel("Property '$propertyName' cannot carry a dependency on $dependency as these are not yet supported.")
+                                        severity(Severity.ERROR)
                                     })
                             }
 

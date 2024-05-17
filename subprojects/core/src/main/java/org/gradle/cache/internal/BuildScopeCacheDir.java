@@ -21,11 +21,12 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.initialization.layout.BuildLayout;
+import org.gradle.internal.hash.Hashing;
 
 import java.io.File;
 
 public class BuildScopeCacheDir {
-    public static final String UNDEFINED_BUILD = "undefined-build";
+    public static final String UNDEFINED_BUILD = "undefined-build/";
 
     private final File cacheDir;
 
@@ -35,10 +36,13 @@ public class BuildScopeCacheDir {
         StartParameter startParameter
     ) {
         if (startParameter.getProjectCacheDir() != null) {
+            // Use explicitly requested build scoped cache dir
             cacheDir = startParameter.getProjectCacheDir();
         } else if (!buildLayout.getRootDirectory().getName().equals(SettingsInternal.BUILD_SRC) && buildLayout.isBuildDefinitionMissing()) {
-            cacheDir = new File(userHomeDirProvider.getGradleUserHomeDirectory(), UNDEFINED_BUILD);
+            // No build definition, use a cache dir in the user home directory to avoid generating garbage in the root directory
+            cacheDir = new File(userHomeDirProvider.getGradleUserHomeDirectory(), UNDEFINED_BUILD + Hashing.hashString(buildLayout.getRootDirectory().getAbsolutePath()));
         } else {
+            // Use the .gradle directory in the build root directory
             cacheDir = new File(buildLayout.getRootDirectory(), ".gradle");
         }
         if (cacheDir.exists() && !cacheDir.isDirectory()) {

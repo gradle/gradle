@@ -39,28 +39,28 @@ public class DefaultActionExecutionSpecFactory implements ActionExecutionSpecFac
 
     @Override
     public <T extends WorkParameters> TransportableActionExecutionSpec newTransportableSpec(IsolatedParametersActionExecutionSpec<T> spec) {
-        return new TransportableActionExecutionSpec(spec.getImplementationClass().getName(), serialize(spec.getIsolatedParams()), spec.getClassLoaderStructure(), spec.getBaseDir(), spec.isInternalServicesRequired());
+        return new TransportableActionExecutionSpec(spec.getImplementationClass().getName(), serialize(spec.getIsolatedParams()), spec.getClassLoaderStructure(), spec.getBaseDir(), spec.getProjectCacheDir(), spec.isInternalServicesRequired());
     }
 
     @Override
     public <T extends WorkParameters> IsolatedParametersActionExecutionSpec<T> newIsolatedSpec(String displayName, Class<? extends WorkAction<T>> implementationClass, T params, WorkerRequirement workerRequirement, boolean usesInternalServices) {
         ClassLoaderStructure classLoaderStructure = workerRequirement instanceof IsolatedClassLoaderWorkerRequirement ? ((IsolatedClassLoaderWorkerRequirement) workerRequirement).getClassLoaderStructure() : null;
-        return new IsolatedParametersActionExecutionSpec<T>(implementationClass, displayName, implementationClass.getName(), isolatableFactory.isolate(params), classLoaderStructure, workerRequirement.getWorkerDirectory(), usesInternalServices);
+        return new IsolatedParametersActionExecutionSpec<>(implementationClass, displayName, implementationClass.getName(), isolatableFactory.isolate(params), classLoaderStructure, workerRequirement.getWorkerDirectory(), workerRequirement.getProjectCacheDir(), usesInternalServices);
     }
 
     @Override
     public <T extends WorkParameters> SimpleActionExecutionSpec<T> newSimpleSpec(IsolatedParametersActionExecutionSpec<T> spec) {
         T params = Cast.uncheckedCast(spec.getIsolatedParams().isolate());
-        return new SimpleActionExecutionSpec<T>(spec.getImplementationClass(), params, spec.isInternalServicesRequired());
+        return new SimpleActionExecutionSpec<>(spec.getImplementationClass(), params, spec.isInternalServicesRequired());
     }
 
     @Override
     public <T extends WorkParameters> SimpleActionExecutionSpec<T> newSimpleSpec(TransportableActionExecutionSpec spec) {
         T params = Cast.uncheckedCast(deserialize(spec.getSerializedParameters()).isolate());
-        return new SimpleActionExecutionSpec<T>(Cast.uncheckedCast(fromClassName(spec.getImplementationClassName())), params, spec.isInternalServicesRequired());
+        return new SimpleActionExecutionSpec<>(Cast.uncheckedCast(fromClassName(spec.getImplementationClassName())), params, spec.isInternalServicesRequired());
     }
 
-    Class<?> fromClassName(String className) {
+    static Class<?> fromClassName(String className) {
         try {
             return ClassLoaderUtils.classFromContextLoader(className);
         } catch (Exception e) {
@@ -70,8 +70,7 @@ public class DefaultActionExecutionSpecFactory implements ActionExecutionSpecFac
 
     private byte[] serialize(Isolatable<?> isolatable) {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        KryoBackedEncoder encoder = new KryoBackedEncoder(outputStream);
-        try {
+        try (KryoBackedEncoder encoder = new KryoBackedEncoder(outputStream)) {
             serializerRegistry.writeIsolatable(encoder, isolatable);
             encoder.flush();
         } catch (Exception e) {

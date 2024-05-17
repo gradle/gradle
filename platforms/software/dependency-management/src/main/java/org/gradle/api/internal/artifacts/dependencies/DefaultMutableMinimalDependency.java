@@ -38,6 +38,7 @@ public class DefaultMutableMinimalDependency extends DefaultExternalModuleDepend
         super.copyTo(target);
     }
 
+    @Override
     public String toString() {
         String versionConstraintAsString = getVersionConstraint().toString();
         return versionConstraintAsString.isEmpty()

@@ -23,8 +23,8 @@ import common.gradleWrapper
 import common.javaHome
 import common.requiresOs
 import common.uuidPrefix
-import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
-import jetbrains.buildServer.configs.kotlin.v2019_2.DslContext
+import jetbrains.buildServer.configs.kotlin.BuildType
+import jetbrains.buildServer.configs.kotlin.DslContext
 import vcsroots.useAbsoluteVcs
 
 object PublishKotlinDslPlugin : BuildType({

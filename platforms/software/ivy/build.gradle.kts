@@ -4,24 +4,34 @@ plugins {
 
 description = "Publishing plugin for Ivy repositories"
 
-dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":logging"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":core"))
-    implementation(project(":functional"))
-    implementation(project(":base-services-groovy")) // for 'Specs'
-    implementation(project(":file-collections"))
-    implementation(project(":resources"))
-    implementation(project(":publish"))
-    implementation(project(":plugin-use"))
-    implementation(project(":dependency-management"))
+errorprone {
+    disabledChecks.addAll(
+        "UnusedMethod", // 2 occurrences
+        "UnusedVariable", // 1 occurrences
+    )
+}
 
-    implementation(libs.groovy) // for 'Closure' and 'Task.property(String propertyName) throws groovy.lang.MissingPropertyException'
+dependencies {
+    api(projects.javaLanguageExtensions)
+    api(projects.serviceProvider)
+    api(project(":base-services"))
+    api(project(":core"))
+    api(project(":core-api"))
+    api(project(":dependency-management"))
+    api(project(":file-collections"))
+    api(project(":logging"))
+    api(project(":model-core"))
+    api(project(":publish"))
+    api(project(":resources"))
+
+    api(libs.jsr305)
+    api(libs.inject)
+
+    implementation(project(":functional"))
+    implementation(project(":logging-api"))
+
     implementation(libs.guava)
     implementation(libs.commonsLang)
-    implementation(libs.inject)
     implementation(libs.ivy)
 
     testImplementation(project(":native"))
@@ -56,8 +66,12 @@ dependencies {
     testRuntimeOnly(project(":distributions-core")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-jvm"))
-    crossVersionTestDistributionRuntimeOnly(project(":distributions-jvm"))
+    integTestDistributionRuntimeOnly(project(":distributions-jvm")) {
+        because("SamplesIvyPublishIntegrationTest test applies the java-library plugin.")
+    }
+    crossVersionTestDistributionRuntimeOnly(project(":distributions-jvm")) {
+        because("IvyPublishCrossVersionIntegrationTest test applies the war plugin.")
+    }
 }
 
 integTest.usesJavadocCodeSnippets = true

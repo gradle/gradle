@@ -100,6 +100,7 @@ public class IsolatedGradleProjectInternal implements Serializable {
         return buildScript;
     }
 
+    @Override
     public String toString() {
         return "IsolatedGradleProject{" + projectIdentifier + "}";
     }

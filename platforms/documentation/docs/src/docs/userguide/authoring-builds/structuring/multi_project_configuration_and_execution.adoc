@@ -1,0 +1,75 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[configuration_and_execution]]
+= Configuration On Demand
+
+Configuration-on-demand attempts to configure only the relevant projects for the requested tasks, i.e., it only evaluates the build script file of projects participating in the build.
+This way, the configuration time of a large multi-project build can be reduced.
+
+The configuration-on-demand feature is _incubating_, so only some builds are guaranteed to work correctly.
+The feature works well for <<#sec:decoupled_projects,decoupled>> multi-project builds.
+
+In configuration-on-demand mode, projects are configured as follows:
+
+* The root project is always configured.
+* The project in the directory where the build is executed is also configured, but only when Gradle is executed without any tasks. +
+This way, the default tasks behave correctly when projects are configured on demand.
+* The standard project dependencies are supported, and relevant projects are configured. +
+If project A has a compile dependency on project B, then building A causes the configuration of both projects.
+* The task dependencies declared via the task path are supported and cause relevant projects to be configured. +
+Example: `someTask.dependsOn(":some-other-project:someOtherTask")`
+* A task requested via task path from the command line (or tooling API) causes the relevant project to be configured. +
+For example, building `project-a:project-b:someTask` causes configuration of `project-b`.
+
+[[sec:configuration_on_demand]]
+== Enable `configuration-on-demand`
+
+You can enable configuration-on-demand using the `--configure-on-demand` flag or adding `org.gradle.configureondemand=true` to the `gradle.properties` file.
+
+To configure on demand with every build run, see <<build_environment.adoc#sec:gradle_configuration_properties,Gradle properties>>.
+
+To configure on demand for a given build, see <<command_line_interface.adoc#sec:command_line_performance,command-line performance-oriented options>>.
+
+[[sec:decoupled_projects]]
+== Decoupled projects
+
+Gradle allows projects to access each other's configurations and tasks during the configuration and execution phases.
+While this flexibility empowers build authors, it limits Gradle's ability to perform optimizations such as <<#sec:parallel_execution,parallel project builds>> and <<#configuration_and_execution,configuration on demand>>.
+
+Projects are considered decoupled when they interact solely through declared dependencies and task dependencies.
+Any direct modification or reading of another project's object creates coupling between the projects.
+Coupling during configuration can result in flawed build outcomes when using 'configuration on demand', while coupling during execution can affect parallel execution.
+
+One common source of coupling is configuration injection, such as using `allprojects{}` or `subprojects{}` in build scripts.
+
+To avoid coupling issues, it's recommended to:
+
+- Refrain from referencing other subprojects' build scripts and prefer cross-configuration from the root project.
+- Avoid dynamically changing other projects' configurations during execution.
+
+As Gradle evolves, it aims to provide features that leverage decoupled projects while offering solutions for common use cases like configuration injection without introducing coupling.
+
+[[sec:parallel_execution]]
+== Parallel projects
+
+Gradle's parallel execution feature optimizes CPU utilization to accelerate builds by concurrently executing tasks from different projects.
+
+To enable parallel execution, use the `--parallel` <<command_line_interface.adoc#sec:command_line_performance,command-line argument>> or configure your <<build_environment.adoc#sec:gradle_configuration_properties,build environment>>.
+Gradle automatically determines the optimal number of parallel threads based on CPU cores.
+
+During parallel execution, each worker handles a specific project exclusively.
+Task dependencies are respected, with workers prioritizing upstream tasks.
+However, tasks may not execute in alphabetical order, as in sequential mode.
+It's crucial to correctly declare task dependencies and inputs/outputs to avoid ordering issues.

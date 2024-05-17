@@ -16,6 +16,16 @@
 
 package org.gradle.process.internal.health.memory;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
+@ServiceScope(Scope.Global.class)
 public interface OsMemoryInfo {
-    OsMemoryStatus getOsSnapshot();
+    /**
+     * Get a snapshot of the memory status of the operating system.
+     *
+     * @return the snapshot
+     * @throws UnsupportedOperationException if this integration does not support getting memory status
+     */
+    OsMemoryStatus getOsSnapshot() throws UnsupportedOperationException;
 }

@@ -17,11 +17,12 @@
 package org.gradle.launcher.daemon.server.expiry;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.*;
+import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.DO_NOT_EXPIRE;
+import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.highestPriorityOf;
 
 /**
  * Expires the daemon only if all children would expire the daemon.
@@ -39,7 +40,7 @@ public class AllDaemonExpirationStrategy implements DaemonExpirationStrategy {
         DaemonExpirationResult expirationResult = DaemonExpirationResult.NOT_TRIGGERED;
         DaemonExpirationStatus expirationStatus = DO_NOT_EXPIRE;
 
-        List<String> reasons = Lists.newArrayList();
+        List<String> reasons = new ArrayList<>();
         for (DaemonExpirationStrategy expirationStrategy : expirationStrategies) {
             // If any of the child strategies don't expire the daemon, the daemon will not expire.
             // Otherwise, the daemon will expire and aggregate the reasons together.

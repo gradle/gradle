@@ -21,10 +21,10 @@ import org.gradle.integtests.tooling.fixture.ProgressEvents.Operation
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
+import org.gradle.util.GradleVersion
 
 class CacheableTaskProgressEventsCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
@@ -54,14 +54,13 @@ class CacheableTaskProgressEventsCrossVersionSpec extends ToolingApiSpecificatio
         file("input").text = "input file"
     }
 
-    @ToolingApiVersion('>=3.3')
     @TargetGradleVersion('>=3.5')
     def "cacheable task generates build operations for load and store"() {
         when:
         def pushToCacheEvents = ProgressEvents.create()
         runCacheableBuild(pushToCacheEvents)
         then:
-        writingOperations(pushToCacheEvents).size() == 1
+        writingOperations(pushToCacheEvents).size() == maybeIncludeLocalBuildOperations(1)
 
         when:
         file("build").deleteDir()
@@ -69,10 +68,9 @@ class CacheableTaskProgressEventsCrossVersionSpec extends ToolingApiSpecificatio
         def pullFromCacheResults = ProgressEvents.create()
         runCacheableBuild(pullFromCacheResults)
         then:
-        readingOperations(pullFromCacheResults).size() == 1
+        readingOperations(pullFromCacheResults).size() == maybeIncludeLocalBuildOperations(1)
     }
 
-    @ToolingApiVersion('>=3.3')
     @TargetGradleVersion('>=3.5')
     def "cacheable task generates build operations when using remote cache"() {
         TestFile localCache = file('local-cache')
@@ -80,7 +78,7 @@ class CacheableTaskProgressEventsCrossVersionSpec extends ToolingApiSpecificatio
         settingsFile.text = """
             buildCache {
                 local {
-                    directory = '${localCache.absoluteFile.toURI()}' 
+                    directory = '${localCache.absoluteFile.toURI()}'
                     push = true
                 }
                 remote(DirectoryBuildCache) {
@@ -96,7 +94,7 @@ class CacheableTaskProgressEventsCrossVersionSpec extends ToolingApiSpecificatio
         runCacheableBuild(pushToCacheEvents)
 
         then:
-        writingOperations(pushToCacheEvents).size() == 2
+        writingOperations(pushToCacheEvents).size() == maybeIncludeLocalBuildOperations(2)
 
         when:
         file("build").deleteDir()
@@ -105,7 +103,7 @@ class CacheableTaskProgressEventsCrossVersionSpec extends ToolingApiSpecificatio
         runCacheableBuild(pullFromCacheResults)
 
         then:
-        readingOperations(pullFromCacheResults).size() == 1
+        readingOperations(pullFromCacheResults).size() == maybeIncludeLocalBuildOperations(1)
     }
 
     private static List<Operation> writingOperations(ProgressEvents pushToCacheEvents) {
@@ -120,16 +118,31 @@ class CacheableTaskProgressEventsCrossVersionSpec extends ToolingApiSpecificatio
         return writingOperations
     }
 
-    private static List<Operation> readingOperations(ProgressEvents pullFromCacheResults) {
+    private List<Operation> readingOperations(ProgressEvents pullFromCacheResults) {
         def pullTaskOperation = pullFromCacheResults.operation("Task :cacheable")
         def pullOperations = pullTaskOperation.descendants {
-            it.descriptor.displayName =~ /Load entry .+ from (local|remote) build cache/ ||
-                it.descriptor.displayName =~ /Unpack build cache entry .+/
+            it.descriptor.displayName ==~ /Load entry .+ from (local|remote) build cache/
         }
-        pullOperations.each {
-            assert !it.children
+        def unpackOperations = pullTaskOperation.descendants {
+            it.descriptor.displayName ==~ /Unpack build cache entry .+/
         }
-        return pullOperations
+        if (hasLocalBuildCacheOperations()) {
+            unpackOperations.each {
+                assert !it.children
+            }
+            pullOperations.each {
+                if (it.descriptor.displayName.contains('local')) {
+                    assert unpackOperations.containsAll(it.children)
+                } else {
+                    assert !it.children
+                }
+            }
+        } else {
+            (pullOperations + unpackOperations).each {
+                assert !it.children
+            }
+        }
+        return pullOperations + unpackOperations
     }
 
     private void runCacheableBuild(listener, String task = "cacheable") {
@@ -137,5 +150,15 @@ class CacheableTaskProgressEventsCrossVersionSpec extends ToolingApiSpecificatio
             ProjectConnection connection ->
                 connection.newBuild().withArguments("--build-cache").forTasks(task).addProgressListener(listener, EnumSet.of(OperationType.GENERIC, OperationType.TASK)).run()
         }
+    }
+
+    int maybeIncludeLocalBuildOperations(int expectedNumber) {
+        hasLocalBuildCacheOperations()
+            ? expectedNumber + 1
+            : expectedNumber
+    }
+
+    private boolean hasLocalBuildCacheOperations() {
+        targetVersion.baseVersion >= GradleVersion.version("8.6")
     }
 }

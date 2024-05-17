@@ -59,10 +59,7 @@ Of all the found transform chains, Gradle tries to select the best one:
 - If there is a shortest transform chain, then it is selected.
 - In all other cases, the selection fails and an error is reported.
 
-[NOTE]
-====
-Gradle does not try to select artifact transforms when there is already a variant of the dependency matching the requested attributes.
-====
+IMPORTANT: Gradle does not try to select artifact transforms when there is already a variant of the dependency matching the requested attributes.
 
 [NOTE]
 ====

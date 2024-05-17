@@ -17,16 +17,16 @@
 package org.gradle.api.internal.rules;
 
 import com.google.common.base.Optional;
-import com.google.common.collect.Maps;
 import org.gradle.api.GradleException;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class DefaultRuleAwareNamedDomainObjectFactoryRegistry<T> implements RuleAwareNamedDomainObjectFactoryRegistry<T> {
 
-    private final Map<Class<? extends T>, Optional<ModelRuleDescriptor>> creators = Maps.newHashMap();
+    private final Map<Class<? extends T>, Optional<ModelRuleDescriptor>> creators = new HashMap<>();
     private final NamedDomainObjectFactoryRegistry<T> delegate;
 
     public DefaultRuleAwareNamedDomainObjectFactoryRegistry(NamedDomainObjectFactoryRegistry<T> delegate) {

@@ -4,26 +4,42 @@ plugins {
 
 description = "Implementation for interacting with Google Cloud Storage (GCS) repositories"
 
+errorprone {
+    disabledChecks.addAll(
+        "StringCaseLocaleUsage", // 1 occurrences
+        "UnusedMethod", // 1 occurrences
+    )
+}
+
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":logging"))
-    implementation(project(":resources"))
-    implementation(project(":resources-http"))
-    implementation(project(":core"))
+    api(projects.serviceProvider)
+    api(project(":resources"))
 
-    implementation(libs.slf4jApi)
-    implementation(libs.guava)
+    api(libs.gcs)
+    api(libs.jsr305)
+
+    implementation(projects.javaLanguageExtensions)
+    implementation(project(":hashing"))
+    implementation(project(":logging-api"))
+
     implementation(libs.commonsLang)
-    implementation(libs.gcs)
+    implementation(libs.googleApiClient)
+    implementation(libs.googleHttpClientGson)
+    implementation(libs.googleHttpClient)
+    implementation(libs.googleOauthClient)
+    implementation(libs.guava)
+    implementation(libs.slf4jApi)
 
-    testImplementation(libs.groovy)
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":dependency-management")))
     testImplementation(testFixtures(project(":ivy")))
     testImplementation(testFixtures(project(":maven")))
 
+    testImplementation(libs.groovy)
+
     integTestImplementation(project(":core-api"))
     integTestImplementation(project(":model-core"))
+
     integTestImplementation(libs.commonsIo)
     integTestImplementation(libs.jetty)
     integTestImplementation(libs.joda)

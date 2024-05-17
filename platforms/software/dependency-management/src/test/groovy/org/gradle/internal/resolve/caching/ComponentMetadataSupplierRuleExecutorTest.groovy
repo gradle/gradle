@@ -73,7 +73,7 @@ class ComponentMetadataSupplierRuleExecutorTest extends Specification {
     def setup() {
         def cacheBuilder
         cacheBuilder = Mock(CacheBuilder) {
-            withLockOptions(_) >> { cacheBuilder }
+            withInitialLockMode(_) >> { cacheBuilder }
             open() >> {
                 Mock(PersistentCache) {
                     createIndexedCache(_) >> {

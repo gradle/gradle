@@ -228,9 +228,40 @@ class TransformReplacerTest extends Specification {
         e.message.contains("cannot be fully instrumented for Java ${JavaVersion.current().majorVersion}")
     }
 
-    private static final byte[] loadTransformedClass(TransformedClassPath cp, String className, File originalJar) {
+    def "replaces original class when it is in directory with class from jar"() {
+        given:
+        def original = testDir.createDir("classes").create {
+            file("Foo.class").bytes = ORIGINAL_CLASS
+        }
+        def transformed = jar(testDir.file("transformed.jar")) {
+            manifest {}
+
+            entry("Foo.class", INSTRUMENTED_CLASS)
+        }
+        TransformedClassPath cp = classPath((original): transformed)
+
+        expect:
+        INSTRUMENTED_CLASS == loadTransformedClass(cp, "Foo", original)
+    }
+
+    def "replaces original class with class from directory"() {
+        given:
+        def original = testDir.createDir("classes").create {
+            file("Foo.class").bytes = ORIGINAL_CLASS
+        }
+
+        def transformed = testDir.createDir("instrumented").create {
+            file("Foo.class").bytes = INSTRUMENTED_CLASS
+        }
+        TransformedClassPath cp = classPath((original): transformed)
+
+        expect:
+        INSTRUMENTED_CLASS == loadTransformedClass(cp, "Foo", original)
+    }
+
+    private static final byte[] loadTransformedClass(TransformedClassPath cp, String className, File original) {
         try (TransformReplacer replacer = new TransformReplacer(cp)) {
-            return replacer.getInstrumentedClass(className, protectionDomain(originalJar))
+            return replacer.getInstrumentedClass(className, protectionDomain(original))
         }
     }
 
@@ -244,8 +275,8 @@ class TransformReplacerTest extends Specification {
         return JavaVersion.current().majorVersion.toInteger()
     }
 
-    private static ProtectionDomain protectionDomain(File jarFile) {
-        def cs = new CodeSource(jarFile.toURI().toURL(), null as CodeSigner[])
+    private static ProtectionDomain protectionDomain(File path) {
+        def cs = new CodeSource(path.toURI().toURL(), null as CodeSigner[])
         return new ProtectionDomain(cs, null)
     }
 }

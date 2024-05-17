@@ -124,13 +124,13 @@ class DefaultSingleRequestWorkerProcessBuilder<IN, OUT> implements SingleRequest
                     WorkerProcess workerProcess = builder.build();
                     workerProcess.start();
                     ObjectConnection connection = workerProcess.getConnection();
-                    RequestProtocol requestProtocol = connection.addOutgoing(RequestProtocol.class);
+                    RequestProtocol requester = connection.addOutgoing(RequestProtocol.class);
                     connection.addIncoming(ResponseProtocol.class, receiver);
                     connection.useJavaSerializationForParameters(workerImplementation.getClassLoader());
                     connection.useParameterSerializers(RequestSerializerRegistry.create(workerImplementation.getClassLoader(), argumentSerializers));
                     connection.connect();
                     // TODO(ew): inject BuildOperationIdentifierRegistry instead of static use
-                    requestProtocol.runThenStop(new Request(request, CurrentBuildOperationRef.instance().get()));
+                    requester.runThenStop(new Request(request, CurrentBuildOperationRef.instance().get()));
                     boolean hasResult = receiver.awaitNextResult();
                     workerProcess.waitForStop();
                     if (!hasResult) {

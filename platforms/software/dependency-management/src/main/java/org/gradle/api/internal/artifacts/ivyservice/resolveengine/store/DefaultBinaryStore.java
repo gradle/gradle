@@ -17,7 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.store;
 
 import org.gradle.cache.internal.BinaryStore;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.io.RandomAccessFileInputStream;
+import org.gradle.internal.file.RandomAccessFileInputStream;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.kryo.StringDeduplicatingKryoBackedDecoder;
 import org.gradle.internal.serialize.kryo.StringDeduplicatingKryoBackedEncoder;
@@ -66,6 +66,7 @@ class DefaultBinaryStore implements BinaryStore, Closeable {
         return toString() + " (exist: " + file.exists() + ")";
     }
 
+    @Override
     public String toString() {
         return "Binary store in " + file;
     }
@@ -151,6 +152,7 @@ class DefaultBinaryStore implements BinaryStore, Closeable {
             }
         }
 
+        @Override
         public String toString() {
             return "Binary store in " + inputFile + " offset " + offset + " exists? " + inputFile.exists();
         }

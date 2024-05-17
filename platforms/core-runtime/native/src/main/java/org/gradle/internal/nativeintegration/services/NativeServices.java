@@ -35,6 +35,7 @@ import org.gradle.api.internal.file.temp.GradleUserHomeTemporaryFileProvider;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.file.FileMetadataAccessor;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.nativeintegration.NativeCapabilities;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
@@ -43,7 +44,6 @@ import org.gradle.internal.nativeintegration.console.FallbackConsoleDetector;
 import org.gradle.internal.nativeintegration.console.NativePlatformConsoleDetector;
 import org.gradle.internal.nativeintegration.console.TestOverrideConsoleDetector;
 import org.gradle.internal.nativeintegration.console.WindowsConsoleDetector;
-import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor;
 import org.gradle.internal.nativeintegration.filesystem.services.FallbackFileMetadataAccessor;
 import org.gradle.internal.nativeintegration.filesystem.services.FileSystemServices;
 import org.gradle.internal.nativeintegration.filesystem.services.NativePlatformBackedFileMetadataAccessor;
@@ -68,6 +68,7 @@ import java.lang.reflect.Proxy;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.EnumSet;
+import java.util.Map;
 
 import static org.gradle.internal.nativeintegration.filesystem.services.JdkFallbackHelper.newInstanceOrFallback;
 
@@ -78,6 +79,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
     private static final Logger LOGGER = LoggerFactory.getLogger(NativeServices.class);
     private static final NativeServices INSTANCE = new NativeServices();
 
+    public static final String NATIVE_SERVICES_OPTION = "org.gradle.native";
     public static final String NATIVE_DIR_OVERRIDE = "org.gradle.native.dir";
 
     private boolean initialized;
@@ -97,7 +99,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
                         LOGGER.info("Initialized file system watching services in: {}", nativeBaseDir);
                         return true;
                     } catch (NativeIntegrationUnavailableException ex) {
-                        LOGGER.debug("Native file system watching is not available for this operating system.", ex);
+                        logFileSystemWatchingUnavailable(ex);
                         return false;
                     }
                 }
@@ -118,13 +120,54 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         public abstract boolean initialize(File nativeBaseDir, boolean canUseNativeIntegrations);
     }
 
+    public enum NativeServicesMode {
+        ENABLED {
+            @Override
+            public boolean isEnabled() {
+                return true;
+            }
+        },
+        DISABLED {
+            @Override
+            public boolean isEnabled() {
+                return false;
+            }
+        },
+        NOT_SET {
+            @Override
+            public boolean isEnabled() {
+                throw new UnsupportedOperationException("Cannot determine if native services are enabled or not for " + this + " mode.");
+            }
+        };
+
+        public abstract boolean isEnabled();
+
+        public static NativeServicesMode from(boolean isEnabled) {
+            return isEnabled ? ENABLED : DISABLED;
+        }
+
+        public static NativeServicesMode fromSystemProperties() {
+            return fromString(System.getProperty(NATIVE_SERVICES_OPTION));
+        }
+
+        public static NativeServicesMode fromProperties(Map<String, String> properties) {
+            return fromString(properties.get(NATIVE_SERVICES_OPTION));
+        }
+
+        public static NativeServicesMode fromString(@Nullable String value) {
+            // Default to enabled, make it disabled only if explicitly set to "false"
+            value = (value == null ? "true" : value).trim();
+            return from(!"false".equalsIgnoreCase(value));
+        }
+    }
+
     /**
      * Initializes the native services to use the given user home directory to store native libs and other resources. Does nothing if already initialized.
      *
      * Initializes all the services needed for the Gradle daemon.
      */
-    public static void initializeOnDaemon(File userHomeDir) {
-        INSTANCE.initialize(userHomeDir, EnumSet.allOf(NativeFeatures.class));
+    public static void initializeOnDaemon(File userHomeDir, NativeServicesMode mode) {
+        INSTANCE.initialize(userHomeDir, EnumSet.allOf(NativeFeatures.class), mode);
     }
 
     /**
@@ -132,8 +175,8 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
      *
      * Initializes all the services needed for the CLI or the Tooling API.
      */
-    public static void initializeOnClient(File userHomeDir) {
-        INSTANCE.initialize(userHomeDir, EnumSet.of(NativeFeatures.JANSI));
+    public static void initializeOnClient(File userHomeDir, NativeServicesMode mode) {
+        INSTANCE.initialize(userHomeDir, EnumSet.of(NativeFeatures.JANSI), mode);
     }
 
     /**
@@ -141,8 +184,16 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
      *
      * Initializes all the services needed for the CLI or the Tooling API.
      */
-    public static void initializeOnWorker(File userHomeDir) {
-        INSTANCE.initialize(userHomeDir, EnumSet.noneOf(NativeFeatures.class));
+    public static void initializeOnWorker(File userHomeDir, NativeServicesMode mode) {
+        INSTANCE.initialize(userHomeDir, EnumSet.noneOf(NativeFeatures.class), mode);
+    }
+
+    public static void logFileSystemWatchingUnavailable(NativeIntegrationUnavailableException ex) {
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("File system watching is not available", ex);
+        } else {
+            LOGGER.info("File system watching is not available: {}", ex.getMessage());
+        }
     }
 
     /**
@@ -150,10 +201,11 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
      *
      * @param requestedFeatures Whether to initialize additional native libraries like jansi and file-events.
      */
-    private void initialize(File userHomeDir, EnumSet<NativeFeatures> requestedFeatures) {
+    private void initialize(File userHomeDir, EnumSet<NativeFeatures> requestedFeatures, NativeServicesMode mode) {
+        checkNativeServicesMode(mode);
         if (!initialized) {
             try {
-                initializeNativeIntegrations(userHomeDir);
+                initializeNativeIntegrations(userHomeDir, mode);
                 initialized = true;
                 initializeFeatures(requestedFeatures);
             } catch (RuntimeException e) {
@@ -162,9 +214,15 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         }
     }
 
-    private void initializeNativeIntegrations(File userHomeDir) {
+    private static void checkNativeServicesMode(NativeServicesMode mode) {
+        if (mode != NativeServicesMode.ENABLED && mode != NativeServicesMode.DISABLED) {
+            throw new IllegalArgumentException("Only explicit ENABLED or DISABLED mode is allowed for the NativeServices initialization, but was: " + mode);
+        }
+    }
+
+    private void initializeNativeIntegrations(File userHomeDir, NativeServicesMode nativeServicesMode) {
         this.userHomeDir = userHomeDir;
-        useNativeIntegrations = isNativeIntegrationsEnabled();
+        useNativeIntegrations = shouldUseNativeIntegration(nativeServicesMode);
         nativeBaseDir = getNativeServicesDir(userHomeDir).getAbsoluteFile();
         if (useNativeIntegrations) {
             try {
@@ -189,8 +247,50 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         }
     }
 
+    private static boolean shouldUseNativeIntegration(NativeServicesMode nativeServicesMode) {
+        if (!nativeServicesMode.isEnabled()) {
+            return false;
+        }
+        if (isLinuxWithMusl()) {
+            LOGGER.debug("Native-platform is not available on Linux with musl libc.");
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Our native libraries don't currently support musl libc.
+     * See <a href="https://github.com/gradle/gradle/issues/24875">#24875</a>.
+     */
+    private static boolean isLinuxWithMusl() {
+        if (!OperatingSystem.current().isLinux()) {
+            return false;
+        }
+
+        // Musl libc maps /lib/ld-musl-aarch64.so.1 into memory, let's try to find it
+        try {
+            File mapFilesDir = new File("/proc/self/map_files");
+            if (!mapFilesDir.isDirectory()) {
+                return false;
+            }
+            File[] files = mapFilesDir.listFiles();
+            if (files == null) {
+                return false;
+            }
+            for (File file : files) {
+                if (file.getCanonicalFile().getName().contains("-musl-")) {
+                    return true;
+                }
+            }
+        } catch (Exception e) {
+            // Ignored
+        }
+
+        return false;
+    }
+
     private void initializeFeatures(EnumSet<NativeFeatures> requestedFeatures) {
-        if (isNativeIntegrationsEnabled()) {
+        if (useNativeIntegrations) {
             for (NativeFeatures requestedFeature : requestedFeatures) {
                 if (initializedFeatures.add(requestedFeature)) {
                     if (requestedFeature.initialize(nativeBaseDir, useNativeIntegrations)) {
@@ -199,10 +299,6 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
                 }
             }
         }
-    }
-
-    private static boolean isNativeIntegrationsEnabled() {
-        return "true".equalsIgnoreCase(System.getProperty("org.gradle.native", "true"));
     }
 
     private boolean isFeatureEnabled(NativeFeatures feature) {
@@ -309,10 +405,10 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         if (useNativeIntegrations && operatingSystem.isWindows()) {
             return net.rubygrapefruit.platform.Native.get(WindowsRegistry.class);
         }
-        return notAvailable(WindowsRegistry.class);
+        return notAvailable(WindowsRegistry.class, operatingSystem);
     }
 
-    public SystemInfo createSystemInfo() {
+    public SystemInfo createSystemInfo(OperatingSystem operatingSystem) {
         if (useNativeIntegrations) {
             try {
                 return net.rubygrapefruit.platform.Native.get(SystemInfo.class);
@@ -320,10 +416,10 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
                 LOGGER.debug("Native-platform system info is not available. Continuing with fallback.");
             }
         }
-        return notAvailable(SystemInfo.class);
+        return notAvailable(SystemInfo.class, operatingSystem);
     }
 
-    protected Memory createMemory() {
+    protected Memory createMemory(OperatingSystem operatingSystem) {
         if (useNativeIntegrations) {
             try {
                 return net.rubygrapefruit.platform.Native.get(Memory.class);
@@ -331,7 +427,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
                 LOGGER.debug("Native-platform memory integration is not available. Continuing with fallback.");
             }
         }
-        return notAvailable(Memory.class);
+        return notAvailable(Memory.class, operatingSystem);
     }
 
     protected ProcessLauncher createProcessLauncher() {
@@ -345,7 +441,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         return new DefaultProcessLauncher();
     }
 
-    protected PosixFiles createPosixFiles() {
+    protected PosixFiles createPosixFiles(OperatingSystem operatingSystem) {
         if (useNativeIntegrations) {
             try {
                 return net.rubygrapefruit.platform.Native.get(PosixFiles.class);
@@ -353,7 +449,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
                 LOGGER.debug("Native-platform posix files integration is not available. Continuing with fallback.");
             }
         }
-        return notAvailable(UnavailablePosixFiles.class);
+        return notAvailable(UnavailablePosixFiles.class, operatingSystem);
     }
 
     protected HostnameLookup createHostnameLookup() {
@@ -389,13 +485,13 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         }
 
         if (JavaVersion.current().isJava7Compatible()) {
-            return newInstanceOrFallback("org.gradle.internal.nativeintegration.filesystem.jdk7.NioFileMetadataAccessor", NativeServices.class.getClassLoader(), FallbackFileMetadataAccessor.class);
+            return newInstanceOrFallback("org.gradle.internal.file.nio.NioFileMetadataAccessor", NativeServices.class.getClassLoader(), FallbackFileMetadataAccessor.class);
         }
 
         return new FallbackFileMetadataAccessor();
     }
 
-    protected NativeCapabilities createNativeCapabilities() {
+    public NativeCapabilities createNativeCapabilities() {
         return new NativeCapabilities() {
             @Override
             public boolean useNativeIntegrations() {
@@ -409,7 +505,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         };
     }
 
-    protected FileSystems createFileSystems() {
+    protected FileSystems createFileSystems(OperatingSystem operatingSystem) {
         if (useNativeIntegrations) {
             try {
                 return net.rubygrapefruit.platform.Native.get(FileSystems.class);
@@ -417,11 +513,11 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
                 LOGGER.debug("Native-platform file systems information is not available. Continuing with fallback.");
             }
         }
-        return notAvailable(FileSystems.class);
+        return notAvailable(FileSystems.class, operatingSystem);
     }
 
-    private <T> T notAvailable(Class<T> type) {
-        return Cast.uncheckedNonnullCast(Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[]{type}, new BrokenService(type.getSimpleName())));
+    private <T> T notAvailable(Class<T> type, OperatingSystem operatingSystem) {
+        return Cast.uncheckedNonnullCast(Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[]{type}, new BrokenService(type.getSimpleName(), useNativeIntegrations, operatingSystem)));
     }
 
     private static String format(Throwable throwable) {
@@ -437,14 +533,18 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
 
     private static class BrokenService implements InvocationHandler {
         private final String type;
+        private final boolean useNativeIntegrations;
+        private final OperatingSystem operatingSystem;
 
-        private BrokenService(String type) {
+        private BrokenService(String type, boolean useNativeIntegrations, OperatingSystem operatingSystem) {
             this.type = type;
+            this.useNativeIntegrations = useNativeIntegrations;
+            this.operatingSystem = operatingSystem;
         }
 
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-            throw new org.gradle.internal.nativeintegration.NativeIntegrationUnavailableException(String.format("%s is not supported on this operating system.", type));
+            throw new org.gradle.internal.nativeintegration.NativeIntegrationUnavailableException(String.format("Service '%s' is not available (os=%s, enabled=%s).", type, operatingSystem, useNativeIntegrations));
         }
     }
 

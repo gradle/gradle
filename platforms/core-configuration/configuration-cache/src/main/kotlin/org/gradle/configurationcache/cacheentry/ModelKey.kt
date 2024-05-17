@@ -16,11 +16,13 @@
 
 package org.gradle.configurationcache.cacheentry
 
+import org.gradle.internal.hash.HashCode
 import org.gradle.util.Path
 
 
 internal
 data class ModelKey(
     val identityPath: Path?,
-    val modelName: String
+    val modelName: String,
+    val parameterHash: HashCode?
 )

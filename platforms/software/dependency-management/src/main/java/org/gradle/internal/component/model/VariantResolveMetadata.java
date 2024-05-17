@@ -27,6 +27,7 @@ import javax.annotation.Nullable;
  * Metadata for a basic variant of a component, that defines only artifacts and no dependencies.
  */
 public interface VariantResolveMetadata extends VariantGraphResolveMetadata.Subvariant {
+    @Override
     String getName();
 
     /**
@@ -37,10 +38,12 @@ public interface VariantResolveMetadata extends VariantGraphResolveMetadata.Subv
 
     DisplayName asDescribable();
 
+    @Override
     ImmutableAttributes getAttributes();
 
     ImmutableList<? extends ComponentArtifactMetadata> getArtifacts();
 
+    @Override
     ImmutableCapabilities getCapabilities();
 
     boolean isExternalVariant();

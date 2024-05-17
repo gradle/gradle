@@ -101,11 +101,19 @@ class ValidationMessageDisplayConfiguration<T extends ValidationMessageDisplayCo
         if (!hasIntro) {
             return ''
         }
-        String intro = typeName ? "Type '$typeName' ${property ? "${propertyIntro} '${property}' " : ''}" : (property ? "${propertyIntro.capitalize()} '${property}' " : "")
+        String intro = typeName ? getTypeIntro() : getPropertyDescription()
         if (pluginId) {
             return "In plugin '${pluginId}' ${intro.uncapitalize()}"
         }
         return intro
+    }
+
+    private String getPropertyDescription() {
+        property ? "${propertyIntro.capitalize()} '${property}' " : ""
+    }
+
+    private String getTypeIntro() {
+        "Type '$typeName' ${property ? "${propertyIntro} '${property}' " : ''}"
     }
 
     private String getOutro() {
@@ -118,21 +126,27 @@ class ValidationMessageDisplayConfiguration<T extends ValidationMessageDisplayCo
 
     String render(boolean renderSolutions = true) {
         def newLine = "\n${checker.messageIndent}"
-        StringBuilder sb = new StringBuilder(intro)
-        sb.append(endLineWithDot(description))
-            .append(newLine)
-            .append(newLine)
+        def sb = label(newLine)
         if (reason) {
-            sb.append("Reason: ${formatEntry(reason)}${newLine}${newLine}")
+            sb.append("Reason: ")
+                .append(formatEntry(reason))
+                .append(newLine)
+                .append(newLine)
         }
         if (renderSolutions && !solutions.empty) {
             if (solutions.size() > 1) {
                 sb.append("Possible solutions:$newLine")
                 solutions.eachWithIndex { String solution, int i ->
-                    sb.append("  ").append(i + 1).append(". ${formatEntry(solution)}$newLine")
+                    sb.append("  ")
+                        .append(i + 1)
+                        .append(". ")
+                        .append(formatEntry(solution))
+                        .append(newLine)
                 }
             } else {
-                sb.append("Possible solution: ${formatEntry(solutions[0])}$newLine")
+                sb.append("Possible solution: ")
+                    .append(formatEntry(solutions[0]))
+                    .append(newLine)
             }
             sb.append(newLine)
         }
@@ -140,5 +154,12 @@ class ValidationMessageDisplayConfiguration<T extends ValidationMessageDisplayCo
             sb.append(outro)
         }
         sb.toString().trim()
+    }
+
+    StringBuilder label(String newLine = "") {
+        new StringBuilder(intro)
+            .append(endLineWithDot(description))
+            .append(newLine)
+            .append(newLine)
     }
 }

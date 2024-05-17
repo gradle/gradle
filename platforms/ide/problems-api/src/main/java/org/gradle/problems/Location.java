@@ -53,4 +53,9 @@ public class Location {
     public String getFormatted() {
         return sourceLongDisplayName.getCapitalizedDisplayName() + ": line " + lineNumber;
     }
+
+    @Override
+    public String toString() {
+        return getFormatted();
+    }
 }

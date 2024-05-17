@@ -29,7 +29,9 @@ public interface ClassLoaderScopeId {
 
     String getName();
 
+    @Override
     boolean equals(Object other);
 
+    @Override
     int hashCode();
 }

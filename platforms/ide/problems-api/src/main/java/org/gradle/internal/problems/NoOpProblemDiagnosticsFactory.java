@@ -18,6 +18,7 @@ package org.gradle.internal.problems;
 
 import com.google.common.base.Supplier;
 import org.gradle.internal.code.UserCodeSource;
+import org.gradle.internal.problems.failure.Failure;
 import org.gradle.problems.Location;
 import org.gradle.problems.ProblemDiagnostics;
 import org.gradle.problems.buildtree.ProblemDiagnosticsFactory;
@@ -29,6 +30,12 @@ import java.util.List;
 
 public class NoOpProblemDiagnosticsFactory implements ProblemDiagnosticsFactory {
     public static final ProblemDiagnostics EMPTY_DIAGNOSTICS = new ProblemDiagnostics() {
+        @Nullable
+        @Override
+        public Failure getFailure() {
+            return null;
+        }
+
         @Nullable
         @Override
         public Throwable getException() {

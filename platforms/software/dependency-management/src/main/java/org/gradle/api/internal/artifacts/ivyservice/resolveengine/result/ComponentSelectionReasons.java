@@ -109,6 +109,7 @@ public class ComponentSelectionReasons {
             return hasCause(ComponentSelectionCause.COMPOSITE_BUILD);
         }
 
+        @Override
         public String toString() {
             return descriptions.getLast().toString();
         }

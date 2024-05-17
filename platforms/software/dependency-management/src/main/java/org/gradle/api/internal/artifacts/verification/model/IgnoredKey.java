@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.verification.model;
 import javax.annotation.Nullable;
 import java.util.Locale;
 
-public class IgnoredKey {
+public class IgnoredKey implements Comparable<IgnoredKey> {
     private final String keyId;
     private final String reason;
 
@@ -53,5 +53,10 @@ public class IgnoredKey {
     @Override
     public int hashCode() {
         return keyId.hashCode();
+    }
+
+    @Override
+    public int compareTo(IgnoredKey o) {
+        return keyId.compareTo(o.keyId);
     }
 }

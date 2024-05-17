@@ -31,8 +31,8 @@ public class DebugOptions extends AbstractOptions {
     private String debugLevel;
 
     /**
-     * Tells which debugging information is to be generated. The value is a comma-separated
-     * list of any of the following keywords (without spaces in between):
+     * Get a comma-separated list of debug information to be generated during compilation.
+     * The list may contain any of the following keywords (without spaces in between):
      *
      * <dl>
      *     <dt>{@code source}
@@ -43,7 +43,9 @@ public class DebugOptions extends AbstractOptions {
      *     <dd>Local variable debugging information
      * </dl>
      *
-     * By default, only source and line debugging information will be generated.
+     * <p>Alternatively, a value of {@code none} means debug information will not be generated.</p>
+     *
+     * <p>When the value is null, only source and line debugging information will be generated.</p>
      */
     @Nullable
     @Optional
@@ -53,7 +55,24 @@ public class DebugOptions extends AbstractOptions {
     }
 
     /**
-     * Sets which debug information is to be generated.
+     * Sets which debug information is to be generated during compilation. The value must be a
+     * comma-separated list containing any of the following keywords (without spaces in between):
+     *
+     * <dl>
+     *     <dt>{@code source}
+     *     <dd>Source file debugging information
+     *     <dt>{@code lines}
+     *     <dd>Line number debugging information
+     *     <dt>{@code vars}
+     *     <dd>Local variable debugging information
+     * </dl>
+     *
+     * <p>For example {@code source,lines,vars} is a valid value.</p>
+     *
+     * <p>Alternatively setting the value to {@code none} will disable debug information generation.</p>
+     *
+     * <p>Setting this value to null will reset the property to its default value of only
+     * generating line and source debug information.</p>
      */
     public void setDebugLevel(@Nullable String debugLevel) {
         this.debugLevel = debugLevel;

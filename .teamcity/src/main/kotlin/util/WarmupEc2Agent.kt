@@ -6,8 +6,8 @@ import common.VersionedSettingsBranch
 import common.buildToolGradleParameters
 import common.gradleWrapper
 import common.javaHome
-import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
-import jetbrains.buildServer.configs.kotlin.v2019_2.buildFeatures.freeDiskSpace
+import jetbrains.buildServer.configs.kotlin.BuildType
+import jetbrains.buildServer.configs.kotlin.buildFeatures.freeDiskSpace
 import vcsroots.useAbsoluteVcs
 
 object WarmupEc2Agent : BuildType({

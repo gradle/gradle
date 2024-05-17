@@ -18,9 +18,6 @@ package org.gradle.configurationcache.serialization.codecs.jos
 
 import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.withBeanTrace
-import org.gradle.configurationcache.serialization.writeDouble
-import org.gradle.configurationcache.serialization.writeFloat
-import org.gradle.configurationcache.serialization.writeShort
 import java.io.ObjectOutputStream
 
 

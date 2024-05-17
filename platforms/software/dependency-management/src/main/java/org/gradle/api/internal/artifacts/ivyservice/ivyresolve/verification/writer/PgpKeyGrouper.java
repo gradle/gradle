@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifierBuilder;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -158,7 +159,7 @@ class PgpKeyGrouper {
             // we need at least a prefix of 2 elements, like "com.mycompany", to perform grouping
             return Collections.emptyList();
         }
-        List<List<String>> commonPrefixes = Lists.newArrayList();
+        List<List<String>> commonPrefixes = new ArrayList<>();
         List<List<String>> remainder = Lists.newArrayList(splitGroups);
         List<List<String>> previous;
         while (!remainder.isEmpty()) {

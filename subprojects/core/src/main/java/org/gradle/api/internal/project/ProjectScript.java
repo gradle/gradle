@@ -62,6 +62,7 @@ public abstract class ProjectScript extends PluginsAwareScript {
         return getScriptTarget().getLogger();
     }
 
+    @Override
     public String toString() {
         return getScriptTarget().toString();
     }

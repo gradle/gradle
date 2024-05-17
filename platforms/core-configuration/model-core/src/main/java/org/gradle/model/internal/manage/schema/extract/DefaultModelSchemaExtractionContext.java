@@ -16,7 +16,6 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.internal.Actions;
 import org.gradle.model.internal.inspect.FormattingValidationProblemCollector;
@@ -27,6 +26,7 @@ import javax.annotation.Nullable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
 
 public class DefaultModelSchemaExtractionContext<T> implements ModelSchemaExtractionContext<T> {
@@ -36,7 +36,7 @@ public class DefaultModelSchemaExtractionContext<T> implements ModelSchemaExtrac
     private final String description;
     private final Action<? super ModelSchema<T>> validator;
     private ModelSchema<T> result;
-    private final List<DefaultModelSchemaExtractionContext<?>> children = Lists.newArrayList();
+    private final List<DefaultModelSchemaExtractionContext<?>> children = new ArrayList<>();
     private final FormattingValidationProblemCollector problems;
 
     private DefaultModelSchemaExtractionContext(DefaultModelSchemaExtractionContext<?> parent, ModelType<T> type, String description, Action<? super ModelSchema<T>> validator) {

@@ -18,7 +18,6 @@ package org.gradle.api.tasks.testing;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
@@ -77,6 +76,7 @@ import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.nativeintegration.network.HostnameLookup;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.util.internal.ClosureBackedAction;
@@ -85,6 +85,7 @@ import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -199,6 +200,11 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
 
     @Inject
     protected HostnameLookup getHostnameLookup() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected BuildOperationRunner getBuildOperationRunner() {
         throw new UnsupportedOperationException();
     }
 
@@ -574,7 +580,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      */
     @Internal
     protected List<String> getNoMatchingTestErrorReasons() {
-        List<String> reasons = Lists.newArrayList();
+        List<String> reasons = new ArrayList<String>();
         if (!getFilter().getIncludePatterns().isEmpty()) {
             reasons.add(getFilter().getIncludePatterns() + "(filter.includeTestsMatching)");
         }
@@ -589,16 +595,24 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
 
         try {
             if (testReporter == null) {
-                testReporter = new DefaultTestReport(getBuildOperationExecutor());
+                testReporter = new DefaultTestReport(getBuildOperationRunner(), getBuildOperationExecutor());
             }
 
             JUnitXmlReport junitXml = reports.getJunitXml();
             if (junitXml.getRequired().get()) {
                 JUnitXmlResultOptions xmlResultOptions = new JUnitXmlResultOptions(
                     junitXml.isOutputPerTestCase(),
-                    junitXml.getMergeReruns().get()
+                    junitXml.getMergeReruns().get(),
+                    junitXml.getIncludeSystemOutLog().get(),
+                    junitXml.getIncludeSystemErrLog().get()
                 );
-                Binary2JUnitXmlReportGenerator binary2JUnitXmlReportGenerator = new Binary2JUnitXmlReportGenerator(junitXml.getOutputLocation().getAsFile().get(), testResultsProvider, xmlResultOptions, getBuildOperationExecutor(), getHostnameLookup().getHostname());
+                Binary2JUnitXmlReportGenerator binary2JUnitXmlReportGenerator = new Binary2JUnitXmlReportGenerator(
+                    junitXml.getOutputLocation().getAsFile().get(),
+                    testResultsProvider,
+                    xmlResultOptions,
+                    getBuildOperationRunner(),
+                    getBuildOperationExecutor(),
+                    getHostnameLookup().getHostname());
                 binary2JUnitXmlReportGenerator.generate();
             }
 

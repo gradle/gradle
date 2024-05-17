@@ -22,6 +22,7 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -46,16 +47,16 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
         return settings.getModularizationOption() == ModularizationOption.SINGLE_PROJECT;
     }
 
-    protected String applicationConventionPlugin(InitSettings settings) {
-        return settings.getPackageName() + "." + getLanguage().getName() + "-application-conventions";
+    protected String applicationConventionPlugin() {
+        return InitSettings.CONVENTION_PLUGIN_NAME_PREFIX + "." + getLanguage().getName() + "-application-conventions";
     }
 
-    protected String libraryConventionPlugin(InitSettings settings) {
-        return settings.getPackageName() + "." + getLanguage().getName() + "-library-conventions";
+    protected String libraryConventionPlugin() {
+        return InitSettings.CONVENTION_PLUGIN_NAME_PREFIX + "." + getLanguage().getName() + "-library-conventions";
     }
 
-    private String commonConventionPlugin(InitSettings settings) {
-        return settings.getPackageName() + "." + getLanguage().getName() + "-common-conventions";
+    private String commonConventionPlugin() {
+        return InitSettings.CONVENTION_PLUGIN_NAME_PREFIX + "." + getLanguage().getName() + "-common-conventions";
     }
 
     @Override
@@ -79,12 +80,20 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
     }
 
     @Override
-    public BuildInitTestFramework getDefaultTestFramework() {
+    public BuildInitTestFramework getDefaultTestFramework(ModularizationOption modularizationOption) {
+        if (modularizationOption == ModularizationOption.WITH_LIBRARY_PROJECTS) {
+            // This is the only supported option
+            return BuildInitTestFramework.JUNIT_JUPITER;
+        }
         return description.getDefaultTestFramework();
     }
 
     @Override
-    public Set<BuildInitTestFramework> getTestFrameworks() {
+    public Set<BuildInitTestFramework> getTestFrameworks(ModularizationOption modularizationOption) {
+        if (modularizationOption == ModularizationOption.WITH_LIBRARY_PROJECTS) {
+            // This is the only supported option
+            return Collections.singleton(BuildInitTestFramework.JUNIT_JUPITER);
+        }
         return description.getSupportedTestFrameworks();
     }
 
@@ -148,7 +157,7 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
                 buildScriptBuilder.javaToolchainFor(languageVersion);
             });
         } else {
-            buildScriptBuilder.plugin("Apply the common convention plugin for shared build configuration between library and application projects.", commonConventionPlugin(settings));
+            buildScriptBuilder.plugin("Apply the common convention plugin for shared build configuration between library and application projects.", commonConventionPlugin());
             if ("library".equals(conventionPluginName)) {
                 applyLibraryPlugin(buildScriptBuilder);
             } else if ("application".equals(conventionPluginName)) {

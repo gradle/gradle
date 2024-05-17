@@ -17,8 +17,11 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -115,5 +118,46 @@ public class ToolingParameterProxy implements InvocationHandler {
 
     private static void throwParameterValidationError(Class<?> clazz, String cause) {
         throw new IllegalArgumentException(String.format("%s is not a valid parameter type. %s", clazz.getName(), cause));
+    }
+
+    /**
+     * Collects properties exposed by the interface the {@code parameter} implements.
+     * <p>
+     * This method assumes that the interface follows the contract validated by {@link #validateParameter(Class)}.
+     */
+    public static Map<String, Object> unpackProperties(Object parameter) {
+        if (parameter == null) {
+            throw new IllegalArgumentException("Cannot unpack properties from null");
+        }
+
+        Class<?> parameterInterface = getConsumerParameterInterface(parameter);
+
+        // Intentionally including methods from the potential super-interfaces,
+        // even though they are not checked during parameter type validation
+        Method[] methods = parameterInterface.getMethods();
+
+        Map<String, Object> properties = new LinkedHashMap<>();
+        for (Method method : methods) {
+            if (isGetter(method)) {
+                String propertyName = getPropertyName(method.getName());
+                try {
+                    Object propertyValue = method.invoke(parameter);
+                    properties.put(propertyName, propertyValue);
+                } catch (IllegalAccessException | InvocationTargetException e) {
+                    throw new RuntimeException("Failed to unpack value for property '" + propertyName + "'", e);
+                }
+            }
+        }
+
+        return properties;
+    }
+
+    private static Class<?> getConsumerParameterInterface(Object parameter) {
+        Class<?>[] interfaces = parameter.getClass().getInterfaces();
+        if (interfaces.length != 1) {
+            throw new IllegalArgumentException("Tooling model parameter must implement a single interface, got: " + Arrays.toString(interfaces));
+        }
+
+        return interfaces[0];
     }
 }

@@ -52,11 +52,6 @@ public interface ComponentGraphResolveState {
     ComponentIdentifier getId();
 
     /**
-     * Information about the origin of this component.
-     */
-    ModuleSources getSources();
-
-    /**
      * The immutable metadata for this component.
      */
     ComponentGraphResolveMetadata getMetadata();
@@ -82,6 +77,10 @@ public interface ComponentGraphResolveState {
 
     /**
      * Returns the configuration with the given name. A component does not necessarily define any configurations.
+     * <p>
+     * This method should be avoided if possible. Instead, use {@link GraphSelectionCandidates#getVariantByConfigurationName(String)},
+     * which exposes configurations as a variant.
+     * </p>
      */
     @Nullable
     ConfigurationGraphResolveState getConfiguration(String configurationName);

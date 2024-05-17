@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.dsl;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.Transformer;
@@ -296,7 +295,7 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
     }
 
     private List<?> gatherAdditionalInputs(RuleAction<? super ComponentMetadataDetails> action, ModuleComponentResolveMetadata metadata) {
-        final List<Object> inputs = Lists.newArrayList();
+        final List<Object> inputs = new ArrayList<>();
         for (Class<?> inputType : action.getInputTypes()) {
             MetadataDescriptorFactory descriptorFactory = new MetadataDescriptorFactory(metadata);
             Object descriptor = descriptorFactory.createDescriptor(inputType);

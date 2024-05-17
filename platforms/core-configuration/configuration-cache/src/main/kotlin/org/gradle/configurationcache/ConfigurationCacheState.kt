@@ -47,6 +47,7 @@ import org.gradle.configurationcache.serialization.readEnum
 import org.gradle.configurationcache.serialization.readList
 import org.gradle.configurationcache.serialization.readNonNull
 import org.gradle.configurationcache.serialization.readStrings
+import org.gradle.configurationcache.serialization.readStringsSet
 import org.gradle.configurationcache.serialization.withDebugFrame
 import org.gradle.configurationcache.serialization.withGradleIsolate
 import org.gradle.configurationcache.serialization.withIsolate
@@ -78,6 +79,7 @@ import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.internal.execution.BuildOutputCleanupRegistry
 import org.gradle.internal.file.FileSystemDefaultExcludesProvider
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
+import org.gradle.internal.scopeids.id.BuildInvocationScopeId
 import org.gradle.plugin.management.internal.PluginRequests
 import org.gradle.util.Path
 import org.gradle.vcs.internal.VcsMappingsStore
@@ -95,20 +97,24 @@ enum class StateType(val encryptable: Boolean = false) {
      * Contains the state for the entire build.
      */
     Work(true),
+
     /**
      * Contains the model objects sent back to the IDE in response to a TAPI request.
      */
     Model(true),
+
     /**
      * Contains the model objects queried by the IDE provided build action in order to calculate the model to send back.
      */
     IntermediateModels(true),
+
     /**
      * Contains the dependency resolution metadata for each project.
      */
     ProjectMetadata(false),
     BuildFingerprint(true),
     ProjectFingerprint(true),
+
     /**
      * The index file that points to all of these things
      */
@@ -142,17 +148,20 @@ class ConfigurationCacheState(
      * Writes the state for the whole build starting from the given root [build] and returns the set
      * of stored included build directories.
      */
-    suspend fun DefaultWriteContext.writeRootBuildState(build: VintageGradleBuild) =
+    suspend fun DefaultWriteContext.writeRootBuildState(build: VintageGradleBuild) {
+        writeBuildInvocationId()
         writeRootBuild(build).also {
             writeInt(0x1ecac8e)
         }
+    }
 
     suspend fun DefaultReadContext.readRootBuildState(
         graph: BuildTreeWorkGraph,
         graphBuilder: BuildTreeWorkGraphBuilder?,
         loadAfterStore: Boolean
-    ): BuildTreeWorkGraph.FinalizedGraph {
+    ): Pair<String, BuildTreeWorkGraph.FinalizedGraph> {
 
+        val originBuildInvocationId = readBuildInvocationId()
         val builds = readRootBuild()
         require(readInt() == 0x1ecac8e) {
             "corrupt state file"
@@ -162,8 +171,17 @@ class ConfigurationCacheState(
                 identifyBuild(build)
             }
         }
-        return calculateRootTaskGraph(builds, graph, graphBuilder)
+        return originBuildInvocationId to calculateRootTaskGraph(builds, graph, graphBuilder)
     }
+
+    private
+    fun DefaultWriteContext.writeBuildInvocationId() {
+        writeString(host.service<BuildInvocationScopeId>().id.asString())
+    }
+
+    private
+    fun DefaultReadContext.readBuildInvocationId(): String =
+        readString()
 
     private
     fun identifyBuild(state: CachedBuildState) {
@@ -242,7 +260,7 @@ class ConfigurationCacheState(
         val settingsFile = read() as File?
         val rootBuild = host.createBuild(settingsFile)
         val gradle = rootBuild.gradle
-        readBuildTreeState(gradle)
+        readBuildTreeScopedState(gradle)
         return readBuildsInTree(rootBuild)
     }
 
@@ -261,9 +279,7 @@ class ConfigurationCacheState(
         writeCollection(builds.values) { build ->
             writeBuildState(
                 build,
-                StoredBuildTreeState(
-                    requiredBuildServicesPerBuild = requiredBuildServicesPerBuild
-                ),
+                StoredBuildTreeState(requiredBuildServicesPerBuild),
                 rootBuild
             )
         }
@@ -391,7 +407,7 @@ class ConfigurationCacheState(
     suspend fun DefaultWriteContext.writeBuildWithNoWork(state: BuildState, rootBuild: VintageGradleBuild) {
         withGradleIsolate(rootBuild.gradle, userTypesCodec) {
             writeString(state.identityPath.path)
-            if (state.projectsAvailable) {
+            if (state.isProjectsCreated) {
                 writeBoolean(true)
                 writeString(state.projects.rootProject.name)
                 writeCollection(state.projects.allProjects) { project ->
@@ -421,7 +437,7 @@ class ConfigurationCacheState(
     suspend fun DefaultWriteContext.writeBuildContent(build: VintageGradleBuild, buildTreeState: StoredBuildTreeState) {
         val gradle = build.gradle
         val state = build.state
-        if (state.projectsAvailable) {
+        if (state.isProjectsCreated) {
             writeBoolean(true)
             val scheduledWork = build.scheduledWork
             withDebugFrame({ "Gradle" }) {
@@ -565,7 +581,7 @@ class ConfigurationCacheState(
     }
 
     private
-    suspend fun DefaultReadContext.readBuildTreeState(gradle: GradleInternal) {
+    suspend fun DefaultReadContext.readBuildTreeScopedState(gradle: GradleInternal) {
         withGradleIsolate(gradle, userTypesCodec) {
             readCachedEnvironmentState(gradle)
             readPreviewFlags(gradle)
@@ -672,7 +688,7 @@ class ConfigurationCacheState(
 
     private
     fun DefaultReadContext.readFileSystemDefaultExcludes(gradle: GradleInternal) {
-        val defaultExcludes = readStrings()
+        val defaultExcludes = readStringsSet()
         gradle.serviceOf<FileSystemDefaultExcludesProvider>().updateCurrentDefaultExcludes(defaultExcludes)
     }
 
@@ -702,6 +718,7 @@ class ConfigurationCacheState(
             write(cacheConfigurations.snapshotWrappers.removeUnusedEntriesOlderThan)
             write(cacheConfigurations.downloadedResources.removeUnusedEntriesOlderThan)
             write(cacheConfigurations.createdResources.removeUnusedEntriesOlderThan)
+            write(cacheConfigurations.buildCache.removeUnusedEntriesOlderThan)
             write(cacheConfigurations.cleanup)
             write(cacheConfigurations.markingStrategy)
         }
@@ -714,6 +731,7 @@ class ConfigurationCacheState(
             cacheConfigurations.snapshotWrappers.removeUnusedEntriesOlderThan.value(readNonNull<Provider<Long>>())
             cacheConfigurations.downloadedResources.removeUnusedEntriesOlderThan.value(readNonNull<Provider<Long>>())
             cacheConfigurations.createdResources.removeUnusedEntriesOlderThan.value(readNonNull<Provider<Long>>())
+            cacheConfigurations.buildCache.removeUnusedEntriesOlderThan.value(readNonNull<Provider<Long>>())
             cacheConfigurations.cleanup.value(readNonNull<Provider<Cleanup>>())
             cacheConfigurations.markingStrategy.value(readNonNull<Provider<MarkingStrategy>>())
         }
@@ -851,10 +869,6 @@ class ConfigurationCacheState(
     private
     fun isRelevantBuildEventListener(provider: RegisteredBuildServiceProvider<*, *>) =
         Path.path(provider.buildIdentifier.buildPath).name != BUILD_SRC
-
-    private
-    val BuildState.projectsAvailable
-        get() = isProjectsLoaded && projects.rootProject.isCreated
 }
 
 

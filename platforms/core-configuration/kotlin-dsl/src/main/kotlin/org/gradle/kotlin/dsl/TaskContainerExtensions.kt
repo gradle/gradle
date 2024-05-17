@@ -19,6 +19,7 @@ import org.gradle.api.Task
 import org.gradle.api.tasks.TaskCollection
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
+import org.gradle.internal.deprecation.DeprecationLogger
 
 import org.gradle.kotlin.dsl.support.delegates.TaskContainerDelegate
 
@@ -164,15 +165,23 @@ private constructor(
      * @see [TaskProvider.configure]
      */
     operator fun String.invoke(configuration: Task.() -> Unit): TaskProvider<Task> =
-        this().apply { configure(configuration) }
+        named(this).apply { configure(configuration) }
 
     /**
      * Locates a task by name, without triggering its creation or configuration, failing if there is no such task.
      *
      * @see [TaskContainer.named]
      */
-    operator fun String.invoke(): TaskProvider<Task> =
-        container.named(this)
+    @Deprecated("Use named(String) instead.", ReplaceWith("named(this)"))
+    operator fun String.invoke(): TaskProvider<Task> {
+        DeprecationLogger.deprecateBehaviour(String.format("Task '%s' found by String.invoke() notation.", this))
+            .withContext("The \"name\"() notation can cause confusion with methods provided by Kotlin or the JDK.")
+            .withAdvice("Use named(String) instead.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "string_invoke")
+            .nagUser()
+        return container.named(this)
+    }
 
     /**
      * Configures a task by name, without triggering its creation or configuration, failing if there is no such task.

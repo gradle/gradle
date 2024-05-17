@@ -17,7 +17,7 @@
 package org.gradle.api.publish.ivy.internal.publication;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Maps;
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyConstraint;
@@ -33,8 +33,10 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ExactVersionSelector;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
+import org.gradle.api.internal.provider.MergeProvider;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.publish.internal.component.IvyPublishingAwareVariant;
 import org.gradle.api.publish.internal.mapping.DependencyCoordinateResolverFactory;
 import org.gradle.api.publish.internal.mapping.ResolvedCoordinates;
@@ -56,7 +58,10 @@ import org.gradle.internal.typeconversion.NotationParser;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -150,7 +155,7 @@ public class IvyComponentParser {
     public Set<IvyArtifact> parseArtifacts(SoftwareComponentInternal component) {
         Set<IvyArtifact> artifacts = new LinkedHashSet<>();
 
-        Map<String, IvyArtifact> seenArtifacts = Maps.newHashMap();
+        Map<String, IvyArtifact> seenArtifacts = new HashMap<>();
         for (SoftwareComponentVariant variant : component.getUsages()) {
             String conf = mapVariantNameToIvyConfiguration(variant.getName());
             for (PublishArtifact publishArtifact : variant.getArtifacts()) {
@@ -174,45 +179,63 @@ public class IvyComponentParser {
         return publishArtifact.getName() + ":" + publishArtifact.getType() + ":" + publishArtifact.getExtension() + ":" + publishArtifact.getClassifier();
     }
 
-    public ParsedDependencyResult parseDependencies(SoftwareComponentInternal component, VersionMappingStrategyInternal versionMappingStrategy) {
+    public Provider<ParsedDependencyResult> parseDependencies(SoftwareComponentInternal component, VersionMappingStrategyInternal versionMappingStrategy) {
         PublicationErrorChecker.checkForUnpublishableAttributes(component, documentationRegistry);
 
-        DefaultIvyDependencySet ivyDependencies = instantiator.newInstance(DefaultIvyDependencySet.class, collectionCallbackActionDecorator);
+        List<Provider<ParsedVariantDependencyResult>> parsedVariants = component.getUsages().stream()
+            .map(variant -> dependencyCoordinateResolverFactory
+                .createCoordinateResolvers(variant, versionMappingStrategy)
+                .map(resolvers -> getDependenciesForVariant(variant, resolvers.getVariantResolver(), platformSupport))
+            )
+            .collect(ImmutableList.toImmutableList());
 
-        PublicationWarningsCollector publicationWarningsCollector =
-            new PublicationWarningsCollector(LOG, UNSUPPORTED_FEATURE, "", PUBLICATION_WARNING_FOOTER, "suppressIvyMetadataWarningsFor");
+        return new MergeProvider<>(parsedVariants).map(variants -> {
+            DefaultIvyDependencySet ivyDependencies = instantiator.newInstance(DefaultIvyDependencySet.class, collectionCallbackActionDecorator);
+            Map<String, VariantWarningCollector> warnings = new HashMap<>();
 
-        for (SoftwareComponentVariant variant : component.getUsages()) {
-            VariantWarningCollector warnings = publicationWarningsCollector.warningCollectorFor(variant.getName());
-
-            VariantDependencyResolver dependencyResolver = dependencyCoordinateResolverFactory.createCoordinateResolvers(variant, versionMappingStrategy).getVariantResolver();
-
-            VariantDependencyFactory dependencyFactory = new VariantDependencyFactory(dependencyResolver, warnings);
-
-            for (ModuleDependency dependency : variant.getDependencies()) {
-                String confMapping = confMappingFor(variant, dependency);
-                if (platformSupport.isTargetingPlatform(dependency)) {
-                    warnings.addUnsupported(String.format("%s:%s:%s declared as platform", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
-                }
-                ivyDependencies.add(dependencyFactory.convertDependency(dependency, confMapping));
+            for (ParsedVariantDependencyResult variant : variants) {
+                ivyDependencies.addAll(variant.dependencies);
+                warnings.put(variant.name, variant.warnings);
             }
 
-            if (!variant.getDependencyConstraints().isEmpty()) {
-                for (DependencyConstraint constraint : variant.getDependencyConstraints()) {
-                    warnings.addUnsupported(String.format("%s:%s:%s declared as a dependency constraint", constraint.getGroup(), constraint.getName(), constraint.getVersion()));
-                }
+            return new ParsedDependencyResult(
+                ivyDependencies,
+                new PublicationWarningsCollector(warnings, LOG, UNSUPPORTED_FEATURE, "", PUBLICATION_WARNING_FOOTER, "suppressIvyMetadataWarningsFor")
+            );
+        });
+    }
+
+    private static ParsedVariantDependencyResult getDependenciesForVariant(
+        SoftwareComponentVariant variant,
+        VariantDependencyResolver dependencyResolver,
+        PlatformSupport platformSupport
+    ) {
+        VariantWarningCollector warnings = new VariantWarningCollector();
+        Set<? extends ModuleDependency> dependencies = variant.getDependencies();
+        List<IvyDependency> ivyDependencies = new ArrayList<>(dependencies.size());
+
+        VariantDependencyFactory dependencyFactory = new VariantDependencyFactory(dependencyResolver, warnings);
+
+        for (ModuleDependency dependency : dependencies) {
+            String confMapping = confMappingFor(variant, dependency);
+            if (platformSupport.isTargetingPlatform(dependency)) {
+                warnings.addUnsupported(String.format("%s:%s:%s declared as platform", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
             }
-            if (!variant.getCapabilities().isEmpty()) {
-                for (Capability capability : variant.getCapabilities()) {
-                    warnings.addVariantUnsupported(String.format("Declares capability %s:%s:%s which cannot be mapped to Ivy", capability.getGroup(), capability.getName(), capability.getVersion()));
-                }
+            ivyDependencies.add(dependencyFactory.convertDependency(dependency, confMapping));
+        }
+
+        if (!variant.getDependencyConstraints().isEmpty()) {
+            for (DependencyConstraint constraint : variant.getDependencyConstraints()) {
+                warnings.addUnsupported(String.format("%s:%s:%s declared as a dependency constraint", constraint.getGroup(), constraint.getName(), constraint.getVersion()));
+            }
+        }
+        if (!variant.getCapabilities().isEmpty()) {
+            for (Capability capability : variant.getCapabilities()) {
+                warnings.addVariantUnsupported(String.format("Declares capability %s:%s:%s which cannot be mapped to Ivy", capability.getGroup(), capability.getName(), capability.getVersion()));
             }
         }
 
-        return new ParsedDependencyResult(
-            ivyDependencies,
-            publicationWarningsCollector
-        );
+        return new ParsedVariantDependencyResult(variant.getName(), ivyDependencies, warnings);
     }
 
     public Set<IvyExcludeRule> parseGlobalExcludes(SoftwareComponentInternal component) {
@@ -338,6 +361,9 @@ public class IvyComponentParser {
         }
     }
 
+    /**
+     * Parsed dependencies for all variants.
+     */
     public static class ParsedDependencyResult {
         private final DefaultIvyDependencySet dependencies;
         private final PublicationWarningsCollector warnings;
@@ -356,6 +382,25 @@ public class IvyComponentParser {
 
         public PublicationWarningsCollector getWarnings() {
             return warnings;
+        }
+    }
+
+    /**
+     * Parsed dependencies for a single variant.
+     */
+    private static class ParsedVariantDependencyResult {
+        private final String name;
+        private final List<IvyDependency> dependencies;
+        private final VariantWarningCollector warnings;
+
+        public ParsedVariantDependencyResult(
+            String name,
+            List<IvyDependency> dependencies,
+            VariantWarningCollector warnings
+        ) {
+            this.name = name;
+            this.dependencies = dependencies;
+            this.warnings = warnings;
         }
     }
 }

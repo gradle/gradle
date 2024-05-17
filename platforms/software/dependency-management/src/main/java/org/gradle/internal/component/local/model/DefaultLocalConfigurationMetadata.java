@@ -171,7 +171,7 @@ public final class DefaultLocalConfigurationMetadata implements LocalConfigurati
     }
 
     @Override
-    public boolean isDeprecatedForConsumption() {
+    public boolean isDeprecated() {
         return deprecatedForConsumption;
     }
 

@@ -16,14 +16,13 @@
 
 package org.gradle.execution.plan;
 
-import com.google.common.collect.Sets;
-
+import java.util.HashSet;
 import java.util.Set;
 
 class MutationInfo {
-    private final Set<Node> nodesYetToConsumeOutput = Sets.newHashSet();
-    final Set<String> outputPaths = Sets.newHashSet();
-    final Set<String> destroyablePaths = Sets.newHashSet();
+    private final Set<Node> nodesYetToConsumeOutput = new HashSet<>();
+    final Set<String> outputPaths = new HashSet<>();
+    final Set<String> destroyablePaths = new HashSet<>();
     boolean hasFileInputs;
     boolean hasOutputs;
     boolean hasLocalState;

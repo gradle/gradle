@@ -18,13 +18,15 @@ package org.gradle.api.internal.initialization;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-@ServiceScope(Scopes.Build.class)
+@ServiceScope(Scope.Build.class)
 public interface BuildLogicBuilder {
 
-    void prepareClassPath(Configuration classpathConfiguration, DependencyHandler dependencyHandler);
+    ScriptClassPathResolutionContext prepareDependencyHandler(DependencyHandler dependencyHandler);
 
-    ClassPath resolveClassPath(Configuration classpathConfiguration);
+    void prepareClassPath(Configuration classpathConfiguration, ScriptClassPathResolutionContext resolutionContext);
+
+    ClassPath resolveClassPath(Configuration classpathConfiguration, ScriptClassPathResolutionContext resolutionContext);
 }

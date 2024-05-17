@@ -24,7 +24,7 @@ public interface ScriptBlockBuilder {
     /**
      * Adds a property assignment statement to this block
      */
-    void propertyAssignment(@Nullable String comment, String propertyName, Object propertyValue, boolean legacyProperty);
+    void propertyAssignment(@Nullable String comment, String propertyName, Object propertyValue, boolean assignOperator);
 
     /**
      * Adds a method invocation statement to this block

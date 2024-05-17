@@ -31,6 +31,7 @@ import org.gradle.util.internal.VersionNumber;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.List;
 
 public class CommandLineToolVersionLocator extends AbstractVisualStudioVersionLocator implements VisualStudioVersionLocator {
@@ -51,7 +52,7 @@ public class CommandLineToolVersionLocator extends AbstractVisualStudioVersionLo
 
     @Override
     protected List<VisualStudioInstallCandidate> locateInstalls() {
-        List<VisualStudioInstallCandidate> installs = Lists.newArrayList();
+        List<VisualStudioInstallCandidate> installs = new ArrayList<>();
 
         File vswhereBinary = vswhereLocator.getVswhereInstall();
         if (vswhereBinary != null) {
@@ -90,7 +91,7 @@ public class CommandLineToolVersionLocator extends AbstractVisualStudioVersionLo
     }
 
     private List<VisualStudioInstallCandidate> parseJson(String json) {
-        List<VisualStudioInstallCandidate> installs = Lists.newArrayList();
+        List<VisualStudioInstallCandidate> installs = new ArrayList<>();
         JsonReader reader = new JsonReader(new StringReader(json));
         try {
             try {

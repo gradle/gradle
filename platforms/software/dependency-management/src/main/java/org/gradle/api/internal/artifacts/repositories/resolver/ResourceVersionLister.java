@@ -53,7 +53,7 @@ public class ResourceVersionLister implements VersionLister {
 
     @Override
     public void listVersions(ModuleIdentifier module, IvyArtifactName artifact, List<ResourcePattern> patterns, BuildableModuleVersionListingResolveResult result) {
-        List<String> collector = Lists.newArrayList();
+        List<String> collector = new ArrayList<>();
         List<ResourcePattern> filteredPatterns = filterDuplicates(patterns);
         Map<ResourcePattern, ExternalResourceName> versionListPatterns = filteredPatterns.stream().collect(Collectors.toMap(pattern -> pattern, pattern -> pattern.toVersionListPattern(module, artifact)));
         for (ResourcePattern pattern : filteredPatterns) {

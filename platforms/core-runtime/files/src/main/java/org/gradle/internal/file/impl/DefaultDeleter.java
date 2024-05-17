@@ -195,9 +195,17 @@ public class DefaultDeleter implements Deleter {
 
     protected FileDeletionResult deleteFile(final File file) {
         try {
-            return FileDeletionResult.withoutException(Files.deleteIfExists(file.toPath()) && !file.exists());
-        } catch (IOException e) {
-            return FileDeletionResult.withException(e);
+            return FileDeletionResult.withoutException(Files.deleteIfExists(file.toPath()));
+        } catch (IOException original) {
+            // Let's try again after making it writable, as this is needed on Windows in some cases
+            if (file.setWritable(true)) {
+                try {
+                    return FileDeletionResult.withoutException(Files.deleteIfExists(file.toPath()));
+                } catch (IOException ignored) {
+                    // Ignored, will use the original exception
+                }
+            }
+            return FileDeletionResult.withException(original);
         }
     }
 

@@ -70,6 +70,7 @@ public class DerivedIvyArtifact extends AbstractIvyArtifact {
         return derived.create();
     }
 
+    @Override
     public boolean shouldBePublished() {
         return derived.shouldBePublished();
     }

@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.repositories.metadata;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Maps;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.Bundling;
 import org.gradle.api.attributes.Category;
@@ -33,11 +32,12 @@ import org.gradle.internal.snapshot.impl.CoercingStringValueSnapshot;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class DefaultMavenImmutableAttributesFactory implements MavenImmutableAttributesFactory {
     private final ImmutableAttributesFactory delegate;
     private final NamedObjectInstantiator objectInstantiator;
-    private final Map<List<Object>, ImmutableAttributes> concatCache = Maps.newConcurrentMap();
+    private final Map<List<Object>, ImmutableAttributes> concatCache = new ConcurrentHashMap<>();
 
     public DefaultMavenImmutableAttributesFactory(ImmutableAttributesFactory delegate, NamedObjectInstantiator objectInstantiator) {
         this.delegate = delegate;

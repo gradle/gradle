@@ -118,7 +118,6 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
             ImmutableList<String> incrementalInputFileChangeMessages = collectChanges(incrementalInputFileChanges);
             return ExecutionStateChanges.incremental(
                 incrementalInputFileChangeMessages,
-                thisExecution,
                 incrementalInputFileChanges,
                 incrementalInputProperties
             );

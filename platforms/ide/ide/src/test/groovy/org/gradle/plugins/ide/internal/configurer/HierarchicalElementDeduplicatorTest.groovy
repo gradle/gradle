@@ -15,7 +15,6 @@
  */
 package org.gradle.plugins.ide.internal.configurer
 
-import com.google.common.collect.Lists
 import spock.lang.Specification
 
 class HierarchicalElementDeduplicatorTest extends Specification {
@@ -278,7 +277,7 @@ class HierarchicalElementDeduplicatorTest extends Specification {
         elementName("root:servicesId:barId:appId") == "root-services-bar-appId"
     }
 
-    List<DummyElement> elements = Lists.newArrayList()
+    List<DummyElement> elements = new ArrayList<>()
 
     private element(String name, Closure config = {}) {
         def root = new DummyElement(name)

@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache.isolated
 
+import org.gradle.plugins.ide.internal.tooling.model.IsolatedGradleProjectInternal
 import org.gradle.tooling.model.GradleProject
 
 import static org.gradle.integtests.tooling.fixture.ToolingApiModelChecker.checkGradleProject
@@ -49,8 +50,8 @@ class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIso
 
         then:
         fixture.assertStateStored {
-            modelsCreated(":", 2) // GradleProject, intermediate IsolatedGradleProjectInternal
-            modelsCreated(":lib1", ":lib1:lib11") // intermediate IsolatedGradleProjectInternal
+            modelsCreated(":", GradleProject, IsolatedGradleProjectInternal)
+            modelsCreated(IsolatedGradleProjectInternal, ":lib1", ":lib1:lib11")
         }
 
         checkGradleProject(projectModel, expectedProjectModel)
@@ -96,8 +97,8 @@ class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIso
 
         then: "fetching with Isolated Projects"
         fixture.assertStateStored {
-            modelsCreated(":", 2) // `GradleProject` and intermediate `IsolatedGradleProjectInternal`
-            modelsCreated(":lib1")
+            modelsCreated(":", GradleProject, IsolatedGradleProjectInternal)
+            modelsCreated(":lib1", IsolatedGradleProjectInternal)
         }
 
         checkGradleProject(projectModel, expectedProjectModel)
@@ -110,48 +111,20 @@ class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIso
         fixture.assertStateLoaded()
     }
 
-    def "can fetch GradleProject model for non-root project"() {
+    def "fetching GradleProject for non-root project fails"() {
         settingsFile << """
-            rootProject.name = 'root'
-            include(":lib1")
+            rootProject.name = "root"
+            include("a")
         """
 
-        file("lib1/build.gradle") << """
-            plugins { id 'java' }
-        """
-
-        when: "fetching without Isolated Projects"
-        def expectedProjectModel = runBuildAction(new FetchGradleProjectForTarget(":lib1"))
+        when:
+        executer.withArguments(ENABLE_CLI)
+        runBuildActionFails(new FetchGradleProjectForTarget(":a"))
 
         then:
         fixture.assertNoConfigurationCache()
 
-        // Returned model is for root project even though the target is not the root
-        with(expectedProjectModel) {
-            it.name == "root"
-            it.children.size() == 1
-            it.children[0].name == "lib1"
-        }
-
-        when: "fetching with Isolated Projects"
-        executer.withArguments(ENABLE_CLI)
-        def projectModel = runBuildAction(new FetchGradleProjectForTarget(":lib1"))
-
-        then:
-        fixture.assertStateStored {
-            buildModelCreated()
-            modelsCreated(":") // intermediate IsolatedGradleProject
-            modelsCreated(":lib1", 2) // GradleProject (containing root-project data) and intermediate IsolatedGradleProjectInternal
-        }
-
-        checkGradleProject(projectModel, expectedProjectModel)
-
-        when:
-        executer.withArguments(ENABLE_CLI)
-        runBuildAction(new FetchGradleProjectForTarget(":lib1"))
-
-        then:
-        fixture.assertStateLoaded()
+        failureDescriptionContains("org.gradle.tooling.model.GradleProject can only be requested on the root project, got project ':a'")
     }
 
     def "can fetch GradleProject model for an included build project"() {
@@ -167,7 +140,7 @@ class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIso
         """
 
         when: "fetching without Isolated Projects"
-        def expectedProjectModel = runBuildAction(new FetchGradleProjectForTarget(":included1:lib2"))
+        def expectedProjectModel = runBuildAction(new FetchGradleProjectForTarget(":included1"))
 
         then:
         fixture.assertNoConfigurationCache()
@@ -181,23 +154,117 @@ class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIso
 
         when: "fetching with Isolated Projects"
         executer.withArguments(ENABLE_CLI)
-        def projectModel = runBuildAction(new FetchGradleProjectForTarget(":included1:lib2"))
+        def projectModel = runBuildAction(new FetchGradleProjectForTarget(":included1"))
 
         then:
         fixture.assertStateStored {
             buildModelCreated()
-            modelsCreated(":included1") // intermediate IsolatedGradleProjectInternal
-            modelsCreated(":included1:lib2", 2) // GradleProject (containing root-project data) and intermediate IsolatedGradleProjectInternal
+            modelsCreated(":included1", GradleProject, IsolatedGradleProjectInternal)
+            modelsCreated(":included1:lib2", IsolatedGradleProjectInternal)
         }
 
         checkGradleProject(projectModel, expectedProjectModel)
 
         when:
         executer.withArguments(ENABLE_CLI)
-        runBuildAction(new FetchGradleProjectForTarget(":included1:lib2"))
+        runBuildAction(new FetchGradleProjectForTarget(":included1"))
 
         then:
         fixture.assertStateLoaded()
     }
 
+    def "root GradleProject model is invalidated when a child project configuration changes"() {
+        settingsFile << """
+            rootProject.name = 'root'
+            include("a")
+            include("b")
+        """
+        file("a/build.gradle") << ""
+        file("b/build.gradle") << ""
+
+        when:
+        def originalModel = fetchModel(GradleProject)
+
+        then:
+        fixture.assertNoConfigurationCache()
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        def model = fetchModel(GradleProject)
+
+        then:
+        fixture.assertStateStored {
+            modelsCreated(":", GradleProject, IsolatedGradleProjectInternal)
+            modelsCreated(":a", IsolatedGradleProjectInternal)
+            modelsCreated(":b", IsolatedGradleProjectInternal)
+        }
+
+        checkGradleProject(model, originalModel)
+
+
+        when:
+        file("a/build.gradle") << """
+            tasks.register('something')
+        """
+        def originalUpdatedModel = fetchModel(GradleProject)
+
+        then:
+        fixture.assertNoConfigurationCache()
+
+        originalUpdatedModel.children.path == [":a", ":b"]
+        originalUpdatedModel.children.all[0].tasks.name.contains("something")
+
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        def updatedModel = fetchModel(GradleProject)
+
+        then:
+        fixture.assertStateUpdated {
+            fileChanged("a/build.gradle")
+            modelsCreated(":", GradleProject, IsolatedGradleProjectInternal)
+            modelsCreated(":a", IsolatedGradleProjectInternal)
+            modelsReused(":b")
+        }
+
+        and:
+        checkGradleProject(updatedModel, originalUpdatedModel)
+    }
+
+    def "root GradleProject model is reused when models are not dependencies even when child configuration changes"() {
+        settingsFile << """
+            rootProject.name = 'root'
+            include("a")
+            include("b")
+        """
+        file("a/build.gradle") << ""
+        file("b/build.gradle") << ""
+
+        when:
+        executer.withArguments(ENABLE_CLI, "-Dorg.gradle.internal.model-project-dependencies=false")
+        fetchModel(GradleProject)
+
+        then:
+        fixture.assertStateStored {
+            modelsCreated(":", GradleProject, IsolatedGradleProjectInternal)
+            modelsCreated(":a", IsolatedGradleProjectInternal)
+            modelsCreated(":b", IsolatedGradleProjectInternal)
+        }
+
+
+        when:
+        file("a/build.gradle") << """
+            println("updated :a")
+        """
+        executer.withArguments(ENABLE_CLI, "-Dorg.gradle.internal.model-project-dependencies=false")
+        fetchModel(GradleProject)
+
+        then:
+        outputDoesNotContain("updated :a")
+        fixture.assertStateUpdated {
+            fileChanged("a/build.gradle")
+            runsTasks = false
+            modelsReused(":")
+        }
+    }
 }

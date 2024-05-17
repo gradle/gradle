@@ -16,7 +16,6 @@
 
 package org.gradle.plugins.ide.internal;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -30,6 +29,7 @@ import org.gradle.internal.build.BuildState;
 import org.gradle.util.internal.CollectionUtils;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -68,7 +68,7 @@ public class DefaultIdeArtifactRegistry implements IdeArtifactRegistry {
 
     @Override
     public <T extends IdeProjectMetadata> List<Reference<T>> getIdeProjects(Class<T> type) {
-        List<Reference<T>> result = Lists.newArrayList();
+        List<Reference<T>> result = new ArrayList<>();
         for (ProjectState project : projectRegistry.getAllProjects()) {
             if (project.getOwner().isImplicitBuild()) {
                 // Do not include implicit builds in workspace

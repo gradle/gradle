@@ -17,7 +17,7 @@
 package org.gradle.internal.classpath;
 
 import org.gradle.internal.classpath.transforms.ClassTransform;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.net.URL;
@@ -26,7 +26,7 @@ import java.util.Collection;
 /**
  * Represents a transformer that takes a given ClassPath and transforms it to a ClassPath with cached jars
  */
-@ServiceScope(Scopes.UserHome.class)
+@ServiceScope(Scope.UserHome.class)
 public interface CachedClasspathTransformer {
     enum StandardTransform {
         BuildLogic, None
@@ -40,7 +40,7 @@ public interface CachedClasspathTransformer {
     /**
      * Transforms a classpath to a classpath with the given transformations applied.
      */
-    ClassPath transform(ClassPath classPath, StandardTransform transform, ClassTransform additional);
+    ClassPath transform(ClassPath classPath, ClassTransform additional);
 
     /**
      * Transform a collection of urls to a new collection where the file urls are cached jars

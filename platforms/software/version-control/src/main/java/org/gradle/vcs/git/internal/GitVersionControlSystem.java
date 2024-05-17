@@ -16,8 +16,6 @@
 
 package org.gradle.vcs.git.internal;
 
-import com.google.common.collect.Sets;
-import com.jcraft.jsch.Session;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ResetCommand;
@@ -28,11 +26,10 @@ import org.eclipse.jgit.api.errors.JGitInternalException;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.submodule.SubmoduleWalk;
-import org.eclipse.jgit.transport.JschConfigSessionFactory;
-import org.eclipse.jgit.transport.OpenSshConfig;
 import org.eclipse.jgit.transport.SshTransport;
 import org.eclipse.jgit.transport.Transport;
 import org.eclipse.jgit.transport.URIish;
+import org.eclipse.jgit.transport.sshd.SshdSessionFactory;
 import org.gradle.api.GradleException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -47,6 +44,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -76,7 +74,7 @@ public class GitVersionControlSystem implements VersionControlSystem {
     public Set<VersionRef> getAvailableVersions(VersionControlSpec spec) {
         GitVersionControlSpec gitSpec = cast(spec);
         Collection<Ref> refs = getRemoteRefs(gitSpec, true, false);
-        Set<VersionRef> versions = Sets.newHashSet();
+        Set<VersionRef> versions = new HashSet<>();
         for (Ref ref : refs) {
             GitVersionRef gitRef = GitVersionRef.from(ref);
             versions.add(gitRef);
@@ -198,12 +196,7 @@ public class GitVersionControlSystem implements VersionControlSystem {
         public void configure(Transport transport) {
             if (transport instanceof SshTransport) {
                 SshTransport sshTransport = (SshTransport) transport;
-                sshTransport.setSshSessionFactory(new JschConfigSessionFactory() {
-                    @Override
-                    protected void configure(OpenSshConfig.Host hc, Session session) {
-                        // TODO: This is where the password information would go
-                    }
-                });
+                sshTransport.setSshSessionFactory(new SshdSessionFactory());
             }
         }
     }

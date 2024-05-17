@@ -17,8 +17,6 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencie
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExcludeRule;
@@ -39,7 +37,6 @@ import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.local.model.DefaultLocalConfigurationMetadata;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
-import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.local.model.LocalVariantMetadata;
@@ -53,12 +50,8 @@ import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.ModelContainer;
 
 import javax.annotation.Nullable;
-import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Queue;
 import java.util.Set;
 
 /**
@@ -82,60 +75,50 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
     public LocalConfigurationMetadata create(
         ConfigurationInternal configuration,
         ConfigurationsProvider configurationsProvider,
-        LocalComponentMetadata parent,
+        ComponentIdentifier componentId,
         DependencyCache dependencyCache,
         ModelContainer<?> model,
         CalculatedValueContainerFactory calculatedValueContainerFactory
     ) {
-        // Ensure all actions are executed against this configuration and its hierarchy before reading its state.
-        // Dependency actions may modify the hierarchy.
-        runDependencyActionsInHierarchy(configuration);
+        // Perform any final mutating actions for this configuration and its parents.
+        // Then, lock this configuration and its parents from mutation.
+        // After we observe a configuration (by building its metadata), its state should not change.
+        configuration.runDependencyActions();
+        configuration.markAsObserved();
 
         String configurationName = configuration.getName();
         String description = configuration.getDescription();
-        ComponentIdentifier componentId = parent.getId();
         ComponentConfigurationIdentifier configurationIdentifier = new ComponentConfigurationIdentifier(componentId, configuration.getName());
 
-        ImmutableCapabilities capabilities = ImmutableCapabilities.of(Configurations.collectCapabilities(configuration, Sets.newHashSet(), Sets.newHashSet()));
+        ImmutableAttributes attributes = configuration.getAttributes().asImmutable();
+        ImmutableCapabilities capabilities = ImmutableCapabilities.of(Configurations.collectCapabilities(configuration, new HashSet<>(), new HashSet<>()));
 
-        // Collect all artifacts and sub-variants.
-        ImmutableList.Builder<PublishArtifact> artifactBuilder = ImmutableList.builder();
+        // Collect all sub-variants.
         ImmutableSet.Builder<LocalVariantMetadata> variantsBuilder = ImmutableSet.builder();
         configuration.collectVariants(new ConfigurationInternal.VariantVisitor() {
             @Override
-            public void visitArtifacts(Collection<? extends PublishArtifact> artifacts) {
-                artifactBuilder.addAll(artifacts);
-            }
-
-            @Override
             public void visitOwnVariant(DisplayName displayName, ImmutableAttributes attributes, Collection<? extends PublishArtifact> artifacts) {
-                CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> variantArtifacts = getVariantArtifacts(componentId, displayName, artifacts, model, calculatedValueContainerFactory);
+                CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> variantArtifacts = getVariantArtifacts(displayName, componentId, artifacts, model, calculatedValueContainerFactory);
                 variantsBuilder.add(new LocalVariantMetadata(configurationName, configurationIdentifier, displayName, attributes, capabilities, variantArtifacts));
             }
 
             @Override
             public void visitChildVariant(String name, DisplayName displayName, ImmutableAttributes attributes, Collection<? extends PublishArtifact> artifacts) {
-                CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> variantArtifacts = getVariantArtifacts(componentId, displayName, artifacts, model, calculatedValueContainerFactory);
+                CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> variantArtifacts = getVariantArtifacts(displayName, componentId, artifacts, model, calculatedValueContainerFactory);
                 variantsBuilder.add(new LocalVariantMetadata(configurationName + "-" + name, new NestedVariantIdentifier(configurationIdentifier, name), displayName, attributes, capabilities, variantArtifacts));
             }
         });
 
         // Collect all dependencies and excludes in hierarchy.
-        ImmutableAttributes attributes = configuration.getAttributes().asImmutable();
+        // After running the dependency actions and preventing from mutation above, we know the
+        // hierarchy will not change anymore and all configurations in the hierarchy
+        // will no longer be mutated.
         ImmutableSet<String> hierarchy = Configurations.getNames(configuration.getHierarchy());
-
         CalculatedValue<DefaultLocalConfigurationMetadata.ConfigurationDependencyMetadata> dependencies =
-            calculatedValueContainerFactory.create(Describables.of("Dependency state for", description), context -> {
-                // TODO: Do we need to acquire project lock from `model`? getState calls user code.
-                DependencyState state = getState(configurationsProvider, hierarchy, dependencyCache);
-                return new DefaultLocalConfigurationMetadata.ConfigurationDependencyMetadata(
-                    maybeForceDependencies(state.dependencies, attributes), state.files, state.excludes
-                );
-            });
+            getConfigurationDependencyState(description, hierarchy, attributes, configurationsProvider, dependencyCache, model, calculatedValueContainerFactory);
 
-        List<PublishArtifact> sourceArtifacts = artifactBuilder.build();
         CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> artifacts =
-            getConfigurationArtifacts(parent, model, calculatedValueContainerFactory, configurationName, description, hierarchy, sourceArtifacts);
+            getConfigurationArtifacts(configurationName, description, componentId, hierarchy, configurationsProvider, model, calculatedValueContainerFactory);
 
         return new DefaultLocalConfigurationMetadata(
             configurationName,
@@ -157,37 +140,44 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
     }
 
     private static CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> getConfigurationArtifacts(
-        LocalComponentMetadata parent, ModelContainer<?> model, CalculatedValueContainerFactory calculatedValueContainerFactory,
-        String name, String description, ImmutableSet<String> hierarchy, List<PublishArtifact> sourceArtifacts
+        String name,
+        String description,
+        ComponentIdentifier componentId,
+        ImmutableSet<String> hierarchy,
+        ConfigurationsProvider configurationsProvider,
+        ModelContainer<?> model,
+        CalculatedValueContainerFactory calculatedValueContainerFactory
     ) {
-        CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> artifacts =
-            calculatedValueContainerFactory.create(Describables.of(description, "artifacts"), context -> {
-                if (sourceArtifacts.isEmpty() && hierarchy.isEmpty()) {
-                    return ImmutableList.of();
-                } else {
-                    return model.fromMutableState(m -> {
-                        Set<LocalComponentArtifactMetadata> result = new LinkedHashSet<>(sourceArtifacts.size());
-                        for (PublishArtifact sourceArtifact : sourceArtifacts) {
-                            // The following line may realize tasks, so project lock must be held.
-                            result.add(new PublishArtifactLocalArtifactMetadata(parent.getId(), sourceArtifact));
-                        }
-                        for (String config : hierarchy) {
-                            if (config.equals(name)) {
-                                continue;
-                            }
-                            // TODO: Deprecate the behavior of inheriting artifacts from parent configurations.
-                            LocalConfigurationMetadata conf = parent.getConfiguration(config);
-                            result.addAll(conf.prepareToResolveArtifacts().getArtifacts());
-                        }
-                        return ImmutableList.copyOf(result);
-                    });
+        return calculatedValueContainerFactory.create(Describables.of(description, "artifacts"), context -> model.fromMutableState(m -> {
+            Set<PublishArtifact> ownArtifacts = configurationsProvider.findByName(name).getOutgoing().getArtifacts();
+
+            ImmutableSet.Builder<LocalComponentArtifactMetadata> result = ImmutableSet.builderWithExpectedSize(ownArtifacts.size());
+            for (PublishArtifact ownArtifact : ownArtifacts) {
+                // The following line may realize tasks, so project lock must be held.
+                result.add(new PublishArtifactLocalArtifactMetadata(componentId, ownArtifact));
+            }
+
+            // TODO: Deprecate the behavior of inheriting artifacts from parent configurations.
+            for (String config : hierarchy) {
+                if (config.equals(name)) {
+                    continue;
                 }
-            });
-        return artifacts;
+                Set<PublishArtifact> inheritedArtifacts = configurationsProvider.findByName(config).getOutgoing().getArtifacts();
+                for (PublishArtifact inheritedArtifact : inheritedArtifacts) {
+                    // The following line may realize tasks, so project lock must be held.
+                    result.add(new PublishArtifactLocalArtifactMetadata(componentId, inheritedArtifact));
+                }
+            }
+            return result.build().asList();
+        }));
     }
 
     private static CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> getVariantArtifacts(
-        ComponentIdentifier componentId, DisplayName displayName, Collection<? extends PublishArtifact> sourceArtifacts, ModelContainer<?> model, CalculatedValueContainerFactory calculatedValueContainerFactory
+        DisplayName displayName,
+        ComponentIdentifier componentId,
+        Collection<? extends PublishArtifact> sourceArtifacts,
+        ModelContainer<?> model,
+        CalculatedValueContainerFactory calculatedValueContainerFactory
     ) {
         return calculatedValueContainerFactory.create(Describables.of(displayName, "artifacts"), context -> {
             if (sourceArtifacts.isEmpty()) {
@@ -205,51 +195,36 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
     }
 
     /**
-     * Runs the dependency actions for all configurations in {@code conf}'s hierarchy.
-     *
-     * <p>Specifically handles the case where {@link Configuration#extendsFrom} is called during the
-     * dependency action execution.</p>
+     * Lazily collect all dependencies and excludes of all configurations in the provided {@code hierarchy}.
      */
-    private static void runDependencyActionsInHierarchy(ConfigurationInternal conf) {
-        Set<Configuration> seen = new HashSet<>();
-        Queue<Configuration> remaining = new ArrayDeque<>();
-        remaining.add(conf);
-        seen.add(conf);
-
-        while (!remaining.isEmpty()) {
-            Configuration current = remaining.remove();
-            ((ConfigurationInternal) current).runDependencyActions();
-
-            for (Configuration parent : current.getExtendsFrom()) {
-                if (seen.add(parent)) {
-                    remaining.add(parent);
-                }
-            }
-        }
-    }
-
-    /**
-     * Collect all dependencies and excludes of all configurations in the provided {@code hierarchy}.
-     */
-    private DependencyState getState(
-        ConfigurationsProvider configurations,
+    private CalculatedValue<DefaultLocalConfigurationMetadata.ConfigurationDependencyMetadata> getConfigurationDependencyState(
+        String description,
         ImmutableSet<String> hierarchy,
-        DependencyCache cache
+        ImmutableAttributes attributes,
+        ConfigurationsProvider configurationsProvider,
+        DependencyCache dependencyCache,
+        ModelContainer<?> model,
+        CalculatedValueContainerFactory calculatedValueContainerFactory
     ) {
-        ImmutableList.Builder<LocalOriginDependencyMetadata> dependencies = ImmutableList.builder();
-        ImmutableSet.Builder<LocalFileDependencyMetadata> files = ImmutableSet.builder();
-        ImmutableList.Builder<ExcludeMetadata> excludes = ImmutableList.builder();
+        return calculatedValueContainerFactory.create(Describables.of("Dependency state for", description), context -> model.fromMutableState(p -> {
+            ImmutableList.Builder<LocalOriginDependencyMetadata> dependencies = ImmutableList.builder();
+            ImmutableSet.Builder<LocalFileDependencyMetadata> files = ImmutableSet.builder();
+            ImmutableList.Builder<ExcludeMetadata> excludes = ImmutableList.builder();
 
-        configurations.visitAll(config -> {
-            if (hierarchy.contains(config.getName())) {
-                DependencyState defined = getDefinedState(config, cache);
-                dependencies.addAll(defined.dependencies);
-                files.addAll(defined.files);
-                excludes.addAll(defined.excludes);
-            }
-        });
+            configurationsProvider.visitAll(config -> {
+                if (hierarchy.contains(config.getName())) {
+                    DependencyState defined = getDefinedState(config, dependencyCache);
+                    dependencies.addAll(defined.dependencies);
+                    files.addAll(defined.files);
+                    excludes.addAll(defined.excludes);
+                }
+            });
 
-        return new DependencyState(dependencies.build(), files.build(), excludes.build());
+            DependencyState state = new DependencyState(dependencies.build(), files.build(), excludes.build());
+            return new DefaultLocalConfigurationMetadata.ConfigurationDependencyMetadata(
+                maybeForceDependencies(state.dependencies, attributes), state.files, state.excludes
+            );
+        }));
     }
 
     /**
@@ -263,7 +238,6 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
      * Calculate the defined dependencies and excludes for {@code configuration}, while converting the
      * DSL representation to the internal representation.
      */
-    @SuppressWarnings("deprecation")
     private DependencyState doGetDefinedState(ConfigurationInternal configuration) {
 
         ImmutableList.Builder<LocalOriginDependencyMetadata> dependencyBuilder = ImmutableList.builder();

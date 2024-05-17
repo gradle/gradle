@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
 import com.google.common.io.Files;
 import groovy.lang.Closure;
 import groovy.lang.GroovyObjectSupport;
@@ -35,6 +34,7 @@ import org.gradle.util.internal.VersionNumber;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -74,7 +74,7 @@ public final class AntGroovydoc {
 
         VersionNumber version = VersionNumber.parse(getGroovyVersion(combinedClasspath));
 
-        final Map<String, Object> args = Maps.newLinkedHashMap();
+        final Map<String, Object> args = new LinkedHashMap<>();
         args.put("sourcepath", tmpDir.toString());
         args.put("destdir", destDir);
         args.put("use", use);

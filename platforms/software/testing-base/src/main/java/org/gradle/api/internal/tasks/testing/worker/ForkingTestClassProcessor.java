@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.testing.worker;
 
-import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
@@ -24,6 +23,7 @@ import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
+import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
 import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerThreadRegistry;
@@ -33,6 +33,7 @@ import org.gradle.process.internal.worker.WorkerProcess;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -51,7 +52,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     private WorkerLeaseRegistry.WorkerLeaseCompletion completion;
     private final DocumentationRegistry documentationRegistry;
     private boolean stoppedNow;
-    private final Set<Throwable> unrecoverableExceptions = Sets.newHashSet();
+    private final Set<Throwable> unrecoverableExceptions = new HashSet<Throwable>();
 
 
     public ForkingTestClassProcessor(
@@ -109,8 +110,9 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
         builder.setImplementationModulePath(classpath.getImplementationModulepath());
         builder.applicationClasspath(classpath.getApplicationClasspath());
         builder.applicationModulePath(classpath.getApplicationModulepath());
+        // Disabled for faster startup, see https://github.com/gradle/gradle/pull/1883
+        builder.setNativeServicesMode(NativeServicesMode.DISABLED);
         options.copyTo(builder.getJavaCommand());
-        builder.getJavaCommand().jvmArgs("-Dorg.gradle.native=false");
         buildConfigAction.execute(builder);
 
         workerProcess = builder.build();

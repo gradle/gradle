@@ -16,18 +16,22 @@
 
 package org.gradle.api.tasks.wrapper.internal;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.wrapper.WrapperVersionsResources;
+import org.gradle.internal.exceptions.ResolutionProvider;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class DefaultWrapperVersionsResources implements WrapperVersionsResources {
     public static final String LATEST = "latest";
     public static final String NIGHTLY = "nightly";
     public static final String RELEASE_NIGHTLY = "release-nightly";
     public static final String RELEASE_CANDIDATE = "release-candidate";
-    public static final List<String> PLACE_HOLDERS = Arrays.asList(LATEST, NIGHTLY, RELEASE_NIGHTLY, RELEASE_CANDIDATE);
+    public static final List<String> PLACE_HOLDERS = Arrays.asList(LATEST, RELEASE_CANDIDATE, RELEASE_NIGHTLY, NIGHTLY); // order these from most to least stable
     private final TextResource latest;
     private final TextResource releaseCandidate;
     private final TextResource nightly;
@@ -57,4 +61,33 @@ public class DefaultWrapperVersionsResources implements WrapperVersionsResources
         return releaseNightly;
     }
 
+    /**
+     * This exception is thrown when the wrapper task is run in an attempt to update the wrapper version and
+     * an invalid version is specified.
+     */
+    public static final class WrapperVersionException extends GradleException implements ResolutionProvider {
+        public WrapperVersionException(String message) {
+            super(message);
+        }
+
+        public WrapperVersionException(String message, @Nullable Throwable cause) {
+            super(message, cause);
+        }
+
+        @Override
+        public List<String> getResolutions() {
+            return Arrays.asList(suggestActualVersion(), suggestDynamicVersions());
+        }
+
+        private String suggestActualVersion() {
+            return "Specify a valid Gradle release listed on https://gradle.org/releases/.";
+        }
+
+        private String suggestDynamicVersions() {
+            String validStrings = DefaultWrapperVersionsResources.PLACE_HOLDERS.stream()
+                .map(s -> String.format("'%s'", s))
+                .collect(Collectors.joining(", "));
+            return String.format("Use one of the following dynamic version specifications: %s.", validStrings);
+        }
+    }
 }

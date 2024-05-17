@@ -17,7 +17,8 @@
 package org.gradle.internal.execution;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.problems.ReportableProblem;
+import org.gradle.api.problems.internal.Problem;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.plugin.use.PluginId;
 
@@ -27,7 +28,9 @@ import java.util.Optional;
 public interface WorkValidationContext {
     TypeValidationContext forType(Class<?> type, boolean cacheable);
 
-    List<ReportableProblem> getProblems();
+    InternalProblems getProblemsService();
+
+    List<Problem> getProblems();
 
     ImmutableSet<Class<?>> getValidatedTypes();
 

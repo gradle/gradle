@@ -45,12 +45,9 @@ public class BuildableBackedProvider<T> extends AbstractProviderWithValue<T> {
 
     @Override
     public ValueProducer getProducer() {
+        // not a lambda for readability purposes.
+        //noinspection Convert2Lambda
         return new ValueProducer() {
-            @Override
-            public boolean isProducesDifferentValueOverTime() {
-                return false;
-            }
-
             @Override
             public void visitProducerTasks(Action<? super Task> visitor) {
                 for (Task dependency : buildableDependencies()) {

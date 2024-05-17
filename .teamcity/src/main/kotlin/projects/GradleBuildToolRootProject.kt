@@ -2,7 +2,7 @@ package projects
 
 import common.VersionedSettingsBranch
 import common.isSecurityFork
-import jetbrains.buildServer.configs.kotlin.v2019_2.Project
+import jetbrains.buildServer.configs.kotlin.Project
 import model.CIBuildModel
 import model.DefaultFunctionalTestBucketProvider
 import model.JsonBasedGradleSubprojectProvider

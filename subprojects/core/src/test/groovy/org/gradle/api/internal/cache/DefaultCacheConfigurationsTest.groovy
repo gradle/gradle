@@ -18,7 +18,6 @@ package org.gradle.api.internal.cache
 
 import org.gradle.api.cache.Cleanup
 import org.gradle.api.cache.MarkingStrategy
-import org.gradle.cache.CleanupFrequency
 import org.gradle.cache.internal.LegacyCacheCleanupEnablement
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -34,6 +33,7 @@ class DefaultCacheConfigurationsTest extends Specification {
         cacheConfigurations.downloadedResources.setRemoveUnusedEntriesAfterDays(2)
         cacheConfigurations.releasedWrappers.setRemoveUnusedEntriesAfterDays(2)
         cacheConfigurations.snapshotWrappers.setRemoveUnusedEntriesAfterDays(2)
+        cacheConfigurations.buildCache.setRemoveUnusedEntriesAfterDays(2)
         cacheConfigurations.cleanup.set(Cleanup.DISABLED)
 
         then:
@@ -69,6 +69,13 @@ class DefaultCacheConfigurationsTest extends Specification {
         then:
         e = thrown(IllegalStateException)
         assertCannotConfigureErrorIsThrown(e, "removeUnusedEntriesOlderThan")
+
+        when:
+        cacheConfigurations.buildCache.setRemoveUnusedEntriesAfterDays(1)
+
+        then:
+        e = thrown(IllegalStateException)
+        assertCannotConfigureErrorIsThrown(e, "removeUnusedEntriesOlderThan")
     }
 
     def "cannot modify cache configurations via property unless mutable (method: #method)"() {
@@ -80,6 +87,7 @@ class DefaultCacheConfigurationsTest extends Specification {
         cacheConfigurations.downloadedResources.removeUnusedEntriesOlderThan."${method}"(firstValue)
         cacheConfigurations.releasedWrappers.removeUnusedEntriesOlderThan."${method}"(firstValue)
         cacheConfigurations.snapshotWrappers.removeUnusedEntriesOlderThan."${method}"(firstValue)
+        cacheConfigurations.buildCache.removeUnusedEntriesOlderThan."${method}"(firstValue)
         cacheConfigurations.cleanup."${method}"(Cleanup.DISABLED)
         cacheConfigurations.markingStrategy."${method}"(MarkingStrategy.NONE)
 
@@ -112,6 +120,13 @@ class DefaultCacheConfigurationsTest extends Specification {
 
         when:
         cacheConfigurations.snapshotWrappers.removeUnusedEntriesOlderThan."${method}"(secondValue)
+
+        then:
+        e = thrown(IllegalStateException)
+        assertCannotConfigureErrorIsThrown(e, "removeUnusedEntriesOlderThan")
+
+        when:
+        cacheConfigurations.buildCache.removeUnusedEntriesOlderThan."${method}"(secondValue)
 
         then:
         e = thrown(IllegalStateException)
@@ -180,6 +195,12 @@ class DefaultCacheConfigurationsTest extends Specification {
 
         then:
         thrown(IllegalArgumentException)
+
+        when:
+        cacheConfigurations.buildCache.setRemoveUnusedEntriesAfterDays(0)
+
+        then:
+        thrown(IllegalArgumentException)
     }
 
     def "synchronized configurations reflect changes in property values"() {
@@ -214,13 +235,13 @@ class DefaultCacheConfigurationsTest extends Specification {
         cacheConfigurations.cleanup.set(Cleanup.ALWAYS)
 
         then:
-        !cacheConfigurations.cleanupFrequency.get().requiresCleanup(CleanupFrequency.NEVER_CLEANED)
+        !cacheConfigurations.cleanupFrequency.get().requiresCleanup(null)
 
         when:
         cacheConfigurations.cleanupHasBeenConfigured = true
 
         then:
-        cacheConfigurations.cleanupFrequency.get().requiresCleanup(CleanupFrequency.NEVER_CLEANED)
+        cacheConfigurations.cleanupFrequency.get().requiresCleanup(null)
     }
 
     void assertCannotConfigureErrorIsThrown(Exception e, String name) {

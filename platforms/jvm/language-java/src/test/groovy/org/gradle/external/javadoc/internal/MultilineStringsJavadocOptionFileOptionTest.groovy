@@ -16,7 +16,6 @@
 
 package org.gradle.external.javadoc.internal
 
-import com.google.common.collect.Lists
 import spock.lang.Specification
 
 class MultilineStringsJavadocOptionFileOptionTest extends Specification {
@@ -26,7 +25,7 @@ class MultilineStringsJavadocOptionFileOptionTest extends Specification {
     private MultilineStringsJavadocOptionFileOption linksOption
 
     def setup() {
-        linksOption = new MultilineStringsJavadocOptionFileOption(optionName, Lists.<String>newArrayList())
+        linksOption = new MultilineStringsJavadocOptionFileOption(optionName, new ArrayList<>())
     }
 
     def writeNullValue() {

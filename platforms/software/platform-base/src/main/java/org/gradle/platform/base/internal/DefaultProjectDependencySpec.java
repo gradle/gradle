@@ -23,9 +23,8 @@ import org.gradle.platform.base.ProjectDependencySpec;
 import org.gradle.platform.base.ProjectDependencySpecBuilder;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
-
-import static com.google.common.collect.Lists.newArrayList;
 
 public class DefaultProjectDependencySpec implements ProjectDependencySpec {
 
@@ -53,7 +52,7 @@ public class DefaultProjectDependencySpec implements ProjectDependencySpec {
 
     @Override
     public String getDisplayName() {
-        List<String> parts = newArrayList();
+        List<String> parts = new ArrayList<>();
         if (getProjectPath() != null) {
             parts.add("project '" + getProjectPath() + "'");
         }

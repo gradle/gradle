@@ -40,8 +40,8 @@ class HtmlReportWriter(val writer: Writer) {
         jsonModelWriter.beginModel()
     }
 
-    fun endHtmlReport(cacheAction: String, requestedTasks: String, totalProblemCount: Int) {
-        jsonModelWriter.endModel(cacheAction, requestedTasks, totalProblemCount)
+    fun endHtmlReport(buildDisplayName: String?, cacheAction: String, requestedTasks: String?, totalProblemCount: Int) {
+        jsonModelWriter.endModel(buildDisplayName, cacheAction, requestedTasks, totalProblemCount)
         endReportData()
         writer.append(htmlTemplate.second)
     }
@@ -65,7 +65,7 @@ class HtmlReportWriter(val writer: Writer) {
         }
     }
 
-    fun writeDiagnostic(kind: DiagnosticKind, details: PropertyProblem) {
+    fun writeDiagnostic(kind: DiagnosticKind, details: DecoratedPropertyProblem) {
         jsonModelWriter.writeDiagnostic(kind, details)
     }
 

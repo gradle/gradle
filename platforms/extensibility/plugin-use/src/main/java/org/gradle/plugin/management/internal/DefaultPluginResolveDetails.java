@@ -42,13 +42,14 @@ public class DefaultPluginResolveDetails implements PluginResolveDetails {
     public void useModule(Object notation) {
         targetPluginRequest = new DefaultPluginRequest(
             targetPluginRequest.getId(),
-            targetPluginRequest.getVersion(),
             targetPluginRequest.isApply(),
-            targetPluginRequest.getLineNumber(),
+            targetPluginRequest.getOrigin(),
             targetPluginRequest.getScriptDisplayName(),
+            targetPluginRequest.getLineNumber(),
+            targetPluginRequest.getVersion(),
             USE_MODULE_NOTATION_PARSER.parseNotation(notation),
-            targetPluginRequest.getOriginalRequest(),
-            targetPluginRequest.getOrigin()
+            targetPluginRequest,
+            targetPluginRequest.getAlternativeCoordinates().orElse(null)
         );
     }
 
@@ -56,13 +57,14 @@ public class DefaultPluginResolveDetails implements PluginResolveDetails {
     public void useVersion(String version) {
         targetPluginRequest = new DefaultPluginRequest(
             targetPluginRequest.getId(),
-            version,
             targetPluginRequest.isApply(),
-            targetPluginRequest.getLineNumber(),
+            targetPluginRequest.getOrigin(),
             targetPluginRequest.getScriptDisplayName(),
+            targetPluginRequest.getLineNumber(),
+            version,
             targetPluginRequest.getModule(),
-            targetPluginRequest.getOriginalRequest(),
-            targetPluginRequest.getOrigin()
+            targetPluginRequest,
+            targetPluginRequest.getAlternativeCoordinates().orElse(null)
         );
     }
 

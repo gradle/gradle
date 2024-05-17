@@ -16,14 +16,14 @@
 
 package org.gradle.problems.buildtree;
 
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.problems.ProblemDiagnostics;
 
 /**
  * A factory for producing {@link ProblemDiagnostics} for a problem.
  */
-@ServiceScope(Scopes.BuildTree.class)
+@ServiceScope(Scope.BuildTree.class)
 public interface ProblemDiagnosticsFactory {
     /**
      * Creates a new stream of problems. Each problem stream produces diagnostics for some logical set of problems, applying limits to

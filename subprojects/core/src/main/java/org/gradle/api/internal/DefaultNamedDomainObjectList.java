@@ -137,6 +137,7 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
         return new FilteredIndexedElementSource<T, S>(elementSource, filter);
     }
 
+    @Override
     public NamedDomainObjectList<T> named(Spec<String> nameFilter) {
         Spec<T> spec = convertNameToElementFilter(nameFilter);
         return new DefaultNamedDomainObjectList<>(this, nameFilter, createFilter(spec), getInstantiator(), getNamer());

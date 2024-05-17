@@ -17,19 +17,20 @@
 package configurations
 
 import common.KillProcessMode.KILL_ALL_GRADLE_PROCESSES
+import common.KillProcessMode.KILL_PROCESSES_STARTED_BY_GRADLE
 import common.Os
 import common.applyPerformanceTestSettings
 import common.buildToolGradleParameters
 import common.checkCleanM2AndAndroidUserHome
-import common.cleanUpReadOnlyDir
 import common.gradleWrapper
 import common.individualPerformanceTestArtifactRules
 import common.killProcessStep
 import common.performanceTestCommandLine
 import common.removeSubstDirOnWindows
 import common.substDirOnWindows
-import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
-import jetbrains.buildServer.configs.kotlin.v2019_2.ParameterDisplay
+import jetbrains.buildServer.configs.kotlin.BuildStep
+import jetbrains.buildServer.configs.kotlin.BuildSteps
+import jetbrains.buildServer.configs.kotlin.ParameterDisplay
 import model.CIBuildModel
 import model.PerformanceTestBuildSpec
 import model.PerformanceTestType
@@ -83,7 +84,6 @@ class PerformanceTest(
             steps {
                 preBuildSteps()
                 killProcessStep(buildTypeThis, KILL_ALL_GRADLE_PROCESSES, os)
-                cleanUpReadOnlyDir(os)
                 substDirOnWindows(os)
 
                 repeat(if (performanceTestBuildSpec.type == PerformanceTestType.flakinessDetection) 2 else 1) { repeatIndex: Int ->
@@ -104,6 +104,7 @@ class PerformanceTest(
                     }
                 }
                 removeSubstDirOnWindows(os)
+                killProcessStep(buildTypeThis, KILL_PROCESSES_STARTED_BY_GRADLE, os, executionMode = BuildStep.ExecutionMode.ALWAYS)
                 checkCleanM2AndAndroidUserHome(os)
             }
         }

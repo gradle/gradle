@@ -27,6 +27,7 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.language.base.internal.compile.Compiler;
 
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -66,7 +67,7 @@ public class AnnotationProcessorDiscoveringCompiler<T extends JavaCompileSpec> i
             throw new InvalidUserDataException("No processor specified for compiler argument -processor in requested compiler args: " + Joiner.on(" ").join(compilerArgs));
         }
         Collection<String> explicitProcessors = Splitter.on(',').splitToList(compilerArgs.get(processorIndex + 1));
-        Set<AnnotationProcessorDeclaration> effectiveProcessors = Sets.newLinkedHashSet();
+        Set<AnnotationProcessorDeclaration> effectiveProcessors = new LinkedHashSet<>();
         for (String explicitProcessor : explicitProcessors) {
             AnnotationProcessorDeclaration declaration = declarations.get(explicitProcessor);
             if (declaration != null) {

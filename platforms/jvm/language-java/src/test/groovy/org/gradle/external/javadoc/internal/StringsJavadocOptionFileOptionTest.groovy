@@ -16,7 +16,6 @@
 
 package org.gradle.external.javadoc.internal
 
-import com.google.common.collect.Lists
 import spock.lang.Specification
 
 class StringsJavadocOptionFileOptionTest extends Specification {
@@ -24,7 +23,7 @@ class StringsJavadocOptionFileOptionTest extends Specification {
     private final String optionName = "testOption"
     private final String joinBy = ";"
 
-    private StringsJavadocOptionFileOption stringsOption = new StringsJavadocOptionFileOption(optionName, Lists.<String>newArrayList(), joinBy)
+    private StringsJavadocOptionFileOption stringsOption = new StringsJavadocOptionFileOption(optionName, new ArrayList<>(), joinBy)
 
     def testWriteNullValue() throws IOException {
         when:

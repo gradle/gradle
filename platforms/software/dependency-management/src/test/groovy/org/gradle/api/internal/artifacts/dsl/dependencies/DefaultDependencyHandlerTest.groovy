@@ -38,10 +38,10 @@ import org.gradle.api.internal.artifacts.VariantTransformRegistry
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory
+import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.reflect.TypeOf
-import org.gradle.internal.Factory
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -61,7 +61,7 @@ class DefaultDependencyHandlerTest extends Specification {
 
     private DefaultDependencyHandler dependencyHandler = TestUtil.instantiatorFactory().decorateLenient().newInstance(DefaultDependencyHandler,
         configurationContainer, dependencyFactory, projectFinder, Stub(DependencyConstraintHandler), Stub(ComponentMetadataHandler), Stub(ComponentModuleMetadataHandler), Stub(ArtifactResolutionQueryFactory),
-        Stub(AttributesSchema), Stub(VariantTransformRegistry), Stub(Factory), TestUtil.objectFactory(), DependencyManagementTestUtil.platformSupport())
+        Stub(AttributesSchema), Stub(VariantTransformRegistry), Stub(ArtifactTypeRegistry), TestUtil.objectFactory(), DependencyManagementTestUtil.platformSupport())
 
     void setup() {
         _ * configurationContainer.findByName(TEST_CONF_NAME) >> configuration

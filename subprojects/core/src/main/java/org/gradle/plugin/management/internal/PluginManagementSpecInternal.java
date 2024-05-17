@@ -28,8 +28,10 @@ public interface PluginManagementSpecInternal extends PluginManagementSpec {
     @Override
     PluginResolutionStrategyInternal getResolutionStrategy();
 
+    @Override
     void includeBuild(String rootProject);
 
+    @Override
     void includeBuild(String rootProject, Action<ConfigurableIncludedPluginBuild> configuration);
 
     List<IncludedBuildSpec> getIncludedBuilds();

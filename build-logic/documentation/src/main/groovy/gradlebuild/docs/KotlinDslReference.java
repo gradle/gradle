@@ -17,6 +17,7 @@
 package gradlebuild.docs;
 
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.provider.Property;
 
 /**
  * Configuration for generating Dokka based Kotlin DSL docs.
@@ -27,5 +28,11 @@ public abstract class KotlinDslReference {
      * The location of the final rendered Dokka content.
      */
     public abstract DirectoryProperty getRenderedDocumentation();
+
+    /**
+     * The Dokka version to use instead the default one Dokkatoo is configured with.
+     * Will use the Dokkatoo default, if not specified.
+     */
+    public abstract Property<String> getDokkaVersionOverride();
 
 }

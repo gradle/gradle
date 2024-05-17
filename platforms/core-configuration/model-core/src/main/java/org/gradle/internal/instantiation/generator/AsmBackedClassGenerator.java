@@ -16,7 +16,6 @@
 package org.gradle.internal.instantiation.generator;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
 import groovy.lang.Closure;
 import groovy.lang.GroovyObject;
 import groovy.lang.GroovySystem;
@@ -24,6 +23,7 @@ import groovy.lang.MetaClass;
 import groovy.lang.MetaClassRegistry;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
+import org.gradle.api.IsolatedAction;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -90,6 +90,7 @@ import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -465,6 +466,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final Type META_CLASS_REGISTRY_TYPE = getType(MetaClassRegistry.class);
         private static final Type OBJECT_ARRAY_TYPE = getType(Object[].class);
         private static final Type ACTION_TYPE = getType(Action.class);
+        private static final Type ISOLATED_ACTION_TYPE = getType(IsolatedAction.class);
         private static final Type LAZY_GROOVY_SUPPORT_TYPE = getType(LazyGroovySupport.class);
         private static final Type MANAGED_TYPE = getType(Managed.class);
         private static final Type EXTENSION_CONTAINER_TYPE = getType(ExtensionContainer.class);
@@ -528,7 +530,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private final boolean managed;
         private final Type generatedType;
         private final Type superclassType;
-        private final Map<java.lang.reflect.Type, ReturnTypeEntry> genericReturnTypeConstantsIndex = Maps.newHashMap();
+        private final Map<java.lang.reflect.Type, ReturnTypeEntry> genericReturnTypeConstantsIndex = new HashMap<>();
         private final AsmClassGenerator classGenerator;
         private final int factoryId;
         private boolean hasMappingField;
@@ -1672,6 +1674,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             Type returnType = getType(method.getReturnType());
 
             Type[] originalParameterTypes = collectArray(method.getParameterTypes(), Type.class, Type::getType);
+            Type lastParameterType = originalParameterTypes[originalParameterTypes.length - 1];
+
             int numParams = originalParameterTypes.length;
             Type[] closurisedParameterTypes = new Type[numParams];
             System.arraycopy(originalParameterTypes, 0, closurisedParameterTypes, 0, numParams);
@@ -1694,7 +1698,11 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
                 // GENERATE ConfigureUtil.configureUsing(v);
                 _ALOAD(stackVar);
-                _INVOKESTATIC(CONFIGURE_UTIL_TYPE, "configureUsing", getMethodDescriptor(ACTION_TYPE, CLOSURE_TYPE));
+
+                String methodName = lastParameterType.equals(ISOLATED_ACTION_TYPE)
+                    ? "configureUsingIsolatedAction"
+                    : "configureUsing";
+                _INVOKESTATIC(CONFIGURE_UTIL_TYPE, methodName, getMethodDescriptor(lastParameterType, CLOSURE_TYPE));
                 _INVOKEVIRTUAL(generatedType, method.getName(), getMethodDescriptor(getType(method.getReturnType()), originalParameterTypes));
 
                 _IRETURN_OF(returnType);

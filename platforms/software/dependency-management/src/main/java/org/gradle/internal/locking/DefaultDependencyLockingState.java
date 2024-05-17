@@ -53,6 +53,7 @@ public class DefaultDependencyLockingState implements DependencyLockingState {
         return constraints;
     }
 
+    @Override
     public LockEntryFilter getIgnoredEntryFilter() {
         return ignoredEntryFilter;
     }

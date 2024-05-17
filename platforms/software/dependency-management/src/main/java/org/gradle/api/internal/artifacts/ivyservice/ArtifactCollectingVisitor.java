@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
@@ -25,16 +24,20 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.internal.DisplayName;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 public class ArtifactCollectingVisitor implements ArtifactVisitor {
     private final Set<ResolvedArtifact> artifacts;
+    private List<Throwable> failures;
 
     public ArtifactCollectingVisitor() {
-        this(Sets.newLinkedHashSet());
+        this(new LinkedHashSet<>());
     }
 
     public ArtifactCollectingVisitor(Set<ResolvedArtifact> artifacts) {
@@ -48,7 +51,10 @@ public class ArtifactCollectingVisitor implements ArtifactVisitor {
 
     @Override
     public void visitFailure(Throwable failure) {
-        throw UncheckedException.throwAsUncheckedException(failure);
+        if (failures == null) {
+            failures = new ArrayList<>();
+        }
+        failures.add(failure);
     }
 
     @Override
@@ -66,5 +72,9 @@ public class ArtifactCollectingVisitor implements ArtifactVisitor {
 
     public Set<ResolvedArtifact> getArtifacts() {
         return artifacts;
+    }
+
+    public List<Throwable> getFailures() {
+        return failures != null ? failures : Collections.emptyList();
     }
 }

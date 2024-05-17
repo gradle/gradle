@@ -31,11 +31,10 @@ import kotlin.reflect.KClass
 
 fun IsolateContext.logPropertyProblem(
     action: String,
-    exception: Throwable? = null,
     documentationSection: DocumentationSection? = null,
     message: StructuredMessageBuilder
 ) {
-    logPropertyProblem(action, PropertyProblem(trace, build(message), exception, documentationSection))
+    logPropertyProblem(action, PropertyProblem(trace, build(message), documentationSection = documentationSection))
 }
 
 
@@ -44,9 +43,10 @@ fun IsolateContext.logUnsupported(
     action: String,
     baseType: KClass<*>,
     actualType: Class<*>,
-    documentationSection: DocumentationSection = RequirementsDisallowedTypes
+    documentationSection: DocumentationSection = RequirementsDisallowedTypes,
+    appendix: StructuredMessageBuilder = {}
 ) {
-    logUnsupported(action, documentationSection) {
+    logUnsupported(action, documentationSection, appendix) {
         text(" object of type ")
         reference(GeneratedSubclasses.unpack(actualType))
         text(", a subtype of ")
@@ -60,9 +60,10 @@ internal
 fun IsolateContext.logUnsupported(
     action: String,
     baseType: KClass<*>,
-    documentationSection: DocumentationSection = RequirementsDisallowedTypes
+    documentationSection: DocumentationSection = RequirementsDisallowedTypes,
+    appendix: StructuredMessageBuilder = {}
 ) {
-    logUnsupported(action, documentationSection) {
+    logUnsupported(action, documentationSection, appendix) {
         text(" object of type ")
         reference(baseType)
     }
@@ -73,6 +74,7 @@ internal
 fun IsolateContext.logUnsupported(
     action: String,
     documentationSection: DocumentationSection = RequirementsDisallowedTypes,
+    appendix: StructuredMessageBuilder = {},
     unsupportedThings: StructuredMessageBuilder
 ) {
     logPropertyProblem(
@@ -83,6 +85,7 @@ fun IsolateContext.logUnsupported(
         text(action)
         unsupportedThings()
         text(" as these are not supported with the configuration cache.")
+        appendix()
     }
 }
 
@@ -104,7 +107,7 @@ fun IsolateContext.logNotImplemented(feature: String, documentationSection: Docu
             build {
                 text("support for $feature is not yet implemented with the configuration cache.")
             },
-            null, documentationSection
+            documentationSection = documentationSection
         )
     )
 }
@@ -112,7 +115,7 @@ fun IsolateContext.logNotImplemented(feature: String, documentationSection: Docu
 
 private
 fun IsolateContext.logPropertyProblem(documentationSection: DocumentationSection? = null, message: StructuredMessageBuilder) {
-    val problem = PropertyProblem(trace, build(message), null, documentationSection)
+    val problem = PropertyProblem(trace, build(message), documentationSection = documentationSection)
     logPropertyProblem("serialize", problem)
 }
 

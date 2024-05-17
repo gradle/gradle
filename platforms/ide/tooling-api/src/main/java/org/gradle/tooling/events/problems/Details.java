@@ -32,6 +32,7 @@ public interface Details {
      * Returns a detailed description of a problem.
      *
      * @return the problem details
+     * @since 8.6
      */
     @Nullable
     String getDetails();

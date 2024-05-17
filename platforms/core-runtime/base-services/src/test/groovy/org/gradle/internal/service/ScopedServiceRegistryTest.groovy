@@ -17,7 +17,7 @@
 package org.gradle.internal.service
 
 
-import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import spock.lang.Specification
 
@@ -25,25 +25,43 @@ class ScopedServiceRegistryTest extends Specification {
 
     def "fails when registering a service by adding #method in a wrong scope"() {
         given:
-        def registry = new ScopedServiceRegistry(Scopes.Build)
+        def registry = scopedRegistry(Scope.Build)
 
         when:
         registration(registry)
 
         then:
         def exception = thrown(IllegalArgumentException)
-        exception.message.contains("Service '${BuildTreeScopedService.name}' was declared in scope 'BuildTree' but registered in scope 'Build'")
+        exception.message.contains("The service '${BuildTreeScopedService.name}' declares service scope 'BuildTree' but is registered in the 'Build' scope. Either update the '@ServiceScope()' annotation on '${BuildTreeScopedService.simpleName}' to include the 'Build' scope or move the service registration to one of the declared scopes.")
 
         where:
         method     | registration
         'instance' | { ScopedServiceRegistry it -> it.add(new BuildTreeScopedService()) }
         'type'     | { ScopedServiceRegistry it -> it.register { it.add(BuildTreeScopedService) } }
-        'provider' | { ScopedServiceRegistry it -> it.addProvider(new ScopedServiceProvider()) }
+        'provider' | { ScopedServiceRegistry it -> it.addProvider(new BuildTreeScopedServiceProvider()) }
+    }
+
+    def "fails when registering a multi-scoped service by adding #method in a wrong scope"() {
+        given:
+        def registry = scopedRegistry(Scope.BuildTree)
+
+        when:
+        registration(registry)
+
+        then:
+        def exception = thrown(IllegalArgumentException)
+        exception.message.contains("The service '${GlobalAndBuildScopedService.name}' declares service scopes 'Global', 'Build' but is registered in the 'BuildTree' scope. Either update the '@ServiceScope()' annotation on '${GlobalAndBuildScopedService.simpleName}' to include the 'BuildTree' scope or move the service registration to one of the declared scopes.")
+
+        where:
+        method     | registration
+        'instance' | { ScopedServiceRegistry it -> it.add(new GlobalAndBuildScopedService()) }
+        'type'     | { ScopedServiceRegistry it -> it.register { it.add(GlobalAndBuildScopedService) } }
+        'provider' | { ScopedServiceRegistry it -> it.addProvider(new MultiScopedServiceProvider()) }
     }
 
     def "succeeds when registering a service in the correct scope"() {
         given:
-        def registry = new ScopedServiceRegistry(Scopes.BuildTree)
+        def registry = scopedRegistry(Scope.BuildTree)
         def service = new BuildTreeScopedService()
 
         when:
@@ -62,12 +80,12 @@ class ScopedServiceRegistryTest extends Specification {
 
         then:
         def exception = thrown(IllegalArgumentException)
-        exception.message.contains("Service '${BuildTreeScopedService.name}' was declared in scope 'BuildTree' but registered in scope 'Build'")
+        exception.message.contains("The service '${BuildTreeScopedService.name}' declares service scope 'BuildTree' but is registered in the 'Build' scope. Either update the '@ServiceScope()' annotation on '${BuildTreeScopedService.simpleName}' to include the 'Build' scope or move the service registration to one of the declared scopes.")
     }
 
     def "succeeds when registering an unscoped service"() {
         given:
-        def registry = new ScopedServiceRegistry(Scopes.BuildTree)
+        def registry = scopedRegistry(Scope.BuildTree)
         def service = new UnscopedService()
 
         when:
@@ -80,21 +98,143 @@ class ScopedServiceRegistryTest extends Specification {
         registry.get(UnscopedService) === service
     }
 
-    @ServiceScope(Scopes.BuildTree)
+    def "succeeds when registering a service via #method in the correct scope in strict mode"() {
+        given:
+        def registry = strictScopedRegistry(Scope.BuildTree)
+
+        when:
+        registration(registry)
+        registry.get(BuildTreeScopedServiceInterface) != null
+
+        then:
+        noExceptionThrown()
+
+        where:
+        method     | registration
+        'instance' | { ScopedServiceRegistry it -> it.add(BuildTreeScopedServiceInterface, new BuildTreeScopedServiceInterfaceUnscopedImpl()) }
+        'type'     | { ScopedServiceRegistry it -> it.register { it.add(BuildTreeScopedServiceInterface, BuildTreeScopedServiceInterfaceUnscopedImpl) } }
+        'provider' | { ScopedServiceRegistry it -> it.addProvider(new BuildTreeScopedServiceInterfaceProvider()) }
+    }
+
+    def "fails when registering an unscoped implementation via #method in strict mode"() {
+        given:
+        def registry = strictScopedRegistry(Scope.BuildTree)
+
+        when:
+        registration(registry)
+
+        then:
+        def exception = thrown(IllegalArgumentException)
+        exception.message.contains("The service implementation '${BuildTreeScopedServiceInterfaceUnscopedImpl.name}' is registered in the 'BuildTree' scope but does not declare it explicitly.")
+
+        where:
+        method     | registration
+        'instance' | { ScopedServiceRegistry it -> it.add(new BuildTreeScopedServiceInterfaceUnscopedImpl()) }
+        'type'     | { ScopedServiceRegistry it -> it.register { it.add(BuildTreeScopedServiceInterfaceUnscopedImpl) } }
+        'provider' | { ScopedServiceRegistry it -> it.addProvider(new BuildTreeScopedServiceInterfaceUnscopedImplProvider()) }
+    }
+
+    def "fails when registering an unscoped service via #method in strict mode"() {
+        given:
+        def registry = strictScopedRegistry(Scope.BuildTree)
+
+        when:
+        registration(registry)
+
+        then:
+        def exception = thrown(IllegalArgumentException)
+        exception.message.contains("The service '${UnscopedService.name}' is registered in the 'BuildTree' scope but does not declare it. Add the '@ServiceScope()' annotation on '${UnscopedService.simpleName}' with the 'BuildTree' scope.")
+
+        where:
+        method     | registration
+        'instance' | { ScopedServiceRegistry it -> it.add(new UnscopedService()) }
+        'type'     | { ScopedServiceRegistry it -> it.register { it.add(UnscopedService) } }
+        'provider' | { ScopedServiceRegistry it -> it.addProvider(new UnscopedServiceProvider()) }
+    }
+
+    def "succeeds when registering a multi-scoped service in the correct scope (#scopeName)"() {
+        given:
+        def registry = scopedRegistry(scope)
+        def service = new GlobalAndBuildScopedService()
+
+        when:
+        registry.add(service)
+
+        then:
+        noExceptionThrown()
+
+        and:
+        registry.get(GlobalAndBuildScopedService) === service
+
+        where:
+        scope << [Scope.Global, Scope.Build]
+        scopeName = scope.simpleName
+    }
+
+    private static ScopedServiceRegistry scopedRegistry(Class<? extends Scope> scope) {
+        return scopedRegistry(scope, false)
+    }
+
+    private static ScopedServiceRegistry strictScopedRegistry(Class<? extends Scope> scope) {
+        return scopedRegistry(scope, true)
+    }
+
+    private static ScopedServiceRegistry scopedRegistry(Class<? extends Scope> scope, boolean strict) {
+        return new ScopedServiceRegistry(scope, strict, "test service registry")
+    }
+
+    @ServiceScope(Scope.BuildTree)
     static class BuildTreeScopedService {}
+
+    @ServiceScope([Scope.Global, Scope.Build])
+    static class GlobalAndBuildScopedService {}
 
     static class UnscopedService {}
 
-    static class ScopedServiceProvider {
+    static class UnscopedServiceProvider {
+        @SuppressWarnings('unused')
+        UnscopedService createScopedService() {
+            return new UnscopedService()
+        }
+    }
+
+    // Important that this is an interface, because then `@ServiceScope` is not inherited for implementations
+    @ServiceScope(Scope.BuildTree)
+    interface BuildTreeScopedServiceInterface {}
+
+    static class BuildTreeScopedServiceInterfaceUnscopedImpl implements BuildTreeScopedServiceInterface {}
+
+    static class BuildTreeScopedServiceProvider {
         @SuppressWarnings('unused')
         BuildTreeScopedService createScopedService() {
             return new BuildTreeScopedService()
         }
     }
 
+    static class BuildTreeScopedServiceInterfaceProvider {
+        @SuppressWarnings('unused')
+        BuildTreeScopedServiceInterface createScopedService() {
+            return new BuildTreeScopedServiceInterfaceUnscopedImpl()
+        }
+    }
+
+    static class BuildTreeScopedServiceInterfaceUnscopedImplProvider {
+        @SuppressWarnings('unused')
+        BuildTreeScopedServiceInterfaceUnscopedImpl createScopedService() {
+            return new BuildTreeScopedServiceInterfaceUnscopedImpl()
+        }
+    }
+
+    static class MultiScopedServiceProvider {
+        @SuppressWarnings('unused')
+        GlobalAndBuildScopedService createScopedService() {
+            return new GlobalAndBuildScopedService()
+        }
+    }
+
     static class BrokenScopedServiceRegistry extends ScopedServiceRegistry {
         BrokenScopedServiceRegistry() {
-            super(Scopes.Build)
+            super(Scope.Build, "broken service registry")
         }
 
         @SuppressWarnings('unused')

@@ -16,7 +16,6 @@
 
 package org.gradle.process.internal.worker;
 
-import org.gradle.api.Action;
 import org.gradle.internal.serialize.Serializer;
 
 /**
@@ -36,11 +35,6 @@ public interface MultiRequestWorkerProcessBuilder<IN, OUT> extends WorkerProcess
      * <p>The worker process is not started until {@link WorkerControl#start()} is called on the returned object.</p>
      */
     MultiRequestClient<IN, OUT> build();
-
-    /**
-     * Registers a callback to invoke if a failure in an underlying process is detected.
-     */
-    void onProcessFailure(Action<WorkerProcess> action);
 
     /**
      * Registers a serializer to use when handling arguments to methods of {@link T}.

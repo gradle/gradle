@@ -19,8 +19,8 @@ package promotion
 import common.VersionedSettingsBranch
 import common.gradleWrapper
 import common.pluginPortalUrlOverride
-import jetbrains.buildServer.configs.kotlin.v2019_2.triggers.schedule
-import jetbrains.buildServer.configs.kotlin.v2019_2.triggers.vcs
+import jetbrains.buildServer.configs.kotlin.triggers.schedule
+import jetbrains.buildServer.configs.kotlin.triggers.vcs
 import vcsroots.gradlePromotionBranches
 
 object StartReleaseCycleTest : BasePromotionBuildType(vcsRootId = gradlePromotionBranches, cleanCheckout = false) {

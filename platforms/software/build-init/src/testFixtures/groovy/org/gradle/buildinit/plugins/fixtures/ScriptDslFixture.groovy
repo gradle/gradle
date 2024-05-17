@@ -85,14 +85,24 @@ class ScriptDslFixture {
     }
 
     void assertGradleFilesGenerated(TestFile parentFolder = rootDir, String... pathForBuild) {
-        assert getBuildFile(parentFolder.file(pathForBuild)).exists()
-        assert getSettingsFile(parentFolder).exists()
-        def gradleVersion = GradleVersion.current().version
-        new WrapperTestFixture(parentFolder).generated(gradleVersion)
-        assert getVersionCatalogFile().exists()
+        getBuildFile(parentFolder.file(pathForBuild)).assertExists()
+        getSettingsFile(parentFolder).assertExists()
+        getVersionCatalogFile().assertExists()
+        assertWrapperFilesGenerated(GradleVersion.current().version, parentFolder)
     }
 
-    void assertWrapperNotGenerated(TestFile parentFolder = rootDir) {
+    void assertWrapperFilesGenerated(String gradleVersion, TestFile parentFolder = rootDir) {
+        new WrapperTestFixture(parentFolder).generated(gradleVersion)
+    }
+
+    void assertGradleFilesNotGenerated(TestFile parentFolder = rootDir) {
+        getBuildFile(parentFolder).assertDoesNotExist()
+        getSettingsFile(parentFolder).assertDoesNotExist()
+        getVersionCatalogFile().assertDoesNotExist()
+        assertWrapperFilesNotGenerated(parentFolder)
+    }
+
+    void assertWrapperFilesNotGenerated(TestFile parentFolder = rootDir) {
         new WrapperTestFixture(parentFolder).notGenerated()
     }
 

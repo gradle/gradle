@@ -81,6 +81,7 @@ public class VisitableURLClassLoader extends URLClassLoader implements ClassLoad
         this.name = name;
     }
 
+    @Override
     public String getName() {
         return name;
     }

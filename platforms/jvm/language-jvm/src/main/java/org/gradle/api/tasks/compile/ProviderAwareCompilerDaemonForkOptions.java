@@ -17,7 +17,6 @@
 package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
@@ -25,6 +24,7 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.util.internal.CollectionUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -37,7 +37,7 @@ import java.util.List;
 @Incubating
 public class ProviderAwareCompilerDaemonForkOptions extends BaseForkOptions {
 
-    private final List<CommandLineArgumentProvider> jvmArgumentProviders = Lists.newArrayList();
+    private final List<CommandLineArgumentProvider> jvmArgumentProviders = new ArrayList<>();
 
     /**
      * Returns any additional JVM argument providers for the compiler process.

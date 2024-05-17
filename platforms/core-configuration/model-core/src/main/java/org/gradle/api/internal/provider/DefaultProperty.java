@@ -17,21 +17,34 @@
 package org.gradle.api.internal.provider;
 
 import com.google.common.base.Preconditions;
+import org.gradle.api.Transformer;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
 
+/**
+ * The implementation for general-purpose (atomic, non-composite) properties, where
+ * the value is supplied by some provider.
+ *
+ * @param <T> the type of the property value
+ */
 public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? extends T>> implements Property<T> {
     private final Class<T> type;
     private final ValueSanitizer<T> sanitizer;
+    private final static ProviderInternal<?> NOT_DEFINED = Providers.notDefined();
 
     public DefaultProperty(PropertyHost propertyHost, Class<T> type) {
         super(propertyHost);
         this.type = type;
         this.sanitizer = ValueSanitizers.forType(type);
-        init(Providers.notDefined());
+        init(getDefaultValue());
+    }
+
+    @Override
+    protected ProviderInternal<? extends T> getDefaultValue() {
+        return Providers.notDefined();
     }
 
     @Override
@@ -85,7 +98,11 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
     }
 
     public ProviderInternal<? extends T> getProvider() {
-        return getSupplier();
+        // TODO(mlopatkin) while calling getProvider is not going to cause StackOverflowError by itself, the returned provider is typically used in some recursive call.
+        //  Without the safety net of the EvaluationContext, it can cause hard-to-debug exceptions.
+        try (EvaluationContext.ScopeContext context = openScope()) {
+            return getSupplier(context);
+        }
     }
 
     public DefaultProperty<T> provider(Provider<? extends T> provider) {
@@ -118,24 +135,56 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
     }
 
     @Override
-    protected ExecutionTimeValue<? extends T> calculateOwnExecutionTimeValue(ProviderInternal<? extends T> value) {
+    public Property<T> unset() {
+        super.unset();
+        return this;
+    }
+
+    @Override
+    public Property<T> unsetConvention() {
+        discardConvention();
+        return this;
+    }
+
+    @Override
+    protected ExecutionTimeValue<? extends T> calculateOwnExecutionTimeValue(EvaluationContext.ScopeContext context, ProviderInternal<? extends T> value) {
         // Discard this property from a provider chain, as it does not contribute anything to the calculation.
         return value.calculateExecutionTimeValue();
     }
 
     @Override
-    protected Value<? extends T> calculateValueFrom(ProviderInternal<? extends T> value, ValueConsumer consumer) {
+    protected Value<? extends T> calculateValueFrom(EvaluationContext.ScopeContext context, ProviderInternal<? extends T> value, ValueConsumer consumer) {
         return value.calculateValue(consumer);
     }
 
     @Override
-    protected ProviderInternal<? extends T> finalValue(ProviderInternal<? extends T> value, ValueConsumer consumer) {
+    protected ProviderInternal<? extends T> finalValue(EvaluationContext.ScopeContext context, ProviderInternal<? extends T> value, ValueConsumer consumer) {
         return value.withFinalValue(consumer);
+    }
+
+    @Override
+    protected ProviderInternal<? extends T> getDefaultConvention() {
+        return Cast.uncheckedCast(NOT_DEFINED);
+    }
+
+    @Override
+    protected boolean isDefaultConvention() {
+        return getConventionSupplier() == NOT_DEFINED;
     }
 
     @Override
     protected String describeContents() {
         // NOTE: Do not realize the value of the Provider in toString().  The debugger will try to call this method and make debugging really frustrating.
-        return String.format("property(%s, %s)", type.getName(), getSupplier());
+        return String.format("property(%s, %s)", type.getName(), describeValue());
+    }
+
+    @Override
+    public void replace(Transformer<? extends @org.jetbrains.annotations.Nullable Provider<? extends T>, ? super Provider<T>> transformation) {
+        Provider<? extends T> newValue = transformation.transform(shallowCopy());
+        if (newValue != null) {
+            set(newValue);
+        } else {
+            set((T) null);
+        }
     }
 }

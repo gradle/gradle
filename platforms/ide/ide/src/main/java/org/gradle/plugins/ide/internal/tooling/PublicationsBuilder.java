@@ -16,7 +16,6 @@
 
 package org.gradle.plugins.ide.internal.tooling;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectComponentPublication;
@@ -28,6 +27,7 @@ import org.gradle.plugins.ide.internal.tooling.model.DefaultProjectPublications;
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
+import java.util.ArrayList;
 import java.util.List;
 
 class PublicationsBuilder implements ToolingModelBuilder {
@@ -49,7 +49,7 @@ class PublicationsBuilder implements ToolingModelBuilder {
     }
 
     private List<DefaultGradlePublication> publications(ProjectInternal project, DefaultProjectIdentifier projectIdentifier) {
-        List<DefaultGradlePublication> gradlePublications = Lists.newArrayList();
+        List<DefaultGradlePublication> gradlePublications = new ArrayList<>();
 
         for (ProjectComponentPublication projectPublication : publicationRegistry.getPublications(ProjectComponentPublication.class, project.getIdentityPath())) {
             ModuleVersionIdentifier id = projectPublication.getCoordinates(ModuleVersionIdentifier.class);

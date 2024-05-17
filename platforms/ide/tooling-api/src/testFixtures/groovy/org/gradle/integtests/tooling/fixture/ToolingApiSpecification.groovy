@@ -59,10 +59,13 @@ import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
  *     <li>{@link ToolingApiVersion} - specifies the tooling API consumer versions that the test is compatible with.
  *     <li>{@link TargetGradleVersion} - specifies the tooling API testDirectoryProvider versions that the test is compatible with.
  * </ul>
+ *
+ * The supported ranges for the tooling API versions and for the target Gradle versions are documented in the Gradle user guide.
+ * For up-to-date information, check the 'Compatibility of Java and Gradle versions` section of the 'Third-party Tools' chapter.
+ * The parameters of the @ToolingApiVersion and the @TargetGradleVersion annotations on this class should always match with the documentation.
  */
 @ToolingApiTest
 @CleanupTestDirectory
-// The lowest tested version should be the first release of the previous major.
 @ToolingApiVersion('>=7.0')
 @TargetGradleVersion('>=3.0')
 @Retry(condition = { onIssueWithReleasedGradleVersion(instance, failure) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
@@ -93,6 +96,8 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
 
     @Rule
     public RuleChain cleanupRule = RuleChain.outerRule(temporaryFolder).around(temporaryDistributionFolder).around(toolingApi)
+
+    private List<String> expectedDeprecations = []
 
     // used reflectively by retry rule
     String getReleasedGradleVersion() {
@@ -278,7 +283,13 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
      * Returns the set of implicit task names expected for a root project for the target Gradle version.
      */
     Set<String> getRootProjectImplicitTasks() {
-        return implicitTasks + ['init', 'wrapper'] + rootProjectImplicitInvisibleTasks
+        final rootOnlyTasks
+        if (targetVersion >= GradleVersion.version("8.8")) {
+            rootOnlyTasks = ['init', 'wrapper', 'updateDaemonJvm']
+        } else {
+            rootOnlyTasks = ['init', 'wrapper']
+        }
+        return implicitTasks + rootOnlyTasks + rootProjectImplicitInvisibleTasks
     }
 
     /**
@@ -296,18 +307,18 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
     }
 
     void assertHasBuildSuccessfulLogging() {
-        assertHasNoDeprecationWarnings()
+        assertHasNoUnexpectedDeprecationWarnings()
         assert stdout.toString().contains("BUILD SUCCESSFUL")
     }
 
     void assertHasBuildFailedLogging() {
-        assertHasNoDeprecationWarnings()
+        assertHasNoUnexpectedDeprecationWarnings()
         def failureOutput = targetDist.selectOutputWithFailureLogging(stdout, stderr).toString()
         assert failureOutput.contains("BUILD FAILED")
     }
 
     void assertHasConfigureSuccessfulLogging() {
-        assertHasNoDeprecationWarnings()
+        assertHasNoUnexpectedDeprecationWarnings()
         if (targetDist.isToolingApiLogsConfigureSummary()) {
             assert stdout.toString().contains("CONFIGURE SUCCESSFUL")
         } else {
@@ -316,7 +327,7 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
     }
 
     void assertHasConfigureFailedLogging() {
-        assertHasNoDeprecationWarnings()
+        assertHasNoUnexpectedDeprecationWarnings()
         def failureOutput = targetDist.selectOutputWithFailureLogging(stdout, stderr).toString()
         if (targetDist.isToolingApiLogsConfigureSummary()) {
             assert failureOutput.contains("CONFIGURE FAILED")
@@ -325,17 +336,26 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
         }
     }
 
-    private void assertHasNoDeprecationWarnings() {
-        if (shouldCheckForDeprecationWarnings()) {
-            assert !stdout.toString()
-                .replace("[deprecated]", "IGNORE") // don't check deprecated command-line argument
-                .containsIgnoreCase("deprecated")
-        }
-    }
-
     def shouldCheckForDeprecationWarnings() {
         // Older versions have deprecations
         GradleVersion.version("6.9") < targetVersion
+    }
+
+    private void assertHasNoUnexpectedDeprecationWarnings() {
+        // Clear all expected warnings first
+        String rawOutput = stdout.toString()
+        if (!expectedDeprecations.isEmpty()) {
+            expectedDeprecations.each { expectedDeprecation ->
+                assert rawOutput.contains(expectedDeprecation)
+                rawOutput = rawOutput.replace(expectedDeprecation, "")
+            }
+        }
+        // Then proceed as before
+        if (shouldCheckForDeprecationWarnings()) {
+            assert !rawOutput
+                .replace("[deprecated]", "IGNORE") // don't check deprecated command-line argument
+                .containsIgnoreCase("deprecated")
+        }
     }
 
     ExecutionResult getResult() {
@@ -366,5 +386,9 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
 
     protected static String mavenCentralRepository() {
         RepoScriptBlockUtil.mavenCentralRepository()
+    }
+
+    void expectDeprecation(String message) {
+        expectedDeprecations << message
     }
 }

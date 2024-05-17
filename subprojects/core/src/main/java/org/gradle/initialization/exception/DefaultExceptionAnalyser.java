@@ -25,9 +25,13 @@ import org.gradle.internal.service.ServiceCreationException;
 import org.gradle.problems.Location;
 import org.gradle.problems.buildtree.ProblemDiagnosticsFactory;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Set;
 
 public class DefaultExceptionAnalyser implements ExceptionCollector {
     private final ProblemDiagnosticsFactory diagnosticsFactory;
@@ -93,12 +97,20 @@ public class DefaultExceptionAnalyser implements ExceptionCollector {
         return new LocationAwareException(actualException, source, lineNumber);
     }
 
-    private Throwable findDeepestRootException(Throwable exception) {
+    private static Throwable findDeepestRootException(Throwable exception) {
         // TODO: fix the way we work out which exception is important: TaskExecutionException is not always the most helpful
         Throwable locationAware = null;
         Throwable result = null;
         Throwable contextMatch = null;
-        for (Throwable current = exception; current != null; current = current.getCause()) {
+        // Guard against malicious overrides of Throwable.equals by
+        // using a Set with identity equality semantics.
+        Set<Throwable> dejaVu = Collections.newSetFromMap(new IdentityHashMap<>());
+        for (Throwable current = exception, parent = null; current != null; parent = current, current = current.getCause()) {
+            if (!dejaVu.add(current)) {
+                if (parent != null) {
+                    current = patchCircularCause(current, parent);
+                }
+            }
             if (current instanceof LocationAwareException) {
                 locationAware = current;
             } else if (current instanceof GradleScriptException || current instanceof TaskExecutionException) {
@@ -115,6 +127,20 @@ public class DefaultExceptionAnalyser implements ExceptionCollector {
             return contextMatch;
         } else {
             return exception;
+        }
+    }
+
+    private static Throwable patchCircularCause(Throwable current, Throwable parent) {
+        try {
+            Field causeField = Throwable.class.getDeclaredField("cause");
+            causeField.setAccessible(true);
+            Throwable replacement = new Throwable("[CIRCULAR REFERENCE: " + current + "]");
+            replacement.setStackTrace(current.getStackTrace());
+            causeField.set(parent, replacement);
+            return replacement;
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            // Couldn't replace the cause, let's return the actual exception.
+            return current;
         }
     }
 }

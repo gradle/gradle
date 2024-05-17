@@ -17,21 +17,20 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification;
 
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
 
 import java.io.File;
 
 public interface DependencyVerificationOverride {
-    DependencyVerificationOverride NO_VERIFICATION = (original, resolveContextName, resolutionStrategy) -> original;
+    DependencyVerificationOverride NO_VERIFICATION = original -> original;
     String VERIFICATION_METADATA_XML = "verification-metadata.xml";
 
     static File dependencyVerificationsFile(File gradleDirectory) {
         return new File(gradleDirectory, VERIFICATION_METADATA_XML);
     }
 
-    ModuleComponentRepository<ModuleComponentGraphResolveState> overrideDependencyVerification(ModuleComponentRepository<ModuleComponentGraphResolveState> original, String resolveContextName, ResolutionStrategyInternal resolutionStrategy);
+    ModuleComponentRepository<ModuleComponentGraphResolveState> overrideDependencyVerification(ModuleComponentRepository<ModuleComponentGraphResolveState> original);
 
     default void buildFinished(GradleInternal model) {
     }

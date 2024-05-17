@@ -27,6 +27,7 @@ import org.gradle.api.internal.provider.Collectors;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.internal.Cast;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -122,7 +123,7 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
     @Override
     public void realizePending(Class<?> type) {
         if (!pending.isEmpty()) {
-            List<Collectors.TypedCollector<T>> copied = Lists.newArrayList();
+            List<Collectors.TypedCollector<T>> copied = new ArrayList<>();
             for (Collectors.TypedCollector<T> collector : pending) {
                 if (collector.getType() == null || type.isAssignableFrom(collector.getType())) {
                     copied.add(collector);

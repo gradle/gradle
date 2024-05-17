@@ -17,7 +17,6 @@ package org.gradle.api.internal;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Maps;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
@@ -34,6 +33,7 @@ import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.internal.collections.ElementSource;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.provider.AbstractMinimalProvider;
+import org.gradle.api.internal.provider.EvaluationContext;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
@@ -59,6 +59,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
@@ -604,7 +605,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     protected static class UnfilteredIndex<T> implements Index<T> {
-        private final Map<String, ProviderInternal<? extends T>> pendingMap = Maps.newLinkedHashMap();
+        private final Map<String, ProviderInternal<? extends T>> pendingMap = new LinkedHashMap<>();
         private final NavigableMap<String, T> map = new TreeMap<String, T>();
 
         @Override
@@ -761,7 +762,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         public Map<String, ProviderInternal<? extends T>> getPendingAsMap() {
             // TODO not sure if we can clean up the generics here and do less unchecked casting
             Map<String, ProviderInternal<?>> delegateMap = Cast.uncheckedCast(delegate.getPendingAsMap());
-            Map<String, ProviderInternal<? extends T>> filteredMap = Maps.newLinkedHashMap();
+            Map<String, ProviderInternal<? extends T>> filteredMap = new LinkedHashMap<>();
             for (Map.Entry<String, ProviderInternal<?>> entry : delegateMap.entrySet()) {
                 String name = entry.getKey();
                 ProviderInternal<?> provider = entry.getValue();
@@ -892,7 +893,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
 
         @Override
-        public String toString() {
+        protected String toStringNoReentrance() {
             return String.format("provider(%s '%s', %s)", getTypeDisplayName(), getName(), getType());
         }
     }
@@ -998,13 +999,20 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
                 // Collect any container level add actions added since the last call to configure()
                 onCreate = onCreate.mergeFrom(getEventRegister().getAddActions());
 
-                // Create the domain object
-                object = createDomainObject();
-
-                // Register the domain object
-                add(object, onCreate);
-                realized(AbstractDomainObjectCreatingProvider.this);
-                onLazyDomainObjectRealized();
+                try (EvaluationContext.ScopeContext scope = openScope()) {
+                    // Create the domain object
+                    object = createDomainObject();
+                    // Configuring the domain object may cause circular evaluation, but after initializing this.object
+                    // calculateOwnValue short-circuits it at a cost of exposing a partially constructed value.
+                    // Because of that the circular evaluation that goes through this provider doesn't cause stack overflow.
+                    // To avoid breaking existing code, we open a nested evaluation scope here to allow re-entering the chain.
+                    try (EvaluationContext.ScopeContext ignored = scope.nested()) {
+                        // Register the domain object
+                        add(object, onCreate);
+                        realized(AbstractDomainObjectCreatingProvider.this);
+                        onLazyDomainObjectRealized();
+                    }
+                }
             } catch (Throwable ex) {
                 failure = domainObjectCreationException(ex);
                 throw failure;

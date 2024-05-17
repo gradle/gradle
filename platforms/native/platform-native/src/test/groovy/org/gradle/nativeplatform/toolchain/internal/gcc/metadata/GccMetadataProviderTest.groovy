@@ -31,6 +31,7 @@ import org.gradle.util.UsesNativeServices
 import org.gradle.util.internal.VersionNumber
 import org.junit.Rule
 import spock.lang.Specification
+import spock.lang.Issue
 
 import java.util.regex.Matcher
 
@@ -61,6 +62,11 @@ class GccMetadataProviderTest extends Specification {
 #define __GNUC__ 4
 #define __i386__ 1
 """
+    static def gccMingw = """#define __GNUC_MINOR__ 0
+#define __GNUC_PATCHLEVEL__ 0
+#define __GNUC__ 10
+"""
+
     static def gccAmd64 = """#define __GNUC_MINOR__ 2
 #define __GNUC_PATCHLEVEL__ 1
 #define __GNUC__ 4
@@ -167,6 +173,23 @@ ignoring nonexistent directory "/include"
 End of search list.
 """
 
+    private static String gccMinGWOnLinuxOutput = """Using built-in specs.
+COLLECT_GCC=x86_64-w64-mingw32-gcc
+Target: x86_64-w64-mingw32
+Configured with: ../../src/configure --build=x86_64-linux-gnu --prefix=/usr --includedir='/usr/include' --mandir='/usr/share/man' --infodir='/usr/share/info' --sysconfdir=/etc --localstatedir=/var --disable-option-checking --disable-silent-rules --libdir='/usr/lib/x86_64-linux-gnu' --libexecdir='/usr/lib/x86_64-linux-gnu' --disable-maintainer-mode --disable-dependency-tracking --prefix=/usr --enable-shared --enable-static --disable-multilib --with-system-zlib --libexecdir=/usr/lib --without-included-gettext --libdir=/usr/lib --enable-libstdcxx-time=yes --with-tune=generic --with-headers --enable-version-specific-runtime-libs --enable-fully-dynamic-string --enable-libgomp --enable-languages=c,c++,fortran,objc,obj-c++,ada --enable-lto --enable-threads=win32 --program-suffix=-win32 --program-prefix=x86_64-w64-mingw32- --target=x86_64-w64-mingw32 --with-as=/usr/bin/x86_64-w64-mingw32-as --with-ld=/usr/bin/x86_64-w64-mingw32-ld --enable-libatomic --enable-libstdcxx-filesystem-ts=yes --enable-dependency-tracking
+Thread model: win32
+Supported LTO compression algorithms: zlib
+gcc version 10-win32 20210110 (GCC)
+COLLECT_GCC_OPTIONS='-dM' '-E' '-v' '-mtune=generic' '-march=x86-64'
+ /usr/lib/gcc/x86_64-w64-mingw32/10-win32/cc1 -E -quiet -v -U_REENTRANT - -mtune=generic -march=x86-64 -dM
+ignoring nonexistent directory "/usr/lib/gcc/x86_64-w64-mingw32/10-win32/../../../../x86_64-w64-mingw32/sys-include"
+#include "..." search starts here:
+#include <...> search starts here:
+ /usr/lib/gcc/x86_64-w64-mingw32/10-win32/include
+ /usr/lib/gcc/x86_64-w64-mingw32/10-win32/include-fixed
+ /usr/lib/gcc/x86_64-w64-mingw32/10-win32/../../../../x86_64-w64-mingw32/include
+End of search list."""
+
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def execActionFactory = Mock(ExecActionFactory)
@@ -199,6 +222,13 @@ End of search list.
 
         def amd64 = output(gccAmd64, gccVerboseOutput())
         amd64.component.defaultArchitecture.isAmd64()
+    }
+
+    @Issue("https://github.com/gradle/gradle-native/issues/1107")
+    def "can handle mingw GCC on Linux, despite the version number not being fully included"() {
+        expect:
+        def result = output(gccMingw, gccMinGWOnLinuxOutput)
+        result.available
     }
 
     def "handles output that cannot be parsed"() {

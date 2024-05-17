@@ -16,7 +16,6 @@
 
 package org.gradle.ide.visualstudio.fixtures;
 
-import com.google.common.collect.Lists;
 import org.apache.commons.io.FileUtils;
 import org.gradle.integtests.fixtures.executer.ExecutionFailure;
 import org.gradle.integtests.fixtures.executer.ExecutionResult;
@@ -103,7 +102,7 @@ public class MSBuildExecutor {
     }
 
     private List<ExecutionOutput> getOutputFiles() {
-        List<ExecutionOutput> outputFiles = Lists.newArrayList();
+        List<ExecutionOutput> outputFiles = new ArrayList<>();
         for (File executionDir : getOutputsDir().listFiles()) {
             if (executionDir.isDirectory()) {
                 outputFiles.add(new ExecutionOutput(new File(executionDir, "output.txt"), new File(executionDir, "error.txt")));
@@ -118,7 +117,7 @@ public class MSBuildExecutor {
 
     public List<ExecutionResult> succeeds(MSBuildAction action) {
         cleanupOutputDir();
-        List<ExecutionResult> results = Lists.newArrayList();
+        List<ExecutionResult> results = new ArrayList<>();
 
         withArgument(toTargetArgument(action));
         ExecOutput result = findMSBuild().execute(args, buildEnvironment(workingDir));

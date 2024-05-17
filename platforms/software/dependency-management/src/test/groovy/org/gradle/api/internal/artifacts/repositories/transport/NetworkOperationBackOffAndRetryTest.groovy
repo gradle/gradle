@@ -21,12 +21,14 @@ import org.gradle.api.UncheckedIOException
 import org.gradle.internal.resource.transport.http.HttpErrorStatusCodeException
 import spock.lang.Specification
 
+import java.util.concurrent.Callable
+
 class NetworkOperationBackOffAndRetryTest extends Specification {
 
     def 'retries operation on transient network issue and fails after max attempts - #ex'() {
         when:
         int attempts = 0
-        Runnable operation = {
+        Callable operation = {
             attempts++
             throw ex
         }
@@ -55,7 +57,7 @@ class NetworkOperationBackOffAndRetryTest extends Specification {
     def 'retries operation on transient network issue and succeeds on subsequent attempt - #ex'() {
         when:
         int attempts = 0
-        Runnable operation = {
+        Callable operation = {
             attempts++
             if (attempts < 3) {
                 throw ex
@@ -81,7 +83,7 @@ class NetworkOperationBackOffAndRetryTest extends Specification {
     def 'does not retry operation for non transient network issue - #ex'() {
         when:
         int attempts = 0
-        Runnable operation = {
+        Callable operation = {
             attempts++
             throw ex
         }

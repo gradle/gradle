@@ -6,6 +6,12 @@ plugins {
 
 description = "Report type classes and plugins for reporting (build dashboard, report container)"
 
+errorprone {
+    disabledChecks.addAll(
+        "EqualsUnsafeCast", // 1 occurrences
+    )
+}
+
 val implementationResources: Configuration by configurations.creating
 
 repositories {
@@ -13,16 +19,20 @@ repositories {
 }
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":logging"))
-    implementation(project(":file-collections"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":core"))
+    api(projects.javaLanguageExtensions)
+    api(project(":base-services"))
+    api(project(":core"))
+    api(project(":core-api"))
 
-    implementation(libs.groovy)
+    api(libs.groovy)
+    api(libs.inject)
+    api(libs.jsr305)
+
+    implementation(project(":file-collections"))
+    implementation(project(":logging"))
+    implementation(project(":model-core"))
+
     implementation(libs.guava)
-    implementation(libs.inject)
     implementation(libs.jatl)
 
     implementationResources("jquery:jquery.min:3.5.1@js")
@@ -42,7 +52,6 @@ dependencies {
 
 strictCompile {
     ignoreRawTypes() // raw types used in public API
-    ignoreParameterizedVarargType() // [unchecked] Possible heap pollution from parameterized vararg type: GenerateBuildDashboard.aggregate()
 }
 
 packageCycles {

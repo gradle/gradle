@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.provider;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.Transformer;
 
@@ -54,44 +53,45 @@ public class TransformBackedProvider<OUT, IN> extends AbstractMinimalProvider<OU
         return type;
     }
 
-    @VisibleForTesting
-    public Transformer<? extends OUT, ? super IN> getTransformer() {
-        return transformer;
-    }
-
     @Override
     public ValueProducer getProducer() {
-        return provider.getProducer();
+        try (EvaluationContext.ScopeContext ignored = openScope()) {
+            return provider.getProducer();
+        }
     }
 
     @Override
     public ExecutionTimeValue<? extends OUT> calculateExecutionTimeValue() {
-        ExecutionTimeValue<? extends IN> value = provider.calculateExecutionTimeValue();
-        if (value.hasChangingContent()) {
-            // Need the value contents in order to transform it to produce the value of this provider,
-            // so if the value or its contents are built by tasks, the value of this provider is also built by tasks
-            return ExecutionTimeValue.changingValue(new TransformBackedProvider<OUT, IN>(type, value.toProvider(), transformer));
-        }
+        try (EvaluationContext.ScopeContext context = openScope()) {
+            ExecutionTimeValue<? extends IN> value = provider.calculateExecutionTimeValue();
+            if (value.hasChangingContent()) {
+                // Need the value contents in order to transform it to produce the value of this provider,
+                // so if the value or its contents are built by tasks, the value of this provider is also built by tasks
+                return ExecutionTimeValue.changingValue(new TransformBackedProvider<OUT, IN>(type, value.toProvider(), transformer));
+            }
 
-        return ExecutionTimeValue.value(mapValue(value.toValue()));
+            return ExecutionTimeValue.value(mapValue(context, value.toValue()));
+        }
     }
 
     @Override
     protected Value<? extends OUT> calculateOwnValue(ValueConsumer consumer) {
-        beforeRead();
-        Value<? extends IN> value = provider.calculateValue(consumer);
-        return mapValue(value);
+        try (EvaluationContext.ScopeContext context = openScope()) {
+            beforeRead(context);
+            Value<? extends IN> value = provider.calculateValue(consumer);
+            return mapValue(context, value);
+        }
     }
 
     @Nonnull
-    protected Value<OUT> mapValue(Value<? extends IN> value) {
+    protected Value<OUT> mapValue(EvaluationContext.ScopeContext context, Value<? extends IN> value) {
         if (value.isMissing()) {
             return value.asType();
         }
         return value.transform(transformer);
     }
 
-    protected void beforeRead() {
+    protected void beforeRead(EvaluationContext.ScopeContext context) {
         provider.getProducer().visitContentProducerTasks(producer -> {
             if (!producer.getState().getExecuted()) {
                 throw new InvalidUserCodeException(
@@ -102,7 +102,7 @@ public class TransformBackedProvider<OUT, IN> extends AbstractMinimalProvider<OU
     }
 
     @Override
-    public String toString() {
+    protected String toStringNoReentrance() {
         return "map(" + (type == null ? "" : type.getName() + " ") + provider + ")";
     }
 }

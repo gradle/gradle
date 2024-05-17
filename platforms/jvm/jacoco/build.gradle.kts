@@ -4,35 +4,43 @@ plugins {
 
 description = "Plugin and integration with JaCoCo code coverage"
 
+errorprone {
+    disabledChecks.addAll(
+        "ReferenceEquality", // 3 occurrences
+        "UnusedMethod", // 1 occurrences
+    )
+}
+
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":logging"))
-    implementation(project(":process-services"))
-    implementation(project(":core-api"))
+    api(projects.javaLanguageExtensions)
+    api(project(":base-services"))
+    api(project(":core"))
+    api(project(":core-api"))
+    api(project(":platform-jvm"))
+    api(project(":reporting"))
+
+    api(libs.groovy)
+    api(libs.inject)
+    api(libs.jsr305)
+
+    implementation(project(":logging-api"))
     implementation(project(":model-core"))
-    implementation(project(":core"))
-    implementation(project(":language-jvm"))
     implementation(project(":platform-base"))
-    implementation(project(":testing-base"))
-    implementation(project(":testing-jvm"))
-    implementation(project(":test-suites-base"))
-    implementation(project(":plugins"))
     implementation(project(":plugins-java"))
     implementation(project(":plugins-java-base"))
-    implementation(project(":platform-jvm"))
-    implementation(project(":reporting"))
-    implementation(project(":file-collections"))
     implementation(project(":plugins-jvm-test-suite"))
+    implementation(project(":process-services"))
+    implementation(project(":test-suites-base"))
+    implementation(project(":testing-jvm"))
 
-    implementation(libs.groovy)
-    implementation(libs.guava)
     implementation(libs.commonsLang)
-    implementation(libs.inject)
+    implementation(libs.guava)
 
     testFixturesImplementation(project(":base-services"))
     testFixturesImplementation(project(":core-api"))
     testFixturesImplementation(project(":core"))
     testFixturesImplementation(project(":internal-integ-testing"))
+
     testFixturesImplementation(libs.jsoup)
     testFixturesImplementation(libs.groovyXml)
 

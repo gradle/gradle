@@ -38,13 +38,12 @@ import org.gradle.internal.properties.InputBehavior
 import org.gradle.internal.service.scopes.DefaultFileChangeListeners
 import org.gradle.internal.service.scopes.DefaultWorkInputListeners
 import org.gradle.internal.service.scopes.Scope
-import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.session.BuildSessionActionExecutor
 import org.gradle.internal.session.BuildSessionContext
 import org.gradle.internal.snapshot.CaseSensitivity
 import org.gradle.internal.time.Time
 import org.gradle.internal.watch.registry.FileWatcherRegistry
-import org.gradle.internal.watch.vfs.FileSystemWatchingInformation
+import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.internal.DisconnectableInputStream
 import spock.lang.Timeout
@@ -69,7 +68,7 @@ class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
         getStartParameter() >> startParameter
     }
     def globalListenerManager = new DefaultListenerManager(Scope.Global)
-    def userHomeListenerManager = globalListenerManager.createChild(Scopes.UserHome)
+    def userHomeListenerManager = globalListenerManager.createChild(Scope.UserHome)
     def inputListeners = new DefaultWorkInputListeners(globalListenerManager)
     def changeListeners = new DefaultFileChangeListeners(userHomeListenerManager)
     List<Deployment> deployments = []
@@ -82,7 +81,7 @@ class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
     def textOutputFactory = new TestStyledTextOutputFactory()
     def executorService = Executors.newCachedThreadPool()
     def fileSystemIsWatchingAnyLocations = true
-    def fileSystemWatchingInformation = Stub(FileSystemWatchingInformation) {
+    def virtualFileSystem = Stub(BuildLifecycleAwareVirtualFileSystem) {
         isWatchingAnyLocations() >> {
             fileSystemIsWatchingAnyLocations
         }
@@ -404,12 +403,12 @@ class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
             requestContext,
             cancellationToken,
             deploymentRegistry,
-            userHomeListenerManager.createChild(Scopes.BuildSession),
+            userHomeListenerManager.createChild(Scope.BuildSession),
             buildExecutionTimer,
             Time.clock(),
             TestFiles.fileSystem(),
             CaseSensitivity.CASE_SENSITIVE,
-            fileSystemWatchingInformation,
+            virtualFileSystem,
             delegate)
     }
 }

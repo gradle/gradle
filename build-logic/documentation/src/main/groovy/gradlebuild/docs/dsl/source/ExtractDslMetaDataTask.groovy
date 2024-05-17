@@ -16,21 +16,22 @@
 package gradlebuild.docs.dsl.source
 
 import com.github.javaparser.JavaParser
+import gradlebuild.docs.DocGenerationException
+import gradlebuild.docs.model.ClassMetaDataRepository
+import gradlebuild.docs.model.SimpleClassMetaDataRepository
 import groovy.time.TimeCategory
 import groovy.time.TimeDuration
 import org.gradle.api.Action
 import org.gradle.api.Transformer
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.logging.Logging
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.SourceTask
 import org.gradle.api.tasks.TaskAction
-import gradlebuild.docs.DocGenerationException
-import gradlebuild.docs.model.ClassMetaDataRepository
-import gradlebuild.docs.model.SimpleClassMetaDataRepository
 
 /**
  * Extracts meta-data from the Groovy and Java source files which make up the Gradle API. Persists the meta-data to a file
@@ -73,7 +74,7 @@ abstract class ExtractDslMetaDataTask extends SourceTask {
 
         Date stop = new Date()
         TimeDuration elapsedTime = TimeCategory.minus(stop, start)
-        println "Parsed $counter classes in ${elapsedTime}"
+        Logging.getLogger(this.getClass()).lifecycle( "Parsed $counter classes in ${elapsedTime}")
     }
 
     def parse(File sourceFile, ClassMetaDataRepository<gradlebuild.docs.dsl.source.model.ClassMetaData> repository) {

@@ -1,32 +1,41 @@
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.instrumented-project")
 }
 
 description = """Contains some base and shared classes for JVM language support, like AbstractCompile class and BaseForkOptions classes,
 JVM-specific dependencies blocks and JVM test suite interfaces."""
 
+errorprone {
+    disabledChecks.addAll(
+        "OverridesJavaxInjectableMethod", // 1 occurrences
+        "UnusedMethod", // 1 occurrences
+        "UnusedVariable", // 1 occurrences
+    )
+}
+
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":core"))
-    implementation(project(":core-api"))
+    api(projects.javaLanguageExtensions)
+    api(projects.serviceProvider)
+    api(project(":base-services"))
+    api(project(":core"))
+    api(project(":core-api"))
+    api(project(":files"))
+    api(project(":platform-base"))
+    api(project(":platform-jvm"))
+    api(project(":process-services"))
+    api(project(":workers"))
+
+    api(libs.groovy)
+    api(libs.inject)
+    api(libs.jsr305)
+
     implementation(project(":dependency-management"))
-    implementation(project(":files"))
-    implementation(project(":file-collections"))
     implementation(project(":logging"))
     implementation(project(":model-core"))
-    implementation(project(":platform-base"))
-    implementation(project(":platform-jvm"))
-    implementation(project(":process-services"))
-    implementation(project(":process-services"))
-    implementation(project(":testing-base"))
-    implementation(project(":testing-jvm"))
     implementation(project(":test-suites-base"))
-    implementation(project(":toolchains-jvm"))
-    implementation(project(":workers"))
 
-    implementation(libs.groovy)
     implementation(libs.guava)
-    implementation(libs.inject)
 
     testImplementation(project(":native"))
     testImplementation(project(":resources"))

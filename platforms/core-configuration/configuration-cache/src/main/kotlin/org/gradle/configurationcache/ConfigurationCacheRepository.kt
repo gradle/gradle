@@ -22,22 +22,19 @@ import org.gradle.cache.CacheBuilder
 import org.gradle.cache.DefaultCacheCleanupStrategy
 import org.gradle.cache.FileLockManager
 import org.gradle.cache.PersistentCache
-import org.gradle.cache.internal.CleanupActionDecorator
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup
 import org.gradle.cache.internal.SingleDepthFilesFinder
-import org.gradle.cache.internal.filelock.LockOptionsBuilder
 import org.gradle.cache.internal.streams.DefaultValueStore
 import org.gradle.cache.internal.streams.ValueStore
 import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory
 import org.gradle.configurationcache.ConfigurationCacheStateStore.StateFile
 import org.gradle.configurationcache.extensions.toDefaultLowerCase
 import org.gradle.configurationcache.extensions.unsafeLazy
-import org.gradle.internal.Factory
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.file.FileAccessTimeJournal
 import org.gradle.internal.file.impl.SingleDepthFileAccessTracker
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
-import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.internal.time.TimestampSuppliers
 import java.io.File
@@ -45,13 +42,13 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
+import java.util.function.Supplier
 
 
-@ServiceScope(Scopes.BuildTree::class)
+@ServiceScope(Scope.BuildTree::class)
 internal
 class ConfigurationCacheRepository(
     cacheBuilderFactory: BuildTreeScopedCacheBuilderFactory,
-    cleanupActionDecorator: CleanupActionDecorator,
     private val fileAccessTimeJournal: FileAccessTimeJournal,
     private val fileSystem: FileSystem
 ) : Stoppable {
@@ -180,7 +177,7 @@ class ConfigurationCacheRepository(
             }
         }
 
-        override fun useForStore(action: (Layout) -> Unit) {
+        override fun <T> useForStore(action: (Layout) -> T): T =
             withExclusiveAccessToCache(baseDir) { cacheDir ->
                 // TODO GlobalCache require(!cacheDir.isDirectory)
                 Files.createDirectories(cacheDir.toPath())
@@ -198,7 +195,6 @@ class ConfigurationCacheRepository(
                         }
                 }
             }
-        }
     }
 
     private
@@ -217,24 +213,18 @@ class ConfigurationCacheRepository(
     val cache = cacheBuilderFactory
         .createCrossVersionCacheBuilder("configuration-cache")
         .withDisplayName("Configuration Cache")
-        .withOnDemandLockMode() // Don't need to lock anything until we use the caches
-        .withLruCacheCleanup(cleanupActionDecorator)
+        .withInitialLockMode(FileLockManager.LockMode.OnDemand) // Don't need to lock anything until we use the caches
+        .withLruCacheCleanup()
         .open()
 
     private
-    fun CacheBuilder.withOnDemandLockMode() =
-        withLockOptions(LockOptionsBuilder.mode(FileLockManager.LockMode.OnDemand))
-
-    private
-    fun CacheBuilder.withLruCacheCleanup(cleanupActionDecorator: CleanupActionDecorator): CacheBuilder =
+    fun CacheBuilder.withLruCacheCleanup(): CacheBuilder =
         withCleanupStrategy(
             DefaultCacheCleanupStrategy.from(
-                cleanupActionDecorator.decorate(
-                    LeastRecentlyUsedCacheCleanup(
-                        SingleDepthFilesFinder(cleanupDepth),
-                        fileAccessTimeJournal,
-                        TimestampSuppliers.daysAgo(cleanupMaxAgeDays)
-                    )
+                LeastRecentlyUsedCacheCleanup(
+                    SingleDepthFilesFinder(cleanupDepth),
+                    fileAccessTimeJournal,
+                    TimestampSuppliers.daysAgo(cleanupMaxAgeDays)
                 )
             )
         )
@@ -257,7 +247,7 @@ class ConfigurationCacheRepository(
     private
     fun <T> withExclusiveAccessToCache(baseDir: File, action: (File) -> T): T =
         cache.withFileLock(
-            Factory {
+            Supplier {
                 action(baseDir)
             }
         )

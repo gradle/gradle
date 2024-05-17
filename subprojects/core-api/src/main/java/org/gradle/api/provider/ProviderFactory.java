@@ -25,7 +25,7 @@ import org.gradle.api.credentials.PasswordCredentials;
 import org.gradle.api.file.FileContents;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.initialization.Settings;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.process.ExecOutput;
 import org.gradle.process.ExecSpec;
@@ -45,7 +45,7 @@ import java.util.function.BiFunction;
  * @since 4.0
  */
 @NonExtensible
-@ServiceScope(Scopes.Build.class)
+@ServiceScope(Scope.Build.class)
 public interface ProviderFactory {
 
     /**
@@ -315,6 +315,12 @@ public interface ProviderFactory {
     /**
      * Returns a provider which value will be computed by combining a provider value with another
      * provider value using the supplied combiner function.
+     *
+     * <p>
+     * The resulting provider will be live, so that each time it is queried, it queries both supplied providers
+     * and applies the combiner to the results. Whenever any of the providers has no value, the new provider
+     * will also have no value and the combiner will not be called.
+     * </p>
      *
      * <p>
      * If the supplied providers represents a task or the output of a task, the resulting provider

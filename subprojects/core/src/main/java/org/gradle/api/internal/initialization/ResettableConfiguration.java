@@ -17,6 +17,9 @@
 package org.gradle.api.internal.initialization;
 
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.internal.Factory;
+
+import javax.annotation.Nullable;
 
 /**
  * A {@link Configuration} which can reset its resolution state. This interface is
@@ -26,12 +29,14 @@ import org.gradle.api.artifacts.Configuration;
 public interface ResettableConfiguration extends Configuration {
 
     /**
-     * Reset this Configuration's resolution state to the unresolved state, discarding any
-     * cached resolution results. No other state is reconfigured. The configuration remains
-     * immutable if resolution has already occurred. Any hooks or actions which ran when the
-     * configuration was originally resolved may or may not run again if this configuration
+     * Call this factory (which presumably resolves this Configuration) and then reset the resolution state
+     * to the unresolved state, discarding any cached resolution results. No other state is reconfigured.
+     * The configuration remains immutable if resolution has already occurred. Any hooks or actions which
+     * ran when the configuration was originally resolved may or may not run again if this configuration
      * is resolved again. Any side-effects or external caching which occur as a part of or
-     * after this configuration's resolution are not reversed or invalidated.
+     * after this configuration's resolution are not reversed or invalidated.  Note that calling this method
+     * will discard the resolution <i>results</i> but will prevent any state required to resolve the
+     * configuration again from being discarded.
      * <p>
      * <strong>This method should be avoided if at all possible, and should only be used as a last resort.</strong>
      * This method was originally added in order to release the resources of the {@code classpath}
@@ -47,6 +52,7 @@ public interface ResettableConfiguration extends Configuration {
      * @implSpec Usage: This method should only be called on resolvable configurations and should throw an exception if
      * called on a configuration that does not permit this usage.
      */
-    void resetResolutionState();
+    @Nullable
+    <T> T callAndResetResolutionState(Factory<T> factory);
 
 }

@@ -49,7 +49,7 @@ class DependencyConstraintsBugsIntegrationTest extends AbstractHttpDependencyRes
             repositories {
                 ${mavenCentralRepository()}
                 maven {
-                   url(uri("file:ktor-repo/"))
+                   url(uri("./ktor-repo/"))
                 }
             }
 

@@ -43,7 +43,9 @@ import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.result.DefaultBuildableComponentResolveResult;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -56,10 +58,10 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     private final ComponentIdentifier componentIdentifier;
     private final ModuleVersionIdentifier id;
     private final ComponentMetaDataResolver resolver;
-    private final List<NodeState> nodes = Lists.newLinkedList();
+    private final List<NodeState> nodes = new LinkedList<>();
     private final Long resultId;
     private final ModuleResolveState module;
-    private final List<ComponentSelectionDescriptorInternal> selectionCauses = Lists.newArrayList();
+    private final List<ComponentSelectionDescriptorInternal> selectionCauses = new ArrayList<>();
     private final DefaultImmutableCapability implicitCapability;
     private final int hashCode;
 

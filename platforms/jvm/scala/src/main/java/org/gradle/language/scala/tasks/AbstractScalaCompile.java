@@ -17,7 +17,6 @@
 package org.gradle.language.scala.tasks;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Maps;
 import com.google.common.io.Files;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
@@ -63,6 +62,7 @@ import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -114,6 +114,7 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
      * Returns the Java compilation options.
      */
     @Nested
+    @Override
     public CompileOptions getOptions() {
         return compileOptions;
     }
@@ -223,7 +224,7 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
     }
 
     private Map<File, File> resolveAnalysisMappingsForOtherProjects() {
-        Map<File, File> analysisMap = Maps.newHashMap();
+        Map<File, File> analysisMap = new HashMap<>();
         for (File mapping : analysisFiles.getFiles()) {
             if (mapping.exists()) {
                 try {

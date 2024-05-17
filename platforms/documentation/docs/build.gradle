@@ -73,8 +73,8 @@ configurations.docsTestRuntimeClasspath {
 }
 
 asciidoctorj {
-    version = '2.4.2'
-    modules.pdf.version '1.5.4'
+    version = '2.5.11'
+    modules.pdf.version '2.3.10'
 }
 
 tasks.withType(AsciidoctorTask).configureEach { task ->
@@ -94,6 +94,9 @@ gradleDocumentation {
     javadocs {
         javaApi = project.uri("https://docs.oracle.com/javase/8/docs/api")
         groovyApi = project.uri("https://docs.groovy-lang.org/docs/groovy-${libs.groovyVersion}/html/gapi")
+    }
+    kotlinDslReference {
+        dokkaVersionOverride = "1.9.10"
     }
 }
 
@@ -196,6 +199,7 @@ samples {
             sourceDirectory = precompiledScriptPluginUtils.sourceDirectory
             target = "buildSrc"
         }
+        problemsApiUsage
     }
 
     // TODO: Do this lazily so we don't need to walk the filesystem during configuration
@@ -554,6 +558,16 @@ samples {
             description = "Sharing a file made by a task in one Gradle project, with a task in another Gradle project."
             category = "Build organization"
         }
+
+        problemsApiUsage {
+            sampleDirectory = samplesRoot.dir("ide/problems-api-usage")
+            displayName = "Reporting and receiving problems via the Problems API"
+            description = "Reporting problems from plugins and consuming it in IDE integrations"
+            category = "IDE integration"
+            common {
+                from(templates.problemsApiUsage)
+            }
+        }
     }
 }
 
@@ -640,6 +654,13 @@ tasks.named("docsTest") { task ->
 
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_12)) {
             excludeTestsMatching "org.gradle.docs.samples.*.snippet-test-kit-gradle-version_*_testKitFunctionalTestSpockGradleDistribution.sample"
+        }
+
+        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_22)) {
+            // Does not work due to JVM validation issue: https://youtrack.jetbrains.com/issue/KT-66919
+            excludeTestsMatching "org.gradle.docs.samples.*.building-kotlin-*"
+            // Incompatible for unknown reasons, investigation ongoing
+            excludeTestsMatching "org.gradle.docs.samples.*.structuring-software-projects_*_build-android-app.sample"
         }
 
         if (OperatingSystem.current().macOsX && System.getProperty("os.arch") == "aarch64") {

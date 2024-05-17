@@ -17,8 +17,31 @@ package org.gradle.api.internal.artifacts.repositories;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.repositories.RepositoryContentDescriptor;
+import org.gradle.api.attributes.Attribute;
+
+import javax.annotation.Nullable;
+import java.util.Map;
+import java.util.Set;
 
 public interface RepositoryContentDescriptorInternal extends RepositoryContentDescriptor {
     Action<? super ArtifactResolutionDetails> toContentFilter();
     RepositoryContentDescriptorInternal asMutableCopy();
+
+    /**
+     * Returns values added by {@link #onlyForConfigurations}.
+     */
+    @Nullable
+    Set<String> getIncludedConfigurations();
+
+    /**
+     * Returns values added by {@link #notForConfigurations}
+     */
+    @Nullable
+    Set<String> getExcludedConfigurations();
+
+    /**
+     * Returns value added by {@link #onlyForAttribute}
+     */
+    @Nullable
+    Map<Attribute<Object>, Set<Object>> getRequiredAttributes();
 }

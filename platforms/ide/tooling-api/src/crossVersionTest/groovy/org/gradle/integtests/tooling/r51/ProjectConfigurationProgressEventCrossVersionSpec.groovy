@@ -20,7 +20,7 @@ import org.gradle.api.Action
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.tooling.BuildException
@@ -38,7 +38,6 @@ import java.util.concurrent.TimeUnit
 
 import static org.gradle.integtests.tooling.fixture.TextUtil.escapeString
 
-@ToolingApiVersion('>=5.1')
 @TargetGradleVersion('>=5.1')
 class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecification {
 
@@ -277,6 +276,7 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
     }
 
     @Timeout(value = 10, unit = TimeUnit.MINUTES)
+    @Flaky(because = "https://github.com/gradle/gradle-private/issues/3638")
     def "reports plugin configuration results for remote script plugins"() {
         given:
         toolingApi.requireIsolatedUserHome() // So that the script is not cached

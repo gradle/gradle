@@ -16,7 +16,6 @@
 package org.gradle.internal.component.model;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.MutableVariantFilesMetadata;
 import org.gradle.api.artifacts.VariantFileMetadata;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -28,10 +27,11 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentArtifa
 import org.gradle.internal.component.external.model.UrlBackedArtifactMetadata;
 import org.gradle.internal.component.external.model.VariantMetadataRules;
 
+import java.util.LinkedList;
 import java.util.List;
 
 public class VariantFilesRules {
-    private final List<VariantMetadataRules.VariantAction<? super MutableVariantFilesMetadata>> actions = Lists.newLinkedList();
+    private final List<VariantMetadataRules.VariantAction<? super MutableVariantFilesMetadata>> actions = new LinkedList<>();
 
     public void addFilesAction(VariantMetadataRules.VariantAction<? super MutableVariantFilesMetadata> action) {
         actions.add(action);

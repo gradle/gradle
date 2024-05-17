@@ -21,10 +21,7 @@ Some projects organize unrelated functionality into separate parts of a modular 
 
 Dependency management is an automated technique for declaring, resolving, and using functionality required by a project.
 
-[TIP]
-====
-For an overview of dependency management terms, see <<dependency_management_terminology.adoc#dependency_management_terminology,Dependency Management Terminology>>.
-====
+TIP: For an overview of dependency management terms, see <<dependency_management_terminology.adoc#dependency_management_terminology,Dependency Management Terminology>>.
 
 [[sec:dependency-mgmt-in-gradle]]
 == Dependency Management in Gradle

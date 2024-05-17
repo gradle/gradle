@@ -1,5 +1,6 @@
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.instrumented-project")
 }
 
 description = """JVM-specific testing functionality, including the Test type and support for configuring options for and detecting
@@ -10,34 +11,51 @@ This project is a implementation dependency of many other testing-related subpro
 dependency for any projects working directly with Test tasks.
 """
 
-dependencies {
-    implementation(project(":functional"))
-    implementation(project(":base-services"))
-    implementation(project(":messaging"))
-    implementation(project(":logging"))
-    implementation(project(":file-temp"))
-    implementation(project(":model-core"))
-    implementation(project(":core"))
-    implementation(project(":reporting"))
-    implementation(project(":platform-base"))
-    implementation(project(":platform-jvm"))
-    implementation(project(":testing-base"))
-    implementation(project(":testing-jvm-infrastructure"))
-    implementation(project(":toolchains-jvm"))
+errorprone {
+    disabledChecks.addAll(
+        "EmptyBlockTag", // 1 occurrences
+    )
+}
 
-    implementation(libs.slf4jApi)
-    implementation(libs.groovy)
-    implementation(libs.groovyXml)
-    implementation(libs.guava)
-    implementation(libs.commonsLang)
+dependencies {
+    api(projects.javaLanguageExtensions)
+    api(projects.time)
+    api(project(":base-services"))
+    api(project(":build-operations"))
+    api(project(":core"))
+    api(project(":core-api"))
+    api(project(":logging"))
+    api(project(":messaging"))
+    api(project(":process-services"))
+    api(project(":reporting"))
+    api(project(":testing-base"))
+    api(project(":testing-base-infrastructure"))
+    api(project(":toolchains-jvm"))
+    api(project(":toolchains-jvm-shared"))
+
+    api(libs.asm)
+    api(libs.groovy)
+    api(libs.groovyXml)
+    api(libs.inject)
+    api(libs.jsr305)
+
+    implementation(projects.concurrent)
+    implementation(project(":file-temp"))
+    implementation(project(":functional"))
+    implementation(project(":logging-api"))
+    implementation(project(":model-core"))
+    implementation(project(":platform-base"))
+    implementation(project(":testing-jvm-infrastructure"))
+
     implementation(libs.commonsIo)
-    implementation(libs.asm)
-    implementation(libs.inject)
+    implementation(libs.commonsLang)
+    implementation(libs.guava)
+    implementation(libs.junit)
+    implementation(libs.slf4jApi)
 
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":model-core")))
 
-    integTestImplementation(project(":plugins"))
     integTestImplementation(testFixtures(project(":testing-base")))
     integTestImplementation(testFixtures(project(":language-groovy")))
 

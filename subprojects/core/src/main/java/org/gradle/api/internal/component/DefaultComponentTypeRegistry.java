@@ -16,14 +16,14 @@
 
 package org.gradle.api.internal.component;
 
-import com.google.common.collect.Maps;
 import org.gradle.api.component.Artifact;
 import org.gradle.api.component.Component;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class DefaultComponentTypeRegistry implements ComponentTypeRegistry {
-    private final Map<Class<? extends Component>, ComponentTypeRegistration> componentRegistrations = Maps.newHashMap();
+    private final Map<Class<? extends Component>, ComponentTypeRegistration> componentRegistrations = new HashMap<>();
 
     @Override
     public ComponentTypeRegistration maybeRegisterComponentType(Class<? extends Component> componentType) {
@@ -46,7 +46,7 @@ public class DefaultComponentTypeRegistry implements ComponentTypeRegistry {
 
     private static class DefaultComponentTypeRegistration implements ComponentTypeRegistration {
         private final Class<? extends Component> componentType;
-        private final Map<Class<? extends Artifact>, ArtifactType> typeRegistrations = Maps.newHashMap();
+        private final Map<Class<? extends Artifact>, ArtifactType> typeRegistrations = new HashMap<>();
 
         private DefaultComponentTypeRegistration(Class<? extends Component> componentType) {
             this.componentType = componentType;

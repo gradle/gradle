@@ -15,7 +15,6 @@
  */
 package org.gradle.api.publish.internal.component;
 
-import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
@@ -35,6 +34,7 @@ import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -55,7 +55,8 @@ public class ConfigurationVariantMapping {
     }
 
     public void collectVariants(Consumer<UsageContext> collector) {
-        outgoingConfiguration.preventFromFurtherMutation();
+        outgoingConfiguration.runDependencyActions();
+        outgoingConfiguration.markAsObserved();
         String outgoingConfigurationName = outgoingConfiguration.getName();
 
         if (!outgoingConfiguration.isTransitive()) {
@@ -64,7 +65,7 @@ public class ConfigurationVariantMapping {
                 .nagUser();
         }
 
-        Set<String> seen = Sets.newHashSet();
+        Set<String> seen = new HashSet<>();
 
         // Visit implicit sub-variant
         ConfigurationVariant defaultConfigurationVariant = objectFactory.newInstance(DefaultConfigurationVariant.class, outgoingConfiguration);

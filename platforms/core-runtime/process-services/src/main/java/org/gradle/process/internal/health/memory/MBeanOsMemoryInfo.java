@@ -26,12 +26,23 @@ import org.gradle.internal.jvm.Jvm;
  * Use {@link WindowsOsMemoryInfo} instead.
  */
 public class MBeanOsMemoryInfo implements OsMemoryInfo {
+    private final MBeanAttributeProvider mBeanAttributeProvider;
+
+    public MBeanOsMemoryInfo(MBeanAttributeProvider mBeanAttributeProvider) {
+        this.mBeanAttributeProvider = mBeanAttributeProvider;
+    }
 
     @Override
     public OsMemoryStatus getOsSnapshot() {
         String totalMemoryAttribute = Jvm.current().isIbmJvm() ? "TotalPhysicalMemory" : "TotalPhysicalMemorySize";
-        long total = MBeanAttributeProvider.getMbeanAttribute("java.lang:type=OperatingSystem", totalMemoryAttribute, Long.class);
-        long free = MBeanAttributeProvider.getMbeanAttribute("java.lang:type=OperatingSystem", "FreePhysicalMemorySize", Long.class);
+        long total = mBeanAttributeProvider.getMbeanAttribute("java.lang:type=OperatingSystem", totalMemoryAttribute, Long.class);
+        long free = mBeanAttributeProvider.getMbeanAttribute("java.lang:type=OperatingSystem", "FreePhysicalMemorySize", Long.class);
+        if (total == -1) {
+            throw new UnsupportedOperationException("Unable to retrieve total physical memory from MBean");
+        }
+        if (free == -1) {
+            throw new UnsupportedOperationException("Unable to retrieve free physical memory from MBean");
+        }
         return new OsMemoryStatusSnapshot(total, free);
     }
 }

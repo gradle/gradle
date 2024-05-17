@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform.toolchain.internal;
 
-import com.google.common.collect.Lists;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.gradle.api.Transformer;
@@ -28,6 +27,7 @@ import org.gradle.util.internal.CollectionUtils;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 
 public class PCHUtils {
@@ -81,7 +81,7 @@ public class PCHUtils {
         return new Transformer<T, T>() {
             @Override
             public T transform(T original) {
-                List<File> newSourceFiles = Lists.newArrayList();
+                List<File> newSourceFiles = new ArrayList<>();
                 for (File sourceFile : original.getSourceFiles()) {
                     newSourceFiles.add(generatePCHSourceFile(original, sourceFile));
                 }

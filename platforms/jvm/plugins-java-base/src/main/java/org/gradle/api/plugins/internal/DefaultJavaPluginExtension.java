@@ -213,7 +213,7 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
      */
     @Override
     public void registerFeature(String name, Action<? super FeatureSpec> configureAction) {
-        FeatureSpecInternal spec = new DefaultJavaFeatureSpec(validateFeatureName(name), project);
+        DefaultJavaFeatureSpec spec = new DefaultJavaFeatureSpec(validateFeatureName(name), project);
         configureAction.execute(spec);
         JvmFeatureInternal feature = spec.create();
 

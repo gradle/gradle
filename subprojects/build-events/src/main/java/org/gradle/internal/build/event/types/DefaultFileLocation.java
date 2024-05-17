@@ -19,42 +19,18 @@ package org.gradle.internal.build.event.types;
 import org.gradle.api.NonNullApi;
 import org.gradle.tooling.internal.protocol.problem.InternalFileLocation;
 
-import javax.annotation.Nullable;
 import java.io.Serializable;
 
 @NonNullApi
 public class DefaultFileLocation implements InternalFileLocation, Serializable {
     private final String path;
-    private final Integer line;
-    private final Integer column;
-    private final Integer length;
 
-    public DefaultFileLocation(String path, @Nullable Integer line, @Nullable Integer column, @Nullable Integer length) {
+    public DefaultFileLocation(String path) {
         this.path = path;
-        this.line = line;
-        this.column = column;
-        this.length = length;
     }
 
     @Override
     public String getPath() {
         return path;
-    }
-    @Override
-    @Nullable
-    public Integer getLine() {
-        return line;
-    }
-
-    @Override
-    @Nullable
-    public Integer getColumn() {
-        return column;
-    }
-
-    @Override
-    @Nullable
-    public Integer getLength() {
-        return length;
     }
 }

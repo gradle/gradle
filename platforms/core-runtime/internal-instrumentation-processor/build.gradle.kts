@@ -18,19 +18,38 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+errorprone {
+    disabledChecks.addAll(
+        "DefaultCharset", // 4 occurrences
+        "DoNotClaimAnnotations", // 1 occurrences
+        "ReferenceEquality", // 1 occurrences
+        "ReturnValueIgnored", // 3 occurrences
+        "StringCaseLocaleUsage", // 2 occurrences
+        "ImmutableEnumChecker" // 1 occurrences
+    )
+}
+
 dependencies {
-    implementation(libs.javaPoet)
+    api(project(":internal-instrumentation-api"))
 
-    implementation(project(":internal-instrumentation-api"))
-    implementation(project(":base-services"))
-    implementation(project(":model-core"))
+    api(libs.asm)
+    api(libs.javaPoet)
+    api(libs.jsr305)
 
-    implementation(libs.asm)
-    implementation(libs.asmCommons)
+    implementation(libs.asmTree)
+    implementation(libs.jacksonAnnotations)
     implementation(libs.jacksonDatabind)
+
+    implementation(projects.javaLanguageExtensions)
+    implementation(project(":base-services"))
+    implementation(project(":base-asm"))
+
+    testCompileOnly(libs.jetbrainsAnnotations)
 
     testImplementation(libs.compileTesting)
     testImplementation(project(":core"))
+    // TODO remove this
+    testImplementation(libs.jetbrainsAnnotations)
 }
 
 tasks.named<Test>("test").configure {

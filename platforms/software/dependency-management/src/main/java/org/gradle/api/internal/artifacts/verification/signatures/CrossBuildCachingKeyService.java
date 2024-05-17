@@ -21,18 +21,16 @@ import org.bouncycastle.openpgp.PGPPublicKey;
 import org.bouncycastle.openpgp.PGPPublicKeyRing;
 import org.bouncycastle.openpgp.PGPUtil;
 import org.bouncycastle.openpgp.operator.bc.BcKeyFingerprintCalculator;
-import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.IndexedCache;
 import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.ProducerGuard;
-import org.gradle.cache.internal.filelock.LockOptionsBuilder;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.BaseSerializerFactory;
@@ -60,7 +58,7 @@ public class CrossBuildCachingKeyService implements PublicKeyService, Closeable 
     final static long MISSING_KEY_TIMEOUT = TimeUnit.MILLISECONDS.convert(24, TimeUnit.HOURS);
 
     private final PersistentCache cache;
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationRunner buildOperationRunner;
     private final PublicKeyService delegate;
     private final BuildCommencedTimeProvider timeProvider;
     private final boolean refreshKeys;
@@ -71,18 +69,17 @@ public class CrossBuildCachingKeyService implements PublicKeyService, Closeable 
     private final ProducerGuard<Long> longIdGuard = ProducerGuard.adaptive();
 
     public CrossBuildCachingKeyService(
-            GlobalScopedCacheBuilderFactory cacheBuilderFactory,
-            InMemoryCacheDecoratorFactory decoratorFactory,
-            BuildOperationExecutor buildOperationExecutor,
-            PublicKeyService delegate,
-            BuildCommencedTimeProvider timeProvider,
-            boolean refreshKeys) {
+        GlobalScopedCacheBuilderFactory cacheBuilderFactory,
+        InMemoryCacheDecoratorFactory decoratorFactory,
+        BuildOperationRunner buildOperationRunner,
+        PublicKeyService delegate,
+        BuildCommencedTimeProvider timeProvider,
+        boolean refreshKeys) {
         cache = cacheBuilderFactory
             .createCrossVersionCacheBuilder("keyrings")
-            .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
-            .withLockOptions(LockOptionsBuilder.mode(FileLockManager.LockMode.OnDemand))
+            .withInitialLockMode(FileLockManager.LockMode.OnDemand)
             .open();
-        this.buildOperationExecutor = buildOperationExecutor;
+        this.buildOperationRunner = buildOperationRunner;
         this.delegate = delegate;
         this.timeProvider = timeProvider;
         this.refreshKeys = refreshKeys;
@@ -125,7 +122,7 @@ public class CrossBuildCachingKeyService implements PublicKeyService, Closeable 
         longIdGuard.guardByKey(keyId, () -> {
             CacheEntry<List<Fingerprint>> fingerprints = longIdToFingerprint.getIfPresent(keyId);
             if (fingerprints == null || hasExpired(fingerprints)) {
-                buildOperationExecutor.run(new RunnableBuildOperation() {
+                buildOperationRunner.run(new RunnableBuildOperation() {
                     @Override
                     public void run(BuildOperationContext context) {
                         long currentTime = timeProvider.getCurrentTime();

@@ -99,10 +99,12 @@ public class DefaultAttributes implements Attributes {
         return attributes.entrySet();
     }
 
+    @Override
     public boolean equals(Object o) {
         return attributes.equals(o);
     }
 
+    @Override
     public int hashCode() {
         return attributes.hashCode();
     }

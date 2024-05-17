@@ -1,6 +1,6 @@
 repositories {
     ivy {
-        url = uri("file://${projectDir}/repo")
+        url = uri(layout.projectDirectory.dir("repo"))
     }
 }
 

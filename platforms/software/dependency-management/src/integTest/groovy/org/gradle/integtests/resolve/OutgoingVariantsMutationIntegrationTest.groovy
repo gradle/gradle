@@ -87,7 +87,7 @@ class OutgoingVariantsMutationIntegrationTest extends AbstractIntegrationSpec {
         fails("mutateAfterResolve")
 
         then:
-        failure.assertHasCause "Cannot change attributes of dependency configuration ':compile' after it has been resolved"
+        failure.assertHasCause "Cannot change attributes of configuration ':compile' after it has been locked for mutation"
     }
 
     @ToBeFixedForConfigurationCache(because = "Task uses the Configuration API")

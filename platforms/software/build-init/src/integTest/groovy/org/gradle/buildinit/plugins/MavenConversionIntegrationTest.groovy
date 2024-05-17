@@ -60,7 +60,7 @@ abstract class MavenConversionIntegrationTest extends AbstractInitIntegrationSpe
 
     def "multiModule init with incubating"() {
         def dsl = dslFixtureFor(scriptDsl)
-        def conventionPluginScript = targetDir.file("build-logic/src/main/${scriptDsl.name().toLowerCase()}/${scriptDsl.fileNameFor("com.example.webinar.java-conventions")}")
+        def conventionPluginScript = targetDir.file("build-logic/src/main/${scriptDsl.name().toLowerCase()}/${scriptDsl.fileNameFor("buildlogic.java-conventions")}")
         def conventionPluginBuildFile = targetDir.file("build-logic/" + dsl.buildFileName)
         def warSubprojectBuildFile = targetDir.file("webinar-war/" + dsl.buildFileName)
         def implSubprojectBuildFile = targetDir.file("webinar-impl/" + dsl.buildFileName)
@@ -97,7 +97,7 @@ abstract class MavenConversionIntegrationTest extends AbstractInitIntegrationSpe
         def dsl = dslFixtureFor(scriptDsl)
         def warSubprojectBuildFile = targetDir.file("webinar-war/" + dsl.buildFileName)
         def implSubprojectBuildFile = targetDir.file("webinar-impl/" + dsl.buildFileName)
-        def conventionPluginScript = targetDir.file("buildSrc/src/main/${scriptDsl.name().toLowerCase()}/${scriptDsl.fileNameFor("com.example.webinar.java-conventions")}")
+        def conventionPluginScript = targetDir.file("buildSrc/src/main/${scriptDsl.name().toLowerCase()}/${scriptDsl.fileNameFor("buildlogic.java-conventions")}")
 
         when:
         run 'init', '--dsl', scriptDsl.id as String
@@ -107,7 +107,7 @@ abstract class MavenConversionIntegrationTest extends AbstractInitIntegrationSpe
         !targetDir.file(dsl.buildFileName).exists() // no root build file
         warSubprojectBuildFile.exists()
 
-        warSubprojectBuildFile.text.contains("id 'com.example.webinar.java-conventions'") || warSubprojectBuildFile.text.contains('id("com.example.webinar.java-conventions")')
+        warSubprojectBuildFile.text.contains("id 'buildlogic.java-conventions'") || warSubprojectBuildFile.text.contains('id("buildlogic.java-conventions")')
         !warSubprojectBuildFile.text.contains("options.encoding")
 
         assertContainsPublishingConfig(conventionPluginScript, scriptDsl)
@@ -152,7 +152,7 @@ Root project 'webinar-parent'
         def dsl = dslFixtureFor(scriptDsl)
         def warSubprojectBuildFile = targetDir.file("webinar-war/" + dsl.buildFileName)
         def implSubprojectBuildFile = targetDir.file("webinar-impl/" + dsl.buildFileName)
-        def conventionPluginScript = targetDir.file("buildSrc/src/main/${scriptDsl.name().toLowerCase()}/${scriptDsl.fileNameFor("com.example.webinar.java-conventions")}")
+        def conventionPluginScript = targetDir.file("buildSrc/src/main/${scriptDsl.name().toLowerCase()}/${scriptDsl.fileNameFor("buildlogic.java-conventions")}")
 
         when:
         run 'init', '--dsl', scriptDsl.id as String
@@ -162,7 +162,7 @@ Root project 'webinar-parent'
         !targetDir.file(dsl.buildFileName).exists() // no root build file
         warSubprojectBuildFile.exists()
 
-        warSubprojectBuildFile.text.contains("id 'com.example.webinar.java-conventions'") || warSubprojectBuildFile.text.contains('id("com.example.webinar.java-conventions")')
+        warSubprojectBuildFile.text.contains("id 'buildlogic.java-conventions'") || warSubprojectBuildFile.text.contains('id("buildlogic.java-conventions")')
         !warSubprojectBuildFile.text.contains("options.encoding")
 
         assertContainsPublishingConfig(conventionPluginScript, scriptDsl)
@@ -264,6 +264,27 @@ Root project 'webinar-parent'
 
         when:
         run 'init', '--dsl', scriptDsl.id as String
+
+        then:
+        dsl.assertGradleFilesGenerated()
+        dsl.getSettingsFile().text.contains("rootProject.name = 'util'") || dsl.getSettingsFile().text.contains('rootProject.name = "util"')
+        assertContainsPublishingConfig(dsl.getBuildFile(), scriptDsl)
+
+        when:
+        fails 'clean', 'build'
+
+        then:
+        // when tests fail, jar may not exist
+        failure.assertHasDescription("Execution failed for task ':test'.")
+        failure.assertHasCause("There were failing tests.")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/28251")
+    def "singleModule init with incubating"() {
+        def dsl = dslFixtureFor(scriptDsl)
+
+        when:
+        run 'init', '--dsl', scriptDsl.id as String, '--incubating'
 
         then:
         dsl.assertGradleFilesGenerated()
@@ -395,8 +416,6 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
         fails 'clean', 'build', '--continue'
 
         then:
-
-        then:
         targetDir.file("build/libs/util-2.5.jar").exists()
         failure.assertHasDescription("Execution failed for task ':test'.")
         failure.assertHasCause("There were failing tests.")
@@ -438,7 +457,7 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
             }
             '''.stripIndent().trim())) || rootBuildFile.text.contains(TextUtil.toPlatformLineSeparators('''
             val testsJar by tasks.registering(Jar::class) {
-                archiveClassifier.set("tests")
+                archiveClassifier = "tests"
                 from(sourceSets["test"].output)
             }
             '''.stripIndent().trim()))

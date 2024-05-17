@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 
 @FluidDependenciesResolveTest
 class ConfigurationRolesIntegrationTest extends AbstractIntegrationSpec {
+
     def "cannot resolve a configuration with role #role at execution time"() {
         given:
         buildFile << """

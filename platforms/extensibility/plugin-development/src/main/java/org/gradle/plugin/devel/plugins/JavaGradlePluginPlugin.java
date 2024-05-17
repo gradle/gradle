@@ -16,7 +16,6 @@
 
 package org.gradle.plugin.devel.plugins;
 
-import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.NonNullApi;
@@ -335,7 +334,7 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
             if (descriptors.isEmpty()) {
                 LOGGER.warn(String.format(NO_DESCRIPTOR_WARNING_MESSAGE, task.getPath()));
             } else {
-                Set<String> pluginFileNames = Sets.newHashSet();
+                Set<String> pluginFileNames = new HashSet<>();
                 for (PluginDescriptor descriptor : descriptors) {
                     URI descriptorURI = null;
                     try {

@@ -16,11 +16,11 @@
 
 package org.gradle.internal.authentication;
 
-import com.google.common.collect.Sets;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.authentication.Authentication;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
@@ -41,7 +41,7 @@ public abstract class AbstractAuthentication implements AuthenticationInternal {
         this.name = name;
         this.supportedCredentialType = supportedCredential;
         this.type = type;
-        this.hosts = Sets.newHashSet();
+        this.hosts = new HashSet<>();
     }
 
     @Override

@@ -20,19 +20,19 @@ import com.sun.security.auth.module.NTSystem
 
 class WindowsSymbolicLinkUtil {
     static void createWindowsSymbolicLink(File link, File target) {
-        def extraOptions = target.isDirectory() ? ["/D"] : []
-        assert ["cmd", "/C", "mklink", *extraOptions, link, target].execute().waitFor() == 0
+        def extraOptions = target.isDirectory() ? ["/d"] : []
+        assert ["cmd.exe", "/d", "/c", "mklink", *extraOptions, link, target].execute().waitFor() == 0
     }
 
     static void createWindowsJunction(File link, File target) {
         assert target.isDirectory(), "Windows junction only works on directory"
-        assert ["cmd", "/C", "mklink", "/J", link, target].execute().waitFor() == 0
+        assert ["cmd.exe", "/d", "/c", "mklink", "/j", link, target].execute().waitFor() == 0
     }
 
     static void createWindowsHardLinks(File link, File target) {
         assert target.isFile(), "Windows hard links only works on files"
         assertAdministrator()
-        assert ["cmd", "/C", "mklink", "/H", link, target].execute().waitFor() == 0
+        assert ["cmd.exe", "/d", "/c", "mklink", "/h", link, target].execute().waitFor() == 0
     }
 
     // See: https://support.microsoft.com/en-us/help/243330/well-known-security-identifiers-in-windows-operating-systems

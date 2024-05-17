@@ -5,13 +5,13 @@ import common.Os
 import common.VersionedSettingsBranch
 import common.cleanupRule
 import common.javaHome
-import jetbrains.buildServer.configs.kotlin.v2019_2.Project
+import jetbrains.buildServer.configs.kotlin.Project
 
 class PromotionProject(branch: VersionedSettingsBranch) : Project({
     id("Promotion")
     name = "Promotion"
 
-    cleanupRule(historyDays = 28, artifactsDays = 14)
+    cleanupRule(historyDays = 14, artifactsDays = 7)
 
     buildType(SanityCheck)
     buildType(PublishNightlySnapshot(branch))
@@ -28,6 +28,10 @@ class PromotionProject(branch: VersionedSettingsBranch) : Project({
     } else {
         buildType(PublishReleaseCandidate(branch))
         buildType(PublishFinalRelease(branch))
+    }
+
+    if (branch.isRelease || branch.isExperimental) {
+        buildType(PublishNightlyDocumentation(branch))
     }
 
     params {

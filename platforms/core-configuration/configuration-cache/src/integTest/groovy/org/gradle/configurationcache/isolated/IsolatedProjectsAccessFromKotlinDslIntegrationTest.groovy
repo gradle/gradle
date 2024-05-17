@@ -35,14 +35,13 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
         then:
         fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":a", ":b")
-            problem("Build file 'build.gradle.kts': Cannot access project ':a' from project ':'")
-            problem("Build file 'build.gradle.kts': Cannot access project ':b' from project ':'")
+            problem("Build file 'build.gradle.kts': Project ':' cannot access 'Project.plugins' functionality on $message", 2)
         }
 
         where:
-        block         | _
-        "allprojects" | _
-        "subprojects" | _
+        block         | message
+        "allprojects" | "subprojects via 'allprojects'"
+        "subprojects" | "subprojects"
     }
 
     def "reports problem when build script uses #block block to access dynamically added elements"() {
@@ -66,14 +65,14 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
         then:
         fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":a", ":b")
-            problem("Build file 'build.gradle.kts': Cannot access project ':a' from project ':'", 3)
-            problem("Build file 'build.gradle.kts': Cannot access project ':b' from project ':'", 3)
+            problem("Build file 'build.gradle.kts': Project ':' cannot access 'Project.extensions' functionality on $message", 3)
+            problem("Build file 'build.gradle.kts': Project ':' cannot access 'Project.plugins' functionality on $message", 3)
         }
 
         where:
-        block         | _
-        "allprojects" | _
-        "subprojects" | _
+        block         | message
+        "allprojects" | "subprojects via 'allprojects'"
+        "subprojects" | "subprojects"
     }
 
     def "reports cross-project model access in Gradle.#invocation"() {
@@ -92,9 +91,7 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
         then:
         fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":a", ":b")
-            accessedProjects.each {
-                problem("Build file 'a/build.gradle.kts': Cannot access project '$it' from project ':a'")
-            }
+            problem("Build file 'a/build.gradle.kts': Project ':a' cannot access 'Project.buildDir' functionality on another project ':b'")
         }
 
         where:
@@ -121,8 +118,7 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
         then:
         fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":a", ":b")
-            problem("Build file 'a/build.gradle.kts': Cannot access project ':' from project ':a'")
-            problem("Build file 'a/build.gradle.kts': Cannot access project ':b' from project ':a'")
+            problem("Build file 'a/build.gradle.kts': Project ':a' cannot access 'Project.buildDir' functionality on subprojects of project ':'", 2)
         }
     }
 }

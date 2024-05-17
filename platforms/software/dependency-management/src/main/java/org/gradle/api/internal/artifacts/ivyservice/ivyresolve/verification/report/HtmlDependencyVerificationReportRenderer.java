@@ -15,8 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.report;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.gradle.api.UncheckedIOException;
@@ -40,8 +38,10 @@ import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * Generates an HTML report for verification. This report, unlike the text report,
@@ -49,7 +49,7 @@ import java.util.Map;
  * new contents.
  */
 class HtmlDependencyVerificationReportRenderer implements DependencyVerificationReportRenderer {
-    private final Map<String, Section> sections = Maps.newTreeMap();
+    private final Map<String, Section> sections = new TreeMap<>();
     private Section currentSection;
     private final StringBuilder contents = new StringBuilder();
     private final DocumentationRegistry documentationRegistry;
@@ -311,11 +311,9 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
     private String createFileLink(ModuleComponentArtifactIdentifier key, VerificationFailure vf, String repositoryName) {
         String fileLink = "<div uk-tooltip=\"title: From repository '" + repositoryName + "'\">";
         fileLink += "<a href=\"" + vf.getFilePath().toURI().toASCIIString() + "\">" + key.getFileName() + "</a>";
-        if (vf instanceof SignatureVerificationFailure) {
-            File signatureFile = ((SignatureVerificationFailure) vf).getSignatureFile();
-            if (signatureFile != null) {
-                fileLink += "&nbsp;<a href=\"" + signatureFile.toURI().toASCIIString() + "\">(.asc)</a>";
-            }
+        File signatureFile = vf.getSignatureFile();
+        if (signatureFile != null) {
+            fileLink += "&nbsp;<a href=\"" + signatureFile.toURI().toASCIIString() + "\">(.asc)</a>";
         }
         fileLink += "</div>";
         return fileLink;
@@ -412,7 +410,7 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
 
     private static class Section {
         private final String title;
-        private final List<ArtifactErrors> errors = Lists.newArrayList();
+        private final List<ArtifactErrors> errors = new ArrayList<>();
         private ArtifactErrors currentArtifact;
 
         private Section(String title) {
@@ -432,7 +430,7 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
 
     private static class ArtifactErrors {
         final ModuleComponentArtifactIdentifier key;
-        final List<RepositoryAwareVerificationFailure> failures = Lists.newArrayList();
+        final List<RepositoryAwareVerificationFailure> failures = new ArrayList<>();
 
         private ArtifactErrors(ModuleComponentArtifactIdentifier key) {
             this.key = key;

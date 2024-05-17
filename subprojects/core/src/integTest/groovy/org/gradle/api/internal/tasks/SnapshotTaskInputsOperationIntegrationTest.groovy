@@ -31,12 +31,14 @@ import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginAdapter
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 
 import static com.google.common.base.CaseFormat.UPPER_CAMEL
 import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.*
 
 class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
 
@@ -44,6 +46,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
 
     def setup() {
         expectReindentedValidationMessage()
+        enableProblemsApiCheck()
     }
 
     def "task output caching key is exposed when build cache is enabled"() {
@@ -83,13 +86,13 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         result.outputPropertyNames == ['outputFile1', 'outputFile2']
     }
 
-    def "task output caching key is not exposed by default"() {
+    def "task output caching key is exposed by default"() {
         when:
         buildFile << customTaskCode('foo', 'bar')
         succeeds('customTask')
 
         then:
-        !operations.hasOperation(SnapshotTaskInputsBuildOperationType)
+        operations.hasOperation(SnapshotTaskInputsBuildOperationType)
     }
 
     def "handles task with no outputs"() {
@@ -143,6 +146,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         !operations.hasOperation(SnapshotTaskInputsBuildOperationType)
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "handles invalid implementation classloader"() {
         given:
         buildScript """
@@ -174,8 +178,31 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         result.actionClassNames == null
         result.inputValueHashes == null
         result.outputPropertyNames == null
+
+        and:
+        verifyAll(receivedProblem(0)) {
+            fqid == 'validation:property-validation:unknown-implementation'
+            contextualLabel == 'Additional action of task \':customTask\' was loaded with an unknown classloader (class \'CustomTask_Decorated\').'
+            details == 'Gradle cannot track the implementation for classes loaded with an unknown classloader.'
+            solutions == [ 'Load your class by using one of Gradle\'s built-in ways.' ]
+            additionalData == [
+                'typeName' : 'CustomTask',
+                'typeIsIrrelevantInErrorMessage' : 'true',
+            ]
+        }
+        verifyAll(receivedProblem(1)) {
+            fqid == 'validation:property-validation:unknown-implementation'
+            contextualLabel == 'Implementation of task \':customTask\' was loaded with an unknown classloader (class \'CustomTask_Decorated\').'
+            details == 'Gradle cannot track the implementation for classes loaded with an unknown classloader.'
+            solutions == [ 'Load your class by using one of Gradle\'s built-in ways.' ]
+            additionalData == [
+                'typeName' : 'CustomTask',
+                'typeIsIrrelevantInErrorMessage' : 'true',
+            ]
+        }
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "handles invalid action classloader"() {
         given:
         buildScript """
@@ -205,6 +232,19 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         result.actionClassNames == null
         result.inputValueHashes == null
         result.outputPropertyNames == null
+
+        and:
+        verifyAll(receivedProblem) {
+            fqid == 'validation:property-validation:unknown-implementation'
+            contextualLabel == 'Additional action of task \':customTask\' was loaded with an unknown classloader (class \'A\').'
+            details == 'Gradle cannot track the implementation for classes loaded with an unknown classloader.'
+            solutions == [ 'Load your class by using one of Gradle\'s built-in ways.' ]
+            additionalData == [
+                'typeName' : 'CustomTask',
+                'typeIsIrrelevantInErrorMessage' : 'true',
+            ]
+        }
+
     }
 
     def "exposes file inputs, ignoring empty directories"() {
@@ -367,6 +407,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "exposes file inputs, not ignoring empty directories"() {
         given:
         withBuildCache()
@@ -475,6 +516,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "handles invalid nested bean classloader"() {
         given:
         buildScript """
@@ -505,6 +547,19 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         result.actionClassNames == null
         result.inputValueHashes == null
         result.outputPropertyNames == null
+
+        and:
+        verifyAll(receivedProblem(0)) {
+            fqid == 'validation:property-validation:unknown-implementation-nested'
+            contextualLabel == "Property 'bean' was loaded with an unknown classloader (class 'A')."
+            details == 'Gradle cannot track the implementation for classes loaded with an unknown classloader.'
+            solutions == [ 'Load your class by using one of Gradle\'s built-in ways.' ]
+            additionalData == [
+                'typeName' : 'CustomTask',
+                'propertyName' : 'bean',
+                'typeIsIrrelevantInErrorMessage' : 'true',
+            ]
+        }
     }
 
     def "properly captures all attributes"() {

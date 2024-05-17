@@ -15,7 +15,6 @@
  */
 package org.gradle.api.plugins;
 
-import com.google.common.collect.Sets;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -42,6 +41,7 @@ import org.gradle.internal.component.external.model.ProjectDerivedCapability;
 import org.gradle.internal.component.external.model.ShadowedImmutableCapability;
 
 import javax.inject.Inject;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -165,7 +165,7 @@ public abstract class JavaPlatformPlugin implements Plugin<Project> {
     }
 
     private void checkNoDependencies(Project project) {
-        checkNoDependencies(project.getConfigurations().getByName(RUNTIME_CONFIGURATION_NAME), Sets.newHashSet());
+        checkNoDependencies(project.getConfigurations().getByName(RUNTIME_CONFIGURATION_NAME), new HashSet<>());
     }
 
     private void checkNoDependencies(Configuration configuration, Set<Configuration> visited) {

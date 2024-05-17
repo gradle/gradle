@@ -18,8 +18,6 @@ package org.gradle.configurationcache
 
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.BuildTreeLocalComponentProvider
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultLocalComponentRegistry
 import org.gradle.api.internal.project.CrossProjectModelAccess
 import org.gradle.api.internal.project.DefaultCrossProjectModelAccess
 import org.gradle.api.internal.project.DefaultDynamicLookupRoutine
@@ -52,14 +50,20 @@ import org.gradle.internal.build.BuildModelController
 import org.gradle.internal.build.BuildModelControllerServices
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.buildtree.BuildModelParameters
+import org.gradle.internal.buildtree.IntermediateBuildActionRunner
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.model.StateTransitionControllerFactory
 import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.CachingServiceLocator
 import org.gradle.internal.service.scopes.BuildScopeServices
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.invocation.DefaultGradle
+import org.gradle.tooling.provider.model.internal.DefaultIntermediateToolingModelProvider
+import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider
+import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
+import org.gradle.tooling.provider.model.internal.ToolingModelProjectDependencyListener
 
 
 class DefaultBuildModelControllerServices(
@@ -110,8 +114,15 @@ class DefaultBuildModelControllerServices(
             return buildLifecycleControllerFactory.newInstance(buildDefinition, buildScopeServices)
         }
 
-        fun createLocalComponentRegistry(currentBuild: BuildState, componentProvider: BuildTreeLocalComponentProvider): DefaultLocalComponentRegistry {
-            return DefaultLocalComponentRegistry(currentBuild.buildIdentifier, componentProvider)
+        fun createIntermediateToolingModelProvider(
+            buildOperationExecutor: BuildOperationExecutor,
+            buildModelParameters: BuildModelParameters,
+            parameterCarrierFactory: ToolingModelParameterCarrier.Factory,
+            listenerManager: ListenerManager
+        ): IntermediateToolingModelProvider {
+            val projectDependencyListener = listenerManager.getBroadcaster(ToolingModelProjectDependencyListener::class.java)
+            val runner = IntermediateBuildActionRunner(buildOperationExecutor, buildModelParameters, "Tooling API intermediate model")
+            return DefaultIntermediateToolingModelProvider(runner, parameterCarrierFactory, projectDependencyListener)
         }
     }
 
@@ -186,13 +197,13 @@ class DefaultBuildModelControllerServices(
     private
     class ConfigurationCacheModelProvider {
         fun createProjectEvaluator(
-            buildOperationExecutor: BuildOperationExecutor,
+            buildOperationRunner: BuildOperationRunner,
             cachingServiceLocator: CachingServiceLocator,
             scriptPluginFactory: ScriptPluginFactory,
             fingerprintController: ConfigurationCacheFingerprintController,
             cancellationToken: BuildCancellationToken
         ): ProjectEvaluator {
-            val evaluator = VintageModelProvider().createProjectEvaluator(buildOperationExecutor, cachingServiceLocator, scriptPluginFactory, cancellationToken)
+            val evaluator = VintageModelProvider().createProjectEvaluator(buildOperationRunner, cachingServiceLocator, scriptPluginFactory, cancellationToken)
             return ConfigurationCacheAwareProjectEvaluator(evaluator, fingerprintController)
         }
     }
@@ -200,7 +211,7 @@ class DefaultBuildModelControllerServices(
     private
     class VintageModelProvider {
         fun createProjectEvaluator(
-            buildOperationExecutor: BuildOperationExecutor,
+            buildOperationRunner: BuildOperationRunner,
             cachingServiceLocator: CachingServiceLocator,
             scriptPluginFactory: ScriptPluginFactory,
             cancellationToken: BuildCancellationToken
@@ -210,7 +221,7 @@ class DefaultBuildModelControllerServices(
                 BuildScriptProcessor(scriptPluginFactory),
                 DelayedConfigurationActions()
             )
-            return LifecycleProjectEvaluator(buildOperationExecutor, withActionsEvaluator, cancellationToken)
+            return LifecycleProjectEvaluator(buildOperationRunner, withActionsEvaluator, cancellationToken)
         }
     }
 }

@@ -16,18 +16,16 @@
 
 package org.gradle.internal.buildtree;
 
-import org.gradle.api.NonNullApi;
-import org.gradle.api.problems.Problems;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder;
 import org.gradle.internal.invocation.BuildAction;
 
-@NonNullApi
 public class InitProblems implements BuildTreeActionExecutor  {
 
     private final BuildTreeActionExecutor delegate;
-    private final Problems problemsService;
+    private final InternalProblems problemsService;
 
-    public InitProblems(BuildTreeActionExecutor delegate, Problems problemsService) {
+    public InitProblems(BuildTreeActionExecutor delegate, InternalProblems problemsService) {
         this.delegate = delegate;
         this.problemsService = problemsService;
     }

@@ -78,7 +78,8 @@ $ jps
 Live Daemons appear under the name `GradleDaemon`.
 Because this command uses the JDK, you can view Daemons running any version of Gradle.
 
-== Enable Deamon
+[[enable_deamon]]
+== Enable Daemon
 
 Gradle enables the Daemon by default since Gradle 3.0.
 If your project doesn't use the Daemon, you can enable it for a single build with the `--daemon` flag when you run a build:
@@ -127,7 +128,7 @@ To disable the Daemon for all builds of a project, add `org.gradle.daemon=false`
 
 On Windows, this command disables the Daemon for the current user:
 
-[source]
+[source,text]
 ----
 (if not exist "%USERPROFILE%/.gradle" mkdir "%USERPROFILE%/.gradle") && (echo. >> "%USERPROFILE%/.gradle/gradle.properties" && echo org.gradle.daemon=false >> "%USERPROFILE%/.gradle/gradle.properties")
 ----
@@ -168,6 +169,45 @@ This terminates all Daemon processes started with the same version of Gradle use
 
 You can also kill Daemons manually with your operating system.
 To find the PIDs for all Daemons regardless of Gradle version, see <<gradle_daemon.adoc#find_all_daemons,Find Daemons>>.
+
+[[sec:daemon_jvm_criteria]]
+== Control the JVM used
+
+NOTE: Daemon JVM discovery and Daemon JVM criteria are <<feature_lifecycle.adoc#sec:incubating_state,incubating>> features and are subject to change in a future release.
+
+By default, the same JVM installation that starts the build is used to run the build.
+Gradle uses the current shell path and `JAVA_HOME` environment variable to locate a usable JVM.
+
+You can also specify a different JVM installation for the build using the <<build_environment.adoc#sec:gradle_configuration_properties,`org.gradle.java.home`>> property or programmatically through the Tooling API.
+
+Using the _Daemon JVM discovery_ and _Daemon JVM criteria_ Gradle records the build's JVM requirements.
+This controls the JVM used to run Gradle itself.
+
+=== Daemon JVM criteria
+
+The _Daemon JVM criteria_ feature is similar to the `wrapper` task, which captures the current Gradle version.
+It uses the built-in `updateDaemonJvm` task to record the JVM requirements for the build based on the current JVM installation.
+
+NOTE: Currently, Gradle only considers the major JVM version when checking compatibility.
+
+=== Daemon JVM discovery
+
+On subsequent builds, _Daemon JVM discovery_ uses the recorded JVM requirements to locate a compatible JVM installation using the same underlying mechanisms as <<toolchains.adoc#toolchains, Java Toolchains>>.
+This ensures every person who starts the build will use the same JVM version.
+
+_Daemon JVM discovery_ does not support auto-provisioning of new JVM installations.
+
+=== Daemon JVM usage
+
+To record the build's JVM requirements, run `./gradlew updateDaemonJvm`.
+This will generate a new `gradle-daemon-jvm.properties` file that captures the currently used JVM requirements.
+This is an auto-generated file that isn't intended to be edited by hand.
+
+If you want to specify a different JVM version, run `./gradle updateDaemonJvm --jvm-version=17`.
+
+This new mechanism takes priority over `org.gradle.java.home`.
+
+Please note that this feature is incubating and may change in future releases.
 
 [[sec:tools_and_ides]]
 == Tools & IDEs
@@ -228,10 +268,7 @@ The following JVM attributes controlled by startup arguments are also immutable:
 If the requested build environment requirements for any of these properties and attributes
 differ from the Daemon's JVM requirements, the Daemon is not compatible.
 
-[NOTE]
-====
-For more information about build environments, see <<build_environment.adoc#build_environment,the build environment documentation>>.
-====
+NOTE: For more information about build environments, see <<build_environment.adoc#build_environment,the build environment documentation>>.
 
 [[sec:why_the_daemon]]
 == Performance Impact

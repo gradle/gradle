@@ -28,14 +28,14 @@ import org.gradle.api.flow.FlowScope
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.isolated.IsolationScheme
-import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import java.util.Optional
 import javax.inject.Inject
 
 
 @NonExtensible
-@ServiceScope(Scopes.Build::class)
+@ServiceScope(Scope.Build::class)
 internal
 open class BuildFlowScope @Inject constructor(
     private val flowScheduler: FlowScheduler,
@@ -176,6 +176,9 @@ open class DefaultFlowActionSpec<P : FlowParameters>(
 
     override fun getParameters(): P =
         parameters
+
+    override fun parameters(configureAction: Action<in P>) =
+        configureAction.execute(parameters)
 
     override fun toString(): String =
         "FlowActionSpec($parameters)"

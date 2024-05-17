@@ -16,78 +16,50 @@
 
 package org.gradle.api.problems.internal;
 
-import org.gradle.api.problems.Problem;
-import org.gradle.api.problems.ProblemBuilder;
-import org.gradle.api.problems.ProblemBuilderSpec;
-import org.gradle.api.problems.ProblemEmitter;
-import org.gradle.api.problems.ProblemTransformer;
-import org.gradle.api.problems.ReportableProblem;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.api.problems.ProblemReporter;
+import org.gradle.internal.operations.CurrentBuildOperationRef;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.Collections;
 import java.util.List;
 
-@ServiceScope(Scopes.BuildTree.class)
+@ServiceScope(Scope.BuildTree.class)
 public class DefaultProblems implements InternalProblems {
 
-    private ProblemEmitter emitter;
+    private final CurrentBuildOperationRef currentBuildOperationRef;
+    private final ProblemEmitter emitter;
     private final List<ProblemTransformer> transformers;
+    private final InternalProblemReporter internalReporter;
 
+    public DefaultProblems(ProblemEmitter emitter, CurrentBuildOperationRef currentBuildOperationRef) {
+        this(emitter, Collections.<ProblemTransformer>emptyList(), currentBuildOperationRef);
+    }
     public DefaultProblems(ProblemEmitter emitter) {
-        this(emitter, Collections.<ProblemTransformer>emptyList());
+        this(emitter, Collections.<ProblemTransformer>emptyList(), CurrentBuildOperationRef.instance());
     }
 
-    public DefaultProblems(ProblemEmitter emitter, List<ProblemTransformer> transformers
-    ) {
+    public DefaultProblems(ProblemEmitter emitter, List<ProblemTransformer> transformers, CurrentBuildOperationRef currentBuildOperationRef) {
         this.emitter = emitter;
         this.transformers = transformers;
-    }
-
-    public void setEmitter(ProblemEmitter emitter) {
-        this.emitter = emitter;
-    }
-
-    @Override
-    public DefaultReportableProblemBuilder createProblemBuilder() {
-        return new DefaultReportableProblemBuilder(this);
+        this.currentBuildOperationRef = currentBuildOperationRef;
+        internalReporter = createReporter(emitter, transformers);
     }
 
     @Override
-    public RuntimeException throwing(ProblemBuilderSpec action) {
-        DefaultReportableProblemBuilder defaultProblemBuilder = createProblemBuilder();
-        action.apply(defaultProblemBuilder);
-        ReportableProblem problem = defaultProblemBuilder.build();
-        throw throwError(problem.getException(), problem);
-    }
-
-    @Override
-    public RuntimeException rethrowing(RuntimeException e, ProblemBuilderSpec action) {
-        DefaultReportableProblemBuilder defaultProblemBuilder = createProblemBuilder();
-        ProblemBuilder problemBuilder = action.apply(defaultProblemBuilder);
-        problemBuilder.withException(e);
-        throw throwError(e, defaultProblemBuilder.build());
-    }
-
-    @Override
-    public ReportableProblem create(ProblemBuilderSpec action) {
-        DefaultReportableProblemBuilder defaultProblemBuilder = createProblemBuilder();
-        action.apply(defaultProblemBuilder);
-        return defaultProblemBuilder.build();
-    }
-
-    public RuntimeException throwError(RuntimeException exception, Problem problem) {
-        report(problem);
-        throw exception;
-    }
-
-    @Override
-    public void report(Problem problem) {
-        // Transform the problem with all registered transformers
-        for (ProblemTransformer transformer : transformers) {
-            problem = transformer.transform(problem);
+    public ProblemReporter forNamespace(String namespace) {
+        if (DefaultProblemCategory.GRADLE_CORE_NAMESPACE.equals(namespace)) {
+            throw new IllegalStateException("Cannot use " + DefaultProblemCategory.GRADLE_CORE_NAMESPACE + " namespace.");
         }
+        return createReporter(emitter, transformers);
+    }
 
-        emitter.emit(problem);
+    private DefaultProblemReporter createReporter(ProblemEmitter emitter, List<ProblemTransformer> transformers) {
+        return new DefaultProblemReporter(emitter, transformers, currentBuildOperationRef);
+    }
+
+    @Override
+    public InternalProblemReporter getInternalReporter() {
+        return internalReporter;
     }
 }

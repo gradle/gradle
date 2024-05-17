@@ -76,8 +76,9 @@ import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
-import org.gradle.internal.operations.DefaultBuildOperationListenerManager;
 import org.gradle.internal.operations.DefaultBuildOperationProgressEventEmitter;
+import org.gradle.internal.problems.failure.DefaultFailureFactory;
+import org.gradle.internal.problems.failure.FailureFactory;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.scripts.DefaultScriptFileResolver;
 import org.gradle.internal.scripts.DefaultScriptFileResolverListeners;
@@ -113,6 +114,8 @@ import java.util.List;
 /**
  * Defines the extended global services of a given process. This includes the CLI, daemon and tooling API provider. The CLI
  * only needs these services if it is running in --no-daemon mode.
+ *
+ * <p>Do not use this type directly, but instead use it via {@link BuildProcessState}.</p>
  */
 public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
 
@@ -129,22 +132,11 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
         this.environment = () -> longLiving;
     }
 
-    void configure(ServiceRegistration registration, ClassLoaderRegistry classLoaderRegistry) {
-        final List<PluginServiceRegistry> pluginServiceFactories = new DefaultServiceLocator(classLoaderRegistry.getRuntimeClassLoader(), classLoaderRegistry.getPluginsClassLoader()).getAll(PluginServiceRegistry.class);
-        for (PluginServiceRegistry pluginServiceRegistry : pluginServiceFactories) {
-            registration.add(PluginServiceRegistry.class, pluginServiceRegistry);
-            pluginServiceRegistry.registerGlobalServices(registration);
-        }
+    @Override
+    void configure(ServiceRegistration registration) {
+        super.configure(registration);
         registration.add(DefaultScriptFileResolverListeners.class);
         registration.add(BuildLayoutFactory.class);
-    }
-
-    CurrentBuildOperationRef createCurrentBuildOperationRef() {
-        return CurrentBuildOperationRef.instance();
-    }
-
-    BuildOperationListenerManager createBuildOperationListenerManager() {
-        return new DefaultBuildOperationListenerManager();
     }
 
     ScriptFileResolver createScriptFileResolver(DefaultScriptFileResolverListeners listeners) {
@@ -157,7 +149,7 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
         BuildOperationListenerManager listenerManager
     ) {
         return new DefaultBuildOperationProgressEventEmitter(
-            clock,
+            clock::getCurrentTime,
             currentBuildOperationRef,
             listenerManager.getBroadcaster()
         );
@@ -312,5 +304,9 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
 
     AgentInitializer createAgentInitializer() {
         return new AgentInitializer(agentStatus);
+    }
+
+    FailureFactory createFailureFactory() {
+        return DefaultFailureFactory.withDefaultClassifier();
     }
 }

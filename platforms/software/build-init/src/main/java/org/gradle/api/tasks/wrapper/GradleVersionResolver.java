@@ -21,6 +21,7 @@ import com.google.gson.reflect.TypeToken;
 import org.gradle.api.GradleException;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.wrapper.internal.DefaultWrapperVersionsResources;
+import org.gradle.api.tasks.wrapper.internal.DefaultWrapperVersionsResources.WrapperVersionException;
 import org.gradle.util.GradleVersion;
 
 import java.lang.reflect.Type;
@@ -89,8 +90,13 @@ class GradleVersionResolver {
 
     void setGradleVersionString(String gradleVersionString) {
         if (!isPlaceHolder(gradleVersionString)) {
-            this.gradleVersion = GradleVersion.version(gradleVersionString);
+            try {
+                this.gradleVersion = GradleVersion.version(gradleVersionString);
+            } catch (Exception e) {
+                throw new WrapperVersionException("Invalid version specified for argument '--gradle-version'", e);
+            }
         }
+
         if (this.gradleVersionString != gradleVersionString) {
             this.gradleVersionString = gradleVersionString;
             this.gradleVersion = null;

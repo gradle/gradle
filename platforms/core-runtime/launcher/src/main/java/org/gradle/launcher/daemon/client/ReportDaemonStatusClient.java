@@ -18,7 +18,6 @@ package org.gradle.launcher.daemon.client;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -31,6 +30,7 @@ import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.DaemonStopEvent;
 import org.gradle.launcher.daemon.registry.DaemonStopEvents;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -59,7 +59,7 @@ public class ReportDaemonStatusClient {
 
     public void listAll() {
         final List<DaemonInfo> daemons = daemonRegistry.getAll();
-        final List<Status> statuses = Lists.newArrayList();
+        final List<Status> statuses = new ArrayList<>();
         for (DaemonInfo daemon : daemons) {
             DaemonClientConnection connection = connector.maybeConnect(daemon);
             if (connection != null) {

@@ -17,7 +17,6 @@
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
 import net.rubygrapefruit.platform.SystemInfo;
 import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.internal.logging.text.DiagnosticsVisitor;
@@ -26,6 +25,7 @@ import org.gradle.platform.base.internal.toolchain.SearchResult;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 public class DefaultWindowsSdkLocator implements WindowsSdkLocator {
@@ -49,7 +49,7 @@ public class DefaultWindowsSdkLocator implements WindowsSdkLocator {
 
     @Override
     public List<WindowsSdkInstall> locateAllComponents() {
-        List<WindowsSdkInstall> allSdks = Lists.newArrayList();
+        List<WindowsSdkInstall> allSdks = new ArrayList<>();
         allSdks.addAll(legacyWindowsSdkLocator.locateAllComponents());
         allSdks.addAll(windowsKitWindowsSdkLocator.locateAllComponents());
         return allSdks;

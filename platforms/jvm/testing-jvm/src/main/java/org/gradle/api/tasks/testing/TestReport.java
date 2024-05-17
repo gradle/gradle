@@ -34,7 +34,12 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation.RemovedIn;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
@@ -43,6 +48,9 @@ import java.util.LinkedList;
 import java.util.List;
 
 import static org.gradle.internal.concurrent.CompositeStoppable.stoppable;
+import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.GETTER;
+import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.SETTER;
+import static org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility.ACCESSORS_KEPT;
 import static org.gradle.util.internal.CollectionUtils.collect;
 
 /**
@@ -52,6 +60,11 @@ import static org.gradle.util.internal.CollectionUtils.collect;
 public abstract class TestReport extends DefaultTask {
     private final DirectoryProperty destinationDir = getObjectFactory().directoryProperty();
     private final ConfigurableFileCollection resultDirs = getObjectFactory().fileCollection();
+
+    @Inject
+    protected BuildOperationRunner getBuildOperationRunner() {
+        throw new UnsupportedOperationException();
+    }
 
     @Inject
     protected BuildOperationExecutor getBuildOperationExecutor() {
@@ -98,6 +111,14 @@ public abstract class TestReport extends DefaultTask {
      * @since 7.4
      */
     @OutputDirectory
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = GETTER, name = "getDestinationDir"),
+            @ReplacedAccessor(value = SETTER, name = "setDestinationDir")
+        },
+        binaryCompatibility = ACCESSORS_KEPT,
+        deprecation = @ReplacedDeprecation(removedIn = RemovedIn.GRADLE9, withDslReference = true)
+    )
     public DirectoryProperty getDestinationDirectory() {
         return this.destinationDir;
     }
@@ -168,7 +189,7 @@ public abstract class TestReport extends DefaultTask {
         TestResultsProvider resultsProvider = createAggregateProvider();
         try {
             if (resultsProvider.isHasResults()) {
-                DefaultTestReport testReport = new DefaultTestReport(getBuildOperationExecutor());
+                DefaultTestReport testReport = new DefaultTestReport(getBuildOperationRunner(), getBuildOperationExecutor());
                 testReport.generateReport(resultsProvider, getDestinationDirectory().get().getAsFile());
             } else {
                 getLogger().info("{} - no binary test results found in dirs: {}.", getPath(), getTestResults().getFiles());

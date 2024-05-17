@@ -16,11 +16,11 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution;
 
-import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.internal.component.model.DependencyMetadata;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -29,7 +29,7 @@ import java.util.Map;
 @NotThreadSafe
 public class CachingDependencySubstitutionApplicator implements DependencySubstitutionApplicator {
     private final DependencySubstitutionApplicator delegate;
-    private final Map<ComponentSelector, SubstitutionResult> cache = Maps.newHashMap();
+    private final Map<ComponentSelector, SubstitutionResult> cache = new HashMap<>();
 
     public CachingDependencySubstitutionApplicator(DependencySubstitutionApplicator delegate) {
         this.delegate = delegate;

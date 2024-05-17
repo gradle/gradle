@@ -5,7 +5,8 @@
         <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
       </Filter>
       <Filter Include="Header Files">
-        <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+        <!-- if you would like to add more endings to this pattern, make sure to also edit DefaultCppLibrary.java and DefaultCppComponent.java-->
+        <Extensions>h;hpp;h++;hxx;hm;inl;inc;xsd</Extensions>
       </Filter>
       <Filter Include="Resource Files">
         <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>

@@ -318,13 +318,17 @@ abstract class TestLauncherSpec extends ToolingApiSpecification implements WithO
     }
 
     interface TestEventSpec {
-        void displayName(String displayName)
+        void operationDisplayName(String displayName)
+
+        void testDisplayName(String displayName)
 
         void suite(String name, @DelegatesTo(value = TestEventSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> spec)
 
         void testClass(String name, @DelegatesTo(value = TestEventSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> spec)
 
         void test(String name, @DelegatesTo(value = TestEventSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> spec)
+
+        void testMethodSuite(String name, @DelegatesTo(value = TestEventSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> spec)
     }
 
     class DefaultTestEventsSpec implements TestEventsSpec {
@@ -341,7 +345,7 @@ abstract class TestLauncherSpec extends ToolingApiSpecification implements WithO
             if (task == null) {
                 throw new AssertionError("Expected to find a test task $path but none was found")
             }
-            DefaultTestEventSpec.assertSpec(task.parent, testEvents, verifiedEvents, rootSpec)
+            DefaultTestEventSpec.assertSpec(task.parent, testEvents, verifiedEvents, "Task $path", rootSpec)
         }
     }
 
@@ -350,15 +354,16 @@ abstract class TestLauncherSpec extends ToolingApiSpecification implements WithO
         private final List<JvmTestOperationDescriptor> testEvents
         private final Set<OperationDescriptor> verifiedEvents
         private final OperationDescriptor parent
-        private String displayName
+        private String testDisplayName
+        private String operationDisplayName
 
-        static void assertSpec(OperationDescriptor descriptor, List<JvmTestOperationDescriptor> testEvents, Set<OperationDescriptor> verifiedEvents, @DelegatesTo(value = TestEventSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+        static void assertSpec(OperationDescriptor descriptor, List<JvmTestOperationDescriptor> testEvents, Set<OperationDescriptor> verifiedEvents, String expectedOperationDisplayName, @DelegatesTo(value = TestEventSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
             verifiedEvents.add(descriptor)
             DefaultTestEventSpec childSpec = new DefaultTestEventSpec(descriptor, testEvents, verifiedEvents)
             spec.delegate = childSpec
             spec.resolveStrategy = Closure.DELEGATE_FIRST
             spec()
-            childSpec.validate()
+            childSpec.validate(expectedOperationDisplayName)
         }
 
         DefaultTestEventSpec(OperationDescriptor parent, List<JvmTestOperationDescriptor> testEvents, Set<OperationDescriptor> verifiedEvents) {
@@ -368,8 +373,13 @@ abstract class TestLauncherSpec extends ToolingApiSpecification implements WithO
         }
 
         @Override
-        void displayName(String displayName) {
-            this.displayName = displayName
+        void operationDisplayName(String displayName) {
+            this.operationDisplayName = displayName
+        }
+
+        @Override
+        void testDisplayName(String displayName) {
+            this.testDisplayName = displayName
         }
 
         private static String normalizeExecutor(String name) {
@@ -381,11 +391,19 @@ abstract class TestLauncherSpec extends ToolingApiSpecification implements WithO
 
         @Override
         void suite(String name, @DelegatesTo(value = TestEventSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
-            def child = testEvents.find { it.parent == parent && it.jvmTestKind == JvmTestKind.SUITE && normalizeExecutor(it.suiteName) == name }
+            def child = testEvents.find {
+                it.parent == parent &&
+                    it.jvmTestKind == JvmTestKind.SUITE &&
+                    normalizeExecutor(it.suiteName) == name &&
+                    it.className == null &&
+                    it.methodName == null &&
+                    normalizeExecutor(it.name) == name
+            }
             if (child == null) {
                 failWith("test suite", name)
             }
-            assertSpec(child, testEvents, verifiedEvents, spec)
+            String expectedOperationDisplayName = name.startsWith("Gradle Test") ? normalizeExecutor(child.displayName) : "Test suite '$name'"
+            assertSpec(child, testEvents, verifiedEvents, expectedOperationDisplayName, spec)
         }
 
         @Override
@@ -393,46 +411,75 @@ abstract class TestLauncherSpec extends ToolingApiSpecification implements WithO
             def child = testEvents.find {
                 it.parent == parent &&
                     it.jvmTestKind == JvmTestKind.SUITE &&
-                    it.suiteName == null &&
-                    it.className == name
+                    it.suiteName == name &&
+                    it.className == name &&
+                    it.methodName == null &&
+                    it.name == name
             }
             if (child == null) {
                 failWith("test class", name)
             }
-            assertSpec(child, testEvents, verifiedEvents, spec)
+            assertSpec(child, testEvents, verifiedEvents, "Test class $name", spec)
         }
 
         @Override
         void test(String name, @DelegatesTo(value = TestEventSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+            def expectedClassName = ((JvmTestOperationDescriptor) parent).className
+            assert expectedClassName != null
             def child = testEvents.find {
                 it.parent == parent &&
                     it.jvmTestKind == JvmTestKind.ATOMIC &&
                     it.suiteName == null &&
+                    it.className == expectedClassName &&
+                    it.methodName == name &&
                     it.name == name
             }
             if (child == null) {
                 failWith("test", name)
             }
-            assertSpec(child, testEvents, verifiedEvents, spec)
+            assertSpec(child, testEvents, verifiedEvents, "Test $name($expectedClassName)", spec)
+        }
+
+        @Override
+        void testMethodSuite(String name, @DelegatesTo(value = TestEventSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+            def expectedClassName = ((JvmTestOperationDescriptor) parent).className
+            assert expectedClassName != null
+            def child = testEvents.find {
+                it.parent == parent &&
+                    it.jvmTestKind == JvmTestKind.SUITE &&
+                    it.suiteName == name &&
+                    it.className == expectedClassName &&
+                    it.methodName == name &&
+                    it.name == name
+            }
+            if (child == null) {
+                failWith("test method suite", name)
+            }
+            assertSpec(child, testEvents, verifiedEvents, "Test method $name", spec)
         }
 
         private void failWith(String what, String name) {
             ErrorMessageBuilder err = new ErrorMessageBuilder()
             def remaining = testEvents.findAll { it.parent == parent && !verifiedEvents.contains(it) }
             if (remaining) {
-                err.title("Expected to find a $what named $name under ${parent.displayName} and none was found. Possible events are:")
+                err.title("Expected to find a '$what' named '$name' under '${parent.displayName}' and none was found. Possible events are:")
                 remaining.each {
                     err.candidate("${it} : Kind=${it.jvmTestKind} suiteName=${it.suiteName} className=${it.className} methodName=${it.methodName} displayName=${it.displayName}")
                 }
             } else {
-                err.title("Expected to find a $what named $name under ${parent.displayName} and none was found. There are no more events available for this parent.")
+                err.title("Expected to find a '$what' named '$name' under '${parent.displayName}' and none was found. There are no more events available for this parent.")
             }
             throw err.build()
         }
 
-        void validate() {
-            if (displayName != null) {
-                assert displayName == parent.displayName
+        void validate(String expectedOperationDisplayName) {
+            if (testDisplayName != null && parent.respondsTo("getTestDisplayName")) {
+                assert testDisplayName == ((TestOperationDescriptor) parent).testDisplayName
+            }
+            if (operationDisplayName != null) {
+                assert operationDisplayName == normalizeExecutor(parent.displayName)
+            } else {
+                assert expectedOperationDisplayName == normalizeExecutor(parent.displayName)
             }
         }
     }

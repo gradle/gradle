@@ -16,8 +16,14 @@
 
 package org.gradle.api.internal.provider
 
+import org.gradle.api.Transformer
+import org.gradle.api.internal.provider.CircularEvaluationSpec.CircularChainEvaluationSpec
+import org.gradle.api.internal.provider.CircularEvaluationSpec.CircularFunctionEvaluationSpec
+import org.gradle.api.internal.provider.CircularEvaluationSpec.UsesStringProperty
 import org.gradle.api.provider.Provider
 import org.gradle.internal.state.ManagedFactory
+
+import java.util.function.Consumer
 
 class MappingProviderTest extends ProviderSpec<String> {
     @Override
@@ -58,5 +64,38 @@ class MappingProviderTest extends ProviderSpec<String> {
     @Override
     ManagedFactory managedFactory() {
         return new ManagedFactories.ProviderManagedFactory()
+    }
+
+    static class MappingProviderCircularFunctionEvaluationTest extends CircularFunctionEvaluationSpec<String> {
+        @Override
+        ProviderInternal<String> providerWithSelfReference() {
+            def transform = new Transformer<String, String>() {
+                ProviderInternal<String> provider
+
+                @Override
+                String transform(String s) {
+                    return provider.get()
+                }
+
+                @Override
+                String toString() {
+                    return "Transformer with $provider"
+                }
+            }
+            transform.provider = new MappingProvider(String, Providers.of("value"), transform)
+            return transform.provider
+        }
+
+        @Override
+        List<Consumer<ProviderInternal<?>>> safeConsumers() {
+            return [ProviderConsumer.TO_STRING, ProviderConsumer.GET_PRODUCER, ProviderConsumer.CALCULATE_PRESENCE]
+        }
+    }
+
+    static class MappingProviderCircularChainEvaluationTest extends CircularChainEvaluationSpec<String> implements UsesStringProperty {
+        @Override
+        ProviderInternal<String> wrapProviderWithProviderUnderTest(ProviderInternal<String> baseProvider) {
+            return new MappingProvider(String, baseProvider, { it })
+        }
     }
 }

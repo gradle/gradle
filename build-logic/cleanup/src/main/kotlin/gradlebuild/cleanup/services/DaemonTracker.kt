@@ -17,6 +17,7 @@
 package gradlebuild.cleanup.services
 
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.logging.Logging
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
 import org.gradle.api.tasks.testing.TestDescriptor
@@ -46,8 +47,11 @@ abstract class DaemonTracker : BuildService<DaemonTracker.Params>, AutoCloseable
     private
     val daemonPids = ConcurrentHashMap.newKeySet<String>()
 
+    private
+    val logger = Logging.getLogger(DaemonTracker::class.java)
+
     override fun close() {
-        println("Cleaning up daemons...")
+        logger.lifecycle("Cleaning up daemons...")
         cleanUpDaemons()
     }
 

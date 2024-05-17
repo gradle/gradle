@@ -18,12 +18,18 @@ package org.gradle.api.internal.provider
 
 import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.Task
+import org.gradle.api.internal.provider.CircularEvaluationSpec.CircularChainEvaluationSpec
+import org.gradle.api.internal.provider.CircularEvaluationSpec.CircularFunctionEvaluationSpec
+import org.gradle.api.internal.provider.CircularEvaluationSpec.UsesStringProperty
 import org.gradle.api.provider.Property
+import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskState
 import org.gradle.internal.Describables
 import org.gradle.internal.state.ModelObject
 import org.gradle.util.TestUtil
 import spock.lang.Specification
+
+import java.util.function.Consumer
 
 class FilteringProviderTest extends Specification {
 
@@ -144,5 +150,38 @@ class FilteringProviderTest extends Specification {
         property.attachProducer(owner)
         property.set("12")
         return property
+    }
+
+    static class FilteringProviderCircularFunctionEvaluationTest extends CircularFunctionEvaluationSpec<String> {
+        @Override
+        ProviderInternal<String> providerWithSelfReference() {
+            def spec = new Spec<String>() {
+                ProviderInternal<String> provider
+
+                @Override
+                boolean isSatisfiedBy(String element) {
+                    return provider.orNull != null
+                }
+
+                @Override
+                String toString() {
+                    return "Spec with $provider"
+                }
+            }
+            spec.provider = new FilteringProvider<>(Providers.of("value"), spec)
+            return spec.provider
+        }
+
+        @Override
+        List<Consumer<ProviderInternal<?>>> safeConsumers() {
+            return [ProviderConsumer.TO_STRING, ProviderConsumer.GET_PRODUCER]
+        }
+    }
+
+    static class FilteringProviderCircularChainEvaluationTest extends CircularChainEvaluationSpec<String> implements UsesStringProperty {
+        @Override
+        ProviderInternal<String> wrapProviderWithProviderUnderTest(ProviderInternal<String> baseProvider) {
+            return new FilteringProvider<String>(baseProvider, { it == ""})
+        }
     }
 }

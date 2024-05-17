@@ -17,9 +17,8 @@
 package org.gradle.model.internal.registry;
 
 import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import org.gradle.internal.Cast;
 import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.DuplicateModelException;
@@ -41,6 +40,7 @@ import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 import static org.gradle.model.internal.core.ModelNode.State.Created;
 import static org.gradle.model.internal.core.ModelNode.State.Initialized;
@@ -144,16 +144,16 @@ class ModelElementNode extends ModelNodeInternal {
     @Override
     public Set<String> getLinkNames(Predicate<? super MutableModelNode> predicate) {
         if (links == null) {
-            return Collections.emptySet();
+            return ImmutableSet.of();
         }
-        Set<String> names = Sets.newLinkedHashSet();
+        ImmutableSet.Builder<String> names = ImmutableSet.builder();
         for (Map.Entry<String, ModelNodeInternal> entry : links.entrySet()) {
             ModelNodeInternal link = entry.getValue();
             if (predicate.apply(link)) {
                 names.add(entry.getKey());
             }
         }
-        return names;
+        return names.build();
     }
 
     @Override
@@ -255,7 +255,7 @@ class ModelElementNode extends ModelNodeInternal {
             );
         }
         if (links == null) {
-            links = Maps.newTreeMap();
+            links = new TreeMap<>();
         }
         links.put(child.getPath().getName(), child);
         modelRegistry.registerNode(child, registration.getActions());

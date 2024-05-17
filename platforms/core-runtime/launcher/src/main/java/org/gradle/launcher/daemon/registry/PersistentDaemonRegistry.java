@@ -247,6 +247,7 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
         }
     }
 
+    @Override
     public String toString() {
         return String.format("PersistentDaemonRegistry[file=%s]", registryFile);
     }

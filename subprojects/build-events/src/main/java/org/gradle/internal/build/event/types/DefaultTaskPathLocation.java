@@ -24,14 +24,14 @@ import java.io.Serializable;
 @NonNullApi
 public class DefaultTaskPathLocation implements InternalTaskPathLocation, Serializable {
 
-    private final String identityPath;
+    private final String buildTreePath;
 
-    public DefaultTaskPathLocation(String identityPath) {
-        this.identityPath = identityPath;
+    public DefaultTaskPathLocation(String buildTreePath) {
+        this.buildTreePath = buildTreePath;
     }
 
     @Override
-    public String getIdentityPath() {
-        return identityPath;
+    public String getBuildTreePath() {
+        return buildTreePath;
     }
 }

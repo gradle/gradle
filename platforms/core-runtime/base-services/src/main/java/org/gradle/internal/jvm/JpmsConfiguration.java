@@ -16,6 +16,8 @@
 
 package org.gradle.internal.jvm;
 
+import org.gradle.api.NonNullApi;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -27,13 +29,16 @@ import java.util.List;
  * a warning they can do nothing about. On Java 16+, strong encapsulation of JDK internals is
  * enforced and not having the explicit permissions for reflective accesses will result in runtime exceptions.
  */
+@NonNullApi
 public class JpmsConfiguration {
 
     public static final List<String> GROOVY_JPMS_ARGS = Collections.unmodifiableList(Arrays.asList(
         "--add-opens=java.base/java.lang=ALL-UNNAMED",
         "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED",
         "--add-opens=java.base/java.util=ALL-UNNAMED",
-        "--add-opens=java.prefs/java.util.prefs=ALL-UNNAMED" // required by PreferenceCleaningGroovySystemLoader
+        "--add-opens=java.prefs/java.util.prefs=ALL-UNNAMED", // required by PreferenceCleaningGroovySystemLoader
+        "--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED", // Required by JdkTools and JdkJavaCompiler
+        "--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED" // Required by JdkTools and JdkJavaCompiler
     ));
 
     public static final List<String> GRADLE_DAEMON_JPMS_ARGS;

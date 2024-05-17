@@ -17,6 +17,7 @@
 package org.gradle.api.publish.internal.mapping;
 
 import org.gradle.api.component.SoftwareComponentVariant;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
 
 /**
@@ -28,7 +29,7 @@ public interface DependencyCoordinateResolverFactory {
     /**
      * Create coordinate resolvers for the given variant.
      */
-    DependencyResolvers createCoordinateResolvers(SoftwareComponentVariant variant, VersionMappingStrategyInternal versionMappingStrategy);
+    Provider<DependencyResolvers> createCoordinateResolvers(SoftwareComponentVariant variant, VersionMappingStrategyInternal versionMappingStrategy);
 
     /**
      * Contains the variant and component coordinate resolver for a given variant.

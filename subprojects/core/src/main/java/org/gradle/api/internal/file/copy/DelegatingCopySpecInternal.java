@@ -32,6 +32,7 @@ import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.util.internal.ClosureBackedAction;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.io.FilterReader;
 import java.util.Map;
 import java.util.Set;
@@ -237,11 +238,13 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
     }
 
     @Override
+    @Deprecated
     public Integer getFileMode() {
         return getDelegateCopySpec().getFileMode();
     }
 
     @Override
+    @Deprecated
     public CopyProcessingSpec setFileMode(@Nullable Integer mode) {
         return getDelegateCopySpec().setFileMode(mode);
     }
@@ -257,11 +260,13 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
     }
 
     @Override
+    @Deprecated
     public Integer getDirMode() {
         return getDelegateCopySpec().getDirMode();
     }
 
     @Override
+    @Deprecated
     public CopyProcessingSpec setDirMode(@Nullable Integer mode) {
         return getDelegateCopySpec().setDirMode(mode);
     }
@@ -359,5 +364,11 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
     @Override
     public CopySpecInternal preserve(Action<? super PatternFilterable> action) {
         return getDelegateCopySpec().preserve(action);
+    }
+
+    @Override
+    @Nullable
+    public File getDestinationDir() {
+        return getDelegateCopySpec().getDestinationDir();
     }
 }

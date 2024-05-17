@@ -17,7 +17,6 @@ package org.gradle.api.publish.internal.versionmapping;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
@@ -34,6 +33,7 @@ import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder;
 
 import javax.inject.Inject;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -44,7 +44,7 @@ public class DefaultVersionMappingStrategy implements VersionMappingStrategyInte
     private final AttributesSchemaInternal schema;
     private final ImmutableAttributesFactory attributesFactory;
     private final List<Action<? super VariantVersionMappingStrategy>> mappingsForAllVariants = Lists.newArrayListWithExpectedSize(2);
-    private final Map<ImmutableAttributes, String> defaultConfigurations = Maps.newHashMap();
+    private final Map<ImmutableAttributes, String> defaultConfigurations = new HashMap<>();
     private final Multimap<ImmutableAttributes, Action<? super VariantVersionMappingStrategy>> attributeBasedMappings = ArrayListMultimap.create();
 
     @Inject

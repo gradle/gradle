@@ -15,17 +15,18 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.Describable;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
+import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.Conflict;
 import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependenciesResolverFactory;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.internal.component.model.DependencyMetadata;
-import org.gradle.util.Path;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Represents something that can be resolved.
@@ -34,13 +35,12 @@ public interface ResolveContext extends DependencyMetaDataProvider {
 
     String getName();
 
-    Describable asDescribable();
+    /**
+     * Identifies this resolve context within a lockfile.
+     */
+    String getDependencyLockingId();
 
-    String getDisplayName();
-
-    Path getIdentityPath();
-
-    Path getProjectPath();
+    ResolutionHost getResolutionHost();
 
     DomainObjectContext getDomainObjectContext();
 
@@ -72,4 +72,24 @@ public interface ResolveContext extends DependencyMetaDataProvider {
      * called on a configuration that does not permit this usage.
      */
     List<? extends DependencyMetadata> getSyntheticDependencies();
+
+    /**
+     * Marks this resolve context as observed, meaning its state has been seen by some external operation
+     * and further changes to this context that would change its public state are forbidden.
+     */
+    void markAsObserved();
+
+    FailureResolutions getFailureResolutions();
+
+    /**
+     * Details about this resolve context to provide additional context during failure cases.
+     */
+    interface FailureResolutions {
+
+        /**
+         * Provide resolutions to add to a failure to assist the user on resolving the provided
+         * version conflicts.
+         */
+        List<String> forVersionConflict(Set<Conflict> conflicts);
+    }
 }

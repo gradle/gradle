@@ -16,15 +16,15 @@
 
 package org.gradle.internal.authentication;
 
-import com.google.common.collect.Maps;
 import org.gradle.authentication.Authentication;
 import org.gradle.internal.Cast;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 public class DefaultAuthenticationSchemeRegistry implements AuthenticationSchemeRegistry {
-    Map<Class<? extends Authentication>, Class<? extends Authentication>> registeredSchemes = Maps.newHashMap();
+    Map<Class<? extends Authentication>, Class<? extends Authentication>> registeredSchemes = new HashMap<>();
 
     @Override
     public <T extends Authentication> void registerScheme(Class<T> type, final Class<? extends T> implementationType) {

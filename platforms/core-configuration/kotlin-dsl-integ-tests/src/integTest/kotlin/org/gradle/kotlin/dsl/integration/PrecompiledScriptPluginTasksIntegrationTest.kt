@@ -45,7 +45,7 @@ class PrecompiledScriptPluginTasksIntegrationTest : AbstractKotlinIntegrationTes
             """
             plugins {
                 `kotlin-dsl`
-                id("org.gradle.kotlin-dsl.ktlint-convention") version "0.8.0"
+                id("org.gradle.kotlin-dsl.ktlint-convention") version "0.9.0"
             }
 
             $repositoriesBlock
@@ -72,11 +72,6 @@ class PrecompiledScriptPluginTasksIntegrationTest : AbstractKotlinIntegrationTes
 
             """.trimIndent()
         )
-
-        // From ktlint
-        executer.beforeExecute {
-            it.expectDocumentedDeprecationWarning("The Project.getConvention() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions")
-        }
 
         build("generateScriptPluginAdapters")
 

@@ -17,10 +17,10 @@
 package org.gradle.configurationcache.problems
 
 import org.gradle.internal.service.scopes.EventScope
-import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.Scope
 
 
-@EventScope(Scopes.BuildTree::class)
+@EventScope(Scope.BuildTree::class)
 interface ProblemFactory {
     /**
      * Returns a default location inferred from the calling thread's state.

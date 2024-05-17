@@ -26,8 +26,8 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata
 import org.gradle.internal.component.model.ComponentArtifactMetadata
+import org.gradle.internal.component.model.ComponentArtifactResolveMetadata
 import org.gradle.internal.component.model.ComponentOverrideMetadata
-import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.component.model.ImmutableModuleSources
 import org.gradle.internal.component.model.ModuleSource
 import org.gradle.internal.resolve.ArtifactResolveException
@@ -100,15 +100,17 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         1 * delegate.listModuleVersions(dependency, result)
 
         when: 'exception is thrown in resolution'
+        repositoryBlacklister.getDisabledReason(REPOSITORY_ID) >> Optional.of(exception)
         effectiveRetries * delegate.listModuleVersions(dependency, result) >> { throw exception }
         access.listModuleVersions(dependency, result)
 
         then: 'resolution fails and repo is disabled'
-        1 * repositoryBlacklister.disableRepository(REPOSITORY_ID, { hasCause(it, exception) })
+        1 * repositoryBlacklister.tryDisableRepository(REPOSITORY_ID, { hasCause(it, exception) })
         1 * result.failed(_ as ModuleVersionResolveException)
 
         when: 'repo is already disabled'
         repositoryBlacklister.isDisabled(REPOSITORY_ID) >> true
+        repositoryBlacklister.getDisabledReason(REPOSITORY_ID) >> Optional.of(exception)
         access.listModuleVersions(dependency, result)
 
         then: 'resolution fails directly'
@@ -136,15 +138,17 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         1 * delegate.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result)
 
         when: 'exception is thrown in resolution'
+        repositoryBlacklister.getDisabledReason(REPOSITORY_ID) >> Optional.of(exception)
         effectiveRetries * delegate.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result) >> { throw exception }
         access.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result)
 
         then: 'resolution fails and repo is disabled'
-        1 * repositoryBlacklister.disableRepository(REPOSITORY_ID, { hasCause(it, exception) })
+        1 * repositoryBlacklister.tryDisableRepository(REPOSITORY_ID, { hasCause(it, exception) })
         1 * result.failed(_ as ModuleVersionResolveException)
 
         when: 'repo is already disabled'
         repositoryBlacklister.isDisabled(REPOSITORY_ID) >> true
+        repositoryBlacklister.getDisabledReason(REPOSITORY_ID) >> Optional.of(exception)
         access.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result)
 
         then: 'resolution fails directly'
@@ -160,7 +164,7 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         access = createAccess(maxRetries)
 
         given:
-        def component = Mock(ComponentResolveMetadata)
+        def component = Mock(ComponentArtifactResolveMetadata)
         def componentId = Mock(ComponentIdentifier)
         def artifactType = ArtifactType.MAVEN_POM
         def result = Mock(BuildableArtifactSetResolveResult)
@@ -174,15 +178,17 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         1 * delegate.resolveArtifactsWithType(component, artifactType, result)
 
         when: 'exception is thrown in resolution'
+        repositoryBlacklister.getDisabledReason(REPOSITORY_ID) >> Optional.of(exception)
         effectiveRetries * delegate.resolveArtifactsWithType(component, artifactType, result) >> { throw exception }
         access.resolveArtifactsWithType(component, artifactType, result)
 
         then: 'resolution fails and repo is disabled'
-        1 * repositoryBlacklister.disableRepository(REPOSITORY_ID, { hasCause(it, exception) })
+        1 * repositoryBlacklister.tryDisableRepository(REPOSITORY_ID, { hasCause(it, exception) })
         1 * result.failed(_ as ArtifactResolveException)
 
         when: 'repo is already disabled'
         repositoryBlacklister.isDisabled(REPOSITORY_ID) >> true
+        repositoryBlacklister.getDisabledReason(REPOSITORY_ID) >> Optional.of(exception)
         access.resolveArtifactsWithType(component, artifactType, result)
 
         then: 'resolution fails directly'
@@ -207,20 +213,23 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         when: 'repo is not disabled'
         repositoryBlacklister.isDisabled(REPOSITORY_ID) >> false
         access.resolveArtifact(artifact, moduleSources, result)
+        repositoryBlacklister.getDisabledReason(REPOSITORY_ID) >> Optional.of(exception)
 
         then: 'work is delegated'
         1 * delegate.resolveArtifact(artifact, moduleSources, result)
 
         when: 'exception is thrown in resolution'
+        repositoryBlacklister.getDisabledReason(REPOSITORY_ID) >> Optional.of(exception)
         effectiveRetries * delegate.resolveArtifact(artifact, moduleSources, result) >> { throw exception }
         access.resolveArtifact(artifact, moduleSources, result)
 
         then: 'resolution fails and repo is disabled'
-        1 * repositoryBlacklister.disableRepository(REPOSITORY_ID, { hasCause(it, exception) })
+        1 * repositoryBlacklister.tryDisableRepository(REPOSITORY_ID, { hasCause(it, exception) })
         1 * result.failed(_ as ArtifactResolveException)
 
         when: 'repo is already disabled'
         repositoryBlacklister.isDisabled(REPOSITORY_ID) >> true
+        repositoryBlacklister.getDisabledReason(REPOSITORY_ID) >> Optional.of(exception)
         access.resolveArtifact(artifact, moduleSources, result)
 
         then: 'resolution fails directly'
@@ -241,6 +250,7 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         def moduleSources = ImmutableModuleSources.of(Mock(ModuleSource))
         def result = Mock(BuildableArtifactFileResolveResult)
         artifact.getId() >> artifactId
+        repositoryBlacklister.getDisabledReason(REPOSITORY_ID) >> Optional.of(exception)
         delegate.resolveArtifact(artifact, moduleSources, result) >> { throw exception }
         repositoryBlacklister.isDisabled(REPOSITORY_ID) >> false
 
@@ -248,11 +258,12 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         access.resolveArtifact(artifact, moduleSources, result)
 
         then: 'resolution fails and repo is disabled'
-        1 * repositoryBlacklister.disableRepository(REPOSITORY_ID, { hasCause(it, exception) })
+        1 * repositoryBlacklister.tryDisableRepository(REPOSITORY_ID, { hasCause(it, exception) })
         1 * result.failed(_ as ArtifactResolveException)
 
         when: 'repo is already disabled'
         repositoryBlacklister.isDisabled(REPOSITORY_ID) >> true
+        repositoryBlacklister.getDisabledReason(REPOSITORY_ID) >> Optional.of(exception)
         access.resolveArtifact(artifact, moduleSources, result)
 
         then: 'resolution fails directly'

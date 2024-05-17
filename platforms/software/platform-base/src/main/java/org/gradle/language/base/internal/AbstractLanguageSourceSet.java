@@ -16,17 +16,17 @@
 
 package org.gradle.language.base.internal;
 
-import com.google.common.collect.Maps;
 import org.gradle.api.BuildableComponentSpec;
 import org.gradle.api.Task;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.AbstractBuildableComponentSpec;
 import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public abstract class AbstractLanguageSourceSet extends AbstractBuildableComponentSpec implements LanguageSourceSetInternal {
-    private final static Map<String, String> LANGUAGES = Maps.newHashMap();
+    private final static Map<String, String> LANGUAGES = new HashMap<>();
 
     private final SourceDirectorySet source;
     private boolean generated;

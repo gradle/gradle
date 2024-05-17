@@ -15,15 +15,14 @@
  */
 package org.gradle.cache.internal;
 
-import com.google.common.collect.Lists;
-
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.Predicate;
 
 public class CleaningInMemoryCacheDecoratorFactory extends DefaultInMemoryCacheDecoratorFactory {
-    private final List<WeakReference<InMemoryCacheController>> inMemoryCaches = Lists.newArrayList();
+    private final List<WeakReference<InMemoryCacheController>> inMemoryCaches = new ArrayList<>();
 
     public CleaningInMemoryCacheDecoratorFactory(boolean longLivingProcess, CrossBuildInMemoryCacheFactory cacheFactory) {
         super(longLivingProcess, cacheFactory);

@@ -1,0 +1,98 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+:gradle-issues: https://github.com/gradle/gradle/issues/
+
+= Isolated Projects
+
+Isolated Projects is a pre-alpha Gradle feature that extends the configuration cache to further improve performance, in particular the performance of Android Studio and IDEA sync.
+
+When isolated projects is enabled, the configuration model of Gradle projects are "isolated" from each other.
+This means that build logic, such as build scripts or plugins, applied to a project cannot directly access the mutable state of another project.
+This allows configuration and tooling model creation for each project to safely run in parallel and the result cached and invalidated for each project independently.
+
+== Status as of Gradle 8.5
+
+When isolated projects is enabled, Gradle applies two levels of caching during IDE sync:
+
+Gradle starts by applying coarse-grained caching.
+To do this, Gradle caches the result of the entire sync operation and reuses it when nothing that affects the IDE model has changed.
+When the cache entry can be reused, Gradle short-circuits the entire sync operation and simply returns the cached result to the IDE.
+
+Generally, the settings and build scripts affect the IDE model, but the source code of the projects does not.
+So, when these scripts change the cache entry cannot be reused.
+When this happens, Gradle falls back to fine-grained caching.
+To do this, Gradle caches the result of creating the tooling models for each project and reuses these models when nothing that affects them has changed.
+When the cached models for a project can be reused, Gradle short-circuits all work for that project,
+including the project's configuration phase and other work such as dependency resolution.
+
+This means that Gradle will only configure and create tooling models for projects whose configuration has changed.
+This work is done in parallel for each project.
+
+=== Current limitations
+
+Isolated projects is a pre-alpha feature, and as such there are a number of limitations in the current implementation.
+These will addressed in future Gradle releases:
+
+* Gradle, IDEA, Android Studio and the Kotlin plugins are not yet 100% compatible with isolated projects, so you should expect to see some violations reported. The teams are actively working on fixing these incompatibilities.
+* Parallel configuration and fine-grained caching are not applied to task execution. They are only applied to IDE sync.
+* Changes to included builds invalidate all cached results, even when the change would not affect the cached results.
+* The implementation does not attempt to take advantage of the isolation to limit peak memory consumption. Currently, peak memory consumption is a function of how many project need to be configured.
+* All caching is done on the local machine, as for the configuration cache. There is no support for remote caching yet.
+
+== How do I use it?
+
+To use isolated projects, you will need Gradle 8.5 or later and preferably a recent nightly.
+You should also use the most recent version of IDEA or Android Studio.
+
+The feature is off by default.
+You can enable it by setting the `org.gradle.unsafe.isolated-projects` system property to `true`.
+For example:
+
+----
+$ gradle build -Dorg.gradle.unsafe.isolated-projects=true
+----
+
+When enabled, Gradle will fail the build whenever build logic attempts to cross project boundaries and access the model of another project.
+Gradle collects all of these access problems in the configuration cache report, in the same way as other problems.
+
+The configuration cache command-line options can be used to control how Gradle handles these problems. For example:
+
+* `--configuration-cache-problems=warn` can be used to treat the access problems as warnings instead of errors.
+* `-Dorg.gradle.configuration-cache.max-problems=x` can be used to increase the maximum number of problems included in the report.
+
+You can also use `-Dorg.gradle.internal.invalidate-coupled-projects=false` to force parallel configuration when there are access problems.
+
+Please be aware that these options disable the validation that makes execution parallel- and caching-safe when isolated projects is enabled,
+so you may see some unexpected behaviour when using them.
+
+== Build logic constraints
+
+Isolated projects prevents build logic from accessing the state of another project. This includes:
+
+* Using most methods on the `Project` type. A small number of methods that return immutable information about the project are allowed:
+** `getName()`
+** `getPath()`
+** `getBuildTreePath()`
+** `getProjectDir()`
+** `getRootDir()`
+** `project()` overloads
+** `getChildProjects()`
+** `getSubprojects()`
+** `subprojects()` overloads
+** `getAllProjects()`
+** `allprojects()` overloads
+
+Note that isolated projects is a pre-alpha feature.
+These constraints are not final and can change at any time.

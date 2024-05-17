@@ -21,6 +21,7 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.UnionFileCollection
 import spock.lang.Specification
 
+@SuppressWarnings("deprecation")
 class CachingDependencyResolveContextTest extends Specification {
     private final CachingDependencyResolveContext context = new CachingDependencyResolveContext(TestFiles.taskDependencyFactory(), true, null)
 

@@ -50,12 +50,13 @@ import org.gradle.internal.execution.WorkExecutionTracker
 import org.gradle.internal.execution.WorkInputListeners
 import org.gradle.internal.execution.impl.DefaultFileNormalizationSpec
 import org.gradle.internal.execution.model.InputNormalizer
+import org.gradle.internal.file.FileType
 import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.fingerprint.LineEndingSensitivity
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.scripts.ProjectScopedScriptResolution
 import org.gradle.internal.scripts.ScriptFileResolverListeners
-import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.util.Path
@@ -70,7 +71,7 @@ import java.util.function.Supplier
 /**
  * Coordinates the writing and reading of the configuration cache fingerprint.
  */
-@ServiceScope(Scopes.BuildTree::class)
+@ServiceScope(Scope.BuildTree::class)
 internal
 class ConfigurationCacheFingerprintController internal constructor(
     private val startParameter: ConfigurationCacheStartParameter,
@@ -120,7 +121,7 @@ class ConfigurationCacheFingerprintController internal constructor(
         open fun <T> resolveScriptsForProject(identityPath: Path, action: () -> T): T =
             illegalStateFor("resolveScriptsForProject")
 
-        open fun <T> collectFingerprintForProject(identityPath: Path, action: () -> T): T =
+        open fun <T> runCollectingFingerprintForProject(identityPath: Path, action: () -> T): T =
             illegalStateFor("collectFingerprintForProject")
 
         abstract fun dispose(): WritingState
@@ -169,11 +170,11 @@ class ConfigurationCacheFingerprintController internal constructor(
         }
 
         override fun <T> resolveScriptsForProject(identityPath: Path, action: () -> T): T {
-            return fingerprintWriter.collectFingerprintForProject(identityPath, action)
+            return fingerprintWriter.runCollectingFingerprintForProject(identityPath, action)
         }
 
-        override fun <T> collectFingerprintForProject(identityPath: Path, action: () -> T): T {
-            return fingerprintWriter.collectFingerprintForProject(identityPath, action)
+        override fun <T> runCollectingFingerprintForProject(identityPath: Path, action: () -> T): T {
+            return fingerprintWriter.runCollectingFingerprintForProject(identityPath, action)
         }
 
         override fun pause(): WritingState {
@@ -267,8 +268,8 @@ class ConfigurationCacheFingerprintController internal constructor(
      * Runs the given action that is specific to the given project, and associates any build inputs read by the current thread
      * with the project.
      */
-    fun <T> collectFingerprintForProject(identityPath: Path, action: () -> T): T {
-        return writingState.collectFingerprintForProject(identityPath, action)
+    fun <T> runCollectingFingerprintForProject(identityPath: Path, action: () -> T): T {
+        return writingState.runCollectingFingerprintForProject(identityPath, action)
     }
 
     override fun stop() {
@@ -330,6 +331,9 @@ class ConfigurationCacheFingerprintController internal constructor(
 
         override val cacheIntermediateModels: Boolean
             get() = modelParameters.isIntermediateModelCache
+
+        override val modelAsProjectDependency: Boolean
+            get() = modelParameters.isModelAsProjectDependency
 
         override val ignoreInputsInConfigurationCacheTaskGraphWriting: Boolean
             get() = startParameter.isIgnoreInputsInTaskGraphSerialization
@@ -403,7 +407,10 @@ class ConfigurationCacheFingerprintController internal constructor(
             gradleProperties.find(propertyName)?.uncheckedCast()
 
         override fun hashCodeOf(file: File) =
-            fileSystemAccess.read(file.absolutePath).hash
+            hashCodeAndTypeOf(file).first
+
+        override fun hashCodeAndTypeOf(file: File): Pair<HashCode, FileType> =
+            fileSystemAccess.read(file.absolutePath).let { it.hash to it.type }
 
         override fun hashCodeOfDirectoryContent(file: File): HashCode = directoryChildrenNamesHash(file)
 

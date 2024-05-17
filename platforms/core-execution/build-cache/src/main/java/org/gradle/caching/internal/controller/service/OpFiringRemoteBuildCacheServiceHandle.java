@@ -24,26 +24,41 @@ import org.gradle.caching.internal.controller.operations.LoadOperationHitResult;
 import org.gradle.caching.internal.controller.operations.LoadOperationMissResult;
 import org.gradle.caching.internal.controller.operations.StoreOperationDetails;
 import org.gradle.caching.internal.controller.operations.StoreOperationResult;
+import org.gradle.caching.internal.operations.BuildCacheRemoteDisabledDueToFailureProgressDetails;
 import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
+import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.io.IOException;
 import java.io.InputStream;
 
 public class OpFiringRemoteBuildCacheServiceHandle extends BaseRemoteBuildCacheServiceHandle {
 
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final String buildPath;
+    private final BuildOperationRunner buildOperationRunner;
+    private final BuildOperationProgressEventEmitter buildOperationProgressEventEmitter;
 
-    public OpFiringRemoteBuildCacheServiceHandle(BuildCacheService service, boolean push, BuildCacheServiceRole role, BuildOperationExecutor buildOperationExecutor, boolean logStackTraces, boolean disableOnError) {
+    public OpFiringRemoteBuildCacheServiceHandle(
+        String buildPath,
+        BuildCacheService service,
+        boolean push,
+        BuildCacheServiceRole role,
+        BuildOperationRunner buildOperationRunner,
+        BuildOperationProgressEventEmitter buildOperationProgressEventEmitter,
+        boolean logStackTraces,
+        boolean disableOnError
+    ) {
         super(service, push, role, logStackTraces, disableOnError);
-        this.buildOperationExecutor = buildOperationExecutor;
+        this.buildPath = buildPath;
+        this.buildOperationRunner = buildOperationRunner;
+        this.buildOperationProgressEventEmitter = buildOperationProgressEventEmitter;
     }
 
     @Override
     protected void loadInner(final String description, final BuildCacheKey key, final LoadTarget loadTarget) {
-        buildOperationExecutor.run(new RunnableBuildOperation() {
+        buildOperationRunner.run(new RunnableBuildOperation() {
             @Override
             public void run(BuildOperationContext context) {
                 loadInner(key, new OpFiringEntryReader(loadTarget));
@@ -65,7 +80,7 @@ public class OpFiringRemoteBuildCacheServiceHandle extends BaseRemoteBuildCacheS
 
     @Override
     protected void storeInner(final String description, final BuildCacheKey key, final StoreTarget storeTarget) {
-        buildOperationExecutor.run(new RunnableBuildOperation() {
+        buildOperationRunner.run(new RunnableBuildOperation() {
             @Override
             public void run(BuildOperationContext context) {
                 OpFiringRemoteBuildCacheServiceHandle.super.storeInner(description, key, storeTarget);
@@ -81,6 +96,23 @@ public class OpFiringRemoteBuildCacheServiceHandle extends BaseRemoteBuildCacheS
         });
     }
 
+    @Override
+    protected void onCacheDisabledDueToFailure(BuildCacheKey key, Operation operation, Throwable failure) {
+        BuildCacheRemoteDisabledDueToFailureProgressDetails.BuildCacheOperationType operationType = convertToBuildOperationType(operation);
+        buildOperationProgressEventEmitter.emitNowIfCurrent(new RemoteDisabledDueToFailureProgressDetails(key, failure, operationType));
+    }
+
+    private static BuildCacheRemoteDisabledDueToFailureProgressDetails.BuildCacheOperationType convertToBuildOperationType(Operation operation) {
+        switch (operation) {
+            case LOAD:
+                return BuildCacheRemoteDisabledDueToFailureProgressDetails.BuildCacheOperationType.LOAD;
+            case STORE:
+                return BuildCacheRemoteDisabledDueToFailureProgressDetails.BuildCacheOperationType.STORE;
+            default:
+                throw new IllegalStateException();
+        }
+    }
+
     private class OpFiringEntryReader implements BuildCacheEntryReader {
 
         private final BuildCacheEntryReader delegate;
@@ -92,7 +124,7 @@ public class OpFiringRemoteBuildCacheServiceHandle extends BaseRemoteBuildCacheS
         @Override
         public void readFrom(final InputStream input) throws IOException {
             try {
-                buildOperationExecutor.run(new RunnableBuildOperation() {
+                buildOperationRunner.run(new RunnableBuildOperation() {
                     @Override
                     public void run(BuildOperationContext context) {
                         try {
@@ -126,6 +158,38 @@ public class OpFiringRemoteBuildCacheServiceHandle extends BaseRemoteBuildCacheS
 
         IOException getIOException() {
             return (IOException) getCause();
+        }
+    }
+
+    private class RemoteDisabledDueToFailureProgressDetails implements BuildCacheRemoteDisabledDueToFailureProgressDetails {
+        private final BuildCacheKey key;
+        private final Throwable e;
+        private final BuildCacheOperationType operationType;
+
+        public RemoteDisabledDueToFailureProgressDetails(BuildCacheKey key, Throwable e, BuildCacheOperationType operationType) {
+            this.key = key;
+            this.e = e;
+            this.operationType = operationType;
+        }
+
+        @Override
+        public String getBuildCacheConfigurationIdentifier() {
+            return buildPath;
+        }
+
+        @Override
+        public String getCacheKey() {
+            return key.getHashCode();
+        }
+
+        @Override
+        public Throwable getFailure() {
+            return e;
+        }
+
+        @Override
+        public BuildCacheOperationType getOperationType() {
+            return operationType;
         }
     }
 }

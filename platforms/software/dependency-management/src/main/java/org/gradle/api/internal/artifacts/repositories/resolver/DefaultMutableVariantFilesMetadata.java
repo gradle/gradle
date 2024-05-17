@@ -20,14 +20,13 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.MutableVariantFilesMetadata;
 import org.gradle.api.artifacts.VariantFileMetadata;
 
+import java.util.ArrayList;
 import java.util.List;
-
-import static com.google.common.collect.Lists.newArrayList;
 
 public class DefaultMutableVariantFilesMetadata implements MutableVariantFilesMetadata {
 
     private boolean clearExistingFiles = false;
-    private final List<VariantFileMetadata> files = newArrayList();
+    private final List<VariantFileMetadata> files = new ArrayList<>();
 
     @Override
     public void removeAllFiles() {

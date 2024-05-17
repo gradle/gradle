@@ -15,17 +15,17 @@
  */
 package org.gradle.api.internal.artifacts.result;
 
-import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.result.ArtifactResult;
 import org.gradle.api.artifacts.result.ComponentArtifactsResult;
 import org.gradle.api.component.Artifact;
-import org.gradle.api.artifacts.result.ArtifactResult;
 
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class DefaultComponentArtifactsResult implements ComponentArtifactsResult {
     private final ComponentIdentifier componentIdentifier;
-    private final Set<ArtifactResult> artifactResults = Sets.newLinkedHashSet();
+    private final Set<ArtifactResult> artifactResults = new LinkedHashSet<>();
 
     public DefaultComponentArtifactsResult(ComponentIdentifier componentIdentifier) {
         this.componentIdentifier = componentIdentifier;
@@ -38,7 +38,7 @@ public class DefaultComponentArtifactsResult implements ComponentArtifactsResult
 
     @Override
     public Set<ArtifactResult> getArtifacts(Class<? extends Artifact> type) {
-        Set<ArtifactResult> matching = Sets.newLinkedHashSet();
+        Set<ArtifactResult> matching = new LinkedHashSet<>();
         for (ArtifactResult artifactResult : artifactResults) {
             if (type.isAssignableFrom(artifactResult.getType())) {
                 matching.add(artifactResult);

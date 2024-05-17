@@ -180,7 +180,7 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
     }
 
     private void configureToolchains(Pmd task) {
-        Provider<JavaLauncher> javaLauncherProvider = getToolchainService().launcherFor(new CurrentJvmToolchainSpec(project.getObjects()));
+        Provider<JavaLauncher> javaLauncherProvider = getToolchainService().launcherFor(project.getObjects().newInstance(CurrentJvmToolchainSpec.class));
         task.getJavaLauncher().convention(javaLauncherProvider);
         project.getPluginManager().withPlugin("java-base", p -> {
             JavaToolchainSpec toolchain = getJavaPluginExtension().getToolchain();
@@ -195,7 +195,7 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
             return Collections.singleton("pmd:pmd:" + versionString);
         } else if (toolVersion.compareTo(VersionNumber.parse("5.2.0")) < 0) {
             return Collections.singleton("net.sourceforge.pmd:pmd:" + versionString);
-        } else if (toolVersion.compareTo(VersionNumber.version(7)) < 0) {
+        } else if (toolVersion.getMajor() < 7) {
             return Collections.singleton("net.sourceforge.pmd:pmd-java:" + versionString);
         }
 

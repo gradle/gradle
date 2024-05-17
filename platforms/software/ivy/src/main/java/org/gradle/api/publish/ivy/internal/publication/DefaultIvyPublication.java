@@ -52,7 +52,6 @@ import org.gradle.api.publish.ivy.internal.artifact.DerivedIvyArtifact;
 import org.gradle.api.publish.ivy.internal.artifact.IvyArtifactInternal;
 import org.gradle.api.publish.ivy.internal.artifact.NormalizedIvyArtifact;
 import org.gradle.api.publish.ivy.internal.artifact.SingleOutputTaskIvyArtifact;
-import org.gradle.api.publish.ivy.internal.dependency.IvyDependency;
 import org.gradle.api.publish.ivy.internal.publisher.IvyNormalizedPublication;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationCoordinates;
 import org.gradle.api.tasks.TaskProvider;
@@ -142,13 +141,16 @@ public abstract class DefaultIvyPublication implements IvyPublicationInternal {
         this.descriptor.getGlobalExcludes().set(getComponent().map(ivyComponentParser::parseGlobalExcludes));
         this.descriptor.getConfigurations().set(this.configurations);
         this.descriptor.getArtifacts().set(providerFactory.provider(this::getArtifacts));
-        this.descriptor.getDependencies().set(getComponent().<Set<IvyDependency>>map(component -> {
-            IvyComponentParser.ParsedDependencyResult result = ivyComponentParser.parseDependencies(component, versionMappingStrategy);
-            if (!silenceAllPublicationWarnings) {
-                result.getWarnings().complete(getDisplayName() + " ivy metadata", silencedVariants);
-            }
-            return result.getDependencies();
-        }));
+        this.descriptor.getDependencies().set(
+            getComponent()
+                .flatMap(component -> ivyComponentParser.parseDependencies(component, versionMappingStrategy))
+                .map(parsed -> {
+                    if (!silenceAllPublicationWarnings) {
+                        parsed.getWarnings().complete(getDisplayName() + " ivy metadata", silencedVariants);
+                    }
+                    return parsed.getDependencies();
+                })
+        );
     }
 
     @Override

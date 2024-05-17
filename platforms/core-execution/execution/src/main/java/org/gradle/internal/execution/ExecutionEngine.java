@@ -25,11 +25,14 @@ import org.gradle.internal.Try;
 import org.gradle.internal.execution.UnitOfWork.Identity;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.ExecutionOutputState;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Optional;
 
+@ServiceScope({Scope.Build.class, Scope.Gradle.class})
 public interface ExecutionEngine {
     Request createRequest(UnitOfWork work);
 
@@ -58,7 +61,7 @@ public interface ExecutionEngine {
          * Otherwise, the execution is wrapped in a not-yet-complete {@link Deferrable} to be evaluated later.
          * The work is looked up by its {@link UnitOfWork.Identity identity} in the given cache.
          */
-        <T> Deferrable<Try<T>> executeDeferred(Cache<Identity, Try<T>> cache);
+        <T> Deferrable<Try<T>> executeDeferred(Cache<Identity, IdentityCacheResult<T>> cache);
     }
 
     interface Result {
@@ -88,6 +91,19 @@ public interface ExecutionEngine {
          */
         @VisibleForTesting
         Optional<ExecutionOutputState> getAfterExecutionOutputState();
+    }
+
+    interface IdentityCacheResult<T> {
+
+        Try<T> getResult();
+
+        /**
+         * The origin metadata of the result.
+         *
+         * If a previously produced output was reused in some way, the reused output's origin metadata is returned.
+         * If the output was produced in this request, then the current execution's origin metadata is returned.
+         */
+        Optional<OriginMetadata> getOriginMetadata();
     }
 
     interface Execution {

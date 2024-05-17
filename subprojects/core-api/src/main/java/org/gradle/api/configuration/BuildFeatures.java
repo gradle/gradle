@@ -17,18 +17,21 @@
 package org.gradle.api.configuration;
 
 import org.gradle.api.Incubating;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * Provides information about various build features supported by Gradle,
  * and their state in the current build.
+ * <p>
+ * An instance of this type can be injected into a task, plugin or other object by annotating
+ * a public constructor or property getter method with {@code javax.inject.Inject}.
  *
  * @see BuildFeature
  * @since 8.5
  */
 @Incubating
-@ServiceScope(Scopes.BuildTree.class)
+@ServiceScope(Scope.BuildTree.class)
 public interface BuildFeatures {
 
     /**
@@ -39,7 +42,7 @@ public interface BuildFeatures {
     BuildFeature getConfigurationCache();
 
     /**
-     * State of the Isolated Projects feature in the build.
+     * State of the <a href="https://docs.gradle.org/current/userguide/isolated_projects.html">Isolated Projects</a> feature in the build.
      *
      * @since 8.5
      */

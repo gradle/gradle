@@ -553,6 +553,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
 
 
         when:
+        executer.expectDocumentedDeprecationWarning("Declaring client module dependencies has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use component metadata rules instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#declaring_client_module_dependencies")
         run ":impl:checkDeps"
 
         then:
@@ -588,6 +589,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
 """
 
         when:
+        executer.expectDocumentedDeprecationWarning("Declaring client module dependencies has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use component metadata rules instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#declaring_client_module_dependencies")
         run ":impl:checkDeps"
 
         then:
@@ -1140,7 +1142,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         fails "checkDeps"
 
         then:
-        failure.assertHasCause("Could not resolve all task dependencies for configuration ':conf'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':conf'.")
         failure.assertHasCause("""Could not resolve org.utils:impl:1.3.
 Required by:
     project :""")
@@ -1345,7 +1347,7 @@ Required by:
         fails "checkDeps"
 
         then:
-        failure.assertHasCause("Could not resolve all task dependencies for configuration ':conf'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':conf'.")
         failure.assertHasCause("Invalid format: 'foobar'")
     }
 

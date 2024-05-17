@@ -29,15 +29,17 @@ import org.gradle.internal.execution.caching.CachingDisabledReasonCategory
 import org.gradle.internal.execution.caching.CachingState
 import org.gradle.internal.execution.history.AfterExecutionState
 import org.gradle.internal.execution.history.BeforeExecutionState
+import org.gradle.internal.execution.history.ExecutionOutputState
 import org.gradle.internal.file.Deleter
 import org.gradle.internal.vfs.FileSystemAccess
 
 import java.time.Duration
+import java.time.temporal.ChronoUnit
 
 import static org.gradle.internal.execution.ExecutionEngine.Execution
 import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.FROM_CACHE
 
-class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements SnapshotterFixture {
+class BuildCacheStepTest extends StepSpec<TestCachingContext> implements SnapshotterFixture {
     def buildCacheController = Mock(BuildCacheController)
 
     def beforeExecutionState = Stub(BeforeExecutionState)
@@ -51,7 +53,7 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
     def fileSystemAccess = Mock(FileSystemAccess)
     def outputChangeListener = Mock(OutputChangeListener)
 
-    def step = new BuildCacheStep(buildCacheController, deleter, fileSystemAccess, outputChangeListener, delegate)
+    def step = new BuildCacheStep<TestCachingContext>(buildCacheController, deleter, fileSystemAccess, outputChangeListener, delegate)
     def delegateResult = Mock(AfterExecutionResult)
 
     def "loads from cache"() {
@@ -124,10 +126,10 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
         def failure = new RuntimeException("unpack failure")
 
         when:
-        step.execute(work, context)
+        def result = step.execute(work, context)
 
         then:
-        def ex = thrown Exception
+        def ex = result.execution.failure.get()
         ex.message == "Failed to load cache entry $cacheKeyHashCode for job ':test': unpack failure"
         ex.cause == failure
 
@@ -224,14 +226,19 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
         given:
         def execution = Mock(Execution)
         def failure = new RuntimeException("store failure")
+        def afterExecutionOutputState = Mock(ExecutionOutputState)
+        def duration = Duration.of(5, ChronoUnit.SECONDS)
 
         when:
-        step.execute(work, context)
+        def result = step.execute(work, context)
 
         then:
-        def ex = thrown Exception
+        def ex = result.execution.failure.get()
         ex.message == "Failed to store cache entry $cacheKeyHashCode for job ':test': store failure"
         ex.cause == failure
+
+        result.afterExecutionOutputState.get() == afterExecutionOutputState
+        result.duration == duration
 
         interaction { withValidCacheKey() }
 
@@ -245,6 +252,13 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
 
         then:
         interaction { outputStored { throw failure } }
+
+
+        then:
+        1 * delegateResult.getDuration() >> duration
+        1 * delegateResult.getAfterExecutionOutputState() >> Optional.of(afterExecutionOutputState)
+
+        then:
         0 * _
     }
 

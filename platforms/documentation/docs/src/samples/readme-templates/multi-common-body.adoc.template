@@ -94,9 +94,9 @@ The `init` task generates the new project with the following structure:
 │   └── src
 │       └── main
 │           └── kotlin // <6>
-│               ├── demo.${languageLC.raw}-application-conventions.gradle.kts
-│               ├── demo.${languageLC.raw}-common-conventions.gradle.kts
-│               └── demo.${languageLC.raw}-library-conventions.gradle.kts
+│               ├── buildlogic.${languageLC.raw}-application-conventions.gradle.kts
+│               ├── buildlogic.${languageLC.raw}-common-conventions.gradle.kts
+│               └── buildlogic.${languageLC.raw}-library-conventions.gradle.kts
 ├── app
 │   ├── build.gradle.kts // <7>
 │   └── src
@@ -152,9 +152,9 @@ The `init` task generates the new project with the following structure:
 │   └── src
 │       └── main
 │           └── groovy // <6>
-│               ├── demo.${languageLC.raw}-application-conventions.gradle
-│               ├── demo.${languageLC.raw}-common-conventions.gradle
-│               └── demo.${languageLC.raw}-library-conventions.gradle
+│               ├── buildlogic.${languageLC.raw}-application-conventions.gradle
+│               ├── buildlogic.${languageLC.raw}-common-conventions.gradle
+│               └── buildlogic.${languageLC.raw}-library-conventions.gradle
 ├── app
 │   ├── build.gradle // <7>
 │   └── src
@@ -226,8 +226,8 @@ Convention plugins in `buildSrc` are an easy way to utilise Gradle's plugin syst
 in this sample, we can find three such convention plugins that are based on each other:
 
 ====
-include::sample[dir="kotlin",files="buildSrc/src/main/kotlin/demo.${languageLC.raw}-common-conventions.gradle.kts[]"]
-include::sample[dir="groovy",files="buildSrc/src/main/groovy/demo.${languageLC.raw}-common-conventions.gradle[]"]
+include::sample[dir="kotlin",files="buildSrc/src/main/kotlin/buildlogic.${languageLC.raw}-common-conventions.gradle.kts[]"]
+include::sample[dir="groovy",files="buildSrc/src/main/groovy/buildlogic.${languageLC.raw}-common-conventions.gradle[]"]
 ====
 
 The `${languageLC.raw}-common-conventions` defines some configuration that should be shared by all our ${language.raw} project -- independent of whether they represent a library or the actual application.
@@ -236,12 +236,12 @@ Then, we declare a repository -- `mavenCentral()` -- as source for external depe
 Other shared settings, like compiler flags or JVM version compatibilities, could also be set here.
 
 ====
-include::sample[dir="kotlin",files="buildSrc/src/main/kotlin/demo.${languageLC.raw}-library-conventions.gradle.kts[]"]
-include::sample[dir="groovy",files="buildSrc/src/main/groovy/demo.${languageLC.raw}-library-conventions.gradle[]"]
+include::sample[dir="kotlin",files="buildSrc/src/main/kotlin/buildlogic.${languageLC.raw}-library-conventions.gradle.kts[]"]
+include::sample[dir="groovy",files="buildSrc/src/main/groovy/buildlogic.${languageLC.raw}-library-conventions.gradle[]"]
 ====
 ====
-include::sample[dir="kotlin",files="buildSrc/src/main/kotlin/demo.${languageLC.raw}-application-conventions.gradle.kts[]"]
-include::sample[dir="groovy",files="buildSrc/src/main/groovy/demo.${languageLC.raw}-application-conventions.gradle[]"]
+include::sample[dir="kotlin",files="buildSrc/src/main/kotlin/buildlogic.${languageLC.raw}-application-conventions.gradle.kts[]"]
+include::sample[dir="groovy",files="buildSrc/src/main/groovy/buildlogic.${languageLC.raw}-application-conventions.gradle[]"]
 ====
 
 

@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[command_line_interface]]
+[[command_line_interface_basics]]
 = Command-Line Interface Basics
 
 The command-line interface is the primary **method of interacting with Gradle** outside the IDE.
 
 image::gradle-basic-2.png[]
 
-Use of the <<gradle_wrapper.adoc#gradle_wrapper, Gradle Wrapper>> is highly encouraged.
+Use of the <<gradle_wrapper.adoc#gradle_wrapper_reference, Gradle Wrapper>> is highly encouraged.
 
 Substitute `./gradlew` (in macOS / Linux) or `gradlew.bat` (in Windows) for `gradle` in the following examples.
 
@@ -66,7 +66,7 @@ gradle -h
 The following sections describe the use of the Gradle command-line interface.
 Some plugins also add their own command line options.
 
-[[sec:command_line_executing_tasks]]
+[[command_line_executing_tasks]]
 === Executing tasks
 To execute a task called `taskName` on the root project, type:
 
@@ -76,7 +76,7 @@ $ gradle :taskName
 
 This will run the single `taskName` and all of its <<tutorial_using_tasks.adoc#sec:task_dependencies,dependencies>>.
 
-[[sec:disambiguate_task_options_from_built_in_options]]
+[[disambiguate_task_options_from_built_in_options]]
 === Specify options for tasks
 To pass an option to a task, prefix the option name with `--` after the task name:
 

@@ -17,10 +17,9 @@
 package org.gradle.api.internal.artifacts.dependencies;
 
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.internal.artifacts.DependencyResolveContext;
-import org.gradle.api.internal.artifacts.ResolvableDependency;
 
-public abstract class AbstractDependency implements ResolvableDependency, Dependency {
+@SuppressWarnings("deprecation")
+public abstract class AbstractDependency implements org.gradle.api.internal.artifacts.ResolvableDependency, Dependency {
     private String reason;
 
     protected void copyTo(AbstractDependency target) {
@@ -28,7 +27,8 @@ public abstract class AbstractDependency implements ResolvableDependency, Depend
     }
 
     @Override
-    public void resolve(DependencyResolveContext context) {
+    @Deprecated
+    public void resolve(org.gradle.api.internal.artifacts.CachingDependencyResolveContext context) {
     }
 
     @Override

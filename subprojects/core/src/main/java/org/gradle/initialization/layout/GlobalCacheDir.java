@@ -17,14 +17,14 @@
 package org.gradle.initialization.layout;
 
 import org.gradle.initialization.GradleUserHomeDirProvider;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.File;
 
 import static org.gradle.cache.internal.scopes.DefaultCacheScopeMapping.GLOBAL_CACHE_DIR_NAME;
 
-@ServiceScope(Scopes.UserHome.class)
+@ServiceScope(Scope.UserHome.class)
 public class GlobalCacheDir {
     private final File globalCacheDir;
 

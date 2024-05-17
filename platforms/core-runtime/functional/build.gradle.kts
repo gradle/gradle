@@ -6,5 +6,7 @@ plugins {
 description = "Tools to work with functional code, including data structures"
 
 dependencies {
-    implementation(project(":base-annotations"))
+    api(libs.jsr305)
+
+    implementation(projects.javaLanguageExtensions)
 }

@@ -17,19 +17,19 @@
 package org.gradle.nativeplatform.fixtures.app;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.Sets;
 import org.gradle.integtests.fixtures.SourceFile;
 import org.gradle.integtests.fixtures.TestClassExecutionResult;
 import org.gradle.util.internal.CollectionUtils;
 import org.hamcrest.CoreMatchers;
 
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
 public abstract class XCTestSourceFileElement extends SourceFileElement implements XCTestElement {
     private final String testSuiteName;
-    private final Set<String> imports = Sets.newLinkedHashSet();
-    private final Set<String> testableImports = Sets.newLinkedHashSet();
+    private final Set<String> imports = new LinkedHashSet<>();
+    private final Set<String> testableImports = new LinkedHashSet<>();
 
     public XCTestSourceFileElement(String testSuiteName) {
         this.testSuiteName = testSuiteName;

@@ -39,15 +39,12 @@ import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.options.OptionValues
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
+import org.gradle.internal.reflect.validation.ValidationMessageDisplayConfiguration
 import org.gradle.test.fixtures.file.TestFile
 
 import javax.inject.Inject
 
-import static org.gradle.api.problems.Severity.ERROR
-import static org.gradle.api.problems.Severity.WARNING
-
 abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrationSpec implements ValidationMessageChecker {
-
 
     def "detects missing annotations on Java properties"() {
         javaTaskSource << """
@@ -129,11 +126,69 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
         expect:
         assertValidationFailsWith([
-            error(missingAnnotationMessage { type('MyTask').property('badTime').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
-            error(missingAnnotationMessage { type('MyTask').property('oldThing').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
-            error(missingAnnotationMessage { type('MyTask').property('options.badNested').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
-            error(missingAnnotationMessage { type('MyTask').property('ter').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationConfig { type('MyTask').property('badTime').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationConfig { type('MyTask').property('oldThing').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationConfig { type('MyTask').property('options.badNested').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationConfig { type('MyTask').property('ter').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
         ])
+
+        and:
+        if (isProblemsApiCheckEnabled()) {
+            verifyAll(receivedProblem(0)) {
+                fqid == 'validation:property-validation:missing-annotation'
+                contextualLabel == 'Type \'MyTask\' property \'badTime\' is missing an input or output annotation'
+                details == 'A property without annotation isn\'t considered during up-to-date checking'
+                solutions == [
+                    'Add an input or output annotation',
+                    'Mark it as @Internal',
+                ]
+                additionalData == [
+                    'typeName' : 'MyTask',
+                    'propertyName' : 'badTime',
+                ]
+            }
+            verifyAll(receivedProblem(1)) {
+                fqid == 'validation:property-validation:missing-annotation'
+                contextualLabel == 'Type \'MyTask\' property \'oldThing\' is missing an input or output annotation'
+                details == 'A property without annotation isn\'t considered during up-to-date checking'
+                solutions == [
+                    'Add an input or output annotation',
+                    'Mark it as @Internal',
+                ]
+                additionalData == [
+                    'typeName' : 'MyTask',
+                    'propertyName' : 'oldThing',
+                ]
+            }
+            verifyAll(receivedProblem(2)) {
+                fqid == 'validation:property-validation:missing-annotation'
+                contextualLabel == 'Type \'MyTask\' property \'options.badNested\' is missing an input or output annotation'
+                details == 'A property without annotation isn\'t considered during up-to-date checking'
+                solutions == [
+                    'Add an input or output annotation',
+                    'Mark it as @Internal',
+                ]
+                additionalData == [
+                    'parentPropertyName' : 'options',
+                    'typeName' : 'MyTask',
+                    'propertyName' : 'badNested',
+                ]
+            }
+            verifyAll(receivedProblem(3)) {
+                fqid == 'validation:property-validation:missing-annotation'
+                contextualLabel == 'Type \'MyTask\' property \'ter\' is missing an input or output annotation'
+                details == 'A property without annotation isn\'t considered during up-to-date checking'
+                solutions == [
+                    'Add an input or output annotation',
+                    'Mark it as @Internal',
+                ]
+                additionalData == [
+                    'typeName' : 'MyTask',
+                    'propertyName' : 'ter',
+                ]
+            }
+
+        }
     }
 
     def "task can have property with annotation @#annotation.simpleName"() {
@@ -183,7 +238,6 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         Nested            | '@Nested'                                                  | List           | "new ArrayList()"
     }
 
-
     def "detects optional primitive type #primitiveType"() {
         javaTaskSource << """
             import org.gradle.api.*;
@@ -203,23 +257,39 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
         expect:
         assertValidationFailsWith([
-            error(optionalOnPrimitive {
+            error(optionalOnPrimitiveConfig {
                 type('MyTask').property('primitive')
                     .primitive(primitiveType)
             }, "validation_problems", "cannot_use_optional_on_primitive_types"),
         ])
 
-        where:
-        primitiveType | value
-        boolean       | "true"
-        int           | "1"
-        double        | "1"
-        float         | "2f"
-        double        | "2d"
-        char          | "'c'"
-        short         | "(short) 5"
-    }
+        and:
+        if (isProblemsApiCheckEnabled()) {
+            verifyAll(receivedProblem) {
+                fqid == 'validation:property-validation:cannot-use-optional-on-primitive-types'
+                contextualLabel == "Type 'MyTask' property 'primitive' of type $primitiveType shouldn't be annotated with @Optional"
+                details == 'Properties of primitive type cannot be optional'
+                solutions == [
+                    'Remove the @Optional annotation',
+                    "Use the java.lang.$className type instead"
+                ]
+                additionalData == [
+                    'typeName' : 'MyTask',
+                    'propertyName' : 'primitive'
+                ]
+            }
+        }
 
+        where:
+        primitiveType | value       | className
+        boolean       | "true"      | 'Boolean'
+        int           | "1"         | 'Integer'
+        double        | "1"         | 'Double'
+        float         | "2f"        | 'Float'
+        double        | "2d"        | 'Double'
+        char          | "'c'"       | 'Character'
+        short         | "(short) 5" | 'Short'
+    }
 
     def "validates task caching annotations"() {
         javaTaskSource << """
@@ -252,13 +322,44 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
         expect:
         assertValidationFailsWith([
-            error(invalidUseOfCacheableAnnotation { type('MyTask').invalidAnnotation('CacheableTransform').onlyMakesSenseOn('TransformAction') }, "validation_problems", "invalid_use_of_cacheable_annotation"),
-            error(invalidUseOfCacheableAnnotation { type('MyTask.Options').invalidAnnotation('CacheableTask').onlyMakesSenseOn('Task') }, "validation_problems", "invalid_use_of_cacheable_annotation"),
-            error(invalidUseOfCacheableAnnotation { type('MyTask.Options').invalidAnnotation('CacheableTransform').onlyMakesSenseOn('TransformAction') }, "validation_problems", "invalid_use_of_cacheable_annotation"),
-            error(invalidUseOfCacheableAnnotation { type('MyTask.Options').invalidAnnotation('DisableCachingByDefault').onlyMakesSenseOn('Task', 'TransformAction') }, "validation_problems", "invalid_use_of_cacheable_annotation"),
+            error(invalidUseOfCacheableAnnotationConfig { type('MyTask').invalidAnnotation('CacheableTransform').onlyMakesSenseOn('TransformAction') }, "validation_problems", "invalid_use_of_cacheable_annotation"),
+            error(invalidUseOfCacheableAnnotationConfig { type('MyTask.Options').invalidAnnotation('CacheableTask').onlyMakesSenseOn('Task') }, "validation_problems", "invalid_use_of_cacheable_annotation"),
+            error(invalidUseOfCacheableAnnotationConfig { type('MyTask.Options').invalidAnnotation('CacheableTransform').onlyMakesSenseOn('TransformAction') }, "validation_problems", "invalid_use_of_cacheable_annotation"),
+            error(invalidUseOfCacheableAnnotationConfig { type('MyTask.Options').invalidAnnotation('DisableCachingByDefault').onlyMakesSenseOn('Task', 'TransformAction') }, "validation_problems", "invalid_use_of_cacheable_annotation"),
         ])
-    }
 
+        and:
+        if (isProblemsApiCheckEnabled()) {
+            verifyAll(receivedProblem(0)) {
+                fqid == 'validation:type-validation:invalid-use-of-type-annotation'
+                contextualLabel == 'Type \'MyTask\' is incorrectly annotated with @CacheableTransform'
+                details == 'This annotation only makes sense on TransformAction types'
+                solutions == [ 'Remove the annotation' ]
+                additionalData == [ 'typeName' : 'MyTask' ]
+            }
+            verifyAll(receivedProblem(1)) {
+                fqid == 'validation:type-validation:invalid-use-of-type-annotation'
+                contextualLabel == 'Type \'MyTask.Options\' is incorrectly annotated with @CacheableTask'
+                details == 'This annotation only makes sense on Task types'
+                solutions == [ 'Remove the annotation' ]
+                additionalData == [ 'typeName' : 'MyTask.Options' ]
+            }
+            verifyAll(receivedProblem(2)) {
+                fqid == 'validation:type-validation:invalid-use-of-type-annotation'
+                contextualLabel == 'Type \'MyTask.Options\' is incorrectly annotated with @CacheableTransform'
+                details == 'This annotation only makes sense on TransformAction types'
+                solutions == [ 'Remove the annotation' ]
+                additionalData == [ 'typeName' : 'MyTask.Options' ]
+            }
+            verifyAll(receivedProblem(3)) {
+                fqid == 'validation:type-validation:invalid-use-of-type-annotation'
+                contextualLabel == 'Type \'MyTask.Options\' is incorrectly annotated with @DisableCachingByDefault'
+                details == 'This annotation only makes sense on Task, TransformAction types'
+                solutions == [ 'Remove the annotation' ]
+                additionalData == [ 'typeName' : 'MyTask.Options' ]
+            }
+        }
+    }
 
     def "detects missing annotation on Groovy properties"() {
         groovyTaskSource << """
@@ -295,9 +396,40 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
         expect:
         assertValidationFailsWith([
-            error(missingAnnotationMessage { type('MyTask').property('badTime').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
-            error(missingAnnotationMessage { type('MyTask').property('options.badNested').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationConfig { type('MyTask').property('badTime').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationConfig { type('MyTask').property('options.badNested').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
         ])
+
+        and:
+        if (isProblemsApiCheckEnabled()) {
+            verifyAll(receivedProblem(0)) {
+                fqid == 'validation:property-validation:missing-annotation'
+                contextualLabel == 'Type \'MyTask\' property \'badTime\' is missing an input or output annotation'
+                details == 'A property without annotation isn\'t considered during up-to-date checking'
+                solutions == [
+                    'Add an input or output annotation',
+                    'Mark it as @Internal',
+                ]
+                additionalData == [
+                    'typeName' : 'MyTask',
+                    'propertyName' : 'badTime',
+                ]
+            }
+            verifyAll(receivedProblem(1)) {
+                fqid == 'validation:property-validation:missing-annotation'
+                contextualLabel == 'Type \'MyTask\' property \'options.badNested\' is missing an input or output annotation'
+                details == 'A property without annotation isn\'t considered during up-to-date checking'
+                solutions == [
+                    'Add an input or output annotation',
+                    'Mark it as @Internal',
+                ]
+                additionalData == [
+                    'parentPropertyName' : 'options',
+                    'typeName' : 'MyTask',
+                    'propertyName' : 'badNested',
+                ]
+            }
+        }
     }
 
     def "no problems with Copy task"() {
@@ -419,11 +551,25 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
         expect:
         assertValidationFailsWith([
-            error(mutableSetter {
+            error(mutableSetterConfig {
                 type('MyTask').property('mutablePropertyWithSetter')
                 propertyType(testedType.replaceAll("<.+>", ""))
             }, 'validation_problems', 'mutable_type_with_setter')
         ])
+
+        and:
+        if (isProblemsApiCheckEnabled()) {
+            verifyAll(receivedProblem) {
+                fqid == 'validation:property-validation:mutable-type-with-setter'
+                contextualLabel == "Type \'MyTask\' property \'mutablePropertyWithSetter\' of mutable type '${testedType.replace('<String>', '')}' is writable"
+                details == "Properties of type '${testedType.replace('<String>', '')}' are already mutable"
+                solutions == [ 'Remove the \'setMutablePropertyWithSetter\' method' ]
+                additionalData == [
+                    'typeName' : 'MyTask',
+                    'propertyName' : 'mutablePropertyWithSetter',
+                ]
+            }
+        }
 
         where:
         testedType                      | init
@@ -471,10 +617,54 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
         expect:
         assertValidationFailsWith([
-            error(privateGetterAnnotatedMessage { type('MyTask').property('badTime').annotation('Input') }, 'validation_problems', 'private_getter_must_not_be_annotated'),
-            error(privateGetterAnnotatedMessage { type('MyTask').property('options.badNested').annotation('Input') }, 'validation_problems', 'private_getter_must_not_be_annotated'),
-            error(privateGetterAnnotatedMessage { type('MyTask').property('outputDir').annotation('OutputDirectory') }, 'validation_problems', 'private_getter_must_not_be_annotated'),
+            error(privateGetterAnnotatedConfig { type('MyTask').property('badTime').annotation('Input') }, 'validation_problems', 'private_getter_must_not_be_annotated'),
+            error(privateGetterAnnotatedConfig { type('MyTask').property('options.badNested').annotation('Input') }, 'validation_problems', 'private_getter_must_not_be_annotated'),
+            error(privateGetterAnnotatedConfig { type('MyTask').property('outputDir').annotation('OutputDirectory') }, 'validation_problems', 'private_getter_must_not_be_annotated'),
         ])
+
+        and:
+        if (isProblemsApiCheckEnabled()) {
+            verifyAll(receivedProblem(0)) {
+                fqid == 'validation:property-validation:private-getter-must-not-be-annotated'
+                contextualLabel == 'Type \'MyTask\' property \'badTime\' is private and annotated with @Input'
+                details == 'Annotations on private getters are ignored'
+                solutions == [
+                    'Make the getter public',
+                    'Annotate the public version of the getter',
+                ]
+                additionalData == [
+                    'typeName' : 'MyTask',
+                    'propertyName' : 'badTime',
+                ]
+            }
+            verifyAll(receivedProblem(1)) {
+                fqid == 'validation:property-validation:private-getter-must-not-be-annotated'
+                contextualLabel == 'Type \'MyTask\' property \'options.badNested\' is private and annotated with @Input'
+                details == 'Annotations on private getters are ignored'
+                solutions == [
+                    'Make the getter public',
+                    'Annotate the public version of the getter',
+                ]
+                additionalData == [
+                    'parentPropertyName' : 'options',
+                    'typeName' : 'MyTask',
+                    'propertyName' : 'badNested',
+                ]
+            }
+            verifyAll(receivedProblem(2)) {
+                fqid == 'validation:property-validation:private-getter-must-not-be-annotated'
+                contextualLabel == 'Type \'MyTask\' property \'outputDir\' is private and annotated with @OutputDirectory'
+                details == 'Annotations on private getters are ignored'
+                solutions == [
+                    'Make the getter public',
+                    'Annotate the public version of the getter',
+                ]
+                additionalData == [
+                    'typeName' : 'MyTask',
+                    'propertyName' : 'outputDir',
+                ]
+            }
+        }
     }
 
 
@@ -514,9 +704,33 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         """
         expect:
         assertValidationFailsWith([
-            error(methodShouldNotBeAnnotatedMessage { type('MyTask').kind('method').method('notAGetter').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
-            error(methodShouldNotBeAnnotatedMessage { type('MyTask.Options').kind('method').method('notANestedGetter').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
+            error(methodShouldNotBeAnnotatedConfig { type('MyTask').kind('method').method('notAGetter').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
+            error(methodShouldNotBeAnnotatedConfig { type('MyTask.Options').kind('method').method('notANestedGetter').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
         ])
+
+        and:
+        if (isProblemsApiCheckEnabled()) {
+            verifyAll(receivedProblem(0)) {
+                fqid == 'validation:type-validation:ignored-annotations-on-method'
+                contextualLabel == 'Type \'MyTask\' method \'notAGetter()\' should not be annotated with: @Input'
+                details == 'Input/Output annotations are ignored if they are placed on something else than a getter'
+                solutions == [
+                    'Remove the annotations',
+                    'Rename the method',
+                ]
+                additionalData == [ 'typeName' : 'MyTask' ]
+            }
+            verifyAll(receivedProblem(1)) {
+                fqid == 'validation:type-validation:ignored-annotations-on-method'
+                contextualLabel == 'Type \'MyTask.Options\' method \'notANestedGetter()\' should not be annotated with: @Input'
+                details == 'Input/Output annotations are ignored if they are placed on something else than a getter'
+                solutions == [
+                    'Remove the annotations',
+                    'Rename the method',
+                ]
+                additionalData == [ 'typeName' : 'MyTask.Options' ]
+            }
+        }
     }
 
 
@@ -568,12 +782,69 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
         expect:
         assertValidationFailsWith([
-            error(missingAnnotationMessage { type('MyTask').property('readWrite').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
-            error(methodShouldNotBeAnnotatedMessage { type('MyTask').kind('setter').method('setReadWrite').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
-            error(methodShouldNotBeAnnotatedMessage { type('MyTask').kind('setter').method('setWriteOnly').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
-            error(methodShouldNotBeAnnotatedMessage { type('MyTask.Options').kind('setter').method('setReadWrite').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
-            error(methodShouldNotBeAnnotatedMessage { type('MyTask.Options').kind('setter').method('setWriteOnly').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
+            error(missingAnnotationConfig { type('MyTask').property('readWrite').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            error(methodShouldNotBeAnnotatedConfig { type('MyTask').kind('setter').method('setReadWrite').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
+            error(methodShouldNotBeAnnotatedConfig { type('MyTask').kind('setter').method('setWriteOnly').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
+            error(methodShouldNotBeAnnotatedConfig { type('MyTask.Options').kind('setter').method('setReadWrite').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
+            error(methodShouldNotBeAnnotatedConfig { type('MyTask.Options').kind('setter').method('setWriteOnly').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
         ])
+
+        and:
+        if (isProblemsApiCheckEnabled()) {
+            verifyAll(receivedProblem(0)) {
+                fqid == 'validation:property-validation:missing-annotation'
+                contextualLabel == 'Type \'MyTask\' property \'readWrite\' is missing an input or output annotation'
+                details == 'A property without annotation isn\'t considered during up-to-date checking'
+                solutions == [
+                    'Add an input or output annotation',
+                    'Mark it as @Internal',
+                ]
+                additionalData == [
+                    'typeName' : 'MyTask',
+                    'propertyName' : 'readWrite',
+                ]
+            }
+            verifyAll(receivedProblem(1)) {
+                fqid == 'validation:type-validation:ignored-annotations-on-method'
+                contextualLabel == 'Type \'MyTask\' setter \'setReadWrite()\' should not be annotated with: @Input'
+                details == 'Input/Output annotations are ignored if they are placed on something else than a getter'
+                solutions == [
+                    'Remove the annotations',
+                    'Rename the method',
+                ]
+                additionalData == [ 'typeName' : 'MyTask' ]
+            }
+            verifyAll(receivedProblem(2)) {
+                fqid == 'validation:type-validation:ignored-annotations-on-method'
+                contextualLabel == 'Type \'MyTask\' setter \'setWriteOnly()\' should not be annotated with: @Input'
+                details == 'Input/Output annotations are ignored if they are placed on something else than a getter'
+                solutions == [
+                    'Remove the annotations',
+                    'Rename the method',
+                ]
+                additionalData == [ 'typeName' : 'MyTask' ]
+            }
+            verifyAll(receivedProblem(3)) {
+                fqid == 'validation:type-validation:ignored-annotations-on-method'
+                contextualLabel == 'Type \'MyTask.Options\' setter \'setReadWrite()\' should not be annotated with: @Input'
+                details == 'Input/Output annotations are ignored if they are placed on something else than a getter'
+                solutions == [
+                    'Remove the annotations',
+                    'Rename the method',
+                ]
+                additionalData == [ 'typeName' : 'MyTask.Options' ]
+            }
+            verifyAll(receivedProblem(4)) {
+                fqid == 'validation:type-validation:ignored-annotations-on-method'
+                contextualLabel == 'Type \'MyTask.Options\' setter \'setWriteOnly()\' should not be annotated with: @Input'
+                details == 'Input/Output annotations are ignored if they are placed on something else than a getter'
+                solutions == [
+                    'Remove the annotations',
+                    'Rename the method',
+                ]
+                additionalData == [ 'typeName' : 'MyTask.Options' ]
+            }
+        }
     }
 
 
@@ -610,8 +881,25 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
         expect:
         assertValidationFailsWith([
-            error(ignoredAnnotatedPropertyMessage { type('MyTask').property('oldProperty').ignoring('ReplacedBy').alsoAnnotatedWith('Input') }, 'validation_problems', 'ignored_property_must_not_be_annotated')
+            error(ignoredAnnotatedPropertyConfig { type('MyTask').property('oldProperty').ignoring('ReplacedBy').alsoAnnotatedWith('Input') }, 'validation_problems', 'ignored_property_must_not_be_annotated')
         ])
+
+        and:
+        if (isProblemsApiCheckEnabled()) {
+            verifyAll(receivedProblem(0)) {
+                fqid == 'validation:property-validation:ignored-property-must-not-be-annotated'
+                contextualLabel == 'Type \'MyTask\' property \'oldProperty\' annotated with @ReplacedBy should not be also annotated with @Input'
+                details == 'A property is ignored but also has input annotations'
+                solutions == [
+                    'Remove the input annotations',
+                    'Remove the @ReplacedBy annotation',
+                ]
+                additionalData == [
+                    'typeName' : 'MyTask',
+                    'propertyName' : 'oldProperty',
+                ]
+            }
+        }
     }
 
 
@@ -639,8 +927,23 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
         expect:
         assertValidationFailsWith([
-            error(conflictingAnnotationsMessage { type('MyTask').property('file').inConflict('InputFile', 'OutputFile') }, 'validation_problems', 'conflicting_annotations'),
+            error(conflictingAnnotationsConfig { type('MyTask').property('file').inConflict('InputFile', 'OutputFile') }, 'validation_problems', 'conflicting_annotations'),
         ])
+
+        and:
+        if (isProblemsApiCheckEnabled()) {
+            verifyAll(receivedProblem(0)) {
+                fqid == 'validation:property-validation:conflicting-annotations'
+                contextualLabel == 'Type \'MyTask\' property \'file\' has conflicting type annotations declared: @InputFile, @OutputFile'
+                details == 'The different annotations have different semantics and Gradle cannot determine which one to pick'
+                solutions == [ 'Choose between one of the conflicting annotations' ]
+                additionalData == [
+                    'typeName' : 'MyTask',
+                    'propertyName' : 'file',
+                ]
+            }
+
+        }
     }
 
     abstract String getIterableSymbol()
@@ -656,53 +959,31 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
     abstract TestFile source(String path)
 
-    static DocumentedProblem error(String message, String id = "incremental_build", String section = "") {
-        new DocumentedProblem(message, ERROR, id, section)
-    }
-
-    static DocumentedProblem warning(String message, String id = "incremental_build", String section = "") {
-        new DocumentedProblem(message, WARNING, id, section)
-    }
-
-    TestFile getJavaTaskSource() {
-        source("src/main/java/MyTask.java")
-    }
-
-    TestFile getGroovyTaskSource() {
-        buildFile << """
-            apply plugin: "groovy"
-        """
-        source("src/main/groovy/MyTask.groovy")
-    }
-
-    TestFile getKotlinTaskSource() {
-        buildFile.delete()
-        buildKotlinFile << """
-            plugins {
-                id("java-gradle-plugin")
-                `kotlin-dsl`
-            }
-
-            repositories {
-                mavenCentral()
-            }
-        """
-        source("src/main/kotlin/MyTask.kt")
-    }
-
     static class DocumentedProblem {
         final String message
         final Severity severity
         final String id
         final String section
         final boolean defaultDocLink
+        final ValidationMessageDisplayConfiguration config
+
+        DocumentedProblem(ValidationMessageDisplayConfiguration config, Severity severity, String id = "incremental_build", String section = "") {
+            this.config = config
+            this.message = config.render()
+            this.severity = severity
+            this.id = id
+            this.section = section
+            this.defaultDocLink = (id == "incremental_build") && (section == "")
+        }
 
         DocumentedProblem(String message, Severity severity, String id = "incremental_build", String section = "") {
+            this.config = null
             this.message = message
             this.severity = severity
             this.id = id
             this.section = section
             this.defaultDocLink = (id == "incremental_build") && (section == "")
         }
+
     }
 }

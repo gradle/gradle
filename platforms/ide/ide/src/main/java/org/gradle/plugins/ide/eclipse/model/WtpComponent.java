@@ -25,6 +25,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -42,7 +43,7 @@ public class WtpComponent extends XmlPersistableConfigurationObject {
     private String contextPath;
 
     // TODO Change to Set?
-    private List<WbModuleEntry> wbModuleEntries = Lists.newArrayList();
+    private List<WbModuleEntry> wbModuleEntries = new ArrayList<>();
 
     public WtpComponent(XmlTransformer xmlTransformer) {
         super(xmlTransformer);

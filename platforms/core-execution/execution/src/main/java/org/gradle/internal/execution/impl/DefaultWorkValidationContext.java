@@ -18,8 +18,11 @@ package org.gradle.internal.execution.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedSet;
-import org.gradle.api.problems.ReportableProblem;
+import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.Problem;
+import org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder;
 import org.gradle.internal.execution.WorkValidationContext;
+import org.gradle.internal.reflect.DefaultTypeValidationContext;
 import org.gradle.internal.reflect.ProblemRecordingTypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.plugin.use.PluginId;
@@ -31,16 +34,18 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 
-import static com.google.common.collect.ImmutableList.builder;
-import static org.gradle.internal.reflect.DefaultTypeValidationContext.onlyAffectsCacheableWork;
-
 public class DefaultWorkValidationContext implements WorkValidationContext {
     private final Set<Class<?>> types = new HashSet<>();
-    private final ImmutableList.Builder<ReportableProblem> problems = builder();
+    private final ImmutableList.Builder<Problem> problems = ImmutableList.builder();
     private final TypeOriginInspector typeOriginInspector;
 
     public DefaultWorkValidationContext(TypeOriginInspector typeOriginInspector) {
         this.typeOriginInspector = typeOriginInspector;
+    }
+
+    @Override
+    public InternalProblems getProblemsService() {
+        return ProblemsProgressEventEmitterHolder.get();
     }
 
     @Override
@@ -49,8 +54,8 @@ public class DefaultWorkValidationContext implements WorkValidationContext {
         Supplier<Optional<PluginId>> pluginId = () -> typeOriginInspector.findPluginDefining(type);
         return new ProblemRecordingTypeValidationContext(type, pluginId) {
             @Override
-            protected void recordProblem(ReportableProblem problem) {
-                if (onlyAffectsCacheableWork(problem.getProblemCategory()) && !cacheable) {
+            protected void recordProblem(Problem problem) {
+                if (DefaultTypeValidationContext.onlyAffectsCacheableWork(problem.getDefinition().getId()) && !cacheable) {
                     return;
                 }
                 problems.add(problem);
@@ -59,10 +64,11 @@ public class DefaultWorkValidationContext implements WorkValidationContext {
     }
 
     @Override
-    public List<ReportableProblem> getProblems() {
+    public List<Problem> getProblems() {
         return problems.build();
     }
 
+    @Override
     public ImmutableSortedSet<Class<?>> getValidatedTypes() {
         return ImmutableSortedSet.copyOf(Comparator.comparing(Class::getName), types);
     }

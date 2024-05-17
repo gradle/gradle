@@ -20,9 +20,9 @@ import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.collect.Lists;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -41,7 +41,7 @@ public class PBXGroup extends PBXReference {
         super(name, path, sourceTree);
 
         sortPolicy = SortPolicy.BY_NAME;
-        children = Lists.newArrayList();
+        children = new ArrayList<>();
 
         childGroupsByName = CacheBuilder.newBuilder().build(
             new CacheLoader<String, PBXGroup>() {

@@ -21,6 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.ConfigurableFilePermissions;
 import org.gradle.api.file.ContentFilterable;
+import org.gradle.api.file.CopyProcessingSpec;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.ExpandDetails;
 import org.gradle.api.file.FilePermissions;
@@ -31,6 +32,7 @@ import org.gradle.api.internal.file.DefaultConfigurableFilePermissions;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Actions;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.file.Chmod;
 
 import javax.inject.Inject;
@@ -62,6 +64,11 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
         this.objectFactory = objectFactory;
         this.duplicatesStrategy = specResolver.getDuplicatesStrategy();
         this.defaultDuplicatesStrategy = specResolver.isDefaultDuplicateStrategy();
+    }
+
+    @Override
+    public boolean isIncludeEmptyDirs() {
+        return specResolver.getIncludeEmptyDirs();
     }
 
     @Override
@@ -190,7 +197,13 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
     }
 
     @Override
+    @Deprecated
     public void setMode(int mode) {
+        DeprecationLogger.deprecateMethod(CopyProcessingSpec.class, "setMode()")
+            .replaceWith("permissions(Action)")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "unix_file_permissions_deprecated")
+            .nagUser();
         getPermissionsHolder().unix(mode);
     }
 
@@ -259,13 +272,9 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
         return this.duplicatesStrategy;
     }
 
+    @Override
     public boolean isDefaultDuplicatesStrategy() {
         return defaultDuplicatesStrategy;
-    }
-
-    @Override
-    public CopySpecResolver getSpecResolver() {
-        return specResolver;
     }
 
     @Override

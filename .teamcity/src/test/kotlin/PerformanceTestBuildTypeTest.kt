@@ -19,9 +19,9 @@ import common.VersionedSettingsBranch
 import common.pluginPortalUrlOverride
 import configurations.BaseGradleBuildType
 import configurations.PerformanceTest
-import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
-import jetbrains.buildServer.configs.kotlin.v2019_2.DslContext
-import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.GradleBuildStep
+import jetbrains.buildServer.configs.kotlin.BuildStep
+import jetbrains.buildServer.configs.kotlin.DslContext
+import jetbrains.buildServer.configs.kotlin.buildSteps.GradleBuildStep
 import model.CIBuildModel
 import model.JsonBasedGradleSubprojectProvider
 import model.PerformanceTestCoverage
@@ -65,6 +65,7 @@ class PerformanceTestBuildTypeTest {
             listOf(
                 "KILL_ALL_GRADLE_PROCESSES",
                 "GRADLE_RUNNER",
+                "KILL_PROCESSES_STARTED_BY_GRADLE",
                 "CHECK_CLEAN_M2_ANDROID_USER_HOME"
             ),
             performanceTest.steps.items.map(BuildStep::name)
@@ -77,7 +78,7 @@ class PerformanceTestBuildTypeTest {
             "-PautoDownloadAndroidStudio=true",
             "-PrunAndroidStudioInHeadlessMode=true",
             "-Porg.gradle.java.installations.auto-download=false",
-            "\"-Porg.gradle.java.installations.paths=%linux.java8.oracle.64bit%,%linux.java11.openjdk.64bit%,%linux.java17.openjdk.64bit%,%linux.java21.openjdk.64bit%,%linux.java8.openjdk.64bit%\"",
+            "\"-Porg.gradle.java.installations.paths=%linux.java8.oracle.64bit%,%linux.java11.openjdk.64bit%,%linux.java17.openjdk.64bit%,%linux.java21.openjdk.64bit%,%linux.java22.openjdk.64bit%,%linux.java8.openjdk.64bit%\"",
             "\"-Porg.gradle.performance.branchName=%teamcity.build.branch%\"",
             "\"-Porg.gradle.performance.db.url=%performance.db.url%\"",
             "\"-Porg.gradle.performance.db.username=%performance.db.username%\"",
@@ -126,10 +127,10 @@ class PerformanceTestBuildTypeTest {
         assertEquals(
             listOf(
                 "KILL_ALL_GRADLE_PROCESSES",
-                "CLEAN_UP_READ_ONLY_DIR",
                 "SETUP_VIRTUAL_DISK_FOR_PERF_TEST",
                 "GRADLE_RUNNER",
                 "REMOVE_VIRTUAL_DISK_FOR_PERF_TEST",
+                "KILL_PROCESSES_STARTED_BY_GRADLE",
                 "CHECK_CLEAN_M2_ANDROID_USER_HOME"
             ),
             performanceTest.steps.items.map(BuildStep::name)
@@ -142,7 +143,7 @@ class PerformanceTestBuildTypeTest {
             "-PautoDownloadAndroidStudio=true",
             "-PrunAndroidStudioInHeadlessMode=true",
             "-Porg.gradle.java.installations.auto-download=false",
-            "\"-Porg.gradle.java.installations.paths=%windows.java8.oracle.64bit%,%windows.java11.openjdk.64bit%,%windows.java17.openjdk.64bit%,%windows.java21.openjdk.64bit%,%windows.java8.openjdk.64bit%\"",
+            "\"-Porg.gradle.java.installations.paths=%windows.java8.oracle.64bit%,%windows.java11.openjdk.64bit%,%windows.java17.openjdk.64bit%,%windows.java21.openjdk.64bit%,%windows.java22.openjdk.64bit%,%windows.java8.openjdk.64bit%\"",
             "-Porg.gradle.performance.branchName=\"%teamcity.build.branch%\"",
             "-Porg.gradle.performance.db.url=\"%performance.db.url%\"",
             "-Porg.gradle.performance.db.username=\"%performance.db.username%\"",

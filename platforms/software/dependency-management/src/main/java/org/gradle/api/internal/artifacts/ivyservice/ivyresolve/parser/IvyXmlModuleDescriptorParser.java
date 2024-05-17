@@ -1406,6 +1406,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         }
     }
 
+    @Override
     public String toString() {
         return "ivy parser";
     }

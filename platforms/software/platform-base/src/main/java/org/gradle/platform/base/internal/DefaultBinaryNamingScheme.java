@@ -16,7 +16,6 @@
 
 package org.gradle.platform.base.internal;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.Named;
 import org.gradle.util.internal.GUtil;
 
@@ -107,7 +106,7 @@ public class DefaultBinaryNamingScheme implements BinaryNamingScheme {
     }
 
     private String getOutputDirectoryBase(@Nullable String outputType) {
-        List<String> elements = Lists.newArrayList();
+        List<String> elements = new ArrayList<>();
         elements.add(outputType);
         elements.add(parentName);
         if (binaryName != null) {
@@ -140,7 +139,7 @@ public class DefaultBinaryNamingScheme implements BinaryNamingScheme {
         StringBuilder builder = new StringBuilder();
         builder.append(GUtil.toWords(binaryType));
         builder.append(" '");
-        List<String> elements = Lists.newArrayList();
+        List<String> elements = new ArrayList<>();
         elements.add(parentName);
         if (binaryName != null) {
             elements.add(binaryName);

@@ -45,19 +45,9 @@ import org.gradle.util.internal.ConfigureUtil;
 import javax.annotation.Nullable;
 
 public class DefaultDependencyConstraintHandler implements DependencyConstraintHandler, MethodMixIn {
-    private final static DependencyConstraint DUMMY_CONSTRAINT = new DependencyConstraintInternal() {
+    private final static DependencyConstraint DUMMY_CONSTRAINT = new DependencyConstraint() {
         private InvalidUserCodeException shouldNotBeCalled() {
             return new InvalidUserCodeException("You shouldn't use a dependency constraint created via a Provider directly");
-        }
-
-        @Override
-        public void setForce(boolean force) {
-            throw shouldNotBeCalled();
-        }
-
-        @Override
-        public boolean isForce() {
-            throw shouldNotBeCalled();
         }
 
         @Override
@@ -115,30 +105,23 @@ public class DefaultDependencyConstraintHandler implements DependencyConstraintH
         public ModuleIdentifier getModule() {
             throw shouldNotBeCalled();
         }
-
-        @Override
-        public DependencyConstraint copy() {
-            throw shouldNotBeCalled();
-        }
     };
     private final ConfigurationContainer configurationContainer;
-    private final DependencyFactoryInternal dependencyFactory;
+    private final DependencyConstraintFactoryInternal dependencyConstraintFactory;
     private final DynamicAddDependencyMethods dynamicMethods;
     private final ObjectFactory objects;
     private final PlatformSupport platformSupport;
-    private final Category platform;
     private final Category enforcedPlatform;
 
     public DefaultDependencyConstraintHandler(ConfigurationContainer configurationContainer,
-                                              DependencyFactoryInternal dependencyFactory,
+                                              DependencyConstraintFactoryInternal dependencyConstraintFactory,
                                               ObjectFactory objects,
                                               PlatformSupport platformSupport) {
         this.configurationContainer = configurationContainer;
-        this.dependencyFactory = dependencyFactory;
+        this.dependencyConstraintFactory = dependencyConstraintFactory;
         this.dynamicMethods = new DynamicAddDependencyMethods(configurationContainer, new DependencyConstraintAdder());
         this.objects = objects;
         this.platformSupport = platformSupport;
-        platform = toCategory(Category.REGULAR_PLATFORM);
         enforcedPlatform = toCategory(Category.ENFORCED_PLATFORM);
     }
 
@@ -178,7 +161,7 @@ public class DefaultDependencyConstraintHandler implements DependencyConstraintH
     }
 
     private DependencyConstraint doCreate(Object dependencyNotation, @Nullable Action<? super DependencyConstraint> configureAction) {
-        DependencyConstraint dependencyConstraint = dependencyFactory.createDependencyConstraint(dependencyNotation);
+        DependencyConstraint dependencyConstraint = dependencyConstraintFactory.createDependencyConstraint(dependencyNotation);
         if (configureAction != null) {
             configureAction.execute(dependencyConstraint);
         }
@@ -237,7 +220,7 @@ public class DefaultDependencyConstraintHandler implements DependencyConstraintH
             if (dependencyNotation instanceof Provider<?>) {
                 return doAddProvider(configuration, (Provider<?>) dependencyNotation, ConfigureUtil.configureUsing(configureClosure));
             }
-            DependencyConstraint dependencyConstraint = ConfigureUtil.configure(configureClosure, dependencyFactory.createDependencyConstraint(dependencyNotation));
+            DependencyConstraint dependencyConstraint = ConfigureUtil.configure(configureClosure, dependencyConstraintFactory.createDependencyConstraint(dependencyNotation));
             configuration.getDependencyConstraints().add(dependencyConstraint);
             return dependencyConstraint;
         }

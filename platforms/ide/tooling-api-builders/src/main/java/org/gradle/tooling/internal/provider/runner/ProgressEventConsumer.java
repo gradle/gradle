@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.operations.BuildOperationAncestryTracker;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -28,6 +29,7 @@ import javax.annotation.Nullable;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+@NonNullApi
 class ProgressEventConsumer {
 
     private final Set<Object> startedIds = ConcurrentHashMap.newKeySet();
@@ -41,7 +43,8 @@ class ProgressEventConsumer {
 
     @Nullable
     OperationIdentifier findStartedParentId(BuildOperationDescriptor operation) {
-        return ancestryTracker.findClosestMatchingAncestor(operation.getParentId(), startedIds::contains)
+        return ancestryTracker
+            .findClosestMatchingAncestor(operation.getParentId(), startedIds::contains)
             .orElse(null);
     }
 

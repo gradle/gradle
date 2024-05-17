@@ -16,10 +16,12 @@
 
 package org.gradle.api.internal.provider
 
+import org.gradle.api.internal.provider.CircularEvaluationSpec.CircularFunctionEvaluationSpec
 import org.gradle.api.provider.Provider
 import org.gradle.internal.state.ManagedFactory
 
 import java.util.concurrent.Callable
+import java.util.function.Consumer
 
 class DefaultProviderTest extends ProviderSpec<String> {
     @Override
@@ -127,6 +129,32 @@ class DefaultProviderTest extends ProviderSpec<String> {
         @Override
         List<T> call() throws Exception {
             return null
+        }
+    }
+
+    static class DefaultProviderCircularFunctionEvaluationTest extends CircularFunctionEvaluationSpec<String> {
+        @Override
+        ProviderInternal<String> providerWithSelfReference() {
+            def callable = new Callable<String>() {
+                def provider
+
+                @Override
+                String call() throws Exception {
+                    return provider.get()
+                }
+
+                @Override
+                String toString() {
+                    return "Callable " + provider
+                }
+            }
+            callable.provider = new DefaultProvider<>(callable)
+            return callable.provider
+        }
+
+        @Override
+        List<Consumer<ProviderInternal<?>>> safeConsumers() {
+            return [ProviderConsumer.TO_STRING, ProviderConsumer.GET_PRODUCER]
         }
     }
 }

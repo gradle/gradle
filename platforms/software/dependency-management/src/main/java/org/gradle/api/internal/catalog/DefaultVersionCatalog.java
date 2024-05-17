@@ -100,6 +100,22 @@ public class DefaultVersionCatalog implements Serializable {
         return plugins.get(normalize(name));
     }
 
+    public boolean hasDependency(String alias) {
+        return libraries.containsKey(normalize(alias));
+    }
+
+    public boolean hasBundle(String alias) {
+        return bundles.containsKey(normalize(alias));
+    }
+
+    public boolean hasVersion(String alias) {
+        return versions.containsKey(normalize(alias));
+    }
+
+    public boolean hasPlugin(String alias) {
+        return plugins.containsKey(normalize(alias));
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {

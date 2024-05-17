@@ -205,7 +205,7 @@ class Main {
         then:
         if (FluidDependenciesResolveInterceptor.isFluid()) {
             failure.assertHasDescription("Could not determine the dependencies of task ':verify'.")
-            failure.assertHasCause("Could not resolve all task dependencies for configuration ':compile'.")
+            failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
             failure.assertHasCause("Could not find org:does-not-exist:1.0.")
         } else {
             failure.assertHasDescription("Execution failed for task ':verify'.")

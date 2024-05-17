@@ -18,18 +18,16 @@ package org.gradle.internal.buildtree;
 
 import org.gradle.execution.EntryTaskSelector;
 import org.gradle.internal.build.ExecutionResult;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
 
-@ServiceScope(Scopes.BuildTree.class)
+@ServiceScope(Scope.BuildTree.class)
 public interface BuildTreeWorkController {
 
     /**
      * Schedules and runs requested tasks based on the provided {@code taskSelector}.
-     *
-     * @param isModelBuildingRequested True if tasks run was requested as a part of model building process.
-     * */
-    ExecutionResult<Void> scheduleAndRunRequestedTasks(@Nullable EntryTaskSelector taskSelector, boolean isModelBuildingRequested);
+     */
+    ExecutionResult<Void> scheduleAndRunRequestedTasks(@Nullable EntryTaskSelector taskSelector);
 }

@@ -16,9 +16,9 @@
 
 package org.gradle.internal.component.external.descriptor;
 
-import com.google.common.collect.Sets;
 import org.gradle.internal.component.model.IvyArtifactName;
 
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class Artifact {
@@ -26,7 +26,7 @@ public class Artifact {
     private final Set<String> configurations;
 
     public Artifact(IvyArtifactName artifactName) {
-        this(artifactName, Sets.newLinkedHashSet());
+        this(artifactName, new LinkedHashSet<>());
     }
 
     public Artifact(IvyArtifactName artifactName, Set<String> configurations) {

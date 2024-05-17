@@ -26,7 +26,6 @@ import org.gradle.api.internal.provider.Providers
 import org.gradle.api.internal.tasks.TaskDestroyablesInternal
 import org.gradle.api.internal.tasks.TaskInputFilePropertyBuilderInternal
 import org.gradle.api.internal.tasks.TaskLocalStateInternal
-import org.gradle.api.internal.tasks.properties.InputParameterUtils
 import org.gradle.api.specs.Spec
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.problems.PropertyKind
@@ -294,7 +293,7 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(
         property.run {
             when (this) {
                 is RegisteredProperty.InputFile -> {
-                    val finalValue = DeferredUtil.unpackOrNull(propertyValue)
+                    val finalValue = DeferredUtil.unpackNestableDeferred(propertyValue)
                     writeInputProperty(propertyName, finalValue)
                     writeBoolean(optional)
                     writeBoolean(true)
@@ -306,7 +305,7 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(
                 }
 
                 is RegisteredProperty.Input -> {
-                    val finalValue = InputParameterUtils.prepareInputParameterValue(propertyValue)
+                    val finalValue = DeferredUtil.unpackNestableDeferred(propertyValue)
                     writeInputProperty(propertyName, finalValue)
                     writeBoolean(optional)
                     writeBoolean(false)

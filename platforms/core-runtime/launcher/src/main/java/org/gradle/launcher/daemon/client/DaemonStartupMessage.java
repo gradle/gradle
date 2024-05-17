@@ -17,8 +17,8 @@
 package org.gradle.launcher.daemon.client;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class DaemonStartupMessage {
@@ -29,7 +29,7 @@ public class DaemonStartupMessage {
     public static String generate(final int numBusy, final int numIncompatible, final int numStopped) {
         final int totalUnavailableDaemons = numBusy + numIncompatible + numStopped;
         if (totalUnavailableDaemons > 0) {
-            final List<String> reasons = Lists.newArrayList();
+            final List<String> reasons = new ArrayList<>();
             if (numBusy > 0) {
                 reasons.add(numBusy + " busy");
             }

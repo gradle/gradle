@@ -16,12 +16,14 @@
 
 package org.gradle.api.internal
 
+import groovy.test.NotYetImplemented
 import org.gradle.api.Action
 import org.gradle.api.internal.collections.IterationOrderRetainingSetElementSource
 import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.internal.provider.ValueSupplier
 import org.gradle.api.specs.Spec
 import org.gradle.internal.code.UserCodeSource
+import org.gradle.util.TestUtil
 
 import static org.gradle.util.internal.WrapUtil.toList
 
@@ -422,5 +424,55 @@ class DefaultDomainObjectCollectionTest extends AbstractDomainObjectCollectionSp
     def canRemoveNonExistentObject() {
         expect:
         !container.remove("a")
+    }
+
+    def "withType works with addLater"() {
+        given:
+        def value = Mock(Subtype)
+
+        when:
+        container.addLater(TestUtil.providerFactory().provider { value })
+        def result = collect(container.withType(Subtype))
+
+        then:
+        result == [value]
+    }
+
+    @NotYetImplemented
+    def "withType works with addAllLater"() {
+        given:
+        def value = Mock(Subtype)
+
+        when:
+        container.addAllLater(TestUtil.providerFactory().provider { [value] })
+        def result = collect(container.withType(Subtype))
+
+        then:
+        result == [value]
+    }
+
+    @NotYetImplemented
+    def "withType works for addAllLater and list property"() {
+        def value = Mock(Subtype)
+        def property = TestUtil.objectFactory().listProperty(CharSequence)
+        property.add(value)
+
+        when:
+        container.addAllLater(property)
+        def result = collect(container.withType(Subtype))
+
+        then:
+        result == [value]
+    }
+
+    interface Subtype extends CharSequence {}
+
+    static <T> Collection<T> collect(Iterable<T> iterable) {
+        def result = []
+        Iterator it = iterable.iterator()
+        while (it.hasNext()) {
+            result.add(it.next())
+        }
+        result
     }
 }

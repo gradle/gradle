@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.repositories;
 
-import com.google.common.base.Suppliers;
 import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
 import org.gradle.api.NamedDomainObjectCollection;
@@ -28,6 +27,7 @@ import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.artifacts.repositories.MetadataSupplierAware;
 import org.gradle.api.artifacts.repositories.RepositoryContentDescriptor;
 import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor;
+import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalRepositoryResourceAccessor;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
@@ -46,7 +46,8 @@ import org.gradle.internal.service.DefaultServiceRegistry;
 
 import javax.annotation.Nullable;
 import java.net.URI;
-import java.util.function.Supplier;
+import java.util.Map;
+import java.util.Set;
 
 public abstract class AbstractArtifactRepository implements ArtifactRepositoryInternal, ContentFilteringRepository, MetadataSupplierAware {
     private String name;
@@ -56,12 +57,11 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
     private Action<? super ActionConfiguration> componentMetadataSupplierRuleConfiguration;
     private Action<? super ActionConfiguration> componentMetadataListerRuleConfiguration;
     private final ObjectFactory objectFactory;
-    private final Supplier<RepositoryContentDescriptorInternal> repositoryContentDescriptor = Suppliers.memoize(this::createRepositoryDescriptor)::get;
-    private final VersionParser versionParser;
+    private final RepositoryContentDescriptorInternal repositoryContentDescriptor;
 
     protected AbstractArtifactRepository(ObjectFactory objectFactory, VersionParser versionParser) {
-       this.objectFactory = objectFactory;
-        this.versionParser = versionParser;
+        this.objectFactory = objectFactory;
+        this.repositoryContentDescriptor = createRepositoryDescriptor(versionParser);
     }
 
     @Override
@@ -112,27 +112,38 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
     }
 
     @Override
-    public RepositoryContentDescriptorInternal createRepositoryDescriptor() {
+    public RepositoryContentDescriptorInternal createRepositoryDescriptor(VersionParser versionParser) {
         return new DefaultRepositoryContentDescriptor(this::getDisplayName, versionParser);
     }
 
     @Override
     public RepositoryContentDescriptorInternal getRepositoryDescriptorCopy() {
-        return repositoryContentDescriptor.get().asMutableCopy();
-    }
-
-    RepositoryContentDescriptorInternal getRepositoryDescriptor() {
-        return repositoryContentDescriptor.get();
+        return repositoryContentDescriptor.asMutableCopy();
     }
 
     @Override
     public Action<? super ArtifactResolutionDetails> getContentFilter() {
-        return repositoryContentDescriptor.get().toContentFilter();
+        return repositoryContentDescriptor.toContentFilter();
+    }
+
+    @Override
+    public Set<String> getIncludedConfigurations() {
+        return repositoryContentDescriptor.getIncludedConfigurations();
+    }
+
+    @Override
+    public Set<String> getExcludedConfigurations() {
+        return repositoryContentDescriptor.getExcludedConfigurations();
+    }
+
+    @Override
+    public Map<Attribute<Object>, Set<Object>> getRequiredAttributes() {
+        return repositoryContentDescriptor.getRequiredAttributes();
     }
 
     @Override
     public void content(Action<? super RepositoryContentDescriptor> configureAction) {
-        configureAction.execute(repositoryContentDescriptor.get());
+        configureAction.execute(repositoryContentDescriptor);
     }
 
     @Nullable

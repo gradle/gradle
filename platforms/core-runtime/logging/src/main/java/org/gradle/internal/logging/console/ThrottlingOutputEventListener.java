@@ -17,7 +17,7 @@
 package org.gradle.internal.logging.console;
 
 import org.gradle.internal.logging.events.EndOutputEvent;
-import org.gradle.internal.logging.events.FlushOutputEvent;
+import org.gradle.internal.logging.events.InteractiveEvent;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.UpdateNowEvent;
@@ -78,12 +78,12 @@ public class ThrottlingOutputEventListener implements OutputEventListener {
         synchronized (lock) {
             queue.add(newEvent);
 
-            if (queue.size() == 10000 || newEvent instanceof UpdateNowEvent) {
+            if (queue.size() == 10000) {
                 renderNow();
                 return;
             }
 
-            if (newEvent instanceof FlushOutputEvent) {
+            if (newEvent instanceof InteractiveEvent) {
                 renderNow();
                 return;
             }

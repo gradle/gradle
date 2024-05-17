@@ -46,6 +46,7 @@ class CacheConfigurationsCompositeBuildTest extends AbstractIntegrationSpec impl
                     snapshotWrappers.removeUnusedEntriesAfterDays = 5
                     downloadedResources.removeUnusedEntriesAfterDays = 10
                     createdResources.removeUnusedEntriesAfterDays = 5
+                    buildCache.removeUnusedEntriesAfterDays = 15
                 }
             }
         """

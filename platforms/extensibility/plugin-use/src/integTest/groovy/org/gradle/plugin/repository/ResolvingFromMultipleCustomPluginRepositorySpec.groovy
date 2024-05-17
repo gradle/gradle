@@ -167,6 +167,7 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
             Plugin [id: 'org.example.foo', version: '1.1'] was not found in any of the following sources:
 
             - Gradle Core Plugins (plugin is not in 'org.gradle' namespace)
+            - Included Builds (No included builds contain this plugin)
             - Plugin Repositories (could not resolve plugin artifact 'org.example.foo:org.example.foo.gradle.plugin:1.1')
               Searched in the following repositories:
                 ${repoType}(${repoA.uri})

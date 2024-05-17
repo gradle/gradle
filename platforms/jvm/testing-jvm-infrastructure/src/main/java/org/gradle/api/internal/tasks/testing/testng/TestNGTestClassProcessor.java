@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.testng;
 
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
@@ -119,6 +120,10 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
         setPreserveOrder(testNg, spec.getPreserveOrder());
         setGroupByInstances(testNg, spec.getGroupByInstances());
 
+        if (StringUtils.isNotEmpty(spec.getThreadPoolFactoryClass())) {
+            setThreadPoolFactoryClass(testNg, spec.getThreadPoolFactoryClass());
+        }
+
         testNg.setUseDefaultListeners(spec.getUseDefaultListeners());
         testNg.setVerbose(0);
         testNg.setGroups(CollectionUtils.join(",", spec.getIncludeGroups()));
@@ -197,6 +202,14 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
             if (value) {
                 throw new InvalidUserDataException("Grouping tests by instances is not supported by this version of TestNG.");
             }
+        }
+    }
+
+    private void setThreadPoolFactoryClass(TestNG testNg, String threadPoolFactoryClass) {
+        try {
+            JavaMethod.of(TestNG.class, Object.class, "setExecutorFactoryClass", String.class).invoke(testNg, threadPoolFactoryClass);
+        } catch (NoSuchMethodException e) {
+            throw new InvalidUserDataException("The version of TestNG used does not support setting thread pool factory class.");
         }
     }
 

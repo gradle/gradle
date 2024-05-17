@@ -18,7 +18,6 @@ package org.gradle.api.reporting.dependents;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -36,6 +35,7 @@ import org.gradle.platform.base.internal.dependents.DependentBinariesResolver;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -174,7 +174,7 @@ public abstract class DependentComponentsReport extends DefaultTask {
         if (components == null || components.isEmpty()) {
             return allComponents;
         }
-        Set<ComponentSpec> reportedComponents = Sets.newLinkedHashSet();
+        Set<ComponentSpec> reportedComponents = new LinkedHashSet<>();
         List<String> notFound = Lists.newArrayList(components);
         for (ComponentSpec candidate : allComponents) {
             String candidateName = candidate.getName();

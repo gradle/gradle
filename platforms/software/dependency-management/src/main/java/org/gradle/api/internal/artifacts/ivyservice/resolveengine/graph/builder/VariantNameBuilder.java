@@ -15,12 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
-import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 
 import javax.annotation.Nullable;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -32,7 +32,7 @@ import java.util.Map;
  * the generated names to avoid recreating multiple times.
  */
 public class VariantNameBuilder {
-    private final Map<List<String>, DisplayName> names = Maps.newHashMap();
+    private final Map<List<String>, DisplayName> names = new HashMap<>();
 
     @Nullable
     public DisplayName getVariantName(@Nullable List<String> parts) {

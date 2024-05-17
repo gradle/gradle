@@ -23,13 +23,13 @@ import org.gradle.internal.build.BuildWorkGraph
 import org.gradle.internal.build.BuildWorkGraphController
 import org.gradle.internal.build.ExecutionResult
 import org.gradle.internal.buildtree.BuildTreeWorkGraphPreparer
-import org.gradle.internal.operations.TestBuildOperationExecutor
+import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.test.fixtures.work.TestWorkerLeaseService
 
 class DefaultIncludedBuildTaskGraphTest extends AbstractIncludedBuildTaskGraphTest {
     def workerLeaseService = new TestWorkerLeaseService()
     def preparer = Mock(BuildTreeWorkGraphPreparer)
-    def graph = new DefaultIncludedBuildTaskGraph(executorFactory, new TestBuildOperationExecutor(), buildStateRegistry, workerLeaseService, Stub(PlanExecutor), preparer)
+    def graph = new DefaultIncludedBuildTaskGraph(executorFactory, new TestBuildOperationRunner(), buildStateRegistry, workerLeaseService, Stub(PlanExecutor), preparer)
 
     def "does no work when nothing scheduled"() {
         when:

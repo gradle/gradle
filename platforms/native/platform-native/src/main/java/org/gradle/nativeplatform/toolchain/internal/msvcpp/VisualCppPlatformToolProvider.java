@@ -17,7 +17,6 @@
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Transformer;
 import org.gradle.internal.Transformers;
@@ -57,6 +56,7 @@ import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.util.internal.VersionNumber;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -230,7 +230,7 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider {
         return new Transformer<T, T>() {
             @Override
             public T transform(T original) {
-                List<Transformer<T, T>> transformers = Lists.newArrayList();
+                List<Transformer<T, T>> transformers = new ArrayList<>();
                 transformers.add(PCHUtils.getHeaderToSourceFileTransformer(type));
                 transformers.add(addDefinitions(type));
 

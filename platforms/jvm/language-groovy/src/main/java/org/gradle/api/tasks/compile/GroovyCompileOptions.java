@@ -16,7 +16,6 @@
 package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Maps;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.Console;
@@ -31,6 +30,7 @@ import org.gradle.api.tasks.PathSensitivity;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -56,7 +56,7 @@ public abstract class GroovyCompileOptions extends AbstractOptions {
 
     private GroovyForkOptions forkOptions = getObjectFactory().newInstance(GroovyForkOptions.class);
 
-    private Map<String, Boolean> optimizationOptions = Maps.newHashMap();
+    private Map<String, Boolean> optimizationOptions = new HashMap<>();
 
     private File stubDir;
 

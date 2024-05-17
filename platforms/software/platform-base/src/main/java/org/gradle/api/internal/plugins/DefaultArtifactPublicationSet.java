@@ -26,6 +26,7 @@ import org.gradle.api.internal.provider.CollectionProviderInternal;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
@@ -60,7 +61,7 @@ public abstract class DefaultArtifactPublicationSet {
 
         void addArtifact(PublishArtifact artifact) {
             if (artifacts == null) {
-                artifacts = Sets.newLinkedHashSet();
+                artifacts = new LinkedHashSet<>();
             }
 
             if (artifacts.add(artifact) && defaultArtifacts != null) {
@@ -92,7 +93,7 @@ public abstract class DefaultArtifactPublicationSet {
         @Override
         protected Value<Set<PublishArtifact>> calculateOwnValue(ValueConsumer consumer) {
             if (defaultArtifacts == null) {
-                defaultArtifacts = Sets.newLinkedHashSet();
+                defaultArtifacts = new LinkedHashSet<>();
                 currentDefault = null;
                 if (artifacts != null) {
                     for (PublishArtifact artifact : artifacts) {

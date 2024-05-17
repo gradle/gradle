@@ -92,6 +92,49 @@ class SourcePathProviderTest : FolderBasedTest() {
     }
 
     @Test
+    fun `when init script is parsed, buildSrc sources are not available`() {
+        withFolders {
+            "project" {
+                "buildSrc/src/main" {
+                    +"foo"
+                    +"bar"
+                }
+            }
+            "gradle" {
+                "src" {
+                    +"gradle-foo"
+                    +"gradle-bar"
+                }
+            }
+        }
+
+        val sourcePath = sourcePathFor(
+            classPath = ClassPath.EMPTY,
+            scriptFile = root.resolve("init.gradle.kts"),
+            projectDir = folder("project"),
+            gradleHomeDir = folder("gradle"),
+            sourceDistributionResolver = mock()
+        ).asFiles
+
+        assertThat(
+            sourcePath,
+            hasItems(
+                folder("gradle/src/gradle-foo"),
+                folder("gradle/src/gradle-bar")
+            )
+        )
+        assertThat(
+            sourcePath,
+            not(
+                anyOf(
+                    hasItem(folder("project/buildSrc/src/main/foo")),
+                    hasItem(folder("project/buildSrc/src/main/bar"))
+                )
+            )
+        )
+    }
+
+    @Test
     fun `when setting is parsed, buildSrc sources are not available`() {
         withFolders {
             "project" {

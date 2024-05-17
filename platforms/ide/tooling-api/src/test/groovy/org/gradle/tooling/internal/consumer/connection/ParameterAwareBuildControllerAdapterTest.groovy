@@ -22,6 +22,7 @@ import org.gradle.tooling.internal.adapter.ObjectGraphAdapter
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
 import org.gradle.tooling.internal.adapter.ViewBuilder
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping
+import org.gradle.tooling.internal.consumer.versioning.VersionDetails
 import org.gradle.tooling.internal.protocol.BuildResult
 import org.gradle.tooling.internal.protocol.InternalBuildControllerVersion2
 import org.gradle.tooling.internal.protocol.InternalProtocolInterface
@@ -44,7 +45,7 @@ class ParameterAwareBuildControllerAdapterTest extends Specification {
         }
     }
     def delegate = Mock(InternalBuildControllerVersion2)
-    def controller = new ParameterAwareBuildControllerAdapter(delegate, adapter, mapping, new File("root"))
+    def controller = new ParameterAwareBuildControllerAdapter(delegate, adapter, mapping, Stub(VersionDetails), new File("root"))
 
     def "unpacks unsupported model exception"() {
         def failure = new RuntimeException()

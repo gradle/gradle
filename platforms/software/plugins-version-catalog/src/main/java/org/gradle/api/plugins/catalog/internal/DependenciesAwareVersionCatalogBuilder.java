@@ -16,8 +16,6 @@
 package org.gradle.api.plugins.catalog.internal;
 
 import com.google.common.collect.Interner;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Configuration;
@@ -39,6 +37,8 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
 
 import javax.inject.Inject;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -49,7 +49,7 @@ abstract public class DependenciesAwareVersionCatalogBuilder extends DefaultVers
     private final static Logger LOGGER = Logging.getLogger(DependenciesAwareVersionCatalogBuilder.class);
 
     private final Configuration dependenciesConfiguration;
-    private final Map<ModuleIdentifier, String> explicitAliases = Maps.newHashMap();
+    private final Map<ModuleIdentifier, String> explicitAliases = new HashMap<>();
     private boolean shouldAmendModel = true;
 
     @Inject
@@ -68,7 +68,7 @@ abstract public class DependenciesAwareVersionCatalogBuilder extends DefaultVers
         if (shouldAmendModel) {
             DependencySet allDependencies = dependenciesConfiguration.getAllDependencies();
             DependencyConstraintSet allDependencyConstraints = dependenciesConfiguration.getAllDependencyConstraints();
-            Set<ModuleIdentifier> seen = Sets.newHashSet();
+            Set<ModuleIdentifier> seen = new HashSet<>();
             collectDependencies(allDependencies, seen);
             collectConstraints(allDependencyConstraints, seen);
         }

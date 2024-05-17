@@ -28,13 +28,14 @@ import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.initialization.GradlePropertiesController
 import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.CachedClasspathTransformer
+import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForLegacy
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.execution.ExecutionEngine
 import org.gradle.internal.execution.FileCollectionSnapshotter
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
-import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.scripts.ScriptExecutionListener
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
 import org.gradle.kotlin.dsl.normalization.KotlinCompileClasspathFingerprinter
@@ -92,7 +93,7 @@ object BuildServices {
         classpathHasher: ClasspathHasher,
         implicitImports: ImplicitImports,
         progressLoggerFactory: ProgressLoggerFactory,
-        buildOperationExecutor: BuildOperationExecutor,
+        buildOperationRunner: BuildOperationRunner,
         cachedClasspathTransformer: CachedClasspathTransformer,
         listenerManager: ListenerManager,
         executionEngine: ExecutionEngine,
@@ -101,6 +102,7 @@ object BuildServices {
         fileCollectionFactory: FileCollectionFactory,
         inputFingerprinter: InputFingerprinter,
         gradlePropertiesController: GradlePropertiesController,
+        transformFactoryForLegacy: ClasspathElementTransformFactoryForLegacy
     ): KotlinScriptEvaluator =
 
         StandardKotlinScriptEvaluator(
@@ -115,7 +117,7 @@ object BuildServices {
             classpathHasher,
             implicitImports,
             progressLoggerFactory,
-            buildOperationExecutor,
+            buildOperationRunner,
             cachedClasspathTransformer,
             listenerManager.getBroadcaster(ScriptExecutionListener::class.java),
             executionEngine,
@@ -123,6 +125,7 @@ object BuildServices {
             fileCollectionFactory,
             inputFingerprinter,
             gradlePropertiesController,
+            transformFactoryForLegacy
         )
 
     @Suppress("unused")

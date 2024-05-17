@@ -42,7 +42,9 @@ class ConfigurationCacheFlowScopeIntegrationTest extends AbstractConfigurationCa
                     def sharedBeanProvider = flowProviders.buildWorkResult.map { sharedBean }
                     2.times {
                         flowScope.always(IncrementAndPrint) {
-                            parameters.bean = sharedBeanProvider
+                            parameters {
+                                bean = sharedBeanProvider
+                            }
                         }
                     }
                 }

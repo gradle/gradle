@@ -15,9 +15,9 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories;
 
-import com.google.common.collect.Maps;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -170,7 +170,7 @@ public class CachingExcludeFactory extends DelegatingExcludeFactory {
     }
 
     private static class ConcurrentCache<K, V> {
-        private final Map<K, V> backingMap = Maps.newHashMap();
+        private final Map<K, V> backingMap = new HashMap<>();
 
         static <K, V> ConcurrentCache<K, V> of() {
             return new ConcurrentCache<>();

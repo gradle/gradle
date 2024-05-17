@@ -46,10 +46,10 @@ object SourcePathProvider {
         val scriptType = scriptFile?.let {
             KotlinScriptTypeMatch.forFile(it)?.scriptType
         }
+
         // We also add the "buildSrc" sources onto the source path.
-        // Only exception is the "settings.gradle.kts" script, which is evaluated before "buildSrc", so it shouldn't see the sources
         val projectBuildSrcRoots = when (scriptType) {
-            KotlinScriptType.SETTINGS -> emptyList()
+            KotlinScriptType.INIT, KotlinScriptType.SETTINGS -> emptyList()
             else -> buildSrcRootsOf(projectDir)
         }
 
@@ -59,7 +59,6 @@ object SourcePathProvider {
     /**
      * Returns source directories from buildSrc if any.
      */
-    private
     fun buildSrcRootsOf(projectRoot: File): Collection<File> =
         projectRoot.resolve("buildSrc/$buildSrcSourceRootsFilePath")
             .takeIf { it.isFile }
@@ -71,7 +70,6 @@ object SourcePathProvider {
     fun buildSrcRootsFallbackFor(projectRoot: File) =
         subDirsOf(File(projectRoot, "buildSrc/src/main"))
 
-    private
     fun sourceRootsOf(gradleInstallation: File, sourceDistributionResolver: SourceDistributionProvider): Collection<File> =
         gradleInstallationSources(gradleInstallation) ?: downloadedSources(sourceDistributionResolver)
 

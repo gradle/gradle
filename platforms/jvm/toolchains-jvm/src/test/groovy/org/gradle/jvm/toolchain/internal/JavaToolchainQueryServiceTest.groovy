@@ -23,10 +23,8 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.inspection.JavaInstallationRegistry
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector
+import org.gradle.internal.jvm.inspection.JvmToolchainMetadata
 import org.gradle.internal.jvm.inspection.JvmVendor
-import org.gradle.internal.operations.TestBuildOperationExecutor
-import org.gradle.internal.os.OperatingSystem
-import org.gradle.internal.progress.NoOpProgressLoggerFactory
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JavaToolchainSpec
 import org.gradle.jvm.toolchain.JvmImplementation
@@ -45,12 +43,16 @@ import static org.gradle.internal.jvm.inspection.JvmInstallationMetadata.JavaIns
 
 class JavaToolchainQueryServiceTest extends Specification {
 
+    JavaToolchainSpec createSpec() {
+        TestUtil.objectFactory().newInstance(DefaultToolchainSpec)
+    }
+
     def "can query for matching toolchain using version #versionToFind"() {
         given:
         def queryService = setupInstallations(versionRange(8, 12))
 
         when:
-        def filter = new DefaultToolchainSpec(TestUtil.objectFactory())
+        def filter = createSpec()
         filter.languageVersion.set(versionToFind)
         def toolchain = queryService.findMatchingToolchain(filter).get()
 
@@ -69,7 +71,7 @@ class JavaToolchainQueryServiceTest extends Specification {
         def queryService = setupInstallations(["8.0", "8.0.242.hs-adpt", "7.9", "7.7", "14.0.2+12", "8.0.zzz.foo"])
 
         when:
-        def filter = new DefaultToolchainSpec(TestUtil.objectFactory())
+        def filter = createSpec()
         filter.languageVersion.set(versionToFind)
         def toolchain = queryService.findMatchingToolchain(filter).get()
 
@@ -91,7 +93,7 @@ class JavaToolchainQueryServiceTest extends Specification {
         def versionToFind = JavaLanguageVersion.of(8)
 
         when:
-        def filter = new DefaultToolchainSpec(TestUtil.objectFactory())
+        def filter = createSpec()
         filter.languageVersion.set(versionToFind)
         def toolchain = queryService.findMatchingToolchain(filter).get()
 
@@ -105,7 +107,7 @@ class JavaToolchainQueryServiceTest extends Specification {
         def queryService = setupInstallations(["8.0", "8.0.242.hs-adpt", "7.9", "7.7", "14.0.2+12", "8.0.1.j9"])
 
         when:
-        def filter = new DefaultToolchainSpec(TestUtil.objectFactory())
+        def filter = createSpec()
         filter.languageVersion.set(JavaLanguageVersion.of(8))
         filter.implementation.set(JvmImplementation.J9)
         def toolchain = queryService.findMatchingToolchain(filter).get()
@@ -120,7 +122,7 @@ class JavaToolchainQueryServiceTest extends Specification {
         def queryService = setupInstallations(["8.0.2.j9", "8.0.1.hs"])
 
         when:
-        def filter = new DefaultToolchainSpec(TestUtil.objectFactory())
+        def filter = createSpec()
         filter.languageVersion.set(JavaLanguageVersion.of(8))
         def toolchain = queryService.findMatchingToolchain(filter).get()
 
@@ -139,7 +141,7 @@ class JavaToolchainQueryServiceTest extends Specification {
         )
 
         when:
-        def filter = new DefaultToolchainSpec(TestUtil.objectFactory())
+        def filter = createSpec()
         filter.languageVersion.set(JavaLanguageVersion.of(8))
         filter.vendor.set(JvmVendorSpec.IBM)
         def toolchain = queryService.findMatchingToolchain(filter)
@@ -155,7 +157,7 @@ class JavaToolchainQueryServiceTest extends Specification {
         def queryService = setupInstallations(["8.0", "8.0.242.hs-adpt", "8.0.broken"])
 
         when:
-        def filter = new DefaultToolchainSpec(TestUtil.objectFactory())
+        def filter = createSpec()
         filter.languageVersion.set(JavaLanguageVersion.of(8))
         def toolchain = queryService.findMatchingToolchain(filter).get()
 
@@ -169,7 +171,7 @@ class JavaToolchainQueryServiceTest extends Specification {
         def queryService = setupInstallations(["8", "9", "10"])
 
         when:
-        def filter = new DefaultToolchainSpec(TestUtil.objectFactory())
+        def filter = createSpec()
         filter.languageVersion.set(JavaLanguageVersion.of(12))
         def toolchain = queryService.findMatchingToolchain(filter)
         toolchain.get()
@@ -186,7 +188,7 @@ class JavaToolchainQueryServiceTest extends Specification {
         def queryService = setupInstallations(versionRange(8, 19), currentJvm)
 
         when:
-        def filter = new CurrentJvmToolchainSpec(TestUtil.objectFactory())
+        def filter = TestUtil.objectFactory().newInstance(CurrentJvmToolchainSpec)
         def toolchain = queryService.findMatchingToolchain(filter)
 
         then:
@@ -202,7 +204,7 @@ class JavaToolchainQueryServiceTest extends Specification {
         def queryService = setupInstallations(versionRange(8, 19), currentJvm)
 
         when:
-        def filter = new DefaultToolchainSpec(TestUtil.objectFactory())
+        def filter = createSpec()
         def toolchain = queryService.findMatchingToolchain(filter)
 
         then:
@@ -219,7 +221,7 @@ class JavaToolchainQueryServiceTest extends Specification {
         def versionToFind = JavaLanguageVersion.of(17)
 
         when:
-        def filter = new DefaultToolchainSpec(TestUtil.objectFactory())
+        def filter = createSpec()
         filter.languageVersion.set(versionToFind)
         def toolchain = queryService.findMatchingToolchain(filter).get()
 
@@ -239,13 +241,13 @@ class JavaToolchainQueryServiceTest extends Specification {
         def queryService = setupInstallations(versionRange(8, 19), currentJvm)
 
         when:
-        def currentJvmFilter = new CurrentJvmToolchainSpec(TestUtil.objectFactory())
+        def currentJvmFilter = TestUtil.objectFactory().newInstance(CurrentJvmToolchainSpec)
         def currentJvmToolchain = queryService.findMatchingToolchain(currentJvmFilter).get()
         then:
         !currentJvmToolchain.isFallbackToolchain()
 
         when:
-        def fallbackFilter = new DefaultToolchainSpec(TestUtil.objectFactory())
+        def fallbackFilter = createSpec()
         def fallbackToolchain = queryService.findMatchingToolchain(fallbackFilter).get()
         then:
         fallbackToolchain.isFallbackToolchain()
@@ -262,13 +264,13 @@ class JavaToolchainQueryServiceTest extends Specification {
         def queryService = setupInstallations(versionRange(8, 19), currentJvm)
 
         when:
-        def fallbackFilter = new DefaultToolchainSpec(TestUtil.objectFactory())
+        def fallbackFilter = createSpec()
         def fallbackToolchain = queryService.findMatchingToolchain(fallbackFilter).get()
         then:
         fallbackToolchain.isFallbackToolchain()
 
         when:
-        def currentJvmFilter = new CurrentJvmToolchainSpec(TestUtil.objectFactory())
+        def currentJvmFilter = TestUtil.objectFactory().newInstance(CurrentJvmToolchainSpec)
         def currentJvmToolchain = queryService.findMatchingToolchain(currentJvmFilter).get()
         then:
         !currentJvmToolchain.isFallbackToolchain()
@@ -285,7 +287,7 @@ class JavaToolchainQueryServiceTest extends Specification {
         )
 
         when:
-        def filter = new DefaultToolchainSpec(TestUtil.objectFactory())
+        def filter = createSpec()
         filter.languageVersion.set(JavaLanguageVersion.of(8))
         filter.vendor.set(JvmVendorSpec.BELLSOFT)
         def toolchain = queryService.findMatchingToolchain(filter)
@@ -319,7 +321,7 @@ class JavaToolchainQueryServiceTest extends Specification {
         def queryService = createQueryService(registry, newJvmMetadataDetector(), provisionService)
 
         when:
-        def filter = new DefaultToolchainSpec(TestUtil.objectFactory())
+        def filter = createSpec()
         filter.languageVersion.set(JavaLanguageVersion.of(12))
         def toolchain = queryService.findMatchingToolchain(filter)
         toolchain.get()
@@ -351,7 +353,7 @@ class JavaToolchainQueryServiceTest extends Specification {
         def queryService = createQueryService(registry, newJvmMetadataDetector(), provisionService)
 
         when:
-        def filter = new DefaultToolchainSpec(TestUtil.objectFactory())
+        def filter = createSpec()
         filter.languageVersion.set(JavaLanguageVersion.of(12))
         def toolchain = queryService.findMatchingToolchain(filter)
         toolchain.get()
@@ -384,7 +386,7 @@ class JavaToolchainQueryServiceTest extends Specification {
         def queryService = createQueryService(registry, newJvmMetadataDetector(), provisionService)
 
         when:
-        def filter = new DefaultToolchainSpec(TestUtil.objectFactory())
+        def filter = createSpec()
         filter.languageVersion.set(JavaLanguageVersion.of(12))
         def toolchain = queryService.findMatchingToolchain(filter)
         toolchain.get()
@@ -401,7 +403,7 @@ class JavaToolchainQueryServiceTest extends Specification {
         def versionToFind = JavaLanguageVersion.of(8)
 
         when:
-        def filter = new DefaultToolchainSpec(TestUtil.objectFactory())
+        def filter = createSpec()
         filter.languageVersion.set(versionToFind)
         def toolchain = queryService.findMatchingToolchain(filter).get()
 
@@ -467,31 +469,16 @@ class JavaToolchainQueryServiceTest extends Specification {
     }
 
     private def createInstallationRegistry(
-        Collection<String> installations,
+        Collection<String> locations,
         JvmMetadataDetector detector = newJvmMetadataDetector()
     ) {
-        def supplier = new InstallationSupplier() {
-            @Override
-            String getSourceName() {
-                "test"
-            }
-
-            @Override
-            Set<InstallationLocation> get() {
-                installations.collect{ locationFor(it) } as Set<InstallationLocation>
-            }
+        def installations = locations.collect {
+            def location = locationFor(it)
+            new JvmToolchainMetadata(detector.getMetadata(location), location)
         }
-        def registry = new JavaInstallationRegistry([supplier], detector, new TestBuildOperationExecutor(), OperatingSystem.current(), new NoOpProgressLoggerFactory()) {
-            @Override
-            boolean installationExists(InstallationLocation installationLocation) {
-                return true
-            }
 
-            @Override
-            boolean installationHasExecutable(InstallationLocation installationLocation) {
-                return true
-            }
-        }
+        def registry = Stub(JavaInstallationRegistry)
+        registry.toolchains() >> installations
         registry
     }
 
@@ -499,8 +486,8 @@ class JavaToolchainQueryServiceTest extends Specification {
         return (begin..end).collect { it.toString() }
     }
 
-    private InstallationLocation locationFor(String version){
-        return new InstallationLocation(new File("/path/${version}").absoluteFile, "test")
+    private InstallationLocation locationFor(String version) {
+        return InstallationLocation.userDefined(new File("/path/${version}").absoluteFile, "test")
     }
 
     private JavaToolchainQueryService createQueryService(

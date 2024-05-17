@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.compile;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
@@ -79,7 +78,7 @@ public class CompilationSourceDirs {
 
     private static class SourceRoots implements FileCollectionStructureVisitor {
         private boolean canInferSourceRoots = true;
-        private final List<File> sourceRoots = Lists.newArrayList();
+        private final List<File> sourceRoots = new ArrayList<>();
 
         @Override
         public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {

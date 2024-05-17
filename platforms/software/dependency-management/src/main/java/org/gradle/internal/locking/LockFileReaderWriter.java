@@ -42,6 +42,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class LockFileReaderWriter {
 
@@ -54,7 +55,7 @@ public class LockFileReaderWriter {
     static final String DEPENDENCY_LOCKING_FOLDER = "gradle/dependency-locks";
     static final Charset CHARSET = StandardCharsets.UTF_8;
     static final List<String> LOCKFILE_HEADER_LIST = ImmutableList.of("# This is a Gradle generated file for dependency locking.", "# Manual edits can break the build and are not advised.", "# This file is expected to be part of source control.");
-    static final String EMPTY_CONFIGURATIONS_ENTRY = "empty=";
+    static final String EMPTY_RESOLUTIONS_ENTRY = "empty=";
     static final String BUILD_SCRIPT_PREFIX = "buildscript-";
     static final String SETTINGS_SCRIPT_PREFIX = "settings-";
 
@@ -78,10 +79,10 @@ public class LockFileReaderWriter {
     }
 
     @Nullable
-    public List<String> readLockFile(String configurationName) {
-        checkValidRoot(configurationName);
+    public List<String> readLockFile(String lockId) {
+        checkValidRoot();
 
-        Path lockFile = lockFilesRoot.resolve(decorate(configurationName) + FILE_SUFFIX);
+        Path lockFile = lockFilesRoot.resolve(decorate(lockId) + FILE_SUFFIX);
         listener.fileObserved(lockFile.toFile());
         if (Files.exists(lockFile)) {
             List<String> result;
@@ -98,14 +99,14 @@ public class LockFileReaderWriter {
         }
     }
 
-    private String decorate(String configurationName) {
+    private String decorate(String lockId) {
         if (context.isScript()) {
             if (context.isRootScript()) {
-                return SETTINGS_SCRIPT_PREFIX + configurationName;
+                return SETTINGS_SCRIPT_PREFIX + lockId;
             }
-            return BUILD_SCRIPT_PREFIX + configurationName;
+            return BUILD_SCRIPT_PREFIX + lockId;
         } else {
-            return configurationName;
+            return lockId;
         }
     }
 
@@ -116,14 +117,7 @@ public class LockFileReaderWriter {
         }
     }
 
-    private void checkValidRoot(String configurationName) {
-        if (lockFilesRoot == null) {
-            throw new IllegalStateException("Dependency locking cannot be used for configuration '" + context.identityPath(configurationName) + "'." +
-                LIMITATIONS_DOC_LINK);
-        }
-    }
-
-    private void filterNonModuleLines(List<String> lines) {
+    private static void filterNonModuleLines(List<String> lines) {
         Iterator<String> iterator = lines.iterator();
         while (iterator.hasNext()) {
             String value = iterator.next().trim();
@@ -138,16 +132,16 @@ public class LockFileReaderWriter {
         Predicate<String> empty = String::isEmpty;
         Predicate<String> comment = s -> s.startsWith("#");
         Path uniqueLockFile = getUniqueLockfilePath();
-        List<String> emptyConfigurations = new ArrayList<>();
+        List<String> emptyLockIds = new ArrayList<>();
         Map<String, List<String>> uniqueLockState = new HashMap<>(10);
         listener.fileObserved(uniqueLockFile.toFile());
         if (Files.exists(uniqueLockFile)) {
-            try {
-                Files.lines(uniqueLockFile, CHARSET).filter(empty.or(comment).negate())
+            try (Stream<String> lines = Files.lines(uniqueLockFile, CHARSET)) {
+                lines.filter(empty.or(comment).negate())
                     .filter(line -> {
-                        if (line.startsWith(EMPTY_CONFIGURATIONS_ENTRY)) {
+                        if (line.startsWith(EMPTY_RESOLUTIONS_ENTRY)) {
                             // This is a perf hack for handling the last line in the file in a special way
-                            collectEmptyConfigurations(line, emptyConfigurations);
+                            collectEmptyLockIds(line, emptyLockIds);
                             return false;
                         } else {
                             return true;
@@ -156,8 +150,8 @@ public class LockFileReaderWriter {
             } catch (IOException e) {
                 throw new RuntimeException("Unable to load unique lockfile", e);
             }
-            for (String emptyConfiguration : emptyConfigurations) {
-                uniqueLockState.computeIfAbsent(emptyConfiguration, k -> new ArrayList<>());
+            for (String emptyLockId : emptyLockIds) {
+                uniqueLockState.computeIfAbsent(emptyLockId, k -> new ArrayList<>());
             }
             return uniqueLockState;
         } else {
@@ -165,10 +159,10 @@ public class LockFileReaderWriter {
         }
     }
 
-    private void collectEmptyConfigurations(String line, List<String> emptyConfigurations) {
-        if (line.length() > EMPTY_CONFIGURATIONS_ENTRY.length()) {
-            String[] configurations = line.substring(EMPTY_CONFIGURATIONS_ENTRY.length()).split(",");
-            Collections.addAll(emptyConfigurations, configurations);
+    private static void collectEmptyLockIds(String line, List<String> emptyLockIds) {
+        if (line.length() > EMPTY_RESOLUTIONS_ENTRY.length()) {
+            String[] lockIds = line.substring(EMPTY_RESOLUTIONS_ENTRY.length()).split(",");
+            Collections.addAll(emptyLockIds, lockIds);
         }
     }
 
@@ -181,9 +175,9 @@ public class LockFileReaderWriter {
         if (split.length != 2) {
             throw new InvalidLockFileException("lock file specified in '" + getUniqueLockfilePath().toString() + "'. Line: '" + line + "'", FORMATTING_DOC_LINK);
         }
-        String[] configurations = split[1].split(",");
-        for (String configuration : configurations) {
-            result.compute(configuration, (k, v) -> {
+        String[] lockIds = split[1].split(",");
+        for (String lockId : lockIds) {
+            result.compute(lockId, (k, v) -> {
                 List<String> mapping;
                 if (v == null) {
                     mapping = new ArrayList<>();
@@ -211,46 +205,50 @@ public class LockFileReaderWriter {
         }
 
         // Revert mapping
-        Map<String, List<String>> dependencyToConfigurations = new TreeMap<>();
-        List<String> emptyConfigurations = new ArrayList<>();
-        mapLockStateFromDependencyToConfiguration(lockState, dependencyToConfigurations, emptyConfigurations);
+        Map<String, List<String>> dependencyToLockIds = new TreeMap<>();
+        List<String> emptyLockIds = new ArrayList<>();
+        mapLockStateFromDependencyToLockId(lockState, dependencyToLockIds, emptyLockIds);
 
-        writeUniqueLockfile(lockfilePath, dependencyToConfigurations, emptyConfigurations);
+        writeUniqueLockfile(lockfilePath, dependencyToLockIds, emptyLockIds);
 
         cleanupLegacyLockFiles(lockState.keySet());
     }
 
-    private void cleanupLegacyLockFiles(Set<String> lockedConfigurations) {
-        lockedConfigurations.stream()
+    /**
+     * In prior versions of Gradle, each lock ID had its own lock file.
+     * This method removes those lock files if they are present.
+     */
+    private void cleanupLegacyLockFiles(Set<String> lockIdsToDelete) {
+        lockIdsToDelete.stream()
             .map(f -> lockFilesRoot.resolve(decorate(f) + FILE_SUFFIX))
             .map(Path::toFile)
             .forEach(GFileUtils::deleteQuietly);
     }
 
-    private void writeUniqueLockfile(Path lockfilePath, Map<String, List<String>> dependencyToConfigurations, List<String> emptyConfigurations) {
+    private static void writeUniqueLockfile(Path lockfilePath, Map<String, List<String>> dependencyToLockId, List<String> emptyLockIds) {
         try {
             Files.createDirectories(lockfilePath.getParent());
             List<String> content = new ArrayList<>(50);
             content.addAll(LOCKFILE_HEADER_LIST);
-            for (Map.Entry<String, List<String>> entry : dependencyToConfigurations.entrySet()) {
+            for (Map.Entry<String, List<String>> entry : dependencyToLockId.entrySet()) {
                 String builder = entry.getKey() + "=" + entry.getValue().stream().sorted().collect(Collectors.joining(","));
                 content.add(builder);
             }
-            content.add("empty=" + emptyConfigurations.stream().sorted().collect(Collectors.joining(",")));
+            content.add("empty=" + emptyLockIds.stream().sorted().collect(Collectors.joining(",")));
             Files.write(lockfilePath, content, CHARSET);
         } catch (IOException e) {
             throw new RuntimeException("Unable to write unique lockfile", e);
         }
     }
 
-    private void mapLockStateFromDependencyToConfiguration(Map<String, List<String>> lockState, Map<String, List<String>> dependencyToConfigurations, List<String> emptyConfigurations) {
+    private static void mapLockStateFromDependencyToLockId(Map<String, List<String>> lockState, Map<String, List<String>> dependencyToLockIds, List<String> emptyLockIds) {
         for (Map.Entry<String, List<String>> entry : lockState.entrySet()) {
             List<String> dependencies = entry.getValue();
             if (dependencies.isEmpty()) {
-                emptyConfigurations.add(entry.getKey());
+                emptyLockIds.add(entry.getKey());
             } else {
                 for (String dependency : dependencies) {
-                    dependencyToConfigurations.compute(dependency, (k, v) -> {
+                    dependencyToLockIds.compute(dependency, (k, v) -> {
                         List<String> confs = v;
                         if (v == null) {
                             confs = new ArrayList<>();

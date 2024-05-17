@@ -26,16 +26,15 @@ import common.Os
 import common.applyDefaultSettings
 import common.buildToolGradleParameters
 import common.checkCleanM2AndAndroidUserHome
-import common.cleanUpReadOnlyDir
 import common.compileAllDependency
 import common.functionalTestExtraParameters
 import common.functionalTestParameters
 import common.gradleWrapper
 import common.killProcessStep
 import configurations.CompileAll
-import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
-import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
-import jetbrains.buildServer.configs.kotlin.v2019_2.ParameterDisplay
+import jetbrains.buildServer.configs.kotlin.BuildStep
+import jetbrains.buildServer.configs.kotlin.BuildType
+import jetbrains.buildServer.configs.kotlin.ParameterDisplay
 
 class RerunFlakyTest(os: Os, arch: Arch = Arch.AMD64) : BuildType({
     val id = "Util_RerunFlakyTest${os.asName()}${arch.asName()}"
@@ -61,7 +60,6 @@ class RerunFlakyTest(os: Os, arch: Arch = Arch.AMD64) : BuildType({
         ).joinToString(separator = " ")
 
     killProcessStep(KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS, os, arch)
-    steps.cleanUpReadOnlyDir(os)
 
     (1..10).forEach { idx ->
         steps {
@@ -72,7 +70,7 @@ class RerunFlakyTest(os: Os, arch: Arch = Arch.AMD64) : BuildType({
                 executionMode = BuildStep.ExecutionMode.ALWAYS
             }
         }
-        killProcessStep(KILL_PROCESSES_STARTED_BY_GRADLE, os, arch)
+        killProcessStep(KILL_PROCESSES_STARTED_BY_GRADLE, os, arch, BuildStep.ExecutionMode.ALWAYS)
     }
 
     steps {

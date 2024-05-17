@@ -16,110 +16,28 @@
 
 package org.gradle.integtests.tooling.r86
 
-import groovy.json.JsonSlurper
+import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.integtests.tooling.r85.ProblemProgressEventCrossVersionTest.ProblemProgressListener
 import org.gradle.tooling.BuildException
-import org.gradle.tooling.events.ProgressEvent
-import org.gradle.tooling.events.ProgressListener
-import org.gradle.tooling.events.problems.FileLocation
-import org.gradle.tooling.events.problems.ProblemDescriptor
-import org.gradle.tooling.events.problems.ProblemEvent
-import org.gradle.tooling.events.problems.Severity
-import org.gradle.tooling.events.problems.TaskPathLocation
+import org.gradle.util.GradleVersion
 
-@ToolingApiVersion(">=8.5")
+@ToolingApiVersion("=8.6")
 @TargetGradleVersion(">=8.6")
 class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
-    @TargetGradleVersion("=8.3")
-    def "Older Gradle versions do not report problems"() {
-        setup:
-        buildFile << """
-            plugins {
-              id 'java-library'
-            }
-            repositories.jcenter()
-            task bar {}
-            task baz {}
-        """
-
-        when:
-        def listener = new ProblemProgressListener()
-        withConnection { connection ->
-            connection.newBuild()
-                .forTasks(":ba")
-                .addProgressListener(listener)
-                .setStandardError(System.err)
-                .setStandardOutput(System.out)
-                .addArguments("--info")
-                .run()
-        }
-
-        then:
-        thrown(BuildException)
-        listener.problems.size() == 0
+    def withReportProblemTask(@GroovyBuildScriptLanguage String taskActionMethodBody) {
+        buildFile getProblemReportTaskString(taskActionMethodBody)
+        // TODO using the following code breaks the test, but it should be possible to use it
+        //  buildFile getProblemReportingScript(taskActionMethodBody)
+        //  issue https://github.com/gradle/gradle/issues/27484
     }
 
-    @ToolingApiVersion("=8.5")
-    def "Gradle 8.5 exposes problem events via JSON strings"() {
-        setup:
-        buildFile << """
-            plugins {
-              id 'java-library'
-            }
-            repositories.jcenter()
-            task bar {}
-            task baz {}
+    static String getProblemReportTaskString(String taskActionMethodBody) {
         """
-
-
-        when:
-        def listener = new ProblemProgressListener()
-        withConnection { connection ->
-            connection.newBuild()
-                .forTasks(":ba")
-                .addProgressListener(listener)
-                .setStandardError(System.err)
-                .setStandardOutput(System.out)
-                .addArguments("--info")
-                .run()
-        }
-
-        then:
-        thrown(BuildException)
-        def problems = listener.problems.collect {new JsonSlurper().parseText(it.json) }
-        problems.size() == 2
-    }
-
-    @ToolingApiVersion(">=8.6")
-    def "Problems expose details via Tooling API events"() {
-        given:
-        buildFile << """
-            import org.gradle.api.problems.Problem
             import org.gradle.api.problems.Severity
-            import org.gradle.internal.deprecation.Documentation
-
-
-            class TestDocLink implements DocLink {
-
-                private final String url;
-
-                public TestDocLink(String url) {
-                    this.url = url
-                }
-
-                @Override
-                String getUrl() {
-                    return url;
-                }
-
-                @Override
-                String getConsultDocumentationMessage() {
-                    return "consult " + url;
-                }
-            }
 
             abstract class ProblemReportingTask extends DefaultTask {
                 @Inject
@@ -127,68 +45,184 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
                 @TaskAction
                 void run() {
-                    problems.create {
-                        it.label("shortProblemMessage")
-                        $documentationConfig
-                        .fileLocation("/tmp/foo", 1, 2, 3)
-                        .category("main", "sub", "id")
-                        $detailsConfig
-                        .additionalData("aKey", "aValue")
-                        .severity(Severity.WARNING)
-                        .solution("try this instead")
-                    }.report()
+                    $taskActionMethodBody
                 }
             }
 
             tasks.register("reportProblem", ProblemReportingTask)
         """
-        ProblemProgressListener listener = new ProblemProgressListener()
+    }
 
-        when:
+    def runTask() {
+        def listener = new ProblemProgressListener()
         withConnection { connection ->
             connection.newBuild().forTasks('reportProblem')
                 .addProgressListener(listener)
                 .run()
         }
-        def problems = listener.problems
-
-        then:
-        problems.size() == 1
-        problems[0].category.namespace == 'main' // TODO this is a bug; see https://github.com/gradle/gradle/issues/27123
-        problems[0].category.category == 'main'
-        problems[0].category.subCategories == ['sub','id']
-        problems[0].additionalData.asMap == ['aKey' : 'aValue']
-        problems[0].label.label == 'shortProblemMessage'
-        problems[0].details.details == expectedDetails
-        problems[0].severity == Severity.WARNING
-        problems[0].locations.size() == 2
-        problems[0].locations[0] instanceof FileLocation
-        (problems[0].locations[0] as FileLocation).path == '/tmp/foo'
-        (problems[0].locations[0] as FileLocation).line == 1
-        (problems[0].locations[0] as FileLocation).column == 2
-        (problems[0].locations[0] as FileLocation).length == 3
-        problems[0].locations[1] instanceof TaskPathLocation
-        (problems[0].locations[1] as TaskPathLocation).identityPath == ':reportProblem'
-        problems[0].documentationLink.url == expecteDocumentation // TODO https://github.com/gradle/gradle/issues/27124
-        problems[0].solutions.size() == 1
-        problems[0].solutions[0].solution == 'try this instead'
-        problems[0].exception.exception == null
-
-        where:
-        detailsConfig              | expectedDetails | documentationConfig                                          | expecteDocumentation
-        '.details("long message")' | "long message"  | '.documentedAt(new TestDocLink("https://docs.example.org"))' | 'https://docs.example.org'
-        ''                         | null            | '.undocumented()'                                            | null
+        return listener.problems.collect { it.descriptor }
     }
 
-    class ProblemProgressListener implements ProgressListener {
 
-        List<ProblemDescriptor> problems = []
-
-        @Override
-        void statusChanged(ProgressEvent event) {
-            if (event instanceof ProblemEvent) {
-                this.problems.addAll(event.getDescriptor())
+    @TargetGradleVersion("=8.3")
+    def "Older Gradle versions do not report problems"() {
+        setup:
+        buildFile """
+            plugins {
+              id 'java-library'
             }
+            repositories.jcenter()
+            task bar {}
+            task baz {}
+        """
+
+        when:
+        def listener = new ProblemProgressListener()
+        withConnection { connection ->
+            connection.newBuild()
+                .forTasks(":ba")
+                .addProgressListener(listener)
+                .setStandardError(System.err)
+                .setStandardOutput(System.out)
+                .addArguments("--info")
+                .run()
         }
+
+        then:
+        thrown(BuildException)
+        listener.problems.isEmpty()
+    }
+
+    def "Problems expose summary Tooling API events"() {
+        given:
+        withReportProblemTask """
+            for(int i = 0; i < 10; i++) {
+                problems.forNamespace("org.example.plugin").reporting {
+                    it.${targetVersion < GradleVersion.version("8.8") ? 'label("The \'standard-plugin\' is deprecated").category("deprecation", "plugin")' : 'id("adhoc-deprecation", "The \'standard-plugin\' is deprecated")' }
+                        .severity(Severity.WARNING)
+                        .solution("Please use 'standard-plugin-2' instead of this plugin")
+                    }
+            }
+        """
+
+        when:
+        def listener = new ProblemProgressListener()
+        withConnection { connection ->
+            connection.newBuild().forTasks('reportProblem')
+                .addProgressListener(listener)
+                .run()
+        }
+
+        then:
+        def problems = listener.problems
+        problems.size() == 0
+    }
+
+    def "Problems expose details via Tooling API events"() {
+        given:
+        withReportProblemTask """
+            getProblems().forNamespace("org.example.plugin").reporting {
+                it.${targetVersion < GradleVersion.version("8.8") ? 'label("shortProblemMessage").category("main", "sub", "id")' : 'id("id", "shortProblemMessage")' }
+                $documentationConfig
+                .lineInFileLocation("/tmp/foo", 1, 2, 3)
+                $detailsConfig
+                .additionalData("aKey", "aValue")
+                .severity(Severity.WARNING)
+                .solution("try this instead")
+            }
+        """
+
+        when:
+
+        def problems = runTask()
+
+        then:
+        problems.size() == 0
+
+        where:
+        detailsConfig              | expectedDetails | documentationConfig                         | expecteDocumentation
+        '.details("long message")' | "long message"  | '.documentedAt("https://docs.example.org")' | 'https://docs.example.org'
+        ''                         | null            | ''                                          | null
+    }
+
+    def "Problems expose file locations with file path only"() {
+        given:
+        withReportProblemTask """
+            getProblems().forNamespace("org.example.plugin").reporting {
+                it.${targetVersion < GradleVersion.version("8.8") ? 'label("shortProblemMessage").category("main", "sub", "id")' : 'id("id", "shortProblemMessage")' }
+                .fileLocation("/tmp/foo")
+            }
+        """
+
+        when:
+        def problems = runTask()
+
+        then:
+        problems.size() == 0
+    }
+
+    def "Problems expose file locations with path and line"() {
+        given:
+        withReportProblemTask """
+            getProblems().forNamespace("org.example.plugin").reporting {
+                it.${targetVersion < GradleVersion.version("8.8") ? 'label("shortProblemMessage").category("main", "sub", "id")' : 'id("id", "shortProblemMessage")' }
+                .lineInFileLocation("/tmp/foo", 1)
+            }
+        """
+
+        when:
+
+        def problems = runTask()
+
+        then:
+        problems.size() == 0
+    }
+
+    def "Problems expose file locations with path, line and column"() {
+        given:
+        withReportProblemTask """
+                getProblems().forNamespace("org.example.plugin").reporting {
+                    it.${targetVersion < GradleVersion.version("8.8") ? 'label("shortProblemMessage").category("main", "sub", "id")' : 'id("id", "shortProblemMessage")' }
+                    .lineInFileLocation("/tmp/foo", 1, 2)
+                }
+        """
+
+        when:
+        def problems = runTask()
+
+        then:
+        problems.size() == 0
+    }
+
+    def "Problems expose file locations with path, line, column and length"() {
+        given:
+        withReportProblemTask """
+            getProblems().forNamespace("org.example.plugin").reporting {
+                it.${targetVersion < GradleVersion.version("8.8") ? 'label("shortProblemMessage").category("main", "sub", "id")' : 'id("id", "shortProblemMessage")' }
+                .lineInFileLocation("/tmp/foo", 1, 2, 3)
+            }
+        """
+
+        when:
+        def problems = runTask()
+
+        then:
+        problems.size() == 0
+    }
+
+    def "Problems expose file locations with offset and length"() {
+        given:
+        withReportProblemTask """
+            getProblems().forNamespace("org.example.plugin").reporting {
+                it.${targetVersion < GradleVersion.version("8.8") ? 'label("shortProblemMessage").category("main", "sub", "id")' : 'id("id", "shortProblemMessage")' }
+                .offsetInFileLocation("/tmp/foo", 20, 10)
+            }
+        """
+
+        when:
+        def problems = runTask()
+
+        then:
+        problems.size() == 0
     }
 }

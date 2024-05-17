@@ -18,11 +18,17 @@ package org.gradle.internal.execution.history;
 
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.hash.HashCode;
 
 /**
  * Captures the state a {@link org.gradle.internal.execution.UnitOfWork} after the previous execution has finished.
  */
 public interface PreviousExecutionState extends ExecutionInputState, ExecutionOutputState {
+
+    /**
+     * Returns the cache key from the previous execution.
+     */
+    HashCode getCacheKey();
 
     /**
      * {@inheritDoc}

@@ -16,16 +16,12 @@ dependencies {
     pluginsRuntimeOnly(platform(project(":distributions-native")))
 
     pluginsRuntimeOnly(project(":plugin-development"))
+    pluginsRuntimeOnly(project(":build-configuration"))
     pluginsRuntimeOnly(project(":build-init"))
     pluginsRuntimeOnly(project(":build-profile"))
     pluginsRuntimeOnly(project(":antlr"))
     pluginsRuntimeOnly(project(":enterprise"))
-}
-
-tasks.register<gradlebuild.run.tasks.RunEmbeddedGradle>("runDevGradle") {
-    group = "verification"
-    description = "Runs an embedded Gradle using the partial distribution for ${project.path}."
-    gradleClasspath.from(configurations.runtimeClasspath.get(), tasks.runtimeApiInfoJar)
+    pluginsRuntimeOnly(project(":unit-test-fixtures"))
 }
 
 // This is required for the separate promotion build and should be adjusted there in the future

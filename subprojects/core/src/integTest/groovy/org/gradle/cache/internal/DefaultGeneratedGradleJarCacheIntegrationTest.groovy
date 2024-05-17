@@ -59,7 +59,7 @@ class DefaultGeneratedGradleJarCacheIntegrationTest extends Specification {
     def factory = services.get(CacheFactory.class)
     def currentGradleVersion = GradleVersion.current()
     def scopeMapping = new DefaultCacheScopeMapping(tmpDir.testDirectory, currentGradleVersion)
-    def cacheRepository = new DefaultUnscopedCacheBuilderFactory(scopeMapping, factory)
+    def cacheRepository = new DefaultUnscopedCacheBuilderFactory(factory)
     def globalScopedCache = new DefaultGlobalScopedCacheBuilderFactory(tmpDir.testDirectory, cacheRepository)
     def defaultGeneratedGradleJarCache = new DefaultGeneratedGradleJarCache(globalScopedCache, currentGradleVersion.getVersion())
 

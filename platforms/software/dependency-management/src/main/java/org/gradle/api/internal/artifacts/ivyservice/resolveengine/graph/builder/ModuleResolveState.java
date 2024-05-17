@@ -48,6 +48,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -364,7 +365,7 @@ class ModuleResolveState implements CandidateModule {
     }
 
     Set<EdgeState> getIncomingEdges() {
-        Set<EdgeState> incoming = Sets.newLinkedHashSet();
+        Set<EdgeState> incoming = new LinkedHashSet<>();
         if (selected != null) {
             for (NodeState nodeState : selected.getNodes()) {
                 incoming.addAll(nodeState.getIncomingEdges());

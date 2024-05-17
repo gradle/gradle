@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.gradle.api.Buildable;
 import org.gradle.api.InvalidUserDataException;
@@ -35,6 +34,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
@@ -45,7 +45,7 @@ import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 
 import static com.google.common.collect.Iterables.toArray;
-import static org.gradle.util.internal.GUtil.uncheckedCall;
+import static org.gradle.internal.UncheckedException.uncheckedCall;
 
 /**
  * A task dependency which can have both mutable and immutable dependency values.
@@ -212,7 +212,7 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
     }
 
     private static class TaskDependencySet implements Set<Object> {
-        private final Set<Object> delegate = Sets.newHashSet();
+        private final Set<Object> delegate = new HashSet<>();
         private final static String REMOVE_ERROR = "Removing a task dependency from a task instance is not supported.";
 
         @Override

@@ -24,12 +24,36 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.function.Function;
 
 public class BaseRemoteBuildCacheServiceHandle implements RemoteBuildCacheServiceHandle {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(OpFiringRemoteBuildCacheServiceHandle.class);
+
+    protected enum Operation {
+        LOAD("Load", "from"),
+        STORE("Store", "in");
+
+        private final String verb;
+        private final String capitalizedVerb;
+        private final String preposition;
+
+        Operation(String capitalizedVerb, String preposition) {
+            this.capitalizedVerb = capitalizedVerb;
+            this.verb = capitalizedVerb.toLowerCase(Locale.ROOT);
+            this.preposition = preposition;
+        }
+
+        public String describe(BuildCacheKey key, BuildCacheServiceRole role) {
+            return capitalizedVerb + " entry " + key.getHashCode() + " " + preposition + " " + role.getDisplayName() + " build cache";
+        }
+
+        public String describeFailure(BuildCacheKey key, BuildCacheServiceRole role) {
+            return "Could not " + verb + " entry " + key.getHashCode() + " " + preposition + " " + role.getDisplayName() + " build cache";
+        }
+    }
 
     protected final BuildCacheService service;
 
@@ -70,13 +94,13 @@ public class BaseRemoteBuildCacheServiceHandle implements RemoteBuildCacheServic
         if (!canLoad()) {
             return Optional.empty();
         }
-        String description = "Load entry " + key.getDisplayName() + " from " + role.getDisplayName() + " build cache";
+        String description = Operation.LOAD.describe(key, role);
         LOGGER.debug(description);
         LoadTarget loadTarget = new LoadTarget(loadTargetFile);
         try {
             loadInner(description, key, loadTarget);
         } catch (Exception e) {
-            failure("load", "from", key, e);
+            failure(Operation.LOAD, key, e);
         }
         return maybeUnpack(loadTarget, unpackFunction);
     }
@@ -89,7 +113,7 @@ public class BaseRemoteBuildCacheServiceHandle implements RemoteBuildCacheServic
         service.load(key, entryReader);
     }
 
-    private Optional<BuildCacheLoadResult> maybeUnpack(LoadTarget loadTarget, Function<File, BuildCacheLoadResult> unpackFunction) {
+    private static Optional<BuildCacheLoadResult> maybeUnpack(LoadTarget loadTarget, Function<File, BuildCacheLoadResult> unpackFunction) {
         if (loadTarget.isLoaded()) {
             return Optional.ofNullable(unpackFunction.apply(loadTarget.getFile()));
         }
@@ -106,13 +130,13 @@ public class BaseRemoteBuildCacheServiceHandle implements RemoteBuildCacheServic
         if (!canStore()) {
             return false;
         }
-        String description = "Store entry " + key.getDisplayName() + " in " + role.getDisplayName() + " build cache";
+        String description = Operation.STORE.describe(key, role);
         LOGGER.debug(description);
         try {
             storeInner(description, key, new StoreTarget(file));
             return true;
         } catch (Exception e) {
-            failure("store", "in", key, e);
+            failure(Operation.STORE, key, e);
             return false;
         }
     }
@@ -121,19 +145,23 @@ public class BaseRemoteBuildCacheServiceHandle implements RemoteBuildCacheServic
         service.store(key, storeTarget);
     }
 
-    private void failure(String verb, String preposition, BuildCacheKey key, Throwable e) {
+    private void failure(Operation operation, BuildCacheKey key, Throwable failure) {
         if (disableOnError) {
             disabled = true;
+            onCacheDisabledDueToFailure(key, operation, failure);
         }
 
-        String description = "Could not " + verb + " entry " + key.getDisplayName() + " " + preposition + " " + role.getDisplayName() + " build cache";
+        String description = operation.describeFailure(key, role);
         if (LOGGER.isWarnEnabled()) {
             if (logStackTraces) {
-                LOGGER.warn(description, e);
+                LOGGER.warn(description, failure);
             } else {
-                LOGGER.warn(description + ": " + e.getMessage());
+                LOGGER.warn(description + ": " + failure.getMessage());
             }
         }
+    }
+
+    protected void onCacheDisabledDueToFailure(BuildCacheKey key, Operation operation, Throwable failure) {
     }
 
     @Override

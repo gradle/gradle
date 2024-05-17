@@ -21,9 +21,9 @@ import com.alibaba.fastjson.JSONArray
 import com.alibaba.fastjson.JSONObject
 import common.Os
 import configurations.PerformanceTest
-import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
-import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
-import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.script
+import jetbrains.buildServer.configs.kotlin.BuildStep
+import jetbrains.buildServer.configs.kotlin.BuildSteps
+import jetbrains.buildServer.configs.kotlin.buildSteps.script
 import java.io.File
 import java.nio.charset.StandardCharsets
 import java.util.LinkedList
@@ -113,7 +113,7 @@ fun splitBucketsByScenarios(scenarios: List<PerformanceScenario>, testProjectToS
         .groupBy({ it.testProject }, { scenario ->
             listOf(testProjectToScenarioDurations, testProjectScenarioDurationsFallback)
                 .mapNotNull { it.getOrDefault(scenario.testProject, emptyList()).firstOrNull { duration -> duration.scenario == scenario.scenario } }
-                .firstOrNull() ?: throw IllegalArgumentException("No durations found for $scenario")
+                .firstOrNull() ?: PerformanceTestDuration(scenario.scenario, 1) // Fallback for new performance tests (don't use 0 to avoid division by zero)
         })
         .entries
         .map { TestProjectDuration(it.key, it.value) }

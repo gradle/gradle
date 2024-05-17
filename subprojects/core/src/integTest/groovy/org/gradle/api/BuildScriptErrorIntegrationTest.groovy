@@ -166,6 +166,6 @@ def doSomething() {
 
         expect:
         fails()
-        failure.assertHasCause("Could not find method iDontExist() for arguments [foo-bar] on object of type org.gradle.api.plugins.jvm.internal.DefaultJvmComponentDependencies.")
+        failure.assertHasCause("Could not find method iDontExist() for arguments [foo-bar] on property 'dependencies' of type java.lang.Object.")
     }
 }

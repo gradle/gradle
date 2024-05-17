@@ -18,8 +18,8 @@ package configurations
 
 import common.Os
 import common.applyDefaultSettings
-import jetbrains.buildServer.configs.kotlin.v2019_2.ParameterDisplay
-import jetbrains.buildServer.configs.kotlin.v2019_2.ReuseBuilds
+import jetbrains.buildServer.configs.kotlin.ParameterDisplay
+import jetbrains.buildServer.configs.kotlin.ReuseBuilds
 import model.CIBuildModel
 import model.PerformanceTestType
 import projects.PerformanceTestProject
@@ -61,7 +61,7 @@ class PerformanceTestsPass(model: CIBuildModel, performanceTestProject: Performa
             "performanceTestReport"
 
         artifactRules = """
-subprojects/$performanceProjectName/build/performance-test-results.zip
+testing/$performanceProjectName/build/performance-test-results.zip
 """
         if (performanceTestProject.performanceTests.any { it.testProjects.isNotEmpty() }) {
             val dependencyBuildIds = performanceTestProject.performanceTests

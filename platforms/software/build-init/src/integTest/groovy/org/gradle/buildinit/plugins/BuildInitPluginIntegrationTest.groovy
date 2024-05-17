@@ -21,7 +21,9 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.hamcrest.Matcher
 
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLIN
+import static org.gradle.internal.deprecation.Documentation.userManual
 import static org.hamcrest.CoreMatchers.allOf
 import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.not
@@ -102,15 +104,15 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         existingDslFixture.buildFile.createFile()
 
         when:
-        runInitWith targetScriptDsl as BuildInitDsl
+        initFailsWith targetScriptDsl as BuildInitDsl
 
         then:
         result.assertTasksExecuted(":init")
-        outputContains("The build file '${existingDslFixture.buildFileName}' already exists. Skipping build initialization.")
+        result.assertHasErrorOutput("Aborting build initialization due to existing files in the project directory: '${existingDslFixture.rootDir.toPath()}'.")
 
         and:
         !targetDslFixture.settingsFile.exists()
-        targetDslFixture.assertWrapperNotGenerated()
+        targetDslFixture.assertWrapperFilesNotGenerated()
 
         where:
         [existingScriptDsl, targetScriptDsl] << ScriptDslFixture.scriptDslCombinationsFor(2)
@@ -125,15 +127,15 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         existingDslFixture.settingsFile.createFile()
 
         when:
-        runInitWith targetScriptDsl as BuildInitDsl
+        initFailsWith targetScriptDsl as BuildInitDsl
 
         then:
         result.assertTasksExecuted(":init")
-        outputContains("The settings file '${existingDslFixture.settingsFileName}' already exists. Skipping build initialization.")
+        result.assertHasErrorOutput("Aborting build initialization due to existing files in the project directory: '${existingDslFixture.rootDir.toPath()}'.")
 
         and:
         !targetDslFixture.buildFile.exists()
-        targetDslFixture.assertWrapperNotGenerated()
+        targetDslFixture.assertWrapperFilesNotGenerated()
 
         where:
         [existingScriptDsl, targetScriptDsl] << ScriptDslFixture.scriptDslCombinationsFor(2)
@@ -145,24 +147,25 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         def targetDslFixture = dslFixtureFor(targetScriptDsl as BuildInitDsl)
 
         and:
-        def customBuildScript = existingDslFixture.scriptFile("build").createFile()
+        existingDslFixture.scriptFile("build").createFile()
 
         when:
-        runInitWith targetScriptDsl as BuildInitDsl
+        initFailsWith targetScriptDsl as BuildInitDsl
 
         then:
         result.assertTasksExecuted(":init")
-        outputContains("The build file '${customBuildScript.name}' already exists. Skipping build initialization.")
+        result.assertHasErrorOutput("Aborting build initialization due to existing files in the project directory: '${existingDslFixture.rootDir.toPath()}'.")
 
         and:
         !targetDslFixture.buildFile.exists()
         !targetDslFixture.settingsFile.exists()
-        targetDslFixture.assertWrapperNotGenerated()
+        targetDslFixture.assertWrapperFilesNotGenerated()
 
         where:
         [existingScriptDsl, targetScriptDsl] << ScriptDslFixture.scriptDslCombinationsFor(2)
     }
 
+    @SuppressWarnings('GrDeprecatedAPIUsage')
     def "#targetScriptDsl build file generation is skipped when part of a multi-project build with non-standard #existingScriptDsl settings file location"() {
         given:
         def existingDslFixture = dslFixtureFor(existingScriptDsl as BuildInitDsl)
@@ -179,16 +182,16 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         executer.usingSettingsFile(customSettings)
         executer.expectDocumentedDeprecationWarning("Specifying custom settings file location has been deprecated. This is scheduled to be removed in Gradle 9.0. " +
             "Consult the upgrading guide for further information: ${documentationRegistry.getDocumentationFor("upgrading_version_7", "configuring_custom_build_layout")}")
-        runInitWith targetScriptDsl as BuildInitDsl
+        initFailsWith targetScriptDsl as BuildInitDsl
 
         then:
         result.assertTasksExecuted(":init")
-        outputContains("The settings file '${customSettings.name}' already exists. Skipping build initialization.")
+        result.assertHasErrorOutput("Aborting build initialization due to existing files in the project directory: '${existingDslFixture.rootDir.toPath()}'.")
 
         and:
         !targetDslFixture.buildFile.exists()
         !targetDslFixture.settingsFile.exists()
-        targetDslFixture.assertWrapperNotGenerated()
+        targetDslFixture.assertWrapperFilesNotGenerated()
 
         where:
         [existingScriptDsl, targetScriptDsl] << ScriptDslFixture.scriptDslCombinationsFor(2)
@@ -210,13 +213,23 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         pom()
 
         when:
-        succeeds('init', '--type', 'java-application', '--dsl', scriptDsl.id)
+        succeeds('init', '--type', 'java-application', '--dsl', scriptDsl.id, '--overwrite')
 
         then:
         pomValuesNotUsed(dslFixtureFor(scriptDsl))
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
+
+    def "proper links"() {
+
+        when:
+        succeeds('init', '--type', 'java-application', '--dsl', GROOVY.toString().toLowerCase())
+
+        then:
+
+        targetDir.file("settings.gradle").assertContents(containsString(userManual("multi_project_builds").getUrl()))
     }
 
     def "gives decent error message when triggered with unknown init-type"() {
@@ -293,6 +306,10 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
 
         then:
         outputContains("""Options
+     --comments     Include clarifying comments in files.
+
+     --no-comments     Disables option --comments.
+
      --dsl     Set the build script DSL to be used in generated scripts.
                Available values are:
                     groovy
@@ -311,6 +328,10 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
 
      --java-version     Provides java version to use in the project.
 
+     --overwrite     Allow existing files in the build directory to be overwritten?
+
+     --no-overwrite     Disables option --overwrite.
+
      --package     Set the package for source files.
 
      --project-name     Set the project name.
@@ -321,12 +342,14 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
 
      --test-framework     Set the test framework to be used.
                           Available values are:
+                               cpptest
                                junit
                                junit-jupiter
                                kotlintest
                                scalatest
                                spock
                                testng
+                               xctest
 
      --type     Set the type of project to generate.
                 Available values are:
@@ -344,7 +367,17 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
                      kotlin-library
                      pom
                      scala-application
-                     scala-library""")
+                     scala-library
+                     swift-application
+                     swift-library
+
+     --use-defaults     Use default values for options not configured explicitly
+
+     --no-use-defaults     Disables option --use-defaults.
+
+     --rerun     Causes the task to be re-run even if up-to-date.
+
+Description""") // include the next header to make sure all options are listed
     }
 
     def "can initialize in a directory that is under another build's root directory"() {
@@ -386,19 +419,6 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         targetDir.listFiles().size() == 0 // Is still empty
     }
 
-    def "warns when initializing in root project directory of another single project build that does not contain a build script"() {
-        when:
-        containerDir.file("settings.gradle") << """
-            rootProject.name = 'root'
-            rootProject.projectDir = file('${targetDir.name}')
-        """
-
-        then:
-        succeeds "init"
-        outputContains("The settings file '..${File.separatorChar}settings.gradle' already exists. Skipping build initialization.")
-        targetDir.list().size() == 0 // ensure nothing generated
-    }
-
     def "can create build in user home directory"() {
         when:
         useTestDirectoryThatIsNotEmbeddedInAnotherBuild()
@@ -413,7 +433,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         executer.withArguments("--project-cache-dir", dotGradleDir.path)
 
         then:
-        succeeds "init"
+        succeeds "init", '--overwrite'
         targetDir.file("gradlew").assertIsFile()
         targetDir.file("settings.gradle.kts").assertIsFile()
         targetDir.file("build.gradle.kts").assertIsFile()
@@ -428,7 +448,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         executer.withGradleUserHomeDir(dotGradleDir)
 
         then:
-        succeeds "init"
+        succeeds "init", '--overwrite'
         targetDir.file("gradlew").assertIsFile()
         targetDir.file("settings.gradle.kts").assertIsFile()
         targetDir.file("build.gradle.kts").assertIsFile()
@@ -438,6 +458,12 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         def tasks = ['init', '--dsl', dsl.id]
         tasks.addAll(initOptions)
         run tasks
+    }
+
+    private ExecutionResult initFailsWith(BuildInitDsl dsl, String... initOptions) {
+        def tasks = ['init', '--dsl', dsl.id]
+        tasks.addAll(initOptions)
+        fails(*tasks)
     }
 
     private static pomValuesUsed(ScriptDslFixture dslFixture) {

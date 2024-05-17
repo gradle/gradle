@@ -45,7 +45,7 @@ class VersionCatalogGeneratorTest extends Specification {
 
     def "generates empty gradle/libs.versions.toml file for empty registry"() {
         when:
-        versionCatalogGenerator.generate(buildContentGenerationContext)
+        versionCatalogGenerator.generate(buildContentGenerationContext, true)
 
         then:
         versionCatalogFile.file
@@ -57,7 +57,7 @@ class VersionCatalogGeneratorTest extends Specification {
         versionCatalogDependencyRegistry.registerLibrary("com.example.group:long", "v1")
 
         when:
-        versionCatalogGenerator.generate(buildContentGenerationContext)
+        versionCatalogGenerator.generate(buildContentGenerationContext, true)
 
         then:
         versionCatalogFile.file
@@ -76,7 +76,7 @@ com-example-group-long = { module = "com.example.group:long", version.ref = "com
         versionCatalogDependencyRegistry.registerLibrary("group:artifact", "1.1")
 
         when:
-        versionCatalogGenerator.generate(buildContentGenerationContext)
+        versionCatalogGenerator.generate(buildContentGenerationContext, true)
 
         then:
         versionCatalogFile.file
@@ -95,7 +95,7 @@ group-artifact = { module = "group:artifact", version.ref = "group-artifact" }
         versionCatalogDependencyRegistry.registerLibrary("group:long", "1.2")
 
         when:
-        versionCatalogGenerator.generate(buildContentGenerationContext)
+        versionCatalogGenerator.generate(buildContentGenerationContext, true)
 
         then:
         versionCatalogFile.file
@@ -116,7 +116,7 @@ group-long-x1 = { module = "group:long", version.ref = "group-long-x1" }
         versionCatalogDependencyRegistry.registerLibrary("group:artifact_5", "1.1.1")
 
         when:
-        versionCatalogGenerator.generate(buildContentGenerationContext)
+        versionCatalogGenerator.generate(buildContentGenerationContext, true)
 
         then:
         versionCatalogFile.file
@@ -136,7 +136,7 @@ junit-something = { module = "JUnit:something", version.ref = "junit-something" 
         versionCatalogDependencyRegistry.registerPlugin("com.example.long", "1337")
 
         when:
-        versionCatalogGenerator.generate(buildContentGenerationContext)
+        versionCatalogGenerator.generate(buildContentGenerationContext, true)
 
         then:
         versionCatalogFile.file

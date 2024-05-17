@@ -18,7 +18,6 @@ package org.gradle.security.internal;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.bouncycastle.openpgp.PGPPublicKeyRing;
@@ -29,6 +28,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -47,7 +47,7 @@ public class KeyringFilePublicKeyService implements PublicKeyService {
             if (keys == null) {
                 try {
                     List<PGPPublicKeyRing> keyrings = SecuritySupport.loadKeyRingFile(keyRingFile);
-                    Map<Fingerprint, PGPPublicKeyRing> keyToKeyringBuilder = Maps.newHashMap();
+                    Map<Fingerprint, PGPPublicKeyRing> keyToKeyringBuilder = new HashMap<>();
                     ImmutableMultimap.Builder<Long, PGPPublicKeyRing> longIdLongPGPPublicKeyBuilder = ImmutableListMultimap.builder();
 
                     for (PGPPublicKeyRing keyring : keyrings) {

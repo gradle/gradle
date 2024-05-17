@@ -25,15 +25,12 @@ import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.internal.Either;
 import org.gradle.internal.agents.AgentStatus;
 import org.gradle.internal.classpath.transforms.ClassTransform;
-import org.gradle.internal.classpath.transforms.CompositeClassTransform;
-import org.gradle.internal.classpath.transforms.InstrumentingClassTransform;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactory;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForAgent;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForLegacy;
-import org.gradle.internal.classpath.types.DefaultInstrumentingTypeRegistryFactory;
-import org.gradle.internal.classpath.types.GradleCoreInstrumentingTypeRegistry;
-import org.gradle.internal.classpath.types.InstrumentingTypeRegistry;
-import org.gradle.internal.classpath.types.InstrumentingTypeRegistryFactory;
+import org.gradle.internal.classpath.transforms.InstrumentingClassTransform;
+import org.gradle.internal.classpath.types.GradleCoreInstrumentationTypeRegistry;
+import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
@@ -73,8 +70,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     private final AgentStatus agentStatus;
     private final ManagedExecutor executor;
     private final ParallelTransformExecutor parallelTransformExecutor;
-    private final InstrumentingTypeRegistryFactory typeRegistryFactory;
-    private final GradleCoreInstrumentingTypeRegistry gradleCoreInstrumentingRegistry;
+    private final GradleCoreInstrumentationTypeRegistry gradleCoreInstrumentingRegistry;
     private final ClasspathElementTransformFactoryForAgent classpathElementTransformFactoryForAgent;
     private final ClasspathElementTransformFactoryForLegacy classpathElementTransformFactoryForLegacy;
 
@@ -82,14 +78,13 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         GlobalScopedCacheBuilderFactory cacheBuilderFactory,
         ClasspathTransformerCacheFactory classpathTransformerCacheFactory,
         FileAccessTimeJournal fileAccessTimeJournal,
-        ClasspathWalker classpathWalker,
         ClasspathFingerprinter classpathFingerprinter,
         FileSystemAccess fileSystemAccess,
         ExecutorFactory executorFactory,
         GlobalCacheLocations globalCacheLocations,
         FileLockManager fileLockManager,
         AgentStatus agentStatus,
-        GradleCoreInstrumentingTypeRegistry gradleCoreInstrumentingRegistry,
+        GradleCoreInstrumentationTypeRegistry gradleCoreInstrumentingRegistry,
         ClasspathElementTransformFactoryForAgent classpathElementTransformFactoryForAgent,
         ClasspathElementTransformFactoryForLegacy classpathElementTransformFactoryForLegacy
     ) {
@@ -103,7 +98,6 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         this.executor = executorFactory.create("jar transforms", Runtime.getRuntime().availableProcessors());
         this.parallelTransformExecutor = new ParallelTransformExecutor(cache, executor);
         this.gradleCoreInstrumentingRegistry = gradleCoreInstrumentingRegistry;
-        this.typeRegistryFactory = new DefaultInstrumentingTypeRegistryFactory(gradleCoreInstrumentingRegistry, cache, parallelTransformExecutor, classpathWalker, fileSystemAccess);
         this.classpathElementTransformFactoryForAgent = classpathElementTransformFactoryForAgent;
         this.classpathElementTransformFactoryForLegacy = classpathElementTransformFactoryForLegacy;
     }
@@ -166,7 +160,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     }
 
     @Override
-    public ClassPath transform(ClassPath classPath, StandardTransform transform, ClassTransform additional) {
+    public ClassPath transform(ClassPath classPath, ClassTransform additional) {
         if (classPath.isEmpty()) {
             return classPath;
         }
@@ -174,7 +168,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
             classPath,
             instrumentingClasspathFileTransformerFor(
                 classpathElementTransformFactoryForLegacy,
-                new CompositeClassTransform(additional, transformerFor(transform))
+                additional
             )
         );
     }
@@ -185,29 +179,19 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
             return ImmutableList.of();
         }
         ClasspathFileTransformer transformer = fileTransformerFor(transform);
-        InstrumentingTypeRegistry typeRegistry = typeRegistryFactory.createFor(urls, transformer);
         return parallelTransformExecutor.transformAll(
             urls,
-            (url, seen) -> cachedURL(url, transformer, seen, typeRegistry)
+            (url, seen) -> cachedURL(url, transformer, seen, InstrumentationTypeRegistry.empty())
         );
     }
 
     private ClassPath transformFiles(ClassPath classPath, ClasspathFileTransformer transformer) {
-        InstrumentingTypeRegistry typeRegistry = typeRegistryFactory.createFor(classPath.getAsFiles(), transformer);
         return DefaultClassPath.of(
             parallelTransformExecutor.transformAll(
                 classPath.getAsFiles(),
-                (file, seen) -> cachedFile(file, transformer, seen, typeRegistry)
+                (file, seen) -> cachedFile(file, transformer, seen, InstrumentationTypeRegistry.empty())
             )
         );
-    }
-
-    private ClassTransform transformerFor(StandardTransform transform) {
-        if (transform == StandardTransform.BuildLogic) {
-            return new InstrumentingClassTransform();
-        } else {
-            throw new UnsupportedOperationException("Not implemented yet.");
-        }
     }
 
     private ClasspathFileTransformer fileTransformerFor(StandardTransform transform) {
@@ -230,7 +214,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
             gradleCoreInstrumentingRegistry);
     }
 
-    private Optional<Either<URL, Callable<URL>>> cachedURL(URL original, ClasspathFileTransformer transformer, Set<HashCode> seen, InstrumentingTypeRegistry typeRegistry) {
+    private Optional<Either<URL, Callable<URL>>> cachedURL(URL original, ClasspathFileTransformer transformer, Set<HashCode> seen, InstrumentationTypeRegistry typeRegistry) {
         if (original.getProtocol().equals("file")) {
             return cachedFile(Convert.urlToFile(original), transformer, seen, typeRegistry).map(
                 result -> result.fold(
@@ -246,7 +230,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         File original,
         ClasspathFileTransformer transformer,
         Set<HashCode> seen,
-        InstrumentingTypeRegistry typeRegistry
+        InstrumentationTypeRegistry typeRegistry
     ) {
         FileSystemLocationSnapshot snapshot = snapshotOf(original);
         if (snapshot.getType() == FileType.Missing) {
@@ -266,7 +250,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         return Optional.of(left(original));
     }
 
-    private File transformFile(File original, FileSystemLocationSnapshot snapshot, ClasspathFileTransformer transformer, InstrumentingTypeRegistry typeRegistry) {
+    private File transformFile(File original, FileSystemLocationSnapshot snapshot, ClasspathFileTransformer transformer, InstrumentationTypeRegistry typeRegistry) {
         final File result = transformer.transform(original, snapshot, cache.getBaseDir(), typeRegistry);
         markAccessed(result, original);
         return result;

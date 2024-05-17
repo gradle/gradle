@@ -19,6 +19,7 @@ package org.gradle.integtests.resolve.catalog
 import org.gradle.api.internal.catalog.problems.VersionCatalogErrorMessages
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemTestFor
+import org.gradle.api.problems.internal.FileLocation
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.resolve.PluginDslSupport
@@ -30,6 +31,10 @@ import org.junit.Rule
 import spock.lang.Issue
 
 class TomlDependenciesExtensionIntegrationTest extends AbstractVersionCatalogIntegrationTest implements PluginDslSupport, VersionCatalogErrorMessages {
+
+    def setup() {
+        enableProblemsApiCheck()
+    }
 
     @Rule
     final MavenHttpPluginRepository pluginPortal = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
@@ -307,6 +312,8 @@ lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
     }
 
     def "libraries extension is not visible in buildSrc"() {
+        disableProblemsApiCheck()
+
         tomlFile << """[libraries]
 lib = "org.gradle.test:lib:1.0"
 """
@@ -691,6 +698,14 @@ my-other-lib = {group = "org.gradle.test", name="lib2", version.ref="rich"}
             inCatalog('libs')
             missing(path)
         })
+
+        and:
+        verifyAll(receivedProblem) {
+            fqid == 'dependency-version-catalog:catalog-file-does-not-exist'
+            contextualLabel == 'Problem: In version catalog libs, import of external catalog file failed.'
+            details == "File \'${file('missing.toml').absolutePath}\' doesn\'t exist"
+            solutions == [ 'Make sure that the catalog file \'missing.toml\' exists before importing it' ]
+        }
     }
 
     def "can use nested versions, libraries and bundles"() {
@@ -763,8 +778,7 @@ lib = {group = "org.gradle.test", name="lib", version.ref="commons-lib"}
             addError("In file '${tomlFile.absolutePath}' at line 3, column 1: Unexpected \'/\', expected a newline or end-of-input")
         })
 
-        def problems = collectedProblems;
-        problems[0].locations[0].path == tomlFile.absolutePath
+        receivedProblem.oneLocation(FileLocation).path == tomlFile.absolutePath
     }
 
     @VersionCatalogProblemTestFor([
@@ -789,11 +803,20 @@ key2=
             addError(getUnexpectedErrorString(4, 5))
             addError(getUnexpectedErrorString(5, 6))
         })
-
-        def problems = collectedProblems
-        problems.size() == 1
-        problems[0].locations[0].path == tomlFile.absolutePath
-        problems[0].locations[1].path == tomlFile.absolutePath
+        verifyAll(receivedProblem(0)) {
+            fqid == 'dependency-version-catalog:toml-syntax-error'
+            contextualLabel == 'Unexpected end of line, expected \', ", \'\'\', """, a number, a boolean, a date/time, an array, or a table'
+            details == 'TOML syntax invalid.'
+            solutions == [ 'Fix the TOML file according to the syntax described at https://toml.io' ]
+            additionalData == [:]
+        }
+        verifyAll(receivedProblem(1)) {
+            fqid == 'dependency-version-catalog:toml-syntax-error'
+            contextualLabel == 'Unexpected end of line, expected \', ", \'\'\', """, a number, a boolean, a date/time, an array, or a table'
+            details == 'TOML syntax invalid.'
+            solutions == [ 'Fix the TOML file according to the syntax described at https://toml.io' ]
+            additionalData == [:]
+        }
     }
 
     private String getUnexpectedErrorString(int line, int column) {
@@ -838,6 +861,13 @@ dependencyResolutionManagement {
         verifyContains(failure.error, tooManyImportFiles {
             inCatalog("testLibs")
         })
+
+        verifyAll(receivedProblem) {
+            fqid == 'dependency-version-catalog:too-many-import-files'
+            contextualLabel == 'Problem: In version catalog testLibs, importing multiple files are not supported.'
+            details == 'The import consists of multiple files'
+            solutions == [ 'Only import a single file' ]
+        }
     }
 
     @Issue("https://github.com/gradle/gradle/issues/20383")
@@ -859,6 +889,13 @@ dependencyResolutionManagement {
         verifyContains(failure.error, noImportFiles {
             inCatalog("testLibs")
         })
+
+        verifyAll(receivedProblem) {
+            fqid == 'dependency-version-catalog:no-import-files'
+            contextualLabel == 'Problem: In version catalog testLibs, no files are resolved to be imported.'
+            details == 'The imported dependency doesn\'t resolve into any file'
+            solutions == [ 'Check the import statement, it should resolve into a single file' ]
+        }
     }
 
     @Issue("https://github.com/gradle/gradle/issues/20383")
@@ -897,6 +934,13 @@ dependencyResolutionManagement {
         verifyContains(failure.error, tooManyImportInvokation {
             inCatalog("testLibs")
         })
+
+        verifyAll(receivedProblem(0)) {
+            fqid == 'dependency-version-catalog:too-many-import-invocation'
+            contextualLabel == 'Problem: In version catalog testLibs, you can only call the \'from\' method a single time.'
+            details == 'The method was called more than once'
+            solutions == [ 'Remove further usages of the method call' ]
+        }
     }
 
     @Issue("https://github.com/gradle/gradle/issues/20060")
@@ -982,6 +1026,96 @@ dependencyResolutionManagement {
 
                 module('com.company:d:1.0')
                 module('com.company:e:1.0')
+            }
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/24169")
+    def "short group:name notation suggests using .module in error"() {
+        tomlFile << """[libraries]
+my-lib = "org.gradle.test:lib"
+"""
+
+        when:
+        fails ':help'
+
+        then:
+        failureCauseContains('To declare without a version, use \'my-lib.module\' instead, i.e.: my-lib.module = "org.gradle.test:lib".')
+
+        verifyAll(receivedProblem) {
+            fqid == 'dependency-version-catalog:invalid-dependency-notation'
+            // TODO (donat) verify reported problem details
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/24169")
+    def "notation without colon does not suggest using .module"() {
+        tomlFile << """[libraries]
+my-lib = "org.gradle.test"
+"""
+
+        when:
+        fails ':help'
+
+        then:
+        failure.assertHasNoCause('To declare without a version, use \'my-lib.module\' instead, i.e.: my-lib.module = "org.gradle.test:lib".')
+
+        verifyAll(receivedProblem) {
+            fqid == 'dependency-version-catalog:invalid-dependency-notation'
+            // TODO (donat) verify reported problem details
+        }
+    }
+
+    // This might be an opportunity for a better error message WRT to classifier/extension in version catalog
+    @Issue("https://github.com/gradle/gradle/issues/24169")
+    def "notation without extra colon does not suggest using .module"() {
+        tomlFile << """[libraries]
+my-lib = "org.gradle.test:lib:1.0:classifier"
+"""
+
+        when:
+        fails ':help'
+
+        then:
+        failure.assertHasNoCause('To declare without a version, use \'my-lib.module\' instead, i.e.: my-lib.module = "org.gradle.test:lib".')
+
+        verifyAll(receivedProblem(0)) {
+            fqid == 'dependency-version-catalog:invalid-dependency-notation'
+            // TODO (donat) verify reported problem details
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/24169")
+    def "short group:name notation is allowed using .module"() {
+        tomlFile << """[libraries]
+my-lib.module = "org.gradle.test:lib"
+"""
+        def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
+        buildFile """
+            apply plugin: 'java-library'
+
+            dependencies {
+                implementation libs.my.lib
+                constraints {
+                    implementation "org.gradle.test:lib:1.0"
+                }
+            }
+        """
+
+        when:
+        lib.pom.expectGet()
+        lib.artifact.expectGet()
+
+        then:
+        succeeds ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                constraint('org.gradle.test:lib:1.0', 'org.gradle.test:lib:1.0')
+                edge('org.gradle.test:lib', 'org.gradle.test:lib:1.0') {
+                    byConstraint()
+                }
             }
         }
     }

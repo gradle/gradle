@@ -1,8 +1,8 @@
 package vcsroots
 
-import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
-import jetbrains.buildServer.configs.kotlin.v2019_2.CheckoutMode
-import jetbrains.buildServer.configs.kotlin.v2019_2.VcsSettings
+import jetbrains.buildServer.configs.kotlin.AbsoluteId
+import jetbrains.buildServer.configs.kotlin.CheckoutMode
+import jetbrains.buildServer.configs.kotlin.VcsSettings
 
 val gradlePromotionMaster = "Gradle_GradlePromoteMaster"
 val gradlePromotionBranches = "Gradle_GradlePromoteBranches"

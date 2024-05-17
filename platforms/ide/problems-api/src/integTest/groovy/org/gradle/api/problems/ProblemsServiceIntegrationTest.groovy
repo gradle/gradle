@@ -16,319 +16,216 @@
 
 package org.gradle.api.problems
 
-
+import org.gradle.api.problems.internal.LineInFileLocation
+import org.gradle.api.problems.internal.OffsetInFileLocation
+import org.gradle.api.problems.internal.PluginIdLocation
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
+
+import static org.gradle.api.problems.ReportingScript.getProblemReportingScript
 
 class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         enableProblemsApiCheck()
-        buildFile """
-            tasks.register("reportProblem", ProblemReportingTask)
+    }
+
+    def withReportProblemTask(@GroovyBuildScriptLanguage String taskActionMethodBody) {
+        buildFile getProblemReportingScript(taskActionMethodBody)
+    }
+
+    def "problem replaced with a validation warning if mandatory id is missing"() {
+        given:
+        withReportProblemTask """
+            problems.forNamespace('org.example.plugin').reporting {
+                it.details('Wrong API usage')
+            }
         """
-    }
-
-    def "can emit a problem with mandatory fields"() {
-        given:
-        buildFile """
-            import org.gradle.api.problems.Problem
-            import org.gradle.api.problems.Severity
-            import org.gradle.internal.deprecation.Documentation
-
-            abstract class ProblemReportingTask extends DefaultTask {
-                @Inject
-                protected abstract Problems getProblems();
-
-                @TaskAction
-                void run() {
-                    problems.create {
-                        it.label("label")
-                        .undocumented()
-                        .stackLocation()
-                        .category("type")
-                        }.report()
-                }
-            }
-            """
 
         when:
-        run("reportProblem")
+        run('reportProblem')
 
         then:
-        def problems = this.collectedProblems
-        problems.size() == 1
-        problems[0]["label"] == "label"
-        problems[0]["problemCategory"]["category"] == "type"
-        problems[0]["locations"][0] == [type:"file", length:null, column:null, line:14, path: "build file '$buildFile.absolutePath'"]
-        problems[0]["locations"][1] == [
-            type:"task",
-            identityPath:
-                [absolute:true,
-                 path:":reportProblem",
-                 name:"reportProblem",
-                 parent:
-                     [absolute:true,
-                      path:":",
-                      name:null,
-                      parent:null
-                     ]
-                ]
-            ]
+        verifyAll(receivedProblem) {
+            definition.id.fqid == 'problems-api:missing-id'
+            definition.id.displayName == 'Problem id must be specified'
+            locations.size() == 1
+            with(oneLocation(LineInFileLocation)) {
+                length == -1
+                column == -1
+                line == 11
+                path == "build file '$buildFile.absolutePath'"
+            }
+        }
     }
 
-    def "can emit a problem with user-manual documentation"() {
+    def "can emit a problem with minimal configuration"() {
         given:
-        buildFile """
-            import org.gradle.api.problems.Problem
-            import org.gradle.api.problems.Severity
-            import org.gradle.internal.deprecation.Documentation
-
-            abstract class ProblemReportingTask extends DefaultTask {
-                @Inject
-                protected abstract Problems getProblems();
-
-                @TaskAction
-                void run() {
-                    problems.create {
-                        it.label("label")
-                        .documentedAt(Documentation.userManual("test-id", "test-section"))
-                        .noLocation()
-                        .category("type")
-                        }.report()
-                }
+        withReportProblemTask """
+            problems.forNamespace('org.example.plugin').reporting {
+                it.id('type', 'label')
             }
-            """
+        """
 
         when:
-        run("reportProblem")
+        run('reportProblem')
 
         then:
-        this.collectedProblems.size() == 1
-        def link = this.collectedProblems[0]["documentationLink"]
-        link["properties"]["page"] == "test-id"
-        link["properties"]["section"] == "test-section"
-        link["url"].startsWith("https://docs.gradle.org")
-        link["consultDocumentationMessage"].startsWith("For more information, please refer to https://docs.gradle.org")
+        verifyAll(receivedProblem) {
+            definition.id.fqid == 'generic:type'
+            definition.id.displayName == 'label'
+            with(oneLocation(LineInFileLocation)) {
+                length == -1
+                column == -1
+                line == 11
+                path == "build file '$buildFile.absolutePath'"
+            }
+        }
     }
 
-    def "can emit a problem with upgrade-guide documentation"() {
+    def "can emit a problem with stack location"() {
         given:
-        buildFile """
-            import org.gradle.api.problems.Problem
-            import org.gradle.api.problems.Severity
-            import org.gradle.internal.deprecation.Documentation
-
-
-            abstract class ProblemReportingTask extends DefaultTask {
-                @Inject
-                protected abstract Problems getProblems();
-
-                @TaskAction
-                void run() {
-                    problems.create {
-                        it.label("label")
-                        .documentedAt(Documentation.upgradeGuide(8, "test-section"))
-                        .noLocation()
-                        .category("type")
-                        }.report()
-                }
+        withReportProblemTask """
+            problems.forNamespace('org.example.plugin').reporting {
+                it.id('type', 'label')
+                .stackLocation()
             }
-            """
+        """
 
         when:
-        run("reportProblem")
+        run('reportProblem')
+
 
         then:
-        this.collectedProblems.size() == 1
-        def link = this.collectedProblems[0]["documentationLink"]
-        link["properties"]["page"] == "upgrading_version_8"
-        link["properties"]["section"] == "test-section"
-        link["url"].startsWith("https://docs.gradle.org")
-        link["consultDocumentationMessage"].startsWith("Consult the upgrading guide for further information: https://docs.gradle.org")
+        verifyAll(receivedProblem) {
+            definition.id.fqid == 'generic:type'
+            definition.id.displayName == 'label'
+            with(oneLocation(LineInFileLocation)) {
+                length == -1
+                column == -1
+                line == 11
+                path == "build file '$buildFile.absolutePath'"
+            }
+        }
+
     }
 
-    def "can emit a problem with dsl-reference documentation"() {
+    def "can emit a problem with documentation"() {
         given:
-        buildFile """
-            import org.gradle.api.problems.Problem
-            import org.gradle.api.problems.Severity
-            import org.gradle.internal.deprecation.Documentation
-
-            abstract class ProblemReportingTask extends DefaultTask {
-                @Inject
-                protected abstract Problems getProblems();
-
-                @TaskAction
-                void run() {
-                    problems.create {
-                        it.label("label")
-                        .documentedAt(
-                            Documentation.dslReference(Problem.class, "label")
-                        )
-                        .noLocation()
-                        .category("type")
-                        }.report()
-                }
+        withReportProblemTask """
+            problems.forNamespace('org.example.plugin').reporting {
+                it.id('type', 'label')
+                .documentedAt("https://example.org/doc")
             }
-            """
+        """
 
         when:
-        run("reportProblem")
+        run('reportProblem')
 
         then:
-        this.collectedProblems.size() == 1
-        def link = this.collectedProblems[0]["documentationLink"]
-        link["properties"]["targetClass"] == Problem.class.name
-        link["properties"]["property"] == "label"
+        receivedProblem.definition.documentationLink.url == 'https://example.org/doc'
     }
 
-    def "can emit a problem with partially specified location"() {
+    def "can emit a problem with offset location"() {
         given:
-        buildFile """
-            import org.gradle.api.problems.Problem
-            import org.gradle.api.problems.Severity
-            import org.gradle.internal.deprecation.Documentation
-
-            abstract class ProblemReportingTask extends DefaultTask {
-                @Inject
-                protected abstract Problems getProblems();
-
-                @TaskAction
-                void run() {
-                    problems.create {
-                        it.label("label")
-                        .undocumented()
-                        .fileLocation("test-location", null, null, null)
-                        .category("type")
-                        }.report()
-                }
+        withReportProblemTask """
+            problems.forNamespace('org.example.plugin').reporting {
+                it.id('type', 'label')
+                .offsetInFileLocation("test-location", 1, 2)
             }
-            """
+        """
 
         when:
-        run("reportProblem")
+        run('reportProblem')
 
         then:
-        this.collectedProblems.size() == 1
-        this.collectedProblems[0]["locations"][0] == [
-            "type": "file",
-            "path": "test-location",
-            "line": null,
-            "column": null,
-            "length": null
-        ]
+        verifyAll (receivedProblem.locations) {
+            size() == 2
+            with(get(0) as OffsetInFileLocation) {
+                path == 'test-location'
+                offset == 1
+                length == 2
+            }
+            with(get(1) as LineInFileLocation) {
+                length == -1
+                column == -1
+                line == 11
+                path == "build file '$buildFile.absolutePath'"
+            }
+        }
     }
 
-    def "can emit a problem with fully specified location"() {
+    def "can emit a problem with file and line number"() {
         given:
-        buildFile """
-            import org.gradle.api.problems.Problem
-            import org.gradle.api.problems.Severity
-            import org.gradle.internal.deprecation.Documentation
-
-            abstract class ProblemReportingTask extends DefaultTask {
-                @Inject
-                protected abstract Problems getProblems();
-
-                @TaskAction
-                void run() {
-                    problems.create {
-                        it.label("label")
-                        .undocumented()
-                        .fileLocation("test-location", 1, 2, 3)
-                        .category("type")
-                        }.report()
-                }
+        withReportProblemTask """
+            problems.forNamespace('org.example.plugin').reporting {
+                it.id('type', 'label')
+                .lineInFileLocation("test-location", 1, 2)
             }
-            """
+        """
 
         when:
-        run("reportProblem")
+        run('reportProblem')
 
-
-        def problems = this.collectedProblems
         then:
-        problems.size() == 1
-        problems[0]["locations"][0] == [
-            "type": "file",
-            "path": "test-location",
-            "line": 1,
-            "column": 2,
-            "length": 3
-        ]
-
-        def taskPath = problems[0]["locations"][1]
-        taskPath["type"] == "task"
-        taskPath["identityPath"]["absolute"] == true
-        taskPath["identityPath"]["path"] == ":reportProblem"
+        verifyAll (receivedProblem.locations) {
+            size() == 2
+            with(get(0) as LineInFileLocation) {
+                length == -1
+                column == 2
+                line == 1
+                path == 'test-location'
+            }
+            with(get(1) as LineInFileLocation) {
+                length == -1
+                column == -1
+                line == 11
+                path == "build file '$buildFile.absolutePath'"
+            }
+        }
     }
 
     def "can emit a problem with plugin location specified"() {
         given:
-        buildFile """
-            import org.gradle.api.problems.Problem
-            import org.gradle.api.problems.Severity
-            import org.gradle.internal.deprecation.Documentation
-
-            abstract class ProblemReportingTask extends DefaultTask {
-                @Inject
-                protected abstract Problems getProblems();
-
-                @TaskAction
-                void run() {
-                    problems.create {
-                        it.label("label")
-                        .undocumented()
-                        .pluginLocation("org.example.pluginid")
-                        .category("type")
-                        }.report()
-                }
+        withReportProblemTask """
+            problems.forNamespace('org.example.plugin').reporting {
+                it.id('type', 'label')
+                .pluginLocation("org.example.pluginid")
             }
-            """
+        """
 
         when:
-        run("reportProblem")
+        run('reportProblem')
 
         then:
-        this.collectedProblems.size() == 1
-        def problem = this.collectedProblems[0]
-
-        def fileLocation = problem["locations"][0]
-        fileLocation["type"] == "pluginId"
-        fileLocation["pluginId"] == "org.example.pluginid"
+        verifyAll (receivedProblem.locations) {
+            size() == 2
+            with(get(0) as PluginIdLocation) {
+                pluginId == 'org.example.pluginid'
+            }
+            with(get(1) as LineInFileLocation) {
+                length == -1
+                column == -1
+                line == 11
+                path == "build file '$buildFile.absolutePath'"
+            }
+        }
     }
 
     def "can emit a problem with a severity"(Severity severity) {
         given:
-        buildFile """
-            import org.gradle.api.problems.Problem
-            import org.gradle.api.problems.Severity
-            import org.gradle.internal.deprecation.Documentation
-
-            abstract class ProblemReportingTask extends DefaultTask {
-                @Inject
-                protected abstract Problems getProblems();
-
-                @TaskAction
-                void run() {
-                    problems.create {
-                        it.label("label")
-                        .undocumented()
-                        .noLocation()
-                        .category("type")
-                        .solution("solution")
-                        .severity(Severity.${severity.name()})
-                        }.report()
-                }
+        withReportProblemTask """
+            problems.forNamespace('org.example.plugin').reporting {
+                it.id('type', 'label')
+                .severity(Severity.${severity.name()})
             }
-            """
+        """
 
         when:
-        run("reportProblem")
+        run('reportProblem')
 
         then:
-        this.collectedProblems.size() == 1
-        this.collectedProblems[0]["severity"] == severity.name()
+        receivedProblem.definition.severity == severity
 
         where:
         severity << Severity.values()
@@ -336,232 +233,157 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
     def "can emit a problem with a solution"() {
         given:
-        buildFile """
-            import org.gradle.api.problems.Problem
-            import org.gradle.api.problems.Severity
-            import org.gradle.internal.deprecation.Documentation
-
-            abstract class ProblemReportingTask extends DefaultTask {
-                @Inject
-                protected abstract Problems getProblems();
-
-                @TaskAction
-                void run() {
-                    problems.create {
-                        it.label("label")
-                        .undocumented()
-                        .noLocation()
-                        .category("type")
-                        .solution("solution")
-                        }.report()
-                }
+        withReportProblemTask """
+            problems.forNamespace('org.example.plugin').reporting {
+                it.id('type', 'label')
+                .solution("solution")
             }
-            """
+        """
 
         when:
-        run("reportProblem")
+        run('reportProblem')
 
         then:
-        this.collectedProblems.size() == 1
-        this.collectedProblems[0]["solutions"] == [
-            "solution"
-        ]
+        receivedProblem.solutions == ['solution']
     }
 
     def "can emit a problem with exception cause"() {
         given:
-        buildFile """
-            import org.gradle.api.problems.Problem
-            import org.gradle.api.problems.Severity
-            import org.gradle.internal.deprecation.Documentation
-
-            abstract class ProblemReportingTask extends DefaultTask {
-                @Inject
-                protected abstract Problems getProblems();
-
-                @TaskAction
-                void run() {
-                    problems.create {
-                        it.label("label")
-                        .undocumented()
-                        .noLocation()
-                        .category("type")
-                        .withException(new RuntimeException("test"))
-                        }.report()
-                }
+        withReportProblemTask """
+            problems.forNamespace('org.example.plugin').reporting {
+                it.id('type', 'label')
+                .withException(new RuntimeException("test"))
             }
-            """
+        """
 
         when:
-        run("reportProblem")
+        run('reportProblem')
 
         then:
-        this.collectedProblems.size() == 1
-        this.collectedProblems[0]["exception"]["message"] == "test"
-        !(this.collectedProblems[0]["exception"]["stackTrace"] as List<String>).isEmpty()
+        verifyAll(receivedProblem) {
+            exception.message == 'test'
+            exception.stacktrace.length() > 0
+        }
     }
 
     def "can emit a problem with additional data"() {
         given:
-        buildFile """
-            import org.gradle.api.problems.Problem
-            import org.gradle.api.problems.Severity
-            import org.gradle.internal.deprecation.Documentation
+        withReportProblemTask """
+            problems.forNamespace('org.example.plugin').reporting {
+                it.id('type', 'label')
+                .additionalData('key', 'value')
+            }
+        """
 
-            abstract class ProblemReportingTask extends DefaultTask {
-                @Inject
-                protected abstract Problems getProblems();
+        when:
+        run('reportProblem')
 
-                @TaskAction
-                void run() {
-                    problems.create {
-                        it.label("label")
-                        .undocumented()
-                        .noLocation()
-                        .category("type")
-                        .additionalData("key", "value")
-                        }.report()
+        then:
+        receivedProblem.additionalData == ['key': 'value']
+    }
+
+    def "cannot emit a problem with invalid additional data"() {
+        given:
+        withReportProblemTask """
+            problems.forNamespace('org.example.plugin').reporting {
+                it.id('type', 'label')
+                .additionalData("key", ["collections", "are", "not", "supported", "yet"])
+            }
+        """
+
+        when:
+        run('reportProblem')
+
+        then:
+        verifyAll(receivedProblem) {
+            definition.id.fqid == 'problems-api:invalid-additional-data'
+            definition.id.displayName == 'ProblemBuilder.additionalData() only supports values of type String'
+            with(oneLocation(LineInFileLocation)) {
+                length == -1
+                column == -1
+                line == 11
+                path == "build file '$buildFile.absolutePath'"
+            }
+        }
+    }
+
+    def "can throw a problem with a wrapper exception"() {
+        given:
+        withReportProblemTask """
+            problems.forNamespace('org.example.plugin').throwing {
+                it.id('type', 'label')
+                .withException(new RuntimeException('test'))
+            }
+        """
+
+        when:
+        fails('reportProblem')
+
+        then:
+        receivedProblem.exception.message == 'test'
+    }
+
+    def "can rethrow an exception"() {
+        given:
+        withReportProblemTask """
+            problems.forNamespace('org.example.plugin').rethrowing(new RuntimeException("test")) {
+                it.id('type', 'label')
+            }
+        """
+
+        when:
+        fails('reportProblem')
+
+        then:
+        receivedProblem.exception.message == 'test'
+    }
+
+    def "can rethrow a caught exception"() {
+        given:
+        withReportProblemTask """
+            try {
+                problems.forNamespace("org.example.plugin").throwing {
+                    it.id('type1', 'inner')
+                    .withException(new RuntimeException("test"))
+                }
+            } catch (RuntimeException ex) {
+                problems.forNamespace("org.example.plugin").rethrowing(ex) {
+                    it.id('type2', 'outer')
                 }
             }
-            """
+        """
+
+        when:
+        fails('reportProblem')
+
+        then:
+        receivedProblem(0).definition.id.displayName == 'inner'
+        receivedProblem(1).definition.id.displayName == 'outer'
+    }
+
+    def "problem progress events are not aggregated"() {
+        given:
+        withReportProblemTask """
+            for (int i = 0; i < 10; i++) {
+                problems.forNamespace("org.example.plugin").reporting {
+                        it.id('type', 'label')
+                        .severity(Severity.WARNING)
+                        .solution("solution")
+                }
+            }
+        """
 
         when:
         run("reportProblem")
 
         then:
-        this.collectedProblems.size() == 1
-        this.collectedProblems[0]["additionalData"] == [
-            "key": "value"
-        ]
-    }
-
-    def "cannot emit a problem with invalid additional data"() {
-        given:
-        disableProblemsApiCheck()
-
-        buildFile """
-            import org.gradle.api.problems.Problem
-            import org.gradle.api.problems.Severity
-            import org.gradle.internal.deprecation.Documentation
-
-            abstract class ProblemReportingTask extends DefaultTask {
-                @Inject
-                protected abstract Problems getProblems();
-
-                @TaskAction
-                void run() {
-                    problems.create {
-                        it.label("label")
-                        .undocumented()
-                        .noLocation()
-                        .category("type")
-                        .additionalData("key", ["collections", "are", "not", "supported", "yet"])
-                    }.report()
-                }
+        10.times {
+            verifyAll(receivedProblem(it)) {
+                definition.id.displayName == 'label'
+                definition.id.name == 'type'
+                definition.severity == Severity.WARNING
+                solutions == ["solution"]
             }
-            """
-
-        when:
-        def failure = fails("reportProblem")
-
-        then:
-        failure.assertHasCause('ProblemBuilder.additionalData() supports values of type String, but java.util.ArrayList as given.')
-    }
-
-    def "can throw a problem with a wrapper exception"() {
-        given:
-        buildFile """
-            abstract class ProblemReportingTask extends DefaultTask {
-                @Inject
-                protected abstract Problems getProblems();
-
-                @TaskAction
-                void run() {
-                    problems.throwing {
-                        spec -> spec
-                            .label("label")
-                            .undocumented()
-                            .noLocation()
-                            .category("type")
-                            .withException(new RuntimeException("test"))
-                    }
-                }
-            }
-            """
-
-        when:
-
-        fails("reportProblem")
-
-        then:
-        this.collectedProblems.size() == 1
-        this.collectedProblems[0]["exception"]["message"] == "test"
-    }
-
-    def "can rethrow a problem with a wrapper exception"() {
-        given:
-        buildFile """
-            abstract class ProblemReportingTask extends DefaultTask {
-                @Inject
-                protected abstract Problems getProblems();
-
-                @TaskAction
-                void run() {
-                    def exception = new RuntimeException("test")
-                    problems.rethrowing(exception) { it
-                        .label("label")
-                        .undocumented()
-                        .noLocation()
-                        .category("type")
-                    }
-                }
-            }
-            """
-
-        when:
-        fails("reportProblem")
-
-        then:
-        this.collectedProblems.size() == 1
-        this.collectedProblems[0]["exception"]["message"] == "test"
-    }
-
-    def "can rethrow a problem with a wrapper exception"() {
-        given:
-        buildFile """
-            abstract class ProblemReportingTask extends DefaultTask {
-                @Inject
-                protected abstract Problems getProblems();
-
-                @TaskAction
-                void run() {
-                    try {
-                        def exception = new RuntimeException("test")
-                        problems.throwing { spec -> spec
-                            .label("inner")
-                            .undocumented()
-                            .noLocation()
-                            .category("type")
-                            .withException(exception)
-                        }
-                    } catch (RuntimeException ex) {
-                        problems.rethrowing(ex) { spec -> spec
-                            .label("outer")
-                            .undocumented()
-                            .noLocation()
-                            .category("type")
-                        }
-                    }
-                }
-            }
-            """
-
-        when:
-        fails("reportProblem")
-
-        then:
-        this.collectedProblems.size() == 2
-        this.collectedProblems[0]["label"] == "inner"
-        this.collectedProblems[1]["label"] == "outer"
+        }
     }
 }

@@ -16,6 +16,8 @@
 
 package org.gradle.configurationcache.isolated
 
+import groovy.transform.stc.ClosureParams
+import groovy.transform.stc.FirstParam
 import org.gradle.configuration.ApplyScriptPluginBuildOperationType
 import org.gradle.configuration.project.ConfigureProjectBuildOperationType
 import org.gradle.configurationcache.fixtures.AbstractConfigurationCacheOptInFeatureIntegrationTest
@@ -177,23 +179,39 @@ class IsolatedProjectsFixture {
         assert !scripts.empty
         def sortedScripts = scripts.toSorted { it -> it.startTime }
         assert sortedScripts.first().details.targetType == "settings"
-        def otherScripts = scripts.findAll { it.details.targetType != "settings" }
-        assert otherScripts.size() == projectsWithScripts(details.projects).size()
+        def nonSettingsScripts = scripts.findAll { it.details.targetType != "settings" }
+        def nonSettingsScriptTargets = nonSettingsScripts.collect { fullPath(it.details.buildPath, it.details.targetPath) }.toSet()
+        assert nonSettingsScriptTargets.size() == projectsWithBuildScripts(details.projects).size()
     }
 
     private void assertNoModelsQueried() {
-        def models = buildOperations.all(QueryToolingModelBuildOperationType)
+        def models = modelRequests()
         assert models.empty
     }
 
     private void assertModelsQueried(HasIntermediateDetails details) {
-        def models = buildOperations.all(QueryToolingModelBuildOperationType)
-        def expectedProjectModels = details.models.collect { [it.path] * it.count }.flatten()
-        assert models.size() == expectedProjectModels.size() + details.buildModelQueries
-        models.removeAll { it.details.projectPath == null }
-        def sortedProjectModels = models.collect { fullPath(it) }.sort()
-        def sortedExpectedProjectModels = expectedProjectModels.sort()
-        assert sortedProjectModels == sortedExpectedProjectModels
+        def models = modelRequests().toSorted { it.buildTreePath }
+        def (buildScopedModels, projectScopedModels) = models.split { it.buildScoped }
+        assert buildScopedModels.size() == details.buildModelQueries
+
+        // Count of 0 is a special case used by `modelsQueriedAndNotPresent`
+        def modelExpectations = details.models.findAll { it.count > 0 }
+        def expectedProjectModels = modelExpectations.groupBy { it.path }
+        def expectedProjectModelsCounts = remapValues(expectedProjectModels) { it.count.sum() as int }
+
+        def projectModels = projectScopedModels.groupBy { it.buildTreePath }
+        def projectModelsShortNames = remapValues(projectModels) { it.shortModelName }
+
+        // Do not extract left side into a variable to get power assert insights
+        assert remapValues(projectModelsShortNames) { it.size() } == expectedProjectModelsCounts
+
+        for (def modelExpectation in modelExpectations) {
+            def buildTreePath = modelExpectation.path
+            if (modelExpectation.modelNames != null) {
+                def projectModelNames =  projectModels[buildTreePath].modelName.toSorted()
+                assert projectModelNames == modelExpectation.modelNames.toSorted()
+            }
+        }
     }
 
     private void assertHasWarningThatIncubatingFeatureUsed() {
@@ -201,17 +219,25 @@ class IsolatedProjectsFixture {
         spec.outputDoesNotContain(ConfigurationCacheFixture.CONFIGURE_ON_DEMAND_MESSAGE)
     }
 
-    private String fullPath(BuildOperationRecord operationRecord) {
-        if (operationRecord.details.buildPath == ':') {
-            return operationRecord.details.projectPath
-        } else if (operationRecord.details.projectPath == ':') {
-            return operationRecord.details.buildPath
+    private List<ModelRequest> modelRequests() {
+        buildOperations.all(QueryToolingModelBuildOperationType).collect { new ModelRequest(it) }
+    }
+
+    private static String fullPath(BuildOperationRecord operationRecord) {
+        return fullPath(operationRecord.details.buildPath, operationRecord.details.projectPath)
+    }
+
+    private static String fullPath(String buildPath, String projectPath) {
+        if (buildPath == ':') {
+            return projectPath
+        } else if (projectPath == ':') {
+            return buildPath
         } else {
-            return operationRecord.details.buildPath + operationRecord.details.projectPath
+            return buildPath + projectPath
         }
     }
 
-    private List<String> projectsWithScripts(Collection<String> projects) {
+    private List<String> projectsWithBuildScripts(Collection<String> projects) {
         def result = []
         for (path in projects) {
             def baseName = path == ':' ? "build" : (path.drop(1).replace(':', '/') + "/build")
@@ -222,9 +248,9 @@ class IsolatedProjectsFixture {
         return result
     }
 
-    trait HasIntermediateDetails {
+    trait HasIntermediateDetails extends HasBuildActions {
         final projects = new HashSet<String>()
-        final List<ModelDetails> models = []
+        final List<ModelRequestExpectation> models = []
         int buildModelQueries
 
         void projectConfigured(String path) {
@@ -251,17 +277,54 @@ class IsolatedProjectsFixture {
             projectsConfigured(paths)
             runsTasks = false
             loadsOnStore = false
-            models.addAll(paths.collect { new ModelDetails(it, 1) })
+            models.addAll(paths.collect { new ModelRequestExpectation(it, 1) })
+        }
+
+        /**
+         * One model is created for each of the given projects. The projects will also be configured
+         */
+        void modelsCreated(Class<?> modelType, String... paths) {
+            projectsConfigured(paths)
+            runsTasks = false
+            loadsOnStore = false
+            models.addAll(paths.collect { new ModelRequestExpectation(it, [modelType.name]) })
         }
 
         /**
          * The given number of models are created for the given project. The project will also be configured
          */
         void modelsCreated(String path, int count) {
-            projectsConfigured(path)
+            modelsCreated(new ModelRequestExpectation(path, count))
+        }
+
+        /**
+         * The models are created for the given project. The project will also be configured
+         */
+        void modelsCreated(String path, Class<?> modelType, Class<?>... moreModelTypes) {
+            modelsCreated(path, [modelType, *moreModelTypes].name)
+        }
+
+        /**
+         * The models are created for the given projects. The projects will also be configured
+         */
+        void modelsCreated(List<String> paths, List<String> modelNames) {
+            for (def path in paths) {
+                modelsCreated(new ModelRequestExpectation(path, modelNames))
+            }
+        }
+
+        /**
+         * The models are created for the given project. The project will also be configured
+         */
+        void modelsCreated(String path, List<String> modelNames) {
+            modelsCreated(new ModelRequestExpectation(path, modelNames))
+        }
+
+        void modelsCreated(ModelRequestExpectation expectation) {
+            projectsConfigured(expectation.path)
             runsTasks = false
             loadsOnStore = false
-            models.add(new ModelDetails(path, count))
+            models.add(expectation)
         }
 
         void modelsQueriedAndNotPresent(String... paths) {
@@ -292,18 +355,22 @@ class IsolatedProjectsFixture {
 
         String getUpdatedProjectsString() {
             def updatedProjects = models.size()
-            return updatedProjects == 1 ? "1 project" : "$updatedProjects projects"
+            return getPluralProjectsString(updatedProjects)
         }
 
         String getReusedProjectsString() {
             def reusedProjects = projectsReused.size()
-            switch (reusedProjects) {
+            return getPluralProjectsString(reusedProjects)
+        }
+
+        private static String getPluralProjectsString(int amount) {
+            switch (amount) {
                 case 0:
                     return "no projects"
                 case 1:
                     return "1 project"
                 default:
-                    return "${reusedProjects} projects"
+                    return "${amount} projects"
             }
         }
 
@@ -320,13 +387,62 @@ class IsolatedProjectsFixture {
         }
     }
 
-    static class ModelDetails {
+    static class ModelRequestExpectation {
         final String path
         final int count
+        final List<String> modelNames
 
-        ModelDetails(String path, int count) {
+        ModelRequestExpectation(String path, int count) {
             this.path = path
             this.count = count
+            this.modelNames = null
         }
+
+        ModelRequestExpectation(String path, List<String> names) {
+            this.path = path
+            this.count = names.size()
+            this.modelNames = names
+        }
+
+        @Override
+        String toString() {
+            "Expectation for project '$path': ${modelNames ?: count} models"
+        }
+    }
+
+    static class ModelRequest {
+        final BuildOperationRecord operationRecord
+        final String modelName
+
+        ModelRequest(BuildOperationRecord operationRecord) {
+            this.operationRecord = operationRecord
+            this.modelName = (operationRecord.displayName =~ /Build model '(.+?)'/)[0][1]
+        }
+
+        String getBuildTreePath() {
+            fullPath(operationRecord)
+        }
+
+        boolean isBuildScoped() {
+            operationRecord.details.projectPath == null
+        }
+
+        String getShortModelName() {
+            abbreviateClassName(modelName)
+        }
+
+        @Override
+        String toString() {
+            String.format("Model '%s' for %s '%s'", shortModelName, buildScoped ? 'build' : 'project', buildTreePath)
+        }
+    }
+
+    static <K, V, R> Map<K, R> remapValues(Map<K, V> self, @ClosureParams(FirstParam.SecondGenericType.class) Closure<R> transform) {
+        self.collectEntries { K key, V value -> [(key): transform(value)] }
+    }
+
+    // `org.gradle.tooling.model.gradle.GradleBuild` -> `o.g.t.m.g.GradleBuild`
+    static abbreviateClassName(String fullClassName) {
+        fullClassName.replaceAll(/(\b\w)\w+\./) { "${it[1]}." }
     }
 }

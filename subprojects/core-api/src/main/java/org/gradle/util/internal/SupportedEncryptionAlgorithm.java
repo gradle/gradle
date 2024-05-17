@@ -47,13 +47,6 @@ public enum SupportedEncryptionAlgorithm implements EncryptionAlgorithm {
         return createParameter(initVector);
     }
 
-    private AlgorithmParameterSpec getEncryptionParameter(byte[] initVector, IVCollector ivCollector) throws IOException {
-        assert initVector != null;
-        assert initVector.length == initVectorLength;
-        ivCollector.collect(initVector);
-        return createParameter(initVector);
-    }
-
     @Override
     public String getTransformation() {
         return transformation;
@@ -76,7 +69,7 @@ public enum SupportedEncryptionAlgorithm implements EncryptionAlgorithm {
             }
             return newCipher;
         } catch (IOException|GeneralSecurityException e) {
-            throw new EncryptionException(e);
+            throw new EncryptionException("Error while encrypting", e);
         }
     }
 
@@ -91,7 +84,7 @@ public enum SupportedEncryptionAlgorithm implements EncryptionAlgorithm {
             }
             return newCipher;
         } catch (GeneralSecurityException|IOException e) {
-            throw new EncryptionException(e);
+            throw new EncryptionException("Error while decrypting", e);
         }
     }
 

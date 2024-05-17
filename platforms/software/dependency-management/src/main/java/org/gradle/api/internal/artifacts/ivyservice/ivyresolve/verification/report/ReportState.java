@@ -15,12 +15,11 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.report;
 
-import com.google.common.collect.Sets;
-
 import java.util.Set;
+import java.util.TreeSet;
 
 class ReportState implements VerificationHighLevelErrors {
-    private final Set<String> affectedFiles = Sets.newTreeSet();
+    private final Set<String> affectedFiles = new TreeSet<>();
     private boolean maybeCompromised;
     private boolean hasMissing;
     private boolean failedSignatures;

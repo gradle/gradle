@@ -28,6 +28,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.file.Directory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskProvider;
 
@@ -61,6 +62,15 @@ public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
         renameModule(project);
         wireInArtificialSourceSet(project, extension);
         setStyling(project, extension);
+        overrideDokkaVersion(project, extension);
+        setMemoryForWorkers(project);
+    }
+
+    private static void setMemoryForWorkers(Project project) {
+        project.getTasks().withType(DokkatooGenerateTask.class).configureEach(task -> {
+            task.getWorkerMinHeapSize().set("512m");
+            task.getWorkerMaxHeapSize().set("2g");
+        });
     }
 
     private static void setStyling(Project project, GradleDocumentationExtension extension) {
@@ -69,6 +79,12 @@ public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
             config.getCustomAssets().from(extension.getSourceRoot().file("kotlin/images/gradle-logo.svg"));
             config.getFooterMessage().set("Gradle Kotlin DSL Reference");
         });
+    }
+
+    private static void overrideDokkaVersion(Project project, GradleDocumentationExtension extension) {
+        Property<String> dokkaVersionOverride = extension.getKotlinDslReference().getDokkaVersionOverride();
+        Property<String> defaultDokkaVersion = getDokkatooExtension(project).getVersions().getJetbrainsDokka();
+        defaultDokkaVersion.set(dokkaVersionOverride.convention(defaultDokkaVersion.get()));
     }
 
     /**

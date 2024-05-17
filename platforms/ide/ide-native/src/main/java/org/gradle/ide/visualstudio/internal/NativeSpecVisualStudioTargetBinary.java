@@ -225,7 +225,7 @@ public class NativeSpecVisualStudioTargetBinary implements VisualStudioTargetBin
 
     private List<String> getDefines(String tool) {
         PreprocessingTool rcCompiler = findCompiler(tool);
-        return rcCompiler == null ? Lists.<String>newArrayList() : new MacroArgsConverter().transform(rcCompiler.getMacros());
+        return rcCompiler == null ? new ArrayList<>() : new MacroArgsConverter().transform(rcCompiler.getMacros());
     }
 
     private PreprocessingTool findCompiler(String tool) {

@@ -18,7 +18,6 @@ package org.gradle.api.internal.file.copy;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
@@ -32,9 +31,9 @@ import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.ExpandDetails;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileCopyDetails;
+import org.gradle.api.file.FilePermissions;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
-import org.gradle.api.file.FilePermissions;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.DefaultConfigurableFilePermissions;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -50,6 +49,7 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.util.internal.ClosureBackedAction;
@@ -89,7 +89,7 @@ public class DefaultCopySpec implements CopySpecInternal {
     private Boolean includeEmptyDirs;
     private DuplicatesStrategy duplicatesStrategy = DuplicatesStrategy.INHERIT;
     private String filteringCharset;
-    private final List<CopySpecListener> listeners = Lists.newLinkedList();
+    private final List<CopySpecListener> listeners = new LinkedList<>();
     private PatternFilterable preserve = new PatternSet();
 
     @Inject
@@ -246,6 +246,16 @@ public class DefaultCopySpec implements CopySpecInternal {
     @Nullable
     public String getDestPath() {
         return destDir == null ? null : PATH_NOTATION_PARSER.parseNotation(destDir);
+    }
+
+    @Override
+    @Nullable
+    public File getDestinationDir() {
+        if (destDir instanceof File) {
+            return (File) destDir;
+        } else {
+            return destDir == null ? null : new File(PATH_NOTATION_PARSER.parseNotation(destDir));
+        }
     }
 
     @Override
@@ -466,12 +476,24 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     @Override
+    @Deprecated
     public Integer getDirMode() {
+        DeprecationLogger.deprecateMethod(CopyProcessingSpec.class, "getDirMode()")
+            .replaceWith("getDirPermissions()")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "unix_file_permissions_deprecated")
+            .nagUser();
         return getMode(buildRootResolver().getDirPermissions());
     }
 
     @Override
+    @Deprecated
     public Integer getFileMode() {
+        DeprecationLogger.deprecateMethod(CopyProcessingSpec.class, "getFileMode()")
+            .replaceWith("getFilePermissions()")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "unix_file_permissions_deprecated")
+            .nagUser();
         return getMode(buildRootResolver().getFilePermissions());
     }
 
@@ -481,13 +503,25 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     @Override
+    @Deprecated
     public CopyProcessingSpec setDirMode(@Nullable Integer mode) {
+        DeprecationLogger.deprecateMethod(CopyProcessingSpec.class, "setDirMode(Integer)")
+            .replaceWith("dirPermissions(Action)")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "unix_file_permissions_deprecated")
+            .nagUser();
         dirPermissions.set(mode == null ? null : objectFactory.newInstance(DefaultConfigurableFilePermissions.class, objectFactory, mode));
         return this;
     }
 
     @Override
+    @Deprecated
     public CopyProcessingSpec setFileMode(@Nullable Integer mode) {
+        DeprecationLogger.deprecateMethod(CopyProcessingSpec.class, "setFileMode(Integer)")
+            .replaceWith("filePermissions(Action)")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "unix_file_permissions_deprecated")
+            .nagUser();
         filePermissions.set(mode == null ? null : objectFactory.newInstance(DefaultConfigurableFilePermissions.class, objectFactory, mode));
         return this;
     }
@@ -704,7 +738,7 @@ public class DefaultCopySpec implements CopySpecInternal {
             if (parentResolver != null) {
                 result.addAll(parentResolver.getAllIncludes());
             }
-            result.addAll(patternSet.getIncludes());
+            result.addAll(patternSet.getIncludesView());
             return result;
         }
 
@@ -714,7 +748,7 @@ public class DefaultCopySpec implements CopySpecInternal {
             if (parentResolver != null) {
                 result.addAll(parentResolver.getAllExcludes());
             }
-            result.addAll(patternSet.getExcludes());
+            result.addAll(patternSet.getExcludesView());
             return result;
         }
 
@@ -725,7 +759,7 @@ public class DefaultCopySpec implements CopySpecInternal {
             if (parentResolver != null) {
                 result.addAll(parentResolver.getAllExcludeSpecs());
             }
-            result.addAll(patternSet.getExcludeSpecs());
+            result.addAll(patternSet.getExcludeSpecsView());
             return result;
         }
 
@@ -763,12 +797,24 @@ public class DefaultCopySpec implements CopySpecInternal {
         }
 
         @Override
+        @Deprecated
         public Integer getFileMode() {
+            DeprecationLogger.deprecateMethod(CopySpecResolver.class, "getFileMode()")
+                .replaceWith("getImmutableFilePermissions()")
+                .willBeRemovedInGradle9()
+                .withUpgradeGuideSection(8, "unix_file_permissions_deprecated")
+                .nagUser();
             return getMode(getImmutableFilePermissions());
         }
 
         @Override
+        @Deprecated
         public Integer getDirMode() {
+            DeprecationLogger.deprecateMethod(CopySpecResolver.class, "getDirMode()")
+                .replaceWith("getImmutableDirPermissions()")
+                .willBeRemovedInGradle9()
+                .withUpgradeGuideSection(8, "unix_file_permissions_deprecated")
+                .nagUser();
             return getMode(getImmutableDirPermissions());
         }
 
@@ -822,7 +868,7 @@ public class DefaultCopySpec implements CopySpecInternal {
             if (parentResolver != null) {
                 result.addAll(parentResolver.getAllIncludeSpecs());
             }
-            result.addAll(patternSet.getIncludeSpecs());
+            result.addAll(patternSet.getIncludeSpecsView());
             return result;
         }
 
@@ -921,4 +967,3 @@ public class DefaultCopySpec implements CopySpecInternal {
         }
     }
 }
-

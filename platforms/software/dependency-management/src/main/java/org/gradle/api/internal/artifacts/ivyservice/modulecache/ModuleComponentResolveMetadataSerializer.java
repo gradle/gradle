@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -70,7 +69,7 @@ public class ModuleComponentResolveMetadataSerializer extends AbstractSerializer
     @Override
     public ModuleComponentResolveMetadata read(Decoder decoder) throws EOFException, Exception {
 
-        Map<Integer, MavenDependencyDescriptor> deduplicationDependencyCache = Maps.newHashMap();
+        Map<Integer, MavenDependencyDescriptor> deduplicationDependencyCache = new HashMap<>();
         MutableModuleComponentResolveMetadata mutable = delegate.read(decoder, moduleIdentifierFactory, deduplicationDependencyCache);
         readPlatformOwners(decoder, mutable);
         AbstractLazyModuleComponentResolveMetadata resolveMetadata = (AbstractLazyModuleComponentResolveMetadata) mutable.asImmutable();
@@ -105,7 +104,7 @@ public class ModuleComponentResolveMetadataSerializer extends AbstractSerializer
     @Override
     public void write(Encoder encoder, ModuleComponentResolveMetadata value) throws Exception {
         AbstractRealisedModuleComponentResolveMetadata transformed = assertRealized(value);
-        HashMap<ExternalDependencyDescriptor, Integer> deduplicationDependencyCache = Maps.newHashMap();
+        HashMap<ExternalDependencyDescriptor, Integer> deduplicationDependencyCache = new HashMap<>();
         delegate.write(encoder, transformed, deduplicationDependencyCache);
         writeOwners(encoder, value.getPlatformOwners());
         if (transformed instanceof RealisedIvyModuleResolveMetadata) {

@@ -28,7 +28,7 @@ When a user runs `./gradlew build` in the command line, Gradle will execute the 
 
 Gradle provides several default tasks for a project, which are listed by running `./gradlew tasks`:
 
-[source]
+[source,text]
 ----
 > Task :tasks
 

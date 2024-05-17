@@ -16,11 +16,12 @@
 
 package org.gradle.api.tasks.diagnostics
 
-import groovy.transform.CompileStatic
+
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.integtests.resolve.locking.LockfileFixture
+import org.gradle.util.GradleVersion
 import spock.lang.Issue
 
 import static org.gradle.integtests.fixtures.SuggestionsMessages.repositoryHint
@@ -1328,6 +1329,7 @@ org:middle:1.0 FAILED
         given:
         mavenRepo.module("org", "top").dependsOn("org", "middle", "1.0").publish()
         mavenRepo.module("org", "middle", "1.0").publish()
+        def middleModule2 = mavenRepo.module("org", "middle", "2.0")
 
         buildFile << """
             repositories {
@@ -1358,7 +1360,7 @@ org:middle:1.0 FAILED
    Failures:
       - Could not find org:middle:2.0.
         Searched in the following locations:
-          - ${mavenRepoURL}/org/middle/2.0/middle-2.0.pom
+          - ${middleModule2.pomFile.displayUri}
         ${repositoryHint("Maven POM")}
 
 org:middle:1.0 -> 2.0 FAILED
@@ -1407,7 +1409,7 @@ org:middle:1.0 -> 2.0 FAILED
     def "marks modules that can't be resolved after substitution as 'FAILED'"() {
         given:
         mavenRepo.module("org", "top").dependsOn("org", "middle", "1.0").publish()
-        mavenRepo.module("org", "middle", "1.0").publish()
+        def middleModule = mavenRepo.module("org", "middle", "1.0").publish()
 
         buildFile << """
             repositories {
@@ -1440,7 +1442,7 @@ org:middle:2.0+ (selected by rule) FAILED
       - Could not find any version that matches org:middle:2.0+.
         Versions that do not match: 1.0
         Searched in the following locations:
-          - ${mavenRepoURL}/org/middle/maven-metadata.xml
+          - ${middleModule.rootMetaData.file.displayUri}
 
 org:middle:1.0 -> 2.0+ FAILED
 \\--- org:top:1.0
@@ -1455,6 +1457,7 @@ org:middle:1.0 -> 2.0+ FAILED
             .dependsOn("org", "leaf", "[1.5,2.0]")
             .dependsOn("org", "leaf", "1.6+")
             .publish()
+        def leafModule = ivyRepo.module("org", "leaf", "1.0")
 
         buildFile << """
             repositories {
@@ -1482,7 +1485,7 @@ org:leaf:1.0 FAILED
    Failures:
       - Could not find org:leaf:1.0.
         Searched in the following locations:
-          - ${ivyRepoURL}/org/leaf/1.0/ivy-1.0.xml
+          - ${leafModule.ivyFile.displayUri}
         ${repositoryHint("ivy.xml")}
 
 org:leaf:1.0 FAILED
@@ -1501,7 +1504,7 @@ org:leaf:[1.5,2.0] FAILED
    Failures:
       - Could not find any matches for org:leaf:[1.5,2.0] as no versions of org:leaf are available.
         Searched in the following locations:
-          - ${ivyRepoURL}/org/leaf/
+          - ${leafModule.moduleDir.parentFile.displayUriForDir}
 
 org:leaf:[1.5,2.0] FAILED
 \\--- org:top:1.0
@@ -1535,7 +1538,9 @@ org:leaf:[1.5,2.0] FAILED
 project :A FAILED
    Failures:
       - Could not resolve project :A.
-          - A dependency was declared on configuration 'default' which is not declared in the descriptor for project :A.
+        Creating consumable variants is explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_dependencies.html#sec:resolvable-consumable-configs.
+          - Unable to find a matching variant of project :A:
+              - No variants exist.
 
 project :A FAILED
 \\--- conf
@@ -1549,7 +1554,9 @@ project :A FAILED
 project :C FAILED
    Failures:
       - Could not resolve project :C.
-          - A dependency was declared on configuration 'default' which is not declared in the descriptor for project :C.
+        Creating consumable variants is explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_dependencies.html#sec:resolvable-consumable-configs.
+          - Unable to find a matching variant of project :C:
+              - No variants exist.
 
 project :C FAILED
 \\--- project :B
@@ -3077,25 +3084,5 @@ org:foo:1.2 -> 1.5
 \\--- org:bar:1.0
      \\--- compileClasspath
 """)
-    }
-
-
-    @CompileStatic
-    static String decodeURI(URI uri) {
-        def url = URLDecoder.decode(uri.toASCIIString(), 'utf-8')
-        if (url.endsWith('/')) {
-            url = url.substring(0, url.length() - 1)
-        }
-        url
-    }
-
-    @CompileStatic
-    String getMavenRepoURL() {
-        decodeURI(mavenRepo.uri)
-    }
-
-    @CompileStatic
-    String getIvyRepoURL() {
-        decodeURI(ivyRepo.uri)
     }
 }

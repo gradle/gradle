@@ -18,10 +18,10 @@ package org.gradle.internal.component.local.model;
 
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.internal.component.model.ComponentIdGenerator;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-@ServiceScope(Scopes.BuildTree.class)
+@ServiceScope(Scope.BuildTree.class)
 public class LocalComponentGraphResolveStateFactory {
     private final AttributeDesugaring attributeDesugaring;
     private final ComponentIdGenerator idGenerator;
@@ -31,18 +31,18 @@ public class LocalComponentGraphResolveStateFactory {
         this.idGenerator = idGenerator;
     }
 
-    public LocalComponentGraphResolveState stateFor(LocalComponentMetadata metadata) {
+    public LocalComponentGraphResolveState stateFor(LocalComponentGraphResolveMetadata metadata) {
         return createState(metadata, false);
     }
 
     /**
      * Creates state for an ad hoc component, see {@link org.gradle.internal.component.model.ComponentGraphResolveState#isAdHoc()} for the definition of "ad hoc component".
      */
-    public LocalComponentGraphResolveState adHocStateFor(LocalComponentMetadata metadata) {
+    public LocalComponentGraphResolveState adHocStateFor(LocalComponentGraphResolveMetadata metadata) {
         return createState(metadata, true);
     }
 
-    private DefaultLocalComponentGraphResolveState createState(LocalComponentMetadata metadata, boolean adHoc) {
+    private DefaultLocalComponentGraphResolveState createState(LocalComponentGraphResolveMetadata metadata, boolean adHoc) {
         return new DefaultLocalComponentGraphResolveState(idGenerator.nextComponentId(), metadata, attributeDesugaring, idGenerator, adHoc);
     }
 }

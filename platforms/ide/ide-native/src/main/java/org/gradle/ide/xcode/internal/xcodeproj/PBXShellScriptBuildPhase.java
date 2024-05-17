@@ -18,9 +18,9 @@ package org.gradle.ide.xcode.internal.xcodeproj;
 
 import com.dd.plist.NSArray;
 import com.dd.plist.NSString;
-import com.google.common.collect.Lists;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -36,8 +36,8 @@ public class PBXShellScriptBuildPhase extends PBXBuildPhase {
     private static final NSString DEFAULT_SHELL_SCRIPT = new NSString("");
 
     public PBXShellScriptBuildPhase() {
-        this.inputPaths = Lists.newArrayList();
-        this.outputPaths = Lists.newArrayList();
+        this.inputPaths = new ArrayList<>();
+        this.outputPaths = new ArrayList<>();
     }
 
     @Override

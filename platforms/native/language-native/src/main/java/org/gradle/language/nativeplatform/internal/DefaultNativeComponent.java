@@ -39,6 +39,7 @@ public abstract class DefaultNativeComponent {
 
     public abstract DisplayName getDisplayName();
 
+    @Override
     public String toString() {
         return getDisplayName().getDisplayName();
     }

@@ -5,15 +5,26 @@ plugins {
 
 description = "API extraction for Java"
 
+errorprone {
+    disabledChecks.addAll(
+        "EmptyBlockTag", // 2 occurrences
+        "NonApiType", // 1 occurrences
+        "ProtectedMembersInFinalClass", // 1 occurrences
+    )
+}
+
 dependencies {
-    implementation(project(":base-annotations"))
-    implementation(project(":hashing"))
-    implementation(project(":files"))
-    implementation(project(":snapshots"))
+    api(project(":hashing"))
+    api(project(":files"))
+    api(project(":snapshots"))
+
+    api(libs.jsr305)
+    api(libs.asm)
+    api(libs.guava)
+
+    implementation(projects.javaLanguageExtensions)
     implementation(project(":functional"))
 
-    implementation(libs.asm)
-    implementation(libs.guava)
     implementation(libs.slf4jApi)
     implementation(libs.commonsIo)
 

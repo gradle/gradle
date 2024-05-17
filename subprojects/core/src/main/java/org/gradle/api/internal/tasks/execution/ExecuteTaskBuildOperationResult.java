@@ -67,6 +67,14 @@ public class ExecuteTaskBuildOperationResult implements ExecuteTaskBuildOperatio
 
     @Nullable
     @Override
+    public byte[] getOriginBuildCacheKeyBytes() {
+        return originMetadata == null
+            ? null
+            : originMetadata.getBuildCacheKey().toByteArray();
+    }
+
+    @Nullable
+    @Override
     public Long getOriginExecutionTime() {
         return originMetadata == null ? null : originMetadata.getExecutionTime().toMillis();
     }

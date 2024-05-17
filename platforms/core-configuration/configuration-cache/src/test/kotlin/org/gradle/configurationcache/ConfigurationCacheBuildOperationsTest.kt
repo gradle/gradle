@@ -19,34 +19,44 @@ package org.gradle.configurationcache
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
-import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.operations.CallableBuildOperation
+import org.gradle.internal.operations.RunnableBuildOperation
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
+import org.junit.Rule
 import org.junit.Test
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
+import java.util.UUID
 
 
 class ConfigurationCacheBuildOperationsTest {
+    @JvmField
+    @Rule
+    val testDirectoryProvider = TestNameTestDirectoryProvider(javaClass)
+
     @Test
     fun `sets progress display name on store`() {
         // given:
-        val buildOperationExecutor = mock<BuildOperationExecutor> {
+        val buildOperationRunner = mock<BuildOperationRunner> {
             on { call<Unit>(any()) } doReturn Unit
         }
+        val stateFile = testDirectoryProvider.file("stateFile")
 
         // when:
-        buildOperationExecutor.withStoreOperation("key") {
+        buildOperationRunner.withStoreOperation("key") {
+            StoreResult(stateFile, null)
         }
 
         // then:
-        val callableBuildOperation = ArgumentCaptor.forClass(CallableBuildOperation::class.java)
-        verify(buildOperationExecutor).call(callableBuildOperation.capture())
+        val runnableBuildOperation = ArgumentCaptor.forClass(RunnableBuildOperation::class.java)
+        verify(buildOperationRunner).run(runnableBuildOperation.capture())
 
         // and:
         assertThat(
-            callableBuildOperation.value.description().build().progressDisplayName,
+            runnableBuildOperation.value.description().build().progressDisplayName,
             equalTo("Storing configuration cache state")
         )
     }
@@ -54,17 +64,19 @@ class ConfigurationCacheBuildOperationsTest {
     @Test
     fun `sets progress display name on load`() {
         // given:
-        val buildOperationExecutor = mock<BuildOperationExecutor> {
+        val buildOperationRunner = mock<BuildOperationRunner> {
             on { call<Unit>(any()) } doReturn Unit
         }
+        val stateFile = testDirectoryProvider.file("stateFile")
 
         // when:
-        buildOperationExecutor.withLoadOperation() {
+        buildOperationRunner.withLoadOperation {
+            LoadResult(stateFile, UUID.randomUUID().toString()) to Unit
         }
 
         // then:
         val callableBuildOperation = ArgumentCaptor.forClass(CallableBuildOperation::class.java)
-        verify(buildOperationExecutor).call(callableBuildOperation.capture())
+        verify(buildOperationRunner).call(callableBuildOperation.capture())
 
         // and:
         assertThat(

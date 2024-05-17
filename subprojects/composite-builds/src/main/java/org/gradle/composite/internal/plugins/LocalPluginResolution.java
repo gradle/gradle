@@ -18,10 +18,11 @@ package org.gradle.composite.internal.plugins;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
+import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.resolve.internal.PluginResolution;
-import org.gradle.plugin.use.resolve.internal.PluginResolveContext;
+import org.gradle.plugin.use.resolve.internal.PluginResolutionVisitor;
 import org.gradle.plugin.use.resolve.internal.local.PluginPublication;
 
 import java.util.Optional;
@@ -46,8 +47,13 @@ class LocalPluginResolution implements PluginResolution {
     }
 
     @Override
-    public void execute(PluginResolveContext context) {
-        context.addLegacy(pluginId, producingProject.getDependencies().create(producingProject));
+    public void accept(PluginResolutionVisitor visitor) {
+        visitor.visitDependency(producingProject.getDependencies().create(producingProject));
+    }
+
+    @Override
+    public void applyTo(PluginManagerInternal pluginManager) {
+        pluginManager.apply(pluginId.getId());
     }
 
     static Optional<PluginResolution> resolvePlugin(GradleInternal gradle, PluginId requestedPluginId) {

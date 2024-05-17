@@ -2,7 +2,7 @@ package util
 
 import common.Arch
 import common.Os
-import jetbrains.buildServer.configs.kotlin.v2019_2.Project
+import jetbrains.buildServer.configs.kotlin.Project
 
 object UtilProject : Project({
     id("Util")
@@ -17,6 +17,6 @@ object UtilProject : Project({
     buildType(PublishKotlinDslPlugin)
 
     params {
-        param("env.GRADLE_ENTERPRISE_ACCESS_KEY", "%ge.gradle.org.access.key%")
+        param("env.DEVELOCITY_ACCESS_KEY", "%ge.gradle.org.access.key%")
     }
 })

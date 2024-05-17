@@ -16,7 +16,10 @@
 
 package org.gradle.api.publish.internal.service;
 
+import org.gradle.api.component.SoftwareComponentFactory;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectDependencyPublicationResolver;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.publish.internal.component.DefaultSoftwareComponentFactory;
 import org.gradle.api.publish.internal.mapping.DefaultDependencyCoordinateResolverFactory;
 import org.gradle.api.publish.internal.validation.DuplicatePublicationTracker;
 import org.gradle.internal.service.ServiceRegistration;
@@ -28,5 +31,17 @@ public class PublishServices extends AbstractPluginServiceRegistry {
         registration.add(DefaultProjectDependencyPublicationResolver.class);
         registration.add(DuplicatePublicationTracker.class);
         registration.add(DefaultDependencyCoordinateResolverFactory.class);
+    }
+
+    @Override
+    public void registerGlobalServices(ServiceRegistration registration) {
+        registration.addProvider(new GlobalScopeServices());
+    }
+
+    private static class GlobalScopeServices {
+        @SuppressWarnings("unused") // Used by reflection
+        SoftwareComponentFactory createSoftwareComponentFactory(ObjectFactory objectFactory) {
+            return new DefaultSoftwareComponentFactory(objectFactory);
+        }
     }
 }

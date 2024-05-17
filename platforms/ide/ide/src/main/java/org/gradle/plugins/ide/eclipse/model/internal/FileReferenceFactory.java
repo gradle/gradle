@@ -16,17 +16,17 @@
 
 package org.gradle.plugins.ide.eclipse.model.internal;
 
-import com.google.common.collect.Maps;
 import org.gradle.internal.UncheckedException;
 import org.gradle.plugins.ide.eclipse.model.FileReference;
 
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.HashMap;
 import java.util.Map;
 
 public class FileReferenceFactory {
-    private final Map<String, File> variables = Maps.newHashMap();
+    private final Map<String, File> variables = new HashMap<>();
 
     /**
      * Adds a path variable
@@ -153,6 +153,7 @@ public class FileReferenceFactory {
             return relativeToPathVariable;
         }
 
+        @Override
         public String toString() {
             return "{file='" + file + "', path='" + path  + "', jarUrl='" + getJarURL() + "'}";
         }

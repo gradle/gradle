@@ -346,6 +346,16 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
         return result();
     }
 
+    @Override
+    public ExecResult getExecResult() {
+        lock.lock();
+        try {
+            return execResult;
+        } finally {
+            lock.unlock();
+        }
+    }
+
     private ExecResult result() {
         lock.lock();
         try {
@@ -396,6 +406,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
         broadcast.remove(listener);
     }
 
+    @Override
     public String getDisplayName() {
         return displayName;
     }

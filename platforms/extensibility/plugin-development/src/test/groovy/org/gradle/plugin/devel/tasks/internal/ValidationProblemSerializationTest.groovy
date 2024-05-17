@@ -17,86 +17,84 @@
 package org.gradle.plugin.devel.tasks.internal
 
 import com.google.gson.Gson
-import org.gradle.api.problems.DocLink
-import org.gradle.api.problems.ProblemEmitter
-import org.gradle.api.problems.Problems
 import org.gradle.api.problems.Severity
-import org.gradle.api.problems.internal.DefaultProblems
-import org.gradle.api.problems.internal.InternalProblems
+import org.gradle.api.problems.internal.DefaultProblemReporter
+import org.gradle.api.problems.internal.DocLink
+import org.gradle.api.problems.internal.GradleCoreProblemGroup
+import org.gradle.api.problems.internal.InternalProblemReporter
+import org.gradle.api.problems.internal.ProblemEmitter
 import spock.lang.Specification
 
 class ValidationProblemSerializationTest extends Specification {
 
     Gson gson = ValidationProblemSerialization.createGsonBuilder().create()
-    Problems problems = new DefaultProblems(Stub(ProblemEmitter))
+    InternalProblemReporter problemReporter = new DefaultProblemReporter(Stub(ProblemEmitter), [], org.gradle.internal.operations.CurrentBuildOperationRef.instance())
 
     def "can serialize and deserialize a validation problem"() {
         given:
-        def problem = problems.create {
-            it.label("label")
-                .undocumented()
-                .noLocation()
-                .category("type")
+        def problem = problemReporter.create {
+            it.id("id", "label", GradleCoreProblemGroup.validation())
         }
 
         when:
         def json = gson.toJson([problem])
-        def deserialized = ValidationProblemSerialization.parseMessageList(json, (InternalProblems) problems)
+        def deserialized = ValidationProblemSerialization.parseMessageList(json)
 
         then:
         deserialized.size() == 1
-        deserialized[0].label == "label"
-        deserialized[0].problemCategory.toString() == "type"
+        deserialized[0].definition.id.name == "id"
+        deserialized[0].definition.id.displayName == "label"
+        deserialized[0].definition.id.group.name == "validation"
+        deserialized[0].definition.id.group.displayName == "Validation"
+        deserialized[0].definition.id.group.parent == null
+
         deserialized[0].locations.isEmpty()
-        deserialized[0].documentationLink == null
+        deserialized[0].definition.documentationLink == null
     }
 
     def "can serialize and deserialize a validation problem with a location"() {
         given:
-        def problem = problems.create {
-            it.label("label")
-                .undocumented()
-                .fileLocation("location", 1, 2, 3)
-                .category("type")
+        def problem = problemReporter.create {
+            it.id("type", "label", GradleCoreProblemGroup.validation())
+                .lineInFileLocation("location", 1, 2, 3)
         }
 
         when:
         def json = gson.toJson([problem])
-        def deserialized = ValidationProblemSerialization.parseMessageList(json, (InternalProblems) problems)
+        def deserialized = ValidationProblemSerialization.parseMessageList(json)
 
         then:
         deserialized.size() == 1
-        deserialized[0].label == "label"
-        deserialized[0].problemCategory.toString() == "type"
+        deserialized[0].definition.id.name == "type"
+        deserialized[0].definition.id.displayName == "label"
         deserialized[0].locations[0].path == "location"
         deserialized[0].locations[0].line == 1
         deserialized[0].locations[0].column == 2
         deserialized[0].locations[0].length == 3
-        deserialized[0].documentationLink == null
+        deserialized[0].definition.documentationLink == null
     }
 
     def "can serialize and deserialize a validation problem with a documentation link"() {
         given:
-        def problem = problems.create {
-            it.label("label")
+        def problem = problemReporter.create {
+            it.id("id", "label", GradleCoreProblemGroup.validation())
                 .documentedAt(new TestDocLink())
-                .fileLocation("location", 1, 1, null)
-                .category("type")
+                .lineInFileLocation("location", 1, 1)
         }
 
         when:
         def json = gson.toJson([problem])
-        def deserialized = ValidationProblemSerialization.parseMessageList(json, (InternalProblems) problems)
+        def deserialized = ValidationProblemSerialization.parseMessageList(json)
 
         then:
         deserialized.size() == 1
-        deserialized[0].label == "label"
-        deserialized[0].problemCategory.toString() == "type"
+        deserialized[0].definition.id.name == "id"
+        deserialized[0].definition.id.displayName == "label"
         deserialized[0].locations[0].path == "location"
         deserialized[0].locations[0].line == 1
         deserialized[0].locations[0].column == 1
-        deserialized[0].documentationLink.getUrl() == "url"
-        deserialized[0].documentationLink.getConsultDocumentationMessage() == "consult"
+        deserialized[0].definition.documentationLink.getUrl() == "url"
+        deserialized[0].definition.documentationLink.getConsultDocumentationMessage() == "consult"
     }
 
     /**
@@ -118,48 +116,42 @@ class ValidationProblemSerializationTest extends Specification {
 
     def "can serialize and deserialize a validation problem with a cause"() {
         given:
-        def problem = problems.create {
-            it.label("label")
-                .undocumented()
-                .noLocation()
-                .category("type")
+        def problem = problemReporter.create {
+            it.id("id", "label", GradleCoreProblemGroup.validation())
                 .withException(new RuntimeException("cause"))
         }
 
         when:
         def json = gson.toJson([problem])
-        def deserialized = ValidationProblemSerialization.parseMessageList(json, (InternalProblems) problems)
+        def deserialized = ValidationProblemSerialization.parseMessageList(json)
 
         then:
         deserialized.size() == 1
-        deserialized[0].label == "label"
-        deserialized[0].problemCategory.toString() == "type"
+        deserialized[0].definition.id.name == "id"
+        deserialized[0].definition.id.displayName == "label"
         deserialized[0].locations == [] as List
-        deserialized[0].documentationLink == null
+        deserialized[0].definition.documentationLink == null
         deserialized[0].exception.message == "cause"
     }
 
     def "can serialize and deserialize a validation problem with a severity"(Severity severity) {
         given:
-        def problem = problems.create {
-            it.label("label")
-                .undocumented()
-                .noLocation()
-                .category("type")
+        def problem = problemReporter.create {
+            it.id("id", "label", GradleCoreProblemGroup.validation())
                 .severity(severity)
         }
 
         when:
         def json = gson.toJson([problem])
-        def deserialized = ValidationProblemSerialization.parseMessageList(json, (InternalProblems) problems)
+        def deserialized = ValidationProblemSerialization.parseMessageList(json)
 
         then:
         deserialized.size() == 1
-        deserialized[0].label == "label"
-        deserialized[0].problemCategory.toString() == "type"
+        deserialized[0].definition.id.name == "id"
+        deserialized[0].definition.id.displayName == "label"
         deserialized[0].locations == [] as List
-        deserialized[0].documentationLink == null
-        deserialized[0].severity == severity
+        deserialized[0].definition.documentationLink == null
+        deserialized[0].definition.severity == severity
 
         where:
         severity << Severity.values()
@@ -167,50 +159,44 @@ class ValidationProblemSerializationTest extends Specification {
 
     def "can serialize and deserialize a validation problem with a solution"() {
         given:
-        def problem = problems.create {
-            it.label("label")
-                .undocumented()
-                .noLocation()
-                .category("type")
+        def problem = problemReporter.create {
+            it.id("id", "label", GradleCoreProblemGroup.validation())
                 .solution("solution 0")
                 .solution("solution 1")
         }
 
         when:
         def json = gson.toJson([problem])
-        def deserialized = ValidationProblemSerialization.parseMessageList(json, (InternalProblems) problems)
+        def deserialized = ValidationProblemSerialization.parseMessageList(json)
 
         then:
         deserialized.size() == 1
-        deserialized[0].label == "label"
-        deserialized[0].problemCategory.toString() == "type"
+        deserialized[0].definition.id.name == "id"
+        deserialized[0].definition.id.displayName == "label"
         deserialized[0].locations == [] as List
-        deserialized[0].documentationLink == null
+        deserialized[0].definition.documentationLink == null
         deserialized[0].solutions[0] == "solution 0"
         deserialized[0].solutions[1] == "solution 1"
     }
 
     def "can serialize and deserialize a validation problem with additional data"() {
         given:
-        def problem = problems.create {
-            it.label("label")
-                .undocumented()
-                .noLocation()
-                .category("type")
+        def problem = problemReporter.create {
+            it.id("id", "label", GradleCoreProblemGroup.validation())
                 .additionalData("key 1", "value 1")
                 .additionalData("key 2", "value 2")
         }
 
         when:
         def json = gson.toJson([problem])
-        def deserialized = ValidationProblemSerialization.parseMessageList(json, (InternalProblems) problems)
+        def deserialized = ValidationProblemSerialization.parseMessageList(json)
 
         then:
         deserialized.size() == 1
-        deserialized[0].label == "label"
-        deserialized[0].problemCategory.toString() == "type"
+        deserialized[0].definition.id.name == "id"
+        deserialized[0].definition.id.displayName == "label"
         deserialized[0].locations == [] as List
-        deserialized[0].documentationLink == null
+        deserialized[0].definition.documentationLink == null
         deserialized[0].additionalData["key 1"] == "value 1"
         deserialized[0].additionalData["key 2"] == "value 2"
     }

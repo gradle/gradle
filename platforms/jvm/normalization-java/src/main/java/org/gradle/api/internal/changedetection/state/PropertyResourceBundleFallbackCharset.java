@@ -75,6 +75,7 @@ public class PropertyResourceBundleFallbackCharset extends Charset {
             buffer.reset();
         }
 
+        @Override
         protected CoderResult decodeLoop(ByteBuffer in, CharBuffer out) {
             mark(in);
             mark(out);

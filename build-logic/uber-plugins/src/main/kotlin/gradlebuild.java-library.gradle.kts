@@ -1,3 +1,5 @@
+import com.autonomousapps.DependencyAnalysisSubExtension
+
 /*
  * Copyright 2018 the original author or authors.
  *
@@ -32,4 +34,18 @@ plugins {
     id("gradlebuild.ci-lifecycle")
     id("gradlebuild.ci-reporting") // CI: Prepare reports to be uploaded to TeamCity
     id("gradlebuild.configure-ci-artifacts") // CI: Prepare reports to be uploaded to TeamCity
+}
+
+// Handle dependencyAnalysis configuration for projects
+val unmigratedProjects: String by project
+
+val unmigratedProjectsList = unmigratedProjects.split(",").map { it.trim() }
+
+if (!unmigratedProjectsList.contains(project.name)) {
+    val dependencyAnalysis = project.extensions.getByType<DependencyAnalysisSubExtension>()
+    dependencyAnalysis.issues {
+        onAny {
+            severity("fail")
+        }
+    }
 }

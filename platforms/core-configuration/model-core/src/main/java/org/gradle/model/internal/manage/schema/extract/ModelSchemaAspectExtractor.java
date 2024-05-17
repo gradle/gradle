@@ -17,12 +17,15 @@
 package org.gradle.model.internal.manage.schema.extract;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+@ServiceScope(Scope.Global.class)
 public class ModelSchemaAspectExtractor {
     private final List<ModelSchemaAspectExtractionStrategy> strategies;
 
@@ -35,7 +38,7 @@ public class ModelSchemaAspectExtractor {
     }
 
     public <T> List<ModelSchemaAspect> extract(ModelSchemaExtractionContext<T> extractionContext, List<ModelPropertyExtractionResult<?>> propertyResults) {
-        List<ModelSchemaAspect> aspects = Lists.newArrayList();
+        List<ModelSchemaAspect> aspects = new ArrayList<>();
         for (ModelSchemaAspectExtractionStrategy strategy : strategies) {
             ModelSchemaAspectExtractionResult result = strategy.extract(extractionContext, propertyResults);
             if (result != null) {

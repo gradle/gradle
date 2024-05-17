@@ -109,10 +109,7 @@ The goal of the marker is _not_ for other tools to parse module metadata: it's f
 It explains to Gradle that a _better_ module metadata file exists and that it should use it instead.
 It doesn't mean that consumption from Maven or Ivy would be broken either, only that it works in <<#sub:mapping-with-other-formats,degraded mode>>.
 
-[NOTE]
-====
-This must be seen as a _performance optimization_: instead of having to do 2 network requests, one to get Gradle Module Metadata, then one to get the POM/Ivy file in case of a miss, Gradle will first look at the file which is most likely to be present, then only perform a 2nd request if the module was actually published with Gradle Module Metadata.
-====
+NOTE: This must be seen as a _performance optimization_: instead of having to do 2 network requests, one to get Gradle Module Metadata, then one to get the POM/Ivy file in case of a miss, Gradle will first look at the file which is most likely to be present, then only perform a 2nd request if the module was actually published with Gradle Module Metadata.
 
 If you know that the modules you depend on are always published with Gradle Module Metadata, you can optimize the network calls by configuring the metadata sources for a repository:
 

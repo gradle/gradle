@@ -30,6 +30,8 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
     BuildTestFile pluginDependencyA
 
     def setup() {
+        enableProblemsApiCheck()
+
         pluginDependencyA = singleProjectBuild("pluginDependencyA") {
             buildFile << """
                 apply plugin: 'java-library'
@@ -102,6 +104,12 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
 
         then:
         failure.assertHasDescription("Could not compile build file '$buildA.buildFile.canonicalPath'.")
+
+        and:
+        verifyAll(receivedProblem) {
+            fqid == 'compilation:groovy-dsl:compilation-failed'
+            contextualLabel == "Could not compile build file '${buildA.buildFile.absolutePath}'."
+        }
     }
 
     def "can co-develop plugin and consumer with both plugin and consumer as included builds"() {
@@ -435,6 +443,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
 
     def "detects dependency cycle between included builds required for buildscript classpath"() {
         given:
+        disableProblemsApiCheck()
         def pluginDependencyB = singleProjectBuild("pluginDependencyB") {
             buildFile << """
                 apply plugin: 'java'
@@ -532,6 +541,7 @@ Circular dependency between the following tasks:
     }
 
     def "does not substitute plugin from same build into root build"() {
+        disableProblemsApiCheck()
         buildA.settingsFile << """
             include "a", "b"
         """
@@ -560,6 +570,7 @@ Circular dependency between the following tasks:
     }
 
     def "does not substitute plugin from root build into included build"() {
+        disableProblemsApiCheck()
         buildA.settingsFile << """
             include "a"
         """
@@ -593,6 +604,7 @@ Circular dependency between the following tasks:
     }
 
     def "does not substitute plugin from same build into included build"() {
+        disableProblemsApiCheck()
         pluginBuild.settingsFile << """
             include "a"
         """

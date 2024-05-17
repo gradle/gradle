@@ -16,7 +16,6 @@
 
 package org.gradle.language.cpp.internal;
 
-import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.component.ComponentWithCoordinates;
 import org.gradle.api.component.SoftwareComponentVariant;
@@ -28,6 +27,7 @@ import org.gradle.nativeplatform.Linkage;
 import org.gradle.nativeplatform.TargetMachine;
 import org.gradle.util.internal.GUtil;
 
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class NativeVariantIdentity implements SoftwareComponentInternal, ComponentWithCoordinates {
@@ -58,7 +58,7 @@ public class NativeVariantIdentity implements SoftwareComponentInternal, Compone
         this.linkVariant = linkVariant;
         this.runtimeVariant = runtimeVariant;
         this.linkage = linkage;
-        this.variants = Sets.newLinkedHashSet();
+        this.variants = new LinkedHashSet<>();
         if (linkVariant != null) {
             variants.add(linkVariant);
         }

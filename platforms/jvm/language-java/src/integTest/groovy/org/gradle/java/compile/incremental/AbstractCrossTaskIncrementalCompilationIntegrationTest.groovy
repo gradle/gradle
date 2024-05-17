@@ -18,6 +18,7 @@
 package org.gradle.java.compile.incremental
 
 import org.gradle.integtests.fixtures.CompiledLanguage
+import spock.lang.Issue
 
 abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends AbstractCrossTaskIncrementalCompilationSupport {
 
@@ -304,5 +305,28 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
 
         then:
         impl.recompiledClasses("A")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/21255")
+    def "ensure local classes preferred in incremental compilation"() {
+        source(
+            api: ["class Base {}"],
+            // Dependant relies on specifics that only exist in the Base within impl
+            impl: ["class Base { String reference; }", "class Dependant { String downstream = new Base().reference;}"]
+        )
+
+        when:
+        run("${language.compileTaskName}")
+        impl.recompiledClasses("Base", "Dependant")
+
+        impl.snapshot()
+
+        // Change the contents of Dependant to force recompile. Compile will only
+        // pass if compiling against impl's Base
+        file("impl/src/main/${language.name}/Dependant.${language.name}") << "// Recompile me please"
+        run("${language.compileTaskName}")
+
+        then:
+        impl.recompiledClasses("Dependant")
     }
 }

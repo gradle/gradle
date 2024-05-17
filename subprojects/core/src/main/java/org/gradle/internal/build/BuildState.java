@@ -18,6 +18,7 @@ package org.gradle.internal.build;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.internal.DisplayName;
 import org.gradle.util.Path;
@@ -68,6 +69,13 @@ public interface BuildState {
      * Have the projects been loaded, ie has {@link #ensureProjectsLoaded()} already completed for this build?
      */
     boolean isProjectsLoaded();
+
+    /**
+     * Has the mutable model for projects been created yet?
+     *
+     * @see ProjectState#isCreated()
+     */
+    boolean isProjectsCreated();
 
     /**
      * Ensures all projects in this build are configured, if not already done.

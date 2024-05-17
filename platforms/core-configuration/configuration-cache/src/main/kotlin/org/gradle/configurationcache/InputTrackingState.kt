@@ -17,7 +17,7 @@
 package org.gradle.configurationcache
 
 import com.google.common.base.Preconditions
-import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import kotlin.reflect.KProperty
 
@@ -30,7 +30,7 @@ import kotlin.reflect.KProperty
  * the configuration time is not really an input, because the value of the value source itself
  * becomes part of the configuration cache fingerprint.
  */
-@ServiceScope(Scopes.BuildTree::class)
+@ServiceScope(Scope.BuildTree::class)
 class InputTrackingState {
     private
     var inputTrackingDisabledCounterForThread by ThreadLocal.withInitial { 0 }

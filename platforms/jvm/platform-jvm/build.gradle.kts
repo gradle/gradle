@@ -4,36 +4,38 @@ plugins {
 
 description = """Extends platform-base with base types and interfaces specific to the Java Virtual Machine, including tasks for obtaining a JDK via toolchains, and for compiling and launching Java applications."""
 
-dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":base-services-groovy"))
-    implementation(project(":core"))
-    implementation(project(":core-api"))
-    implementation(project(":functional"))
-    implementation(project(":dependency-management"))
-    implementation(project(":diagnostics"))
-    implementation(project(":execution"))
-    implementation(project(":file-collections"))
-    implementation(project(":jvm-services"))
-    implementation(project(":logging"))
-    implementation(project(":messaging"))
-    implementation(project(":model-core"))
-    implementation(project(":native"))
-    implementation(project(":normalization-java"))
-    implementation(project(":persistent-cache"))
-    implementation(project(":platform-base"))
-    implementation(project(":process-services"))
-    implementation(project(":publish"))
-    implementation(project(":resources"))
-    implementation(project(":enterprise-operations"))
+errorprone {
+    disabledChecks.addAll(
+        "StringCharset", // 1 occurrences
+        "UnusedMethod", // 1 occurrences
+    )
+}
 
-    implementation(libs.groovy)
+dependencies {
+    api(projects.javaLanguageExtensions)
+    api(projects.serviceProvider)
+    api(project(":base-services"))
+    api(project(":core"))
+    api(project(":core-api"))
+    api(project(":file-collections"))
+    api(project(":logging"))
+    api(project(":model-core"))
+    api(project(":platform-base"))
+
+    api(libs.groovy)
+    api(libs.inject)
+    api(libs.jsr305)
+    api(libs.nativePlatform)
+
+    implementation(project(":dependency-management"))
+    implementation(project(":execution"))
+    implementation(project(":functional"))
+    implementation(project(":jvm-services"))
+    implementation(project(":publish"))
+
     implementation(libs.guava)
     implementation(libs.commonsLang)
     implementation(libs.commonsIo)
-    implementation(libs.inject)
-    implementation(libs.nativePlatform)
-    implementation(libs.futureKotlin("stdlib"))
 
     testImplementation(project(":snapshots"))
     testImplementation(libs.ant)

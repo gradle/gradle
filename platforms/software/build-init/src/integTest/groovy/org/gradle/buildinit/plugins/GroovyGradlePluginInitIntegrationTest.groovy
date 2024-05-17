@@ -48,9 +48,9 @@ class GroovyGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec 
         run('init', '--type', 'groovy-gradle-plugin', '--dsl', scriptDsl.id)
 
         then:
-        subprojectDir.file("src/main/groovy").assertHasDescendants("some/thing/SomeThingPlugin.groovy")
-        subprojectDir.file("src/test/groovy").assertHasDescendants("some/thing/SomeThingPluginTest.groovy")
-        subprojectDir.file("src/functionalTest/groovy").assertHasDescendants("some/thing/SomeThingPluginFunctionalTest.groovy")
+        subprojectDir.file("src/main/groovy").assertHasDescendants("org/example/SomeThingPlugin.groovy")
+        subprojectDir.file("src/test/groovy").assertHasDescendants("org/example/SomeThingPluginTest.groovy")
+        subprojectDir.file("src/functionalTest/groovy").assertHasDescendants("org/example/SomeThingPluginFunctionalTest.groovy")
 
         and:
         commonJvmFilesGenerated(scriptDsl)
@@ -60,8 +60,8 @@ class GroovyGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec 
         run("build")
 
         then:
-        assertTestPassed("some.thing.SomeThingPluginTest", "plugin registers task")
-        assertFunctionalTestPassed("some.thing.SomeThingPluginFunctionalTest", "can run task")
+        assertTestPassed("org.example.SomeThingPluginTest", "plugin registers task")
+        assertFunctionalTestPassed("org.example.SomeThingPluginFunctionalTest", "can run task")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -75,9 +75,9 @@ class GroovyGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec 
         run('init', '--type', 'groovy-gradle-plugin', '--dsl', scriptDsl.id, '--incubating')
 
         then:
-        subprojectDir.file("src/main/groovy").assertHasDescendants("some/thing/SomeThingPlugin.groovy")
-        subprojectDir.file("src/test/groovy").assertHasDescendants("some/thing/SomeThingPluginTest.groovy")
-        subprojectDir.file("src/functionalTest/groovy").assertHasDescendants("some/thing/SomeThingPluginFunctionalTest.groovy")
+        subprojectDir.file("src/main/groovy").assertHasDescendants("org/example/SomeThingPlugin.groovy")
+        subprojectDir.file("src/test/groovy").assertHasDescendants("org/example/SomeThingPluginTest.groovy")
+        subprojectDir.file("src/functionalTest/groovy").assertHasDescendants("org/example/SomeThingPluginFunctionalTest.groovy")
 
         and:
         commonJvmFilesGenerated(scriptDsl)
@@ -88,8 +88,8 @@ class GroovyGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec 
         run("build")
 
         then:
-        assertTestPassed("some.thing.SomeThingPluginTest", "plugin registers task")
-        assertFunctionalTestPassed("some.thing.SomeThingPluginFunctionalTest", "can run task")
+        assertTestPassed("org.example.SomeThingPluginTest", "plugin registers task")
+        assertFunctionalTestPassed("org.example.SomeThingPluginFunctionalTest", "can run task")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -107,8 +107,8 @@ class GroovyGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec 
         run("build")
 
         then:
-        assertTestPassed("some.thing.SomeThingPluginTest", "plugin registers task")
-        assertFunctionalTestPassed("some.thing.SomeThingPluginFunctionalTest", "can run task")
+        assertTestPassed("org.example.SomeThingPluginTest", "plugin registers task")
+        assertFunctionalTestPassed("org.example.SomeThingPluginFunctionalTest", "can run task")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -124,15 +124,15 @@ class GroovyGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec 
         run('check')
 
         then:
-        assertTestPassed("some.thing.SomeThingPluginTest", "plugin registers task")
-        assertFunctionalTestPassed("some.thing.SomeThingPluginFunctionalTest", "can run task")
+        assertTestPassed("org.example.SomeThingPluginTest", "plugin registers task")
+        assertFunctionalTestPassed("org.example.SomeThingPluginFunctionalTest", "can run task")
 
         when:
         run('check', '--rerun-tasks')
 
         then:
-        assertTestPassed("some.thing.SomeThingPluginTest", "plugin registers task")
-        assertFunctionalTestPassed("some.thing.SomeThingPluginFunctionalTest", "can run task")
+        assertTestPassed("org.example.SomeThingPluginTest", "plugin registers task")
+        assertFunctionalTestPassed("org.example.SomeThingPluginFunctionalTest", "can run task")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -145,14 +145,14 @@ class GroovyGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec 
         run('init', '--type', 'groovy-gradle-plugin', '--dsl', scriptDsl.id)
 
         // Copy functional test contents into default source set test
-        def projectTest = subprojectDir.file('src/test/groovy/some/thing/SomeThingPluginTest.groovy')
-        projectTest.text = subprojectDir.file('src/functionalTest/groovy/some/thing/SomeThingPluginFunctionalTest.groovy').text
+        def projectTest = subprojectDir.file('src/test/groovy/org/example/SomeThingPluginTest.groovy')
+        projectTest.text = subprojectDir.file('src/functionalTest/groovy/org/example/SomeThingPluginFunctionalTest.groovy').text
 
         when:
         run('check')
 
         then:
-        assertTestPassed("some.thing.SomeThingPluginFunctionalTest", "can run task")
+        assertTestPassed("org.example.SomeThingPluginFunctionalTest", "can run task")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS

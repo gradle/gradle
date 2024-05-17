@@ -2,11 +2,7 @@
 
 Core link:https://c4model.com/#coreDiagrams[C4 Model] diagrams for the Gradle Kotlin DSL.
 
-[NOTE]
-====
-The optional 4th level, UML diagrams, isn't provided, favoring the source code and inspection tools.
-====
-
+NOTE: The optional 4th level, UML diagrams, isn't provided, favoring the source code and inspection tools.
 
 ## Level 1: System Context diagram
 
@@ -33,6 +29,5 @@ It should be useful enough to know where to find what in the Kotlin DSL source c
 
 image::images/C4_3_Component.svg[]
 
-[NOTE]
-This diagram diverges from the C4 Model because the scope is the whole Kotlin DSL system instead of having one diagram per container".
+NOTE: This diagram diverges from the C4 Model because the scope is the whole Kotlin DSL system instead of having one diagram per container.
 This makes this diagram quite large but it shows how everything fits together and is simpler to maintain.

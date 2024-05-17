@@ -16,6 +16,7 @@
 package org.gradle.launcher.daemon.context;
 
 import org.gradle.api.internal.specs.ExplainingSpec;
+import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.Jvm;
 
 import java.io.File;
@@ -24,9 +25,9 @@ import java.nio.file.Files;
 
 public class DaemonCompatibilitySpec implements ExplainingSpec<DaemonContext> {
 
-    private final DaemonContext desiredContext;
+    private final DaemonRequestContext desiredContext;
 
-    public DaemonCompatibilitySpec(DaemonContext desiredContext) {
+    public DaemonCompatibilitySpec(DaemonRequestContext desiredContext) {
         this.desiredContext = desiredContext;
     }
 
@@ -37,14 +38,16 @@ public class DaemonCompatibilitySpec implements ExplainingSpec<DaemonContext> {
 
     @Override
     public String whyUnsatisfied(DaemonContext context) {
-        if (!javaHomeMatches(context)) {
-            return "Java home is different.\n" + description(context);
+        if (!jvmCompatible(context)) {
+            return "JVM is incompatible.\n" + description(context);
         } else if (!daemonOptsMatch(context)) {
             return "At least one daemon option is different.\n" + description(context);
         } else if (!priorityMatches(context)) {
             return "Process priority is different.\n" + description(context);
         } else if (!agentStatusMatches(context)) {
             return "Agent status is different.\n" + description(context);
+        } else if (!nativeServicesModeMatches(context)) {
+            return "Native services mode is different.\n" + description(context);
         }
         return null;
     }
@@ -59,16 +62,21 @@ public class DaemonCompatibilitySpec implements ExplainingSpec<DaemonContext> {
             && potentialContext.getDaemonOpts().size() == desiredContext.getDaemonOpts().size();
     }
 
-    private boolean javaHomeMatches(DaemonContext potentialContext) {
-        try {
-            File potentialJavaHome = potentialContext.getJavaHome();
-            if (potentialJavaHome.exists()) {
-                File potentialJava = Jvm.forHome(potentialJavaHome).getJavaExecutable();
-                File desiredJava = Jvm.forHome(desiredContext.getJavaHome()).getJavaExecutable();
-                return Files.isSameFile(potentialJava.toPath(), desiredJava.toPath());
+    private boolean jvmCompatible(DaemonContext potentialContext) {
+        if (desiredContext.getJvmCriteria() != null) {
+            return desiredContext.getJvmCriteria().isCompatibleWith(potentialContext.getJavaVersion());
+        } else {
+            try {
+                File potentialJavaHome = potentialContext.getJavaHome();
+                JavaInfo desiredJavaHome = desiredContext.getJavaHome();
+                if (potentialJavaHome.exists() && desiredJavaHome != null) {
+                    File potentialJava = Jvm.forHome(potentialJavaHome).getJavaExecutable();
+                    File desiredJava = desiredJavaHome.getJavaExecutable();
+                    return Files.isSameFile(potentialJava.toPath(), desiredJava.toPath());
+                }
+            } catch (IOException e) {
+                // ignore
             }
-        } catch (IOException e) {
-            // ignore
         }
         return false;
     }
@@ -79,6 +87,10 @@ public class DaemonCompatibilitySpec implements ExplainingSpec<DaemonContext> {
 
     private boolean agentStatusMatches(DaemonContext context) {
         return desiredContext.shouldApplyInstrumentationAgent() == context.shouldApplyInstrumentationAgent();
+    }
+
+    private boolean nativeServicesModeMatches(DaemonContext context) {
+        return desiredContext.getNativeServicesMode() == context.getNativeServicesMode();
     }
 
     @Override

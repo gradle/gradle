@@ -28,6 +28,11 @@ import javax.annotation.Nullable;
 @Incubating
 public interface DocumentationLink {
 
+    /**
+     * Documentation link as a URL.
+     *
+     * @since 8.6
+     */
     @Nullable
     String getUrl();
 }

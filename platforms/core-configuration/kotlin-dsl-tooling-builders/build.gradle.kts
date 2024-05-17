@@ -5,19 +5,21 @@ plugins {
 description = "Kotlin DSL Tooling Builders for IDEs"
 
 dependencies {
-    implementation(project(":kotlin-dsl"))
+    api(project(":core-api"))
+    api(project(":core"))
+    api(libs.futureKotlin("stdlib"))
 
+    implementation(projects.javaLanguageExtensions)
+    implementation(projects.time)
+    implementation(project(":kotlin-dsl"))
     implementation(project(":base-services"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":core"))
     implementation(project(":resources"))
     implementation(project(":platform-base"))
     implementation(project(":platform-jvm"))
-    implementation(project(":plugins-java"))
     implementation(project(":plugins-java-base"))
     implementation(project(":tooling-api"))
     implementation(project(":logging"))
+    implementation(project(":kotlin-dsl-tooling-models"))
 
     testImplementation(testFixtures(project(":kotlin-dsl")))
     integTestImplementation(testFixtures(project(":tooling-api")))
@@ -31,7 +33,9 @@ dependencies {
     crossVersionTestImplementation(libs.ant)
 
     integTestDistributionRuntimeOnly(project(":distributions-basics"))
-    crossVersionTestDistributionRuntimeOnly(project(":distributions-basics"))
+    crossVersionTestDistributionRuntimeOnly(project(":distributions-jvm")) {
+        because("Uses application plugin.")
+    }
 }
 
 testFilesCleanup.reportOnly = true

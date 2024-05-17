@@ -116,14 +116,14 @@ class ExternalResourceNameTest extends Specification {
         ""       | ""          | ""
     }
 
-    def "decoded name is base uri plus path"() {
+    def "displayable name is base uri plus the encoded path"() {
         expect:
         def name = new ExternalResourceName(URI.create(uri))
-        name.decoded == expectedDecoded
+        name.displayable == expectedDisplayable
 
         where:
-        uri                          | expectedDecoded
-        "http://host:80/a/%5B123%5D" | "http://host:80/a/[123]"
+        uri                          | expectedDisplayable
+        "http://host:80/a/%5B123%5D" | "http://host:80/a/%5B123%5D"
         "http://host/a/b"            | "http://host/a/b"
         "http://host"                | "http://host"
         "a/b/c"                      | "a/b/c"
@@ -148,8 +148,8 @@ class ExternalResourceNameTest extends Specification {
     def "can handle UNC paths"() {
         expect:
         def name = new ExternalResourceName(uri)
-        name.decoded == expectedDecoded
-        name.resolve("").decoded == expectedDecoded
+        name.displayable == expectedDecoded
+        name.resolve("").displayable == expectedDecoded
 
         where:
         uri                              | expectedDecoded

@@ -101,10 +101,18 @@ public interface FileWatcherUpdater {
     /**
      * Remove everything from the root which can't be kept after the current build finished.
      *
-     * @see FileWatcherRegistry#updateVfsOnBuildFinished(SnapshotHierarchy, WatchMode, int, List)
+     * @see FileWatcherRegistry#updateVfsBeforeBuildFinished(SnapshotHierarchy, int, List)
      */
     @CheckReturnValue
-    SnapshotHierarchy updateVfsOnBuildFinished(SnapshotHierarchy root, WatchMode watchMode, int maximumNumberOfWatchedHierarchies, List<File> unsupportedFileSystems);
+    SnapshotHierarchy updateVfsBeforeBuildFinished(SnapshotHierarchy root, int maximumNumberOfWatchedHierarchies, List<File> unsupportedFileSystems);
+
+    /**
+     * Remove everything from the root which can't be kept after the current build finished.
+     *
+     * @see FileWatcherRegistry#updateVfsBeforeBuildFinished(SnapshotHierarchy, int, List)
+     */
+    @CheckReturnValue
+    SnapshotHierarchy updateVfsBeforeAfterFinished(SnapshotHierarchy root);
 
     /**
      * The files actually being watched right now.

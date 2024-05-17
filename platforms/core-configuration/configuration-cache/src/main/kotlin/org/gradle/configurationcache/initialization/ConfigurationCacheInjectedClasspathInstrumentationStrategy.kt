@@ -33,8 +33,7 @@ class ConfigurationCacheInjectedClasspathInstrumentationStrategy(
             PropertyProblem(
                 PropertyTrace.Gradle,
                 StructuredMessage.build { text("support for using a Java agent with TestKit builds is not yet implemented with the configuration cache.") },
-                null,
-                DocumentationSection.NotYetImplementedTestKitJavaAgent
+                documentationSection = DocumentationSection.NotYetImplementedTestKitJavaAgent
             )
         )
         return CachedClasspathTransformer.StandardTransform.BuildLogic

@@ -15,16 +15,16 @@
  */
 package org.gradle.internal.component.model;
 
-import com.google.common.collect.Sets;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class AttributeSelectionUtils {
     public static Attribute<?>[] collectExtraAttributes(AttributeSelectionSchema schema, ImmutableAttributes[] candidateAttributeSets, ImmutableAttributes requested) {
-        Set<Attribute<?>> extraAttributes = Sets.newLinkedHashSet();
+        Set<Attribute<?>> extraAttributes = new LinkedHashSet<>();
         for (ImmutableAttributes attributes : candidateAttributeSets) {
             extraAttributes.addAll(attributes.keySet());
         }

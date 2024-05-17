@@ -16,29 +16,26 @@
 
 package org.gradle.api.internal.artifacts;
 
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ResolvedConfiguration;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult;
+import org.gradle.api.specs.Spec;
 
 /**
- * Immutable representation of the state of dependency resolution. Can represent intermediate resolution states after
- * build dependency resolution, graph resolution, and artifact resolution. Results can have attached failures
- * in cases of partial resolution successes.
+ * Immutable representation of the state of dependency resolution. Can represent the result of resolving build
+ * dependencies or the result of a full dependency graph resolution.
  *
- * <p>This should eventually be merged with {@link org.gradle.api.internal.artifacts.configurations.DefaultConfiguration.ResolveState}</p>
+ * <p> In case of failures, both fatal and partial, exceptions are attached to the {@link VisitedGraphResults}. <p>
  */
-@SuppressWarnings("JavadocReference")
 public interface ResolverResults {
-
     /**
      * Returns the old model, which has been replaced by {@link VisitedGraphResults} and {@link VisitedArtifactSet}.
-     * Using this model directly should be avoided.
-     * This method should only be used to implement existing public API methods.
      *
-     * @throws IllegalStateException if only build dependencies have been resolved.
+     * <strong>This method should only be used to implement existing legacy public API methods.</strong>
      */
-    ResolvedConfiguration getResolvedConfiguration();
+    LegacyResolverResults getLegacyResults();
 
     /**
      * Return the model representing the resolved graph. This model provides access
@@ -47,12 +44,49 @@ public interface ResolverResults {
     VisitedGraphResults getVisitedGraph();
 
     /**
-     * Returns details of the artifacts visited during dependency graph resolution. This set is later refined during artifact resolution.
+     * Returns the artifacts visited during graph resolution.
      */
     VisitedArtifactSet getVisitedArtifacts();
 
     /**
-     * Returns details of the local components in the resolved dependency graph.
+     * Returns true if the full graph was resolved. False if only build dependencies were resolved.
      */
-    ResolvedLocalComponentsResult getResolvedLocalComponents();
+    boolean isFullyResolved();
+
+    /**
+     * Results for supporting legacy resolution APIs including:
+     * <ul>
+     *     <li>{@link ResolvedConfiguration}</li>
+     *     <li>{@link org.gradle.api.artifacts.LenientConfiguration}</li>
+     *     <li>{@link org.gradle.api.artifacts.Configuration#fileCollection(Spec)}</li> and related methods
+     * </ul>
+     */
+    interface LegacyResolverResults {
+
+        /**
+         * Returns the artifacts visited during graph resolution, filterable by the legacy selection mechanism.
+         */
+        LegacyVisitedArtifactSet getLegacyVisitedArtifactSet();
+
+        /**
+         * Get a legacy {@link ResolvedConfiguration}.
+         *
+         * @throws IllegalStateException If only build dependencies have been resolved.
+         */
+        ResolvedConfiguration getResolvedConfiguration();
+
+        /**
+         * Similar to {@link VisitedArtifactSet}, except artifacts can be filtered by
+         * reachability from first level dependencies.
+         */
+        interface LegacyVisitedArtifactSet {
+            /**
+             * Creates a set that selects the artifacts from this set that match the given criteria.
+             * Implementations are lazy, so that the selection happens only when the contents are queried.
+             *
+             * @param dependencySpec Select only those artifacts reachable from first level dependencies that match the given spec.
+             */
+            SelectedArtifactSet select(Spec<? super Dependency> dependencySpec);
+        }
+    }
 }

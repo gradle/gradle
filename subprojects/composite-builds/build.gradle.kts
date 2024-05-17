@@ -4,23 +4,45 @@ plugins {
 
 description = "Included build controller and composite build infrastructure"
 
+errorprone {
+    disabledChecks.addAll(
+        "FutureReturnValueIgnored", // 1 occurrences
+        "SameNameButDifferent", // 11 occurrences
+        "ThreadLocalUsage", // 1 occurrences
+        "UnusedMethod", // 4 occurrences
+    )
+}
+
 dependencies {
-    implementation(project(":base-services"))
+    api(projects.concurrent)
+    api(projects.javaLanguageExtensions)
+    api(projects.serialization)
+    api(projects.serviceProvider)
+    api(project(":build-operations"))
+    api(project(":base-services"))
+    api(project(":core"))
+    api(project(":core-api"))
+    api(project(":dependency-management"))
+    api(project(":messaging"))
+    api(project(":model-core"))
+    api(project(":plugin-use"))
+    api(project(":build-state"))
+
+    api(libs.inject)
+    api(libs.jsr305)
+
+    implementation(projects.time)
+    implementation(project(":enterprise-logging"))
     implementation(project(":enterprise-operations"))
-    implementation(project(":messaging"))
+    implementation(project(":daemon-services"))
     implementation(project(":logging"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":core"))
-    implementation(project(":dependency-management"))
-    implementation(project(":plugin-use"))
 
     implementation(libs.slf4jApi)
     implementation(libs.guava)
-    implementation(libs.inject)
 
     testImplementation(project(":file-watching"))
     testImplementation(project(":build-option"))
+    testImplementation(testFixtures(project(":build-operations")))
     testImplementation(testFixtures(project(":dependency-management")))
     testImplementation(testFixtures(project(":core")))
 

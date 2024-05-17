@@ -17,8 +17,8 @@
 package org.gradle.workers.internal
 
 import org.gradle.internal.operations.BuildOperationContext
-import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.BuildOperationRef
+import org.gradle.internal.operations.BuildOperationRunner
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -26,18 +26,19 @@ class WorkerDaemonFactoryTest extends Specification {
 
     def clientsManager = Mock(WorkerDaemonClientsManager)
     def client = Mock(WorkerDaemonClient)
-    def buildOperationExecutor = Mock(BuildOperationExecutor)
+    def buildOperationRunner = Mock(BuildOperationRunner)
     def buildOperation = Mock(BuildOperationRef)
 
-    @Subject factory = new WorkerDaemonFactory(clientsManager, buildOperationExecutor)
+    @Subject factory = new WorkerDaemonFactory(clientsManager, buildOperationRunner)
 
     def workingDir = new File("some-dir")
+    def projectCacheDir = new File("some-cache-dir")
     def options = Stub(DaemonForkOptions)
-    def requirement = new ForkedWorkerRequirement(workingDir, options)
+    def requirement = new ForkedWorkerRequirement(workingDir, projectCacheDir, options)
     def spec = Stub(IsolatedParametersActionExecutionSpec)
 
     def setup() {
-        _ * buildOperationExecutor.getCurrentOperation() >> buildOperation
+        _ * buildOperationRunner.getCurrentOperation() >> buildOperation
     }
 
     def "getting a worker daemon does not assume client use"() {
@@ -59,7 +60,7 @@ class WorkerDaemonFactoryTest extends Specification {
         1 * clientsManager.reserveNewClient(options) >> client
 
         then:
-        1 * buildOperationExecutor.call(_) >> { args -> args[0].call(Stub(BuildOperationContext)) }
+        1 * buildOperationRunner.call(_) >> { args -> args[0].call(Stub(BuildOperationContext)) }
         1 * client.execute(spec) >> new DefaultWorkResult(true, null)
 
         then:
@@ -74,7 +75,7 @@ class WorkerDaemonFactoryTest extends Specification {
         1 * clientsManager.reserveIdleClient(options) >> client
 
         then:
-        1 * buildOperationExecutor.call(_) >> { args -> args[0].call(Stub(BuildOperationContext)) }
+        1 * buildOperationRunner.call(_) >> { args -> args[0].call(Stub(BuildOperationContext)) }
         1 * client.execute(spec) >> new DefaultWorkResult(true, null)
 
         then:
@@ -89,7 +90,7 @@ class WorkerDaemonFactoryTest extends Specification {
         1 * clientsManager.reserveIdleClient(options) >> client
 
         then:
-        1 * buildOperationExecutor.call(_) >> { args -> args[0].call() }
+        1 * buildOperationRunner.call(_) >> { args -> args[0].call() }
         1 * client.execute(spec) >> { throw new RuntimeException("Boo!") }
 
         then:
@@ -103,7 +104,7 @@ class WorkerDaemonFactoryTest extends Specification {
 
         then:
         1 * clientsManager.reserveIdleClient(options) >> client
-        1 * buildOperationExecutor.call(_)
+        1 * buildOperationRunner.call(_)
     }
 
     def "build worker operation is finished even if worker fails"() {
@@ -112,7 +113,7 @@ class WorkerDaemonFactoryTest extends Specification {
 
         then:
         1 * clientsManager.reserveIdleClient(options) >> client
-        1 * buildOperationExecutor.call(_) >> { args -> args[0].call() }
+        1 * buildOperationRunner.call(_) >> { args -> args[0].call() }
         1 * client.execute(spec) >> { throw new RuntimeException("Boo!") }
 
         then:

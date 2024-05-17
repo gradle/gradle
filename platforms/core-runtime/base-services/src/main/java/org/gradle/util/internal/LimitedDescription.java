@@ -42,6 +42,7 @@ public class LimitedDescription {
         return this;
     }
 
+    @Override
     public String toString() {
         if (content.size() == 0) {
             return "<<empty>>";

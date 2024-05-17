@@ -25,18 +25,18 @@ import org.gradle.internal.build.StandAloneNestedBuild;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-@ServiceScope(Scopes.Build.class)
+@ServiceScope(Scope.Build.class)
 public class BuildSourceBuilder {
     private static final BuildBuildSrcBuildOperationType.Result BUILD_BUILDSRC_RESULT = new BuildBuildSrcBuildOperationType.Result() {
     };
 
     private final BuildState currentBuild;
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationRunner buildOperationRunner;
     private final BuildSrcBuildListenerFactory buildSrcBuildListenerFactory;
     private final BuildStateRegistry buildRegistry;
     private final PublicBuildPath publicBuildPath;
@@ -44,14 +44,14 @@ public class BuildSourceBuilder {
 
     public BuildSourceBuilder(
         BuildState currentBuild,
-        BuildOperationExecutor buildOperationExecutor,
+        BuildOperationRunner buildOperationRunner,
         BuildSrcBuildListenerFactory buildSrcBuildListenerFactory,
         BuildStateRegistry buildRegistry,
         PublicBuildPath publicBuildPath,
         BuildLogicBuildQueue buildQueue
     ) {
         this.currentBuild = currentBuild;
-        this.buildOperationExecutor = buildOperationExecutor;
+        this.buildOperationRunner = buildOperationRunner;
         this.buildSrcBuildListenerFactory = buildSrcBuildListenerFactory;
         this.buildRegistry = buildRegistry;
         this.publicBuildPath = publicBuildPath;
@@ -64,7 +64,7 @@ public class BuildSourceBuilder {
             return ClassPath.EMPTY;
         }
 
-        return buildOperationExecutor.call(new CallableBuildOperation<ClassPath>() {
+        return buildOperationRunner.call(new CallableBuildOperation<ClassPath>() {
             @Override
             public ClassPath call(BuildOperationContext context) {
                 ClassPath classPath = buildBuildSrc(buildSrcBuild);

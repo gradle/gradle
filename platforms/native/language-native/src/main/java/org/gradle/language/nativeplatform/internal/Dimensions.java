@@ -16,7 +16,6 @@
 
 package org.gradle.language.nativeplatform.internal;
 
-import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Named;
@@ -38,6 +37,7 @@ import org.gradle.nativeplatform.internal.DefaultTargetMachineFactory;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -130,7 +130,7 @@ public class Dimensions {
                     Usage runtimeUsage = objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME);
                     Usage linkUsage = objectFactory.named(Usage.class, Usage.NATIVE_LINK);
 
-                    List<String> variantNameToken = Lists.newArrayList();
+                    List<String> variantNameToken = new ArrayList<>();
                     // FIXME: Always build type name to keep parity with previous Gradle version in tooling API
                     variantNameToken.add(buildType.getName());
                     variantNameToken.add(createDimensionSuffix(linkage, linkages));
@@ -169,7 +169,7 @@ public class Dimensions {
             for (TargetMachine targetMachine : targetMachines) {
                 Usage runtimeUsage = objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME);
 
-                List<String> variantNameToken = Lists.newArrayList();
+                List<String> variantNameToken = new ArrayList<>();
                 // FIXME: Always build type name to keep parity with previous Gradle version in tooling API
                 variantNameToken.add(buildType.getName());
                 variantNameToken.add(createDimensionSuffix(targetMachine.getOperatingSystemFamily(), targetMachinesToOperatingSystems(targetMachines)));

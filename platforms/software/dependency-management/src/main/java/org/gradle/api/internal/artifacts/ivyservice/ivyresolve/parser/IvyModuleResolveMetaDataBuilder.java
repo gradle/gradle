@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
-import com.google.common.collect.Lists;
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -31,12 +30,13 @@ import org.gradle.internal.component.external.model.ivy.MutableIvyModuleResolveM
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 class IvyModuleResolveMetaDataBuilder {
-    private final List<Artifact> artifacts = Lists.newArrayList();
+    private final List<Artifact> artifacts = new ArrayList<>();
     private final DefaultModuleDescriptor ivyDescriptor;
     private final IvyModuleDescriptorConverter converter;
     private final IvyMutableModuleMetadataFactory metadataFactory;

@@ -32,7 +32,7 @@ public interface MinimalResolutionResult {
     Supplier<ResolvedComponentResult> getRootSource();
 
     /**
-     * The request attributes used to initially build the dependency graph.
+     * The desugared request attributes used to initially build the dependency graph.
      */
     ImmutableAttributes getRequestedAttributes();
 }

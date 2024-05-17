@@ -58,6 +58,7 @@ public class DefaultExternalResourceRepository implements ExternalResourceReposi
         return resource(resource, false);
     }
 
+    @Override
     public String toString() {
         return name;
     }

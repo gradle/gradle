@@ -20,13 +20,13 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.publish.internal.validation.DuplicatePublicationTracker;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
 import java.net.URI;
 
-@ServiceScope(Scopes.Project.class)
+@ServiceScope(Scope.Project.class)
 public class MavenDuplicatePublicationTracker {
     private final String projectDisplayName;
     private final DuplicatePublicationTracker duplicatePublicationTracker;

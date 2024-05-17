@@ -17,11 +17,14 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Issue
 
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 import static org.junit.Assert.assertTrue
 
 class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements UnreadableCopyDestinationFixture {
@@ -119,12 +122,22 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
              }
             """
         when:
+        executer.expectDocumentedDeprecationWarning("The CopyProcessingSpec.setFileMode(Integer) method has been deprecated. " +
+            "This is scheduled to be removed in Gradle 9.0. " +
+            "Please use the filePermissions(Action) method instead. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#unix_file_permissions_deprecated")
         run "copy"
 
         then:
         file("build/tmp/reference.txt").mode == mode
 
         when:
+        if (!GradleContextualExecuter.configCache) {
+            executer.expectDocumentedDeprecationWarning("The CopyProcessingSpec.setFileMode(Integer) method has been deprecated. " +
+                "This is scheduled to be removed in Gradle 9.0. " +
+                "Please use the filePermissions(Action) method instead. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#unix_file_permissions_deprecated")
+        }
         run "copy"
 
         then:
@@ -133,6 +146,12 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
 
         when:
         file("reference.txt").text = "new"
+        if (!GradleContextualExecuter.configCache) {
+            executer.expectDocumentedDeprecationWarning("The CopyProcessingSpec.setFileMode(Integer) method has been deprecated. " +
+                "This is scheduled to be removed in Gradle 9.0. " +
+                "Please use the filePermissions(Action) method instead. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#unix_file_permissions_deprecated")
+        }
         run "copy"
 
         then:
@@ -159,6 +178,10 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
             }
             """
         when:
+        executer.expectDocumentedDeprecationWarning("The CopyProcessingSpec.setMode() method has been deprecated. " +
+            "This is scheduled to be removed in Gradle 9.0. " +
+            "Please use the permissions(Action) method instead. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#unix_file_permissions_deprecated")
         run "copy"
         then:
         file("build/tmp/reference.txt").mode == 0755
@@ -171,6 +194,10 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
 
         when:
         testSourceFile.text = "new"
+        executer.expectDocumentedDeprecationWarning("The CopyProcessingSpec.setMode() method has been deprecated. " +
+            "This is scheduled to be removed in Gradle 9.0. " +
+            "Please use the permissions(Action) method instead. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#unix_file_permissions_deprecated")
         run "copy"
         then:
         executedAndNotSkipped(":copy")
@@ -178,6 +205,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
     }
 
     @Requires(UnitTestPreconditions.FilePermissions)
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "fileMode can be modified in copy action"() {
         given:
         file("reference.txt") << 'test file"'
@@ -196,6 +224,10 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
             """
 
         when:
+        executer.expectDocumentedDeprecationWarning("The CopyProcessingSpec.setFileMode(Integer) method has been deprecated. " +
+            "This is scheduled to be removed in Gradle 9.0. " +
+            "Please use the filePermissions(Action) method instead. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#unix_file_permissions_deprecated")
         run "copy"
 
         then:
@@ -222,11 +254,21 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
             }
             """
         when:
+        executer.expectDocumentedDeprecationWarning("The CopyProcessingSpec.setDirMode(Integer) method has been deprecated. " +
+            "This is scheduled to be removed in Gradle 9.0. " +
+            "Please use the dirPermissions(Action) method instead. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#unix_file_permissions_deprecated")
         run "copy"
         then:
         file("build/tmp/testchild").mode == mode
 
         when:
+        if (!GradleContextualExecuter.configCache) {
+            executer.expectDocumentedDeprecationWarning("The CopyProcessingSpec.setDirMode(Integer) method has been deprecated. " +
+                "This is scheduled to be removed in Gradle 9.0. " +
+                "Please use the dirPermissions(Action) method instead. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#unix_file_permissions_deprecated")
+        }
         run "copy"
         then:
         skipped(":copy")
@@ -234,6 +276,12 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
 
         when:
         parent.file("other/file.txt") << "test file"
+        if (!GradleContextualExecuter.configCache) {
+            executer.expectDocumentedDeprecationWarning("The CopyProcessingSpec.setDirMode(Integer) method has been deprecated. " +
+                "This is scheduled to be removed in Gradle 9.0. " +
+                "Please use the dirPermissions(Action) method instead. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#unix_file_permissions_deprecated")
+        }
         run "copy"
         then:
         executedAndNotSkipped(":copy")
@@ -376,6 +424,10 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
         '''.stripIndent()
 
         when:
+        executer.expectDocumentedDeprecationWarning("The CopyProcessingSpec.setMode() method has been deprecated. " +
+            "This is scheduled to be removed in Gradle 9.0. " +
+            "Please use the permissions(Action) method instead. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#unix_file_permissions_deprecated")
         run 'copy'
 
         then:
@@ -489,46 +541,26 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
         """.stripIndent()
 
         when:
+        if (description == "file mode") {
+            executer.expectDocumentedDeprecationWarning("The CopyProcessingSpec.setFileMode(Integer) method has been deprecated. " +
+                "This is scheduled to be removed in Gradle 9.0. " +
+                "Please use the filePermissions(Action) method instead. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#unix_file_permissions_deprecated")
+        }
         run 'copy'
 
         then:
         assertDestinationFilePermissions("r-xr-xrw-")
 
         where:
-        description        | setting
-        "permissions"      | """
+        description         | setting
+        "permissions"       | """
                                 eachFile {
                                     permissions = p
                                 }
                               """
-        "file mode"        | "fileMode = p.toUnixNumeric()"
-        "file permissions" | "filePermissions.set(p)"
-    }
-
-    @Requires(UnitTestPreconditions.FilePermissions)
-    def "permissions are set correctly for intermediate directories"() {
-        given:
-        withSourceFiles("r--------")
-
-        buildFile.delete()
-        buildKotlinFile.text = '''
-            tasks.register<Copy>("copy") {
-               into("dest")
-               into("prefix1/prefix2") {
-                 from("files")
-               }
-               dirPermissions {
-                  unix("rwxr-x---")
-               }
-            }
-        '''.stripIndent()
-
-        when:
-        run 'copy'
-
-        then:
-        file("dest/prefix1").permissions == "rwxr-x---"
-        file("dest/prefix1/prefix2").permissions == "rwxr-x---"
+        "file mode"         | "fileMode = p.toUnixNumeric()"
+        "file permissions"  | "filePermissions.set(p)"
     }
 
     private def withSourceFiles(String permissions) {

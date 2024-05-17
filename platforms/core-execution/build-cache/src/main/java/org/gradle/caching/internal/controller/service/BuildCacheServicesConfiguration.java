@@ -26,19 +26,26 @@ public final class BuildCacheServicesConfiguration {
     private final LocalBuildCacheService local;
     private final boolean localPush;
 
+    private final String buildPath;
     private final BuildCacheService remote;
     private final boolean remotePush;
 
     public BuildCacheServicesConfiguration(
+        String buildPath,
         @Nullable LocalBuildCacheService local,
         boolean localPush,
         @Nullable BuildCacheService remote,
         boolean remotePush
     ) {
+        this.buildPath = buildPath;
         this.remote = remote;
         this.remotePush = remotePush;
         this.local = local;
         this.localPush = localPush;
+    }
+
+    public String getBuildPath() {
+        return buildPath;
     }
 
     @Nullable

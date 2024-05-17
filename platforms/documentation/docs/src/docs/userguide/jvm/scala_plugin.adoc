@@ -236,11 +236,8 @@ When running the Scala compile task, Gradle will always add a parameter to confi
 * When using toolchains, the `-release` option, or `target` for older Scala versions, is selected, with a version matching the Java language level of the toolchain configured.
 * When not using toolchains, Gradle will always pass a `target` flag -- with exact value dependent on the Scala version -- to compile to Java 8 bytecode.
 
-[NOTE]
-====
-This means that using toolchains with a recent Java version and an old Scala version can result in failures because Scala only supported Java 8 bytecode for some time.
+NOTE: This means that using toolchains with a recent Java version and an old Scala version can result in failures because Scala only supported Java 8 bytecode for some time.
 The solution is then to either use the right Java version in the toolchain or explicitly downgrade the target when needed.
-====
 
 The following table explains the values computed by Gradle:
 

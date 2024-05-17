@@ -25,5 +25,11 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public interface Solution {
+
+    /**
+     * A description of a possible solution the user can try to fix the problem.
+     *
+     * @since 8.6
+     */
     String getSolution();
 }

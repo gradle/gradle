@@ -32,12 +32,10 @@ import java.io.File;
 @SuppressWarnings("deprecation")
 public class BuildControllerWithoutParameterSupport extends UnparameterizedBuildController {
     private final org.gradle.tooling.internal.protocol.InternalBuildController buildController;
-    private final VersionDetails gradleVersion;
 
     public BuildControllerWithoutParameterSupport(org.gradle.tooling.internal.protocol.InternalBuildController buildController, ProtocolToModelAdapter adapter, ModelMapping modelMapping, File rootDir, VersionDetails gradleVersion) {
-        super(adapter, modelMapping, rootDir);
+        super(adapter, modelMapping, gradleVersion, rootDir);
         this.buildController = buildController;
-        this.gradleVersion = gradleVersion;
     }
 
     @Override

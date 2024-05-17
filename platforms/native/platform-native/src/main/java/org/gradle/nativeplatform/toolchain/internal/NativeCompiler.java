@@ -17,7 +17,6 @@
 package org.gradle.nativeplatform.toolchain.internal;
 
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.tasks.WorkResult;
@@ -30,6 +29,7 @@ import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -98,7 +98,7 @@ public abstract class NativeCompiler<T extends NativeCompileSpec> extends Abstra
 
     protected List<String> maybeGetPCHArgs(final T spec, File sourceFile) {
         if (spec.getPreCompiledHeader() == null || !spec.getSourceFilesForPch().contains(sourceFile)) {
-            return Lists.newArrayList();
+            return new ArrayList<>();
         }
 
         return getPCHArgs(spec);

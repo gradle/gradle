@@ -4,10 +4,7 @@ This sample shows how to aggregate test results across multiple Java subprojects
 
 The project in this example contains three projects: `application`, `list` and `utilities`.  All three projects apply the `java` plugin, and `application` consumes both `list` and `utilities` on its implementation configuration.  The `application` subproject is the final distribution of this software project, and applies `test-report-aggregation` to perform the test result aggregation.
 
-[WARNING]
-====
-The Test Report Aggregation plugin does not currently work with the ``com.android.application`` plugin.
-====
+WARNING: The Test Report Aggregation plugin does not currently work with the ``com.android.application`` plugin.
 
 ====
 include::sample[dir="kotlin",files="application/build.gradle.kts[]"]

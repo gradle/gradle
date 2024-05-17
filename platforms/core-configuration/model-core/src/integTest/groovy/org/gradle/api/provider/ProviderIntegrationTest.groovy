@@ -277,6 +277,7 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
     def "zipped provider is live"() {
         buildFile """
             tasks.register("run") {
+                def objects = objects
                 doLast {
                     def p1 = objects.property(String)
                     def p2 = objects.property(String)
@@ -299,6 +300,7 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
     def "zipped provider isPresent does not throw when there is no value"() {
         buildFile """
             tasks.register("run") {
+                def objects = objects
                 doLast {
                     def p1 = objects.property(String).convention("ok")
                     def p2 = objects.property(String)
@@ -354,5 +356,31 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
         'task.get().outDir.zip(provider { "baz" }) { d, f -> d.file(f) }'          | _
         'provider { "baz" }.zip(task.flatMap { it.outDir }) { f, d -> d.file(f) }' | _
         'provider { "baz" }.zip(task.get().outDir) { f, d -> d.file(f) }'          | _
+    }
+
+    def "circular evaluation of mapped provider is detected"() {
+        buildFile """
+            abstract class MyTask extends DefaultTask {
+                @Input
+                abstract Property<String> getStringInput()
+
+                @TaskAction
+                def action() {
+                    println("stringInput = \${stringInput.get()}")
+                }
+            }
+
+            tasks.register("myTask", MyTask) {
+                def p = provider { "value" }
+                p = p.map { v -> v + p.get()}
+                stringInput = p
+            }
+        """
+
+        when:
+        fails "myTask"
+
+        then:
+        failureCauseContains("Circular evaluation detected")
     }
 }

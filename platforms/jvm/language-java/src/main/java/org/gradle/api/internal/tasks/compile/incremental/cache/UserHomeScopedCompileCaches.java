@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.compile.incremental.cache;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
-import org.gradle.api.internal.tasks.compile.incremental.serialization.HierarchicalNameSerializer;
+import org.gradle.internal.serialize.HierarchicalNameSerializer;
 import org.gradle.cache.Cache;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.IndexedCacheParameters;
@@ -32,8 +32,6 @@ import org.gradle.internal.serialize.HashCodeSerializer;
 
 import java.io.Closeable;
 
-import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
-
 public class UserHomeScopedCompileCaches implements GeneralCompileCaches, Closeable {
     private final Cache<HashCode, ClassSetAnalysisData> classpathEntrySnapshotCache;
     private final PersistentCache cache;
@@ -43,7 +41,7 @@ public class UserHomeScopedCompileCaches implements GeneralCompileCaches, Closea
         cache = cacheBuilderFactory
             .createCacheBuilder("javaCompile")
             .withDisplayName("Java compile cache")
-            .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Lock on demand
+            .withInitialLockMode(FileLockManager.LockMode.OnDemand)
             .open();
         IndexedCacheParameters<HashCode, ClassSetAnalysisData> jarCacheParameters = IndexedCacheParameters.of(
             "jarAnalysis",

@@ -4,27 +4,41 @@ plugins {
 
 description = "Plugins, tasks and domain objects for testing native code"
 
-dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":native"))
-    implementation(project(":logging"))
-    implementation(project(":process-services"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":core"))
-    implementation(project(":diagnostics"))
-    implementation(project(":reporting"))
-    implementation(project(":platform-base"))
-    implementation(project(":platform-native"))
-    implementation(project(":language-native"))
-    implementation(project(":testing-base"))
-    implementation(project(":test-suites-base"))
+errorprone {
+    disabledChecks.addAll(
+        "MixedMutabilityReturnType", // 1 occurrences
+        "StringSplitter", // 1 occurrences
+    )
+}
 
-    implementation(libs.groovy)
-    implementation(libs.guava)
-    implementation(libs.commonsLang)
+dependencies {
+    api(projects.serviceProvider)
+    api(project(":base-services"))
+    api(project(":core"))
+    api(project(":core-api"))
+    api(project(":diagnostics"))
+    api(project(":java-language-extensions"))
+    api(project(":language-native"))
+    api(project(":model-core"))
+    api(project(":native"))
+    api(project(":platform-base"))
+    api(project(":platform-native"))
+    api(project(":process-services"))
+    api(project(":test-suites-base"))
+    api(project(":testing-base"))
+    api(project(":testing-base-infrastructure"))
+    api(project(":time"))
+
+    api(libs.inject)
+    api(libs.jsr305)
+
+    implementation(projects.io)
+    implementation(project(":logging"))
+    implementation(project(":logging-api"))
+
     implementation(libs.commonsIo)
-    implementation(libs.inject)
+    implementation(libs.commonsLang)
+    implementation(libs.guava)
 
     testImplementation(project(":file-collections"))
     testImplementation(testFixtures(project(":core")))

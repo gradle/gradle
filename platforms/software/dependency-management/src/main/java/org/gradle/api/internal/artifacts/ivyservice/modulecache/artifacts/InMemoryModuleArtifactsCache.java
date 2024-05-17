@@ -15,13 +15,13 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts;
 
-import com.google.common.collect.Maps;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class InMemoryModuleArtifactsCache extends AbstractArtifactsCache {
-    private final Map<ArtifactsAtRepositoryKey, ModuleArtifactsCacheEntry> inMemoryCache = Maps.newConcurrentMap();
+    private final Map<ArtifactsAtRepositoryKey, ModuleArtifactsCacheEntry> inMemoryCache = new ConcurrentHashMap<>();
     private final AbstractArtifactsCache delegate;
 
     public InMemoryModuleArtifactsCache(BuildCommencedTimeProvider timeProvider) {

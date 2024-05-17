@@ -71,7 +71,6 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
 
         def artifactsOps = buildOperations.all(ResolveArtifactsBuildOperationType)
         artifactsOps.size() == 1
-        artifactsOps[0].details.configurationPath == ':path'
 
         def artifactOps = buildOperations.all(DownloadArtifactBuildOperationType)
         artifactOps.size() == 1
@@ -89,7 +88,6 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
 
         def artifactsOps2 = buildOperations.all(ResolveArtifactsBuildOperationType)
         artifactsOps2.size() == 1
-        artifactsOps2[0].details.configurationPath == ':path'
 
         def artifactOps2 = buildOperations.all(DownloadArtifactBuildOperationType)
         artifactOps2.size() == 1
@@ -169,7 +167,6 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
 
         def artifactsOps = buildOperations.all(ResolveArtifactsBuildOperationType)
         artifactsOps.size() == 1
-        artifactsOps[0].details.configurationPath == ':path'
 
         def artifactOps = buildOperations.all(DownloadArtifactBuildOperationType)
         artifactOps.size() == 1
@@ -199,7 +196,6 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
 
         def artifactsOps2 = buildOperations.all(ResolveArtifactsBuildOperationType)
         artifactsOps2.size() == 1
-        artifactsOps2[0].details.configurationPath == ':path'
 
         def artifactOps2 = buildOperations.all(DownloadArtifactBuildOperationType)
         artifactOps2.size() == 1
@@ -260,7 +256,6 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
 
         def artifactsOps = buildOperations.all(ResolveArtifactsBuildOperationType)
         artifactsOps.size() == 1
-        artifactsOps[0].details.configurationPath == ':path'
 
         def artifactOps = buildOperations.all(DownloadArtifactBuildOperationType)
         artifactOps.size() == 1
@@ -287,7 +282,6 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
 
         def artifactsOps2 = buildOperations.all(ResolveArtifactsBuildOperationType)
         artifactsOps2.size() == 1
-        artifactsOps2[0].details.configurationPath == ':path'
 
         def artifactOps2 = buildOperations.all(DownloadArtifactBuildOperationType)
         artifactOps2.size() == 1
@@ -335,9 +329,6 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
 
         def artifactsOps = buildOperations.all(ResolveArtifactsBuildOperationType)
         artifactsOps.size() == 3
-        artifactsOps[0].details.configurationPath == ':primary'
-        artifactsOps[1].details.configurationPath == ':primary'
-        artifactsOps[2].details.configurationPath == ':more'
 
         def artifactOps = buildOperations.all(DownloadArtifactBuildOperationType)
         artifactOps.size() == 1
@@ -357,9 +348,6 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
 
         def artifactsOps2 = buildOperations.all(ResolveArtifactsBuildOperationType)
         artifactsOps2.size() == 3
-        artifactsOps2[0].details.configurationPath == ':primary'
-        artifactsOps2[1].details.configurationPath == ':primary'
-        artifactsOps2[2].details.configurationPath == ':more'
 
         def artifactOps2 = buildOperations.all(DownloadArtifactBuildOperationType)
         artifactOps2.size() == 1

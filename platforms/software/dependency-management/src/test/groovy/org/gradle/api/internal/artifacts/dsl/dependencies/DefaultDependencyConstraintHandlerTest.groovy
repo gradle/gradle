@@ -33,11 +33,11 @@ class DefaultDependencyConstraintHandlerTest extends Specification {
     private static final String UNKNOWN_TEST_CONF_NAME = "unknown"
 
     private def configurationContainer = Mock(ConfigurationContainer)
-    private def dependencyFactory = Mock(DependencyFactoryInternal)
+    private def dependencyConstraintFactory = Mock(DependencyConstraintFactoryInternal)
     private def configuration = Mock(Configuration)
     private def dependencyConstraintSet = Mock(DependencyConstraintSet)
 
-    private DefaultDependencyConstraintHandler dependencyConstraintHandler = TestUtil.instantiatorFactory().decorateLenient().newInstance(DefaultDependencyConstraintHandler, configurationContainer, dependencyFactory, TestUtil.objectFactory(), DependencyManagementTestUtil.platformSupport())
+    private DefaultDependencyConstraintHandler dependencyConstraintHandler = TestUtil.instantiatorFactory().decorateLenient().newInstance(DefaultDependencyConstraintHandler, configurationContainer, dependencyConstraintFactory, TestUtil.objectFactory(), DependencyManagementTestUtil.platformSupport())
 
     void setup() {
         _ * configurationContainer.findByName(TEST_CONF_NAME) >> configuration
@@ -56,7 +56,7 @@ class DefaultDependencyConstraintHandlerTest extends Specification {
         result == dependencyConstraint
 
         and:
-        1 * dependencyFactory.createDependencyConstraint("someNotation") >> dependencyConstraint
+        1 * dependencyConstraintFactory.createDependencyConstraint("someNotation") >> dependencyConstraint
         1 * dependencyConstraintSet.add(dependencyConstraint)
     }
 
@@ -72,7 +72,7 @@ class DefaultDependencyConstraintHandlerTest extends Specification {
         result == dependencyConstraint
 
         and:
-        1 * dependencyFactory.createDependencyConstraint("someNotation") >> dependencyConstraint
+        1 * dependencyConstraintFactory.createDependencyConstraint("someNotation") >> dependencyConstraint
         1 * dependencyConstraint.version(_ as Action<VersionConstraint>)
         1 * dependencyConstraintSet.add(dependencyConstraint)
     }
@@ -87,7 +87,7 @@ class DefaultDependencyConstraintHandlerTest extends Specification {
         result == dependencyConstraint
 
         and:
-        1 * dependencyFactory.createDependencyConstraint("someNotation") >> dependencyConstraint
+        1 * dependencyConstraintFactory.createDependencyConstraint("someNotation") >> dependencyConstraint
     }
 
     void "creates and configures a dependency constraint from some notation"() {
@@ -102,7 +102,7 @@ class DefaultDependencyConstraintHandlerTest extends Specification {
         result == dependencyConstraint
 
         and:
-        1 * dependencyFactory.createDependencyConstraint("someNotation") >> dependencyConstraint
+        1 * dependencyConstraintFactory.createDependencyConstraint("someNotation") >> dependencyConstraint
         1 * dependencyConstraint.version(_ as Action<VersionConstraint>)
     }
 
@@ -116,7 +116,7 @@ class DefaultDependencyConstraintHandlerTest extends Specification {
         result == dependencyConstraint
 
         and:
-        1 * dependencyFactory.createDependencyConstraint("someNotation") >> dependencyConstraint
+        1 * dependencyConstraintFactory.createDependencyConstraint("someNotation") >> dependencyConstraint
         1 * dependencyConstraintSet.add(dependencyConstraint)
 
     }
@@ -131,7 +131,7 @@ class DefaultDependencyConstraintHandlerTest extends Specification {
         result == dependencyConstraint
 
         and:
-        1 * dependencyFactory.createDependencyConstraint("someNotation") >> dependencyConstraint
+        1 * dependencyConstraintFactory.createDependencyConstraint("someNotation") >> dependencyConstraint
         1 * dependencyConstraintSet.add(dependencyConstraint)
         1 * dependencyConstraint.version(_ as Action<VersionConstraint>)
     }
@@ -147,8 +147,8 @@ class DefaultDependencyConstraintHandlerTest extends Specification {
         result == null
 
         and:
-        1 * dependencyFactory.createDependencyConstraint("someNotation") >> constraint1
-        1 * dependencyFactory.createDependencyConstraint("someOther") >> constraint2
+        1 * dependencyConstraintFactory.createDependencyConstraint("someNotation") >> constraint1
+        1 * dependencyConstraintFactory.createDependencyConstraint("someOther") >> constraint2
         1 * dependencyConstraintSet.add(constraint1)
         1 * dependencyConstraintSet.add(constraint2)
     }
@@ -164,8 +164,8 @@ class DefaultDependencyConstraintHandlerTest extends Specification {
         result == null
 
         and:
-        1 * dependencyFactory.createDependencyConstraint("someNotation") >> constraint1
-        1 * dependencyFactory.createDependencyConstraint("someOther") >> constraint2
+        1 * dependencyConstraintFactory.createDependencyConstraint("someNotation") >> constraint1
+        1 * dependencyConstraintFactory.createDependencyConstraint("someOther") >> constraint2
         1 * dependencyConstraintSet.add(constraint1)
         1 * dependencyConstraintSet.add(constraint2)
     }
@@ -201,7 +201,7 @@ class DefaultDependencyConstraintHandlerTest extends Specification {
         dependencyConstraintHandler."$TEST_CONF_NAME"(null)
 
         then:
-        1 * dependencyFactory.createDependencyConstraint(null)
+        1 * dependencyConstraintFactory.createDependencyConstraint(null)
     }
 
     void "creates and adds a dependency constraint using a provider"() {

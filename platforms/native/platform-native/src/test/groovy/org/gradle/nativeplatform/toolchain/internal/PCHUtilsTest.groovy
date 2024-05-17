@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform.toolchain.internal
 
-import com.google.common.collect.Lists
 import org.gradle.api.Transformer
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CPCHCompileSpec
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CppPCHCompileSpec
@@ -29,7 +28,7 @@ class PCHUtilsTest extends Specification {
     @Rule final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider(getClass())
 
     def "generates a prefix header file" () {
-        def headers = Lists.newArrayList()
+        def headers = new ArrayList<>()
         headers.add "header.h"
         headers.add "<stdio.h>"
         headers.add "some/path/to/another.h"

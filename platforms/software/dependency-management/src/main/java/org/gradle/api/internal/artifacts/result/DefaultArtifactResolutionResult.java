@@ -15,11 +15,11 @@
  */
 package org.gradle.api.internal.artifacts.result;
 
-import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.result.ArtifactResolutionResult;
 import org.gradle.api.artifacts.result.ComponentArtifactsResult;
 import org.gradle.api.artifacts.result.ComponentResult;
 
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class DefaultArtifactResolutionResult implements ArtifactResolutionResult {
@@ -36,7 +36,7 @@ public class DefaultArtifactResolutionResult implements ArtifactResolutionResult
 
     @Override
     public Set<ComponentArtifactsResult> getResolvedComponents() {
-        Set<ComponentArtifactsResult> resolvedComponentResults = Sets.newLinkedHashSet();
+        Set<ComponentArtifactsResult> resolvedComponentResults = new LinkedHashSet<>();
         for (ComponentResult componentResult : componentResults) {
             if (componentResult instanceof ComponentArtifactsResult) {
                 resolvedComponentResults.add((ComponentArtifactsResult) componentResult);
