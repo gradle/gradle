@@ -83,28 +83,6 @@ class GradleLifecycleIsolationIntegrationTest extends AbstractIntegrationSpec {
         outputContains "after:settings file 'settings.gradle'"
     }
 
-    def 'lifecycle actions preserve user code application context for Gradle runtime'() {
-        given:
-        settingsFile """
-            ${userCodeApplicationContext}.gradleRuntime {
-                gradle.lifecycle.beforeProject {
-                    println("before:" + $currentApplication)
-                }
-
-                gradle.lifecycle.afterProject {
-                    println("after:" + $currentApplication)
-                }
-            }
-        """
-
-        when:
-        succeeds 'help'
-
-        then:
-        outputContains "before:null"
-        outputContains "after:null"
-    }
-
     def 'lifecycle actions preserve user code application context for plugins'() {
         given:
         groovyFile "build-logic/build.gradle", '''
@@ -136,6 +114,28 @@ class GradleLifecycleIsolationIntegrationTest extends AbstractIntegrationSpec {
         then:
         outputContains "before:plugin 'my-settings-plugin'"
         outputContains "after:plugin 'my-settings-plugin'"
+    }
+
+    def 'lifecycle actions preserve user code application context for Gradle runtime'() {
+        given:
+        settingsFile """
+            ${userCodeApplicationContext}.gradleRuntime {
+                gradle.lifecycle.beforeProject {
+                    println("before:" + $currentApplication)
+                }
+
+                gradle.lifecycle.afterProject {
+                    println("after:" + $currentApplication)
+                }
+            }
+        """
+
+        when:
+        succeeds 'help'
+
+        then:
+        outputContains "before:null"
+        outputContains "after:null"
     }
 
     def getCurrentApplication() {
