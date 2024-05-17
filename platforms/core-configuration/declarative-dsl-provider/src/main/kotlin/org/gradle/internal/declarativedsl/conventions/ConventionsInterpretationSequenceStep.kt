@@ -52,9 +52,8 @@ class ConventionsInterpretationSequenceStep(
     override fun whenResolved(resolutionResult: ResolutionResult) {
         val conventions = conventionsResolutionProcessor.process(resolutionResult)
         softwareTypeRegistry.softwareTypeImplementations.forEach { softwareTypeImplementation ->
-            val functionCall = conventions[softwareTypeImplementation.softwareType]
-            if (functionCall != null) {
-                softwareTypeImplementation.addConvention(AssignmentRecordConvention(functionCall))
+            conventions[softwareTypeImplementation.softwareType]?.forEach {
+                softwareTypeImplementation.addConvention(AssignmentRecordConvention(it))
             }
         }
     }

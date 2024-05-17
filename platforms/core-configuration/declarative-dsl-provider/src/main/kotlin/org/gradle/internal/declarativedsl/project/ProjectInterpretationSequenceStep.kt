@@ -42,24 +42,31 @@ class ProjectInterpretationSequenceStep(
 
     override fun whenResolved(resolutionResult: ResolutionResult) {
         if (resolutionResult.topLevelReceiver.originElement is Block) {
+            val remapped = mutableSetOf<String>()
             val softwareTypes = softwareTypeRegistry.softwareTypeImplementations.associateBy { it.softwareType }
             val referencedSoftwareTypes = (resolutionResult.topLevelReceiver.originElement as Block).content
                 .filterIsInstance<FunctionCall>()
                 .filter { softwareTypes.containsKey(it.name) }
                 .mapNotNull { softwareTypes[it.name] }
-            referencedSoftwareTypes.forEach {
+            referencedSoftwareTypes.forEach { softwareTypeImplementation ->
                 val topLevelReceiver = ObjectOrigin.ImplicitThisReceiver(resolutionResult.topLevelReceiver, true)
-
-                it.conventions.filterIsInstance<AssignmentRecordConvention>().forEach { rule ->
+                softwareTypeImplementation.conventions.filterIsInstance<AssignmentRecordConvention>().forEach { rule ->
                     rule.apply(object : AssignmentRecordConventionReceiver {
                         override fun receive(assignmentRecord: AssignmentRecord) {
-                            val softwareTypeReceiver = getSoftwareType(assignmentRecord.lhs.receiverObject)
-                            softwareTypeReceiver.receiver = topLevelReceiver
+                            if (!remapped.contains(softwareTypeImplementation.softwareType)) {
+                                remapSoftwareTypeToTopLevelReceiver(assignmentRecord, topLevelReceiver)
+                                remapped.add(softwareTypeImplementation.softwareType)
+                            }
                             resolutionResult.conventionAssignments += assignmentRecord
                         }
                     })
                 }
             }
         }
+    }
+
+    private fun remapSoftwareTypeToTopLevelReceiver(assignmentRecord: AssignmentRecord, topLevelReceiver: ObjectOrigin.ImplicitThisReceiver) {
+        val softwareTypeReceiver = getSoftwareType(assignmentRecord.lhs.receiverObject)
+        softwareTypeReceiver.receiver = topLevelReceiver
     }
 }

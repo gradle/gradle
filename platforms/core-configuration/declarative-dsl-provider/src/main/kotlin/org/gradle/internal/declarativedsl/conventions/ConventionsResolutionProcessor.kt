@@ -23,8 +23,8 @@ import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 
 class ConventionsResolutionProcessor {
 
-    fun process(resolutionResult: ResolutionResult): Map<String, AssignmentRecord> {
-        return resolutionResult.assignments.associateBy { assignment ->
+    fun process(resolutionResult: ResolutionResult): Map<String, List<AssignmentRecord>> {
+        return resolutionResult.assignments.groupBy { assignment ->
             getSoftwareType(assignment.lhs.receiverObject).function.simpleName
         }
     }
