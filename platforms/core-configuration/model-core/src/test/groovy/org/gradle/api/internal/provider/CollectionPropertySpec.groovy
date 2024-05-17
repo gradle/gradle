@@ -78,9 +78,11 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
 
     def property = property()
 
-    protected void assertValueIs(Collection<String> expected, PropertyInternal<?> property = this.property) {
-        assert property.present
-        def actual = property.get()
+    protected void assertValueIs(C expected, PropertyInternal<?> property = this.property) {
+        assertPropertyValueIs(expected, property)
+    }
+
+    protected void assertEqualValues(C expected, C actual) {
         assert actual instanceof ImmutableCollection
         assert immutableCollectionType.isInstance(actual)
         assertCollectionIs(actual, expected)
@@ -1591,20 +1593,6 @@ The value of this property is derived from: <source>""")
     def "property is empty when setToConventionIfUnset if convention not set yet"() {
         when:
         property.setToConventionIfUnset()
-
-        then:
-        assertValueIs([])
-        !property.explicit
-    }
-
-    def "property is restored to initial state after unset"() {
-        expect:
-        assertValueIs([])
-        !property.explicit
-
-        when:
-        property.add('1')
-        property.unset()
 
         then:
         assertValueIs([])
