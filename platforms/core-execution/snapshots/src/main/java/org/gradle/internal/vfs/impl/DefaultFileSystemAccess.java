@@ -159,9 +159,11 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
                 FileSystemLocationSnapshot::getAbsolutePath,
                 Function.identity()
             ));
-        FileSystemLocationSnapshot knownExactSnapshot = previouslyKnownSnapshots.get(location);
-        if (knownExactSnapshot != null) {
-            return knownExactSnapshot;
+        if (filter.isEmpty()) {
+           FileSystemLocationSnapshot knownExactSnapshot = previouslyKnownSnapshots.get(location);
+           if (knownExactSnapshot != null) {
+               return knownExactSnapshot;
+           }
         }
         return virtualFileSystem.store(location, vfsStorer -> {
             File file = new File(location);
