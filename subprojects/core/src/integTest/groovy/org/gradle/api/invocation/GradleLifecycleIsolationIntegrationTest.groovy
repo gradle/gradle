@@ -116,7 +116,7 @@ class GradleLifecycleIsolationIntegrationTest extends AbstractIntegrationSpec {
         outputContains "after:plugin 'my-settings-plugin'"
     }
 
-    def 'lifecycle actions preserve user code application context for Gradle runtime'() {
+    def 'lifecycle actions can be registered in the context of the Gradle runtime'() {
         given:
         settingsFile """
             ${userCodeApplicationContext}.gradleRuntime {
