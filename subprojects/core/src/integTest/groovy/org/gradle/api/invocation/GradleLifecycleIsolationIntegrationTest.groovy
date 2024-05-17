@@ -63,11 +63,9 @@ class GradleLifecycleIsolationIntegrationTest extends AbstractIntegrationSpec {
         outputContains '[1: before sub unspecified, 2: before sub from action, 1: after sub from script, 2: after sub from script]'
     }
 
-    def 'lifecycle actions preserve user code application context'() {
+    def 'lifecycle actions preserve user code application context for scripts'() {
         given:
         settingsFile """
-            println("settings:" + $currentApplication)
-
             gradle.lifecycle.beforeProject {
                 println("before:" + $currentApplication)
             }
@@ -85,7 +83,66 @@ class GradleLifecycleIsolationIntegrationTest extends AbstractIntegrationSpec {
         outputContains "after:settings file 'settings.gradle'"
     }
 
+    def 'lifecycle actions preserve user code application context for Gradle runtime'() {
+        given:
+        settingsFile """
+            ${userCodeApplicationContext}.gradleRuntime {
+                gradle.lifecycle.beforeProject {
+                    println("before:" + $currentApplication)
+                }
+
+                gradle.lifecycle.afterProject {
+                    println("after:" + $currentApplication)
+                }
+            }
+        """
+
+        when:
+        succeeds 'help'
+
+        then:
+        outputContains "before:null"
+        outputContains "after:null"
+    }
+
+    def 'lifecycle actions preserve user code application context for plugins'() {
+        given:
+        groovyFile "build-logic/build.gradle", '''
+            plugins {
+                id 'groovy-gradle-plugin'
+            }
+        '''
+        groovyFile "build-logic/src/main/groovy/my-settings-plugin.settings.gradle", """
+            gradle.lifecycle.beforeProject {
+                println("before:" + $currentApplication)
+            }
+
+            gradle.lifecycle.afterProject {
+                println("after:" + $currentApplication)
+            }
+        """
+        settingsFile '''
+            pluginManagement {
+                includeBuild 'build-logic'
+            }
+            plugins {
+                id 'my-settings-plugin'
+            }
+        '''
+
+        when:
+        succeeds 'help'
+
+        then:
+        outputContains "before:plugin 'my-settings-plugin'"
+        outputContains "after:plugin 'my-settings-plugin'"
+    }
+
     def getCurrentApplication() {
-        "services.get($UserCodeApplicationContext.name).current()?.source?.displayName"
+        "${userCodeApplicationContext}.current()?.source?.displayName"
+    }
+
+    def getUserCodeApplicationContext() {
+        "services.get($UserCodeApplicationContext.name)"
     }
 }
