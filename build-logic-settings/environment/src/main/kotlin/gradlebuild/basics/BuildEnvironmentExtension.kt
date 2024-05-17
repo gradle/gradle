@@ -16,31 +16,12 @@
 
 package gradlebuild.basics
 
-import org.gradle.api.Project
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Property
-import org.gradle.api.provider.Provider
-import org.gradle.internal.os.OperatingSystem
+
 
 abstract class BuildEnvironmentExtension {
     abstract val gitCommitId: Property<String>
     abstract val gitBranch: Property<String>
     abstract val repoRoot: DirectoryProperty
-}
-
-@Suppress("UnstableApiUsage")
-fun Project.git(vararg args: String): Provider<String> {
-    val projectDir = layout.projectDirectory.asFile
-    val execOutput = providers.exec {
-        workingDir = projectDir
-        isIgnoreExitValue = true
-        commandLine = listOf("git", *args)
-        if (OperatingSystem.current().isWindows) {
-            commandLine = listOf("cmd", "/c") + commandLine
-        }
-    }
-    return execOutput.result.zip(execOutput.standardOutput.asText) { result, outputText ->
-        if (result.exitValue == 0) outputText.trim()
-        else "<unknown>" // It's a source distribution, we don't know.
-    }
 }

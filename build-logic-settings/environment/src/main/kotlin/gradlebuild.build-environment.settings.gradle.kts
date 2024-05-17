@@ -15,12 +15,15 @@
  */
 
 import gradlebuild.basics.BuildEnvironmentExtension
-import gradlebuild.basics.git
+import gradlebuild.basics.BuildEnvironmentService
 
 val buildLayout = layout
 gradle.lifecycle.beforeProject {
+    val service = gradle.sharedServices.registerIfAbsent("buildEnvironmentService", BuildEnvironmentService::class) {
+        parameters.rootProjectDir = buildLayout.rootDirectory
+    }
     val buildEnvironmentExtension = extensions.create("buildEnvironment", BuildEnvironmentExtension::class)
-    buildEnvironmentExtension.gitCommitId = git("rev-parse", "HEAD")
-    buildEnvironmentExtension.gitBranch = git("rev-parse", "--abbrev-ref", "HEAD")
+    buildEnvironmentExtension.gitCommitId = service.flatMap { it.gitCommitId }
+    buildEnvironmentExtension.gitBranch = service.flatMap { it.gitBranch }
     buildEnvironmentExtension.repoRoot = buildLayout.rootDirectory
 }
