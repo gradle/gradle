@@ -87,15 +87,24 @@ data class DefaultDataProperty(
 ) : DataProperty {
     data object DefaultPropertyMode {
         @Serializable
-        data object DefaultReadWrite : PropertyMode.ReadWrite
+        data object DefaultReadWrite : PropertyMode.ReadWrite {
+            private
+            fun readResolve(): Any = DefaultReadWrite
+        }
 
 
         @Serializable
-        data object DefaultReadOnly : PropertyMode.ReadOnly
+        data object DefaultReadOnly : PropertyMode.ReadOnly {
+            private
+            fun readResolve(): Any = DefaultReadOnly
+        }
 
 
         @Serializable
-        data object DefaultWriteOnly : PropertyMode.WriteOnly
+        data object DefaultWriteOnly : PropertyMode.WriteOnly {
+            private
+            fun readResolve(): Any = DefaultWriteOnly
+        }
     }
 }
 
@@ -205,11 +214,17 @@ object FunctionSemanticsInternal {
         object DefaultReturnType {
             @Serializable
             @SerialName("configuredObject")
-            data object DefaultConfiguredObject : ReturnType.ConfiguredObject
+            data object DefaultConfiguredObject : ReturnType.ConfiguredObject {
+                private
+                fun readResolve(): Any = DefaultConfiguredObject
+            }
 
             @Serializable
             @SerialName("unit")
-            object DefaultUnit : ReturnType.Unit
+            object DefaultUnit : ReturnType.Unit {
+                private
+                fun readResolve(): Any = DefaultUnit
+            }
         }
     }
 
@@ -235,19 +250,22 @@ object FunctionSemanticsInternal {
         @Serializable
         @SerialName("notAllowed")
         data object DefaultNotAllowed : ConfigureBlockRequirement.NotAllowed {
-            private fun readResolve(): Any = DefaultNotAllowed
+            private
+            fun readResolve(): Any = DefaultNotAllowed
         }
 
         @Serializable
         @SerialName("optional")
         data object DefaultOptional : ConfigureBlockRequirement.Optional {
-            private fun readResolve(): Any = DefaultOptional
+            private
+            fun readResolve(): Any = DefaultOptional
         }
 
         @Serializable
         @SerialName("required")
         data object DefaultRequired : ConfigureBlockRequirement.Required {
-            private fun readResolve(): Any = DefaultRequired
+            private
+            fun readResolve(): Any = DefaultRequired
         }
     }
 }
