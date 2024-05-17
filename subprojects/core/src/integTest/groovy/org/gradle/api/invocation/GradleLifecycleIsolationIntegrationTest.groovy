@@ -17,6 +17,7 @@
 package org.gradle.api.invocation
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.code.UserCodeApplicationContext
 
 class GradleLifecycleIsolationIntegrationTest extends AbstractIntegrationSpec {
 
@@ -60,5 +61,31 @@ class GradleLifecycleIsolationIntegrationTest extends AbstractIntegrationSpec {
         outputContains 'sub with version from action'
         outputContains '[1: before root unspecified, 2: before root from action, 1: after root from script, 2: after root from script]'
         outputContains '[1: before sub unspecified, 2: before sub from action, 1: after sub from script, 2: after sub from script]'
+    }
+
+    def 'lifecycle actions preserve user code application context'() {
+        given:
+        settingsFile """
+            println("settings:" + $currentApplication)
+
+            gradle.lifecycle.beforeProject {
+                println("before:" + $currentApplication)
+            }
+
+            gradle.lifecycle.afterProject {
+                println("after:" + $currentApplication)
+            }
+        """
+
+        when:
+        succeeds 'help'
+
+        then:
+        outputContains "before:settings file 'settings.gradle'"
+        outputContains "after:settings file 'settings.gradle'"
+    }
+
+    def getCurrentApplication() {
+        "services.get($UserCodeApplicationContext.name).current()?.source?.displayName"
     }
 }
