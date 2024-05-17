@@ -42,7 +42,7 @@ sealed interface FunctionSemantics : Serializable {
             ConfigureBlockRequirement.Optional::class,
             ConfigureBlockRequirement.Required::class
         ])
-        sealed interface ConfigureBlockRequirement {
+        sealed interface ConfigureBlockRequirement : Serializable {
             interface NotAllowed : ConfigureBlockRequirement
             interface Optional : ConfigureBlockRequirement
             interface Required : ConfigureBlockRequirement
