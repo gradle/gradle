@@ -631,7 +631,6 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
 
         @Override
         public void beforeProject(IsolatedAction<? super Project> action) {
-            // TODO:isolated how should decoration work for isolated actions? Should we just capture the current UserCodeApplication?
             assertBeforeProjectsLoaded("beforeProject");
             gradle.isolatedProjectEvaluationListenerProvider.beforeProject(action);
         }
