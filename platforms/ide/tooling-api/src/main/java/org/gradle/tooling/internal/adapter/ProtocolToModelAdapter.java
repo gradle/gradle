@@ -187,17 +187,29 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
     }
 
     private static <T> Map<String, Class<?>> getPotentialModelContractSubInterfaces(Class<T> targetType) {
-        Annotation[] annotations = targetType.getAnnotations();
-        Map<String, Class<?>> result = new HashMap<>();
-        for (Annotation annotation : annotations) {
-            if (annotation instanceof ToolingModelContract) {
-                Class<?>[] classes = ((ToolingModelContract) annotation).subTypes();
-                for (Class<?> clazz : classes) {
-                    result.put(clazz.getName(), clazz);
+        HashMap<String, Class<?>> result = new HashMap<>();
+        getPotentialModelContractSubInterfaces(targetType, new HashSet<Class<?>>(), result);
+        return result;
+    }
+
+    private static <T> void getPotentialModelContractSubInterfaces(
+        Class<T> targetType,
+        Set<Class<?>> visited,
+        Map<String, Class<?>> result
+    ) {
+        boolean isNew = visited.add(targetType);
+        if (isNew) {
+            Annotation[] annotations = targetType.getAnnotations();
+            for (Annotation annotation : annotations) {
+                if (annotation instanceof ToolingModelContract) {
+                    Class<?>[] classes = ((ToolingModelContract) annotation).subTypes();
+                    for (Class<?> clazz : classes) {
+                        result.put(clazz.getName(), clazz);
+                        getPotentialModelContractSubInterfaces(clazz, visited, result);
+                    }
                 }
             }
         }
-        return result;
     }
 
     private static Set<Class<?>> getActualImplementedModelContractSubInterfaces(Object sourceObject, Map<String, Class<?>> potentialModelContractInterfaces) {
