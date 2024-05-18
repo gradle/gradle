@@ -33,6 +33,7 @@ import org.gradle.jvm.toolchain.internal.InstallationSupplier;
 import org.gradle.jvm.toolchain.internal.IntellijInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.JabbaInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.JdkCacheDirectory;
+import org.gradle.jvm.toolchain.internal.NixInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.LinuxInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.OsXInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.SdkmanInstallationSupplier;
@@ -58,6 +59,7 @@ public class DaemonClientToolchainServices {
         registration.add(AsdfInstallationSupplier.class);
         registration.add(IntellijInstallationSupplier.class);
         registration.add(JabbaInstallationSupplier.class);
+        registration.add(NixInstallationSupplier.class);
         registration.add(SdkmanInstallationSupplier.class);
 
 //        registration.add(MavenToolchainsInstallationSupplier.class);
