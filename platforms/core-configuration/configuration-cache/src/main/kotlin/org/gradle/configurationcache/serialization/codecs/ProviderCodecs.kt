@@ -48,7 +48,7 @@ import org.gradle.configurationcache.flow.RegisteredFlowAction
 import org.gradle.configurationcache.problems.PropertyTrace
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.IsolateContext
-import org.gradle.configurationcache.serialization.IsolateOwner
+import org.gradle.configurationcache.serialization.IsolateOwners
 import org.gradle.configurationcache.serialization.MutableIsolateContext
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
@@ -153,7 +153,7 @@ class FlowProvidersCodec(
 ) : Codec<BuildWorkResultProvider> {
 
     override suspend fun WriteContext.encode(value: BuildWorkResultProvider) {
-        if (isolate.owner !is IsolateOwner.OwnerFlowAction) {
+        if (isolate.owner !is IsolateOwners.OwnerFlowAction) {
             logPropertyProblem("serialize") {
                 reference(BuildWorkResultProvider::class)
                 text(" can only be used as input to flow actions.")
@@ -189,8 +189,8 @@ object RegisteredFlowActionCodec : Codec<RegisteredFlowAction> {
     }
 
     private
-    inline fun <T : MutableIsolateContext, R> T.withFlowActionIsolate(flowActionClass: Class<*>, owner: IsolateOwner.OwnerFlowScope, block: T.() -> R): R {
-        withIsolate(IsolateOwner.OwnerFlowAction(owner)) {
+    inline fun <T : MutableIsolateContext, R> T.withFlowActionIsolate(flowActionClass: Class<*>, owner: IsolateOwners.OwnerFlowScope, block: T.() -> R): R {
+        withIsolate(IsolateOwners.OwnerFlowAction(owner)) {
             withPropertyTrace(PropertyTrace.BuildLogicClass(flowActionClass.name)) {
                 return block()
             }
@@ -198,9 +198,9 @@ object RegisteredFlowActionCodec : Codec<RegisteredFlowAction> {
     }
 
     private
-    fun IsolateContext.verifiedIsolateOwner(): IsolateOwner.OwnerFlowScope {
+    fun IsolateContext.verifiedIsolateOwner(): IsolateOwners.OwnerFlowScope {
         val owner = isolate.owner
-        require(owner is IsolateOwner.OwnerFlowScope) {
+        require(owner is IsolateOwners.OwnerFlowScope) {
             "Flow actions must belong to a Flow scope!"
         }
         return owner

@@ -22,6 +22,7 @@ import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.internal.tasks.TaskDestroyablesInternal
 import org.gradle.api.internal.tasks.TaskInputFilePropertyBuilderInternal
@@ -31,8 +32,9 @@ import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.problems.PropertyKind
 import org.gradle.configurationcache.problems.PropertyTrace
 import org.gradle.configurationcache.serialization.Codec
+import org.gradle.configurationcache.serialization.DefaultReadContext
 import org.gradle.configurationcache.serialization.IsolateContext
-import org.gradle.configurationcache.serialization.IsolateOwner
+import org.gradle.configurationcache.serialization.IsolateOwners
 import org.gradle.configurationcache.serialization.MutableIsolateContext
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
@@ -230,7 +232,7 @@ suspend fun <T> T.withTaskOf(
     codec: Codec<Any?>,
     action: suspend () -> Unit
 ) where T : IsolateContext, T : MutableIsolateContext {
-    withIsolate(IsolateOwner.OwnerTask(task), codec) {
+    withIsolate(IsolateOwners.OwnerTask(task), codec) {
         withPropertyTrace(PropertyTrace.Task(taskType, task.identityPath.path)) {
             if (task.isCompatibleWithConfigurationCache) {
                 action()
@@ -487,9 +489,14 @@ fun ReadContext.createTask(projectPath: String, taskName: String, taskClass: Cla
 }
 
 
+internal
+fun ReadContext.getProject(path: String): ProjectInternal =
+    this.uncheckedCast<DefaultReadContext>().getProject(path)
+
+
 private
 inline fun IsolateContext.withTaskReferencesAllowed(action: () -> Unit) {
-    val ownerTask = isolate.owner as IsolateOwner.OwnerTask
+    val ownerTask = isolate.owner as IsolateOwners.OwnerTask
     try {
         ownerTask.allowTaskReferences = true
         action()

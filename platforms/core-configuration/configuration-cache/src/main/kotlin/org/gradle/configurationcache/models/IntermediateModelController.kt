@@ -22,7 +22,7 @@ import org.gradle.configurationcache.DefaultConfigurationCache
 import org.gradle.configurationcache.StateType
 import org.gradle.configurationcache.cacheentry.ModelKey
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprintController
-import org.gradle.configurationcache.serialization.IsolateOwner
+import org.gradle.configurationcache.serialization.IsolateOwners
 import org.gradle.configurationcache.serialization.readNonNull
 import org.gradle.configurationcache.serialization.runReadOperation
 import org.gradle.configurationcache.serialization.runWriteOperation
@@ -49,7 +49,7 @@ class IntermediateModelController(
 
     override fun write(encoder: Encoder, value: IntermediateModel) {
         val (context, codecs) = cacheIO.writerContextFor(encoder)
-        context.push(IsolateOwner.OwnerHost(host), codecs.userTypesCodec())
+        context.push(IsolateOwners.OwnerHost(host), codecs.userTypesCodec())
         context.runWriteOperation {
             write(value)
         }
@@ -57,7 +57,7 @@ class IntermediateModelController(
 
     override fun read(decoder: Decoder): IntermediateModel {
         val (context, codecs) = cacheIO.readerContextFor(decoder)
-        context.push(IsolateOwner.OwnerHost(host), codecs.userTypesCodec())
+        context.push(IsolateOwners.OwnerHost(host), codecs.userTypesCodec())
         return context.runReadOperation {
             readNonNull()
         }

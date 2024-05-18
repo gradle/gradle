@@ -25,6 +25,6 @@ inline fun <T : MutableIsolateContext, R> T.withGradleIsolate(
     codec: Codec<Any?>,
     block: T.() -> R
 ): R =
-    withIsolate(IsolateOwner.OwnerGradle(gradle), codec) {
+    withIsolate(IsolateOwners.OwnerGradle(gradle), codec) {
         block()
     }

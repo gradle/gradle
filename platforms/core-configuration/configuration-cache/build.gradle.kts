@@ -33,7 +33,6 @@ tasks.configCacheIntegTest {
 dependencies {
     api(projects.concurrent)
     api(projects.javaLanguageExtensions)
-    api(projects.serialization)
     api(projects.serviceProvider)
     api(projects.configurationProblemsBase)
     api(project(":base-services"))
@@ -55,9 +54,9 @@ dependencies {
     api(project(":model-core"))
     // TODO - it might be good to allow projects to contribute state to save and restore, rather than have this project know about everything
     api(project(":native"))
+    api(projects.objectGraphSerialization)
     api(project(":persistent-cache"))
     api(project(":plugin-use"))
-    api(project(":problems-api"))
     api(project(":resources"))
     api(project(":snapshots"))
 
@@ -73,10 +72,11 @@ dependencies {
     implementation(project(":file-watching"))
     implementation(projects.kotlinLanguageExtensions)
     implementation(project(":input-tracking"))
-    implementation(projects.objectGraphSerialization)
     implementation(project(":platform-jvm"))
+    implementation(projects.problemsApi)
     implementation(project(":process-services"))
     implementation(project(":publish"))
+    implementation(projects.serialization)
     // TODO - it might be good to allow projects to contribute state to save and restore, rather than have this project know about everything
     implementation(project(":tooling-api"))
 

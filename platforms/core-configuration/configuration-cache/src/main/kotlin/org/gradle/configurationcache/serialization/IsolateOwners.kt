@@ -23,33 +23,29 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.configurationcache.DefaultConfigurationCache
 
 
-sealed class IsolateOwner {
-
-    abstract fun <T> service(type: Class<T>): T
-
-    abstract val delegate: Any
+sealed class IsolateOwners : IsolateOwner {
 
     class OwnerTask(
         override val delegate: Task,
         // TODO:configuration-cache - consider immutability
         var allowTaskReferences: Boolean = false
-    ) : IsolateOwner() {
+    ) : IsolateOwners() {
         override fun <T> service(type: Class<T>): T = (delegate.project as ProjectInternal).services.get(type)
     }
 
-    class OwnerGradle(override val delegate: Gradle) : IsolateOwner() {
+    class OwnerGradle(override val delegate: Gradle) : IsolateOwners() {
         override fun <T> service(type: Class<T>): T = (delegate as GradleInternal).services.get(type)
     }
 
-    class OwnerHost(override val delegate: DefaultConfigurationCache.Host) : IsolateOwner() {
+    class OwnerHost(override val delegate: DefaultConfigurationCache.Host) : IsolateOwners() {
         override fun <T> service(type: Class<T>): T = delegate.service(type)
     }
 
-    class OwnerFlowScope(override val delegate: Gradle) : IsolateOwner() {
+    class OwnerFlowScope(override val delegate: Gradle) : IsolateOwners() {
         override fun <T> service(type: Class<T>): T = (delegate as GradleInternal).services.get(type)
     }
 
-    class OwnerFlowAction(override val delegate: OwnerFlowScope) : IsolateOwner() {
+    class OwnerFlowAction(override val delegate: OwnerFlowScope) : IsolateOwners() {
         override fun <T> service(type: Class<T>): T = delegate.service(type)
     }
 }

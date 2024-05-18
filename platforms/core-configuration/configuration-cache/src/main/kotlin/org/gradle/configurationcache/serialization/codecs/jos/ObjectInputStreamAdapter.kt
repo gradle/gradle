@@ -20,7 +20,7 @@ import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.configurationcache.extensions.documentationLinkFor
 import org.gradle.configurationcache.problems.DocumentationSection
 import org.gradle.configurationcache.serialization.ReadContext
-import org.gradle.configurationcache.serialization.beans.BeanStateReader
+import org.gradle.configurationcache.serialization.BeanStateReader
 import org.gradle.configurationcache.serialization.runReadOperation
 import java.io.InputStream
 import java.io.ObjectInputStream

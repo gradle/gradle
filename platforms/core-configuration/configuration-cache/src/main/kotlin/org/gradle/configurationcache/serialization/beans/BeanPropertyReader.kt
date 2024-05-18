@@ -20,6 +20,7 @@ import org.gradle.api.GradleException
 import org.gradle.configurationcache.extensions.unsafeLazy
 import org.gradle.configurationcache.problems.PropertyKind
 import org.gradle.configurationcache.problems.PropertyTrace
+import org.gradle.configurationcache.serialization.BeanStateReader
 import org.gradle.configurationcache.serialization.MutableIsolateContext
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.logPropertyProblem

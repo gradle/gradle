@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,11 @@
 
 package org.gradle.configurationcache.serialization
 
-import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.logging.Logger
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.problems.PropertyTrace
 import org.gradle.configurationcache.problems.StructuredMessageBuilder
-import org.gradle.configurationcache.serialization.beans.BeanStateReader
-import org.gradle.configurationcache.serialization.beans.BeanStateWriter
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 
@@ -32,6 +29,16 @@ import org.gradle.internal.serialize.Encoder
  * Binary encoding for type [T].
  */
 interface Codec<T> : EncodingProvider<T>, DecodingProvider<T>
+
+
+interface EncodingProvider<T> {
+    suspend fun WriteContext.encode(value: T)
+}
+
+
+interface DecodingProvider<T> {
+    suspend fun ReadContext.decode(): T?
+}
 
 
 interface WriteContext : IsolateContext, MutableIsolateContext, Encoder {
@@ -70,8 +77,6 @@ interface ReadContext : IsolateContext, MutableIsolateContext, Decoder {
 
     fun beanStateReaderFor(beanType: Class<*>): BeanStateReader
 
-    fun getProject(path: String): ProjectInternal
-
     /**
      * When in immediate mode, [read] calls are NOT suspending.
      * Useful for bridging with non-suspending serialization protocols such as [java.io.Serializable].
@@ -106,7 +111,12 @@ interface IsolateContext {
 }
 
 
-internal
+interface IsolateOwner {
+    val delegate: Any
+    fun <T> service(type: Class<T>): T
+}
+
+
 inline fun <reified T> IsolateOwner.serviceOf() = service(T::class.java)
 
 
@@ -146,7 +156,6 @@ interface MutableIsolateContext : IsolateContext {
 }
 
 
-internal
 inline fun <T : ReadContext, R> T.withImmediateMode(block: T.() -> R): R {
     val immediateMode = this.immediateMode
     try {
@@ -158,7 +167,6 @@ inline fun <T : ReadContext, R> T.withImmediateMode(block: T.() -> R): R {
 }
 
 
-internal
 inline fun <T : MutableIsolateContext, R> T.withIsolate(owner: IsolateOwner, codec: Codec<Any?>, block: T.() -> R): R {
     push(owner, codec)
     try {
@@ -169,7 +177,6 @@ inline fun <T : MutableIsolateContext, R> T.withIsolate(owner: IsolateOwner, cod
 }
 
 
-internal
 inline fun <T : MutableIsolateContext, R> T.withIsolate(owner: IsolateOwner, block: T.() -> R): R {
     push(owner)
     try {
@@ -180,7 +187,6 @@ inline fun <T : MutableIsolateContext, R> T.withIsolate(owner: IsolateOwner, blo
 }
 
 
-internal
 inline fun <T : MutableIsolateContext, R> T.withCodec(codec: Codec<Any?>, block: T.() -> R): R {
     push(codec)
     try {
@@ -191,14 +197,12 @@ inline fun <T : MutableIsolateContext, R> T.withCodec(codec: Codec<Any?>, block:
 }
 
 
-internal
 inline fun <T : MutableIsolateContext, R> T.withBeanTrace(beanType: Class<*>, action: () -> R): R =
     withPropertyTrace(PropertyTrace.Bean(beanType, trace)) {
         action()
     }
 
 
-internal
 inline fun <T : MutableIsolateContext, R> T.withPropertyTrace(trace: PropertyTrace, block: T.() -> R): R {
     val previousTrace = this.trace
     this.trace = trace
@@ -210,18 +214,15 @@ inline fun <T : MutableIsolateContext, R> T.withPropertyTrace(trace: PropertyTra
 }
 
 
-internal
 inline fun <T : Any> WriteContext.encodePreservingIdentityOf(reference: T, encode: WriteContext.(T) -> Unit) {
     encodePreservingIdentityOf(isolate.identities, reference, encode)
 }
 
 
-internal
 inline fun <T : Any> WriteContext.encodePreservingSharedIdentityOf(reference: T, encode: WriteContext.(T) -> Unit) =
     encodePreservingIdentityOf(sharedIdentities, reference, encode)
 
 
-internal
 inline fun <T : Any> WriteContext.encodePreservingIdentityOf(identities: WriteIdentities, reference: T, encode: WriteContext.(T) -> Unit) {
     val id = identities.getId(reference)
     if (id != null) {
@@ -239,12 +240,10 @@ inline fun <T : Any> WriteContext.encodePreservingIdentityOf(identities: WriteId
 }
 
 
-internal
 inline fun <T> ReadContext.decodePreservingIdentity(decode: ReadContext.(Int) -> T): T =
     decodePreservingIdentity(isolate.identities, decode)
 
 
-internal
 inline fun <T : Any> ReadContext.decodePreservingSharedIdentity(decode: ReadContext.(Int) -> T): T =
     decodePreservingIdentity(sharedIdentities) { id ->
         decode(id).also {
@@ -253,7 +252,6 @@ inline fun <T : Any> ReadContext.decodePreservingSharedIdentity(decode: ReadCont
     }
 
 
-internal
 inline fun <T> ReadContext.decodePreservingIdentity(identities: ReadIdentities, decode: ReadContext.(Int) -> T): T {
     val id = readSmallInt()
     val previousValue = identities.getInstance(id)
@@ -270,7 +268,6 @@ inline fun <T> ReadContext.decodePreservingIdentity(identities: ReadIdentities, 
 }
 
 
-internal
 suspend fun WriteContext.encodeBean(value: Any) {
     val beanType = value.javaClass
     withBeanTrace(beanType) {
@@ -282,7 +279,6 @@ suspend fun WriteContext.encodeBean(value: Any) {
 }
 
 
-internal
 suspend fun ReadContext.decodeBean(): Any {
     val beanType = readClass()
     return withBeanTrace(beanType) {
@@ -292,4 +288,22 @@ suspend fun ReadContext.decodeBean(): Any {
             }
         }
     }
+}
+
+
+interface BeanStateWriter {
+    suspend fun WriteContext.writeStateOf(bean: Any)
+}
+
+
+interface BeanStateReader {
+
+    fun ReadContext.newBeanWithId(generated: Boolean, id: Int) =
+        newBean(generated).also {
+            isolate.identities.putInstance(id, it)
+        }
+
+    fun ReadContext.newBean(generated: Boolean): Any
+
+    suspend fun ReadContext.readStateOf(bean: Any)
 }

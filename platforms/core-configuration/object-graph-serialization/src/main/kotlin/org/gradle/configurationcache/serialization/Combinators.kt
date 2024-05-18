@@ -18,20 +18,13 @@ package org.gradle.configurationcache.serialization
 
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.extensions.useToRun
-import org.gradle.configurationcache.problems.DocumentationSection
-import org.gradle.configurationcache.problems.StructuredMessageBuilder
-import org.gradle.internal.classpath.ClassPath
-import org.gradle.internal.classpath.DefaultClassPath
-import org.gradle.internal.classpath.TransformedClassPath
 import org.gradle.internal.serialize.BaseSerializerFactory
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.Serializer
-
 import java.io.File
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
-
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.coroutineContext
@@ -39,50 +32,10 @@ import kotlin.coroutines.startCoroutine
 import kotlin.coroutines.suspendCoroutine
 
 
-internal
 fun <T> singleton(value: T): Codec<T> =
     SingletonCodec(value)
 
 
-internal
-inline fun <reified T : Any> unsupported(
-    documentationSection: DocumentationSection = DocumentationSection.RequirementsDisallowedTypes
-): Codec<T> = codec(
-    encode = { value ->
-        logUnsupported("serialize", T::class, value.javaClass, documentationSection)
-    },
-    decode = {
-        logUnsupported("deserialize", T::class, documentationSection)
-        null
-    }
-)
-
-
-internal
-inline fun <reified T : Any> unsupported(
-    description: String,
-    documentationSection: DocumentationSection = DocumentationSection.RequirementsDisallowedTypes
-) = unsupported<T>(documentationSection) {
-    text(description)
-}
-
-
-internal
-inline fun <reified T : Any> unsupported(
-    documentationSection: DocumentationSection = DocumentationSection.RequirementsDisallowedTypes,
-    noinline unsupportedMessage: StructuredMessageBuilder
-): Codec<T> = codec(
-    encode = {
-        logUnsupported("serialize", documentationSection, unsupportedThings = unsupportedMessage)
-    },
-    decode = {
-        logUnsupported("deserialize", documentationSection, unsupportedThings = unsupportedMessage)
-        null
-    }
-)
-
-
-internal
 fun <T> codec(
     encode: suspend WriteContext.(T) -> Unit,
     decode: suspend ReadContext.() -> T?
@@ -92,17 +45,14 @@ fun <T> codec(
 }
 
 
-internal
 inline fun <reified T> IsolateContext.ownerService() =
     ownerService(T::class.java)
 
 
-internal
 fun <T> IsolateContext.ownerService(serviceType: Class<T>) =
     isolate.owner.service(serviceType)
 
 
-internal
 fun <T : Any> reentrant(codec: Codec<T>): Codec<T> = object : Codec<T> {
 
     var encodeCall: EncodeFrame<T>? = null
@@ -115,6 +65,7 @@ fun <T : Any> reentrant(codec: Codec<T>): Codec<T> = object : Codec<T> {
                 encodeCall = EncodeFrame(value, null)
                 encodeLoop(coroutineContext)
             }
+
             else -> suspendCoroutine<Unit> { k ->
                 encodeCall = EncodeFrame(value, k)
             }
@@ -126,10 +77,12 @@ fun <T : Any> reentrant(codec: Codec<T>): Codec<T> = object : Codec<T> {
             immediateMode -> {
                 codec.run { decode() }
             }
+
             decodeCall == null -> {
                 decodeCall = DecodeFrame(null)
                 decodeLoop(coroutineContext)
             }
+
             else -> suspendCoroutine { k ->
                 decodeCall = DecodeFrame(k)
             }
@@ -150,6 +103,7 @@ fun <T : Any> reentrant(codec: Codec<T>): Codec<T> = object : Codec<T> {
                             encodeCall = null
                             it.getOrThrow()
                         }
+
                         else -> k.resumeWith(it)
                     }
                 }
@@ -171,6 +125,7 @@ fun <T : Any> reentrant(codec: Codec<T>): Codec<T> = object : Codec<T> {
                             decodeCall = null
                             result = it.getOrThrow()
                         }
+
                         else -> k.resumeWith(it)
                     }
                 }
@@ -198,55 +153,46 @@ data class SingletonCodec<T>(
 }
 
 
-internal
 data class SerializerCodec<T>(val serializer: Serializer<T>) : Codec<T> {
     override suspend fun WriteContext.encode(value: T) = serializer.write(this, value)
     override suspend fun ReadContext.decode(): T = serializer.read(this)
 }
 
 
-internal
 fun WriteContext.writeClassArray(values: Array<Class<*>>) {
     writeArray(values) { writeClass(it) }
 }
 
 
-internal
 fun ReadContext.readClassArray(): Array<Class<*>> =
     readArray { readClass() }
 
 
-internal
 suspend fun ReadContext.readList(): List<Any?> =
     readList { read() }
 
 
-internal
 inline fun <T : Any?> ReadContext.readList(readElement: () -> T): List<T> =
     readCollectionInto({ size -> ArrayList(size) }) {
         readElement()
     }
 
 
-internal
 suspend fun WriteContext.writeCollection(value: Collection<*>) {
     writeCollection(value) { write(it) }
 }
 
 
-internal
 suspend fun <T : MutableCollection<Any?>> ReadContext.readCollectionInto(factory: (Int) -> T): T =
     readCollectionInto(factory) { read() }
 
 
-internal
 suspend fun WriteContext.writeMap(value: Map<*, *>) {
     writeSmallInt(value.size)
     writeMapEntries(value)
 }
 
 
-internal
 suspend fun WriteContext.writeMapEntries(value: Map<*, *>) {
     for (entry in value.entries) {
         write(entry.key)
@@ -255,7 +201,6 @@ suspend fun WriteContext.writeMapEntries(value: Map<*, *>) {
 }
 
 
-internal
 suspend fun <T : MutableMap<Any?, Any?>> ReadContext.readMapInto(factory: (Int) -> T): T {
     val size = readSmallInt()
     val items = factory(size)
@@ -264,7 +209,6 @@ suspend fun <T : MutableMap<Any?, Any?>> ReadContext.readMapInto(factory: (Int) 
 }
 
 
-internal
 suspend fun <K, V, T : MutableMap<K, V>> ReadContext.readMapEntriesInto(items: T, size: Int) {
     @Suppress("unchecked_cast")
     for (i in 0 until size) {
@@ -275,82 +219,15 @@ suspend fun <K, V, T : MutableMap<K, V>> ReadContext.readMapEntriesInto(items: T
 }
 
 
-internal
-fun Encoder.writeClassPath(classPath: ClassPath) {
-    // Ensure that the proper type is going to be restored,
-    // because it is important for the equality checks.
-    if (classPath is TransformedClassPath) {
-        writeBoolean(true)
-        writeTransformedClassPath(classPath)
-    } else {
-        writeBoolean(false)
-        writeDefaultClassPath(classPath)
-    }
-}
-
-
-internal
-fun Encoder.writeDefaultClassPath(classPath: ClassPath) {
-    writeCollection(classPath.asFiles) {
-        writeFile(it)
-    }
-}
-
-
-internal
-fun Encoder.writeTransformedClassPath(classPath: TransformedClassPath) {
-    writeCollection(classPath.asFiles.zip(classPath.asTransformedFiles)) {
-        writeFile(it.first)
-        writeFile(it.second)
-    }
-}
-
-
-internal
-fun Decoder.readClassPath(): ClassPath {
-    val isTransformed = readBoolean()
-    return if (isTransformed) {
-        readTransformedClassPath()
-    } else {
-        readDefaultClassPath()
-    }
-}
-
-
-internal
-fun Decoder.readDefaultClassPath(): ClassPath {
-    val size = readSmallInt()
-    val builder = DefaultClassPath.builderWithExactSize(size)
-    for (i in 0 until size) {
-        builder.add(readFile())
-    }
-    return builder.build()
-}
-
-
-internal
-fun Decoder.readTransformedClassPath(): ClassPath {
-    val size = readSmallInt()
-    val builder = TransformedClassPath.builderWithExactSize(size)
-    for (i in 0 until size) {
-        builder.add(readFile(), readFile())
-    }
-    return builder.build()
-}
-
-
-internal
 fun Encoder.writeFile(file: File) {
     BaseSerializerFactory.FILE_SERIALIZER.write(this, file)
 }
 
 
-internal
 fun Decoder.readFile(): File =
     BaseSerializerFactory.FILE_SERIALIZER.read(this)
 
 
-internal
 fun Encoder.writeStrings(strings: Collection<String>) {
     writeCollection(strings) {
         writeString(it)
@@ -358,21 +235,18 @@ fun Encoder.writeStrings(strings: Collection<String>) {
 }
 
 
-internal
 fun Decoder.readStrings(): List<String> =
     readCollectionInto({ size -> ArrayList(size) }) {
         readString()
     }
 
 
-internal
 fun Decoder.readStringsSet(): Set<String> =
     readCollectionInto({ size -> LinkedHashSet(size) }) {
         readString()
     }
 
 
-internal
 inline fun <T> Encoder.writeCollection(collection: Collection<T>, writeElement: (T) -> Unit) {
     writeSmallInt(collection.size)
     for (element in collection) {
@@ -381,7 +255,6 @@ inline fun <T> Encoder.writeCollection(collection: Collection<T>, writeElement: 
 }
 
 
-internal
 inline fun Decoder.readCollection(readElement: () -> Unit) {
     val size = readSmallInt()
     for (i in 0 until size) {
@@ -390,7 +263,6 @@ inline fun Decoder.readCollection(readElement: () -> Unit) {
 }
 
 
-internal
 inline fun <T, C : MutableCollection<T>> Decoder.readCollectionInto(
     containerForSize: (Int) -> C,
     readElement: () -> T
@@ -404,7 +276,6 @@ inline fun <T, C : MutableCollection<T>> Decoder.readCollectionInto(
 }
 
 
-internal
 inline fun <T : Any?> WriteContext.writeArray(array: Array<T>, writeElement: (T) -> Unit) {
     writeClass(array.javaClass.componentType)
     writeSmallInt(array.size)
@@ -414,7 +285,6 @@ inline fun <T : Any?> WriteContext.writeArray(array: Array<T>, writeElement: (T)
 }
 
 
-internal
 inline fun <T : Any?> ReadContext.readArray(readElement: () -> T): Array<T> {
     val componentType = readClass()
     val size = readSmallInt()
@@ -446,7 +316,6 @@ fun <reified T : Any> ReadContext.readClassOf(): Class<out T> =
  * **IMPORTANT** Should be avoided for composite/container types as all components would be serialized
  * using Java serialization.
  */
-internal
 fun WriteContext.encodeUsingJavaSerialization(value: Any) {
     ObjectOutputStream(outputStream).useToRun {
         writeObject(value)
@@ -454,6 +323,5 @@ fun WriteContext.encodeUsingJavaSerialization(value: Any) {
 }
 
 
-internal
 fun ReadContext.decodeUsingJavaSerialization(): Any? =
     ObjectInputStream(inputStream).readObject()

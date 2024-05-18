@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.transform.TransformStep
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
+import org.gradle.configurationcache.serialization.codecs.getProject
 import org.gradle.configurationcache.serialization.decodePreservingSharedIdentity
 import org.gradle.configurationcache.serialization.encodePreservingSharedIdentityOf
 import org.gradle.configurationcache.serialization.readNonNull

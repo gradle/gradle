@@ -23,7 +23,7 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
-import org.gradle.configurationcache.serialization.IsolateOwner
+import org.gradle.configurationcache.serialization.IsolateOwners
 import org.gradle.configurationcache.serialization.beans.BeanStateWriterLookup
 import org.gradle.configurationcache.serialization.codecs.beanStateReaderLookupForTesting
 import org.gradle.configurationcache.serialization.codecs.jos.JavaSerializationEncodingLookup
@@ -180,7 +180,7 @@ class IsolatedActionSerializerTest {
             .deserialize(serialized)
 
     private
-    fun ownerGradle() = IsolateOwner.OwnerGradle(
+    fun ownerGradle() = IsolateOwners.OwnerGradle(
         mock<GradleInternal> {
             on { services } doReturn TestUtil.services()
         }

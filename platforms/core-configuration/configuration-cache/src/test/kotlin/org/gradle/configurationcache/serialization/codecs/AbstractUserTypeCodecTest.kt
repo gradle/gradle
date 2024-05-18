@@ -27,7 +27,7 @@ import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.DefaultClassEncoder
 import org.gradle.configurationcache.serialization.DefaultReadContext
 import org.gradle.configurationcache.serialization.DefaultWriteContext
-import org.gradle.configurationcache.serialization.IsolateOwner
+import org.gradle.configurationcache.serialization.IsolateOwners
 import org.gradle.configurationcache.serialization.MutableIsolateContext
 import org.gradle.configurationcache.serialization.beans.BeanConstructors
 import org.gradle.configurationcache.serialization.beans.BeanStateReaderLookup
@@ -124,7 +124,7 @@ abstract class AbstractUserTypeCodecTest {
 
     private
     inline fun <R> MutableIsolateContext.withIsolateMock(codec: Codec<Any?>, block: () -> R): R =
-        withIsolate(IsolateOwner.OwnerGradle(mock()), codec) {
+        withIsolate(IsolateOwners.OwnerGradle(mock()), codec) {
             block()
         }
 

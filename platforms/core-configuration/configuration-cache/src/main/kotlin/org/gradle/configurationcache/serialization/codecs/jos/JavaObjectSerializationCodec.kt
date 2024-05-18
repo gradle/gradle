@@ -20,7 +20,7 @@ import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.EncodingProvider
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
-import org.gradle.configurationcache.serialization.beans.BeanStateReader
+import org.gradle.configurationcache.serialization.BeanStateReader
 import org.gradle.configurationcache.serialization.codecs.Decoding
 import org.gradle.configurationcache.serialization.codecs.Encoding
 import org.gradle.configurationcache.serialization.codecs.EncodingProducer

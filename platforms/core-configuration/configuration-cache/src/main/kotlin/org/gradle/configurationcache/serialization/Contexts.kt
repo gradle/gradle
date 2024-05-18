@@ -17,23 +17,14 @@
 package org.gradle.configurationcache.serialization
 
 import it.unimi.dsi.fastutil.objects.ReferenceArrayList
-import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logger
-import org.gradle.configurationcache.ClassLoaderScopeSpec
 import org.gradle.configurationcache.problems.ProblemsListener
 import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.problems.PropertyTrace
 import org.gradle.configurationcache.problems.StructuredMessageBuilder
-import org.gradle.configurationcache.serialization.beans.BeanStateReader
 import org.gradle.configurationcache.serialization.beans.BeanStateReaderLookup
-import org.gradle.configurationcache.serialization.beans.BeanStateWriter
 import org.gradle.configurationcache.serialization.beans.BeanStateWriterLookup
-import org.gradle.initialization.ClassLoaderScopeOrigin
-import org.gradle.initialization.ClassLoaderScopeRegistry
-import org.gradle.internal.Describables
-import org.gradle.internal.hash.HashCode
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 
@@ -98,54 +89,8 @@ class DefaultWriteContext(
 }
 
 
-internal
-class LoggingTracer(
-    private val profile: String,
-    private val writePosition: () -> Long,
-    private val logger: Logger,
-    private val level: LogLevel
-) : Tracer {
-
-    // Include a sequence number in the events so the order of events can be preserved in face of log output reordering
-    private
-    var nextSequenceNumber = 0L
-
-    override fun open(frame: String) {
-        log(frame, 'O')
-    }
-
-    override fun close(frame: String) {
-        log(frame, 'C')
-    }
-
-    private
-    fun log(frame: String, openOrClose: Char) {
-        logger.log(
-            level,
-            """{"profile":"$profile","type":"$openOrClose","frame":"$frame","at":${writePosition()},"sn":${nextSequenceNumber()}}"""
-        )
-    }
-
-    private
-    fun nextSequenceNumber() = nextSequenceNumber.also {
-        nextSequenceNumber += 1
-    }
-}
-
-
-interface EncodingProvider<T> {
-    suspend fun WriteContext.encode(value: T)
-}
-
-
 @JvmInline
 value class ClassLoaderRole(val local: Boolean)
-
-
-internal
-interface ScopeLookup {
-    fun scopeFor(classLoader: ClassLoader?): Pair<ClassLoaderScopeSpec, ClassLoaderRole>?
-}
 
 
 internal
@@ -157,151 +102,6 @@ interface ClassEncoder {
 internal
 interface ClassDecoder {
     fun ReadContext.decodeClass(): Class<*>
-}
-
-
-internal
-class DefaultClassEncoder(
-    private val scopeLookup: ScopeLookup
-) : ClassEncoder {
-
-    private
-    val classes = WriteIdentities()
-
-    private
-    val scopes = WriteIdentities()
-
-    override fun WriteContext.encodeClass(type: Class<*>) {
-        val id = classes.getId(type)
-        if (id != null) {
-            writeSmallInt(id)
-        } else {
-            val scope = scopeLookup.scopeFor(type.classLoader)
-            val newId = classes.putInstance(type)
-            writeSmallInt(newId)
-            writeString(type.name)
-            if (scope == null) {
-                writeBoolean(false)
-            } else {
-                writeBoolean(true)
-                writeScope(scope.first)
-                writeBoolean(scope.second.local)
-            }
-        }
-    }
-
-    private
-    fun WriteContext.writeScope(scope: ClassLoaderScopeSpec) {
-        val id = scopes.getId(scope)
-        if (id != null) {
-            writeSmallInt(id)
-        } else {
-            val newId = scopes.putInstance(scope)
-            writeSmallInt(newId)
-            if (scope.parent == null) {
-                writeBoolean(false)
-            } else {
-                writeBoolean(true)
-                writeScope(scope.parent)
-            }
-            writeString(scope.name)
-            if (scope.origin is ClassLoaderScopeOrigin.Script) {
-                writeBoolean(true)
-                writeString(scope.origin.fileName)
-                writeString(scope.origin.longDisplayName.displayName)
-                writeString(scope.origin.shortDisplayName.displayName)
-            } else {
-                writeBoolean(false)
-            }
-            writeClassPath(scope.localClassPath)
-            writeHashCode(scope.localImplementationHash)
-            writeClassPath(scope.exportClassPath)
-        }
-    }
-
-    private
-    fun WriteContext.writeHashCode(hashCode: HashCode?) {
-        if (hashCode == null) {
-            writeBoolean(false)
-        } else {
-            writeBoolean(true)
-            writeBinary(hashCode.toByteArray())
-        }
-    }
-}
-
-
-internal
-class DefaultClassDecoder : ClassDecoder {
-
-    private
-    val classes = ReadIdentities()
-
-    private
-    val scopes = ReadIdentities()
-
-    override fun ReadContext.decodeClass(): Class<*> {
-        val id = readSmallInt()
-        val type = classes.getInstance(id)
-        if (type != null) {
-            return type as Class<*>
-        }
-        val name = readString()
-        val classLoader = if (readBoolean()) {
-            val scope = readScope()
-            if (readBoolean()) {
-                scope.localClassLoader
-            } else {
-                scope.exportClassLoader
-            }
-        } else {
-            this.classLoader
-        }
-        val newType = Class.forName(name, false, classLoader)
-        classes.putInstance(id, newType)
-        return newType
-    }
-
-    private
-    fun ReadContext.readScope(): ClassLoaderScope {
-        val id = readSmallInt()
-        val scope = scopes.getInstance(id)
-        if (scope != null) {
-            return scope as ClassLoaderScope
-        }
-
-        val parent = if (readBoolean()) {
-            readScope()
-        } else {
-            ownerService<ClassLoaderScopeRegistry>().coreAndPluginsScope
-        }
-
-        val name = readString()
-        val origin = if (readBoolean()) {
-            ClassLoaderScopeOrigin.Script(readString(), Describables.of(readString()), Describables.of(readString()))
-        } else {
-            null
-        }
-        val localClassPath = readClassPath()
-        val localImplementationHash = readHashCode()
-        val exportClassPath = readClassPath()
-
-        val newScope = if (localImplementationHash != null && exportClassPath.isEmpty) {
-            parent.createLockedChild(name, origin, localClassPath, localImplementationHash, null)
-        } else {
-            parent.createChild(name, origin).local(localClassPath).export(exportClassPath).lock()
-        }
-
-        scopes.putInstance(id, newScope)
-        return newScope
-    }
-
-    private
-    fun ReadContext.readHashCode() = if (readBoolean()) {
-        HashCode.fromBytes(readBinary())
-    } else {
-        null
-    }
 }
 
 
@@ -376,17 +176,11 @@ class DefaultReadContext(
     override fun beanStateReaderFor(beanType: Class<*>): BeanStateReader =
         beanStateReaderLookup.beanStateReaderFor(beanType)
 
-
-    override fun getProject(path: String): ProjectInternal =
+    fun getProject(path: String): ProjectInternal =
         projectProvider(path)
 
     override fun newIsolate(owner: IsolateOwner): ReadIsolate =
         DefaultReadIsolate(owner)
-}
-
-
-interface DecodingProvider<T> {
-    suspend fun ReadContext.decode(): T?
 }
 
 

@@ -17,7 +17,6 @@
 package org.gradle.configurationcache.problems
 
 
-internal
 fun propertyDescriptionFor(trace: PropertyTrace): String =
     when (trace) {
         is PropertyTrace.Property -> trace.simplePropertyDescription()
@@ -33,17 +32,14 @@ fun PropertyTrace.Property.simplePropertyDescription(): String = when (kind) {
 }
 
 
-internal
 fun taskPathFrom(trace: PropertyTrace): String =
     trace.sequence.filterIsInstance<PropertyTrace.Task>().first().path
 
 
-internal
 fun projectPathFrom(trace: PropertyTrace): String =
     trace.sequence.filterIsInstance<PropertyTrace.Project>().first().path
 
 
-internal
 fun firstTypeFrom(trace: PropertyTrace): Class<*> =
     trace.sequence.mapNotNull { typeFrom(it) }.first()
 

@@ -25,7 +25,6 @@ import kotlin.coroutines.startCoroutine
 /**
  * Runs the given [readOperation] synchronously.
  */
-internal
 fun <T : ReadContext, R> T.runReadOperation(readOperation: suspend T.() -> R): R {
     contract {
         callsInPlace(readOperation, InvocationKind.EXACTLY_ONCE)
@@ -39,7 +38,6 @@ fun <T : ReadContext, R> T.runReadOperation(readOperation: suspend T.() -> R): R
 /**
  * Runs the given [writeOperation] synchronously.
  */
-internal
 fun <T : WriteContext, U> T.runWriteOperation(writeOperation: suspend T.() -> U): U =
     runToCompletion {
         writeOperation()

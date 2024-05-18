@@ -16,7 +16,6 @@
 
 package org.gradle.configurationcache.serialization
 
-import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.configurationcache.problems.DocumentationSection
 import org.gradle.configurationcache.problems.DocumentationSection.NotYetImplemented
 import org.gradle.configurationcache.problems.DocumentationSection.RequirementsDisallowedTypes
@@ -38,25 +37,6 @@ fun IsolateContext.logPropertyProblem(
 }
 
 
-internal
-fun IsolateContext.logUnsupported(
-    action: String,
-    baseType: KClass<*>,
-    actualType: Class<*>,
-    documentationSection: DocumentationSection = RequirementsDisallowedTypes,
-    appendix: StructuredMessageBuilder = {}
-) {
-    logUnsupported(action, documentationSection, appendix) {
-        text(" object of type ")
-        reference(GeneratedSubclasses.unpack(actualType))
-        text(", a subtype of ")
-        reference(baseType)
-        text(",")
-    }
-}
-
-
-internal
 fun IsolateContext.logUnsupported(
     action: String,
     baseType: KClass<*>,
@@ -70,7 +50,6 @@ fun IsolateContext.logUnsupported(
 }
 
 
-internal
 fun IsolateContext.logUnsupported(
     action: String,
     documentationSection: DocumentationSection = RequirementsDisallowedTypes,
@@ -99,7 +78,6 @@ fun IsolateContext.logNotImplemented(baseType: Class<*>) {
 }
 
 
-internal
 fun IsolateContext.logNotImplemented(feature: String, documentationSection: DocumentationSection = NotYetImplemented) {
     onProblem(
         PropertyProblem(
@@ -113,21 +91,18 @@ fun IsolateContext.logNotImplemented(feature: String, documentationSection: Docu
 }
 
 
-private
 fun IsolateContext.logPropertyProblem(documentationSection: DocumentationSection? = null, message: StructuredMessageBuilder) {
     val problem = PropertyProblem(trace, build(message), documentationSection = documentationSection)
     logPropertyProblem("serialize", problem)
 }
 
 
-private
 fun IsolateContext.logPropertyProblem(action: String, problem: PropertyProblem) {
     logger.debug("configuration-cache > failed to {} {} because {}", action, propertyDescriptionFor(problem.trace), problem.message)
     onProblem(problem)
 }
 
 
-internal
 inline fun <T : WriteContext, R> T.withDebugFrame(name: () -> String, writeAction: T.() -> R): R {
     val tracer = this.tracer
     return if (tracer == null) {

@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache.serialization.beans
 
+import org.gradle.configurationcache.serialization.BeanStateWriter
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import java.util.concurrent.ConcurrentHashMap

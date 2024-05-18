@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache.serialization.beans
 
+import org.gradle.configurationcache.serialization.BeanStateReader
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
