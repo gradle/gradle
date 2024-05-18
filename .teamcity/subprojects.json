@@ -196,6 +196,13 @@
     "crossVersionTests": true
   },
   {
+    "name": "configuration-problems-base",
+    "path": "platforms/core-configuration/configuration-problems-base",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "core",
     "path": "subprojects/core",
     "unitTests": true,
@@ -651,6 +658,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "kotlin-language-extensions",
+    "path": "platforms/core-configuration/kotlin-language-extensions",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "language-groovy",
     "path": "platforms/jvm/language-groovy",
     "unitTests": true,
@@ -738,6 +752,13 @@
     "name": "normalization-java",
     "path": "platforms/jvm/normalization-java",
     "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "object-graph-serialization",
+    "path": "platforms/core-configuration/object-graph-serialization",
+    "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
