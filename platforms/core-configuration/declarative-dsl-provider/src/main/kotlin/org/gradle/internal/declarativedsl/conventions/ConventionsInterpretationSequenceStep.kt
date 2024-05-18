@@ -49,7 +49,7 @@ class ConventionsInterpretationSequenceStep(
     override fun evaluationSchemaForStep(): EvaluationSchema = buildEvaluationSchema()
 
     override fun getTopLevelReceiverFromTarget(target: Any): ConventionsTopLevelReceiver = object : ConventionsTopLevelReceiver {
-        override fun conventions(conventions: ConventionsConfiguringBlock) = Unit
+        override fun conventions(conventions: ConventionsConfiguringBlock.() -> Unit) = Unit
     }
 
     override fun processResolutionResult(resolutionResult: ResolutionResult): ResolutionResult {

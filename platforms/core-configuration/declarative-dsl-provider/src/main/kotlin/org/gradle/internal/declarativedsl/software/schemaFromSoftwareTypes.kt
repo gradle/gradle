@@ -23,8 +23,6 @@ import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.analysis.ConfigureAccessorInternal
 import org.gradle.internal.declarativedsl.analysis.DefaultDataMemberFunction
 import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsInternal
-import org.gradle.internal.declarativedsl.conventions.ConventionsConfiguringBlock
-import org.gradle.internal.declarativedsl.conventions.ConventionsTopLevelReceiver
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaComponent
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeCustomAccessors
 import org.gradle.internal.declarativedsl.evaluationSchema.FixedTypeDiscovery
@@ -74,10 +72,6 @@ class SoftwareTypeComponent(
 )
 
 
-private
-val conventionsFunction = conventionsFunction()
-
-
 internal
 class SoftwareTypeConventionComponent(
     private val schemaTypeToExtend: KClass<*>,
@@ -89,14 +83,6 @@ class SoftwareTypeConventionComponent(
         SoftwareTypeInfo(it, schemaTypeToExtend, accessorIdPrefix) { _ -> }
     }
 ) {
-    override fun typeDiscovery(): List<TypeDiscovery> = listOf(
-        FixedTypeDiscovery(ConventionsTopLevelReceiver::class, listOf(ConventionsConfiguringBlock::class))
-    ) + super.typeDiscovery()
-
-    override fun functionExtractors(): List<FunctionExtractor> = listOf(
-        conventionsFunction
-    ) + super.functionExtractors()
-
     override fun runtimeCustomAccessors(): List<RuntimeCustomAccessors> = emptyList()
 }
 
@@ -128,29 +114,6 @@ private
 fun softwareTypeConfiguringFunctions(typeToExtend: KClass<*>, softwareTypeImplementations: Iterable<SoftwareTypeInfo<*>>): FunctionExtractor = object : FunctionExtractor {
     override fun memberFunctions(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<SchemaMemberFunction> =
         if (kClass == typeToExtend) softwareTypeImplementations.map(SoftwareTypeInfo<*>::schemaFunction) else emptyList()
-
-    override fun constructors(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<DataConstructor> = emptyList()
-
-    override fun topLevelFunction(function: KFunction<*>, preIndex: DataSchemaBuilder.PreIndex) = null
-}
-
-
-private
-fun conventionsFunction(): FunctionExtractor = object : FunctionExtractor {
-    override fun memberFunctions(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<SchemaMemberFunction> =
-        if (kClass == ConventionsTopLevelReceiver::class) listOf(
-            DefaultDataMemberFunction(
-                ConventionsTopLevelReceiver::class.toDataTypeRef(),
-                "conventions",
-                emptyList(),
-                isDirectAccessOnly = true,
-                semantics = FunctionSemanticsInternal.DefaultAccessAndConfigure(
-                    accessor = ConfigureAccessorInternal.DefaultCustom(ConventionsConfiguringBlock::class.toDataTypeRef(), "conventions"),
-                    FunctionSemanticsInternal.DefaultAccessAndConfigure.DefaultReturnType.DefaultUnit,
-                    FunctionSemanticsInternal.DefaultConfigureBlockRequirement.DefaultRequired
-                )
-            )
-        ) else emptyList()
 
     override fun constructors(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<DataConstructor> = emptyList()
 

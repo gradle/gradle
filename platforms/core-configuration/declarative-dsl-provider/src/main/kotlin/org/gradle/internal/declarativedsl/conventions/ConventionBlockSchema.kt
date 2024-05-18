@@ -16,9 +16,14 @@
 
 package org.gradle.internal.declarativedsl.conventions
 
+import org.gradle.declarative.dsl.model.annotations.AccessFromCurrentReceiverOnly
+import org.gradle.declarative.dsl.model.annotations.Configuring
+
 
 interface ConventionsTopLevelReceiver {
-    fun conventions(conventions: ConventionsConfiguringBlock)
+    @Configuring
+    @AccessFromCurrentReceiverOnly
+    fun conventions(conventions: ConventionsConfiguringBlock.() -> Unit)
 }
 
 
