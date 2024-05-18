@@ -7,7 +7,6 @@ import org.gradle.declarative.dsl.schema.SchemaFunction
 import org.gradle.internal.declarativedsl.analysis.AssignmentMethod
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
 import org.gradle.internal.declarativedsl.analysis.ParameterValueBinding
-import org.gradle.internal.declarativedsl.mappingToJvm.DeclarativeReflectionToObjectConverter.ConversionFilter
 import org.gradle.internal.declarativedsl.objectGraph.ObjectReflection
 import org.gradle.internal.declarativedsl.objectGraph.PropertyValueReflection
 
@@ -19,15 +18,8 @@ class DeclarativeReflectionToObjectConverter(
     private val propertyResolver: RuntimePropertyResolver,
     private val customAccessors: RuntimeCustomAccessors
 ) : ReflectionToObjectConverter {
-    fun interface ConversionFilter {
-        fun filterProperties(dataObjectReflection: ObjectReflection.DataObjectReflection): Iterable<DataProperty>
 
-        companion object {
-            val none = ConversionFilter { dataObjectReflection -> dataObjectReflection.properties.keys }
-        }
-    }
-
-    override fun apply(objectReflection: ObjectReflection, conversionFilter: ConversionFilter) {
+    override fun apply(objectReflection: ObjectReflection, conversionFilter: ReflectionToObjectConverter.ConversionFilter) {
         if (objectReflection is ObjectReflection.DataObjectReflection) {
             conversionFilter.filterProperties(objectReflection).forEach { property ->
                 val assigned = objectReflection.properties.getValue(property)

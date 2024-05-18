@@ -24,7 +24,6 @@ import org.gradle.internal.declarativedsl.analysis.and
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequenceStep
 import org.gradle.internal.declarativedsl.language.FunctionCall
-import org.gradle.internal.declarativedsl.mappingToJvm.DeclarativeReflectionToObjectConverter
 import org.gradle.internal.declarativedsl.mappingToJvm.ReflectionToObjectConverter
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeCustomAccessors
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeFunctionResolver
@@ -72,7 +71,7 @@ class ConventionsInterpretationSequenceStep(
         customAccessors: RuntimeCustomAccessors
     ): ReflectionToObjectConverter {
         return object : ReflectionToObjectConverter {
-            override fun apply(objectReflection: ObjectReflection, conversionFilter: DeclarativeReflectionToObjectConverter.ConversionFilter) {
+            override fun apply(objectReflection: ObjectReflection, conversionFilter: ReflectionToObjectConverter.ConversionFilter) {
                 // Do nothing
             }
         }
