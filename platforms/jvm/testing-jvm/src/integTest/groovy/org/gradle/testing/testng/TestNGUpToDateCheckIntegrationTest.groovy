@@ -106,6 +106,7 @@ class TestNGUpToDateCheckIntegrationTest extends AbstractIntegrationSpec {
         'testName'               | '= "Turing completeness"'
         'parallel'               | '= "methods"'
         'threadCount'            | '= 2'
+        'suiteThreadPoolSize'    | '= 2'
         'listeners'              | '= ["org.testng.reporters.FailedReporter"]'
         'useDefaultListeners'    | '= true'
         'threadPoolFactoryClass' | '= "some.Class"'
