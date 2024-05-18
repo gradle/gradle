@@ -17,7 +17,9 @@
 package org.gradle.internal.declarativedsl.conventions
 
 
-class ConventionsTopLevelReceiver
+interface ConventionsTopLevelReceiver {
+    fun conventions(conventions: ConventionsConfiguringBlock)
+}
 
 
 class ConventionsConfiguringBlock

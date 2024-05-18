@@ -88,7 +88,7 @@ class StoringInterpretationSchemaBuilder(
         override fun evaluationSchemaForStep(): EvaluationSchema = step.evaluationSchemaForStep().also { schemaHandler(stepIdentifier, it.analysisSchema) }
         override fun getTopLevelReceiverFromTarget(target: Any): R = step.getTopLevelReceiverFromTarget(target)
         override fun whenEvaluated(resultReceiver: R) = step.whenEvaluated(resultReceiver)
-        override fun whenResolved(resolutionResult: ResolutionResult) = step.whenResolved(resolutionResult)
+        override fun processResolutionResult(resolutionResult: ResolutionResult): ResolutionResult = step.processResolutionResult(resolutionResult)
         override fun getReflectionToObjectConverter(
             externalObjectsMap: Map<ExternalObjectProviderKey, Any>,
             topLevelObject: Any,

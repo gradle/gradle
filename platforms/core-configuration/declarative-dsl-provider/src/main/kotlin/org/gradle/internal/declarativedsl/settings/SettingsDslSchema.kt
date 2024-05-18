@@ -34,7 +34,6 @@ import org.gradle.internal.declarativedsl.conventions.ConventionsInterpretationS
 import org.gradle.internal.declarativedsl.conventions.ConventionsTopLevelReceiver
 import org.gradle.internal.declarativedsl.conventions.isConventionsConfiguringCall
 import org.gradle.internal.declarativedsl.conventions.isSoftwareTypeConfiguringCall
-import org.gradle.internal.declarativedsl.conventions.isTopLevelConventionsBlock
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequence
 import org.gradle.internal.declarativedsl.evaluationSchema.SimpleInterpretationSequenceStep
@@ -112,5 +111,5 @@ private
 val ignoreTopLevelPluginsPluginManagementAndConventions = isTopLevelElement.implies(
     isPluginManagementCall.not()
         .and(isTopLevelPluginsBlock.not())
-        .and(isTopLevelConventionsBlock.not())
+        .and(isConventionsConfiguringCall.not())
 )

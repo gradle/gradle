@@ -22,7 +22,6 @@ import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 
 
 class ConventionsResolutionProcessor {
-
     fun process(resolutionResult: ResolutionResult): Map<String, List<AssignmentRecord>> {
         return resolutionResult.assignments.groupBy { assignment ->
             getSoftwareType(assignment.lhs.receiverObject).function.simpleName
@@ -57,9 +56,15 @@ fun isSoftwareType(objectOrigin: ObjectOrigin.AccessAndConfigureReceiver): Boole
     if (objectOrigin.receiver is ObjectOrigin.ImplicitThisReceiver &&
         (objectOrigin.receiver as ObjectOrigin.ImplicitThisReceiver).resolvedTo is ObjectOrigin.AccessAndConfigureReceiver) {
         val parent = (objectOrigin.receiver as ObjectOrigin.ImplicitThisReceiver).resolvedTo as ObjectOrigin.AccessAndConfigureReceiver
-        if (parent.function.simpleName == "conventions") {
+        if (parent.function.simpleName == "conventions" && isTopLevelReceiver(parent.receiver)) {
             return true
         }
     }
     return false
+}
+
+
+fun isTopLevelReceiver(objectOrigin: ObjectOrigin): Boolean {
+    return objectOrigin is ObjectOrigin.ImplicitThisReceiver &&
+        objectOrigin.resolvedTo is ObjectOrigin.TopLevelReceiver
 }

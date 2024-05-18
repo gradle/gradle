@@ -38,21 +38,11 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 
 
-internal
-class SoftwareTypeComponent(
+sealed
+class AbstractSoftwareTypeComponent(
     private val schemaTypeToExtend: KClass<*>,
-    private val accessorIdPrefix: String,
-    softwareTypeRegistry: SoftwareTypeRegistry
+    private val softwareTypeImplementations: List<SoftwareTypeInfo<*>>
 ) : EvaluationSchemaComponent {
-    private
-    val softwareTypeImplementations = softwareTypeRegistry.getSoftwareTypeImplementations().map {
-        SoftwareTypeInfo(it, schemaTypeToExtend, accessorIdPrefix) { receiverObject ->
-            require(receiverObject is ProjectInternal) { "unexpected receiver, expected a ProjectInternal instance, got $receiverObject" }
-            receiverObject.pluginManager.apply(it.pluginClass)
-            receiverObject.extensions.getByName(it.softwareType)
-        }
-    }
-
     override fun typeDiscovery(): List<TypeDiscovery> = listOf(
         FixedTypeDiscovery(schemaTypeToExtend, softwareTypeImplementations.map { it.modelPublicType.kotlin })
     )
@@ -67,6 +57,23 @@ class SoftwareTypeComponent(
 }
 
 
+internal
+class SoftwareTypeComponent(
+    private val schemaTypeToExtend: KClass<*>,
+    private val accessorIdPrefix: String,
+    softwareTypeRegistry: SoftwareTypeRegistry
+) : AbstractSoftwareTypeComponent(
+    schemaTypeToExtend,
+    softwareTypeRegistry.getSoftwareTypeImplementations().map {
+        SoftwareTypeInfo(it, schemaTypeToExtend, accessorIdPrefix) { receiverObject ->
+            require(receiverObject is ProjectInternal) { "unexpected receiver, expected a ProjectInternal instance, got $receiverObject" }
+            receiverObject.pluginManager.apply(it.pluginClass)
+            receiverObject.extensions.getByName(it.softwareType)
+        }
+    }
+)
+
+
 private
 val conventionsFunction = conventionsFunction()
 
@@ -76,24 +83,19 @@ class SoftwareTypeConventionComponent(
     private val schemaTypeToExtend: KClass<*>,
     private val accessorIdPrefix: String,
     softwareTypeRegistry: SoftwareTypeRegistry
-) : EvaluationSchemaComponent {
-    private
-    val softwareTypeImplementations = softwareTypeRegistry.getSoftwareTypeImplementations().map {
-        SoftwareTypeInfo(it, schemaTypeToExtend, accessorIdPrefix) { receiverObject ->
-            require(receiverObject is ConventionsConfiguringBlock) { "unexpected receiver, expected a ConventionsConfiguringBlock instance, got $receiverObject" }
-            null
-        }
+) : AbstractSoftwareTypeComponent(
+    schemaTypeToExtend,
+    softwareTypeRegistry.getSoftwareTypeImplementations().map {
+        SoftwareTypeInfo(it, schemaTypeToExtend, accessorIdPrefix) { _ -> }
     }
-
+) {
     override fun typeDiscovery(): List<TypeDiscovery> = listOf(
-        FixedTypeDiscovery(ConventionsTopLevelReceiver::class, listOf(ConventionsConfiguringBlock::class)),
-        FixedTypeDiscovery(schemaTypeToExtend, softwareTypeImplementations.map { it.modelPublicType.kotlin })
-    )
+        FixedTypeDiscovery(ConventionsTopLevelReceiver::class, listOf(ConventionsConfiguringBlock::class))
+    ) + super.typeDiscovery()
 
     override fun functionExtractors(): List<FunctionExtractor> = listOf(
-        conventionsFunction,
-        softwareTypeConfiguringFunctions(schemaTypeToExtend, softwareTypeImplementations),
-    )
+        conventionsFunction
+    ) + super.functionExtractors()
 
     override fun runtimeCustomAccessors(): List<RuntimeCustomAccessors> = emptyList()
 }

@@ -127,12 +127,12 @@ class DefaultDeclarativeKotlinScriptEvaluator(
         if (languageModel.allFailures.isNotEmpty()) {
             failureReasons += FailuresInLanguageTree(languageModel.allFailures)
         }
-        val resolution = resolver.resolve(evaluationSchema.analysisSchema, languageModel.imports, languageModel.topLevelBlock)
+        var resolution = resolver.resolve(evaluationSchema.analysisSchema, languageModel.imports, languageModel.topLevelBlock)
         if (resolution.errors.isNotEmpty()) {
             failureReasons += FailuresInResolution(resolution.errors)
         }
 
-        step.whenResolved(resolution)
+        resolution = step.processResolutionResult(resolution)
 
         val document = resolvedDocument(evaluationSchema.analysisSchema, resolver.trace, languageModel.toDocument())
         val checkResults = evaluationSchema.documentChecks.flatMap { it.detectFailures(document) }

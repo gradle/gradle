@@ -39,7 +39,7 @@ interface InterpretationSequenceStep<R : Any> {
     fun evaluationSchemaForStep(): EvaluationSchema
     fun getTopLevelReceiverFromTarget(target: Any): R
     fun whenEvaluated(resultReceiver: R)
-    fun whenResolved(resolutionResult: ResolutionResult) = Unit
+    fun processResolutionResult(resolutionResult: ResolutionResult): ResolutionResult = resolutionResult
     fun getReflectionToObjectConverter(
         externalObjectsMap: Map<ExternalObjectProviderKey, Any>,
         topLevelObject: Any,

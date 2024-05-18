@@ -16,8 +16,10 @@
 
 package org.gradle.internal.declarativedsl.project
 
+import org.gradle.declarative.dsl.schema.ConfigureAccessor
 import org.gradle.internal.declarativedsl.analysis.AssignmentGenerationId
 import org.gradle.internal.declarativedsl.analysis.AssignmentRecord
+import org.gradle.internal.declarativedsl.analysis.ConfigureAccessorInternal
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 import org.gradle.internal.declarativedsl.conventions.AssignmentRecordConvention
@@ -26,7 +28,6 @@ import org.gradle.internal.declarativedsl.conventions.getSoftwareType
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequenceStep
 import org.gradle.internal.declarativedsl.language.Block
-import org.gradle.internal.declarativedsl.language.FunctionCall
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 
 
@@ -42,16 +43,18 @@ class ProjectInterpretationSequenceStep(
 
     override fun whenEvaluated(resultReceiver: Any) = Unit
 
-    override fun whenResolved(resolutionResult: ResolutionResult) {
-        if (resolutionResult.topLevelReceiver.originElement is Block) {
+    override fun processResolutionResult(resolutionResult: ResolutionResult): ResolutionResult {
+        var newResolutionResult = resolutionResult
+
+        if (newResolutionResult.topLevelReceiver.originElement is Block) {
             val remapped = mutableSetOf<String>()
             val softwareTypes = softwareTypeRegistry.softwareTypeImplementations.associateBy { it.softwareType }
-            val referencedSoftwareTypes = (resolutionResult.topLevelReceiver.originElement as Block).content
-                .filterIsInstance<FunctionCall>()
-                .filter { softwareTypes.containsKey(it.name) }
-                .mapNotNull { softwareTypes[it.name] }
+            val referencedSoftwareTypes = resolutionResult.nestedObjectAccess
+                .filter { isSoftwareTypeAccessor(it.dataObject.accessor) }
+                .mapNotNull { softwareTypes[it.dataObject.function.simpleName] }
+
             referencedSoftwareTypes.forEach { softwareTypeImplementation ->
-                val topLevelReceiver = ObjectOrigin.ImplicitThisReceiver(resolutionResult.topLevelReceiver, true)
+                val topLevelReceiver = ObjectOrigin.ImplicitThisReceiver(newResolutionResult.topLevelReceiver, true)
                 softwareTypeImplementation.conventions.filterIsInstance<AssignmentRecordConvention>().forEach { rule ->
                     rule.apply(object : AssignmentRecordConventionReceiver {
                         override fun receive(assignmentRecord: AssignmentRecord) {
@@ -59,17 +62,24 @@ class ProjectInterpretationSequenceStep(
                                 remapSoftwareTypeToTopLevelReceiver(assignmentRecord, topLevelReceiver)
                                 remapped.add(softwareTypeImplementation.softwareType)
                             }
-                            resolutionResult.conventionAssignments += assignmentRecord
+                            newResolutionResult = newResolutionResult.copy(conventionAssignments = newResolutionResult.conventionAssignments + assignmentRecord)
                         }
                     })
                 }
             }
         }
+
+        return newResolutionResult
     }
 
     private
     fun remapSoftwareTypeToTopLevelReceiver(assignmentRecord: AssignmentRecord, topLevelReceiver: ObjectOrigin.ImplicitThisReceiver) {
         val softwareTypeReceiver = getSoftwareType(assignmentRecord.lhs.receiverObject)
         softwareTypeReceiver.receiver = topLevelReceiver
+    }
+
+    private
+    fun isSoftwareTypeAccessor(accessor: ConfigureAccessor): Boolean {
+        return accessor is ConfigureAccessorInternal.DefaultCustom && accessor.customAccessorIdentifier.startsWith("softwareType:")
     }
 }

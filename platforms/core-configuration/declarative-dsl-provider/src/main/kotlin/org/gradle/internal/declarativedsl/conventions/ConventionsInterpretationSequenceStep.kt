@@ -21,7 +21,6 @@ import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter
 import org.gradle.internal.declarativedsl.analysis.AssignmentGenerationId
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 import org.gradle.internal.declarativedsl.analysis.and
-import org.gradle.internal.declarativedsl.analysis.implies
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequenceStep
 import org.gradle.internal.declarativedsl.language.FunctionCall
@@ -49,15 +48,18 @@ class ConventionsInterpretationSequenceStep(
 
     override fun evaluationSchemaForStep(): EvaluationSchema = buildEvaluationSchema()
 
-    override fun getTopLevelReceiverFromTarget(target: Any): ConventionsTopLevelReceiver = ConventionsTopLevelReceiver()
+    override fun getTopLevelReceiverFromTarget(target: Any): ConventionsTopLevelReceiver = object : ConventionsTopLevelReceiver {
+        override fun conventions(conventions: ConventionsConfiguringBlock) = Unit
+    }
 
-    override fun whenResolved(resolutionResult: ResolutionResult) {
+    override fun processResolutionResult(resolutionResult: ResolutionResult): ResolutionResult {
         val conventions = conventionsResolutionProcessor.process(resolutionResult)
         softwareTypeRegistry.softwareTypeImplementations.forEach { softwareTypeImplementation ->
             conventions[softwareTypeImplementation.softwareType]?.forEach {
                 softwareTypeImplementation.addConvention(AssignmentRecordConvention(it))
             }
         }
+        return resolutionResult
     }
 
     override fun whenEvaluated(resultReceiver: ConventionsTopLevelReceiver) = Unit
@@ -84,7 +86,3 @@ val isConventionsConfiguringCall: AnalysisStatementFilter = AnalysisStatementFil
 val isSoftwareTypeConfiguringCall: AnalysisStatementFilter = AnalysisStatementFilter { _, scopes ->
     scopes.any { it.receiver.originElement is FunctionCall && (it.receiver.originElement as FunctionCall).name == CONVENTIONS }
 }
-
-
-internal
-val isTopLevelConventionsBlock: AnalysisStatementFilter = AnalysisStatementFilter.isTopLevelElement.implies(isConventionsConfiguringCall)
