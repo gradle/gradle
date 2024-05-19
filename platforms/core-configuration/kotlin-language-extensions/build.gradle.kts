@@ -21,6 +21,6 @@ plugins {
 description = "Useful extension methods for Kotlin"
 
 dependencies {
+    api(libs.futureKotlin("stdlib"))
     implementation(projects.javaLanguageExtensions)
-    implementation(libs.futureKotlin("stdlib"))
 }
