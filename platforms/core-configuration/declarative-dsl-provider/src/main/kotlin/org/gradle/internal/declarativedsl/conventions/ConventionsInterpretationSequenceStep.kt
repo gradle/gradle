@@ -54,7 +54,10 @@ class ConventionsInterpretationSequenceStep(
     override fun processResolutionResult(resolutionResult: ResolutionResult): ResolutionResult {
         val conventions = conventionsResolutionProcessor.process(resolutionResult)
         softwareTypeRegistry.softwareTypeImplementations.forEach { softwareTypeImplementation ->
-            conventions[softwareTypeImplementation.softwareType]?.forEach {
+            conventions.additions[softwareTypeImplementation.softwareType]?.forEach {
+                softwareTypeImplementation.addConvention(AdditionRecordConvention(it))
+            }
+            conventions.assignments[softwareTypeImplementation.softwareType]?.forEach {
                 softwareTypeImplementation.addConvention(AssignmentRecordConvention(it))
             }
         }

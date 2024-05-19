@@ -148,7 +148,7 @@ trait SoftwareTypeFixture {
             settingsPluginThatRegistersSoftwareType
         )
 
-        pluginBuilder.file("src/main/java/org/gradle/test/TestSoftwareTypeExtensionWithDependencies.java") << softwareTypeExtensionWithDependencies
+        pluginBuilder.file("src/main/java/org/gradle/test/TestSoftwareTypeExtensionWithDependencies.java") << softwareTypeExtensionWithAddersAndDependencies
         pluginBuilder.file("src/main/java/org/gradle/test/LibraryDependencies.java") << libraryDependencies
 
         return pluginBuilder
@@ -393,6 +393,7 @@ trait SoftwareTypeFixture {
             import org.gradle.api.model.ObjectFactory;
             import org.gradle.api.provider.ListProperty;
             import org.gradle.api.provider.Property;
+            import org.gradle.api.tasks.Nested;
 
             import javax.inject.Inject;
 
@@ -404,7 +405,7 @@ trait SoftwareTypeFixture {
                 @Restricted
                 public abstract Property<String> getFoo();
 
-
+                @Nested
                 public abstract Bar getBar();
 
                 @Configuring
@@ -681,18 +682,21 @@ trait SoftwareTypeFixture {
         """
     }
 
-    static String getSoftwareTypeExtensionWithDependencies() {
+    static String getSoftwareTypeExtensionWithAddersAndDependencies() {
         return """
             package org.gradle.test;
 
             import org.gradle.api.Action;
             import org.gradle.api.model.ObjectFactory;
             import org.gradle.api.provider.Property;
+            import org.gradle.api.provider.ListProperty;
             import org.gradle.api.artifacts.dsl.DependencyCollector;
             import org.gradle.declarative.dsl.model.annotations.Configuring;
             import org.gradle.declarative.dsl.model.annotations.Restricted;
+            import org.gradle.declarative.dsl.model.annotations.Adding;
             import org.gradle.api.tasks.Nested;
 
+            import java.util.List;
             import javax.inject.Inject;
 
             @Restricted
@@ -710,9 +714,37 @@ trait SoftwareTypeFixture {
                     action.execute(getDependencies());
                 }
 
+
+                public abstract ListProperty<String> getList();
+
+                @Adding
+                public void addToList(String value) {
+                    getList().add(value);
+                }
+
+                @Nested
+                public abstract Bar getBar();
+
+                @Configuring
+                public void bar(Action<? super Bar> action) {
+                    action.execute(getBar());
+                }
+
+                public abstract static class Bar {
+
+                    public abstract ListProperty<String> getBaz();
+
+                    @Adding
+                    public void addToBaz(String value) {
+                        getBaz().add(value);
+                    }
+                }
+
                 @Override
                 public String toString() {
                     return super.toString() +
+                        "\\nlist = " + printList(getList().get()) +
+                        "\\nbaz = " + printList(getBar().getBaz().get()) +
                         "\\napi = " + printDependencies(getDependencies().getApi()) +
                         "\\nimplementation = " + printDependencies(getDependencies().getImplementation()) +
                         "\\nruntimeOnly = " + printDependencies(getDependencies().getRuntimeOnly()) +
@@ -721,6 +753,10 @@ trait SoftwareTypeFixture {
 
                 private String printDependencies(DependencyCollector collector) {
                     return collector.getDependencies().get().stream().map(Object::toString).collect(java.util.stream.Collectors.joining(", "));
+                }
+
+                private String printList(List<?> list) {
+                    return list.stream().map(Object::toString).collect(java.util.stream.Collectors.joining(", "));
                 }
             }
         """

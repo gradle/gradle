@@ -152,7 +152,7 @@ class FunctionCallResolverImpl(
         functionCall: FunctionCall,
         receiver: ObjectOrigin?
     ): ObjectOrigin.FunctionOrigin {
-        val newFunctionCallId = nextInstant()
+        val newFunctionCallId = nextCallId()
         val valueBinding = function.binding.toValueBinding(argResolutions, functionCall.args.lastOrNull() is FunctionArgument.Lambda)
         val semantics = function.schemaFunction.semantics
 
@@ -174,7 +174,7 @@ class FunctionCallResolverImpl(
         semantics: FunctionSemantics,
         function: FunctionResolutionAndBinding,
         result: ObjectOrigin.FunctionOrigin,
-        newFunctionCallId: Long,
+        newFunctionCallId: CallId,
         valueBinding: ParameterValueBinding
     ) {
         if (semantics !is FunctionSemantics.ConfigureSemantics)
@@ -258,7 +258,7 @@ class FunctionCallResolverImpl(
         function: FunctionResolutionAndBinding,
         functionCall: FunctionCall,
         valueBinding: ParameterValueBinding,
-        newFunctionCallId: Long
+        newFunctionCallId: CallId
     ) = when (semantics) {
         is FunctionSemantics.Builder -> ObjectOrigin.BuilderReturnedReceiver(
             function.schemaFunction,
@@ -285,7 +285,7 @@ class FunctionCallResolverImpl(
         function: FunctionResolutionAndBinding,
         functionCall: FunctionCall,
         binding: ParameterValueBinding,
-        newFunctionCallId: Long
+        newFunctionCallId: CallId
     ): ObjectOrigin.AccessAndConfigureReceiver {
         require(function.receiver != null)
         require(functionCall.args.all { it is FunctionArgument.Lambda })
@@ -356,7 +356,7 @@ class FunctionCallResolverImpl(
         function: FunctionResolutionAndBinding,
         valueBinding: ParameterValueBinding,
         functionCall: FunctionCall,
-        newFunctionCallId: Long
+        newFunctionCallId: CallId
     ) = when (function.receiver) {
         is ObjectOrigin -> ObjectOrigin.NewObjectFromMemberFunction(
             function.schemaFunction as SchemaMemberFunction, function.receiver, valueBinding, functionCall, newFunctionCallId

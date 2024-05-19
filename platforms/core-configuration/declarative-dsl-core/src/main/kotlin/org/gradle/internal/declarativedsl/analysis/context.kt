@@ -70,6 +70,9 @@ class SchemaTypeRefContext(val schema: AnalysisSchema) : TypeRefContext {
 }
 
 
+data class CallId(val invocationId: Long, val generationId: AssignmentGenerationId)
+
+
 class AnalysisContext(
     override val schema: AnalysisSchema,
     override val imports: Map<String, FqName>,
@@ -111,7 +114,7 @@ class AnalysisContext(
     }
 
     fun recordAssignment(resolvedTarget: PropertyReferenceResolution, resolvedRhs: ObjectOrigin, assignmentMethod: AssignmentMethod, originElement: LanguageTreeElement): AssignmentRecord {
-        val result = AssignmentRecord(resolvedTarget, resolvedRhs, nextInstant(), assignmentMethod, generationId, originElement)
+        val result = AssignmentRecord(resolvedTarget, resolvedRhs, nextCallId(), assignmentMethod, originElement)
         mutableAssignments.add(result)
         return result
     }
@@ -124,7 +127,7 @@ class AnalysisContext(
         mutableNestedObjectAccess += NestedObjectAccessRecord(container, dataObject)
     }
 
-    fun nextInstant(): Long = nextInstant.incrementAndGet()
+    fun nextCallId(): CallId = CallId(nextInstant.incrementAndGet(), generationId)
 
     fun leaveScope(scope: AnalysisScope) {
         check(mutableScopes.last() === scope)

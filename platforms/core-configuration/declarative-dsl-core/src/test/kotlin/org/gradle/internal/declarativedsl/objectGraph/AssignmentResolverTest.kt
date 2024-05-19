@@ -39,7 +39,7 @@ object AssignmentResolverTest {
             """.trimIndent()
         )
 
-        val additionResults = resolution.assignments.map { impl.addAssignment(it.lhs, it.rhs, it.assignmentMethod, it.generationId) }
+        val additionResults = resolution.assignments.map { impl.addAssignment(it.lhs, it.rhs, it.assignmentMethod, it.callId.generationId) }
         assertIs<AssignmentResolver.AssignmentAdditionResult.Reassignment>(additionResults[2])
 
         val resultMap = impl.getAssignmentResults()

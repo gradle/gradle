@@ -115,10 +115,10 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
 
         file("build.gradle.dcl") << declarativeScriptThatConfiguresOnlyTestSoftwareType + """
             anotherSoftwareType {
-                id = "test2"
+                foo = "test2"
 
-                foo {
-                    bar = "fizz"
+                bar {
+                    baz = "fizz"
                 }
             }
         """
@@ -128,7 +128,7 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
 
         then:
         assertThatDeclaredValuesAreSetProperly()
-        outputContains("""id = test2\nbar = fizz""")
+        outputContains("""foo = test2\nbaz = fizz""")
 
         and:
         outputContains("Applying SoftwareTypeImplPlugin")

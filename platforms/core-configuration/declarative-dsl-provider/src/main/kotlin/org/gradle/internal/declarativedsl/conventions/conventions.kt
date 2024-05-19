@@ -17,6 +17,7 @@
 package org.gradle.internal.declarativedsl.conventions
 
 import org.gradle.internal.declarativedsl.analysis.AssignmentRecord
+import org.gradle.internal.declarativedsl.analysis.DataAdditionRecord
 import prg.gradle.declarative.dsl.model.conventions.Convention
 import prg.gradle.declarative.dsl.model.conventions.ConventionReceiver
 
@@ -28,6 +29,18 @@ class AssignmentRecordConvention(private val assignmentRecord: AssignmentRecord)
 }
 
 
+class AdditionRecordConvention(private val dataAdditionRecord: DataAdditionRecord) : Convention<AdditionRecordConventionReceiver> {
+    override fun apply(receiver: AdditionRecordConventionReceiver) {
+        receiver.receive(dataAdditionRecord)
+    }
+}
+
+
 interface AssignmentRecordConventionReceiver : ConventionReceiver {
     fun receive(assignmentRecord: AssignmentRecord)
+}
+
+
+interface AdditionRecordConventionReceiver : ConventionReceiver {
+    fun receive(additionRecord: DataAdditionRecord)
 }

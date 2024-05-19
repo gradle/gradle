@@ -35,14 +35,14 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
         outputContains(expectedConfiguration)
 
         where:
-        testCase                                    | convention                           | buildConfiguration    | expectedConfiguration
-        "id has convention and is set"              | setId("convention")                  | setId("test")         | """id = test\nbar = bar"""
-        "id has convention, bar is set"             | setId("convention")                  | setFooBar("baz")      | """id = convention\nbar = baz"""
-        "bar has convention and is set"             | setFooBar("convention")              | setFooBar("baz")      | """id = <no id>\nbar = baz"""
-        "bar has convention, id is set"             | setFooBar("convention")              | setId("test")         | """id = test\nbar = convention"""
-        "no conventions, id is set"                 | ""                                   | setId("test")         | """id = test\nbar = bar"""
-        "everything has convention and nothing set" | setAll("convention", "convention")   | ""                    | """id = convention\nbar = convention"""
-        "everything has convention and is set"      | setAll("convention", "convention")   | setAll("test", "baz") | """id = test\nbar = baz"""
+        testCase                                           | convention                         | buildConfiguration    | expectedConfiguration
+        "top-level property has convention and is set"     | setId("convention")                | setId("test")         | """id = test\nbar = bar"""
+        "top-level property has convention, nested is set" | setId("convention")                | setFooBar("baz")      | """id = convention\nbar = baz"""
+        "nested property has convention and is set"        | setFooBar("convention")            | setFooBar("baz")      | """id = <no id>\nbar = baz"""
+        "nested property has convention, top-level is set" | setFooBar("convention")            | setId("test")         | """id = test\nbar = convention"""
+        "no conventions, top-level property is set"        | ""                                 | setId("test")         | """id = test\nbar = bar"""
+        "everything has convention and nothing set"        | setAll("convention", "convention") | ""                    | """id = convention\nbar = convention"""
+        "everything has convention and is set"             | setAll("convention", "convention") | setAll("test", "baz") | """id = test\nbar = baz"""
     }
 
     def "sensible error when conventions are set more than once (#testCase)"() {
@@ -67,7 +67,36 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
         //"bar has convention set in multiple blocks" | setFooBar("convention") + setFooBar("again")
     }
 
-    @NotYetImplemented
+    def "can configure build-level conventions for adding functions in a software type (#testCase)"() {
+        given:
+        withSoftwareTypePluginThatExposesExtensionWithDependencies().prepareToExecute()
+
+        file("foo").createDir()
+        file("settings.gradle.dcl") << getDeclarativeSettingsScriptThatSetsConventions(convention) + """
+            include("foo")
+        """
+
+        file("build.gradle.dcl") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType("""
+            ${setId("foo")}
+            ${dependencies(buildConfiguration)}
+        """)
+
+        when:
+        run(":printTestSoftwareTypeExtensionWithDependenciesConfiguration")
+
+        then:
+        expectedConfigurations.each { outputContains(it) }
+
+        where:
+        testCase                                             | convention       | buildConfiguration | expectedConfigurations
+        "top-level adder has a convention and is called"     | addToList("foo") | addToList("bar")   | "list = foo, bar"
+        "top-level adder has a convention and is not called" | addToList("foo") | ""                 | "list = foo"
+        "nested adder has a convention and is called"        | addToBaz("foo")  | addToBaz("bar")    | "baz = foo, bar"
+        "nested adder has a convention and is not called"    | addToBaz("foo")  | ""                 | "baz = foo"
+        "everything has conventions and nothing is called"   | addToAll("foo")  | ""                 | ["list = foo", "baz = foo"]
+        "everything has conventions and all are called"      | addToAll("foo")  | addToAll("bar")    | ["list = foo, bar", "baz = foo, bar"]
+    }
+
     def "can configure build-level conventions for dependencies objects in a software type (#testCase)"() {
         given:
         withSoftwareTypePluginThatExposesExtensionWithDependencies().prepareToExecute()
@@ -95,7 +124,7 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
                 convention: implementation("foo:bar:1.0"),
                 buildConfiguration: implementation("baz:buzz:2.0"),
                 expectedConfigurations: [
-                    "implementation = ${externalDependency('baz', 'buzz', '2.0')}"
+                    "implementation = ${externalDependency('foo', 'bar', '1.0')}, ${externalDependency('baz', 'buzz', '2.0')}"
                 ]
             ],
             [
@@ -120,10 +149,10 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
                 convention: allConfigs("foo:bar:1.0"),
                 buildConfiguration: allConfigs("baz:buzz:2.0"),
                 expectedConfigurations: [
-                    "api = ${externalDependency('baz', 'buzz', '2.0')}",
-                    "implementation = ${externalDependency('baz', 'buzz', '2.0')}",
-                    "runtimeOnly = ${externalDependency('baz', 'buzz', '2.0')}",
-                    "compileOnly = ${externalDependency('baz', 'buzz', '2.0')}"
+                    "api = ${externalDependency('foo', 'bar', '1.0')}, ${externalDependency('baz', 'buzz', '2.0')}",
+                    "implementation = ${externalDependency('foo', 'bar', '1.0')}, ${externalDependency('baz', 'buzz', '2.0')}",
+                    "runtimeOnly = ${externalDependency('foo', 'bar', '1.0')}, ${externalDependency('baz', 'buzz', '2.0')}",
+                    "compileOnly = ${externalDependency('foo', 'bar', '1.0')}, ${externalDependency('baz', 'buzz', '2.0')}"
                 ]
             ],
             [
@@ -142,7 +171,7 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
                 convention: implementation("foo:bar:1.0", "baz:buzz:2.0"),
                 buildConfiguration: implementation("buzz:baz:1.0", "bar:foo:2.0"),
                 expectedConfigurations: [
-                    "implementation = ${externalDependency('buzz', 'baz', '1.0')}, ${externalDependency('bar', 'foo', '2.0')}"
+                    "implementation = ${externalDependency('foo', 'bar', '1.0')}, ${externalDependency('baz', 'buzz', '2.0')}, ${externalDependency('buzz', 'baz', '1.0')}, ${externalDependency('bar', 'foo', '2.0')}"
                 ]
             ],
             [
@@ -158,7 +187,7 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
                 convention: implementation('project(":foo")'),
                 buildConfiguration: implementation("baz:buzz:2.0"),
                 expectedConfigurations: [
-                    "implementation = ${externalDependency('baz', 'buzz', '2.0')}"
+                    "implementation = ${projectDependency(':foo')}, ${externalDependency('baz', 'buzz', '2.0')}"
                 ]
             ],
             [
@@ -166,7 +195,7 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
                 convention: implementation("foo:bar:1.0"),
                 buildConfiguration: implementation('project(":foo")'),
                 expectedConfigurations: [
-                    "implementation = ${projectDependency(':foo')}"
+                    "implementation = ${externalDependency('foo', 'bar', '1.0')}, ${projectDependency(':foo')}"
                 ]
             ]
         ]
@@ -240,6 +269,18 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
 
     static String setAll(String id, String bar) {
         return setId(id) + "\n" + setFooBar(bar)
+    }
+
+    static String addToList(String item) {
+        return "addToList(\"${item}\")"
+    }
+
+    static String addToBaz(String item) {
+        return "bar { addToBaz(\"${item}\") }"
+    }
+
+    static String addToAll(String item) {
+        return addToList(item) + "\n" + addToBaz(item)
     }
 
     static String dependencyFor(String configuration, String[] dependencies) {

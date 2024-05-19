@@ -32,9 +32,8 @@ data class PropertyReferenceResolution(
 data class AssignmentRecord(
     val lhs: PropertyReferenceResolution,
     val rhs: ObjectOrigin,
-    val assignmentOrder: Long,
+    val callId: CallId,
     val assignmentMethod: AssignmentMethod,
-    val generationId: AssignmentGenerationId,
     val originElement: LanguageTreeElement
 )
 
@@ -97,7 +96,7 @@ sealed interface ObjectOrigin {
 
     sealed interface FunctionOrigin : ObjectOrigin {
         val function: SchemaFunction
-        val invocationId: Long
+        val invocationId: CallId
         val receiver: ObjectOrigin?
     }
 
@@ -110,7 +109,7 @@ sealed interface ObjectOrigin {
         override val receiver: ObjectOrigin,
         override val originElement: FunctionCall,
         override val parameterBindings: ParameterValueBinding,
-        override val invocationId: Long
+        override val invocationId: CallId
     ) : FunctionInvocationOrigin, DelegatingObjectOrigin, HasReceiver {
         override fun toString(): String = receiver.toString()
 
@@ -123,7 +122,7 @@ sealed interface ObjectOrigin {
         override val receiver: ObjectOrigin,
         override val parameterBindings: ParameterValueBinding,
         override val originElement: FunctionCall,
-        override val invocationId: Long
+        override val invocationId: CallId
     ) : FunctionInvocationOrigin, HasReceiver {
         override fun toString(): String =
             functionInvocationString(function, receiver, invocationId, parameterBindings)
@@ -133,7 +132,7 @@ sealed interface ObjectOrigin {
         override val function: SchemaFunction,
         override val parameterBindings: ParameterValueBinding,
         override val originElement: FunctionCall,
-        override val invocationId: Long
+        override val invocationId: CallId
     ) : FunctionInvocationOrigin {
         override val receiver: ObjectOrigin?
             get() = null
@@ -146,7 +145,7 @@ sealed interface ObjectOrigin {
         override val function: SchemaFunction,
         override val originElement: FunctionCall,
         override val parameterBindings: ParameterValueBinding,
-        override val invocationId: Long,
+        override val invocationId: CallId,
         val accessor: ConfigureAccessor,
     ) : FunctionInvocationOrigin, ReceiverOrigin, DelegatingObjectOrigin {
         override fun toString(): String = accessor.access(receiver, this).toString()
@@ -158,7 +157,7 @@ sealed interface ObjectOrigin {
     data class AddAndConfigureReceiver(
         override val receiver: FunctionOrigin,
     ) : FunctionOrigin, DelegatingObjectOrigin, ReceiverOrigin {
-        override val invocationId: Long
+        override val invocationId: CallId
             get() = receiver.invocationId
         override val originElement: LanguageTreeElement
             get() = receiver.originElement
@@ -191,7 +190,7 @@ sealed interface ObjectOrigin {
     data class ConfiguringLambdaReceiver(
         override val function: SchemaFunction,
         override val parameterBindings: ParameterValueBinding,
-        override val invocationId: Long,
+        override val invocationId: CallId,
         val lambdaReceiverType: DataTypeRef,
         override val originElement: LanguageTreeElement,
         override val receiver: ObjectOrigin,
@@ -244,7 +243,7 @@ data class ParameterValueBinding(
 
 
 private
-fun functionInvocationString(function: SchemaFunction, receiver: ObjectOrigin?, invocationId: Long, parameterBindings: ParameterValueBinding) =
+fun functionInvocationString(function: SchemaFunction, receiver: ObjectOrigin?, invocationId: CallId, parameterBindings: ParameterValueBinding) =
     receiver?.toString()?.plus(".").orEmpty() + buildString {
         if (function is DataConstructor) {
             val fqn = when (val ref = function.dataClass) {

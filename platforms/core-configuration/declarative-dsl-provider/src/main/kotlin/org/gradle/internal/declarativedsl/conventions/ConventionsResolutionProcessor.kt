@@ -17,29 +17,41 @@
 package org.gradle.internal.declarativedsl.conventions
 
 import org.gradle.internal.declarativedsl.analysis.AssignmentRecord
+import org.gradle.internal.declarativedsl.analysis.DataAdditionRecord
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 
 
 class ConventionsResolutionProcessor {
-    fun process(resolutionResult: ResolutionResult): Map<String, List<AssignmentRecord>> {
-        return resolutionResult.assignments.groupBy { assignment ->
-            getSoftwareType(assignment.lhs.receiverObject).function.simpleName
+    fun process(resolutionResult: ResolutionResult): ProcessedConventions {
+        val assignments = resolutionResult.assignments.groupBy { assignment ->
+            findSoftwareType(assignment.lhs.receiverObject).function.simpleName
         }
+        val additions = resolutionResult.additions.groupBy { addition ->
+            findSoftwareType(addition.container).function.simpleName
+        }
+
+        return ProcessedConventions(assignments, additions)
     }
 }
 
 
-fun getSoftwareType(objectOrigin: ObjectOrigin): ObjectOrigin.AccessAndConfigureReceiver {
+data class ProcessedConventions(
+    val assignments: Map<String, List<AssignmentRecord>>,
+    val additions: Map<String, List<DataAdditionRecord>>
+)
+
+
+fun findSoftwareType(objectOrigin: ObjectOrigin): ObjectOrigin.AccessAndConfigureReceiver {
     when (objectOrigin) {
         is ObjectOrigin.ImplicitThisReceiver -> {
-            return getSoftwareType(objectOrigin.resolvedTo)
+            return findSoftwareType(objectOrigin.resolvedTo)
         }
         is ObjectOrigin.AccessAndConfigureReceiver -> {
             return if (isSoftwareType(objectOrigin)) {
                 objectOrigin
             } else {
-                getSoftwareType(objectOrigin.receiver)
+                findSoftwareType(objectOrigin.receiver)
             }
         }
         is ObjectOrigin.TopLevelReceiver -> {
