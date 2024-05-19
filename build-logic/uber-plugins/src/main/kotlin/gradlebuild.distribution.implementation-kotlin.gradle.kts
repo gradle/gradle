@@ -19,11 +19,3 @@ plugins {
     id("gradlebuild.distribution-module")
     id("gradlebuild.distribution.implementation")
 }
-
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
-    compilerOptions {
-        freeCompilerArgs.addAll(
-            "-opt-in=kotlin.contracts.ExperimentalContracts",
-        )
-    }
-}

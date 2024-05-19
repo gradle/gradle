@@ -21,6 +21,14 @@ plugins {
 
 description = "Efficient and extensible serialization for object graphs"
 
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+    compilerOptions {
+        freeCompilerArgs.addAll(
+            "-opt-in=kotlin.contracts.ExperimentalContracts",
+        )
+    }
+}
+
 dependencies {
     api(projects.configurationProblemsBase)
     api(projects.loggingApi)

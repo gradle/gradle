@@ -29,6 +29,13 @@ tasks.configCacheIntegTest {
     enabled = false
 }
 
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+    compilerOptions {
+        freeCompilerArgs.addAll(
+            "-opt-in=kotlin.contracts.ExperimentalContracts",
+        )
+    }
+}
 
 dependencies {
     api(projects.concurrent)
