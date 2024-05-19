@@ -22,14 +22,13 @@ plugins {
 description = "Efficient and extensible serialization for object graphs"
 
 dependencies {
-    api(projects.baseServices)
     api(projects.configurationProblemsBase)
+    api(projects.loggingApi)
+    api(projects.serialization)
+    api(libs.futureKotlin("stdlib"))
 
-    implementation(projects.javaLanguageExtensions)
     implementation(projects.kotlinLanguageExtensions)
-    implementation(projects.logging)
+    implementation(projects.problemsApi)
 
-    implementation(libs.inject)
     implementation(libs.fastutil)
-    implementation(libs.futureKotlin("stdlib"))
 }
