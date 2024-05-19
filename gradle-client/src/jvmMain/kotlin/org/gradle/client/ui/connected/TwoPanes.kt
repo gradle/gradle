@@ -8,8 +8,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import org.gradle.client.ui.theme.spacing
 
-private const val LEFT_WEIGHT = 0.3f
-private const val RIGHT_WEIGHT = 0.7f
+private const val LEFT_WEIGHT = 0.2f
+private const val RIGHT_WEIGHT = 0.8f
 
 @Composable
 fun TwoPanes(
