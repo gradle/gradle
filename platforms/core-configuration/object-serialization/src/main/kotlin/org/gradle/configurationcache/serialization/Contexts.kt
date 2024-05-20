@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,19 +17,26 @@
 package org.gradle.configurationcache.serialization
 
 import it.unimi.dsi.fastutil.objects.ReferenceArrayList
-import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.logging.Logger
+import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.problems.ProblemsListener
 import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.problems.PropertyTrace
 import org.gradle.configurationcache.problems.StructuredMessageBuilder
-import org.gradle.configurationcache.serialization.beans.BeanStateReaderLookup
-import org.gradle.configurationcache.serialization.beans.BeanStateWriterLookup
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 
 
-internal
+interface BeanStateWriterLookup {
+    fun beanStateWriterFor(beanType: Class<*>): BeanStateWriter
+}
+
+
+interface BeanStateReaderLookup {
+    fun beanStateReaderFor(beanType: Class<*>): BeanStateReader
+}
+
+
 class DefaultWriteContext(
 
     codec: Codec<Any?>,
@@ -93,19 +100,16 @@ class DefaultWriteContext(
 value class ClassLoaderRole(val local: Boolean)
 
 
-internal
 interface ClassEncoder {
     fun WriteContext.encodeClass(type: Class<*>)
 }
 
 
-internal
 interface ClassDecoder {
     fun ReadContext.decodeClass(): Class<*>
 }
 
 
-internal
 class DefaultReadContext(
     codec: Codec<Any?>,
 
@@ -120,14 +124,14 @@ class DefaultReadContext(
     problemsListener: ProblemsListener,
 
     private
-    val classDecoder: ClassDecoder = DefaultClassDecoder()
+    val classDecoder: ClassDecoder
 
 ) : AbstractIsolateContext<ReadIsolate>(codec, problemsListener), ReadContext, Decoder by decoder, AutoCloseable {
 
     override val sharedIdentities = ReadIdentities()
 
     private
-    lateinit var projectProvider: ProjectProvider
+    var singletonProperty: Any? = null
 
     override lateinit var classLoader: ClassLoader
 
@@ -135,7 +139,6 @@ class DefaultReadContext(
         pendingOperations.add(action)
     }
 
-    internal
     fun finish() {
         for (op in pendingOperations) {
             op()
@@ -146,14 +149,8 @@ class DefaultReadContext(
     private
     var pendingOperations = ReferenceArrayList<() -> Unit>()
 
-    internal
     fun initClassLoader(classLoader: ClassLoader) {
         this.classLoader = classLoader
-    }
-
-    internal
-    fun initProjectProvider(projectProvider: ProjectProvider) {
-        this.projectProvider = projectProvider
     }
 
     override var immediateMode: Boolean = false
@@ -176,19 +173,26 @@ class DefaultReadContext(
     override fun beanStateReaderFor(beanType: Class<*>): BeanStateReader =
         beanStateReaderLookup.beanStateReaderFor(beanType)
 
-    fun getProject(path: String): ProjectInternal =
-        projectProvider(path)
+    /**
+     * Sets a client specific property value that can be queried via [getSingletonProperty].
+     */
+    fun <T : Any> setSingletonProperty(singletonProperty: T) {
+        this.singletonProperty = singletonProperty
+    }
+
+    override fun <T : Any> getSingletonProperty(propertyType: Class<T>): T {
+        val propertyValue = singletonProperty
+        require(propertyValue != null && propertyType.isInstance(propertyValue)) {
+            "A singleton property of type $propertyType has not been registered!"
+        }
+        return propertyValue.uncheckedCast()
+    }
 
     override fun newIsolate(owner: IsolateOwner): ReadIsolate =
         DefaultReadIsolate(owner)
 }
 
 
-internal
-typealias ProjectProvider = (String) -> ProjectInternal
-
-
-internal
 abstract class AbstractIsolateContext<T>(
     codec: Codec<Any?>,
     problemsListener: ProblemsListener
@@ -262,14 +266,12 @@ abstract class AbstractIsolateContext<T>(
 }
 
 
-internal
 class DefaultWriteIsolate(override val owner: IsolateOwner) : WriteIsolate {
 
     override val identities: WriteIdentities = WriteIdentities()
 }
 
 
-internal
 class DefaultReadIsolate(override val owner: IsolateOwner) : ReadIsolate {
 
     override val identities: ReadIdentities = ReadIdentities()

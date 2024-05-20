@@ -28,11 +28,11 @@ import org.gradle.api.internal.tasks.TaskDestroyablesInternal
 import org.gradle.api.internal.tasks.TaskInputFilePropertyBuilderInternal
 import org.gradle.api.internal.tasks.TaskLocalStateInternal
 import org.gradle.api.specs.Spec
+import org.gradle.configurationcache.ProjectProvider
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.problems.PropertyKind
 import org.gradle.configurationcache.problems.PropertyTrace
 import org.gradle.configurationcache.serialization.Codec
-import org.gradle.configurationcache.serialization.DefaultReadContext
 import org.gradle.configurationcache.serialization.IsolateContext
 import org.gradle.configurationcache.serialization.IsolateOwners
 import org.gradle.configurationcache.serialization.MutableIsolateContext
@@ -41,6 +41,7 @@ import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.beans.BeanPropertyWriter
 import org.gradle.configurationcache.serialization.beans.readPropertyValue
 import org.gradle.configurationcache.serialization.beans.writeNextProperty
+import org.gradle.configurationcache.serialization.getSingletonProperty
 import org.gradle.configurationcache.serialization.readClassOf
 import org.gradle.configurationcache.serialization.readCollection
 import org.gradle.configurationcache.serialization.readCollectionInto
@@ -491,7 +492,7 @@ fun ReadContext.createTask(projectPath: String, taskName: String, taskClass: Cla
 
 internal
 fun ReadContext.getProject(path: String): ProjectInternal =
-    this.uncheckedCast<DefaultReadContext>().getProject(path)
+    getSingletonProperty<ProjectProvider>().invoke(path)
 
 
 private

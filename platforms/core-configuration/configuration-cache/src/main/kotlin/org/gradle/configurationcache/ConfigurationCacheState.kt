@@ -26,6 +26,7 @@ import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal.BUILD_SRC
 import org.gradle.api.internal.cache.CacheConfigurationsInternal
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.provider.Provider
 import org.gradle.api.services.internal.BuildServiceProvider
 import org.gradle.api.services.internal.RegisteredBuildServiceProvider
@@ -89,6 +90,10 @@ import java.io.OutputStream
 
 
 typealias BuildTreeWorkGraphBuilder = BuildTreeWorkGraph.Builder.(BuildState) -> Unit
+
+
+internal
+typealias ProjectProvider = (String) -> ProjectInternal
 
 
 internal
@@ -469,7 +474,7 @@ class ConfigurationCacheState(
 
             build.createProjects()
 
-            initProjectProvider(build::getProject)
+            setSingletonProperty<ProjectProvider>(build::getProject)
 
             applyProjectStates(projects, gradle)
             readRequiredBuildServicesOf(gradle)

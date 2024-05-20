@@ -91,7 +91,14 @@ interface ReadContext : IsolateContext, MutableIsolateContext, Decoder {
      * Defers the given [action] until all objects have been read.
      */
     fun onFinish(action: () -> Unit)
+
+    fun <T : Any> getSingletonProperty(propertyType: Class<T>): T
 }
+
+
+inline
+fun <reified T : Any> ReadContext.getSingletonProperty(): T =
+    getSingletonProperty(T::class.java)
 
 
 suspend fun <T : Any> ReadContext.readNonNull() = read()!!.uncheckedCast<T>()

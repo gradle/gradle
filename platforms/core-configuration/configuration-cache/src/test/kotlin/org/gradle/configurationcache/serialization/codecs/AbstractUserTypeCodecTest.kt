@@ -24,14 +24,15 @@ import org.gradle.configurationcache.problems.AbstractProblemsListener
 import org.gradle.configurationcache.problems.ProblemsListener
 import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.serialization.Codec
+import org.gradle.configurationcache.serialization.DefaultClassDecoder
 import org.gradle.configurationcache.serialization.DefaultClassEncoder
 import org.gradle.configurationcache.serialization.DefaultReadContext
 import org.gradle.configurationcache.serialization.DefaultWriteContext
 import org.gradle.configurationcache.serialization.IsolateOwners
 import org.gradle.configurationcache.serialization.MutableIsolateContext
 import org.gradle.configurationcache.serialization.beans.BeanConstructors
-import org.gradle.configurationcache.serialization.beans.BeanStateReaderLookup
-import org.gradle.configurationcache.serialization.beans.BeanStateWriterLookup
+import org.gradle.configurationcache.serialization.beans.DefaultBeanStateReaderLookup
+import org.gradle.configurationcache.serialization.beans.DefaultBeanStateWriterLookup
 import org.gradle.configurationcache.serialization.codecs.jos.JavaSerializationEncodingLookup
 import org.gradle.configurationcache.serialization.runReadOperation
 import org.gradle.configurationcache.serialization.runWriteOperation
@@ -134,7 +135,7 @@ abstract class AbstractUserTypeCodecTest {
             codec = codec,
             encoder = encoder,
             classEncoder = DefaultClassEncoder(mock()),
-            beanStateWriterLookup = BeanStateWriterLookup(),
+            beanStateWriterLookup = DefaultBeanStateWriterLookup(),
             logger = mock(),
             tracer = null,
             problemsListener = problemHandler
@@ -147,7 +148,8 @@ abstract class AbstractUserTypeCodecTest {
             decoder = KryoBackedDecoder(inputStream),
             beanStateReaderLookup = beanStateReaderLookupForTesting(),
             logger = mock(),
-            problemsListener = mock()
+            problemsListener = mock(),
+            classDecoder = DefaultClassDecoder()
         )
 
     private
@@ -191,7 +193,7 @@ abstract class AbstractUserTypeCodecTest {
 
 
 internal
-fun beanStateReaderLookupForTesting() = BeanStateReaderLookup(
+fun beanStateReaderLookupForTesting() = DefaultBeanStateReaderLookup(
     BeanConstructors(TestCrossBuildInMemoryCacheFactory()),
     TestUtil.instantiatorFactory()
 )

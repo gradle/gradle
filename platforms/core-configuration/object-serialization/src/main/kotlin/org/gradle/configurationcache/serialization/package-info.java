@@ -31,22 +31,22 @@
  *  <ul>
  *  <li>as a custom class that implements both encoding and decoding protocols in the same class
  *  <li>based on the combination of arbitrary encoder and decoder functions, as done via {@link org.gradle.configurationcache.serialization.CombinatorsKt#codec(kotlin.jvm.functions.Function3, kotlin.jvm.functions.Function2) codec(...)}
- *  <li>or as composite/multi-type codecs, backed by a set of bindings, via {@link org.gradle.configurationcache.serialization.codecs.Bindings#build()} - see below for more on Bindings.
+ *  <li>or as composite/multi-type codecs, backed by a set of bindings, via {@link org.gradle.configurationcache.serialization.Bindings#build()} - see below for more on Bindings.
  *  </ul>
  *
  * <h3>Building Composite Codecs using Bindings</h3>
- * <p>In order to build composite codecs that can handle multiple types of objects, you use {@link org.gradle.configurationcache.serialization.codecs.Bindings bindings}.</p>
+ * <p>In order to build composite codecs that can handle multiple types of objects, you use {@link org.gradle.configurationcache.serialization.Bindings bindings}.</p>
  * <p>
- *  Each single {@link org.gradle.configurationcache.serialization.codecs.Binding binding} comprises:
+ *  Each single {@link org.gradle.configurationcache.serialization.Binding binding} comprises:
  *  <ul>
  *     <li>a <em>tag</em> (a unique numeric identifier that represents the type the binding supports)
  *     <li>the {@link org.gradle.configurationcache.serialization.EncodingProvider encoding provider} <em>{@link org.gradle.configurationcache.serialization.EncodingProvider producer}</em>
  *     <li>the {@link org.gradle.configurationcache.serialization.DecodingProvider decoding provider}
  *  </ul>
  *  <p>
- *  On serialization of an object of some type, the {@link org.gradle.configurationcache.serialization.codecs.BindingsBackedCodec bindings-backed composite codec}
+ *  On serialization of an object of some type, the {@link org.gradle.configurationcache.serialization.BindingsBackedCodec bindings-backed composite codec}
  *  will query all bindings to find which one knows how to encode the type at hand,
- *  by invoking {@link org.gradle.configurationcache.serialization.codecs.Binding#encodingForType(java.lang.Class)} on each binding. If a binding supports the type,
+ *  by invoking {@link org.gradle.configurationcache.serialization.Binding#encodingForType(java.lang.Class)} on each binding. If a binding supports the type,
  *  it will return the proper {@link org.gradle.configurationcache.serialization.EncodingProvider} (or null, otherwise).
  *  </p><p>
  *  Deserializing is simpler: the bindings-backed composite codec reads a tag from the stored state, and then picks the binding that is associated with that tag (and consequently, that binding's decoder).

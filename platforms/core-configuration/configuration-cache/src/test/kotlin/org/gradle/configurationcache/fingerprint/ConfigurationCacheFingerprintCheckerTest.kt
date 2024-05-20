@@ -464,6 +464,9 @@ class ConfigurationCacheFingerprintCheckerTest {
         override fun onFinish(action: () -> Unit) =
             undefined()
 
+        override fun <T : Any> getSingletonProperty(propertyType: Class<T>): T =
+            undefined()
+
         override fun beanStateReaderFor(beanType: Class<*>): BeanStateReader =
             undefined()
 

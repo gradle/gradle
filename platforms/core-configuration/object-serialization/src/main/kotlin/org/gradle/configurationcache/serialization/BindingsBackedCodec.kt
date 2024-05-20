@@ -17,9 +17,7 @@
 package org.gradle.configurationcache.serialization.codecs
 
 import com.google.common.collect.ImmutableList
-import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.configurationcache.extensions.uncheckedCast
-
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.DecodingProvider
 import org.gradle.configurationcache.serialization.EncodingProvider
@@ -27,9 +25,7 @@ import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.SerializerCodec
 import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.withDebugFrame
-
 import org.gradle.internal.serialize.Serializer
-
 import kotlin.reflect.KClass
 
 
@@ -58,7 +54,11 @@ class BindingsBackedCodec(private val bindings: List<Binding>) : Codec<Any?> {
         null -> writeSmallInt(NULL_VALUE)
         else -> taggedEncodingFor(value.javaClass).run {
             writeSmallInt(tag)
-            withDebugFrame({ GeneratedSubclasses.unpackType(value).typeName }) {
+            withDebugFrame({
+                // TODO:configuration-cache evaluate whether we need to unpack the type here
+                // GeneratedSubclasses.unpackType(value).typeName
+                value.javaClass.typeName
+            }) {
                 encoding.run { encode(value) }
             }
         }

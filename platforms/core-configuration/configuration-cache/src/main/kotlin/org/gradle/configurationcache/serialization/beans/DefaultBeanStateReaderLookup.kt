@@ -16,7 +16,9 @@
 
 package org.gradle.configurationcache.serialization.beans
 
-import org.gradle.configurationcache.serialization.BeanStateWriter
+import org.gradle.configurationcache.serialization.BeanStateReader
+import org.gradle.configurationcache.serialization.BeanStateReaderLookup
+import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import java.util.concurrent.ConcurrentHashMap
@@ -24,10 +26,13 @@ import java.util.concurrent.ConcurrentHashMap
 
 @ServiceScope(Scope.BuildTree::class)
 internal
-class BeanStateWriterLookup {
+class DefaultBeanStateReaderLookup(
+    private val constructors: BeanConstructors,
+    private val instantiatorFactory: InstantiatorFactory
+) : BeanStateReaderLookup {
     private
-    val beanPropertyWriters = ConcurrentHashMap<Class<*>, BeanStateWriter>()
+    val beanStateReaders = ConcurrentHashMap<Class<*>, BeanStateReader>()
 
-    fun beanStateWriterFor(beanType: Class<*>): BeanStateWriter =
-        beanPropertyWriters.computeIfAbsent(beanType, ::BeanPropertyWriter)
+    override fun beanStateReaderFor(beanType: Class<*>): BeanStateReader =
+        beanStateReaders.computeIfAbsent(beanType) { type -> BeanPropertyReader(type, constructors, instantiatorFactory) }
 }
