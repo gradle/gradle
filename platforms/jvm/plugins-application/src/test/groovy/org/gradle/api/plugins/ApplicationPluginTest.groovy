@@ -39,7 +39,7 @@ class ApplicationPluginTest extends AbstractProjectBuilderSpec {
 
         def application = project.extensions.getByName('application')
         application instanceof JavaApplication
-        application.applicationName == project.name
+        application.applicationName.get() == project.name
         application.applicationDefaultJvmArgs == []
         application.applicationDistribution instanceof CopySpec
     }
