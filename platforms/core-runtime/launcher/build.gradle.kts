@@ -106,6 +106,10 @@ dependencies {
     integTestImplementation(libs.commonsIo)
     integTestImplementation(testFixtures(project(":build-configuration")))
 
+    crossVersionTestImplementation(testFixtures(project(":build-configuration")))
+    crossVersionTestDistributionRuntimeOnly(project(":distributions-core"))
+
+
     testRuntimeOnly(project(":distributions-core")) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
