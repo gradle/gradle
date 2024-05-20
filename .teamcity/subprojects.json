@@ -756,8 +756,8 @@
     "crossVersionTests": false
   },
   {
-    "name": "object-graph-serialization",
-    "path": "platforms/core-configuration/object-graph-serialization",
+    "name": "object-serialization",
+    "path": "platforms/core-configuration/object-serialization",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false

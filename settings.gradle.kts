@@ -129,7 +129,7 @@ val core = platform("core") {
         subproject("kotlin-language-extensions")
         subproject("model-core")
         subproject("model-groovy")
-        subproject("object-graph-serialization")
+        subproject("object-serialization")
     }
 
     // Core Execution Module
