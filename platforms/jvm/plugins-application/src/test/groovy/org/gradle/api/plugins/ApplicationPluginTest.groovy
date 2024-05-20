@@ -40,8 +40,8 @@ class ApplicationPluginTest extends AbstractProjectBuilderSpec {
 
         def application = project.extensions.getByName('application')
         application instanceof JavaApplication
-        application.applicationName == project.name
-        application.applicationDefaultJvmArgs == []
+        application.applicationName.get() == project.name
+        application.applicationDefaultJvmArgs.get() == []
         application.applicationDistribution instanceof CopySpec
     }
 
@@ -63,7 +63,7 @@ class ApplicationPluginTest extends AbstractProjectBuilderSpec {
         then:
         def task = project.tasks[ApplicationPlugin.TASK_START_SCRIPTS_NAME]
         task instanceof CreateStartScripts
-        task.applicationName.get() == project.applicationName
+        task.applicationName.get() == project.application.applicationName.get()
         task.outputDir.getAsFile().get() == project.file('build/scripts')
         task.defaultJvmOpts.get() == []
         task.gitRef.get() == DefaultGradleVersion.current().getGitRevision()
@@ -76,7 +76,7 @@ class ApplicationPluginTest extends AbstractProjectBuilderSpec {
         then:
         def task = project.tasks[ApplicationPlugin.TASK_DIST_ZIP_NAME]
         task instanceof Zip
-        task.archiveFileName.get() == "${project.application.applicationName}.zip"
+        task.archiveFileName.get() == "${project.application.applicationName.get()}.zip"
     }
 
     def "adds distTar task to project"() {
@@ -86,7 +86,7 @@ class ApplicationPluginTest extends AbstractProjectBuilderSpec {
         then:
         def task = project.tasks[ApplicationPlugin.TASK_DIST_TAR_NAME]
         task instanceof Tar
-        task.archiveFileName.get() == "${project.application.applicationName}.tar"
+        task.archiveFileName.get() == "${project.application.applicationName.get()}.tar"
     }
 
     def "applicationName is configurable"() {
