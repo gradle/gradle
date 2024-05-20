@@ -89,9 +89,7 @@ dependencies {
 
     implementation(libs.asm)
     implementation(libs.capsule)
-    implementation(libs.fastutil)
     implementation(libs.groovyJson)
-    implementation(libs.jsr305)
     implementation(libs.slf4jApi)
 
     runtimeOnly(project(":composite-builds"))
