@@ -27,13 +27,9 @@ class GetProjectSchema : GetModelAction<DeclarativeSchemaModel> {
         }
     }
 
-    private fun AnalysisSchema.dataClassFor(typeRef: DataTypeRef.Name): DataClass =
-        dataClassesByFqName.getValue(typeRef.fqName)
-
     private fun AnalysisSchema.describeSoftwareTypes(): String {
-        val memberFunctions = this.topLevelReceiverType.memberFunctions
         return buildString {
-            memberFunctions.forEach { softwareType ->
+            softwareTypes.forEach { softwareType ->
                 appendLine()
                 appendDescription(this@describeSoftwareTypes, softwareType)
                 appendLine()
@@ -106,21 +102,4 @@ class GetProjectSchema : GetModelAction<DeclarativeSchemaModel> {
             }
         }
     }
-
-    private fun DataTypeRef.toHumanReadable(): String =
-        when (this) {
-            is DataTypeRef.Name -> fqName.simpleName
-            is DataTypeRef.Type -> toHumanReadable()
-        }
-
-    private fun DataTypeRef.Type.toHumanReadable(): String =
-        when (val type = this.dataType) {
-            is DataType.NullType -> "null"
-            is DataType.UnitType -> Unit::class.simpleName!!
-            is DataType.ConstantType<*> -> type.toString()
-            is DataClass -> type.name.simpleName
-        }
-
-    private fun DataParameter.toHumanReadable(): String =
-        type.toHumanReadable()
 }
