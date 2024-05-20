@@ -41,6 +41,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Default implementation of {@link BuildTreeLocalComponentProvider}.
+ *
+ * <p>Currently, the metadata for a component is different based on whether it is consumed from the
+ * producing build or from another build. This distinction can go away in Gradle 9.0.</p>
  */
 public class DefaultBuildTreeLocalComponentProvider implements BuildTreeLocalComponentProvider, HoldsProjectState {
 

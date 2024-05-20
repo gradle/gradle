@@ -29,8 +29,6 @@ import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
 
 /**
  * Provides the metadata for a component consumed from the same build that produces it.
- *
- * <p>Currently, the metadata for a component is different based on whether it is consumed from the producing build or from another build. This difference should go away.
  */
 public class DefaultProjectLocalComponentProvider implements LocalComponentProvider {
     private final LocalComponentGraphResolveStateFactory resolveStateFactory;
