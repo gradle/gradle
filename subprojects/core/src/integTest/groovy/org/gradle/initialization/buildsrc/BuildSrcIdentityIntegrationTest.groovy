@@ -48,7 +48,7 @@ class BuildSrcIdentityIntegrationTest extends AbstractIntegrationSpec {
         "rootProject.name='someLib'" | "configured root project name"
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Allprojects")
+    @ToBeFixedForIsolatedProjects(because = "allprojects")
     def "includes build identifier in dependency report with #display"() {
         createDirs("buildSrc", "buildSrc/b1", "buildSrc/b2")
         file("buildSrc/settings.gradle") << """

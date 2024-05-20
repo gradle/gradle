@@ -89,7 +89,7 @@ class DeleteTaskIntegrationTest extends AbstractIntegrationSpec {
         succeeds "clean"
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Subprojects, configure projects from root")
+    @ToBeFixedForIsolatedProjects(because = "subprojects, configure projects from root")
     def "clean build and build clean work reliably"() {
         settingsFile << "include 'a', 'b'"
         buildFile << """

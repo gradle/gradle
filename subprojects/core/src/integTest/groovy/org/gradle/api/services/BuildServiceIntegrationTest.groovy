@@ -1003,7 +1003,7 @@ Hello, subproject1
         outputContains("Hello, subproject2")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Subprojects")
+    @ToBeFixedForIsolatedProjects(because = "subprojects")
     def "plugin applied to multiple projects can register a shared service"() {
         createDirs("a", "b", "c")
         settingsFile << "include 'a', 'b', 'c'"

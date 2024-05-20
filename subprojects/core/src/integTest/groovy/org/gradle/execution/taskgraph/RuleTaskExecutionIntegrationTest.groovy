@@ -49,7 +49,7 @@ class RuleTaskExecutionIntegrationTest extends AbstractIntegrationSpec implement
         createdTasks
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Allprojects")
+    @ToBeFixedForIsolatedProjects(because = "allprojects")
     def "does not create rule based tasks in projects without required tasks"() {
         when:
         createDirs("a", "b", "c")
@@ -163,7 +163,7 @@ class RuleTaskExecutionIntegrationTest extends AbstractIntegrationSpec implement
         output.contains "finalizer: configured"
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Allprojects, configuring projects from root")
+    @ToBeFixedForIsolatedProjects(because = "allprojects, configuring projects from root")
     def "task container is self closed for projects of which any tasks are being executed"() {
         createDirs("a", "b")
         settingsFile << "include 'a', 'b'"

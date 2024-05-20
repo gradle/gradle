@@ -212,7 +212,7 @@ abstract class AbstractDirectorySensitivityIntegrationSpec extends AbstractInteg
         [api, pathSensitivity] << [Api.values(), [PathSensitivity.RELATIVE, PathSensitivity.ABSOLUTE, PathSensitivity.NAME_ONLY]].combinations()
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Allprojects, extensive cross-project access")
+    @ToBeFixedForIsolatedProjects(because = "allprojects, extensive cross-project access")
     def "artifact transforms are sensitive to empty directories by default"() {
         // Immutable artifact transforms are cached to the GradleUserHome,
         // so to avoid flakiness we need to request own GradleUserHome
@@ -255,7 +255,7 @@ abstract class AbstractDirectorySensitivityIntegrationSpec extends AbstractInteg
         assertTransformExecuted()
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Allprojects, extensive cross-project access")
+    @ToBeFixedForIsolatedProjects(because = "allprojects, extensive cross-project access")
     def "artifact transforms ignore empty directories when specified"() {
         // Immutable artifact transforms are cached to the GradleUserHome,
         // so to avoid flakiness we need to request own GradleUserHome

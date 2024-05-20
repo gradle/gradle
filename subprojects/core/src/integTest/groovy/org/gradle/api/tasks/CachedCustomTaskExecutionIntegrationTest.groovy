@@ -784,7 +784,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
 
     @Requires(IntegTestPreconditions.NotParallelExecutor)
     @Issue("https://github.com/gradle/gradle/issues/3537")
-    @ToBeFixedForIsolatedProjects(because = "Subprojects")
+    @ToBeFixedForIsolatedProjects(because = "subprojects")
     def "concurrent access to local cache works"() {
         String[] projectNames = GroovyCollections.combinations(('a'..'p'), ('a'..'p'), ('a'..'d'))*.join("")
         println "Running with ${projectNames.size()} projects"

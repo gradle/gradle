@@ -90,7 +90,7 @@ class BuildSrcTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/23885")
-    @ToBeFixedForIsolatedProjects(because = "Allprojects")
+    @ToBeFixedForIsolatedProjects(because = "allprojects")
     def "can exclude task from main build when buildSrc is present"() {
         file("buildSrc/build.gradle").createFile()
         createDirs("lib")

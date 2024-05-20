@@ -83,7 +83,7 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
         fixture.assertProjectsConfigured(":")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Allprojects")
+    @ToBeFixedForIsolatedProjects(because = "allprojects")
     def "evaluates only project referenced in the task list"() {
         createDirs("api", "impl", "util", "util/impl")
         settingsFile << "include 'api', 'impl', 'util', 'util:impl'"
@@ -152,7 +152,7 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
         fixture.assertProjectsConfigured(":", ":util", ":impl", ":api")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Allprojects, configure projects from root")
+    @ToBeFixedForIsolatedProjects(because = "allprojects, configure projects from root")
     def "can have cycles in project dependencies"() {
         createDirs("api", "impl", "util")
         settingsFile << "include 'api', 'impl', 'util'"
@@ -308,7 +308,7 @@ project(':api') {
         fixture.assertProjectsConfigured(":", ":impl", ":api")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Allprojects")
+    @ToBeFixedForIsolatedProjects(because = "allprojects")
     def "respects external task dependencies"() {
         createDirs("api", "impl", "other")
         settingsFile << "include 'api', 'impl', 'other'"
@@ -390,7 +390,7 @@ project(':api') {
         fixture.assertProjectsConfigured(":", ":b", ":a")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Configure projects from root, buildDependents is not IP compatible")
+    @ToBeFixedForIsolatedProjects(because = "buildDependents is not IP compatible, configure projects from root,")
     def "handles buildDependents"() {
         createDirs("a", "b", "c")
         settingsFile << "include 'a', 'b', 'c'"
@@ -433,7 +433,7 @@ class SomeTask extends DefaultTask {
         fixture.assertProjectsConfigured(":", ":a")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Allprojects")
+    @ToBeFixedForIsolatedProjects(because = "allprojects")
     def "does not configure all projects when excluded task path is not qualified and is exact match for task in default project"() {
         createDirs("a", "a/child", "b", "b/child", "c")
         settingsFile << "include 'a', 'a:child', 'b', 'b:child', 'c'"

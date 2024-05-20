@@ -44,7 +44,7 @@ class BuildServiceParallelExecutionIntegrationTest extends AbstractIntegrationSp
         """
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Allprojects")
+    @ToBeFixedForIsolatedProjects(because = "allprojects")
     def "tasks run in parallel when no max usages specified"() {
         given:
         withParallelThreads(2)
@@ -68,7 +68,7 @@ class BuildServiceParallelExecutionIntegrationTest extends AbstractIntegrationSp
         run ":a:ping", ":b:ping"
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Allprojects")
+    @ToBeFixedForIsolatedProjects(because = "allprojects")
     def "tasks are not run in parallel when they require an exclusive shared service"() {
         given:
         withParallelThreads(2)
@@ -93,7 +93,7 @@ class BuildServiceParallelExecutionIntegrationTest extends AbstractIntegrationSp
         run ":a:ping", ":b:ping"
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Allprojects")
+    @ToBeFixedForIsolatedProjects(because = "allprojects")
     def "tasks run in parallel when sufficient max usages"() {
         given:
         withParallelThreads(2)
@@ -118,7 +118,7 @@ class BuildServiceParallelExecutionIntegrationTest extends AbstractIntegrationSp
         run ":a:ping", ":b:ping"
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Allprojects")
+    @ToBeFixedForIsolatedProjects(because = "allprojects")
     def "task parallelization is limited by max usages"() {
         given:
         withParallelThreads(3)
@@ -143,7 +143,7 @@ class BuildServiceParallelExecutionIntegrationTest extends AbstractIntegrationSp
         run ":a:ping", ":b:ping", ":c:ping"
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Allprojects")
+    @ToBeFixedForIsolatedProjects(because = "allprojects")
     def "task can use multiple services"() {
         given:
         withParallelThreads(3)

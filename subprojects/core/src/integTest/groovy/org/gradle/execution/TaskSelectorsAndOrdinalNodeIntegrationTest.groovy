@@ -29,7 +29,7 @@ class TaskSelectorsAndOrdinalNodeIntegrationTest extends AbstractIntegrationSpec
      */
     @Timeout(60)
     @Issue("https://github.com/gradle/gradle/issues/20741")
-    @ToBeFixedForIsolatedProjects(because = "Subprojects")
+    @ToBeFixedForIsolatedProjects(because = "subprojects")
     def "build is not exponentially slower when many tasks are requested"() {
         createDirs((1..30).collect({ "sub" + it }) as String[])
         settingsFile << """

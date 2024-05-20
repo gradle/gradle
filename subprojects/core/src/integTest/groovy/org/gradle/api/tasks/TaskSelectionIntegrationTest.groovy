@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 
 class TaskSelectionIntegrationTest extends AbstractIntegrationSpec {
 
-    @ToBeFixedForIsolatedProjects(because = "Subprojects")
+    @ToBeFixedForIsolatedProjects(because = "subprojects")
     def "given an unqualified name traverse project tree from current project and select all tasks with matching name"() {
         createDirs("a", "b", "a/a", "b/b")
         settingsFile << "include 'a', 'b', 'a:a', 'b:b'"
@@ -55,7 +55,7 @@ class TaskSelectionIntegrationTest extends AbstractIntegrationSpec {
         result.assertTasksExecuted(":a:thing", ":b:thing", ":a:a:thing", ":b:b:thing")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Subprojects")
+    @ToBeFixedForIsolatedProjects(because = "subprojects")
     def "stops traversing sub-projects when task implies sub-projects"() {
         createDirs("a", "b", "a/a", "b/b")
         settingsFile << "include 'a', 'b', 'a:a', 'b:b'"
@@ -91,7 +91,7 @@ class TaskSelectionIntegrationTest extends AbstractIntegrationSpec {
         result.assertTasksExecuted(":a:thing", ":b:thing", ":b:b:thing")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Allprojects")
+    @ToBeFixedForIsolatedProjects(because = "allprojects")
     def "can use camel-case for all segments of qualified task name"() {
         createDirs("child", "child/child")
         settingsFile << "include 'child', 'child:child'"
@@ -122,7 +122,7 @@ allprojects { task thing }
         result.assertTasksExecuted(":sayHelloToUser")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Allprojects")
+    @ToBeFixedForIsolatedProjects(because = "allprojects")
     def "executes project default tasks when none specified"() {
         createDirs("a")
         settingsFile << "include 'a'"

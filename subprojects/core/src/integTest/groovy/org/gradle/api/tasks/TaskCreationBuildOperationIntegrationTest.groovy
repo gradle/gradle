@@ -194,7 +194,7 @@ class TaskCreationBuildOperationIntegrationTest extends AbstractIntegrationSpec 
         buildOperations.none(RealizeTaskBuildOperationType, not(withPath(':', ':foo')))
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Allprojects, subprojects")
+    @ToBeFixedForIsolatedProjects(because = "allprojects, subprojects")
     def "registration and realization ops have correct paths"() {
         given:
         def createTasks = {

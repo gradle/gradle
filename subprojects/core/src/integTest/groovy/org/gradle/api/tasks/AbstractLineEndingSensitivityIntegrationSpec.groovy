@@ -275,7 +275,7 @@ abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractInte
         api << Api.values()
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Allprojects, extensive cross-project access")
+    @ToBeFixedForIsolatedProjects(because = "allprojects, extensive cross-project access")
     def "artifact transforms are sensitive to line endings by default"() {
         createParameterizedTransformWithLineEndingNormalization(LineEndingSensitivity.DEFAULT)
         file('producer/foo/bar.txt') << toUnix(TEXT_WITH_LINE_ENDINGS)
@@ -311,7 +311,7 @@ abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractInte
         assertTransformExecuted()
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Allprojects, extensive cross-project access")
+    @ToBeFixedForIsolatedProjects(because = "allprojects, extensive cross-project access")
     def "artifact transforms can ignore line endings when specified"() {
         createParameterizedTransformWithLineEndingNormalization(LineEndingSensitivity.NORMALIZE_LINE_ENDINGS)
         file('producer/foo/bar.txt') << toUnix(TEXT_WITH_LINE_ENDINGS)

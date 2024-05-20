@@ -188,7 +188,7 @@ try {
         c > b
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Allprojects")
+    @ToBeFixedForIsolatedProjects(because = "allprojects")
     def "init script can inject configuration into the root project and all projects"() {
         given:
         createDirs("a", "b")

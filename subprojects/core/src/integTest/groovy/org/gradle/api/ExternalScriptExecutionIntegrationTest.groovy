@@ -163,7 +163,7 @@ assert 'value' == doStuff.someProp
     }
 
     @Test
-    @ToBeFixedForIsolatedProjects(because = "Allprojects, access to root project")
+    @ToBeFixedForIsolatedProjects(because = "allprojects, access to root project")
     void cachesScriptClassForAGivenScript() {
         createDirs("a", "b")
         testFile('settings.gradle') << 'include \'a\', \'b\''

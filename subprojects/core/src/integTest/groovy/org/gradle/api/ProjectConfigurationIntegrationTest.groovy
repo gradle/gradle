@@ -35,7 +35,7 @@ class ProjectConfigurationIntegrationTest extends AbstractIntegrationSpec {
         output.contains "the name: foobar"
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Allprojects, evaluationDependsOn")
+    @ToBeFixedForIsolatedProjects(because = "allprojects, evaluationDependsOn")
     def "shows deprecation warning when calling Project#afterEvaluate(Closure) after the project was evaluated"() {
         buildFile << '''
             allprojects { p ->
@@ -69,7 +69,7 @@ class ProjectConfigurationIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Cannot run Project.afterEvaluate(Closure) when the project is already evaluated.")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Allprojects, evaluationDependsOn")
+    @ToBeFixedForIsolatedProjects(because = "allprojects, evaluationDependsOn")
     def "shows deprecation warning when calling Project#afterEvaluate(Action) after the project was evaluated"() {
         buildFile '''
             allprojects { p ->

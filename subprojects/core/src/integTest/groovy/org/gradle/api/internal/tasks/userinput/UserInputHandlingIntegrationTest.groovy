@@ -151,7 +151,7 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         "n"      | _
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Subprojects")
+    @ToBeFixedForIsolatedProjects(because = "subprojects")
     def "can ask yes/no question when build is executed in parallel"() {
         given:
         withParallel()

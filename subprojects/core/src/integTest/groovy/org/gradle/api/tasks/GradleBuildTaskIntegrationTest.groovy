@@ -244,7 +244,7 @@ class GradleBuildTaskIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     BlockingHttpServer barrier = new BlockingHttpServer()
 
-    @ToBeFixedForIsolatedProjects(because = "Subprojects")
+    @ToBeFixedForIsolatedProjects(because = "subprojects")
     def "can run multiple GradleBuild tasks concurrently"() {
         barrier.start()
 

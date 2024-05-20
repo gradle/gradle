@@ -643,7 +643,7 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
         operations.none(ExecuteListenerBuildOperationType)
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Allprojects")
+    @ToBeFixedForIsolatedProjects(because = "allprojects")
     def 'listener registrations in delayed callbacks are tracked correctly'() {
         given:
         def addBeforeProjectListeners = { String source ->
