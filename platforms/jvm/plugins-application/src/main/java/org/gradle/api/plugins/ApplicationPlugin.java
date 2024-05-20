@@ -33,7 +33,6 @@ import org.gradle.api.plugins.internal.DefaultJavaApplication;
 import org.gradle.api.plugins.internal.JavaPluginHelper;
 import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.JavaExec;
 import org.gradle.api.tasks.Sync;
 import org.gradle.api.tasks.TaskContainer;
@@ -80,7 +79,7 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
         addRunTask(project, mainFeature, extension);
         addCreateScriptsTask(project, mainFeature, extension);
         configureJavaCompileTask(mainFeature.getCompileJavaTask(), extension);
-        configureInstallTask(project.getProviders(), tasks.named(TASK_INSTALL_NAME, Sync.class), extension);
+        configureInstallTask(tasks.named(TASK_INSTALL_NAME, Sync.class), extension);
 
         DistributionContainer distributions = project.getExtensions().getByType(DistributionContainer.class);
         Distribution mainDistribution = distributions.getByName(DistributionPlugin.MAIN_DISTRIBUTION_NAME);
@@ -91,12 +90,12 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
         javaCompile.configure(j -> j.getOptions().getJavaModuleMainClass().convention(pluginExtension.getMainClass()));
     }
 
-    private void configureInstallTask(ProviderFactory providers, TaskProvider<Sync> installTask, JavaApplication pluginExtension) {
+    private void configureInstallTask(TaskProvider<Sync> installTask, JavaApplication pluginExtension) {
         installTask.configure(task -> task.doFirst(
             "don't overwrite existing directories",
             new PreventDestinationOverwrite(
-                providers.provider(pluginExtension::getApplicationName),
-                providers.provider(pluginExtension::getExecutableDir)
+                pluginExtension.getApplicationName(),
+                pluginExtension.getExecutableDir()
             )
         ));
     }
@@ -136,7 +135,7 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
 
     @SuppressWarnings("deprecation")
     private JavaApplication addExtension(Project project) {
-        @SuppressWarnings("deprecation") ApplicationPluginConvention pluginConvention = project.getObjects().newInstance(DefaultApplicationPluginConvention.class, project);
+        ApplicationPluginConvention pluginConvention = project.getObjects().newInstance(DefaultApplicationPluginConvention.class, project);
         DeprecationLogger.whileDisabled(() -> pluginConvention.setApplicationName(project.getName()));
         DeprecationLogger.whileDisabled(() -> project.getConvention().getPlugins().put("application", pluginConvention));
         return project.getExtensions().create(JavaApplication.class, "application", DefaultJavaApplication.class, pluginConvention);
@@ -157,7 +156,7 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
             run.setClasspath(runtimeClasspath);
             run.getMainModule().set(pluginExtension.getMainModule());
             run.getMainClass().set(pluginExtension.getMainClass());
-            run.getJvmArguments().convention(project.provider(pluginExtension::getApplicationDefaultJvmArgs));
+            run.getJvmArguments().convention(pluginExtension.getApplicationDefaultJvmArgs());
 
             JavaPluginExtension javaPluginExtension = project.getExtensions().getByType(JavaPluginExtension.class);
             run.getModularity().getInferModulePath().convention(javaPluginExtension.getModularity().getInferModulePath());
@@ -188,10 +187,10 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
             startScripts.getMainModule().set(pluginExtension.getMainModule());
             startScripts.getMainClass().set(pluginExtension.getMainClass());
 
-            startScripts.getApplicationName().convention(project.provider(pluginExtension::getApplicationName));
+            startScripts.getApplicationName().convention(pluginExtension.getApplicationName());
             startScripts.getOutputDir().convention(project.getLayout().getBuildDirectory().dir("scripts"));
-            startScripts.getExecutableDir().convention(project.provider(pluginExtension::getExecutableDir));
-            startScripts.getDefaultJvmOpts().convention(project.provider(pluginExtension::getApplicationDefaultJvmArgs));
+            startScripts.getExecutableDir().convention(pluginExtension.getExecutableDir());
+            startScripts.getDefaultJvmOpts().convention(pluginExtension.getApplicationDefaultJvmArgs());
 
             JavaPluginExtension javaPluginExtension = project.getExtensions().getByType(JavaPluginExtension.class);
             startScripts.getModularity().getInferModulePath().convention(javaPluginExtension.getModularity().getInferModulePath());
@@ -207,7 +206,7 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
     }
 
     private CopySpec configureDistribution(Project project, JvmFeatureInternal mainFeature, Distribution mainDistribution, JavaApplication pluginExtension) {
-        mainDistribution.getDistributionBaseName().convention(project.provider(pluginExtension::getApplicationName));
+        mainDistribution.getDistributionBaseName().convention(pluginExtension.getApplicationName());
         CopySpec distSpec = mainDistribution.getContents();
 
         TaskProvider<Jar> jar = mainFeature.getJarTask();
