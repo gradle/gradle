@@ -425,7 +425,7 @@ include::sample[dir="snippets/tutorial/gradleProperties/groovy",files="build.gra
 *Example 4:* Setting Gradle properties from the command line:
 ====
 ----
-$ gradle -DgradlePropertiesProp=commandLineValue
+$ gradle -PgradlePropertiesProp=commandLineValue
 ----
 ====
 
