@@ -135,7 +135,11 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
     }
 
     private void startReceivingTests(WorkerProcessContext workerProcessContext, ServiceRegistry testServices) {
-        TestClassProcessor targetProcessor = factory.create(testServices);
+        TestClassProcessor targetProcessor = factory.create(
+            testServices.get(IdGenerator.class),
+            testServices.get(ActorFactory.class),
+            testServices.get(Clock.class)
+        );
         IdGenerator<Object> idGenerator = Cast.uncheckedNonnullCast(testServices.get(IdGenerator.class));
 
         targetProcessor = new WorkerTestClassProcessor(targetProcessor, idGenerator.generateId(),
