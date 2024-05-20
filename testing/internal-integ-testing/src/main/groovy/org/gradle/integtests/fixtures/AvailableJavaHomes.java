@@ -240,7 +240,7 @@ public abstract class AvailableJavaHomes {
             && Jvm.discovered(jvm.getJavaHome().toFile(), null, jvm.getLanguageVersion()).getJre() != null);
     }
 
-    private static boolean isCurrentJavaHome(JvmInstallationMetadata metadata) {
+    public static boolean isCurrentJavaHome(JvmInstallationMetadata metadata) {
         return metadata.getJavaHome().toFile().equals(Jvm.current().getJavaHome());
     }
 
