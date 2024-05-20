@@ -49,16 +49,15 @@ class ProjectInterpretationSequenceStep(
     override fun processResolutionResult(resolutionResult: ResolutionResult): ResolutionResult {
         val resultHolder = ResultHolder(resolutionResult)
 
-        val remapped = mutableSetOf<String>()
         val softwareTypes = softwareTypeRegistry.softwareTypeImplementations.associateBy { it.softwareType }
         val referencedSoftwareTypes = resolutionResult.nestedObjectAccess
             .filter { isSoftwareTypeAccessor(it.dataObject.accessor) }
             .mapNotNull { softwareTypes[it.dataObject.function.simpleName] }
 
+        val topLevelReceiver = ObjectOrigin.ImplicitThisReceiver(resultHolder.result.topLevelReceiver, true)
         referencedSoftwareTypes.forEach { softwareTypeImplementation ->
-            val topLevelReceiver = ObjectOrigin.ImplicitThisReceiver(resultHolder.result.topLevelReceiver, true)
-            applyAdditionConventions(softwareTypeImplementation, remapped, topLevelReceiver, resultHolder)
-            applyAssignmentConventions(softwareTypeImplementation, remapped, topLevelReceiver, resultHolder)
+            applyAdditionConventions(softwareTypeImplementation, topLevelReceiver, resultHolder)
+            applyAssignmentConventions(softwareTypeImplementation, topLevelReceiver, resultHolder)
         }
 
         return resultHolder.result
@@ -70,18 +69,14 @@ class ProjectInterpretationSequenceStep(
     private
     fun applyAssignmentConventions(
         softwareTypeImplementation: SoftwareTypeImplementation<*>,
-        remapped: MutableSet<String>,
         topLevelReceiver: ObjectOrigin.ImplicitThisReceiver,
         resultHolder: ResultHolder
     ) {
         softwareTypeImplementation.conventions.filterIsInstance<AssignmentRecordConvention>().forEach { rule ->
             rule.apply(object : AssignmentRecordConventionReceiver {
                 override fun receive(assignmentRecord: AssignmentRecord) {
-                    if (!remapped.contains(softwareTypeImplementation.softwareType)) {
-                        remapSoftwareTypeToTopLevelReceiver(assignmentRecord, topLevelReceiver)
-                        remapped.add(softwareTypeImplementation.softwareType)
-                    }
-                    resultHolder.result = resultHolder.result.copy(conventionAssignments = resultHolder.result.conventionAssignments + assignmentRecord)
+                    val remappedAssignmentRecord = remapSoftwareTypeToTopLevelReceiver(assignmentRecord, topLevelReceiver)
+                    resultHolder.result = resultHolder.result.copy(conventionAssignments = resultHolder.result.conventionAssignments + remappedAssignmentRecord)
                 }
             })
         }
@@ -90,37 +85,83 @@ class ProjectInterpretationSequenceStep(
     private
     fun applyAdditionConventions(
         softwareTypeImplementation: SoftwareTypeImplementation<*>,
-        remapped: MutableSet<String>,
         topLevelReceiver: ObjectOrigin.ImplicitThisReceiver,
         resultHolder: ResultHolder
     ) {
         softwareTypeImplementation.conventions.filterIsInstance<AdditionRecordConvention>().forEach { rule ->
             rule.apply(object : AdditionRecordConventionReceiver {
                 override fun receive(additionRecord: DataAdditionRecord) {
-                    if (!remapped.contains(softwareTypeImplementation.softwareType)) {
-                        remapSoftwareTypeToTopLevelReceiver(additionRecord, topLevelReceiver)
-                        remapped.add(softwareTypeImplementation.softwareType)
-                    }
-                    resultHolder.result = resultHolder.result.copy(conventionAdditions = resultHolder.result.conventionAdditions + additionRecord)
+                    val remappedAdditionRecord = remapSoftwareTypeToTopLevelReceiver(additionRecord, topLevelReceiver)
+                    resultHolder.result = resultHolder.result.copy(conventionAdditions = resultHolder.result.conventionAdditions + remappedAdditionRecord)
                 }
             })
         }
     }
 
     private
-    fun remapSoftwareTypeToTopLevelReceiver(assignmentRecord: AssignmentRecord, topLevelReceiver: ObjectOrigin.ImplicitThisReceiver) {
+    fun remapSoftwareTypeToTopLevelReceiver(assignmentRecord: AssignmentRecord, topLevelReceiver: ObjectOrigin.ImplicitThisReceiver): AssignmentRecord {
         val softwareTypeReceiver = findSoftwareType(assignmentRecord.lhs.receiverObject)
-        softwareTypeReceiver.receiver = topLevelReceiver
+        val lhs = assignmentRecord.lhs.copy(receiverObject = remapAndCopyReceiverHierarchy(assignmentRecord.lhs.receiverObject, softwareTypeReceiver, topLevelReceiver))
+        return assignmentRecord.copy(lhs = lhs)
     }
 
     private
-    fun remapSoftwareTypeToTopLevelReceiver(additionRecord: DataAdditionRecord, topLevelReceiver: ObjectOrigin.ImplicitThisReceiver) {
+    fun remapSoftwareTypeToTopLevelReceiver(additionRecord: DataAdditionRecord, topLevelReceiver: ObjectOrigin.ImplicitThisReceiver): DataAdditionRecord {
         val softwareTypeReceiver = findSoftwareType(additionRecord.container)
-        softwareTypeReceiver.receiver = topLevelReceiver
+        val remappedContainer = remapAndCopyReceiverHierarchy(additionRecord.container, softwareTypeReceiver, topLevelReceiver)
+        val remappedDataObject = remapAndCopyReceiverHierarchy(additionRecord.dataObject, softwareTypeReceiver, topLevelReceiver)
+        return additionRecord.copy(container = remappedContainer, dataObject = remappedDataObject)
     }
 
     private
     fun isSoftwareTypeAccessor(accessor: ConfigureAccessor): Boolean {
         return accessor is ConfigureAccessorInternal.DefaultCustom && accessor.customAccessorIdentifier.startsWith("softwareType:")
+    }
+
+    private
+    fun remapAndCopyReceiverHierarchy(receiver: ObjectOrigin, softwareTypeReceiver: ObjectOrigin.AccessAndConfigureReceiver, topLevelReceiver: ObjectOrigin.ImplicitThisReceiver): ObjectOrigin {
+        return when (receiver) {
+            is ObjectOrigin.ImplicitThisReceiver -> {
+                receiver.copy(resolvedTo = remapAndCopyReceiverHierarchy(receiver.resolvedTo, softwareTypeReceiver, topLevelReceiver) as ObjectOrigin.ReceiverOrigin)
+            }
+
+            is ObjectOrigin.AccessAndConfigureReceiver -> {
+                if (receiver == softwareTypeReceiver)
+                    receiver.copy(receiver = topLevelReceiver)
+                else
+                    receiver.copy(receiver = remapAndCopyReceiverHierarchy(receiver.receiver, softwareTypeReceiver, topLevelReceiver))
+            }
+
+            is ObjectOrigin.NewObjectFromMemberFunction -> {
+                val remappedBindingValues = receiver.parameterBindings.bindingMap.mapValues { (_, value) ->
+                    remapAndCopyReceiverHierarchy(value, softwareTypeReceiver, topLevelReceiver)
+                }
+                val remappedBindings = receiver.parameterBindings.copy(bindingMap = remappedBindingValues)
+                receiver.copy(
+                    receiver = remapAndCopyReceiverHierarchy(receiver.receiver, softwareTypeReceiver, topLevelReceiver),
+                    parameterBindings = remappedBindings
+                )
+            }
+
+            is ObjectOrigin.PropertyReference -> {
+                receiver.copy(receiver = remapAndCopyReceiverHierarchy(receiver.receiver, softwareTypeReceiver, topLevelReceiver))
+            }
+
+            is ObjectOrigin.CustomConfigureAccessor -> {
+                receiver.copy(receiver = remapAndCopyReceiverHierarchy(receiver.receiver, softwareTypeReceiver, topLevelReceiver))
+            }
+
+            is ObjectOrigin.PropertyDefaultValue -> {
+                receiver.copy(receiver = remapAndCopyReceiverHierarchy(receiver.receiver, softwareTypeReceiver, topLevelReceiver))
+            }
+
+            is ObjectOrigin.ConstantOrigin -> receiver
+
+            is ObjectOrigin.NullObjectOrigin -> receiver
+
+            else -> {
+                error("Could not copy receiver hierarchy for $receiver")
+            }
+        }
     }
 }

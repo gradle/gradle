@@ -201,6 +201,49 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
         ]
     }
 
+    def "can configure build-level conventions for software types in a multi-project build"() {
+        given:
+        withSoftwareTypePluginThatExposesExtensionWithDependencies().prepareToExecute()
+
+        file("foo").createDir()
+        file("bar").createDir()
+        file("settings.gradle.dcl") << getDeclarativeSettingsScriptThatSetsConventions("""
+            ${setId("convention")}
+            ${setFooBar("convention")}
+            ${addToBaz("convention")}
+            ${dependencies(implementation("foo:bar:1.0"))}
+        """)
+        file("settings.gradle.dcl") << """
+            include("foo")
+            include("bar")
+        """
+
+        file("foo/build.gradle.dcl") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType("""
+            ${setAll("foo", "fooBar")}
+            ${addToBaz("foo")}
+        """)
+        file("bar/build.gradle.dcl") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType("""
+            ${setAll("bar", "barBar")}
+            ${dependencies(implementation("bar:foo:2.0"))}
+        """)
+
+        when:
+        run(":foo:printTestSoftwareTypeExtensionWithDependenciesConfiguration")
+
+        then:
+        outputContains("id = foo\nbar = fooBar")
+        outputContains("baz = convention, foo")
+        outputContains("implementation = ${externalDependency('foo', 'bar', '1.0')}")
+
+        when:
+        run(":bar:printTestSoftwareTypeExtensionWithDependenciesConfiguration")
+
+        then:
+        outputContains("id = bar\nbar = barBar")
+        outputContains("baz = convention")
+        outputContains("implementation = ${externalDependency('foo', 'bar', '1.0')}, ${externalDependency('bar', 'foo', '2.0')}")
+    }
+
     @NotYetImplemented
     def "can configure build-level conventions in a non-declarative settings file"() {
         given:
