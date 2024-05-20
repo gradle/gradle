@@ -300,7 +300,7 @@ class IntegTestPreconditions {
         }
     }
 
-    static class JdkFromMultipleVendors implements TestPrecondition {
+    static class DifferentJdksFromMultipleVendors implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
             return AvailableJavaHomes.getAvailableJvmMetadatas().stream()

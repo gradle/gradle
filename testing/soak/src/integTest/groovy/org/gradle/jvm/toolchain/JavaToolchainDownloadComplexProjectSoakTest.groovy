@@ -76,7 +76,7 @@ class JavaToolchainDownloadComplexProjectSoakTest extends AbstractIntegrationSpe
         !result.plainTextOutput.matches("(?s).*The existing installation will be replaced by the new download.*")
     }
 
-    @Requires(IntegTestPreconditions.JdkFromMultipleVendors)
+    @Requires(IntegTestPreconditions.DifferentJdksFromMultipleVendors)
     def "multiple subprojects with different toolchain definitions"() {
         given:
         def otherJdk = getJdkWithDifferentVendor()
