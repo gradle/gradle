@@ -187,6 +187,11 @@ public interface GradleDistribution {
     boolean isHasTestDisplayNames();
 
     /**
+     * Returns true if this version supports custom toolchain resolvers.
+     */
+    boolean isSupportsCustomToolchainResolvers();
+
+    /**
      * Returns true if this version uses the non-flaky toolchain provisioning mechanism introduced in 8.9.
      */
     boolean isNonFlakyToolchainProvisioning();

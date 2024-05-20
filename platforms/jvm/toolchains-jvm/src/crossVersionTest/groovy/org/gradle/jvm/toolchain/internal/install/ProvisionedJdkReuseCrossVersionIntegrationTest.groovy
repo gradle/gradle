@@ -33,8 +33,8 @@ import java.util.stream.Collectors
 import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.applyToolchainResolverPlugin
 import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.singleUrlResolverCode
 
-// We need to test specifically versions before the toolchain provisioning was fixed.
-@IgnoreVersions({ it.isNonFlakyToolchainProvisioning() })
+// We need to test specifically versions before the toolchain provisioning was fixed that support resolvers.
+@IgnoreVersions({ !it.isSupportsCustomToolchainResolvers() || it.isNonFlakyToolchainProvisioning() })
 @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
 class ProvisionedJdkReuseCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
 
