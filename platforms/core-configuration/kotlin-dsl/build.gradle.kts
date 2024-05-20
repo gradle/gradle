@@ -8,60 +8,63 @@ plugins {
 description = "Kotlin DSL Provider"
 
 dependencies {
-
+    api(project(":base-services"))
+    api(project(":concurrent"))
+    api(project(":core-api"))
+    api(project(":core"))
+    api(project(":hashing"))
+    api(project(":java-language-extensions"))
     api(project(":kotlin-dsl-tooling-models"))
-    api(libs.futureKotlin("stdlib"))
-    api(libs.futureKotlin("reflect"))
+    api(project(":logging-api"))
+    api(project(":process-services"))
+    api(project(":tooling-api"))
 
-    implementation(projects.io)
-    implementation(project(":base-services"))
+    api(libs.groovy)
+    api(libs.guava)
+    api(libs.inject)
+    api(libs.jsr305)
+    api(libs.futureKotlin("script-runtime"))
+    api(libs.futureKotlin("scripting-common")) {
+        isTransitive = false
+    }
+    api(libs.futureKotlin("scripting-compiler-impl-embeddable")) {
+        isTransitive = false
+    }
+    api(libs.slf4jApi)
+    api(libs.futureKotlin("stdlib"))
+
+    api(libs.futureKotlin("reflect")) {
+        because("Needed to avoid dependency verification issues")
+    }
+
+    implementation(project(":build-operations"))
+    implementation(project(":enterprise-logging"))
     implementation(project(":enterprise-operations"))
-    implementation(project(":functional"))
-    implementation(project(":messaging"))
-    implementation(project(":native"))
-    implementation(project(":logging"))
-    implementation(project(":process-services"))
-    implementation(project(":persistent-cache"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":core"))
-    implementation(project(":base-services-groovy")) // for 'Specs'
+    implementation(project(":execution"))
     implementation(project(":file-collections"))
     implementation(project(":file-temp"))
     implementation(project(":files"))
-    implementation(project(":resources"))
-    implementation(project(":build-cache"))
-    implementation(project(":tooling-api"))
-    implementation(project(":execution"))
+    implementation(project(":functional"))
+    implementation(project(":logging"))
+    implementation(project(":messaging"))
+    implementation(project(":model-core"))
     implementation(project(":normalization-java"))
-    implementation(project(":wrapper-shared"))
+    implementation(projects.io)
+    implementation(project(":persistent-cache"))
+    implementation(project(":service-provider"))
+    implementation(project(":snapshots"))
+    implementation(project(":resources"))
 
     implementation("org.gradle:kotlin-dsl-shared-runtime")
 
-    implementation(libs.groovy)
-    implementation(libs.groovyJson)
-    implementation(libs.slf4jApi)
-    implementation(libs.guava)
-    implementation(libs.inject)
     implementation(libs.asm)
+    implementation(libs.groovyJson)
 
     implementation(libs.futureKotlin("compiler-embeddable"))
-    implementation(libs.futureKotlin("script-runtime"))
-    implementation(libs.futureKotlin("daemon-embeddable"))
-
-    implementation(libs.futureKotlin("scripting-common")) {
-        isTransitive = false
-    }
     implementation(libs.futureKotlin("scripting-jvm")) {
         isTransitive = false
     }
-    implementation(libs.futureKotlin("scripting-jvm-host")) {
-        isTransitive = false
-    }
     implementation(libs.futureKotlin("scripting-compiler-embeddable")) {
-        isTransitive = false
-    }
-    implementation(libs.futureKotlin("scripting-compiler-impl-embeddable")) {
         isTransitive = false
     }
     implementation(libs.futureKotlin("sam-with-receiver-compiler-plugin")) {
@@ -72,6 +75,10 @@ dependencies {
     }
     implementation("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.5.0") {
         isTransitive = false
+    }
+
+    compileOnly(project(":base-services-groovy")) {
+        because("for 'Specs'")
     }
 
     testImplementation(project(":build-cache-http"))
@@ -134,4 +141,12 @@ testFilesCleanup.reportOnly = true
 
 strictCompile {
     ignoreDeprecations()
+}
+
+dependencyAnalysis {
+    issues {
+        onIncorrectConfiguration {
+            exclude("org.jetbrains.kotlin:kotlin-reflect:1.9.23")
+        }
+    }
 }
