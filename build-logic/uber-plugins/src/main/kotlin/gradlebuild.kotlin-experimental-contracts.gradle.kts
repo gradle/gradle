@@ -14,24 +14,11 @@
  * limitations under the License.
  */
 
-plugins {
-    id("gradlebuild.distribution.implementation-kotlin")
-    id("gradlebuild.kotlin-dsl-sam-with-receiver")
-    id("gradlebuild.kotlin-experimental-contracts")
-}
 
-description = "Efficient and extensible serialization for object graphs"
-
-dependencies {
-    api(projects.configurationProblemsBase)
-    api(projects.loggingApi)
-    api(projects.serialization)
-    api(libs.futureKotlin("stdlib"))
-    api(libs.guava)
-    api(libs.jsr305)
-
-    implementation(projects.kotlinLanguageExtensions)
-    implementation(projects.problemsApi)
-
-    implementation(libs.fastutil)
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+    compilerOptions {
+        freeCompilerArgs.addAll(
+            "-opt-in=kotlin.contracts.ExperimentalContracts",
+        )
+    }
 }
