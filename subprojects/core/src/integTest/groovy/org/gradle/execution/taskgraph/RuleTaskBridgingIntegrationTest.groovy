@@ -391,7 +391,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
         result.assertTasksExecutedInOrder(any(':climbTask', ':oldClimber'),  ':customTask')
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Configuring projects from root, evaluationDependsOn is not IP compatible")
+    @ToBeFixedForIsolatedProjects(because = "evaluationDependsOn is not IP compatible, configuring projects from root, ")
     def "can depend on a rule-source task in a project which has already evaluated"() {
         given:
         createDirs("sub1", "sub2")

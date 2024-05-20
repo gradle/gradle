@@ -174,7 +174,7 @@ project(':api') {
         fixture.assertProjectsConfigured(":", ":api", ':impl')
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Groove dynamic property lookup is not IP compatible")
+    @ToBeFixedForIsolatedProjects(because = "Property dynamic lookup")
     def "follows project dependencies when run in subproject"() {
         createDirs("api", "impl", "util")
         settingsFile << "include 'api', 'impl', 'util'"
