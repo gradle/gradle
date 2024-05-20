@@ -30,7 +30,7 @@ $ gradle -PgradlePropertiesProp=commandLineValue
 Gradle can also set project properties when it sees specially-named system properties or environment variables.
 If the environment variable name looks like `ORG_GRADLE_PROJECT___prop__=somevalue`, then Gradle will set a `prop` property on your project object, with the value of `somevalue`.
 Gradle also supports this for system properties, but with a different naming pattern, which looks like `org.gradle.project.__prop__`.
-Both of the following will set the `foo' property on your Project object to `"bar"`.
+Both of the following will set the `foo` property on your Project object to `"bar"`.
 
 *Example 2:* Setting a project property via a *system property*:
 ====
