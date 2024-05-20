@@ -11,7 +11,7 @@ plugins {
     id("gradlebuild.wrapper")                    // Local development: Convenience tasks to update the wrapper (like 'nightlyWrapper')
 }
 
-description = "Adaptable, fast automation for all"
+description = "Adaptable, fast automation for all"  // Description
 
 dependencyAnalysis {
     issues {
