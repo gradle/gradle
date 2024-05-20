@@ -101,6 +101,6 @@ class ProjectInterpretationSequenceStep(
 
     private
     fun isSoftwareTypeAccessor(accessor: ConfigureAccessor): Boolean {
-        return accessor is ConfigureAccessorInternal.DefaultCustom && accessor.customAccessorIdentifier.startsWith("softwareType:")
+        return accessor is ConfigureAccessor.Custom && accessor.customAccessorIdentifier.startsWith("softwareType:")
     }
 }
