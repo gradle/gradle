@@ -8,14 +8,16 @@ import org.gradle.tooling.BuildController;
 import org.gradle.tooling.model.gradle.GradleBuild;
 
 import java.io.File;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class GetResolvedDomAction implements BuildAction<ResolvedDomPrerequisites> {
 
     @Override
     public ResolvedDomPrerequisites execute(BuildController controller) {
         AnalysisSchema projectSchema = getProjectSchema(controller);
-        String buildFileContent = getBuildFileContent(controller);
-        return new ResolvedDomPrerequisitesImpl(projectSchema, buildFileContent);
+        List<File> declarativeBuildFiles = getDeclarativeBuildFiles(controller);
+        return new ResolvedDomPrerequisitesImpl(projectSchema, declarativeBuildFiles);
     }
 
     private static AnalysisSchema getProjectSchema(BuildController controller) {
@@ -23,27 +25,28 @@ public class GetResolvedDomAction implements BuildAction<ResolvedDomPrerequisite
         return declarativeSchemaModel.getProjectSchema();
     }
 
-    private static String getBuildFileContent(BuildController controller) {
+    private static List<File> getDeclarativeBuildFiles(BuildController controller) {
         GradleBuild gradleBuild = controller.getModel(GradleBuild.class);
-        File randomProjectBuildFile = gradleBuild.getProjects().getAll().stream()
+        List<File> declarativeBuildFiles = gradleBuild
+                .getProjects()
+                .getAll()
+                .stream()
                 .map(p -> new File(p.getProjectDirectory(), "build.gradle.dcl"))
-                .filter(File::exists)
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("Declarative project file not found"));
-
-        return randomProjectBuildFile.getAbsolutePath();
-
-
+                .filter(File::exists).collect(Collectors.toList());
+        if (declarativeBuildFiles.isEmpty()) {
+            throw new RuntimeException("Declarative project file not found");
+        }
+        return declarativeBuildFiles;
     }
 
     private static final class ResolvedDomPrerequisitesImpl implements ResolvedDomPrerequisites {
 
         private final AnalysisSchema analysisSchema;
-        private final String buildFilePath;
+        private final List<File> declarativeBuildFiles;
 
-        public ResolvedDomPrerequisitesImpl(AnalysisSchema analysisSchema, String buildFilePath) {
+        public ResolvedDomPrerequisitesImpl(AnalysisSchema analysisSchema, List<File> declarativeBuildFiles) {
             this.analysisSchema = analysisSchema;
-            this.buildFilePath = buildFilePath;
+            this.declarativeBuildFiles = declarativeBuildFiles;
         }
 
         @Override
@@ -51,9 +54,10 @@ public class GetResolvedDomAction implements BuildAction<ResolvedDomPrerequisite
             return analysisSchema;
         }
 
+
         @Override
-        public String getBuildFilePath() {
-            return buildFilePath;
+        public List<File> getDeclarativeBuildFiles() {
+            return declarativeBuildFiles;
         }
     }
 }

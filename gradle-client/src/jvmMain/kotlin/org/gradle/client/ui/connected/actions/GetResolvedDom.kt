@@ -4,8 +4,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.onClick
 import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -19,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
 import org.gradle.client.build.action.GetResolvedDomAction
 import org.gradle.client.build.model.ResolvedDomPrerequisites
+import org.gradle.client.ui.build.BuildTextField
 import org.gradle.client.ui.composables.LabelMedium
 import org.gradle.client.ui.composables.TitleLarge
 import org.gradle.client.ui.composables.TitleMedium
@@ -49,19 +49,25 @@ class GetResolvedDom : GetModelAction.GetCompositeModelAction<ResolvedDomPrerequ
     @Suppress("LongMethod")
     override fun ColumnScope.ModelContent(model: ResolvedDomPrerequisites) {
 
-        val buildFile = File(model.buildFilePath)
-        val buildFileContent = remember(model) { buildFile.readText() }
-        val buildFileRelativePath = remember(buildFile) {
-            // TODO hardcoded for NiA for now
-            buildFile.relativeTo(buildFile.parentFile.parentFile.parentFile).path
-        }
+        val selectedBuildFile = remember { mutableStateOf<File>(model.declarativeBuildFiles.first()) }
+
+        DeclarativeFileDropDown(
+            model.declarativeBuildFiles,
+            selectedBuildFile
+        )
+
+        val buildFileContent = remember(selectedBuildFile.value) { selectedBuildFile.value.readText() }
+        // TODO hardcoded for NiA for now
+        val buildFileRelativePath = selectedBuildFile.value.relativeTo(
+            selectedBuildFile.value.parentFile.parentFile.parentFile
+        ).path
         val schema = model.analysisSchema
 
-        val dom = remember(model) {
+        val dom = remember(model, selectedBuildFile.value) {
             val parsedLightTree = parse(buildFileContent)
             val languageTreeResult = DefaultLanguageTreeBuilder().build(
                 parsedLightTree = parsedLightTree,
-                sourceIdentifier = SourceIdentifier(buildFile.name)
+                sourceIdentifier = SourceIdentifier(selectedBuildFile.value.name)
             )
             resolvedDocument(
                 schema = schema,
@@ -198,6 +204,44 @@ class GetResolvedDom : GetModelAction.GetCompositeModelAction<ResolvedDomPrerequ
                     )
                     AccessAndConfigureFunction(
                         schema, highlightedSourceRange, functionType, functionNode, indentLevel + 1
+                    )
+                }
+            }
+        }
+    }
+
+    @Composable
+    @OptIn(ExperimentalMaterial3Api::class)
+    private fun DeclarativeFileDropDown(
+        declarativeBuildFiles: MutableList<File>,
+        state: MutableState<File>
+    ) {
+        var expanded by remember { mutableStateOf(false) }
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = !expanded }
+        ) {
+            BuildTextField(
+                modifier = Modifier.menuAnchor(),
+                value = state.value.toString(),
+                onValueChange = { state.value = File(it) },
+                readOnly = true,
+                label = { Text("Project definition") },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+            )
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                declarativeBuildFiles.forEach { file ->
+                    DropdownMenuItem(
+                        text = { Text(file.absolutePath) },
+                        onClick = {
+                            state.value = file
+                            expanded = false
+                        },
+                        contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
                     )
                 }
             }
