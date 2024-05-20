@@ -70,7 +70,9 @@ class SchemaTypeRefContext(val schema: AnalysisSchema) : TypeRefContext {
 }
 
 
-data class CallId(val invocationId: Long, val generationId: AssignmentGenerationId)
+data class CallId(val invocationId: Long, val generationId: AssignmentGenerationId) {
+    override fun toString(): String = "${generationId.ordinal}:$invocationId"
+}
 
 
 class AnalysisContext(
