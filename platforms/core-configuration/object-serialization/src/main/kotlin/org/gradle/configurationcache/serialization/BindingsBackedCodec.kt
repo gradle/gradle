@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.serialization.codecs
+package org.gradle.configurationcache.serialization
 
 import com.google.common.collect.ImmutableList
 import org.gradle.configurationcache.extensions.uncheckedCast
-import org.gradle.configurationcache.serialization.Codec
-import org.gradle.configurationcache.serialization.DecodingProvider
-import org.gradle.configurationcache.serialization.EncodingProvider
-import org.gradle.configurationcache.serialization.ReadContext
-import org.gradle.configurationcache.serialization.SerializerCodec
-import org.gradle.configurationcache.serialization.WriteContext
-import org.gradle.configurationcache.serialization.withDebugFrame
 import org.gradle.internal.serialize.Serializer
 import kotlin.reflect.KClass
 
@@ -33,9 +26,9 @@ import kotlin.reflect.KClass
  * An implementation of the Codec protocol that (based on a [Binding.tag]) chooses and delegates
  * to the proper binding (if one is found).
  *
- * The binding (a tagged codec) is chosen based on the availability of a Binding.encoding for the value being encoded.
+ * The binding (a tagged codec) is chosen based on the availability of a [Binding.encoding] for the value being encoded.
  * This is basically implemented as a predicate dispatching on the value type, first available Binding.encoding wins
- * and its Binding.tag is recorded in the output stream so decoding can be implemented via a fast array lookup.
+ * and its [Binding.tag] is recorded in the output stream so decoding can be implemented via a fast array lookup.
  *
  * @see Binding.tag
  */
@@ -122,11 +115,9 @@ typealias Decoding = DecodingProvider<Any>
 /**
  * An immutable set of bindings, from which a [Codec] can be created.
  */
-internal
 class Bindings(
     private val bindings: ImmutableList<Binding>
 ) {
-    internal
     companion object {
         fun of(builder: BindingsBuilder.() -> Unit) = BindingsBuilder(emptyList()).apply(builder).build()
     }
@@ -140,7 +131,6 @@ class Bindings(
 }
 
 
-internal
 class BindingsBuilder(initialBindings: List<Binding>) {
 
     private

@@ -17,6 +17,7 @@
 package org.gradle.configurationcache.serialization.codecs
 
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.BuildIdentifierSerializer
+import org.gradle.configurationcache.serialization.BindingsBuilder
 import org.gradle.internal.serialize.BaseSerializerFactory.BIG_DECIMAL_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.BIG_INTEGER_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.BOOLEAN_SERIALIZER

@@ -46,6 +46,7 @@ import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.flow.BuildWorkResultProvider
 import org.gradle.configurationcache.flow.RegisteredFlowAction
 import org.gradle.configurationcache.problems.PropertyTrace
+import org.gradle.configurationcache.serialization.Bindings
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.IsolateContext
 import org.gradle.configurationcache.serialization.IsolateOwners

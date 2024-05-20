@@ -17,6 +17,9 @@
 package org.gradle.configurationcache.serialization.codecs
 
 import org.gradle.api.internal.GeneratedSubclasses
+import org.gradle.configurationcache.serialization.Decoding
+import org.gradle.configurationcache.serialization.Encoding
+import org.gradle.configurationcache.serialization.EncodingProducer
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.internal.service.scopes.ServiceScope

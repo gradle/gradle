@@ -39,6 +39,8 @@ import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.composite.internal.BuildTreeWorkGraphController
+import org.gradle.configurationcache.serialization.Bindings
+import org.gradle.configurationcache.serialization.BindingsBuilder
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.codecs.jos.ExternalizableCodec
 import org.gradle.configurationcache.serialization.codecs.jos.JavaObjectSerializationCodec

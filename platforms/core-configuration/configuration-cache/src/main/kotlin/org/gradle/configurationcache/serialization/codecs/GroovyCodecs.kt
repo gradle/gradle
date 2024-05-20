@@ -26,6 +26,7 @@ import org.codehaus.groovy.runtime.InvokerHelper
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
+import org.gradle.configurationcache.serialization.BindingsBuilder
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
