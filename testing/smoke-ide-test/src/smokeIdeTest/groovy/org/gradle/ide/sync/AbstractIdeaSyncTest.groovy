@@ -49,8 +49,13 @@ abstract class AbstractIdeaSyncTest extends Specification {
     }
 
     /**
-     * Runs an external process, which is downloads, if it absent in {@link #getIdeHome} dir, Idea Community
-     * of a passed version and runs a project import to it.
+     * Runs a full sync process for the build-under-test with a given IntelliJ IDEA Community version.
+     * <p>
+     * The version can be optionally suffixed with a "build type", which is one of {@code release}, {@code rc}, {@code eap}.
+     * For instance, {@code 2024.2-eap}. When the build type is not provided, it defaults to {@code release}.
+     * <p>
+     * The sync runs as an external process.
+     * The IDE distribution is automatically downloaded if required.
      */
     protected void ideaSync(String version) {
         def gradleDist = distribution.gradleHomeDir.toPath()
@@ -108,7 +113,7 @@ abstract class AbstractIdeaSyncTest extends Specification {
             case 0:
                 throw new IllegalStateException("gradle-ide-starter is missing")
             default:
-                throw new IllegalStateException("More than one gradle-ide-starter found")
+                throw new IllegalStateException("More than one gradle-ide-starter found: $ideStarterDirs")
         }
     }
 
