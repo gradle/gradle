@@ -36,11 +36,11 @@ class AdditionRecordConvention(private val dataAdditionRecord: DataAdditionRecor
 }
 
 
-interface AssignmentRecordConventionReceiver : ConventionReceiver {
+fun interface AssignmentRecordConventionReceiver : ConventionReceiver {
     fun receive(assignmentRecord: AssignmentRecord)
 }
 
 
-interface AdditionRecordConventionReceiver : ConventionReceiver {
+fun interface AdditionRecordConventionReceiver : ConventionReceiver {
     fun receive(additionRecord: DataAdditionRecord)
 }

@@ -64,19 +64,21 @@ fun findSoftwareType(objectOrigin: ObjectOrigin): ObjectOrigin.AccessAndConfigur
 }
 
 
-fun isSoftwareType(objectOrigin: ObjectOrigin.AccessAndConfigureReceiver): Boolean {
-    if (objectOrigin.receiver is ObjectOrigin.ImplicitThisReceiver &&
-        (objectOrigin.receiver as ObjectOrigin.ImplicitThisReceiver).resolvedTo is ObjectOrigin.AccessAndConfigureReceiver) {
-        val parent = (objectOrigin.receiver as ObjectOrigin.ImplicitThisReceiver).resolvedTo as ObjectOrigin.AccessAndConfigureReceiver
-        if (parent.function.simpleName == "conventions" && isTopLevelReceiver(parent.receiver)) {
-            return true
+internal
+fun isSoftwareType(objectOrigin: ObjectOrigin): Boolean =
+    true == (objectOrigin as? ObjectOrigin.AccessAndConfigureReceiver)?.receiver?.let { receiver ->
+        (receiver as? ObjectOrigin.ImplicitThisReceiver)?.resolvedTo?.let { parent ->
+            isConventionsCall(parent)
         }
     }
-    return false
-}
 
 
-fun isTopLevelReceiver(objectOrigin: ObjectOrigin): Boolean {
-    return objectOrigin is ObjectOrigin.ImplicitThisReceiver &&
-        objectOrigin.resolvedTo is ObjectOrigin.TopLevelReceiver
-}
+internal
+fun isConventionsCall(parent: ObjectOrigin.ReceiverOrigin) = parent is ObjectOrigin.AccessAndConfigureReceiver &&
+    isTopLevelReceiver(parent.receiver) &&
+    (parent as? ObjectOrigin.AccessAndConfigureReceiver)?.function?.simpleName == "conventions"
+
+
+private
+fun isTopLevelReceiver(objectOrigin: ObjectOrigin) =
+    (objectOrigin as? ObjectOrigin.ImplicitThisReceiver)?.resolvedTo is ObjectOrigin.TopLevelReceiver

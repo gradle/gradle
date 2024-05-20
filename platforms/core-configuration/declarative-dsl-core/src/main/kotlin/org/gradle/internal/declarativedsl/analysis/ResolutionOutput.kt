@@ -141,7 +141,7 @@ sealed interface ObjectOrigin {
     }
 
     data class AccessAndConfigureReceiver(
-        override var receiver: ObjectOrigin,
+        override val receiver: ObjectOrigin,
         override val function: SchemaFunction,
         override val originElement: FunctionCall,
         override val parameterBindings: ParameterValueBinding,

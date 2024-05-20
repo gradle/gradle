@@ -19,15 +19,13 @@ package org.gradle.internal.declarativedsl.project
 import org.gradle.declarative.dsl.schema.ConfigureAccessor
 import org.gradle.internal.declarativedsl.analysis.AssignmentGenerationId
 import org.gradle.internal.declarativedsl.analysis.AssignmentRecord
-import org.gradle.internal.declarativedsl.analysis.ConfigureAccessorInternal
 import org.gradle.internal.declarativedsl.analysis.DataAdditionRecord
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
+import org.gradle.internal.declarativedsl.analysis.transformation.OriginReplacement.replaceReceivers
 import org.gradle.internal.declarativedsl.conventions.AdditionRecordConvention
-import org.gradle.internal.declarativedsl.conventions.AdditionRecordConventionReceiver
 import org.gradle.internal.declarativedsl.conventions.AssignmentRecordConvention
-import org.gradle.internal.declarativedsl.conventions.AssignmentRecordConventionReceiver
-import org.gradle.internal.declarativedsl.conventions.findSoftwareType
+import org.gradle.internal.declarativedsl.conventions.isConventionsCall
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequenceStep
 import org.gradle.plugin.software.internal.SoftwareTypeImplementation
@@ -47,76 +45,58 @@ class ProjectInterpretationSequenceStep(
     override fun whenEvaluated(resultReceiver: Any) = Unit
 
     override fun processResolutionResult(resolutionResult: ResolutionResult): ResolutionResult {
-        val resultHolder = ResultHolder(resolutionResult)
-
-        val remapped = mutableSetOf<String>()
         val softwareTypes = softwareTypeRegistry.softwareTypeImplementations.associateBy { it.softwareType }
         val referencedSoftwareTypes = resolutionResult.nestedObjectAccess
             .filter { isSoftwareTypeAccessor(it.dataObject.accessor) }
             .mapNotNull { softwareTypes[it.dataObject.function.simpleName] }
 
-        referencedSoftwareTypes.forEach { softwareTypeImplementation ->
-            val topLevelReceiver = ObjectOrigin.ImplicitThisReceiver(resultHolder.result.topLevelReceiver, true)
-            applyAdditionConventions(softwareTypeImplementation, remapped, topLevelReceiver, resultHolder)
-            applyAssignmentConventions(softwareTypeImplementation, remapped, topLevelReceiver, resultHolder)
-        }
+        val conventionAssignments: List<AssignmentRecord> = applyAssignmentConventions(referencedSoftwareTypes, resolutionResult.topLevelReceiver)
+        val conventionAdditions: List<DataAdditionRecord> = applyAdditionConventions(referencedSoftwareTypes, resolutionResult.topLevelReceiver)
 
-        return resultHolder.result
+        return resolutionResult.copy(
+            conventionAssignments = resolutionResult.conventionAssignments + conventionAssignments,
+            conventionAdditions = resolutionResult.conventionAdditions + conventionAdditions
+        )
     }
 
     private
-    data class ResultHolder(var result: ResolutionResult)
-
-    private
     fun applyAssignmentConventions(
-        softwareTypeImplementation: SoftwareTypeImplementation<*>,
-        remapped: MutableSet<String>,
-        topLevelReceiver: ObjectOrigin.ImplicitThisReceiver,
-        resultHolder: ResultHolder
-    ) {
-        softwareTypeImplementation.conventions.filterIsInstance<AssignmentRecordConvention>().forEach { rule ->
-            rule.apply(object : AssignmentRecordConventionReceiver {
-                override fun receive(assignmentRecord: AssignmentRecord) {
-                    if (!remapped.contains(softwareTypeImplementation.softwareType)) {
-                        remapSoftwareTypeToTopLevelReceiver(assignmentRecord, topLevelReceiver)
-                        remapped.add(softwareTypeImplementation.softwareType)
-                    }
-                    resultHolder.result = resultHolder.result.copy(conventionAssignments = resultHolder.result.conventionAssignments + assignmentRecord)
+        referencedSoftwareTypes: List<SoftwareTypeImplementation<*>>,
+        topLevelReceiver: ObjectOrigin.TopLevelReceiver
+    ): List<AssignmentRecord> = buildList {
+        referencedSoftwareTypes.forEach { softwareType ->
+            softwareType.conventions.filterIsInstance<AssignmentRecordConvention>().forEach { convention ->
+                convention.apply { assignmentRecord ->
+                    add(
+                        assignmentRecord.copy(
+                            lhs = assignmentRecord.lhs.copy(
+                                receiverObject = replaceReceivers(assignmentRecord.lhs.receiverObject, ::isConventionsCall, topLevelReceiver)
+                            ),
+                            rhs = replaceReceivers(assignmentRecord.rhs, ::isConventionsCall, topLevelReceiver)
+                        )
+                    )
                 }
-            })
+            }
         }
     }
 
     private
     fun applyAdditionConventions(
-        softwareTypeImplementation: SoftwareTypeImplementation<*>,
-        remapped: MutableSet<String>,
-        topLevelReceiver: ObjectOrigin.ImplicitThisReceiver,
-        resultHolder: ResultHolder
-    ) {
-        softwareTypeImplementation.conventions.filterIsInstance<AdditionRecordConvention>().forEach { rule ->
-            rule.apply(object : AdditionRecordConventionReceiver {
-                override fun receive(additionRecord: DataAdditionRecord) {
-                    if (!remapped.contains(softwareTypeImplementation.softwareType)) {
-                        remapSoftwareTypeToTopLevelReceiver(additionRecord, topLevelReceiver)
-                        remapped.add(softwareTypeImplementation.softwareType)
-                    }
-                    resultHolder.result = resultHolder.result.copy(conventionAdditions = resultHolder.result.conventionAdditions + additionRecord)
+        referencedSoftwareTypes: List<SoftwareTypeImplementation<*>>,
+        topLevelReceiver: ObjectOrigin.TopLevelReceiver
+    ): List<DataAdditionRecord> = buildList {
+        referencedSoftwareTypes.forEach { softwareType ->
+            softwareType.conventions.filterIsInstance<AdditionRecordConvention>().forEach { convention ->
+                convention.apply { additionRecord ->
+                    add(
+                        DataAdditionRecord(
+                            container = replaceReceivers(additionRecord.container, ::isConventionsCall, topLevelReceiver),
+                            dataObject = replaceReceivers(additionRecord.dataObject, ::isConventionsCall, topLevelReceiver)
+                        )
+                    )
                 }
-            })
+            }
         }
-    }
-
-    private
-    fun remapSoftwareTypeToTopLevelReceiver(assignmentRecord: AssignmentRecord, topLevelReceiver: ObjectOrigin.ImplicitThisReceiver) {
-        val softwareTypeReceiver = findSoftwareType(assignmentRecord.lhs.receiverObject)
-        softwareTypeReceiver.receiver = topLevelReceiver
-    }
-
-    private
-    fun remapSoftwareTypeToTopLevelReceiver(additionRecord: DataAdditionRecord, topLevelReceiver: ObjectOrigin.ImplicitThisReceiver) {
-        val softwareTypeReceiver = findSoftwareType(additionRecord.container)
-        softwareTypeReceiver.receiver = topLevelReceiver
     }
 
     private
