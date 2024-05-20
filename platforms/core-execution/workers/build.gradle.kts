@@ -28,6 +28,7 @@ dependencies {
     implementation(project(":file-collections"))
     implementation(project(":time"))
 
+    implementation(libs.guava)
     implementation(libs.slf4jApi)
     implementation(libs.guava)
 
