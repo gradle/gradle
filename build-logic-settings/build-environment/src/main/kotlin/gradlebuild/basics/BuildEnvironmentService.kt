@@ -25,9 +25,9 @@ import org.gradle.internal.os.OperatingSystem
 import javax.inject.Inject
 
 
-abstract class BuildEnvironmentService: BuildService<BuildEnvironmentService.Parameters> {
+abstract class BuildEnvironmentService : BuildService<BuildEnvironmentService.Parameters> {
 
-    interface Parameters: BuildServiceParameters {
+    interface Parameters : BuildServiceParameters {
         val rootProjectDir: DirectoryProperty
     }
 

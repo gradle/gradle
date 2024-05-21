@@ -20,8 +20,8 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Property
 
 
-abstract class BuildEnvironmentExtension {
-    abstract val gitCommitId: Property<String>
-    abstract val gitBranch: Property<String>
-    abstract val repoRoot: DirectoryProperty
+interface BuildEnvironmentExtension {
+    val gitCommitId: Property<String>
+    val gitBranch: Property<String>
+    val repoRoot: DirectoryProperty
 }

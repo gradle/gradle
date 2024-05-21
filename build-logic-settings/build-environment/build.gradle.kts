@@ -18,7 +18,7 @@ plugins {
     `kotlin-dsl`
 }
 
-description = "Provides plugins for configuring global settings"
+description = "Provides plugins for configuring build environment"
 
 group = "gradlebuild"
 
