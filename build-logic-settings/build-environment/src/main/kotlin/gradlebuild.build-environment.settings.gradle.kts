@@ -17,13 +17,14 @@
 import gradlebuild.basics.BuildEnvironmentExtension
 import gradlebuild.basics.BuildEnvironmentService
 
-val buildLayout = layout
-gradle.lifecycle.beforeProject {
-    val service = gradle.sharedServices.registerIfAbsent("buildEnvironmentService", BuildEnvironmentService::class) {
-        parameters.rootProjectDir = buildLayout.rootDirectory
+with(layout.rootDirectory) {
+    gradle.lifecycle.beforeProject {
+        val service = gradle.sharedServices.registerIfAbsent("buildEnvironmentService", BuildEnvironmentService::class) {
+            parameters.rootProjectDir = this@with
+        }
+        val buildEnvironmentExtension = extensions.create("buildEnvironment", BuildEnvironmentExtension::class)
+        buildEnvironmentExtension.gitCommitId = service.flatMap { it.gitCommitId }
+        buildEnvironmentExtension.gitBranch = service.flatMap { it.gitBranch }
+        buildEnvironmentExtension.repoRoot = this@with
     }
-    val buildEnvironmentExtension = extensions.create("buildEnvironment", BuildEnvironmentExtension::class)
-    buildEnvironmentExtension.gitCommitId = service.flatMap { it.gitCommitId }
-    buildEnvironmentExtension.gitBranch = service.flatMap { it.gitBranch }
-    buildEnvironmentExtension.repoRoot = buildLayout.rootDirectory
 }
