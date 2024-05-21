@@ -18,10 +18,8 @@ package org.gradle.internal.jvm.inspection;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.cache.FileLockManager;
 import org.gradle.cache.IndexedCache;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.internal.serialize.DefaultSerializer;
 import org.gradle.jvm.toolchain.internal.InstallationLocation;
 
@@ -40,13 +38,9 @@ public class CachingJvmMetadataDetector implements JvmMetadataDetector, Closeabl
     private final IndexedCache<File, JvmInstallationMetadata> indexedCache;
     private final Map<File, JvmInstallationMetadata> invalidJavaMetadataMap = Collections.synchronizedMap(new HashMap<>());
 
-    public CachingJvmMetadataDetector(JvmMetadataDetector jvmMetadataDetector, GlobalScopedCacheBuilderFactory globalScopedCacheBuilderFactory) {
+    public CachingJvmMetadataDetector(JvmMetadataDetector jvmMetadataDetector, JvmInstallationMetadataCacheBuildFactory jvmMetadataCacheBuildFactory) {
         metadataDetector = jvmMetadataDetector;
-        persistentCache = globalScopedCacheBuilderFactory
-            .createCacheBuilder("toolchainsMetadata")
-            .withDisplayName("Toolchains Metadata")
-            .withInitialLockMode(FileLockManager.LockMode.OnDemand)
-            .open();
+        persistentCache = jvmMetadataCacheBuildFactory.createBuilder().open();
         indexedCache = persistentCache.createIndexedCache("toolchainsCache", File.class, new DefaultSerializer<>());
     }
 

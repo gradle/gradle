@@ -16,7 +16,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
-import org.gradle.cache.internal.scopes.DefaultCacheScopeMapping
+import org.gradle.cache.internal.scopes.NamedCacheScopeMapping
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.cache.CachingIntegrationFixture
@@ -307,7 +307,7 @@ public class Base {}
 
     def relocateCachesAndChangeGradleHome() {
         def otherHome = executer.gradleUserHomeDir.parentFile.createDir('other-home')
-        def otherCacheDir = otherHome.toPath().resolve(DefaultCacheScopeMapping.GLOBAL_CACHE_DIR_NAME)
+        def otherCacheDir = otherHome.toPath().resolve(NamedCacheScopeMapping.GLOBAL_CACHE_DIR_NAME)
         Files.createDirectory(otherCacheDir)
         Files.move(getMetadataCacheDir().toPath(), otherCacheDir.resolve(CacheLayout.MODULES.key))
         executer.withGradleUserHomeDir(otherHome)

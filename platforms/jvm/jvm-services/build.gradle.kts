@@ -45,7 +45,8 @@ dependencies {
 
     implementation(project(":functional"))
     implementation(project(":native"))
-    implementation(project(":messaging"))
+    implementation(project(":logging"))
+    implementation(project(":serialization"))
 
     implementation(libs.guava)
     implementation(libs.asm)

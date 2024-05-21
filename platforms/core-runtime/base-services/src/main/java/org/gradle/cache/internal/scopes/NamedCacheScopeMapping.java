@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,24 +19,23 @@ package org.gradle.cache.internal.scopes;
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.VersionStrategy;
-import org.gradle.util.GradleVersion;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.regex.Pattern;
 
-public class DefaultCacheScopeMapping implements CacheScopeMapping {
+public class NamedCacheScopeMapping implements CacheScopeMapping {
 
     @VisibleForTesting
     public static final String GLOBAL_CACHE_DIR_NAME = "caches";
     private static final Pattern CACHE_KEY_NAME_PATTERN = Pattern.compile("\\p{Alpha}+[-/.\\w]*");
 
     private final File globalCacheDir;
-    private final GradleVersion version;
+    private final String name;
 
-    public DefaultCacheScopeMapping(File rootDir, GradleVersion version) {
+    public NamedCacheScopeMapping(File rootDir, String name) {
         this.globalCacheDir = rootDir;
-        this.version = version;
+        this.name = name;
     }
 
     @Override
@@ -59,7 +58,7 @@ public class DefaultCacheScopeMapping implements CacheScopeMapping {
     private File getCacheDir(File rootDir, VersionStrategy versionStrategy, String subDir) {
         switch (versionStrategy) {
             case CachePerVersion:
-                return new File(rootDir, version.getVersion() + "/" + subDir);
+                return new File(rootDir, name + "/" + subDir);
             case SharedCache:
                 return new File(rootDir, subDir);
             default:
