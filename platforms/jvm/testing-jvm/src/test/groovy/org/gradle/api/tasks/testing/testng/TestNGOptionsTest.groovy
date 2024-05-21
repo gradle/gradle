@@ -72,7 +72,7 @@ class TestNGOptionsTest extends Specification {
         def source = testNGOptionsWithPrefix("source", false, 0)
 
         when:
-        def target = testNGOptionsWithPrefix("target", true, 1)
+        def target = testNGOptionsWithPrefix("target", true, 5)
         target.copyFrom(source)
 
         then:
