@@ -307,5 +307,9 @@ tasks.compileTestGroovy {
     groovyOptions.fork("memoryInitialSize" to "128M", "memoryMaximumSize" to "1G")
 }
 
+tasks.isolatedProjectsIntegTest {
+    enabled = true
+}
+
 integTest.usesJavadocCodeSnippets = true
 testFilesCleanup.reportOnly = true

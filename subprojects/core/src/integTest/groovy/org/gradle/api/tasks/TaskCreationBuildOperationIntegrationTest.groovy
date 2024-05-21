@@ -22,6 +22,7 @@ import org.gradle.api.internal.tasks.RegisterTaskBuildOperationType
 import org.gradle.api.specs.Spec
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.build.BuildTestFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.logging.events.LogEvent
@@ -121,6 +122,7 @@ class TaskCreationBuildOperationIntegrationTest extends AbstractIntegrationSpec 
         }
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Investigate")
     def "emits registration build ops when tasks not realized"() {
         given:
         stopBeforeTaskGraphCalculation()
@@ -192,6 +194,7 @@ class TaskCreationBuildOperationIntegrationTest extends AbstractIntegrationSpec 
         buildOperations.none(RealizeTaskBuildOperationType, not(withPath(':', ':foo')))
     }
 
+    @ToBeFixedForIsolatedProjects(because = "allprojects, subprojects")
     def "registration and realization ops have correct paths"() {
         given:
         def createTasks = {

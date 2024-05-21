@@ -19,6 +19,7 @@ package org.gradle.execution.taskgraph
 import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.util.internal.TextUtil
 
 import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
@@ -390,6 +391,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
         result.assertTasksExecutedInOrder(any(':climbTask', ':oldClimber'),  ':customTask')
     }
 
+    @ToBeFixedForIsolatedProjects(because = "evaluationDependsOn is not IP compatible, configuring projects from root, ")
     def "can depend on a rule-source task in a project which has already evaluated"() {
         given:
         createDirs("sub1", "sub2")

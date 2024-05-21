@@ -17,6 +17,8 @@ package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
 
 import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
@@ -446,6 +448,10 @@ assert 'overridden value' == global
         succeeds("test")
     }
 
+    @Requires(
+        value = IntegTestPreconditions.NotIsolatedProjects,
+        reason = "Exercises IP incompatible behavior: Groovy method inheritance"
+    )
     def canAddMethodsUsingAPropertyWhoseValueIsAClosure() {
         createDirs("child1", "child2")
         file("settings.gradle").writelns("include 'child1', 'child2'");

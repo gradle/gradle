@@ -38,6 +38,7 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.process.ExecOperations
 import org.gradle.test.fixtures.file.TestFile
@@ -1002,6 +1003,7 @@ Hello, subproject1
         outputContains("Hello, subproject2")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "subprojects")
     def "plugin applied to multiple projects can register a shared service"() {
         createDirs("a", "b", "c")
         settingsFile << "include 'a', 'b', 'c'"
