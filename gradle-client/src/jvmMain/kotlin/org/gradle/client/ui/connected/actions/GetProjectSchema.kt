@@ -47,17 +47,7 @@ class GetProjectSchema : GetModelAction<DeclarativeSchemaModel> {
         }
     }
 
-    private fun AnalysisSchema.describeSoftwareTypes(): String {
-        return buildString {
-            softwareTypes.forEach { softwareType ->
-                appendLine()
-                appendDescription(this@describeSoftwareTypes, softwareType)
-                appendLine()
-            }
-        }
-    }
-
-    private val indentChars = "  "
+    private val indentChars = "    "
 
     @Suppress("NestedBlockDepth")
     private fun StringBuilder.appendDescription(
@@ -99,7 +89,7 @@ class GetProjectSchema : GetModelAction<DeclarativeSchemaModel> {
 
             // Factory function
             is FunctionSemantics.Pure -> {
-                append(indentChars.repeat(indentLevel + 1))
+                append(indentChars.repeat(indentLevel))
                 append(function.simpleName)
                 append("(")
                 append(function.parameters.joinToString { dp -> dp.toHumanReadable() })
@@ -109,7 +99,7 @@ class GetProjectSchema : GetModelAction<DeclarativeSchemaModel> {
 
             // Add and configure function
             is FunctionSemantics.AddAndConfigure -> {
-                append(indentChars.repeat(indentLevel + 1))
+                append(indentChars.repeat(indentLevel))
                 append(function.simpleName)
                 append("(")
                 append(function.parameters.joinToString { dp -> dp.toHumanReadable() })
@@ -117,7 +107,7 @@ class GetProjectSchema : GetModelAction<DeclarativeSchemaModel> {
             }
 
             is FunctionSemantics.Builder -> {
-                append(indentChars.repeat(indentLevel + 1))
+                append(indentChars.repeat(indentLevel))
                 append("TODO Block '${function.simpleName}' is a Builder")
             }
         }

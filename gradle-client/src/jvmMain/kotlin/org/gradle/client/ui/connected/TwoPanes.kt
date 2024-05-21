@@ -1,5 +1,6 @@
 package org.gradle.client.ui.connected
 
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -19,20 +20,23 @@ fun TwoPanes(
     right: @Composable ColumnScope.() -> Unit,
     leftWeight: Float = DEFAULT_LEFT_WEIGHT,
     rightWeight: Float = DEFAULT_RIGHT_WEIGHT,
-    scrollable: Boolean = true,
+    verticallyScrollable: Boolean = true,
+    horizontallyScrollable: Boolean = false,
 ) {
     Row(modifier) {
         Column(
             modifier = Modifier.padding(end = MaterialTheme.spacing.level2)
                 .weight(leftWeight)
-                .run { if (scrollable) verticalScroll(rememberScrollState()) else this },
+                .run { if (verticallyScrollable) verticalScroll(rememberScrollState()) else this }
+                .run { if (horizontallyScrollable) horizontalScroll(rememberScrollState()) else this },
             verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.level2),
         ) {
             left()
         }
         Column(
             modifier = Modifier.weight(rightWeight)
-                .run { if (scrollable) verticalScroll(rememberScrollState()) else this },
+                .run { if (verticallyScrollable) verticalScroll(rememberScrollState()) else this }
+                .run { if (horizontallyScrollable) horizontalScroll(rememberScrollState()) else this },
             verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.level2),
         ) {
             right()

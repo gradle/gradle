@@ -96,8 +96,9 @@ class GetResolvedDom : GetModelAction.GetCompositeModelAction<ResolvedDomPrerequ
 
         TitleLarge("Declarative Project Definitions")
         TwoPanes(
-            leftWeight = 0.45f, rightWeight = 0.55f,
-            scrollable = false,
+            leftWeight = 0.4f, rightWeight = 0.6f,
+            verticallyScrollable = false,
+            horizontallyScrollable = true,
             left = {
                 val softwareTypeNode = dom.singleSoftwareTypeNode
                 val softwareTypeSchema = schema.softwareTypeNamed(softwareTypeNode.name)
@@ -151,12 +152,12 @@ class GetResolvedDom : GetModelAction.GetCompositeModelAction<ResolvedDomPrerequ
             },
             right = {
                 Column {
-                    TitleMedium("File: $buildFileRelativePath")
+                    TitleMedium(buildFileRelativePath)
                     Spacer(Modifier.height(16.dp))
                     SelectionContainer {
                         Text(
                             text = highlightedSource,
-                            style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
+                            style = MaterialTheme.typography.labelMedium.copy(fontFamily = FontFamily.Monospace),
                         )
                     }
                 }
