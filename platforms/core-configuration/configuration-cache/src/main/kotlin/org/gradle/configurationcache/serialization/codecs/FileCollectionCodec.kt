@@ -21,6 +21,7 @@ import org.gradle.api.file.FileTree
 import org.gradle.api.internal.artifacts.configurations.ResolutionBackedFileCollection
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSetToFileCollectionFactory
 import org.gradle.api.internal.artifacts.transform.TransformedArtifactSet
+import org.gradle.api.internal.file.FileCollectionExecutionTimeValue
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionStructureVisitor
@@ -40,8 +41,10 @@ import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.decodePreservingIdentity
 import org.gradle.internal.serialize.graph.encodePreservingIdentityOf
 import org.gradle.internal.serialize.graph.readList
+import org.gradle.configurationcache.serialization.readNonNull
 import org.gradle.internal.serialize.graph.writeCollection
 import java.io.File
+import kotlin.jvm.optionals.getOrNull
 
 
 internal
@@ -57,9 +60,16 @@ class FileCollectionCodec(
     }
 
     suspend fun WriteContext.encodeContents(value: FileCollectionInternal) {
-        val visitor = CollectingVisitor()
-        value.visitStructure(visitor)
-        writeCollection(visitor.elements)
+        val executionTimeValue = value.calculateExecutionTimeValue().getOrNull()
+        if (executionTimeValue != null) {
+            writeBoolean(true)
+            write(executionTimeValue)
+        } else {
+            writeBoolean(false)
+            val visitor = CollectingVisitor()
+            value.visitStructure(visitor)
+            writeCollection(visitor.elements)
+        }
     }
 
     override suspend fun ReadContext.decode(): FileCollectionInternal {
@@ -70,8 +80,10 @@ class FileCollectionCodec(
         }
     }
 
-    suspend fun ReadContext.decodeContents(): FileCollectionInternal {
-        return fileCollectionFactory.resolving(
+    suspend fun ReadContext.decodeContents(): FileCollectionInternal = if (readBoolean()) {
+        readNonNull<FileCollectionExecutionTimeValue>().toFileCollection(fileCollectionFactory)
+    } else {
+        fileCollectionFactory.resolving(
             readList().map { element ->
                 when (element) {
                     is File -> element
