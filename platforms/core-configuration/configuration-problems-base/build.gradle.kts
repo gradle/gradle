@@ -27,7 +27,7 @@ dependencies {
     api(projects.problemsApi)
     api(libs.futureKotlin("stdlib"))
 
-    implementation(projects.kotlinLanguageExtensions)
+    implementation(projects.javaLanguageExtensionsKt)
     implementation(projects.logging)
 
     implementation(libs.guava)

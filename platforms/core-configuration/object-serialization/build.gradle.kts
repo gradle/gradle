@@ -30,7 +30,7 @@ dependencies {
     api(libs.guava)
     api(libs.jsr305)
 
-    implementation(projects.kotlinLanguageExtensions)
+    implementation(projects.javaLanguageExtensionsKt)
     implementation(projects.problemsApi)
 
     implementation(libs.fastutil)

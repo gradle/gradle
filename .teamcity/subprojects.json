@@ -602,6 +602,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "java-language-extensions-kt",
+    "path": "platforms/core-configuration/java-language-extensions-kt",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "java-platform",
     "path": "platforms/jvm/java-platform",
     "unitTests": true,
@@ -653,13 +660,6 @@
   {
     "name": "kotlin-dsl-tooling-models",
     "path": "platforms/core-configuration/kotlin-dsl-tooling-models",
-    "unitTests": false,
-    "functionalTests": false,
-    "crossVersionTests": false
-  },
-  {
-    "name": "kotlin-language-extensions",
-    "path": "platforms/core-configuration/kotlin-language-extensions",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
