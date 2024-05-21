@@ -18,6 +18,7 @@ package org.gradle.internal.daemon.client.serialization;
 
 import org.gradle.internal.classloader.ClassLoaderSpec;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
+import org.gradle.tooling.internal.provider.serialization.PayloadClassLoaderFactory;
 
 import java.util.List;
 

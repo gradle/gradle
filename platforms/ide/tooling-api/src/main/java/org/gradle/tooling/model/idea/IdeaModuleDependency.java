@@ -16,11 +16,15 @@
 
 package org.gradle.tooling.model.idea;
 
+import org.gradle.tooling.ToolingModelContract;
+import org.gradle.tooling.internal.consumer.converters.BackwardsCompatibleIdeaModuleDependency;
+
 /**
  * Dependency on a module in a project.
  *
  * @since 1.0-milestone-5
  */
+@ToolingModelContract(subTypes = {BackwardsCompatibleIdeaModuleDependency.class})
 public interface IdeaModuleDependency extends IdeaDependency {
 
     /**

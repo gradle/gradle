@@ -37,7 +37,6 @@ public class ConsumerTargetTypeProvider implements TargetTypeProvider {
 
     @Override
     public <T> Class<? extends T> getTargetType(Class<T> initialTargetType, Object protocolObject) {
-        // TODO: implement this mapping via ToolingModelContract mechanism
         if (initialTargetType.isAssignableFrom(CppComponent.class)) {
             if (protocolObject instanceof InternalCppApplication) {
                 return CppApplication.class.asSubclass(initialTargetType);
