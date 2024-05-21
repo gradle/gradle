@@ -216,7 +216,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
             return Collections.emptySet();
         }
 
-        final Set<Class<?>> allImplementedInterfaces = walkTypeHierarchyAndExtractInterfaces(sourceObject.getClass());
+        Set<Class<?>> allImplementedInterfaces = walkTypeHierarchyAndExtractInterfaces(sourceObject.getClass());
 
         // keep only those implemented interfaces which are in model contract set
         Set<Class<?>> filteredImplementedInterfaces = new HashSet<>();
