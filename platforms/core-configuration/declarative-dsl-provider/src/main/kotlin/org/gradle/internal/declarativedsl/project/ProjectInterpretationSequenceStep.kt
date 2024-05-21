@@ -20,11 +20,13 @@ import org.gradle.declarative.dsl.schema.ConfigureAccessor
 import org.gradle.internal.declarativedsl.analysis.AssignmentGenerationId
 import org.gradle.internal.declarativedsl.analysis.AssignmentRecord
 import org.gradle.internal.declarativedsl.analysis.DataAdditionRecord
+import org.gradle.internal.declarativedsl.analysis.NestedObjectAccessRecord
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 import org.gradle.internal.declarativedsl.analysis.transformation.OriginReplacement.replaceReceivers
 import org.gradle.internal.declarativedsl.conventions.AdditionRecordConvention
 import org.gradle.internal.declarativedsl.conventions.AssignmentRecordConvention
+import org.gradle.internal.declarativedsl.conventions.NestedObjectAccessConvention
 import org.gradle.internal.declarativedsl.conventions.isConventionsCall
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequenceStep
@@ -51,12 +53,14 @@ class ProjectInterpretationSequenceStep(
             .filter { isSoftwareTypeAccessor(it.dataObject.accessor) }
             .mapNotNull { softwareTypes[it.dataObject.function.simpleName] }
 
-        val conventionAssignments: List<AssignmentRecord> = applyAssignmentConventions(referencedSoftwareTypes, resolutionResult.topLevelReceiver)
-        val conventionAdditions: List<DataAdditionRecord> = applyAdditionConventions(referencedSoftwareTypes, resolutionResult.topLevelReceiver)
+        val conventionAssignments = applyAssignmentConventions(referencedSoftwareTypes, resolutionResult.topLevelReceiver)
+        val conventionAdditions = applyAdditionConventions(referencedSoftwareTypes, resolutionResult.topLevelReceiver)
+        val conventionNestedObjectAccess = applyNestedObjectAccessConvention(referencedSoftwareTypes, resolutionResult.topLevelReceiver)
 
         return resolutionResult.copy(
             conventionAssignments = resolutionResult.conventionAssignments + conventionAssignments,
-            conventionAdditions = resolutionResult.conventionAdditions + conventionAdditions
+            conventionAdditions = resolutionResult.conventionAdditions + conventionAdditions,
+            conventionNestedObjectAccess = resolutionResult.conventionNestedObjectAccess + conventionNestedObjectAccess
         )
     }
 
@@ -99,6 +103,27 @@ class ProjectInterpretationSequenceStep(
             }
         }
     }
+
+    private
+    fun applyNestedObjectAccessConvention(
+        referencedSoftwareTypes: List<SoftwareTypeImplementation<*>>,
+        topLevelReceiver: ObjectOrigin.TopLevelReceiver
+    ): List<NestedObjectAccessRecord> = buildList {
+        referencedSoftwareTypes.forEach { softwareType ->
+            softwareType.conventions.filterIsInstance<NestedObjectAccessConvention>().forEach { convention ->
+                convention.apply { additionRecord ->
+                    add(
+                        NestedObjectAccessRecord(
+                            container = replaceReceivers(additionRecord.container, ::isConventionsCall, topLevelReceiver),
+                            // Expect that the type remains the same: the only thing that will be mapped to a different type is the `conventions { ... }`
+                            dataObject = replaceReceivers(additionRecord.dataObject, ::isConventionsCall, topLevelReceiver) as ObjectOrigin.AccessAndConfigureReceiver
+                        )
+                    )
+                }
+            }
+        }
+    }
+
 
     private
     fun isSoftwareTypeAccessor(accessor: ConfigureAccessor): Boolean {

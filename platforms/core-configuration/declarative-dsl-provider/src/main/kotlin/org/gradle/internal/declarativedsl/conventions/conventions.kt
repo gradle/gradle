@@ -18,6 +18,7 @@ package org.gradle.internal.declarativedsl.conventions
 
 import org.gradle.internal.declarativedsl.analysis.AssignmentRecord
 import org.gradle.internal.declarativedsl.analysis.DataAdditionRecord
+import org.gradle.internal.declarativedsl.analysis.NestedObjectAccessRecord
 import prg.gradle.declarative.dsl.model.conventions.Convention
 import prg.gradle.declarative.dsl.model.conventions.ConventionReceiver
 
@@ -36,6 +37,13 @@ class AdditionRecordConvention(private val dataAdditionRecord: DataAdditionRecor
 }
 
 
+class NestedObjectAccessConvention(private val nestedObjectAccessRecord: NestedObjectAccessRecord) : Convention<NestedObjectAccessRecordConventionReceiver> {
+    override fun apply(receiver: NestedObjectAccessRecordConventionReceiver) {
+        receiver.receive(nestedObjectAccessRecord)
+    }
+}
+
+
 fun interface AssignmentRecordConventionReceiver : ConventionReceiver {
     fun receive(assignmentRecord: AssignmentRecord)
 }
@@ -43,4 +51,9 @@ fun interface AssignmentRecordConventionReceiver : ConventionReceiver {
 
 fun interface AdditionRecordConventionReceiver : ConventionReceiver {
     fun receive(additionRecord: DataAdditionRecord)
+}
+
+
+fun interface NestedObjectAccessRecordConventionReceiver : ConventionReceiver {
+    fun receive(additionRecord: NestedObjectAccessRecord)
 }

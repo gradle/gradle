@@ -244,6 +244,28 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
         outputContains("implementation = ${externalDependency('foo', 'bar', '1.0')}, ${externalDependency('bar', 'foo', '2.0')}")
     }
 
+    def "can trigger object configuration for nested objects used in conventions"() {
+        given:
+        withSoftwareTypePluginThatExposesExtensionWithDependencies().prepareToExecute()
+
+        and: 'a convention that only accesses a nested object but does not apply any configuration to it'
+        file("settings.gradle.dcl") << getDeclarativeSettingsScriptThatSetsConventions("""
+            ${setFoo("")}
+        """)
+        file("settings.gradle.dcl") << """
+            include("foo")
+        """
+
+        and: 'a build file that only specifies the software type'
+        file("foo/build.gradle.dcl") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType()
+
+        when:
+        run(":foo:printTestSoftwareTypeExtensionWithDependenciesConfiguration")
+
+        then: 'the side effect of the configuring function used in the convention should get applied to the project model'
+        outputContains("(foo is configured)")
+    }
+
     @NotYetImplemented
     def "can configure build-level conventions in a non-declarative settings file"() {
         given:

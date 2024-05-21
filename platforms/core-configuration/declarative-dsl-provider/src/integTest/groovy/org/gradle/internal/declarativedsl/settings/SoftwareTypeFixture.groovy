@@ -171,6 +171,7 @@ trait SoftwareTypeFixture {
             @Restricted
             public abstract class TestSoftwareTypeExtension {
                 private final Foo foo;
+                private boolean isFooConfigured = false;
 
                 @Inject
                 public TestSoftwareTypeExtension(ObjectFactory objects) {
@@ -187,6 +188,7 @@ trait SoftwareTypeFixture {
 
                 @Configuring
                 public void foo(Action<? super Foo> action) {
+                    isFooConfigured = true;
                     action.execute(foo);
                 }
 
@@ -199,7 +201,7 @@ trait SoftwareTypeFixture {
 
                 @Override
                 public String toString() {
-                    return "id = " + getId().get() + "\\nbar = " + getFoo().getBar().get();
+                    return "id = " + getId().get() + "\\nbar = " + getFoo().getBar().get() + (isFooConfigured ? "\\n(foo is configured)" : "");
                 }
             }
         """

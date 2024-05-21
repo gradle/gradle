@@ -18,6 +18,7 @@ package org.gradle.internal.declarativedsl.conventions
 
 import org.gradle.internal.declarativedsl.analysis.AssignmentRecord
 import org.gradle.internal.declarativedsl.analysis.DataAdditionRecord
+import org.gradle.internal.declarativedsl.analysis.NestedObjectAccessRecord
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 
@@ -25,43 +26,42 @@ import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 class ConventionsResolutionProcessor {
     fun process(resolutionResult: ResolutionResult): ProcessedConventions {
         val assignments = resolutionResult.assignments.groupBy { assignment ->
-            findSoftwareType(assignment.lhs.receiverObject).function.simpleName
+            getSoftwareType(assignment.lhs.receiverObject).function.simpleName
         }
         val additions = resolutionResult.additions.groupBy { addition ->
-            findSoftwareType(addition.container).function.simpleName
+            getSoftwareType(addition.container).function.simpleName
         }
+        val nestedObjectAccess = resolutionResult.nestedObjectAccess.mapNotNull { access ->
+            findSoftwareType(access.dataObject)?.let { access to it.function.simpleName }
+        }.groupBy({ (_, softwareTypeName) -> softwareTypeName }, valueTransform = { (access, _) -> access })
 
-        return ProcessedConventions(assignments, additions)
+        return ProcessedConventions(assignments, additions, nestedObjectAccess)
     }
 }
 
 
 data class ProcessedConventions(
     val assignments: Map<String, List<AssignmentRecord>>,
-    val additions: Map<String, List<DataAdditionRecord>>
+    val additions: Map<String, List<DataAdditionRecord>>,
+    val nestedObjectAccess: Map<String, List<NestedObjectAccessRecord>>
 )
 
 
-fun findSoftwareType(objectOrigin: ObjectOrigin): ObjectOrigin.AccessAndConfigureReceiver {
+private
+fun getSoftwareType(objectOrigin: ObjectOrigin): ObjectOrigin.AccessAndConfigureReceiver =
+    findSoftwareType(objectOrigin) ?: error("Could not discover softwareType for $objectOrigin")
+
+
+private
+fun findSoftwareType(objectOrigin: ObjectOrigin): ObjectOrigin.AccessAndConfigureReceiver? =
     when (objectOrigin) {
-        is ObjectOrigin.ImplicitThisReceiver -> {
-            return findSoftwareType(objectOrigin.resolvedTo)
-        }
-        is ObjectOrigin.AccessAndConfigureReceiver -> {
-            return if (isSoftwareType(objectOrigin)) {
-                objectOrigin
-            } else {
-                findSoftwareType(objectOrigin.receiver)
-            }
-        }
-        is ObjectOrigin.TopLevelReceiver -> {
-            error("Could not discover softwareType for $objectOrigin")
-        }
-        else -> {
-            error("Could not discover softwareType for $objectOrigin")
-        }
+        is ObjectOrigin.ImplicitThisReceiver -> findSoftwareType(objectOrigin.resolvedTo)
+        is ObjectOrigin.AccessAndConfigureReceiver ->
+            if (isSoftwareType(objectOrigin)) objectOrigin else findSoftwareType(objectOrigin.receiver)
+
+        is ObjectOrigin.TopLevelReceiver -> null
+        else -> null
     }
-}
 
 
 internal

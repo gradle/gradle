@@ -60,6 +60,9 @@ class ConventionsInterpretationSequenceStep(
             conventions.assignments[softwareTypeImplementation.softwareType]?.forEach {
                 softwareTypeImplementation.addConvention(AssignmentRecordConvention(it))
             }
+            conventions.nestedObjectAccess[softwareTypeImplementation.softwareType]?.forEach {
+                softwareTypeImplementation.addConvention(NestedObjectAccessConvention(it))
+            }
         }
         return resolutionResult
     }
