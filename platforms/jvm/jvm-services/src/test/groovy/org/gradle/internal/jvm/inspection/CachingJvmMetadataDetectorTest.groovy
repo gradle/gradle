@@ -19,8 +19,6 @@ package org.gradle.internal.jvm.inspection
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.cache.internal.DefaultCacheFactory
 import org.gradle.cache.internal.DefaultFileLockManagerTestHelper
-import org.gradle.cache.internal.DefaultUnscopedCacheBuilderFactory
-import org.gradle.cache.internal.scopes.DefaultGlobalScopedCacheBuilderFactory
 import org.gradle.initialization.GradleUserHomeDirProvider
 import org.gradle.initialization.layout.GlobalCacheDir
 import org.gradle.internal.concurrent.DefaultExecutorFactory
@@ -129,9 +127,8 @@ class CachingJvmMetadataDetectorTest extends Specification {
     private CachingJvmMetadataDetector createCachingJvmMetadataDetector(JvmMetadataDetector delegate) {
         def globalCacheDir = new GlobalCacheDir(createHomeDirProvider())
         def cacheFactory = new DefaultCacheFactory(DefaultFileLockManagerTestHelper.createDefaultFileLockManager(), new DefaultExecutorFactory(), createBuildOperationRunner())
-        def cacheBuilderFactory = new DefaultUnscopedCacheBuilderFactory(cacheFactory)
-        def globalScopedCacheBuilderFactory = new DefaultGlobalScopedCacheBuilderFactory(globalCacheDir.dir, cacheBuilderFactory)
-        return new CachingJvmMetadataDetector(delegate, globalScopedCacheBuilderFactory)
+        def jvmMetadataCacheBuildFactory = new JvmInstallationMetadataCacheBuildFactory(cacheFactory, globalCacheDir.dir)
+        return new CachingJvmMetadataDetector(delegate, jvmMetadataCacheBuildFactory)
     }
 
     private BuildOperationRunner createBuildOperationRunner() {

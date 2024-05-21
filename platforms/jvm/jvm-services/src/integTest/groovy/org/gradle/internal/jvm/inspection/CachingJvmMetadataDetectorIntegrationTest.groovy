@@ -19,10 +19,8 @@ package org.gradle.internal.jvm.inspection
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.cache.internal.DefaultCacheFactory
 import org.gradle.cache.internal.DefaultFileLockManagerTestHelper
-import org.gradle.cache.internal.DefaultUnscopedCacheBuilderFactory
 import org.gradle.cache.internal.VersionStrategy
-import org.gradle.cache.internal.scopes.DefaultCacheScopeMapping
-import org.gradle.cache.internal.scopes.DefaultGlobalScopedCacheBuilderFactory
+import org.gradle.cache.internal.scopes.NamedCacheScopeMapping
 import org.gradle.initialization.GradleUserHomeDirProvider
 import org.gradle.initialization.layout.GlobalCacheDir
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -145,14 +143,13 @@ class CachingJvmMetadataDetectorIntegrationTest extends AbstractIntegrationSpec 
         )
         def globalCacheDir = new GlobalCacheDir(createHomeDirProvider())
         def cacheFactory = new DefaultCacheFactory(DefaultFileLockManagerTestHelper.createDefaultFileLockManager(), new DefaultExecutorFactory(), createBuildOperationRunner())
-        def cacheBuilderFactory = new DefaultUnscopedCacheBuilderFactory(cacheFactory)
-        def globalScopedCacheBuilderFactory = new DefaultGlobalScopedCacheBuilderFactory(globalCacheDir.dir, cacheBuilderFactory)
-        return new CachingJvmMetadataDetector(delegate, globalScopedCacheBuilderFactory)
+        def jvmMetadataCacheBuildFactory = new JvmInstallationMetadataCacheBuildFactory(cacheFactory, globalCacheDir.dir)
+        return new CachingJvmMetadataDetector(delegate, jvmMetadataCacheBuildFactory)
     }
 
     private void restoreToolchainCacheFromResources(String resourceCache) {
         def globalCacheDir = new GlobalCacheDir(createHomeDirProvider())
-        def scopeMapping = new DefaultCacheScopeMapping(globalCacheDir.dir, GradleVersion.current())
+        def scopeMapping = new NamedCacheScopeMapping(globalCacheDir.dir, GradleVersion.current().version)
         def cacheMetadataDir = scopeMapping.getBaseDirectory(globalCacheDir.dir, "toolchainsMetadata", VersionStrategy.CachePerVersion)
         def targetCacheMetadataFile = new File(cacheMetadataDir, "toolchainsCache.bin")
         resources.getResource(resourceCache).copyTo(targetCacheMetadataFile)

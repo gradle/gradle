@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,19 +18,15 @@ package org.gradle.cache.internal.scopes
 
 import org.gradle.cache.internal.VersionStrategy
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.GradleVersion
 import org.junit.Rule
 import spock.lang.Specification
 
-class DefaultCacheScopeMappingTest extends Specification {
+class NamedCacheScopeMappingTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def userHomeCaches = tmpDir.createDir("caches")
     def rootDir = tmpDir.createDir("root")
-    def gradleVersion = Stub(GradleVersion) {
-        getVersion() >> "version"
-    }
-    def mapping = new DefaultCacheScopeMapping(userHomeCaches, gradleVersion)
+    def mapping = new NamedCacheScopeMapping(userHomeCaches, "version")
 
     def "null base dir maps to user home directory"() {
         expect:

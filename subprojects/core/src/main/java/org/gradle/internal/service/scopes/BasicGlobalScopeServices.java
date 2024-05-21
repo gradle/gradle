@@ -35,11 +35,9 @@ import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.DefaultCacheFactory;
 import org.gradle.cache.internal.DefaultFileLockManager;
 import org.gradle.cache.internal.DefaultProcessMetaDataProvider;
-import org.gradle.cache.internal.DefaultUnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.locklistener.DefaultFileLockContentionHandler;
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler;
 import org.gradle.cache.internal.locklistener.InetAddressProvider;
-import org.gradle.cache.internal.scopes.DefaultGlobalScopedCacheBuilderFactory;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
@@ -52,6 +50,7 @@ import org.gradle.internal.jvm.inspection.CachingJvmMetadataDetector;
 import org.gradle.internal.jvm.inspection.DefaultJvmMetadataDetector;
 import org.gradle.internal.jvm.inspection.DefaultJvmVersionDetector;
 import org.gradle.internal.jvm.inspection.InvalidInstallationWarningReporter;
+import org.gradle.internal.jvm.inspection.JvmInstallationMetadataCacheBuildFactory;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.jvm.inspection.ReportingJvmMetadataDetector;
@@ -68,7 +67,7 @@ import org.gradle.process.internal.ExecHandleFactory;
 import java.net.InetAddress;
 import java.io.File;
 
-import static org.gradle.cache.internal.scopes.DefaultCacheScopeMapping.GLOBAL_CACHE_DIR_NAME;
+import static org.gradle.cache.internal.scopes.NamedCacheScopeMapping.GLOBAL_CACHE_DIR_NAME;
 
 /**
  * Defines the basic global services of a given process. This includes the Gradle CLI, daemon and tooling API provider. These services
@@ -115,13 +114,12 @@ public class BasicGlobalScopeServices {
     JvmMetadataDetector createJvmMetadataDetector(GradleUserHomeDirProvider gradleUserHomeDirProvider, FileLockManager fileLockManager, ExecutorFactory executorFactory, ExecHandleFactory execHandleFactory, TemporaryFileProvider temporaryFileProvider) {
         CacheFactory defaultCacheFactory = new DefaultCacheFactory(fileLockManager, executorFactory, null);
         File globalCacheDir = new File(gradleUserHomeDirProvider.getGradleUserHomeDirectory(), GLOBAL_CACHE_DIR_NAME);
-        DefaultUnscopedCacheBuilderFactory cacheBuilderFactory = new DefaultUnscopedCacheBuilderFactory(defaultCacheFactory);
         return new CachingJvmMetadataDetector(
             new ReportingJvmMetadataDetector(
                 new DefaultJvmMetadataDetector(execHandleFactory, temporaryFileProvider),
                 new InvalidInstallationWarningReporter()
             ),
-            new DefaultGlobalScopedCacheBuilderFactory(globalCacheDir, cacheBuilderFactory)
+            new JvmInstallationMetadataCacheBuildFactory(defaultCacheFactory, globalCacheDir)
         );
     }
 

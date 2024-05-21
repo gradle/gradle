@@ -16,7 +16,7 @@
 
 package org.gradle.cache.internal
 
-import org.gradle.cache.internal.scopes.DefaultCacheScopeMapping
+import org.gradle.cache.internal.scopes.NamedCacheScopeMapping
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -29,7 +29,7 @@ import spock.lang.Subject
 class VersionSpecificCacheDirectoryScannerTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
-    TestFile cacheBaseDir = temporaryFolder.createDir(DefaultCacheScopeMapping.GLOBAL_CACHE_DIR_NAME)
+    TestFile cacheBaseDir = temporaryFolder.createDir(NamedCacheScopeMapping.GLOBAL_CACHE_DIR_NAME)
 
     @Subject def versionSpecificCacheDirectoryService = new VersionSpecificCacheDirectoryScanner(cacheBaseDir)
 

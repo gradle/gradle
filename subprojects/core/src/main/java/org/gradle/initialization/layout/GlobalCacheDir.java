@@ -22,7 +22,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.File;
 
-import static org.gradle.cache.internal.scopes.DefaultCacheScopeMapping.GLOBAL_CACHE_DIR_NAME;
+import static org.gradle.cache.internal.scopes.NamedCacheScopeMapping.GLOBAL_CACHE_DIR_NAME;
 
 @ServiceScope(Scope.UserHome.class)
 public class GlobalCacheDir {

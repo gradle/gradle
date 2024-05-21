@@ -16,7 +16,7 @@
 
 package org.gradle.cache.internal
 
-import org.gradle.cache.internal.scopes.DefaultCacheScopeMapping
+import org.gradle.cache.internal.scopes.NamedCacheScopeMapping
 import org.gradle.internal.BiAction
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
@@ -38,7 +38,7 @@ trait GradleUserHomeCleanupFixture implements VersionSpecificCacheCleanupFixture
 
     @Override
     TestFile getCachesDir() {
-        gradleUserHomeDir.file(DefaultCacheScopeMapping.GLOBAL_CACHE_DIR_NAME)
+        gradleUserHomeDir.file(NamedCacheScopeMapping.GLOBAL_CACHE_DIR_NAME)
     }
 
     TestFile createDistributionChecksumDir(GradleVersion version, String jarPrefix = DEFAULT_JAR_PREFIX, long lastModificationTime = twoDaysAgo()) {
