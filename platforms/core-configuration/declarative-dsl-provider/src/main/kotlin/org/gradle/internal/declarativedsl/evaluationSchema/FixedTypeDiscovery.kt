@@ -14,24 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.software.internal;
+package org.gradle.internal.declarativedsl.evaluationSchema
 
-import org.gradle.api.Plugin;
-import org.gradle.internal.declarative.dsl.model.conventions.Convention;
+import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
+import kotlin.reflect.KClass
 
-import java.util.List;
 
 /**
- * Represents a resolved software type implementation including the public model type and the plugin that exposes it.
+ * Utility [TypeDiscovery] implementation that allows introducing [discoverClasses] as soon as [keyClass] is encountered in type discovery.
  */
-public interface SoftwareTypeImplementation<T> {
-    String getSoftwareType();
-
-    Class<? extends T> getModelPublicType();
-
-    Class<? extends Plugin<?>> getPluginClass();
-
-    void addConvention(Convention<?> rule);
-
-    List<Convention<?>> getConventions();
+internal
+class FixedTypeDiscovery(private val keyClass: KClass<*>, private val discoverClasses: List<KClass<*>>) : TypeDiscovery {
+    override fun getClassesToVisitFrom(kClass: KClass<*>): Iterable<KClass<*>> =
+        when (kClass) {
+            keyClass -> discoverClasses
+            else -> emptyList()
+        }
 }

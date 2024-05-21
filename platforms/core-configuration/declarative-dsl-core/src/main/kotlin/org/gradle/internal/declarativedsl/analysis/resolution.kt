@@ -15,6 +15,9 @@ data class ResolutionResult(
     val additions: List<DataAdditionRecord>,
     val nestedObjectAccess: List<NestedObjectAccessRecord>,
     val errors: List<ResolutionError>,
+    val conventionAssignments: List<AssignmentRecord> = emptyList(),
+    val conventionAdditions: List<DataAdditionRecord> = emptyList(),
+    val conventionNestedObjectAccess: List<NestedObjectAccessRecord> = emptyList()
 )
 
 
@@ -53,4 +56,15 @@ sealed interface ErrorReason {
     data object UnresolvedAssignmentRhs : ErrorReason // TODO: resolution trace here, too?
     data object UnitAssignment : ErrorReason
     data object DanglingPureExpression : ErrorReason
+}
+
+
+/**
+ * Represents the "generation" of a particular operation (either an addition function call or a property assignment operation).  The order of generations
+ * is important as calls in later generations can override calls in earlier generations, but no the other way around.  For instance, a property assignment
+ * can override a convention assignment, but a convention assignment cannot override a property assignment.
+ */
+enum class OperationGenerationId {
+    CONVENTION_ASSIGNMENT,
+    PROPERTY_ASSIGNMENT
 }

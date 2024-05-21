@@ -24,9 +24,14 @@ import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter
 import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter.Companion.isCallNamed
 import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter.Companion.isConfiguringCall
 import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter.Companion.isTopLevelElement
+import org.gradle.internal.declarativedsl.analysis.OperationGenerationId
 import org.gradle.internal.declarativedsl.analysis.and
 import org.gradle.internal.declarativedsl.analysis.implies
 import org.gradle.internal.declarativedsl.analysis.not
+import org.gradle.internal.declarativedsl.conventions.ConventionsConfiguringBlock
+import org.gradle.internal.declarativedsl.conventions.ConventionsInterpretationSequenceStep
+import org.gradle.internal.declarativedsl.conventions.ConventionsTopLevelReceiver
+import org.gradle.internal.declarativedsl.conventions.isConventionsConfiguringCall
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequence
 import org.gradle.internal.declarativedsl.evaluationSchema.SimpleInterpretationSequenceStep
@@ -36,18 +41,22 @@ import org.gradle.internal.declarativedsl.plugins.PluginsInterpretationSequenceS
 import org.gradle.internal.declarativedsl.plugins.isTopLevelPluginsBlock
 import org.gradle.internal.declarativedsl.project.ThirdPartyExtensionsComponent
 import org.gradle.internal.declarativedsl.project.gradleDslGeneralSchemaComponent
+import org.gradle.internal.declarativedsl.software.SoftwareTypeConventionComponent
+import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 
 
 internal
 fun settingsInterpretationSequence(
     settings: SettingsInternal,
     targetScope: ClassLoaderScope,
-    scriptSource: ScriptSource
+    scriptSource: ScriptSource,
+    softwareTypeRegistry: SoftwareTypeRegistry
 ): InterpretationSequence =
     InterpretationSequence(
         listOf(
             SimpleInterpretationSequenceStep("settingsPluginManagement") { pluginManagementEvaluationSchema() },
-            PluginsInterpretationSequenceStep("settingsPlugins", targetScope, scriptSource, SettingsBlocksCheck) { settings.services },
+            PluginsInterpretationSequenceStep("settingsPlugins", OperationGenerationId.PROPERTY_ASSIGNMENT, targetScope, scriptSource, SettingsBlocksCheck) { settings.services },
+            ConventionsInterpretationSequenceStep("settingsConventions", OperationGenerationId.CONVENTION_ASSIGNMENT, softwareTypeRegistry) { conventionsEvaluationSchema(softwareTypeRegistry) },
             SimpleInterpretationSequenceStep("settings") { settingsEvaluationSchema(settings) }
         )
     )
@@ -63,6 +72,20 @@ fun pluginManagementEvaluationSchema(): EvaluationSchema =
 
 
 internal
+fun conventionsEvaluationSchema(softwareTypeRegistry: SoftwareTypeRegistry): EvaluationSchema {
+    val schemaBuildingComponent = gradleDslGeneralSchemaComponent() +
+        SoftwareTypeConventionComponent(ConventionsConfiguringBlock::class, "softwareType", softwareTypeRegistry) +
+        SettingsDependencyConfigurationsComponent()
+
+    return buildEvaluationSchema(
+        ConventionsTopLevelReceiver::class,
+        schemaBuildingComponent,
+        isTopLevelElement.implies(isConventionsConfiguringCall)
+    )
+}
+
+
+internal
 fun settingsEvaluationSchema(settings: Settings): EvaluationSchema {
     val schemaBuildingComponent = gradleDslGeneralSchemaComponent() +
         /** TODO: Instead of [SettingsInternal], this should rely on the public API of [Settings];
@@ -70,7 +93,7 @@ fun settingsEvaluationSchema(settings: Settings): EvaluationSchema {
          *  and we use the [SettingsInternal.include] single-argument workaround for now. */
         ThirdPartyExtensionsComponent(SettingsInternal::class, settings, "settingsExtension")
 
-    return buildEvaluationSchema(SettingsInternal::class, schemaBuildingComponent, ignoreTopLevelPluginsAndPluginManagement)
+    return buildEvaluationSchema(SettingsInternal::class, schemaBuildingComponent, ignoreTopLevelPluginsPluginManagementAndConventions)
 }
 
 
@@ -83,4 +106,8 @@ val isTopLevelPluginManagementBlock = isTopLevelElement.implies(isPluginManageme
 
 
 private
-val ignoreTopLevelPluginsAndPluginManagement = isTopLevelElement.implies(isPluginManagementCall.not().and(isTopLevelPluginsBlock.not()))
+val ignoreTopLevelPluginsPluginManagementAndConventions = isTopLevelElement.implies(
+    isPluginManagementCall.not()
+        .and(isTopLevelPluginsBlock.not())
+        .and(isConventionsConfiguringCall.not())
+)

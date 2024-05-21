@@ -16,6 +16,7 @@
 
 package org.gradle.internal.declarativedsl.settings
 
+import org.gradle.internal.declarativedsl.analysis.OperationGenerationId
 import org.gradle.internal.declarativedsl.analysis.tracingCodeResolver
 import org.gradle.internal.declarativedsl.checks.DocumentCheckFailure
 import org.gradle.internal.declarativedsl.checks.DocumentCheckFailureReason
@@ -119,7 +120,7 @@ class SettingsBlockCheckTest {
     private
     fun EvaluationSchema.runChecks(code: String): List<DocumentCheckFailure> {
         val languageModel = DefaultLanguageTreeBuilder().build(parse(code), SourceIdentifier("test"))
-        val trace = tracingCodeResolver(analysisStatementFilter)
+        val trace = tracingCodeResolver(OperationGenerationId.PROPERTY_ASSIGNMENT, analysisStatementFilter)
             .apply { resolve(analysisSchema, languageModel.imports, languageModel.topLevelBlock) }
             .trace
         val document = resolvedDocument(analysisSchema, trace, languageModel.toDocument())

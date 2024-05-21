@@ -14,24 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.software.internal;
+@NonNullApi
+package org.gradle.internal.declarative.dsl.model.conventions;
 
-import org.gradle.api.Plugin;
-import org.gradle.internal.declarative.dsl.model.conventions.Convention;
-
-import java.util.List;
-
-/**
- * Represents a resolved software type implementation including the public model type and the plugin that exposes it.
- */
-public interface SoftwareTypeImplementation<T> {
-    String getSoftwareType();
-
-    Class<? extends T> getModelPublicType();
-
-    Class<? extends Plugin<?>> getPluginClass();
-
-    void addConvention(Convention<?> rule);
-
-    List<Convention<?>> getConventions();
-}
+import org.gradle.api.NonNullApi;

@@ -14,20 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.project
-
-import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
-import kotlin.reflect.KClass
-
+package org.gradle.internal.declarative.dsl.model.conventions;
 
 /**
- * Utility [TypeDiscovery] implementation that allows introducing [discoverClasses] as soon as [keyClass] is encountered in type discovery.
+ * Marker interface for objects that can receive conventions of a certain type and apply them appropriately.
+ *
+ * @since 8.9
  */
-internal
-class FixedTypeDiscovery(private val keyClass: KClass<*>, private val discoverClasses: List<KClass<*>>) : TypeDiscovery {
-    override fun getClassesToVisitFrom(kClass: KClass<*>): Iterable<KClass<*>> =
-        when (kClass) {
-            keyClass -> discoverClasses
-            else -> emptyList()
-        }
+public interface ConventionReceiver {
 }
