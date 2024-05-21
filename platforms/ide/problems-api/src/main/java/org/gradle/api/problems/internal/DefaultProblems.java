@@ -71,4 +71,9 @@ public class DefaultProblems implements InternalProblems {
     public Multimap<Throwable, Problem> getProblemsForThrowables() {
         return problemsForThrowables;
     }
+
+    @Override
+    public void reportMapping() {
+        emitter.emit(problemsForThrowables.asMap(), currentBuildOperationRef.get().getId());
+    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,17 @@
 
 package org.gradle.api.problems.internal;
 
-import com.google.common.collect.Multimap;
-import org.gradle.api.problems.Problems;
+import java.util.Collection;
+import java.util.Map;
 
-public interface InternalProblems extends Problems {
+public class DefaultProblemMappingDetails implements ProblemProgressDetails, ProblemMappingDetails {
+    private final Map<Throwable, Collection<Problem>> problemsForThrowables;
 
-    /**
-     * Returns a reporter then provides additional problem service functionality specific for Gradle internals.
-     * <p>
-     *
-     * @return The reporter.
-     */
-    InternalProblemReporter getInternalReporter();
+    public DefaultProblemMappingDetails(Map<Throwable, Collection<Problem>> problemsForThrowables) {
+        this.problemsForThrowables = problemsForThrowables;
+    }
 
-    Multimap<Throwable, Problem> getProblemsForThrowables();
-
-    void reportMapping();
+    public Map<Throwable, Collection<Problem>> getProblemsForThrowables() {
+        return problemsForThrowables;
+    }
 }

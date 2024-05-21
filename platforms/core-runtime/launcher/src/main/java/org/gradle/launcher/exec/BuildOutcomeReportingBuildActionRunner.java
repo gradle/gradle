@@ -19,6 +19,7 @@ package org.gradle.launcher.exec;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.tasks.execution.statistics.TaskExecutionStatisticsEventAdapter;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.internal.buildevents.BuildLogger;
 import org.gradle.internal.buildevents.BuildLoggerFactory;
@@ -37,19 +38,23 @@ public class BuildOutcomeReportingBuildActionRunner implements BuildActionRunner
     private final BuildRequestMetaData buildRequestMetaData;
     private final StyledTextOutputFactory styledTextOutputFactory;
     private final BuildLoggerFactory buildLoggerFactory;
+    private final InternalProblems problemsService;
 
     public BuildOutcomeReportingBuildActionRunner(StyledTextOutputFactory styledTextOutputFactory,
                                                   ListenerManager listenerManager,
                                                   BuildActionRunner delegate,
                                                   BuildStartedTime buildStartedTime,
                                                   BuildRequestMetaData buildRequestMetaData,
-                                                  BuildLoggerFactory buildLoggerFactory) {
+                                                  BuildLoggerFactory buildLoggerFactory,
+                                                  InternalProblems problemsService
+    ) {
         this.styledTextOutputFactory = styledTextOutputFactory;
         this.listenerManager = listenerManager;
         this.delegate = delegate;
         this.buildStartedTime = buildStartedTime;
         this.buildRequestMetaData = buildRequestMetaData;
         this.buildLoggerFactory = buildLoggerFactory;
+        this.problemsService = problemsService;
     }
 
     @Override
@@ -66,6 +71,7 @@ public class BuildOutcomeReportingBuildActionRunner implements BuildActionRunner
 
         buildLogger.logResult(result.getBuildFailure());
         new TaskExecutionStatisticsReporter(styledTextOutputFactory).buildFinished(taskStatisticsCollector.getStatistics());
+        problemsService.reportMapping();
         return result;
     }
 }

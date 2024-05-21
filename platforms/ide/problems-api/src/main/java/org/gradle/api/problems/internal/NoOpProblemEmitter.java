@@ -18,9 +18,18 @@ package org.gradle.api.problems.internal;
 
 import org.gradle.internal.operations.OperationIdentifier;
 
+import javax.annotation.Nullable;
+import java.util.Collection;
+import java.util.Map;
+
 public class NoOpProblemEmitter implements ProblemEmitter {
     @Override
     public void emit(Problem problem, OperationIdentifier id) {
         // Do nothing
+    }
+
+    @Override
+    public void emit(Map<Throwable, Collection<Problem>> problemsForThrowables, @Nullable OperationIdentifier id) {
+
     }
 }

@@ -17,11 +17,16 @@
 package org.gradle.problems.internal.emitters;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.problems.internal.DefaultProblemMappingDetails;
 import org.gradle.api.problems.internal.DefaultProblemProgressDetails;
 import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.problems.internal.ProblemEmitter;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.OperationIdentifier;
+
+import javax.annotation.Nullable;
+import java.util.Collection;
+import java.util.Map;
 
 /**
  * Emits problems as build operation progress events.
@@ -40,5 +45,10 @@ public class BuildOperationBasedProblemEmitter implements ProblemEmitter {
     @Override
     public void emit(Problem problem, OperationIdentifier id) {
         eventEmitter.emitNow(id, new DefaultProblemProgressDetails(problem));
+    }
+
+    @Override
+    public void emit(Map<Throwable, Collection<Problem>> problemsForThrowables, @Nullable OperationIdentifier id) {
+        eventEmitter.emitNow(id, new DefaultProblemMappingDetails(problemsForThrowables));
     }
 }
