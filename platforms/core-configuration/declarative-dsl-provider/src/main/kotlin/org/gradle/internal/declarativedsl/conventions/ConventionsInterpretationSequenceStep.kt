@@ -23,7 +23,6 @@ import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 import org.gradle.internal.declarativedsl.analysis.and
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequenceStep
-import org.gradle.internal.declarativedsl.language.FunctionCall
 import org.gradle.internal.declarativedsl.mappingToJvm.ReflectionToObjectConverter
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeCustomAccessors
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeFunctionResolver
@@ -86,8 +85,3 @@ class ConventionsInterpretationSequenceStep(
 
 
 val isConventionsConfiguringCall: AnalysisStatementFilter = AnalysisStatementFilter.isConfiguringCall.and(AnalysisStatementFilter.isCallNamed(CONVENTIONS))
-
-
-val isSoftwareTypeConfiguringCall: AnalysisStatementFilter = AnalysisStatementFilter { _, scopes ->
-    scopes.any { it.receiver.originElement is FunctionCall && (it.receiver.originElement as FunctionCall).name == CONVENTIONS }
-}

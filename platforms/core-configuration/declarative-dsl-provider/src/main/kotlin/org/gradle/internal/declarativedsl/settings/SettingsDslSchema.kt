@@ -28,12 +28,10 @@ import org.gradle.internal.declarativedsl.analysis.AssignmentGenerationId
 import org.gradle.internal.declarativedsl.analysis.and
 import org.gradle.internal.declarativedsl.analysis.implies
 import org.gradle.internal.declarativedsl.analysis.not
-import org.gradle.internal.declarativedsl.analysis.or
 import org.gradle.internal.declarativedsl.conventions.ConventionsConfiguringBlock
 import org.gradle.internal.declarativedsl.conventions.ConventionsInterpretationSequenceStep
 import org.gradle.internal.declarativedsl.conventions.ConventionsTopLevelReceiver
 import org.gradle.internal.declarativedsl.conventions.isConventionsConfiguringCall
-import org.gradle.internal.declarativedsl.conventions.isSoftwareTypeConfiguringCall
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequence
 import org.gradle.internal.declarativedsl.evaluationSchema.SimpleInterpretationSequenceStep
@@ -82,7 +80,7 @@ fun conventionsEvaluationSchema(softwareTypeRegistry: SoftwareTypeRegistry): Eva
     return buildEvaluationSchema(
         ConventionsTopLevelReceiver::class,
         schemaBuildingComponent,
-        isConventionsConfiguringCall.or(isSoftwareTypeConfiguringCall)
+        isTopLevelElement.implies(isConventionsConfiguringCall)
     )
 }
 
