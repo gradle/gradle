@@ -108,7 +108,7 @@ public class DaemonMain extends EntryPoint {
             throw new UncheckedIOException(e);
         }
 
-        NativeServices.initializeOnDaemon(gradleHomeDir, nativeServicesMode);
+        NativeServices.initializeOnDaemon(gradleHomeDir, NativeServicesMode.fromSystemProperties());
         DaemonServerConfiguration parameters = new DefaultDaemonServerConfiguration(daemonUid, daemonBaseDir, idleTimeoutMs, periodicCheckIntervalMs, singleUse, priority, startupOpts, nativeServicesMode);
         LoggingServiceRegistry loggingRegistry = LoggingServiceRegistry.newCommandLineProcessLogging();
         LoggingManagerInternal loggingManager = loggingRegistry.newInstance(LoggingManagerInternal.class);
