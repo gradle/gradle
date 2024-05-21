@@ -58,6 +58,7 @@ import org.gradle.tooling.events.internal.DefaultOperationSuccessResult;
 import org.gradle.tooling.events.internal.DefaultScriptPluginIdentifier;
 import org.gradle.tooling.events.internal.DefaultStartEvent;
 import org.gradle.tooling.events.internal.DefaultStatusEvent;
+import org.gradle.tooling.events.internal.OperationMapping;
 import org.gradle.tooling.events.lifecycle.BuildPhaseFinishEvent;
 import org.gradle.tooling.events.lifecycle.BuildPhaseOperationDescriptor;
 import org.gradle.tooling.events.lifecycle.BuildPhaseProgressEvent;
@@ -239,7 +240,6 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.google.common.collect.ImmutableList.builderWithExpectedSize;
-import static java.util.Collections.emptyList;
 
 /**
  * Converts progress events sent from the tooling provider to the tooling client to the corresponding event types available on the public Tooling API, and broadcasts the converted events to the
@@ -247,37 +247,76 @@ import static java.util.Collections.emptyList;
  */
 public class BuildProgressListenerAdapter implements InternalBuildProgressListener {
 
-    private final ListenerBroadcast<ProgressListener> testProgressListeners = new ListenerBroadcast<>(ProgressListener.class);
-    private final ListenerBroadcast<ProgressListener> taskProgressListeners = new ListenerBroadcast<>(ProgressListener.class);
-    private final ListenerBroadcast<ProgressListener> buildOperationProgressListeners = new ListenerBroadcast<>(ProgressListener.class);
-    private final ListenerBroadcast<ProgressListener> workItemProgressListeners = new ListenerBroadcast<>(ProgressListener.class);
-    private final ListenerBroadcast<ProgressListener> projectConfigurationProgressListeners = new ListenerBroadcast<>(ProgressListener.class);
-    private final ListenerBroadcast<ProgressListener> transformProgressListeners = new ListenerBroadcast<>(ProgressListener.class);
-    private final ListenerBroadcast<ProgressListener> testOutputProgressListeners = new ListenerBroadcast<>(ProgressListener.class);
-    private final ListenerBroadcast<ProgressListener> fileDownloadListeners = new ListenerBroadcast<>(ProgressListener.class);
-    private final ListenerBroadcast<ProgressListener> buildPhaseListeners = new ListenerBroadcast<>(ProgressListener.class);
-    private final ListenerBroadcast<ProgressListener> problemListeners = new ListenerBroadcast<>(ProgressListener.class);
+    private final ListenerBroadcast<ProgressListener> testProgressListeners;
+    private final ListenerBroadcast<ProgressListener> taskProgressListeners;
+    private final ListenerBroadcast<ProgressListener> buildOperationProgressListeners;
+    private final ListenerBroadcast<ProgressListener> workItemProgressListeners;
+    private final ListenerBroadcast<ProgressListener> projectConfigurationProgressListeners;
+    private final ListenerBroadcast<ProgressListener> transformProgressListeners;
+    private final ListenerBroadcast<ProgressListener> testOutputProgressListeners;
+    private final ListenerBroadcast<ProgressListener> fileDownloadListeners;
+    private final ListenerBroadcast<ProgressListener> buildPhaseListeners;
+    private final ListenerBroadcast<ProgressListener> problemListeners;
+//    private final ListenerBroadcast<ProgressListener> testProgressListeners = new ListenerBroadcast<>(ProgressListener.class);
+//    private final ListenerBroadcast<ProgressListener> taskProgressListeners = new ListenerBroadcast<>(ProgressListener.class);
+//    private final ListenerBroadcast<ProgressListener> buildOperationProgressListeners = new ListenerBroadcast<>(ProgressListener.class);
+//    private final ListenerBroadcast<ProgressListener> workItemProgressListeners = new ListenerBroadcast<>(ProgressListener.class);
+//    private final ListenerBroadcast<ProgressListener> projectConfigurationProgressListeners = new ListenerBroadcast<>(ProgressListener.class);
+//    private final ListenerBroadcast<ProgressListener> transformProgressListeners = new ListenerBroadcast<>(ProgressListener.class);
+//    private final ListenerBroadcast<ProgressListener> testOutputProgressListeners = new ListenerBroadcast<>(ProgressListener.class);
+//    private final ListenerBroadcast<ProgressListener> fileDownloadListeners = new ListenerBroadcast<>(ProgressListener.class);
+//    private final ListenerBroadcast<ProgressListener> buildPhaseListeners = new ListenerBroadcast<>(ProgressListener.class);
+//    private final ListenerBroadcast<ProgressListener> problemListeners = new ListenerBroadcast<>(ProgressListener.class);
 
     private final Map<Object, OperationDescriptor> descriptorCache = new HashMap<>();
 
-    BuildProgressListenerAdapter(Map<OperationType, List<ProgressListener>> listeners) {
+    static class OperationTypeHandler {
+        ListenerBroadcast<ProgressListener> listenerBroadCaster = new ListenerBroadcast<>(ProgressListener.class);
+        Class<?> eventClass;
+    }
 
-        testProgressListeners.addAll(getOrDefault(listeners, OperationType.TEST));
-        taskProgressListeners.addAll(getOrDefault(listeners, OperationType.TASK));
-        buildOperationProgressListeners.addAll(getOrDefault(listeners, OperationType.GENERIC));
-        workItemProgressListeners.addAll(getOrDefault(listeners, OperationType.WORK_ITEM));
-        projectConfigurationProgressListeners.addAll(getOrDefault(listeners, OperationType.PROJECT_CONFIGURATION));
-        transformProgressListeners.addAll(getOrDefault(listeners, OperationType.TRANSFORM));
-        testOutputProgressListeners.addAll(getOrDefault(listeners, OperationType.TEST_OUTPUT));
-        fileDownloadListeners.addAll(getOrDefault(listeners, OperationType.FILE_DOWNLOAD));
-        buildPhaseListeners.addAll(getOrDefault(listeners, OperationType.BUILD_PHASE));
-        problemListeners.addAll(getOrDefault(listeners, OperationType.PROBLEMS));
+    private final Map<OperationType, OperationTypeHandler> listenerBroadCasters = new HashMap<>();
+
+
+    BuildProgressListenerAdapter(Map<OperationType, List<ProgressListener>> listeners) {
+        for (OperationType operationType : OperationMapping.getOperationTypes()) {
+            OperationTypeHandler listener = this.listenerBroadCasters.get(operationType);
+            if (listener == null) {
+                listener = new OperationTypeHandler();
+                this.listenerBroadCasters.put(operationType, listener);
+            }
+            listener.listenerBroadCaster.addAll(getOrDefault(listeners, operationType));
+        }
+
+
+        testProgressListeners = this.listenerBroadCasters.get(OperationType.TEST).listenerBroadCaster;
+        taskProgressListeners = this.listenerBroadCasters.get(OperationType.TASK).listenerBroadCaster;
+        buildOperationProgressListeners = this.listenerBroadCasters.get(OperationType.GENERIC).listenerBroadCaster;
+        workItemProgressListeners = this.listenerBroadCasters.get(OperationType.WORK_ITEM).listenerBroadCaster;
+        projectConfigurationProgressListeners = this.listenerBroadCasters.get(OperationType.PROJECT_CONFIGURATION).listenerBroadCaster;
+        transformProgressListeners = this.listenerBroadCasters.get(OperationType.TRANSFORM).listenerBroadCaster;
+        testOutputProgressListeners = this.listenerBroadCasters.get(OperationType.TEST_OUTPUT).listenerBroadCaster;
+        fileDownloadListeners = this.listenerBroadCasters.get(OperationType.FILE_DOWNLOAD).listenerBroadCaster;
+        buildPhaseListeners = this.listenerBroadCasters.get(OperationType.BUILD_PHASE).listenerBroadCaster;
+        problemListeners = this.listenerBroadCasters.get(OperationType.PROBLEMS).listenerBroadCaster;
+
+
+//        testProgressListeners.addAll(getOrDefault(listeners, OperationType.TEST));
+//        taskProgressListeners.addAll(getOrDefault(listeners, OperationType.TASK));
+//        buildOperationProgressListeners.addAll(getOrDefault(listeners, OperationType.GENERIC));
+//        workItemProgressListeners.addAll(getOrDefault(listeners, OperationType.WORK_ITEM));
+//        projectConfigurationProgressListeners.addAll(getOrDefault(listeners, OperationType.PROJECT_CONFIGURATION));
+//        transformProgressListeners.addAll(getOrDefault(listeners, OperationType.TRANSFORM));
+//        testOutputProgressListeners.addAll(getOrDefault(listeners, OperationType.TEST_OUTPUT));
+//        fileDownloadListeners.addAll(getOrDefault(listeners, OperationType.FILE_DOWNLOAD));
+//        buildPhaseListeners.addAll(getOrDefault(listeners, OperationType.BUILD_PHASE));
+//        problemListeners.addAll(getOrDefault(listeners, OperationType.PROBLEMS));
     }
 
     private static List<ProgressListener> getOrDefault(Map<OperationType, List<ProgressListener>> listeners, OperationType operationType) {
         List<ProgressListener> progressListeners = listeners.get(operationType);
         if (progressListeners == null) {
-            return emptyList();
+            return ImmutableList.of();
         }
         return progressListeners;
     }
@@ -285,37 +324,42 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     @Override
     public List<String> getSubscribedOperations() {
         List<String> operations = new ArrayList<>();
+        for (Map.Entry<OperationType, OperationTypeHandler> operationTypeListenerBroadcastEntry : this.listenerBroadCasters.entrySet()) {
+            if (!operationTypeListenerBroadcastEntry.getValue().listenerBroadCaster.isEmpty()) {
+                operations.add(OperationMapping.getOperationName(operationTypeListenerBroadcastEntry.getKey()));
+            }
+        }
 
-        if (!testProgressListeners.isEmpty()) {
-            operations.add(InternalBuildProgressListener.TEST_EXECUTION);
-        }
-        if (!taskProgressListeners.isEmpty()) {
-            operations.add(InternalBuildProgressListener.TASK_EXECUTION);
-        }
-        if (!buildOperationProgressListeners.isEmpty()) {
-            operations.add(InternalBuildProgressListener.BUILD_EXECUTION);
-        }
-        if (!workItemProgressListeners.isEmpty()) {
-            operations.add(InternalBuildProgressListener.WORK_ITEM_EXECUTION);
-        }
-        if (!projectConfigurationProgressListeners.isEmpty()) {
-            operations.add(InternalBuildProgressListener.PROJECT_CONFIGURATION_EXECUTION);
-        }
-        if (!transformProgressListeners.isEmpty()) {
-            operations.add(InternalBuildProgressListener.TRANSFORM_EXECUTION);
-        }
-        if (!testOutputProgressListeners.isEmpty()) {
-            operations.add(InternalBuildProgressListener.TEST_OUTPUT);
-        }
-        if (!fileDownloadListeners.isEmpty()) {
-            operations.add(InternalBuildProgressListener.FILE_DOWNLOAD);
-        }
-        if (!buildPhaseListeners.isEmpty()) {
-            operations.add(InternalBuildProgressListener.BUILD_PHASE);
-        }
-        if (!problemListeners.isEmpty()) {
-            operations.add(InternalBuildProgressListener.PROBLEMS);
-        }
+//        if (!testProgressListeners.isEmpty()) {
+//            operations.add(InternalBuildProgressListener.TEST_EXECUTION);
+//        }
+//        if (!taskProgressListeners.isEmpty()) {
+//            operations.add(InternalBuildProgressListener.TASK_EXECUTION);
+//        }
+//        if (!buildOperationProgressListeners.isEmpty()) {
+//            operations.add(InternalBuildProgressListener.BUILD_EXECUTION);
+//        }
+//        if (!workItemProgressListeners.isEmpty()) {
+//            operations.add(InternalBuildProgressListener.WORK_ITEM_EXECUTION);
+//        }
+//        if (!projectConfigurationProgressListeners.isEmpty()) {
+//            operations.add(InternalBuildProgressListener.PROJECT_CONFIGURATION_EXECUTION);
+//        }
+//        if (!transformProgressListeners.isEmpty()) {
+//            operations.add(InternalBuildProgressListener.TRANSFORM_EXECUTION);
+//        }
+//        if (!testOutputProgressListeners.isEmpty()) {
+//            operations.add(InternalBuildProgressListener.TEST_OUTPUT);
+//        }
+//        if (!fileDownloadListeners.isEmpty()) {
+//            operations.add(InternalBuildProgressListener.FILE_DOWNLOAD);
+//        }
+//        if (!buildPhaseListeners.isEmpty()) {
+//            operations.add(InternalBuildProgressListener.BUILD_PHASE);
+//        }
+//        if (!problemListeners.isEmpty()) {
+//            operations.add(InternalBuildProgressListener.PROBLEMS);
+//        }
         return operations;
     }
 
