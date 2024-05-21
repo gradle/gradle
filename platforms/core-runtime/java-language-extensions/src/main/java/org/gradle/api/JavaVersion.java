@@ -323,7 +323,7 @@ public enum JavaVersion {
     }
 
     public String getMajorVersion() {
-        return String.valueOf(ordinal() + 1);
+        return String.valueOf(getMajorVersionNumber());
     }
 
     /**
