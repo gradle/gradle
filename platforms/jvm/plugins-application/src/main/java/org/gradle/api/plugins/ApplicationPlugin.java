@@ -96,7 +96,7 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
             "don't overwrite existing directories",
             new PreventDestinationOverwrite(
                 providers.provider(pluginExtension::getApplicationName),
-                providers.provider(pluginExtension::getExecutableDir)
+                pluginExtension.getExecutableDir()
             )
         ));
     }
@@ -190,7 +190,7 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
 
             startScripts.getApplicationName().convention(project.provider(pluginExtension::getApplicationName));
             startScripts.getOutputDir().convention(project.getLayout().getBuildDirectory().dir("scripts"));
-            startScripts.getExecutableDir().convention(project.provider(pluginExtension::getExecutableDir));
+            startScripts.getExecutableDir().convention(pluginExtension.getExecutableDir());
             startScripts.getDefaultJvmOpts().convention(project.provider(pluginExtension::getApplicationDefaultJvmArgs));
 
             JavaPluginExtension javaPluginExtension = project.getExtensions().getByType(JavaPluginExtension.class);

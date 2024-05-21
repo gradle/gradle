@@ -18,6 +18,8 @@ package org.gradle.api.plugins;
 
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.provider.Property;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 /**
  * Configuration for a Java application, defining how to assemble the application.
@@ -41,6 +43,10 @@ public interface JavaApplication {
     /**
      * The name of the application.
      */
+    @ToBeReplacedByLazyProperty(
+        value = "Breaks Spring boot smoke test",
+        issue = "https://github.com/gradle/gradle/issues/24713"
+    )
     String getApplicationName();
 
     /**
@@ -65,6 +71,10 @@ public interface JavaApplication {
     /**
      * Array of string arguments to pass to the JVM when running the application
      */
+    @ToBeReplacedByLazyProperty(
+        value = "Breaks Spring boot smoke test",
+        issue = "https://github.com/gradle/gradle/issues/24713"
+    )
     Iterable<String> getApplicationDefaultJvmArgs();
 
     /**
@@ -75,12 +85,8 @@ public interface JavaApplication {
     /**
      * Directory to place executables in
      */
-    String getExecutableDir();
-
-    /**
-     * Directory to place executables in
-     */
-    void setExecutableDir(String executableDir);
+    @ReplacesEagerProperty
+    Property<String> getExecutableDir();
 
     /**
      * <p>The specification of the contents of the distribution.</p>
@@ -102,6 +108,7 @@ public interface JavaApplication {
      * copy the application start scripts into the "{@code bin}" directory, and copy the built jar and its dependencies
      * into the "{@code lib}" directory.
      */
+    @ToBeReplacedByLazyProperty("Needs a decision")
     CopySpec getApplicationDistribution();
 
     void setApplicationDistribution(CopySpec applicationDistribution);

@@ -23,16 +23,18 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.deprecation.DeprecationLogger;
 
-public class DefaultJavaApplication implements JavaApplication {
+public abstract class DefaultJavaApplication implements JavaApplication {
     @SuppressWarnings("deprecation")
     private final org.gradle.api.plugins.ApplicationPluginConvention convention;
     private final Property<String> mainModule;
     private final Property<String> mainClass;
+    private final Property<String> executableDir;
 
     public DefaultJavaApplication(@SuppressWarnings("deprecation") org.gradle.api.plugins.ApplicationPluginConvention convention, ObjectFactory objectFactory, ProviderFactory providerFactory) {
         this.convention = convention;
         this.mainModule = objectFactory.property(String.class);
         this.mainClass = objectFactory.property(String.class).convention(providerFactory.provider(() -> DeprecationLogger.whileDisabled(convention::getMainClassName)));
+        this.executableDir = objectFactory.property(String.class).convention(providerFactory.provider(() -> DeprecationLogger.whileDisabled(convention::getExecutableDir)));
     }
 
     @Override
@@ -66,13 +68,8 @@ public class DefaultJavaApplication implements JavaApplication {
     }
 
     @Override
-    public String getExecutableDir() {
-        return DeprecationLogger.whileDisabled(convention::getExecutableDir);
-    }
-
-    @Override
-    public void setExecutableDir(String executableDir) {
-        DeprecationLogger.whileDisabled(() -> convention.setExecutableDir(executableDir));
+    public Property<String> getExecutableDir() {
+        return executableDir;
     }
 
     @Override
