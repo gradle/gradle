@@ -94,7 +94,7 @@ class GetResolvedDom : GetModelAction.GetCompositeModelAction<ResolvedDomPrerequ
             }
         }
 
-        TitleLarge("Gradle Resolved DOM")
+        TitleLarge("Declarative Project Definitions")
         TwoPanes(
             leftWeight = 0.45f, rightWeight = 0.55f,
             scrollable = false,
@@ -213,7 +213,7 @@ class GetResolvedDom : GetModelAction.GetCompositeModelAction<ResolvedDomPrerequ
     @Composable
     @OptIn(ExperimentalMaterial3Api::class)
     private fun DeclarativeFileDropDown(
-        declarativeBuildFiles: MutableList<File>,
+        declarativeBuildFiles: List<File>,
         state: MutableState<File>
     ) {
         var expanded by remember { mutableStateOf(false) }

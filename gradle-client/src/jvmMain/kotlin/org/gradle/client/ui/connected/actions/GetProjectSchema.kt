@@ -1,12 +1,20 @@
 package org.gradle.client.ui.connected.actions
 
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
-import org.gradle.declarative.dsl.schema.*
+import androidx.compose.ui.unit.dp
+import org.gradle.client.ui.build.BuildTextField
+import org.gradle.client.ui.composables.TitleLarge
+import org.gradle.declarative.dsl.schema.AnalysisSchema
+import org.gradle.declarative.dsl.schema.DataTypeRef
+import org.gradle.declarative.dsl.schema.FunctionSemantics
+import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.declarative.dsl.tooling.models.DeclarativeSchemaModel
 
 class GetProjectSchema : GetModelAction<DeclarativeSchemaModel> {
@@ -15,14 +23,26 @@ class GetProjectSchema : GetModelAction<DeclarativeSchemaModel> {
 
     @Composable
     override fun ColumnScope.ModelContent(model: DeclarativeSchemaModel) {
-        Text(
-            text = "Gradle Project Schema",
-            style = MaterialTheme.typography.titleMedium
-        )
+
+        val availableSoftwareTypes = model.projectSchema.softwareTypes.map { it.simpleName }
+        val selectedSoftwareType = remember { mutableStateOf(availableSoftwareTypes.first()) }
+
+        TitleLarge("Declarative Schema")
+        SoftwareTypeDropDown(availableSoftwareTypes, selectedSoftwareType)
+        SoftwareTypeSchema(model, selectedSoftwareType.value)
+        Spacer(Modifier.size(32.dp))
+    }
+
+    @Composable
+    private fun SoftwareTypeSchema(model: DeclarativeSchemaModel, softwareType: String) {
+        val softwareTypeSchema = model.projectSchema.softwareTypes.single { it.simpleName == softwareType }
+        val description = buildString {
+            appendDescription(model.projectSchema, softwareTypeSchema)
+        }
         SelectionContainer {
             Text(
-                text = "Available Software Types:\n${model.projectSchema.describeSoftwareTypes()}",
-                style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
+                text = description,
+                style = MaterialTheme.typography.labelMedium.copy(fontFamily = FontFamily.Monospace),
             )
         }
     }
@@ -99,6 +119,44 @@ class GetProjectSchema : GetModelAction<DeclarativeSchemaModel> {
             is FunctionSemantics.Builder -> {
                 append(indentChars.repeat(indentLevel + 1))
                 append("TODO Block '${function.simpleName}' is a Builder")
+            }
+        }
+    }
+
+    @Composable
+    @OptIn(ExperimentalMaterial3Api::class)
+    private fun SoftwareTypeDropDown(
+        availableSoftwareTypes: List<String>,
+        state: MutableState<String>
+    ) {
+        var expanded by remember { mutableStateOf(false) }
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = !expanded }
+        ) {
+            BuildTextField(
+                modifier = Modifier.menuAnchor(),
+                value = state.value,
+                onValueChange = { state.value = it },
+                readOnly = true,
+                label = { Text("Software type") },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+            )
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                availableSoftwareTypes.forEach { softwareType ->
+                    DropdownMenuItem(
+                        text = { Text(softwareType) },
+                        onClick = {
+                            state.value = softwareType
+                            expanded = false
+                        },
+                        contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                    )
+                }
             }
         }
     }
