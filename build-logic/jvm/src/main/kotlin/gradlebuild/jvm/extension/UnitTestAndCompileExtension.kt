@@ -19,6 +19,9 @@ package gradlebuild.jvm.extension
 import org.gradle.api.Project
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.compile.JavaCompile
+import org.gradle.jvm.toolchain.JavaLanguageVersion
+import org.gradle.jvm.toolchain.JavaToolchainService
+import org.gradle.jvm.toolchain.JvmVendorSpec
 import org.gradle.kotlin.dsl.*
 
 
@@ -55,6 +58,13 @@ abstract class UnitTestAndCompileExtension(
             options.compilerArgs.remove("-parameters")
             sourceCompatibility = "$majorVersion"
             targetCompatibility = "$majorVersion"
+
+            if (majorVersion < 8) {
+                javaCompiler = project.extensions.getByType<JavaToolchainService>().compilerFor {
+                    languageVersion = JavaLanguageVersion.of(11)
+                    vendor = JvmVendorSpec.ADOPTIUM
+                }
+            }
         }
         // Apply ParameterNamesIndex since 6 doesn't support -parameters
         project.apply(plugin = "gradlebuild.api-parameter-names-index")
