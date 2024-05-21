@@ -12,7 +12,6 @@ import org.gradle.client.core.gradle.GradleConnectionParameters
 import org.gradle.client.core.gradle.GradleDistribution
 import org.gradle.client.ui.AppDispatchers
 import org.gradle.client.ui.connected.actions.*
-import org.gradle.tooling.BuildAction
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType

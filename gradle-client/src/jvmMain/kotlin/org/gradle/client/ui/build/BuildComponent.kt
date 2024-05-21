@@ -20,7 +20,6 @@ import org.gradle.client.core.gradle.GradleConnectionParameters
 import org.gradle.client.core.gradle.GradleDistribution
 import org.gradle.client.ui.AppDispatchers
 import java.io.File
-import java.lang.Exception
 
 sealed interface BuildModel {
     data object Loading : BuildModel
