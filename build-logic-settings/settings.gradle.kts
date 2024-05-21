@@ -1,9 +1,5 @@
-import gradlebuild.basics.BuildEnvironmentExtension
-import gradlebuild.basics.git
-import gradlebuild.basics.parentOrRoot
-
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +14,17 @@ import gradlebuild.basics.parentOrRoot
  * limitations under the License.
  */
 
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
 
-val buildEnvironmentExtension = extensions.create("buildEnvironment", BuildEnvironmentExtension::class)
-buildEnvironmentExtension.gitCommitId = git("rev-parse", "HEAD")
-buildEnvironmentExtension.gitBranch = git("rev-parse", "--abbrev-ref", "HEAD")
-buildEnvironmentExtension.repoRoot = layout.projectDirectory.parentOrRoot()
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version("0.8.0")
+}
+
+include("build-environment")
+
+rootProject.name = "build-logic-settings"
