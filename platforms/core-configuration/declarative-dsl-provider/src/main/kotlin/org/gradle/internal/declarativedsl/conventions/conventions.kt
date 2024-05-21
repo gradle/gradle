@@ -19,25 +19,37 @@ package org.gradle.internal.declarativedsl.conventions
 import org.gradle.internal.declarativedsl.analysis.AssignmentRecord
 import org.gradle.internal.declarativedsl.analysis.DataAdditionRecord
 import org.gradle.internal.declarativedsl.analysis.NestedObjectAccessRecord
-import prg.gradle.declarative.dsl.model.conventions.Convention
-import prg.gradle.declarative.dsl.model.conventions.ConventionReceiver
+import org.gradle.internal.declarative.dsl.model.conventions.Convention
+import org.gradle.internal.declarative.dsl.model.conventions.ConventionReceiver
 
 
-class AssignmentRecordConvention(private val assignmentRecord: AssignmentRecord) : Convention<AssignmentRecordConventionReceiver> {
+/**
+ * A convention that applies a property assignment operation (e.g. foo = "bar").
+ */
+class AssignmentRecordConvention(private val assignmentRecord: AssignmentRecord) :
+    Convention<AssignmentRecordConventionReceiver> {
     override fun apply(receiver: AssignmentRecordConventionReceiver) {
         receiver.receive(assignmentRecord)
     }
 }
 
 
-class AdditionRecordConvention(private val dataAdditionRecord: DataAdditionRecord) : Convention<AdditionRecordConventionReceiver> {
+/**
+ * A convention that applies a data addition operation (e.g. addFoo("bar")).
+ */
+class AdditionRecordConvention(private val dataAdditionRecord: DataAdditionRecord) :
+    Convention<AdditionRecordConventionReceiver> {
     override fun apply(receiver: AdditionRecordConventionReceiver) {
         receiver.receive(dataAdditionRecord)
     }
 }
 
 
-class NestedObjectAccessConvention(private val nestedObjectAccessRecord: NestedObjectAccessRecord) : Convention<NestedObjectAccessRecordConventionReceiver> {
+/**
+ * A convention that applies a nested object access operation (e.g. foo { }).
+ */
+class NestedObjectAccessConvention(private val nestedObjectAccessRecord: NestedObjectAccessRecord) :
+    Convention<NestedObjectAccessRecordConventionReceiver> {
     override fun apply(receiver: NestedObjectAccessRecordConventionReceiver) {
         receiver.receive(nestedObjectAccessRecord)
     }

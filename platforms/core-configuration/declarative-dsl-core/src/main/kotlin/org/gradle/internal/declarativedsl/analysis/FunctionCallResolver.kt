@@ -174,7 +174,7 @@ class FunctionCallResolverImpl(
         semantics: FunctionSemantics,
         function: FunctionResolutionAndBinding,
         result: ObjectOrigin.FunctionOrigin,
-        newFunctionCallId: CallId,
+        newOperationId: OperationId,
         valueBinding: ParameterValueBinding
     ) {
         if (semantics !is FunctionSemantics.ConfigureSemantics)
@@ -186,7 +186,7 @@ class FunctionCallResolverImpl(
                 function,
                 call,
                 valueBinding,
-                newFunctionCallId
+                newOperationId
             ).also {
                 result.receiver?.let { receiver -> recordNestedObjectAccess(receiver, it) }
             }
@@ -258,25 +258,25 @@ class FunctionCallResolverImpl(
         function: FunctionResolutionAndBinding,
         functionCall: FunctionCall,
         valueBinding: ParameterValueBinding,
-        newFunctionCallId: CallId
+        newOperationId: OperationId
     ) = when (semantics) {
         is FunctionSemantics.Builder -> ObjectOrigin.BuilderReturnedReceiver(
             function.schemaFunction,
             checkNotNull(function.receiver),
             functionCall,
             valueBinding,
-            newFunctionCallId
+            newOperationId
         )
 
         is FunctionSemantics.AccessAndConfigure -> when (semantics.returnType) {
             is FunctionSemantics.AccessAndConfigure.ReturnType.Unit ->
-                newObjectInvocationResult(function, valueBinding, functionCall, newFunctionCallId)
+                newObjectInvocationResult(function, valueBinding, functionCall, newOperationId)
 
             is FunctionSemantics.AccessAndConfigure.ReturnType.ConfiguredObject ->
-                configureReceiverObject(semantics, function, functionCall, valueBinding, newFunctionCallId)
+                configureReceiverObject(semantics, function, functionCall, valueBinding, newOperationId)
         }
 
-        else -> newObjectInvocationResult(function, valueBinding, functionCall, newFunctionCallId)
+        else -> newObjectInvocationResult(function, valueBinding, functionCall, newOperationId)
     }
 
     private
@@ -285,11 +285,11 @@ class FunctionCallResolverImpl(
         function: FunctionResolutionAndBinding,
         functionCall: FunctionCall,
         binding: ParameterValueBinding,
-        newFunctionCallId: CallId
+        newOperationId: OperationId
     ): ObjectOrigin.AccessAndConfigureReceiver {
         require(function.receiver != null)
         require(functionCall.args.all { it is FunctionArgument.Lambda })
-        return ObjectOrigin.AccessAndConfigureReceiver(function.receiver, function.schemaFunction, functionCall, binding, newFunctionCallId, semantics.accessor)
+        return ObjectOrigin.AccessAndConfigureReceiver(function.receiver, function.schemaFunction, functionCall, binding, newOperationId, semantics.accessor)
     }
 
     private
@@ -356,14 +356,14 @@ class FunctionCallResolverImpl(
         function: FunctionResolutionAndBinding,
         valueBinding: ParameterValueBinding,
         functionCall: FunctionCall,
-        newFunctionCallId: CallId
+        newOperationId: OperationId
     ) = when (function.receiver) {
         is ObjectOrigin -> ObjectOrigin.NewObjectFromMemberFunction(
-            function.schemaFunction as SchemaMemberFunction, function.receiver, valueBinding, functionCall, newFunctionCallId
+            function.schemaFunction as SchemaMemberFunction, function.receiver, valueBinding, functionCall, newOperationId
         )
 
         null -> ObjectOrigin.NewObjectFromTopLevelFunction(
-            function.schemaFunction, valueBinding, functionCall, newFunctionCallId
+            function.schemaFunction, valueBinding, functionCall, newOperationId
         )
     }
 

@@ -1,6 +1,6 @@
 package org.gradle.internal.declarativedsl.objectGraph
 
-import org.gradle.internal.declarativedsl.analysis.AssignmentGenerationId
+import org.gradle.internal.declarativedsl.analysis.OperationGenerationId
 import org.gradle.internal.declarativedsl.analysis.AssignmentMethod
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
 import org.gradle.internal.declarativedsl.analysis.PropertyReferenceResolution
@@ -16,7 +16,7 @@ class AssignmentResolver() {
     val assignmentMethodByProperty = mutableMapOf<ResolutionNode.Property, AssignmentMethod>()
 
     data class GenerationResolutionNode(
-        val generationId: AssignmentGenerationId,
+        val generationId: OperationGenerationId,
         val node: ResolutionNode
     )
 
@@ -39,7 +39,7 @@ class AssignmentResolver() {
         ) : AssignmentAdditionResult
     }
 
-    fun addAssignment(lhsProperty: PropertyReferenceResolution, rhsOrigin: ObjectOrigin, assignmentMethod: AssignmentMethod, generationId: AssignmentGenerationId): AssignmentAdditionResult =
+    fun addAssignment(lhsProperty: PropertyReferenceResolution, rhsOrigin: ObjectOrigin, assignmentMethod: AssignmentMethod, generationId: OperationGenerationId): AssignmentAdditionResult =
         when (val lhsOwner = resolveToObjectOrPropertyReference(lhsProperty.receiverObject)) {
             is UnresolvedReceiver -> {
                 AssignmentAdditionResult.UnresolvedValueUsedInLhs(lhsOwner.accessOrigin)
@@ -78,12 +78,12 @@ class AssignmentResolver() {
         }
 
     private
-    fun hasAssignmentInTheSameGeneration(existingNode: GenerationResolutionNode, generationId: AssignmentGenerationId): Boolean {
+    fun hasAssignmentInTheSameGeneration(existingNode: GenerationResolutionNode, generationId: OperationGenerationId): Boolean {
         return existingNode.generationId == generationId
     }
 
     private
-    fun hasAssignmentInLowerGeneration(existingNode: GenerationResolutionNode, generationId: AssignmentGenerationId): Boolean {
+    fun hasAssignmentInLowerGeneration(existingNode: GenerationResolutionNode, generationId: OperationGenerationId): Boolean {
         return existingNode.generationId < generationId
     }
 

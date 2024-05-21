@@ -70,7 +70,13 @@ class SchemaTypeRefContext(val schema: AnalysisSchema) : TypeRefContext {
 }
 
 
-data class CallId(val invocationId: Long, val generationId: AssignmentGenerationId) {
+/**
+ * Represents a unique operation within a particular generation.  The invocation id should be unique within a single
+ * interpretation step, but not across generations (i.e. two operations in different generations may have the same
+ * invocation id).  Operations in different generations with the same invocation id have no relationship to each
+ * other except by coincidence.
+ */
+data class OperationId(val invocationId: Long, val generationId: OperationGenerationId) {
     override fun toString(): String = "${generationId.ordinal}:$invocationId"
 }
 
@@ -79,7 +85,7 @@ class AnalysisContext(
     override val schema: AnalysisSchema,
     override val imports: Map<String, FqName>,
     val errorCollector: ErrorCollector,
-    private val generationId: AssignmentGenerationId
+    private val generationId: OperationGenerationId
 ) : AnalysisContextView {
 
     // TODO: thread safety?
@@ -129,7 +135,7 @@ class AnalysisContext(
         mutableNestedObjectAccess += NestedObjectAccessRecord(container, dataObject)
     }
 
-    fun nextCallId(): CallId = CallId(nextInstant.incrementAndGet(), generationId)
+    fun nextCallId(): OperationId = OperationId(nextInstant.incrementAndGet(), generationId)
 
     fun leaveScope(scope: AnalysisScope) {
         check(mutableScopes.last() === scope)

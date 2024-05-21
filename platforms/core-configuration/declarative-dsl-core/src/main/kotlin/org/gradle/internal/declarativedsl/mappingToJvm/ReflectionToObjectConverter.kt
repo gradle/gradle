@@ -20,6 +20,9 @@ import org.gradle.declarative.dsl.schema.DataProperty
 import org.gradle.internal.declarativedsl.objectGraph.ObjectReflection
 
 
+/**
+ * Takes a given {@link ObjectReflection} and applies its operations to the underlying object graph.
+ */
 interface ReflectionToObjectConverter {
     fun apply(objectReflection: ObjectReflection, conversionFilter: ConversionFilter = ConversionFilter.none)
     fun interface ConversionFilter {

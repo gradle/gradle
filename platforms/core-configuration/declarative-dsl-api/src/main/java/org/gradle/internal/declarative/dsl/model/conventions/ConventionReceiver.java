@@ -14,7 +14,12 @@
  * limitations under the License.
  */
 
-package prg.gradle.declarative.dsl.model.conventions;
+package org.gradle.internal.declarative.dsl.model.conventions;
 
+/**
+ * Marker interface for objects that can receive conventions of a certain type and apply them appropriately.
+ *
+ * @since 8.9
+ */
 public interface ConventionReceiver {
 }

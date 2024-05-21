@@ -20,6 +20,9 @@ import org.gradle.declarative.dsl.model.annotations.AccessFromCurrentReceiverOnl
 import org.gradle.declarative.dsl.model.annotations.Configuring
 
 
+/**
+ * Represents a top-level receiver for processing the conventions block in the Settings DSL.
+ */
 interface ConventionsTopLevelReceiver {
     @Configuring
     @AccessFromCurrentReceiverOnly
@@ -27,6 +30,10 @@ interface ConventionsTopLevelReceiver {
 }
 
 
+/**
+ * A receiver for the conventions block.  Note that this class is only used to provide a receiver for custom accessors
+ * that expose the software types available in the build.
+ */
 class ConventionsConfiguringBlock
 
 

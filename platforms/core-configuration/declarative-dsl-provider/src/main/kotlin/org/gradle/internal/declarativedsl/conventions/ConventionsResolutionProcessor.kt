@@ -23,6 +23,9 @@ import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 
 
+/**
+ * Processes a resolution result to extract the Software Type convention operations it defines.
+ */
 class ConventionsResolutionProcessor {
     fun process(resolutionResult: ResolutionResult): ProcessedConventions {
         val assignments = resolutionResult.assignments.groupBy { assignment ->
@@ -40,6 +43,9 @@ class ConventionsResolutionProcessor {
 }
 
 
+/**
+ * The convention operations extracted from a resolution result.
+ */
 data class ProcessedConventions(
     val assignments: Map<String, List<AssignmentRecord>>,
     val additions: Map<String, List<DataAdditionRecord>>,
@@ -47,11 +53,19 @@ data class ProcessedConventions(
 )
 
 
+/**
+ * Searches an ObjectOrigin receiver hierarchy to find the parent software type or throws an error if a software type
+ * is not in the hierarchy.
+ */
 private
 fun getSoftwareType(objectOrigin: ObjectOrigin): ObjectOrigin.AccessAndConfigureReceiver =
     findSoftwareType(objectOrigin) ?: error("Could not discover softwareType for $objectOrigin")
 
 
+/**
+ * Searches an ObjectOrigin receiver hierarchy to find the parent software type. Returns null if a software type
+ * is not in the hierarchy.
+ */
 private
 fun findSoftwareType(objectOrigin: ObjectOrigin): ObjectOrigin.AccessAndConfigureReceiver? =
     when (objectOrigin) {
@@ -64,6 +78,9 @@ fun findSoftwareType(objectOrigin: ObjectOrigin): ObjectOrigin.AccessAndConfigur
     }
 
 
+/**
+ * Checks if a given ObjectOrigin is a software type configuration block.
+ */
 internal
 fun isSoftwareType(objectOrigin: ObjectOrigin): Boolean =
     true == (objectOrigin as? ObjectOrigin.AccessAndConfigureReceiver)?.receiver?.let { receiver ->
@@ -73,12 +90,18 @@ fun isSoftwareType(objectOrigin: ObjectOrigin): Boolean =
     }
 
 
+/**
+ * Checks is a given ObjectOrigin receiver is a call to the `conventions` function.
+ */
 internal
 fun isConventionsCall(parent: ObjectOrigin.ReceiverOrigin) = parent is ObjectOrigin.AccessAndConfigureReceiver &&
     isTopLevelReceiver(parent.receiver) &&
     (parent as? ObjectOrigin.AccessAndConfigureReceiver)?.function?.simpleName == "conventions"
 
 
+/**
+ * Checks if a given ObjectOrigin receiver is the top-level receiver.
+ */
 private
 fun isTopLevelReceiver(objectOrigin: ObjectOrigin) =
     (objectOrigin as? ObjectOrigin.ImplicitThisReceiver)?.resolvedTo is ObjectOrigin.TopLevelReceiver

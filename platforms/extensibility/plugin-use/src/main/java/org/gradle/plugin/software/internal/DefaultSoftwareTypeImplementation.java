@@ -19,7 +19,7 @@ package org.gradle.plugin.software.internal;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import prg.gradle.declarative.dsl.model.conventions.Convention;
+import org.gradle.internal.declarative.dsl.model.conventions.Convention;
 
 import java.util.ArrayList;
 import java.util.List;

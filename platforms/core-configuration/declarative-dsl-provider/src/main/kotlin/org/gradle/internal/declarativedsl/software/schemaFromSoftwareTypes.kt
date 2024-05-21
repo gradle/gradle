@@ -55,6 +55,10 @@ class AbstractSoftwareTypeComponent(
 }
 
 
+/**
+ * Component for software types referenced in a project build script.  When the software type is referenced, its corresponding
+ * plugin is applied to the project and its extension object returned.
+ */
 internal
 class SoftwareTypeComponent(
     private val schemaTypeToExtend: KClass<*>,
@@ -72,6 +76,11 @@ class SoftwareTypeComponent(
 )
 
 
+/**
+ * Component for software types that are configured as conventions in the settings build script.  Conventions are not applied
+ * when process the settings build script, but are captured and applied when a project build script references a given
+ * software type.
+ */
 internal
 class SoftwareTypeConventionComponent(
     private val schemaTypeToExtend: KClass<*>,

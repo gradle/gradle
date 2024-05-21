@@ -20,7 +20,14 @@ import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
 import org.gradle.internal.declarativedsl.analysis.ParameterValueBinding
 
 
+/**
+ * Utilities for replacing receivers in an ObjectOrigin hierarchy.
+ */
 object OriginReplacement {
+    /**
+     * Replaces receivers matching a predicate with a replacement receiver.  The replacement returns a deep copy of the receiver hierarchy of the
+     * supplied {@link ObjectOrigin} with the given replacement applied.
+     */
     fun replaceReceivers(replaceIn: ObjectOrigin, predicate: (ObjectOrigin.ReceiverOrigin) -> Boolean, replacement: ObjectOrigin.ReceiverOrigin): ObjectOrigin =
         ReceiverReplacementContext(predicate, replacement).replace(replaceIn)
 

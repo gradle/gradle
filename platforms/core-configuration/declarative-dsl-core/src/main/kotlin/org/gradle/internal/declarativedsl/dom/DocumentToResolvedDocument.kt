@@ -21,7 +21,7 @@ import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter
-import org.gradle.internal.declarativedsl.analysis.AssignmentGenerationId
+import org.gradle.internal.declarativedsl.analysis.OperationGenerationId
 import org.gradle.internal.declarativedsl.analysis.ErrorReason
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
 import org.gradle.internal.declarativedsl.analysis.ResolutionError
@@ -42,7 +42,7 @@ fun resolvedDocument(
     languageTreeResult: LanguageTreeResult,
     analysisStatementFilter: AnalysisStatementFilter,
     strictReceiverChecks: Boolean = true,
-    generationId: AssignmentGenerationId
+    generationId: OperationGenerationId
 ): ResolvedDeclarativeDocument {
     val tracingResolver = tracingCodeResolver(generationId, analysisStatementFilter)
     tracingResolver.resolve(schema, languageTreeResult.imports, languageTreeResult.topLevelBlock)

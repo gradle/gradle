@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-package prg.gradle.declarative.dsl.model.conventions;
+@NonNullApi
+package org.gradle.internal.declarative.dsl.model.conventions;
 
-public interface Convention<T extends ConventionReceiver> {
-    void apply(T receiver);
-}
+import org.gradle.api.NonNullApi;

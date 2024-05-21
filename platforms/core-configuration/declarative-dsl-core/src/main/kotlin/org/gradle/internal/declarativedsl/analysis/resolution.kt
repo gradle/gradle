@@ -59,7 +59,12 @@ sealed interface ErrorReason {
 }
 
 
-enum class AssignmentGenerationId {
+/**
+ * Represents the "generation" of a particular operation (either an addition function call or a property assignment operation).  The order of generations
+ * is important as calls in later generations can override calls in earlier generations, but no the other way around.  For instance, a property assignment
+ * can override a convention assignment, but a convention assignment cannot override a property assignment.
+ */
+enum class OperationGenerationId {
     CONVENTION_ASSIGNMENT,
     PROPERTY_ASSIGNMENT
 }

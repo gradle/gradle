@@ -24,7 +24,7 @@ import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter
 import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter.Companion.isCallNamed
 import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter.Companion.isConfiguringCall
 import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter.Companion.isTopLevelElement
-import org.gradle.internal.declarativedsl.analysis.AssignmentGenerationId
+import org.gradle.internal.declarativedsl.analysis.OperationGenerationId
 import org.gradle.internal.declarativedsl.analysis.and
 import org.gradle.internal.declarativedsl.analysis.implies
 import org.gradle.internal.declarativedsl.evaluationSchema.CompositeEvaluationSchemaComponent
@@ -45,7 +45,7 @@ import org.gradle.plugin.use.internal.PluginRequestApplicator
 internal
 class PluginsInterpretationSequenceStep(
     override val stepIdentifier: String = "plugins",
-    override val assignmentGeneration: AssignmentGenerationId = AssignmentGenerationId.PROPERTY_ASSIGNMENT,
+    override val assignmentGeneration: OperationGenerationId = OperationGenerationId.PROPERTY_ASSIGNMENT,
     private val targetScope: ClassLoaderScope,
     private val scriptSource: ScriptSource,
     private val additionalSchemaComponent: EvaluationSchemaComponent = CompositeEvaluationSchemaComponent(emptyList()),

@@ -20,7 +20,7 @@ import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.declarative.dsl.schema.ExternalObjectProviderKey
-import org.gradle.internal.declarativedsl.analysis.AssignmentGenerationId
+import org.gradle.internal.declarativedsl.analysis.OperationGenerationId
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequence
@@ -84,7 +84,7 @@ class StoringInterpretationSchemaBuilder(
         private val schemaHandler: (schemaId: String, schema: AnalysisSchema) -> Unit
     ) : InterpretationSequenceStep<R> {
         override val stepIdentifier: String = step.stepIdentifier
-        override val assignmentGeneration: AssignmentGenerationId = step.assignmentGeneration
+        override val assignmentGeneration: OperationGenerationId = step.assignmentGeneration
         override fun evaluationSchemaForStep(): EvaluationSchema = step.evaluationSchemaForStep().also { schemaHandler(stepIdentifier, it.analysisSchema) }
         override fun getTopLevelReceiverFromTarget(target: Any): R = step.getTopLevelReceiverFromTarget(target)
         override fun whenEvaluated(resultReceiver: R) = step.whenEvaluated(resultReceiver)

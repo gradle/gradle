@@ -5,7 +5,7 @@ import org.gradle.declarative.dsl.schema.DataProperty
 import org.gradle.declarative.dsl.schema.ExternalObjectProviderKey
 import org.gradle.declarative.dsl.schema.SchemaFunction
 import org.gradle.internal.declarativedsl.analysis.AssignmentMethod
-import org.gradle.internal.declarativedsl.analysis.CallId
+import org.gradle.internal.declarativedsl.analysis.OperationId
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
 import org.gradle.internal.declarativedsl.analysis.ParameterValueBinding
 import org.gradle.internal.declarativedsl.objectGraph.ObjectReflection
@@ -94,7 +94,7 @@ class DeclarativeReflectionToObjectConverter(
 
     private
     sealed interface ObjectAccessKey {
-        data class Identity(val id: CallId) : ObjectAccessKey
+        data class Identity(val id: OperationId) : ObjectAccessKey
         data class CustomAccessor(val owner: ObjectOrigin, val accessorId: String) : ObjectAccessKey
         data class ConfiguringLambda(val owner: ObjectOrigin, val function: SchemaFunction) : ObjectAccessKey
     }

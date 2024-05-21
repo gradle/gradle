@@ -14,7 +14,7 @@ interface Resolver {
 class ResolverImpl(
     private val codeAnalyzer: CodeAnalyzer,
     private val errorCollector: ErrorCollector,
-    private val generationId: AssignmentGenerationId
+    private val generationId: OperationGenerationId
 ) : Resolver {
     override fun resolve(schema: AnalysisSchema, imports: List<Import>, topLevelBlock: Block): ResolutionResult {
         val importContext = AnalysisContext(schema, emptyMap(), errorCollector, generationId)

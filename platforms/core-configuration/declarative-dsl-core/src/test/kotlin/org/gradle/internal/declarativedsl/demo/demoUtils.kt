@@ -2,7 +2,7 @@ package org.gradle.internal.declarativedsl.demo
 
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.declarative.dsl.schema.DataType
-import org.gradle.internal.declarativedsl.analysis.CallId
+import org.gradle.internal.declarativedsl.analysis.OperationId
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 import org.gradle.internal.declarativedsl.analysis.Resolver
 import org.gradle.internal.declarativedsl.analysis.ref
@@ -110,7 +110,7 @@ fun printResolvedAssignments(result: ResolutionResult) {
 
 
 fun prettyStringFromReflection(objectReflection: ObjectReflection): String {
-    val visitedIdentity = mutableSetOf<CallId>()
+    val visitedIdentity = mutableSetOf<OperationId>()
 
     fun StringBuilder.recurse(current: ObjectReflection, depth: Int) {
         fun indent() = "    ".repeat(depth)

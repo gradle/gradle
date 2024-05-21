@@ -18,7 +18,7 @@ package org.gradle.internal.declarativedsl.conventions
 
 import org.gradle.declarative.dsl.schema.ExternalObjectProviderKey
 import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter
-import org.gradle.internal.declarativedsl.analysis.AssignmentGenerationId
+import org.gradle.internal.declarativedsl.analysis.OperationGenerationId
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 import org.gradle.internal.declarativedsl.analysis.and
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchema
@@ -35,9 +35,15 @@ private
 const val CONVENTIONS = "conventions"
 
 
+/**
+ * The interpretation step for the top-level "conventions" block in the Settings DSL.  This step extracts the operations
+ * in the conventions block and adds them to the software types.  It does no runtime processing of the conventions (i.e.
+ * none of the operations are applied by this step).  The stored conventions will be applied later when processing a
+ * build file that uses a software type.
+ */
 class ConventionsInterpretationSequenceStep(
     override val stepIdentifier: String = CONVENTIONS,
-    override val assignmentGeneration: AssignmentGenerationId = AssignmentGenerationId.CONVENTION_ASSIGNMENT,
+    override val assignmentGeneration: OperationGenerationId = OperationGenerationId.CONVENTION_ASSIGNMENT,
     private val softwareTypeRegistry: SoftwareTypeRegistry,
     private val buildEvaluationSchema: () -> EvaluationSchema
 ) : InterpretationSequenceStep<ConventionsTopLevelReceiver> {
