@@ -16,9 +16,6 @@
 package org.gradle.tooling.internal.adapter;
 
 import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableList;
-import com.google.common.graph.SuccessorsFunction;
-import com.google.common.graph.Traverser;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.DirectInstantiator;
@@ -44,6 +41,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Proxy;
 import java.lang.reflect.Type;
 import java.lang.reflect.WildcardType;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -53,6 +51,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Matcher;
@@ -217,19 +216,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
             return Collections.emptySet();
         }
 
-        // deep-traverse the source object's type hierarchy and extract all implemented interfaces
-        Iterable<Class<?>> allImplementedInterfaces = Traverser.forGraph(new SuccessorsFunction<Class<?>>() {
-            @Override
-            public Iterable<? extends Class<?>> successors(Class<?> node) {
-                ImmutableList.Builder<Class<?>> builder = new ImmutableList.Builder<>();
-                if (node.getSuperclass() != null) {
-                    builder.add(node.getSuperclass());
-                }
-                return builder
-                    .add(node.getInterfaces())
-                    .build();
-            }
-        }).breadthFirst(sourceObject.getClass());
+        Set<Class<?>> allImplementedInterfaces = walkTypeHierarchyAndExtractInterfaces(sourceObject.getClass());
 
         // keep only those implemented interfaces which are in model contract set
         Set<Class<?>> filteredImplementedInterfaces = new HashSet<>();
@@ -241,6 +228,25 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         }
 
         return filteredImplementedInterfaces;
+    }
+
+    private static <T> Set<Class<?>> walkTypeHierarchyAndExtractInterfaces(Class<?> clazz) {
+        Set<Class<?>> seenInterfaces = new HashSet<>();
+        Queue<Class<?>> queue = new ArrayDeque<>();
+        queue.add(clazz);
+        Class<?> type;
+        while ((type = queue.poll()) != null) {
+            Class<?> superclass = type.getSuperclass();
+            if (superclass != null) {
+                queue.add(superclass);
+            }
+            for (Class<?> iface : type.getInterfaces()) {
+                if (seenInterfaces.add(iface)) {
+                    queue.add(Cast.<Class<? super T>>uncheckedCast(iface));
+                }
+            }
+        }
+        return seenInterfaces;
     }
 
     private static <T, S> T adaptToEnum(Class<T> targetType, S sourceObject) {
@@ -739,7 +745,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
                 return Optional.absent();
             }
 
-            LinkedList<Class<?>> queue = new LinkedList<Class<?>>();
+            LinkedList<Class<?>> queue = new LinkedList<>();
             queue.add(sourceClass);
             while (!queue.isEmpty()) {
                 Class<?> c = queue.removeFirst();
