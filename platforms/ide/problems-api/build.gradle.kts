@@ -45,4 +45,5 @@ dependencies {
 
     testFixturesImplementation(project(":enterprise-operations"))
     testFixturesImplementation(project(":base-services"))
+    testFixturesImplementation(project(":internal-integ-testing"))
 }
