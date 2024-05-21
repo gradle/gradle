@@ -20,6 +20,7 @@ import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.test.fixtures.file.LeaksFileHandles
 
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLIN
+import static org.hamcrest.CoreMatchers.containsString
 
 @LeaksFileHandles
 class KotlinApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSpec {
@@ -178,5 +179,39 @@ class KotlinApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegra
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
+
+    def "initializes Kotlin application with JUnit Jupiter test framework with --split-project"() {
+        when:
+        run('init', '--type', 'kotlin-application', '--test-framework', 'junit-jupiter', "--split-project")
+
+        then:
+        subprojectDir.file("build.gradle.kts").assertExists()
+
+        and:
+        targetDir.file("/buildSrc/src/main/kotlin/buildlogic.kotlin-common-conventions.gradle.kts").assertContents(containsString("junit.jupiter"))
+
+        when:
+        run("build")
+
+        then:
+        assertTestPassed("org.example.app.MessageUtilsTest", "testGetMessage")
+    }
+
+    def "initializes Kotlin application with JUnit Jupiter test framework with --no-split-project"() {
+        when:
+        run('init', '--type', 'kotlin-application', '--test-framework', 'junit-jupiter', "--no-split-project")
+
+        then:
+        subprojectDir.file("build.gradle.kts").assertExists()
+
+        and:
+        subprojectDir.file("build.gradle.kts").assertContents(containsString("junit.jupiter"))
+
+        when:
+        run("build")
+
+        then:
+        assertTestPassed("org.example.AppTest", "appHasAGreeting")
     }
 }
