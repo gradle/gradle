@@ -18,6 +18,7 @@ package org.gradle.internal.declarativedsl.settings
 
 import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 
 class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec implements SoftwareTypeFixture {
     def "can configure build-level conventions for property objects in a software type (#testCase)"() {
@@ -97,6 +98,7 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
         "everything has conventions and all are called"      | addToAll("foo")  | addToAll("bar")    | ["list = foo, bar", "baz = foo, bar"]
     }
 
+    @UnsupportedWithConfigurationCache
     def "can configure build-level conventions for dependencies objects in a software type (#testCase)"() {
         given:
         withSoftwareTypePluginThatExposesExtensionWithDependencies().prepareToExecute()
@@ -201,6 +203,7 @@ class SoftwareTypeConventionIntegrationTest extends AbstractIntegrationSpec impl
         ]
     }
 
+    @UnsupportedWithConfigurationCache
     def "can configure build-level conventions for software types in a multi-project build"() {
         given:
         withSoftwareTypePluginThatExposesExtensionWithDependencies().prepareToExecute()
