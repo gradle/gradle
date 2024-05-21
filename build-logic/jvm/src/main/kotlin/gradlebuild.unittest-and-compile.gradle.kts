@@ -281,7 +281,7 @@ fun configureTests() {
         distribution {
             this as TestDistributionExtensionInternal
             // Dogfooding TD against ge-td-dogfooding in order to test new features and benefit from bug fixes before they are released
-            server.set(uri("https://ge-td-dogfooding.grdev.net"))
+            server.set(uri("https://ge.gradle.org"))
         }
 
         if (project.testDistributionEnabled && !isUnitTest() && !isPerformanceProject()) {
