@@ -26,6 +26,8 @@ import org.gradle.configurationcache.extensions.capitalized
 import org.gradle.internal.logging.ConsoleRenderer
 import java.io.File
 import java.util.Comparator.comparing
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 
 private
@@ -48,6 +50,9 @@ enum class ProblemSeverity {
 }
 
 
+/**
+ * This class is thread-safe.
+ */
 internal
 class ConfigurationCacheProblemsSummary(
 
@@ -76,7 +81,10 @@ class ConfigurationCacheProblemsSummary(
     private
     var causes = ArrayList<Throwable>(maxCauses)
 
-    fun get(): Summary = synchronized(this) {
+    private
+    val lock = ReentrantLock()
+
+    fun get(): Summary = lock.withLock {
         Summary(
             problemCount,
             failureCount,
@@ -89,7 +97,7 @@ class ConfigurationCacheProblemsSummary(
     }
 
     fun onProblem(problem: PropertyProblem, severity: ProblemSeverity): Boolean {
-        synchronized(this) {
+        lock.withLock {
             problemCount += 1
             when (severity) {
                 ProblemSeverity.Failure -> failureCount += 1
