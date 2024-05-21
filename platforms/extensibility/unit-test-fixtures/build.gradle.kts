@@ -31,12 +31,15 @@ dependencies {
     api(project(":serialization"))
     api(project(":time"))
 
+    implementation(projects.serviceProvider)
     implementation(project(":build-state"))
     implementation(project(":file-collections"))
     implementation(project(":file-temp"))
     implementation(project(":java-language-extensions"))
     implementation(project(":logging"))
     implementation(project(":model-core"))
+    implementation(project(":daemon-protocol"))
+    implementation(project(":daemon-services"))
     implementation(project(":native"))
 
     testImplementation(project(":testing-base"))

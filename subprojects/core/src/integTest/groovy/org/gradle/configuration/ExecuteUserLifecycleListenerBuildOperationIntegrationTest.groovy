@@ -29,6 +29,7 @@ import org.gradle.initialization.NotifyProjectsLoadedBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.internal.logging.events.StyledTextOutputEvent
 import org.gradle.internal.operations.BuildOperationType
 import org.gradle.internal.operations.trace.BuildOperationRecord
@@ -231,6 +232,7 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
         verifyHasChildren(projectsEvaluated, rootOtherScriptAppId, 'other script', expectedGradleOps)
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Configuring projects from root, access to root from projects")
     def 'beforeEvaluate listeners are attributed to the correct registrant'() {
         given:
         def addGradleListeners = { String source ->
@@ -333,6 +335,7 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
         verifyHasNoChildren(subBeforeEvaluated, subOtherScriptAppId)
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Access to root from projects")
     def 'afterEvaluate listeners are attributed to the correct registrant'() {
         given:
         def addGradleListeners = { String source ->
@@ -640,6 +643,7 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
         operations.none(ExecuteListenerBuildOperationType)
     }
 
+    @ToBeFixedForIsolatedProjects(because = "allprojects")
     def 'listener registrations in delayed callbacks are tracked correctly'() {
         given:
         def addBeforeProjectListeners = { String source ->

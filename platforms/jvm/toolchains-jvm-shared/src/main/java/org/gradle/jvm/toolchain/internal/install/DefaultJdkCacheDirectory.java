@@ -223,7 +223,7 @@ public class DefaultJdkCacheDirectory implements JdkCacheDirectory {
                 return new UnpackedRoot(subFolder, uncheckedMetadata);
             }
         }
-        throw new IllegalStateException("Unpacked JDK archive does not contain a Java home: " + unpackFolder);
+        throw new IllegalStateException("Unpacked JDK archive does not contain a Java home: " + unpackFolder, uncheckedMetadata.getErrorCause());
     }
 
     private JvmInstallationMetadata getUncheckedMetadata(File root) {
@@ -237,7 +237,7 @@ public class DefaultJdkCacheDirectory implements JdkCacheDirectory {
         }
     }
 
-    private static String getInstallFolderName(JvmInstallationMetadata metadata) {
+    public static String getInstallFolderName(JvmInstallationMetadata metadata) {
         String vendor = metadata.getJvmVendor();
         if (vendor == null || vendor.isEmpty()) {
             vendor = metadata.getVendor().getRawVendor();

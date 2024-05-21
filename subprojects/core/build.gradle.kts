@@ -76,6 +76,7 @@ dependencies {
     api(projects.concurrent)
     api(projects.javaLanguageExtensions)
     api(projects.serialization)
+    api(projects.serviceProvider)
     api(projects.time)
     api(project(":base-services"))
     api(project(":base-services-groovy"))
@@ -304,6 +305,10 @@ tasks.test {
 
 tasks.compileTestGroovy {
     groovyOptions.fork("memoryInitialSize" to "128M", "memoryMaximumSize" to "1G")
+}
+
+tasks.isolatedProjectsIntegTest {
+    enabled = true
 }
 
 integTest.usesJavadocCodeSnippets = true

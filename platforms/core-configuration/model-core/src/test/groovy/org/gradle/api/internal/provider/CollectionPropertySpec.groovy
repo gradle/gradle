@@ -38,7 +38,7 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
     @Override
     AbstractCollectionProperty<String, C> propertyWithNoValue() {
         def p = property()
-        p.unset()
+        p.set((List) null)
         return p
     }
 
@@ -78,9 +78,11 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
 
     def property = property()
 
-    protected void assertValueIs(Collection<String> expected, PropertyInternal<?> property = this.property) {
-        assert property.present
-        def actual = property.get()
+    protected void assertValueIs(C expected, PropertyInternal<?> property = this.property) {
+        assertPropertyValueIs(expected, property)
+    }
+
+    protected void assertEqualValues(C expected, C actual) {
         assert actual instanceof ImmutableCollection
         assert immutableCollectionType.isInstance(actual)
         assertCollectionIs(actual, expected)

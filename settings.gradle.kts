@@ -23,11 +23,13 @@ pluginManagement {
         }
         gradlePluginPortal()
     }
+    includeBuild("build-logic-settings")
 }
 
 plugins {
+    id("gradlebuild.build-environment")
     id("com.gradle.develocity").version("3.17.3") // Sync with `build-logic-commons/build-platform/build.gradle.kts`
-    id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.10.0")
+    id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.10.1")
     id("org.gradle.toolchains.foojay-resolver-convention") version ("0.8.0")
 //    id("net.ltgt.errorprone").version("3.1.0")
 }
@@ -39,9 +41,7 @@ apply(from = "gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
 
 val architectureElements = mutableListOf<ArchitectureElementBuilder>()
 
-// If you include a new subproject here, you will need to execute the
-// ./gradlew generateSubprojectsInfo
-// task to update metadata about the build for CI
+// If you include a new subproject here, consult internal documentation "Adding a new Build Tool subproject" page
 
 unassigned {
     subproject("distributions-dependencies") // platform for dependency versions
@@ -98,6 +98,7 @@ val core = platform("core") {
         subproject("native")
         subproject("process-services")
         subproject("serialization")
+        subproject("service-provider")
         subproject("time")
         subproject("client-services")
         subproject("daemon-services")

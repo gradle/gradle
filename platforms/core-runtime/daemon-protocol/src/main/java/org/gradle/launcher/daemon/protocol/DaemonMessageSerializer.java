@@ -288,7 +288,7 @@ public class DaemonMessageSerializer {
             encoder.writeLong(build.getStartTime());
             encoder.writeBoolean(build.isInteractive());
             buildActionSerializer.write(encoder, build.getAction());
-            GradleLauncherMetaData metaData = (GradleLauncherMetaData) build.getBuildClientMetaData();
+            GradleLauncherMetaData metaData = build.getBuildClientMetaData();
             encoder.writeString(metaData.getAppName());
             buildActionParametersSerializer.write(encoder, build.getParameters());
         }

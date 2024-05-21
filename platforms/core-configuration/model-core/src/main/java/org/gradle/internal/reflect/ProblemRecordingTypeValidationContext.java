@@ -17,16 +17,14 @@
 package org.gradle.internal.reflect;
 
 import org.gradle.api.Action;
-import org.gradle.api.problems.internal.DefaultProblemReporter;
-import org.gradle.api.problems.internal.InternalProblemReporter;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.DefaultProblemBuilder;
 import org.gradle.api.problems.internal.Problem;
-import org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder;
 import org.gradle.internal.reflect.validation.DefaultTypeAwareProblemBuilder;
 import org.gradle.internal.reflect.validation.TypeAwareProblemBuilder;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.plugin.use.PluginId;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -47,11 +45,7 @@ abstract public class ProblemRecordingTypeValidationContext implements TypeValid
 
     @Override
     public void visitTypeProblem(Action<? super TypeAwareProblemBuilder> problemSpec) {
-        InternalProblems problems = ProblemsProgressEventEmitterHolder.get();
-        InternalProblemReporter reporter = problems.getInternalReporter();
-        DefaultTypeAwareProblemBuilder problemBuilder = new DefaultTypeAwareProblemBuilder(((DefaultProblemReporter) reporter).createProblemBuilder());
-        problemSpec.execute(problemBuilder);
-        recordProblem(problemBuilder.build());
+        recordProblem(getDefaultTypeAwareProblemBuilder(problemSpec).build());
     }
 
     private Optional<PluginId> pluginId() {
@@ -61,14 +55,18 @@ abstract public class ProblemRecordingTypeValidationContext implements TypeValid
 
     @Override
     public void visitPropertyProblem(Action<? super TypeAwareProblemBuilder> problemSpec) {
-        InternalProblemReporter reporter = ProblemsProgressEventEmitterHolder.get().getInternalReporter();
-        DefaultTypeAwareProblemBuilder problemBuilder = new DefaultTypeAwareProblemBuilder(((DefaultProblemReporter) reporter).createProblemBuilder());
-        problemSpec.execute(problemBuilder);
+        DefaultTypeAwareProblemBuilder problemBuilder = getDefaultTypeAwareProblemBuilder(problemSpec);
         problemBuilder.withAnnotationType(rootType);
         pluginId()
             .map(PluginId::getId)
             .ifPresent(id -> problemBuilder.additionalData(PLUGIN_ID, id));
         recordProblem(problemBuilder.build());
+    }
+
+    private static @Nonnull DefaultTypeAwareProblemBuilder getDefaultTypeAwareProblemBuilder(Action<? super TypeAwareProblemBuilder> problemSpec) {
+        DefaultTypeAwareProblemBuilder problemBuilder = new DefaultTypeAwareProblemBuilder(new DefaultProblemBuilder());
+        problemSpec.execute(problemBuilder);
+        return problemBuilder;
     }
 
     abstract protected void recordProblem(Problem problem);

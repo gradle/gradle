@@ -9,6 +9,7 @@ errorprone {
 }
 
 dependencies {
+    api(projects.serviceProvider)
     api(project(":base-services"))
     api(project(":core-api"))
     api(project(":core"))

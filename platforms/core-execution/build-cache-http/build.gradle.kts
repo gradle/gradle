@@ -6,6 +6,7 @@ description = "Implementation for interacting with HTTP build caches"
 
 dependencies {
     api(projects.javaLanguageExtensions)
+    api(projects.serviceProvider)
 
     api(libs.httpcore)
     api(libs.inject)

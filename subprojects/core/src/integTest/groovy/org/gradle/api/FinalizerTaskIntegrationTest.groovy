@@ -17,6 +17,7 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Ignore
@@ -818,6 +819,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/5415")
+    @ToBeFixedForIsolatedProjects(because = "Configure projects from root")
     void 'finalizers are executed after the last task to be finalized'() {
         createDirs("a", "b")
         settingsFile << """
@@ -858,6 +860,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/10549")
+    @ToBeFixedForIsolatedProjects(because = "Configure projects from root")
     def "mustRunAfter is respected for finalizer without direct dependency"() {
         createDirs("a", "b")
         settingsFile << """

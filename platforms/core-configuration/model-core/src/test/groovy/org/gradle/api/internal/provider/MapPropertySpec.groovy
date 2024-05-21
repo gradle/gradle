@@ -1487,7 +1487,7 @@ The value of this property is derived from: <source>""")
         def execTimeValue = property.calculateExecutionTimeValue()
 
         then:
-        assertMapIs([b: '2', c: '3', d: '4'], execTimeValue.toValue().get())
+        assertEqualValues([b: '2', c: '3', d: '4'], execTimeValue.toValue().get())
     }
 
     def "execution time value is missing if any undefined-safe operations are performed in the tail"() {
@@ -1651,14 +1651,11 @@ The value of this property is derived from: <source>""")
         return brokenSupplier(String)
     }
 
-    private void assertValueIs(Map<String, String> expected, MapProperty<String, String> property = this.property) {
-        assert property.present
-        def actual = property.get()
-        assertImmutable(actual)
-        assertMapIs(expected, actual)
+    protected void assertValueIs(Map<String, String> expected, MapProperty<String, String> property = this.property) {
+        assertPropertyValueIs(expected, property)
     }
 
-    protected void assertMapIs(Map<String, String> expected, Map<String, String> actual) {
+    protected void assertEqualValues(Map<String, String> expected, Map<String, String> actual) {
         actual.each {
             assert it.key instanceof String
             assert it.value instanceof String

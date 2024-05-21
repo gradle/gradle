@@ -18,6 +18,7 @@ package org.gradle.launcher.bootstrap;
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.Action;
 import org.gradle.api.logging.configuration.ShowStacktrace;
+import org.gradle.configuration.DefaultBuildClientMetaData;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.internal.buildevents.BuildExceptionReporter;
 import org.gradle.internal.logging.DefaultLoggingConfiguration;
@@ -72,7 +73,7 @@ public abstract class EntryPoint {
     protected Action<Throwable> createErrorHandler() {
         DefaultLoggingConfiguration loggingConfiguration = new DefaultLoggingConfiguration();
         loggingConfiguration.setShowStacktrace(ShowStacktrace.ALWAYS_FULL);
-        return new BuildExceptionReporter(new StreamingStyledTextOutputFactory(originalStdErr), loggingConfiguration, new GradleLauncherMetaData());
+        return new BuildExceptionReporter(new StreamingStyledTextOutputFactory(originalStdErr), loggingConfiguration, new DefaultBuildClientMetaData(new GradleLauncherMetaData()));
     }
 
     protected abstract void doAction(String[] args, ExecutionListener listener);

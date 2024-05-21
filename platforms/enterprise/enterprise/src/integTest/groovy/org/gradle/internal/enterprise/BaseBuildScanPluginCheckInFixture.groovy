@@ -164,6 +164,7 @@ abstract class BaseBuildScanPluginCheckInFixture {
                             $GradleEnterprisePluginEndOfBuildListener.name getEndOfBuildListener() {
                                 return { $GradleEnterprisePluginEndOfBuildListener.BuildResult.name buildResult ->
                                     println "${propertyPrefix}.endOfBuild.buildResult.failure = \$buildResult.failure"
+                                    println "${propertyPrefix}.endOfBuild.buildResult.problems = \${buildResult.problems.size()}"
                                     if (System.getProperty("build-listener-failure") != null) {
                                         throw new RuntimeException("broken")
                                     }
