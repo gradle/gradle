@@ -320,7 +320,7 @@ private fun DirectoryField(
 
 @Composable
 @Suppress("LongParameterList")
-private fun BuildTextField(
+fun BuildTextField(
     modifier: Modifier = Modifier,
     value: String,
     onValueChange: (String) -> Unit,
