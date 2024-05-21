@@ -31,7 +31,7 @@ import org.gradle.configurationcache.metadata.ProjectMetadataController
 import org.gradle.configurationcache.models.IntermediateModelController
 import org.gradle.configurationcache.problems.ConfigurationCacheProblems
 import org.gradle.configurationcache.serialization.DefaultWriteContext
-import org.gradle.configurationcache.serialization.IsolateOwner
+import org.gradle.configurationcache.serialization.IsolateOwners
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.withIsolate
 import org.gradle.initialization.GradlePropertiesController
@@ -489,7 +489,7 @@ class DefaultConfigurationCache internal constructor(
     fun cacheFingerprintWriterContextFor(outputStream: OutputStream, profile: () -> String): DefaultWriteContext {
         val (context, codecs) = cacheIO.writerContextFor(outputStream, profile)
         return context.apply {
-            push(IsolateOwner.OwnerHost(host), codecs.fingerprintTypesCodec())
+            push(IsolateOwners.OwnerHost(host), codecs.fingerprintTypesCodec())
         }
     }
 
@@ -552,7 +552,7 @@ class DefaultConfigurationCache internal constructor(
     fun <T> readFingerprintFile(fingerprintFile: ConfigurationCacheStateFile, action: suspend ReadContext.(ConfigurationCacheFingerprintController.Host) -> T): T =
         encryptionService.inputStream(fingerprintFile.stateType, fingerprintFile::inputStream).use { inputStream ->
             cacheIO.withReadContextFor(inputStream) { codecs ->
-                withIsolate(IsolateOwner.OwnerHost(host), codecs.fingerprintTypesCodec()) {
+                withIsolate(IsolateOwners.OwnerHost(host), codecs.fingerprintTypesCodec()) {
                     action(object : ConfigurationCacheFingerprintController.Host {
                         override val valueSourceProviderFactory: ValueSourceProviderFactory
                             get() = host.service()

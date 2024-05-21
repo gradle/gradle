@@ -58,6 +58,7 @@ import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.configurationcache.flow.BuildWorkResultProvider
 import org.gradle.configurationcache.problems.DocumentationSection
+import org.gradle.configurationcache.serialization.BindingsBuilder
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.IsolateContext
 import org.gradle.configurationcache.serialization.ReadContext

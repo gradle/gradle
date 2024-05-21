@@ -58,7 +58,7 @@ class ConfigurationCacheProblems(
     private
     val failureFactory: FailureFactory
 
-) : ProblemsListener, ProblemReporter, AutoCloseable {
+) : AbstractProblemsListener(), ProblemReporter, AutoCloseable {
 
     private
     val summarizer = ConfigurationCacheProblemsSummary()
@@ -128,7 +128,7 @@ class ConfigurationCacheProblems(
 
     override fun forIncompatibleTask(path: String): ProblemsListener {
         incompatibleTasks.add(path)
-        return object : ProblemsListener {
+        return object : AbstractProblemsListener() {
             override fun onProblem(problem: PropertyProblem) {
                 onProblem(problem, ProblemSeverity.Suppressed)
             }

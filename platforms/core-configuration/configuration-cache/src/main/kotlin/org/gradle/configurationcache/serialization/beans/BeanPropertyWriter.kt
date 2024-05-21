@@ -21,6 +21,7 @@ import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.IConventionAware
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.problems.PropertyKind
+import org.gradle.configurationcache.serialization.BeanStateWriter
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.withDebugFrame

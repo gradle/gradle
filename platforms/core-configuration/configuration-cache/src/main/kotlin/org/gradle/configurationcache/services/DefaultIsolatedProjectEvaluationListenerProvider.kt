@@ -27,6 +27,7 @@ import org.gradle.configurationcache.isolation.IsolatedActionDeserializer
 import org.gradle.configurationcache.isolation.IsolatedActionSerializer
 import org.gradle.configurationcache.isolation.SerializedIsolatedActionGraph
 import org.gradle.configurationcache.serialization.IsolateOwner
+import org.gradle.configurationcache.serialization.IsolateOwners
 import org.gradle.configurationcache.serialization.serviceOf
 import org.gradle.invocation.IsolatedProjectEvaluationListenerProvider
 
@@ -61,7 +62,7 @@ class DefaultIsolatedProjectEvaluationListenerProvider : IsolatedProjectEvaluati
         else -> {
             val isolate = isolate(
                 IsolatedProjectActions(beforeProject, afterProject),
-                IsolateOwner.OwnerGradle(gradle)
+                IsolateOwners.OwnerGradle(gradle)
             )
             clear()
             IsolatedProjectEvaluationListener(gradle, isolate)
@@ -116,7 +117,7 @@ class IsolatedProjectEvaluationListener(
     }
 
     private
-    fun isolatedActions() = IsolateOwner.OwnerGradle(gradle).let { owner ->
+    fun isolatedActions() = IsolateOwners.OwnerGradle(gradle).let { owner ->
         IsolatedActionDeserializer(owner, owner.serviceOf(), owner.serviceOf())
             .deserialize(isolated)
     }

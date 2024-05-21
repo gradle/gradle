@@ -196,6 +196,13 @@
     "crossVersionTests": true
   },
   {
+    "name": "configuration-problems-base",
+    "path": "platforms/core-configuration/configuration-problems-base",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "core",
     "path": "subprojects/core",
     "unitTests": true,
@@ -595,6 +602,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "java-language-extensions-kt",
+    "path": "platforms/core-configuration/java-language-extensions-kt",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "java-platform",
     "path": "platforms/jvm/java-platform",
     "unitTests": true,
@@ -738,6 +752,13 @@
     "name": "normalization-java",
     "path": "platforms/jvm/normalization-java",
     "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "object-serialization",
+    "path": "platforms/core-configuration/object-serialization",
+    "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },

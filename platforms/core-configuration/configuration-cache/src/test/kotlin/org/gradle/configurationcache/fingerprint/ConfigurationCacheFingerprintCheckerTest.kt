@@ -20,7 +20,6 @@ import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import org.gradle.api.Describable
-import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.logging.Logger
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
@@ -38,8 +37,8 @@ import org.gradle.configurationcache.serialization.Tracer
 import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.WriteIdentities
 import org.gradle.configurationcache.serialization.WriteIsolate
-import org.gradle.configurationcache.serialization.beans.BeanStateReader
-import org.gradle.configurationcache.serialization.beans.BeanStateWriter
+import org.gradle.configurationcache.serialization.BeanStateReader
+import org.gradle.configurationcache.serialization.BeanStateWriter
 import org.gradle.configurationcache.serialization.runReadOperation
 import org.gradle.configurationcache.serialization.runWriteOperation
 import org.gradle.internal.Try
@@ -465,10 +464,10 @@ class ConfigurationCacheFingerprintCheckerTest {
         override fun onFinish(action: () -> Unit) =
             undefined()
 
-        override fun beanStateReaderFor(beanType: Class<*>): BeanStateReader =
+        override fun <T : Any> getSingletonProperty(propertyType: Class<T>): T =
             undefined()
 
-        override fun getProject(path: String): ProjectInternal =
+        override fun beanStateReaderFor(beanType: Class<*>): BeanStateReader =
             undefined()
 
         override var immediateMode: Boolean

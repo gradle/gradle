@@ -23,8 +23,8 @@ import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory.ValueS
 import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.api.services.internal.BuildServiceProvider
 import org.gradle.configurationcache.serialization.codecs.BeanCodec
-import org.gradle.configurationcache.serialization.codecs.Bindings
-import org.gradle.configurationcache.serialization.codecs.BindingsBuilder
+import org.gradle.configurationcache.serialization.Bindings
+import org.gradle.configurationcache.serialization.BindingsBuilder
 import org.gradle.configurationcache.serialization.codecs.DirectoryCodec
 import org.gradle.configurationcache.serialization.codecs.DirectoryPropertyCodec
 import org.gradle.configurationcache.serialization.codecs.FixedValueReplacingProviderCodec

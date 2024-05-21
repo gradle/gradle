@@ -1,6 +1,7 @@
 plugins {
     id("gradlebuild.distribution.implementation-kotlin")
     id("gradlebuild.kotlin-dsl-sam-with-receiver")
+    id("gradlebuild.kotlin-experimental-contracts")
 }
 
 description = "Configuration cache implementation"
@@ -29,19 +30,11 @@ tasks.configCacheIntegTest {
     enabled = false
 }
 
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
-    compilerOptions {
-        freeCompilerArgs.addAll(
-            "-opt-in=kotlin.contracts.ExperimentalContracts",
-        )
-    }
-}
-
 dependencies {
     api(projects.concurrent)
     api(projects.javaLanguageExtensions)
-    api(projects.serialization)
     api(projects.serviceProvider)
+    api(projects.configurationProblemsBase)
     api(project(":base-services"))
     api(project(":build-operations"))
     // TODO - it might be good to allow projects to contribute state to save and restore, rather than have this project know about everything
@@ -61,9 +54,9 @@ dependencies {
     api(project(":model-core"))
     // TODO - it might be good to allow projects to contribute state to save and restore, rather than have this project know about everything
     api(project(":native"))
+    api(projects.objectSerialization)
     api(project(":persistent-cache"))
     api(project(":plugin-use"))
-    api(project(":problems-api"))
     api(project(":resources"))
     api(project(":snapshots"))
 
@@ -78,17 +71,18 @@ dependencies {
     implementation(project(":execution"))
     implementation(project(":file-watching"))
     implementation(project(":input-tracking"))
+    implementation(projects.javaLanguageExtensionsKt)
     implementation(project(":platform-jvm"))
+    implementation(projects.problemsApi)
     implementation(project(":process-services"))
     implementation(project(":publish"))
+    implementation(projects.serialization)
     // TODO - it might be good to allow projects to contribute state to save and restore, rather than have this project know about everything
     implementation(project(":tooling-api"))
 
     implementation(libs.asm)
     implementation(libs.capsule)
-    implementation(libs.fastutil)
     implementation(libs.groovyJson)
-    implementation(libs.jsr305)
     implementation(libs.slf4jApi)
 
     runtimeOnly(project(":composite-builds"))

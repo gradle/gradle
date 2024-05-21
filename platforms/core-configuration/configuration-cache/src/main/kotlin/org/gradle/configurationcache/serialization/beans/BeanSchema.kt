@@ -25,6 +25,7 @@ import org.gradle.configurationcache.problems.PropertyKind
 import org.gradle.configurationcache.serialization.MutableIsolateContext
 import org.gradle.configurationcache.serialization.Workarounds
 import org.gradle.configurationcache.serialization.logUnsupported
+import org.gradle.configurationcache.serialization.logUnsupportedBaseType
 import org.gradle.internal.instantiation.generator.AsmBackedClassGenerator
 import org.gradle.internal.reflect.ClassInspector
 import java.lang.reflect.AccessibleObject
@@ -118,7 +119,7 @@ fun MutableIsolateContext.reportUnsupportedFieldType(
 ) {
     withPropertyTrace(PropertyKind.Field, fieldName) {
         if (fieldValue == null) logUnsupported(action, unsupportedType)
-        else logUnsupported(action, unsupportedType, fieldValue::class.java)
+        else logUnsupportedBaseType(action, unsupportedType, fieldValue::class.java)
     }
 }
 

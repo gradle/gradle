@@ -20,10 +20,11 @@ import org.gradle.api.Task
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.configurationcache.problems.DocumentationSection.RequirementsTaskAccess
 import org.gradle.configurationcache.serialization.Codec
-import org.gradle.configurationcache.serialization.IsolateOwner
+import org.gradle.configurationcache.serialization.IsolateOwners
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.logUnsupported
+import org.gradle.configurationcache.serialization.logUnsupportedBaseType
 import org.gradle.configurationcache.serialization.readEnum
 import org.gradle.configurationcache.serialization.writeEnum
 
@@ -50,7 +51,7 @@ object TaskReferenceCodec : Codec<Task> {
 
         else -> {
             writeEnum(ReferenceType.PROHIBITED)
-            logUnsupported(
+            logUnsupportedBaseType(
                 "serialize",
                 Task::class,
                 value.javaClass,
@@ -64,7 +65,7 @@ object TaskReferenceCodec : Codec<Task> {
         val owner = isolate.owner
         val delegate = owner.delegate
 
-        val isTaskReferencesAllowed = owner is IsolateOwner.OwnerTask && owner.allowTaskReferences
+        val isTaskReferencesAllowed = owner is IsolateOwners.OwnerTask && owner.allowTaskReferences
         val isTaskFromSameProject = delegate is Task && delegate.project == value.project
 
         return isTaskReferencesAllowed && isTaskFromSameProject

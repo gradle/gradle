@@ -20,10 +20,10 @@ import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.EncodingProvider
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
-import org.gradle.configurationcache.serialization.beans.BeanStateReader
-import org.gradle.configurationcache.serialization.codecs.Decoding
-import org.gradle.configurationcache.serialization.codecs.Encoding
-import org.gradle.configurationcache.serialization.codecs.EncodingProducer
+import org.gradle.configurationcache.serialization.BeanStateReader
+import org.gradle.configurationcache.serialization.Decoding
+import org.gradle.configurationcache.serialization.Encoding
+import org.gradle.configurationcache.serialization.EncodingProducer
 import org.gradle.configurationcache.serialization.codecs.SerializedLambdaParametersCheckingCodec
 import org.gradle.configurationcache.serialization.decodeBean
 import org.gradle.configurationcache.serialization.decodePreservingIdentity

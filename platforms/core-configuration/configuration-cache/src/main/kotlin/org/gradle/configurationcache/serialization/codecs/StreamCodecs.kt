@@ -21,6 +21,7 @@ import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.logUnsupported
+import org.gradle.configurationcache.serialization.logUnsupportedBaseType
 import org.gradle.configurationcache.serialization.readEnum
 import org.gradle.configurationcache.serialization.writeEnum
 import java.io.InputStream
@@ -36,7 +37,7 @@ enum class StreamReference {
 object InputStreamCodec : Codec<InputStream> {
     override suspend fun WriteContext.encode(value: InputStream) {
         if (value !== System.`in`) {
-            logUnsupported("serialize", InputStream::class, value.javaClass, appendix = supportedStreamsInfo())
+            logUnsupportedBaseType("serialize", InputStream::class, value.javaClass, appendix = supportedStreamsInfo())
             writeEnum(StreamReference.UNSUPPORTED)
             return
         }
@@ -66,7 +67,7 @@ object OutputStreamCodec : Codec<OutputStream> {
             value === System.out -> writeEnum(StreamReference.OUT)
             value === System.err -> writeEnum(StreamReference.ERR)
             else -> {
-                logUnsupported("serialize", OutputStream::class, value.javaClass, appendix = supportedStreamsInfo())
+                logUnsupportedBaseType("serialize", OutputStream::class, value.javaClass, appendix = supportedStreamsInfo())
                 writeEnum(StreamReference.UNSUPPORTED)
             }
         }
