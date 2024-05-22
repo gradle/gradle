@@ -250,6 +250,9 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         if (javaCommand.getMaxHeapSize() == null) {
             javaCommand.setMaxHeapSize("512m");
         }
+        javaCommand.jvmArgs(
+            "-agentlib:jdwp=transport=dt_socket,server=n,address=192.168.100.36:5006,suspend=y"
+        );
         ExecHandle execHandle = javaCommand.build();
 
         workerProcess.setExecHandle(execHandle);

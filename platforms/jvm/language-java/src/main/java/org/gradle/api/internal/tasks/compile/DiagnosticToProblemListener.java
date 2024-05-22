@@ -46,6 +46,8 @@ import java.util.function.Function;
 @ClientCodeWrapper.Trusted
 public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileObject> {
 
+    public static final String FORMATTER_FALLBACK_MESSAGE = "Failed to format diagnostic message, falling back to default message formatting";
+
     private static final Logger LOGGER = Logging.getLogger(DiagnosticToProblemListener.class);
 
     private final InternalProblemReporter problemReporter;
@@ -64,9 +66,9 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
                 return formatter.format((JCDiagnostic) diagnostic, JavacMessages.instance(context).getCurrentLocale());
             } catch (Exception ex) {
                 // If for some reason the formatter fails, we can still get the message
-                LOGGER.error("Failed to format diagnostic message, falling back to default message formatting");
-                //return diagnostic.getMessage(Locale.getDefault());
-                throw ex;
+                //LOGGER.error(FORMETTER_FALLBACK_MESSAGE);
+                System.err.println(FORMATTER_FALLBACK_MESSAGE);
+                return diagnostic.getMessage(Locale.getDefault());
             }
         };
     }

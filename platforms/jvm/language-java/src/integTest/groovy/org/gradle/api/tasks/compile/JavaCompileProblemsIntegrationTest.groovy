@@ -19,6 +19,7 @@ package org.gradle.api.tasks.compile
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
 import org.gradle.api.JavaVersion
+import org.gradle.api.internal.tasks.compile.DiagnosticToProblemListener
 import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.FileLocation
 import org.gradle.api.problems.internal.LineInFileLocation
@@ -26,6 +27,9 @@ import org.gradle.api.problems.internal.OffsetInFileLocation
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.problems.ReceivedProblem
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
+import spock.lang.Issue
 
 /**
  * Test class verifying the integration between the {@code JavaCompile} and the {@code Problems} service.
@@ -61,7 +65,9 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def cleanup() {
-        assert possibleFileLocations == visitedFileLocations: "Not all expected files were visited: ${possibleFileLocations.keySet() - visitedFileLocations.keySet()}"
+        if (isProblemsApiCheckEnabled()) {
+            assert possibleFileLocations == visitedFileLocations: "Not all expected files were visited, unchecked files were: ${possibleFileLocations.keySet() - visitedFileLocations.keySet()}"
+        }
     }
 
     def "problem is received when a single-file compilation failure happens"() {
@@ -287,6 +293,120 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
             additionalData["formatted"] == """${fooFileLocation}:10: warning: [cast] redundant cast to $expectedType
                     String s = (String)"Hello World";
                                ^"""
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/pull/29141")
+    @Requires(IntegTestPreconditions.Java8HomeAvailable)
+    def "problem listener have a recoverable failure when running on JDK8"() {
+        given:
+        disableProblemsApiCheck()
+        //
+        // 1. step: Create a simple annotation processor
+        //
+        file("processor/build.gradle") << """
+            plugins {
+                id 'java'
+            }
+
+            java {
+                sourceCompatibility = JavaVersion.VERSION_1_8
+                targetCompatibility = JavaVersion.VERSION_1_8
+            }
+        """
+        file("processor/src/main/java/DummyAnnotation.java") << """
+            package com.example;
+
+            import java.lang.annotation.ElementType;
+            import java.lang.annotation.Retention;
+            import java.lang.annotation.RetentionPolicy;
+            import java.lang.annotation.Target;
+
+            @Retention(RetentionPolicy.RUNTIME)
+            @Target(ElementType.TYPE)
+            public @interface DummyAnnotation {
+            }
+        """
+        // A simple annotation processor
+        file("processor/src/main/java/DummyProcessor.java") << """
+            package com.example;
+
+            import javax.annotation.processing.AbstractProcessor;
+            import javax.annotation.processing.RoundEnvironment;
+            import javax.annotation.processing.Processor;
+            import javax.annotation.processing.ProcessingEnvironment;
+            import javax.annotation.processing.SupportedAnnotationTypes;
+            import javax.annotation.processing.SupportedSourceVersion;
+            import javax.lang.model.SourceVersion;
+            import javax.lang.model.element.TypeElement;
+            import javax.lang.model.element.Element;
+            import javax.tools.Diagnostic;
+
+            import java.util.Set;
+
+            @SupportedAnnotationTypes("com.example.DummyAnnotation")
+            @SupportedSourceVersion(SourceVersion.RELEASE_8)
+            public class DummyProcessor extends AbstractProcessor {
+                @Override
+                public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+                    for (Element element : roundEnv.getElementsAnnotatedWith(DummyAnnotation.class)) {
+                        processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "Processing: " + element.getSimpleName());
+                    }
+                    return true; // No further processing of this annotation type
+                }
+            }
+        """
+        // META-INF/services file for registering the annotation processor
+        file("processor/src/main/resources/META-INF/services/javax.annotation.processing.Processor") << "com.example.DummyProcessor"
+
+        //
+        // 2. step: Create a simple project that uses the annotation processor
+        //
+        settingsFile << """\
+            include 'processor'
+        """
+        buildFile << """\
+        dependencies {
+            //annotationProcessor project(':processor')
+            annotationProcessor "org.immutables:value:2.+"
+        }
+
+        repositories {
+            mavenCentral()
+        }
+
+        java {
+            toolchain {
+                languageVersion = JavaLanguageVersion.of(8)
+            }
+        }
+
+        repositories {
+            mavenCentral()
+        }
+        """
+
+        def fooFileLocation = writeJavaCausingTwoCompilationWarnings("Foo")
+        possibleFileLocations.put(fooFileLocation, 2)
+
+        when:
+        executer.withArguments("--info", "--stacktrace")
+        executer.withToolchainDetectionEnabled()
+        def result = succeeds(":compileJava")
+
+        then:
+        result.output.contains(DiagnosticToProblemListener.FORMATTER_FALLBACK_MESSAGE)
+        verifyAll(receivedProblem(0)) {
+            assertProblem(it, "ERROR", false)
+            fqid == 'compilation:java:java-compilation-warning'
+            details == 'redundant cast to java.lang.String'
+            additionalData == [ 'formatted' : 'redundant cast to java.lang.String' ]
+        }
+        verifyAll(receivedProblem(1)) {
+            assertProblem(it, "ERROR", false)
+            fqid == 'compilation:java:java-compilation-warning'
+            details == 'redundant cast to java.lang.String'
+            additionalData == [ 'formatted' : 'redundant cast to java.lang.String' ]
         }
     }
 
