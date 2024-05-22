@@ -10,6 +10,9 @@ class GetGradleBuild : GetModelAction<GradleBuild> {
 
     override val modelType = GradleBuild::class
 
+    override val displayName: String
+        get() = "Build Model"
+
     @Composable
     override fun ColumnScope.ModelContent(model: GradleBuild) {
         Text(

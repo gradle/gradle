@@ -11,15 +11,19 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import org.gradle.client.ui.build.BuildTextField
 import org.gradle.client.ui.composables.TitleLarge
+import org.gradle.client.ui.theme.spacing
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.declarative.dsl.tooling.models.DeclarativeSchemaModel
 
-class GetProjectSchema : GetModelAction<DeclarativeSchemaModel> {
+class GetDeclarativeSchema : GetModelAction<DeclarativeSchemaModel> {
 
     override val modelType = DeclarativeSchemaModel::class
+
+    override val displayName: String
+        get() = "Declarative Schema"
 
     @Composable
     override fun ColumnScope.ModelContent(model: DeclarativeSchemaModel) {
@@ -27,10 +31,11 @@ class GetProjectSchema : GetModelAction<DeclarativeSchemaModel> {
         val availableSoftwareTypes = model.projectSchema.softwareTypes.map { it.simpleName }
         val selectedSoftwareType = remember { mutableStateOf(availableSoftwareTypes.first()) }
 
-        TitleLarge("Declarative Schema")
+        TitleLarge(displayName)
         SoftwareTypeDropDown(availableSoftwareTypes, selectedSoftwareType)
+        Spacer(Modifier.size(MaterialTheme.spacing.level4))
         SoftwareTypeSchema(model, selectedSoftwareType.value)
-        Spacer(Modifier.size(32.dp))
+        Spacer(Modifier.size(MaterialTheme.spacing.level6))
     }
 
     @Composable
@@ -129,7 +134,7 @@ class GetProjectSchema : GetModelAction<DeclarativeSchemaModel> {
                 value = state.value,
                 onValueChange = { state.value = it },
                 readOnly = true,
-                label = { Text("Software type") },
+                label = { Text("Software types") },
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                 colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
             )

@@ -14,7 +14,6 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
 import org.gradle.client.build.action.GetResolvedDomAction
 import org.gradle.client.build.model.ResolvedDomPrerequisites
@@ -24,6 +23,7 @@ import org.gradle.client.ui.composables.TitleLarge
 import org.gradle.client.ui.composables.TitleMedium
 import org.gradle.client.ui.composables.TitleSmall
 import org.gradle.client.ui.connected.TwoPanes
+import org.gradle.client.ui.theme.spacing
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.internal.declarativedsl.analysis.OperationGenerationId
@@ -40,7 +40,10 @@ import java.io.File
 private const val NOTHING_DECLARED = "Nothing declared"
 
 @OptIn(ExperimentalFoundationApi::class)
-class GetResolvedDom : GetModelAction.GetCompositeModelAction<ResolvedDomPrerequisites> {
+class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedDomPrerequisites> {
+
+    override val displayName: String
+        get() = "Declarative Documents"
 
     override val modelType = ResolvedDomPrerequisites::class
 
@@ -51,12 +54,6 @@ class GetResolvedDom : GetModelAction.GetCompositeModelAction<ResolvedDomPrerequ
     override fun ColumnScope.ModelContent(model: ResolvedDomPrerequisites) {
 
         val selectedBuildFile = remember { mutableStateOf<File>(model.declarativeBuildFiles.first()) }
-
-        DeclarativeFileDropDown(
-            model.rootDir,
-            model.declarativeBuildFiles,
-            selectedBuildFile
-        )
 
         val buildFileContent = remember(selectedBuildFile.value) { selectedBuildFile.value.readText() }
         val buildFileRelativePath = selectedBuildFile.value.relativeTo(model.rootDir).path
@@ -94,7 +91,13 @@ class GetResolvedDom : GetModelAction.GetCompositeModelAction<ResolvedDomPrerequ
             }
         }
 
-        TitleLarge("Declarative Project Definitions")
+        TitleLarge(displayName)
+        DeclarativeFileDropDown(
+            model.rootDir,
+            model.declarativeBuildFiles,
+            selectedBuildFile
+        )
+        MaterialTheme.spacing.VerticalLevel4()
         TwoPanes(
             leftWeight = 0.4f, rightWeight = 0.6f,
             verticallyScrollable = false,
@@ -112,11 +115,12 @@ class GetResolvedDom : GetModelAction.GetCompositeModelAction<ResolvedDomPrerequ
                             highlightedSourceRange.value = softwareTypeNode.sourceData.indexRange
                         }
                 )
+                MaterialTheme.spacing.VerticalLevel4()
                 Column {
                     softwareTypeType.properties.forEach { property ->
                         LabelMedium(
                             modifier = Modifier
-                                .padding(bottom = 8.dp)
+                                .padding(bottom = MaterialTheme.spacing.level2)
                                 .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)))
                                 .onClick {
                                     highlightedSourceRange.value =
@@ -127,7 +131,7 @@ class GetResolvedDom : GetModelAction.GetCompositeModelAction<ResolvedDomPrerequ
                             }"
                         )
                     }
-                    Spacer(Modifier.height(8.dp))
+                    Spacer(Modifier.size(MaterialTheme.spacing.level2))
                     softwareTypeType.memberFunctions.accessAndConfigure.forEach { function ->
                         val functionType = schema.configuredTypeOf(function.accessAndConfigureSemantics)
                         val functionNode = softwareTypeNode.childElementNode(function.simpleName)
@@ -146,14 +150,14 @@ class GetResolvedDom : GetModelAction.GetCompositeModelAction<ResolvedDomPrerequ
                             functionNode,
                             indentLevel = 1,
                         )
-                        Spacer(Modifier.height(8.dp))
+                        MaterialTheme.spacing.VerticalLevel2()
                     }
                 }
             },
             right = {
                 Column {
                     TitleMedium(buildFileRelativePath)
-                    Spacer(Modifier.height(16.dp))
+                    MaterialTheme.spacing.VerticalLevel4()
                     SelectionContainer {
                         Text(
                             text = highlightedSource,
@@ -165,7 +169,7 @@ class GetResolvedDom : GetModelAction.GetCompositeModelAction<ResolvedDomPrerequ
         )
     }
 
-    private val indentDp = 8.dp
+    private val indentDp = MaterialTheme.spacing.level2
 
     @Composable
     private fun AccessAndConfigureFunction(
@@ -181,7 +185,7 @@ class GetResolvedDom : GetModelAction.GetCompositeModelAction<ResolvedDomPrerequ
             } else {
                 type.properties.forEach { property ->
                     LabelMedium(
-                        modifier = Modifier.padding(bottom = 8.dp)
+                        modifier = Modifier.padding(bottom = MaterialTheme.spacing.level2)
                             .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)))
                             .onClick {
                                 highlightedSourceRange.value =
@@ -228,7 +232,7 @@ class GetResolvedDom : GetModelAction.GetCompositeModelAction<ResolvedDomPrerequ
                 value = state.value.relativeTo(rootDir).path,
                 onValueChange = { state.value = rootDir.resolve(it) },
                 readOnly = true,
-                label = { Text("Project definition") },
+                label = { Text("Project definitions") },
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                 colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
             )

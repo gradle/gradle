@@ -10,6 +10,9 @@ class GetGradleProject : GetModelAction<GradleProject> {
 
     override val modelType = GradleProject::class
 
+    override val displayName: String
+        get() = "Projects Model"
+
     @Composable
     override fun ColumnScope.ModelContent(model: GradleProject) {
         Text(

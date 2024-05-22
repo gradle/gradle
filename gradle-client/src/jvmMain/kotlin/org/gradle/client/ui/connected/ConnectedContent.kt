@@ -1,19 +1,22 @@
 package org.gradle.client.ui.connected
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import org.gradle.client.ui.composables.FailureContent
 import org.gradle.client.ui.composables.Loading
+import org.gradle.client.ui.composables.TitleMedium
 import org.gradle.client.ui.composables.TopBar
 import org.gradle.client.ui.theme.plusPaneSpacing
+import org.gradle.client.ui.theme.spacing
+import java.io.File
 
 @Composable
 fun ConnectedContent(component: ConnectedComponent) {
@@ -23,11 +26,11 @@ fun ConnectedContent(component: ConnectedComponent) {
             TopBar(
                 onBackClick = { component.onCloseClicked() },
                 title = {
-                    val rootDir = component.parameters.rootDir
+                    val rootDir = File(component.parameters.rootDir)
                     when (model) {
-                        ConnectionModel.Connecting -> Text("Connecting to $rootDir")
-                        is ConnectionModel.ConnectionFailure -> Text("Connection to $rootDir failed")
-                        is ConnectionModel.Connected -> Text("Connected to $rootDir")
+                        ConnectionModel.Connecting -> TitleMedium("Connecting to ${rootDir.name}")
+                        is ConnectionModel.ConnectionFailure -> TitleMedium("Connection to ${rootDir.name} failed")
+                        is ConnectionModel.Connected -> TitleMedium("Connected to ${rootDir.name}")
                     }
                 }
             )
@@ -61,14 +64,17 @@ private fun ConnectedMainContent(component: ConnectedComponent, model: Connectio
             left = {
                 // Actions
                 component.modelActions.forEach { action ->
-                    ListItem(
-                        modifier = Modifier.selectable(
+                    Row(
+                        modifier = Modifier.fillMaxWidth().selectable(
                             selected = false,
                             onClick = { component.getModel(action) }
-                        ),
-                        leadingContent = { Icon(Icons.Default.PlayCircle, action.displayName) },
-                        headlineContent = { Text(action.displayName, style = MaterialTheme.typography.titleSmall) },
-                    )
+                        ).padding(MaterialTheme.spacing.level1),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.level1)
+                    ) {
+                        Icon(Icons.Default.PlayCircle, action.displayName)
+                        Text(action.displayName, style = MaterialTheme.typography.bodyMedium)
+                    }
                 }
             },
             right = {

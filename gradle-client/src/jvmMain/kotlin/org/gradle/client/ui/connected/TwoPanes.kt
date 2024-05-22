@@ -9,8 +9,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import org.gradle.client.ui.theme.spacing
 
-private const val DEFAULT_LEFT_WEIGHT = 0.2f
-private const val DEFAULT_RIGHT_WEIGHT = 0.8f
+private const val DEFAULT_LEFT_WEIGHT = 0.15f
+private const val DEFAULT_RIGHT_WEIGHT = 0.85f
 
 @Composable
 @Suppress("LongParameterList")
@@ -25,19 +25,21 @@ fun TwoPanes(
 ) {
     Row(modifier) {
         Column(
-            modifier = Modifier.padding(end = MaterialTheme.spacing.level2)
+            modifier = Modifier
+                .padding(end = MaterialTheme.spacing.level2)
                 .weight(leftWeight)
                 .run { if (verticallyScrollable) verticalScroll(rememberScrollState()) else this }
                 .run { if (horizontallyScrollable) horizontalScroll(rememberScrollState()) else this },
-            verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.level2),
+            verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.level1),
         ) {
             left()
         }
         Column(
-            modifier = Modifier.weight(rightWeight)
+            modifier = Modifier
+                .weight(rightWeight)
                 .run { if (verticallyScrollable) verticalScroll(rememberScrollState()) else this }
                 .run { if (horizontallyScrollable) horizontalScroll(rememberScrollState()) else this },
-            verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.level2),
+            verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.level1),
         ) {
             right()
         }

@@ -58,8 +58,8 @@ class ConnectedComponent(
         GetBuildEnvironment(),
         GetGradleBuild(),
         GetGradleProject(),
-        GetProjectSchema(),
-        GetResolvedDom()
+        GetDeclarativeSchema(),
+        GetDeclarativeDocuments()
     )
 
     private val scope = coroutineScope(appDispatchers.main + SupervisorJob())
