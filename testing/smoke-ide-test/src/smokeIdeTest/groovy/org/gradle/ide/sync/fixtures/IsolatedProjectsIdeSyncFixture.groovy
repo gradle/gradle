@@ -35,6 +35,7 @@ class IsolatedProjectsIdeSyncFixture {
 
     private final ConfigurationCacheProblemsFixture configurationCacheProblemsFixture
     private final TestFile rootDir
+    private final List<TestFile> observedReportDirs = []
 
     IsolatedProjectsIdeSyncFixture(TestFile rootDir) {
         this.configurationCacheProblemsFixture = new ConfigurationCacheProblemsFixture(rootDir)
@@ -45,11 +46,14 @@ class IsolatedProjectsIdeSyncFixture {
         @DelegatesTo(value = HasConfigurationCacheProblemsInReportSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
     ) {
         def spec = createSpec(specClosure)
-        def jsModel = readJsModelFromReport()
+        def reportDir = resolveLastestConfigurationCacheReportDir(rootDir)
+        def jsModel = configurationCacheProblemsFixture.readJsModelFromReportDir(reportDir)
         checkProblemsAgainstModel(spec, jsModel)
     }
 
     private void checkProblemsAgainstModel(HasConfigurationCacheProblemsInReportSpec spec, Map<String, Object> jsModel) {
+        assert jsModel.cacheAction == spec.cacheAction
+
         def problemsDiagnostics = jsModel.diagnostics.findAll { it['problem'] != null && it['trace'] != null }
 
         def actualLocationsWithProblems = problemsDiagnostics.collect {
@@ -71,12 +75,6 @@ class IsolatedProjectsIdeSyncFixture {
         }
     }
 
-    private Map<String, Object> readJsModelFromReport() {
-        def reportDir = resolveSingleConfigurationCacheReportDir(rootDir)
-        def jsModel = configurationCacheProblemsFixture.readJsModelFromReportDir(reportDir)
-        return jsModel
-    }
-
     private static HasConfigurationCacheProblemsInReportSpec createSpec(Closure<?> specClosure) {
         def spec = new HasConfigurationCacheProblemsInReportSpec()
         specClosure.delegate = spec
@@ -85,8 +83,21 @@ class IsolatedProjectsIdeSyncFixture {
         return spec
     }
 
-    private static TestFile resolveSingleConfigurationCacheReportDir(TestFile rootDir) {
+    private TestFile resolveLastestConfigurationCacheReportDir(TestFile rootDir) {
         TestFile reportsDir = rootDir.file("build/reports/configuration-cache")
+        List<TestFile> reportDirs = resolveAllConfigurationCacheReportDirs(reportsDir)
+
+        assert reportDirs.size() > 0
+
+        def newReportDirs = reportDirs - observedReportDirs
+        assert newReportDirs.size() == 1
+
+        def newReportDir = newReportDirs[0]
+        observedReportDirs.add(newReportDir)
+        return newReportDir
+    }
+
+    private static List<TestFile> resolveAllConfigurationCacheReportDirs(TestFile reportsDir) {
         List<TestFile> reportDirs = []
         Files.walkFileTree(reportsDir.toPath(), new SimpleFileVisitor<Path>() {
             @Override
@@ -97,20 +108,20 @@ class IsolatedProjectsIdeSyncFixture {
                 return FileVisitResult.CONTINUE
             }
         })
-
-        assert reportDirs.size() == 1
-        return reportDirs[0]
+        return reportDirs
     }
 }
 
 class HasConfigurationCacheProblemsInReportSpec {
 
+    String cacheAction
     final List<Pair<Matcher<String>, String>> locationsWithProblems = []
 
     @Nullable
     Integer totalProblemsCount
 
     void validateSpec() {
+        assert cacheAction != null
         def totalCount = totalProblemsCount ?: locationsWithProblems.size()
         if (totalCount < locationsWithProblems.size()) {
             throw new IllegalArgumentException("Count of total problems can't be lesser than count of unique problems.")
