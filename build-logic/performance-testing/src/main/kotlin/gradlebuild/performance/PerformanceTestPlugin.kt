@@ -22,6 +22,7 @@ import gradlebuild.basics.buildBranch
 import gradlebuild.basics.buildCommitId
 import gradlebuild.basics.capitalize
 import gradlebuild.basics.defaultPerformanceBaselines
+import gradlebuild.basics.getBuildEnvironmentExtension
 import gradlebuild.basics.includePerformanceTestScenarios
 import gradlebuild.basics.logicalBranch
 import gradlebuild.basics.performanceBaselines
@@ -320,7 +321,7 @@ class PerformanceTestPlugin : Plugin<Project> {
         // determineBaselines.determinedBaselines -> buildCommitDistribution.baselines
         val determineBaselines = tasks.register("determineBaselines", DetermineBaselines::class, false)
         val buildCommitDistribution = tasks.register("buildCommitDistribution", BuildCommitDistribution::class)
-        val buildCommitDistributionsDir = project.rootProject.layout.buildDirectory.dir("commit-distributions")
+        val buildCommitDistributionsDir = project.getBuildEnvironmentExtension().rootProjectBuildDir.dir("commit-distributions")
 
         determineBaselines.configure {
             configuredBaselines = extension.baselines

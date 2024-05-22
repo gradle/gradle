@@ -30,6 +30,7 @@ abstract class BuildEnvironmentService : BuildService<BuildEnvironmentService.Pa
 
     interface Parameters : BuildServiceParameters {
         val rootProjectDir: DirectoryProperty
+        val rootProjectBuildDir: DirectoryProperty
         val artifactoryUserName: Property<String>
         val artifactoryPassword: Property<String>
         val testVersions: Property<String>

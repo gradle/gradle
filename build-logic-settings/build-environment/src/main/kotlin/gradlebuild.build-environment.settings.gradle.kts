@@ -25,6 +25,7 @@ with(layout.rootDirectory) {
                 "BuildEnvironmentService should be registered by the root"
             }
             parameters.rootProjectDir = this@with
+            parameters.rootProjectBuildDir = project.layout.buildDirectory
             parameters.artifactoryUserName = providers.gradleProperty("artifactoryUserName")
             parameters.artifactoryPassword = providers.gradleProperty("artifactoryPassword")
             parameters.testVersions = providers.gradleProperty("testVersions")
@@ -37,6 +38,7 @@ with(layout.rootDirectory) {
         buildEnvironmentExtension.gitCommitId = service.flatMap { it.gitCommitId }
         buildEnvironmentExtension.gitBranch = service.flatMap { it.gitBranch }
         buildEnvironmentExtension.repoRoot = this@with
+        buildEnvironmentExtension.rootProjectBuildDir = service.flatMap { it.parameters.rootProjectBuildDir }
         buildEnvironmentExtension.artifactoryUserName = service.flatMap { it.parameters.artifactoryUserName }
         buildEnvironmentExtension.artifactoryPassword = service.flatMap { it.parameters.artifactoryPassword }
         buildEnvironmentExtension.testVersions = service.flatMap { it.parameters.testVersions }
