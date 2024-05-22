@@ -53,15 +53,13 @@ class GetResolvedDom : GetModelAction.GetCompositeModelAction<ResolvedDomPrerequ
         val selectedBuildFile = remember { mutableStateOf<File>(model.declarativeBuildFiles.first()) }
 
         DeclarativeFileDropDown(
+            model.rootDir,
             model.declarativeBuildFiles,
             selectedBuildFile
         )
 
         val buildFileContent = remember(selectedBuildFile.value) { selectedBuildFile.value.readText() }
-        // TODO hardcoded for NiA for now
-        val buildFileRelativePath = selectedBuildFile.value.relativeTo(
-            selectedBuildFile.value.parentFile.parentFile.parentFile
-        ).path
+        val buildFileRelativePath = selectedBuildFile.value.relativeTo(model.rootDir).path
         val schema = model.analysisSchema
 
         val dom = remember(model, selectedBuildFile.value) {
@@ -216,6 +214,7 @@ class GetResolvedDom : GetModelAction.GetCompositeModelAction<ResolvedDomPrerequ
     @Composable
     @OptIn(ExperimentalMaterial3Api::class)
     private fun DeclarativeFileDropDown(
+        rootDir: File,
         declarativeBuildFiles: List<File>,
         state: MutableState<File>
     ) {
@@ -226,8 +225,8 @@ class GetResolvedDom : GetModelAction.GetCompositeModelAction<ResolvedDomPrerequ
         ) {
             BuildTextField(
                 modifier = Modifier.menuAnchor(),
-                value = state.value.toString(),
-                onValueChange = { state.value = File(it) },
+                value = state.value.relativeTo(rootDir).path,
+                onValueChange = { state.value = rootDir.resolve(it) },
                 readOnly = true,
                 label = { Text("Project definition") },
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
@@ -239,7 +238,7 @@ class GetResolvedDom : GetModelAction.GetCompositeModelAction<ResolvedDomPrerequ
             ) {
                 declarativeBuildFiles.forEach { file ->
                     DropdownMenuItem(
-                        text = { Text(file.absolutePath) },
+                        text = { Text(file.relativeTo(rootDir).path) },
                         onClick = {
                             state.value = file
                             expanded = false
