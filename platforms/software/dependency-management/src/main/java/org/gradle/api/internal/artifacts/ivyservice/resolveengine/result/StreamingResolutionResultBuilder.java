@@ -78,17 +78,17 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
         SelectedVariantSerializer selectedVariantSerializer,
         AttributeDesugaring desugaring,
         ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
-        boolean returnAllVariants
+        boolean includeAllSelectableVariantResults
     ) {
         this.dependencyResultSerializer = new DependencyResultSerializer(componentSelectionDescriptorFactory);
-        this.componentResultSerializer = new ComponentResultSerializer(componentDetailsSerializer, selectedVariantSerializer, componentSelectionDescriptorFactory, returnAllVariants);
+        this.componentResultSerializer = new ComponentResultSerializer(componentDetailsSerializer, selectedVariantSerializer, componentSelectionDescriptorFactory, includeAllSelectableVariantResults);
         this.store = store;
         this.cache = cache;
         this.componentSelectorSerializer = new ComponentSelectorSerializer(attributeContainerSerializer);
         this.desugaring = desugaring;
     }
 
-    public MinimalResolutionResult complete(Set<UnresolvedDependency> dependencyLockingFailures) {
+    public MinimalResolutionResult getResolutionResult(Set<UnresolvedDependency> dependencyLockingFailures) {
         BinaryStore.BinaryData data = store.done();
         RootFactory rootSource = new RootFactory(data, failures, cache, componentSelectorSerializer, dependencyResultSerializer, componentResultSerializer, dependencyLockingFailures);
         return new DefaultMinimalResolutionResult(rootSource::create, rootAttributes);
@@ -199,7 +199,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
             byte type = -1;
             Timer clock = Time.startTimer();
             try {
-                DefaultResolutionResultBuilder builder = new DefaultResolutionResultBuilder();
+                ResolutionResultGraphBuilder builder = new ResolutionResultGraphBuilder();
                 Map<Long, ComponentSelector> selectors = new HashMap<>();
                 while (true) {
                     type = decoder.readByte();

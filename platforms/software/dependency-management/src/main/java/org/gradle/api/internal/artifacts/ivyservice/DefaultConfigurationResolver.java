@@ -203,7 +203,8 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     @Override
     public ResolverResults resolveBuildDependencies(ResolveContext resolveContext) {
         ResolutionFailureCollector failureCollector = new ResolutionFailureCollector(componentSelectorConverter);
-        InMemoryResolutionResultBuilder resolutionResultBuilder = new InMemoryResolutionResultBuilder();
+        ResolutionStrategyInternal resolutionStrategy = resolveContext.getResolutionStrategy();
+        InMemoryResolutionResultBuilder resolutionResultBuilder = new InMemoryResolutionResultBuilder(resolutionStrategy.getIncludeAllSelectableVariantResults());
         ResolvedLocalComponentsResultGraphVisitor localComponentsVisitor = new ResolvedLocalComponentsResultGraphVisitor(currentBuild, projectStateRegistry);
         DefaultResolvedArtifactsBuilder artifactsBuilder = new DefaultResolvedArtifactsBuilder(buildProjectDependencies);
 
@@ -245,7 +246,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         BinaryStore newModelStore = stores.nextBinaryStore();
         Store<ResolvedComponentResult> newModelCache = stores.newModelCache();
         ResolutionStrategyInternal resolutionStrategy = resolveContext.getResolutionStrategy();
-        StreamingResolutionResultBuilder newModelBuilder = new StreamingResolutionResultBuilder(newModelStore, newModelCache, attributeContainerSerializer, componentDetailsSerializer, selectedVariantSerializer, attributeDesugaring, componentSelectionDescriptorFactory, resolutionStrategy.getReturnAllVariants());
+        StreamingResolutionResultBuilder newModelBuilder = new StreamingResolutionResultBuilder(newModelStore, newModelCache, attributeContainerSerializer, componentDetailsSerializer, selectedVariantSerializer, attributeDesugaring, componentSelectionDescriptorFactory, resolutionStrategy.getIncludeAllSelectableVariantResults());
 
         ResolvedLocalComponentsResultGraphVisitor localComponentsVisitor = new ResolvedLocalComponentsResultGraphVisitor(currentBuild, projectStateRegistry);
 
@@ -303,7 +304,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         Set<Throwable> nonFatalFailures = nonFatalFailuresBuilder.build();
         Set<UnresolvedDependency> resolutionFailures = failureCollector.complete(lockingFailures);
 
-        MinimalResolutionResult resolutionResult = newModelBuilder.complete(lockingFailures);
+        MinimalResolutionResult resolutionResult = newModelBuilder.getResolutionResult(lockingFailures);
         Optional<? extends ResolveException> failure = resolutionHost.mapFailure("dependencies", nonFatalFailures);
         VisitedGraphResults graphResults = new DefaultVisitedGraphResults(resolutionResult, resolutionFailures, failure.orElse(null));
 

@@ -26,15 +26,11 @@ import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.Describables;
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
-import org.gradle.internal.component.resolution.failure.exception.ConfigurationSelectionException;
-import org.gradle.internal.component.resolution.failure.type.ConfigurationNotConsumableFailure;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 
 import javax.annotation.Nullable;
-import java.util.Collections;
-import java.util.List;
 
 public abstract class AbstractComponentGraphResolveState<T extends ComponentGraphResolveMetadata> implements ComponentGraphResolveState, ComponentArtifactResolveState {
     private final long instanceId;
@@ -68,16 +64,16 @@ public abstract class AbstractComponentGraphResolveState<T extends ComponentGrap
     }
 
     @Override
-    public GraphSelectionCandidates getCandidatesForGraphVariantSelection() {
-        return new DefaultGraphSelectionCandidates(this);
-    }
+    public abstract GraphSelectionCandidates getCandidatesForGraphVariantSelection();
 
     @Override
     public boolean isAdHoc() {
         return false;
     }
 
-    protected abstract List<? extends VariantGraphResolveState> getVariantsForGraphTraversal();
+    protected AttributeDesugaring getAttributeDesugaring() {
+        return attributeDesugaring;
+    }
 
     @Nullable
     @Override
@@ -136,48 +132,6 @@ public abstract class AbstractComponentGraphResolveState<T extends ComponentGrap
                 component.attributeDesugaring.desugar(metadata.getAttributes()),
                 component.capabilitiesFor(metadata.getCapabilities()),
                 externalVariant);
-        }
-    }
-
-    private static class DefaultGraphSelectionCandidates implements GraphSelectionCandidates {
-        private final List<? extends VariantGraphResolveState> variants;
-        private final AbstractComponentGraphResolveState<?> component;
-
-        public DefaultGraphSelectionCandidates(AbstractComponentGraphResolveState<?> component) {
-            this.variants = component.getVariantsForGraphTraversal();
-            this.component = component;
-        }
-
-        @Override
-        public boolean supportsAttributeMatching() {
-            return !variants.isEmpty();
-        }
-
-        @Override
-        public List<? extends VariantGraphResolveState> getVariantsForAttributeMatching() {
-            if (variants.isEmpty()) {
-                throw new IllegalStateException("No variants available for attribute matching.");
-            }
-            return variants;
-        }
-
-        @Nullable
-        @Override
-        public VariantGraphResolveState getVariantByConfigurationName(String name) {
-            ConfigurationGraphResolveState conf = component.getConfiguration(name);
-            if (conf == null) {
-                return null;
-            }
-
-            // Ensure configuration is consumable, since all variants are by definition consumable.
-            ConfigurationGraphResolveMetadata metadata = conf.getMetadata();
-            if (!metadata.isCanBeConsumed()) {
-                ConfigurationNotConsumableFailure failure = new ConfigurationNotConsumableFailure(name, component.getId().getDisplayName());
-                String message = String.format("Selected configuration '" + failure.getRequestedName() + "' on '" + failure.getRequestedComponentDisplayName() + "' but it can't be used as a project dependency because it isn't intended for consumption by other components.");
-                throw new ConfigurationSelectionException(message, failure, Collections.emptyList());
-            }
-
-            return conf.asVariant();
         }
     }
 }

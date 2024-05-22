@@ -378,17 +378,12 @@ Configuration 'bar':
         List<VariantGraphResolveState> variants = []
 
         @Override
-        boolean supportsAttributeMatching() {
-            !variantsForAttributeMatching.isEmpty()
-        }
-
-        @Override
         List<? extends VariantGraphResolveState> getVariantsForAttributeMatching() {
             variants.findAll { it -> !it.attributes.isEmpty()}
         }
 
         @Override
-        VariantGraphResolveState getVariantByConfigurationName(String name) {
+        VariantGraphResolveState getVariantByConfigurationName(String name, ResolutionFailureHandler resolutionFailureHandler) {
             variants.find { it -> it.name == name }
         }
     }
