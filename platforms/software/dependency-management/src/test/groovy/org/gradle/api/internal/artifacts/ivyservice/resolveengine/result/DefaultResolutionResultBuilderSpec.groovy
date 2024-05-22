@@ -33,7 +33,6 @@ import spock.lang.Specification
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultPrinter.printGraph
-import static org.gradle.util.internal.CollectionUtils.first
 
 class DefaultResolutionResultBuilderSpec extends Specification {
 
@@ -155,19 +154,19 @@ class DefaultResolutionResultBuilderSpec extends Specification {
         def a = builder.getRoot(id("a"))
 
         then:
-        def b  = first(a.dependencies).selected
-        def c  = first(b.dependencies).selected
-        def a2 = first(c.dependencies).selected
+        def b  = a.dependencies.first().selected
+        def c  = b.dependencies.first().selected
+        def a2 = c.dependencies.first().selected
 
         a2.is(a)
 
-        first(b.dependents).is(first(a.dependencies))
-        first(c.dependents).is(first(b.dependencies))
-        first(a.dependents).is(first(c.dependencies))
+        b.dependents.first().is(a.dependencies.first())
+        c.dependents.first().is(b.dependencies.first())
+        a.dependents.first().is(c.dependencies.first())
 
-        first(b.dependents).from.is(a)
-        first(c.dependents).from.is(b)
-        first(a.dependents).from.is(c)
+        b.dependents.first().from.is(a)
+        c.dependents.first().from.is(b)
+        a.dependents.first().from.is(c)
     }
 
     def "accumulates and avoids duplicate dependencies"() {
@@ -213,7 +212,7 @@ class DefaultResolutionResultBuilderSpec extends Specification {
         def result = builder.getRoot(id("root"))
 
         then:
-        def mid1 = first(result.dependencies)
+        def mid1 = result.dependencies.first()
         mid1.selected.dependencies.size() == 2
         mid1.selected.dependencies*.requested.module == ['leaf1', 'leaf2']
     }

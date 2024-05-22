@@ -15,28 +15,20 @@
  */
 package org.gradle.util.internal;
 
-import com.google.common.base.Joiner;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import org.gradle.api.Action;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.Factory;
 import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.InternalTransformers;
 import org.gradle.internal.Pair;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Array;
-import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -50,20 +42,10 @@ import java.util.Optional;
 import java.util.Set;
 
 import static org.gradle.internal.Cast.cast;
-import static org.gradle.internal.Cast.castNullable;
 import static org.gradle.internal.Cast.uncheckedNonnullCast;
 
 @SuppressWarnings("join_with_collect")
 public abstract class CollectionUtils {
-
-    /**
-     * Returns null if the collection is empty otherwise expects a {@link #single(Iterable)} element to be found.
-     */
-    @Nullable
-    public static <T> T findSingle(Iterable<T> source) {
-        return Iterables.isEmpty(source) ? null : single(source);
-    }
-
     /**
      * Returns the single element in the collection or throws.
      */
@@ -77,13 +59,6 @@ public abstract class CollectionUtils {
             throw new IllegalArgumentException("Expecting collection with single element, got multiple.");
         }
         return element;
-    }
-
-    public static <T> Collection<? extends T> checkedCast(Class<T> type, Collection<?> input) {
-        for (Object o : input) {
-            castNullable(type, o);
-        }
-        return uncheckedNonnullCast(input);
     }
 
     @Nullable
@@ -293,14 +268,6 @@ public abstract class CollectionUtils {
         return toMutableList(things);
     }
 
-    public static <T> List<T> toList(Enumeration<? extends T> things) {
-        AbstractList<T> list = new ArrayList<T>();
-        while (things.hasMoreElements()) {
-            list.add(things.nextElement());
-        }
-        return list;
-    }
-
     private static <T> List<T> toMutableList(Iterable<? extends T> things) {
         if (things == null) {
             return new ArrayList<T>(0);
@@ -354,48 +321,12 @@ public abstract class CollectionUtils {
         return set;
     }
 
-    public static <E> List<E> compact(List<E> list) {
-        boolean foundAtLeastOneNull = false;
-        List<E> compacted = null;
-        int i = 0;
-
-        for (E element : list) {
-            if (element == null) {
-                if (!foundAtLeastOneNull) {
-                    compacted = new ArrayList<E>(list.size());
-                    if (i > 0) {
-                        compacted.addAll(list.subList(0, i));
-                    }
-                }
-                foundAtLeastOneNull = true;
-            } else if (foundAtLeastOneNull) {
-                compacted.add(element);
-            }
-            ++i;
-        }
-
-        return foundAtLeastOneNull ? compacted : list;
-    }
-
     public static <C extends Collection<String>> C stringize(Iterable<?> source, C destination) {
         return collect(source, destination, InternalTransformers.asString());
     }
 
     public static List<String> stringize(Collection<?> source) {
         return stringize(source, new ArrayList<String>(source.size()));
-    }
-
-    public static <E> boolean replace(List<E> list, Spec<? super E> filter, InternalTransformer<? extends E, ? super E> transformer) {
-        boolean replaced = false;
-        int i = 0;
-        for (E it : list) {
-            if (filter.isSatisfiedBy(it)) {
-                list.set(i, transformer.transform(it));
-                replaced = true;
-            }
-            ++i;
-        }
-        return replaced;
     }
 
     public static <K, V> void collectMap(Map<K, V> destination, Iterable<? extends V> items, InternalTransformer<? extends K, ? super V> keyGenerator) {
@@ -410,21 +341,6 @@ public abstract class CollectionUtils {
     public static <K, V> Map<K, V> collectMap(Iterable<? extends V> items, InternalTransformer<? extends K, ? super V> keyGenerator) {
         Map<K, V> map = new LinkedHashMap<K, V>();
         collectMap(map, items, keyGenerator);
-        return map;
-    }
-
-    public static <K, V> void collectMapValues(Map<K, V> destination, Iterable<? extends K> keys, InternalTransformer<? extends V, ? super K> keyGenerator) {
-        for (K item : keys) {
-            destination.put(item, keyGenerator.transform(item));
-        }
-    }
-
-    /**
-     * Given a set of keys, derive a set of values and return a map
-     */
-    public static <K, V> Map<K, V> collectMapValues(Iterable<? extends K> keys, InternalTransformer<? extends V, ? super K> keyGenerator) {
-        Map<K, V> map = new LinkedHashMap<K, V>();
-        collectMapValues(map, keys, keyGenerator);
         return map;
     }
 
@@ -603,8 +519,8 @@ public abstract class CollectionUtils {
      * <pre>Right</pre> Collection containing entries that do NOT satisfy the given predicate
      */
     public static <T> Pair<Collection<T>, Collection<T>> partition(Iterable<T> items, Spec<? super T> predicate) {
-        Preconditions.checkNotNull(items, "Cannot partition null Collection");
-        Preconditions.checkNotNull(predicate, "Cannot apply null Spec when partitioning");
+        assert items!=null : "Cannot partition null Collection";
+        assert predicate!=null : "Cannot apply null Spec when partitioning";
 
         Collection<T> left = new LinkedList<T>();
         Collection<T> right = new LinkedList<T>();
@@ -620,41 +536,6 @@ public abstract class CollectionUtils {
         return Pair.of(left, right);
     }
 
-    public static class InjectionStep<T, I> {
-        private final T target;
-        private final I item;
-
-        public InjectionStep(T target, I item) {
-            this.target = target;
-            this.item = item;
-        }
-
-        public T getTarget() {
-            return target;
-        }
-
-        public I getItem() {
-            return item;
-        }
-    }
-
-    public static <T, I> T inject(T target, Iterable<? extends I> items, Action<InjectionStep<T, I>> action) {
-        if (target == null) {
-            throw new NullPointerException("The 'target' cannot be null");
-        }
-        if (items == null) {
-            throw new NullPointerException("The 'items' cannot be null");
-        }
-        if (action == null) {
-            throw new NullPointerException("The 'action' cannot be null");
-        }
-
-        for (I item : items) {
-            action.execute(new InjectionStep<T, I>(target, item));
-        }
-        return target;
-    }
-
     public static <K, V> Map<K, Collection<V>> groupBy(Iterable<? extends V> iterable, InternalTransformer<? extends K, V> grouper) {
         ImmutableListMultimap.Builder<K, V> builder = ImmutableListMultimap.builder();
 
@@ -664,41 +545,5 @@ public abstract class CollectionUtils {
         }
 
         return builder.build().asMap();
-    }
-
-    public static <T> Iterable<? extends T> unpack(final Iterable<? extends Factory<? extends T>> factories) {
-        return new Iterable<T>() {
-            private final Iterator<? extends Factory<? extends T>> delegate = factories.iterator();
-
-            @Override
-            public Iterator<T> iterator() {
-                return new Iterator<T>() {
-                    @Override
-                    public boolean hasNext() {
-                        return delegate.hasNext();
-                    }
-
-                    @Override
-                    public T next() {
-                        return delegate.next().create();
-                    }
-
-                    @Override
-                    public void remove() {
-                        throw new UnsupportedOperationException();
-                    }
-                };
-            }
-        };
-    }
-
-    @Nullable
-    public static <T> List<T> nonEmptyOrNull(Iterable<T> iterable) {
-        ImmutableList<T> list = ImmutableList.copyOf(iterable);
-        return list.isEmpty() ? null : list;
-    }
-
-    public static String asCommandLine(Iterable<String> arguments) {
-        return Joiner.on(" ").join(collect(arguments, InternalTransformers.asSafeCommandLineArgument()));
     }
 }

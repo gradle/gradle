@@ -79,7 +79,7 @@ public class SourceFoldersCreator {
     }
 
     private <T> T collectRegularAndExternalSourceFolders(List<SourceFolder> sourceFolder, BiFunction<Collection<SourceFolder>, Collection<SourceFolder>, T> collector) {
-        Pair<Collection<SourceFolder>, Collection<SourceFolder>> partitionedFolders = CollectionUtils.partition(sourceFolder,  sf-> sf.getPath().contains(".."));
+        Pair<Collection<SourceFolder>, Collection<SourceFolder>> partitionedFolders = CollectionUtils.partition(sourceFolder,  sf -> sf.getPath().contains(".."));
 
         Collection<SourceFolder> externalSourceFolders = partitionedFolders.getLeft();
         Collection<SourceFolder> regularSourceFolders = partitionedFolders.getRight();
