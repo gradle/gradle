@@ -24,4 +24,6 @@ interface BuildEnvironmentExtension {
     val gitCommitId: Property<String>
     val gitBranch: Property<String>
     val repoRoot: DirectoryProperty
+    val artifactoryUserName: Property<String>
+    val artifactoryPassword: Property<String>
 }

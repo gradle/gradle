@@ -21,10 +21,15 @@ with(layout.rootDirectory) {
     gradle.lifecycle.beforeProject {
         val service = gradle.sharedServices.registerIfAbsent("buildEnvironmentService", BuildEnvironmentService::class) {
             parameters.rootProjectDir = this@with
+            // We rely on the fact that these properties are read for a root project, because root is configured first
+            parameters.artifactoryUserName = providers.gradleProperty("artifactoryUserName")
+            parameters.artifactoryPassword = providers.gradleProperty("artifactoryPassword")
         }
         val buildEnvironmentExtension = extensions.create("buildEnvironment", BuildEnvironmentExtension::class)
         buildEnvironmentExtension.gitCommitId = service.flatMap { it.gitCommitId }
         buildEnvironmentExtension.gitBranch = service.flatMap { it.gitBranch }
+        buildEnvironmentExtension.artifactoryUserName = service.flatMap { it.parameters.artifactoryUserName }
+        buildEnvironmentExtension.artifactoryPassword = service.flatMap { it.parameters.artifactoryPassword }
         buildEnvironmentExtension.repoRoot = this@with
     }
 }
