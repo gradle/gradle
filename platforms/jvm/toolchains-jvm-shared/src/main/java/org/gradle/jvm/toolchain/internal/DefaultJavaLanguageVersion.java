@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import org.gradle.api.internal.jvm.JavaVersionParser;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 
 import java.io.Serializable;
@@ -42,6 +43,10 @@ public class DefaultJavaLanguageVersion implements JavaLanguageVersion, Serializ
         } else {
             return new DefaultJavaLanguageVersion(version);
         }
+    }
+
+    public static JavaLanguageVersion fromFullVersion(String version) {
+        return of(JavaVersionParser.parseMajorVersion(version));
     }
 
     private final int version;
