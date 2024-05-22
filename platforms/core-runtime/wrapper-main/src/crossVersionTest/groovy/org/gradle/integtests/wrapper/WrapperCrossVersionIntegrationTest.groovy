@@ -25,6 +25,9 @@ import org.gradle.test.preconditions.UnitTestPreconditions
 
 @SuppressWarnings("IntegrationTestFixtures")
 class WrapperCrossVersionIntegrationTest extends AbstractWrapperCrossVersionIntegrationTest {
+    @Requires(value = [
+        UnitTestPreconditions.NotWindowsJavaBefore11
+    ], reason = "see https://github.com/gradle/gradle-private/issues/3758")
     void canUseWrapperFromPreviousVersionToRunCurrentVersion() {
         when:
         GradleExecuter executer = prepareWrapperExecuter(previous, current)
