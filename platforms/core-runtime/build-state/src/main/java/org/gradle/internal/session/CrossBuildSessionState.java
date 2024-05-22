@@ -72,9 +72,9 @@ public class CrossBuildSessionState implements Closeable {
             this.startParameter = startParameter;
         }
 
-        void configure(ServiceRegistration registration, List<GradleModuleServices> pluginServiceRegistries) {
-            for (GradleModuleServices pluginServiceRegistry : pluginServiceRegistries) {
-                pluginServiceRegistry.registerCrossBuildSessionServices(registration);
+        void configure(ServiceRegistration registration, List<GradleModuleServices> servicesProviders) {
+            for (GradleModuleServices services : servicesProviders) {
+                services.registerCrossBuildSessionServices(registration);
             }
             registration.add(CrossBuildSessionParameters.class, new CrossBuildSessionParameters(startParameter));
             registration.add(CrossBuildSessionState.class, CrossBuildSessionState.this);

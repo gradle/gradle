@@ -119,8 +119,8 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
         registration.add(ClasspathElementTransformFactoryForAgent.class);
         registration.add(ClasspathElementTransformFactoryForLegacy.class);
         registration.add(DefaultCachedClasspathTransformer.class);
-        for (GradleModuleServices plugin : globalServices.getAll(GradleModuleServices.class)) {
-            plugin.registerGradleUserHomeServices(registration);
+        for (GradleModuleServices services : globalServices.getAll(GradleModuleServices.class)) {
+            services.registerGradleUserHomeServices(registration);
         }
     }
 

@@ -83,9 +83,9 @@ public class BuildTreeScopeServices {
         this.modelServices = modelServices;
     }
 
-    protected void configure(ServiceRegistration registration, List<GradleModuleServices> pluginServiceRegistries) {
-        for (GradleModuleServices pluginServiceRegistry : pluginServiceRegistries) {
-            pluginServiceRegistry.registerBuildTreeServices(registration);
+    protected void configure(ServiceRegistration registration, List<GradleModuleServices> servicesProviders) {
+        for (GradleModuleServices services : servicesProviders) {
+            services.registerBuildTreeServices(registration);
         }
         registration.add(BuildInvocationScopeId.class, buildInvocationScopeId);
         registration.add(BuildTreeState.class, buildTree);

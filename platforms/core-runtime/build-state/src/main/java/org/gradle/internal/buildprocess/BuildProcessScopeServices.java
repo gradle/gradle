@@ -34,10 +34,10 @@ import java.util.List;
 
 public class BuildProcessScopeServices {
     void configure(ServiceRegistration registration, ClassLoaderRegistry classLoaderRegistry) {
-        final List<GradleModuleServices> pluginServiceFactories = new DefaultServiceLocator(classLoaderRegistry.getRuntimeClassLoader(), classLoaderRegistry.getPluginsClassLoader()).getAll(GradleModuleServices.class);
-        for (GradleModuleServices pluginServiceRegistry : pluginServiceFactories) {
-            registration.add(GradleModuleServices.class, pluginServiceRegistry);
-            pluginServiceRegistry.registerGlobalServices(registration);
+        List<GradleModuleServices> servicesProviders = new DefaultServiceLocator(classLoaderRegistry.getRuntimeClassLoader(), classLoaderRegistry.getPluginsClassLoader()).getAll(GradleModuleServices.class);
+        for (GradleModuleServices services : servicesProviders) {
+            registration.add(GradleModuleServices.class, services);
+            services.registerGlobalServices(registration);
         }
     }
 

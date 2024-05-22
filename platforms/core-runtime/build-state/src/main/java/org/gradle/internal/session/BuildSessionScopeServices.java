@@ -52,10 +52,10 @@ public class BuildSessionScopeServices extends WorkerSharedBuildSessionScopeServ
         this.buildEventConsumer = buildEventConsumer;
     }
 
-    void configure(ServiceRegistration registration, List<GradleModuleServices> pluginServiceRegistries) {
+    void configure(ServiceRegistration registration, List<GradleModuleServices> servicesProviders) {
         registration.add(StartParameterInternal.class, startParameter);
-        for (GradleModuleServices pluginServiceRegistry : pluginServiceRegistries) {
-            pluginServiceRegistry.registerBuildSessionServices(registration);
+        for (GradleModuleServices services : servicesProviders) {
+            services.registerBuildSessionServices(registration);
         }
         registration.add(InjectedPluginClasspath.class, new InjectedPluginClasspath(injectedPluginClassPath));
         registration.add(BuildCancellationToken.class, buildCancellationToken);

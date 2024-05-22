@@ -66,9 +66,9 @@ public class PropertyValidationAccess {
                 registration.add(DefaultManagedFactoryRegistry.class, new DefaultManagedFactoryRegistry());
                 registration.add(OutputPropertyRoleAnnotationHandler.class);
                 registration.add(DefaultInstantiatorFactory.class);
-                List<GradleModuleServices> pluginServiceFactories = new DefaultServiceLocator(false, getClass().getClassLoader()).getAll(GradleModuleServices.class);
-                for (GradleModuleServices pluginServiceFactory : pluginServiceFactories) {
-                    pluginServiceFactory.registerGlobalServices(registration);
+                List<GradleModuleServices> servicesProviders = new DefaultServiceLocator(false, getClass().getClassLoader()).getAll(GradleModuleServices.class);
+                for (GradleModuleServices services : servicesProviders) {
+                    services.registerGlobalServices(registration);
                 }
             }
         });
