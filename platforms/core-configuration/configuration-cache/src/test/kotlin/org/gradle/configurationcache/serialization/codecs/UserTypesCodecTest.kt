@@ -16,7 +16,7 @@
 
 package org.gradle.configurationcache.serialization.codecs
 
-import org.gradle.configurationcache.problems.PropertyTrace
+import org.gradle.internal.configuration.problems.PropertyTrace
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.sameInstance
 import org.hamcrest.MatcherAssert.assertThat

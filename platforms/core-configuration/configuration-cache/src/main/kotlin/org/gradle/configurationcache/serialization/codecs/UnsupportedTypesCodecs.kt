@@ -57,7 +57,7 @@ import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.configurationcache.flow.BuildWorkResultProvider
-import org.gradle.configurationcache.problems.DocumentationSection
+import org.gradle.internal.configuration.problems.DocumentationSection
 import org.gradle.internal.serialize.graph.BindingsBuilder
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.IsolateContext

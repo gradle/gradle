@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.problems
+package org.gradle.internal.configuration.problems
 
 import org.gradle.internal.problems.failure.Failure
 import org.gradle.internal.problems.failure.FailurePrinter

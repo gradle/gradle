@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.IConventionAware
-import org.gradle.configurationcache.problems.PropertyKind
+import org.gradle.internal.configuration.problems.PropertyKind
 import org.gradle.internal.serialize.graph.MutableIsolateContext
 import org.gradle.configurationcache.serialization.Workarounds
 import org.gradle.internal.serialize.graph.logUnsupported

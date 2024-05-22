@@ -23,6 +23,7 @@ import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
 import org.gradle.api.Task
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.configurationcache.extensions.capitalized
+import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.logging.ConsoleRenderer
 import java.io.File
 import java.util.Comparator.comparing

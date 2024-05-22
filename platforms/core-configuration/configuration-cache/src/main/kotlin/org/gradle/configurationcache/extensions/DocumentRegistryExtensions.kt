@@ -17,7 +17,7 @@
 package org.gradle.configurationcache.extensions
 
 import org.gradle.api.internal.DocumentationRegistry
-import org.gradle.configurationcache.problems.DocumentationSection
+import org.gradle.internal.configuration.problems.DocumentationSection
 
 
 internal

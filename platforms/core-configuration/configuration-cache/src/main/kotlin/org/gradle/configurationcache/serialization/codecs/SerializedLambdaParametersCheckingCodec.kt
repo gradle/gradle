@@ -16,7 +16,7 @@
 
 package org.gradle.configurationcache.serialization.codecs
 
-import org.gradle.configurationcache.problems.DocumentationSection
+import org.gradle.internal.configuration.problems.DocumentationSection
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.IsolateContext
 import org.gradle.internal.serialize.graph.ReadContext

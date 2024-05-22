@@ -35,7 +35,7 @@ import org.gradle.caching.configuration.internal.BuildCacheServiceRegistration
 import org.gradle.configurationcache.extensions.serviceOf
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.flow.BuildFlowScope
-import org.gradle.configurationcache.problems.DocumentationSection.NotYetImplementedSourceDependencies
+import org.gradle.internal.configuration.problems.DocumentationSection.NotYetImplementedSourceDependencies
 import org.gradle.internal.serialize.graph.DefaultReadContext
 import org.gradle.internal.serialize.graph.DefaultWriteContext
 import org.gradle.configurationcache.serialization.IsolateOwners

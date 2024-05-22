@@ -24,9 +24,9 @@ import org.gradle.api.logging.Logger
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.configurationcache.CheckedFingerprint
-import org.gradle.configurationcache.problems.PropertyProblem
-import org.gradle.configurationcache.problems.PropertyTrace
-import org.gradle.configurationcache.problems.StructuredMessageBuilder
+import org.gradle.internal.configuration.problems.PropertyProblem
+import org.gradle.internal.configuration.problems.PropertyTrace
+import org.gradle.internal.configuration.problems.StructuredMessageBuilder
 import org.gradle.internal.serialize.graph.CircularReferences
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.IsolateOwner

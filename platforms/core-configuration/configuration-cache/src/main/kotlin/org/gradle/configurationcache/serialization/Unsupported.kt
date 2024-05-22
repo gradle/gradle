@@ -16,8 +16,8 @@
 
 package org.gradle.configurationcache.serialization
 
-import org.gradle.configurationcache.problems.DocumentationSection
-import org.gradle.configurationcache.problems.StructuredMessageBuilder
+import org.gradle.internal.configuration.problems.DocumentationSection
+import org.gradle.internal.configuration.problems.StructuredMessageBuilder
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.codec
 import org.gradle.internal.serialize.graph.logUnsupported

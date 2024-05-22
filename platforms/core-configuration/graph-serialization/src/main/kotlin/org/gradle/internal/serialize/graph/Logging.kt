@@ -16,14 +16,14 @@
 
 package org.gradle.internal.serialize.graph
 
-import org.gradle.configurationcache.problems.DocumentationSection
-import org.gradle.configurationcache.problems.DocumentationSection.NotYetImplemented
-import org.gradle.configurationcache.problems.DocumentationSection.RequirementsDisallowedTypes
+import org.gradle.internal.configuration.problems.DocumentationSection
+import org.gradle.internal.configuration.problems.DocumentationSection.NotYetImplemented
+import org.gradle.internal.configuration.problems.DocumentationSection.RequirementsDisallowedTypes
 
-import org.gradle.configurationcache.problems.PropertyProblem
-import org.gradle.configurationcache.problems.StructuredMessage.Companion.build
-import org.gradle.configurationcache.problems.StructuredMessageBuilder
-import org.gradle.configurationcache.problems.propertyDescriptionFor
+import org.gradle.internal.configuration.problems.PropertyProblem
+import org.gradle.internal.configuration.problems.StructuredMessage.Companion.build
+import org.gradle.internal.configuration.problems.StructuredMessageBuilder
+import org.gradle.internal.configuration.problems.propertyDescriptionFor
 
 import kotlin.reflect.KClass
 
