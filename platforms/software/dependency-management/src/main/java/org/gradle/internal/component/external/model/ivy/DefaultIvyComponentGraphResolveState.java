@@ -37,7 +37,9 @@ public class DefaultIvyComponentGraphResolveState extends DefaultModuleComponent
 
     @Override
     public IvyComponentArtifactResolveMetadata getArtifactMetadata() {
-        return new DefaultIvyComponentArtifactResolveMetadata(getLegacyMetadata());
+        @SuppressWarnings("deprecation")
+        IvyModuleResolveMetadata legacyMetadata = getLegacyMetadata();
+        return new DefaultIvyComponentArtifactResolveMetadata(legacyMetadata);
     }
 
     private static class DefaultIvyComponentArtifactResolveMetadata extends ExternalArtifactResolveMetadata implements IvyComponentArtifactResolveMetadata {

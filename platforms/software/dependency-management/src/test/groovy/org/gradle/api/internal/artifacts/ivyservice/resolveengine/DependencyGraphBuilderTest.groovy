@@ -1162,7 +1162,7 @@ class DependencyGraphBuilderTest extends Specification {
         dependencyMetaData = new DslOriginDependencyMetadataWrapper(dependencyMetaData, Stub(ModuleDependency) {
             getAttributes() >> ImmutableAttributes.EMPTY
         })
-        from.candidatesForGraphVariantSelection.getVariantByConfigurationName("default").metadata.dependencies.add(dependencyMetaData)
+        from.candidatesForGraphVariantSelection.getVariantByConfigurationName("default", Stub(ResolutionFailureHandler)).metadata.dependencies.add(dependencyMetaData)
         return dependencyMetaData
     }
 

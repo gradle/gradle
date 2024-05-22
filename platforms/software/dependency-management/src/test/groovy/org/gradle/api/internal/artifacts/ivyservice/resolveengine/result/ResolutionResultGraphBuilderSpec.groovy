@@ -35,9 +35,9 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.new
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultPrinter.printGraph
 import static org.gradle.util.internal.CollectionUtils.first
 
-class DefaultResolutionResultBuilderSpec extends Specification {
+class ResolutionResultGraphBuilderSpec extends Specification {
 
-    def builder = new DefaultResolutionResultBuilder()
+    def builder = new ResolutionResultGraphBuilder()
 
     def "builds basic graph"() {
         given:

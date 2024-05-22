@@ -25,7 +25,6 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
-import org.gradle.internal.component.local.model.DefaultLocalComponentGraphResolveState.ConfigurationMetadataFactory;
 import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.ModelContainer;
@@ -152,7 +151,7 @@ public class LocalComponentGraphResolveStateFactory {
      * A {@link ConfigurationMetadataFactory} which uses a list of pre-constructed configuration
      * metadata as its data source.
      */
-    public static class ConfigurationsListMetadataFactory implements ConfigurationMetadataFactory {
+    private static class ConfigurationsListMetadataFactory implements ConfigurationMetadataFactory {
         private final List<? extends LocalConfigurationGraphResolveMetadata> metadata;
 
         public ConfigurationsListMetadataFactory(List<? extends LocalConfigurationGraphResolveMetadata> metadata) {
@@ -190,7 +189,7 @@ public class LocalComponentGraphResolveStateFactory {
      *
      * TODO: This class should acquire a project lock before accessing the configurations provider.
      */
-    public static class ConfigurationsProviderMetadataFactory implements ConfigurationMetadataFactory {
+    private static class ConfigurationsProviderMetadataFactory implements ConfigurationMetadataFactory {
 
         private final ComponentIdentifier componentId;
         private final ConfigurationsProvider configurationsProvider;

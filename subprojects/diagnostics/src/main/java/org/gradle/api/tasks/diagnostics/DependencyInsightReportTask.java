@@ -155,7 +155,7 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
                         "In order to use the '--all-variants' option, the configuration must not be resolved before this task is executed."
                     );
                 }
-                configurationInternal.getResolutionStrategy().setReturnAllVariants(true);
+                configurationInternal.getResolutionStrategy().setIncludeAllSelectableVariantResults(true);
             }
             configurationName = configuration.getName();
             configurationDescription = configuration.toString();

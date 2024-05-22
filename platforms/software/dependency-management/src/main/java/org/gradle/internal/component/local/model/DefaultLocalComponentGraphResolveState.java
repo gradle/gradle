@@ -28,6 +28,7 @@ import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
+import org.gradle.internal.component.ResolutionFailureHandler;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.AbstractComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
@@ -36,7 +37,6 @@ import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.component.model.ConfigurationGraphResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationGraphResolveState;
-import org.gradle.internal.component.model.GraphSelectionCandidates;
 import org.gradle.internal.component.model.ImmutableModuleSources;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleSources;
@@ -44,14 +44,11 @@ import org.gradle.internal.component.model.VariantArtifactGraphResolveMetadata;
 import org.gradle.internal.component.model.VariantArtifactResolveState;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.component.model.VariantResolveMetadata;
-import org.gradle.internal.component.resolution.failure.exception.ConfigurationSelectionException;
-import org.gradle.internal.component.resolution.failure.type.ConfigurationNotConsumableFailure;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.resolve.resolver.VariantArtifactResolver;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -59,7 +56,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -199,12 +195,7 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
     }
 
     private static List<ResolvedVariantResult> computeSelectableVariantResults(DefaultLocalComponentGraphResolveState component) {
-        GraphSelectionCandidates candidates = component.getCandidatesForGraphVariantSelection();
-        if (!candidates.supportsAttributeMatching()) {
-            return Collections.emptyList();
-        }
-
-        return candidates
+        return component.getCandidatesForGraphVariantSelection()
             .getVariantsForAttributeMatching()
             .stream()
             .flatMap(variant -> variant.prepareForArtifactResolution().getArtifactVariants().stream())
@@ -386,21 +377,13 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
         }
 
         @Override
-        public boolean supportsAttributeMatching() {
-            return !variantsWithAttributes.isEmpty();
-        }
-
-        @Override
         public List<? extends VariantGraphResolveState> getVariantsForAttributeMatching() {
-            if (variantsWithAttributes.isEmpty()) {
-                throw new IllegalStateException("No variants available for attribute matching.");
-            }
             return variantsWithAttributes;
         }
 
         @Nullable
         @Override
-        public VariantGraphResolveState getVariantByConfigurationName(String name) {
+        public VariantGraphResolveState getVariantByConfigurationName(String name, ResolutionFailureHandler failureHandler) {
             VariantGraphResolveState variant = variantsByConfigurationName.get(name);
             if (variant != null) {
                 return variant;
@@ -418,9 +401,7 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
             // all consumable configurations.
             assert !conf.getMetadata().isCanBeConsumed() : "Expected configuration to be non-consumable";
 
-            ConfigurationNotConsumableFailure failure = new ConfigurationNotConsumableFailure(name, component.getId().getDisplayName());
-            String message = String.format("Selected configuration '" + failure.getRequestedName() + "' on '" + failure.getRequestedComponentDisplayName() + "' but it can't be used as a project dependency because it isn't intended for consumption by other components.");
-            throw new ConfigurationSelectionException(message, failure, Collections.emptyList());
+            throw failureHandler.nonConsumableConfigurationFailure(name, component.getId());
         }
 
         @Override
@@ -441,36 +422,4 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
         }
     }
 
-    /**
-     * Constructs {@link LocalConfigurationGraphResolveMetadata} instances advertised by a given component.
-     * This allows the component metadata to source configuration data from multiple sources, both lazy and eager.
-     */
-    public interface ConfigurationMetadataFactory {
-
-        /**
-         * Visit all configurations in this component that can be selected in a dependency graph.
-         *
-         * <p>This includes all consumable configurations with and without attributes. Configurations visited
-         * by this method may not be suitable for selection via attribute matching.</p>
-         */
-        void visitConsumableConfigurations(Consumer<LocalConfigurationGraphResolveMetadata> visitor);
-
-        /**
-         * Invalidates any caching used for producing configuration metadata.
-         */
-        void invalidate();
-
-        /**
-         * Produces a configuration metadata instance from the configuration with the given {@code name}.
-         *
-         * @return Null if the configuration with the given name does not exist.
-         */
-        @Nullable
-        LocalConfigurationGraphResolveMetadata getConfiguration(String name);
-
-        /**
-         * Get all names such that {@link #getConfiguration(String)} return a non-null value.
-         */
-        Set<String> getConfigurationNames();
-    }
 }

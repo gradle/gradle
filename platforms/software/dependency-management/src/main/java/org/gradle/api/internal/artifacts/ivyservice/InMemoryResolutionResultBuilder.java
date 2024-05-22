@@ -24,7 +24,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DefaultResolutionResultBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultGraphBuilder;
 import org.gradle.api.internal.artifacts.result.DefaultMinimalResolutionResult;
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -39,14 +39,14 @@ import java.util.Collections;
  */
 public class InMemoryResolutionResultBuilder implements DependencyGraphVisitor {
 
-    private final DefaultResolutionResultBuilder resolutionResultBuilder = new DefaultResolutionResultBuilder();
-    private final boolean returnAllVariants;
+    private final ResolutionResultGraphBuilder resolutionResultBuilder = new ResolutionResultGraphBuilder();
+    private final boolean includeAllSelectableVariantResults;
 
     private ResolvedComponentResult root;
     private ImmutableAttributes requestAttributes;
 
-    public InMemoryResolutionResultBuilder(boolean returnAllVariants) {
-        this.returnAllVariants = returnAllVariants;
+    public InMemoryResolutionResultBuilder(boolean includeAllSelectableVariantResults) {
+        this.includeAllSelectableVariantResults = includeAllSelectableVariantResults;
     }
 
     @Override
@@ -58,7 +58,7 @@ public class InMemoryResolutionResultBuilder implements DependencyGraphVisitor {
             resolutionResultBuilder.visitSelectedVariant(variant.getNodeId(), variant.getResolveState().getVariantResult(null));
         }
 
-        if (returnAllVariants) {
+        if (includeAllSelectableVariantResults) {
             resolutionResultBuilder.visitComponentVariants(component.getResolveState().getAllSelectableVariantResults());
         } else {
             resolutionResultBuilder.visitComponentVariants(Collections.emptyList());

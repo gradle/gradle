@@ -58,6 +58,9 @@ import org.gradle.internal.serialize.Encoder
 import org.gradle.util.Path
 
 
+/**
+ * In charge of serializing and deserializing the project components for Isolated Projects.
+ */
 internal
 class ProjectMetadataController(
     private val host: DefaultConfigurationCache.Host,

@@ -26,6 +26,7 @@ import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
+import org.gradle.internal.component.ResolutionFailureHandler;
 import org.gradle.internal.component.external.model.ExternalComponentGraphResolveMetadata;
 import org.gradle.internal.component.external.model.ExternalComponentGraphResolveState;
 import org.gradle.internal.component.external.model.ExternalComponentResolveMetadata;
@@ -79,13 +80,15 @@ public class DefaultExternalComponentGraphResolveState<G extends ExternalCompone
     }
 
     @Override
+    @Deprecated
     public A getLegacyMetadata() {
         return legacyMetadata;
     }
 
     @Override
     public ComponentArtifactResolveMetadata getArtifactMetadata() {
-        return new ExternalArtifactResolveMetadata(getLegacyMetadata());
+        A legacyMetadata = getLegacyMetadata();
+        return new ExternalArtifactResolveMetadata(legacyMetadata);
     }
 
     @Override
@@ -248,21 +251,13 @@ public class DefaultExternalComponentGraphResolveState<G extends ExternalCompone
         }
 
         @Override
-        public boolean supportsAttributeMatching() {
-            return !variants.isEmpty();
-        }
-
-        @Override
         public List<? extends VariantGraphResolveState> getVariantsForAttributeMatching() {
-            if (variants.isEmpty()) {
-                throw new IllegalStateException("No variants available for attribute matching.");
-            }
             return variants;
         }
 
         @Nullable
         @Override
-        public VariantGraphResolveState getVariantByConfigurationName(String name) {
+        public VariantGraphResolveState getVariantByConfigurationName(String name, ResolutionFailureHandler failureHandler) {
             ConfigurationGraphResolveState conf = component.getConfiguration(name);
             if (conf == null) {
                 return null;
