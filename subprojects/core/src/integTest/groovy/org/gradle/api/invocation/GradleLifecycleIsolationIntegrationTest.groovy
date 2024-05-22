@@ -18,6 +18,7 @@ package org.gradle.api.invocation
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.internal.ToBeImplemented
+import org.gradle.internal.code.UserCodeApplicationContext
 
 class GradleLifecycleIsolationIntegrationTest extends AbstractIntegrationSpec {
 
@@ -179,5 +180,88 @@ class GradleLifecycleIsolationIntegrationTest extends AbstractIntegrationSpec {
         functionType | modifier
         "regular"    | ""
         "static"     | "static "
+    }
+
+    def 'lifecycle actions preserve user code application context for scripts'() {
+        given:
+        settingsFile """
+            gradle.lifecycle.beforeProject {
+                println("before:" + $currentApplication)
+            }
+
+            gradle.lifecycle.afterProject {
+                println("after:" + $currentApplication)
+            }
+        """
+
+        when:
+        succeeds 'help'
+
+        then:
+        outputContains "before:settings file 'settings.gradle'"
+        outputContains "after:settings file 'settings.gradle'"
+    }
+
+    def 'lifecycle actions preserve user code application context for plugins'() {
+        given:
+        groovyFile "build-logic/build.gradle", '''
+            plugins {
+                id 'groovy-gradle-plugin'
+            }
+        '''
+        groovyFile "build-logic/src/main/groovy/my-settings-plugin.settings.gradle", """
+            gradle.lifecycle.beforeProject {
+                println("before:" + $currentApplication)
+            }
+
+            gradle.lifecycle.afterProject {
+                println("after:" + $currentApplication)
+            }
+        """
+        settingsFile '''
+            pluginManagement {
+                includeBuild 'build-logic'
+            }
+            plugins {
+                id 'my-settings-plugin'
+            }
+        '''
+
+        when:
+        succeeds 'help'
+
+        then:
+        outputContains "before:plugin 'my-settings-plugin'"
+        outputContains "after:plugin 'my-settings-plugin'"
+    }
+
+    def 'lifecycle actions can be registered in the context of the Gradle runtime'() {
+        given:
+        settingsFile """
+            ${userCodeApplicationContext}.gradleRuntime {
+                gradle.lifecycle.beforeProject {
+                    println("before:" + $currentApplication)
+                }
+
+                gradle.lifecycle.afterProject {
+                    println("after:" + $currentApplication)
+                }
+            }
+        """
+
+        when:
+        succeeds 'help'
+
+        then:
+        outputContains "before:null"
+        outputContains "after:null"
+    }
+
+    def getCurrentApplication() {
+        "${userCodeApplicationContext}.current()?.source?.displayName"
+    }
+
+    def getUserCodeApplicationContext() {
+        "services.get($UserCodeApplicationContext.name)"
     }
 }
