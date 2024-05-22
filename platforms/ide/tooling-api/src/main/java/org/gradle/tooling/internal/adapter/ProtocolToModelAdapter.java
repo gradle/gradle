@@ -179,7 +179,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         Map<String, Class<?>> potentialSubInterfaces = getPotentialModelContractSubInterfaces(targetType);
         Set<Class<?>> actualSubInterfaces = getActualImplementedModelContractSubInterfaces(sourceObject, potentialSubInterfaces);
 
-        List<Class<?>> modelContractInterfaces = new ArrayList<>();
+        Set<Class<?>> modelContractInterfaces = new HashSet<>();
         modelContractInterfaces.add(viewType); // base interface
         modelContractInterfaces.addAll(actualSubInterfaces);
         return modelContractInterfaces.toArray(new Class<?>[0]);
