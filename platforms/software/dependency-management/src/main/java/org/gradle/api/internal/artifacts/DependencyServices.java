@@ -20,9 +20,9 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Artif
 import org.gradle.api.internal.artifacts.transform.TransformExecutionListener;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
+import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 
-public class DependencyServices extends AbstractPluginServiceRegistry {
+public class DependencyServices extends AbstractGradleModuleServices {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.addProvider(new DependencyManagementGlobalScopeServices());

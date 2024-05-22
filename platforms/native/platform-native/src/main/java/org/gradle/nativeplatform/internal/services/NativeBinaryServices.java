@@ -21,7 +21,7 @@ import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
+import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
 import org.gradle.nativeplatform.internal.DefaultTargetMachineFactory;
 import org.gradle.nativeplatform.internal.NativeBinaryRenderer;
@@ -52,7 +52,7 @@ import org.gradle.nativeplatform.toolchain.internal.xcode.MacOSSdkPlatformPathLo
 import org.gradle.nativeplatform.toolchain.internal.xcode.SwiftStdlibToolLocator;
 import org.gradle.process.internal.ExecActionFactory;
 
-public class NativeBinaryServices extends AbstractPluginServiceRegistry {
+public class NativeBinaryServices extends AbstractGradleModuleServices {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.add(NativeBinaryRenderer.class);

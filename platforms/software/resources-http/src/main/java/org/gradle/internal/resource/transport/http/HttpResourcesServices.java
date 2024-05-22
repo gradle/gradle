@@ -26,9 +26,9 @@ import org.gradle.internal.authentication.DefaultDigestAuthentication;
 import org.gradle.internal.authentication.DefaultHttpHeaderAuthentication;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
+import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 
-public class HttpResourcesPluginServiceRegistry extends AbstractPluginServiceRegistry {
+public class HttpResourcesServices extends AbstractGradleModuleServices {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.addProvider(new GlobalScopeServices());

@@ -34,7 +34,7 @@ import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
+import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.jvm.toolchain.JavaToolchainResolverRegistry;
 import org.gradle.jvm.toolchain.internal.AsdfInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainResolverRegistry;
@@ -59,7 +59,7 @@ import org.gradle.platform.internal.DefaultBuildPlatform;
 
 import java.util.List;
 
-public class ToolchainsJvmServices extends AbstractPluginServiceRegistry {
+public class ToolchainsJvmServices extends AbstractGradleModuleServices {
     protected static class BuildServices {
 
         protected DefaultBuildPlatform createBuildPlatform(ObjectFactory objectFactory, SystemInfo systemInfo, OperatingSystem operatingSystem) {

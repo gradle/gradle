@@ -18,9 +18,9 @@ package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.internal.tasks.testing.operations.TestExecutionBuildOperationBuildSessionScopeServices;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
+import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 
-public class TestingBasePluginServiceRegistry extends AbstractPluginServiceRegistry {
+public class TestingBasePluginServices extends AbstractGradleModuleServices {
 
     @Override
     public void registerBuildSessionServices(ServiceRegistration registration) {

@@ -17,11 +17,11 @@
 package org.gradle.kotlin.dsl.services
 
 import org.gradle.internal.service.ServiceRegistration
-import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry
+import org.gradle.internal.service.scopes.AbstractGradleModuleServices
 
 
 internal
-class KotlinScriptServiceRegistry : AbstractPluginServiceRegistry() {
+class KotlinScriptServices : AbstractGradleModuleServices() {
 
     override fun registerBuildServices(registration: ServiceRegistration) {
         registration.addProvider(org.gradle.kotlin.dsl.accessors.BuildScopeServices)

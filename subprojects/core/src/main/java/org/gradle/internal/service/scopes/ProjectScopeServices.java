@@ -122,8 +122,8 @@ public class ProjectScopeServices extends ScopedServiceRegistry {
         register(registration -> {
             registration.add(ProjectInternal.class, project);
             parent.get(DependencyManagementServices.class).addDslServices(registration, project);
-            for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
-                pluginServiceRegistry.registerProjectServices(registration);
+            for (GradleModuleServices services : parent.getAll(GradleModuleServices.class)) {
+                services.registerProjectServices(registration);
             }
         });
         addProvider(new WorkerSharedProjectScopeServices(project.getProjectDir()));

@@ -21,9 +21,9 @@ import org.gradle.internal.jvm.inspection.InvalidJvmInstallationCacheInvalidator
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
+import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 
-public class PlatformJvmServices extends AbstractPluginServiceRegistry {
+public class PlatformJvmServices extends AbstractGradleModuleServices {
     @Override
     public void registerBuildServices(ServiceRegistration registration) {
         registerInvalidJavaInstallationsCacheInvalidator(registration);

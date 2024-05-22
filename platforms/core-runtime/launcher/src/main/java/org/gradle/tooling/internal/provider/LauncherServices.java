@@ -58,7 +58,7 @@ import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.logging.LoggingBuildOperationProgressBroadcaster;
 import org.gradle.internal.operations.notify.BuildOperationNotificationValve;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
+import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.internal.session.BuildSessionActionExecutor;
 import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.snapshot.ValueSnapshotter;
@@ -85,7 +85,7 @@ import java.util.List;
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_INSENSITIVE;
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE;
 
-public class LauncherServices extends AbstractPluginServiceRegistry {
+public class LauncherServices extends AbstractGradleModuleServices {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.add(BuildActionRunner.class, ExecuteBuildActionRunner.class);

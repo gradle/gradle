@@ -23,13 +23,13 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry;
 import org.gradle.buildinit.plugins.internal.action.InitBuiltInCommand;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
+import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.workers.WorkerExecutor;
 
 /**
  * Provides the various build initialization services.
  */
-public class BuildInitServices extends AbstractPluginServiceRegistry {
+public class BuildInitServices extends AbstractGradleModuleServices {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.add(InitBuiltInCommand.class);

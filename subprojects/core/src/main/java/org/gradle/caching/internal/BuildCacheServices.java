@@ -52,7 +52,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
+import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
@@ -61,7 +61,7 @@ import java.util.List;
 /**
  * Build scoped services for build cache usage.
  */
-public final class BuildCacheServices extends AbstractPluginServiceRegistry {
+public final class BuildCacheServices extends AbstractGradleModuleServices {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.addProvider(new Object() {
