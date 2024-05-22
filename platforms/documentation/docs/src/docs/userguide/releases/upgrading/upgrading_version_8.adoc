@@ -222,6 +222,7 @@ This allows for more granular control over which artifacts are selected.
 
 [[deprecated_namers]]
 ==== Deprecated `Namer` of `Task` and `Configuration`
+
 `Task` and `Configuration` have a link:{javadocPath}/org/gradle/api/Namer.html[`Namer`] inner class (also called `Namer`) that can be used as a common way to retrieve the name of a task or configuration.
 Now that these types implement link:{javadocPath}/org/gradle/api/Named.html[`Named`], these classes are no longer necessary and have been deprecated.
 They will be removed in Gradle 9.0.
@@ -279,6 +280,38 @@ beforeSettings {
 
 Calling link:{javadocPath}/org/gradle/caching/local/DirectoryBuildCache.html#setRemoveUnusedEntriesAfterDays-int-[buildCache.local.removeUnusedEntriesAfterDays] is deprecated and this method will be removed in Gradle 9.0.
 If set to a non-default value, this deprecated setting will take precedence over `Settings.caches.buildCache.setRemoveUnusedEntriesAfterDays()`.
+
+[[gradle_enterprise_extension_deprecated]]
+==== Deprecated Kotlin DSL gradle-enterprise plugin block extension ====
+
+In `settings.gradle.kts` (Kotlin DSL), you can use `gradle-enterprise` in the plugins block to apply the Gradle Enterprise plugin with the same version as `gradle --scan`.
+```kotlin
+plugins {
+    `gradle-enterprise`
+}
+```
+
+There is no equivalent to this in `settings.gradle` (Groovy DSL).
+
+Gradle Enterprise has been renamed to Develocity and the `com.gradle.enterprise` plugin has been renamed to `com.gradle.develocity`.
+Therefore, the `gradle-enterprise` plugin block extension has been deprecated and will be removed in Gradle 9.0.
+
+The Develocity plugin must be applied with an explicit plugin id and version.
+There is no `develocity` shorthand available in the plugins block.
+```kotlin
+plugins {
+    id("com.gradle.develocity") version "3.17.3"
+}
+```
+
+If you want to continue using the Gradle Enterprise plugin, you can specify the deprecated plugin id.
+```kotlin
+plugins {
+    id("com.gradle.enterprise") version "3.17.3"
+}
+```
+
+We encourage you to use the https://plugins.gradle.org/plugin/com.gradle.develocity[latest released Develocity plugin version], even when you are using an older Gradle version.
 
 === Potential breaking changes
 

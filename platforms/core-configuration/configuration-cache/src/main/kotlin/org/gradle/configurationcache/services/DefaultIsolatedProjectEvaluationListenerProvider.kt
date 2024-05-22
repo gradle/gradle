@@ -29,6 +29,7 @@ import org.gradle.configurationcache.isolation.SerializedIsolatedActionGraph
 import org.gradle.configurationcache.serialization.IsolateOwner
 import org.gradle.configurationcache.serialization.IsolateOwners
 import org.gradle.configurationcache.serialization.serviceOf
+import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.invocation.IsolatedProjectEvaluationListenerProvider
 
 
@@ -41,7 +42,9 @@ typealias IsolatedProjectActionList = Collection<IsolatedProjectAction>
 
 
 internal
-class DefaultIsolatedProjectEvaluationListenerProvider : IsolatedProjectEvaluationListenerProvider {
+class DefaultIsolatedProjectEvaluationListenerProvider(
+    private val userCodeApplicationContext: UserCodeApplicationContext
+) : IsolatedProjectEvaluationListenerProvider {
 
     private
     val beforeProject = mutableListOf<IsolatedProjectAction>()
@@ -50,12 +53,24 @@ class DefaultIsolatedProjectEvaluationListenerProvider : IsolatedProjectEvaluati
     val afterProject = mutableListOf<IsolatedProjectAction>()
 
     override fun beforeProject(action: IsolatedProjectAction) {
-        beforeProject.add(action)
+        // TODO:isolated encode Application instances as part of the Environment to avoid waste
+        beforeProject.add(withUserCodeApplicationContext(action))
     }
 
     override fun afterProject(action: IsolatedProjectAction) {
-        afterProject.add(action)
+        afterProject.add(withUserCodeApplicationContext(action))
     }
+
+    private
+    fun withUserCodeApplicationContext(action: IsolatedProjectAction): IsolatedProjectAction =
+        userCodeApplicationContext.current()?.let { context ->
+            IsolatedProjectAction {
+                val target = this
+                context.reapply {
+                    action.execute(target)
+                }
+            }
+        } ?: action
 
     override fun isolateFor(gradle: Gradle): ProjectEvaluationListener? = when {
         beforeProject.isEmpty() && afterProject.isEmpty() -> null
