@@ -24,6 +24,7 @@ import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.operations.execution.CachingDisabledReasonCategory
+import org.gradle.test.fixtures.Flaky
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 
@@ -255,6 +256,7 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
     }
 
     @ToBeFixedForIsolatedProjects(because = "Investigate")
+    @Flaky(because = "https://github.com/gradle/gradle-private/issues/4206")
     def "cacheability for a task with overlapping outputs is OVERLAPPING_OUTPUTS"() {
         buildFile """
             task cacheable(type: Cacheable)
