@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.configurationcache.serialization
+package org.gradle.internal.serialize.graph
 
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract

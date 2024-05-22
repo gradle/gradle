@@ -21,6 +21,10 @@ import org.gradle.initialization.ClassLoaderScopeOrigin
 import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.internal.Describables
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.serialize.graph.ClassDecoder
+import org.gradle.internal.serialize.graph.ReadContext
+import org.gradle.internal.serialize.graph.ReadIdentities
+import org.gradle.internal.serialize.graph.ownerService
 
 
 internal

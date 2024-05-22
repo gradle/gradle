@@ -17,13 +17,13 @@
 package org.gradle.configurationcache.serialization.codecs
 
 import org.gradle.configurationcache.problems.StructuredMessageBuilder
-import org.gradle.configurationcache.serialization.Codec
-import org.gradle.configurationcache.serialization.ReadContext
-import org.gradle.configurationcache.serialization.WriteContext
-import org.gradle.configurationcache.serialization.logUnsupported
+import org.gradle.internal.serialize.graph.Codec
+import org.gradle.internal.serialize.graph.ReadContext
+import org.gradle.internal.serialize.graph.WriteContext
+import org.gradle.internal.serialize.graph.logUnsupported
 import org.gradle.configurationcache.serialization.logUnsupportedBaseType
-import org.gradle.configurationcache.serialization.readEnum
-import org.gradle.configurationcache.serialization.writeEnum
+import org.gradle.internal.serialize.graph.readEnum
+import org.gradle.internal.serialize.graph.writeEnum
 import java.io.InputStream
 import java.io.OutputStream
 

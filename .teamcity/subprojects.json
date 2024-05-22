@@ -455,6 +455,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "graph-serialization",
+    "path": "platforms/core-configuration/graph-serialization",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "hashing",
     "path": "platforms/core-execution/hashing",
     "unitTests": true,
@@ -752,13 +759,6 @@
     "name": "normalization-java",
     "path": "platforms/jvm/normalization-java",
     "unitTests": true,
-    "functionalTests": false,
-    "crossVersionTests": false
-  },
-  {
-    "name": "object-serialization",
-    "path": "platforms/core-configuration/object-serialization",
-    "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },

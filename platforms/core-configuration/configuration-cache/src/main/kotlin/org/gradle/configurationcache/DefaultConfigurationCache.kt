@@ -30,10 +30,10 @@ import org.gradle.configurationcache.initialization.ConfigurationCacheStartParam
 import org.gradle.configurationcache.metadata.ProjectMetadataController
 import org.gradle.configurationcache.models.IntermediateModelController
 import org.gradle.configurationcache.problems.ConfigurationCacheProblems
-import org.gradle.configurationcache.serialization.DefaultWriteContext
+import org.gradle.internal.serialize.graph.DefaultWriteContext
 import org.gradle.configurationcache.serialization.IsolateOwners
-import org.gradle.configurationcache.serialization.ReadContext
-import org.gradle.configurationcache.serialization.withIsolate
+import org.gradle.internal.serialize.graph.ReadContext
+import org.gradle.internal.serialize.graph.withIsolate
 import org.gradle.initialization.GradlePropertiesController
 import org.gradle.internal.Factory
 import org.gradle.internal.build.BuildStateRegistry

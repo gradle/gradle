@@ -39,9 +39,9 @@ import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.composite.internal.BuildTreeWorkGraphController
-import org.gradle.configurationcache.serialization.Bindings
-import org.gradle.configurationcache.serialization.BindingsBuilder
-import org.gradle.configurationcache.serialization.Codec
+import org.gradle.internal.serialize.graph.Bindings
+import org.gradle.internal.serialize.graph.BindingsBuilder
+import org.gradle.internal.serialize.graph.Codec
 import org.gradle.configurationcache.serialization.codecs.jos.ExternalizableCodec
 import org.gradle.configurationcache.serialization.codecs.jos.JavaObjectSerializationCodec
 import org.gradle.configurationcache.serialization.codecs.jos.JavaSerializationEncodingLookup
@@ -58,7 +58,7 @@ import org.gradle.configurationcache.serialization.codecs.transform.TransformSte
 import org.gradle.configurationcache.serialization.codecs.transform.TransformedArtifactCodec
 import org.gradle.configurationcache.serialization.codecs.transform.TransformedExternalArtifactSetCodec
 import org.gradle.configurationcache.serialization.codecs.transform.TransformedProjectArtifactSetCodec
-import org.gradle.configurationcache.serialization.reentrant
+import org.gradle.internal.serialize.graph.reentrant
 import org.gradle.execution.plan.OrdinalGroupFactory
 import org.gradle.execution.plan.TaskNodeFactory
 import org.gradle.internal.Factory

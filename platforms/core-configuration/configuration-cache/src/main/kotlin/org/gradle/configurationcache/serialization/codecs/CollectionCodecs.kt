@@ -16,16 +16,16 @@
 
 package org.gradle.configurationcache.serialization.codecs
 
-import org.gradle.configurationcache.serialization.Codec
-import org.gradle.configurationcache.serialization.ReadContext
-import org.gradle.configurationcache.serialization.WriteContext
-import org.gradle.configurationcache.serialization.codec
-import org.gradle.configurationcache.serialization.logPropertyProblem
-import org.gradle.configurationcache.serialization.readCollectionInto
-import org.gradle.configurationcache.serialization.readList
-import org.gradle.configurationcache.serialization.readMapInto
-import org.gradle.configurationcache.serialization.writeCollection
-import org.gradle.configurationcache.serialization.writeMap
+import org.gradle.internal.serialize.graph.Codec
+import org.gradle.internal.serialize.graph.ReadContext
+import org.gradle.internal.serialize.graph.WriteContext
+import org.gradle.internal.serialize.graph.codec
+import org.gradle.internal.serialize.graph.logPropertyProblem
+import org.gradle.internal.serialize.graph.readCollectionInto
+import org.gradle.internal.serialize.graph.readList
+import org.gradle.internal.serialize.graph.readMapInto
+import org.gradle.internal.serialize.graph.writeCollection
+import org.gradle.internal.serialize.graph.writeMap
 import java.util.Hashtable
 import java.util.ArrayDeque
 import java.util.LinkedList

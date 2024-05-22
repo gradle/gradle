@@ -19,6 +19,8 @@ package org.gradle.configurationcache.serialization
 import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.configurationcache.problems.DocumentationSection
 import org.gradle.configurationcache.problems.StructuredMessageBuilder
+import org.gradle.internal.serialize.graph.IsolateContext
+import org.gradle.internal.serialize.graph.logUnsupported
 import kotlin.reflect.KClass
 
 

@@ -23,9 +23,9 @@ import org.gradle.configurationcache.StateType
 import org.gradle.configurationcache.cacheentry.ModelKey
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprintController
 import org.gradle.configurationcache.serialization.IsolateOwners
-import org.gradle.configurationcache.serialization.readNonNull
-import org.gradle.configurationcache.serialization.runReadOperation
-import org.gradle.configurationcache.serialization.runWriteOperation
+import org.gradle.internal.serialize.graph.readNonNull
+import org.gradle.internal.serialize.graph.runReadOperation
+import org.gradle.internal.serialize.graph.runWriteOperation
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder

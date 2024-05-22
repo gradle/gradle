@@ -47,6 +47,7 @@ dependencies {
     api(project(":file-temp"))
     api(project(":files"))
     api(project(":functional"))
+    api(projects.graphSerialization)
     api(project(":hashing"))
     api(project(":logging"))
     api(project(":logging-api"))
@@ -54,7 +55,6 @@ dependencies {
     api(project(":model-core"))
     // TODO - it might be good to allow projects to contribute state to save and restore, rather than have this project know about everything
     api(project(":native"))
-    api(projects.objectSerialization)
     api(project(":persistent-cache"))
     api(project(":plugin-use"))
     api(project(":resources"))

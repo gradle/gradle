@@ -57,7 +57,7 @@ import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.problems.PropertyTrace
 import org.gradle.configurationcache.problems.StructuredMessage
 import org.gradle.configurationcache.problems.StructuredMessageBuilder
-import org.gradle.configurationcache.serialization.DefaultWriteContext
+import org.gradle.internal.serialize.graph.DefaultWriteContext
 import org.gradle.configurationcache.services.ConfigurationCacheEnvironment
 import org.gradle.configurationcache.services.ConfigurationCacheEnvironmentChangeTracker
 import org.gradle.groovy.scripts.ScriptSource

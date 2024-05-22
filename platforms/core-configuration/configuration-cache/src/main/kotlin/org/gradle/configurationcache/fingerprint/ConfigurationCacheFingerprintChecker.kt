@@ -26,7 +26,7 @@ import org.gradle.configurationcache.extensions.fileSystemEntryType
 import org.gradle.configurationcache.extensions.filterKeysByPrefix
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.logger
-import org.gradle.configurationcache.serialization.ReadContext
+import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.util.NumberUtil.ordinal

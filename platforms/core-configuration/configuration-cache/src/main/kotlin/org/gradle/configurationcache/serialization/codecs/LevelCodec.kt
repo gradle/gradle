@@ -17,11 +17,11 @@
 package org.gradle.configurationcache.serialization.codecs
 
 import org.gradle.configurationcache.extensions.uncheckedCast
-import org.gradle.configurationcache.serialization.Codec
-import org.gradle.configurationcache.serialization.ReadContext
-import org.gradle.configurationcache.serialization.WriteContext
-import org.gradle.configurationcache.serialization.decodeUsingJavaSerialization
-import org.gradle.configurationcache.serialization.encodeUsingJavaSerialization
+import org.gradle.internal.serialize.graph.Codec
+import org.gradle.internal.serialize.graph.ReadContext
+import org.gradle.internal.serialize.graph.WriteContext
+import org.gradle.internal.serialize.graph.decodeUsingJavaSerialization
+import org.gradle.internal.serialize.graph.encodeUsingJavaSerialization
 import java.util.logging.Level
 
 

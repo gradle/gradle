@@ -28,11 +28,11 @@ import org.gradle.api.internal.artifacts.transform.TransformedArtifactSet
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionStructureVisitor
 import org.gradle.configurationcache.extensions.uncheckedCast
-import org.gradle.configurationcache.serialization.Codec
-import org.gradle.configurationcache.serialization.ReadContext
-import org.gradle.configurationcache.serialization.WriteContext
-import org.gradle.configurationcache.serialization.readList
-import org.gradle.configurationcache.serialization.writeCollection
+import org.gradle.internal.serialize.graph.Codec
+import org.gradle.internal.serialize.graph.ReadContext
+import org.gradle.internal.serialize.graph.WriteContext
+import org.gradle.internal.serialize.graph.readList
+import org.gradle.internal.serialize.graph.writeCollection
 import org.gradle.internal.DisplayName
 import org.gradle.internal.component.external.model.ImmutableCapabilities
 import org.gradle.internal.model.CalculatedValueContainerFactory

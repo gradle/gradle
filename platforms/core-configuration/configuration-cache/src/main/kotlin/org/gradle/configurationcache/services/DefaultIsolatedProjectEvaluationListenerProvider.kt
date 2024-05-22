@@ -26,9 +26,9 @@ import org.gradle.configurationcache.extensions.setSingletonProperty
 import org.gradle.configurationcache.isolation.IsolatedActionDeserializer
 import org.gradle.configurationcache.isolation.IsolatedActionSerializer
 import org.gradle.configurationcache.isolation.SerializedIsolatedActionGraph
-import org.gradle.configurationcache.serialization.IsolateOwner
+import org.gradle.internal.serialize.graph.IsolateOwner
 import org.gradle.configurationcache.serialization.IsolateOwners
-import org.gradle.configurationcache.serialization.serviceOf
+import org.gradle.internal.serialize.graph.serviceOf
 import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.invocation.IsolatedProjectEvaluationListenerProvider
 
