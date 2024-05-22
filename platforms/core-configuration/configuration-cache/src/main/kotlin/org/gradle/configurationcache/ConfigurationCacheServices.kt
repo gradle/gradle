@@ -31,7 +31,6 @@ import org.gradle.configurationcache.services.RemoteScriptUpToDateChecker
 import org.gradle.execution.ExecutionAccessChecker
 import org.gradle.execution.ExecutionAccessListener
 import org.gradle.internal.buildtree.BuildModelParameters
-import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.execution.WorkExecutionTracker
 import org.gradle.internal.nativeintegration.filesystem.FileSystem

@@ -16,7 +16,6 @@
 package org.gradle.kotlin.dsl
 
 import org.gradle.internal.deprecation.DeprecationLogger
-import org.gradle.internal.deprecation.Documentation
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedDevelocityPlugin
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec
