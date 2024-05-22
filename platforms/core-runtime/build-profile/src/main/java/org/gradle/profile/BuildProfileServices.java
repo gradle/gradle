@@ -18,9 +18,9 @@ package org.gradle.profile;
 
 import org.gradle.StartParameter;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
+import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 
-public class BuildProfileServices extends AbstractPluginServiceRegistry {
+public class BuildProfileServices extends AbstractGradleModuleServices {
     @Override
     public void registerBuildTreeServices(ServiceRegistration registration) {
         registration.addProvider(new Object() {

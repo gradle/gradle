@@ -250,7 +250,7 @@ public class BuildScopeServices extends ScopedServiceRegistry {
             registration.add(DefaultScriptHandlerFactory.class);
             registration.add(DefaultBuildOutputCleanupRegistry.class);
             supplier.applyServicesTo(registration, this);
-            for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
+            for (GradleModuleServices pluginServiceRegistry : parent.getAll(GradleModuleServices.class)) {
                 pluginServiceRegistry.registerBuildServices(registration);
             }
         });

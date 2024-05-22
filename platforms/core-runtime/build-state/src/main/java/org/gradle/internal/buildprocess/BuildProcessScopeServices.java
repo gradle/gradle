@@ -23,7 +23,7 @@ import org.gradle.internal.service.DefaultServiceLocator;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
-import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.internal.service.scopes.GradleModuleServices;
 import org.gradle.launcher.exec.BuildExecutor;
 import org.gradle.internal.buildprocess.execution.BuildSessionLifecycleBuildActionExecutor;
 import org.gradle.internal.buildprocess.execution.SessionFailureReportingActionExecutor;
@@ -34,9 +34,9 @@ import java.util.List;
 
 public class BuildProcessScopeServices {
     void configure(ServiceRegistration registration, ClassLoaderRegistry classLoaderRegistry) {
-        final List<PluginServiceRegistry> pluginServiceFactories = new DefaultServiceLocator(classLoaderRegistry.getRuntimeClassLoader(), classLoaderRegistry.getPluginsClassLoader()).getAll(PluginServiceRegistry.class);
-        for (PluginServiceRegistry pluginServiceRegistry : pluginServiceFactories) {
-            registration.add(PluginServiceRegistry.class, pluginServiceRegistry);
+        final List<GradleModuleServices> pluginServiceFactories = new DefaultServiceLocator(classLoaderRegistry.getRuntimeClassLoader(), classLoaderRegistry.getPluginsClassLoader()).getAll(GradleModuleServices.class);
+        for (GradleModuleServices pluginServiceRegistry : pluginServiceFactories) {
+            registration.add(GradleModuleServices.class, pluginServiceRegistry);
             pluginServiceRegistry.registerGlobalServices(registration);
         }
     }

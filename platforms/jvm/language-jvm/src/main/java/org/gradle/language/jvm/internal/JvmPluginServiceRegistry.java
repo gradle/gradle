@@ -23,11 +23,11 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.jvm.internal.DefaultJvmPluginServices;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
+import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.jvm.JvmLibrary;
 import org.gradle.language.base.artifact.SourcesArtifact;
 
-public class JvmPluginServiceRegistry extends AbstractPluginServiceRegistry {
+public class JvmPluginServiceRegistry extends AbstractGradleModuleServices {
 
     @Override
     public void registerBuildServices(ServiceRegistration registration) {

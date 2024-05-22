@@ -19,9 +19,9 @@ package org.gradle.internal.resource.transport.sftp;
 
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
+import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 
-public class SftpResourcesPluginServiceRegistry extends AbstractPluginServiceRegistry {
+public class SftpResourcesPluginServiceRegistry extends AbstractGradleModuleServices {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.addProvider(new GlobalScopeServices());

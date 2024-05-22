@@ -23,9 +23,9 @@ import org.gradle.api.publish.internal.component.DefaultSoftwareComponentFactory
 import org.gradle.api.publish.internal.mapping.DefaultDependencyCoordinateResolverFactory;
 import org.gradle.api.publish.internal.validation.DuplicatePublicationTracker;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
+import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 
-public class PublishServices extends AbstractPluginServiceRegistry {
+public class PublishServices extends AbstractGradleModuleServices {
     @Override
     public void registerBuildServices(ServiceRegistration registration) {
         registration.add(DefaultProjectDependencyPublicationResolver.class);

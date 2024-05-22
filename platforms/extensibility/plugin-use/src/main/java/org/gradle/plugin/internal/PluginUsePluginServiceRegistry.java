@@ -41,7 +41,7 @@ import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.properties.annotations.MissingPropertyAnnotationHandler;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
+import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.plugin.management.PluginManagementSpec;
 import org.gradle.plugin.management.internal.DefaultPluginManagementSpec;
 import org.gradle.plugin.management.internal.DefaultPluginResolutionStrategy;
@@ -69,7 +69,7 @@ import java.lang.annotation.Annotation;
 import java.util.Collections;
 import java.util.List;
 
-public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistry {
+public class PluginUsePluginServiceRegistry extends AbstractGradleModuleServices {
 
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {

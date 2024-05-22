@@ -17,9 +17,9 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
+import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 
-public class ToolingBuilderServices extends AbstractPluginServiceRegistry {
+public class ToolingBuilderServices extends AbstractGradleModuleServices {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.add(ToolingApiBuildEventListenerFactory.class);

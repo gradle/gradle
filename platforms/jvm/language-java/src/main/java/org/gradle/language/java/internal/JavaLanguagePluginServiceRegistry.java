@@ -26,7 +26,7 @@ import org.gradle.api.tasks.javadoc.internal.JavadocToolAdapter;
 import org.gradle.cache.internal.FileContentCacheFactory;
 import org.gradle.internal.build.event.OperationResultPostProcessorFactory;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
+import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.jvm.JvmLibrary;
 import org.gradle.jvm.toolchain.JavadocTool;
 import org.gradle.jvm.toolchain.internal.JavaToolchain;
@@ -40,7 +40,7 @@ import java.util.Collections;
 
 import static java.util.Collections.emptyList;
 
-public class JavaLanguagePluginServiceRegistry extends AbstractPluginServiceRegistry {
+public class JavaLanguagePluginServiceRegistry extends AbstractGradleModuleServices {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.addProvider(new JavaGlobalScopeServices());

@@ -21,11 +21,11 @@ import org.gradle.internal.declarativedsl.evaluator.DefaultDeclarativeKotlinScri
 import org.gradle.internal.declarativedsl.evaluator.DefaultInterpretationSchemaBuilder
 import org.gradle.internal.declarativedsl.evaluator.StoringInterpretationSchemaBuilder
 import org.gradle.internal.service.ServiceRegistration
-import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry
+import org.gradle.internal.service.scopes.AbstractGradleModuleServices
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 
 
-class DeclarativeDslServiceRegistry : AbstractPluginServiceRegistry() {
+class DeclarativeDslServiceRegistry : AbstractGradleModuleServices() {
     override fun registerBuildServices(registration: ServiceRegistration) {
         registration.addProvider(BuildServices)
     }

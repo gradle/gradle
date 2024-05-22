@@ -19,9 +19,9 @@ package org.gradle.internal.service.scopes;
 import org.gradle.internal.service.ServiceRegistration;
 
 /**
- * Base no-op implementation of the {@link PluginServiceRegistry}.
+ * Base no-op implementation of the {@link GradleModuleServices}.
  */
-public class AbstractPluginServiceRegistry implements PluginServiceRegistry {
+public class AbstractGradleModuleServices implements GradleModuleServices {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
 

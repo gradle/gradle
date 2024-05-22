@@ -23,7 +23,7 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.CrossBuildSessionParameters;
-import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.internal.service.scopes.GradleModuleServices;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -72,8 +72,8 @@ public class CrossBuildSessionState implements Closeable {
             this.startParameter = startParameter;
         }
 
-        void configure(ServiceRegistration registration, List<PluginServiceRegistry> pluginServiceRegistries) {
-            for (PluginServiceRegistry pluginServiceRegistry : pluginServiceRegistries) {
+        void configure(ServiceRegistration registration, List<GradleModuleServices> pluginServiceRegistries) {
+            for (GradleModuleServices pluginServiceRegistry : pluginServiceRegistries) {
                 pluginServiceRegistry.registerCrossBuildSessionServices(registration);
             }
             registration.add(CrossBuildSessionParameters.class, new CrossBuildSessionParameters(startParameter));

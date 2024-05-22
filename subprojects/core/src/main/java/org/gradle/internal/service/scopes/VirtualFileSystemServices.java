@@ -105,7 +105,7 @@ import java.util.function.Predicate;
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_INSENSITIVE;
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE;
 
-public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
+public class VirtualFileSystemServices extends AbstractGradleModuleServices {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(VirtualFileSystemServices.class);
 

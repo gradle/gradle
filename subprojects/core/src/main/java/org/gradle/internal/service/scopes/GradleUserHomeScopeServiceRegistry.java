@@ -25,7 +25,7 @@ import java.util.Optional;
 /**
  * Manages the shared services that are scoped to a particular Gradle user home dir and which can be shared by multiple build invocations. These shared services also include the global services.
  *
- * <p>A plugin can contribute shared services to this scope by providing an implementation of {@link PluginServiceRegistry}.
+ * <p>A plugin can contribute shared services to this scope by providing an implementation of {@link GradleModuleServices}.
  */
 @ThreadSafe
 @ServiceScope(Scope.Global.class)

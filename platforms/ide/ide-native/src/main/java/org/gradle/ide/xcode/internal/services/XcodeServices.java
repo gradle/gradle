@@ -18,11 +18,11 @@ package org.gradle.ide.xcode.internal.services;
 
 import org.gradle.ide.xcode.internal.xcodeproj.GidGenerator;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
+import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 
 import java.util.Collections;
 
-public class XcodeServices extends AbstractPluginServiceRegistry {
+public class XcodeServices extends AbstractGradleModuleServices {
     @Override
     public void registerBuildServices(ServiceRegistration registration) {
         registration.addProvider(new GlobalIdGeneratorServices());

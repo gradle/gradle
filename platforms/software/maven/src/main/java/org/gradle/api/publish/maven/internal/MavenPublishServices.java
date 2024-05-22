@@ -26,12 +26,12 @@ import org.gradle.api.publish.maven.internal.dependencies.VersionRangeMapper;
 import org.gradle.api.publish.maven.internal.publisher.MavenDuplicatePublicationTracker;
 import org.gradle.api.publish.maven.internal.publisher.MavenPublishers;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
+import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.maven.MavenModule;
 import org.gradle.maven.MavenPomArtifact;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 
-public class MavenPublishServices extends AbstractPluginServiceRegistry {
+public class MavenPublishServices extends AbstractGradleModuleServices {
     @Override
     public void registerBuildServices(ServiceRegistration registration) {
         registration.addProvider(new ComponentRegistrationAction());

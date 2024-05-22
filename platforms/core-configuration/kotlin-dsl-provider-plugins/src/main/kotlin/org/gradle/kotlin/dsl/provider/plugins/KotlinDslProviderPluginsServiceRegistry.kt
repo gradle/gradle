@@ -17,12 +17,12 @@
 package org.gradle.kotlin.dsl.provider.plugins
 
 import org.gradle.internal.service.ServiceRegistration
-import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry
+import org.gradle.internal.service.scopes.AbstractGradleModuleServices
 
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.DefaultPrecompiledScriptPluginsSupport
 
 
-class KotlinDslProviderPluginsServiceRegistry : AbstractPluginServiceRegistry() {
+class KotlinDslProviderPluginsServiceRegistry : AbstractGradleModuleServices() {
 
     override fun registerGradleUserHomeServices(registration: ServiceRegistration) {
         registration.addProvider(GradleUserHomeServices)

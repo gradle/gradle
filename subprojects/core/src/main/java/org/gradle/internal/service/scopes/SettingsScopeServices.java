@@ -53,7 +53,7 @@ public class SettingsScopeServices extends DefaultServiceRegistry {
         super(parent);
         this.settings = settings;
         register(registration -> {
-            for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
+            for (GradleModuleServices pluginServiceRegistry : parent.getAll(GradleModuleServices.class)) {
                 pluginServiceRegistry.registerSettingsServices(registration);
             }
             registration.add(DefaultProjectDescriptorRegistry.class);

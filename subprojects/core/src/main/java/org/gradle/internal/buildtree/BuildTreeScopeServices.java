@@ -64,7 +64,7 @@ import org.gradle.internal.problems.DefaultProblemDiagnosticsFactory;
 import org.gradle.internal.problems.DefaultProblemLocationAnalyzer;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.internal.service.scopes.GradleModuleServices;
 import org.gradle.internal.service.scopes.Scope;
 
 import java.util.List;
@@ -83,8 +83,8 @@ public class BuildTreeScopeServices {
         this.modelServices = modelServices;
     }
 
-    protected void configure(ServiceRegistration registration, List<PluginServiceRegistry> pluginServiceRegistries) {
-        for (PluginServiceRegistry pluginServiceRegistry : pluginServiceRegistries) {
+    protected void configure(ServiceRegistration registration, List<GradleModuleServices> pluginServiceRegistries) {
+        for (GradleModuleServices pluginServiceRegistry : pluginServiceRegistries) {
             pluginServiceRegistry.registerBuildTreeServices(registration);
         }
         registration.add(BuildInvocationScopeId.class, buildInvocationScopeId);
