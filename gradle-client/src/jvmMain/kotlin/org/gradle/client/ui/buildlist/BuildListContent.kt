@@ -18,17 +18,14 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.coroutines.launch
 import org.gradle.client.core.Constants.APPLICATION_DISPLAY_NAME
 import org.gradle.client.core.database.Build
-import org.gradle.client.ui.composables.DirChooserDialog
-import org.gradle.client.ui.composables.Loading
-import org.gradle.client.ui.composables.PlainTextTooltip
-import org.gradle.client.ui.composables.TopBar
+import org.gradle.client.ui.composables.*
 import org.gradle.client.ui.theme.plusPaneSpacing
 
 @Composable
 fun BuildListContent(component: BuildListComponent) {
     val snackbarState = remember { SnackbarHostState() }
     Scaffold(
-        topBar = { TopBar(title = { Text(APPLICATION_DISPLAY_NAME) }) },
+        topBar = { TopBar(title = { TitleMedium(APPLICATION_DISPLAY_NAME) }) },
         floatingActionButton = { AddBuildButton(component, snackbarState) },
         snackbarHost = { SnackbarHost(snackbarState) },
     ) { scaffoldPadding ->

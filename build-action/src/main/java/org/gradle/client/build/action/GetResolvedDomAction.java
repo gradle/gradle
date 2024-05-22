@@ -3,6 +3,7 @@ package org.gradle.client.build.action;
 import org.gradle.client.build.model.ResolvedDomPrerequisites;
 import org.gradle.declarative.dsl.schema.AnalysisSchema;
 import org.gradle.declarative.dsl.tooling.models.DeclarativeSchemaModel;
+import org.gradle.internal.Pair;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
 import org.gradle.tooling.model.gradle.GradleBuild;
@@ -16,8 +17,8 @@ public class GetResolvedDomAction implements BuildAction<ResolvedDomPrerequisite
     @Override
     public ResolvedDomPrerequisites execute(BuildController controller) {
         AnalysisSchema projectSchema = getProjectSchema(controller);
-        List<File> declarativeBuildFiles = getDeclarativeBuildFiles(controller);
-        return new ResolvedDomPrerequisitesImpl(projectSchema, declarativeBuildFiles);
+        Pair<File, List<File>> buildFiles = getDeclarativeBuildFiles(controller);
+        return new ResolvedDomPrerequisitesImpl(projectSchema, buildFiles.getLeft(), buildFiles.getRight());
     }
 
     private static AnalysisSchema getProjectSchema(BuildController controller) {
@@ -25,8 +26,9 @@ public class GetResolvedDomAction implements BuildAction<ResolvedDomPrerequisite
         return declarativeSchemaModel.getProjectSchema();
     }
 
-    private static List<File> getDeclarativeBuildFiles(BuildController controller) {
+    private static Pair<File, List<File>> getDeclarativeBuildFiles(BuildController controller) {
         GradleBuild gradleBuild = controller.getModel(GradleBuild.class);
+        File rootProjectDirectory = gradleBuild.getRootProject().getProjectDirectory();
         List<File> declarativeBuildFiles = gradleBuild
                 .getProjects()
                 .getAll()
@@ -34,18 +36,20 @@ public class GetResolvedDomAction implements BuildAction<ResolvedDomPrerequisite
                 .map(p -> new File(p.getProjectDirectory(), "build.gradle.dcl"))
                 .filter(File::exists).collect(Collectors.toList());
         if (declarativeBuildFiles.isEmpty()) {
-            throw new RuntimeException("Declarative project file not found");
+            throw new RuntimeException("No declarative project file found");
         }
-        return declarativeBuildFiles;
+        return Pair.of(rootProjectDirectory, declarativeBuildFiles);
     }
 
     private static final class ResolvedDomPrerequisitesImpl implements ResolvedDomPrerequisites {
 
         private final AnalysisSchema analysisSchema;
+        private final File rootDir;
         private final List<File> declarativeBuildFiles;
 
-        public ResolvedDomPrerequisitesImpl(AnalysisSchema analysisSchema, List<File> declarativeBuildFiles) {
+        public ResolvedDomPrerequisitesImpl(AnalysisSchema analysisSchema, File rootDir, List<File> declarativeBuildFiles) {
             this.analysisSchema = analysisSchema;
+            this.rootDir = rootDir;
             this.declarativeBuildFiles = declarativeBuildFiles;
         }
 
@@ -54,6 +58,10 @@ public class GetResolvedDomAction implements BuildAction<ResolvedDomPrerequisite
             return analysisSchema;
         }
 
+        @Override
+        public File getRootDir() {
+            return rootDir;
+        }
 
         @Override
         public List<File> getDeclarativeBuildFiles() {

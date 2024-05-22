@@ -14,7 +14,6 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
 import org.gradle.client.build.action.GetResolvedDomAction
 import org.gradle.client.build.model.ResolvedDomPrerequisites
@@ -24,8 +23,10 @@ import org.gradle.client.ui.composables.TitleLarge
 import org.gradle.client.ui.composables.TitleMedium
 import org.gradle.client.ui.composables.TitleSmall
 import org.gradle.client.ui.connected.TwoPanes
+import org.gradle.client.ui.theme.spacing
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.declarative.dsl.schema.DataClass
+import org.gradle.internal.declarativedsl.analysis.OperationGenerationId
 import org.gradle.internal.declarativedsl.analysis.analyzeEverything
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument
 import org.gradle.internal.declarativedsl.dom.resolvedDocument
@@ -39,7 +40,10 @@ import java.io.File
 private const val NOTHING_DECLARED = "Nothing declared"
 
 @OptIn(ExperimentalFoundationApi::class)
-class GetResolvedDom : GetModelAction.GetCompositeModelAction<ResolvedDomPrerequisites> {
+class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedDomPrerequisites> {
+
+    override val displayName: String
+        get() = "Declarative Documents"
 
     override val modelType = ResolvedDomPrerequisites::class
 
@@ -51,16 +55,8 @@ class GetResolvedDom : GetModelAction.GetCompositeModelAction<ResolvedDomPrerequ
 
         val selectedBuildFile = remember { mutableStateOf<File>(model.declarativeBuildFiles.first()) }
 
-        DeclarativeFileDropDown(
-            model.declarativeBuildFiles,
-            selectedBuildFile
-        )
-
         val buildFileContent = remember(selectedBuildFile.value) { selectedBuildFile.value.readText() }
-        // TODO hardcoded for NiA for now
-        val buildFileRelativePath = selectedBuildFile.value.relativeTo(
-            selectedBuildFile.value.parentFile.parentFile.parentFile
-        ).path
+        val buildFileRelativePath = selectedBuildFile.value.relativeTo(model.rootDir).path
         val schema = model.analysisSchema
 
         val dom = remember(model, selectedBuildFile.value) {
@@ -73,7 +69,8 @@ class GetResolvedDom : GetModelAction.GetCompositeModelAction<ResolvedDomPrerequ
                 schema = schema,
                 languageTreeResult = languageTreeResult,
                 analysisStatementFilter = analyzeEverything,
-                strictReceiverChecks = true
+                strictReceiverChecks = true,
+                generationId = OperationGenerationId.PROPERTY_ASSIGNMENT,
             )
         }
 
@@ -94,7 +91,13 @@ class GetResolvedDom : GetModelAction.GetCompositeModelAction<ResolvedDomPrerequ
             }
         }
 
-        TitleLarge("Declarative Project Definitions")
+        TitleLarge(displayName)
+        DeclarativeFileDropDown(
+            model.rootDir,
+            model.declarativeBuildFiles,
+            selectedBuildFile
+        )
+        MaterialTheme.spacing.VerticalLevel4()
         TwoPanes(
             leftWeight = 0.4f, rightWeight = 0.6f,
             verticallyScrollable = false,
@@ -112,11 +115,12 @@ class GetResolvedDom : GetModelAction.GetCompositeModelAction<ResolvedDomPrerequ
                             highlightedSourceRange.value = softwareTypeNode.sourceData.indexRange
                         }
                 )
+                MaterialTheme.spacing.VerticalLevel4()
                 Column {
                     softwareTypeType.properties.forEach { property ->
                         LabelMedium(
                             modifier = Modifier
-                                .padding(bottom = 8.dp)
+                                .padding(bottom = MaterialTheme.spacing.level2)
                                 .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)))
                                 .onClick {
                                     highlightedSourceRange.value =
@@ -127,7 +131,7 @@ class GetResolvedDom : GetModelAction.GetCompositeModelAction<ResolvedDomPrerequ
                             }"
                         )
                     }
-                    Spacer(Modifier.height(8.dp))
+                    Spacer(Modifier.size(MaterialTheme.spacing.level2))
                     softwareTypeType.memberFunctions.accessAndConfigure.forEach { function ->
                         val functionType = schema.configuredTypeOf(function.accessAndConfigureSemantics)
                         val functionNode = softwareTypeNode.childElementNode(function.simpleName)
@@ -146,14 +150,14 @@ class GetResolvedDom : GetModelAction.GetCompositeModelAction<ResolvedDomPrerequ
                             functionNode,
                             indentLevel = 1,
                         )
-                        Spacer(Modifier.height(8.dp))
+                        MaterialTheme.spacing.VerticalLevel2()
                     }
                 }
             },
             right = {
                 Column {
                     TitleMedium(buildFileRelativePath)
-                    Spacer(Modifier.height(16.dp))
+                    MaterialTheme.spacing.VerticalLevel4()
                     SelectionContainer {
                         Text(
                             text = highlightedSource,
@@ -165,7 +169,7 @@ class GetResolvedDom : GetModelAction.GetCompositeModelAction<ResolvedDomPrerequ
         )
     }
 
-    private val indentDp = 8.dp
+    private val indentDp = MaterialTheme.spacing.level2
 
     @Composable
     private fun AccessAndConfigureFunction(
@@ -181,7 +185,7 @@ class GetResolvedDom : GetModelAction.GetCompositeModelAction<ResolvedDomPrerequ
             } else {
                 type.properties.forEach { property ->
                     LabelMedium(
-                        modifier = Modifier.padding(bottom = 8.dp)
+                        modifier = Modifier.padding(bottom = MaterialTheme.spacing.level2)
                             .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)))
                             .onClick {
                                 highlightedSourceRange.value =
@@ -192,7 +196,9 @@ class GetResolvedDom : GetModelAction.GetCompositeModelAction<ResolvedDomPrerequ
                         }"
                     )
                 }
-                type.memberFunctions.accessAndConfigure.forEach { subFunction ->
+                val accessAndConfigure = type.memberFunctions.accessAndConfigure
+                val accessAndConfigureNames = accessAndConfigure.map { it.simpleName }
+                accessAndConfigure.forEach { subFunction ->
                     val functionType = schema.configuredTypeOf(subFunction.accessAndConfigureSemantics)
                     val functionNode = node.childElementNode(subFunction.simpleName)
                     TitleSmall(
@@ -207,6 +213,29 @@ class GetResolvedDom : GetModelAction.GetCompositeModelAction<ResolvedDomPrerequ
                         schema, highlightedSourceRange, functionType, functionNode, indentLevel + 1
                     )
                 }
+                val addAndConfigure = type.memberFunctions.addAndConfigure.filter { function ->
+                    function.simpleName !in accessAndConfigureNames
+                }
+                val addAndConfigureByName = addAndConfigure.associateBy { it.simpleName }
+                val elementsByAddAndConfigure = node.content
+                    .filterIsInstance<DeclarativeDocument.DocumentNode.ElementNode>()
+                    .mapNotNull { element -> addAndConfigureByName[element.name]?.let { element to it } }
+                    .toMap()
+                elementsByAddAndConfigure.forEach { (element, _) ->
+                    val arguments = when (val valueNode = element.elementValues.single()) {
+                        is DeclarativeDocument.ValueNode.LiteralValueNode -> valueNode.value
+                        is DeclarativeDocument.ValueNode.ValueFactoryNode -> {
+                            val args = valueNode.values.single() as DeclarativeDocument.ValueNode.LiteralValueNode
+                            "${valueNode.factoryName}(${args.value})"
+                        }
+                    }
+                    LabelMedium(
+                        modifier = Modifier.padding(bottom = MaterialTheme.spacing.level2)
+                            .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)))
+                            .onClick { highlightedSourceRange.value = element.sourceData.indexRange },
+                        text = "${element.name}($arguments)"
+                    )
+                }
             }
         }
     }
@@ -214,6 +243,7 @@ class GetResolvedDom : GetModelAction.GetCompositeModelAction<ResolvedDomPrerequ
     @Composable
     @OptIn(ExperimentalMaterial3Api::class)
     private fun DeclarativeFileDropDown(
+        rootDir: File,
         declarativeBuildFiles: List<File>,
         state: MutableState<File>
     ) {
@@ -224,10 +254,10 @@ class GetResolvedDom : GetModelAction.GetCompositeModelAction<ResolvedDomPrerequ
         ) {
             BuildTextField(
                 modifier = Modifier.menuAnchor(),
-                value = state.value.toString(),
-                onValueChange = { state.value = File(it) },
+                value = state.value.relativeTo(rootDir).path,
+                onValueChange = { state.value = rootDir.resolve(it) },
                 readOnly = true,
-                label = { Text("Project definition") },
+                label = { Text("Project definitions") },
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                 colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
             )
@@ -237,7 +267,7 @@ class GetResolvedDom : GetModelAction.GetCompositeModelAction<ResolvedDomPrerequ
             ) {
                 declarativeBuildFiles.forEach { file ->
                     DropdownMenuItem(
-                        text = { Text(file.absolutePath) },
+                        text = { Text(file.relativeTo(rootDir).path) },
                         onClick = {
                             state.value = file
                             expanded = false

@@ -33,6 +33,15 @@ fun TitleSmall(text: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
+fun BodyMedium(text: String, modifier: Modifier = Modifier) {
+    Text(
+        modifier = modifier,
+        text = text,
+        style = MaterialTheme.typography.bodyMedium,
+    )
+}
+
+@Composable
 fun LabelSmall(text: String, modifier: Modifier = Modifier) {
     Text(
         modifier = modifier,

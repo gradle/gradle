@@ -36,9 +36,9 @@ fun BuildContent(component: BuildComponent) {
                 onBackClick = { component.onCloseClicked() },
                 title = {
                     when (val current = model) {
-                        BuildModel.Loading -> Text("Build")
-                        is BuildModel.Failed -> Text("Failed")
-                        is BuildModel.Loaded -> Text(current.build.rootDir.name)
+                        BuildModel.Loading -> TitleMedium("Build")
+                        is BuildModel.Failed -> TitleMedium("Failed")
+                        is BuildModel.Loaded -> TitleMedium(current.build.rootDir.name)
                     }
                 }
             )

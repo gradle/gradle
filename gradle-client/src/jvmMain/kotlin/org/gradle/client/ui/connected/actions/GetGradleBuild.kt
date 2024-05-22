@@ -5,13 +5,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import org.gradle.tooling.model.gradle.GradleBuild
-import java.io.File
-import java.io.IOException
-import java.nio.file.Files
 
 class GetGradleBuild : GetModelAction<GradleBuild> {
 
     override val modelType = GradleBuild::class
+
+    override val displayName: String
+        get() = "Build Model"
 
     @Composable
     override fun ColumnScope.ModelContent(model: GradleBuild) {

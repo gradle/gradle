@@ -10,6 +10,9 @@ class GetBuildEnvironment : GetModelAction<BuildEnvironment> {
 
     override val modelType = BuildEnvironment::class
 
+    override val displayName: String
+        get() = "Build Environment"
+
     @Composable
     override fun ColumnScope.ModelContent(model: BuildEnvironment) {
         Text(
