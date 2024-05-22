@@ -105,7 +105,10 @@ dependencies {
         because("ClassBytesRepositoryTest makes use of Groovydoc task.")
     }
     integTestImplementation(project(":internal-testing"))
+
     integTestImplementation(libs.mockitoKotlin)
+
+    integTestImplementation(project(":java-language-extensions"))
 
     testRuntimeOnly(project(":distributions-native")) {
         because("SimplifiedKotlinScriptEvaluator reads default imports from the distribution (default-imports.txt) and BuildType from platform-native is used in ProjectAccessorsClassPathTest.")
@@ -130,7 +133,7 @@ dependencies {
     testFixturesImplementation(libs.jacksonKotlin)
     testFixturesImplementation(libs.asm)
 
-    integTestDistributionRuntimeOnly(project(":distributions-basics"))
+    integTestDistributionRuntimeOnly(project(":distributions-full"))
 }
 
 packageCycles {
