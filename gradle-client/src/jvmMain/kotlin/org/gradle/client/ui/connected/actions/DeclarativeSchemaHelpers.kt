@@ -15,7 +15,7 @@ fun AnalysisSchema.softwareTypeNamed(name: String): SchemaMemberFunction =
 val SchemaMemberFunction.softwareTypeSemantics: FunctionSemantics.AccessAndConfigure
     get() = semantics as FunctionSemantics.AccessAndConfigure
 
-fun AnalysisSchema.configuredTypeOf(semantics: FunctionSemantics.AccessAndConfigure): DataClass =
+fun AnalysisSchema.configuredTypeOf(semantics: FunctionSemantics.ConfigureSemantics): DataClass =
     dataClassFor(semantics.configuredType as DataTypeRef.Name)
 
 val DataProperty.typeName: String
@@ -54,3 +54,9 @@ val List<SchemaMemberFunction>.accessAndConfigure: List<SchemaMemberFunction>
 
 val SchemaMemberFunction.accessAndConfigureSemantics: FunctionSemantics.AccessAndConfigure
     get() = semantics as FunctionSemantics.AccessAndConfigure
+
+val List<SchemaMemberFunction>.addAndConfigure: List<SchemaMemberFunction>
+    get() = filter { it.semantics is FunctionSemantics.AddAndConfigure }
+
+val SchemaMemberFunction.addAndConfigureSemantics: FunctionSemantics.AddAndConfigure
+    get() = semantics as FunctionSemantics.AddAndConfigure

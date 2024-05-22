@@ -196,7 +196,9 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
                         }"
                     )
                 }
-                type.memberFunctions.accessAndConfigure.forEach { subFunction ->
+                val accessAndConfigure = type.memberFunctions.accessAndConfigure
+                val accessAndConfigureNames = accessAndConfigure.map { it.simpleName }
+                accessAndConfigure.forEach { subFunction ->
                     val functionType = schema.configuredTypeOf(subFunction.accessAndConfigureSemantics)
                     val functionNode = node.childElementNode(subFunction.simpleName)
                     TitleSmall(
@@ -209,6 +211,29 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
                     )
                     AccessAndConfigureFunction(
                         schema, highlightedSourceRange, functionType, functionNode, indentLevel + 1
+                    )
+                }
+                val addAndConfigure = type.memberFunctions.addAndConfigure.filter { function ->
+                    function.simpleName !in accessAndConfigureNames
+                }
+                val addAndConfigureByName = addAndConfigure.associateBy { it.simpleName }
+                val elementsByAddAndConfigure = node.content
+                    .filterIsInstance<DeclarativeDocument.DocumentNode.ElementNode>()
+                    .mapNotNull { element -> addAndConfigureByName[element.name]?.let { element to it } }
+                    .toMap()
+                elementsByAddAndConfigure.forEach { (element, _) ->
+                    val arguments = when (val valueNode = element.elementValues.single()) {
+                        is DeclarativeDocument.ValueNode.LiteralValueNode -> valueNode.value
+                        is DeclarativeDocument.ValueNode.ValueFactoryNode -> {
+                            val args = valueNode.values.single() as DeclarativeDocument.ValueNode.LiteralValueNode
+                            "${valueNode.factoryName}(${args.value})"
+                        }
+                    }
+                    LabelMedium(
+                        modifier = Modifier.padding(bottom = MaterialTheme.spacing.level2)
+                            .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)))
+                            .onClick { highlightedSourceRange.value = element.sourceData.indexRange },
+                        text = "${element.name}($arguments)"
                     )
                 }
             }
