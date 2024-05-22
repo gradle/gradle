@@ -16,7 +16,7 @@
 
 package org.gradle.configurationcache.serialization.codecs
 
-import org.gradle.configurationcache.problems.PropertyKind
+import org.gradle.internal.configuration.problems.PropertyKind
 import org.gradle.internal.serialize.graph.Decoding
 import org.gradle.internal.serialize.graph.Encoding
 import org.gradle.internal.serialize.graph.EncodingProducer

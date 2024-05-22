@@ -31,7 +31,7 @@ import org.gradle.configurationcache.initialization.InstrumentedExecutionAccessL
 import org.gradle.configurationcache.initialization.VintageInjectedClasspathInstrumentationStrategy
 import org.gradle.configurationcache.models.DefaultToolingModelParameterCarrierFactory
 import org.gradle.configurationcache.problems.ConfigurationCacheProblems
-import org.gradle.configurationcache.problems.DefaultProblemFactory
+import org.gradle.internal.configuration.problems.DefaultProblemFactory
 import org.gradle.configurationcache.serialization.beans.DefaultBeanStateReaderLookup
 import org.gradle.configurationcache.serialization.beans.DefaultBeanStateWriterLookup
 import org.gradle.configurationcache.serialization.codecs.jos.JavaSerializationEncodingLookup

@@ -16,7 +16,7 @@
 
 package org.gradle.configurationcache.serialization.codecs
 
-import org.gradle.configurationcache.problems.StructuredMessageBuilder
+import org.gradle.internal.configuration.problems.StructuredMessageBuilder
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext

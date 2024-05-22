@@ -18,6 +18,9 @@ package org.gradle.configurationcache.problems
 
 import groovy.json.JsonSlurper
 import org.gradle.configurationcache.extensions.uncheckedCast
+import org.gradle.internal.configuration.problems.DecoratedPropertyProblem
+import org.gradle.internal.configuration.problems.PropertyTrace
+import org.gradle.internal.configuration.problems.StructuredMessage
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.hasEntry
 import org.junit.Test

@@ -23,7 +23,7 @@ import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.extensions.useToRun
 import org.gradle.configurationcache.logger
 import org.gradle.configurationcache.problems.AbstractProblemsListener
-import org.gradle.configurationcache.problems.PropertyProblem
+import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.serialize.graph.ClassDecoder
 import org.gradle.internal.serialize.graph.ClassEncoder
 import org.gradle.internal.serialize.graph.DefaultReadContext

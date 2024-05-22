@@ -18,7 +18,7 @@ package org.gradle.configurationcache.serialization.codecs
 
 import org.gradle.api.Task
 import org.gradle.api.internal.tasks.TaskContainerInternal
-import org.gradle.configurationcache.problems.DocumentationSection.RequirementsTaskAccess
+import org.gradle.internal.configuration.problems.DocumentationSection.RequirementsTaskAccess
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.configurationcache.serialization.IsolateOwners
 import org.gradle.internal.serialize.graph.ReadContext

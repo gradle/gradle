@@ -36,8 +36,8 @@ import org.gradle.configuration.project.ProjectEvaluator
 import org.gradle.configurationcache.extensions.get
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprintController
 import org.gradle.configurationcache.flow.FlowServicesProvider
-import org.gradle.configurationcache.problems.ProblemFactory
-import org.gradle.configurationcache.problems.ProblemsListener
+import org.gradle.internal.configuration.problems.ProblemFactory
+import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.configurationcache.services.ConfigurationCacheEnvironment
 import org.gradle.configurationcache.services.DefaultEnvironment
 import org.gradle.initialization.BuildCancellationToken

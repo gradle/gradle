@@ -25,8 +25,8 @@ import org.gradle.api.execution.TaskExecutionGraphListener
 import org.gradle.api.internal.project.CrossProjectModelAccess
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.configurationcache.extensions.capitalized
-import org.gradle.configurationcache.problems.ProblemFactory
-import org.gradle.configurationcache.problems.ProblemsListener
+import org.gradle.internal.configuration.problems.ProblemFactory
+import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.execution.plan.FinalizedExecutionPlan
 import org.gradle.execution.plan.Node
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal

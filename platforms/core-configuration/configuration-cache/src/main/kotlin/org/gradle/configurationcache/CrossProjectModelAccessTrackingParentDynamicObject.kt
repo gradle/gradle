@@ -19,10 +19,10 @@ package org.gradle.configurationcache
 import groovy.lang.MissingMethodException
 import groovy.lang.MissingPropertyException
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.configurationcache.problems.ProblemFactory
-import org.gradle.configurationcache.problems.ProblemsListener
-import org.gradle.configurationcache.problems.PropertyKind
-import org.gradle.configurationcache.problems.PropertyTrace
+import org.gradle.internal.configuration.problems.ProblemFactory
+import org.gradle.internal.configuration.problems.ProblemsListener
+import org.gradle.internal.configuration.problems.PropertyKind
+import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.metaobject.DynamicInvokeResult
 import org.gradle.internal.metaobject.DynamicObject
 import java.util.Locale

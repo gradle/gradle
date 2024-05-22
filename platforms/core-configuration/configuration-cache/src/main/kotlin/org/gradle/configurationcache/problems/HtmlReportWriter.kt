@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache.problems
 
+import org.gradle.internal.configuration.problems.DecoratedPropertyProblem
 import java.io.Writer
 
 

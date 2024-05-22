@@ -16,7 +16,7 @@
 
 package org.gradle.configurationcache.fingerprint
 
-import org.gradle.configurationcache.problems.PropertyTrace
+import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.serialize.graph.DefaultWriteContext
 import org.gradle.internal.serialize.graph.runWriteOperation
 import org.gradle.internal.serialize.graph.withPropertyTrace
