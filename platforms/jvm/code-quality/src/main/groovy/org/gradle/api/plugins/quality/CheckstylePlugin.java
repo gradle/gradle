@@ -138,8 +138,4 @@ public abstract class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkst
         task.setClasspath(sourceSet.getOutput().plus(sourceSet.getCompileClasspath()));
         task.setSource(sourceSet.getAllJava());
     }
-
-    private Directory getRootProjectDirectory() {
-        return project.getIsolated().getRootProject().getProjectDirectory();
-    }
 }
