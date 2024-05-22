@@ -26,6 +26,7 @@ import org.gradle.client.ui.composables.TitleSmall
 import org.gradle.client.ui.connected.TwoPanes
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.declarative.dsl.schema.DataClass
+import org.gradle.internal.declarativedsl.analysis.OperationGenerationId
 import org.gradle.internal.declarativedsl.analysis.analyzeEverything
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument
 import org.gradle.internal.declarativedsl.dom.resolvedDocument
@@ -73,7 +74,8 @@ class GetResolvedDom : GetModelAction.GetCompositeModelAction<ResolvedDomPrerequ
                 schema = schema,
                 languageTreeResult = languageTreeResult,
                 analysisStatementFilter = analyzeEverything,
-                strictReceiverChecks = true
+                strictReceiverChecks = true,
+                generationId = OperationGenerationId.PROPERTY_ASSIGNMENT,
             )
         }
 
