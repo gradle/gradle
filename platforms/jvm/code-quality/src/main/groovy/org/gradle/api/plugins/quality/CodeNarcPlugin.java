@@ -48,7 +48,7 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
 public abstract class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc> {
 
     public static final String DEFAULT_CODENARC_VERSION = appropriateCodeNarcVersion();
-    private static final String CONFIG_FILE_PATH = "config/codenarc/codenarc.xml";
+    private static final String DEFAULT_CONFIG_FILE_PATH = "config/codenarc/codenarc.xml";
     static final String STABLE_VERSION = "3.2.0";
     static final String STABLE_VERSION_WITH_GROOVY4_SUPPORT = "3.2.0-groovy-4.0";
 
@@ -76,7 +76,7 @@ public abstract class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc>
     protected CodeQualityExtension createExtension() {
         extension = project.getExtensions().create("codenarc", CodeNarcExtension.class, project);
         extension.setToolVersion(DEFAULT_CODENARC_VERSION);
-        extension.setConfig(project.getResources().getText().fromFile(getRootProjectDirectory().file(CONFIG_FILE_PATH)));
+        extension.setConfig(project.getResources().getText().fromFile(getRootProjectDirectory().file(DEFAULT_CONFIG_FILE_PATH)));
         extension.setMaxPriority1Violations(0);
         extension.setMaxPriority2Violations(0);
         extension.setMaxPriority3Violations(0);
