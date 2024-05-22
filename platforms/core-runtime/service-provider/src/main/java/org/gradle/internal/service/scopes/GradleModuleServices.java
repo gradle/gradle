@@ -19,7 +19,7 @@ package org.gradle.internal.service.scopes;
 import org.gradle.internal.service.ServiceRegistration;
 
 /**
- * Can be implemented by plugins to provide services in various scopes.
+ * Can be implemented by Gradle modules to provide services in various scopes.
  *
  * <p>Implementations are discovered using the JAR service locator mechanism (see {@link org.gradle.internal.service.ServiceLocator}).
  */
