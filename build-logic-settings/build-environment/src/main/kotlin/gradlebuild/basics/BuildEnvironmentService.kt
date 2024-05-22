@@ -32,6 +32,11 @@ abstract class BuildEnvironmentService : BuildService<BuildEnvironmentService.Pa
         val rootProjectDir: DirectoryProperty
         val artifactoryUserName: Property<String>
         val artifactoryPassword: Property<String>
+        val testVersions: Property<String>
+        val integtestAgentAllowed: Property<String>
+        val integtestDebug: Property<String>
+        val integtestLauncherDebug: Property<String>
+        val integtestVerbose: Property<String>
     }
 
     @get:Inject

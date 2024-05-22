@@ -27,6 +27,11 @@ with(layout.rootDirectory) {
             parameters.rootProjectDir = this@with
             parameters.artifactoryUserName = providers.gradleProperty("artifactoryUserName")
             parameters.artifactoryPassword = providers.gradleProperty("artifactoryPassword")
+            parameters.testVersions = providers.gradleProperty("testVersions")
+            parameters.integtestAgentAllowed = providers.gradleProperty("org.gradle.integtest.agent.allowed")
+            parameters.integtestDebug = providers.gradleProperty("org.gradle.integtest.debug")
+            parameters.integtestLauncherDebug = providers.gradleProperty("org.gradle.integtest.launcher.debug")
+            parameters.integtestVerbose = providers.gradleProperty("org.gradle.integtest.verbose")
         }
         val buildEnvironmentExtension = extensions.create("buildEnvironment", BuildEnvironmentExtension::class)
         buildEnvironmentExtension.gitCommitId = service.flatMap { it.gitCommitId }
@@ -34,5 +39,10 @@ with(layout.rootDirectory) {
         buildEnvironmentExtension.repoRoot = this@with
         buildEnvironmentExtension.artifactoryUserName = service.flatMap { it.parameters.artifactoryUserName }
         buildEnvironmentExtension.artifactoryPassword = service.flatMap { it.parameters.artifactoryPassword }
+        buildEnvironmentExtension.testVersions = service.flatMap { it.parameters.testVersions }
+        buildEnvironmentExtension.integtestAgentAllowed = service.flatMap { it.parameters.integtestAgentAllowed }
+        buildEnvironmentExtension.integtestDebug = service.flatMap { it.parameters.integtestDebug }
+        buildEnvironmentExtension.integtestLauncherDebug = service.flatMap { it.parameters.integtestLauncherDebug }
+        buildEnvironmentExtension.integtestVerbose = service.flatMap { it.parameters.integtestVerbose }
     }
 }
