@@ -22,7 +22,7 @@ import org.gradle.internal.service.scopes.AbstractGradleModuleServices
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.DefaultPrecompiledScriptPluginsSupport
 
 
-class KotlinDslProviderPluginsServiceRegistry : AbstractGradleModuleServices() {
+class KotlinDslProviderServices : AbstractGradleModuleServices() {
 
     override fun registerGradleUserHomeServices(registration: ServiceRegistration) {
         registration.addProvider(GradleUserHomeServices)

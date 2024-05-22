@@ -21,7 +21,7 @@ import org.gradle.internal.service.scopes.AbstractGradleModuleServices
 
 
 internal
-class KotlinScriptServiceRegistry : AbstractGradleModuleServices() {
+class KotlinScriptServices : AbstractGradleModuleServices() {
 
     override fun registerBuildServices(registration: ServiceRegistration) {
         registration.addProvider(org.gradle.kotlin.dsl.accessors.BuildScopeServices)

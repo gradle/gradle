@@ -69,7 +69,7 @@ import java.lang.annotation.Annotation;
 import java.util.Collections;
 import java.util.List;
 
-public class PluginUsePluginServiceRegistry extends AbstractGradleModuleServices {
+public class PluginUseServices extends AbstractGradleModuleServices {
 
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {

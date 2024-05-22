@@ -27,7 +27,7 @@ import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaAspectExtractionStrategy;
 import org.gradle.platform.base.internal.VariantAspectExtractionStrategy;
 
-public class ComponentModelBaseServiceRegistry extends AbstractGradleModuleServices {
+public class ComponentModelBaseServices extends AbstractGradleModuleServices {
 
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {

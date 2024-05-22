@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.internal;
+package org.gradle.api.internal.tasks.testing;
 
-import org.gradle.api.plugins.jvm.internal.DefaultJvmLanguageUtilities;
+import org.gradle.api.internal.tasks.testing.operations.TestExecutionBuildOperationBuildSessionScopeServices;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 
-/**
- * Registers services containing utilities used by projects that compile JVM language source.
- */
-public class JvmLanguageUtilsServiceRegistry extends AbstractGradleModuleServices {
+public class TestingBasePluginServices extends AbstractGradleModuleServices {
+
     @Override
-    public void registerProjectServices(ServiceRegistration registration) {
-        registration.add(DefaultJvmLanguageUtilities.class);
+    public void registerBuildSessionServices(ServiceRegistration registration) {
+        registration.addProvider(new TestExecutionBuildOperationBuildSessionScopeServices());
     }
+
 }

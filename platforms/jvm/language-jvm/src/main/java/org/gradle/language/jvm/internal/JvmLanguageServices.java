@@ -27,7 +27,7 @@ import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.jvm.JvmLibrary;
 import org.gradle.language.base.artifact.SourcesArtifact;
 
-public class JvmPluginServiceRegistry extends AbstractGradleModuleServices {
+public class JvmLanguageServices extends AbstractGradleModuleServices {
 
     @Override
     public void registerBuildServices(ServiceRegistration registration) {

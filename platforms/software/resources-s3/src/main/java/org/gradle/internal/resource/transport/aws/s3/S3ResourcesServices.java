@@ -24,7 +24,7 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 
 
-public class S3ResourcesPluginServiceRegistry extends AbstractGradleModuleServices {
+public class S3ResourcesServices extends AbstractGradleModuleServices {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.addProvider(new GlobalScopeServices());

@@ -1,2 +1,2 @@
-org.gradle.internal.resource.transport.http.HttpResourcesPluginServiceRegistry
+org.gradle.internal.resource.transport.http.HttpResourcesServices
 

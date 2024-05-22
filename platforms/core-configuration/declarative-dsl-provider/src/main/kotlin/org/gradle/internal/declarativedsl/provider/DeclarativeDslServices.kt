@@ -25,7 +25,7 @@ import org.gradle.internal.service.scopes.AbstractGradleModuleServices
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 
 
-class DeclarativeDslServiceRegistry : AbstractGradleModuleServices() {
+class DeclarativeDslServices : AbstractGradleModuleServices() {
     override fun registerBuildServices(registration: ServiceRegistration) {
         registration.addProvider(BuildServices)
     }

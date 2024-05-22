@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,26 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.resource.transport.sftp;
-
+package org.gradle.internal.resource.transport.gcp.gcs;
 
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 
-public class SftpResourcesPluginServiceRegistry extends AbstractGradleModuleServices {
+public class GcsResourcesServices extends AbstractGradleModuleServices {
+
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.addProvider(new GlobalScopeServices());
     }
 
     private static class GlobalScopeServices {
-        SftpClientFactory createSftpClientFactory() {
-            return new SftpClientFactory();
-        }
-
-        ResourceConnectorFactory createSftpConnectorFactory(SftpClientFactory clientFactory) {
-            return new SftpConnectorFactory(clientFactory);
+        ResourceConnectorFactory createGcsConnectorFactory() {
+            return new GcsConnectorFactory();
         }
     }
 }

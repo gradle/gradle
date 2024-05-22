@@ -40,7 +40,7 @@ import java.util.Collections;
 
 import static java.util.Collections.emptyList;
 
-public class JavaLanguagePluginServiceRegistry extends AbstractGradleModuleServices {
+public class JavaLanguageServices extends AbstractGradleModuleServices {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.addProvider(new JavaGlobalScopeServices());
