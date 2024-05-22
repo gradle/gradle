@@ -17,6 +17,9 @@
 package org.gradle.configurationcache.serialization
 
 import org.gradle.api.invocation.Gradle
+import org.gradle.internal.serialize.graph.Codec
+import org.gradle.internal.serialize.graph.MutableIsolateContext
+import org.gradle.internal.serialize.graph.withIsolate
 
 
 internal

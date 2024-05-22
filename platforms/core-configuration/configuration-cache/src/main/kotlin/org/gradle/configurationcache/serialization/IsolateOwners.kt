@@ -21,6 +21,7 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.invocation.Gradle
 import org.gradle.configurationcache.DefaultConfigurationCache
+import org.gradle.internal.serialize.graph.IsolateOwner
 
 
 sealed class IsolateOwners : IsolateOwner {

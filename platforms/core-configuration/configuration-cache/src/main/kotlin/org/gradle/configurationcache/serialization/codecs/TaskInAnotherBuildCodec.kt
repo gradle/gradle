@@ -18,10 +18,10 @@ package org.gradle.configurationcache.serialization.codecs
 
 import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.composite.internal.BuildTreeWorkGraphController
-import org.gradle.configurationcache.serialization.Codec
-import org.gradle.configurationcache.serialization.ReadContext
-import org.gradle.configurationcache.serialization.WriteContext
-import org.gradle.configurationcache.serialization.readNonNull
+import org.gradle.internal.serialize.graph.Codec
+import org.gradle.internal.serialize.graph.ReadContext
+import org.gradle.internal.serialize.graph.WriteContext
+import org.gradle.internal.serialize.graph.readNonNull
 import org.gradle.execution.plan.TaskInAnotherBuild
 
 

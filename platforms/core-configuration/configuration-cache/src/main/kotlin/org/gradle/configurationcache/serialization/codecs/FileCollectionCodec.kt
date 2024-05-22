@@ -34,13 +34,13 @@ import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.util.PatternSet
-import org.gradle.configurationcache.serialization.Codec
-import org.gradle.configurationcache.serialization.ReadContext
-import org.gradle.configurationcache.serialization.WriteContext
-import org.gradle.configurationcache.serialization.decodePreservingIdentity
-import org.gradle.configurationcache.serialization.encodePreservingIdentityOf
-import org.gradle.configurationcache.serialization.readList
-import org.gradle.configurationcache.serialization.writeCollection
+import org.gradle.internal.serialize.graph.Codec
+import org.gradle.internal.serialize.graph.ReadContext
+import org.gradle.internal.serialize.graph.WriteContext
+import org.gradle.internal.serialize.graph.decodePreservingIdentity
+import org.gradle.internal.serialize.graph.encodePreservingIdentityOf
+import org.gradle.internal.serialize.graph.readList
+import org.gradle.internal.serialize.graph.writeCollection
 import java.io.File
 
 

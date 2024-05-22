@@ -19,6 +19,10 @@ package org.gradle.configurationcache.serialization
 import org.gradle.configurationcache.ClassLoaderScopeSpec
 import org.gradle.initialization.ClassLoaderScopeOrigin
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.serialize.graph.ClassEncoder
+import org.gradle.internal.serialize.graph.ClassLoaderRole
+import org.gradle.internal.serialize.graph.WriteContext
+import org.gradle.internal.serialize.graph.WriteIdentities
 
 
 internal

@@ -22,9 +22,9 @@ import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.IConventionAware
 import org.gradle.configurationcache.problems.PropertyKind
-import org.gradle.configurationcache.serialization.MutableIsolateContext
+import org.gradle.internal.serialize.graph.MutableIsolateContext
 import org.gradle.configurationcache.serialization.Workarounds
-import org.gradle.configurationcache.serialization.logUnsupported
+import org.gradle.internal.serialize.graph.logUnsupported
 import org.gradle.configurationcache.serialization.logUnsupportedBaseType
 import org.gradle.internal.instantiation.generator.AsmBackedClassGenerator
 import org.gradle.internal.reflect.ClassInspector

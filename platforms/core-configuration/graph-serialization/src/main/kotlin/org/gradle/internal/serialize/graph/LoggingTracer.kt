@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.serialization
+package org.gradle.internal.serialize.graph
 
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logger

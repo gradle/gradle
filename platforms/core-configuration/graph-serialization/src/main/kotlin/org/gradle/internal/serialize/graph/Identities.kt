@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.serialization
+package org.gradle.internal.serialize.graph
 
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet
 import java.util.IdentityHashMap

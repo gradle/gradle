@@ -20,7 +20,7 @@ plugins {
     id("gradlebuild.kotlin-experimental-contracts")
 }
 
-description = "Efficient and extensible serialization for object graphs"
+description = "Efficient and extensible serialization for object graphs, with the capability to isolate and manage portions of the graph independently"
 
 dependencies {
     api(projects.configurationProblemsBase)

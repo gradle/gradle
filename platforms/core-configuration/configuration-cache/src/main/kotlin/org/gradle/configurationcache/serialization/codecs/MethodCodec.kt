@@ -16,11 +16,11 @@
 
 package org.gradle.configurationcache.serialization.codecs
 
-import org.gradle.configurationcache.serialization.Codec
-import org.gradle.configurationcache.serialization.ReadContext
-import org.gradle.configurationcache.serialization.WriteContext
-import org.gradle.configurationcache.serialization.readClassArray
-import org.gradle.configurationcache.serialization.writeClassArray
+import org.gradle.internal.serialize.graph.Codec
+import org.gradle.internal.serialize.graph.ReadContext
+import org.gradle.internal.serialize.graph.WriteContext
+import org.gradle.internal.serialize.graph.readClassArray
+import org.gradle.internal.serialize.graph.writeClassArray
 import java.lang.reflect.Method
 
 

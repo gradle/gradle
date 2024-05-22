@@ -19,9 +19,9 @@ package org.gradle.configurationcache.serialization.codecs.jos
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.configurationcache.extensions.documentationLinkFor
 import org.gradle.configurationcache.problems.DocumentationSection
-import org.gradle.configurationcache.serialization.ReadContext
-import org.gradle.configurationcache.serialization.BeanStateReader
-import org.gradle.configurationcache.serialization.runReadOperation
+import org.gradle.internal.serialize.graph.ReadContext
+import org.gradle.internal.serialize.graph.BeanStateReader
+import org.gradle.internal.serialize.graph.runReadOperation
 import java.io.InputStream
 import java.io.ObjectInputStream
 import java.io.ObjectInputValidation

@@ -119,6 +119,7 @@ val core = platform("core") {
         subproject("declarative-dsl-tooling-models")
         subproject("declarative-dsl-tooling-builders")
         subproject("file-collections")
+        subproject("graph-serialization")
         subproject("input-tracking")
         subproject("kotlin-dsl")
         subproject("kotlin-dsl-provider-plugins")
@@ -129,7 +130,6 @@ val core = platform("core") {
         subproject("java-language-extensions-kt")
         subproject("model-core")
         subproject("model-groovy")
-        subproject("object-serialization")
     }
 
     // Core Execution Module
