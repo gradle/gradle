@@ -209,6 +209,7 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
     ) {
         renderer.visit(styledTextOutput -> {
             styledTextOutput.text(StringUtils.capitalize(model.project.getDisplayName()));
+            renderProjectType(model, textOutput);
             renderProjectDescription(model, textOutput);
         }, lastChild);
         renderer.startChildren();
@@ -216,6 +217,13 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
             renderProject(child, renderer, child == model.children.get(model.children.size() - 1), textOutput);
         }
         renderer.completeChildren();
+    }
+
+    private void renderProjectType(ProjectReportModel model, StyledTextOutput textOutput) {
+        if (!model.softwareTypes.isEmpty()) {
+            assert model.softwareTypes.size() == 1;
+            textOutput.append(" (").append(model.softwareTypes.get(0).getSoftwareType()).append(")");
+        }
     }
 
     private void renderProjectDescription(ProjectReportModel model, StyledTextOutput textOutput) {
