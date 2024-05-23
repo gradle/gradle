@@ -14,6 +14,7 @@ dependencies {
     api(project(":core-api"))
     api(project(":language-java"))
     api(project(":model-core"))
+    api(project(":worker-services"))
 
     implementation(projects.javaLanguageExtensions)
     implementation(project(":file-collections"))

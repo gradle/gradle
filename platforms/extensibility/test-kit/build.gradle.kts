@@ -23,11 +23,11 @@ dependencies {
 
     api(libs.jsr305)
 
-    implementation(project(":core-api"))
     implementation(project(":core"))
     implementation(project(":file-temp"))
     implementation(projects.io)
     implementation(project(":wrapper-shared"))
+    implementation(project(":worker-services"))
 
     implementation(libs.commonsIo)
 

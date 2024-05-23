@@ -26,6 +26,7 @@ dependencies {
     api(project(":toolchains-jvm"))
     api(project(":toolchains-jvm-shared"))
     api(project(":workers"))
+    api(project(":worker-services"))
 
     api(libs.groovy)
     api(libs.inject)

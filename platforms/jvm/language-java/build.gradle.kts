@@ -43,6 +43,7 @@ dependencies {
     api(project(":toolchains-jvm-shared"))
     api(project(":worker-main"))
     api(project(":workers"))
+    api(project(":worker-services"))
 
     api(libs.asm)
     api(libs.fastutil)

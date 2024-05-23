@@ -87,8 +87,6 @@ dependencies {
     manifestClasspath(projects.javaLanguageExtensions)
     manifestClasspath(project(":base-services"))
     manifestClasspath(project(":worker-services"))
-    manifestClasspath(project(":core-api"))
-    manifestClasspath(project(":core"))
     manifestClasspath(project(":persistent-cache"))
     manifestClasspath(project(":concurrent"))
 

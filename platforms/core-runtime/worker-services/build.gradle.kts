@@ -1,11 +1,25 @@
 plugins {
-    id("gradlebuild.distribution.api-java")
+    id("gradlebuild.distribution.implementation-java")
 }
 
-description = "A set of generic services and utilities to be used form workers. The reason to separate these from :base-services is because workers have a different Java requirement."
+description = "A set of services used to setup a build process from a Gradle distribution."
 
-gradlebuildJava.usedForStartup()
+errorprone {
+    disabledChecks.addAll(
+        "StringSplitter",
+    )
+}
 
 dependencies {
-    implementation(project(":core"))
+    api(project(":java-language-extensions"))
+    api(project(":persistent-cache"))
+    api(project(":base-services"))
+    api(libs.jsr305)
+
+    implementation(libs.guava)
+
+    testImplementation(libs.asm)
+    testImplementation(libs.asmTree)
+
+    testRuntimeOnly(project(":resources"))
 }

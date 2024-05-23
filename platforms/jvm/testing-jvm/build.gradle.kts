@@ -32,6 +32,7 @@ dependencies {
     api(project(":testing-base-infrastructure"))
     api(project(":toolchains-jvm"))
     api(project(":toolchains-jvm-shared"))
+    api(project(":worker-services"))
 
     api(libs.asm)
     api(libs.groovy)

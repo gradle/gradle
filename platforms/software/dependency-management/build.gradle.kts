@@ -75,6 +75,7 @@ dependencies {
     api(project(":resources"))
     api(project(":security"))
     api(project(":snapshots"))
+    api(project(":worker-services"))
 
     api(libs.bouncycastlePgp)
     api(libs.groovy)

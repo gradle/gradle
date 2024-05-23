@@ -98,6 +98,7 @@ dependencies {
     implementation(project(":platform-jvm"))
     implementation(project(":serialization"))
     implementation(project(":time"))
+    implementation(project(":worker-services"))
 
     implementation(testFixtures(project(":build-operations")))
 

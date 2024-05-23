@@ -41,6 +41,7 @@ dependencies {
     implementation(projects.io)
     implementation(project(":base-services-groovy"))
     implementation(project(":logging"))
+    implementation(project(":worker-services"))
     implementation(libs.commonsLang)
     implementation(libs.slf4jApi)
 

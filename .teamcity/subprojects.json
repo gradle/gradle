@@ -1178,7 +1178,7 @@
   {
     "name": "worker-services",
     "path": "platforms/core-runtime/worker-services",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
