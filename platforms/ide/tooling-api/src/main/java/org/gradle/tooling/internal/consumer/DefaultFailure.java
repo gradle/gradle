@@ -22,6 +22,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 public final class DefaultFailure implements Failure {
 
@@ -43,6 +44,23 @@ public final class DefaultFailure implements Failure {
     @Override
     public String getDescription() {
         return description;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DefaultFailure that = (DefaultFailure) o;
+        return Objects.equals(message, that.message) && Objects.equals(description, that.description) && Objects.equals(causes, that.causes);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(message, description, causes);
     }
 
     @Override

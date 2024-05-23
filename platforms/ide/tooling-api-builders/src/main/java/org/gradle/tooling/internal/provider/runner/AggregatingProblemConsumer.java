@@ -143,5 +143,4 @@ public class AggregatingProblemConsumer {
             seenProblem.add(problem);
         }
     }
-
 }

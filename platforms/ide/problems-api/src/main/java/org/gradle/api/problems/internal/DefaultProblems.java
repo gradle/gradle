@@ -74,6 +74,8 @@ public class DefaultProblems implements InternalProblems {
 
     @Override
     public void reportMapping() {
-        emitter.emit(problemsForThrowables.asMap(), currentBuildOperationRef.get().getId());
+        if(!problemsForThrowables.isEmpty()) {
+            emitter.emit(problemsForThrowables.asMap(), currentBuildOperationRef.get().getId());
+        }
     }
 }

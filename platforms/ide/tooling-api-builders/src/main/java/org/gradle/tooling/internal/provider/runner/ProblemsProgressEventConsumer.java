@@ -22,6 +22,7 @@ import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.AdditionalData;
+import org.gradle.api.problems.internal.DefaultProblemMappingDetails;
 import org.gradle.api.problems.internal.DefaultProblemProgressDetails;
 import org.gradle.api.problems.internal.DeprecationData;
 import org.gradle.api.problems.internal.DocLink;
@@ -44,12 +45,14 @@ import org.gradle.internal.build.event.types.DefaultProblemDefinition;
 import org.gradle.internal.build.event.types.DefaultProblemDescriptor;
 import org.gradle.internal.build.event.types.DefaultProblemDetails;
 import org.gradle.internal.build.event.types.DefaultProblemEvent;
+import org.gradle.internal.build.event.types.DefaultProblemExceptionMappingEvent;
 import org.gradle.internal.build.event.types.DefaultProblemGroup;
 import org.gradle.internal.build.event.types.DefaultProblemId;
 import org.gradle.internal.build.event.types.DefaultSeverity;
 import org.gradle.internal.build.event.types.DefaultSolution;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
+import org.gradle.tooling.internal.protocol.InternalBasicProblemDetailsVersion3;
 import org.gradle.tooling.internal.protocol.InternalFailure;
 import org.gradle.tooling.internal.protocol.InternalProblemDefinition;
 import org.gradle.tooling.internal.protocol.InternalProblemEventVersion2;
@@ -72,7 +75,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
-import static java.util.Optional.empty;
+import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import static java.util.stream.Collectors.toMap;
 
 @NonNullApi
@@ -94,35 +97,45 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
     @Override
     public void progress(OperationIdentifier buildOperationId, OperationProgressEvent progressEvent) {
         Object details = progressEvent.getDetails();
-        createProblemEvent(buildOperationId, details)
-            .ifPresent(aggregator::emit);
-    }
-
-    private Optional<InternalProblemEventVersion2> createProblemEvent(OperationIdentifier buildOperationId, @Nullable Object details) {
         if (details instanceof DefaultProblemProgressDetails) {
             Problem problem = ((DefaultProblemProgressDetails) details).getProblem();
-            return Optional.of(createProblemEvent(buildOperationId, problem));
+            aggregator.emit(createProblemEvent(buildOperationId, problem));
         }
-        return empty();
+
+        if (details instanceof DefaultProblemMappingDetails) {
+            DefaultProblemMappingDetails mappingDetails = (DefaultProblemMappingDetails) details;
+            Map<InternalFailure, Collection<InternalBasicProblemDetailsVersion3>> problemsForFailures =
+                mappingDetails.getProblemsForThrowables().entrySet().stream()
+                    .collect(
+                        toImmutableMap(entry -> toInternalFailure(entry.getKey()),
+                            entry -> entry.getValue().stream()
+                                .map(ProblemsProgressEventConsumer::createProblemDetails)
+                                .collect(toImmutableList())));
+            eventConsumer.progress(new DefaultProblemExceptionMappingEvent(createDefaultProblemDescriptor(buildOperationId), problemsForFailures));
+        }
     }
 
     private InternalProblemEventVersion2 createProblemEvent(OperationIdentifier buildOperationId, Problem problem) {
         return new DefaultProblemEvent(
             createDefaultProblemDescriptor(buildOperationId),
-            new DefaultProblemDetails(
-                toInternalDefinition(problem.getDefinition()),
-                toInternalDetails(problem.getDetails()),
-                toInternalContextualLabel(problem.getContextualLabel()),
-                toInternalLocations(problem.getLocations()),
-                toInternalSolutions(problem.getSolutions()),
-                toInternalAdditionalData(problem.getAdditionalData()),
-                toInternalFailure(problem.getException())
-            )
+            createProblemDetails(problem)
+        );
+    }
+
+    private static DefaultProblemDetails createProblemDetails(Problem problem) {
+        return new DefaultProblemDetails(
+            toInternalDefinition(problem.getDefinition()),
+            toInternalDetails(problem.getDetails()),
+            toInternalContextualLabel(problem.getContextualLabel()),
+            toInternalLocations(problem.getLocations()),
+            toInternalSolutions(problem.getSolutions()),
+            toInternalAdditionalData(problem.getAdditionalData()),
+            toInternalFailure(problem.getException())
         );
     }
 
     @Nullable
-    private static InternalFailure toInternalFailure(@Nullable RuntimeException ex) {
+    private static InternalFailure toInternalFailure(@Nullable Throwable ex) {
         if (ex == null) {
             return null;
         }

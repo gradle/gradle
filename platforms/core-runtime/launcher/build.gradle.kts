@@ -31,6 +31,7 @@ dependencies {
     api(project(":model-core"))
     api(project(":native"))
     api(project(":persistent-cache"))
+    api(project(":problems-api"))
     api(project(":process-services"))
     api(project(":serialization"))
     api(project(":service-provider"))
@@ -51,7 +52,6 @@ dependencies {
     implementation(project(":enterprise-operations"))
     implementation(project(":functional"))
     implementation(projects.io)
-    implementation(project(":problems-api"))
     implementation(project(":build-process-services"))
 
     implementation(libs.groovy) // for 'ReleaseInfo.getVersion()'
