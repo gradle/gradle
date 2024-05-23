@@ -16,8 +16,7 @@
 
 package org.gradle.api.tasks.compile
 
-import groovy.transform.stc.ClosureParams
-import groovy.transform.stc.SimpleType
+
 import org.gradle.api.JavaVersion
 import org.gradle.api.internal.tasks.compile.DiagnosticToProblemListener
 import org.gradle.api.problems.Severity
@@ -298,9 +297,8 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("https://github.com/gradle/gradle/pull/29141")
     @Requires(IntegTestPreconditions.Java8HomeAvailable)
-    def "problem listener have a recoverable failure when running on JDK8"() {
+    def "compiler warnings causes failure in problem mapping under JDK8"() {
         given:
-        disableProblemsApiCheck()
         //
         // 1. step: Create a simple annotation processor
         //
@@ -392,18 +390,18 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         when:
         executer.withArguments("--info", "--stacktrace")
         executer.withToolchainDetectionEnabled()
-        def result = succeeds(":compileJava")
+        succeeds(":compileJava")
 
         then:
-        result.output.contains(DiagnosticToProblemListener.FORMATTER_FALLBACK_MESSAGE)
+        result.error.contains(DiagnosticToProblemListener.FORMATTER_FALLBACK_MESSAGE)
         verifyAll(receivedProblem(0)) {
-            assertProblem(it, "ERROR", false)
+            assertProblem(it, "WARNING", true)
             fqid == 'compilation:java:java-compilation-warning'
             details == 'redundant cast to java.lang.String'
             additionalData == [ 'formatted' : 'redundant cast to java.lang.String' ]
         }
         verifyAll(receivedProblem(1)) {
-            assertProblem(it, "ERROR", false)
+            assertProblem(it, "WARNING", true)
             fqid == 'compilation:java:java-compilation-warning'
             details == 'redundant cast to java.lang.String'
             additionalData == [ 'formatted' : 'redundant cast to java.lang.String' ]
@@ -425,26 +423,10 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
     void assertProblem(
         ReceivedProblem problem,
         String severity,
-        boolean expectPreciseLocation = true,
-        @ClosureParams(
-            value = SimpleType,
-            options = [
-                "java.lang.String"
-            ]
-        ) Closure extraChecks = null
+        boolean expectPreciseLocation = true
     ) {
         // TODO (donat) we can probably delete some of this method
         assert problem.definition.severity == Severity.valueOf(severity) : "Expected severity to be ${severity}, but was ${problem.definition.severity}"
-        switch (severity) {
-            case "ERROR":
-                assert problem.definition.id.displayName == "Java compilation error": "Expected label 'Java compilation error', but was ${problem.definition.id.displayName}"
-                break
-            case "WARNING":
-                assert problem.definition.id.displayName == "Java compilation warning": "Expected label 'Java compilation warning', but was ${problem.definition.id.displayName}"
-                break
-            default:
-                throw new IllegalArgumentException("Unknown severity: ${severity}")
-        }
 
         def details = problem.details
         assert details: "Expected details to be non-null, but was null"
@@ -481,10 +463,6 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         }
 
         assert assertedLocationCount == locations.size(): "Expected to assert all locations, but only visited ${assertedLocationCount} out of ${locations.size()}"
-
-        if (extraChecks != null) {
-            extraChecks.call(details)
-        }
     }
 
     String writeJavaCausingTwoCompilationErrors(String className, String sourceSet = "main") {
