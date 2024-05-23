@@ -176,6 +176,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     private boolean ignoreFailures;
     private boolean failFast;
 
+    @SuppressWarnings("this-escape")
     public AbstractTestTask() {
         Instantiator instantiator = getInstantiator();
         testLogging = instantiator.newInstance(DefaultTestLoggingContainer.class, instantiator);

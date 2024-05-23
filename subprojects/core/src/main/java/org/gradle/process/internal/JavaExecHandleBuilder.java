@@ -67,9 +67,12 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     private final ListProperty<String> jvmArguments;
     private ConfigurableFileCollection classpath;
     private final JavaForkOptions javaOptions;
+
+    @SuppressWarnings("this-escape")
     private final ProcessArgumentsSpec applicationArgsSpec = new ProcessArgumentsSpec(this);
     private final ModularitySpec modularity;
 
+    @SuppressWarnings("this-escape")
     public JavaExecHandleBuilder(
         FileResolver fileResolver,
         FileCollectionFactory fileCollectionFactory,

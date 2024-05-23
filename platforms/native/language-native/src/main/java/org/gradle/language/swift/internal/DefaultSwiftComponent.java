@@ -45,6 +45,7 @@ public abstract class DefaultSwiftComponent<T extends SwiftBinary> extends Defau
         this(name, SwiftBinary.class, objectFactory);
     }
 
+    @SuppressWarnings("this-escape")
     public DefaultSwiftComponent(String name, Class<? extends SwiftBinary> binaryType, ObjectFactory objectFactory) {
         super(objectFactory);
         this.name = name;

@@ -74,6 +74,8 @@ public abstract class AntlrTask extends SourceTask {
     private File outputDirectory;
     private String maxHeapSize;
     private FileCollection sourceSetDirectories;
+
+    @SuppressWarnings("this-escape")
     private final FileCollection stableSources = getProject().files((Callable<Object>) this::getSource);
 
     /**

@@ -60,6 +60,7 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
     private final ErrorHandlingModuleComponentRepositoryAccess local;
     private final ErrorHandlingModuleComponentRepositoryAccess remote;
 
+    @SuppressWarnings("this-escape")
     public ErrorHandlingModuleComponentRepository(ModuleComponentRepository<ModuleComponentGraphResolveState> delegate, RepositoryDisabler remoteRepositoryDisabler) {
         this.delegate = delegate;
         local = new ErrorHandlingModuleComponentRepositoryAccess(delegate.getLocalAccess(), getId(), RepositoryDisabler.NoOpDisabler.INSTANCE, getName());

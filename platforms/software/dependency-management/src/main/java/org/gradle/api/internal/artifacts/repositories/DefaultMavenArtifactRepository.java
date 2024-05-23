@@ -122,6 +122,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
             resourcesFileStore, fileResourceRepository, metadataFactory, isolatableFactory, objectFactory, urlArtifactRepositoryFactory, checksumService, providerFactory, versionParser);
     }
 
+    @SuppressWarnings("this-escape")
     public DefaultMavenArtifactRepository(Transformer<String, MavenArtifactRepository> describer,
                                           FileResolver fileResolver,
                                           RepositoryTransportFactory transportFactory,

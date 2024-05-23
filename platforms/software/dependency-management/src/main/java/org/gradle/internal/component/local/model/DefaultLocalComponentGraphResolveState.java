@@ -79,6 +79,7 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
     // The public view of all selectable variants of this component
     private final AtomicReference<CalculatedValue<List<ResolvedVariantResult>>> selectableVariantResults = new AtomicReference<>();
 
+    @SuppressWarnings("this-escape")
     public DefaultLocalComponentGraphResolveState(
         long instanceId,
         LocalComponentGraphResolveMetadata metadata,

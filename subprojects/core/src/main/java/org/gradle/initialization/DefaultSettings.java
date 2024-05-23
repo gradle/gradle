@@ -89,6 +89,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
 
     private final ToolchainManagementInternal toolchainManagement;
 
+    @SuppressWarnings("this-escape")
     public DefaultSettings(
         ServiceRegistryFactory serviceRegistryFactory,
         GradleInternal gradle,

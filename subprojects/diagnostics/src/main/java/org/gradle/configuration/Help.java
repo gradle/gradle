@@ -36,8 +36,11 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 
 @DisableCachingByDefault(because = "Produces only non-cacheable console output")
 public abstract class Help extends DefaultTask {
+
+    @SuppressWarnings("this-escape")
     private final Property<String> taskPath = getObjectFactory().property(String.class);
 
+    @SuppressWarnings("this-escape")
     private final Property<TaskDetailsModel> taskModel = getObjectFactory().property(TaskDetailsModel.class).convention(taskPath.map(this::mapFromTaskPath));
 
     public Help() {

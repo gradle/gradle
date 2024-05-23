@@ -27,6 +27,7 @@ public class GrammarMetadata {
     private final GrammarFileMetadata grammarFileMetadata;
     private final GrammarDelegate grammarDelegate;
 
+    @SuppressWarnings("this-escape")
     public GrammarMetadata(GrammarFileMetadata grammarFileMetadata, GrammarDelegate grammarDelegate) {
         this.grammarFileMetadata = grammarFileMetadata;
         this.grammarDelegate = grammarDelegate;

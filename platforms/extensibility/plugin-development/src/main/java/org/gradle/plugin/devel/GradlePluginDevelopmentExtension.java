@@ -76,6 +76,7 @@ public abstract class GradlePluginDevelopmentExtension {
         this(project, pluginSourceSet, new SourceSet[] {testSourceSet});
     }
 
+    @SuppressWarnings("this-escape")
     public GradlePluginDevelopmentExtension(Project project, SourceSet pluginSourceSet, SourceSet[] testSourceSets) {
         this.plugins = project.container(PluginDeclaration.class);
         this.pluginSourceSet = pluginSourceSet;

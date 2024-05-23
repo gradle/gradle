@@ -64,9 +64,13 @@ import static org.gradle.internal.serialization.Transient.varOf;
 public abstract class PublishToIvyRepository extends DefaultTask {
     private final Transient.Var<IvyPublicationInternal> publication = varOf();
     private final Transient.Var<DefaultIvyArtifactRepository> repository = varOf();
+
+    @SuppressWarnings("this-escape")
     private final Cached<PublishSpec> spec = Cached.of(this::computeSpec);
+    @SuppressWarnings("this-escape")
     private final Property<Credentials> credentials = getProject().getObjects().property(Credentials.class);
 
+    @SuppressWarnings("this-escape")
     public PublishToIvyRepository() {
 
         // Allow the publication to participate in incremental build

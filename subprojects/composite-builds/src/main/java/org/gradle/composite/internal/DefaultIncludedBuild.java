@@ -42,6 +42,7 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
     private final boolean isImplicit;
     private final IncludedBuildImpl model;
 
+    @SuppressWarnings("this-escape")
     public DefaultIncludedBuild(
         BuildIdentifier buildIdentifier,
         BuildDefinition buildDefinition,

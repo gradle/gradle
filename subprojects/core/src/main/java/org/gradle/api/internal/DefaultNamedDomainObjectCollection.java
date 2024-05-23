@@ -82,6 +82,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     private final Set<String> applyingRulesFor = new HashSet<String>();
     private ImmutableActionSet<ElementInfo<T>> whenKnown = ImmutableActionSet.empty();
 
+    @SuppressWarnings("this-escape")
     public DefaultNamedDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, Instantiator instantiator, Namer<? super T> namer, CollectionCallbackActionDecorator callbackActionDecorator) {
         super(type, store, callbackActionDecorator);
         this.instantiator = instantiator;
@@ -932,6 +933,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         protected ImmutableActionSet<I> onCreate;
         private boolean removedBeforeRealized = false;
 
+        @SuppressWarnings("this-escape")
         public AbstractDomainObjectCreatingProvider(String name, Class<I> type, @Nullable Action<? super I> configureAction) {
             super(name, type);
             this.onCreate = ImmutableActionSet.<I>empty().mergeFrom(getEventRegister().getAddActions());

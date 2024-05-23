@@ -50,7 +50,10 @@ import java.io.IOException;
  */
 @CacheableTask
 public abstract class UnexportMainSymbol extends DefaultTask {
+
+    @SuppressWarnings("this-escape")
     private final ConfigurableFileCollection source = getProject().files();
+    @SuppressWarnings("this-escape")
     private final DirectoryProperty outputDirectory = getProject().getObjects().directoryProperty();
 
     /**

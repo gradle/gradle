@@ -33,7 +33,10 @@ import java.util.Set;
 
 public class DefaultStaticLibraryBinarySpec extends AbstractNativeLibraryBinarySpec implements StaticLibraryBinary, StaticLibraryBinarySpecInternal {
     private final List<FileCollection> additionalLinkFiles = new ArrayList<FileCollection>();
+
+    @SuppressWarnings("this-escape")
     private final DefaultTasksCollection tasks = new DefaultTasksCollection(super.getTasks());
+
     private File staticLibraryFile;
 
     @Override

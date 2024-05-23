@@ -96,6 +96,7 @@ public abstract class SigningExtension {
     /**
      * Configures the signing settings for the given project.
      */
+    @SuppressWarnings("this-escape")
     public SigningExtension(Project project) {
         this.project = project;
         this.configuration = getDefaultConfiguration();

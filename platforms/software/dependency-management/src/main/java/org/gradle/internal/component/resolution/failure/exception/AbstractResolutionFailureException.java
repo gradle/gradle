@@ -60,6 +60,7 @@ public abstract class AbstractResolutionFailureException extends StyledException
         this(message, failure, resolutions, null);
     }
 
+    @SuppressWarnings("this-escape")
     public AbstractResolutionFailureException(String message, ResolutionFailure failure, List<String> resolutions, @Nullable Throwable cause) {
         super(message, cause);
         this.failure = failure;

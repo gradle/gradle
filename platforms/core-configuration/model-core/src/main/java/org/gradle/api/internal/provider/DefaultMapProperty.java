@@ -66,6 +66,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
     private final MapEntryCollector<K, V> entryCollector;
     private MapSupplier<K, V> defaultValue = emptySupplier();
 
+    @SuppressWarnings("this-escape")
     public DefaultMapProperty(PropertyHost propertyHost, Class<K> keyType, Class<V> valueType) {
         super(propertyHost);
         this.keyType = keyType;

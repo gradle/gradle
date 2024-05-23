@@ -35,6 +35,7 @@ public class BuildTreeState implements Closeable {
     private final ServiceRegistry services;
     private final DefaultBuildTreeContext context;
 
+    @SuppressWarnings("this-escape")
     public BuildTreeState(BuildInvocationScopeId buildInvocationScopeId, ServiceRegistry parent, BuildTreeModelControllerServices.Supplier modelServices) {
         services = ServiceRegistryBuilder.builder()
             .scope(Scope.BuildTree.class)

@@ -66,6 +66,7 @@ public abstract class Ear extends Jar {
     private CopySpec lib;
     private final DirectoryProperty appDir;
 
+    @SuppressWarnings("this-escape")
     public Ear() {
         getArchiveExtension().set(EAR_EXTENSION);
         setMetadataCharset("UTF-8");

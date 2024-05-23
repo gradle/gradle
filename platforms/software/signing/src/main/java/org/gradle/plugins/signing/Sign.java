@@ -75,8 +75,10 @@ public abstract class Sign extends DefaultTask implements SignatureSpec {
     private SignatureType signatureType;
     private Signatory signatory;
     private boolean required = true;
-    private final Transient<DomainObjectSet<Signature>> signatures = Transient.of(getProject().getObjects().domainObjectSet(Signature.class));
 
+    @SuppressWarnings("this-escape")
+    private final Transient<DomainObjectSet<Signature>> signatures = Transient.of(getProject().getObjects().domainObjectSet(Signature.class));
+    @SuppressWarnings("this-escape")
     private final Cached<Collection<Signature.Generator>> generators = Cached.of(this::computeCachedSignatures);
 
     private List<Signature.Generator> computeCachedSignatures() {
@@ -95,6 +97,7 @@ public abstract class Sign extends DefaultTask implements SignatureSpec {
     }
 
     @Inject
+    @SuppressWarnings("this-escape")
     public Sign() {
         // If we aren't required and don't have a signatory then we just don't run
         onlyIf("Signing is required, or signatory is set", spec(task -> isRequired() || getSignatory() != null));

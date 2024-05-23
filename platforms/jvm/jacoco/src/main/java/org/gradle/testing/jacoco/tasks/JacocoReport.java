@@ -36,9 +36,12 @@ import java.io.File;
 @CacheableTask
 public abstract class JacocoReport extends JacocoReportBase implements Reporting<JacocoReportsContainer> {
 
+    @SuppressWarnings("this-escape")
     private final Property<String> projectName = getProject().getObjects().property(String.class);
+
     private final JacocoReportsContainer reports;
 
+    @SuppressWarnings("this-escape")
     public JacocoReport() {
         super();
         projectName.value(getProject().getName()).disallowChanges();

@@ -25,6 +25,7 @@ import java.util.List;
 
 public class ContextAwareException extends GradleException {
 
+    @SuppressWarnings("this-escape")
     public ContextAwareException(Throwable t) {
         initCause(t);
     }

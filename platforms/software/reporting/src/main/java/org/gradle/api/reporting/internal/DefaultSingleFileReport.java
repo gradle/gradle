@@ -29,6 +29,7 @@ import java.io.File;
 public abstract class DefaultSingleFileReport extends SimpleReport implements SingleFileReport {
 
     @Inject
+    @SuppressWarnings("this-escape")
     public DefaultSingleFileReport(String name, Describable owner) {
         super(name, Describables.of(name, "report for", owner), OutputType.FILE);
         // This is for backwards compatibility for plugins that attach a convention mapping to the replaced property

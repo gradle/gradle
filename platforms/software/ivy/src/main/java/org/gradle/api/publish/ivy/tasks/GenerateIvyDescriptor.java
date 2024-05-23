@@ -42,6 +42,8 @@ import java.io.File;
 public abstract class GenerateIvyDescriptor extends DefaultTask {
 
     private Transient.Var<IvyModuleDescriptorSpec> descriptor = Transient.varOf();
+
+    @SuppressWarnings("this-escape")
     private final Cached<IvyDescriptorFileGenerator.DescriptorFileSpec> ivyDescriptorSpec = Cached.of(this::computeIvyDescriptorFileSpec);
 
     private Object destination;

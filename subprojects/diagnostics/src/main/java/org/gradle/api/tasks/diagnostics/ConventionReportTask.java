@@ -49,6 +49,8 @@ import static org.gradle.internal.serialization.Transient.varOf;
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class ConventionReportTask extends ConventionTask {
     // todo annotate as required
+
+    @SuppressWarnings("this-escape")
     private final Transient.Var<Set<Project>> projects = varOf(new HashSet<>(singleton(getProject())));
     private final DirectoryProperty reportDir;
     private File outputFile;
@@ -68,6 +70,7 @@ public abstract class ConventionReportTask extends ConventionTask {
         return reportDir;
     }
 
+    @SuppressWarnings("this-escape")
     protected ConventionReportTask() {
         reportDir = getProject().getObjects().directoryProperty();
         doNotTrackState("Uses the whole project state as an input");

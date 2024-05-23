@@ -52,6 +52,7 @@ public abstract class AbstractReportTask extends ConventionTask {
     // todo annotate as required
     private Set<Project> projects;
 
+    @SuppressWarnings("this-escape")
     protected AbstractReportTask() {
         getOutputs().upToDateWhen(element -> false);
         projects = new HashSet<>();

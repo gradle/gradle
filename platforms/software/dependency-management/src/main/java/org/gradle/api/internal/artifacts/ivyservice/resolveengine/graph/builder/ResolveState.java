@@ -81,6 +81,8 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
     private final ConflictResolution conflictResolution;
     private final ImmutableAttributesSchema consumerSchema;
     private final ModuleExclusions moduleExclusions;
+
+    @SuppressWarnings("this-escape")
     private final DeselectVersionAction deselectVersionAction = new DeselectVersionAction(this);
     private final ReplaceSelectionWithConflictResultAction replaceSelectionWithConflictResultAction;
     private final ComponentSelectorConverter componentSelectorConverter;
@@ -98,6 +100,7 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
     private final CapabilitiesConflictHandler capabilitiesConflictHandler;
     private final GraphVariantSelector variantSelector;
 
+    @SuppressWarnings("this-escape")
     public ResolveState(
         ComponentIdGenerator idGenerator,
         RootComponentMetadataBuilder.RootComponentState root,

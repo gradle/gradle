@@ -33,6 +33,7 @@ public class BuildTreeDefinedKeys {
 
     private final File effectiveKeyringsFile;
 
+    @SuppressWarnings("this-escape")
     public BuildTreeDefinedKeys(
         File keyringsRoot,
         @Nullable DependencyVerificationConfiguration.KeyringFormat effectiveFormat

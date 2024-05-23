@@ -56,13 +56,20 @@ import java.util.concurrent.Callable;
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class JacocoReportBase extends JacocoBase {
 
+    @SuppressWarnings("this-escape")
     private final ConfigurableFileCollection executionData = getProject().files();
+    @SuppressWarnings("this-escape")
     private final ConfigurableFileCollection sourceDirectories = getProject().files();
+    @SuppressWarnings("this-escape")
     private final ConfigurableFileCollection classDirectories = getProject().files();
+    @SuppressWarnings("this-escape")
     private final ConfigurableFileCollection additionalClassDirs = getProject().files();
+    @SuppressWarnings("this-escape")
     private final ConfigurableFileCollection additionalSourceDirs = getProject().files();
+    @SuppressWarnings("this-escape")
     private final Property<String> sourceEncoding = getProject().getObjects().property(String.class);
 
+    @SuppressWarnings("this-escape")
     public JacocoReportBase() {
         onlyIf("Any of the execution data files exists", new Spec<Task>() {
             @Override

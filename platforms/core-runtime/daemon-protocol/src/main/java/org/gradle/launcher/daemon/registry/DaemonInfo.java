@@ -54,6 +54,7 @@ public class DaemonInfo implements Serializable, DaemonConnectDetails {
     }
 
     @VisibleForTesting
+    @SuppressWarnings("this-escape")
     DaemonInfo(Address address, DaemonContext context, byte[] token, DaemonState state, Clock busyClock) {
         this.address = Preconditions.checkNotNull(address);
         this.context = Preconditions.checkNotNull(context);

@@ -38,6 +38,7 @@ public class HttpResponseResource implements ExternalResourceReadResponse {
     private final ExternalResourceMetaData metaData;
     private boolean wasOpened;
 
+    @SuppressWarnings("this-escape")
     public HttpResponseResource(String method, URI source, HttpClientResponse response) {
         this.method = method;
         this.source = source;

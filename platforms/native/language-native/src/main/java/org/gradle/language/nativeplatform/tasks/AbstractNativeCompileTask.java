@@ -78,6 +78,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     // It would be better to provide some way for a task to express these things separately.
     private transient IncrementalCompilerBuilder.IncrementalCompiler incrementalCompiler;
 
+    @SuppressWarnings("this-escape")
     public AbstractNativeCompileTask() {
         ObjectFactory objectFactory = getProject().getObjects();
         this.includes = getProject().files();

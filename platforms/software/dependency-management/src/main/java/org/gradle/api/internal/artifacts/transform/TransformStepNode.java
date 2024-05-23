@@ -210,6 +210,7 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
     public static class InitialTransformStepNode extends TransformStepNode {
         private final CalculatedValueContainer<TransformStepSubject, TransformInitialArtifact> result;
 
+        @SuppressWarnings("this-escape")
         public InitialTransformStepNode(
             long transformStepNodeId,
             ComponentVariantIdentifier targetComponentVariant,
@@ -265,6 +266,7 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
         private final TransformStepNode previousTransformStepNode;
         private final CalculatedValueContainer<TransformStepSubject, TransformPreviousArtifacts> result;
 
+        @SuppressWarnings("this-escape")
         public ChainedTransformStepNode(
             long transformStepNodeId,
             ComponentVariantIdentifier targetComponentVariant,

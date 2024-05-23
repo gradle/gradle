@@ -41,6 +41,7 @@ public abstract class AbstractBuildState implements BuildState, Closeable {
     private final Lazy<ProjectStateRegistry> projectStateRegistry;
     private final Lazy<BuildWorkGraphController> workGraphController;
 
+    @SuppressWarnings("this-escape")
     public AbstractBuildState(BuildTreeState buildTree, BuildDefinition buildDefinition, @Nullable BuildState parent) {
         // Create the controllers using the services of the nested tree
         BuildModelControllerServices buildModelControllerServices = buildTree.getServices().get(BuildModelControllerServices.class);

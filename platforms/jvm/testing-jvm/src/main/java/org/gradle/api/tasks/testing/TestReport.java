@@ -58,7 +58,10 @@ import static org.gradle.util.internal.CollectionUtils.collect;
  */
 @DisableCachingByDefault(because = "Not made cacheable, yet")
 public abstract class TestReport extends DefaultTask {
+
+    @SuppressWarnings("this-escape")
     private final DirectoryProperty destinationDir = getObjectFactory().directoryProperty();
+    @SuppressWarnings("this-escape")
     private final ConfigurableFileCollection resultDirs = getObjectFactory().fileCollection();
 
     @Inject

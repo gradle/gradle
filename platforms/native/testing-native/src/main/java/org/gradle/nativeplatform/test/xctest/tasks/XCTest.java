@@ -51,6 +51,7 @@ public abstract class XCTest extends AbstractTestTask {
     private final DirectoryProperty testInstallDirectory;
     private final RegularFileProperty runScriptFile;
 
+    @SuppressWarnings("this-escape")
     public XCTest() {
         ObjectFactory objectFactory = getProject().getObjects();
         workingDirectory = objectFactory.directoryProperty();

@@ -100,6 +100,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
         this(bean, publicType, true, true, StringToEnumTransformer.INSTANCE, StringToEnumTransformer.INSTANCE);
     }
 
+    @SuppressWarnings("this-escape")
     BeanDynamicObject(Object bean, @Nullable Class<?> publicType, boolean includeProperties, boolean implementsMissing, PropertySetTransformer propertySetTransformer, MethodArgumentsTransformer methodArgumentsTransformer) {
         if (bean == null) {
             throw new IllegalArgumentException("Value is null");

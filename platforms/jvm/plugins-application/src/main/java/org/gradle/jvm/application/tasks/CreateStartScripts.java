@@ -129,6 +129,7 @@ public abstract class CreateStartScripts extends ConventionTask {
     private ScriptGenerator unixStartScriptGenerator = new UnixStartScriptGenerator();
     private ScriptGenerator windowsStartScriptGenerator = new WindowsStartScriptGenerator();
 
+    @SuppressWarnings("this-escape")
     public CreateStartScripts() {
         this.mainModule = getObjectFactory().property(String.class);
         this.mainClass = getObjectFactory().property(String.class);

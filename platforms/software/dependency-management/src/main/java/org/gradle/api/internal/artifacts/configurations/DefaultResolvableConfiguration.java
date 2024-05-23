@@ -46,6 +46,7 @@ import org.gradle.internal.work.WorkerThreadRegistry;
  */
 public class DefaultResolvableConfiguration extends DefaultConfiguration implements ResolvableConfiguration {
 
+    @SuppressWarnings("this-escape")
     public DefaultResolvableConfiguration(
         DomainObjectContext domainObjectContext,
         String name,

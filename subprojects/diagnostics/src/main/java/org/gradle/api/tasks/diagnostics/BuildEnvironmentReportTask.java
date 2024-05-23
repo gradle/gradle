@@ -56,6 +56,7 @@ public abstract class BuildEnvironmentReportTask extends DefaultTask {
     private final ToolchainReportRenderer toolchainReportRenderer = new ToolchainReportRenderer();
     private final DependencyReportRenderer renderer = new AsciiDependencyReportRenderer();
 
+    @SuppressWarnings("this-escape")
     final Cached<BuildEnvironmentReportModel> reportModel = Cached.of(this::calculateReportModel);
 
     private static final class BuildEnvironmentReportModel {

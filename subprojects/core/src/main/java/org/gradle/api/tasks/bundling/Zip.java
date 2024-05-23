@@ -43,6 +43,7 @@ public abstract class Zip extends AbstractArchiveTask {
     private boolean allowZip64;
     private String metadataCharset;
 
+    @SuppressWarnings("this-escape")
     public Zip() {
         getArchiveExtension().set(ZIP_EXTENSION);
         allowZip64 = false;

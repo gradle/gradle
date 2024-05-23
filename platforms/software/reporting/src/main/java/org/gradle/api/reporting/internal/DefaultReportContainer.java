@@ -72,6 +72,7 @@ public class DefaultReportContainer<T extends Report> extends DefaultNamedDomain
      * Use {@link #create(ObjectFactory, Class, ReportGenerator)}.
      */
     @Inject
+    @SuppressWarnings("this-escape")
     public DefaultReportContainer(
         Class<? extends T> type,
         ReportGenerator<T> reportGenerator,

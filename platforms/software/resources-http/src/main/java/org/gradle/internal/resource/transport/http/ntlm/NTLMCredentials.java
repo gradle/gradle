@@ -32,6 +32,7 @@ public class NTLMCredentials {
     private final String password;
     private final String workstation;
 
+    @SuppressWarnings("this-escape")
     public NTLMCredentials(PasswordCredentials credentials) {
         String domain;
         String username = Preconditions.checkNotNull(credentials.getUsername(), "Username must not be null!");

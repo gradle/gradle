@@ -80,6 +80,7 @@ public class DependencyManagementValueSnapshotterSerializerRegistry extends Defa
         ResolvedComponentResult.class
     );
 
+    @SuppressWarnings("this-escape")
     public DependencyManagementValueSnapshotterSerializerRegistry(
         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
         ImmutableAttributesFactory immutableAttributesFactory,

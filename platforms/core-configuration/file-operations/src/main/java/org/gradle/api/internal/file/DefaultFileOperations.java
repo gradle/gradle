@@ -89,6 +89,7 @@ public class DefaultFileOperations implements FileOperations {
     private final TemporaryFileProvider temporaryFileProvider;
     private final DecompressionCoordinator decompressionCoordinator;
 
+    @SuppressWarnings("this-escape")
     public DefaultFileOperations(
         FileResolver fileResolver,
         Instantiator instantiator,

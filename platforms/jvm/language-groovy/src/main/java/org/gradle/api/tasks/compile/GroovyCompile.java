@@ -83,11 +83,16 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
     private FileCollection groovyClasspath;
     private final ConfigurableFileCollection astTransformationClasspath;
     private final CompileOptions compileOptions;
+
+    @SuppressWarnings("this-escape")
     private final GroovyCompileOptions groovyCompileOptions = getProject().getObjects().newInstance(GroovyCompileOptions.class);
+    @SuppressWarnings("this-escape")
     private final FileCollection stableSources = getProject().files((Callable<FileTree>) this::getSource);
+
     private final Property<JavaLauncher> javaLauncher;
     private File previousCompilationDataFile;
 
+    @SuppressWarnings("this-escape")
     public GroovyCompile() {
         ObjectFactory objectFactory = getObjectFactory();
         CompileOptions compileOptions = objectFactory.newInstance(CompileOptions.class);

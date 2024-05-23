@@ -38,6 +38,7 @@ public abstract class GradleBuild extends ConventionTask {
     private StartParameter startParameter;
     private String buildName;
 
+    @SuppressWarnings("this-escape")
     public GradleBuild() {
         this.startParameter = createStartParameterForNewBuild(getServices());
         startParameter.setCurrentDir(getProject().getProjectDir());

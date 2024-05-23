@@ -63,6 +63,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         this(type, store, new DefaultCollectionEventRegister<T>(type, callbackActionDecorator));
     }
 
+    @SuppressWarnings("this-escape")
     protected DefaultDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, final CollectionEventRegister<T> eventRegister) {
         this.type = type;
         this.store = store;

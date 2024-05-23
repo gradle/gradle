@@ -79,16 +79,27 @@ public abstract class InitBuild extends DefaultTask {
     static final int MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API = 7;
     static final int DEFAULT_JAVA_VERSION = 21;
 
+    @SuppressWarnings("this-escape")
     private final Directory projectDir = getProject().getLayout().getProjectDirectory();
+
     private String type;
+
+    @SuppressWarnings("this-escape")
     private final Property<Boolean> splitProject = getProject().getObjects().property(Boolean.class);
     private String dsl;
+
+    @SuppressWarnings("this-escape")
     private final Property<Boolean> useIncubatingAPIs = getProject().getObjects().property(Boolean.class);
+
     private String testFramework;
     private String projectName;
     private String packageName;
+
+    @SuppressWarnings("this-escape")
     private final Property<InsecureProtocolOption> insecureProtocol = getProject().getObjects().property(InsecureProtocolOption.class);
+    @SuppressWarnings("this-escape")
     private final Property<String> javaVersion = getProject().getObjects().property(String.class);
+
     @Internal
     private ProjectLayoutSetupRegistry projectLayoutRegistry;
 

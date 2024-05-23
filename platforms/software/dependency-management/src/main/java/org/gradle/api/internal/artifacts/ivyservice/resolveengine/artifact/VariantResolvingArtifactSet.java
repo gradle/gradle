@@ -64,6 +64,7 @@ public class VariantResolvingArtifactSet implements ArtifactSet {
 
     private final CalculatedValue<ImmutableList<ResolvedVariant>> ownArtifacts;
 
+    @SuppressWarnings("this-escape")
     public VariantResolvingArtifactSet(
         VariantArtifactResolver variantResolver,
         ComponentGraphResolveState component,

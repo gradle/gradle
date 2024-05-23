@@ -72,6 +72,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     private final CopySpecInternal rootSpec;
     private final CopySpecInternal mainSpec;
 
+    @SuppressWarnings("this-escape")
     protected AbstractCopyTask() {
         this.rootSpec = createRootSpec();
         rootSpec.addChildSpecListener((path, spec) -> {

@@ -58,6 +58,7 @@ public class DefaultExternalComponentGraphResolveState<G extends ExternalCompone
     // The public view of all selectable variants of this component
     private final List<ResolvedVariantResult> selectableVariantResults;
 
+    @SuppressWarnings("this-escape")
     public DefaultExternalComponentGraphResolveState(long instanceId, G graphMetadata, A legacyMetadata, AttributeDesugaring attributeDesugaring, ComponentIdGenerator idGenerator) {
         super(instanceId, graphMetadata, attributeDesugaring);
         this.legacyMetadata = legacyMetadata;

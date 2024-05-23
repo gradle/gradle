@@ -62,6 +62,7 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
     private final ObjectFactory objectFactory;
     private final RepositoryContentDescriptorInternal repositoryContentDescriptor;
 
+    @SuppressWarnings("this-escape")
     protected AbstractArtifactRepository(ObjectFactory objectFactory, VersionParser versionParser) {
         this.objectFactory = objectFactory;
         this.repositoryContentDescriptor = createRepositoryDescriptor(versionParser);

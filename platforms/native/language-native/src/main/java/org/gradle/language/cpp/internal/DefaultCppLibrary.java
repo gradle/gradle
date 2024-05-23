@@ -57,6 +57,7 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
     private final DefaultLibraryDependencies dependencies;
 
     @Inject
+    @SuppressWarnings("this-escape")
     public DefaultCppLibrary(String name, ObjectFactory objectFactory, RoleBasedConfigurationContainerInternal configurations, ImmutableAttributesFactory immutableAttributesFactory) {
         super(name, objectFactory);
         this.objectFactory = objectFactory;

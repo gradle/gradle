@@ -46,6 +46,7 @@ public class DefaultVisualStudioSolution implements VisualStudioSolutionInternal
     private final Provider<RegularFile> location;
 
     @Inject
+    @SuppressWarnings("this-escape")
     public DefaultVisualStudioSolution(String name, ObjectFactory objectFactory, IdeArtifactRegistry ideArtifactRegistry, ProviderFactory providers, ProjectLayout projectLayout) {
         this.name = name;
         this.solutionFile = objectFactory.newInstance(SolutionFile.class, getName() + ".sln");

@@ -33,6 +33,7 @@ public abstract class SingleDirectoryReport extends SimpleReport implements Dire
     private final String relativeEntryPath;
 
     @Inject
+    @SuppressWarnings("this-escape")
     public SingleDirectoryReport(String name, Describable owner, @Nullable String relativeEntryPath) {
         super(name, Describables.of(name, "report for", owner), OutputType.DIRECTORY);
         this.relativeEntryPath = relativeEntryPath;

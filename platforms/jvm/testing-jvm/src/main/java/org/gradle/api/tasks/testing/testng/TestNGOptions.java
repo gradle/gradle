@@ -100,6 +100,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
     private final File projectDir;
 
     @Inject
+    @SuppressWarnings("this-escape")
     public TestNGOptions(ProjectLayout projectLayout) {
         this.projectDir = projectLayout.getProjectDirectory().getAsFile();
         this.getSuiteThreadPoolSize().convention(DEFAULT_SUITE_THREAD_POOL_SIZE_DEFAULT);

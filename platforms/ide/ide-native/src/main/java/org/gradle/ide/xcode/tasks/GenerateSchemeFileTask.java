@@ -48,6 +48,8 @@ import static org.gradle.ide.xcode.internal.DefaultXcodeProject.TEST_DEBUG;
 @DisableCachingByDefault(because = "Not made cacheable, yet")
 public abstract class GenerateSchemeFileTask extends XmlGeneratorTask<XcodeSchemeFile> {
     private transient DefaultXcodeProject xcodeProject;
+
+    @SuppressWarnings("this-escape")
     private final Cached<SchemeFileSpec> spec = Cached.of(this::calculateSpec);
 
     @Internal

@@ -58,6 +58,7 @@ public abstract class GroovyCompileOptions extends AbstractOptions {
 
     private List<String> fileExtensions = ImmutableList.of("java", "groovy");
 
+    @SuppressWarnings("this-escape")
     private GroovyForkOptions forkOptions = getObjectFactory().newInstance(GroovyForkOptions.class);
 
     private Map<String, Boolean> optimizationOptions = new HashMap<>();
@@ -70,6 +71,7 @@ public abstract class GroovyCompileOptions extends AbstractOptions {
 
     private boolean parameters;
 
+    @SuppressWarnings("this-escape")
     private final SetProperty<String> disabledGlobalASTTransformations = getObjectFactory().setProperty(String.class);
 
     @Inject

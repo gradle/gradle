@@ -36,6 +36,7 @@ import java.util.Map;
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class AbstractProjectBasedReportTask<T> extends ConventionReportTask {
 
+    @SuppressWarnings("this-escape")
     private final Cached<ProjectBasedReportModel<T>> reportModels = Cached.of(this::calculateReportModel);
 
     private ProjectBasedReportModel<T> calculateReportModel() {

@@ -23,6 +23,8 @@ import org.gradle.authentication.Authentication;
  * Authentication scheme representing all supported schemes for a given protocol
  */
 public class AllSchemesAuthentication extends AbstractAuthentication {
+
+    @SuppressWarnings("this-escape")
     public AllSchemesAuthentication(Credentials credentials) {
         super("all", Authentication.class);
         this.setCredentials(credentials);

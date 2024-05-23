@@ -49,6 +49,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     private final Property<ExecResult> execResult;
     private final DefaultExecSpec execSpec;
 
+    @SuppressWarnings("this-escape")
     public AbstractExecTask(Class<T> taskType) {
         execSpec = getObjectFactory().newInstance(DefaultExecSpec.class);
         execResult = getObjectFactory().property(ExecResult.class);

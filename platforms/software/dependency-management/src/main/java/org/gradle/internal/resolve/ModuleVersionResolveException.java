@@ -49,11 +49,13 @@ public class ModuleVersionResolveException extends DefaultMultiCauseExceptionNoS
         this.selector = selector;
     }
 
+    @SuppressWarnings("this-escape")
     public ModuleVersionResolveException(ComponentSelector selector, Throwable cause) {
         this(selector, format("Could not resolve %s.", selector));
         initCause(cause);
     }
 
+    @SuppressWarnings("this-escape")
     public ModuleVersionResolveException(ComponentSelector selector, Iterable<? extends Throwable> causes) {
         this(selector, format("Could not resolve %s.", selector));
         initCauses(causes);

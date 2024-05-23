@@ -94,11 +94,15 @@ import java.util.concurrent.Callable;
 @CacheableTask
 public abstract class JavaCompile extends AbstractCompile implements HasCompileOptions {
     private final CompileOptions compileOptions;
+
+    @SuppressWarnings("this-escape")
     private final FileCollection stableSources = getProject().files((Callable<FileTree>) this::getSource);
+
     private final ModularitySpec modularity;
     private File previousCompilationDataFile;
     private final Property<JavaCompiler> javaCompiler;
 
+    @SuppressWarnings("this-escape")
     public JavaCompile() {
         ObjectFactory objectFactory = getObjectFactory();
         compileOptions = objectFactory.newInstance(CompileOptions.class);

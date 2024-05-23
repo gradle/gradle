@@ -43,6 +43,7 @@ public abstract class JacocoCoverageVerification extends JacocoReportBase {
 
     private final JacocoViolationRulesContainer violationRules;
 
+    @SuppressWarnings("this-escape")
     public JacocoCoverageVerification() {
         super();
         Instantiator instantiator = getInstantiator();
@@ -67,6 +68,7 @@ public abstract class JacocoCoverageVerification extends JacocoReportBase {
         return new File(getTemporaryDir(), "success.txt");
     }
 
+    @SuppressWarnings("this-escape")
     private final String projectName = getProject().getName();
 
     /**

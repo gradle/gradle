@@ -40,7 +40,6 @@ Class <org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomReader$
 Class <org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomReader$PomProfileElement> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (PomReader.java:0)
 Class <org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomReader> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (PomReader.java:0)
 Class <org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.RootPomParent> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (RootPomParent.java:0)
-Class <org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.UnresolvedDependencyVersionException> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (UnresolvedDependencyVersionException.java:0)
 Class <org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.MavenDependencyKey> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (MavenDependencyKey.java:0)
 Class <org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomDependencyMgt> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (PomDependencyMgt.java:0)
 Class <org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomProfile> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (PomProfile.java:0)

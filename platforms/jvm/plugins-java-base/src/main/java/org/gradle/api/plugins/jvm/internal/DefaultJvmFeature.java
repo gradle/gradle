@@ -110,6 +110,7 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
     private Configuration javadocElements;
     private Configuration sourcesElements;
 
+    @SuppressWarnings("this-escape")
     public DefaultJvmFeature(
         String name,
         // Should features just create the sourcesets they are going to use?  How can we ensure the same sourceset isn't used

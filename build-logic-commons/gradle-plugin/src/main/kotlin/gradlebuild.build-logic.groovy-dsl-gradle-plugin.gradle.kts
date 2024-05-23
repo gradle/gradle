@@ -53,7 +53,9 @@ tasks.withType<Test>().configureEach {
     if (JavaVersion.current().isJava9Compatible) {
         //allow ProjectBuilder to inject legacy types into the system classloader
         jvmArgs("--add-opens", "java.base/java.lang=ALL-UNNAMED")
-        jvmArgs("--illegal-access=deny")
+        if (JavaVersion.current() < JavaVersion.VERSION_17) {
+            jvmArgs("--illegal-access=deny")
+        }
     }
     useJUnitPlatform()
 }

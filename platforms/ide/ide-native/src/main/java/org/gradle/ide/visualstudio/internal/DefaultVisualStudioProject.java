@@ -59,6 +59,7 @@ public class DefaultVisualStudioProject implements VisualStudioProjectInternal {
     private final ConfigurableFileCollection sourceFiles;
     private final ConfigurableFileCollection headerFiles;
 
+    @SuppressWarnings("this-escape")
     public DefaultVisualStudioProject(String name, String componentName, PathToFileResolver fileResolver, ObjectFactory objectFactory, ProviderFactory providerFactory) {
         this.name = name;
         this.componentName = componentName;

@@ -31,7 +31,10 @@ import java.util.Collections;
 import java.util.Set;
 
 public class DefaultSharedLibraryBinarySpec extends AbstractNativeLibraryBinarySpec implements SharedLibraryBinary, SharedLibraryBinarySpecInternal {
+
+    @SuppressWarnings("this-escape")
     private final DefaultTasksCollection tasks = new DefaultTasksCollection(super.getTasks());
+
     private File sharedLibraryFile;
     private File sharedLibraryLinkFile;
 

@@ -53,7 +53,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public abstract class CacheInstrumentationDataBuildService implements BuildService<BuildServiceParameters.None> {
 
     private final Map<Long, ResolutionData> resolutionData = new ConcurrentHashMap<>();
+
+    @SuppressWarnings("this-escape")
     private final Lazy<InjectedInstrumentationServices> internalServices = Lazy.locking().of(() -> getObjectFactory().newInstance(InjectedInstrumentationServices.class));
+
+    @SuppressWarnings("this-escape")
     private final Lazy<InstrumentationAnalysisSerializer> serializer = Lazy.locking().of(() -> new CachedInstrumentationAnalysisSerializer(new DefaultInstrumentationAnalysisSerializer(internalServices.get().getStringInterner())));
     private final Lazy<Cache<Set<File>, ExternalPluginsInstrumentationTypeRegistry>> typeRegistryCache = Lazy.locking().of(() -> CacheBuilder.newBuilder()
         .concurrencyLevel(1)

@@ -100,10 +100,16 @@ public abstract class Wrapper extends DefaultTask {
     private DistributionType distributionType = WrapperDefaults.DISTRIBUTION_TYPE;
     private String archivePath = WrapperDefaults.ARCHIVE_PATH;
     private PathBase archiveBase = WrapperDefaults.ARCHIVE_BASE;
+
+    @SuppressWarnings("this-escape")
     private final Property<Integer> networkTimeout = getProject().getObjects().property(Integer.class);
+
     private boolean distributionUrlConfigured = false;
+
+    @SuppressWarnings("this-escape")
     private final boolean isOffline = getProject().getGradle().getStartParameter().isOffline();
 
+    @SuppressWarnings("this-escape")
     public Wrapper() {
         getValidateDistributionUrl().convention(WrapperDefaults.VALIDATE_DISTRIBUTION_URL);
     }

@@ -25,6 +25,7 @@ public abstract class DefaultJUnitXmlReport extends SingleDirectoryReport implem
 
     private boolean outputPerTestCase;
 
+    @SuppressWarnings("this-escape")
     public DefaultJUnitXmlReport(String name, Describable owner) {
         super(name, owner, null);
         this.getMergeReruns().convention(false);

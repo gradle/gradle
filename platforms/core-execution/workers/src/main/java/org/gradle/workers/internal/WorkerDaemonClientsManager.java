@@ -58,6 +58,7 @@ public class WorkerDaemonClientsManager implements Stoppable {
     private final MemoryManager memoryManager;
     private volatile LogLevel currentLogLevel;
 
+    @SuppressWarnings("this-escape")
     public WorkerDaemonClientsManager(WorkerDaemonStarter workerDaemonStarter, ListenerManager listenerManager, LoggingManagerInternal loggingManager, MemoryManager memoryManager, OsMemoryInfo memoryInfo) {
         this.workerDaemonStarter = workerDaemonStarter;
         this.listenerManager = listenerManager;

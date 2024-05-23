@@ -59,6 +59,7 @@ public class DefaultProviderFactory implements ProviderFactory {
         this(null, null, null);
     }
 
+    @SuppressWarnings("this-escape")
     public DefaultProviderFactory(
         @Nullable ValueSourceProviderFactory valueSourceProviderFactory,
         @Nullable ProcessOutputProviderFactory processOutputProviderFactory,

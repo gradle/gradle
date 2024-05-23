@@ -30,9 +30,12 @@ import org.gradle.internal.vfs.FileSystemAccess;
 import javax.inject.Inject;
 
 public abstract class InjectedInstrumentationServices {
+
+    @SuppressWarnings("this-escape")
     private final Lazy<ClasspathElementTransformFactoryForAgent> transformFactory = Lazy.locking().of(
         () -> new ClasspathElementTransformFactoryForAgent(new InPlaceClasspathBuilder(), getClasspathWalker())
     );
+    @SuppressWarnings("this-escape")
     private final Lazy<ClasspathElementTransformFactoryForLegacy> legacyTransformFactory = Lazy.locking().of(
         () -> new ClasspathElementTransformFactoryForLegacy(new InPlaceClasspathBuilder(), getClasspathWalker())
     );

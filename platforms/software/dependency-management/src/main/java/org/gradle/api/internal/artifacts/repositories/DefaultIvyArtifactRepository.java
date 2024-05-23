@@ -99,6 +99,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     private final ChecksumService checksumService;
     private final IvyMetadataSources metadataSources = new IvyMetadataSources();
 
+    @SuppressWarnings("this-escape")
     public DefaultIvyArtifactRepository(
         FileResolver fileResolver,
         RepositoryTransportFactory transportFactory,

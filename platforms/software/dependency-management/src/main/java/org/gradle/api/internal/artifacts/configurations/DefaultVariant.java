@@ -49,6 +49,7 @@ public class DefaultVariant implements ConfigurationVariantInternal {
     private Factory<List<PublishArtifact>> lazyArtifacts;
     @Nullable private String description;
 
+    @SuppressWarnings("this-escape")
     public DefaultVariant(Describable parentDisplayName,
                           String name,
                           AttributeContainerInternal parentAttributes,

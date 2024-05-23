@@ -35,6 +35,7 @@ public class OrdinalNode extends Node implements SelfExecutingNode {
     private final Type type;
     private final OrdinalGroup ordinal;
 
+    @SuppressWarnings("this-escape")
     public OrdinalNode(Type type, OrdinalGroup ordinal) {
         this.type = type;
         this.ordinal = ordinal;

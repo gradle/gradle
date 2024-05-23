@@ -116,12 +116,14 @@ public abstract class Javadoc extends SourceTask {
 
     private final StandardJavadocDocletOptions options = new StandardJavadocDocletOptions();
 
+    @SuppressWarnings("this-escape")
     private FileCollection classpath = getProject().files();
     private final ModularitySpec modularity;
 
     private String executable;
     private final Property<JavadocTool> javadocTool;
 
+    @SuppressWarnings("this-escape")
     public Javadoc() {
         ObjectFactory objectFactory = getObjectFactory();
         this.modularity = objectFactory.newInstance(DefaultModularitySpec.class);

@@ -99,6 +99,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     private Supplier<? extends ClassLoaderScope> classLoaderScope;
     private ClassLoaderScope baseProjectClassLoaderScope;
 
+    @SuppressWarnings("this-escape")
     public DefaultGradle(@Nullable BuildState parent, StartParameter startParameter, ServiceRegistryFactory parentRegistry) {
         this.parent = parent;
         this.startParameter = startParameter;

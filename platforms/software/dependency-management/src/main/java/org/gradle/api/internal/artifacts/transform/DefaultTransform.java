@@ -118,6 +118,7 @@ public class DefaultTransform implements Transform {
     private final LineEndingSensitivity artifactLineEndingSensitivity;
     private final LineEndingSensitivity dependenciesLineEndingSensitivity;
 
+    @SuppressWarnings("this-escape")
     public DefaultTransform(
         Class<? extends TransformAction<?>> implementationClass,
         @Nullable TransformParameters parameterObject,

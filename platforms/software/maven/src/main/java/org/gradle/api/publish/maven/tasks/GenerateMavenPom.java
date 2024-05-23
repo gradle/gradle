@@ -47,6 +47,8 @@ public abstract class GenerateMavenPom extends DefaultTask {
 
     private final Transient.Var<MavenPom> pom = varOf();
     private Object destination;
+
+    @SuppressWarnings("this-escape")
     private final Cached<MavenPomFileGenerator.MavenPomSpec> mavenPomSpec = Cached.of(() ->
         MavenPomFileGenerator.generateSpec((MavenPomInternal) getPom())
     );

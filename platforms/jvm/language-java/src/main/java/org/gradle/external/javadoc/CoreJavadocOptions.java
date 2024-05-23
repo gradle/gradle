@@ -86,6 +86,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
         this(new JavadocOptionFile());
     }
 
+    @SuppressWarnings("this-escape")
     protected CoreJavadocOptions(JavadocOptionFile optionFile) {
         this.optionFile = optionFile;
 

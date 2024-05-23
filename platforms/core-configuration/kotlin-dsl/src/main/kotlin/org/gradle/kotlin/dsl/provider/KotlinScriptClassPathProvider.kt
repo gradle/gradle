@@ -203,10 +203,13 @@ fun toURI(url: URL): URI =
     try {
         url.toURI()
     } catch (_: URISyntaxException) {
-        URL(
+        URI(
             url.protocol,
+            null,
             url.host,
             url.port,
-            url.file.replace(" ", "%20")
-        ).toURI()
+            url.path.replace(" ", "%20"),
+            null,
+            null
+        )
     }

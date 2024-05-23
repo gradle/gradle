@@ -47,6 +47,7 @@ public abstract class AbstractCompile extends SourceTask {
     private String sourceCompatibility;
     private String targetCompatibility;
 
+    @SuppressWarnings("this-escape")
     public AbstractCompile() {
         this.destinationDirectory = getProject().getObjects().directoryProperty();
     }

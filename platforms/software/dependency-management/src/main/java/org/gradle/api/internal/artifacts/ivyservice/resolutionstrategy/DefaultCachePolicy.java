@@ -53,6 +53,7 @@ public class DefaultCachePolicy implements CachePolicy {
     private boolean offline = false;
     private boolean refresh = false;
 
+    @SuppressWarnings("this-escape")
     public DefaultCachePolicy() {
         this.dependencyCacheRules = new ArrayList<>();
         this.moduleCacheRules = new ArrayList<>();

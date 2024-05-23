@@ -74,6 +74,7 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
     private final Property<Boolean> incrementalAnalysis;
     private final Property<Integer> threads;
 
+    @SuppressWarnings("this-escape")
     public Pmd() {
         super();
         ObjectFactory objects = getObjectFactory();

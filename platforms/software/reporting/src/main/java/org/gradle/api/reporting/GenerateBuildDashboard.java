@@ -56,6 +56,7 @@ public abstract class GenerateBuildDashboard extends DefaultTask implements Repo
 
     private final BuildDashboardReports reports;
 
+    @SuppressWarnings("this-escape")
     public GenerateBuildDashboard() {
         reports = getProject().getObjects().newInstance(DefaultBuildDashboardReports.class, Describables.quoted("Task", getIdentityPath()));
         reports.getHtml().getRequired().set(true);

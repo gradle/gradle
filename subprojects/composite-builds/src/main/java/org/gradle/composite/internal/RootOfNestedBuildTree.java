@@ -58,6 +58,7 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
     private final Path identityPath;
     private final BuildTreeLifecycleController buildTreeLifecycleController;
 
+    @SuppressWarnings("this-escape")
     public RootOfNestedBuildTree(
         BuildDefinition buildDefinition,
         BuildIdentifier buildIdentifier,

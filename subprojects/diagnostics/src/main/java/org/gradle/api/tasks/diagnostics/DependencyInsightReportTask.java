@@ -125,8 +125,12 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
 
     private Spec<DependencyResult> dependencySpec;
     private boolean showSinglePathToDependency;
+
+    @SuppressWarnings("this-escape")
     private final Property<Boolean> showingAllVariants = getProject().getObjects().property(Boolean.class);
     private transient Configuration configuration;
+
+    @SuppressWarnings("this-escape")
     private final Property<ResolvedComponentResult> rootComponentProperty = getProject().getObjects().property(ResolvedComponentResult.class);
 
     // this field is named with a starting `z` to be serialized after `rootComponentProperty`

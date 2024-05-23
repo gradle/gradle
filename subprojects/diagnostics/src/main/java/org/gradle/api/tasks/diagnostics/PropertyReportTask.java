@@ -43,6 +43,8 @@ import java.util.TreeMap;
 public abstract class PropertyReportTask extends AbstractProjectBasedReportTask<PropertyReportTask.PropertyReportModel> {
 
     private PropertyReportRenderer renderer = new PropertyReportRenderer();
+
+    @SuppressWarnings("this-escape")
     private final Property<String> property = getProject().getObjects().property(String.class);
 
     /**

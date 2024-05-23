@@ -45,6 +45,7 @@ public abstract class DefaultDependencyCollector implements DependencyCollector 
     private final DependencyFactoryInternal dependencyFactory;
 
     @Inject
+    @SuppressWarnings("this-escape")
     public DefaultDependencyCollector(DependencyFactoryInternal dependencyFactory) {
         this.dependencyFactory = dependencyFactory;
         this.getDependencies().finalizeValueOnRead();

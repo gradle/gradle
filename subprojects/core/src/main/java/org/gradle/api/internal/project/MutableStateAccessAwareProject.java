@@ -124,6 +124,7 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     protected final ProjectInternal referrer;
     private final DynamicObject dynamicObject;
 
+    @SuppressWarnings("this-escape")
     protected MutableStateAccessAwareProject(ProjectInternal delegate, ProjectInternal referrer) {
         this.delegate = delegate;
         this.referrer = referrer;

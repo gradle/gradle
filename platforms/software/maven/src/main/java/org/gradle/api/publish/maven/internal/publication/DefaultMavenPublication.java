@@ -105,6 +105,7 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
     private boolean withBuildIdentifier;
 
     @Inject
+    @SuppressWarnings("this-escape")
     public DefaultMavenPublication(
         String name,
         DependencyMetaDataProvider dependencyMetaDataProvider,

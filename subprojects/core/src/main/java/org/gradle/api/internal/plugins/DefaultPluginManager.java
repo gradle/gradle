@@ -68,6 +68,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
     private final UserCodeApplicationContext userCodeApplicationContext;
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
 
+    @SuppressWarnings("this-escape")
     public DefaultPluginManager(final PluginRegistry pluginRegistry, Instantiator instantiator, final PluginTarget target, BuildOperationRunner buildOperationRunner, UserCodeApplicationContext userCodeApplicationContext, CollectionCallbackActionDecorator callbackDecorator, DomainObjectCollectionFactory domainObjectCollectionFactory) {
         this.instantiator = instantiator;
         this.target = target;

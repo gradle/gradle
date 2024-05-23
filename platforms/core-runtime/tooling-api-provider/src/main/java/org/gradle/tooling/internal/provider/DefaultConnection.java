@@ -171,6 +171,7 @@ public class DefaultConnection implements ConnectionVersion4,
      * This is used by consumers 4.4 and later
      */
     @Override
+    @SuppressWarnings("overloads")
     public <T> BuildResult<T> run(InternalBuildActionVersion2<T> action, InternalCancellationToken cancellationToken, BuildParameters operationParameters)
         throws org.gradle.tooling.internal.protocol.BuildExceptionVersion1, InternalUnsupportedBuildArgumentException, IllegalStateException {
         ProviderOperationParameters providerParameters = validateAndConvert(operationParameters);
@@ -183,6 +184,7 @@ public class DefaultConnection implements ConnectionVersion4,
      * This is used by consumers 4.8 and later
      */
     @Override
+    @SuppressWarnings("overloads")
     public BuildResult<?> run(InternalPhasedAction phasedAction, PhasedActionResultListener listener, InternalCancellationToken cancellationToken, BuildParameters operationParameters) {
         ProviderOperationParameters providerParameters = validateAndConvert(operationParameters);
         BuildCancellationToken buildCancellationToken = new InternalCancellationTokenAdapter(cancellationToken);

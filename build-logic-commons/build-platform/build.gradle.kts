@@ -73,7 +73,7 @@ dependencies {
             because("CVE-2022-40152 on lower versions")
         }
         api("com.beust:jcommander:1.78")
-        api("org.codehaus.groovy:$groovyVersion")
+        api("org.codehaus.groovy:groovy:$groovyVersion")
         api("org.codehaus.groovy.modules.http-builder:http-builder:0.7.2") // TODO maybe change group name when upgrading to Groovy 4
         api("org.codenarc:CodeNarc:$codenarcVersion")
         api("org.eclipse.jgit:org.eclipse.jgit:5.13.3.202401111512-r")

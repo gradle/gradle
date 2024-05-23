@@ -89,14 +89,16 @@ public abstract class Groovydoc extends SourceTask {
 
     private Set<Link> links = new LinkedHashSet<Link>();
 
+    @SuppressWarnings("this-escape")
     private final Property<GroovydocAccess> access = getProject().getObjects().property(GroovydocAccess.class);
-
+    @SuppressWarnings("this-escape")
     private final Property<Boolean> includeAuthor = getProject().getObjects().property(Boolean.class);
-
+    @SuppressWarnings("this-escape")
     private final Property<Boolean> processScripts = getProject().getObjects().property(Boolean.class);
-
+    @SuppressWarnings("this-escape")
     private final Property<Boolean> includeMainForScripts = getProject().getObjects().property(Boolean.class);
 
+    @SuppressWarnings("this-escape")
     public Groovydoc() {
         getLogging().captureStandardOutput(LogLevel.INFO);
     }

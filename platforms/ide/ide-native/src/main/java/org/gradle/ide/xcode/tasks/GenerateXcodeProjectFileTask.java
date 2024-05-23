@@ -78,6 +78,8 @@ public abstract class GenerateXcodeProjectFileTask extends PropertyListGenerator
     private final GidGenerator gidGenerator;
     private transient DefaultXcodeProject xcodeProject;
     private final Map<String, PBXFileReference> pathToFileReference = new HashMap<>();
+
+    @SuppressWarnings("this-escape")
     private final Cached<ProjectSpec> spec = Cached.of(this::calculateSpec);
 
     @Inject

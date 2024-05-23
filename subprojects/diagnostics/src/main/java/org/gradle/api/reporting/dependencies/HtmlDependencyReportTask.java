@@ -70,9 +70,12 @@ import java.util.stream.Stream;
  */
 @UntrackedTask(because = "We can't describe the dependency tree of all projects as input")
 public abstract class HtmlDependencyReportTask extends AbstractDependencyReportTask implements Reporting<DependencyReportContainer> {
+
+    @SuppressWarnings("this-escape")
     private final Cached<ProjectsWithConfigurations<ProjectDetails.ProjectNameAndPath, ConfigurationDetails>> projectsWithConfigurations = Cached.of(this::computeProjectsWithConfigurations);
     private final DependencyReportContainer reports;
 
+    @SuppressWarnings("this-escape")
     public HtmlDependencyReportTask() {
         reports = getObjectFactory().newInstance(DefaultDependencyReportContainer.class, Describables.quoted("Task", getIdentityPath()));
         reports.getHtml().getRequired().set(true);

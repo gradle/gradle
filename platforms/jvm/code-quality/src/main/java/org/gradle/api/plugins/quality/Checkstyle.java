@@ -65,6 +65,7 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
     private final DirectoryProperty configDirectory;
     private final Property<Boolean> enableExternalDtdLoad;
 
+    @SuppressWarnings("this-escape")
     public Checkstyle() {
         super();
         this.configDirectory = getObjectFactory().directoryProperty();

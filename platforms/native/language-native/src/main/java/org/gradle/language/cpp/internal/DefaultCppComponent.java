@@ -48,6 +48,7 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
     private final SetProperty<TargetMachine> targetMachines;
 
     @Inject
+    @SuppressWarnings("this-escape")
     public DefaultCppComponent(String name, ObjectFactory objectFactory) {
         super(objectFactory);
         this.name = name;
