@@ -23,6 +23,7 @@ import org.gradle.api.Project;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.internal.plugins.software.SoftwareType;
+import org.gradle.internal.Cast;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
 import org.gradle.internal.properties.annotations.TypeMetadata;
 import org.gradle.internal.properties.annotations.TypeMetadataWalker;
@@ -55,8 +56,8 @@ public class DefaultSoftwareTypeRegistry implements SoftwareTypeRegistry {
         pluginClasses.computeIfAbsent(registeringPluginClass, k -> new LinkedHashSet<>(1)).add(pluginClass);
     }
 
-    private Set<SoftwareTypeImplementation> discoverSoftwareTypeImplementations() {
-        final ImmutableSet.Builder<SoftwareTypeImplementation> softwareTypeImplementationsBuilder = ImmutableSet.builder();
+    private Set<SoftwareTypeImplementation<?>> discoverSoftwareTypeImplementations() {
+        final ImmutableSet.Builder<SoftwareTypeImplementation<?>> softwareTypeImplementationsBuilder = ImmutableSet.builder();
         pluginClasses.keySet().forEach(registeringPluginClass -> {
             pluginClasses.get(registeringPluginClass).forEach(pluginClass -> {
                 TypeToken<?> pluginType = TypeToken.of(pluginClass);
@@ -88,7 +89,7 @@ public class DefaultSoftwareTypeRegistry implements SoftwareTypeRegistry {
 
         public SoftwareTypeImplementationRecordingVisitor(Class<? extends Plugin<Project>> pluginClass,
                                                           Class<? extends Plugin<Settings>> registeringPluginClass,
-                                                          Map<String, Class<? extends Plugin<Project>>> registeredTypes, ImmutableSet.Builder<SoftwareTypeImplementation> softwareTypeImplementationsBuilder) {
+                                                          Map<String, Class<? extends Plugin<Project>>> registeredTypes, ImmutableSet.Builder<SoftwareTypeImplementation<?>> softwareTypeImplementationsBuilder) {
             this.pluginClass = pluginClass;
             this.registeringPluginClass = registeringPluginClass;
             this.registeredTypes = registeredTypes;

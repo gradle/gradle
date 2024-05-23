@@ -74,7 +74,7 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
     public static final class ProjectReportModel {
         private final ProjectDetails project;
         private final List<ProjectReportModel> children;
-        private final List<SoftwareTypeImplementation> softwareTypes;
+        private final List<SoftwareTypeImplementation<?>> softwareTypes;
         private final boolean isRootProject;
         private final String tasksTaskPath;
         private final String rootProjectProjectsTaskPath;
@@ -83,7 +83,7 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
         private ProjectReportModel(
             ProjectDetails project,
             List<ProjectReportModel> children,
-            List<SoftwareTypeImplementation> softwareTypes,
+            List<SoftwareTypeImplementation<?>> softwareTypes,
             boolean isRootProject,
             String tasksTaskPath,
             String rootProjectProjectsTaskPath,
@@ -112,8 +112,8 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
         );
     }
 
-    private List<SoftwareTypeImplementation> getSoftwareTypesForProject(Project project) {
-        List<SoftwareTypeImplementation> results = new ArrayList<>(1);
+    private List<SoftwareTypeImplementation<?>> getSoftwareTypesForProject(Project project) {
+        List<SoftwareTypeImplementation<?>> results = new ArrayList<>(1);
         getSoftwareTypeRegistry().getSoftwareTypeImplementations().forEach(registeredType -> {
             Class<?> softwareType = registeredType.getModelPublicType();
             if (project.getExtensions().findByType(softwareType) != null) {
