@@ -17,8 +17,7 @@
 package org.gradle.launcher;
 
 import org.gradle.internal.jvm.GradleVersionNumberLoader;
-
-import java.lang.reflect.Method;
+import org.gradle.launcher.bootstrap.ProcessBootstrap;
 
 public class GradleMain {
     public static void main(String[] args) throws Exception {
@@ -29,8 +28,6 @@ public class GradleMain {
             System.exit(1);
         }
 
-        Class<?> mainClass = Class.forName("org.gradle.launcher.bootstrap.ProcessBootstrap");
-        Method mainMethod = mainClass.getMethod("run", String.class, String[].class);
-        mainMethod.invoke(null, "org.gradle.launcher.Main", args);
+        ProcessBootstrap.run("org.gradle.launcher.Main", args);
     }
 }
