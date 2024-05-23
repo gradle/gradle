@@ -290,7 +290,8 @@ public class Jvm implements JavaInfo {
      */
     @Nullable
     public File getStandaloneJre() {
-        if (javaVersionMajor >= 9) {
+        JavaVersion javaVersion = getJavaVersion();
+        if (javaVersion != null && javaVersion.isJava9Compatible()) {
             return null;
         }
         if (os.isWindows()) {
