@@ -51,8 +51,30 @@ public abstract class AbstractProjectBasedReportTask<T> extends ConventionReport
 
     protected abstract T calculateReportModelFor(Project project);
 
+    /**
+     * Provides a means of printing a customizable header section above the per-project details body
+     * of the report.
+     * <p>
+     * By default, there is no header information printed.
+     *
+     * @param modelsByProjectDetails information about the projects under report
+     * @since 8.9
+     */
+    @Incubating
     protected void generateReportHeaderFor(Map<ProjectDetails, T> modelsByProjectDetails) { /* default is no header */ };
+
     protected abstract void generateReportFor(ProjectDetails project, T model);
+
+    /**
+     * Provides a means of printing a customizable footer section below the per-project details body
+     * of the report.
+     * <p>
+     * By default, there is no footer information printed.
+     *
+     * @param modelsByProjectDetails information about the projects under report
+     * @since 8.9
+     */
+    @Incubating
     protected void generateReportFooterFor(Map<ProjectDetails, T> modelsByProjectDetails) { /* default is no footer */ };
 
     @TaskAction

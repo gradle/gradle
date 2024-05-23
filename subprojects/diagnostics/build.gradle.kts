@@ -30,6 +30,7 @@ dependencies {
     api(project(":reporting"))
 
     api(libs.groovy)
+    api(libs.guava)
     api(libs.jsr305)
     api(libs.inject)
 
@@ -38,7 +39,6 @@ dependencies {
     implementation(project(":logging-api"))
 
     implementation(libs.groovyJson)
-    implementation(libs.guava)
     implementation(libs.commonsLang)
     implementation(libs.jatl)
 
