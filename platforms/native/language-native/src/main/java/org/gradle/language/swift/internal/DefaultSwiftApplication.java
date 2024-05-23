@@ -40,6 +40,7 @@ public class DefaultSwiftApplication extends DefaultSwiftComponent<SwiftBinary> 
     private final DefaultComponentDependencies dependencies;
 
     @Inject
+    @SuppressWarnings("this-escape")
     public DefaultSwiftApplication(String name, ObjectFactory objectFactory) {
         super(name, objectFactory);
         this.objectFactory = objectFactory;

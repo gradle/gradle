@@ -41,6 +41,8 @@ public class DefaultJavaExecSpec extends DefaultJavaForkOptions implements JavaE
 
     private boolean ignoreExitValue;
     private final ProcessStreamsSpec streamsSpec = new ProcessStreamsSpec();
+
+    @SuppressWarnings("this-escape")
     private final ProcessArgumentsSpec argumentsSpec = new ProcessArgumentsSpec(this);
 
     private final Property<String> mainClass;

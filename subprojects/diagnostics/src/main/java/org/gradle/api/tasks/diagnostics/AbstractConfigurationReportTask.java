@@ -52,6 +52,8 @@ import javax.inject.Inject;
 @DisableCachingByDefault(because = "Produces only non-cacheable console output")
 public abstract class AbstractConfigurationReportTask extends DefaultTask implements Reporting<ConfigurationReports> {
     private final ConfigurationReports reports;
+
+    @SuppressWarnings("this-escape")
     private final Cached<ConfigurationReportModel> reportModel = Cached.of(this::createReportModel);
 
     @Inject protected abstract ObjectFactory getObjectFactory();
@@ -60,6 +62,7 @@ public abstract class AbstractConfigurationReportTask extends DefaultTask implem
 
     protected abstract AbstractConfigurationReportSpec buildReportSpec();
 
+    @SuppressWarnings("this-escape")
     public AbstractConfigurationReportTask() {
         reports = getObjectFactory().newInstance(ConfigurationReportsImpl.class, this);
     }

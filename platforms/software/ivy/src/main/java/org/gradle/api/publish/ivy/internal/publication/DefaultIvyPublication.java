@@ -99,6 +99,7 @@ public abstract class DefaultIvyPublication implements IvyPublicationInternal {
     private boolean withBuildIdentifier;
 
     @Inject
+    @SuppressWarnings("this-escape")
     public DefaultIvyPublication(
         String name,
         Instantiator instantiator,

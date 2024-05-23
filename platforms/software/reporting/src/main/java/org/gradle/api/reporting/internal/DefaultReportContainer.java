@@ -35,6 +35,7 @@ import java.util.SortedMap;
 public class DefaultReportContainer<T extends Report> extends DefaultNamedDomainObjectSet<T> implements ReportContainer<T> {
     private NamedDomainObjectSet<T> enabled;
 
+    @SuppressWarnings("this-escape")
     public DefaultReportContainer(Class<? extends T> type, Instantiator instantiator, CollectionCallbackActionDecorator callbackActionDecorator) {
         super(type, instantiator, Report.NAMER, callbackActionDecorator);
 

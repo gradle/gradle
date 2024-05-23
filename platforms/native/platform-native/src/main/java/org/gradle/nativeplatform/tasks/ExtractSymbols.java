@@ -54,6 +54,7 @@ public abstract class ExtractSymbols extends DefaultTask {
     private final Property<NativePlatform> targetPlatform;
     private final Property<NativeToolChain> toolChain;
 
+    @SuppressWarnings("this-escape")
     public ExtractSymbols() {
         ObjectFactory objectFactory = getProject().getObjects();
 

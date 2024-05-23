@@ -53,6 +53,7 @@ import java.util.UUID;
 public abstract class DaemonClientServicesSupport extends DefaultServiceRegistry {
     private final InputStream buildStandardInput;
 
+    @SuppressWarnings("this-escape")
     public DaemonClientServicesSupport(ServiceRegistry parent, DaemonParameters daemonParameters, DaemonRequestContext requestContext, InputStream buildStandardInput) {
         super(parent);
         this.buildStandardInput = buildStandardInput;

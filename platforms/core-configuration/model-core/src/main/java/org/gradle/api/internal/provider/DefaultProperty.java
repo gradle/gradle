@@ -35,6 +35,7 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
     private final ValueSanitizer<T> sanitizer;
     private final static ProviderInternal<?> NOT_DEFINED = Providers.notDefined();
 
+    @SuppressWarnings("this-escape")
     public DefaultProperty(PropertyHost propertyHost, Class<T> type) {
         super(propertyHost);
         this.type = type;

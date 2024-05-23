@@ -61,6 +61,7 @@ public class DefaultManifest implements ManifestInternal {
         this(fileResolver, DEFAULT_CONTENT_CHARSET);
     }
 
+    @SuppressWarnings("this-escape")
     public DefaultManifest(PathToFileResolver fileResolver, String contentCharset) {
         this.fileResolver = fileResolver;
         this.contentCharset = contentCharset;

@@ -40,6 +40,7 @@ public class DefaultCppApplication extends DefaultCppComponent implements CppApp
     private final DefaultComponentDependencies dependencies;
 
     @Inject
+    @SuppressWarnings("this-escape")
     public DefaultCppApplication(String name, ObjectFactory objectFactory) {
         super(name, objectFactory);
         this.objectFactory = objectFactory;

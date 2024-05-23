@@ -64,6 +64,7 @@ public abstract class ScalaDoc extends SourceTask {
     private final Property<JavaLauncher> javaLauncher;
     private final ConfigurableFileCollection compilationOutputs;
 
+    @SuppressWarnings("this-escape")
     public ScalaDoc() {
         ObjectFactory objectFactory = getObjectFactory();
         this.maxMemory = objectFactory.property(String.class);

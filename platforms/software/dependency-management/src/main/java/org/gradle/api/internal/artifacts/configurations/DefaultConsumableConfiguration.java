@@ -46,6 +46,7 @@ import org.gradle.internal.work.WorkerThreadRegistry;
  */
 public class DefaultConsumableConfiguration extends DefaultConfiguration implements ConsumableConfiguration {
 
+    @SuppressWarnings("this-escape")
     public DefaultConsumableConfiguration(
         DomainObjectContext domainObjectContext,
         String name,

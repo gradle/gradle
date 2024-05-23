@@ -32,6 +32,7 @@ public class BasicAntBuilder extends org.gradle.api.AntBuilder implements Closea
     private final Field nodeField;
     private final List children;
 
+    @SuppressWarnings("this-escape")
     public BasicAntBuilder() {
         // These are used to discard references to tasks so they can be garbage collected
         Field collectorField;

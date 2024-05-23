@@ -61,6 +61,7 @@ public abstract class CreateStaticLibrary extends DefaultTask implements ObjectF
     private final Property<NativePlatform> targetPlatform;
     private final Property<NativeToolChain> toolChain;
 
+    @SuppressWarnings("this-escape")
     public CreateStaticLibrary() {
         ObjectFactory objectFactory = getProject().getObjects();
         this.source = getProject().files();

@@ -33,6 +33,7 @@ public class DefaultMinimalDependencyVariant extends DefaultExternalModuleDepend
     private String classifier;
     private String artifactType;
 
+    @SuppressWarnings("this-escape")
     public DefaultMinimalDependencyVariant(MinimalExternalModuleDependency delegate,
                                            @Nullable Action<? super AttributeContainer> attributesMutator,
                                            @Nullable Action<? super ModuleDependencyCapabilitiesHandler> capabilitiesMutator,

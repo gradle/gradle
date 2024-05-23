@@ -63,6 +63,7 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
     private final ProjectStateRegistry projectStateRegistry;
     private final UserCodeApplicationContext userCodeApplicationContext;
 
+    @SuppressWarnings("this-escape")
     public DefaultToolingModelBuilderRegistry(BuildOperationRunner buildOperationRunner, ProjectStateRegistry projectStateRegistry, UserCodeApplicationContext userCodeApplicationContext) {
         this(buildOperationRunner, projectStateRegistry, null, userCodeApplicationContext);
         register(new VoidToolingModelBuilder());

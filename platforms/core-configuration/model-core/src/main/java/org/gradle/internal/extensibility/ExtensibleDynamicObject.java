@@ -59,6 +59,7 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
         this(delegate, dynamicDelegate, new DefaultConvention(instanceGenerator));
     }
 
+    @SuppressWarnings("this-escape")
     public ExtensibleDynamicObject(Object delegate, AbstractDynamicObject dynamicDelegate, org.gradle.api.plugins.Convention convention) {
         this.dynamicDelegate = dynamicDelegate;
         this.convention = convention;

@@ -58,6 +58,7 @@ public abstract class InstallXCTestBundle extends DefaultTask {
     private final DirectoryProperty installDirectory;
     private final RegularFileProperty bundleBinaryFile;
 
+    @SuppressWarnings("this-escape")
     public InstallXCTestBundle() {
         ObjectFactory objectFactory = getProject().getObjects();
         installDirectory = objectFactory.directoryProperty();

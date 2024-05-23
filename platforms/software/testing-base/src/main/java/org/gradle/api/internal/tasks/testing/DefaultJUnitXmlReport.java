@@ -25,6 +25,7 @@ import org.gradle.api.tasks.testing.JUnitXmlReport;
 public abstract class DefaultJUnitXmlReport extends TaskGeneratedSingleDirectoryReport implements JUnitXmlReport {
     private boolean outputPerTestCase;
 
+    @SuppressWarnings("this-escape")
     public DefaultJUnitXmlReport(String name, Task task, ObjectFactory objectFactory) {
         super(name, task, null);
         this.getMergeReruns().convention(false);

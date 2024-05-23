@@ -28,6 +28,7 @@ public class DefaultLibraryDependencies extends DefaultComponentDependencies imp
     private final Configuration apiDependencies;
 
     @Inject
+    @SuppressWarnings("this-escape")
     public DefaultLibraryDependencies(RoleBasedConfigurationContainerInternal configurations, String implementationName, String apiName) {
         super(configurations, implementationName);
         apiDependencies = configurations.dependencyScopeUnlocked(apiName);

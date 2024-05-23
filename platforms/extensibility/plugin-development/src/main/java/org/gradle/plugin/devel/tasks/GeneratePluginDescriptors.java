@@ -49,6 +49,7 @@ public abstract class GeneratePluginDescriptors extends DefaultTask {
     private final Provider<Map<String, String>> implementationClassById;
     private final DirectoryProperty outputDirectory;
 
+    @SuppressWarnings("this-escape")
     public GeneratePluginDescriptors() {
         ObjectFactory objectFactory = getProject().getObjects();
         declarations = objectFactory.listProperty(PluginDeclaration.class);

@@ -28,6 +28,7 @@ public class SingleParentCopySpec extends DefaultCopySpec {
 
     private final ObjectFactory objectFactory;
 
+    @SuppressWarnings("this-escape")
     public SingleParentCopySpec(FileCollectionFactory fileCollectionFactory, ObjectFactory objectFactory, Instantiator instantiator, Factory<PatternSet> patternSetFactory, CopySpecResolver parentResolver) {
         super(fileCollectionFactory, objectFactory, instantiator, patternSetFactory);
         this.parentResolver = parentResolver;

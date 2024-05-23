@@ -36,6 +36,7 @@ public abstract class GenerateEclipseWtpFacet extends XmlGeneratorTask<WtpFacet>
 
     private EclipseWtpFacet facet;
 
+    @SuppressWarnings("this-escape")
     public GenerateEclipseWtpFacet() {
         getXmlTransformer().setIndentation("\t");
         facet = getInstantiator().newInstance(EclipseWtpFacet.class, new XmlFileContentMerger(getXmlTransformer()));

@@ -36,6 +36,7 @@ public abstract class GenerateEclipseWtpComponent extends XmlGeneratorTask<WtpCo
 
     private EclipseWtpComponent component;
 
+    @SuppressWarnings("this-escape")
     public GenerateEclipseWtpComponent() {
         getXmlTransformer().setIndentation("\t");
         component = getInstantiator().newInstance(EclipseWtpComponent.class, getProject(), new XmlFileContentMerger(getXmlTransformer()));

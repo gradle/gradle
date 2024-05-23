@@ -46,6 +46,7 @@ import static org.gradle.api.reporting.dependents.internal.DependentComponentsUt
  * Displays dependent components.
  */
 @Deprecated
+@SuppressWarnings("this-escape")
 @DisableCachingByDefault(because = "Produces only non-cacheable console output")
 public abstract class DependentComponentsReport extends DefaultTask {
 

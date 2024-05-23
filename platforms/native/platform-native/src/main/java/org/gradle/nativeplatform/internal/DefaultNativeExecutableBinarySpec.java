@@ -26,7 +26,10 @@ import org.gradle.platform.base.internal.BinaryTasksCollectionWrapper;
 import java.io.File;
 
 public class DefaultNativeExecutableBinarySpec extends AbstractNativeBinarySpec implements NativeExecutableBinary, NativeExecutableBinarySpecInternal {
+
+    @SuppressWarnings("this-escape")
     private final DefaultTasksCollection tasks = new DefaultTasksCollection(super.getTasks());
+
     private final NativeInstallationSpec installation = new NativeInstallationSpec();
     private final NativeExecutableFileSpec executable = new NativeExecutableFileSpec();
 

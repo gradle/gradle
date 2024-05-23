@@ -37,6 +37,7 @@ import java.util.Map;
 public class TestBuildScopeServices extends BuildScopeServices {
     private final File homeDir;
 
+    @SuppressWarnings("this-escape")
     public TestBuildScopeServices(ServiceRegistry parent, File homeDir, BuildModelControllerServices.Supplier supplier) {
         super(parent, supplier);
         this.homeDir = homeDir;

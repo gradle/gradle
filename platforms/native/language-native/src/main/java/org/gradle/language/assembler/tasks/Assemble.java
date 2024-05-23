@@ -64,6 +64,7 @@ public abstract class Assemble extends DefaultTask {
     private List<String> assemblerArgs;
 
     @Inject
+    @SuppressWarnings("this-escape")
     public Assemble() {
         ObjectFactory objectFactory = getProject().getObjects();
         source = getProject().files();

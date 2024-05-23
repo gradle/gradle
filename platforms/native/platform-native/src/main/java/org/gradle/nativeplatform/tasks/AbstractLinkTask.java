@@ -68,6 +68,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
     private final Property<NativePlatform> targetPlatform;
     private final Property<NativeToolChain> toolChain;
 
+    @SuppressWarnings("this-escape")
     public AbstractLinkTask() {
         final ObjectFactory objectFactory = getProject().getObjects();
         this.libs = getProject().files();

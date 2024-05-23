@@ -137,6 +137,7 @@ public class PomReader implements PomParent {
     private final Element projectElement;
     private final Element parentElement;
 
+    @SuppressWarnings("this-escape")
     public PomReader(final LocallyAvailableExternalResource resource, ImmutableModuleIdentifierFactory moduleIdentifierFactory, Map<String, String> childPomProperties) throws SAXException {
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         setPomProperties(childPomProperties);

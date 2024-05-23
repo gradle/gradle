@@ -89,11 +89,14 @@ public abstract class GenerateModuleMetadata extends DefaultTask {
     private final Transient<ListProperty<Publication>> publications;
     private final RegularFileProperty outputFile;
     private final FileCollection variantFiles;
+
+    @SuppressWarnings("this-escape")
     private final Cached<InputState> inputState = Cached.of(this::computeInputState);
     private final SetProperty<String> suppressedValidationErrors;
 
     private final DependencyCoordinateResolverFactory dependencyCoordinateResolverFactory;
 
+    @SuppressWarnings("this-escape")
     public GenerateModuleMetadata() {
         Project project = getProject();
         ObjectFactory objectFactory = project.getObjects();

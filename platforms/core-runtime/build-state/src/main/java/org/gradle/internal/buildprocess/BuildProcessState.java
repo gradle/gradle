@@ -33,6 +33,7 @@ import java.io.Closeable;
 public class BuildProcessState implements Closeable {
     private final ServiceRegistry services;
 
+    @SuppressWarnings("this-escape")
     public BuildProcessState(
         final boolean longLiving,
         AgentStatus agentStatus,

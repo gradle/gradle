@@ -181,6 +181,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     private int maxParallelForks = 1;
     private TestExecuter<JvmTestExecutionSpec> testExecuter;
 
+    @SuppressWarnings("this-escape")
     public Test() {
         ObjectFactory objectFactory = getObjectFactory();
         patternSet = getPatternSetFactory().create();

@@ -49,6 +49,7 @@ import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
 public class SettingsScopeServices extends DefaultServiceRegistry {
     private final SettingsInternal settings;
 
+    @SuppressWarnings("this-escape")
     public SettingsScopeServices(final ServiceRegistry parent, final SettingsInternal settings) {
         super(parent);
         this.settings = settings;

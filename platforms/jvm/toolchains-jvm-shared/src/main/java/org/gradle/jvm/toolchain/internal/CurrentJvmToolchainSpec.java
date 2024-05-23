@@ -24,6 +24,7 @@ import javax.inject.Inject;
 public abstract class CurrentJvmToolchainSpec extends DefaultToolchainSpec {
 
     @Inject
+    @SuppressWarnings("this-escape")
     public CurrentJvmToolchainSpec() {
         getLanguageVersion().set(JavaLanguageVersion.of(Jvm.current().getJavaVersion().getMajorVersion()));
 

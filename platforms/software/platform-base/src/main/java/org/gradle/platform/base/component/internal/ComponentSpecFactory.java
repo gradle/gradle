@@ -41,6 +41,7 @@ import javax.annotation.Nullable;
 public class ComponentSpecFactory extends BaseInstanceFactory<ComponentSpec> {
     private final ProjectIdentifier projectIdentifier;
 
+    @SuppressWarnings("this-escape")
     public ComponentSpecFactory(final ProjectIdentifier projectIdentifier, final Instantiator instantiator, final NamedEntityInstantiator<Task> taskInstantiator, final ObjectFactory objectFactory,
                                 final CollectionCallbackActionDecorator collectionCallbackActionDecorator, final DomainObjectCollectionFactory domainObjectCollectionFactory) {
         super(ComponentSpec.class);

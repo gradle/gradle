@@ -69,6 +69,7 @@ import java.util.Map;
 /**
  * An abstract Scala compile task sharing common functionality for compiling scala.
  */
+@SuppressWarnings("this-escape")
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class AbstractScalaCompile extends AbstractCompile implements HasCompileOptions {
     protected static final Logger LOGGER = Logging.getLogger(AbstractScalaCompile.class);
@@ -96,6 +97,7 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
      * @since 7.6
      */
     @Incubating
+    @SuppressWarnings("this-escape")
     protected AbstractScalaCompile() {
         ObjectFactory objectFactory = getObjectFactory();
         this.scalaCompileOptions = objectFactory.newInstance(ScalaCompileOptions.class);

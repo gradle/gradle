@@ -123,6 +123,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     private final Property<JavaLauncher> javaLauncher;
     private final ListProperty<String> jvmArguments;
 
+    @SuppressWarnings("this-escape")
     public JavaExec() {
         ObjectFactory objectFactory = getObjectFactory();
         mainModule = objectFactory.property(String.class);

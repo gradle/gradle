@@ -36,6 +36,8 @@ import java.util.Map;
 public abstract class BasicScript extends org.gradle.groovy.scripts.Script implements org.gradle.api.Script, DynamicObjectAware, GradleScript {
     private StandardOutputCapture standardOutputCapture;
     private Object target;
+
+    @SuppressWarnings("this-escape")
     private final ScriptDynamicObject dynamicObject = new ScriptDynamicObject(this);
     private DynamicLookupRoutine dynamicLookupRoutine;
 

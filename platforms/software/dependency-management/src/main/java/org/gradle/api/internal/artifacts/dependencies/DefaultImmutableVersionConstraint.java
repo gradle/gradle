@@ -38,6 +38,7 @@ public class DefaultImmutableVersionConstraint extends AbstractVersionConstraint
 
     private final int hashCode;
 
+    @SuppressWarnings("this-escape")
     public DefaultImmutableVersionConstraint(String preferredVersion,
                                              String requiredVersion,
                                              String strictVersion,
@@ -68,6 +69,7 @@ public class DefaultImmutableVersionConstraint extends AbstractVersionConstraint
         this.hashCode = super.hashCode();
     }
 
+    @SuppressWarnings("this-escape")
     public DefaultImmutableVersionConstraint(String requiredVersion) {
         if (requiredVersion == null) {
             throw new IllegalArgumentException("Required version must not be null");

@@ -56,6 +56,7 @@ public class DefaultConvention implements org.gradle.api.plugins.Convention, Ext
     private Map<String, Object> plugins;
     private IdentityHashMap<Object, BeanDynamicObject> dynamicObjects;
 
+    @SuppressWarnings("this-escape")
     public DefaultConvention(InstanceGenerator instanceGenerator) {
         this.instanceGenerator = instanceGenerator;
         add(EXTRA_PROPERTIES_EXTENSION_TYPE, ExtraPropertiesExtension.EXTENSION_NAME, extraProperties);

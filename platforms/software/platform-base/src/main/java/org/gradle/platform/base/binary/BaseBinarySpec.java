@@ -92,10 +92,12 @@ public class BaseBinarySpec extends AbstractBuildableComponentSpec implements Bi
         }
     }
 
+    @SuppressWarnings("this-escape")
     public BaseBinarySpec() {
         this(NEXT_BINARY_INFO.get());
     }
 
+    @SuppressWarnings("this-escape")
     private BaseBinarySpec(BinaryInfo info) {
         super(validate(info).componentId, info.publicType);
         this.publicType = info.publicType;

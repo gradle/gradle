@@ -115,6 +115,7 @@ public class ProjectScopeServices extends ScopedServiceRegistry {
     private final ProjectInternal project;
     private final Factory<LoggingManagerInternal> loggingManagerInternalFactory;
 
+    @SuppressWarnings("this-escape")
     public ProjectScopeServices(final ServiceRegistry parent, final ProjectInternal project, Factory<LoggingManagerInternal> loggingManagerInternalFactory) {
         super(Scope.Project.class, "Project services", parent);
         this.project = project;

@@ -37,6 +37,7 @@ public class DefaultDependencySet extends DelegatingDomainObjectSet<Dependency> 
     private final ConfigurationInternal clientConfiguration;
     private final Action<? super ModuleDependency> mutationValidator;
 
+    @SuppressWarnings("this-escape")
     public DefaultDependencySet(Describable displayName, final ConfigurationInternal clientConfiguration, DomainObjectSet<Dependency> backingSet) {
         super(backingSet);
         this.displayName = displayName;

@@ -76,6 +76,7 @@ public class DefaultSwiftBinary extends DefaultNativeBinary implements SwiftBina
     private final PlatformToolProvider platformToolProvider;
     private final Configuration importPathConfiguration;
 
+    @SuppressWarnings("this-escape")
     public DefaultSwiftBinary(Names names, final ObjectFactory objectFactory, TaskDependencyFactory taskDependencyFactory, Provider<String> module, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration componentImplementation, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
         super(names, objectFactory, componentImplementation);
         this.module = module;

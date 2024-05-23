@@ -89,6 +89,7 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
         this(ruleExtractor, projectPath, BoringProjectState.IDENTITY);
     }
 
+    @SuppressWarnings("this-escape")
     public DefaultModelRegistry(ModelRuleExtractor ruleExtractor, String projectPath, BoringProjectState projectState) {
         this.ruleExtractor = ruleExtractor;
         this.projectPath = projectPath;

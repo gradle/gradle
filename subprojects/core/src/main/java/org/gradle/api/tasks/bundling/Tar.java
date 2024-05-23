@@ -32,6 +32,7 @@ import org.gradle.work.DisableCachingByDefault;
 public abstract class Tar extends AbstractArchiveTask {
     private Compression compression = Compression.NONE;
 
+    @SuppressWarnings("this-escape")
     public Tar() {
         getArchiveExtension().set(getProject().provider(() -> getCompression().getDefaultExtension()));
     }

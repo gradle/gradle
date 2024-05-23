@@ -45,6 +45,7 @@ public class DefaultProblemLocationAnalyzer implements ProblemLocationAnalyzer, 
     private final Map<String, ClassLoaderScopeOrigin.Script> scripts = new HashMap<>();
     private final ClassLoaderScopeRegistryListenerManager listenerManager;
 
+    @SuppressWarnings("this-escape")
     public DefaultProblemLocationAnalyzer(ClassLoaderScopeRegistryListenerManager listenerManager) {
         this.listenerManager = listenerManager;
         listenerManager.add(this);

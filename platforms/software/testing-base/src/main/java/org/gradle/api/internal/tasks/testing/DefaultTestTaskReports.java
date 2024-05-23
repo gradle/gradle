@@ -32,6 +32,7 @@ import javax.inject.Inject;
 public class DefaultTestTaskReports extends TaskReportContainer<Report> implements TestTaskReports {
 
     @Inject
+    @SuppressWarnings("this-escape")
     public DefaultTestTaskReports(Task task, ObjectFactory objectFactory, CollectionCallbackActionDecorator callbackActionDecorator) {
         super(ConfigurableReport.class, task, callbackActionDecorator);
 

@@ -35,6 +35,7 @@ public class SimpleHtmlWriter extends SimpleMarkupWriter {
         this(writer, null);
     }
 
+    @SuppressWarnings("this-escape")
     public SimpleHtmlWriter(Writer writer, String indent) throws IOException {
         super(writer, indent);
         writeHtmlHeader();

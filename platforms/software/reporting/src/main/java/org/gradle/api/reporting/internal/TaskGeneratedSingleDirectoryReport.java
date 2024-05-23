@@ -31,6 +31,7 @@ public abstract class TaskGeneratedSingleDirectoryReport extends TaskGeneratedRe
     private final String relativeEntryPath;
 
     @Inject
+    @SuppressWarnings("this-escape")
     public TaskGeneratedSingleDirectoryReport(String name, Task task, @Nullable String relativeEntryPath) {
         super(name, OutputType.DIRECTORY, task);
         this.relativeEntryPath = relativeEntryPath;

@@ -35,6 +35,7 @@ public abstract class GenerateEclipseJdt extends PropertiesGeneratorTask<Jdt> {
 
     private EclipseJdt jdt;
 
+    @SuppressWarnings("this-escape")
     public GenerateEclipseJdt() {
         jdt = getInstantiator().newInstance(EclipseJdt.class, new PropertiesFileContentMerger(getTransformer()));
     }

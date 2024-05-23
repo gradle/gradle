@@ -31,6 +31,8 @@ public class DefaultExecSpec extends DefaultProcessForkOptions implements ExecSp
 
     private boolean ignoreExitValue;
     private final ProcessStreamsSpec streamsSpec = new ProcessStreamsSpec();
+
+    @SuppressWarnings("this-escape")
     private final ProcessArgumentsSpec argumentsSpec = new ProcessArgumentsSpec(this);
 
     @Inject

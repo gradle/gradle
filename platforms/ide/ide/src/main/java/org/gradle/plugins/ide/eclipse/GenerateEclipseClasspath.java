@@ -34,6 +34,7 @@ public abstract class GenerateEclipseClasspath extends XmlGeneratorTask<Classpat
 
     private EclipseClasspath classpath;
 
+    @SuppressWarnings("this-escape")
     public GenerateEclipseClasspath() {
         getXmlTransformer().setIndentation("\t");
     }

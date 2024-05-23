@@ -47,6 +47,7 @@ public abstract class DefaultSourceSetOutput extends CompositeFileCollection imp
     private DirectoryContribution resourcesContributor;
 
     @Inject
+    @SuppressWarnings("this-escape")
     public DefaultSourceSetOutput(String sourceSetDisplayName, TaskDependencyFactory taskDependencyFactory, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
         super(taskDependencyFactory);
         this.fileResolver = fileResolver;

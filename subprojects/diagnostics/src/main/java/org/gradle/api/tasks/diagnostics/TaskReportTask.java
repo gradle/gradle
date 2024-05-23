@@ -58,10 +58,16 @@ import static java.util.Collections.emptyList;
 public abstract class TaskReportTask extends ConventionReportTask {
 
     private boolean detail;
+
+    @SuppressWarnings("this-escape")
     private final Property<Boolean> showTypes = getProject().getObjects().property(Boolean.class);
+
     private String group;
     private List<String> groups;
+
+    @SuppressWarnings("this-escape")
     private final Cached<TaskReportModel> model = Cached.of(this::computeTaskReportModel);
+
     private transient TaskReportRenderer renderer;
 
     @Override

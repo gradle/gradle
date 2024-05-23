@@ -87,6 +87,7 @@ public abstract class InstrumentationAnalysisTransform implements TransformActio
         Property<Long> getContextId();
     }
 
+    @SuppressWarnings("this-escape")
     private final Lazy<InjectedInstrumentationServices> internalServices = Lazy.unsafe().of(() -> getObjects().newInstance(InjectedInstrumentationServices.class));
 
     @Inject

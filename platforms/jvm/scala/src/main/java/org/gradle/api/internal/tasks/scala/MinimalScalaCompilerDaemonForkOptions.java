@@ -22,6 +22,8 @@ import org.gradle.api.tasks.scala.ScalaForkOptions;
 import java.io.Serializable;
 
 public class MinimalScalaCompilerDaemonForkOptions extends MinimalCompilerDaemonForkOptions implements Serializable {
+
+    @SuppressWarnings("this-escape")
     public MinimalScalaCompilerDaemonForkOptions(ScalaForkOptions forkOptions) {
         super(forkOptions);
         setJvmArgs(forkOptions.getAllJvmArgs());

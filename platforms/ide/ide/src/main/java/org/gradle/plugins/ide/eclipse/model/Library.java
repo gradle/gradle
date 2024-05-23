@@ -23,6 +23,8 @@ import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory;
  * A classpath entry representing a library.
  */
 public class Library extends AbstractLibrary {
+
+    @SuppressWarnings("this-escape")
     public Library(Node node, FileReferenceFactory fileReferenceFactory) {
         super(node, fileReferenceFactory);
         setSourcePath(fileReferenceFactory.fromPath((String) node.attribute("sourcepath")));

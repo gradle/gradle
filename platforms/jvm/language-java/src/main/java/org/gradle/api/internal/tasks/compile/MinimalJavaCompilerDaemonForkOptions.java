@@ -28,6 +28,7 @@ public class MinimalJavaCompilerDaemonForkOptions extends MinimalCompilerDaemonF
 
     private File javaHome;
 
+    @SuppressWarnings("this-escape")
     public MinimalJavaCompilerDaemonForkOptions(ForkOptions forkOptions) {
         super(forkOptions);
         this.executable = forkOptions.getExecutable();

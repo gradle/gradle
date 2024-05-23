@@ -32,6 +32,7 @@ public abstract class AbstractLanguageSourceSet extends AbstractBuildableCompone
     private boolean generated;
     private Task generatorTask;
 
+    @SuppressWarnings("this-escape")
     public AbstractLanguageSourceSet(ComponentSpecIdentifier identifier, Class<? extends BuildableComponentSpec> publicType, SourceDirectorySet source) {
         super(identifier, publicType);
         this.source = source;

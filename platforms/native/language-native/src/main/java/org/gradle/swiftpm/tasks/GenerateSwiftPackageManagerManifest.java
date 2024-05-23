@@ -54,6 +54,7 @@ public abstract class GenerateSwiftPackageManagerManifest extends DefaultTask {
     private final RegularFileProperty manifestFile;
     private final Property<Package> packageProperty;
 
+    @SuppressWarnings("this-escape")
     public GenerateSwiftPackageManagerManifest() {
         ObjectFactory objectFactory = getProject().getObjects();
         manifestFile = objectFactory.fileProperty();
