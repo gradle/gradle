@@ -286,7 +286,7 @@ public class DefaultCachePolicy implements CachePolicy {
         }
 
         /**
-         * If the age < 0, then it's probable that we've had a clock shift. In this case, treat the age as 1ms.
+         * If the age is less than 0, then it's probable that we've had a clock shift. In this case, treat the age as 1ms.
          */
         private long correctForClockShift(long ageMillis) {
             if (ageMillis < 0) {

@@ -258,7 +258,6 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
          * Another key:  Another value
          * [blank line]
          * </pre>
-         * </p>
          *
          * @param lines the lines to print
          */

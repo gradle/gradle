@@ -122,3 +122,12 @@ packageCycles {
 }
 
 integTest.usesJavadocCodeSnippets = true
+
+tasks.javadoc {
+    // This project accesses JDK internals.
+    // We need to add --add-exports flags for multiple packages to make this task pass.
+    // The javadoc options modeling API does not allow specifying multiple flags with
+    // the same key, meaning we cannot specify more than one exported package.
+    // Therefore, we disable failure on javadoc errors.
+    isFailOnError = false
+}

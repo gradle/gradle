@@ -34,7 +34,7 @@ public class FactoryNamedDomainObjectContainer<T> extends AbstractNamedDomainObj
     // https://github.com/nebula-plugins/nebula-project-plugin/blob/f0f587f7b7014b6202875dc499dae05b0fc32344/src/main/groovy/nebula/plugin/responsible/gradle/NamedContainerProperOrder.groovy#L12-L31
 
     /**
-     * <p>Creates a container that instantiates using the given factory.<p>
+     * Creates a container that instantiates using the given factory.
      *
      * @param type The concrete type of element in the container (must implement {@link Named})
      * @param instantiator The instantiator to use to create any other collections based on this one
@@ -46,7 +46,7 @@ public class FactoryNamedDomainObjectContainer<T> extends AbstractNamedDomainObj
     }
 
     /**
-     * <p>Creates a container that instantiates using the given factory.<p>
+     * Creates a container that instantiates using the given factory.
      *
      * @param type The concrete type of element in the container
      * @param instantiator The instantiator to use to create any other collections based on this one
@@ -60,7 +60,7 @@ public class FactoryNamedDomainObjectContainer<T> extends AbstractNamedDomainObj
     }
 
     /**
-     * <p>Creates a container that instantiates using the given factory.<p>
+     * Creates a container that instantiates using the given factory.
      *
      * @param type The concrete type of element in the container (must implement {@link Named})
      * @param instantiator The instantiator to use to create any other collections based on this one
@@ -71,7 +71,7 @@ public class FactoryNamedDomainObjectContainer<T> extends AbstractNamedDomainObj
     }
 
     /**
-     * <p>Creates a container that instantiates using the given factory.<p>
+     * Creates a container that instantiates using the given factory.
      *
      * @param type The concrete type of element in the container
      * @param instantiator The instantiator to use to create any other collections based on this one

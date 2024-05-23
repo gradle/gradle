@@ -67,7 +67,7 @@ public interface JvmInstallationMetadata {
 
     /**
      * A wrapper around the raw value of the toolchain vendor.
-     * <p>
+     *
      * @see org.gradle.internal.jvm.inspection.ProbedSystemProperty#JAVA_VENDOR
      */
     JvmVendor getVendor();

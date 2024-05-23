@@ -23,7 +23,7 @@ import javax.annotation.Nullable;
  * It only intercepts the calls where the receiver is the class of interest.
  * <p>
  * It is possible but not strictly necessary to use this interceptor to intercept constructors.
- * Due to the way constructor interception works, having an {@link InterceptScope#constructorsOf(Class)
+ * Due to the way constructor interception works, having an {@link InterceptScope#constructorsOf(Class)}
  * as a scope already guarantees that the invocation would have the given class object as the receiver.
  */
 public abstract class ClassBoundCallInterceptor extends AbstractCallInterceptor {

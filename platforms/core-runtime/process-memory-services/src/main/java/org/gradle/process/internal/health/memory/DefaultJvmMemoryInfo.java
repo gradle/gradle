@@ -31,7 +31,7 @@ public class DefaultJvmMemoryInfo implements JvmMemoryInfo {
     }
 
     /**
-     * Currently committed memory of this process in bytes. May return different value depending on how the heap has expanded. The returned value is <= {@link #getMaxMemory()}
+     * Currently committed memory of this process in bytes. May return different value depending on how the heap has expanded. The returned value is less than or equal to {@link #getMaxMemory()}
      */
     long getCommittedMemory() {
         //querying runtime for each invocation

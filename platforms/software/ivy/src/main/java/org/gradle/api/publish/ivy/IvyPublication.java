@@ -63,9 +63,9 @@ import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyPro
  * For any other tweaks to the publication, it is possible to modify the generated Ivy descriptor file prior to publication. This is done using
  * the {@link IvyModuleDescriptorSpec#withXml(org.gradle.api.Action)} method, normally via a Closure passed to the {@link #descriptor(org.gradle.api.Action)} method.
  * </p>
- * <h4>Example of publishing a java component with an added source jar and custom module description</h4>
  *
  * <pre class='autoTested'>
+ * // Example of publishing a java component with an added source jar and custom module description
  * plugins {
  *     id 'java'
  *     id 'ivy-publish'
@@ -107,7 +107,6 @@ public interface IvyPublication extends Publication {
 
     /**
      * The module descriptor that will be published.
-     * <p>
      *
      * @return The module descriptor that will be published.
      */

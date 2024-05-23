@@ -46,7 +46,7 @@ import static org.gradle.process.internal.util.LongCommandLineDetectionUtil.hasC
 /**
  * Default implementation for the ExecHandle interface.
  *
- * <h3>State flows</h3>
+ * <h2>State flows</h2>
  *
  * <ul>
  *   <li>INIT -&gt; STARTED -&gt; [SUCCEEDED|FAILED|ABORTED|DETACHED]</li>

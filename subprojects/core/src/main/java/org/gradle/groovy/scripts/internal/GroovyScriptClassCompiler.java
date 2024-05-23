@@ -171,11 +171,11 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
 
     /**
      * We want to use build cache for script compilation, but build cache might not be available yet with early execution engine.
-     * Thus settings and init scripts are not using build cache for now.<br/><br/>
-     *
+     * Thus settings and init scripts are not using build cache for now.
+     * <p>
      * When we compile project build scripts, build cache is available, but we need to query execution engine with build cache support
-     * from the project services directly to use it.<br/><br/>
-     *
+     * from the project services directly to use it.
+     * <p>
      * TODO: Remove this and just inject execution engine once we unify execution engines in https://github.com/gradle/gradle/issues/27249
      */
     private ExecutionEngine getExecutionEngine(Object target) {
