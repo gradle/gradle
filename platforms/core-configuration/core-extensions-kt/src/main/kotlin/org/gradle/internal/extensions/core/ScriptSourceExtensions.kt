@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.extensions
+package org.gradle.internal.extensions.core
 
-import org.gradle.api.internal.DocumentationRegistry
-import org.gradle.internal.configuration.problems.DocumentationSection
-
-
-internal
-fun DocumentationRegistry.documentationLinkFor(section: DocumentationSection) =
-    configurationCacheLinkFor(section.anchor)
+import org.gradle.groovy.scripts.ScriptSource
+import java.net.URI
 
 
-internal
-fun DocumentationRegistry.configurationCacheLinkFor(anchor: String): String =
-    getDocumentationFor("configuration_cache", anchor)
+/**
+ * Same as `resource.location.uri`.
+ */
+val ScriptSource.uri: URI?
+    get() = resource.location.uri

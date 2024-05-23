@@ -14,16 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.extensions
+package org.gradle.internal.extensions.core
 
+import org.gradle.api.Project
 import org.gradle.api.plugins.ExtraPropertiesExtension
+import org.gradle.configurationcache.extensions.uncheckedCast
 
 
-internal
-fun ExtraPropertiesExtension.remove(key: String): Any? {
-    val value = this[key]
-    if (value != null) {
-        this[key] = null
-    }
-    return value
+inline fun <reified T : Any> Project.setSingletonProperty(value: T) {
+    extra[T::class.java.name] = value
 }
+
+
+inline fun <reified T> Project.popSingletonProperty(): T? =
+    extra.remove(T::class.java.name)?.uncheckedCast()
+
+
+val Project.extra: ExtraPropertiesExtension
+    get() = extensions.extraProperties

@@ -33,7 +33,7 @@ import org.gradle.configuration.project.DelayedConfigurationActions
 import org.gradle.configuration.project.LifecycleProjectEvaluator
 import org.gradle.configuration.project.PluginsProjectConfigureActions
 import org.gradle.configuration.project.ProjectEvaluator
-import org.gradle.configurationcache.extensions.get
+import org.gradle.internal.extensions.core.get
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprintController
 import org.gradle.configurationcache.flow.FlowServicesProvider
 import org.gradle.internal.configuration.problems.ProblemFactory

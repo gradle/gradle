@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.extensions
+package org.gradle.internal.extensions.core
 
 import org.gradle.api.Project
 import org.gradle.api.internal.GradleInternal

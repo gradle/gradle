@@ -21,8 +21,8 @@ import org.gradle.api.Project
 import org.gradle.api.ProjectEvaluationListener
 import org.gradle.api.ProjectState
 import org.gradle.api.invocation.Gradle
-import org.gradle.configurationcache.extensions.popSingletonProperty
-import org.gradle.configurationcache.extensions.setSingletonProperty
+import org.gradle.internal.extensions.core.popSingletonProperty
+import org.gradle.internal.extensions.core.setSingletonProperty
 import org.gradle.configurationcache.isolation.IsolatedActionDeserializer
 import org.gradle.configurationcache.isolation.IsolatedActionSerializer
 import org.gradle.configurationcache.isolation.SerializedIsolatedActionGraph

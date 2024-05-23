@@ -24,11 +24,12 @@ description = "Base utilities and services to report and track configuration pro
 dependencies {
     api(projects.baseServices)
     api(projects.javaLanguageExtensions)
+    api(projects.logging)
     api(projects.problemsApi)
+
     api(libs.futureKotlin("stdlib"))
 
     implementation(projects.javaLanguageExtensionsKt)
-    implementation(projects.logging)
 
     implementation(libs.guava)
 }

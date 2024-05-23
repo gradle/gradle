@@ -32,7 +32,7 @@ import org.gradle.api.services.internal.BuildServiceProvider
 import org.gradle.api.services.internal.RegisteredBuildServiceProvider
 import org.gradle.caching.configuration.BuildCache
 import org.gradle.caching.configuration.internal.BuildCacheServiceRegistration
-import org.gradle.configurationcache.extensions.serviceOf
+import org.gradle.internal.extensions.core.serviceOf
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.flow.BuildFlowScope
 import org.gradle.internal.configuration.problems.DocumentationSection.NotYetImplementedSourceDependencies

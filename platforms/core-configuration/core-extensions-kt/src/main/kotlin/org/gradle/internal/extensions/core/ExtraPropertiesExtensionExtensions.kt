@@ -14,17 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.extensions
+package org.gradle.internal.extensions.core
 
-import org.gradle.internal.service.ServiceRegistration
+import org.gradle.api.plugins.ExtraPropertiesExtension
 
 
-/**
- * @param ServiceType The service to make visible.
- * @param ImplementationType The implementation type of the service.
- * @see [ServiceRegistration.add]
- */
-internal
-inline fun <reified ServiceType, reified ImplementationType : ServiceType> ServiceRegistration.add() {
-    add(ServiceType::class.java, ImplementationType::class.java)
+fun ExtraPropertiesExtension.remove(key: String): Any? {
+    val value = this[key]
+    if (value != null) {
+        this[key] = null
+    }
+    return value
 }
