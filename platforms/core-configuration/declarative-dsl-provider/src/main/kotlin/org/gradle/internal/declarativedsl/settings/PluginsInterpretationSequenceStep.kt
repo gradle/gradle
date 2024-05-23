@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.plugins
+package org.gradle.internal.declarativedsl.settings
 
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
@@ -27,13 +27,12 @@ import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter.Compa
 import org.gradle.internal.declarativedsl.analysis.OperationGenerationId
 import org.gradle.internal.declarativedsl.analysis.and
 import org.gradle.internal.declarativedsl.analysis.implies
-import org.gradle.internal.declarativedsl.evaluationSchema.CompositeEvaluationSchemaComponent
-import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchema
-import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaComponent
-import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequenceStep
-import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationSchema
-import org.gradle.internal.declarativedsl.evaluationSchema.plus
-import org.gradle.internal.declarativedsl.project.gradleDslGeneralSchemaComponent
+import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationAndConversionSchema
+import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequenceStepWithConversion
+import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationStepFeature
+import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationAndConversionSchema
+import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
+import org.gradle.internal.declarativedsl.plugins.PluginsTopLevelReceiver
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.plugin.management.internal.DefaultPluginRequest
 import org.gradle.plugin.management.internal.PluginRequestInternal
@@ -48,13 +47,17 @@ class PluginsInterpretationSequenceStep(
     override val assignmentGeneration: OperationGenerationId = OperationGenerationId.PROPERTY_ASSIGNMENT,
     private val targetScope: ClassLoaderScope,
     private val scriptSource: ScriptSource,
-    private val additionalSchemaComponent: EvaluationSchemaComponent = CompositeEvaluationSchemaComponent(emptyList()),
     private val getTargetServices: () -> ServiceRegistry,
-) : InterpretationSequenceStep<PluginsTopLevelReceiver> {
-    override fun evaluationSchemaForStep(): EvaluationSchema =
-        buildEvaluationSchema(PluginsTopLevelReceiver::class, gradleDslGeneralSchemaComponent() + additionalSchemaComponent, isTopLevelPluginsBlock)
+) : InterpretationSequenceStepWithConversion<PluginsTopLevelReceiver> {
+    override fun evaluationSchemaForStep(): EvaluationAndConversionSchema =
+        buildEvaluationAndConversionSchema(PluginsTopLevelReceiver::class, isTopLevelPluginsBlock) {
+            gradleDslGeneralSchema()
+        }
 
     override fun getTopLevelReceiverFromTarget(target: Any) = PluginsTopLevelReceiver()
+
+    override val features: Set<InterpretationStepFeature>
+        get() = setOf(SettingsBlocksCheck.feature, object : InterpretationStepFeature.ApplyPlugins {})
 
     override fun whenEvaluated(resultReceiver: PluginsTopLevelReceiver) {
         val pluginRequests = resultReceiver.plugins.specs.map {

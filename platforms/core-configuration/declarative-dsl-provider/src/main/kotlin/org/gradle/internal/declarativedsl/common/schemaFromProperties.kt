@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.project
+package org.gradle.internal.declarativedsl.common
 
 import org.gradle.internal.declarativedsl.schemaBuilder.CollectedPropertyInformation
 import org.gradle.internal.declarativedsl.schemaBuilder.PropertyExtractor
@@ -25,7 +25,7 @@ import org.gradle.api.provider.Property
 import org.gradle.declarative.dsl.model.annotations.AccessFromCurrentReceiverOnly
 import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl
 import org.gradle.internal.declarativedsl.analysis.DefaultDataProperty
-import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaComponent
+import org.gradle.internal.declarativedsl.evaluationSchema.AnalysisSchemaComponent
 import org.gradle.internal.declarativedsl.schemaBuilder.MemberFilter
 import org.gradle.internal.declarativedsl.schemaBuilder.isPublicAndRestricted
 import java.util.Locale
@@ -43,7 +43,7 @@ import kotlin.reflect.full.primaryConstructor
  * Ensures that the return types of these properties get discovered during type discovery.
  */
 internal
-class GradlePropertyApiEvaluationSchemaComponent : EvaluationSchemaComponent {
+class GradlePropertyApiAnalysisSchemaComponent : AnalysisSchemaComponent {
     private
     val propertyExtractor = GradlePropertyApiPropertyExtractor(isPublicAndRestricted)
 

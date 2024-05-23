@@ -18,26 +18,27 @@ package org.gradle.internal.declarativedsl.project
 
 import org.gradle.internal.declarativedsl.analysis.OperationGenerationId
 import org.gradle.internal.declarativedsl.analysis.analyzeEverything
-import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchema
+import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationAndConversionSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequence
-import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationSchema
-import org.gradle.internal.declarativedsl.evaluationSchema.plus
-import org.gradle.internal.declarativedsl.software.SoftwareTypeComponent
+import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationAndConversionSchema
+import org.gradle.internal.declarativedsl.common.dependencyCollectors
+import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
+import org.gradle.internal.declarativedsl.software.softwareTypesWithPluginApplication
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 
 
 internal
 fun projectInterpretationSequence(
     softwareTypeRegistry: SoftwareTypeRegistry
-) = InterpretationSequence(listOf(ProjectInterpretationSequenceStep("project", OperationGenerationId.PROPERTY_ASSIGNMENT, softwareTypeRegistry) { projectEvaluationSchema(softwareTypeRegistry) }))
+) = InterpretationSequence(listOf(ProjectInterpretationSequenceStep("project", OperationGenerationId.PROPERTY_ASSIGNMENT, softwareTypeRegistry)))
 
 
 fun projectEvaluationSchema(
     softwareTypeRegistry: SoftwareTypeRegistry
-): EvaluationSchema {
-    val component = gradleDslGeneralSchemaComponent() +
-        SoftwareTypeComponent(ProjectTopLevelReceiver::class, "softwareType", softwareTypeRegistry) +
-        DependencyCollectorsComponent()
-
-    return buildEvaluationSchema(ProjectTopLevelReceiver::class, component, analyzeEverything)
+): EvaluationAndConversionSchema {
+    return buildEvaluationAndConversionSchema(ProjectTopLevelReceiver::class, analyzeEverything) {
+        gradleDslGeneralSchema()
+        dependencyCollectors()
+        softwareTypesWithPluginApplication(ProjectTopLevelReceiver::class, softwareTypeRegistry)
+    }
 }

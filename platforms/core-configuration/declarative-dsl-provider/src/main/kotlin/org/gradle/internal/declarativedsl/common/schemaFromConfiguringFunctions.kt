@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.project
+package org.gradle.internal.declarativedsl.common
 
-import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaComponent
+import org.gradle.internal.declarativedsl.evaluationSchema.AnalysisSchemaComponent
 import org.gradle.internal.declarativedsl.evaluationSchema.gradleConfigureLambdas
 import org.gradle.internal.declarativedsl.schemaBuilder.ConfigureLambdaHandler
 import org.gradle.internal.declarativedsl.schemaBuilder.MemberFilter
@@ -33,7 +33,7 @@ import kotlin.reflect.full.memberFunctions
  * All configured or returned types that appear in [isPublicAndRestricted]-matching will be discovered (for now, regardless of actual function semantics).
  */
 internal
-class TypeDiscoveryFromRestrictedFunctions : EvaluationSchemaComponent {
+class TypeDiscoveryFromRestrictedFunctions : AnalysisSchemaComponent {
     override fun typeDiscovery(): List<TypeDiscovery> = listOf(
         FunctionLambdaTypeDiscovery(isPublicAndRestricted, gradleConfigureLambdas),
         FunctionReturnTypeDiscovery(isPublicAndRestricted)

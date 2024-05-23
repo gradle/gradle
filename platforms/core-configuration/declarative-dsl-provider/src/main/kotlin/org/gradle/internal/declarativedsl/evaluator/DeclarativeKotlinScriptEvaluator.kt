@@ -24,11 +24,15 @@ import org.gradle.internal.declarativedsl.analysis.ResolutionError
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 import org.gradle.internal.declarativedsl.analysis.SchemaTypeRefContext
 import org.gradle.internal.declarativedsl.analysis.tracingCodeResolver
+import org.gradle.internal.declarativedsl.checks.DocumentCheck
 import org.gradle.internal.declarativedsl.checks.DocumentCheckFailure
 import org.gradle.internal.declarativedsl.dom.resolvedDocument
 import org.gradle.internal.declarativedsl.dom.toDocument
+import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationAndConversionSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequence
 import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequenceStep
+import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequenceStepWithConversion
+import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationStepFeature.DocumentChecks
 import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvaluator.EvaluationContext.ScriptPluginEvaluationContext
 import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvaluator.EvaluationResult.NotEvaluated
 import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure.AssignmentErrors
@@ -41,13 +45,17 @@ import org.gradle.internal.declarativedsl.language.SourceIdentifier
 import org.gradle.internal.declarativedsl.mappingToJvm.CompositeCustomAccessors
 import org.gradle.internal.declarativedsl.mappingToJvm.CompositeFunctionResolver
 import org.gradle.internal.declarativedsl.mappingToJvm.CompositePropertyResolver
+import org.gradle.internal.declarativedsl.mappingToJvm.DeclarativeReflectionToObjectConverter
 import org.gradle.internal.declarativedsl.objectGraph.AssignmentResolver
 import org.gradle.internal.declarativedsl.objectGraph.AssignmentTraceElement
 import org.gradle.internal.declarativedsl.objectGraph.AssignmentTracer
+import org.gradle.internal.declarativedsl.objectGraph.ObjectReflection
 import org.gradle.internal.declarativedsl.objectGraph.ReflectionContext
 import org.gradle.internal.declarativedsl.objectGraph.reflect
 import org.gradle.internal.declarativedsl.parsing.DefaultLanguageTreeBuilder
 import org.gradle.internal.declarativedsl.parsing.parse
+import org.gradle.internal.declarativedsl.settings.SettingsBlocksCheck
+import kotlin.collections.flatMap
 
 
 internal
@@ -82,7 +90,8 @@ interface DeclarativeKotlinScriptEvaluator {
 
 internal
 class DefaultDeclarativeKotlinScriptEvaluator(
-    private val schemaBuilder: InterpretationSchemaBuilder
+    private val schemaBuilder: InterpretationSchemaBuilder,
+    private val documentChecks: Set<DocumentCheck> = setOf(SettingsBlocksCheck)
 ) : DeclarativeKotlinScriptEvaluator {
     override fun evaluate(
         target: Any,
@@ -111,10 +120,10 @@ class DefaultDeclarativeKotlinScriptEvaluator(
     }
 
     private
-    fun <R : Any> runInterpretationSequenceStep(
+    fun runInterpretationSequenceStep(
         target: Any,
         scriptSource: ScriptSource,
-        step: InterpretationSequenceStep<R>
+        step: InterpretationSequenceStep
     ): DeclarativeKotlinScriptEvaluator.EvaluationResult {
         val failureReasons = mutableListOf<NotEvaluated.StageFailure>()
 
@@ -135,7 +144,10 @@ class DefaultDeclarativeKotlinScriptEvaluator(
         resolution = step.processResolutionResult(resolution)
 
         val document = resolvedDocument(evaluationSchema.analysisSchema, resolver.trace, languageModel.toDocument())
-        val checkResults = evaluationSchema.documentChecks.flatMap { it.detectFailures(document) }
+
+        val checkKeys = step.features.filterIsInstance<DocumentChecks>().flatMapTo(hashSetOf()) { it.checkKeys }
+        val checkResults = documentChecks.filter { it.checkKey in checkKeys }.flatMap { it.detectFailures(document) }
+
         if (checkResults.isNotEmpty()) {
             failureReasons += NotEvaluated.StageFailure.DocumentCheckFailures(checkResults)
         }
@@ -151,17 +163,35 @@ class DefaultDeclarativeKotlinScriptEvaluator(
         val context = ReflectionContext(SchemaTypeRefContext(evaluationSchema.analysisSchema), resolution, trace)
         val topLevelObjectReflection = reflect(resolution.topLevelReceiver, context)
 
+        if (step is InterpretationSequenceStepWithConversion<*>) {
+            /** Overridden in [InterpretationSequenceStepWithConversion.evaluationSchemaForStep] */
+            evaluationSchema as EvaluationAndConversionSchema
+
+            applyReflectionToJvmObjectConversion(evaluationSchema, step, target, topLevelObjectReflection)
+        }
+
+        return DeclarativeKotlinScriptEvaluator.EvaluationResult.Evaluated
+    }
+
+
+    private
+    fun <R : Any> applyReflectionToJvmObjectConversion(
+        evaluationSchema: EvaluationAndConversionSchema,
+        step: InterpretationSequenceStepWithConversion<R>,
+        target: Any,
+        topLevelObjectReflection: ObjectReflection
+    ) {
         val propertyResolver = CompositePropertyResolver(evaluationSchema.runtimePropertyResolvers)
         val functionResolver = CompositeFunctionResolver(evaluationSchema.runtimeFunctionResolvers)
         val customAccessors = CompositeCustomAccessors(evaluationSchema.runtimeCustomAccessors)
 
         val topLevelReceiver = step.getTopLevelReceiverFromTarget(target)
-        val converter = step.getReflectionToObjectConverter(emptyMap(), topLevelReceiver, functionResolver, propertyResolver, customAccessors)
+        val converter = DeclarativeReflectionToObjectConverter(
+            emptyMap(), topLevelReceiver, functionResolver, propertyResolver, customAccessors
+        )
         converter.apply(topLevelObjectReflection)
 
         step.whenEvaluated(topLevelReceiver)
-
-        return DeclarativeKotlinScriptEvaluator.EvaluationResult.Evaluated
     }
 
     private

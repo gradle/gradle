@@ -19,19 +19,34 @@ package org.gradle.internal.declarativedsl.evaluationSchema
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter
 import org.gradle.internal.declarativedsl.analysis.analyzeEverything
-import org.gradle.internal.declarativedsl.checks.DocumentCheck
-import org.gradle.internal.declarativedsl.mappingToJvm.MemberFunctionResolver
-import org.gradle.internal.declarativedsl.mappingToJvm.ReflectionRuntimePropertyResolver
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeCustomAccessors
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeFunctionResolver
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimePropertyResolver
 
 
-class EvaluationSchema(
-    val analysisSchema: AnalysisSchema,
-    val analysisStatementFilter: AnalysisStatementFilter = analyzeEverything,
-    val documentChecks: List<DocumentCheck> = listOf(),
-    val runtimePropertyResolvers: List<RuntimePropertyResolver> = listOf(ReflectionRuntimePropertyResolver),
-    val runtimeFunctionResolvers: List<RuntimeFunctionResolver> = listOf(MemberFunctionResolver(gradleConfigureLambdas)),
-    val runtimeCustomAccessors: List<RuntimeCustomAccessors> = emptyList(),
-)
+interface EvaluationSchema {
+    val analysisSchema: AnalysisSchema
+    val analysisStatementFilter: AnalysisStatementFilter
+}
+
+
+interface EvaluationAndConversionSchema : EvaluationSchema {
+    val runtimePropertyResolvers: List<RuntimePropertyResolver>
+    val runtimeFunctionResolvers: List<RuntimeFunctionResolver>
+    val runtimeCustomAccessors: List<RuntimeCustomAccessors>
+}
+
+
+class DefaultEvaluationSchema(
+    override val analysisSchema: AnalysisSchema,
+    override val analysisStatementFilter: AnalysisStatementFilter = analyzeEverything,
+) : EvaluationSchema
+
+
+class DefaultEvaluationAndConversionSchema(
+    override val analysisSchema: AnalysisSchema,
+    override val analysisStatementFilter: AnalysisStatementFilter = analyzeEverything,
+    override val runtimePropertyResolvers: List<RuntimePropertyResolver> = listOf(),
+    override val runtimeFunctionResolvers: List<RuntimeFunctionResolver> = listOf(),
+    override val runtimeCustomAccessors: List<RuntimeCustomAccessors> = emptyList(),
+) : EvaluationAndConversionSchema

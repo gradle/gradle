@@ -16,57 +16,57 @@
 
 package org.gradle.internal.declarativedsl.evaluationSchema
 
-import org.gradle.declarative.dsl.schema.ExternalObjectProviderKey
 import org.gradle.internal.declarativedsl.analysis.OperationGenerationId
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
-import org.gradle.internal.declarativedsl.mappingToJvm.DeclarativeReflectionToObjectConverter
-import org.gradle.internal.declarativedsl.mappingToJvm.ReflectionToObjectConverter
-import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeCustomAccessors
-import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeFunctionResolver
-import org.gradle.internal.declarativedsl.mappingToJvm.RuntimePropertyResolver
 
 
 internal
 class InterpretationSequence(
-    val steps: Iterable<InterpretationSequenceStep<*>>
+    val steps: Iterable<InterpretationSequenceStep>
 )
 
 
+sealed interface InterpretationStepFeature {
+    interface DocumentChecks : InterpretationStepFeature {
+        val checkKeys: List<String>
+    }
+
+    interface CollectConventions : InterpretationStepFeature
+    interface ApplyConventions : InterpretationStepFeature
+    interface ApplyPlugins : InterpretationStepFeature
+}
+
+
 internal
-interface InterpretationSequenceStep<R : Any> {
+interface InterpretationSequenceStep {
     val stepIdentifier: String
     val assignmentGeneration: OperationGenerationId
+    val features: Set<InterpretationStepFeature>
     fun evaluationSchemaForStep(): EvaluationSchema
+    fun processResolutionResult(resolutionResult: ResolutionResult): ResolutionResult = resolutionResult
+}
+
+
+internal
+interface InterpretationSequenceStepWithConversion<R : Any> : InterpretationSequenceStep {
+    override fun evaluationSchemaForStep(): EvaluationAndConversionSchema
     fun getTopLevelReceiverFromTarget(target: Any): R
     fun whenEvaluated(resultReceiver: R)
-    fun processResolutionResult(resolutionResult: ResolutionResult): ResolutionResult = resolutionResult
-    fun getReflectionToObjectConverter(
-        externalObjectsMap: Map<ExternalObjectProviderKey, Any>,
-        topLevelObject: Any,
-        functionResolver: RuntimeFunctionResolver,
-        propertyResolver: RuntimePropertyResolver,
-        customAccessors: RuntimeCustomAccessors
-    ): ReflectionToObjectConverter = DeclarativeReflectionToObjectConverter(
-        externalObjectsMap,
-        topLevelObject,
-        functionResolver,
-        propertyResolver,
-        customAccessors
-    )
 }
 
 
 /**
- * Implements a straightforward interpretation sequence step that uses the target as the top-level receiver.
+ * Implements a straightforward interpretation sequence step that uses the target as the top-level receiver
  * and produces an evaluation schema with [buildEvaluationSchema] immediately before the step runs.
  */
 internal
 class SimpleInterpretationSequenceStep(
     override val stepIdentifier: String,
     override val assignmentGeneration: OperationGenerationId = OperationGenerationId.PROPERTY_ASSIGNMENT,
-    private val buildEvaluationSchema: () -> EvaluationSchema
-) : InterpretationSequenceStep<Any> {
-    override fun evaluationSchemaForStep(): EvaluationSchema = buildEvaluationSchema()
+    override val features: Set<InterpretationStepFeature> = emptySet(),
+    private val buildEvaluationAndConversionSchema: () -> EvaluationAndConversionSchema
+) : InterpretationSequenceStepWithConversion<Any> {
+    override fun evaluationSchemaForStep(): EvaluationAndConversionSchema = buildEvaluationAndConversionSchema()
     override fun getTopLevelReceiverFromTarget(target: Any): Any = target
     override fun whenEvaluated(resultReceiver: Any) = Unit
 }

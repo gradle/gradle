@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.project
+package org.gradle.internal.declarativedsl.common
 
 import com.google.common.graph.Traverser
 import org.gradle.api.artifacts.ProjectDependency
@@ -44,6 +44,7 @@ import kotlin.reflect.full.memberProperties
 import kotlin.reflect.typeOf
 
 
+internal
 class DependencyCollectorFunctionExtractorAndRuntimeResolver(
     private val gavDependencyParam: DataParameter,
     private val projectDependencyParam: DataParameter

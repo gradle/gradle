@@ -23,14 +23,13 @@ import org.gradle.internal.declarativedsl.checks.DocumentCheckFailureReason
 import org.gradle.internal.declarativedsl.dom.resolvedDocument
 import org.gradle.internal.declarativedsl.dom.toDocument
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchema
+import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaBuilder
 import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationSchema
-import org.gradle.internal.declarativedsl.evaluationSchema.plus
+import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
 import org.gradle.internal.declarativedsl.language.SourceIdentifier
 import org.gradle.internal.declarativedsl.parsing.DefaultLanguageTreeBuilder
 import org.gradle.internal.declarativedsl.parsing.parse
 import org.gradle.internal.declarativedsl.plugins.PluginsTopLevelReceiver
-import org.gradle.internal.declarativedsl.plugins.isTopLevelPluginsBlock
-import org.gradle.internal.declarativedsl.project.gradleDslGeneralSchemaComponent
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -128,8 +127,12 @@ class SettingsBlockCheckTest {
     }
 
     private
+    val documentChecks = listOf(SettingsBlocksCheck)
+
+    private
     val pluginManagementSchema = pluginManagementEvaluationSchema()
 
     private
-    val pluginsSchema = buildEvaluationSchema(PluginsTopLevelReceiver::class, gradleDslGeneralSchemaComponent() + SettingsBlocksCheck, isTopLevelPluginsBlock)
+    val pluginsSchema =
+        buildEvaluationSchema(PluginsTopLevelReceiver::class, isTopLevelPluginsBlock, EvaluationSchemaBuilder::gradleDslGeneralSchema)
 }

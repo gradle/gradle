@@ -21,6 +21,7 @@ import org.gradle.internal.declarativedsl.language.SourceData
 
 
 interface DocumentCheck {
+    val checkKey: String
     fun detectFailures(resolvedDeclarativeDocument: ResolvedDeclarativeDocument): List<DocumentCheckFailure>
 }
 

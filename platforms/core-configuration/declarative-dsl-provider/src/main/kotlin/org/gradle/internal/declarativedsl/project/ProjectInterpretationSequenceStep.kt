@@ -17,19 +17,19 @@
 package org.gradle.internal.declarativedsl.project
 
 import org.gradle.declarative.dsl.schema.ConfigureAccessor
-import org.gradle.internal.declarativedsl.analysis.OperationGenerationId
 import org.gradle.internal.declarativedsl.analysis.AssignmentRecord
 import org.gradle.internal.declarativedsl.analysis.DataAdditionRecord
 import org.gradle.internal.declarativedsl.analysis.NestedObjectAccessRecord
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
+import org.gradle.internal.declarativedsl.analysis.OperationGenerationId
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 import org.gradle.internal.declarativedsl.analysis.transformation.OriginReplacement.replaceReceivers
 import org.gradle.internal.declarativedsl.conventions.AdditionRecordConvention
 import org.gradle.internal.declarativedsl.conventions.AssignmentRecordConvention
 import org.gradle.internal.declarativedsl.conventions.NestedObjectAccessConvention
 import org.gradle.internal.declarativedsl.conventions.isConventionsCall
-import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchema
-import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequenceStep
+import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequenceStepWithConversion
+import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationStepFeature
 import org.gradle.plugin.software.internal.SoftwareTypeImplementation
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 
@@ -38,15 +38,18 @@ import org.gradle.plugin.software.internal.SoftwareTypeRegistry
  * A step in the interpretation sequence that processes the project build file and applies Software Type conventions
  * configured in the Settings DSL.
  */
+internal
 class ProjectInterpretationSequenceStep(
     override val stepIdentifier: String = "project",
     override val assignmentGeneration: OperationGenerationId = OperationGenerationId.PROPERTY_ASSIGNMENT,
-    private val softwareTypeRegistry: SoftwareTypeRegistry,
-    private val buildEvaluationSchema: () -> EvaluationSchema
-) : InterpretationSequenceStep<Any> {
-    override fun evaluationSchemaForStep(): EvaluationSchema = buildEvaluationSchema()
+    private val softwareTypeRegistry: SoftwareTypeRegistry
+) : InterpretationSequenceStepWithConversion<Any> {
+    override fun evaluationSchemaForStep() = projectEvaluationSchema(softwareTypeRegistry)
 
     override fun getTopLevelReceiverFromTarget(target: Any): Any = target
+
+    override val features: Set<InterpretationStepFeature>
+        get() = setOf(object : InterpretationStepFeature.ApplyConventions {})
 
     override fun whenEvaluated(resultReceiver: Any) = Unit
 
