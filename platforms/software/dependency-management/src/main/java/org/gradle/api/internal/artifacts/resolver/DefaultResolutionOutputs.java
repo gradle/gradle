@@ -57,20 +57,20 @@ import org.gradle.internal.reflect.Instantiator;
  */
 public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
 
-    private final ResolutionHandle resolutionHandle;
+    private final ResolutionAccess resolutionAccess;
     private final TaskDependencyFactory taskDependencyFactory;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
     private final ImmutableAttributesFactory attributesFactory;
     private final Instantiator instantiator;
 
     public DefaultResolutionOutputs(
-        ResolutionHandle resolutionHandle,
+        ResolutionAccess resolutionAccess,
         TaskDependencyFactory taskDependencyFactory,
         CalculatedValueContainerFactory calculatedValueContainerFactory,
         ImmutableAttributesFactory attributesFactory,
         Instantiator instantiator
     ) {
-        this.resolutionHandle = resolutionHandle;
+        this.resolutionAccess = resolutionAccess;
         this.taskDependencyFactory = taskDependencyFactory;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
         this.attributesFactory = attributesFactory;
@@ -79,7 +79,7 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
 
     @Override
     public ResolutionResultProvider<ResolverResults> getRawResults() {
-        return resolutionHandle.getResults();
+        return resolutionAccess.getResults();
     }
 
     @Override
@@ -91,7 +91,7 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
      * Get the resolved graph, throwing any non-fatal exception that occurred during resolution.
      */
     private VisitedGraphResults getVisitedGraphResults() {
-        VisitedGraphResults graph = resolutionHandle.getResults().getValue().getVisitedGraph();
+        VisitedGraphResults graph = resolutionAccess.getResults().getValue().getVisitedGraph();
         graph.getResolutionFailure().ifPresent(ex -> {
             throw ex;
         });
@@ -124,7 +124,7 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
             viewConfiguration.reselectVariants,
             viewConfiguration.viewAttributes.asImmutable(),
 
-            resolutionHandle,
+            resolutionAccess,
             taskDependencyFactory,
             calculatedValueContainerFactory,
             attributesFactory
@@ -141,7 +141,7 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
         private final ImmutableAttributes viewAttributes;
 
         // Services
-        private final ResolutionHandle resolutionHandle;
+        private final ResolutionAccess resolutionAccess;
         private final TaskDependencyFactory taskDependencyFactory;
         private final CalculatedValueContainerFactory calculatedValueContainerFactory;
         private final ImmutableAttributesFactory attributesFactory;
@@ -152,7 +152,7 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
             boolean reselectVariants,
             ImmutableAttributes viewAttributes,
 
-            ResolutionHandle resolutionHandle,
+            ResolutionAccess resolutionAccess,
             TaskDependencyFactory taskDependencyFactory,
             CalculatedValueContainerFactory calculatedValueContainerFactory,
             ImmutableAttributesFactory attributesFactory
@@ -162,7 +162,7 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
             this.reselectVariants = reselectVariants;
             this.viewAttributes = viewAttributes;
 
-            this.resolutionHandle = resolutionHandle;
+            this.resolutionAccess = resolutionAccess;
             this.taskDependencyFactory = taskDependencyFactory;
             this.calculatedValueContainerFactory = calculatedValueContainerFactory;
             this.attributesFactory = attributesFactory;
@@ -173,7 +173,7 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
             return new DefaultArtifactCollection(
                 getFiles(),
                 lenient,
-                resolutionHandle.getHost(),
+                resolutionAccess.getHost(),
                 calculatedValueContainerFactory
             );
         }
@@ -181,9 +181,9 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
         @Override
         public ResolutionBackedFileCollection getFiles() {
             return new ResolutionBackedFileCollection(
-                resolutionHandle.getResults().map(this::selectArtifacts),
+                resolutionAccess.getResults().map(this::selectArtifacts),
                 lenient,
-                resolutionHandle.getHost(),
+                resolutionAccess.getHost(),
                 taskDependencyFactory
             );
         }
@@ -198,13 +198,13 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
                 componentFilter,
                 reselectVariants,
                 allowNoMatchingVariants,
-                resolutionHandle.getDefaultSortOrder()
+                resolutionAccess.getDefaultSortOrder()
             ));
         }
 
         @Override
         public ImmutableAttributes getAttributes() {
-            ImmutableAttributes baseAttributes = resolutionHandle.getAttributes();
+            ImmutableAttributes baseAttributes = resolutionAccess.getAttributes();
 
             // The user did not specify any attributes. Use the original request attributes.
             if (viewAttributes.isEmpty()) {

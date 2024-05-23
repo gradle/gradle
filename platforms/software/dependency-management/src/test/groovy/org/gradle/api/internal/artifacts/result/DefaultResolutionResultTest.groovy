@@ -25,7 +25,7 @@ import org.gradle.api.artifacts.result.ResolvedVariantResult
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
-import org.gradle.api.internal.artifacts.resolver.ResolutionHandle
+import org.gradle.api.internal.artifacts.resolver.ResolutionAccess
 import org.gradle.api.internal.artifacts.resolver.ResolutionOutputsInternal
 import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.api.internal.provider.Providers
@@ -155,12 +155,12 @@ class DefaultResolutionResultTest extends Specification {
     }
 
     private ResolutionResult newResolutionResult(ResolvedComponentResultInternal root) {
-        ResolutionHandle handle = Mock(ResolutionHandle) {
+        ResolutionAccess resolutionAccess = Mock(ResolutionAccess) {
             getPublicView() >> Mock(ResolutionOutputsInternal) {
                 getRootComponent() >> Providers.of(root)
             }
         }
-        new DefaultResolutionResult(handle, new AttributeDesugaring(AttributeTestUtil.attributesFactory()))
+        new DefaultResolutionResult(resolutionAccess, new AttributeDesugaring(AttributeTestUtil.attributesFactory()))
     }
 
 }

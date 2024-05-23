@@ -79,7 +79,7 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSelectionSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.Conflict;
 import org.gradle.api.internal.artifacts.resolver.DefaultResolutionOutputs;
-import org.gradle.api.internal.artifacts.resolver.ResolutionHandle;
+import org.gradle.api.internal.artifacts.resolver.ResolutionAccess;
 import org.gradle.api.internal.artifacts.resolver.ResolutionOutputsInternal;
 import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
@@ -225,7 +225,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private final FreezableAttributeContainer configurationAttributes;
     private final DomainObjectContext domainObjectContext;
     private final ImmutableAttributesFactory attributesFactory;
-    private final ResolutionHandle resolutionHandle;
+    private final ResolutionAccess resolutionAccess;
     private FileCollectionInternal intrinsicFiles;
 
     private final DisplayName displayName;
@@ -305,7 +305,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         this.displayName = Describables.memoize(new ConfigurationDescription(identityPath));
         this.configurationAttributes = new FreezableAttributeContainer(attributesFactory.mutable(), this.displayName);
 
-        this.resolutionHandle = new ConfigurationResolutionHandle();
+        this.resolutionAccess = new ConfigurationResolutionAccess();
         this.resolvableDependencies = instantiator.newInstance(ConfigurationResolvableDependencies.class, this);
 
         this.ownDependencies = (DefaultDomainObjectSet<Dependency>) domainObjectCollectionFactory.newDomainObjectSet(Dependency.class);
@@ -520,7 +520,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private FileCollectionInternal getIntrinsicFiles() {
         if (intrinsicFiles == null) {
             assertIsResolvable();
-            intrinsicFiles = resolutionHandle.getPublicView().getFiles();
+            intrinsicFiles = resolutionAccess.getPublicView().getFiles();
         }
         return intrinsicFiles;
     }
@@ -611,7 +611,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             .nagUser();
 
         return new ResolutionBackedFileCollection(
-            resolutionHandle.getResults().map(resolverResults ->
+            resolutionAccess.getResults().map(resolverResults ->
                 resolverResults.getLegacyResults().getLegacyVisitedArtifactSet().select(dependencySpec)
             ),
             false,
@@ -648,7 +648,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     @Override
     public ResolvedConfiguration getResolvedConfiguration() {
         warnOnDeprecatedUsage("getResolvedConfiguration()", ProperMethodUsage.RESOLVABLE);
-        return resolutionHandle.getResults().getValue().getLegacyResults().getResolvedConfiguration();
+        return resolutionAccess.getResults().getValue().getLegacyResults().getResolvedConfiguration();
     }
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
@@ -656,7 +656,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         return currentState.map(ResolverResults::isFullyResolved).orElse(false);
     }
 
-    private class ConfigurationResolutionHandle implements ResolutionHandle {
+    private class ConfigurationResolutionAccess implements ResolutionAccess {
 
         @Override
         public ResolutionHost getHost() {
@@ -1940,17 +1940,17 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         @Override
         public ResolutionResult getResolutionResult() {
             assertIsResolvable();
-            return new DefaultResolutionResult(resolutionHandle, attributeDesugaring);
+            return new DefaultResolutionResult(resolutionAccess, attributeDesugaring);
         }
 
         @Override
         public ArtifactCollection getArtifacts() {
-            return resolutionHandle.getPublicView().getArtifacts();
+            return resolutionAccess.getPublicView().getArtifacts();
         }
 
         @Override
         public ArtifactView artifactView(Action<? super ArtifactView.ViewConfiguration> configAction) {
-            return resolutionHandle.getPublicView().artifactView(configAction);
+            return resolutionAccess.getPublicView().artifactView(configAction);
         }
 
         @Override
@@ -1961,7 +1961,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         @Override
         public ResolutionOutputsInternal getResolutionOutputs() {
             assertIsResolvable();
-            return resolutionHandle.getPublicView();
+            return resolutionAccess.getPublicView();
         }
     }
 

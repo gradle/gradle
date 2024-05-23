@@ -26,7 +26,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
  * An internal lazy reference to a graph resolution. Provides access to the inputs and
  * outputs of a graph resolution.
  */
-public interface ResolutionHandle {
+public interface ResolutionAccess {
 
     /**
      * Get the owner of the resolution.

@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.internal.artifacts.resolver.ResolutionHandle;
+import org.gradle.api.internal.artifacts.resolver.ResolutionAccess;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Actions;
@@ -37,14 +37,14 @@ import static org.gradle.api.internal.artifacts.result.DefaultResolvedComponentR
 
 public class DefaultResolutionResult implements ResolutionResult {
 
-    private final ResolutionHandle resolutionHandle;
+    private final ResolutionAccess resolutionAccess;
     private final AttributeDesugaring attributeDesugaring;
 
     public DefaultResolutionResult(
-        ResolutionHandle resolutionHandle,
+        ResolutionAccess resolutionAccess,
         AttributeDesugaring attributeDesugaring
     ) {
-        this.resolutionHandle = resolutionHandle;
+        this.resolutionAccess = resolutionAccess;
         this.attributeDesugaring = attributeDesugaring;
     }
 
@@ -55,12 +55,12 @@ public class DefaultResolutionResult implements ResolutionResult {
 
     @Override
     public Provider<ResolvedComponentResult> getRootComponent() {
-        return resolutionHandle.getPublicView().getRootComponent();
+        return resolutionAccess.getPublicView().getRootComponent();
     }
 
     @Override
     public AttributeContainer getRequestedAttributes() {
-        return attributeDesugaring.desugar(resolutionHandle.getAttributes());
+        return attributeDesugaring.desugar(resolutionAccess.getAttributes());
     }
 
     @Override
@@ -108,11 +108,11 @@ public class DefaultResolutionResult implements ResolutionResult {
             return false;
         }
         DefaultResolutionResult that = (DefaultResolutionResult) o;
-        return Objects.equals(resolutionHandle, that.resolutionHandle);
+        return Objects.equals(resolutionAccess, that.resolutionAccess);
     }
 
     @Override
     public int hashCode() {
-        return resolutionHandle.hashCode();
+        return resolutionAccess.hashCode();
     }
 }
