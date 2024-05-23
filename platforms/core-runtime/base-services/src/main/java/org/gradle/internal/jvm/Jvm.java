@@ -122,6 +122,14 @@ public class Jvm implements JavaInfo {
         return create(javaHome, implementationJavaVersion, javaVersionMajor);
     }
 
+    /**
+     * @deprecated KGP uses this, new code should use {@link #discovered(File, String, Integer)}
+     */
+    @Deprecated
+    public static Jvm discovered(File javaHome, String implementationJavaVersion, JavaVersion javaVersion) {
+        return create(javaHome, implementationJavaVersion, Integer.parseInt(javaVersion.getMajorVersion()));
+    }
+
     @Override
     public String toString() {
         if (userSupplied) {
