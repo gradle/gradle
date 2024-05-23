@@ -15,7 +15,6 @@
  */
 package org.gradle.api.tasks.diagnostics;
 
-import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
@@ -38,8 +37,10 @@ import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Description;
@@ -103,10 +104,14 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
             this.includedBuildIdentityPaths = includedBuildIdentityPaths;
         }
 
-        public ImmutableList<SoftwareTypeImplementation<?>> getAllSoftwareTypes() {
-            List<SoftwareTypeImplementation<?>> allSoftwareTypes = new ArrayList<>(softwareTypes);
+        /**
+         * Investigates this project and all it's children to return the combined set
+         * of all {@link SoftwareTypeImplementation}s registered by plugins used by them.
+         */
+        private Set<SoftwareTypeImplementation<?>> getAllSoftwareTypes() {
+            Set<SoftwareTypeImplementation<?>> allSoftwareTypes = new HashSet<>(softwareTypes);
             children.forEach(p -> allSoftwareTypes.addAll(p.getAllSoftwareTypes()));
-            return ImmutableList.copyOf(allSoftwareTypes);
+            return allSoftwareTypes;
         }
     }
 

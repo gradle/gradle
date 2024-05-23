@@ -37,12 +37,15 @@ includeBuild('another')"""
 
         then:
         outputContains """
+Projects:
+
 Root project 'my-root-project'
 +--- Project ':p1'
 \\--- Project ':p2'
      \\--- Project ':p2:p22'
 
-Included builds
+Included builds:
+
 \\--- Included build ':another'
 """
     }
@@ -63,7 +66,8 @@ includeBuild('another')"""
 Root project 'my-root-project'
 No sub-projects
 
-Included builds
+Included builds:
+
 +--- Included build ':another'
 \\--- Included build ':third'"""
     }
