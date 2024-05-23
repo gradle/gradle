@@ -31,7 +31,7 @@ class DefaultFileWatcherProbeRegistryTest extends Specification {
     def "can register probes for unknown filestores"() {
         given:
         def registry = new DefaultFileWatcherProbeRegistry()
-        def probeLocation = file("probe")
+        def probeDirectory = file("probe")
 
         when:
         def hierarchy = file("hierarchy")
@@ -41,7 +41,7 @@ class DefaultFileWatcherProbeRegistryTest extends Specification {
         DefaultFileWatcherProbeRegistry.getFileStore(hierarchy.toPath()) == null
 
         when:
-        registry.registerProbe(hierarchy, probeLocation)
+        registry.registerProbe(hierarchy, probeDirectory)
         registry.updateProbedHierarchies(ImmutableSet.of(hierarchy), noop, noop)
         then:
         registry.unprovenHierarchies().count() == 1

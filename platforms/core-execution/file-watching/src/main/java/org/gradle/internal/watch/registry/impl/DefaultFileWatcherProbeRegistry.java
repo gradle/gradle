@@ -50,18 +50,18 @@ public class DefaultFileWatcherProbeRegistry implements FileWatcherProbeRegistry
     private ImmutableSet<File> probedHierarchies = ImmutableSet.of();
 
     @Override
-    public void registerProbe(File watchableHierarchy, @Nullable File probeLocation) {
+    public void registerProbe(File watchableHierarchy, @Nullable File probeDirectory) {
         LOGGER.debug("Registering probe for {}", watchableHierarchy);
 
         FileStore fileStore = getFileStore(watchableHierarchy.toPath());
         WatchProbeImpl watchProbe;
         if (fileStore != null) {
             watchProbe = probesByFS.computeIfAbsent(fileStore, fs -> {
-                File probeFile = getProbeFile(probeLocation, watchableHierarchy);
+                File probeFile = getProbeFile(probeDirectory, watchableHierarchy);
                 return new WatchProbeImpl(probeFile, isSubpath(probeFile, watchableHierarchy));
             });
         } else { // fallback, unlikely to happen
-            File probeFile = getProbeFile(probeLocation, watchableHierarchy);
+            File probeFile = getProbeFile(probeDirectory, watchableHierarchy);
             watchProbe = watchProbesByHierarchy
                 .values()
                 .stream()
@@ -75,11 +75,11 @@ public class DefaultFileWatcherProbeRegistry implements FileWatcherProbeRegistry
         watchProbe.addWatchableHierarchy(watchableHierarchy);
     }
 
-    private static File getProbeFile(@Nullable File probeLocation, File watchableHierarchy) {
-        if (probeLocation == null) {
-            probeLocation = new File(watchableHierarchy, ".gradle");
+    private static File getProbeFile(@Nullable File probeDirectory, File watchableHierarchy) {
+        if (probeDirectory == null) {
+            probeDirectory = new File(watchableHierarchy, ".gradle");
         }
-        return new File(probeLocation, "file-system.probe");
+        return new File(probeDirectory, "file-system.probe");
     }
 
     private static boolean isSubpath(File probeFile, File watchableHierarchy) {
@@ -112,7 +112,7 @@ public class DefaultFileWatcherProbeRegistry implements FileWatcherProbeRegistry
             .forEach(probe -> {
                 if (!probe.hasWatchableHierarchies(unwatchedHierarchies)) {
                     probe.disarm();
-                    probeDisarmed.accept(probe.getLocation(), probe.isSubPathOfWatchableHierarchy());
+                    probeDisarmed.accept(probe.getDirectory(), probe.isSubPathOfWatchableHierarchy());
                 }
             });
     }
@@ -125,7 +125,7 @@ public class DefaultFileWatcherProbeRegistry implements FileWatcherProbeRegistry
             .filter(x -> x.state == WatchProbeImpl.State.UNARMED)
             .distinct()
             .forEach(probe -> {
-                beforeProbeArmed.accept(probe.getLocation(), probe.isSubPathOfWatchableHierarchy());
+                beforeProbeArmed.accept(probe.getDirectory(), probe.isSubPathOfWatchableHierarchy());
                 probe.arm();
             });
     }
@@ -211,7 +211,7 @@ public class DefaultFileWatcherProbeRegistry implements FileWatcherProbeRegistry
             this.watchableHierarchies = new HashSet<>();
         }
 
-        public File getLocation() {
+        public File getDirectory() {
             return probeFile.getParentFile();
         }
 

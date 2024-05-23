@@ -47,7 +47,7 @@ import java.util.stream.Stream;
  * the registry is closed.
  */
 public interface FileWatcherProbeRegistry {
-    void registerProbe(File hierarchy, @Nullable File probeLocation);
+    void registerProbe(File hierarchy, @Nullable File probeDirectory);
 
     void updateProbedHierarchies(ImmutableSet<File> probedHierarchies, BiConsumer<File, Boolean> probeDisarmed, BiConsumer<File, Boolean> beforeProbeArmed);
 

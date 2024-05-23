@@ -47,7 +47,7 @@ public interface BuildLifecycleAwareVirtualFileSystem extends VirtualFileSystem 
      * This method is first called for the root directory of the root project.
      * It is also called for the root directories of included builds, and all other nested builds.
      */
-    void registerWatchableHierarchy(File rootDirectoryForWatching, @Nullable File probeLocation);
+    void registerWatchableHierarchy(File rootDirectoryForWatching, @Nullable File probeDirectory);
 
     /**
      * Returns if anything is being watched.

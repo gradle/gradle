@@ -146,8 +146,8 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
     }
 
     @Override
-    public void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root, @Nullable File probeLocation) {
-        fileWatcherUpdater.registerWatchableHierarchy(watchableHierarchy, root, probeLocation);
+    public void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root, @Nullable File probeDirectory) {
+        fileWatcherUpdater.registerWatchableHierarchy(watchableHierarchy, root, probeDirectory);
     }
 
     @Override

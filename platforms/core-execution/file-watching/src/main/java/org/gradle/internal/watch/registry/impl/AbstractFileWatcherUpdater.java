@@ -57,9 +57,9 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
     }
 
     @Override
-    public void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root, @Nullable File probeLocation) {
+    public void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root, @Nullable File probeDirectory) {
         watchableHierarchies.registerWatchableHierarchy(watchableHierarchy, root);
-        probeRegistry.registerProbe(watchableHierarchy, probeLocation);
+        probeRegistry.registerProbe(watchableHierarchy, probeDirectory);
         update(root);
     }
 
@@ -150,12 +150,12 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
         probeRegistry.updateProbedHierarchies(
             probedHierarchies,
             this::stopWatchingProbeDirectory,
-            (probeLocation, isSubdirectoryOfWatchedHierarchy) -> {
+            (probeDirectory, isSubdirectoryOfWatchedHierarchy) -> {
             // Make sure the directory exists, this can be necessary when
             // included builds are evaluated with configuration cache
             //noinspection ResultOfMethodCallIgnored
-                probeLocation.mkdirs();
-                startWatchingProbeDirectory(probeLocation, isSubdirectoryOfWatchedHierarchy);
+                probeDirectory.mkdirs();
+                startWatchingProbeDirectory(probeDirectory, isSubdirectoryOfWatchedHierarchy);
             }
         );
     }

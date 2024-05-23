@@ -571,9 +571,9 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
             .present
     }
 
-    void registerWatchableHierarchies(Iterable<File> watchableHierarchies, Closure<File> probeLocation = { new File(it, ".gradle") }) {
+    void registerWatchableHierarchies(Iterable<File> watchableHierarchies, Closure<File> probeDirectory = { new File(it, ".gradle") }) {
         watchableHierarchies.each { watchableHierarchy ->
-            updater.registerWatchableHierarchy(watchableHierarchy, virtualFileSystem.root, probeLocation(watchableHierarchy))
+            updater.registerWatchableHierarchy(watchableHierarchy, virtualFileSystem.root, probeDirectory(watchableHierarchy))
         }
     }
 

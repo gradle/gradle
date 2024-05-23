@@ -202,15 +202,15 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
     }
 
     @Override
-    public void registerWatchableHierarchy(File watchableHierarchy, @Nullable File probeLocation) {
+    public void registerWatchableHierarchy(File watchableHierarchy, @Nullable File probeDirectory) {
         updateRootUnderLock(currentRoot -> {
             if (watchRegistry == null) {
-                watchableHierarchiesRegisteredEarly.put(watchableHierarchy, probeLocation);
+                watchableHierarchiesRegisteredEarly.put(watchableHierarchy, probeDirectory);
                 return currentRoot;
             }
             return withWatcherChangeErrorHandling(
                 currentRoot,
-                () -> watchRegistry.registerWatchableHierarchy(watchableHierarchy, currentRoot, probeLocation)
+                () -> watchRegistry.registerWatchableHierarchy(watchableHierarchy, currentRoot, probeDirectory)
             );
         });
     }
@@ -329,7 +329,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
                     new BroadcastingChangeHandler()
                 )));
             SnapshotHierarchy newRoot = watchRegistry.updateVfsOnBuildStarted(currentRoot.empty(), watchMode, unsupportedFileSystems);
-            watchableHierarchiesRegisteredEarly.forEach((watchableHierarchy, probeLocation) -> watchRegistry.registerWatchableHierarchy(watchableHierarchy, newRoot, probeLocation));
+            watchableHierarchiesRegisteredEarly.forEach((watchableHierarchy, probeDirectory) -> watchRegistry.registerWatchableHierarchy(watchableHierarchy, newRoot, probeDirectory));
             watchableHierarchiesRegisteredEarly.clear();
             return newRoot;
         } catch (Exception ex) {
