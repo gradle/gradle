@@ -45,7 +45,6 @@ dependencies {
     api(project(":enterprise-operations"))
     api(project(":file-collections"))
     api(project(":file-temp"))
-    api(project(":files"))
     api(project(":functional"))
     api(projects.graphSerialization)
     api(project(":hashing"))
@@ -68,7 +67,9 @@ dependencies {
     implementation(project(":base-services-groovy"))
     // TODO - it might be good to allow projects to contribute state to save and restore, rather than have this project know about everything
     implementation(project(":build-events"))
+    implementation(projects.coreExtensionsKt)
     implementation(project(":execution"))
+    implementation(project(":files"))
     implementation(project(":file-watching"))
     implementation(project(":input-tracking"))
     implementation(projects.javaLanguageExtensionsKt)

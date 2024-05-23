@@ -27,7 +27,7 @@ import org.gradle.configurationcache.ConfigurationCacheStateFile
 import org.gradle.configurationcache.ConfigurationCacheStateStore.StateFile
 import org.gradle.configurationcache.EncryptionService
 import org.gradle.configurationcache.InputTrackingState
-import org.gradle.configurationcache.extensions.directoryChildrenNamesHash
+import org.gradle.internal.extensions.core.directoryChildrenNamesHash
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.configurationcache.problems.ConfigurationCacheProblems

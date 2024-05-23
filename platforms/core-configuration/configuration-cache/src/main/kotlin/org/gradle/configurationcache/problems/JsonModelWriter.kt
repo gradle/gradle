@@ -18,7 +18,7 @@ package org.gradle.configurationcache.problems
 
 import org.apache.groovy.json.internal.CharBuf
 import org.gradle.api.internal.DocumentationRegistry
-import org.gradle.configurationcache.extensions.documentationLinkFor
+import org.gradle.internal.configuration.problems.documentationLinkFor
 import org.gradle.internal.configuration.problems.DecoratedFailure
 import org.gradle.internal.configuration.problems.DecoratedPropertyProblem
 import org.gradle.internal.configuration.problems.DocumentationSection

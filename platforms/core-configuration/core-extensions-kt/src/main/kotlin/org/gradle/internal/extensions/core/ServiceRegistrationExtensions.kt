@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.extensions
+package org.gradle.internal.extensions.core
 
-import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.service.ServiceRegistration
 
 
-internal
-inline fun <reified T> ListenerManager.getBroadcaster(): T =
-    getBroadcaster(T::class.java)
+/**
+ * @param ServiceType The service to make visible.
+ * @param ImplementationType The implementation type of the service.
+ * @see [ServiceRegistration.add]
+ */
+inline fun <reified ServiceType, reified ImplementationType : ServiceType> ServiceRegistration.add() {
+    add(ServiceType::class.java, ImplementationType::class.java)
+}

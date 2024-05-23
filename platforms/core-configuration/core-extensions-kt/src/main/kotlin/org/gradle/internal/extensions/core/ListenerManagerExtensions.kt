@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.extensions
+package org.gradle.internal.extensions.core
 
-import org.gradle.api.Project
-import org.gradle.api.plugins.ExtraPropertiesExtension
-
-
-internal
-inline fun <reified T : Any> Project.setSingletonProperty(value: T) {
-    extra[T::class.java.name] = value
-}
+import org.gradle.internal.event.ListenerManager
 
 
-internal
-inline fun <reified T> Project.popSingletonProperty(): T? =
-    extra.remove(T::class.java.name)?.uncheckedCast()
-
-
-internal
-val Project.extra: ExtraPropertiesExtension
-    get() = extensions.extraProperties
+inline fun <reified T> ListenerManager.getBroadcaster(): T =
+    getBroadcaster(T::class.java)

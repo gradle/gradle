@@ -46,9 +46,9 @@ import org.gradle.api.tasks.util.PatternSet
 import org.gradle.configurationcache.CoupledProjectsListener
 import org.gradle.configurationcache.InputTrackingState
 import org.gradle.configurationcache.UndeclaredBuildInputListener
-import org.gradle.configurationcache.extensions.fileSystemEntryType
+import org.gradle.internal.extensions.core.fileSystemEntryType
 import org.gradle.configurationcache.extensions.uncheckedCast
-import org.gradle.configurationcache.extensions.uri
+import org.gradle.internal.extensions.core.uri
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprint.InputFile
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprint.InputFileSystemEntry
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprint.ValueSource

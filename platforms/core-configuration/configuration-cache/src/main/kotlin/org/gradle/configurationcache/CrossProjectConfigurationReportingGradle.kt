@@ -41,7 +41,7 @@ import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.services.BuildServiceRegistry
 import org.gradle.configuration.ConfigurationTargetIdentifier
-import org.gradle.configurationcache.extensions.serviceOf
+import org.gradle.internal.extensions.core.serviceOf
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import org.gradle.initialization.SettingsState
 import org.gradle.internal.build.BuildState

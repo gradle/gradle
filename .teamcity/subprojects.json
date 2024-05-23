@@ -217,6 +217,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "core-extensions-kt",
+    "path": "platforms/core-configuration/core-extensions-kt",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "core-platform",
     "path": "subprojects/core-platform",
     "unitTests": false,

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.extensions
+package org.gradle.internal.extensions.core
 
 import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.HashCode
@@ -36,7 +36,6 @@ private
 val NON_DIRECTORY_CHILDREN_NAMES_HASH = HashCode.fromBytes(byteArrayOf(0, 0, 0, 0))
 
 
-internal
 fun directoryChildrenNamesHash(file: File): HashCode {
     return file.list()?.let { entries ->
         val hasher = Hashing.newHasher()

@@ -40,7 +40,7 @@ import org.gradle.internal.resource.transfer.ExternalResourceConnector
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices
 import java.io.File
-import org.gradle.configurationcache.extensions.add
+import org.gradle.internal.extensions.core.add
 import org.gradle.invocation.IsolatedProjectEvaluationListenerProvider
 
 
