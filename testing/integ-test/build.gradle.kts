@@ -15,7 +15,7 @@ dependencies {
     integTestImplementation(project(":resources"))
     integTestImplementation(project(":persistent-cache"))
     integTestImplementation(project(":dependency-management"))
-    integTestImplementation(project(":gradle-main"))
+    integTestImplementation(project(":gradle-cli-main"))
     integTestImplementation(project(":launcher"))
     integTestImplementation(project(":ide-plugins"))
     integTestImplementation(libs.groovy)

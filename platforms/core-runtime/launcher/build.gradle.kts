@@ -74,7 +74,7 @@ dependencies {
     implementation(libs.commonsLang)
     implementation(libs.ant)
 
-    runtimeOnly(project(":gradle-main"))
+    runtimeOnly(project(":gradle-cli-main"))
     runtimeOnly(project(":declarative-dsl-provider"))
     runtimeOnly(project(":problems"))
 
@@ -82,7 +82,7 @@ dependencies {
     runtimeOnly(libs.commonsLang)
     runtimeOnly(libs.slf4jApi)
 
-    manifestClasspath(project(":gradle-main"))
+    manifestClasspath(project(":gradle-cli-main"))
     manifestClasspath(projects.javaLanguageExtensions)
     manifestClasspath(project(":base-services"))
     manifestClasspath(project(":worker-services"))

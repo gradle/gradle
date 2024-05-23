@@ -85,7 +85,7 @@ val core = platform("core") {
         subproject("file-temp")
         subproject("files")
         subproject("functional")
-        subproject("gradle-main")
+        subproject("gradle-cli-main")
         subproject("installation-beacon")
         subproject("instrumentation-agent")
         subproject("instrumentation-declarations")

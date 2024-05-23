@@ -462,8 +462,8 @@
     "crossVersionTests": false
   },
   {
-    "name": "gradle-main",
-    "path": "platforms/core-runtime/gradle-main",
+    "name": "gradle-cli-main",
+    "path": "platforms/core-runtime/gradle-cli-main",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
