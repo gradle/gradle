@@ -273,24 +273,29 @@ No sub-projects
         succeeds("projects")
 
         outputContains("""
+
+Available software types:
+
+application (com.example.restricted.ApplicationExtension)
+        Defined in: com.example.restricted.ApplicationPlugin
+        Registered by: com.example.restricted.SoftwareTypeRegistrationPlugin
+library (com.example.restricted.LibraryExtension)
+        Defined in: com.example.restricted.LibraryPlugin
+        Registered by: com.example.restricted.SoftwareTypeRegistrationPlugin
+utility (com.example.restricted.UtilityExtension)
+        Defined in: com.example.restricted.UtilityPlugin
+        Registered by: com.example.restricted.SoftwareTypeRegistrationPlugin
+
+Projects:
+
 ------------------------------------------------------------
 Root project 'example'
 ------------------------------------------------------------
 
 Root project 'example'
-+--- Project ':app' - Sample application project
-        Software type: application (com.example.restricted.ApplicationExtension)
-        Defined in plugin: com.example.restricted.ApplicationPlugin
-        Registered by plugin: com.example.restricted.SoftwareTypeRegistrationPlugin
-+--- Project ':lib' - Sample library project
-        Software type: library (com.example.restricted.LibraryExtension)
-        Defined in plugin: com.example.restricted.LibraryPlugin
-        Registered by plugin: com.example.restricted.SoftwareTypeRegistrationPlugin
-\\--- Project ':util' - Utilities and common code
-        Software type: utility (com.example.restricted.UtilityExtension)
-        Defined in plugin: com.example.restricted.UtilityPlugin
-        Registered by plugin: com.example.restricted.SoftwareTypeRegistrationPlugin
-
++--- Project ':app' (application) - Sample application project
++--- Project ':lib' (library) - Sample library project
+\\--- Project ':util' (utility) - Utilities and common code
 """)
     }
 }
