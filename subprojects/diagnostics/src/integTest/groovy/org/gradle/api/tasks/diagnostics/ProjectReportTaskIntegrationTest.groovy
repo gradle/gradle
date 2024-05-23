@@ -39,6 +39,10 @@ includeBuild('another')"""
         outputContains """
 Projects:
 
+------------------------------------------------------------
+Root project 'my-root-project'
+------------------------------------------------------------
+
 Root project 'my-root-project'
 +--- Project ':p1'
 \\--- Project ':p2'
