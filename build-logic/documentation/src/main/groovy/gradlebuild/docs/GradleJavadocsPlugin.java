@@ -106,7 +106,6 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
             if (BuildEnvironment.INSTANCE.getJavaVersion().isJava11Compatible()) {
                 // TODO html4 output was removed in Java 13, see https://bugs.openjdk.org/browse/JDK-8215578
                 options.addBooleanOption("html4", true);
-                options.addBooleanOption("-no-module-directories", true);
 
                 FileSystemOperations fs = getFs();
                 //noinspection Convert2Lambda
