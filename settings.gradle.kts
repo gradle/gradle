@@ -56,7 +56,6 @@ unassigned {
 // Gradle implementation projects
 unassigned {
     subproject("core")
-    subproject("plugins")
     subproject("build-events")
     subproject("diagnostics")
     subproject("composite-builds")
@@ -70,20 +69,23 @@ val core = platform("core") {
     module("core-runtime") {
         subproject("base-asm")
         subproject("base-services")
-        subproject("bootstrap")
         subproject("build-configuration")
         subproject("build-operations")
         subproject("build-option")
         subproject("build-profile")
         subproject("build-state")
         subproject("cli")
+        subproject("client-services")
         subproject("concurrent")
+        subproject("daemon-main")
         subproject("daemon-protocol")
+        subproject("daemon-services")
         subproject("distributions-basics")
         subproject("distributions-core")
         subproject("file-temp")
         subproject("files")
         subproject("functional")
+        subproject("gradle-main")
         subproject("installation-beacon")
         subproject("instrumentation-agent")
         subproject("instrumentation-declarations")
@@ -100,10 +102,9 @@ val core = platform("core") {
         subproject("serialization")
         subproject("service-provider")
         subproject("time")
-        subproject("client-services")
-        subproject("daemon-services")
+        subproject("tooling-api-provider")
         subproject("worker-services")
-        subproject("wrapper")
+        subproject("wrapper-main")
         subproject("wrapper-shared")
     }
 
@@ -148,7 +149,7 @@ val core = platform("core") {
         subproject("hashing")
         subproject("persistent-cache")
         subproject("snapshots")
-        subproject("worker-processes")
+        subproject("worker-main")
         subproject("workers")
     }
 }

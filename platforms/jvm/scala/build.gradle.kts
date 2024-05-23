@@ -39,7 +39,7 @@ dependencies {
     implementation(project(":plugins-java"))
     implementation(project(":plugins-java-base"))
     implementation(project(":reporting"))
-    implementation(project(":worker-processes"))
+    implementation(project(":worker-main"))
 
     implementation(libs.guava)
 

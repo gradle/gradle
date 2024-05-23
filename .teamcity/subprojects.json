@@ -49,13 +49,6 @@
     "crossVersionTests": false
   },
   {
-    "name": "bootstrap",
-    "path": "platforms/core-runtime/bootstrap",
-    "unitTests": false,
-    "functionalTests": false,
-    "crossVersionTests": false
-  },
-  {
     "name": "build-cache",
     "path": "platforms/core-execution/build-cache",
     "unitTests": true,
@@ -226,6 +219,13 @@
   {
     "name": "core-platform",
     "path": "subprojects/core-platform",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "daemon-main",
+    "path": "platforms/core-runtime/daemon-main",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -458,6 +458,13 @@
     "name": "functional",
     "path": "platforms/core-runtime/functional",
     "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "gradle-main",
+    "path": "platforms/core-runtime/gradle-main",
+    "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
@@ -1127,6 +1134,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "tooling-api-provider",
+    "path": "platforms/core-runtime/tooling-api-provider",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "tooling-native",
     "path": "platforms/native/tooling-native",
     "unitTests": false,
@@ -1155,8 +1169,8 @@
     "crossVersionTests": false
   },
   {
-    "name": "worker-processes",
-    "path": "platforms/core-execution/worker-processes",
+    "name": "worker-main",
+    "path": "platforms/core-execution/worker-main",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
@@ -1176,8 +1190,8 @@
     "crossVersionTests": false
   },
   {
-    "name": "wrapper",
-    "path": "platforms/core-runtime/wrapper",
+    "name": "wrapper-main",
+    "path": "platforms/core-runtime/wrapper-main",
     "unitTests": false,
     "functionalTests": true,
     "crossVersionTests": true

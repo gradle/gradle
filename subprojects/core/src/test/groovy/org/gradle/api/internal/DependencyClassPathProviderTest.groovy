@@ -33,7 +33,7 @@ class DependencyClassPathProviderTest extends Specification {
 
         then:
         classpath.asFiles.collect{it.name} == [
-            "gradle-worker-processes-runtime",
+            "gradle-worker-main-runtime",
             "gradle-launcher-runtime",
             "gradle-cli-runtime",
             "gradle-workers-runtime",
@@ -47,7 +47,7 @@ class DependencyClassPathProviderTest extends Specification {
         ]
 
         and:
-        1 * moduleRegistry.getModule("gradle-worker-processes") >> module("gradle-worker-processes")
+        1 * moduleRegistry.getModule("gradle-worker-main") >> module("gradle-worker-main")
         1 * moduleRegistry.getModule("gradle-launcher") >> module("gradle-launcher", module("gradle-cli"))
         1 * moduleRegistry.getModule("gradle-workers") >> module("gradle-workers")
         1 * moduleRegistry.getModule("gradle-dependency-management") >> module("gradle-dependency-management")

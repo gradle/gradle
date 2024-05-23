@@ -50,16 +50,16 @@ class SystemClassLoaderTest extends AbstractIntegrationSpec {
 
                     systemLoader.loadClass(org.gradle.launcher.GradleMain.name) // this should be on the classpath, it's from the launcher package
 
-                    def nonLauncherOrCoreClass = "org.apache.commons.lang.WordUtils"
+                    def nonLauncherOrCoreClass = "org.gradle.api.reporting.Report"
 
-                    // Check that this is a dependency (somewhat redundant, but for good measure)
-                    assert Project.classLoader.loadClass(nonLauncherOrCoreClass) != null
+                    // Check that this is a dependency (to verify that the class is not accidentally removed and so make the test verify nothing)
+                    assert Class.forName(nonLauncherOrCoreClass) != null
 
                     try {
                         def clazz = systemLoader.loadClass(nonLauncherOrCoreClass)
                         assert clazz == null : "ClassNotFoundException should have been thrown trying to load a “\${nonLauncherOrCoreClass}” class from the system classloader as its not a launcher or core class (loaded class: \$clazz)"
                     } catch (ClassNotFoundException e) {
-                        //
+                        // expected
                     }
 
                     if (systemLoader instanceof java.net.URLClassLoader) {

@@ -20,7 +20,7 @@ dependencies {
     api(project(":serialization"))
     api(project(":service-provider"))
     api(project(":snapshots"))
-    api(project(":worker-processes"))
+    api(project(":worker-main"))
 
     api(libs.inject)
     api(libs.jsr305)
