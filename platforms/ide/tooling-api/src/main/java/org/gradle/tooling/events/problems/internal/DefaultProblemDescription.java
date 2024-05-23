@@ -27,6 +27,7 @@ import org.gradle.tooling.events.problems.Solution;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Objects;
 
 public class DefaultProblemDescription implements ProblemDescription {
     private final ProblemDefinition problemDefinition;
@@ -87,5 +88,28 @@ public class DefaultProblemDescription implements ProblemDescription {
 
     public AdditionalData getAdditionalData() {
         return additionalData;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DefaultProblemDescription that = (DefaultProblemDescription) o;
+        return Objects.equals(problemDefinition, that.problemDefinition)
+            && Objects.equals(contextualLabel, that.contextualLabel)
+            && Objects.equals(problemDetails, that.problemDetails)
+            && Objects.equals(locations, that.locations)
+            && Objects.equals(solutions, that.solutions)
+            && Objects.equals(additionalData, that.additionalData)
+            && Objects.equals(failureContainer, that.failureContainer);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(problemDefinition, contextualLabel, problemDetails, locations, solutions, additionalData, failureContainer);
     }
 }

@@ -22,6 +22,7 @@ import org.gradle.tooling.events.problems.ProblemAggregation;
 import org.gradle.tooling.events.problems.ProblemAggregationEvent;
 
 import javax.annotation.Nullable;
+import java.util.Objects;
 
 public class DefaultProblemAggregationEvent extends BaseProgressEvent implements ProblemAggregationEvent {
 
@@ -35,5 +36,22 @@ public class DefaultProblemAggregationEvent extends BaseProgressEvent implements
     @Override
     public ProblemAggregation getProblemAggregation() {
         return problemAggregation;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DefaultProblemAggregationEvent that = (DefaultProblemAggregationEvent) o;
+        return Objects.equals(problemAggregation, that.problemAggregation);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(problemAggregation);
     }
 }

@@ -21,6 +21,7 @@ import org.gradle.tooling.events.problems.AdditionalData;
 
 import java.io.Serializable;
 import java.util.Map;
+import java.util.Objects;
 
 public class GeneralData implements AdditionalData, Serializable {
 
@@ -33,5 +34,22 @@ public class GeneralData implements AdditionalData, Serializable {
     @Override
     public Map<String, Object> getAsMap() {
         return additionalData;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DefaultAdditionalData that = (DefaultAdditionalData) o;
+        return Objects.equals(additionalData, that.additionalData);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(additionalData);
     }
 }

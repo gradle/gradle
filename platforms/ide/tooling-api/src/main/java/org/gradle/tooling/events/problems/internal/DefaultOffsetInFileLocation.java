@@ -18,6 +18,8 @@ package org.gradle.tooling.events.problems.internal;
 
 import org.gradle.tooling.events.problems.OffsetInFileLocation;
 
+import java.util.Objects;
+
 public class DefaultOffsetInFileLocation extends DefaultFileLocation implements OffsetInFileLocation {
     private final int offset;
     private final int length;
@@ -36,5 +38,25 @@ public class DefaultOffsetInFileLocation extends DefaultFileLocation implements 
     @Override
     public int getLength() {
         return length;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+        DefaultOffsetInFileLocation that = (DefaultOffsetInFileLocation) o;
+        return offset == that.offset && length == that.length;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), offset, length);
     }
 }

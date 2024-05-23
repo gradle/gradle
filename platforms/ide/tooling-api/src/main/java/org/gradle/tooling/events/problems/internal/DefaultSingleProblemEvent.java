@@ -30,6 +30,7 @@ import org.gradle.tooling.events.problems.Solution;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Objects;
 
 @NonNullApi
 public class DefaultSingleProblemEvent extends BaseProgressEvent implements SingleProblemEvent {
@@ -95,5 +96,28 @@ public class DefaultSingleProblemEvent extends BaseProgressEvent implements Sing
     @Override
     public AdditionalData getAdditionalData() {
         return additionalData;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DefaultSingleProblemEvent that = (DefaultSingleProblemEvent) o;
+        return Objects.equals(problemDefinition, that.problemDefinition)
+            && Objects.equals(contextualLabel, that.contextualLabel)
+            && Objects.equals(details, that.details)
+            && Objects.equals(locations, that.locations)
+            && Objects.equals(solutions, that.solutions)
+            && Objects.equals(additionalData, that.additionalData)
+            && Objects.equals(failure, that.failure);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(problemDefinition, contextualLabel, details, locations, solutions, additionalData, failure);
     }
 }

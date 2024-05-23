@@ -20,6 +20,7 @@ import org.gradle.api.NonNullApi;
 import org.gradle.tooling.events.problems.ContextualLabel;
 
 import javax.annotation.Nullable;
+import java.util.Objects;
 
 @NonNullApi
 public class DefaultContextualLabel implements ContextualLabel {
@@ -33,5 +34,22 @@ public class DefaultContextualLabel implements ContextualLabel {
     @Override
     public String getContextualLabel() {
         return contextualLabel;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DefaultContextualLabel that = (DefaultContextualLabel) o;
+        return Objects.equals(contextualLabel, that.contextualLabel);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(contextualLabel);
     }
 }

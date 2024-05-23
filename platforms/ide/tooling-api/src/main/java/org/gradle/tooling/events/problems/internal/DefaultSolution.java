@@ -18,6 +18,8 @@ package org.gradle.tooling.events.problems.internal;
 
 import org.gradle.tooling.events.problems.Solution;
 
+import java.util.Objects;
+
 public class DefaultSolution implements Solution {
 
     private final String solution;
@@ -29,5 +31,22 @@ public class DefaultSolution implements Solution {
     @Override
     public String getSolution() {
         return solution;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DefaultSolution that = (DefaultSolution) o;
+        return Objects.equals(solution, that.solution);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(solution);
     }
 }

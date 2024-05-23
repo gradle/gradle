@@ -20,6 +20,7 @@ import org.gradle.api.NonNullApi;
 import org.gradle.tooling.events.problems.Details;
 
 import javax.annotation.Nullable;
+import java.util.Objects;
 
 @NonNullApi
 public class DefaultDetails implements Details {
@@ -33,5 +34,22 @@ public class DefaultDetails implements Details {
     @Override
     public String getDetails() {
         return details;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DefaultDetails that = (DefaultDetails) o;
+        return Objects.equals(details, that.details);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(details);
     }
 }

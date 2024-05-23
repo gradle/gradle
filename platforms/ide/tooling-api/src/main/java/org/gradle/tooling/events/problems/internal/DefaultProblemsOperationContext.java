@@ -26,6 +26,7 @@ import org.gradle.tooling.events.problems.Solution;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Objects;
 
 @NonNullApi
 public class DefaultProblemsOperationContext implements ProblemContext {
@@ -74,5 +75,26 @@ public class DefaultProblemsOperationContext implements ProblemContext {
     @Override
     public FailureContainer getFailure() {
         return failure;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DefaultProblemsOperationContext that = (DefaultProblemsOperationContext) o;
+        return Objects.equals(details, that.details)
+            && Objects.equals(locations, that.locations)
+            && Objects.equals(solutions, that.solutions)
+            && Objects.equals(additionalData, that.additionalData)
+            && Objects.equals(failure, that.failure);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(details, locations, solutions, additionalData, failure);
     }
 }

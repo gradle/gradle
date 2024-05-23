@@ -55,7 +55,9 @@ public final class DefaultFailure implements Failure {
             return false;
         }
         DefaultFailure that = (DefaultFailure) o;
-        return Objects.equals(message, that.message) && Objects.equals(description, that.description) && Objects.equals(causes, that.causes);
+        return Objects.equals(message, that.message)
+            && Objects.equals(description, that.description)
+            && Objects.equals(causes, that.causes);
     }
 
     @Override

@@ -24,6 +24,7 @@ import org.gradle.tooling.events.problems.ProblemExceptionMappingEvent;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 
 public class DefaultProblemExceptionMappingEvent extends BaseProgressEvent implements ProblemExceptionMappingEvent {
     private final Map<FailureContainer, Collection<ProblemDescription>> problemsForFailures;
@@ -38,5 +39,22 @@ public class DefaultProblemExceptionMappingEvent extends BaseProgressEvent imple
     @Override
     public Map<FailureContainer, Collection<ProblemDescription>> getProblemsForFailures() {
         return problemsForFailures;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DefaultProblemExceptionMappingEvent that = (DefaultProblemExceptionMappingEvent) o;
+        return Objects.equals(problemsForFailures, that.problemsForFailures);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(problemsForFailures);
     }
 }

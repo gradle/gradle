@@ -23,6 +23,7 @@ import org.gradle.tooling.events.problems.ProblemId;
 import org.gradle.tooling.events.problems.Severity;
 
 import javax.annotation.Nullable;
+import java.util.Objects;
 
 @NonNullApi
 public class DefaultProblemDefinition implements ProblemDefinition {
@@ -52,5 +53,22 @@ public class DefaultProblemDefinition implements ProblemDefinition {
     @Nullable
     public DocumentationLink getDocumentationLink() {
         return documentationLink;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DefaultProblemDefinition that = (DefaultProblemDefinition) o;
+        return Objects.equals(id, that.id) && Objects.equals(severity, that.severity) && Objects.equals(documentationLink, that.documentationLink);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, severity, documentationLink);
     }
 }
