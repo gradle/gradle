@@ -21,6 +21,7 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.diagnostics.internal.ProjectDetails;
 import org.gradle.api.tasks.diagnostics.internal.ReportGenerator;
 import org.gradle.api.tasks.diagnostics.internal.ReportRenderer;
 import org.gradle.initialization.BuildClientMetaData;
@@ -71,10 +72,13 @@ public abstract class AbstractReportTask extends ConventionTask {
     public void generate() {
         reportGenerator().generateReport(
             new TreeSet<>(getProjects()),
+            ProjectDetails::of,
+            this::generateHeader,
             project -> {
                 generate(project);
                 logClickableOutputFileUrl();
-            }
+            },
+            this::generateFooter
         );
     }
 
@@ -104,7 +108,9 @@ public abstract class AbstractReportTask extends ConventionTask {
     @Internal
     protected abstract ReportRenderer getRenderer();
 
+    protected void generateHeader() throws IOException { /* default is no header */ };
     protected abstract void generate(Project project) throws IOException;
+    protected void generateFooter() throws IOException  { /* default is no footer */ };
 
     /**
      * Returns the file which the report will be written to. When set to {@code null}, the report is written to {@code System.out}.

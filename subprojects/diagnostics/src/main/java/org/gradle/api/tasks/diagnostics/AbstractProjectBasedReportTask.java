@@ -51,17 +51,23 @@ public abstract class AbstractProjectBasedReportTask<T> extends ConventionReport
 
     protected abstract T calculateReportModelFor(Project project);
 
+    protected void generateReportHeaderFor(Map<ProjectDetails, T> modelsByProjectDetails) { /* default is no header */ };
     protected abstract void generateReportFor(ProjectDetails project, T model);
+    protected void generateReportFooterFor(Map<ProjectDetails, T> modelsByProjectDetails) { /* default is no footer */ };
 
     @TaskAction
     void action() {
+        Map<ProjectDetails, T> modelsByProjectDetails = reportModels.get().modelsByProjectDetails;
+
         reportGenerator().generateReport(
-            reportModels.get().modelsByProjectDetails.entrySet(),
+            modelsByProjectDetails.entrySet(),
             Map.Entry::getKey,
+            () -> generateReportHeaderFor(modelsByProjectDetails),
             entry -> {
                 generateReportFor(entry.getKey(), entry.getValue());
                 logClickableOutputFileUrl();
-            }
+            },
+            () -> generateReportFooterFor(modelsByProjectDetails)
         );
     }
 
