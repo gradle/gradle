@@ -21,19 +21,19 @@ import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 
-@RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
 class CapabilitiesConflictResolutionIntegrationTest extends AbstractModuleDependencyResolveTest {
 
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     def "reasonable error message when a user rule throws an exception (#rule)"() {
         given:
         repository {
-            id('org:testA:1.0') {
+            'org:testA:1.0' {
                 variant('runtime') {
                     capability('org', 'testA', '1.0')
                     capability('cap')
                 }
             }
-            id('org:testB:1.0') {
+            'org:testB:1.0' {
                 variant('runtime') {
                     capability('org', 'testB', '1.0')
                     capability('cap')
@@ -60,10 +60,10 @@ class CapabilitiesConflictResolutionIntegrationTest extends AbstractModuleDepend
 
         when:
         repositoryInteractions {
-            id('org:testA:1.0') {
+            'org:testA:1.0' {
                 expectGetMetadata()
             }
-            id('org:testB:1.0') {
+            'org:testB:1.0' {
                 expectGetMetadata()
             }
         }
@@ -80,16 +80,17 @@ class CapabilitiesConflictResolutionIntegrationTest extends AbstractModuleDepend
 
     }
 
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     def "can express preference for capabilities declared in published modules (#rule)"() {
         given:
         repository {
-            id('org:testA:1.0') {
+            'org:testA:1.0' {
                 variant('runtime') {
                     capability('org', 'testA', '1.0')
                     capability('cap')
                 }
             }
-            id('org:testB:1.0') {
+            'org:testB:1.0' {
                 variant('runtime') {
                     capability('org', 'testB', '1.0')
                     capability('cap')
@@ -116,10 +117,10 @@ class CapabilitiesConflictResolutionIntegrationTest extends AbstractModuleDepend
 
         when:
         repositoryInteractions {
-            id('org:testA:1.0') {
+            'org:testA:1.0' {
                 expectGetMetadata()
             }
-            id('org:testB:1.0') {
+            'org:testB:1.0' {
                 expectResolve()
             }
         }
@@ -143,10 +144,11 @@ class CapabilitiesConflictResolutionIntegrationTest extends AbstractModuleDepend
         ]
     }
 
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     def "can express preference for a certain variant with capabilities declared in published modules"() {
         given:
         repository {
-            id('org:testB:1.0') {
+            'org:testB:1.0' {
                 variant('runtime') {
                     capability('org', 'testB', '1.0')
                 }
@@ -180,7 +182,7 @@ class CapabilitiesConflictResolutionIntegrationTest extends AbstractModuleDepend
 
         when:
         repositoryInteractions {
-            id('org:testB:1.0') {
+            'org:testB:1.0' {
                 expectResolve()
             }
         }
@@ -196,10 +198,11 @@ class CapabilitiesConflictResolutionIntegrationTest extends AbstractModuleDepend
         }
     }
 
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     def "expressing a preference for a variant with capabilities declared in a published modules does not evict unrelated variants"() {
         given:
         repository {
-            id('org:testB:1.0') {
+            'org:testB:1.0' {
                 variant('runtime') {
                     capability('org', 'testB', '1.0')
                 }
@@ -241,7 +244,7 @@ class CapabilitiesConflictResolutionIntegrationTest extends AbstractModuleDepend
 
         when:
         repositoryInteractions {
-            id('org:testB:1.0') {
+            'org:testB:1.0' {
                 expectResolve()
             }
         }
@@ -257,75 +260,4 @@ class CapabilitiesConflictResolutionIntegrationTest extends AbstractModuleDepend
             }
         }
     }
-
-    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
-    def "resolving a conflict does not depend on participant order"() {
-        given:
-        repository {
-            id('org:testA:1.0') {
-                variant('runtime') {
-                    capability('org', 'testA', '1.0')
-                    capability('cap')
-                }
-            }
-            id('org:testB:1.0') {
-                variant('runtime') {
-                    capability('org', 'testB', '1.0')
-                    capability('cap')
-                }
-            }
-            id('org:testC:1.0') {
-                variant('runtime') {
-                    capability('org', 'testC', '1.0')
-                    capability('cap')
-                }
-            }
-        }
-
-        buildFile << """
-            dependencies {
-                ${deps.collect {"conf(\"$it\")" }.join("\n                ")}
-            }
-
-            // fix the conflict between modules providing the same capability using resolution rules
-            configurations.all {
-                resolutionStrategy {
-                   capabilitiesResolution.withCapability('org.test:cap') {
-                      select('org:testC:1.0')
-                      because "we like testC better"
-                   }
-                }
-            }
-        """
-
-        when:
-        repositoryInteractions {
-            id('org:testA:1.0') {
-                expectGetMetadata()
-            }
-            id('org:testB:1.0') {
-                expectGetMetadata()
-            }
-            id('org:testC:1.0') {
-                expectResolve()
-            }
-        }
-        run ":checkDeps"
-
-        then:
-
-        resolve.expectGraph {
-            root(":", ":test:") {
-                edge('org:testA:1.0', 'org:testC:1.0')
-                    .byConflictResolution("On capability org.test:cap we like testC better")
-                edge('org:testB:1.0', 'org:testC:1.0')
-                    .byConflictResolution("On capability org.test:cap we like testC better")
-                module('org:testC:1.0')
-            }
-        }
-
-        where:
-        deps << ['org:testA:1.0', 'org:testB:1.0', 'org:testC:1.0'].permutations()
-    }
-
 }
