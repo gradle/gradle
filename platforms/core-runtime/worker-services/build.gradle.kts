@@ -12,7 +12,6 @@ errorprone {
 
 dependencies {
     api(project(":java-language-extensions"))
-    api(project(":persistent-cache"))
     api(project(":base-services"))
     api(libs.jsr305)
 
