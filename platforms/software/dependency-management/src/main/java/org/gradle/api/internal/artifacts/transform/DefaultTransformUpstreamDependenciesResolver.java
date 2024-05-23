@@ -20,7 +20,6 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.DependencyResult;
-import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.file.FileCollection;
@@ -28,6 +27,7 @@ import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.configurations.ResolutionResultProvider;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
@@ -44,15 +44,15 @@ import org.gradle.internal.model.ValueCalculator;
 import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
 
 import javax.annotation.Nullable;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-
-import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
 
 public class DefaultTransformUpstreamDependenciesResolver implements TransformUpstreamDependenciesResolver {
     public static final TransformDependencies NO_RESULT = new TransformDependencies() {
@@ -90,7 +90,7 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
 
     private final ComponentIdentifier componentIdentifier;
     private final ConfigurationIdentity configurationIdentity;
-    private final ResolutionResultProvider<ResolutionResult> resolutionResultProvider;
+    private final ResolutionResultProvider<ResolvedComponentResult> rootComponentProvider;
     private final DomainObjectContext owner;
     private final FilteredResultFactory filteredResultFactory;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
@@ -100,14 +100,14 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
     public DefaultTransformUpstreamDependenciesResolver(
         ComponentIdentifier componentIdentifier,
         ConfigurationIdentity configurationIdentity,
-        ResolutionResultProvider<ResolutionResult> resolutionResultProvider,
+        ResolutionResultProvider<ResolvedComponentResult> rootComponentProvider,
         DomainObjectContext owner,
         FilteredResultFactory filteredResultFactory,
         CalculatedValueContainerFactory calculatedValueContainerFactory
     ) {
         this.componentIdentifier = componentIdentifier;
         this.configurationIdentity = configurationIdentity;
-        this.resolutionResultProvider = resolutionResultProvider;
+        this.rootComponentProvider = rootComponentProvider;
         this.owner = owner;
         this.filteredResultFactory = filteredResultFactory;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
@@ -127,56 +127,83 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
 
     private FileCollectionInternal selectedArtifactsFor(ImmutableAttributes fromAttributes) {
         if (dependencies == null) {
-            ResolutionResult result = resolutionResultProvider.getValue();
-            dependencies = computeDependencies(componentIdentifier, ComponentIdentifier.class, result.getAllComponents(), false);
+            dependencies = computeDependencies(rootComponentProvider.getValue(), false);
         }
         return filteredResultFactory.resultsMatching(fromAttributes, selectDependenciesWithId(dependencies));
     }
 
     private void computeDependenciesFor(ImmutableAttributes fromAttributes, TaskDependencyResolveContext context) {
         if (buildDependencies == null) {
-            ResolutionResult result = resolutionResultProvider.getTaskDependencyValue();
-            buildDependencies = computeDependencies(componentIdentifier, ComponentIdentifier.class, result.getAllComponents(), true);
+            buildDependencies = computeDependencies(rootComponentProvider.getTaskDependencyValue(), true);
         }
         FileCollectionInternal files = filteredResultFactory.resultsMatching(fromAttributes, selectDependenciesWithId(buildDependencies));
         context.add(files);
     }
 
-    private Spec<ComponentIdentifier> selectDependenciesWithId(Set<ComponentIdentifier> dependencies) {
-        return spec(element -> dependencies.contains(element));
+    private static Spec<ComponentIdentifier> selectDependenciesWithId(Set<ComponentIdentifier> dependencies) {
+        return SerializableLambdas.spec(element -> dependencies.contains(element));
     }
 
-    private static Set<ComponentIdentifier> computeDependencies(ComponentIdentifier componentIdentifier, Class<? extends ComponentIdentifier> type, Set<ResolvedComponentResult> componentResults, boolean strict) {
-        ResolvedComponentResult targetComponent = null;
-        for (ResolvedComponentResult component : componentResults) {
-            if (component.getId().equals(componentIdentifier)) {
-                targetComponent = component;
-                break;
-            }
-        }
+    private Set<ComponentIdentifier> computeDependencies(ResolvedComponentResult value, boolean strict) {
+        ResolvedComponentResult targetComponent = findComponent(value, componentIdentifier);
+
         if (targetComponent == null) {
+            // TODO: This is very suspicious. We should always fail here.
+            // `strict` was added because file dependencies' components are never included in the graph.
+            // We should detect this earlier and return no dependencies there to avoid `strict`.
             if (strict) {
                 throw new AssertionError("Could not find component " + componentIdentifier + " in provided results.");
             } else {
                 return Collections.emptySet();
             }
         }
+
         Set<ComponentIdentifier> buildDependencies = new HashSet<>();
-        collectDependenciesIdentifiers(buildDependencies, type, new HashSet<>(), targetComponent.getDependencies());
+        collectReachableComponents(buildDependencies, new HashSet<>(), targetComponent.getDependencies());
         return buildDependencies;
     }
 
-    private static void collectDependenciesIdentifiers(Set<ComponentIdentifier> dependenciesIdentifiers, Class<? extends ComponentIdentifier> type, Set<ComponentIdentifier> visited, Set<? extends DependencyResult> dependencies) {
+    /**
+     * Search the graph for a component with the given identifier, starting from the given root component.
+     *
+     * @return null if the component is not found.
+     */
+    @Nullable
+    public static ResolvedComponentResult findComponent(ResolvedComponentResult rootComponent, ComponentIdentifier componentIdentifier) {
+        Set<ResolvedComponentResult> seen = new HashSet<>();
+        Deque<ResolvedComponentResult> pending = new ArrayDeque<>();
+        pending.push(rootComponent);
+
+        while (!pending.isEmpty()) {
+            ResolvedComponentResult component = pending.pop();
+
+            if (component.getId().equals(componentIdentifier)) {
+                return component;
+            }
+
+            for (DependencyResult d : component.getDependencies()) {
+                if (d instanceof ResolvedDependencyResult) {
+                    ResolvedDependencyResult resolved = (ResolvedDependencyResult) d;
+                    ResolvedComponentResult selected = resolved.getSelected();
+                    if (seen.add(selected)) {
+                        pending.push(selected);
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private static void collectReachableComponents(Set<ComponentIdentifier> dependenciesIdentifiers, Set<ComponentIdentifier> visited, Set<? extends DependencyResult> dependencies) {
         for (DependencyResult dependency : dependencies) {
             if (dependency instanceof ResolvedDependencyResult && !dependency.isConstraint()) {
                 ResolvedDependencyResult resolvedDependency = (ResolvedDependencyResult) dependency;
                 ResolvedComponentResult selected = resolvedDependency.getSelected();
-                if (type.isInstance(selected.getId())) {
-                    dependenciesIdentifiers.add(selected.getId());
-                }
+                dependenciesIdentifiers.add(selected.getId());
                 if (visited.add(selected.getId())) {
                     // Do not traverse if seen already
-                    collectDependenciesIdentifiers(dependenciesIdentifiers, type, visited, selected.getDependencies());
+                    collectReachableComponents(dependenciesIdentifiers, visited, selected.getDependencies());
                 }
             }
         }
