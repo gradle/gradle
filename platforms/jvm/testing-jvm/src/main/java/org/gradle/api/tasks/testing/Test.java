@@ -981,7 +981,6 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
 
     /**
      * Specifies that JUnit4 should be used to discover and execute the tests.
-     * <p>
      *
      * @see #useJUnit(org.gradle.api.Action) Configure JUnit4 specific options.
      */
@@ -1048,7 +1047,6 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
 
     /**
      * Specifies that TestNG should be used to discover and execute the tests.
-     * <p>
      *
      * @see #useTestNG(org.gradle.api.Action) Configure TestNG specific options.
      */

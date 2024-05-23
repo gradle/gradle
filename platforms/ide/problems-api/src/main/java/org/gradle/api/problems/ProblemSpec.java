@@ -20,7 +20,6 @@ import org.gradle.api.Incubating;
 
 /**
  * Provides options to configure problems.
- * <p>
  *
  * @see ProblemReporter
  * @since 8.6
@@ -93,7 +92,6 @@ public interface ProblemSpec {
 
     /**
      * Declares that this problem is in a file with on a line at a certain position.
-     * <p>
      *
      * @param path the file location
      * @param line the one-indexed line number

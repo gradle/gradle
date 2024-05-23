@@ -105,7 +105,6 @@ public interface IvyPublication extends Publication {
 
     /**
      * The module descriptor that will be published.
-     * <p>
      *
      * @return The module descriptor that will be published.
      */
