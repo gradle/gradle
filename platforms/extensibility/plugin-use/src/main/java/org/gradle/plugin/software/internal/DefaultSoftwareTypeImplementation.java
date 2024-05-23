@@ -64,6 +64,11 @@ public class DefaultSoftwareTypeImplementation<T> implements SoftwareTypeImpleme
     }
 
     @Override
+    public Class<? extends Plugin<Settings>> getRegisteringPluginClass() {
+        return registeringPluginClass;
+    }
+
+    @Override
     public void addConvention(Convention<?> rule) {
         conventionRules.add(rule);
     }
@@ -71,11 +76,6 @@ public class DefaultSoftwareTypeImplementation<T> implements SoftwareTypeImpleme
     @Override
     public List<Convention<?>> getConventions() {
         return ImmutableList.copyOf(conventionRules);
-    }
-
-    @Override
-    public Class<? extends Plugin<Settings>> getRegisteringPluginClass() {
-        return registeringPluginClass;
     }
 
     @Override
