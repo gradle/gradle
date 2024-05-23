@@ -53,7 +53,7 @@ public class DefaultSoftwareTypeRegistry implements SoftwareTypeRegistry {
         if (softwareTypeImplementations != null) {
             throw new IllegalStateException("Cannot register a plugin after software types have been discovered");
         }
-        pluginClasses.computeIfAbsent(registeringPluginClass, k -> new LinkedHashSet<>(1)).add(pluginClass);
+        pluginClasses.computeIfAbsent(registeringPluginClass, k -> new LinkedHashSet<>()).add(pluginClass);
     }
 
     private Set<SoftwareTypeImplementation<?>> discoverSoftwareTypeImplementations() {
