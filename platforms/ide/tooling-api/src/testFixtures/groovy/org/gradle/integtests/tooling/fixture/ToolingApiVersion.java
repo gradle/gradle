@@ -27,7 +27,7 @@ import java.lang.annotation.*;
 @Inherited
 public @interface ToolingApiVersion {
     /**
-     * The requested tooling API version. Can use '>=nnn', '<=nnn', '&lt;nnn', '&gt;nnn', '=nnn', '!nnn', 'current' or '!current' or space-separated list of patterns.
+     * The requested tooling API version. Can use '&gt;=nnn', '&lt;=nnn', '&lt;nnn', '&gt;nnn', '=nnn', '!nnn', 'current' or '!current' or space-separated list of patterns.
      */
     String value();
 }

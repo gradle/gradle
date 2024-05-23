@@ -423,7 +423,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
     }
 
     /**
-     * Implemented here instead as a default method of DependencyHandler like most of other methods with `Provider<MinimalExternalModuleDependency>` argument
+     * Implemented here instead as a default method of DependencyHandler like most of other methods with {@code Provider<MinimalExternalModuleDependency>} argument
      * since we don't want to expose enforcedPlatform on many places since we might deprecate enforcedPlatform in the future
      *
      * @param dependencyProvider the dependency provider

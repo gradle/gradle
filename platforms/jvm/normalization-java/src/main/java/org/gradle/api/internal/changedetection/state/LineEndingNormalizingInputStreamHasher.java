@@ -42,7 +42,6 @@ public class LineEndingNormalizingInputStreamHasher {
      *
      * @param inputStream The input stream to hash
      * @return An {@link Optional} containing the {@link HashCode} or empty if the file is binary
-     * @throws IOException
      */
     public Optional<HashCode> hashContent(InputStream inputStream) throws IOException {
         return hash(inputStream);
@@ -53,7 +52,6 @@ public class LineEndingNormalizingInputStreamHasher {
      *
      * @param file The file to hash
      * @return An {@link Optional} containing the {@link HashCode} or empty if the file is binary
-     * @throws IOException
      */
     public Optional<HashCode> hashContent(File file) throws IOException {
         try (FileInputStream inputStream = new FileInputStream(file)) {

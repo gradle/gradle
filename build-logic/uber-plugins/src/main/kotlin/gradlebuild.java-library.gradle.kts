@@ -19,4 +19,5 @@ plugins {
     id("gradlebuild.jvm-library")
     id("gradlebuild.test-fixtures")
     id("gradlebuild.arch-test")
+    id("gradlebuild.private-javadoc")
 }

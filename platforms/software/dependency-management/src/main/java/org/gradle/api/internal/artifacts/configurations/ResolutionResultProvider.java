@@ -21,7 +21,6 @@ import java.util.function.Function;
 /**
  * Some value that is calculated as part of dependency resolution, but which may have a partial or different value
  * when the execution graph is calculated.
- * @param <T>
  */
 public interface ResolutionResultProvider<T> {
 

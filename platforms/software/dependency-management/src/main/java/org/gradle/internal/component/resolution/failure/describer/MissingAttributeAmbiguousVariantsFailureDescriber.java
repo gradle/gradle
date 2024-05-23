@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
  */
 public abstract class MissingAttributeAmbiguousVariantsFailureDescriber extends AmbiguousVariantsFailureDescriber {
     /**
-     * Map from failure -> name of attribute that would distinguish each candidate.
+     * Map from failure to name of attribute that would distinguish each candidate.
      * This map exists to avoid re-discovering the unrequested attributes between the calls to `canDescribeFailure` and `describeFailure`.
      * Each failure will be added once (by identity), then removed during failure description.
      */

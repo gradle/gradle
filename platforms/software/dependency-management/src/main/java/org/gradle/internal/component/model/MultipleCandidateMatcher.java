@@ -33,7 +33,6 @@ import java.util.function.IntFunction;
 
 /**
  * This is the heart of the attribute matching algorithm and is used whenever there are multiple candidates to choose from.
- * <p>
  * <ol>
  * <li>
  * For each candidate, check whether its attribute values are compatible (according to the {@link AttributeSelectionSchema}) with the values that were requested.
@@ -56,9 +55,7 @@ import java.util.function.IntFunction;
  * If there are one or more candidates left after disambiguation, return those.
  * </li>
  * </ol>
- * </p>
  *
- * <p>
  * Implementation notes:
  *
  * <p>For matching and disambiguating the requested values, we keep a table of candidate values to avoid recomputing them. The table has one row for each candidate and one column for each attribute.

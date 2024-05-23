@@ -125,7 +125,7 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
          * the converted classes only contain these kinds of constants.
          *
          * This is a mapping of the synthesized accessor name to the name of the backing field,
-         * i.e. "getFOO" -> "FOO"
+         * i.e. "getFOO" to "FOO"
          */
         private Map<String, String> missingStaticStringConstantGetters = new HashMap<String, String>();
         private Set<String> booleanGetGetters = new HashSet<String>();
