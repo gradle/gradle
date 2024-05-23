@@ -67,6 +67,7 @@ dependencies {
     implementation(project(":functional"))
     implementation(projects.io)
     implementation(project(":problems-api"))
+    implementation(project(":worker-services"))
 
     implementation(libs.groovy) // for 'ReleaseInfo.getVersion()'
     implementation(libs.slf4jApi)
