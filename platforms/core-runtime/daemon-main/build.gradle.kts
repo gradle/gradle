@@ -16,10 +16,20 @@
 
 plugins {
     id("gradlebuild.distribution.implementation-java")
+    id("gradlebuild.launchable-jar")
 }
 
 description = "Entry point for the Gradle daemon process"
 
+app {
+    mainClassName = "org.gradle.launcher.daemon.bootstrap.GradleDaemon"
+}
+
 dependencies {
     implementation(project(":build-process-services"))
+
+    manifestClasspath(projects.javaLanguageExtensions)
+    manifestClasspath(project(":build-process-services"))
+    manifestClasspath(project(":base-services"))
+    manifestClasspath(project(":concurrent"))
 }

@@ -15,13 +15,18 @@
  */
 
 plugins {
-    id("gradlebuild.distribution.api-java")
+    id("gradlebuild.distribution.implementation-java")
     id("gradlebuild.launchable-jar")
+    id("gradlebuild.start-scripts")
 }
 
 description = "Java 6-compatible entry point of the `gradle` command. See :launcher project for the rest."
 
 gradlebuildJava.usedForStartup()
+
+app {
+    mainClassName = "org.gradle.launcher.GradleMain"
+}
 
 dependencies {
     implementation(projects.javaLanguageExtensions)

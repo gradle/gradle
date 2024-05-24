@@ -1,5 +1,6 @@
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.launchable-jar")
 }
 
 description = "Implementation for launching, controlling and communicating with Gradle Daemon from CLI and TAPI"
@@ -81,6 +82,9 @@ dependencies {
     runtimeOnly(libs.commonsIo)
     runtimeOnly(libs.commonsLang)
     runtimeOnly(libs.slf4jApi)
+
+    // The wrapper and tooling API clients expect the launcher Jar to have classpath entries that contain the main class and its runtime classpath
+    manifestClasspath(project(":gradle-cli-main"))
 
     testImplementation(project(":internal-integ-testing"))
     testImplementation(project(":native"))
