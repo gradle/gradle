@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.inspect;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -389,13 +390,15 @@ public class ModelRuleExtractor {
         }
     }
 
-    private static abstract class DefaultExtractedRuleSource<T> implements ExtractedRuleSource<T> {
+    @VisibleForTesting
+    static abstract class DefaultExtractedRuleSource<T> implements ExtractedRuleSource<T> {
         private final List<ExtractedRuleDetails> rules;
 
         public DefaultExtractedRuleSource(List<ExtractedRuleDetails> rules) {
             this.rules = rules;
         }
 
+        @VisibleForTesting // used in tests only
         public List<ExtractedModelRule> getRules() {
             return CollectionUtils.collect(rules, new InternalTransformer<ExtractedModelRule, ExtractedRuleDetails>() {
                 @Override

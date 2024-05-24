@@ -45,7 +45,7 @@ public abstract class TypeCompatibilityModelProjectionSupport<M> implements Mode
 
     private <T> boolean canBeAssignedTo(ModelType<T> targetType) {
         return targetType.isAssignableFrom(type)
-            || (targetType == ModelType.UNTYPED && isPrimitiveType(type));
+            || (ModelType.UNTYPED.equals(targetType) && isPrimitiveType(type));
     }
 
     @Override

@@ -7,12 +7,7 @@ description = "Implementation of configuration model types and annotation metada
 
 errorprone {
     disabledChecks.addAll(
-        "AnnotateFormatMethod", // 1 occurrence, needs errorprone annotations
-        "ImmutableEnumChecker", // 1 occurrences
-        "ReferenceEquality", // 3 occurrences
-        "UndefinedEquals", // 2 occurrences
-        "UnusedMethod", // 8 occurrences
-        "UnusedVariable", // 20 occurrences
+        "UnusedVariable", // This cannot really be turned off, because of the false positive in errorprone (https://github.com/google/error-prone/issues/4409)
     )
 }
 
@@ -44,6 +39,8 @@ dependencies {
     implementation(libs.slf4jApi)
     implementation(libs.commonsLang)
     implementation(libs.fastutil)
+
+    compileOnly(libs.errorProneAnnotations)
 
     testFixturesApi(testFixtures(project(":diagnostics")))
     testFixturesApi(testFixtures(project(":core")))

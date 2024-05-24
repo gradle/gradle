@@ -219,6 +219,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
     }
 
     private class MetaClassAdapter {
+        @SuppressWarnings("unused") // May be used dynamically.
         protected String getDisplayName() {
             return BeanDynamicObject.this.getDisplayName();
         }

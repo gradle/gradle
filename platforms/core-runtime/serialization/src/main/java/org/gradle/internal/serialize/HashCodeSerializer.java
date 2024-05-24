@@ -16,10 +16,12 @@
 
 package org.gradle.internal.serialize;
 
+import com.google.errorprone.annotations.Immutable;
 import org.gradle.internal.hash.HashCode;
 
 import java.io.IOException;
 
+@Immutable
 public class HashCodeSerializer extends AbstractSerializer<HashCode> {
     @Override
     public HashCode read(Decoder decoder) throws IOException {
