@@ -2,7 +2,7 @@ plugins {
     id("gradlebuild.distribution.implementation-java")
 }
 
-description = "A set of services used to setup a build process from a Gradle distribution."
+description = "Services and types used to setup a build process from a Gradle distribution."
 
 errorprone {
     disabledChecks.addAll(

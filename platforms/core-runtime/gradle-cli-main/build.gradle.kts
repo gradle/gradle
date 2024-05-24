@@ -20,7 +20,7 @@ plugins {
     id("gradlebuild.start-scripts")
 }
 
-description = "Java 6-compatible entry point of the `gradle` command. See :launcher project for the rest."
+description = "Java 6-compatible entry point of the `gradle` command. Boostraps the Gradle client implementation in :launcher."
 
 gradlebuildJava.usedForStartup()
 

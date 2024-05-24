@@ -19,7 +19,7 @@ plugins {
     id("gradlebuild.launchable-jar")
 }
 
-description = "Entry point for the Gradle daemon process"
+description = "Entry point for the Gradle daemon process. Bootstraps the daemon server implementation in :daemon-server."
 
 app {
     mainClassName = "org.gradle.launcher.daemon.bootstrap.GradleDaemon"

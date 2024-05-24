@@ -83,7 +83,7 @@ dependencies {
     runtimeOnly(libs.commonsLang)
     runtimeOnly(libs.slf4jApi)
 
-    // The wrapper and tooling API clients expect the launcher Jar to have classpath entries that contain the main class and its runtime classpath
+    // The wrapper expects the launcher Jar to have classpath entries that contain the main class and its runtime classpath
     manifestClasspath(project(":gradle-cli-main"))
 
     testImplementation(project(":internal-integ-testing"))

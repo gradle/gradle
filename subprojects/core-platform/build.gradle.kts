@@ -10,7 +10,7 @@ dependencies {
     runtime(project(":installation-beacon"))
     runtime(project(":api-metadata"))
     runtime(project(":daemon-server")) {
-        because("This is the Gradle implementation, which transitively depends on all other core projects.")
+        because("This is the Gradle daemon implementation, which transitively depends on all other core projects.")
     }
     runtime(project(":gradle-cli-main")) {
         because("This is the entry point of the `gradle` command.")
