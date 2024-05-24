@@ -257,6 +257,10 @@ class ModuleResolveState implements CandidateModule {
         this.selected = selected;
         this.replaced = computeReplaced(selected);
 
+        if (replaced) {
+            selected.getModule().getPendingDependencies().retarget(pendingDependencies);
+        }
+
         doRestart(selected);
     }
 
@@ -408,6 +412,9 @@ class ModuleResolveState implements CandidateModule {
     }
 
     PendingDependencies getPendingDependencies() {
+        if (replaced) {
+            return selected.getModule().getPendingDependencies();
+        }
         return pendingDependencies;
     }
 
