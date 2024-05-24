@@ -116,6 +116,7 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
     @Override
     public void resolveNextConflict(Action<ConflictResolutionResult> resolutionAction) {
         CapabilityConflict conflict = conflicts.poll();
+        // TODO: Ensure >= 2 nodes in this conflict are still selected
         Details details = new Details(conflict);
         for (Resolver resolver : resolvers) {
             resolver.resolve(details);

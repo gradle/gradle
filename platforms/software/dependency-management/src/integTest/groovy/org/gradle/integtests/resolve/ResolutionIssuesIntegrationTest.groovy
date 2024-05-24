@@ -572,9 +572,9 @@ class ResolutionIssuesIntegrationTest extends AbstractIntegrationSpec {
             "org.bouncycastle:bctls-fips:1.0.9",
             "org.bouncycastle:bctls-jdk14:1.70",
             "org.bouncycastle:bctls-jdk18on:1.72"
-        ].each {
+        ].each { dep ->
             assert output.readLines().any {
-                it.startsWith("+--- ${it}")
+                it.startsWith("+--- ${dep}") || it.startsWith("\\--- ${dep}")
             }
         }
     }
