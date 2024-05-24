@@ -224,7 +224,11 @@ public class Collectors {
                 return false;
             }
             ElementsFromCollection<?> that = (ElementsFromCollection<?>) o;
-            return Objects.equal(value, that.value);
+
+            // We're fine with having weak contract of Iterable/Collection.equals.
+            @SuppressWarnings("UndefinedEquals")
+            boolean result = Objects.equal(value, that.value);
+            return result;
         }
 
         @Override
