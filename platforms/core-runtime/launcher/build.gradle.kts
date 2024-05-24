@@ -22,6 +22,8 @@ errorprone {
 }
 
 dependencies {
+    api(project(":toolchains-jvm-shared"))
+
     implementation(project(":base-services"))
     implementation(project(":functional"))
     implementation(project(":enterprise-operations"))
@@ -48,7 +50,6 @@ dependencies {
     implementation(project(":file-watching"))
     implementation(project(":problems-api"))
     implementation(project(":problems"))
-    implementation(project(":toolchains-jvm-shared"))
     implementation(project(":declarative-dsl-provider"))
 
     implementation(libs.groovy) // for 'ReleaseInfo.getVersion()'

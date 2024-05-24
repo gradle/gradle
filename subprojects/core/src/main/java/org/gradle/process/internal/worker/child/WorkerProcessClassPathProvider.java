@@ -22,6 +22,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.ClassPathProvider;
 import org.gradle.api.internal.classpath.ModuleRegistry;
+import org.gradle.api.internal.jvm.JavaVersionParser;
 import org.gradle.api.specs.Spec;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
@@ -281,7 +282,8 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider {
                 Spec.class,
                 Action.class,
                 Trie.class,
-                JavaVersion.class);
+                JavaVersion.class,
+                JavaVersionParser.class);
             Set<Class<?>> result = new HashSet<Class<?>>(classes);
             for (Class<?> klass : classes) {
                 result.addAll(Arrays.asList(klass.getDeclaredClasses()));

@@ -185,6 +185,6 @@ public class DefaultTestTaskPropertiesService implements TestTaskPropertiesServi
     }
 
     private int detectJavaVersion(String executable) {
-        return Integer.parseInt(jvmVersionDetector.getJavaVersion(executable).getMajorVersion());
+        return jvmVersionDetector.getJavaVersionMajor(executable);
     }
 }

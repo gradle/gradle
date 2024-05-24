@@ -16,7 +16,6 @@
 
 package org.gradle.internal.jvm.inspection;
 
-import org.gradle.api.JavaVersion;
 import org.gradle.internal.jvm.JavaInfo;
 
 /**
@@ -26,10 +25,10 @@ public interface JvmVersionDetector {
     /**
      * Probes the Java version for the given JVM installation.
      */
-    JavaVersion getJavaVersion(JavaInfo jvm);
+    int getJavaVersionMajor(JavaInfo jvm);
 
     /**
      * Probes the Java version for the given `java` command.
      */
-    JavaVersion getJavaVersion(String javaCommand);
+    int getJavaVersionMajor(String javaCommand);
 }

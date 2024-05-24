@@ -19,6 +19,7 @@ package org.gradle.internal.jvm;
 import com.google.common.base.Optional;
 import com.google.common.collect.Sets;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.internal.jvm.JavaVersionParser;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.os.OperatingSystem;
@@ -48,7 +49,7 @@ public class Jvm implements JavaInfo {
     private final File javaHome;
     private final boolean userSupplied;
     private final String implementationJavaVersion;
-    private final JavaVersion javaVersion;
+    private final Integer javaVersionMajor;
 
     // Cached resolved executables
     private File javaExecutable;
@@ -66,8 +67,8 @@ public class Jvm implements JavaInfo {
         return jvm;
     }
 
-    private static Jvm create(File javaBase, @Nullable String implementationJavaVersion, @Nullable JavaVersion javaVersion) {
-        Jvm jvm = new Jvm(OperatingSystem.current(), javaBase, implementationJavaVersion, javaVersion);
+    private static Jvm create(File javaBase, @Nullable String implementationJavaVersion, @Nullable Integer javaVersionMajor) {
+        Jvm jvm = new Jvm(OperatingSystem.current(), javaBase, implementationJavaVersion, javaVersionMajor);
         Jvm current = current();
         return jvm.getJavaHome().equals(current.getJavaHome()) ? current : jvm;
     }
@@ -76,21 +77,21 @@ public class Jvm implements JavaInfo {
      * Constructs JVM details by inspecting the current JVM.
      */
     Jvm(OperatingSystem os) {
-        this(os, FileUtils.canonicalize(new File(System.getProperty("java.home"))), System.getProperty("java.version"), JavaVersion.current(), false);
+        this(os, FileUtils.canonicalize(new File(System.getProperty("java.home"))), System.getProperty("java.version"), JavaVersionParser.parseMajorVersion(System.getProperty("java.version")), false);
     }
 
     /**
      * Constructs JVM details from the given values
      */
-    Jvm(OperatingSystem os, File suppliedJavaBase, String implementationJavaVersion, JavaVersion javaVersion) {
-        this(os, suppliedJavaBase, implementationJavaVersion, javaVersion, true);
+    Jvm(OperatingSystem os, File suppliedJavaBase, String implementationJavaVersion, Integer javaVersionMajor) {
+        this(os, suppliedJavaBase, implementationJavaVersion, javaVersionMajor, true);
     }
 
-    private Jvm(OperatingSystem os, File suppliedJavaBase, String implementationJavaVersion, JavaVersion javaVersion, boolean userSupplied) {
+    private Jvm(OperatingSystem os, File suppliedJavaBase, String implementationJavaVersion, Integer javaVersionMajor, boolean userSupplied) {
         this.os = os;
         this.javaBase = suppliedJavaBase;
         this.implementationJavaVersion = implementationJavaVersion;
-        this.javaVersion = javaVersion;
+        this.javaVersionMajor = javaVersionMajor;
         this.userSupplied = userSupplied;
         this.javaHome = findJavaHome(suppliedJavaBase);
     }
@@ -117,8 +118,16 @@ public class Jvm implements JavaInfo {
     /**
      * Creates JVM instance for given values. This method is intended to be used for discovered java homes.
      */
+    public static Jvm discovered(File javaHome, String implementationJavaVersion, Integer javaVersionMajor) {
+        return create(javaHome, implementationJavaVersion, javaVersionMajor);
+    }
+
+    /**
+     * @deprecated KGP uses this, new code should use {@link #discovered(File, String, Integer)}
+     */
+    @Deprecated
     public static Jvm discovered(File javaHome, String implementationJavaVersion, JavaVersion javaVersion) {
-        return create(javaHome, implementationJavaVersion, javaVersion);
+        return create(javaHome, implementationJavaVersion, Integer.parseInt(javaVersion.getMajorVersion()));
     }
 
     @Override
@@ -236,11 +245,19 @@ public class Jvm implements JavaInfo {
     }
 
     /**
+     * @return the major part of the java version if known, otherwise null
+     */
+    @Nullable
+    public Integer getJavaVersionMajor() {
+        return javaVersionMajor;
+    }
+
+    /**
      * @return the {@link JavaVersion} information
      */
     @Nullable
     public JavaVersion getJavaVersion() {
-        return javaVersion;
+        return JavaVersion.toVersion(javaVersionMajor);
     }
 
     /**
@@ -281,15 +298,16 @@ public class Jvm implements JavaInfo {
      */
     @Nullable
     public File getStandaloneJre() {
-        if (javaVersion.isJava9Compatible()) {
+        JavaVersion javaVersion = getJavaVersion();
+        if (javaVersion != null && javaVersion.isJava9Compatible()) {
             return null;
         }
         if (os.isWindows()) {
             File jreDir;
-            if (javaVersion.isJava5()) {
+            if (javaVersionMajor == 5) {
                 jreDir = new File(javaHome.getParentFile(), "jre" + implementationJavaVersion);
             } else {
-                jreDir = new File(javaHome.getParentFile(), "jre" + javaVersion.getMajorVersion());
+                jreDir = new File(javaHome.getParentFile(), "jre" + javaVersionMajor);
             }
             if (jreDir.isDirectory()) {
                 return jreDir;
