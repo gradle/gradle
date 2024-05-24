@@ -22,13 +22,10 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.IoActions;
 
 import javax.annotation.Nullable;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.Reader;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -216,41 +213,6 @@ public class GFileUtils {
 
     public static boolean deleteQuietly(@Nullable File file) {
         return FileUtils.deleteQuietly(file);
-    }
-
-    public static class TailReadingException extends RuntimeException {
-        public TailReadingException(Throwable throwable) {
-            super(throwable);
-        }
-    }
-
-    /**
-     * @param file to read from tail
-     * @param maxLines max lines to read
-     * @return tail content
-     * @throws GFileUtils.TailReadingException when reading failed
-     */
-    @SuppressWarnings("DefaultCharset")
-    public static String tail(File file, int maxLines) throws TailReadingException {
-        BufferedReader reader = null;
-        Reader fileReader = null;
-        try {
-            fileReader = new FileReader(file);
-            reader = new BufferedReader(fileReader);
-
-            LimitedDescription description = new LimitedDescription(maxLines);
-            String line = reader.readLine();
-            while (line != null) {
-                description.append(line);
-                line = reader.readLine();
-            }
-            return description.toString();
-        } catch (Exception e) {
-            throw new TailReadingException(e);
-        } finally {
-            IoActions.closeQuietly(fileReader);
-            IoActions.closeQuietly(reader);
-        }
     }
 
     public static void forceDelete(File file) {

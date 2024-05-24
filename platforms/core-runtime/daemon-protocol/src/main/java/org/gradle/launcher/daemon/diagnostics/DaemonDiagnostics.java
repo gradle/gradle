@@ -16,20 +16,21 @@
 
 package org.gradle.launcher.daemon.diagnostics;
 
-import org.gradle.util.internal.GFileUtils;
-
+import javax.annotation.Nullable;
 import java.io.File;
+import java.io.IOException;
 
 /**
  * Contains some daemon diagnostics information useful for the client.
  */
 public class DaemonDiagnostics {
 
+    @Nullable
     private final Long pid;
     private final File daemonLog;
     private final static int TAIL_SIZE = 20;
 
-    public DaemonDiagnostics(File daemonLog, Long pid) {
+    public DaemonDiagnostics(File daemonLog, @Nullable Long pid) {
         this.daemonLog = daemonLog;
         this.pid = pid;
     }
@@ -37,7 +38,7 @@ public class DaemonDiagnostics {
     /**
      * @return pid. Can be null, it means the daemon was not able to identify its pid.
      */
-    public Long getPid() {
+    public @Nullable Long getPid() {
         return pid;
     }
 
@@ -48,16 +49,16 @@ public class DaemonDiagnostics {
     @Override
     public String toString() {
         return "{"
-                + "pid=" + pid
-                + ", daemonLog=" + daemonLog
-                + '}';
+            + "pid=" + pid
+            + ", daemonLog=" + daemonLog
+            + '}';
     }
 
     private String tailDaemonLog() {
         try {
-            String tail = GFileUtils.tail(getDaemonLog(), TAIL_SIZE);
+            String tail = DaemonLogFileUtils.tail(getDaemonLog(), TAIL_SIZE);
             return formatTail(tail);
-        } catch (GFileUtils.TailReadingException e) {
+        } catch (IOException e) {
             return "Unable to read from the daemon log file: " + getDaemonLog().getAbsolutePath() + ", because of: " + e.getCause();
         }
     }
@@ -70,7 +71,7 @@ public class DaemonDiagnostics {
 
     public String describe() {
         return "Daemon pid: " + pid + "\n"
-             + "  log file: " + daemonLog + "\n"
-             + tailDaemonLog();
+            + "  log file: " + daemonLog + "\n"
+            + tailDaemonLog();
     }
 }
