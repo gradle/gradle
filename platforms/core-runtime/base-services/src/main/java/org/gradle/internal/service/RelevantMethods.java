@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import static org.gradle.util.internal.ArrayUtils.contains;
+
 public class RelevantMethods {
     private static final ConcurrentMap<Class<?>, RelevantMethods> METHODS_CACHE = new ConcurrentHashMap<Class<?>, RelevantMethods>();
     private static final ServiceMethodFactory SERVICE_METHOD_FACTORY = new DefaultServiceMethodFactory();
@@ -57,65 +59,33 @@ public class RelevantMethods {
 
     private static RelevantMethods buildRelevantMethods(Class<?> type) {
         RelevantMethodsBuilder builder = new RelevantMethodsBuilder(type);
-        RelevantMethods relevantMethods;
-        addDecoratorMethods(builder);
-        addFactoryMethods(builder);
-        addConfigureMethods(builder);
-        relevantMethods = builder.build();
-        return relevantMethods;
-    }
-
-    private static void addConfigureMethods(RelevantMethodsBuilder builder) {
-        Class<?> type = builder.type;
+        Class<?> type1 = builder.type;
         Iterator<Method> iterator = builder.remainingMethods.iterator();
         while (iterator.hasNext()) {
             Method method = iterator.next();
+            if (Modifier.isStatic(method.getModifiers())) {
+                continue;
+            }
             if (method.getName().equals("configure")) {
                 if (!method.getReturnType().equals(Void.TYPE)) {
-                    throw new ServiceLookupException(String.format("Method %s.%s() must return void.", type.getSimpleName(), method.getName()));
+                    throw new ServiceLookupException(String.format("Method %s.%s() must return void.", type1.getSimpleName(), method.getName()));
                 }
                 builder.add(iterator, builder.configurers, method);
-            }
-        }
-    }
-
-    private static void addFactoryMethods(RelevantMethodsBuilder builder) {
-        Class<?> type = builder.type;
-        Iterator<Method> iterator = builder.remainingMethods.iterator();
-        while (iterator.hasNext()) {
-            Method method = iterator.next();
-            if (method.getName().startsWith("create") && !Modifier.isStatic(method.getModifiers())) {
+            } else if (method.getName().startsWith("create") || method.getName().startsWith("decorate")) {
                 if (method.getReturnType().equals(Void.TYPE)) {
-                    throw new ServiceLookupException(String.format("Method %s.%s() must not return void.", type.getSimpleName(), method.getName()));
-                }
-                builder.add(iterator, builder.factories, method);
-            }
-        }
-    }
-
-    private static void addDecoratorMethods(RelevantMethodsBuilder builder) {
-        Class<?> type = builder.type;
-        Iterator<Method> iterator = builder.remainingMethods.iterator();
-        while (iterator.hasNext()) {
-            Method method = iterator.next();
-            if (method.getName().startsWith("create") || method.getName().startsWith("decorate")) {
-                if (method.getReturnType().equals(Void.TYPE)) {
-                    throw new ServiceLookupException(String.format("Method %s.%s() must not return void.", type.getSimpleName(), method.getName()));
+                    throw new ServiceLookupException(String.format("Method %s.%s() must not return void.", type1.getSimpleName(), method.getName()));
                 }
                 if (takesReturnTypeAsParameter(method)) {
                     builder.add(iterator, builder.decorators, method);
+                } else {
+                    builder.add(iterator, builder.factories, method);
                 }
             }
         }
+        return builder.build();
     }
 
     private static boolean takesReturnTypeAsParameter(Method method) {
-        for (Class<?> param : method.getParameterTypes()) {
-            if (param.equals(method.getReturnType())) {
-                return true;
-            }
-        }
-        return false;
+        return contains(method.getParameterTypes(), method.getReturnType());
     }
-
 }
