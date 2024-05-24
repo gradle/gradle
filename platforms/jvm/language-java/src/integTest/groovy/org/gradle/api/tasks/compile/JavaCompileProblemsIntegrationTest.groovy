@@ -428,6 +428,17 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         // TODO (donat) we can probably delete some of this method
         assert problem.definition.severity == Severity.valueOf(severity) : "Expected severity to be ${severity}, but was ${problem.definition.severity}"
 
+        switch (severity) {
+            case "ERROR":
+                assert problem.definition.id.displayName == "Java compilation error": "Expected label 'Java compilation error', but was ${problem.definition.id.displayName}"
+                break
+            case "WARNING":
+                assert problem.definition.id.displayName == "Java compilation warning": "Expected label 'Java compilation warning', but was ${problem.definition.id.displayName}"
+                break
+            default:
+                throw new IllegalArgumentException("Unknown severity: ${severity}")
+        }
+
         def details = problem.details
         assert details: "Expected details to be non-null, but was null"
 
