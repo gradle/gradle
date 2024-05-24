@@ -31,6 +31,7 @@ import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.service.Provides;
+import org.gradle.internal.service.ServiceProvider;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
@@ -66,7 +67,7 @@ public class WorkersServices extends AbstractGradleModuleServices {
         registration.add(IsolatedClassloaderWorkerFactory.class);
     }
 
-    private static class BuildSessionScopeServices {
+    private static class BuildSessionScopeServices implements ServiceProvider {
         @Provides
         WorkerDirectoryProvider createWorkerDirectoryProvider(GradleUserHomeDirProvider gradleUserHomeDirProvider) {
             return new DefaultWorkerDirectoryProvider(gradleUserHomeDirProvider);
@@ -83,7 +84,7 @@ public class WorkersServices extends AbstractGradleModuleServices {
         }
     }
 
-    private static class GradleUserHomeServices {
+    private static class GradleUserHomeServices implements ServiceProvider {
         @Provides
         WorkerDaemonClientsManager createWorkerDaemonClientsManager(WorkerProcessFactory workerFactory,
                                                                     LoggingManagerInternal loggingManager,
@@ -111,7 +112,7 @@ public class WorkersServices extends AbstractGradleModuleServices {
         }
     }
 
-    private static class ProjectScopeServices {
+    private static class ProjectScopeServices implements ServiceProvider {
         @Provides
         WorkerExecutor createWorkerExecutor(InstantiatorFactory instantiatorFactory,
                                             WorkerDaemonFactory daemonWorkerFactory,

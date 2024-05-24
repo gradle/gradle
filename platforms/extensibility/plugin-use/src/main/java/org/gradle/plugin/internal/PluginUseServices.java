@@ -41,6 +41,7 @@ import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.properties.annotations.MissingPropertyAnnotationHandler;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.Provides;
+import org.gradle.internal.service.ServiceProvider;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.plugin.management.PluginManagementSpec;
@@ -88,14 +89,14 @@ public class PluginUseServices extends AbstractGradleModuleServices {
     }
 
     @NonNullApi
-    private static class GlobalScopeServices {
+    private static class GlobalScopeServices implements ServiceProvider {
         @Provides
         SoftwareTypeAnnotationHandler createSoftwareTypeAnnotationHandler() {
             return new SoftwareTypeAnnotationHandler();
         }
     }
 
-    private static class SettingsScopeServices {
+    private static class SettingsScopeServices implements ServiceProvider {
         @Provides
         protected PluginManagementSpec createPluginManagementSpec(
             Instantiator instantiator,
@@ -108,7 +109,7 @@ public class PluginUseServices extends AbstractGradleModuleServices {
         }
     }
 
-    private static class BuildScopeServices {
+    private static class BuildScopeServices implements ServiceProvider {
         void configure(ServiceRegistration registration) {
             registration.add(PluginResolverFactory.class);
             registration.add(DefaultPluginRequestApplicator.class);

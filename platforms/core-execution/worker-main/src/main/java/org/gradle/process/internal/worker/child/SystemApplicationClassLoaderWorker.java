@@ -34,6 +34,7 @@ import org.gradle.internal.remote.services.MessagingServices;
 import org.gradle.internal.serialize.InputStreamBackedDecoder;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.Provides;
+import org.gradle.internal.service.ServiceProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.Scope.Global;
 import org.gradle.process.internal.health.memory.DefaultJvmMemoryInfo;
@@ -187,7 +188,7 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
     private static class WorkerServices extends DefaultServiceRegistry {
         public WorkerServices(ServiceRegistry parent, final File gradleUserHomeDir) {
             super(parent);
-            addProvider(new Object() {
+            addProvider(new ServiceProvider() {
                 @Provides
                 GradleUserHomeDirProvider createGradleUserHomeDirProvider() {
                     return new GradleUserHomeDirProvider() {

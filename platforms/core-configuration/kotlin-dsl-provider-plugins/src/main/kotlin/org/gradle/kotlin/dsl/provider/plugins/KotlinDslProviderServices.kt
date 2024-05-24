@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl.provider.plugins
 
 import org.gradle.internal.service.Provides
+import org.gradle.internal.service.ServiceProvider
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices
 
@@ -32,7 +33,7 @@ class KotlinDslProviderServices : AbstractGradleModuleServices() {
 
 
 internal
-object GradleUserHomeServices {
+object GradleUserHomeServices : ServiceProvider {
 
     @Provides
     fun createProjectSchemaProvider() =

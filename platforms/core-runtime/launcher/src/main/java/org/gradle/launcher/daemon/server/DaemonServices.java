@@ -31,6 +31,7 @@ import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.service.Provides;
+import org.gradle.internal.service.ServiceProvider;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.launcher.daemon.configuration.DaemonServerConfiguration;
 import org.gradle.launcher.daemon.context.DaemonContext;
@@ -74,7 +75,7 @@ import static org.gradle.internal.FileUtils.canonicalize;
 /**
  * Takes care of instantiating and wiring together the services required by the daemon server.
  */
-public class DaemonServices {
+public class DaemonServices implements ServiceProvider {
     private final DaemonServerConfiguration configuration;
     private final LoggingManagerInternal loggingManager;
     private static final Logger LOGGER = Logging.getLogger(DaemonServices.class);

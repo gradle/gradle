@@ -22,8 +22,9 @@ import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.internal.file.Chmod;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.service.Provides;
+import org.gradle.internal.service.ServiceProvider;
 
-public class ScopeIdsServices {
+public class ScopeIdsServices implements ServiceProvider {
 
     @Provides
     protected PersistentScopeIdLoader createPersistentScopeIdLoader(

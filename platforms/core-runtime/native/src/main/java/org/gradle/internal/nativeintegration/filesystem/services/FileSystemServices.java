@@ -30,13 +30,14 @@ import org.gradle.internal.nativeintegration.filesystem.jdk7.Jdk7Symlink;
 import org.gradle.internal.nativeintegration.filesystem.jdk7.WindowsJdk7Symlink;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.Provides;
+import org.gradle.internal.service.ServiceProvider;
 import org.gradle.internal.service.ServiceRegistration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static org.gradle.internal.nativeintegration.filesystem.services.JdkFallbackHelper.newInstanceOrFallback;
 
-public class FileSystemServices {
+public class FileSystemServices implements ServiceProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(FileSystemServices.class);
 
     public void configure(ServiceRegistration registration) {

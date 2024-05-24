@@ -28,6 +28,7 @@ import org.gradle.api.publish.ivy.internal.publisher.IvyPublisher;
 import org.gradle.api.publish.ivy.internal.publisher.ValidatingIvyPublisher;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.service.Provides;
+import org.gradle.internal.service.ServiceProvider;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.ivy.IvyDescriptorArtifact;
@@ -44,7 +45,7 @@ public class IvyServices extends AbstractGradleModuleServices {
         registration.add(IvyDuplicatePublicationTracker.class);
     }
 
-    private static class BuildServices {
+    private static class BuildServices implements ServiceProvider {
         @Provides
         IvyPublisher createIvyPublisher(IvyContextManager ivyContextManager, ImmutableModuleIdentifierFactory moduleIdentifierFactory, FileResourceRepository fileResourceRepository, IvyMutableModuleMetadataFactory metadataFactory) {
             IvyPublisher publisher = new DependencyResolverIvyPublisher();

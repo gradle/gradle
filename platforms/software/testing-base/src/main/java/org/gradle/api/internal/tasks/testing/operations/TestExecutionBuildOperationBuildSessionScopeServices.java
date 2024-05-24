@@ -20,10 +20,11 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.service.Provides;
+import org.gradle.internal.service.ServiceProvider;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.time.Clock;
 
-public class TestExecutionBuildOperationBuildSessionScopeServices {
+public class TestExecutionBuildOperationBuildSessionScopeServices implements ServiceProvider {
 
     @Provides
     TestListenerBuildOperationAdapter createTestListenerBuildOperationAdapter(BuildOperationListenerManager listener, BuildOperationIdFactory buildOperationIdFactory, Clock clock) {

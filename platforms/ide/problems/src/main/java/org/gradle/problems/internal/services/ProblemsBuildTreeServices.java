@@ -22,13 +22,14 @@ import org.gradle.api.problems.internal.ProblemTransformer;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.service.Provides;
+import org.gradle.internal.service.ServiceProvider;
 import org.gradle.problems.buildtree.ProblemStream;
 import org.gradle.problems.internal.emitters.BuildOperationBasedProblemEmitter;
 import org.gradle.problems.internal.transformers.ProblemStreamLocationTransformer;
 
 import java.util.List;
 
-public class ProblemsBuildTreeServices {
+public class ProblemsBuildTreeServices implements ServiceProvider {
 
     @Provides
     InternalProblems createProblemsService(

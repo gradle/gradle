@@ -78,6 +78,7 @@ import org.gradle.internal.resource.cached.ExternalResourceFileStore;
 import org.gradle.internal.resource.cached.TwoStageByUrlCachedExternalResourceIndex;
 import org.gradle.internal.resource.cached.TwoStageExternalResourceFileStore;
 import org.gradle.internal.service.Provides;
+import org.gradle.internal.service.ServiceProvider;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 import org.gradle.util.internal.SimpleMapInterner;
@@ -91,7 +92,7 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * The set of dependency management services that are created per build tree.
  */
-class DependencyManagementBuildTreeScopeServices {
+class DependencyManagementBuildTreeScopeServices implements ServiceProvider {
     void configure(ServiceRegistration registration) {
         registration.add(ProjectArtifactResolver.class);
         registration.add(DefaultExternalResourceFileStore.Factory.class);

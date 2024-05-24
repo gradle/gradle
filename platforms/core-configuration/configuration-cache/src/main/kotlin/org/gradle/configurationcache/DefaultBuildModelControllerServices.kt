@@ -57,6 +57,7 @@ import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.CachingServiceLocator
 import org.gradle.internal.service.Provides
+import org.gradle.internal.service.ServiceProvider
 import org.gradle.internal.service.scopes.BuildScopeServices
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.invocation.DefaultGradle
@@ -99,7 +100,7 @@ class DefaultBuildModelControllerServices(
         private val buildDefinition: BuildDefinition,
         private val parentBuild: BuildState?,
         private val buildScopeServices: BuildScopeServices
-    ) {
+    ) : ServiceProvider {
         @Provides
         fun createGradleModel(instantiator: Instantiator, serviceRegistryFactory: ServiceRegistryFactory): GradleInternal? {
             return instantiator.newInstance(
@@ -129,7 +130,7 @@ class DefaultBuildModelControllerServices(
     }
 
     private
-    class ConfigurationCacheBuildControllerProvider {
+    class ConfigurationCacheBuildControllerProvider : ServiceProvider {
         @Provides
         fun createBuildModelController(
             gradle: GradleInternal,
@@ -142,7 +143,7 @@ class DefaultBuildModelControllerServices(
     }
 
     private
-    class VintageBuildControllerProvider {
+    class VintageBuildControllerProvider : ServiceProvider {
         @Provides
         fun createBuildModelController(
             gradle: GradleInternal,
@@ -156,7 +157,7 @@ class DefaultBuildModelControllerServices(
     }
 
     private
-    class ConfigurationCacheIsolatedProjectsProvider {
+    class ConfigurationCacheIsolatedProjectsProvider : ServiceProvider {
         @Provides
         fun createCrossProjectModelAccess(
             projectRegistry: ProjectRegistry<ProjectInternal>,
@@ -190,7 +191,7 @@ class DefaultBuildModelControllerServices(
     }
 
     private
-    class VintageIsolatedProjectsProvider {
+    class VintageIsolatedProjectsProvider : ServiceProvider {
         @Provides
         fun createCrossProjectModelAccess(
             projectRegistry: ProjectRegistry<ProjectInternal>
@@ -204,7 +205,7 @@ class DefaultBuildModelControllerServices(
     }
 
     private
-    class ConfigurationCacheModelProvider {
+    class ConfigurationCacheModelProvider : ServiceProvider {
         @Provides
         fun createProjectEvaluator(
             buildOperationRunner: BuildOperationRunner,
@@ -219,7 +220,7 @@ class DefaultBuildModelControllerServices(
     }
 
     private
-    class VintageModelProvider {
+    class VintageModelProvider : ServiceProvider {
         @Provides
         fun createProjectEvaluator(
             buildOperationRunner: BuildOperationRunner,

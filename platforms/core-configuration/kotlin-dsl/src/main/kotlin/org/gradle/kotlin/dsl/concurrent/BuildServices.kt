@@ -18,6 +18,7 @@ package org.gradle.kotlin.dsl.concurrent
 
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.service.Provides
+import org.gradle.internal.service.ServiceProvider
 
 import java.io.Closeable
 import java.time.Duration
@@ -29,7 +30,7 @@ import java.util.concurrent.atomic.AtomicReference
 
 
 internal
-object BuildServices {
+object BuildServices : ServiceProvider {
 
     @Provides
     fun createAsyncIOScopeFactory(executorFactory: ExecutorFactory): AsyncIOScopeFactory =

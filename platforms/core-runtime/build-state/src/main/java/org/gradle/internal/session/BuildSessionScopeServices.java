@@ -24,6 +24,7 @@ import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.event.ScopedListenerManager;
 import org.gradle.internal.service.Provides;
+import org.gradle.internal.service.ServiceProvider;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.GradleModuleServices;
 import org.gradle.internal.service.scopes.Scope;
@@ -35,7 +36,7 @@ import java.util.List;
 /**
  * Contains the services for a single build session, which could be a single build or multiple builds when in continuous mode.
  */
-public class BuildSessionScopeServices extends WorkerSharedBuildSessionScopeServices {
+public class BuildSessionScopeServices extends WorkerSharedBuildSessionScopeServices implements ServiceProvider {
 
     private final StartParameterInternal startParameter;
     private final BuildRequestMetaData buildRequestMetaData;

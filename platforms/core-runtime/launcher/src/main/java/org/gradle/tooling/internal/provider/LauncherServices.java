@@ -58,6 +58,7 @@ import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.logging.LoggingBuildOperationProgressBroadcaster;
 import org.gradle.internal.operations.notify.BuildOperationNotificationValve;
 import org.gradle.internal.service.Provides;
+import org.gradle.internal.service.ServiceProvider;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.internal.session.BuildSessionActionExecutor;
@@ -103,14 +104,14 @@ public class LauncherServices extends AbstractGradleModuleServices {
         registration.addProvider(new ToolingBuildTreeScopeServices());
     }
 
-    static class ToolingGlobalScopeServices {
+    static class ToolingGlobalScopeServices implements ServiceProvider {
         @Provides
         BuildLoggerFactory createBuildLoggerFactory(StyledTextOutputFactory styledTextOutputFactory, WorkValidationWarningReporter workValidationWarningReporter) {
             return new BuildLoggerFactory(styledTextOutputFactory, workValidationWarningReporter, Time.clock(), null);
         }
     }
 
-    static class ToolingBuildSessionScopeServices {
+    static class ToolingBuildSessionScopeServices implements ServiceProvider {
         @Provides
         BuildSessionActionExecutor createActionExecutor(
             BuildEventListenerFactory listenerFactory,
@@ -180,7 +181,7 @@ public class LauncherServices extends AbstractGradleModuleServices {
 
     }
 
-    static class ToolingBuildTreeScopeServices {
+    static class ToolingBuildTreeScopeServices implements ServiceProvider {
         @Provides
         ProblemStream createProblemStream(StartParameter parameter, ProblemDiagnosticsFactory diagnosticsFactory){
             return  parameter.getWarningMode().shouldDisplayMessages()? diagnosticsFactory.newUnlimitedStream() : diagnosticsFactory.newStream();

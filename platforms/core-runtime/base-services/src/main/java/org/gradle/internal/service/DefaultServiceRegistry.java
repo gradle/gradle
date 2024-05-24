@@ -56,7 +56,7 @@ import java.util.concurrent.atomic.AtomicReference;
  *
  * <li>Calling {@link #add(Class, Object)} or {@link #add(Object)} to register a service instance.</li>
  *
- * <li>Calling {@link #addProvider(Object)} to register a service provider bean. A provider bean may have factory, decorator and configuration methods as described below.</li>
+ * <li>Calling {@link #addProvider(ServiceProvider)} to register a service provider bean. A provider bean may have factory, decorator and configuration methods as described below.</li>
  *
  * <li>Adding a factory method. A factory method should have a name that starts with 'create', and have a non-void return type. For example, <code>protected SomeService createSomeService() { ....
  * }</code>. Parameters are injected using services from this registry or its parents. Parameter of type {@link ServiceRegistry} will receive the service registry that owns the service. Parameter of
@@ -81,7 +81,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * be registered as a listener of that type. Alternatively, service implementations can be annotated with {@link org.gradle.internal.service.scopes.ListenerService} to indicate that the should be
  * registered as a listener.</p>
  */
-public class DefaultServiceRegistry implements ServiceRegistry, Closeable, ContainsServices {
+public class DefaultServiceRegistry implements ServiceRegistry, Closeable, ContainsServices, ServiceProvider {
     private enum State {INIT, STARTED, CLOSED}
 
     private final static ServiceRegistry[] NO_PARENTS = new ServiceRegistry[0];
@@ -156,9 +156,9 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
     /**
      * Creates a service registry that uses the given providers.
      */
-    public static ServiceRegistry create(Object... providers) {
+    public static ServiceRegistry create(ServiceProvider... providers) {
         DefaultServiceRegistry registry = new DefaultServiceRegistry();
-        for (Object provider : providers) {
+        for (ServiceProvider provider : providers) {
             registry.addProvider(provider);
         }
         return registry;
@@ -173,8 +173,8 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
         return getDisplayName();
     }
 
-    private void findProviderMethods(Object target) {
-        Class<?> type = target.getClass();
+    private void findProviderMethods(ServiceProvider target) {
+        Class<? extends ServiceProvider> type = target.getClass();
         RelevantMethods methods = RelevantMethods.getMethods(type);
         for (ServiceMethod method : methods.decorators) {
             if (parentServices == null) {
@@ -248,7 +248,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
             }
 
             @Override
-            public void addProvider(Object provider) {
+            public void addProvider(ServiceProvider provider) {
                 DefaultServiceRegistry.this.addProvider(provider);
             }
         };
@@ -273,7 +273,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
     /**
      * Adds a service provider bean to this registry. This provider may define factory and decorator methods.
      */
-    public DefaultServiceRegistry addProvider(Object provider) {
+    public DefaultServiceRegistry addProvider(ServiceProvider provider) {
         assertMutable();
         findProviderMethods(provider);
         return this;

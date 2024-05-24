@@ -33,6 +33,7 @@ import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.service.Provides;
+import org.gradle.internal.service.ServiceProvider;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.internal.typeconversion.NotationParser;
@@ -81,7 +82,7 @@ public class VersionControlServices extends AbstractGradleModuleServices {
         registration.addProvider(new VersionControlSettingsServices());
     }
 
-    private static class VersionControlBuildTreeServices {
+    private static class VersionControlBuildTreeServices implements ServiceProvider {
         @Provides
         VcsMappingFactory createVcsMappingFactory(ObjectFactory objectFactory, StartParameter startParameter, NotationParser<String, ModuleIdentifier> notationParser, VersionControlSpecFactory versionControlSpecFactory) {
             return new DefaultVcsMappingFactory(objectFactory, versionControlSpecFactory);
@@ -108,7 +109,7 @@ public class VersionControlServices extends AbstractGradleModuleServices {
         }
     }
 
-    private static class VersionControlBuildSessionServices {
+    private static class VersionControlBuildSessionServices implements ServiceProvider {
         @Provides
         NotationParser<String, ModuleIdentifier> createModuleIdParser(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
             return NotationParserBuilder
@@ -134,7 +135,7 @@ public class VersionControlServices extends AbstractGradleModuleServices {
         }
     }
 
-    private static class VersionControlSettingsServices {
+    private static class VersionControlSettingsServices implements ServiceProvider {
         @Provides
         VcsMappings createVcsMappings(ObjectFactory objectFactory, VcsMappingsStore vcsMappingsStore, Gradle gradle, NotationParser<String, ModuleIdentifier> notationParser) {
             return objectFactory.newInstance(DefaultVcsMappings.class, vcsMappingsStore, gradle, notationParser);
@@ -146,7 +147,7 @@ public class VersionControlServices extends AbstractGradleModuleServices {
         }
     }
 
-    private static class VersionControlBuildServices {
+    private static class VersionControlBuildServices implements ServiceProvider {
 
         void configure(ServiceRegistration registration) {
             registration.add(VcsResolverFactory.class);

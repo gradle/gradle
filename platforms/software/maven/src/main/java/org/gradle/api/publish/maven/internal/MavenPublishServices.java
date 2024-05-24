@@ -26,6 +26,7 @@ import org.gradle.api.publish.maven.internal.dependencies.VersionRangeMapper;
 import org.gradle.api.publish.maven.internal.publisher.MavenDuplicatePublicationTracker;
 import org.gradle.api.publish.maven.internal.publisher.MavenPublishers;
 import org.gradle.internal.service.Provides;
+import org.gradle.internal.service.ServiceProvider;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.maven.MavenModule;
@@ -43,7 +44,7 @@ public class MavenPublishServices extends AbstractGradleModuleServices {
         registration.add(MavenDuplicatePublicationTracker.class);
     }
 
-    private static class ComponentRegistrationAction {
+    private static class ComponentRegistrationAction implements ServiceProvider {
         public void configure(ServiceRegistration registration, ComponentTypeRegistry componentTypeRegistry) {
             // TODO There should be a more explicit way to execute an action against existing services
             componentTypeRegistry.maybeRegisterComponentType(MavenModule.class)

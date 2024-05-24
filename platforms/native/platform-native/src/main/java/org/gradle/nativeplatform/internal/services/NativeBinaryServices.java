@@ -21,6 +21,7 @@ import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.Provides;
+import org.gradle.internal.service.ServiceProvider;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
@@ -86,7 +87,7 @@ public class NativeBinaryServices extends AbstractGradleModuleServices {
         registration.addProvider(new ProjectCompilerServices());
     }
 
-    private static final class BuildSessionScopeServices {
+    private static final class BuildSessionScopeServices implements ServiceProvider {
         @Provides
         WindowsSdkLocator createWindowsSdkLocator(OperatingSystem os, WindowsRegistry windowsRegistry, SystemInfo systemInfo) {
             return new DefaultWindowsSdkLocator(os, windowsRegistry, systemInfo);
@@ -128,7 +129,7 @@ public class NativeBinaryServices extends AbstractGradleModuleServices {
         }
     }
 
-    private static final class ProjectCompilerServices {
+    private static final class ProjectCompilerServices implements ServiceProvider {
         @Provides
         CompilerOutputFileNamingSchemeFactory createCompilerOutputFileNamingSchemeFactory(RelativeFilePathResolver fileResolver) {
             return new CompilerOutputFileNamingSchemeFactory(fileResolver);

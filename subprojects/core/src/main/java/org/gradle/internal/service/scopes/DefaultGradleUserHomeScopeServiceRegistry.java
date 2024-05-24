@@ -19,6 +19,7 @@ package org.gradle.internal.service.scopes;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.service.Provides;
+import org.gradle.internal.service.ServiceProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 
@@ -36,11 +37,11 @@ import java.util.concurrent.locks.ReentrantLock;
 public class DefaultGradleUserHomeScopeServiceRegistry implements GradleUserHomeScopeServiceRegistry, Closeable {
     public static final String REUSE_USER_HOME_SERVICES = "org.gradle.internal.reuse.user.home.services";
     private final ServiceRegistry sharedServices;
-    private final Object provider;
+    private final ServiceProvider provider;
     private final Lock lock = new ReentrantLock();
     private final Map<File, Services> servicesForHomeDir = new HashMap<>();
 
-    public DefaultGradleUserHomeScopeServiceRegistry(ServiceRegistry sharedServices, Object provider) {
+    public DefaultGradleUserHomeScopeServiceRegistry(ServiceRegistry sharedServices, ServiceProvider provider) {
         this.sharedServices = sharedServices;
         this.provider = provider;
     }
@@ -82,7 +83,7 @@ public class DefaultGradleUserHomeScopeServiceRegistry implements GradleUserHome
                     .scope(Scope.UserHome.class)
                     .displayName("services for Gradle user home dir " + gradleUserHomeDir)
                     .parent(sharedServices)
-                    .provider(new Object() {
+                    .provider(new ServiceProvider() {
                         @Provides
                         GradleUserHomeDirProvider createGradleUserHomeDirProvider() {
                             return () -> gradleUserHomeDir;

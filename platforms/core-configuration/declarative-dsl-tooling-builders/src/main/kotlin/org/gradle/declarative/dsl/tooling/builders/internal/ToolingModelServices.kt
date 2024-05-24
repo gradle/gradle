@@ -18,6 +18,7 @@ package org.gradle.declarative.dsl.tooling.builders.internal
 
 import org.gradle.declarative.dsl.tooling.builders.DeclarativeSchemaModelBuilder
 import org.gradle.internal.service.Provides
+import org.gradle.internal.service.ServiceProvider
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
@@ -33,7 +34,7 @@ class ToolingModelServices : AbstractGradleModuleServices() {
 
 
 internal
-object BuildScopeToolingServices {
+object BuildScopeToolingServices : ServiceProvider {
 
     @Provides
     fun createIdeBuildScopeToolingModelBuilderRegistryAction(softwareTypeRegistry: SoftwareTypeRegistry): BuildScopeToolingModelBuilderRegistryAction {

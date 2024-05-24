@@ -24,11 +24,12 @@ import org.gradle.initialization.layout.GlobalCacheDir;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.service.Provides;
+import org.gradle.internal.service.ServiceProvider;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.snapshot.impl.DefaultIsolatableFactory;
 import org.gradle.internal.state.ManagedFactoryRegistry;
 
-public class WorkerSharedUserHomeScopeServices {
+public class WorkerSharedUserHomeScopeServices implements ServiceProvider {
     public void configure(ServiceRegistration registration) {
         registration.add(GlobalCacheDir.class);
     }

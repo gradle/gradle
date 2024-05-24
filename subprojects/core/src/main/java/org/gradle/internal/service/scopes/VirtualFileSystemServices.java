@@ -76,6 +76,7 @@ import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.service.Provides;
+import org.gradle.internal.service.ServiceProvider;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
@@ -143,7 +144,7 @@ public class VirtualFileSystemServices extends AbstractGradleModuleServices {
         registration.addProvider(new BuildSessionServices());
     }
 
-    private static class GlobalScopeServices {
+    private static class GlobalScopeServices implements ServiceProvider {
         @Provides
         FileHasherStatistics.Collector createCachingFileHasherStatisticsCollector() {
             return new FileHasherStatistics.Collector();
@@ -156,7 +157,7 @@ public class VirtualFileSystemServices extends AbstractGradleModuleServices {
     }
 
     @VisibleForTesting
-    static class GradleUserHomeServices {
+    static class GradleUserHomeServices implements ServiceProvider {
 
         @Provides
         CrossBuildFileHashCache createCrossBuildFileHashCache(GlobalScopedCacheBuilderFactory cacheBuilderFactory, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
@@ -311,7 +312,7 @@ public class VirtualFileSystemServices extends AbstractGradleModuleServices {
     }
 
     @VisibleForTesting
-    static class BuildSessionServices {
+    static class BuildSessionServices implements ServiceProvider {
 
         @Provides
         FileSystemDefaultExcludesProvider createFileSystemDefaultExcludesProvider(ListenerManager listenerManager) {

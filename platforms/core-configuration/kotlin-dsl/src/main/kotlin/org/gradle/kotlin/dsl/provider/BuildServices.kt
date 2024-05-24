@@ -38,6 +38,7 @@ import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.scripts.ScriptExecutionListener
 import org.gradle.internal.service.Provides
+import org.gradle.internal.service.ServiceProvider
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
 import org.gradle.kotlin.dsl.normalization.KotlinCompileClasspathFingerprinter
 import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
@@ -52,7 +53,7 @@ const val KOTLIN_SCRIPT_COMPILATION_AVOIDANCE_ENABLED_PROPERTY =
 
 
 internal
-object BuildServices {
+object BuildServices : ServiceProvider {
 
     @Provides
     fun createKotlinScriptClassPathProvider(

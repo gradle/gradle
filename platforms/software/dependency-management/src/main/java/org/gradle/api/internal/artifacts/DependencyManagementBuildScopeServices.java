@@ -152,6 +152,7 @@ import org.gradle.internal.resource.local.ivy.LocallyAvailableResourceFinderFact
 import org.gradle.internal.resource.transfer.CachingTextUriResourceLoader;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.Provides;
+import org.gradle.internal.service.ServiceProvider;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.ValueSnapshotter;
@@ -171,7 +172,7 @@ import static org.gradle.internal.execution.steps.AfterExecutionOutputFilter.NO_
 /**
  * The set of dependency management services that are created per build in the tree.
  */
-class DependencyManagementBuildScopeServices {
+class DependencyManagementBuildScopeServices implements ServiceProvider {
     void configure(ServiceRegistration registration) {
         registration.add(TransformStepNodeDependencyResolver.class);
         registration.add(DefaultProjectPublicationRegistry.class);

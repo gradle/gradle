@@ -39,6 +39,7 @@ import org.gradle.internal.resource.connector.ResourceConnectorFactory
 import org.gradle.internal.resource.connector.ResourceConnectorSpecification
 import org.gradle.internal.resource.transfer.ExternalResourceConnector
 import org.gradle.internal.service.Provides
+import org.gradle.internal.service.ServiceProvider
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices
 import org.gradle.invocation.IsolatedProjectEvaluationListenerProvider
@@ -88,7 +89,7 @@ class ConfigurationCacheServices : AbstractGradleModuleServices() {
     }
 
     private
-    object RemoteScriptUpToDateCheckerProvider {
+    object RemoteScriptUpToDateCheckerProvider : ServiceProvider {
         @Provides
         fun createRemoteScriptUpToDateChecker(
             artifactCachesProvider: ArtifactCachesProvider,
@@ -116,7 +117,7 @@ class ConfigurationCacheServices : AbstractGradleModuleServices() {
     }
 
     private
-    object ExecutionAccessCheckerProvider {
+    object ExecutionAccessCheckerProvider : ServiceProvider {
         @Provides
         fun createExecutionAccessChecker(
             listenerManager: ListenerManager,
@@ -133,7 +134,7 @@ class ConfigurationCacheServices : AbstractGradleModuleServices() {
     }
 
     private
-    object TaskExecutionAccessCheckerProvider {
+    object TaskExecutionAccessCheckerProvider : ServiceProvider {
         @Provides
         fun createTaskExecutionAccessChecker(
             configurationTimeBarrier: ConfigurationTimeBarrier,
@@ -153,7 +154,7 @@ class ConfigurationCacheServices : AbstractGradleModuleServices() {
     }
 
     private
-    object IgnoredConfigurationInputsProvider {
+    object IgnoredConfigurationInputsProvider : ServiceProvider {
         @Provides
         fun createIgnoredConfigurationInputs(
             configurationCacheStartParameter: ConfigurationCacheStartParameter,

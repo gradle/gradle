@@ -51,6 +51,7 @@ import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.Provides;
+import org.gradle.internal.service.ServiceProvider;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
@@ -65,7 +66,7 @@ import java.util.List;
 public final class BuildCacheServices extends AbstractGradleModuleServices {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
-        registration.addProvider(new Object() {
+        registration.addProvider(new ServiceProvider() {
             @Provides
             BufferProvider createBufferProvider() {
                 // TODO Make buffer size configurable
@@ -76,7 +77,7 @@ public final class BuildCacheServices extends AbstractGradleModuleServices {
 
     @Override
     public void registerBuildTreeServices(ServiceRegistration registration) {
-        registration.addProvider(new Object() {
+        registration.addProvider(new ServiceProvider() {
             private static final String GRADLE_VERSION_KEY = "gradleVersion";
 
             @Provides
@@ -98,7 +99,7 @@ public final class BuildCacheServices extends AbstractGradleModuleServices {
 
     @Override
     public void registerBuildServices(ServiceRegistration registration) {
-        registration.addProvider(new Object() {
+        registration.addProvider(new ServiceProvider() {
 
             @Provides
             BuildCacheConfigurationInternal createBuildCacheConfiguration(
@@ -118,7 +119,7 @@ public final class BuildCacheServices extends AbstractGradleModuleServices {
     @Override
     public void registerGradleServices(ServiceRegistration registration) {
         // Not build scoped because of dependency on GradleInternal for build path
-        registration.addProvider(new Object() {
+        registration.addProvider(new ServiceProvider() {
 
             @Provides
             TarPackerFileSystemSupport createPackerFileSystemSupport(Deleter deleter) {

@@ -17,10 +17,11 @@ package org.gradle.kotlin.dsl.support
 
 import org.gradle.configuration.ImportsReader
 import org.gradle.internal.service.Provides
+import org.gradle.internal.service.ServiceProvider
 
 
 internal
-object GlobalServices {
+object GlobalServices : ServiceProvider {
 
     @Provides
     fun createImplicitImports(importsReader: ImportsReader) =

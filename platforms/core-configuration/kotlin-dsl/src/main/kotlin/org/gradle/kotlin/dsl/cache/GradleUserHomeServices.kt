@@ -20,10 +20,11 @@ import org.gradle.api.internal.cache.CacheConfigurationsInternal
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.internal.file.FileAccessTimeJournal
 import org.gradle.internal.service.Provides
+import org.gradle.internal.service.ServiceProvider
 
 
 internal
-object GradleUserHomeServices {
+object GradleUserHomeServices : ServiceProvider {
 
     @Provides
     fun createKotlinDslWorkspaceProvider(

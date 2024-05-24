@@ -34,6 +34,7 @@ import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.service.Provides;
+import org.gradle.internal.service.ServiceProvider;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.internal.vfs.FileSystemAccess;
@@ -49,7 +50,7 @@ public class CompileServices extends AbstractGradleModuleServices {
         registration.addProvider(new UserHomeScopeServices());
     }
 
-    private static class BuildScopeCompileServices {
+    private static class BuildScopeCompileServices implements ServiceProvider {
         void configure(ServiceRegistration registration, JdkToolsInitializer initializer) {
             // Hackery
             initializer.initializeJdkTools();
@@ -76,7 +77,7 @@ public class CompileServices extends AbstractGradleModuleServices {
         }
     }
 
-    private static class UserHomeScopeServices {
+    private static class UserHomeScopeServices implements ServiceProvider {
         @Provides
         UserHomeScopedCompileCaches createCompileCaches(GlobalScopedCacheBuilderFactory cacheBuilderFactory, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, StringInterner interner) {
             return new UserHomeScopedCompileCaches(cacheBuilderFactory, inMemoryCacheDecoratorFactory, interner);

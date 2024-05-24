@@ -62,6 +62,7 @@ import org.gradle.internal.scopeids.ScopeIdsServices;
 import org.gradle.internal.scopeids.id.UserScopeId;
 import org.gradle.internal.scopeids.id.WorkspaceScopeId;
 import org.gradle.internal.service.Provides;
+import org.gradle.internal.service.ServiceProvider;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.DefaultAsyncWorkTracker;
@@ -70,7 +71,7 @@ import org.gradle.process.internal.ExecFactory;
 import java.io.Closeable;
 import java.io.File;
 
-public class CoreBuildSessionServices {
+public class CoreBuildSessionServices implements ServiceProvider {
     void configure(ServiceRegistration registration) {
         registration.add(CalculatedValueContainerFactory.class);
         registration.add(StateTransitionControllerFactory.class);

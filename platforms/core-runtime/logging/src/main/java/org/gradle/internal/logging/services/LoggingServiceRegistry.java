@@ -174,6 +174,7 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
 
     private static class NestedLogging extends LoggingServiceRegistry {
 
+        @Provides
         @Override
         protected DefaultLoggingManagerFactory createLoggingManagerFactory() {
             // Don't configure anything

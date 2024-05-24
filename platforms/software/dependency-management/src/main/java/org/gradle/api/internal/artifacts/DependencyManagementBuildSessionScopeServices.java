@@ -25,10 +25,11 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.catalog.DependenciesAccessorsWorkspaceProvider;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.service.Provides;
+import org.gradle.internal.service.ServiceProvider;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.snapshot.impl.ValueSnapshotterSerializerRegistry;
 
-public class DependencyManagementBuildSessionScopeServices {
+public class DependencyManagementBuildSessionScopeServices implements ServiceProvider {
 
     void configure(ServiceRegistration registration) {
         registration.add(DependenciesAccessorsWorkspaceProvider.class);

@@ -26,6 +26,7 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.console.GlobalUserInputReceiver;
 import org.gradle.internal.service.Provides;
+import org.gradle.internal.service.ServiceProvider;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.cli.converter.BuildLayoutConverter;
@@ -44,7 +45,7 @@ import org.gradle.tooling.internal.provider.serialization.WellKnownClassLoaderRe
 /**
  * Shared services for a tooling API provider connection.
  */
-public class ConnectionScopeServices {
+public class ConnectionScopeServices implements ServiceProvider {
     void configure(ServiceRegistration serviceRegistration) {
         serviceRegistration.addProvider(new DaemonClientGlobalServices());
     }

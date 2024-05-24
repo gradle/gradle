@@ -18,13 +18,14 @@ package org.gradle.internal.service.scopes;
 
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.service.Provides;
+import org.gradle.internal.service.ServiceProvider;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter;
 import org.gradle.internal.snapshot.impl.ValueSnapshotterSerializerRegistry;
 
 import java.util.List;
 
-public class WorkerSharedBuildSessionScopeServices {
+public class WorkerSharedBuildSessionScopeServices implements ServiceProvider {
 
     @Provides
     ValueSnapshotter createValueSnapshotter(

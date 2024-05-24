@@ -151,6 +151,7 @@ import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.Provides;
+import org.gradle.internal.service.ServiceProvider;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.vfs.FileSystemAccess;
@@ -187,7 +188,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         registration.addProvider(new DependencyResolutionScopeServices(domainObjectContext));
     }
 
-    private static class TransformGradleUserHomeServices {
+    private static class TransformGradleUserHomeServices implements ServiceProvider {
         @Provides
         TransformExecutionListener createTransformExecutionListener() {
             return new TransformExecutionListener() {
@@ -202,7 +203,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
     }
 
-    private static class DependencyResolutionScopeServices {
+    private static class DependencyResolutionScopeServices implements ServiceProvider {
 
         private final DomainObjectContext domainObjectContext;
 

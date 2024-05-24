@@ -21,6 +21,7 @@ import org.gradle.api.internal.tasks.userinput.UserInputReader;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.daemon.serialization.DaemonSidePayloadClassLoaderFactory;
 import org.gradle.internal.service.Provides;
+import org.gradle.internal.service.ServiceProvider;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.tooling.internal.provider.serialization.ClassLoaderCache;
@@ -42,7 +43,7 @@ public class DaemonServices extends AbstractGradleModuleServices {
         registration.addProvider(new DaemonGradleUserHomeServices());
     }
 
-    private static class DaemonGradleUserHomeServices {
+    private static class DaemonGradleUserHomeServices implements ServiceProvider {
         @Provides
         PayloadClassLoaderFactory createClassLoaderFactory(CachedClasspathTransformer cachedClasspathTransformer) {
             return new DaemonSidePayloadClassLoaderFactory(

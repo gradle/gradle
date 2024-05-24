@@ -16,10 +16,11 @@
 package org.gradle.kotlin.dsl.support
 
 import org.gradle.internal.service.Provides
+import org.gradle.internal.service.ServiceProvider
 
 
 internal
-object GradleUserHomeServices {
+object GradleUserHomeServices : ServiceProvider {
 
     @Provides
     fun createEmbeddedKotlinRepositoryProvider() =
