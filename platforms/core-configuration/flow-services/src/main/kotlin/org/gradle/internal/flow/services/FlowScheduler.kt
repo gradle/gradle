@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.flow
+package org.gradle.internal.flow.services
 
 import org.gradle.api.file.ArchiveOperations
 import org.gradle.api.file.FileSystemOperations

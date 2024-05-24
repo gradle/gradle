@@ -41,15 +41,16 @@ import org.gradle.api.services.BuildServiceParameters
 import org.gradle.api.services.internal.BuildServiceDetails
 import org.gradle.api.services.internal.BuildServiceProvider
 import org.gradle.api.services.internal.BuildServiceRegistryInternal
-import org.gradle.internal.extensions.core.serviceOf
 import org.gradle.configurationcache.extensions.uncheckedCast
-import org.gradle.configurationcache.flow.BuildWorkResultProvider
-import org.gradle.configurationcache.flow.RegisteredFlowAction
+import org.gradle.configurationcache.serialization.IsolateOwners
+import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.configuration.problems.PropertyTrace
+import org.gradle.internal.extensions.core.serviceOf
+import org.gradle.internal.flow.services.BuildWorkResultProvider
+import org.gradle.internal.flow.services.RegisteredFlowAction
 import org.gradle.internal.serialize.graph.Bindings
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.IsolateContext
-import org.gradle.configurationcache.serialization.IsolateOwners
 import org.gradle.internal.serialize.graph.MutableIsolateContext
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
@@ -63,7 +64,6 @@ import org.gradle.internal.serialize.graph.readNonNull
 import org.gradle.internal.serialize.graph.withDebugFrame
 import org.gradle.internal.serialize.graph.withIsolate
 import org.gradle.internal.serialize.graph.withPropertyTrace
-import org.gradle.internal.build.BuildStateRegistry
 
 
 internal

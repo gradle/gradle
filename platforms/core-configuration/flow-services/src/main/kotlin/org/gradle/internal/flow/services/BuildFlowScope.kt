@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.flow
+package org.gradle.internal.flow.services
 
 import org.gradle.BuildAdapter
 import org.gradle.BuildResult
@@ -36,14 +36,14 @@ import javax.inject.Inject
 
 @NonExtensible
 @ServiceScope(Scope.Build::class)
-internal
-open class BuildFlowScope @Inject constructor(
+open class BuildFlowScope @Inject internal constructor(
     private val flowScheduler: FlowScheduler,
     private val flowProviders: FlowProviders,
     private val flowParametersInstantiator: FlowParametersInstantiator,
     instantiatorFactory: InstantiatorFactory,
 ) : BuildAdapter(), FlowScope {
 
+    private
     sealed class State {
 
         abstract val pendingActions: List<RegisteredFlowAction>
@@ -157,7 +157,6 @@ open class BuildFlowScope @Inject constructor(
 }
 
 
-internal
 data class RegisteredFlowAction(
     val type: Class<out FlowAction<FlowParameters>>,
     val parameters: FlowParameters?

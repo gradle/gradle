@@ -64,13 +64,14 @@ dependencies {
     api(libs.inject)
     api(libs.futureKotlin("stdlib"))
 
-    implementation(project(":base-services-groovy"))
     // TODO - it might be good to allow projects to contribute state to save and restore, rather than have this project know about everything
+    implementation(project(":base-services-groovy"))
     implementation(project(":build-events"))
     implementation(projects.coreExtensionsKt)
     implementation(project(":execution"))
     implementation(project(":files"))
     implementation(project(":file-watching"))
+    implementation(projects.flowServices)
     implementation(project(":input-tracking"))
     implementation(projects.javaLanguageExtensionsKt)
     implementation(project(":platform-jvm"))
@@ -78,7 +79,6 @@ dependencies {
     implementation(project(":process-services"))
     implementation(project(":publish"))
     implementation(projects.serialization)
-    // TODO - it might be good to allow projects to contribute state to save and restore, rather than have this project know about everything
     implementation(project(":tooling-api"))
 
     implementation(libs.asm)

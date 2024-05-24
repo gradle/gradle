@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.flow
+package org.gradle.internal.flow.services
 
 import com.google.common.collect.ImmutableList
 import org.gradle.api.Task

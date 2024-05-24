@@ -77,6 +77,7 @@ public interface ArchUnitFixture {
         "org.gradle.configurationcache..",
         "org.gradle.internal.configuration.problems..",
         "org.gradle.internal.extensions.core..",
+        "org.gradle.internal.flow.services..",
         "org.gradle.internal.serialize.graph..",
         "org.gradle.kotlin..",
         "org.gradle.internal.declarativedsl..",
