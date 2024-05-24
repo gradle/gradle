@@ -7,7 +7,6 @@ description = "Implementation of configuration model types and annotation metada
 
 errorprone {
     disabledChecks.addAll(
-        "AnnotateFormatMethod", // 1 occurrence, needs errorprone annotations
         "ReferenceEquality", // 3 occurrences
         "UndefinedEquals", // 2 occurrences
         "UnusedMethod", // 8 occurrences
@@ -43,6 +42,8 @@ dependencies {
     implementation(libs.slf4jApi)
     implementation(libs.commonsLang)
     implementation(libs.fastutil)
+
+    compileOnly(libs.errorProneAnnotations)
 
     testFixturesApi(testFixtures(project(":diagnostics")))
     testFixturesApi(testFixtures(project(":core")))

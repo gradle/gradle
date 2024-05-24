@@ -17,6 +17,9 @@
 package org.gradle.model.internal.core.rule.describe;
 
 import javax.annotation.concurrent.ThreadSafe;
+
+import com.google.errorprone.annotations.FormatMethod;
+import com.google.errorprone.annotations.FormatString;
 import org.gradle.api.internal.cache.StringInterner;
 
 @ThreadSafe
@@ -35,7 +38,8 @@ abstract class AbstractModelRuleDescriptor implements ModelRuleDescriptor {
     }
 
     @Override
-    public ModelRuleDescriptor append(String child, Object... args) {
+    @FormatMethod
+    public ModelRuleDescriptor append(@FormatString String child, Object... args) {
         return append(String.format(child, args));
     }
 
