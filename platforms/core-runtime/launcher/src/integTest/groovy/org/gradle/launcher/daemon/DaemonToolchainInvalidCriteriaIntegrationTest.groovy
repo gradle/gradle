@@ -53,7 +53,6 @@ class DaemonToolchainInvalidCriteriaIntegrationTest extends AbstractIntegrationS
         failure.assertHasDescription("Value '-1' given for toolchainVersion is an invalid Java version")
     }
 
-    @NotYetImplemented
     def "Given unexpected toolchain vendor When execute any task Then fails with expected exception message"() {
         given:
         writeJvmCriteria(JavaVersion.VERSION_17, "unexpectedVendor")
@@ -62,7 +61,7 @@ class DaemonToolchainInvalidCriteriaIntegrationTest extends AbstractIntegrationS
         fails 'help'
 
         then:
-        failureDescriptionContains("Option toolchainVendor doesn't accept value 'unexpectedVendor'. Possible values are " +
+        failureDescriptionContains("Value 'unexpectedVendor' given for toolchainVendor is an invalid Java vendor. Possible values are " +
             "[ADOPTIUM, ADOPTOPENJDK, AMAZON, APPLE, AZUL, BELLSOFT, GRAAL_VM, HEWLETT_PACKARD, IBM, JETBRAINS, MICROSOFT, ORACLE, SAP, TENCENT, UNKNOWN]")
     }
 

@@ -26,6 +26,7 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.jvm.inspection.JvmVendor;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.services.NativeServices;
@@ -97,6 +98,7 @@ public class DaemonServices extends DefaultServiceRegistry {
         return new DefaultDaemonContext(configuration.getUid(),
             canonicalize(Jvm.current().getJavaHome()),
             JavaVersion.current(),
+            JvmVendor.KnownJvmVendor.parse(Jvm.current().getVendor()),
             configuration.getBaseDir(),
             processEnvironment.maybeGetPid(),
             configuration.getIdleTimeout(),

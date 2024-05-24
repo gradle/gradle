@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,16 +18,12 @@ package org.gradle.jvm.toolchain.internal.install;
 
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.GradleException;
-import org.gradle.api.InvalidUserCodeException;
-import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
-import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.resources.MissingResourceException;
 import org.gradle.authentication.Authentication;
 import org.gradle.internal.resource.ExternalResource;
+import org.gradle.internal.resource.ExternalResourceFactory;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ResourceExceptions;
-import org.gradle.internal.verifier.HttpRedirectVerifier;
-import org.gradle.internal.verifier.HttpRedirectVerifierFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,24 +32,28 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.Collection;
+import java.util.Collections;
 
 public class SecureFileDownloader {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SecureFileDownloader.class);
 
-    private final RepositoryTransportFactory repositoryTransportFactory;
+    private final ExternalResourceFactory externalResourceFactory;
 
-    public SecureFileDownloader(RepositoryTransportFactory repositoryTransportFactory) {
-        this.repositoryTransportFactory = repositoryTransportFactory;
+    public SecureFileDownloader(ExternalResourceFactory externalResourceFactory) {
+        this.externalResourceFactory = externalResourceFactory;
     }
 
     public ExternalResource getResourceFor(URI source, Collection<Authentication> authentications) {
         return createExternalResource(source, authentications);
+    }
+
+    public ExternalResource getResourceFor(URI source) {
+        return createExternalResource(source, Collections.emptyList());
     }
 
     public void download(URI source, File destination, ExternalResource resource) {
@@ -71,7 +71,7 @@ public class SecureFileDownloader {
                 return source.toString();
             }
         };
-        return getTransport(source, authentications).getRepository().withProgressLogging().resource(resourceName);
+        return externalResourceFactory.createExternalResource(source, authentications).withProgressLogging().resource(resourceName);
     }
 
     private void downloadResource(URI source, File targetFile, ExternalResource resource) {
@@ -106,24 +106,4 @@ public class SecureFileDownloader {
             throw ResourceExceptions.getFailed(source, e);
         }
     }
-
-    private RepositoryTransport getTransport(URI source, Collection<Authentication> authentications) {
-        final HttpRedirectVerifier redirectVerifier;
-        try {
-            redirectVerifier = HttpRedirectVerifierFactory.create(new URI(source.getScheme(), source.getAuthority(), null, null, null), false,
-                    () -> {
-                        throw new InvalidUserCodeException("Attempting to download a file from an insecure URI " + source +
-                                ". This is not supported, use a secure URI instead.");
-                    },
-                    uri -> {
-                        throw new InvalidUserCodeException("Attempting to download a file from an insecure URI " + uri +
-                                ". This URI was reached as a redirect from " + source + ". This is not supported, make sure no insecure URIs appear in the redirect");
-                    });
-        } catch (URISyntaxException e) {
-            throw new InvalidUserCodeException("Cannot extract host information from specified URI " + source);
-        }
-        return repositoryTransportFactory.createTransport("https", "jdk toolchains", authentications, redirectVerifier);
-    }
-
-
 }

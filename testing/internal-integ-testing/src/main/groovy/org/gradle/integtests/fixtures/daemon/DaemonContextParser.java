@@ -19,6 +19,7 @@ package org.gradle.integtests.fixtures.daemon;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import org.gradle.api.JavaVersion;
+import org.gradle.internal.jvm.inspection.JvmVendor;
 import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.context.DaemonContext;
@@ -61,7 +62,7 @@ public class DaemonContextParser {
         if (version.getBaseVersion().compareTo(GradleVersion.version("8.7")) <= 0) {
             return parseFrom87(source);
         }
-        Pattern pattern = Pattern.compile("^.*DefaultDaemonContext\\[(uid=[^\\n,]+)?,?javaHome=([^\\n]+),javaVersion=([^\\n]+),daemonRegistryDir=([^\\n]+),pid=([^\\n]+),idleTimeout=(.+?)(,priority=[^\\n,]+)?(?:,applyInstrumentationAgent=([^\\n,]+))?(?:,nativeServicesMode=([^\\n,]+))?,daemonOpts=([^\\n]+)].*",
+        Pattern pattern = Pattern.compile("^.*DefaultDaemonContext\\[(uid=[^\\n,]+)?,?javaHome=([^\\n]+),javaVersion=([^\\n]+),javaVendor=([^\\n]+),daemonRegistryDir=([^\\n]+),pid=([^\\n]+),idleTimeout=(.+?)(,priority=[^\\n,]+)?(?:,applyInstrumentationAgent=([^\\n,]+))?(?:,nativeServicesMode=([^\\n,]+))?,daemonOpts=([^\\n]+)].*",
                 Pattern.MULTILINE + Pattern.DOTALL);
         Matcher matcher = pattern.matcher(source);
 
@@ -69,15 +70,16 @@ public class DaemonContextParser {
             String uid = matcher.group(1) == null ? null : matcher.group(1).substring("uid=".length());
             String javaHome = matcher.group(2);
             JavaVersion javaVersion = JavaVersion.toVersion(matcher.group(3));
-            String daemonRegistryDir = matcher.group(4);
-            String pidStr = matcher.group(5);
+            JvmVendor.KnownJvmVendor javaVendor = JvmVendor.KnownJvmVendor.parse(matcher.group(4));
+            String daemonRegistryDir = matcher.group(5);
+            String pidStr = matcher.group(6);
             Long pid = pidStr.equals("null") ? null : Long.parseLong(pidStr);
-            Integer idleTimeout = Integer.decode(matcher.group(6));
-            DaemonParameters.Priority priority = matcher.group(7) == null ? DaemonParameters.Priority.NORMAL : DaemonParameters.Priority.valueOf(matcher.group(7).substring(",priority=".length()));
-            boolean applyInstrumentationAgent = Boolean.parseBoolean(matcher.group(8));
-            NativeServicesMode nativeServicesMode = matcher.group(9) == null ? NativeServicesMode.ENABLED : NativeServicesMode.valueOf(matcher.group(9));
-            List<String> jvmOpts = Lists.newArrayList(Splitter.on(',').split(matcher.group(10)));
-            return new DefaultDaemonContext(uid, new File(javaHome), JavaVersion.toVersion(javaVersion), new File(daemonRegistryDir), pid, idleTimeout, jvmOpts, applyInstrumentationAgent, nativeServicesMode, priority);
+            Integer idleTimeout = Integer.decode(matcher.group(7));
+            DaemonParameters.Priority priority = matcher.group(8) == null ? DaemonParameters.Priority.NORMAL : DaemonParameters.Priority.valueOf(matcher.group(7).substring(",priority=".length()));
+            boolean applyInstrumentationAgent = Boolean.parseBoolean(matcher.group(9));
+            NativeServicesMode nativeServicesMode = matcher.group(10) == null ? NativeServicesMode.ENABLED : NativeServicesMode.valueOf(matcher.group(9));
+            List<String> jvmOpts = Lists.newArrayList(Splitter.on(',').split(matcher.group(11)));
+            return new DefaultDaemonContext(uid, new File(javaHome), JavaVersion.toVersion(javaVersion), javaVendor, new File(daemonRegistryDir), pid, idleTimeout, jvmOpts, applyInstrumentationAgent, nativeServicesMode, priority);
         } else {
             return null;
         }
@@ -92,6 +94,7 @@ public class DaemonContextParser {
             String uid = matcher.group(1) == null ? null : matcher.group(1).substring("uid=".length());
             String javaHome = matcher.group(2);
             JavaVersion javaVersion = JavaVersion.VERSION_1_8;
+            JvmVendor.KnownJvmVendor javaVendor = JvmVendor.KnownJvmVendor.UNKNOWN;
             String daemonRegistryDir = matcher.group(3);
             String pidStr = matcher.group(4);
             Long pid = pidStr.equals("null") ? null : Long.parseLong(pidStr);
@@ -100,7 +103,7 @@ public class DaemonContextParser {
             boolean applyInstrumentationAgent = Boolean.parseBoolean(matcher.group(7));
             NativeServicesMode nativeServicesMode = matcher.group(8) == null ? NativeServicesMode.ENABLED : NativeServicesMode.valueOf(matcher.group(8));
             List<String> jvmOpts = Lists.newArrayList(Splitter.on(',').split(matcher.group(9)));
-            return new DefaultDaemonContext(uid, new File(javaHome), JavaVersion.VERSION_1_8, new File(daemonRegistryDir), pid, idleTimeout, jvmOpts, applyInstrumentationAgent, nativeServicesMode, priority);
+            return new DefaultDaemonContext(uid, new File(javaHome), javaVersion, javaVendor, new File(daemonRegistryDir), pid, idleTimeout, jvmOpts, applyInstrumentationAgent, nativeServicesMode, priority);
         } else {
             return null;
         }

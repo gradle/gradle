@@ -371,4 +371,13 @@ public class Jvm implements JavaInfo {
         return false;
     }
 
+    @Nullable
+    public String getVendor() {
+        for (String vendorProperty : VENDOR_PROPERTIES) {
+            if (System.getProperties().containsKey(vendorProperty) && !System.getProperty(vendorProperty).isEmpty()) {
+                return System.getProperty(vendorProperty);
+            }
+        }
+        return null;
+    }
 }

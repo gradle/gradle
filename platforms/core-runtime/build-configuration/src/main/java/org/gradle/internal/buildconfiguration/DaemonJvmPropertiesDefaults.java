@@ -24,6 +24,7 @@ public class DaemonJvmPropertiesDefaults {
     public static final String TOOLCHAIN_VERSION_PROPERTY = "toolchainVersion";
     public static final String TOOLCHAIN_VENDOR_PROPERTY = "toolchainVendor";
     public static final String TOOLCHAIN_IMPLEMENTATION_PROPERTY = "toolchainImplementation";
+    public static final String TOOLCHAIN_URL_PROPERTY_FORMAT = "toolchain%s%sUrl";
 
     public static final JavaVersion TOOLCHAIN_VERSION = JavaVersion.current();
 }

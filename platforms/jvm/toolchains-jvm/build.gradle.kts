@@ -40,7 +40,6 @@ dependencies {
     api(project(":enterprise-logging"))
     api(project(":file-collections"))
     api(project(":jvm-services"))
-    api(project(":model-core"))
     api(project(":persistent-cache"))
     api(project(":platform-base"))
     api(project(":platform-jvm"))
@@ -49,14 +48,10 @@ dependencies {
 
     api(libs.futureKotlin("stdlib"))
     api(libs.inject)
-    api(libs.jsr305)
-    api(libs.nativePlatform) {
-        because("Required for SystemInfo")
-    }
 
     implementation(project(":logging"))
+    implementation(project(":model-core"))
 
-    implementation(libs.commonsIo)
     implementation(libs.guava)
     implementation(libs.slf4jApi)
 

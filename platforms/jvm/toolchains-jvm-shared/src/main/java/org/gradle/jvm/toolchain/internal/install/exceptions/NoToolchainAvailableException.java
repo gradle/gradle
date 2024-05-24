@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.toolchain.internal;
+package org.gradle.jvm.toolchain.internal.install.exceptions;
 
 import org.gradle.api.GradleException;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
+import org.gradle.jvm.toolchain.internal.ToolchainDownloadFailedException;
 import org.gradle.platform.BuildPlatform;
+
+import java.util.Locale;
 
 @Contextual
 public class NoToolchainAvailableException extends GradleException {
@@ -31,10 +34,10 @@ public class NoToolchainAvailableException extends GradleException {
     ) {
         super(
             String.format(
-                "Cannot find a Java installation on your machine matching this tasks requirements: %s for %s on %s.",
+                "Cannot find a Java installation on your machine matching toolchain requirements: %s for %s on %s.",
                 specification.getDisplayName(),
                 buildPlatform.getOperatingSystem(),
-                buildPlatform.getArchitecture().toString().toLowerCase()
+                buildPlatform.getArchitecture().toString().toLowerCase(Locale.getDefault())
             ),
             cause
         );
