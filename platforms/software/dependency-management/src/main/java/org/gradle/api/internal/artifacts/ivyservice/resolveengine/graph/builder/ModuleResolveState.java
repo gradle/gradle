@@ -199,7 +199,7 @@ public class ModuleResolveState implements CandidateModule {
     }
 
     /**
-     * Changes the selected target component for this module.
+     * Changes the selected target component for this module due to version conflict resolution.
      */
     private void changeSelection(ComponentState newSelection) {
         assert this.selected != null;
@@ -239,7 +239,8 @@ public class ModuleResolveState implements CandidateModule {
     }
 
     /**
-     * Overrides the component selection for this module, when this module has been replaced by another.
+     * Overrides the component selection for this module, when this module has been replaced
+     * by another due to capability conflict resolution.
      */
     @Override
     public void replaceWith(ComponentState selected) {
@@ -307,6 +308,10 @@ public class ModuleResolveState implements CandidateModule {
     }
 
     void addSelector(SelectorState selector, boolean deferSelection) {
+        // TODO: In some cases of module replacement and capability conflict resolution, the `selector` can be sourced
+        // from a DependencyState originally targeting a different module. This sounds wrong.
+        // Selectors should be used to select _versions_, but the versions between different modules should not
+        // be directly compared.
         selectors.add(selector, deferSelection);
         mergedConstraintAttributes = appendAttributes(mergedConstraintAttributes, selector);
         if (overriddenSelection) {
@@ -427,6 +432,8 @@ public class ModuleResolveState implements CandidateModule {
             if (!conflictTracker.hasKnownConflict(newSelected.getId())) {
                 select(newSelected);
             }
+            // TODO: selectBest updates state, but we ignore that. We should do something with newSelected here
+            // or reset the selectors to before the selectBest call
         } else if (newSelected != selected) {
             if (++selectionChangedCounter > MAX_SELECTION_CHANGE) {
                 // Let's ignore modules that are changing selection way too much, by keeping the highest version
