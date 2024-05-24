@@ -152,35 +152,6 @@ println(files.elements.get()) // [.../dir2]
 
 This is analogous to the [`convention(...)`](javadoc/org/gradle/api/provider/Property.html#convention-T-) methods that have been available on lazy properties since Gradle 5.1.
 
-#### Updating lazy property based on its current value with `replace()`
-
-Modify a property based on its current value, such as appending text.
-previously required obtaining the current value explicitly by calling `Property.get()`:
-
-```kotlin
-val property = objects.property<String>()
-property.set("some value")
-property.set("${property.get()} and more")
-
-println(property.get()) // "some value and more""
-```
-
-This could lead to performance issues like configuration cache misses.
-
-Additionally, when attempting to construct a value [lazily](userguide/lazy_configuration.html), for instance, using `property.set(property.map { "$it and more" })`, a build failure could occur due to circular reference evaluation.
-
-[`Property`](javadoc/org/gradle/api/provider/Property.html#replace-org.gradle.api.Transformer-) and [`ConfigurableFileCollection`](javadoc/org/gradle/api/file/ConfigurableFileCollection.html#replace-org.gradle.api.Transformer-) now provide their respective `replace(Transformer<...>)` methods that allow lazily building the new value based on the current one:
-
-```kotlin
-val property = objects.property<String>()
-property.set("some value")
-property.replace { it.map { "$it and more" } }
-
-println(property.get()) // "some value and more"
-```
-
-Refer to the Javadoc for [`Property.replace(Transformer<>)`](javadoc/org/gradle/api/provider/Property.html#replace-org.gradle.api.Transformer-) and [`ConfigurableFileCollection.replace(Transformer<>)`](javadoc/org/gradle/api/file/ConfigurableFileCollection.html#replace-org.gradle.api.Transformer-) for more details, including limitations.
-
 #### New Gradle lifecycle callbacks
 
 This release introduces a new [`GradleLifecycle`](javadoc/org/gradle/api/invocation/GradleLifecycle.html) API, accessible via `gradle.lifecycle`, which plugin authors and build engineers can use to register actions to be executed at certain points in the build lifecycle.
