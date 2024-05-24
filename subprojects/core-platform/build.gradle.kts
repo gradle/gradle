@@ -12,6 +12,9 @@ dependencies {
     runtime(project(":launcher")) {
         because("This is the entry point of Gradle core which transitively depends on all other core projects.")
     }
+    runtime(project(":gradle-cli-main")) {
+        because("This is the entry point of the `gradle` command.")
+    }
     runtime(project(":daemon-main")) {
         because("This is the entry point of the Gradle daemon.")
     }

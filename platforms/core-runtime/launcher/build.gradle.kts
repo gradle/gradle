@@ -1,6 +1,5 @@
 plugins {
     id("gradlebuild.distribution.api-java")
-    id("gradlebuild.launchable-jar")
 }
 
 description = "Implementation for launching, controlling and communicating with Gradle Daemon from CLI and TAPI"
@@ -82,14 +81,6 @@ dependencies {
     runtimeOnly(libs.commonsIo)
     runtimeOnly(libs.commonsLang)
     runtimeOnly(libs.slf4jApi)
-
-    manifestClasspath(project(":gradle-cli-main"))
-    manifestClasspath(projects.javaLanguageExtensions)
-    manifestClasspath(project(":base-services"))
-    manifestClasspath(project(":build-process-services"))
-    manifestClasspath(project(":concurrent"))
-
-    agentsClasspath(project(":instrumentation-agent"))
 
     testImplementation(project(":internal-integ-testing"))
     testImplementation(project(":native"))

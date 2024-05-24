@@ -16,6 +16,7 @@
 
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.launchable-jar")
 }
 
 description = "Java 6-compatible entry point of the `gradle` command. See :launcher project for the rest."
@@ -25,4 +26,11 @@ gradlebuildJava.usedForStartup()
 dependencies {
     implementation(projects.javaLanguageExtensions)
     implementation(project(":build-process-services"))
+
+    manifestClasspath(projects.javaLanguageExtensions)
+    manifestClasspath(project(":build-process-services"))
+    manifestClasspath(project(":base-services"))
+    manifestClasspath(project(":concurrent"))
+
+    agentsClasspath(project(":instrumentation-agent"))
 }
