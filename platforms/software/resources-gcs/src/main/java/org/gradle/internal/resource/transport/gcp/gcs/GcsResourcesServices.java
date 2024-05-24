@@ -17,6 +17,7 @@
 package org.gradle.internal.resource.transport.gcp.gcs;
 
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 
@@ -28,6 +29,7 @@ public class GcsResourcesServices extends AbstractGradleModuleServices {
     }
 
     private static class GlobalScopeServices {
+        @Provides
         ResourceConnectorFactory createGcsConnectorFactory() {
             return new GcsConnectorFactory();
         }

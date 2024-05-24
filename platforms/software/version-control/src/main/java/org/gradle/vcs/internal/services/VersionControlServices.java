@@ -32,6 +32,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.PublicBuildPath;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.internal.typeconversion.NotationParser;
@@ -81,28 +82,34 @@ public class VersionControlServices extends AbstractGradleModuleServices {
     }
 
     private static class VersionControlBuildTreeServices {
+        @Provides
         VcsMappingFactory createVcsMappingFactory(ObjectFactory objectFactory, StartParameter startParameter, NotationParser<String, ModuleIdentifier> notationParser, VersionControlSpecFactory versionControlSpecFactory) {
             return new DefaultVcsMappingFactory(objectFactory, versionControlSpecFactory);
         }
 
+        @Provides
         VersionControlSpecFactory createVersionControlSpecFactory(ObjectFactory objectFactory, NotationParser<String, ModuleIdentifier> notationParser) {
             return new DefaultVersionControlSpecFactory(objectFactory, notationParser);
         }
 
+        @Provides
         VcsMappingsStore createVcsMappingsStore(VcsMappingFactory mappingFactory) {
             return new DefaultVcsMappingsStore(mappingFactory);
         }
 
+        @Provides
         VcsResolver createVcsResolver(VcsMappingsStore mappingsStore) {
             return mappingsStore.asResolver();
         }
 
+        @Provides
         VcsVersionSelectionCache createVersionSelectionCache() {
             return new VcsVersionSelectionCache();
         }
     }
 
     private static class VersionControlBuildSessionServices {
+        @Provides
         NotationParser<String, ModuleIdentifier> createModuleIdParser(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
             return NotationParserBuilder
                 .builder(String.class, ModuleIdentifier.class)
@@ -111,24 +118,29 @@ public class VersionControlServices extends AbstractGradleModuleServices {
                 .toComposite();
         }
 
+        @Provides
         VersionControlRepositoryConnectionFactory createVersionControlSystemFactory(BuildTreeScopedCacheBuilderFactory cacheBuilderFactory) {
             return new DefaultVersionControlRepositoryFactory(cacheBuilderFactory);
         }
 
+        @Provides
         VcsDirectoryLayout createVcsWorkingDirectoryRoot(BuildTreeScopedCacheBuilderFactory cacheBuilderFactory) {
             return new VcsDirectoryLayout(cacheBuilderFactory);
         }
 
+        @Provides
         PersistentVcsMetadataCache createMetadataCache(BuildTreeScopedCacheBuilderFactory cacheBuilderFactory) {
             return new PersistentVcsMetadataCache(cacheBuilderFactory);
         }
     }
 
     private static class VersionControlSettingsServices {
+        @Provides
         VcsMappings createVcsMappings(ObjectFactory objectFactory, VcsMappingsStore vcsMappingsStore, Gradle gradle, NotationParser<String, ModuleIdentifier> notationParser) {
             return objectFactory.newInstance(DefaultVcsMappings.class, vcsMappingsStore, gradle, notationParser);
         }
 
+        @Provides
         SourceControl createSourceControl(ObjectFactory objectFactory, FileResolver fileResolver, VcsMappings vcsMappings, VersionControlSpecFactory specFactory) {
             return objectFactory.newInstance(DefaultSourceControl.class, fileResolver, vcsMappings, specFactory);
         }
@@ -140,6 +152,7 @@ public class VersionControlServices extends AbstractGradleModuleServices {
             registration.add(VcsResolverFactory.class);
         }
 
+        @Provides
         VcsVersionWorkingDirResolver createVcsVersionWorkingDirResolver(VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, VersionParser versionParser, VcsVersionSelectionCache versionSelectionCache, PersistentVcsMetadataCache persistentCache, StartParameter startParameter) {
             VcsVersionWorkingDirResolver workingDirResolver;
             if (startParameter.isOffline()) {

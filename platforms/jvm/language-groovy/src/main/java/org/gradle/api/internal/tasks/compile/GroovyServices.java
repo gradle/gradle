@@ -22,6 +22,7 @@ import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.process.internal.JavaForkOptionsFactory;
@@ -37,6 +38,7 @@ public class GroovyServices extends AbstractGradleModuleServices {
     }
 
     private static class ProjectServices {
+        @Provides
         public GroovyCompilerFactory createGroovyCompilerFactory(
             WorkerDaemonFactory workerDaemonFactory,
             IsolatedClassloaderWorkerFactory inProcessWorkerFactory,

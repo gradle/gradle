@@ -19,9 +19,13 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.userinput.UserInputReader;
 import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.internal.daemon.client.serialization.ClasspathInferer;
+import org.gradle.internal.daemon.client.serialization.ClientSidePayloadClassLoaderFactory;
+import org.gradle.internal.daemon.client.serialization.ClientSidePayloadClassLoaderRegistry;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.console.GlobalUserInputReceiver;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.cli.converter.BuildLayoutConverter;
@@ -32,9 +36,6 @@ import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.exec.BuildExecutor;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.provider.serialization.ClassLoaderCache;
-import org.gradle.internal.daemon.client.serialization.ClasspathInferer;
-import org.gradle.internal.daemon.client.serialization.ClientSidePayloadClassLoaderFactory;
-import org.gradle.internal.daemon.client.serialization.ClientSidePayloadClassLoaderRegistry;
 import org.gradle.tooling.internal.provider.serialization.DefaultPayloadClassLoaderRegistry;
 import org.gradle.tooling.internal.provider.serialization.ModelClassLoaderFactory;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
@@ -48,6 +49,7 @@ public class ConnectionScopeServices {
         serviceRegistration.addProvider(new DaemonClientGlobalServices());
     }
 
+    @Provides
     ShutdownCoordinator createShutdownCoordinator(ListenerManager listenerManager, DaemonClientFactory daemonClientFactory, ServiceRegistry services, FileCollectionFactory fileCollectionFactory) {
         ServiceRegistry clientServices = daemonClientFactory.createMessageDaemonServices(services, new DaemonParameters(new BuildLayoutConverter().defaultValues(), fileCollectionFactory));
         DaemonStopClient client = clientServices.get(DaemonStopClient.class);
@@ -56,6 +58,7 @@ public class ConnectionScopeServices {
         return shutdownCoordinator;
     }
 
+    @Provides
     ProviderConnection createProviderConnection(
         BuildExecutor buildActionExecuter,
         DaemonClientFactory daemonClientFactory,
@@ -89,6 +92,7 @@ public class ConnectionScopeServices {
         );
     }
 
+    @Provides
     ProtocolToModelAdapter createProtocolToModelAdapter() {
         return new ProtocolToModelAdapter();
     }

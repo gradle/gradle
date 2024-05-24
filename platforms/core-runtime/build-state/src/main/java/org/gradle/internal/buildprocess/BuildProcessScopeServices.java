@@ -18,17 +18,18 @@ package org.gradle.internal.buildprocess;
 
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.internal.buildevents.BuildLoggerFactory;
-import org.gradle.internal.logging.LoggingManagerInternal;
-import org.gradle.internal.service.DefaultServiceLocator;
-import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
-import org.gradle.internal.service.scopes.GradleModuleServices;
-import org.gradle.launcher.exec.BuildExecutor;
 import org.gradle.internal.buildprocess.execution.BuildSessionLifecycleBuildActionExecutor;
 import org.gradle.internal.buildprocess.execution.SessionFailureReportingActionExecutor;
 import org.gradle.internal.buildprocess.execution.SetupLoggingActionExecutor;
 import org.gradle.internal.buildprocess.execution.StartParamsValidatingActionExecutor;
+import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.internal.service.DefaultServiceLocator;
+import org.gradle.internal.service.Provides;
+import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.scopes.GradleModuleServices;
+import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
+import org.gradle.launcher.exec.BuildExecutor;
 
 import java.util.List;
 
@@ -41,6 +42,7 @@ public class BuildProcessScopeServices {
         }
     }
 
+    @Provides
     BuildExecutor createBuildExecuter(
         LoggingManagerInternal loggingManager,
         BuildLoggerFactory buildLoggerFactory,

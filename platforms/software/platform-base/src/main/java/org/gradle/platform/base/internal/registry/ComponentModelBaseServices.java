@@ -20,6 +20,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.resolve.DefaultProjectModelResolver;
 import org.gradle.api.internal.resolve.ProjectModelResolver;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.model.internal.inspect.MethodModelRuleExtractor;
@@ -40,24 +41,29 @@ public class ComponentModelBaseServices extends AbstractGradleModuleServices {
     }
 
     private static class BuildScopeServices {
+        @Provides
         ProjectModelResolver createProjectLocator(final ProjectRegistry<ProjectInternal> projectRegistry) {
             return new DefaultProjectModelResolver(projectRegistry);
         }
     }
 
     private static class GlobalScopeServices {
+        @Provides
         MethodModelRuleExtractor createComponentModelPluginInspector(ModelSchemaStore schemaStore) {
             return new ComponentTypeModelRuleExtractor(schemaStore);
         }
 
+        @Provides
         MethodModelRuleExtractor createComponentBinariesPluginInspector() {
             return new ComponentBinariesModelRuleExtractor();
         }
 
+        @Provides
         MethodModelRuleExtractor createBinaryTaskPluginInspector() {
             return new BinaryTasksModelRuleExtractor();
         }
 
+        @Provides
         ModelSchemaAspectExtractionStrategy createVariantAspectExtractionStrategy() {
             return new VariantAspectExtractionStrategy();
         }

@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures.validation;
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.properties.annotations.PropertyAnnotationHandler;
 import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ExecutionGlobalServices;
 
@@ -26,10 +27,12 @@ public class ValidationServicesFixture {
     public static ServiceRegistry getServices() {
         DefaultServiceRegistry registry = new DefaultServiceRegistry();
         registry.addProvider(new Object() {
+            @Provides
             ExecutionGlobalServices.AnnotationHandlerRegistration createAnnotationRegistration() {
                 return () -> ImmutableList.of(ValidationProblem.class);
             }
 
+            @Provides
             PropertyAnnotationHandler createValidationProblemAnnotationHandler() {
                 return new ValidationProblemPropertyAnnotationHandler();
             }

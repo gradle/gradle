@@ -17,6 +17,7 @@
 package org.gradle.ide.xcode.internal.services;
 
 import org.gradle.ide.xcode.internal.xcodeproj.GidGenerator;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 
@@ -29,8 +30,9 @@ public class XcodeServices extends AbstractGradleModuleServices {
     }
 
     private static final class GlobalIdGeneratorServices {
+        @Provides
         GidGenerator createGidGenerator() {
-            return new GidGenerator(Collections.<String>emptySet());
+            return new GidGenerator(Collections.emptySet());
         }
     }
 }

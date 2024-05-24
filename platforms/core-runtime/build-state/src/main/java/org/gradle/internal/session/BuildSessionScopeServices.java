@@ -23,6 +23,7 @@ import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.event.ScopedListenerManager;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.GradleModuleServices;
 import org.gradle.internal.service.scopes.Scope;
@@ -64,6 +65,7 @@ public class BuildSessionScopeServices extends WorkerSharedBuildSessionScopeServ
         registration.add(BuildEventConsumer.class, buildEventConsumer);
     }
 
+    @Provides
     ScopedListenerManager createListenerManager(ScopedListenerManager parent) {
         return parent.createChild(Scope.BuildSession.class);
     }

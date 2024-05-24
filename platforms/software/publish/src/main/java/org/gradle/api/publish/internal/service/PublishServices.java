@@ -22,6 +22,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.publish.internal.component.DefaultSoftwareComponentFactory;
 import org.gradle.api.publish.internal.mapping.DefaultDependencyCoordinateResolverFactory;
 import org.gradle.api.publish.internal.validation.DuplicatePublicationTracker;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 
@@ -39,7 +40,7 @@ public class PublishServices extends AbstractGradleModuleServices {
     }
 
     private static class GlobalScopeServices {
-        @SuppressWarnings("unused") // Used by reflection
+        @Provides
         SoftwareComponentFactory createSoftwareComponentFactory(ObjectFactory objectFactory) {
             return new DefaultSoftwareComponentFactory(objectFactory);
         }

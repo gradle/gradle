@@ -29,6 +29,7 @@ import org.gradle.internal.nativeintegration.filesystem.Symlink;
 import org.gradle.internal.nativeintegration.filesystem.jdk7.Jdk7Symlink;
 import org.gradle.internal.nativeintegration.filesystem.jdk7.WindowsJdk7Symlink;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,12 +44,13 @@ public class FileSystemServices {
         registration.add(StatStatistics.Collector.class);
     }
 
-    @SuppressWarnings("UnusedDeclaration")
-    public FileCanonicalizer createFileCanonicalizer() {
+    @Provides
+    FileCanonicalizer createFileCanonicalizer() {
         return newInstanceOrFallback("org.gradle.internal.file.nio.Jdk7FileCanonicalizer", FileSystemServices.class.getClassLoader(), FallbackFileCanonicalizer.class);
     }
 
-    private static Symlink createWindowsJdkSymlink() {
+    @Provides
+    Symlink createWindowsJdkSymlink() {
         if (JavaVersion.current().isJava7Compatible()) {
             return new WindowsJdk7Symlink();
         } else {
@@ -56,7 +58,8 @@ public class FileSystemServices {
         }
     }
 
-    private static Symlink createJdkSymlink(TemporaryFileProvider temporaryFileProvider) {
+    @Provides
+    Symlink createJdkSymlink(TemporaryFileProvider temporaryFileProvider) {
         if (JavaVersion.current().isJava7Compatible()) {
             return new Jdk7Symlink(temporaryFileProvider);
         } else {
@@ -64,8 +67,8 @@ public class FileSystemServices {
         }
     }
 
-    @SuppressWarnings("UnusedDeclaration")
-    public FileSystem createFileSystem(
+    @Provides
+    FileSystem createFileSystem(
         GenericFileSystem.Factory genericFileSystemFactory,
         OperatingSystem operatingSystem,
         PosixFiles posixFiles,

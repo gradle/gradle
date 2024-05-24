@@ -31,7 +31,6 @@ import org.gradle.configurationcache.initialization.InstrumentedExecutionAccessL
 import org.gradle.configurationcache.initialization.VintageInjectedClasspathInstrumentationStrategy
 import org.gradle.configurationcache.models.DefaultToolingModelParameterCarrierFactory
 import org.gradle.configurationcache.problems.ConfigurationCacheProblems
-import org.gradle.internal.configuration.problems.DefaultProblemFactory
 import org.gradle.configurationcache.serialization.beans.DefaultBeanStateReaderLookup
 import org.gradle.configurationcache.serialization.beans.DefaultBeanStateWriterLookup
 import org.gradle.configurationcache.serialization.codecs.jos.JavaSerializationEncodingLookup
@@ -48,7 +47,9 @@ import org.gradle.internal.buildtree.BuildTreeModelControllerServices
 import org.gradle.internal.buildtree.BuildTreeWorkGraphPreparer
 import org.gradle.internal.buildtree.DefaultBuildTreeWorkGraphPreparer
 import org.gradle.internal.buildtree.RunTasksRequirements
+import org.gradle.internal.configuration.problems.DefaultProblemFactory
 import org.gradle.internal.scripts.ProjectScopedScriptResolution
+import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.snapshot.ValueSnapshotter
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
@@ -219,7 +220,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
 
     private
     class SharedBuildTreeScopedServices {
-
+        @Provides
         fun createToolingModelParameterCarrierFactory(valueSnapshotter: ValueSnapshotter): ToolingModelParameterCarrier.Factory {
             return DefaultToolingModelParameterCarrierFactory(valueSnapshotter)
         }
@@ -227,16 +228,19 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
 
     private
     class ConfigurationCacheModelProvider {
+        @Provides
         fun createLocalComponentCache(cache: BuildTreeConfigurationCache): LocalComponentCache = ConfigurationCacheAwareLocalComponentCache(cache)
     }
 
     private
     class VintageModelProvider {
+        @Provides
         fun createLocalComponentCache(): LocalComponentCache = LocalComponentCache.NO_CACHE
     }
 
     private
     class ConfigurationCacheBuildTreeProvider {
+        @Provides
         fun createBuildTreeWorkGraphPreparer(buildRegistry: BuildStateRegistry, buildTaskSelector: BuildTaskSelector, cache: BuildTreeConfigurationCache): BuildTreeWorkGraphPreparer {
             return ConfigurationCacheAwareBuildTreeWorkGraphPreparer(DefaultBuildTreeWorkGraphPreparer(buildRegistry, buildTaskSelector), cache)
         }
@@ -244,6 +248,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
 
     private
     class VintageBuildTreeProvider {
+        @Provides
         fun createBuildTreeWorkGraphPreparer(buildRegistry: BuildStateRegistry, buildTaskSelector: BuildTaskSelector): BuildTreeWorkGraphPreparer {
             return DefaultBuildTreeWorkGraphPreparer(buildRegistry, buildTaskSelector)
         }

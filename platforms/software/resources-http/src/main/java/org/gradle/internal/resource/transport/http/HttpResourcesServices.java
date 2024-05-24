@@ -25,6 +25,7 @@ import org.gradle.internal.authentication.DefaultBasicAuthentication;
 import org.gradle.internal.authentication.DefaultDigestAuthentication;
 import org.gradle.internal.authentication.DefaultHttpHeaderAuthentication;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 
@@ -40,14 +41,17 @@ public class HttpResourcesServices extends AbstractGradleModuleServices {
     }
 
     private static class GlobalScopeServices {
+        @Provides
         SslContextFactory createSslContextFactory() {
             return new DefaultSslContextFactory();
         }
 
+        @Provides
         HttpClientHelper.Factory createHttpClientHelperFactory(DocumentationRegistry documentationRegistry) {
             return HttpClientHelper.Factory.createFactory(documentationRegistry);
         }
 
+        @Provides
         ResourceConnectorFactory createHttpConnectorFactory(SslContextFactory sslContextFactory, HttpClientHelper.Factory httpClientHelperFactory) {
             return new HttpConnectorFactory(sslContextFactory, httpClientHelperFactory);
         }

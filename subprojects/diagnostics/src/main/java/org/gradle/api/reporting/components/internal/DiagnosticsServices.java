@@ -17,6 +17,7 @@
 package org.gradle.api.reporting.components.internal;
 
 import org.gradle.api.plugins.internal.HelpBuiltInCommand;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
@@ -25,10 +26,11 @@ import java.util.List;
 
 public class DiagnosticsServices extends AbstractGradleModuleServices {
     @Override
-    @SuppressWarnings("rawtypes")
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.add(HelpBuiltInCommand.class);
         registration.addProvider(new Object() {
+            @Provides
+            @SuppressWarnings("rawtypes")
             TypeAwareBinaryRenderer createBinaryRenderer(List<AbstractBinaryRenderer> renderers, ModelSchemaStore schemaStore) {
                 TypeAwareBinaryRenderer renderer = new TypeAwareBinaryRenderer();
                 renderer.register(new BinaryRenderer(schemaStore));

@@ -22,17 +22,18 @@ import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory
 import org.gradle.api.model.ObjectFactory
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.instantiation.InstantiatorFactory
+import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistry
 
 
 internal
 object FlowServicesProvider {
 
-    private
+    @Provides
     fun createFlowProviders(): FlowProviders =
         DefaultFlowProviders()
 
-    private
+    @Provides
     fun createBuildFlowScope(
         objectFactory: ObjectFactory,
         flowScheduler: FlowScheduler,
@@ -50,7 +51,7 @@ object FlowServicesProvider {
         listenerManager.addListener(it)
     }
 
-    private
+    @Provides
     fun createFlowScheduler(
         instantiatorFactory: InstantiatorFactory,
         services: ServiceRegistry,
@@ -59,7 +60,7 @@ object FlowServicesProvider {
         services,
     )
 
-    private
+    @Provides
     fun createFlowParametersInstantiator(
         inspectionSchemeFactory: InspectionSchemeFactory,
         instantiatorFactory: InstantiatorFactory,

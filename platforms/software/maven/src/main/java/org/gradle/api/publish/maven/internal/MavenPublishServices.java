@@ -25,6 +25,7 @@ import org.gradle.api.publish.maven.internal.dependencies.MavenVersionRangeMappe
 import org.gradle.api.publish.maven.internal.dependencies.VersionRangeMapper;
 import org.gradle.api.publish.maven.internal.publisher.MavenDuplicatePublicationTracker;
 import org.gradle.api.publish.maven.internal.publisher.MavenPublishers;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.maven.MavenModule;
@@ -49,10 +50,12 @@ public class MavenPublishServices extends AbstractGradleModuleServices {
                 .registerArtifactType(MavenPomArtifact.class, ArtifactType.MAVEN_POM);
         }
 
+        @Provides
         public VersionRangeMapper createVersionRangeMapper(VersionSelectorScheme versionSelectorScheme) {
             return new MavenVersionRangeMapper(versionSelectorScheme);
         }
 
+        @Provides
         public MavenPublishers createMavenPublishers(BuildCommencedTimeProvider timeProvider, RepositoryTransportFactory repositoryTransportFactory, LocalMavenRepositoryLocator mavenRepositoryLocator) {
             return new MavenPublishers(timeProvider, repositoryTransportFactory, mavenRepositoryLocator);
         }

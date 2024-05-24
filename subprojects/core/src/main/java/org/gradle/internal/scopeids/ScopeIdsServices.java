@@ -21,10 +21,11 @@ import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.internal.file.Chmod;
 import org.gradle.internal.id.UniqueId;
+import org.gradle.internal.service.Provides;
 
-@SuppressWarnings("unused")
 public class ScopeIdsServices {
 
+    @Provides
     protected PersistentScopeIdLoader createPersistentScopeIdLoader(
         GlobalScopedCacheBuilderFactory globalScopedCacheBuilderFactory,
         BuildTreeScopedCacheBuilderFactory buildTreeScopedCacheBuilderFactory,
@@ -33,6 +34,7 @@ public class ScopeIdsServices {
         return new DefaultPersistentScopeIdLoader(globalScopedCacheBuilderFactory, buildTreeScopedCacheBuilderFactory, persistentScopeIdStoreFactory, UniqueId.factory());
     }
 
+    @Provides
     protected PersistentScopeIdStoreFactory createPersistentScopeIdStoreFactory(
         FileLockManager fileLockManager,
         Chmod chmod

@@ -18,6 +18,7 @@ package org.gradle.internal.resource.transport.sftp;
 
 
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 
@@ -28,10 +29,12 @@ public class SftpResourcesServices extends AbstractGradleModuleServices {
     }
 
     private static class GlobalScopeServices {
+        @Provides
         SftpClientFactory createSftpClientFactory() {
             return new SftpClientFactory();
         }
 
+        @Provides
         ResourceConnectorFactory createSftpConnectorFactory(SftpClientFactory clientFactory) {
             return new SftpConnectorFactory(clientFactory);
         }

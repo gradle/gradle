@@ -37,6 +37,7 @@ import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.scripts.ScriptExecutionListener
+import org.gradle.internal.service.Provides
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
 import org.gradle.kotlin.dsl.normalization.KotlinCompileClasspathFingerprinter
 import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
@@ -53,7 +54,7 @@ const val KOTLIN_SCRIPT_COMPILATION_AVOIDANCE_ENABLED_PROPERTY =
 internal
 object BuildServices {
 
-    @Suppress("unused")
+    @Provides
     fun createKotlinScriptClassPathProvider(
         moduleRegistry: ModuleRegistry,
         classPathRegistry: ClassPathRegistry,
@@ -68,7 +69,7 @@ object BuildServices {
             gradleApiJarsProviderFor(dependencyFactory),
         )
 
-    @Suppress("unused")
+    @Provides
     fun createPluginRequestsHandler(
         pluginRequestApplicator: PluginRequestApplicator,
         autoAppliedPluginHandler: AutoAppliedPluginHandler
@@ -76,11 +77,11 @@ object BuildServices {
 
         PluginRequestsHandler(pluginRequestApplicator, autoAppliedPluginHandler)
 
-    @Suppress("unused")
+    @Provides
     fun createClassPathModeExceptionCollector() =
         ClassPathModeExceptionCollector()
 
-    @Suppress("unused")
+    @Provides
     fun createKotlinScriptEvaluator(
         classPathProvider: KotlinScriptClassPathProvider,
         classloadingCache: KotlinScriptClassloadingCache,
@@ -128,7 +129,7 @@ object BuildServices {
             transformFactoryForLegacy
         )
 
-    @Suppress("unused")
+    @Provides
     fun createCompileClasspathHasher(
         cacheService: ResourceSnapshotterCacheService,
         fileCollectionSnapshotter: FileCollectionSnapshotter,
@@ -149,7 +150,7 @@ object BuildServices {
             fileCollectionFactory
         )
 
-    @Suppress("unused")
+    @Provides
     fun createKotlinCompilerContextDisposer(listenerManager: ListenerManager) =
         KotlinCompilerContextDisposer(listenerManager)
 

@@ -54,6 +54,7 @@ import org.gradle.internal.nativeintegration.network.HostnameLookup;
 import org.gradle.internal.nativeintegration.processenvironment.NativePlatformBackedProcessEnvironment;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceCreationException;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
@@ -343,6 +344,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         // Don't close
     }
 
+    @Provides
     protected GradleUserHomeDirProvider createGradleUserHomeDirProvider() {
         return new GradleUserHomeDirProvider() {
             @Override
@@ -352,14 +354,17 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         };
     }
 
+    @Provides
     protected OperatingSystem createOperatingSystem() {
         return OperatingSystem.current();
     }
 
+    @Provides
     protected Jvm createJvm() {
         return Jvm.current();
     }
 
+    @Provides
     protected ProcessEnvironment createProcessEnvironment(OperatingSystem operatingSystem) {
         if (useNativeIntegrations) {
             try {
@@ -373,6 +378,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         return new UnsupportedEnvironment();
     }
 
+    @Provides
     protected ConsoleDetector createConsoleDetector(OperatingSystem operatingSystem) {
         return new TestOverrideConsoleDetector(backingConsoleDetector(operatingSystem));
     }
@@ -401,6 +407,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         return new FallbackConsoleDetector();
     }
 
+    @Provides
     protected WindowsRegistry createWindowsRegistry(OperatingSystem operatingSystem) {
         if (useNativeIntegrations && operatingSystem.isWindows()) {
             return net.rubygrapefruit.platform.Native.get(WindowsRegistry.class);
@@ -408,6 +415,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         return notAvailable(WindowsRegistry.class, operatingSystem);
     }
 
+    @Provides
     public SystemInfo createSystemInfo(OperatingSystem operatingSystem) {
         if (useNativeIntegrations) {
             try {
@@ -419,6 +427,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         return notAvailable(SystemInfo.class, operatingSystem);
     }
 
+    @Provides
     protected Memory createMemory(OperatingSystem operatingSystem) {
         if (useNativeIntegrations) {
             try {
@@ -430,6 +439,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         return notAvailable(Memory.class, operatingSystem);
     }
 
+    @Provides
     protected ProcessLauncher createProcessLauncher() {
         if (useNativeIntegrations) {
             try {
@@ -441,6 +451,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         return new DefaultProcessLauncher();
     }
 
+    @Provides
     protected PosixFiles createPosixFiles(OperatingSystem operatingSystem) {
         if (useNativeIntegrations) {
             try {
@@ -452,6 +463,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         return notAvailable(UnavailablePosixFiles.class, operatingSystem);
     }
 
+    @Provides
     protected HostnameLookup createHostnameLookup() {
         if (useNativeIntegrations) {
             try {
@@ -470,6 +482,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         return new FixedHostname(hostname);
     }
 
+    @Provides
     protected FileMetadataAccessor createFileMetadataAccessor(OperatingSystem operatingSystem) {
         // Based on the benchmark found in org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessorBenchmark
         // and the results in the PR https://github.com/gradle/gradle/pull/12966
@@ -491,6 +504,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         return new FallbackFileMetadataAccessor();
     }
 
+    @Provides
     public NativeCapabilities createNativeCapabilities() {
         return new NativeCapabilities() {
             @Override
@@ -505,6 +519,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         };
     }
 
+    @Provides
     protected FileSystems createFileSystems(OperatingSystem operatingSystem) {
         if (useNativeIntegrations) {
             try {
@@ -522,7 +537,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
 
     private static String format(Throwable throwable) {
         StringBuilder builder = new StringBuilder();
-        builder.append(throwable.toString());
+        builder.append(throwable);
         for (Throwable current = throwable.getCause(); current != null; current = current.getCause()) {
             builder.append(SystemProperties.getInstance().getLineSeparator());
             builder.append("caused by: ");

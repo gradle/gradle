@@ -30,6 +30,7 @@ import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 import org.gradle.internal.serialize.Serializer;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.launcher.daemon.configuration.DaemonServerConfiguration;
 import org.gradle.launcher.daemon.context.DaemonContext;
@@ -83,6 +84,7 @@ public class DaemonServices {
         this.loggingManager = loggingManager;
     }
 
+    @Provides
     protected DaemonContext createDaemonContext(AgentStatus agentStatus, ProcessEnvironment processEnvironment) {
         LOGGER.debug("Creating daemon context with opts: {}", configuration.getJvmOptions());
         return new DefaultDaemonContext(configuration.getUid(),
@@ -98,40 +100,49 @@ public class DaemonServices {
         );
     }
 
+    @Provides
     protected DaemonLogFile createDaemonLogFile(DaemonContext daemonContext, DaemonDir daemonDir) {
         final Long pid = daemonContext.getPid();
         String fileName = "daemon-" + (pid == null ? UUID.randomUUID() : pid) + ".out.log";
         return new DaemonLogFile(new File(daemonDir.getVersionedDir(), fileName));
     }
 
+    @Provides
     protected DaemonHealthCheck createDaemonHealthCheck(ListenerManager listenerManager, HealthExpirationStrategy healthExpirationStrategy) {
         return new DaemonHealthCheck(healthExpirationStrategy, listenerManager);
     }
 
+    @Provides
     protected DaemonRunningStats createDaemonRunningStats() {
         return new DaemonRunningStats();
     }
 
+    @Provides
     protected DaemonScanInfo createDaemonScanInfo(DaemonRunningStats runningStats, ListenerManager listenerManager, DaemonRegistry daemonRegistry) {
         return new DefaultDaemonScanInfo(runningStats, configuration.getIdleTimeout(), configuration.isSingleUse(), daemonRegistry, listenerManager);
     }
 
+    @Provides
     protected MasterExpirationStrategy createMasterExpirationStrategy(Daemon daemon, HealthExpirationStrategy healthExpirationStrategy, ListenerManager listenerManager) {
         return new MasterExpirationStrategy(daemon, configuration, healthExpirationStrategy, listenerManager);
     }
 
+    @Provides
     protected HealthExpirationStrategy createHealthExpirationStrategy(DaemonHealthStats stats, GarbageCollectorMonitoringStrategy strategy) {
         return new HealthExpirationStrategy(stats, strategy);
     }
 
+    @Provides
     protected DaemonHealthStats createDaemonHealthStats(DaemonRunningStats runningStats, GarbageCollectorMonitoringStrategy strategy, ExecutorFactory executorFactory) {
         return new DaemonHealthStats(runningStats, strategy, executorFactory);
     }
 
+    @Provides
     protected GarbageCollectorMonitoringStrategy createGarbageCollectorMonitoringStrategy() {
         return GarbageCollectorMonitoringStrategy.determineGcStrategy();
     }
 
+    @Provides
     protected ImmutableList<DaemonCommandAction> createDaemonCommandActions(
         BuildExecutor buildActionExecuter,
         DaemonContext daemonContext,
@@ -166,10 +177,12 @@ public class DaemonServices {
         );
     }
 
+    @Provides
     Serializer<BuildAction> createBuildActionSerializer() {
         return BuildActionSerializer.create();
     }
 
+    @Provides
     protected Daemon createDaemon(
         ImmutableList<DaemonCommandAction> actions,
         Serializer<BuildAction> buildActionSerializer,

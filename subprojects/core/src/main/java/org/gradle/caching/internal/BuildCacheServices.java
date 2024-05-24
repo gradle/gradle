@@ -50,6 +50,7 @@ import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
@@ -65,6 +66,7 @@ public final class BuildCacheServices extends AbstractGradleModuleServices {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.addProvider(new Object() {
+            @Provides
             BufferProvider createBufferProvider() {
                 // TODO Make buffer size configurable
                 return new ThreadLocalBufferProvider(64 * 1024);
@@ -77,10 +79,12 @@ public final class BuildCacheServices extends AbstractGradleModuleServices {
         registration.addProvider(new Object() {
             private static final String GRADLE_VERSION_KEY = "gradleVersion";
 
+            @Provides
             LifecycleAwareBuildCacheControllerFactory createRootBuildCacheControllerRef() {
                 return new LifecycleAwareBuildCacheControllerFactory();
             }
 
+            @Provides
             OriginMetadataFactory createOriginMetadataFactory(
                 BuildInvocationScopeId buildInvocationScopeId
             ) {
@@ -96,6 +100,7 @@ public final class BuildCacheServices extends AbstractGradleModuleServices {
     public void registerBuildServices(ServiceRegistration registration) {
         registration.addProvider(new Object() {
 
+            @Provides
             BuildCacheConfigurationInternal createBuildCacheConfiguration(
                 Instantiator instantiator,
                 List<BuildCacheServiceRegistration> allBuildCacheServiceFactories
@@ -103,6 +108,7 @@ public final class BuildCacheServices extends AbstractGradleModuleServices {
                 return instantiator.newInstance(DefaultBuildCacheConfiguration.class, instantiator, allBuildCacheServiceFactories);
             }
 
+            @Provides
             BuildCacheServiceRegistration createDirectoryBuildCacheServiceRegistration() {
                 return new DefaultBuildCacheServiceRegistration(DirectoryBuildCache.class, DirectoryBuildCacheServiceFactory.class);
             }
@@ -114,10 +120,12 @@ public final class BuildCacheServices extends AbstractGradleModuleServices {
         // Not build scoped because of dependency on GradleInternal for build path
         registration.addProvider(new Object() {
 
+            @Provides
             TarPackerFileSystemSupport createPackerFileSystemSupport(Deleter deleter) {
                 return new DefaultTarPackerFileSystemSupport(deleter);
             }
 
+            @Provides
             BuildCacheEntryPacker createResultPacker(
                 TarPackerFileSystemSupport fileSystemSupport,
                 FileSystem fileSystem,
@@ -129,6 +137,7 @@ public final class BuildCacheServices extends AbstractGradleModuleServices {
                     new TarBuildCacheEntryPacker(fileSystemSupport, new FilePermissionsAccessAdapter(fileSystem), fileHasher, stringInterner, bufferProvider));
             }
 
+            @Provides
             LifecycleAwareBuildCacheController createBuildCacheController(
                 BuildState build,
                 LifecycleAwareBuildCacheControllerFactory rootControllerRef,
@@ -144,6 +153,7 @@ public final class BuildCacheServices extends AbstractGradleModuleServices {
                 }
             }
 
+            @Provides
             BuildCacheControllerFactory createBuildCacheControllerFactory(
                 StartParameterInternal startParameter,
                 BuildOperationRunner buildOperationRunner,

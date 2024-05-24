@@ -75,6 +75,7 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.serialize.HashCodeSerializer;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
@@ -143,10 +144,12 @@ public class VirtualFileSystemServices extends AbstractGradleModuleServices {
     }
 
     private static class GlobalScopeServices {
+        @Provides
         FileHasherStatistics.Collector createCachingFileHasherStatisticsCollector() {
             return new FileHasherStatistics.Collector();
         }
 
+        @Provides
         DirectorySnapshotterStatistics.Collector createDirectorySnapshotterStatisticsCollector() {
             return new DirectorySnapshotterStatistics.Collector();
         }
@@ -155,10 +158,12 @@ public class VirtualFileSystemServices extends AbstractGradleModuleServices {
     @VisibleForTesting
     static class GradleUserHomeServices {
 
+        @Provides
         CrossBuildFileHashCache createCrossBuildFileHashCache(GlobalScopedCacheBuilderFactory cacheBuilderFactory, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
             return new CrossBuildFileHashCache(cacheBuilderFactory, inMemoryCacheDecoratorFactory, CrossBuildFileHashCache.Kind.FILE_HASHES);
         }
 
+        @Provides
         FileHasher createCachingFileHasher(
             FileHasherStatistics.Collector statisticsCollector,
             CrossBuildFileHashCache fileStore,
@@ -172,6 +177,7 @@ public class VirtualFileSystemServices extends AbstractGradleModuleServices {
             return fileHasher;
         }
 
+        @Provides
         FileWatchingFilter createFileWatchingFilter(GlobalCacheLocations globalCacheLocations, ListenerManager listenerManager) {
             // All the changes in global caches should be done by Gradle itself, so in order
             // to minimize the number of watches we don't watch anything within the global caches.
@@ -190,10 +196,12 @@ public class VirtualFileSystemServices extends AbstractGradleModuleServices {
             return fileWatchingFilter;
         }
 
+        @Provides
         WatchableFileSystemDetector createWatchableFileSystemDetector(FileSystems fileSystems) {
             return new DefaultWatchableFileSystemDetector(fileSystems);
         }
 
+        @Provides
         BuildLifecycleAwareVirtualFileSystem createVirtualFileSystem(
             FileWatchingFilter fileWatchingFilter,
             DocumentationRegistry documentationRegistry,
@@ -227,6 +235,7 @@ public class VirtualFileSystemServices extends AbstractGradleModuleServices {
             return virtualFileSystem;
         }
 
+        @Provides
         FileSystemAccess createFileSystemAccess(
             FileHasher hasher,
             VirtualFileSystem virtualFileSystem,
@@ -250,7 +259,7 @@ public class VirtualFileSystemServices extends AbstractGradleModuleServices {
             return defaultFileSystemAccess;
         }
 
-        private Optional<FileWatcherRegistryFactory> determineWatcherRegistryFactory(
+        private static Optional<FileWatcherRegistryFactory> determineWatcherRegistryFactory(
             OperatingSystem operatingSystem,
             NativeCapabilities nativeCapabilities,
             Predicate<String> immutableLocationsFilter
@@ -271,10 +280,12 @@ public class VirtualFileSystemServices extends AbstractGradleModuleServices {
             return Optional.empty();
         }
 
+        @Provides
         FileCollectionSnapshotter createFileCollectionSnapshotter(FileSystemAccess fileSystemAccess, Stat stat) {
             return new DefaultFileCollectionSnapshotter(fileSystemAccess, stat);
         }
 
+        @Provides
         ResourceSnapshotterCacheService createResourceSnapshotterCacheService(CrossBuildFileHashCache store) {
             IndexedCache<HashCode, HashCode> resourceHashesCache = store.createIndexedCache(
                 IndexedCacheParameters.of("resourceHashesCache", HashCode.class, new HashCodeSerializer()),
@@ -283,31 +294,36 @@ public class VirtualFileSystemServices extends AbstractGradleModuleServices {
             return new DefaultResourceSnapshotterCacheService(resourceHashesCache);
         }
 
+        @Provides
         ClasspathFingerprinter createClasspathFingerprinter(ResourceSnapshotterCacheService resourceSnapshotterCacheService, FileCollectionSnapshotter fileCollectionSnapshotter, StringInterner stringInterner) {
             return new DefaultClasspathFingerprinter(resourceSnapshotterCacheService, fileCollectionSnapshotter, ResourceFilter.FILTER_NOTHING, ResourceEntryFilter.FILTER_NOTHING, PropertiesFileFilter.FILTER_NOTHING, stringInterner, LineEndingSensitivity.DEFAULT);
         }
 
+        @Provides
         ClasspathHasher createClasspathHasher(ClasspathFingerprinter fingerprinter, FileCollectionFactory fileCollectionFactory) {
             return new DefaultClasspathHasher(fingerprinter, fileCollectionFactory);
         }
 
+        @Provides
         FileChangeListeners createFileChangeListeners(ListenerManager listenerManager) {
             return new DefaultFileChangeListeners(listenerManager);
         }
-
     }
 
     @VisibleForTesting
     static class BuildSessionServices {
 
+        @Provides
         FileSystemDefaultExcludesProvider createFileSystemDefaultExcludesProvider(ListenerManager listenerManager) {
             return new DefaultFileSystemDefaultExcludesProvider(listenerManager);
         }
 
+        @Provides
         CrossBuildFileHashCache createCrossBuildFileHashCache(BuildTreeScopedCacheBuilderFactory cacheBuilderFactory, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
             return new CrossBuildFileHashCache(cacheBuilderFactory, inMemoryCacheDecoratorFactory, CrossBuildFileHashCache.Kind.FILE_HASHES);
         }
 
+        @Provides
         FileHasher createFileHasher(
             GlobalCacheLocations globalCacheLocations,
             BuildSessionScopeFileTimeStampInspector fileTimeStampInspector,
@@ -322,6 +338,7 @@ public class VirtualFileSystemServices extends AbstractGradleModuleServices {
             return new SplitFileHasher(globalHasher, localHasher, globalCacheLocations);
         }
 
+        @Provides
         FileSystemAccess createFileSystemAccess(
             FileHasher hasher,
             ListenerManager listenerManager,
@@ -347,14 +364,17 @@ public class VirtualFileSystemServices extends AbstractGradleModuleServices {
             return buildSessionsScopedVirtualFileSystem;
         }
 
+        @Provides
         FileCollectionSnapshotter createFileCollectionSnapshotter(FileSystemAccess fileSystemAccess, Stat stat) {
             return new DefaultFileCollectionSnapshotter(fileSystemAccess, stat);
         }
 
+        @Provides
         OutputSnapshotter createOutputSnapshotter(FileCollectionSnapshotter fileCollectionSnapshotter) {
             return new DefaultOutputSnapshotter(fileCollectionSnapshotter);
         }
 
+        @Provides
         FileCollectionFingerprinterRegistrations createFileCollectionFingerprinterRegistrations(
             StringInterner stringInterner,
             FileCollectionSnapshotter fileCollectionSnapshotter,
@@ -370,10 +390,12 @@ public class VirtualFileSystemServices extends AbstractGradleModuleServices {
             );
         }
 
+        @Provides
         FileCollectionFingerprinterRegistry createFileCollectionFingerprinterRegistry(FileCollectionFingerprinterRegistrations fileCollectionFingerprinterRegistrations) {
             return new DefaultFileCollectionFingerprinterRegistry(fileCollectionFingerprinterRegistrations.getRegistrants());
         }
 
+        @Provides
         InputFingerprinter createInputFingerprinter(
             FileCollectionSnapshotter snapshotter,
             FileCollectionFingerprinterRegistry fingerprinterRegistry,
@@ -382,6 +404,7 @@ public class VirtualFileSystemServices extends AbstractGradleModuleServices {
             return new DefaultInputFingerprinter(snapshotter, fingerprinterRegistry, valueSnapshotter);
         }
 
+        @Provides
         ResourceSnapshotterCacheService createResourceSnapshotterCacheService(
             GlobalCacheLocations globalCacheLocations,
             CrossBuildFileHashCache store,

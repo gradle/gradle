@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl.concurrent
 
 import org.gradle.internal.concurrent.ExecutorFactory
+import org.gradle.internal.service.Provides
 
 import java.io.Closeable
 import java.time.Duration
@@ -30,7 +31,7 @@ import java.util.concurrent.atomic.AtomicReference
 internal
 object BuildServices {
 
-    @Suppress("unused")
+    @Provides
     fun createAsyncIOScopeFactory(executorFactory: ExecutorFactory): AsyncIOScopeFactory =
         DefaultAsyncIOScopeFactory { executorFactory.create("Kotlin DSL Writer", 1) }
 }

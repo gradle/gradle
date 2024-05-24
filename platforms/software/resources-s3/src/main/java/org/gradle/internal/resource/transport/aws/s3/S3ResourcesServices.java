@@ -20,6 +20,7 @@ import org.gradle.authentication.aws.AwsImAuthentication;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.authentication.DefaultAwsImAuthentication;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 
@@ -36,6 +37,7 @@ public class S3ResourcesServices extends AbstractGradleModuleServices {
     }
 
     private static class GlobalScopeServices {
+        @Provides
         ResourceConnectorFactory createS3ConnectorFactory() {
             return new S3ConnectorFactory();
         }

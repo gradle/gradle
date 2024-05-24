@@ -51,6 +51,7 @@ import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.process.ExecOperations;
@@ -74,14 +75,17 @@ public class WorkerSharedProjectScopeServices {
         registration.add(DefaultFilePropertyFactory.class);
     }
 
+    @Provides
     protected FileCollectionFactory createFileCollectionFactory(FileCollectionFactory parent, PathToFileResolver fileResolver, TaskDependencyFactory taskDependencyFactory, PropertyHost propertyHost) {
         return parent.forChildScope(fileResolver, taskDependencyFactory, propertyHost);
     }
 
+    @Provides
     protected FileResolver createFileResolver(FileLookup lookup) {
         return lookup.getFileResolver(projectDir);
     }
 
+    @Provides
     protected DefaultFileOperations createFileOperations(
             FileResolver fileResolver,
             Instantiator instantiator,
@@ -118,18 +122,22 @@ public class WorkerSharedProjectScopeServices {
         );
     }
 
+    @Provides
     protected FileSystemOperations createFileSystemOperations(ObjectFactory objectFactory, Instantiator instantiator, FileOperations fileOperations) {
         return instantiator.newInstance(DefaultFileSystemOperations.class, objectFactory, fileOperations);
     }
 
+    @Provides
     protected ArchiveOperations createArchiveOperations(Instantiator instantiator, FileOperations fileOperations) {
         return instantiator.newInstance(DefaultArchiveOperations.class, fileOperations);
     }
 
+    @Provides
     protected ExecOperations createExecOperations(Instantiator instantiator, ExecFactory execFactory) {
         return instantiator.newInstance(DefaultExecOperations.class, execFactory);
     }
 
+    @Provides
     ObjectFactory createObjectFactory(InstantiatorFactory instantiatorFactory, ServiceRegistry services, Factory<PatternSet> patternSetFactory, DirectoryFileTreeFactory directoryFileTreeFactory,
                                       PropertyFactory propertyFactory, FilePropertyFactory filePropertyFactory, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory,
                                       DomainObjectCollectionFactory domainObjectCollectionFactory, NamedObjectInstantiator namedObjectInstantiator) {
@@ -145,6 +153,7 @@ public class WorkerSharedProjectScopeServices {
                 domainObjectCollectionFactory);
     }
 
+    @Provides
     DefaultProjectLayout createProjectLayout(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, TaskDependencyFactory taskDependencyFactory,
                                              FilePropertyFactory filePropertyFactory, Factory<PatternSet> patternSetFactory, PropertyHost propertyHost, FileFactory fileFactory) {
         return new DefaultProjectLayout(projectDir, fileResolver, taskDependencyFactory, patternSetFactory, propertyHost, fileCollectionFactory, filePropertyFactory, fileFactory);

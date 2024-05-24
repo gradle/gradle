@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.provider.plugins
 
+import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices
 
@@ -33,15 +34,15 @@ class KotlinDslProviderServices : AbstractGradleModuleServices() {
 internal
 object GradleUserHomeServices {
 
-    @Suppress("unused")
+    @Provides
     fun createProjectSchemaProvider() =
         DefaultProjectSchemaProvider()
 
-    @Suppress("unused")
+    @Provides
     fun createKotlinScriptBasePluginsApplicator() =
         DefaultKotlinScriptBasePluginsApplicator()
 
-    @Suppress("unused")
+    @Provides
     fun createPrecompiledScriptPluginsSupport() =
         DefaultPrecompiledScriptPluginsSupport()
 }

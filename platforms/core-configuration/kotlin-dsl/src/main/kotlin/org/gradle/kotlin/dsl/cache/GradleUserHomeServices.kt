@@ -19,12 +19,13 @@ package org.gradle.kotlin.dsl.cache
 import org.gradle.api.internal.cache.CacheConfigurationsInternal
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.internal.file.FileAccessTimeJournal
+import org.gradle.internal.service.Provides
 
 
 internal
 object GradleUserHomeServices {
 
-    @Suppress("unused")
+    @Provides
     fun createKotlinDslWorkspaceProvider(
         cacheBuilderFactory: GlobalScopedCacheBuilderFactory,
         fileAccessTimeJournal: FileAccessTimeJournal,

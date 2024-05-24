@@ -33,6 +33,7 @@ import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.jvm.toolchain.JavaToolchainResolverRegistry;
@@ -62,10 +63,12 @@ import java.util.List;
 public class ToolchainsJvmServices extends AbstractGradleModuleServices {
     protected static class BuildServices {
 
+        @Provides
         protected DefaultBuildPlatform createBuildPlatform(ObjectFactory objectFactory, SystemInfo systemInfo, OperatingSystem operatingSystem) {
             return objectFactory.newInstance(DefaultBuildPlatform.class, systemInfo, operatingSystem);
         }
 
+        @Provides
         protected DefaultJavaToolchainResolverRegistry createJavaToolchainResolverRegistry(
             Gradle gradle,
             Instantiator instantiator,
@@ -75,13 +78,17 @@ public class ToolchainsJvmServices extends AbstractGradleModuleServices {
             return objectFactory.newInstance(DefaultJavaToolchainResolverRegistry.class, gradle, instantiator, objectFactory, providerFactory, authenticationSchemeRegistry);
         }
 
+        @Provides
         protected DefaultJvmToolchainManagement createToolchainManagement(ObjectFactory objectFactory, JavaToolchainResolverRegistry registry) {
             return objectFactory.newInstance(DefaultJvmToolchainManagement.class, registry);
         }
 
+        @Provides
         protected JdkCacheDirectory createJdkCacheDirectory(ObjectFactory objectFactory, GradleUserHomeDirProvider homeDirProvider, FileOperations operations, FileLockManager lockManager, JvmMetadataDetector detector) {
             return objectFactory.newInstance(DefaultJdkCacheDirectory.class, homeDirProvider, operations, lockManager, detector);
         }
+
+        @Provides
         protected JavaInstallationRegistry createJavaInstallationRegistry(ToolchainConfiguration toolchainConfiguration, List<InstallationSupplier> installationSuppliers, JvmMetadataDetector jvmMetadataDetector, BuildOperationRunner buildOperationRunner, ProgressLoggerFactory progressLoggerFactory, FileResolver fileResolver, JdkCacheDirectory jdkCacheDirectory) {
             return new DefaultJavaInstallationRegistry(toolchainConfiguration, installationSuppliers, jvmMetadataDetector, buildOperationRunner, OperatingSystem.current(), progressLoggerFactory, fileResolver, jdkCacheDirectory, new JvmInstallationProblemReporter());
         }

@@ -18,6 +18,7 @@ package org.gradle.internal.service.scopes;
 
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 
@@ -82,6 +83,7 @@ public class DefaultGradleUserHomeScopeServiceRegistry implements GradleUserHome
                     .displayName("services for Gradle user home dir " + gradleUserHomeDir)
                     .parent(sharedServices)
                     .provider(new Object() {
+                        @Provides
                         GradleUserHomeDirProvider createGradleUserHomeDirProvider() {
                             return () -> gradleUserHomeDir;
                         }

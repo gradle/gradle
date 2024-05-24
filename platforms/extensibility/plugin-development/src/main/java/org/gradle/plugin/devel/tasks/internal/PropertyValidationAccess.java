@@ -76,7 +76,6 @@ public class PropertyValidationAccess {
         this.typeSchemes = services.getAll(TypeScheme.class);
     }
 
-    @SuppressWarnings("unused")
     public static void collectValidationProblems(Class<?> topLevelBean, TypeValidationContext validationContext) {
         INSTANCE.collectTypeValidationProblems(topLevelBean, validationContext);
     }

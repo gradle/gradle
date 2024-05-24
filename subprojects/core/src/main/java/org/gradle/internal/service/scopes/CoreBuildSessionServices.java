@@ -61,6 +61,7 @@ import org.gradle.internal.scopeids.PersistentScopeIdLoader;
 import org.gradle.internal.scopeids.ScopeIdsServices;
 import org.gradle.internal.scopeids.id.UserScopeId;
 import org.gradle.internal.scopeids.id.WorkspaceScopeId;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.DefaultAsyncWorkTracker;
@@ -80,25 +81,32 @@ public class CoreBuildSessionServices {
         registration.addProvider(new ScopeIdsServices());
     }
 
+    @Provides
     PendingChangesManager createPendingChangesManager(ListenerManager listenerManager) {
         return new PendingChangesManager(listenerManager);
     }
 
+    @Provides
     DefaultDeploymentRegistry createDeploymentRegistry(PendingChangesManager pendingChangesManager, BuildOperationRunner buildOperationRunner, ObjectFactory objectFactory) {
         return new DefaultDeploymentRegistry(pendingChangesManager, buildOperationRunner, objectFactory);
     }
+
+    @Provides
     CrossProjectConfigurator createCrossProjectConfigurator(BuildOperationRunner buildOperationRunner) {
         return new BuildOperationCrossProjectConfigurator(buildOperationRunner);
     }
 
+    @Provides
     BuildLayout createBuildLocations(BuildLayoutFactory buildLayoutFactory, StartParameter startParameter) {
         return buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(startParameter));
     }
 
+    @Provides
     FileResolver createFileResolver(FileLookup fileLookup, BuildLayout buildLayout) {
         return fileLookup.getFileResolver(buildLayout.getRootDirectory());
     }
 
+    @Provides
     ProjectCacheDir createProjectCacheDir(
         GradleUserHomeDirProvider userHomeDirProvider,
         BuildLayout buildLayout,
@@ -110,36 +118,44 @@ public class CoreBuildSessionServices {
         return new ProjectCacheDir(cacheDir.getDir(), buildOperationRunner, deleter);
     }
 
+    @Provides
     BuildTreeScopedCacheBuilderFactory createBuildTreeScopedCache(ProjectCacheDir projectCacheDir, UnscopedCacheBuilderFactory unscopedCacheBuilderFactory) {
         return new DefaultBuildTreeScopedCacheBuilderFactory(projectCacheDir.getDir(), unscopedCacheBuilderFactory);
     }
 
+    @Provides
     DecompressionCoordinator createDecompressionCoordinator(BuildTreeScopedCacheBuilderFactory cacheBuilderFactory) {
         return new DefaultDecompressionCoordinator(cacheBuilderFactory);
     }
 
+    @Provides
     BuildSessionScopeFileTimeStampInspector createFileTimeStampInspector(BuildTreeScopedCacheBuilderFactory cacheBuilderFactory) {
         File workDir = cacheBuilderFactory.baseDirForCache("fileChanges");
         return new BuildSessionScopeFileTimeStampInspector(workDir);
     }
 
+    @Provides
     ScriptSourceHasher createScriptSourceHasher() {
         return new DefaultScriptSourceHasher();
     }
 
+    @Provides
     UserScopeId createUserScopeId(PersistentScopeIdLoader persistentScopeIdLoader) {
         return persistentScopeIdLoader.getUser();
     }
 
+    @Provides
     protected WorkspaceScopeId createWorkspaceScopeId(PersistentScopeIdLoader persistentScopeIdLoader) {
         return persistentScopeIdLoader.getWorkspace();
     }
 
+    @Provides
     BuildStartedTime createBuildStartedTime(Clock clock, BuildRequestMetaData buildRequestMetaData) {
         long currentTime = clock.getCurrentTime();
         return BuildStartedTime.startingAt(Math.min(currentTime, buildRequestMetaData.getStartTime()));
     }
 
+    @Provides
     protected ExecFactory decorateExecFactory(ExecFactory execFactory, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, BuildCancellationToken buildCancellationToken, ObjectFactory objectFactory, JavaModuleDetector javaModuleDetector) {
         return execFactory.forContext()
             .withFileResolver(fileResolver)
@@ -151,11 +167,13 @@ public class CoreBuildSessionServices {
             .build();
     }
 
+    @Provides
     CrossBuildFileHashCacheWrapper createCrossBuildChecksumCache(BuildTreeScopedCacheBuilderFactory cacheBuilderFactory, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
         CrossBuildFileHashCache crossBuildCache = new CrossBuildFileHashCache(cacheBuilderFactory, inMemoryCacheDecoratorFactory, CrossBuildFileHashCache.Kind.CHECKSUMS);
         return new CrossBuildFileHashCacheWrapper(crossBuildCache);
     }
 
+    @Provides
     ChecksumService createChecksumService(
         StringInterner stringInterner,
         FileSystem fileSystem,

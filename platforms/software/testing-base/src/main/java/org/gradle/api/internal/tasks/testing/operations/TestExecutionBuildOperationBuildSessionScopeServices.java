@@ -19,11 +19,13 @@ package org.gradle.api.internal.tasks.testing.operations;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.BuildOperationListenerManager;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.time.Clock;
 
 public class TestExecutionBuildOperationBuildSessionScopeServices {
 
+    @Provides
     TestListenerBuildOperationAdapter createTestListenerBuildOperationAdapter(BuildOperationListenerManager listener, BuildOperationIdFactory buildOperationIdFactory, Clock clock) {
         return new TestListenerBuildOperationAdapter(listener.getBroadcaster(), buildOperationIdFactory, clock);
     }

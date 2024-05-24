@@ -16,12 +16,13 @@
 package org.gradle.kotlin.dsl.support
 
 import org.gradle.configuration.ImportsReader
+import org.gradle.internal.service.Provides
 
 
 internal
 object GlobalServices {
 
-    @Suppress("unused")
+    @Provides
     fun createImplicitImports(importsReader: ImportsReader) =
         ImplicitImports(importsReader)
 }

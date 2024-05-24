@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry;
 import org.gradle.buildinit.plugins.internal.action.InitBuiltInCommand;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.workers.WorkerExecutor;
@@ -41,7 +42,7 @@ public class BuildInitServices extends AbstractGradleModuleServices {
     }
 
     private static class ProjectScopeBuildInitServices {
-        @SuppressWarnings("unused")
+        @Provides
         ProjectLayoutSetupRegistry createProjectLayoutSetupRegistry(MavenSettingsProvider mavenSettingsProvider, DocumentationRegistry documentationRegistry, FileCollectionFactory fileCollectionFactory, WorkerExecutor workerExecutor, GradleInternal gradle) {
             return new ProjectLayoutSetupRegistryFactory(mavenSettingsProvider, documentationRegistry, workerExecutor).createProjectLayoutSetupRegistry();
         }
