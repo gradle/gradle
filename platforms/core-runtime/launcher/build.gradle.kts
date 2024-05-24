@@ -59,7 +59,6 @@ dependencies {
     implementation(libs.commonsLang)
     implementation(libs.ant)
 
-    runtimeOnly(project(":gradle-cli-main"))
     runtimeOnly(project(":declarative-dsl-provider"))
     runtimeOnly(project(":problems"))
 
