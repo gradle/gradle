@@ -24,6 +24,8 @@ import org.gradle.api.problems.internal.FileLocation
 import org.gradle.api.problems.internal.LineInFileLocation
 import org.gradle.api.problems.internal.OffsetInFileLocation
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.integtests.fixtures.problems.ReceivedProblem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
@@ -33,7 +35,7 @@ import spock.lang.Issue
 /**
  * Test class verifying the integration between the {@code JavaCompile} and the {@code Problems} service.
  */
-class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
+class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture {
 
     /**
      * A map of all possible file locations, and the number of occurrences we expect to find in the problems.
@@ -389,7 +391,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         executer.withArguments("--info", "--stacktrace")
-        executer.withToolchainDetectionEnabled()
+        withInstallations(AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_8))
         succeeds(":compileJava")
 
         then:
