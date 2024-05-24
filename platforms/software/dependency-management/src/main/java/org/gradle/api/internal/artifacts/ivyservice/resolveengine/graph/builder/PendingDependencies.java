@@ -87,4 +87,7 @@ public class PendingDependencies {
         return reportActivePending;
     }
 
+    public void retarget(PendingDependencies pendingDependencies) {
+        hardEdges += pendingDependencies.hardEdges;
+    }
 }
