@@ -20,13 +20,12 @@ import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.internal.declarativedsl.analysis.OperationGenerationId
-import org.gradle.internal.declarativedsl.analysis.ResolutionResult
-import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationAndConversionSchema
+import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequence
 import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequenceStep
 import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequenceStepWithConversion
-import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationStepFeature
+import org.gradle.internal.declarativedsl.features.InterpretationStepFeature
 import org.gradle.internal.declarativedsl.serialization.SchemaSerialization
 import java.io.File
 
@@ -92,7 +91,6 @@ class StoringInterpretationSchemaBuilder(
 
         override fun evaluationSchemaForStep(): EvaluationSchema =
             step.evaluationSchemaForStep().also { schemaHandler(stepIdentifier, it.analysisSchema) }
-        override fun processResolutionResult(resolutionResult: ResolutionResult): ResolutionResult = step.processResolutionResult(resolutionResult)
     }
 
     private

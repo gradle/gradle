@@ -28,14 +28,14 @@ import org.gradle.internal.declarativedsl.analysis.OperationGenerationId
 import org.gradle.internal.declarativedsl.analysis.and
 import org.gradle.internal.declarativedsl.analysis.implies
 import org.gradle.internal.declarativedsl.analysis.not
-import org.gradle.internal.declarativedsl.conventions.ConventionsInterpretationSequenceStep
 import org.gradle.internal.declarativedsl.conventions.isConventionsConfiguringCall
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationAndConversionSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaBuilder
 import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequence
-import org.gradle.internal.declarativedsl.evaluationSchema.SimpleInterpretationSequenceStep
+import org.gradle.internal.declarativedsl.evaluationSchema.SimpleInterpretationSequenceStepWithConversion
 import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationAndConversionSchema
 import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
+import org.gradle.internal.declarativedsl.conventions.conventionsDefinitionInterpretationSequenceStep
 import org.gradle.internal.declarativedsl.project.thirdPartyExtensions
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 
@@ -49,10 +49,10 @@ fun settingsInterpretationSequence(
 ): InterpretationSequence =
     InterpretationSequence(
         listOf(
-            SimpleInterpretationSequenceStep("settingsPluginManagement", features = setOf(SettingsBlocksCheck.feature)) { pluginManagementEvaluationSchema() },
+            SimpleInterpretationSequenceStepWithConversion("settingsPluginManagement", features = setOf(SettingsBlocksCheck.feature)) { pluginManagementEvaluationSchema() },
             PluginsInterpretationSequenceStep("settingsPlugins", OperationGenerationId.PROPERTY_ASSIGNMENT, targetScope, scriptSource) { settings.services },
-            ConventionsInterpretationSequenceStep("settingsConventions", OperationGenerationId.CONVENTION_ASSIGNMENT, softwareTypeRegistry),
-            SimpleInterpretationSequenceStep("settings") { settingsEvaluationSchema(settings) }
+            conventionsDefinitionInterpretationSequenceStep(softwareTypeRegistry),
+            SimpleInterpretationSequenceStepWithConversion("settings") { settingsEvaluationSchema(settings) }
         )
     )
 

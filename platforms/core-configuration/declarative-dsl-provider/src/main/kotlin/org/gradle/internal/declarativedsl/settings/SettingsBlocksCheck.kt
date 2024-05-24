@@ -27,7 +27,7 @@ import org.gradle.internal.declarativedsl.dom.ResolvedDeclarativeDocument
 import org.gradle.internal.declarativedsl.dom.ResolvedDeclarativeDocument.ResolvedDocumentNode
 import org.gradle.internal.declarativedsl.dom.ResolvedDeclarativeDocument.ResolvedDocumentNode.ResolvedElementNode
 import org.gradle.internal.declarativedsl.dom.UnresolvedBase
-import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationStepFeature
+import org.gradle.internal.declarativedsl.features.InterpretationStepFeature
 import org.gradle.internal.declarativedsl.plugins.PluginsCollectingPluginsBlock
 import org.gradle.plugin.management.PluginManagementSpec
 
@@ -36,8 +36,10 @@ internal
 object SettingsBlocksCheck : DocumentCheck {
 
     val feature = object : InterpretationStepFeature.DocumentChecks {
-        override val checkKeys: List<String> = listOf(checkKey)
+        override val featureKeys: List<String>
+            get() = listOf(checkKey)
     }
+
     override val checkKey: String
         get() = SettingsBlocksCheck::class.java.name
 

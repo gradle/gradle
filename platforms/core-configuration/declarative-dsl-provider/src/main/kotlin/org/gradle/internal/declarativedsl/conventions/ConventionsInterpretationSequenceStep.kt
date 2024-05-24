@@ -19,71 +19,34 @@ package org.gradle.internal.declarativedsl.conventions
 import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter
 import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter.Companion.isTopLevelElement
 import org.gradle.internal.declarativedsl.analysis.OperationGenerationId
-import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 import org.gradle.internal.declarativedsl.analysis.and
 import org.gradle.internal.declarativedsl.analysis.implies
-import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchema
-import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequenceStep
-import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationStepFeature
-import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationSchema
 import org.gradle.internal.declarativedsl.common.dependencyCollectors
 import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
+import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchema
+import org.gradle.internal.declarativedsl.evaluationSchema.SimpleInterpretationSequenceStep
+import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationSchema
 import org.gradle.internal.declarativedsl.software.softwareTypesConventions
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 
 
-private
-const val CONVENTIONS = "conventions"
-
-
-/**
- * The interpretation step for the top-level "conventions" block in the Settings DSL.  This step extracts the operations
- * in the conventions block and adds them to the software types.  It does no runtime processing of the conventions (i.e.
- * none of the operations are applied by this step).  The stored conventions will be applied later when processing a
- * build file that uses a software type.
- */
 internal
-class ConventionsInterpretationSequenceStep(
-    override val stepIdentifier: String = CONVENTIONS,
-    override val assignmentGeneration: OperationGenerationId = OperationGenerationId.CONVENTION_ASSIGNMENT,
-    private val softwareTypeRegistry: SoftwareTypeRegistry
-) : InterpretationSequenceStep {
-    private
-    val conventionsResolutionProcessor = ConventionsResolutionProcessor()
-
-    override val features: Set<InterpretationStepFeature>
-        get() = setOf(object : InterpretationStepFeature.CollectConventions {})
-
-    override fun evaluationSchemaForStep(): EvaluationSchema = conventionsEvaluationSchema(softwareTypeRegistry)
-
-    override fun processResolutionResult(resolutionResult: ResolutionResult): ResolutionResult {
-        val conventions = conventionsResolutionProcessor.process(resolutionResult)
-        softwareTypeRegistry.softwareTypeImplementations.forEach { softwareTypeImplementation ->
-            conventions.additions[softwareTypeImplementation.softwareType]?.forEach {
-                softwareTypeImplementation.addConvention(AdditionRecordConvention(it))
-            }
-            conventions.assignments[softwareTypeImplementation.softwareType]?.forEach {
-                softwareTypeImplementation.addConvention(AssignmentRecordConvention(it))
-            }
-            conventions.nestedObjectAccess[softwareTypeImplementation.softwareType]?.forEach {
-                softwareTypeImplementation.addConvention(NestedObjectAccessConvention(it))
-            }
-        }
-        return resolutionResult
-    }
-}
+fun conventionsDefinitionInterpretationSequenceStep(softwareTypeRegistry: SoftwareTypeRegistry) = SimpleInterpretationSequenceStep(
+    stepIdentifier = "settingsConventions",
+    assignmentGeneration = OperationGenerationId.CONVENTION_ASSIGNMENT,
+    features = setOf(ConventionDefinition),
+    buildEvaluationAndConversionSchema = { conventionsEvaluationSchema(softwareTypeRegistry) }
+)
 
 
 private
 fun conventionsEvaluationSchema(softwareTypeRegistry: SoftwareTypeRegistry): EvaluationSchema =
-    buildEvaluationSchema(
-        ConventionsTopLevelReceiver::class,
-        isTopLevelElement.implies(isConventionsConfiguringCall)
-    ) {
+    buildEvaluationSchema(ConventionsTopLevelReceiver::class, isTopLevelElement.implies(isConventionsConfiguringCall)) {
         gradleDslGeneralSchema()
         dependencyCollectors()
         softwareTypesConventions(ConventionsConfiguringBlock::class, softwareTypeRegistry)
     }
 
 
-val isConventionsConfiguringCall: AnalysisStatementFilter = AnalysisStatementFilter.isConfiguringCall.and(AnalysisStatementFilter.isCallNamed(CONVENTIONS))
+val isConventionsConfiguringCall: AnalysisStatementFilter =
+    AnalysisStatementFilter.isConfiguringCall.and(AnalysisStatementFilter.isCallNamed(ConventionsTopLevelReceiver::conventions.name))

@@ -26,8 +26,9 @@ import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 /**
  * Processes a resolution result to extract the Software Type convention operations it defines.
  */
-class ConventionsResolutionProcessor {
-    fun process(resolutionResult: ResolutionResult): ProcessedConventions {
+internal
+object ConventionsResolutionProcessor {
+    fun process(resolutionResult: ResolutionResult): Map<String, SoftwareTypeConventionResolutionResults> {
         val assignments = resolutionResult.assignments.groupBy { assignment ->
             getSoftwareType(assignment.lhs.receiverObject).function.simpleName
         }
@@ -38,7 +39,11 @@ class ConventionsResolutionProcessor {
             findSoftwareType(access.dataObject)?.let { access to it.function.simpleName }
         }.groupBy({ (_, softwareTypeName) -> softwareTypeName }, valueTransform = { (access, _) -> access })
 
-        return ProcessedConventions(assignments, additions, nestedObjectAccess)
+        val softwareTypeNames = assignments.keys + additions.keys + nestedObjectAccess.keys
+
+        return softwareTypeNames.associateWith {
+            SoftwareTypeConventionResolutionResults(it, assignments[it].orEmpty(), additions[it].orEmpty(), nestedObjectAccess[it].orEmpty())
+        }
     }
 }
 
@@ -46,10 +51,11 @@ class ConventionsResolutionProcessor {
 /**
  * The convention operations extracted from a resolution result.
  */
-data class ProcessedConventions(
-    val assignments: Map<String, List<AssignmentRecord>>,
-    val additions: Map<String, List<DataAdditionRecord>>,
-    val nestedObjectAccess: Map<String, List<NestedObjectAccessRecord>>
+data class SoftwareTypeConventionResolutionResults(
+    val softwareTypeName: String,
+    val assignments: List<AssignmentRecord>,
+    val additions: List<DataAdditionRecord>,
+    val nestedObjectAccess: List<NestedObjectAccessRecord>
 )
 
 

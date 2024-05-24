@@ -17,7 +17,7 @@
 package org.gradle.internal.declarativedsl.evaluationSchema
 
 import org.gradle.internal.declarativedsl.analysis.OperationGenerationId
-import org.gradle.internal.declarativedsl.analysis.ResolutionResult
+import org.gradle.internal.declarativedsl.features.InterpretationStepFeature
 
 
 internal
@@ -26,24 +26,12 @@ class InterpretationSequence(
 )
 
 
-sealed interface InterpretationStepFeature {
-    interface DocumentChecks : InterpretationStepFeature {
-        val checkKeys: List<String>
-    }
-
-    interface CollectConventions : InterpretationStepFeature
-    interface ApplyConventions : InterpretationStepFeature
-    interface ApplyPlugins : InterpretationStepFeature
-}
-
-
 internal
 interface InterpretationSequenceStep {
     val stepIdentifier: String
     val assignmentGeneration: OperationGenerationId
     val features: Set<InterpretationStepFeature>
     fun evaluationSchemaForStep(): EvaluationSchema
-    fun processResolutionResult(resolutionResult: ResolutionResult): ResolutionResult = resolutionResult
 }
 
 
@@ -55,12 +43,23 @@ interface InterpretationSequenceStepWithConversion<R : Any> : InterpretationSequ
 }
 
 
+internal
+class SimpleInterpretationSequenceStep(
+    override val stepIdentifier: String,
+    override val assignmentGeneration: OperationGenerationId = OperationGenerationId.PROPERTY_ASSIGNMENT,
+    override val features: Set<InterpretationStepFeature> = emptySet(),
+    private val buildEvaluationAndConversionSchema: () -> EvaluationSchema
+) : InterpretationSequenceStep {
+    override fun evaluationSchemaForStep(): EvaluationSchema = buildEvaluationAndConversionSchema()
+}
+
+
 /**
  * Implements a straightforward interpretation sequence step that uses the target as the top-level receiver
  * and produces an evaluation schema with [buildEvaluationSchema] immediately before the step runs.
  */
 internal
-class SimpleInterpretationSequenceStep(
+class SimpleInterpretationSequenceStepWithConversion(
     override val stepIdentifier: String,
     override val assignmentGeneration: OperationGenerationId = OperationGenerationId.PROPERTY_ASSIGNMENT,
     override val features: Set<InterpretationStepFeature> = emptySet(),

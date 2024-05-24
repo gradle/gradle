@@ -16,13 +16,12 @@
 
 package org.gradle.internal.declarativedsl.project
 
-import org.gradle.internal.declarativedsl.analysis.OperationGenerationId
 import org.gradle.internal.declarativedsl.analysis.analyzeEverything
+import org.gradle.internal.declarativedsl.common.dependencyCollectors
+import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationAndConversionSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequence
 import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationAndConversionSchema
-import org.gradle.internal.declarativedsl.common.dependencyCollectors
-import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
 import org.gradle.internal.declarativedsl.software.softwareTypesWithPluginApplication
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 
@@ -30,7 +29,7 @@ import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 internal
 fun projectInterpretationSequence(
     softwareTypeRegistry: SoftwareTypeRegistry
-) = InterpretationSequence(listOf(ProjectInterpretationSequenceStep("project", OperationGenerationId.PROPERTY_ASSIGNMENT, softwareTypeRegistry)))
+) = InterpretationSequence(listOf(projectInterpretationSequenceStep(softwareTypeRegistry)))
 
 
 fun projectEvaluationSchema(

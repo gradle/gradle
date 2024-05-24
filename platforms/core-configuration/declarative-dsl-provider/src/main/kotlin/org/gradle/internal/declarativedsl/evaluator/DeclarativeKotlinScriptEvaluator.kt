@@ -26,19 +26,23 @@ import org.gradle.internal.declarativedsl.analysis.SchemaTypeRefContext
 import org.gradle.internal.declarativedsl.analysis.tracingCodeResolver
 import org.gradle.internal.declarativedsl.checks.DocumentCheck
 import org.gradle.internal.declarativedsl.checks.DocumentCheckFailure
+import org.gradle.internal.declarativedsl.conventions.ConventionApplicationHandler
+import org.gradle.internal.declarativedsl.conventions.ConventionDefinitionCollector
 import org.gradle.internal.declarativedsl.dom.resolvedDocument
 import org.gradle.internal.declarativedsl.dom.toDocument
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationAndConversionSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequence
 import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequenceStep
 import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequenceStepWithConversion
-import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationStepFeature.DocumentChecks
 import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvaluator.EvaluationContext.ScriptPluginEvaluationContext
 import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvaluator.EvaluationResult.NotEvaluated
 import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure.AssignmentErrors
 import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure.FailuresInLanguageTree
 import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure.FailuresInResolution
 import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure.NoSchemaAvailable
+import org.gradle.internal.declarativedsl.features.InterpretationStepFeature
+import org.gradle.internal.declarativedsl.features.InterpretationStepFeature.DocumentChecks
+import org.gradle.internal.declarativedsl.features.ResolutionResultHandler
 import org.gradle.internal.declarativedsl.language.LanguageTreeResult
 import org.gradle.internal.declarativedsl.language.SingleFailureResult
 import org.gradle.internal.declarativedsl.language.SourceIdentifier
@@ -55,7 +59,9 @@ import org.gradle.internal.declarativedsl.objectGraph.reflect
 import org.gradle.internal.declarativedsl.parsing.DefaultLanguageTreeBuilder
 import org.gradle.internal.declarativedsl.parsing.parse
 import org.gradle.internal.declarativedsl.settings.SettingsBlocksCheck
+import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 import kotlin.collections.flatMap
+import kotlin.collections.flatMapTo
 
 
 internal
@@ -89,9 +95,24 @@ interface DeclarativeKotlinScriptEvaluator {
 
 
 internal
+fun defaultDeclarativeScriptEvaluator(
+    schemaBuilder: InterpretationSchemaBuilder,
+    softwareTypeRegistry: SoftwareTypeRegistry
+): DeclarativeKotlinScriptEvaluator = DefaultDeclarativeKotlinScriptEvaluator(
+    schemaBuilder,
+    documentChecks = setOf(SettingsBlocksCheck),
+    resolutionResultHandlers = setOf(
+        ConventionDefinitionCollector(softwareTypeRegistryBasedConventionRegistrar(softwareTypeRegistry)),
+        ConventionApplicationHandler(softwareTypeRegistryBasedConventionRepository(softwareTypeRegistry))
+    )
+)
+
+
+internal
 class DefaultDeclarativeKotlinScriptEvaluator(
     private val schemaBuilder: InterpretationSchemaBuilder,
-    private val documentChecks: Set<DocumentCheck> = setOf(SettingsBlocksCheck)
+    private val documentChecks: Set<DocumentCheck>,
+    private val resolutionResultHandlers: Set<ResolutionResultHandler>
 ) : DeclarativeKotlinScriptEvaluator {
     override fun evaluate(
         target: Any,
@@ -136,16 +157,18 @@ class DefaultDeclarativeKotlinScriptEvaluator(
         if (languageModel.allFailures.isNotEmpty()) {
             failureReasons += FailuresInLanguageTree(languageModel.allFailures)
         }
-        var resolution = resolver.resolve(evaluationSchema.analysisSchema, languageModel.imports, languageModel.topLevelBlock)
-        if (resolution.errors.isNotEmpty()) {
-            failureReasons += FailuresInResolution(resolution.errors)
+        val initialResolution = resolver.resolve(evaluationSchema.analysisSchema, languageModel.imports, languageModel.topLevelBlock)
+        if (initialResolution.errors.isNotEmpty()) {
+            failureReasons += FailuresInResolution(initialResolution.errors)
         }
 
-        resolution = step.processResolutionResult(resolution)
+        val postProcessingFeatures = step.features.filterIsInstance<InterpretationStepFeature.ResolutionResultPostprocessing>()
+        val resultHandlers = resolutionResultHandlers.filter { processor -> postProcessingFeatures.any(processor::shouldHandleFeature) }
+        val resolution = resultHandlers.fold(initialResolution) { acc, it -> it.processResolutionResult(acc) }
 
         val document = resolvedDocument(evaluationSchema.analysisSchema, resolver.trace, languageModel.toDocument())
 
-        val checkKeys = step.features.filterIsInstance<DocumentChecks>().flatMapTo(hashSetOf()) { it.checkKeys }
+        val checkKeys = step.features.filterIsInstance<DocumentChecks>().flatMapTo(hashSetOf()) { it.featureKeys }
         val checkResults = documentChecks.filter { it.checkKey in checkKeys }.flatMap { it.detectFailures(document) }
 
         if (checkResults.isNotEmpty()) {

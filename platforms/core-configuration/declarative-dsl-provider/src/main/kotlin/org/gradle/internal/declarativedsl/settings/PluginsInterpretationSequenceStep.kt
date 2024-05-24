@@ -27,11 +27,11 @@ import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter.Compa
 import org.gradle.internal.declarativedsl.analysis.OperationGenerationId
 import org.gradle.internal.declarativedsl.analysis.and
 import org.gradle.internal.declarativedsl.analysis.implies
+import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationAndConversionSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequenceStepWithConversion
-import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationStepFeature
 import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationAndConversionSchema
-import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
+import org.gradle.internal.declarativedsl.features.InterpretationStepFeature
 import org.gradle.internal.declarativedsl.plugins.PluginsTopLevelReceiver
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.plugin.management.internal.DefaultPluginRequest
@@ -57,7 +57,7 @@ class PluginsInterpretationSequenceStep(
     override fun getTopLevelReceiverFromTarget(target: Any) = PluginsTopLevelReceiver()
 
     override val features: Set<InterpretationStepFeature>
-        get() = setOf(SettingsBlocksCheck.feature, object : InterpretationStepFeature.ApplyPlugins {})
+        get() = setOf(SettingsBlocksCheck.feature,)
 
     override fun whenEvaluated(resultReceiver: PluginsTopLevelReceiver) {
         val pluginRequests = resultReceiver.plugins.specs.map {
