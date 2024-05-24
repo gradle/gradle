@@ -94,7 +94,6 @@ public class ArgWriter implements ArgCollector {
     /**
      * Returns an args transformer that replaces the provided args with a generated args file containing the args. Uses platform text encoding.
      */
-    @SuppressWarnings("DefaultCharset")
     public static InternalTransformer<List<String>, List<String>> argsFileGenerator(final File argsFile, final InternalTransformer<ArgWriter, PrintWriter> argWriterFactory) {
         return new InternalTransformer<List<String>, List<String>>() {
             @Override
@@ -104,6 +103,8 @@ public class ArgWriter implements ArgCollector {
                 }
                 argsFile.getParentFile().mkdirs();
                 try {
+                    // TODO(https://github.com/gradle/gradle/issues/29303)
+                    @SuppressWarnings("DefaultCharset") // This method is documented as "uses platform text encoding"
                     PrintWriter writer = new PrintWriter(argsFile);
                     try {
                         ArgWriter argWriter = argWriterFactory.transform(writer);
