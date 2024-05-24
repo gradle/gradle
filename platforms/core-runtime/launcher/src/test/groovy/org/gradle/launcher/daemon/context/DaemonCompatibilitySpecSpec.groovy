@@ -20,7 +20,6 @@ import org.gradle.internal.jvm.JavaInfo
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.jvm.toolchain.JvmImplementation
 import org.gradle.jvm.toolchain.JvmVendorSpec
 import org.gradle.launcher.daemon.configuration.DaemonParameters
 import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria
@@ -91,7 +90,7 @@ class DaemonCompatibilitySpecSpec extends Specification {
     }
 
     def "contexts with different jvm criteria are incompatible"() {
-        clientWants(new DaemonJvmCriteria(JavaVersion.VERSION_11, JvmVendorSpec.ADOPTIUM, JvmImplementation.VENDOR_SPECIFIC))
+        clientWants(new DaemonJvmCriteria(JavaVersion.VERSION_11, JvmVendorSpec.ADOPTIUM))
 
         candidate.javaVersion >> JavaVersion.VERSION_15
 

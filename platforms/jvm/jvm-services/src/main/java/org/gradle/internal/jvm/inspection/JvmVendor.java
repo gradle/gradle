@@ -57,7 +57,7 @@ public interface JvmVendor {
             return displayName;
         }
 
-        static KnownJvmVendor parse(String rawVendor) {
+        public static KnownJvmVendor parse(String rawVendor) {
             if (rawVendor == null) {
                 return UNKNOWN;
             }

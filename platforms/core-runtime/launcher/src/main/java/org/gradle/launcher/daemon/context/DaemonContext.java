@@ -16,6 +16,7 @@
 package org.gradle.launcher.daemon.context;
 
 import org.gradle.api.JavaVersion;
+import org.gradle.internal.jvm.inspection.JvmVendor;
 import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 
@@ -49,6 +50,8 @@ public interface DaemonContext {
     File getJavaHome();
 
     JavaVersion getJavaVersion();
+
+    JvmVendor getJavaVendor();
 
     /**
      * The directory that should be used for daemon storage (not including the gradle version number).

@@ -14,17 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.buildconfiguration;
+package org.gradle.internal.buildconfiguration.resolvers;
 
 import org.gradle.api.JavaVersion;
+import org.gradle.jvm.toolchain.JvmImplementation;
+import org.gradle.jvm.toolchain.JvmVendorSpec;
+import org.gradle.platform.BuildPlatform;
 
-public class DaemonJvmPropertiesDefaults {
-    public static final String DAEMON_JVM_PROPERTIES_FILE = "gradle/gradle-daemon-jvm.properties";
+import javax.annotation.Nullable;
+import java.net.URI;
+import java.util.Map;
+import java.util.Optional;
 
-    public static final String TOOLCHAIN_VERSION_PROPERTY = "toolchainVersion";
-    public static final String TOOLCHAIN_VENDOR_PROPERTY = "toolchainVendor";
-    public static final String TOOLCHAIN_IMPLEMENTATION_PROPERTY = "toolchainImplementation";
-    public static final String TOOLCHAIN_URL_PROPERTY_FORMAT = "toolchain%s%sUrl";
+public interface ToolchainRepositoriesResolver {
 
-    public static final JavaVersion TOOLCHAIN_VERSION = JavaVersion.current();
+    Map<BuildPlatform, Optional<URI>> resolveToolchainDownloadUrlsByPlatform(
+        JavaVersion toolchainVersion,
+        @Nullable JvmVendorSpec toolchainVendor,
+        @Nullable JvmImplementation toolchainImplementation
+    ) throws UnconfiguredToolchainRepositoriesResolver;
 }

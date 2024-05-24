@@ -4310,6 +4310,8 @@ Class <org.gradle.platform.base.internal.toolchain.ToolChainAvailability> is not
 Class <org.gradle.platform.base.internal.toolchain.ToolChainInternal> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ToolChainInternal.java:0)
 Class <org.gradle.platform.base.internal.toolchain.ToolProvider> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ToolProvider.java:0)
 Class <org.gradle.platform.base.internal.toolchain.ToolSearchResult> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ToolSearchResult.java:0)
+Class <org.gradle.platform.internal.CurrentBuildPlatform> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (CurrentBuildPlatform.java:0)
+Class <org.gradle.platform.internal.CustomBuildPlatform> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (CustomBuildPlatform.java:0)
 Class <org.gradle.platform.internal.DefaultBuildPlatform> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultBuildPlatform.java:0)
 Class <org.gradle.plugin.internal.InvalidPluginIdException> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (InvalidPluginIdException.java:0)
 Class <org.gradle.plugin.internal.InvalidPluginVersionException> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (InvalidPluginVersionException.java:0)

@@ -36,6 +36,7 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.jvm.inspection.JvmVendor;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.console.GlobalUserInputReceiver;
 import org.gradle.internal.nativeintegration.services.NativeServices;
@@ -193,6 +194,7 @@ class BuildActionsFactory implements CommandLineActionCreator {
             UUID.randomUUID().toString(),
             currentProcess.getJvm().getJavaHome(),
             JavaVersion.current(),
+            JvmVendor.KnownJvmVendor.parse(Jvm.current().getVendor()),
             null, 0L, 0,
             // The gradle options aren't being properly checked.
             requestContext.getDaemonOpts(),

@@ -16,39 +16,34 @@
 
 package org.gradle.platform.internal;
 
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
 import net.rubygrapefruit.platform.SystemInfo;
 import org.gradle.api.GradleException;
 import org.gradle.platform.Architecture;
 import org.gradle.platform.BuildPlatform;
 import org.gradle.platform.OperatingSystem;
 
-import javax.inject.Inject;
+import java.util.Objects;
 
-public class DefaultBuildPlatform implements BuildPlatform {
+public abstract class DefaultBuildPlatform implements BuildPlatform {
 
-    private Supplier<Architecture> architecture;
-
-    private Supplier<OperatingSystem> operatingSystem;
-
-    @Inject
-    public DefaultBuildPlatform(SystemInfo systemInfo, org.gradle.internal.os.OperatingSystem operatingSystem) {
-        this.architecture = Suppliers.memoize(() -> getArchitecture(systemInfo));
-        this.operatingSystem = Suppliers.memoize(() -> getOperatingSystem(operatingSystem));
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DefaultBuildPlatform that = (DefaultBuildPlatform) o;
+        return Objects.equals(getArchitecture(), that.getArchitecture()) && Objects.equals(getOperatingSystem(), that.getOperatingSystem());
     }
 
     @Override
-    public Architecture getArchitecture() {
-        return architecture.get();
+    public int hashCode() {
+        return Objects.hash(getArchitecture(), getOperatingSystem());
     }
 
-    @Override
-    public OperatingSystem getOperatingSystem() {
-        return operatingSystem.get();
-    }
-
-    private static Architecture getArchitecture(SystemInfo systemInfo) {
+    protected static Architecture getArchitecture(SystemInfo systemInfo) {
         SystemInfo.Architecture architecture = systemInfo.getArchitecture();
         switch (architecture) {
             case i386:
@@ -70,7 +65,7 @@ public class DefaultBuildPlatform implements BuildPlatform {
             return OperatingSystem.WINDOWS;
         } else if (org.gradle.internal.os.OperatingSystem.MAC_OS == operatingSystem) {
             return OperatingSystem.MAC_OS;
-        } else  if (org.gradle.internal.os.OperatingSystem.SOLARIS == operatingSystem) {
+        } else if (org.gradle.internal.os.OperatingSystem.SOLARIS == operatingSystem) {
             return OperatingSystem.SOLARIS;
         } else if (org.gradle.internal.os.OperatingSystem.FREE_BSD == operatingSystem) {
             return OperatingSystem.FREE_BSD;

@@ -11,12 +11,14 @@ dependencies {
     api(project(":base-services"))
     api(project(":core"))
     api(project(":core-api"))
-    api(project(":jvm-services"))
     api(project(":toolchains-jvm-shared"))
     api(project(":base-annotations"))
+    api(project(":platform-jvm"))
     implementation(project(":logging"))
+    implementation(project(":jvm-services"))
 
     testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":toolchains-jvm-shared")))
 
     testFixturesImplementation(project(":core-api"))
     testFixturesImplementation(project(":internal-integ-testing"))

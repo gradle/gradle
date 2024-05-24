@@ -161,7 +161,7 @@ class DaemonJavaToolchainQueryServiceTest extends Specification {
         toolchain.javaHome.toString() == systemSpecificAbsolutePath("/path/1.8.2")
     }
 
-    def "fails with expected exception if no toolchain matches"() {
+    def "fails with expected exception if no toolchain matches with version"() {
         given:
         def queryService = createQueryServiceWithInstallations(["8", "9", "10"])
 
@@ -171,7 +171,21 @@ class DaemonJavaToolchainQueryServiceTest extends Specification {
 
         then:
         def e = thrown(GradleException)
-        e.message == "Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching the Daemon JVM defined requirements: JVM version '12'."
+        e.message == "Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching the Daemon JVM defined requirements: JVM version '12' vendor 'any'."
+        e.cause == null
+    }
+
+    def "fails with expected exception if no toolchain matches with version and vendor"() {
+        given:
+        def queryService = createQueryServiceWithInstallations(["8", "9", "10"])
+
+        when:
+        def filter = createSpec(JavaVersion.VERSION_12, JvmVendorSpec.AMAZON)
+        queryService.findMatchingToolchain(filter)
+
+        then:
+        def e = thrown(GradleException)
+        e.message == "Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching the Daemon JVM defined requirements: JVM version '12' vendor 'AMAZON'."
         e.cause == null
     }
 

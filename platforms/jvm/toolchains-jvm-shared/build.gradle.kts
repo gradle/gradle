@@ -33,6 +33,8 @@ dependencies {
     api(project(":core"))
 
     implementation(project(":logging"))
+    implementation(project(":platform-jvm"))
+
     implementation(libs.guava)
     implementation(libs.slf4jApi)
     implementation(libs.commonsIo)

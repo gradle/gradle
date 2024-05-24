@@ -21,8 +21,9 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.internal.buildconfiguration.DaemonJvmPropertiesDefaults;
 import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.JpmsConfiguration;
+import org.gradle.internal.jvm.inspection.JvmVendor;
 import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
-import org.gradle.jvm.toolchain.JvmImplementation;
+import org.gradle.jvm.toolchain.JvmVendorSpec;
 import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec;
 import org.gradle.jvm.toolchain.internal.DefaultToolchainConfiguration;
 import org.gradle.jvm.toolchain.internal.ToolchainConfiguration;
@@ -32,12 +33,15 @@ import org.gradle.util.internal.GUtil;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static org.gradle.util.internal.GUtil.toEnum;
 
 public class DaemonParameters {
     static final int DEFAULT_IDLE_TIMEOUT = 3 * 60 * 60 * 1000;
@@ -131,13 +135,27 @@ public class DaemonParameters {
     public void setRequestedJvmCriteria(@Nullable Map<String, String> buildProperties) {
         String requestedVersion = buildProperties.get(DaemonJvmPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY);
         if (requestedVersion != null) {
+            JavaVersion javaVersion;
             try {
-                JavaVersion javaVersion = JavaVersion.toVersion(requestedVersion);
-                this.requestedJvmCriteria = new DaemonJvmCriteria(javaVersion, DefaultJvmVendorSpec.any(), JvmImplementation.VENDOR_SPECIFIC);
+                javaVersion = JavaVersion.toVersion(requestedVersion);
             } catch (Exception e) {
                 // TODO: This should be pushed somewhere else so we consistently report this message in the right context.
                 throw new IllegalArgumentException(String.format("Value '%s' given for %s is an invalid Java version", requestedVersion, DaemonJvmPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY));
             }
+
+            JvmVendorSpec javaVendor = DefaultJvmVendorSpec.any();
+            String requestedVendor = buildProperties.get(DaemonJvmPropertiesDefaults.TOOLCHAIN_VENDOR_PROPERTY);
+            try {
+                if (requestedVendor != null) {
+                    JvmVendor.KnownJvmVendor knownJvmVendor = toEnum(JvmVendor.KnownJvmVendor.class, requestedVendor);
+                    javaVendor = DefaultJvmVendorSpec.of(knownJvmVendor);
+                }
+            } catch (Exception e) {
+                // TODO: This should be pushed somewhere else so we consistently report this message in the right context.
+                throw new IllegalArgumentException(String.format("Value '%s' given for %s is an invalid Java vendor. Possible values are %s", requestedVendor, DaemonJvmPropertiesDefaults.TOOLCHAIN_VENDOR_PROPERTY, Arrays.toString(JvmVendor.KnownJvmVendor.values())));
+            }
+
+            this.requestedJvmCriteria = new DaemonJvmCriteria(javaVersion, javaVendor);
         }
     }
 

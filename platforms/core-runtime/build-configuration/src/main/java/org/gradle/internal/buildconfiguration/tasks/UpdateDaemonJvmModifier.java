@@ -20,21 +20,36 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.buildconfiguration.DaemonJvmPropertiesConfigurator;
 import org.gradle.internal.buildconfiguration.DaemonJvmPropertiesDefaults;
+import org.gradle.internal.buildconfiguration.resolvers.ToolchainRepositoriesResolver;
 import org.gradle.internal.jvm.inspection.JvmVendor;
 import org.gradle.internal.util.PropertiesUtils;
 import org.gradle.jvm.toolchain.JvmImplementation;
+import org.gradle.jvm.toolchain.JvmVendorSpec;
+import org.gradle.platform.BuildPlatform;
 import org.gradle.util.internal.GFileUtils;
+import org.gradle.util.internal.GUtil;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 
 public class UpdateDaemonJvmModifier {
-    public static void updateJvmCriteria(
+
+    private final ToolchainRepositoriesResolver toolchainRepositoriesResolver;
+
+    public UpdateDaemonJvmModifier(ToolchainRepositoriesResolver toolchainRepositoriesResolver) {
+        this.toolchainRepositoriesResolver = toolchainRepositoriesResolver;
+    }
+
+    public void updateJvmCriteria(
         File propertiesFile,
         JavaVersion toolchainVersion,
-        @Nullable JvmVendor toolchainVendor,
+        @Nullable JvmVendorSpec toolchainVendor,
         @Nullable JvmImplementation toolchainImplementation
     ) {
         validateToolchainVersion(toolchainVersion);
@@ -42,15 +57,17 @@ public class UpdateDaemonJvmModifier {
         Properties daemonJVMProperties = new Properties();
         daemonJVMProperties.put(DaemonJvmPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY, toolchainVersion.getMajorVersion());
         if (toolchainVendor != null) {
-            daemonJVMProperties.put(DaemonJvmPropertiesDefaults.TOOLCHAIN_VENDOR_PROPERTY, toolchainVendor.getKnownVendor().name());
-        } else {
-            daemonJVMProperties.remove(DaemonJvmPropertiesDefaults.TOOLCHAIN_VENDOR_PROPERTY);
+            daemonJVMProperties.put(DaemonJvmPropertiesDefaults.TOOLCHAIN_VENDOR_PROPERTY, JvmVendor.KnownJvmVendor.valueOf(toolchainVendor.toString()).name());
         }
         if (toolchainImplementation != null) {
             daemonJVMProperties.put(DaemonJvmPropertiesDefaults.TOOLCHAIN_IMPLEMENTATION_PROPERTY, toolchainImplementation.toString());
-        } else {
-            daemonJVMProperties.remove(DaemonJvmPropertiesDefaults.TOOLCHAIN_IMPLEMENTATION_PROPERTY);
         }
+
+        Map<BuildPlatform, Optional<URI>> toolchainDownloadUrlByPlatformMap = toolchainRepositoriesResolver.resolveToolchainDownloadUrlsByPlatform(toolchainVersion, toolchainVendor, toolchainImplementation);
+        toolchainDownloadUrlByPlatformMap.forEach((buildPlatform, url) -> {
+            String toolchainUrlProperty = getToolchainUrlPropertyForPlatform(buildPlatform);
+            url.ifPresent(uri -> daemonJVMProperties.put(toolchainUrlProperty, uri.toString()));
+        });
 
         GFileUtils.parentMkdirs(propertiesFile);
         try {
@@ -60,7 +77,7 @@ public class UpdateDaemonJvmModifier {
         }
     }
 
-    private static void validateToolchainVersion(JavaVersion version) {
+    private void validateToolchainVersion(JavaVersion version) {
         // TODO: It would be nice to enforce this as part of task configuration instead of at runtime.
         // TODO: Need to consider how to handle future versions of Java that are not yet known. This currently allows any version of Java above the minimum.
         JavaVersion minimumSupportedVersion = JavaVersion.VERSION_1_8;
@@ -69,5 +86,11 @@ public class UpdateDaemonJvmModifier {
                 version.getMajorVersion(), minimumSupportedVersion.getMajorVersion());
             throw new IllegalArgumentException(exceptionMessage);
         }
+    }
+
+    private String getToolchainUrlPropertyForPlatform(BuildPlatform buildPlatform) {
+        String operatingSystem = GUtil.toCamelCase(buildPlatform.getOperatingSystem().name().replace("_", " ").toLowerCase(Locale.ROOT));
+        String architecture = GUtil.toCamelCase(buildPlatform.getArchitecture().name().replace("_", " ").toLowerCase(Locale.ROOT));
+        return String.format(DaemonJvmPropertiesDefaults.TOOLCHAIN_URL_PROPERTY_FORMAT, operatingSystem, architecture);
     }
 }
