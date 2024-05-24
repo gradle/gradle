@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.flow
+package org.gradle.internal.flow.services
 
 import org.gradle.api.flow.BuildWorkResult
 import org.gradle.api.flow.FlowProviders
@@ -38,7 +38,6 @@ class DefaultFlowProviders : FlowProviders {
 }
 
 
-internal
 class BuildWorkResultProvider : AbstractMinimalProvider<BuildWorkResult>() {
 
     private

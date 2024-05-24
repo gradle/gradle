@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.flow
+package org.gradle.internal.flow.services
 
 import org.gradle.api.flow.FlowProviders
 import org.gradle.api.flow.FlowScope

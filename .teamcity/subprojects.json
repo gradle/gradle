@@ -455,6 +455,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "flow-services",
+    "path": "platforms/core-configuration/flow-services",
+    "unitTests": false,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "functional",
     "path": "platforms/core-runtime/functional",
     "unitTests": true,
