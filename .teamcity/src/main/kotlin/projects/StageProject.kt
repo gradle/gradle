@@ -66,24 +66,13 @@ class StageProject(
         performanceTests = stage.performanceTests.map { createPerformanceTests(model, performanceTestBucketProvider, stage, it) } +
             stage.flameGraphs.map { createFlameGraphs(model, stage, it) }
 
-        val (topLevelCoverage, allCoverage) = stage.functionalTests.partition { it.testType == TestType.soak }
-        val topLevelFunctionalTests = topLevelCoverage
+        functionalTests = stage.functionalTests
             .map { FunctionalTest(model, it.asConfigurationId(model), it.asName(), it.asName(), it, stage = stage) }
-        topLevelFunctionalTests.forEach(this::buildType)
+        functionalTests.forEach(this::buildType)
 
-        val functionalTestProjects = allCoverage.map { testCoverage -> FunctionalTestProject(model, functionalTestBucketProvider, testCoverage, stage) }
-
-        functionalTestProjects.forEach { functionalTestProject ->
-            this@StageProject.subProject(functionalTestProject)
-        }
-        val functionalTestsPass = functionalTestProjects.map { functionalTestProject ->
-            FunctionalTestsPass(model, functionalTestProject).also { this@StageProject.buildType(it) }
-        }
-
-        functionalTests = topLevelFunctionalTests + functionalTestsPass
-        val crossVersionTests = topLevelFunctionalTests.filter { it.testCoverage.isCrossVersionTest } + functionalTestsPass.filter { it.testCoverage.isCrossVersionTest }
+        val crossVersionTests = functionalTests.filter { it.testCoverage.isCrossVersionTest }
         if (stage.stageName !in listOf(StageName.QUICK_FEEDBACK_LINUX_ONLY, StageName.QUICK_FEEDBACK)) {
-            if (topLevelFunctionalTests.size + functionalTestProjects.size > 1) {
+            if (functionalTests.size > 1) {
                 buildType(PartialTrigger("All Functional Tests for ${stage.stageName.stageName}", "Stage_${stage.stageName.id}_FuncTests", model, functionalTests))
             }
             val smokeTests = specificBuildTypes.filterIsInstance<SmokeTests>()
