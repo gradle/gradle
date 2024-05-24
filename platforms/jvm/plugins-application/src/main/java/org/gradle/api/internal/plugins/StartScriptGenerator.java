@@ -156,16 +156,16 @@ public class StartScriptGenerator {
 
     private static class Generate implements Action<BufferedWriter> {
         private final JavaAppStartScriptGenerationDetails startScriptGenerationDetails;
-        private final ScriptGenerator unixStartScriptGenerator;
+        private final ScriptGenerator scriptGenerator;
 
-        public Generate(JavaAppStartScriptGenerationDetails startScriptGenerationDetails, ScriptGenerator unixStartScriptGenerator) {
+        public Generate(JavaAppStartScriptGenerationDetails startScriptGenerationDetails, ScriptGenerator scriptGenerator) {
             this.startScriptGenerationDetails = startScriptGenerationDetails;
-            this.unixStartScriptGenerator = unixStartScriptGenerator;
+            this.scriptGenerator = scriptGenerator;
         }
 
         @Override
         public void execute(BufferedWriter writer) {
-            unixStartScriptGenerator.generateScript(startScriptGenerationDetails, writer);
+            scriptGenerator.generateScript(startScriptGenerationDetails, writer);
         }
     }
 }

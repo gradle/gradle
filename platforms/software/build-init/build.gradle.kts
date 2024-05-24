@@ -44,7 +44,6 @@ dependencies {
         because("Needs access to StartScriptGenerator.")
     }
     implementation(project(":plugins-jvm-test-suite"))
-    implementation(project(":wrapper-main"))
     implementation(project(":wrapper-shared"))
 
     implementation(libs.groovy)
@@ -74,6 +73,10 @@ dependencies {
     compileOnly(libs.maven3PluginApi)
 
     compileOnly(project(":platform-base"))
+
+    runtimeOnly(project(":wrapper-main")) {
+        because("This contains the embedded wrapper jar that the wrapper task extracts")
+    }
 
     testRuntimeOnly(libs.maven3Compat)
     testRuntimeOnly(libs.maven3PluginApi)

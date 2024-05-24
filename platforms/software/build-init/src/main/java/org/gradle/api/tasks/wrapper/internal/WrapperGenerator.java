@@ -28,7 +28,6 @@ import org.gradle.internal.util.PropertiesUtils;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.DistributionLocator;
 import org.gradle.util.internal.GFileUtils;
-import org.gradle.wrapper.GradleWrapperMain;
 import org.gradle.wrapper.WrapperExecutor;
 
 import javax.annotation.Nullable;
@@ -123,7 +122,7 @@ public class WrapperGenerator {
     private static void writeScripts(String jarFileRelativePath, File unixScript, File batchScript) {
         StartScriptGenerator generator = new StartScriptGenerator();
         generator.setApplicationName("Gradle");
-        generator.setMainClassName(GradleWrapperMain.class.getName());
+        generator.setMainClassName("org.gradle.wrapper.GradleWrapperMain");
         generator.setClasspath(singletonList(jarFileRelativePath));
         generator.setOptsEnvironmentVar("GRADLE_OPTS");
         generator.setExitEnvironmentVar("GRADLE_EXIT_CONSOLE");

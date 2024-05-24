@@ -23,7 +23,6 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.GUtil
 import org.gradle.util.internal.WrapUtil
-import org.gradle.wrapper.GradleWrapperMain
 import org.gradle.wrapper.WrapperExecutor
 
 class WrapperTest extends AbstractTaskTest {
@@ -161,7 +160,7 @@ class WrapperTest extends AbstractTaskTest {
         def properties = GUtil.loadProperties(expectedTargetWrapperProperties)
 
         then:
-        unjarDir.file(GradleWrapperMain.class.getName().replace(".", "/") + ".class").assertIsFile()
+        unjarDir.file("org/gradle/wrapper/GradleWrapperMain.class").assertIsFile()
         properties.getProperty(WrapperExecutor.DISTRIBUTION_URL_PROPERTY) == wrapper.getDistributionUrl()
         properties.getProperty(WrapperExecutor.DISTRIBUTION_SHA_256_SUM) == wrapper.getDistributionSha256Sum()
         properties.getProperty(WrapperExecutor.DISTRIBUTION_BASE_PROPERTY) == wrapper.getDistributionBase().toString()
@@ -218,7 +217,7 @@ class WrapperTest extends AbstractTaskTest {
         def properties = GUtil.loadProperties(expectedTargetWrapperProperties)
 
         then:
-        unjarDir.file(GradleWrapperMain.class.getName().replace(".", "/") + ".class").assertIsFile()
+        unjarDir.file("org/gradle/wrapper/GradleWrapperMain.class").assertIsFile()
         properties.getProperty(WrapperExecutor.DISTRIBUTION_URL_PROPERTY) == wrapper.getDistributionUrl()
         properties.getProperty(WrapperExecutor.DISTRIBUTION_SHA_256_SUM) == wrapper.getDistributionSha256Sum()
         properties.getProperty(WrapperExecutor.DISTRIBUTION_BASE_PROPERTY) == wrapper.getDistributionBase().toString()
