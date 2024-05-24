@@ -245,6 +245,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "daemon-server",
+    "path": "platforms/core-runtime/daemon-server",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "daemon-services",
     "path": "platforms/core-runtime/daemon-services",
     "unitTests": true,

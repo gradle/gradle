@@ -38,7 +38,6 @@ import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 import org.gradle.launcher.daemon.DaemonExecHandleBuilder;
 import org.gradle.launcher.daemon.bootstrap.DaemonOutputConsumer;
-import org.gradle.launcher.daemon.bootstrap.GradleDaemon;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
 import org.gradle.launcher.daemon.registry.DaemonDir;
@@ -103,11 +102,11 @@ public class DefaultDaemonStarter implements DaemonStarter {
 
         if (gradleInstallation == null) {
             // When not running from a Gradle distro, need runtime impl for the daemon plus the search path to look for other modules
-            classpath = registry.getModule("gradle-daemon-main").getAllRequiredModulesClasspath();
+            classpath = registry.getModule("gradle-daemon-server").getAllRequiredModulesClasspath();
             searchClassPath = registry.getAdditionalClassPath().getAsFiles();
         } else {
             // When running from a Gradle distro, only need launcher jar. The daemon can find everything from there.
-            classpath = registry.getModule("gradle-launcher").getImplementationClasspath();
+            classpath = registry.getModule("gradle-daemon-main").getImplementationClasspath();
             classpath = classpath.plus(registry.getModule("gradle-gradle-cli-main").getImplementationClasspath());
             searchClassPath = Collections.emptyList();
         }
@@ -142,7 +141,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
 
         LOGGER.debug("Using daemon args: {}", daemonArgs);
 
-        daemonArgs.add(GradleDaemon.class.getName());
+        daemonArgs.add("org.gradle.launcher.daemon.bootstrap.GradleDaemon");
         // Version isn't used, except by a human looking at the output of jps.
         daemonArgs.add(GradleVersion.current().getVersion());
 
