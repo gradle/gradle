@@ -24,6 +24,7 @@ import org.gradle.util.internal.CollectionUtils;
 import java.io.File;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -77,5 +78,26 @@ public class FilteredFileCollection extends AbstractFileCollection {
     @Override
     public Iterator<File> iterator() {
         return Iterators.filter(collection.iterator(), filterSpec::isSatisfiedBy);
+    }
+
+    @Override
+    public Optional<FileCollectionExecutionTimeValue> calculateExecutionTimeValue() {
+        Optional<FileCollectionExecutionTimeValue> sourceExecutionTimeValue = collection.calculateExecutionTimeValue();
+        return sourceExecutionTimeValue.map(fileCollectionExecutionTimeValue -> new FilteredExecutionTimeValue(fileCollectionExecutionTimeValue, filterSpec));
+    }
+
+    private static class FilteredExecutionTimeValue implements FileCollectionExecutionTimeValue {
+        private final FileCollectionExecutionTimeValue sourceExecutionTimeValue;
+        private final Spec<? super File> filterSpec;
+
+        public FilteredExecutionTimeValue(FileCollectionExecutionTimeValue sourceExecutionTimeValue, Spec<? super File> filterSpec) {
+            this.sourceExecutionTimeValue = sourceExecutionTimeValue;
+            this.filterSpec = filterSpec;
+        }
+
+        @Override
+        public FileCollectionInternal toFileCollection(FileCollectionFactory fileCollectionFactory) {
+            return sourceExecutionTimeValue.toFileCollection(fileCollectionFactory).filter(filterSpec);
+        }
     }
 }
