@@ -19,7 +19,7 @@ dependencies {
 }
 
 tasks.processResources {
-    from(zipTree(provider { configurationCacheReportPath.files.first() })) {
+    from(zipTree(configurationCacheReportPath.elements.map { it.first().asFile })) {
         into("org/gradle/configurationcache/problems")
         exclude("META-INF/**")
     }
