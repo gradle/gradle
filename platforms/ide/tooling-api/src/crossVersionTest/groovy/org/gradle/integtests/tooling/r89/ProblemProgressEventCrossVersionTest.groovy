@@ -26,6 +26,8 @@ import org.gradle.tooling.BuildException
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.problems.LineInFileLocation
+import org.gradle.tooling.events.problems.ProblemEvent
+import org.gradle.tooling.events.problems.ProblemExceptionMappingEvent
 import org.gradle.tooling.events.problems.Severity
 import org.gradle.tooling.events.problems.SingleProblemEvent
 import org.gradle.tooling.events.problems.internal.GeneralData
@@ -175,7 +177,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         """
 
         given:
-        def listener = new ProblemProgressListener()
+        def listener = new ProblemProgressListener(ProblemEvent)
 
         when:
         withConnection {
@@ -190,14 +192,21 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         def problems = listener.problems
         validateCompilationProblem(problems, buildFile)
         problems[0].failure.failure.message == "Could not compile build file '$buildFile.absolutePath'."
+
+        def problemsForFailure = (problems[1] as ProblemExceptionMappingEvent).problemsForFailures
+        problemsForFailure.size() == 1
+
+        def problem = problemsForFailure.entrySet()[0].value.first()
+        problem.definition.id.displayName == problems[0].definition.id.displayName
+        problem.definition.id.group.displayName == problems[0].definition.id.group.displayName
+        problem.failure.failure.message == problems[0].failure.failure.message
     }
 
     def "Can use problems service in model builder and get failure objects"() {
         given:
         Assume.assumeTrue(javaHome != null)
         buildFile getBuildScriptSampleContent(false, false, targetVersion)
-        def listener = new org.gradle.integtests.tooling.r87.ProblemProgressEventCrossVersionTest.ProblemProgressListener()
-
+        def listener = new ProblemProgressListener(ProblemEvent)
 
         when:
         withConnection {
@@ -206,22 +215,14 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                 .addProgressListener(listener)
                 .get()
         }
-        def problems = listener.problems.collect { it as SingleProblemEvent }
+        def problems = listener.problems.collect { it as ProblemEvent }
 
         then:
-        problems.size() == 2
-        problems[0].definition.id.displayName == 'label'
-        problems[0].definition.id.group.displayName == 'Generic'
-        problems[0].failure.failure.message == 'test'
-
-        def problemsForFailures = problems[1].problemsForFailures
-        problemsForFailures.size() == 1
-
-        def problemsForFailure = problemsForFailures[problems[0].failure]
-        problemsForFailure.size() == 1
-        problemsForFailure[0].definition.id.displayName == problems[0].definition.id.displayName
-        problemsForFailure[0].definition.id.group.displayName == problems[0].definition.id.group.displayName
-        problemsForFailure[0].failure.failure.message == problems[0].failure.failure.message
+        problems.size() == 1
+        def event = problems[0] as SingleProblemEvent
+        event.definition.id.displayName == 'label'
+        event.definition.id.group.displayName == 'Generic'
+        event.failure.failure.message == 'test'
 
         where:
         javaHome << [
@@ -265,7 +266,6 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                 .setStandardError(System.err)
                 .setStandardOutput(System.out)
                 .addArguments("--info")
-
                 .run()
         }
 
@@ -300,12 +300,17 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
     }
 
     class ProblemProgressListener implements ProgressListener {
+        Class<? extends ProgressEvent> eventClass
+
+        ProblemProgressListener(Class<? extends ProgressEvent> eventClass = null) {
+            this.eventClass = eventClass
+        }
 
         List<SingleProblemEvent> problems = []
 
         @Override
         void statusChanged(ProgressEvent event) {
-            if (event instanceof SingleProblemEvent) {
+            if (eventClass == null ? event instanceof SingleProblemEvent : eventClass.isInstance(event)) {
                 this.problems.add(event)
             }
         }

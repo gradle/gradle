@@ -284,7 +284,6 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             listener.listenerBroadCaster.addAll(getOrDefault(listeners, operationType));
         }
 
-
         testProgressListeners = this.listenerBroadCasters.get(OperationType.TEST).listenerBroadCaster;
         taskProgressListeners = this.listenerBroadCasters.get(OperationType.TASK).listenerBroadCaster;
         buildOperationProgressListeners = this.listenerBroadCasters.get(OperationType.GENERIC).listenerBroadCaster;
@@ -307,14 +306,14 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
 
     @Override
     public List<String> getSubscribedOperations() {
-        List<String> operations = new ArrayList<>();
+        ImmutableList.Builder<String> operations = builderWithExpectedSize(this.listenerBroadCasters.entrySet().size());
         for (Map.Entry<OperationType, OperationTypeHandler> operationTypeListenerBroadcastEntry : this.listenerBroadCasters.entrySet()) {
             if (!operationTypeListenerBroadcastEntry.getValue().listenerBroadCaster.isEmpty()) {
                 operations.add(OperationMapping.getOperationName(operationTypeListenerBroadcastEntry.getKey()));
             }
         }
 
-        return operations;
+        return operations.build();
     }
 
     @Override
@@ -589,11 +588,11 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             toProblemsForFailures(problemExceptionMappingEvent.getProblemsForFailures()));
     }
 
-     private Map<FailureContainer, Collection<ProblemDescription>> toProblemsForFailures(Map<InternalFailure, Collection<InternalBasicProblemDetailsVersion3>> problemsForFailures) {
+     private Map<Failure, Collection<ProblemDescription>> toProblemsForFailures(Map<InternalFailure, Collection<InternalBasicProblemDetailsVersion3>> problemsForFailures) {
         Set<Map.Entry<InternalFailure, Collection<InternalBasicProblemDetailsVersion3>>> entries = problemsForFailures.entrySet();
-        ImmutableMap.Builder<FailureContainer, Collection<ProblemDescription>> clientProblemsToFailures = ImmutableMap.builderWithExpectedSize(entries.size());
+        ImmutableMap.Builder<Failure, Collection<ProblemDescription>> clientProblemsToFailures = ImmutableMap.builderWithExpectedSize(entries.size());
         for (Map.Entry<InternalFailure, Collection<InternalBasicProblemDetailsVersion3>> entry : entries) {
-            clientProblemsToFailures.put(toFailureContainer(entry.getKey()), toProblemDescriptions(entry.getValue()));
+            clientProblemsToFailures.put(toFailure(entry.getKey()), toProblemDescriptions(entry.getValue()));
         }
         return clientProblemsToFailures.build();
     }
@@ -1039,12 +1038,12 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
 
     public static @Nullable TaskOperationResult toTaskResult(InternalTaskResult result) {
         if (result instanceof InternalTaskSuccessResult) {
-            InternalTaskSuccessResult successResult = (InternalTaskSuccessResult) result;
+            boolean successResultIsUpToDate = ((InternalTaskSuccessResult) result).isUpToDate();
             if (result instanceof InternalJavaCompileTaskOperationResult) {
                 List<AnnotationProcessorResult> annotationProcessorResults = toAnnotationProcessorResults(((InternalJavaCompileTaskOperationResult) result).getAnnotationProcessorResults());
-                return new DefaultJavaCompileTaskSuccessResult(result.getStartTime(), result.getEndTime(), successResult.isUpToDate(), isFromCache(result), toTaskExecutionDetails(result), annotationProcessorResults);
+                return new DefaultJavaCompileTaskSuccessResult(result.getStartTime(), result.getEndTime(), successResultIsUpToDate, isFromCache(result), toTaskExecutionDetails(result), annotationProcessorResults);
             }
-            return new DefaultTaskSuccessResult(result.getStartTime(), result.getEndTime(), successResult.isUpToDate(), isFromCache(result), toTaskExecutionDetails(result));
+            return new DefaultTaskSuccessResult(result.getStartTime(), result.getEndTime(), successResultIsUpToDate, isFromCache(result), toTaskExecutionDetails(result));
         } else if (result instanceof InternalTaskSkippedResult) {
             return new DefaultTaskSkippedResult(result.getStartTime(), result.getEndTime(), ((InternalTaskSkippedResult) result).getSkipMessage());
         } else if (result instanceof InternalTaskFailureResult) {
@@ -1146,16 +1145,16 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     private static Failure toFailure(InternalFailure origFailure) {
         if (origFailure instanceof InternalTestAssertionFailure) {
             if (origFailure instanceof InternalFileComparisonTestAssertionFailure) {
-                InternalTestAssertionFailure assertionFailure = (InternalTestAssertionFailure) origFailure;
+                InternalFileComparisonTestAssertionFailure assertionFailure = (InternalFileComparisonTestAssertionFailure) origFailure;
                 return new DefaultFileComparisonTestAssertionFailure(assertionFailure.getMessage(),
                     assertionFailure.getDescription(),
                     assertionFailure.getExpected(),
                     assertionFailure.getActual(),
                     toFailures(origFailure.getCauses()),
-                    ((InternalTestAssertionFailure) origFailure).getClassName(),
-                    ((InternalTestAssertionFailure) origFailure).getStacktrace(),
-                    ((InternalFileComparisonTestAssertionFailure) origFailure).getExpectedContent(),
-                    ((InternalFileComparisonTestAssertionFailure) origFailure).getActualContent()
+                    assertionFailure.getClassName(),
+                    assertionFailure.getStacktrace(),
+                    assertionFailure.getExpectedContent(),
+                    assertionFailure.getActualContent()
                 );
             }
             InternalTestAssertionFailure assertionFailure = (InternalTestAssertionFailure) origFailure;
@@ -1165,8 +1164,8 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
                 assertionFailure.getExpected(),
                 assertionFailure.getActual(),
                 toFailures(origFailure.getCauses()),
-                ((InternalTestAssertionFailure) origFailure).getClassName(),
-                ((InternalTestAssertionFailure) origFailure).getStacktrace()
+                assertionFailure.getClassName(),
+                assertionFailure.getStacktrace()
             );
         } else if (origFailure instanceof InternalTestFrameworkFailure) {
             InternalTestFrameworkFailure frameworkFailure = (InternalTestFrameworkFailure) origFailure;
@@ -1174,8 +1173,8 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
                 frameworkFailure.getMessage(),
                 frameworkFailure.getDescription(),
                 toFailures(origFailure.getCauses()),
-                ((InternalTestFrameworkFailure) origFailure).getClassName(),
-                ((InternalTestFrameworkFailure) origFailure).getStacktrace()
+                frameworkFailure.getClassName(),
+                frameworkFailure.getStacktrace()
             );
         }
         return origFailure == null ? null : new DefaultFailure(

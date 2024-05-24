@@ -17,6 +17,7 @@
 package org.gradle.tooling.events.problems;
 
 import org.gradle.api.Incubating;
+import org.gradle.tooling.Failure;
 
 import java.util.Collection;
 import java.util.Map;
@@ -35,5 +36,5 @@ public interface ProblemExceptionMappingEvent extends ProblemEvent {
      * @since 8.9
      */
     @Incubating
-    Map<FailureContainer, Collection<ProblemDescription>> getProblemsForFailures();
+    Map<Failure, Collection<ProblemDescription>> getProblemsForFailures();
 }

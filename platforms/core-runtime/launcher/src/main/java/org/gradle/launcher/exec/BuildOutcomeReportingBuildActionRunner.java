@@ -69,9 +69,12 @@ public class BuildOutcomeReportingBuildActionRunner implements BuildActionRunner
 
         Result result = delegate.run(action, buildController);
 
-        buildLogger.logResult(result.getBuildFailure());
+        Throwable buildFailure = result.getBuildFailure();
+        buildLogger.logResult(buildFailure);
         new TaskExecutionStatisticsReporter(styledTextOutputFactory).buildFinished(taskStatisticsCollector.getStatistics());
-        problemsService.reportMapping();
+        if(buildFailure != null) {
+            problemsService.reportMapping(buildFailure);
+        }
         return result;
     }
 }

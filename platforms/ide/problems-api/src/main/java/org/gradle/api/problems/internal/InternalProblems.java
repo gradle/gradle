@@ -31,5 +31,5 @@ public interface InternalProblems extends Problems {
 
     Multimap<Throwable, Problem> getProblemsForThrowables();
 
-    void reportMapping();
+    void reportMapping(Throwable buildFailure);
 }

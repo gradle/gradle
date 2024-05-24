@@ -74,8 +74,14 @@ public class DefaultFailure implements Serializable, InternalFailure {
         StringWriter out = new StringWriter();
         PrintWriter wrt = new PrintWriter(out);
         t.printStackTrace(wrt);
+        return new DefaultFailure(t.getMessage(), out.toString(), getCauseFailure(t));
+    }
+
+    private static InternalFailure getCauseFailure(Throwable t) {
         Throwable cause = t.getCause();
-        InternalFailure causeFailure = cause != null && cause != t ? fromThrowable(cause) : null;
-        return new DefaultFailure(t.getMessage(), out.toString(), causeFailure);
+        if (cause == null || cause == t) {
+            return null;
+        }
+        return fromThrowable(cause);
     }
 }

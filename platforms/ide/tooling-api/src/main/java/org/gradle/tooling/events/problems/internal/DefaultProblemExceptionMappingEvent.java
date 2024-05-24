@@ -16,9 +16,9 @@
 
 package org.gradle.tooling.events.problems.internal;
 
+import org.gradle.tooling.Failure;
 import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.internal.BaseProgressEvent;
-import org.gradle.tooling.events.problems.FailureContainer;
 import org.gradle.tooling.events.problems.ProblemDescription;
 import org.gradle.tooling.events.problems.ProblemExceptionMappingEvent;
 
@@ -27,17 +27,19 @@ import java.util.Map;
 import java.util.Objects;
 
 public class DefaultProblemExceptionMappingEvent extends BaseProgressEvent implements ProblemExceptionMappingEvent {
-    private final Map<FailureContainer, Collection<ProblemDescription>> problemsForFailures;
+    private final Map<Failure, Collection<ProblemDescription>> problemsForFailures;
 
-    public DefaultProblemExceptionMappingEvent(long eventTime,
-                                               OperationDescriptor descriptor,
-                                               Map<FailureContainer, Collection<ProblemDescription>> problemsForFailures) {
+    public DefaultProblemExceptionMappingEvent(
+        long eventTime,
+        OperationDescriptor descriptor,
+        Map<Failure, Collection<ProblemDescription>> problemsForFailures
+    ) {
         super(eventTime, "problem exception mapping", descriptor);
         this.problemsForFailures = problemsForFailures;
     }
 
     @Override
-    public Map<FailureContainer, Collection<ProblemDescription>> getProblemsForFailures() {
+    public Map<Failure, Collection<ProblemDescription>> getProblemsForFailures() {
         return problemsForFailures;
     }
 
