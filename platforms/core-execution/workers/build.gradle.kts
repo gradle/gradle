@@ -21,7 +21,7 @@ dependencies {
     api(project(":service-provider"))
     api(project(":snapshots"))
     api(project(":worker-main"))
-    api(project(":worker-services"))
+    api(project(":build-process-services"))
 
     api(libs.inject)
     api(libs.jsr305)

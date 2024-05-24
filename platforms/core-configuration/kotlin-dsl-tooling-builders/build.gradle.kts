@@ -20,7 +20,7 @@ dependencies {
     implementation(project(":tooling-api"))
     implementation(project(":logging"))
     implementation(project(":kotlin-dsl-tooling-models"))
-    implementation(project(":worker-services"))
+    implementation(project(":build-process-services"))
 
     testImplementation(testFixtures(project(":kotlin-dsl")))
     integTestImplementation(testFixtures(project(":tooling-api")))

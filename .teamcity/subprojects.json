@@ -133,6 +133,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "build-process-services",
+    "path": "platforms/core-runtime/build-process-services",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "build-profile",
     "path": "platforms/core-runtime/build-profile",
     "unitTests": true,
@@ -1171,13 +1178,6 @@
   {
     "name": "worker-main",
     "path": "platforms/core-execution/worker-main",
-    "unitTests": true,
-    "functionalTests": false,
-    "crossVersionTests": false
-  },
-  {
-    "name": "worker-services",
-    "path": "platforms/core-runtime/worker-services",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false

@@ -24,5 +24,5 @@ gradlebuildJava.usedForStartup()
 
 dependencies {
     implementation(projects.javaLanguageExtensions)
-    implementation(project(":worker-services"))
+    implementation(project(":build-process-services"))
 }

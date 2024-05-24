@@ -67,7 +67,7 @@ dependencies {
     implementation(project(":functional"))
     implementation(projects.io)
     implementation(project(":problems-api"))
-    implementation(project(":worker-services"))
+    implementation(project(":build-process-services"))
 
     implementation(libs.groovy) // for 'ReleaseInfo.getVersion()'
     implementation(libs.slf4jApi)
@@ -86,7 +86,7 @@ dependencies {
     manifestClasspath(project(":gradle-cli-main"))
     manifestClasspath(projects.javaLanguageExtensions)
     manifestClasspath(project(":base-services"))
-    manifestClasspath(project(":worker-services"))
+    manifestClasspath(project(":build-process-services"))
     manifestClasspath(project(":concurrent"))
 
     agentsClasspath(project(":instrumentation-agent"))

@@ -27,7 +27,7 @@ dependencies {
     implementation(project(":file-temp"))
     implementation(projects.io)
     implementation(project(":wrapper-shared"))
-    implementation(project(":worker-services"))
+    implementation(project(":build-process-services"))
 
     implementation(libs.commonsIo)
 
