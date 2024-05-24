@@ -7,7 +7,6 @@ description = "Implementation of configuration model types and annotation metada
 
 errorprone {
     disabledChecks.addAll(
-        "ReferenceEquality", // 3 occurrences
         "UndefinedEquals", // 2 occurrences
         "UnusedMethod", // 8 occurrences
         "UnusedVariable", // 20 occurrences
