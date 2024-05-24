@@ -114,7 +114,7 @@ val core = platform("core") {
         subproject("base-services-groovy")
         subproject("configuration-cache")
         subproject("configuration-problems-base")
-        subproject("core-extensions-kt")
+        subproject("core-kotlin-extensions")
         subproject("declarative-dsl-api")
         subproject("declarative-dsl-core")
         subproject("declarative-dsl-provider")

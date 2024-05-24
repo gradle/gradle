@@ -210,8 +210,8 @@
     "crossVersionTests": false
   },
   {
-    "name": "core-extensions-kt",
-    "path": "platforms/core-configuration/core-extensions-kt",
+    "name": "core-kotlin-extensions",
+    "path": "platforms/core-configuration/core-kotlin-extensions",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
