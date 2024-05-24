@@ -19,19 +19,20 @@ package org.gradle.internal.declarativedsl.settings
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.plugins.PluginManagerInternal
+import org.gradle.declarative.dsl.evaluation.AnalysisStatementFilter
+import org.gradle.declarative.dsl.evaluation.InterpretationStepFeature
+import org.gradle.declarative.dsl.evaluation.OperationGenerationId
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter
-import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter.Companion.isCallNamed
-import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter.Companion.isConfiguringCall
-import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter.Companion.isTopLevelElement
-import org.gradle.internal.declarativedsl.analysis.OperationGenerationId
+import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilterUtils.isCallNamed
+import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilterUtils.isConfiguringCall
+import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilterUtils.isTopLevelElement
+import org.gradle.internal.declarativedsl.analysis.DefaultOperationGenerationId
 import org.gradle.internal.declarativedsl.analysis.and
 import org.gradle.internal.declarativedsl.analysis.implies
 import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationAndConversionSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequenceStepWithConversion
 import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationAndConversionSchema
-import org.gradle.internal.declarativedsl.features.InterpretationStepFeature
 import org.gradle.internal.declarativedsl.plugins.PluginsTopLevelReceiver
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.plugin.management.internal.DefaultPluginRequest
@@ -44,7 +45,7 @@ import org.gradle.plugin.use.internal.PluginRequestApplicator
 internal
 class PluginsInterpretationSequenceStep(
     override val stepIdentifier: String = "plugins",
-    override val assignmentGeneration: OperationGenerationId = OperationGenerationId.PROPERTY_ASSIGNMENT,
+    override val assignmentGeneration: OperationGenerationId = DefaultOperationGenerationId.finalEvaluation,
     private val targetScope: ClassLoaderScope,
     private val scriptSource: ScriptSource,
     private val getTargetServices: () -> ServiceRegistry,

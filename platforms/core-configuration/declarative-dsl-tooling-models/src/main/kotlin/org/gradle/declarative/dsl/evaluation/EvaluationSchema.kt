@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.features
+package org.gradle.declarative.dsl.evaluation
+
+import org.gradle.declarative.dsl.schema.AnalysisSchema
+import java.io.Serializable
 
 
-sealed interface InterpretationStepFeature {
-    val featureKeys: List<String>
-
-    interface DocumentChecks : InterpretationStepFeature
-    sealed interface ResolutionResultPostprocessing : InterpretationStepFeature {
-        interface ConventionDefinition : ResolutionResultPostprocessing
-        interface ConventionApplication : ResolutionResultPostprocessing
-    }
-    interface ObjectConversionResultPostprocessing : InterpretationStepFeature
+interface EvaluationSchema : Serializable {
+    val analysisSchema: AnalysisSchema
+    val analysisStatementFilter: AnalysisStatementFilter
 }

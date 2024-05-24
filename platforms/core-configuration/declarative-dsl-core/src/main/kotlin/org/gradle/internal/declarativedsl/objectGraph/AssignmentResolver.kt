@@ -1,6 +1,6 @@
 package org.gradle.internal.declarativedsl.objectGraph
 
-import org.gradle.internal.declarativedsl.analysis.OperationGenerationId
+import org.gradle.declarative.dsl.evaluation.OperationGenerationId
 import org.gradle.internal.declarativedsl.analysis.AssignmentMethod
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
 import org.gradle.internal.declarativedsl.analysis.PropertyReferenceResolution

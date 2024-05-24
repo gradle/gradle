@@ -16,14 +16,16 @@
 
 package org.gradle.internal.declarativedsl.conventions
 
-import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter
-import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter.Companion.isTopLevelElement
-import org.gradle.internal.declarativedsl.analysis.OperationGenerationId
+import org.gradle.declarative.dsl.evaluation.AnalysisStatementFilter
+import org.gradle.declarative.dsl.evaluation.EvaluationSchema
+import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilterUtils.isCallNamed
+import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilterUtils.isConfiguringCall
+import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilterUtils.isTopLevelElement
+import org.gradle.internal.declarativedsl.analysis.DefaultOperationGenerationId
 import org.gradle.internal.declarativedsl.analysis.and
 import org.gradle.internal.declarativedsl.analysis.implies
 import org.gradle.internal.declarativedsl.common.dependencyCollectors
 import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
-import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.SimpleInterpretationSequenceStep
 import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationSchema
 import org.gradle.internal.declarativedsl.software.softwareTypesConventions
@@ -33,7 +35,7 @@ import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 internal
 fun conventionsDefinitionInterpretationSequenceStep(softwareTypeRegistry: SoftwareTypeRegistry) = SimpleInterpretationSequenceStep(
     stepIdentifier = "settingsConventions",
-    assignmentGeneration = OperationGenerationId.CONVENTION_ASSIGNMENT,
+    assignmentGeneration = DefaultOperationGenerationId.convention,
     features = setOf(ConventionDefinition),
     buildEvaluationAndConversionSchema = { conventionsEvaluationSchema(softwareTypeRegistry) }
 )
@@ -49,4 +51,4 @@ fun conventionsEvaluationSchema(softwareTypeRegistry: SoftwareTypeRegistry): Eva
 
 
 val isConventionsConfiguringCall: AnalysisStatementFilter =
-    AnalysisStatementFilter.isConfiguringCall.and(AnalysisStatementFilter.isCallNamed(ConventionsTopLevelReceiver::conventions.name))
+    isConfiguringCall.and(isCallNamed(ConventionsTopLevelReceiver::conventions.name))

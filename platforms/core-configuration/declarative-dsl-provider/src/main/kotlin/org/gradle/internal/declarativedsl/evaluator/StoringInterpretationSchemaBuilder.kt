@@ -18,14 +18,14 @@ package org.gradle.internal.declarativedsl.evaluator
 
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
+import org.gradle.declarative.dsl.evaluation.EvaluationSchema
+import org.gradle.declarative.dsl.evaluation.InterpretationSequenceStep
+import org.gradle.declarative.dsl.evaluation.InterpretationStepFeature
+import org.gradle.declarative.dsl.evaluation.OperationGenerationId
 import org.gradle.declarative.dsl.schema.AnalysisSchema
-import org.gradle.internal.declarativedsl.analysis.OperationGenerationId
+import org.gradle.internal.declarativedsl.evaluationSchema.DefaultInterpretationSequence
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationAndConversionSchema
-import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchema
-import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequence
-import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequenceStep
 import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequenceStepWithConversion
-import org.gradle.internal.declarativedsl.features.InterpretationStepFeature
 import org.gradle.internal.declarativedsl.serialization.SchemaSerialization
 import java.io.File
 
@@ -52,7 +52,7 @@ class StoringInterpretationSchemaBuilder(
                         else -> SchemaHandlingInterpretationSequenceStep(it, schemaHandler)
                     }
                 }
-                InterpretationSchemaBuildingResult.InterpretationSequenceAvailable(InterpretationSequence(stepsWithSchemaStoring))
+                InterpretationSchemaBuildingResult.InterpretationSequenceAvailable(DefaultInterpretationSequence(stepsWithSchemaStoring))
             }
 
             InterpretationSchemaBuildingResult.SchemaNotBuilt -> evaluationSchemaForScript

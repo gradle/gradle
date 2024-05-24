@@ -16,18 +16,13 @@
 
 package org.gradle.internal.declarativedsl.evaluationSchema
 
+import org.gradle.declarative.dsl.evaluation.AnalysisStatementFilter
+import org.gradle.declarative.dsl.evaluation.EvaluationSchema
 import org.gradle.declarative.dsl.schema.AnalysisSchema
-import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter
 import org.gradle.internal.declarativedsl.analysis.analyzeEverything
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeCustomAccessors
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeFunctionResolver
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimePropertyResolver
-
-
-interface EvaluationSchema {
-    val analysisSchema: AnalysisSchema
-    val analysisStatementFilter: AnalysisStatementFilter
-}
 
 
 interface EvaluationAndConversionSchema : EvaluationSchema {

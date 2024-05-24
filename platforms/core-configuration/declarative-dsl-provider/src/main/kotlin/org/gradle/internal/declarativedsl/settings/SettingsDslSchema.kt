@@ -19,23 +19,24 @@ package org.gradle.internal.declarativedsl.settings
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
+import org.gradle.declarative.dsl.evaluation.AnalysisStatementFilter
+import org.gradle.declarative.dsl.evaluation.InterpretationSequence
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter
-import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter.Companion.isCallNamed
-import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter.Companion.isConfiguringCall
-import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter.Companion.isTopLevelElement
-import org.gradle.internal.declarativedsl.analysis.OperationGenerationId
+import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilterUtils.isCallNamed
+import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilterUtils.isConfiguringCall
+import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilterUtils.isTopLevelElement
+import org.gradle.internal.declarativedsl.analysis.DefaultOperationGenerationId
 import org.gradle.internal.declarativedsl.analysis.and
 import org.gradle.internal.declarativedsl.analysis.implies
 import org.gradle.internal.declarativedsl.analysis.not
 import org.gradle.internal.declarativedsl.conventions.isConventionsConfiguringCall
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationAndConversionSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaBuilder
-import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequence
 import org.gradle.internal.declarativedsl.evaluationSchema.SimpleInterpretationSequenceStepWithConversion
 import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationAndConversionSchema
 import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
 import org.gradle.internal.declarativedsl.conventions.conventionsDefinitionInterpretationSequenceStep
+import org.gradle.internal.declarativedsl.evaluationSchema.DefaultInterpretationSequence
 import org.gradle.internal.declarativedsl.project.thirdPartyExtensions
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 
@@ -47,10 +48,10 @@ fun settingsInterpretationSequence(
     scriptSource: ScriptSource,
     softwareTypeRegistry: SoftwareTypeRegistry
 ): InterpretationSequence =
-    InterpretationSequence(
+    DefaultInterpretationSequence(
         listOf(
             SimpleInterpretationSequenceStepWithConversion("settingsPluginManagement", features = setOf(SettingsBlocksCheck.feature)) { pluginManagementEvaluationSchema() },
-            PluginsInterpretationSequenceStep("settingsPlugins", OperationGenerationId.PROPERTY_ASSIGNMENT, targetScope, scriptSource) { settings.services },
+            PluginsInterpretationSequenceStep("settingsPlugins", DefaultOperationGenerationId.finalEvaluation, targetScope, scriptSource) { settings.services },
             conventionsDefinitionInterpretationSequenceStep(softwareTypeRegistry),
             SimpleInterpretationSequenceStepWithConversion("settings") { settingsEvaluationSchema(settings) }
         )

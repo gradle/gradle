@@ -17,8 +17,8 @@
 package org.gradle.internal.declarativedsl.evaluator
 
 import org.gradle.api.internal.initialization.ClassLoaderScope
+import org.gradle.declarative.dsl.evaluation.InterpretationSequence
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequence
 
 
 internal

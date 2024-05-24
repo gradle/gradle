@@ -16,6 +16,7 @@
 
 package org.gradle.internal.declarativedsl.features
 
+import org.gradle.declarative.dsl.evaluation.InterpretationStepFeature
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 
 

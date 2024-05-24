@@ -16,25 +16,21 @@
 
 package org.gradle.internal.declarativedsl.evaluationSchema
 
-import org.gradle.internal.declarativedsl.analysis.OperationGenerationId
-import org.gradle.internal.declarativedsl.features.InterpretationStepFeature
+import org.gradle.declarative.dsl.evaluation.EvaluationSchema
+import org.gradle.declarative.dsl.evaluation.InterpretationSequence
+import org.gradle.declarative.dsl.evaluation.InterpretationSequenceStep
+import org.gradle.declarative.dsl.evaluation.InterpretationStepFeature
+import org.gradle.declarative.dsl.evaluation.OperationGenerationId
+import org.gradle.internal.declarativedsl.analysis.DefaultOperationGenerationId
 
 
 internal
-class InterpretationSequence(
-    val steps: Iterable<InterpretationSequenceStep>
-)
+class DefaultInterpretationSequence(
+    override val steps: Iterable<InterpretationSequenceStep>
+) : InterpretationSequence
 
 
-internal
-interface InterpretationSequenceStep {
-    val stepIdentifier: String
-    val assignmentGeneration: OperationGenerationId
-    val features: Set<InterpretationStepFeature>
-    fun evaluationSchemaForStep(): EvaluationSchema
-}
-
-
+// TODO: make this available outside Gradle process, too
 internal
 interface InterpretationSequenceStepWithConversion<R : Any> : InterpretationSequenceStep {
     override fun evaluationSchemaForStep(): EvaluationAndConversionSchema
@@ -46,7 +42,7 @@ interface InterpretationSequenceStepWithConversion<R : Any> : InterpretationSequ
 internal
 class SimpleInterpretationSequenceStep(
     override val stepIdentifier: String,
-    override val assignmentGeneration: OperationGenerationId = OperationGenerationId.PROPERTY_ASSIGNMENT,
+    override val assignmentGeneration: OperationGenerationId = DefaultOperationGenerationId.finalEvaluation,
     override val features: Set<InterpretationStepFeature> = emptySet(),
     private val buildEvaluationAndConversionSchema: () -> EvaluationSchema
 ) : InterpretationSequenceStep {
@@ -61,7 +57,7 @@ class SimpleInterpretationSequenceStep(
 internal
 class SimpleInterpretationSequenceStepWithConversion(
     override val stepIdentifier: String,
-    override val assignmentGeneration: OperationGenerationId = OperationGenerationId.PROPERTY_ASSIGNMENT,
+    override val assignmentGeneration: OperationGenerationId = DefaultOperationGenerationId.finalEvaluation,
     override val features: Set<InterpretationStepFeature> = emptySet(),
     private val buildEvaluationAndConversionSchema: () -> EvaluationAndConversionSchema
 ) : InterpretationSequenceStepWithConversion<Any> {

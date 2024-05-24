@@ -16,16 +16,16 @@
 
 package org.gradle.internal.declarativedsl.settings
 
-import org.gradle.internal.declarativedsl.analysis.OperationGenerationId
+import org.gradle.declarative.dsl.evaluation.EvaluationSchema
+import org.gradle.internal.declarativedsl.analysis.DefaultOperationGenerationId
 import org.gradle.internal.declarativedsl.analysis.tracingCodeResolver
 import org.gradle.internal.declarativedsl.checks.DocumentCheckFailure
 import org.gradle.internal.declarativedsl.checks.DocumentCheckFailureReason
+import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
 import org.gradle.internal.declarativedsl.dom.resolvedDocument
 import org.gradle.internal.declarativedsl.dom.toDocument
-import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaBuilder
 import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationSchema
-import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
 import org.gradle.internal.declarativedsl.language.SourceIdentifier
 import org.gradle.internal.declarativedsl.parsing.DefaultLanguageTreeBuilder
 import org.gradle.internal.declarativedsl.parsing.parse
@@ -119,7 +119,7 @@ class SettingsBlockCheckTest {
     private
     fun EvaluationSchema.runChecks(code: String): List<DocumentCheckFailure> {
         val languageModel = DefaultLanguageTreeBuilder().build(parse(code), SourceIdentifier("test"))
-        val trace = tracingCodeResolver(OperationGenerationId.PROPERTY_ASSIGNMENT, analysisStatementFilter)
+        val trace = tracingCodeResolver(DefaultOperationGenerationId.finalEvaluation, analysisStatementFilter)
             .apply { resolve(analysisSchema, languageModel.imports, languageModel.topLevelBlock) }
             .trace
         val document = resolvedDocument(analysisSchema, trace, languageModel.toDocument())

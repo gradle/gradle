@@ -14,11 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.features
+package org.gradle.declarative.dsl.evaluation
 
-import org.gradle.declarative.dsl.evaluation.InterpretationStepFeature
+import java.io.Serializable
 
 
-interface InterpretationStepFeatureHandler<F : InterpretationStepFeature> {
-    fun shouldHandleFeature(feature: F): Boolean
+/**
+ * Represents the "generation" of a particular operation (either an addition function call or a property assignment operation).
+ *
+ * The order of generations is important as calls in later generations can override calls in earlier generations, but no the
+ * other way around.
+ * For instance, a property assignment can override a convention assignment, but a convention assignment cannot override a property assignment.
+ */
+interface OperationGenerationId : Comparable<OperationGenerationId>, Serializable {
+    val ordinal: Int
 }

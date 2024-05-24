@@ -16,7 +16,7 @@
 
 package org.gradle.internal.declarativedsl.project
 
-import org.gradle.internal.declarativedsl.analysis.OperationGenerationId
+import org.gradle.internal.declarativedsl.analysis.DefaultOperationGenerationId
 import org.gradle.internal.declarativedsl.conventions.ConventionApplication
 import org.gradle.internal.declarativedsl.evaluationSchema.SimpleInterpretationSequenceStepWithConversion
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
@@ -29,7 +29,7 @@ import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 internal
 fun projectInterpretationSequenceStep(softwareTypeRegistry: SoftwareTypeRegistry) = SimpleInterpretationSequenceStepWithConversion(
     stepIdentifier = "project",
-    assignmentGeneration = OperationGenerationId.PROPERTY_ASSIGNMENT,
+    assignmentGeneration = DefaultOperationGenerationId.finalEvaluation,
     features = setOf(ConventionApplication),
 ) {
     projectEvaluationSchema(softwareTypeRegistry)

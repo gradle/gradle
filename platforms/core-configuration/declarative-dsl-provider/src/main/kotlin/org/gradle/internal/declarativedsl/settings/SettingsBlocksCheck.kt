@@ -17,6 +17,7 @@
 package org.gradle.internal.declarativedsl.settings
 
 import org.gradle.api.initialization.Settings
+import org.gradle.declarative.dsl.evaluation.InterpretationStepFeature
 import org.gradle.internal.declarativedsl.checks.DocumentCheck
 import org.gradle.internal.declarativedsl.checks.DocumentCheckFailure
 import org.gradle.internal.declarativedsl.checks.DocumentCheckFailureLocation.FailedAtNode
@@ -27,7 +28,6 @@ import org.gradle.internal.declarativedsl.dom.ResolvedDeclarativeDocument
 import org.gradle.internal.declarativedsl.dom.ResolvedDeclarativeDocument.ResolvedDocumentNode
 import org.gradle.internal.declarativedsl.dom.ResolvedDeclarativeDocument.ResolvedDocumentNode.ResolvedElementNode
 import org.gradle.internal.declarativedsl.dom.UnresolvedBase
-import org.gradle.internal.declarativedsl.features.InterpretationStepFeature
 import org.gradle.internal.declarativedsl.plugins.PluginsCollectingPluginsBlock
 import org.gradle.plugin.management.PluginManagementSpec
 

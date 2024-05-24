@@ -16,8 +16,8 @@
 
 package org.gradle.internal.declarativedsl.conventions
 
+import org.gradle.declarative.dsl.evaluation.InterpretationStepFeature
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
-import org.gradle.internal.declarativedsl.features.InterpretationStepFeature
 import org.gradle.internal.declarativedsl.features.ResolutionResultHandler
 
 

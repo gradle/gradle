@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.features
+package org.gradle.declarative.dsl.evaluation
 
-import org.gradle.declarative.dsl.evaluation.InterpretationStepFeature
+import java.io.Serializable
 
 
-interface InterpretationStepFeatureHandler<F : InterpretationStepFeature> {
-    fun shouldHandleFeature(feature: F): Boolean
+interface InterpretationSequenceStep : Serializable {
+    val stepIdentifier: String
+    val assignmentGeneration: OperationGenerationId
+    val features: Set<InterpretationStepFeature>
+    fun evaluationSchemaForStep(): EvaluationSchema
 }
