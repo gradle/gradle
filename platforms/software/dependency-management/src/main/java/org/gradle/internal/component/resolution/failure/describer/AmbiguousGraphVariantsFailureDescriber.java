@@ -35,7 +35,7 @@ import java.util.TreeMap;
 import static org.gradle.internal.exceptions.StyledException.style;
 
 /**
- * A {@link ResolutionFailureDescriber} that describes an {@link VariantAwareAmbiguousResolutionFailure}.
+ * A {@link ResolutionFailureDescriber} that describes a generic {@link VariantAwareAmbiguousResolutionFailure}.
  */
 public abstract class AmbiguousGraphVariantsFailureDescriber extends AbstractResolutionFailureDescriber<VariantAwareAmbiguousResolutionFailure> {
     private static final String AMBIGUOUS_VARIANTS_PREFIX = "Ambiguity errors are explained in more detail at ";
@@ -48,7 +48,7 @@ public abstract class AmbiguousGraphVariantsFailureDescriber extends AbstractRes
         return new VariantSelectionException(message, failure, resolutions);
     }
 
-    private String buildAmbiguousGraphVariantsFailureMsg(VariantAwareAmbiguousResolutionFailure failure, AttributesSchemaInternal schema) {
+    protected String buildAmbiguousGraphVariantsFailureMsg(VariantAwareAmbiguousResolutionFailure failure, AttributesSchemaInternal schema) {
         AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(failure.getRequestedAttributes(), schema);
 
         Map<String, ResolutionCandidateAssessor.AssessedCandidate> ambiguousVariants = new TreeMap<>();
