@@ -25,6 +25,7 @@ import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.util.GradleVersion
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
@@ -169,7 +170,7 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
         file("gradle/wrapper/gradle-wrapper.properties").text.contains("networkTimeout=7000")
     }
 
-    def "wrapper JAR does not contain version in manifest"() {
+    def "wrapper JAR contain implementation and version information in manifest"() {
         when:
         run "wrapper"
 
@@ -180,9 +181,10 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
 
         Manifest manifest = contents.file('META-INF/MANIFEST.MF').withInputStream { new Manifest(it) } as Manifest
         with(manifest.mainAttributes) {
-            size() == 2
+            size() == 3
             getValue(Attributes.Name.MANIFEST_VERSION) == '1.0'
             getValue(Attributes.Name.IMPLEMENTATION_TITLE) == 'Gradle Wrapper'
+            getValue(Attributes.Name.IMPLEMENTATION_VERSION) == GradleVersion.current().baseVersion.version
         }
     }
 

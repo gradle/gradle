@@ -14,13 +14,9 @@
  * limitations under the License.
  */
 
-import com.gradleup.gr8.EmbeddedJarTask
-import com.gradleup.gr8.Gr8Task
-import java.util.jar.Attributes
-
 plugins {
     id("gradlebuild.distribution.api-java")
-    id("com.gradleup.gr8") version "0.10"
+    id("gradlebuild.minified-jar")
 }
 
 description = "Entry point of the Gradle wrapper command"
@@ -53,40 +49,15 @@ dependencies {
     crossVersionTestDistributionRuntimeOnly(project(":distributions-full"))
 }
 
-val executableJar by tasks.registering(Jar::class) {
-    archiveFileName = "gradle-wrapper-executable.jar"
-    manifest {
-        attributes.remove(Attributes.Name.IMPLEMENTATION_VERSION.toString())
-        attributes(Attributes.Name.IMPLEMENTATION_TITLE.toString() to "Gradle Wrapper")
-    }
-    from(layout.projectDirectory.dir("src/executable/resources"))
-    from(sourceSets.main.get().output)
-    // Exclude properties files from this project as they are not needed for the executable JAR
+minify {
+    implementationTitle = "Gradle Wrapper"
+
+    // Exclude META-INF resources from Guava etc. added via transitive dependencies
+    excludeFromDependencies("META-INF/*")
+
+    // Exclude properties files that are not required
     exclude("gradle-*-classpath.properties")
     exclude("gradle-*-parameter-names.properties")
-}
-
-// Using Gr8 plugin with ProGuard to minify the wrapper JAR.
-// This minified JAR is added to the project root when the wrapper task is used.
-// It is embedded in the main JAR as a resource called `/gradle-wrapper.jar.`
-gr8 {
-    create("gr8") {
-        // TODO This should work by passing `executableJar` directly to th Gr8 plugin
-        programJar(executableJar.flatMap { it.archiveFile })
-        archiveName("gradle-wrapper.jar")
-        configuration("runtimeClasspath")
-        proguardFile("src/main/proguard/wrapper.pro")
-        // Exclude META-INF resources from Guava etc. added via transitive dependencies
-        exclude("META-INF/.*")
-        // Exclude properties files from dependency subprojects
-        exclude("gradle-.*-classpath.properties")
-        exclude("gradle-.*-parameter-names.properties")
-    }
-}
-
-// TODO This dependency should be configured by the Gr8 plugin
-tasks.named<EmbeddedJarTask>("gr8EmbeddedJar") {
-    dependsOn(executableJar)
 }
 
 // https://github.com/gradle/gradle/issues/26658
@@ -94,11 +65,15 @@ tasks.named<EmbeddedJarTask>("gr8EmbeddedJar") {
 // After introducing gr8, wrapper jar is generated as build/libs/gradle-wrapper-executable.jar and processed
 //   by gr8, then the processed `gradle-wrapper.jar` need to be copied back to build/libs for promotion build
 val copyGr8OutputJarAsGradleWrapperJar by tasks.registering(Copy::class) {
-    from(tasks.named<Gr8Task>("gr8R8Jar").flatMap { it.outputJar() })
+    from(minify.minifiedJar) {
+        rename { "gradle-wrapper.jar" }
+    }
     into(layout.buildDirectory.dir("libs"))
 }
 
 tasks.jar {
-    from(tasks.named<Gr8Task>("gr8R8Jar").flatMap { it.outputJar() })
+    from(minify.minifiedJar) {
+        rename { "gradle-wrapper.jar" }
+    }
     dependsOn(copyGr8OutputJarAsGradleWrapperJar)
 }
