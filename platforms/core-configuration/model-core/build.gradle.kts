@@ -7,7 +7,6 @@ description = "Implementation of configuration model types and annotation metada
 
 errorprone {
     disabledChecks.addAll(
-        "UnusedMethod", // 8 occurrences
         "UnusedVariable", // 20 occurrences
     )
 }
