@@ -41,7 +41,7 @@ import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.decodePreservingIdentity
 import org.gradle.internal.serialize.graph.encodePreservingIdentityOf
 import org.gradle.internal.serialize.graph.readList
-import org.gradle.configurationcache.serialization.readNonNull
+import org.gradle.internal.serialize.graph.readNonNull
 import org.gradle.internal.serialize.graph.writeCollection
 import java.io.File
 import kotlin.jvm.optionals.getOrNull
@@ -66,10 +66,15 @@ class FileCollectionCodec(
             write(executionTimeValue)
         } else {
             writeBoolean(false)
-            val visitor = CollectingVisitor()
-            value.visitStructure(visitor)
-            writeCollection(visitor.elements)
+            encodeViaCollectingVisitor(value)
         }
+    }
+
+    private
+    suspend fun WriteContext.encodeViaCollectingVisitor(value: FileCollectionInternal) {
+        val visitor = CollectingVisitor()
+        value.visitStructure(visitor)
+        writeCollection(visitor.elements)
     }
 
     override suspend fun ReadContext.decode(): FileCollectionInternal {
