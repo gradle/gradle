@@ -730,10 +730,10 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
             if (node == null) {
                 throw new IllegalStateException(String.format("Cannot transition model element '%s' to state %s as it does not exist.", getPath(), getTargetState().name()));
             }
-            return doCalculateDependencies(graph, dependencies);
+            return doCalculateDependencies(dependencies);
         }
 
-        boolean doCalculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
+        boolean doCalculateDependencies(Collection<ModelGoal> dependencies) {
             return true;
         }
 
@@ -852,7 +852,7 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
         }
 
         @Override
-        boolean doCalculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
+        boolean doCalculateDependencies(Collection<ModelGoal> dependencies) {
             boolean noActionsAdded = true;
             // Must run each action
             for (RuleBinder binder : ruleBindings.getRulesWithSubject(target)) {
@@ -871,7 +871,7 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
         }
 
         @Override
-        boolean doCalculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
+        boolean doCalculateDependencies(Collection<ModelGoal> dependencies) {
             dependencies.add(new TransitionChildrenOrReference(getPath(), GraphClosed));
             return true;
         }

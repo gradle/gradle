@@ -7,7 +7,7 @@ description = "Implementation of configuration model types and annotation metada
 
 errorprone {
     disabledChecks.addAll(
-        "UnusedVariable", // 20 occurrences
+        "UnusedVariable", // This cannot really be turned off, because of the false positive in errorprone (https://github.com/google/error-prone/issues/4409)
     )
 }
 
