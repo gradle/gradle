@@ -21,6 +21,7 @@ import com.nhaarman.mockitokotlin2.mock
 import org.gradle.api.IsolatedAction
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.provider.CollectionPropertyInternal
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.configurationcache.serialization.IsolateOwner
@@ -28,6 +29,7 @@ import org.gradle.configurationcache.serialization.beans.BeanStateWriterLookup
 import org.gradle.configurationcache.serialization.codecs.beanStateReaderLookupForTesting
 import org.gradle.configurationcache.serialization.codecs.jos.JavaSerializationEncodingLookup
 import org.gradle.configurationcache.services.IsolatedActionCodecsFactory
+import org.gradle.internal.Cast.uncheckedNonnullCast
 import org.gradle.internal.isolation.IsolatedActionsForTesting.isolatedActionLambdaWith
 import org.gradle.util.TestUtil
 import org.gradle.util.TestUtil.objectFactory
@@ -142,7 +144,7 @@ class IsolatedActionSerializerTest {
     inline fun <reified T : Any> listPropertyOf(vararg values: T) =
         objectFactory().listProperty(T::class.java).apply {
             if (values.isNotEmpty()) {
-                appendAll(*values)
+                uncheckedNonnullCast<CollectionPropertyInternal<T, Collection<T>>>(this).appendAll(*values)
             }
         }
 
