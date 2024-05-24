@@ -276,7 +276,7 @@ public class DependencyGraphBuilder {
             SelectorState selector = dependency.getSelector();
             ModuleResolveState module = selector.getTargetModule();
 
-            if (selector.canResolve() && module.getSelectors().size() > 0) {
+            if (selector.canAffectSelection() && module.getSelectors().size() > 0) {
                 // Have an unprocessed/new selector for this module. Need to re-select the target version (if there are any selectors that can be used).
                 performSelection(resolveState, module);
             }
@@ -358,13 +358,13 @@ public class DependencyGraphBuilder {
         }
     }
 
-    private static void attachToTargetRevisionsSerially(List<EdgeState> dependencies, Spec<EdgeState> dependencyFilter) {
+    private static void attachToTargetRevisionsSerially(List<EdgeState> edges, Spec<EdgeState> dependencyFilter) {
         // the following only needs to be done serially to preserve ordering of dependencies in the graph: we have visited the edges
         // but we still didn't add the result to the queue. Doing it from resolve threads would result in non-reproducible graphs, where
         // edges could be added in different order. To avoid this, the addition of new edges is done serially.
-        for (EdgeState dependency : dependencies) {
-            if (dependencyFilter.isSatisfiedBy(dependency)) {
-                dependency.attachToTargetConfigurations();
+        for (EdgeState edge : edges) {
+            if (dependencyFilter.isSatisfiedBy(edge)) {
+                edge.attachToTargetConfigurations();
             }
         }
     }

@@ -36,6 +36,21 @@ public interface PendingDependenciesVisitor {
         }
     }
 
+    /**
+     * If this dependency declaration is not a constraint, indicate whether an edge should be created.
+     *
+     * If this dependency declaration is a constraint:
+     * <ul>
+     *      <li>
+     *          If the target module is <strong>already present</strong> in the graph: indicate that an edge should be created
+     *      </li>
+     *      <li>
+     *          If the target module is <strong>not present</strong> in the graph: track the source node as a constraint provider for the target module
+     *      </li>
+     * </ul>
+     *
+     * @return The pending state of the <strong>target module</strong>
+     */
     PendingState maybeAddAsPendingDependency(NodeState node, DependencyState dependencyState);
 
     boolean markNotPending(ModuleIdentifier id);

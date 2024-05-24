@@ -282,6 +282,7 @@ public class NodeState implements DependencyGraphNode {
             }
         }
 
+        // The exclusions changed or we are in a virtual platform needing refresh.
         // Clear previous traversal state, if any
         if (previousTraversalExclusions != null) {
             removeOutgoingEdges();
@@ -544,6 +545,9 @@ public class NodeState implements DependencyGraphNode {
         return dependencyStateCache.computeIfAbsent(md, this::createDependencyState);
     }
 
+    /**
+     * Creates an edge and add it to this node as an outgoing edge.
+     */
     private void createAndLinkEdgeState(DependencyState dependencyState, Collection<EdgeState> discoveredEdges, ExcludeSpec resolutionFilter, boolean deferSelection) {
         EdgeState dependencyEdge = edgesCache.computeIfAbsent(dependencyState, ds -> new EdgeState(this, ds, resolutionFilter, resolveState));
         dependencyEdge.computeSelector(); // the selector changes, if the 'versionProvidedByAncestors' state changes
@@ -1037,9 +1041,9 @@ public class NodeState implements DependencyGraphNode {
         boolean alreadyRemoving = removingOutgoingEdges;
         removingOutgoingEdges = true;
         if (!outgoingEdges.isEmpty() && !alreadyRemoving) {
-            for (EdgeState outgoingDependency : outgoingEdges) {
-                outgoingDependency.markUnused();
-                ComponentState targetComponent = outgoingDependency.getTargetComponent();
+            for (EdgeState outgoingEdge : outgoingEdges) {
+                outgoingEdge.markUnused();
+                ComponentState targetComponent = outgoingEdge.getTargetComponent();
                 if (targetComponent == component) {
                     // if the same component depends on itself: do not attempt to cleanup the same thing several times
                     continue;
@@ -1048,7 +1052,7 @@ public class NodeState implements DependencyGraphNode {
                     // don't requeue something which is already changing selection
                     continue;
                 }
-                outgoingDependency.cleanUpOnSourceChange(this);
+                outgoingEdge.cleanUpOnSourceChange(this);
             }
             outgoingEdges.clear();
         }
