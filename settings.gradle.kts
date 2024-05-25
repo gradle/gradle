@@ -123,6 +123,7 @@ val core = platform("core") {
         subproject("file-collections")
         subproject("flow-services")
         subproject("graph-serialization")
+        subproject("guava-serialization-codecs")
         subproject("input-tracking")
         subproject("kotlin-dsl")
         subproject("kotlin-dsl-provider-plugins")
@@ -131,6 +132,7 @@ val core = platform("core") {
         subproject("kotlin-dsl-plugins")
         subproject("kotlin-dsl-integ-tests")
         subproject("stdlib-kotlin-extensions")
+        subproject("stdlib-serialization-codecs")
         subproject("model-core")
         subproject("model-groovy")
     }

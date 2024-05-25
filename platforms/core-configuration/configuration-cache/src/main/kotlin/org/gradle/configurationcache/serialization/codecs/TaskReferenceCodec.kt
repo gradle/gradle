@@ -17,14 +17,15 @@
 package org.gradle.configurationcache.serialization.codecs
 
 import org.gradle.api.Task
+import org.gradle.api.internal.GeneratedSubclasses.unpackType
 import org.gradle.api.internal.tasks.TaskContainerInternal
+import org.gradle.configurationcache.serialization.IsolateOwners
+import org.gradle.internal.serialize.graph.logUnsupportedBaseType
 import org.gradle.internal.configuration.problems.DocumentationSection.RequirementsTaskAccess
 import org.gradle.internal.serialize.graph.Codec
-import org.gradle.configurationcache.serialization.IsolateOwners
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.logUnsupported
-import org.gradle.configurationcache.serialization.logUnsupportedBaseType
 import org.gradle.internal.serialize.graph.readEnum
 import org.gradle.internal.serialize.graph.writeEnum
 
@@ -54,7 +55,7 @@ object TaskReferenceCodec : Codec<Task> {
             logUnsupportedBaseType(
                 "serialize",
                 Task::class,
-                value.javaClass,
+                unpackType(value),
                 documentationSection = RequirementsTaskAccess
             )
         }

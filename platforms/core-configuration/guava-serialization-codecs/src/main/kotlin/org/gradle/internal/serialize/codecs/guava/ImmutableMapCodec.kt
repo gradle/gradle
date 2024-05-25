@@ -14,29 +14,29 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.serialization.codecs
+package org.gradle.internal.serialize.codecs.guava
 
+import com.google.common.collect.ImmutableMap
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
-import org.gradle.internal.serialize.graph.readClassArray
-import org.gradle.internal.serialize.graph.writeClassArray
-import java.lang.reflect.Method
+import org.gradle.internal.serialize.graph.writeMap
 
 
-internal
-object MethodCodec : Codec<Method> {
+object ImmutableMapCodec : Codec<ImmutableMap<Any, Any>> {
 
-    override suspend fun WriteContext.encode(value: Method) {
-        writeClass(value.declaringClass)
-        writeString(value.name)
-        writeClassArray(value.parameterTypes)
+    override suspend fun WriteContext.encode(value: ImmutableMap<Any, Any>) {
+        writeMap(value)
     }
 
-    override suspend fun ReadContext.decode(): Method? {
-        val declaringClass = readClass()
-        val methodName = readString()
-        val parameterTypes = readClassArray()
-        return declaringClass.getDeclaredMethod(methodName, *parameterTypes)
+    override suspend fun ReadContext.decode(): ImmutableMap<Any, Any>? {
+        val size = readSmallInt()
+        val builder = ImmutableMap.builderWithExpectedSize<Any, Any>(size)
+        for (i in 0 until size) {
+            val key = read()!!
+            val value = read()!!
+            builder.put(key, value)
+        }
+        return builder.build()
     }
 }

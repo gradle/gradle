@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.serialization.codecs
+package org.gradle.internal.serialize.codecs.guava
 
-import org.gradle.internal.serialize.graph.Codec
-import org.gradle.internal.serialize.graph.ReadContext
-import org.gradle.internal.serialize.graph.WriteContext
-import java.net.URL
+import org.gradle.internal.serialize.graph.BindingsBuilder
 
 
-object UrlCodec : Codec<URL> {
-
-    override suspend fun WriteContext.encode(value: URL) {
-        writeString(value.toExternalForm())
-    }
-
-    override suspend fun ReadContext.decode(): URL =
-        URL(readString())
+fun BindingsBuilder.guavaTypes() {
+    bind(ImmutableListCodec)
+    bind(ImmutableSetCodec)
+    bind(ImmutableMapCodec)
 }

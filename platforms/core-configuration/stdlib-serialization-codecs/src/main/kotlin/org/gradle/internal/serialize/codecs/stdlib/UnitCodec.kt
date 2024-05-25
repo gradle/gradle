@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,28 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.serialization.codecs
+package org.gradle.internal.serialize.codecs.stdlib
 
-import com.google.common.collect.ImmutableSet
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
-import org.gradle.internal.serialize.graph.writeCollection
 
 
-object ImmutableSetCodec : Codec<ImmutableSet<Any>> {
+object UnitCodec : Codec<Unit> {
 
-    override suspend fun WriteContext.encode(value: ImmutableSet<Any>) {
-        writeCollection(value)
+    override suspend fun WriteContext.encode(value: Unit) {
+        // noop
     }
 
-    override suspend fun ReadContext.decode(): ImmutableSet<Any>? {
-        val size = readSmallInt()
-        val builder = ImmutableSet.builderWithExpectedSize<Any>(size)
-        for (i in 0 until size) {
-            val value = read()!!
-            builder.add(value)
-        }
-        return builder.build()
+    override suspend fun ReadContext.decode() {
+        // returns Unit instance under the hood
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.serialization.codecs
+plugins {
+    id("gradlebuild.distribution.implementation-kotlin")
+}
 
-import org.gradle.internal.serialize.graph.Codec
-import org.gradle.internal.serialize.graph.ReadContext
-import org.gradle.internal.serialize.graph.WriteContext
+description = "Serialization codecs for guava types"
 
-
-internal
-object UnitCodec : Codec<Unit> {
-
-    override suspend fun WriteContext.encode(value: Unit) {
-        // noop
-    }
-
-    override suspend fun ReadContext.decode() {
-        // returns Unit instance under the hood
-    }
+dependencies {
+    api(projects.graphSerialization)
+    api(libs.futureKotlin("stdlib"))
+    api(libs.guava)
 }

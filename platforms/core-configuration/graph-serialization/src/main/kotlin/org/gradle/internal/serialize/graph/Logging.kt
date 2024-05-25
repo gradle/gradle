@@ -28,6 +28,23 @@ import org.gradle.internal.configuration.problems.propertyDescriptionFor
 import kotlin.reflect.KClass
 
 
+fun IsolateContext.logUnsupportedBaseType(
+    action: String,
+    baseType: KClass<*>,
+    actualType: Class<*>,
+    documentationSection: DocumentationSection = DocumentationSection.RequirementsDisallowedTypes,
+    appendix: StructuredMessageBuilder = {}
+) {
+    logUnsupported(action, documentationSection, appendix) {
+        text(" object of type ")
+        reference(actualType)
+        text(", a subtype of ")
+        reference(baseType)
+        text(",")
+    }
+}
+
+
 fun IsolateContext.logPropertyProblem(
     action: String,
     documentationSection: DocumentationSection? = null,

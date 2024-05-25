@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.serialization.codecs
+package org.gradle.internal.serialize.codecs.stdlib
 
+import org.gradle.api.internal.GeneratedSubclasses.unpackType
+import org.gradle.internal.serialize.graph.logUnsupportedBaseType
 import org.gradle.internal.configuration.problems.StructuredMessageBuilder
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.logUnsupported
-import org.gradle.configurationcache.serialization.logUnsupportedBaseType
 import org.gradle.internal.serialize.graph.readEnum
 import org.gradle.internal.serialize.graph.writeEnum
 import java.io.InputStream
@@ -37,7 +38,7 @@ enum class StreamReference {
 object InputStreamCodec : Codec<InputStream> {
     override suspend fun WriteContext.encode(value: InputStream) {
         if (value !== System.`in`) {
-            logUnsupportedBaseType("serialize", InputStream::class, value.javaClass, appendix = supportedStreamsInfo())
+            logUnsupportedBaseType("serialize", InputStream::class, unpackType(value), appendix = supportedStreamsInfo())
             writeEnum(StreamReference.UNSUPPORTED)
             return
         }
@@ -67,7 +68,7 @@ object OutputStreamCodec : Codec<OutputStream> {
             value === System.out -> writeEnum(StreamReference.OUT)
             value === System.err -> writeEnum(StreamReference.ERR)
             else -> {
-                logUnsupportedBaseType("serialize", OutputStream::class, value.javaClass, appendix = supportedStreamsInfo())
+                logUnsupportedBaseType("serialize", OutputStream::class, unpackType(value), appendix = supportedStreamsInfo())
                 writeEnum(StreamReference.UNSUPPORTED)
             }
         }

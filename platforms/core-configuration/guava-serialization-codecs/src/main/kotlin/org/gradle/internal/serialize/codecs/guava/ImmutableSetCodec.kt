@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,28 +14,28 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.serialization.codecs
+package org.gradle.internal.serialize.codecs.guava
 
+import com.google.common.collect.ImmutableSet
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
-import org.gradle.internal.serialize.graph.decodeBean
-import org.gradle.internal.serialize.graph.encodeBean
+import org.gradle.internal.serialize.graph.writeCollection
 
 
-/**
- * Forces the given [bean] to be encoded via the [BeanCodec] regardless of its type.
- */
-internal
-class BeanSpec(val bean: Any)
+object ImmutableSetCodec : Codec<ImmutableSet<Any>> {
 
+    override suspend fun WriteContext.encode(value: ImmutableSet<Any>) {
+        writeCollection(value)
+    }
 
-internal
-object BeanSpecCodec : Codec<BeanSpec> {
-
-    override suspend fun WriteContext.encode(value: BeanSpec) =
-        encodeBean(value.bean)
-
-    override suspend fun ReadContext.decode(): BeanSpec =
-        BeanSpec(decodeBean())
+    override suspend fun ReadContext.decode(): ImmutableSet<Any>? {
+        val size = readSmallInt()
+        val builder = ImmutableSet.builderWithExpectedSize<Any>(size)
+        for (i in 0 until size) {
+            val value = read()!!
+            builder.add(value)
+        }
+        return builder.build()
+    }
 }

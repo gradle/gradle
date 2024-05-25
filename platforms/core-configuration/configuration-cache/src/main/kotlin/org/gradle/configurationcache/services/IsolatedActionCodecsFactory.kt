@@ -33,7 +33,7 @@ import org.gradle.configurationcache.serialization.codecs.LoggerCodec
 import org.gradle.configurationcache.serialization.codecs.MapPropertyCodec
 import org.gradle.configurationcache.serialization.codecs.PropertyCodec
 import org.gradle.configurationcache.serialization.codecs.ProviderCodec
-import org.gradle.configurationcache.serialization.codecs.ProxyCodec
+import org.gradle.internal.serialize.codecs.stdlib.ProxyCodec
 import org.gradle.configurationcache.serialization.codecs.RegularFileCodec
 import org.gradle.configurationcache.serialization.codecs.RegularFilePropertyCodec
 import org.gradle.configurationcache.serialization.codecs.ServicesCodec
@@ -44,7 +44,7 @@ import org.gradle.configurationcache.serialization.codecs.jos.ExternalizableCode
 import org.gradle.configurationcache.serialization.codecs.jos.JavaObjectSerializationCodec
 import org.gradle.configurationcache.serialization.codecs.jos.JavaSerializationEncodingLookup
 import org.gradle.configurationcache.serialization.codecs.unsupportedTypes
-import org.gradle.configurationcache.serialization.unsupported
+import org.gradle.internal.serialize.graph.unsupported
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 

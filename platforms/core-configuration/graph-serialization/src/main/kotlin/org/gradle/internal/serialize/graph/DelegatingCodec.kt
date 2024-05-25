@@ -14,18 +14,27 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.serialization.codecs
-
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.BuildIdentifierSerializer
-import org.gradle.internal.serialize.codecs.guava.guavaTypes
-import org.gradle.internal.serialize.codecs.stdlib.stdlibTypes
-import org.gradle.internal.serialize.graph.BindingsBuilder
+package org.gradle.internal.serialize.graph
 
 
-internal
-fun BindingsBuilder.baseTypes() {
-    stdlibTypes()
-    guavaTypes()
-    bind(JavaRecordCodec)
-    bind(BuildIdentifierSerializer())
+/**
+ * A codec that delegates to some more general codec, but only for a specific type
+ */
+class DelegatingCodec<T>(
+    private val userTypesCodec: Codec<Any?>,
+) : Codec<T> {
+
+    override suspend fun WriteContext.encode(value: T) {
+        // Delegate to the other codec
+        withCodec(userTypesCodec) {
+            write(value)
+        }
+    }
+
+    override suspend fun ReadContext.decode(): T {
+        // Delegate to the other codec
+        return withCodec(userTypesCodec) {
+            readNonNull()
+        }
+    }
 }

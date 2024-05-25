@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.serialization.codecs
+plugins {
+    id("gradlebuild.distribution.implementation-kotlin")
+}
 
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.BuildIdentifierSerializer
-import org.gradle.internal.serialize.codecs.guava.guavaTypes
-import org.gradle.internal.serialize.codecs.stdlib.stdlibTypes
-import org.gradle.internal.serialize.graph.BindingsBuilder
+description = "Serialization codecs for stdlib types"
 
+dependencies {
+    api(projects.graphSerialization)
+    api(libs.futureKotlin("stdlib"))
 
-internal
-fun BindingsBuilder.baseTypes() {
-    stdlibTypes()
-    guavaTypes()
-    bind(JavaRecordCodec)
-    bind(BuildIdentifierSerializer())
+    implementation(projects.baseServices)
+    implementation(projects.configurationProblemsBase)
+    implementation(projects.serialization)
+    implementation(projects.stdlibKotlinExtensions)
 }

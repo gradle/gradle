@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.serialization.codecs
+package org.gradle.internal.serialize.codecs.stdlib
 
 import org.gradle.internal.serialize.graph.Decoding
 import org.gradle.internal.serialize.graph.Encoding
@@ -39,7 +39,6 @@ object ProxyCodec : EncodingProducer, Decoding {
 }
 
 
-private
 object ProxyEncoding : Encoding {
     override suspend fun WriteContext.encode(value: Any) {
         writeClassArray(value.javaClass.interfaces)
