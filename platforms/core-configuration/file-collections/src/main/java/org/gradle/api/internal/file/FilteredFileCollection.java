@@ -82,22 +82,22 @@ public class FilteredFileCollection extends AbstractFileCollection {
 
     @Override
     public Optional<FileCollectionExecutionTimeValue> calculateExecutionTimeValue() {
-        Optional<FileCollectionExecutionTimeValue> sourceExecutionTimeValue = collection.calculateExecutionTimeValue();
-        return sourceExecutionTimeValue.map(fileCollectionExecutionTimeValue -> new FilteredExecutionTimeValue(fileCollectionExecutionTimeValue, filterSpec));
+        return collection.calculateExecutionTimeValue()
+            .map(fileCollectionExecutionTimeValue -> new FilteredExecutionTimeValue(fileCollectionExecutionTimeValue, filterSpec));
     }
 
     private static class FilteredExecutionTimeValue implements FileCollectionExecutionTimeValue {
-        private final FileCollectionExecutionTimeValue sourceExecutionTimeValue;
-        private final Spec<? super File> filterSpec;
+        private final FileCollectionExecutionTimeValue source;
+        private final Spec<? super File> filter;
 
-        public FilteredExecutionTimeValue(FileCollectionExecutionTimeValue sourceExecutionTimeValue, Spec<? super File> filterSpec) {
-            this.sourceExecutionTimeValue = sourceExecutionTimeValue;
-            this.filterSpec = filterSpec;
+        public FilteredExecutionTimeValue(FileCollectionExecutionTimeValue source, Spec<? super File> filter) {
+            this.source = source;
+            this.filter = filter;
         }
 
         @Override
         public FileCollectionInternal toFileCollection(FileCollectionFactory fileCollectionFactory) {
-            return sourceExecutionTimeValue.toFileCollection(fileCollectionFactory).filter(filterSpec);
+            return source.toFileCollection(fileCollectionFactory).filter(filter);
         }
     }
 }
