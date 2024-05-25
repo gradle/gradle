@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.serialization.codecs
+package org.gradle.internal.serialize.codecs.stdlib
 
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
-import java.util.regex.Pattern
+import java.nio.charset.Charset
 
 
-object RegexpPatternCodec : Codec<Pattern> {
-    override suspend fun WriteContext.encode(value: Pattern) {
-        writeString(value.pattern())
-        writeInt(value.flags())
+object CharsetCodec : Codec<Charset> {
+
+    override suspend fun WriteContext.encode(value: Charset) {
+        writeString(value.name())
     }
 
-    override suspend fun ReadContext.decode(): Pattern? {
-        return Pattern.compile(readString(), readInt())
-    }
+    override suspend fun ReadContext.decode(): Charset =
+        Charset.forName(readString())
 }

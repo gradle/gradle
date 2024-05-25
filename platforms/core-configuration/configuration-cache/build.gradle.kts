@@ -60,7 +60,6 @@ dependencies {
     api(project(":snapshots"))
 
     api(libs.groovy)
-    api(libs.guava)
     api(libs.inject)
     api(libs.futureKotlin("stdlib"))
 
@@ -72,6 +71,7 @@ dependencies {
     implementation(project(":files"))
     implementation(project(":file-watching"))
     implementation(projects.flowServices)
+    implementation(projects.guavaSerializationCodecs)
     implementation(project(":input-tracking"))
     implementation(project(":platform-jvm"))
     implementation(projects.problemsApi)
@@ -79,11 +79,13 @@ dependencies {
     implementation(project(":publish"))
     implementation(projects.serialization)
     implementation(projects.stdlibKotlinExtensions)
+    implementation(projects.stdlibSerializationCodecs)
     implementation(project(":tooling-api"))
 
     implementation(libs.asm)
     implementation(libs.fastutil)
     implementation(libs.groovyJson)
+    implementation(libs.guava)
     implementation(libs.slf4jApi)
 
     runtimeOnly(project(":composite-builds"))

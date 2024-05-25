@@ -14,29 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.serialization.codecs
+package org.gradle.internal.serialize.codecs.stdlib
 
-import com.google.common.collect.ImmutableMap
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
-import org.gradle.internal.serialize.graph.writeMap
+import java.util.regex.Pattern
 
 
-object ImmutableMapCodec : Codec<ImmutableMap<Any, Any>> {
-
-    override suspend fun WriteContext.encode(value: ImmutableMap<Any, Any>) {
-        writeMap(value)
+object RegexpPatternCodec : Codec<Pattern> {
+    override suspend fun WriteContext.encode(value: Pattern) {
+        writeString(value.pattern())
+        writeInt(value.flags())
     }
 
-    override suspend fun ReadContext.decode(): ImmutableMap<Any, Any>? {
-        val size = readSmallInt()
-        val builder = ImmutableMap.builderWithExpectedSize<Any, Any>(size)
-        for (i in 0 until size) {
-            val key = read()!!
-            val value = read()!!
-            builder.put(key, value)
-        }
-        return builder.build()
+    override suspend fun ReadContext.decode(): Pattern? {
+        return Pattern.compile(readString(), readInt())
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,33 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.serialization.codecs
+package org.gradle.internal.serialize.codecs.stdlib
 
+import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
-import org.gradle.internal.serialize.graph.readNonNull
-import org.gradle.internal.serialize.graph.withCodec
+import org.gradle.internal.serialize.graph.decodeUsingJavaSerialization
+import org.gradle.internal.serialize.graph.encodeUsingJavaSerialization
+import java.util.logging.Level
 
 
-/**
- * A codec that delegates to some more general codec, but only for a specific type
- */
-class DelegatingCodec<T>(
-    private val userTypesCodec: Codec<Any?>,
-) : Codec<T> {
+object LevelCodec : Codec<Level> {
 
-    override suspend fun WriteContext.encode(value: T) {
-        // Delegate to the other codec
-        withCodec(userTypesCodec) {
-            write(value)
-        }
+    override suspend fun WriteContext.encode(value: Level) {
+        encodeUsingJavaSerialization(value)
     }
 
-    override suspend fun ReadContext.decode(): T {
-        // Delegate to the other codec
-        return withCodec(userTypesCodec) {
-            readNonNull()
-        }
-    }
+    override suspend fun ReadContext.decode(): Level? =
+        decodeUsingJavaSerialization()?.uncheckedCast()
 }

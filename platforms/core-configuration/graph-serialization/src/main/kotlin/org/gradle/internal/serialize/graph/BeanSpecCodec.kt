@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.serialization.codecs
-
-import org.gradle.internal.serialize.graph.Codec
-import org.gradle.internal.serialize.graph.ReadContext
-import org.gradle.internal.serialize.graph.WriteContext
+package org.gradle.internal.serialize.graph
 
 
-internal
-object ClassCodec : Codec<Class<*>> {
+/**
+ * Forces the given [bean] to be encoded via the [BeanCodec] regardless of its type.
+ */
+class BeanSpec(val bean: Any)
 
-    override suspend fun WriteContext.encode(value: Class<*>) {
-        writeClass(value)
-    }
 
-    override suspend fun ReadContext.decode(): Class<*>? =
-        readClass()
+object BeanSpecCodec : Codec<BeanSpec> {
+
+    override suspend fun WriteContext.encode(value: BeanSpec) =
+        encodeBean(value.bean)
+
+    override suspend fun ReadContext.decode(): BeanSpec =
+        BeanSpec(decodeBean())
 }

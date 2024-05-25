@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.serialization.codecs
+package org.gradle.internal.serialize.codecs.stdlib
 
-import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
-import org.gradle.internal.serialize.graph.decodeUsingJavaSerialization
-import org.gradle.internal.serialize.graph.encodeUsingJavaSerialization
-import java.util.logging.Level
+import java.net.URL
 
 
-internal
-object LevelCodec : Codec<Level> {
+object UrlCodec : Codec<URL> {
 
-    override suspend fun WriteContext.encode(value: Level) {
-        encodeUsingJavaSerialization(value)
+    override suspend fun WriteContext.encode(value: URL) {
+        writeString(value.toExternalForm())
     }
 
-    override suspend fun ReadContext.decode(): Level? =
-        decodeUsingJavaSerialization()?.uncheckedCast()
+    override suspend fun ReadContext.decode(): URL =
+        URL(readString())
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.serialization.codecs
+package org.gradle.internal.serialize.codecs.guava
 
 import com.google.common.collect.ImmutableList
 import org.gradle.internal.serialize.graph.Codec

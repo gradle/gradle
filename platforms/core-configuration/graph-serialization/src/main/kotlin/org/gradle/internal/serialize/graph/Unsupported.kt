@@ -14,21 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.serialization
+package org.gradle.internal.serialize.graph
 
+import org.gradle.api.internal.GeneratedSubclasses.unpackType
 import org.gradle.internal.configuration.problems.DocumentationSection
 import org.gradle.internal.configuration.problems.StructuredMessageBuilder
-import org.gradle.internal.serialize.graph.Codec
-import org.gradle.internal.serialize.graph.codec
-import org.gradle.internal.serialize.graph.logUnsupported
 
 
-internal
 inline fun <reified T : Any> unsupported(
     documentationSection: DocumentationSection = DocumentationSection.RequirementsDisallowedTypes
 ): Codec<T> = codec(
     encode = { value ->
-        logUnsupportedBaseType("serialize", T::class, value.javaClass, documentationSection)
+        logUnsupportedBaseType("serialize", T::class, unpackType(value), documentationSection)
     },
     decode = {
         logUnsupported("deserialize", T::class, documentationSection)
@@ -37,7 +34,6 @@ inline fun <reified T : Any> unsupported(
 )
 
 
-internal
 inline fun <reified T : Any> unsupported(
     description: String,
     documentationSection: DocumentationSection = DocumentationSection.RequirementsDisallowedTypes
@@ -46,7 +42,6 @@ inline fun <reified T : Any> unsupported(
 }
 
 
-internal
 inline fun <reified T : Any> unsupported(
     documentationSection: DocumentationSection = DocumentationSection.RequirementsDisallowedTypes,
     noinline unsupportedMessage: StructuredMessageBuilder

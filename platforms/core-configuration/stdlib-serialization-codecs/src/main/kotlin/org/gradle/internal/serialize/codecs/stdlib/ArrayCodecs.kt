@@ -16,7 +16,7 @@
 
 @file:Suppress("ReplaceManualRangeWithIndicesCalls") // array.indices uses Iterable and boxing, we don't want that.
 
-package org.gradle.configurationcache.serialization.codecs
+package org.gradle.internal.serialize.codecs.stdlib
 
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext

@@ -30,6 +30,7 @@ dependencies {
     api(libs.guava)
     api(libs.jsr305)
 
+    implementation(projects.baseServices)
     implementation(projects.problemsApi)
     implementation(projects.stdlibKotlinExtensions)
 

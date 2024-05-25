@@ -497,6 +497,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "guava-serialization-codecs",
+    "path": "platforms/core-configuration/guava-serialization-codecs",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "hashing",
     "path": "platforms/core-execution/hashing",
     "unitTests": true,
@@ -1059,6 +1066,13 @@
   {
     "name": "stdlib-kotlin-extensions",
     "path": "platforms/core-configuration/stdlib-kotlin-extensions",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "stdlib-serialization-codecs",
+    "path": "platforms/core-configuration/stdlib-serialization-codecs",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false

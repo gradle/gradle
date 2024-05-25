@@ -56,7 +56,7 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskDependency
-import org.gradle.configurationcache.serialization.unsupported
+import org.gradle.internal.serialize.graph.unsupported
 import org.gradle.internal.configuration.problems.DocumentationSection
 import org.gradle.internal.event.AbstractBroadcastDispatch
 import org.gradle.internal.event.ListenerBroadcast

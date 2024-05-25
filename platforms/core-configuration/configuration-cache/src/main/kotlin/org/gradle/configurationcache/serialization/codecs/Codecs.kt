@@ -66,9 +66,12 @@ import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.serialize.BaseSerializerFactory.HASHCODE_SERIALIZER
+import org.gradle.internal.serialize.codecs.stdlib.ProxyCodec
+import org.gradle.internal.serialize.graph.BeanSpecCodec
 import org.gradle.internal.serialize.graph.Bindings
 import org.gradle.internal.serialize.graph.BindingsBuilder
 import org.gradle.internal.serialize.graph.Codec
+import org.gradle.internal.serialize.graph.DelegatingCodec
 import org.gradle.internal.serialize.graph.reentrant
 import org.gradle.internal.state.ManagedFactoryRegistry
 
