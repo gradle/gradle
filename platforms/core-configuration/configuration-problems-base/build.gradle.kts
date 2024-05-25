@@ -27,7 +27,7 @@ dependencies {
     api(projects.logging)
     api(projects.problemsApi)
 
-    api(libs.futureKotlin("stdlib"))
+    api(libs.kotlinStdlib)
 
     implementation(projects.stdlibKotlinExtensions)
 

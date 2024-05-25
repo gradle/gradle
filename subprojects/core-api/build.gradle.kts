@@ -45,7 +45,7 @@ dependencies {
     implementation(libs.commonsLang)
     implementation(libs.slf4jApi)
 
-    runtimeOnly(libs.futureKotlin("reflect"))
+    runtimeOnly(libs.kotlinReflect)
 
     testImplementation(libs.asm)
     testImplementation(libs.asmCommons)

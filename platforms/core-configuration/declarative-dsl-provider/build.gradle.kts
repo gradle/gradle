@@ -25,7 +25,7 @@ dependencies {
     api(project(":declarative-dsl-api"))
     api(project(":declarative-dsl-core"))
     api(project(":declarative-dsl-tooling-models"))
-    api(libs.futureKotlin("stdlib"))
+    api(libs.kotlinStdlib)
 
 
     implementation(libs.inject)
@@ -37,7 +37,7 @@ dependencies {
     implementation(project(":model-core"))
 
     implementation(libs.guava)
-    implementation(libs.futureKotlin("reflect"))
+    implementation(libs.kotlinReflect)
 
     integTestImplementation(project(":internal-testing"))
     integTestImplementation(project(":logging"))

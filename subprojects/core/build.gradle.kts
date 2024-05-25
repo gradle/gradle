@@ -145,7 +145,7 @@ dependencies {
     }
     implementation(libs.xmlApis)
 
-    compileOnly(libs.futureKotlin("stdlib")) {
+    compileOnly(libs.kotlinStdlib) {
         because("it needs to forward calls from instrumented code to the Kotlin standard library")
     }
 

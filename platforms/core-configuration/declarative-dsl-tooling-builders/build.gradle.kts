@@ -9,7 +9,7 @@ dependencies {
     api(project(":core"))
     api(project(":core-api"))
 
-    api(libs.futureKotlin("stdlib"))
+    api(libs.kotlinStdlib)
 
     implementation(project(":declarative-dsl-provider"))
     implementation(project(":declarative-dsl-tooling-models"))

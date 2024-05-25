@@ -10,8 +10,8 @@ description = "Kotlin DSL Provider"
 dependencies {
 
     api(project(":kotlin-dsl-tooling-models"))
-    api(libs.futureKotlin("stdlib"))
-    api(libs.futureKotlin("reflect"))
+    api(libs.kotlinStdlib)
+    api(libs.kotlinReflect)
 
     implementation(projects.io)
     implementation(project(":base-services"))
@@ -41,7 +41,7 @@ dependencies {
     implementation(libs.inject)
     implementation(libs.asm)
 
-    implementation(libs.futureKotlin("compiler-embeddable"))
+    implementation(libs.kotlinCompilerEmbeddable)
     implementation(libs.futureKotlin("script-runtime"))
 
     implementation(libs.futureKotlin("scripting-common")) {
@@ -108,7 +108,7 @@ dependencies {
 
     testFixturesImplementation(testFixtures(project(":hashing")))
 
-    testFixturesImplementation(libs.futureKotlin("compiler-embeddable"))
+    testFixturesImplementation(libs.kotlinCompilerEmbeddable)
 
     testFixturesImplementation(libs.junit)
     testFixturesImplementation(libs.mockitoKotlin)

@@ -22,7 +22,7 @@ description = "Serialization codecs for stdlib types"
 
 dependencies {
     api(projects.graphSerialization)
-    api(libs.futureKotlin("stdlib"))
+    api(libs.kotlinStdlib)
 
     implementation(projects.baseServices)
     implementation(projects.configurationProblemsBase)
