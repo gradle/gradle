@@ -37,7 +37,7 @@ internal
 fun conventionsDefinitionInterpretationSequenceStep(softwareTypeRegistry: SoftwareTypeRegistry) = SimpleInterpretationSequenceStep(
     stepIdentifier = "settingsConventions",
     assignmentGeneration = DefaultOperationGenerationId.convention,
-    features = setOf(ConventionDefinition),
+    features = setOf(ConventionDefinition()),
     buildEvaluationAndConversionSchema = { conventionsEvaluationSchema(softwareTypeRegistry) }
 )
 

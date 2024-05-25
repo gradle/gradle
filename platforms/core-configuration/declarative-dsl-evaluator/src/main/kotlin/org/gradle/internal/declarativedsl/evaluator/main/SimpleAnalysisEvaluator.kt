@@ -50,8 +50,8 @@ class SimpleAnalysisEvaluator(
     )
 
     fun evaluate(
-        scriptSource: String,
-        scriptFileName: String
+        scriptFileName: String,
+        scriptSource: String
     ): Map<String, EvaluationResult<AnalysisStepResult>> {
         val scriptContext = scriptContextFromFileName(scriptFileName)
         return when (val built = schemaBuilder.getEvaluationSchemaForScript(scriptContext)) {

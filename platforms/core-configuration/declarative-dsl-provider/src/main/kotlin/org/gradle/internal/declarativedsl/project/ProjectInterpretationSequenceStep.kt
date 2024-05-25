@@ -30,7 +30,7 @@ internal
 fun projectInterpretationSequenceStep(softwareTypeRegistry: SoftwareTypeRegistry) = SimpleInterpretationSequenceStepWithConversion(
     stepIdentifier = "project",
     assignmentGeneration = DefaultOperationGenerationId.finalEvaluation,
-    features = setOf(ConventionApplication),
+    features = setOf(ConventionApplication()),
 ) {
     projectEvaluationSchema(softwareTypeRegistry)
 }

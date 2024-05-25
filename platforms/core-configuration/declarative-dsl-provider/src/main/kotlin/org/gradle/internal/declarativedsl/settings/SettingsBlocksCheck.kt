@@ -30,14 +30,16 @@ import org.gradle.internal.declarativedsl.evaluator.checks.DocumentCheckFailureL
 import org.gradle.internal.declarativedsl.evaluator.checks.DocumentCheckFailureReason
 import org.gradle.internal.declarativedsl.plugins.PluginsCollectingPluginsBlock
 import org.gradle.plugin.management.PluginManagementSpec
+import java.io.Serializable
 
 
 internal
 object SettingsBlocksCheck : DocumentCheck {
 
-    val feature = object : InterpretationStepFeature.DocumentChecks {
-        override val checkKeys: Iterable<String>
-            get() = listOf(checkKey)
+    val feature = SettingsBlockCheckFeature()
+
+    class SettingsBlockCheckFeature() : InterpretationStepFeature.DocumentChecks, Serializable {
+        override val checkKeys: Iterable<String> = listOf(checkKey)
     }
 
     override val checkKey: String

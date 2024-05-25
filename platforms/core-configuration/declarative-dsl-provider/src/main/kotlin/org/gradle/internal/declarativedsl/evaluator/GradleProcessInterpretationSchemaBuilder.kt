@@ -29,7 +29,6 @@ import org.gradle.internal.declarativedsl.settings.settingsInterpretationSequenc
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 
 
-internal
 class GradleProcessInterpretationSchemaBuilder(
     private val softwareTypeRegistry: SoftwareTypeRegistry
 ) : InterpretationSchemaBuilder {
@@ -52,7 +51,6 @@ class GradleProcessInterpretationSchemaBuilder(
 }
 
 
-internal
 data class LoadedSettingsScriptContext(
     val settings: SettingsInternal,
     val targetScope: ClassLoaderScope,

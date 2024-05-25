@@ -26,9 +26,10 @@ import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 import org.gradle.internal.declarativedsl.analysis.transformation.OriginReplacement.replaceReceivers
 import org.gradle.internal.declarativedsl.evaluator.features.ResolutionResultHandler
 import org.gradle.internal.declarativedsl.evaluator.softwareTypes.SOFTWARE_TYPE_ACCESSOR_PREFIX
+import java.io.Serializable
 
 
-object ConventionApplication : InterpretationStepFeature.ResolutionResultPostprocessing.ConventionApplication
+class ConventionApplication : InterpretationStepFeature.ResolutionResultPostprocessing.ConventionApplication, Serializable
 
 
 class ConventionApplicationHandler(private val softwareTypeConventionRepository: SoftwareTypeConventionRepository) : ResolutionResultHandler {

@@ -19,9 +19,10 @@ package org.gradle.internal.declarativedsl.evaluator.conventions
 import org.gradle.declarative.dsl.evaluation.InterpretationStepFeature
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 import org.gradle.internal.declarativedsl.evaluator.features.ResolutionResultHandler
+import java.io.Serializable
 
 
-object ConventionDefinition : InterpretationStepFeature.ResolutionResultPostprocessing.ConventionDefinition
+class ConventionDefinition : InterpretationStepFeature.ResolutionResultPostprocessing.ConventionDefinition, Serializable
 
 
 class ConventionDefinitionCollector(private val conventionRegistrar: ConventionDefinitionRegistrar) : ResolutionResultHandler {

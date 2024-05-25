@@ -26,13 +26,11 @@ import org.gradle.internal.declarativedsl.evaluator.conversion.EvaluationAndConv
 import org.gradle.internal.declarativedsl.evaluator.conversion.InterpretationSequenceStepWithConversion
 
 
-internal
 class DefaultInterpretationSequence(
     override val steps: Iterable<InterpretationSequenceStep>
 ) : InterpretationSequence
 
 
-internal
 class SimpleInterpretationSequenceStep(
     override val stepIdentifier: String,
     override val assignmentGeneration: OperationGenerationId = DefaultOperationGenerationId.finalEvaluation,
