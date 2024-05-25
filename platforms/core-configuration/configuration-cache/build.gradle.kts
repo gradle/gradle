@@ -61,7 +61,7 @@ dependencies {
 
     api(libs.groovy)
     api(libs.inject)
-    api(libs.futureKotlin("stdlib"))
+    api(libs.kotlinStdlib)
 
     // TODO - it might be good to allow projects to contribute state to save and restore, rather than have this project know about everything
     implementation(project(":base-services-groovy"))
@@ -93,7 +93,7 @@ dependencies {
     // TODO - move the isolatable serializer to model-core to live with the isolatable infrastructure
     runtimeOnly(project(":workers"))
 
-    runtimeOnly(libs.futureKotlin("reflect"))
+    runtimeOnly(libs.kotlinReflect)
 
     testImplementation(projects.io)
     testImplementation(testFixtures(project(":core")))

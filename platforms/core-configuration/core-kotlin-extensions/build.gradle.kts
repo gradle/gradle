@@ -11,7 +11,7 @@ dependencies {
     api(projects.files)
     api(projects.hashing)
 
-    api(libs.futureKotlin("stdlib"))
+    api(libs.kotlinStdlib)
 
     implementation(projects.baseServices)
     implementation(projects.messaging)

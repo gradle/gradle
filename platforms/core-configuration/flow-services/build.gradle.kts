@@ -28,7 +28,7 @@ dependencies {
     api(projects.modelCore)
     api(projects.serviceProvider)
 
-    api(libs.futureKotlin("stdlib"))
+    api(libs.kotlinStdlib)
 
     implementation(projects.core)
     implementation(projects.messaging)

@@ -67,8 +67,8 @@ tasks {
 val embeddedKotlinBaseDependencies by configurations.creating
 
 dependencies {
-    embeddedKotlinBaseDependencies(libs.futureKotlin("stdlib"))
-    embeddedKotlinBaseDependencies(libs.futureKotlin("reflect"))
+    embeddedKotlinBaseDependencies(libs.kotlinStdlib)
+    embeddedKotlinBaseDependencies(libs.kotlinReflect)
 }
 
 val writeEmbeddedKotlinDependencies by tasks.registering {

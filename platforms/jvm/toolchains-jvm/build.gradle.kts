@@ -47,7 +47,7 @@ dependencies {
     api(project(":resources"))
     api(project(":toolchains-jvm-shared"))
 
-    api(libs.futureKotlin("stdlib"))
+    api(libs.kotlinStdlib)
     api(libs.inject)
     api(libs.jsr305)
     api(libs.nativePlatform) {

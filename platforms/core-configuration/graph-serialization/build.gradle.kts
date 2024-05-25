@@ -26,7 +26,7 @@ dependencies {
     api(projects.configurationProblemsBase)
     api(projects.loggingApi)
     api(projects.serialization)
-    api(libs.futureKotlin("stdlib"))
+    api(libs.kotlinStdlib)
     api(libs.guava)
     api(libs.jsr305)
 
