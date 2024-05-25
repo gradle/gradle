@@ -24,9 +24,20 @@ import java.io.Serializable
     DataType.NullType::class,
     DataType.UnitType::class,
     DataType.ConstantType::class,
+    DataType.IntDataType::class,
+    DataType.LongDataType::class,
+    DataType.StringDataType::class,
+    DataType.BooleanDataType::class,
     DataClass::class
 ])
 sealed interface DataType : Serializable {
+
+    @ToolingModelContract(subTypes = [
+        IntDataType::class,
+        LongDataType::class,
+        StringDataType::class,
+        BooleanDataType::class,
+    ])
     sealed interface ConstantType<JvmType> : DataType {
         val constantType: Class<*>
     }
