@@ -1,5 +1,6 @@
 import com.gradleup.gr8.EmbeddedJarTask
 import com.gradleup.gr8.Gr8Task
+import gradlebuild.MinifiedApplicationJar
 import gradlebuild.identity.extension.ModuleIdentityExtension
 import java.util.jar.Attributes
 
@@ -20,7 +21,7 @@ import java.util.jar.Attributes
  */
 
 /**
- * Produces a minified JAR for the project.
+ * Produces a minified application JAR for the project. The JAR is not wired as an input to anything.
  */
 
 plugins {
@@ -28,42 +29,11 @@ plugins {
     id("com.gradleup.gr8")
 }
 
-interface MinifiedApplicationJar {
-    /**
-     * The minified JAR output.
-     */
-    val minifiedJar: Provider<RegularFile>
-
-    /**
-     * Use the given function to calculate the base name of the minified JAR, given the target Gradle version.
-     */
-    fun outputJarName(name: (GradleVersion) -> String)
-
-    /**
-     * Used in the minified JAR manifest.
-     */
-    val implementationTitle: Property<String>
-
-    /**
-     * Main class name for the application.
-     */
-    val mainClassName: Property<String>
-
-    /**
-     * Excludes the given resources from the minified JAR.
-     */
-    fun exclude(pattern: String)
-
-    /**
-     * Excludes the given resources from dependencies merged into the minified JAR.
-     */
-    fun excludeFromDependencies(pattern: String)
-}
-
 abstract class DefaultMinifiedJar : MinifiedApplicationJar {
     val excludes: MutableSet<String> = mutableSetOf()
     val excludeFromDependencies: MutableSet<String> = mutableSetOf()
-    private var jarName: ((GradleVersion) -> String)? = null
+    private
+    var jarName: ((GradleVersion) -> String)? = null
 
     abstract override val minifiedJar: RegularFileProperty
 
@@ -80,7 +50,7 @@ abstract class DefaultMinifiedJar : MinifiedApplicationJar {
     }
 
     fun jarName(project: Project, version: GradleVersion): String {
-        return jarName?.invoke(version) ?: "gradle-${project.name}-min-${version.version}.jar"
+        return jarName?.invoke(version) ?: "gradle-${project.name}-${version.version}.jar"
     }
 }
 

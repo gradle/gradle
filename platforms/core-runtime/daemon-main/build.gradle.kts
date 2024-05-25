@@ -16,20 +16,23 @@
 
 plugins {
     id("gradlebuild.distribution.implementation-java")
-    id("gradlebuild.launchable-jar")
+    id("gradlebuild.application-entrypoint")
 }
 
 description = "Entry point for the Gradle daemon process. Bootstraps the daemon server implementation in :daemon-server."
 
-app {
+application {
     mainClassName = "org.gradle.launcher.daemon.bootstrap.GradleDaemon"
+    implementationTitle = "Gradle Daemon"
+
+    // Exclude META-INF resources from Guava etc. added via transitive dependencies
+    excludeFromDependencies("META-INF/*")
+
+    // Exclude these to avoid conflicts when the JAR is included in functional test classpath
+    excludeFromDependencies("org/slf4j/Logger.class")
+    excludeFromDependencies("org/slf4j/ILoggerFactory.class")
 }
 
 dependencies {
     implementation(project(":build-process-services"))
-
-    manifestClasspath(projects.javaLanguageExtensions)
-    manifestClasspath(project(":build-process-services"))
-    manifestClasspath(project(":base-services"))
-    manifestClasspath(project(":concurrent"))
 }

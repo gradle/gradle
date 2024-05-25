@@ -18,7 +18,7 @@ import gradlebuild.startscript.tasks.GradleStartScriptGenerator
 
 plugins {
     id("gradlebuild.distribution.implementation-java")
-    id("gradlebuild.minified-application-jar")
+    id("gradlebuild.application-entrypoint")
     id("gradlebuild.start-scripts")
 }
 
@@ -33,6 +33,10 @@ application {
     // Exclude META-INF resources from Guava etc. added via transitive dependencies
     excludeFromDependencies("META-INF/*")
 
+    // Exclude these to avoid conflicts when the JAR is included in functional test classpath
+    excludeFromDependencies("org/slf4j/Logger.class")
+    excludeFromDependencies("org/slf4j/ILoggerFactory.class")
+
     outputJarName { "gradle-cli-main-${it.version}.jar" }
 }
 
@@ -42,14 +46,4 @@ dependencies {
 
     // For start script generation
     agentsClasspath(project(":instrumentation-agent"))
-}
-
-// Use the minified JAR at runtime
-configurations.runtimeElements.configure {
-    outgoing.artifacts.clear()
-    outgoing.artifact(application.minifiedJar)
-}
-
-tasks.named<GradleStartScriptGenerator>("startScripts").configure {
-    launcherJar = files(application.minifiedJar)
 }

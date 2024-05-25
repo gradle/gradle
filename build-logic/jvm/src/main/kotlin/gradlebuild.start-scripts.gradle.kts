@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
+import gradlebuild.MinifiedApplicationJar
 import gradlebuild.startscript.tasks.GradleStartScriptGenerator
 import gradlebuild.configureAsJarClasspath
 
 plugins {
     java
+    id("gradlebuild.minified-application-jar")
 }
 
 val agentsClasspath by configurations.creating {
@@ -27,7 +29,7 @@ val agentsClasspath by configurations.creating {
 
 val startScripts = tasks.register<GradleStartScriptGenerator>("startScripts") {
     startScriptsDir = layout.buildDirectory.dir("startScripts")
-    launcherJar.from(tasks.jar)
+    launcherJar.from(project.extensions.getByType<MinifiedApplicationJar>().minifiedJar)
     agentJars.from(agentsClasspath)
     // The trick below is to use the templates from the current code instead of the wrapper. It does not cover the case where the generation logic is updated though.
     unixScriptTemplate.from(layout.projectDirectory.file("../../../platforms/jvm/plugins-application/src/main/resources/org/gradle/api/internal/plugins/unixStartScript.txt"))

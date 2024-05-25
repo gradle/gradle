@@ -9,4 +9,4 @@
 -ignorewarnings
 
 # Entry point
--keep class org.gradle.launcher.GradleMain { public static void main(java.lang.String[]); }
+-keep class org.gradle.launcher.daemon.bootstrap.GradleDaemon { public static void main(java.lang.String[]); }
