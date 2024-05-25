@@ -30,6 +30,7 @@ dependencies {
     api(project(":persistent-cache"))
     api(project(":serialization"))
     api(project(":time"))
+    api(project(":build-process-services"))
 
     implementation(projects.serviceProvider)
     implementation(project(":build-state"))

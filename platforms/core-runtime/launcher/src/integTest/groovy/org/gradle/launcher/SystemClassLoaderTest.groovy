@@ -48,7 +48,7 @@ class SystemClassLoaderTest extends AbstractIntegrationSpec {
                 doLast {
                     def systemLoader = ClassLoader.systemClassLoader
 
-                    systemLoader.loadClass(org.gradle.launcher.GradleMain.name) // this should be on the classpath, it's from the launcher package
+                    systemLoader.loadClass("org.gradle.launcher.daemon.bootstrap.GradleDaemon") // this should be on the classpath, it's from the launcher package
 
                     def nonLauncherOrCoreClass = "org.gradle.api.reporting.Report"
 
@@ -94,7 +94,7 @@ class SystemClassLoaderTest extends AbstractIntegrationSpec {
 
         def libraries = lines[headingIndex + 2..<headingIndex + 2 + classpathSize]
         libraries.any {
-            it.contains("gradle-launcher")
+            it.contains("gradle-daemon-main")
         }
         !maybeHasAgent || libraries.any {
             it.contains(AgentUtils.AGENT_MODULE_NAME)

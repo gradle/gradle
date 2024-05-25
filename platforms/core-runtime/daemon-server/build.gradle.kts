@@ -15,14 +15,22 @@
  */
 
 plugins {
-    id("gradlebuild.distribution.api-java")
+    id("gradlebuild.distribution.implementation-java")
 }
 
-description = "Java 6-compatible entry point of the `gradle` command. See :launcher project for the rest."
-
-gradlebuildJava.usedForStartup()
+description = "Implementation of the Gradle daemon server"
 
 dependencies {
-    implementation(projects.javaLanguageExtensions)
-    implementation(project(":worker-services"))
+    api(project(":launcher"))
+    api(project(":logging"))
+    api(project(":messaging"))
+
+    implementation(libs.guava)
+    implementation(project(":base-services"))
+    implementation(project(":concurrent"))
+    implementation(project(":java-language-extensions"))
+    implementation(project(":logging-api"))
+    implementation(project(":native"))
+    implementation(project(":serialization"))
+    implementation(project(":core"))
 }

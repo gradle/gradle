@@ -15,22 +15,21 @@
  */
 
 plugins {
-    id("gradlebuild.distribution.api-java")
+    id("gradlebuild.distribution.implementation-java")
+    id("gradlebuild.launchable-jar")
 }
 
-description = "Entry point for the Gradle daemon"
+description = "Entry point for the Gradle daemon process. Bootstraps the daemon server implementation in :daemon-server."
+
+app {
+    mainClassName = "org.gradle.launcher.daemon.bootstrap.GradleDaemon"
+}
 
 dependencies {
-    api(project(":launcher"))
-    api(project(":logging"))
-    api(project(":messaging"))
+    implementation(project(":build-process-services"))
 
-    implementation(libs.guava)
-    implementation(project(":base-services"))
-    implementation(project(":concurrent"))
-    implementation(project(":java-language-extensions"))
-    implementation(project(":logging-api"))
-    implementation(project(":native"))
-    implementation(project(":serialization"))
-    implementation(project(":core"))
+    manifestClasspath(projects.javaLanguageExtensions)
+    manifestClasspath(project(":build-process-services"))
+    manifestClasspath(project(":base-services"))
+    manifestClasspath(project(":concurrent"))
 }

@@ -216,7 +216,10 @@ public class DefaultConnection implements ConnectionVersion4,
     }
 
     private UnsupportedVersionException unsupportedConnectionException() {
-        return new UnsupportedVersionException(String.format("Support for clients using a tooling API version older than 3.0 was removed in Gradle 5.0. %sYou should upgrade your tooling API client to version 3.0 or later.", createCurrentVersionMessage()));
+        return new UnsupportedVersionException(String.format("Support for clients using a tooling API version older than %s was removed in Gradle 5.0. %sYou should upgrade your tooling API client to version %s or later.",
+            MIN_CLIENT_VERSION.getVersion(),
+            createCurrentVersionMessage(),
+            MIN_CLIENT_VERSION.getVersion()));
     }
 
     private String createCurrentVersionMessage() {

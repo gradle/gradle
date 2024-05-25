@@ -67,6 +67,7 @@ dependencies {
     implementation(project(":functional"))
     implementation(projects.io)
     implementation(project(":problems-api"))
+    implementation(project(":build-process-services"))
 
     implementation(libs.groovy) // for 'ReleaseInfo.getVersion()'
     implementation(libs.slf4jApi)
@@ -74,7 +75,7 @@ dependencies {
     implementation(libs.commonsLang)
     implementation(libs.ant)
 
-    runtimeOnly(project(":gradle-main"))
+    runtimeOnly(project(":gradle-cli-main"))
     runtimeOnly(project(":declarative-dsl-provider"))
     runtimeOnly(project(":problems"))
 
@@ -82,16 +83,8 @@ dependencies {
     runtimeOnly(libs.commonsLang)
     runtimeOnly(libs.slf4jApi)
 
-    manifestClasspath(project(":gradle-main"))
-    manifestClasspath(projects.javaLanguageExtensions)
-    manifestClasspath(project(":base-services"))
-    manifestClasspath(project(":worker-services"))
-    manifestClasspath(project(":core-api"))
-    manifestClasspath(project(":core"))
-    manifestClasspath(project(":persistent-cache"))
-    manifestClasspath(project(":concurrent"))
-
-    agentsClasspath(project(":instrumentation-agent"))
+    // The wrapper expects the launcher Jar to have classpath entries that contain the main class and its runtime classpath
+    manifestClasspath(project(":gradle-cli-main"))
 
     testImplementation(project(":internal-integ-testing"))
     testImplementation(project(":native"))

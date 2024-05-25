@@ -113,6 +113,7 @@ dependencies {
     api(project(":resources"))
     api(project(":snapshots"))
     api(project(":worker-main"))
+    api(project(":build-process-services"))
 
     api(libs.ant)
     api(libs.asm)

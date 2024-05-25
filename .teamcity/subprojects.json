@@ -133,6 +133,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "build-process-services",
+    "path": "platforms/core-runtime/build-process-services",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "build-profile",
     "path": "platforms/core-runtime/build-profile",
     "unitTests": true,
@@ -234,6 +241,13 @@
     "name": "daemon-protocol",
     "path": "platforms/core-runtime/daemon-protocol",
     "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "daemon-server",
+    "path": "platforms/core-runtime/daemon-server",
+    "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
@@ -469,8 +483,8 @@
     "crossVersionTests": false
   },
   {
-    "name": "gradle-main",
-    "path": "platforms/core-runtime/gradle-main",
+    "name": "gradle-cli-main",
+    "path": "platforms/core-runtime/gradle-cli-main",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -1179,13 +1193,6 @@
     "name": "worker-main",
     "path": "platforms/core-execution/worker-main",
     "unitTests": true,
-    "functionalTests": false,
-    "crossVersionTests": false
-  },
-  {
-    "name": "worker-services",
-    "path": "platforms/core-runtime/worker-services",
-    "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },

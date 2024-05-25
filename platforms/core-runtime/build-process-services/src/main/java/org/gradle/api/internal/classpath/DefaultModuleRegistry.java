@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package org.gradle.api.internal.classpath;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.specs.Spec;
-import org.gradle.cache.GlobalCache;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.installation.GradleInstallation;
@@ -47,7 +46,7 @@ import java.util.zip.ZipFile;
 /**
  * Determines the classpath for a module by looking for a '${module}-classpath.properties' resource with 'name' set to the name of the module.
  */
-public class DefaultModuleRegistry implements ModuleRegistry, GlobalCache {
+public class DefaultModuleRegistry implements ModuleRegistry {
     private static final Spec<File> SATISFY_ALL = element -> true;
     private static final List<String> JARS_REPLACED_BY_TD_PLUGIN = createJarsReplacedByTdPlugin();
 
@@ -111,7 +110,6 @@ public class DefaultModuleRegistry implements ModuleRegistry, GlobalCache {
             : Optional.empty();
     }
 
-    @Override
     public List<File> getGlobalCacheRoots() {
         ImmutableList.Builder<File> builder = ImmutableList.builder();
         if (gradleInstallation != null) {
