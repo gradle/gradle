@@ -1,5 +1,6 @@
 import com.gradleup.gr8.EmbeddedJarTask
 import com.gradleup.gr8.Gr8Task
+import gradlebuild.identity.extension.ModuleIdentityExtension
 import java.util.jar.Attributes
 
 /*
@@ -18,21 +19,35 @@ import java.util.jar.Attributes
  * limitations under the License.
  */
 
+/**
+ * Produces a minified JAR for the project.
+ */
+
 plugins {
     java
     id("com.gradleup.gr8")
 }
 
-interface MinifiedJar {
+interface MinifiedApplicationJar {
     /**
      * The minified JAR output.
      */
     val minifiedJar: Provider<RegularFile>
 
     /**
-     * Used in the minified JAR manifest. Can be undefined, in which case a default is used.
+     * Use the given function to calculate the base name of the minified JAR, given the target Gradle version.
+     */
+    fun outputJarName(name: (GradleVersion) -> String)
+
+    /**
+     * Used in the minified JAR manifest.
      */
     val implementationTitle: Property<String>
+
+    /**
+     * Main class name for the application.
+     */
+    val mainClassName: Property<String>
 
     /**
      * Excludes the given resources from the minified JAR.
@@ -45,9 +60,10 @@ interface MinifiedJar {
     fun excludeFromDependencies(pattern: String)
 }
 
-abstract class DefaultMinifiedJar : MinifiedJar {
+abstract class DefaultMinifiedJar : MinifiedApplicationJar {
     val excludes: MutableSet<String> = mutableSetOf()
     val excludeFromDependencies: MutableSet<String> = mutableSetOf()
+    private var jarName: ((GradleVersion) -> String)? = null
 
     abstract override val minifiedJar: RegularFileProperty
 
@@ -58,36 +74,39 @@ abstract class DefaultMinifiedJar : MinifiedJar {
     override fun excludeFromDependencies(pattern: String) {
         excludeFromDependencies.add(pattern)
     }
+
+    override fun outputJarName(name: (GradleVersion) -> String) {
+        jarName = name
+    }
+
+    fun jarName(project: Project, version: GradleVersion): String {
+        return jarName?.invoke(version) ?: "gradle-${project.name}-min-${version.version}.jar"
+    }
 }
 
-val model = extensions.create(MinifiedJar::class.java, "minify", DefaultMinifiedJar::class.java) as DefaultMinifiedJar
+val model = extensions.create(MinifiedApplicationJar::class.java, "application", DefaultMinifiedJar::class.java) as DefaultMinifiedJar
 
 afterEvaluate {
-    val executableJar by tasks.registering(Jar::class) {
+    val minifiedLibsDir = layout.buildDirectory.dir("minified")
+
+    val preMinifiedJar by tasks.registering(Jar::class) {
         archiveFileName = "gradle-${project.name}-pre-minify.jar"
+        destinationDirectory = minifiedLibsDir
         from(layout.projectDirectory.dir("src/executable/resources"))
         from(sourceSets.main.get().output)
-        if (model.implementationTitle.isPresent) {
-            manifest {
-                attributes[Attributes.Name.IMPLEMENTATION_TITLE.toString()] = model.implementationTitle.get()
-            }
+        manifest {
+            attributes[Attributes.Name.MAIN_CLASS.toString()] = model.mainClassName.get()
+            attributes[Attributes.Name.IMPLEMENTATION_TITLE.toString()] = model.implementationTitle.get()
         }
         for (pattern in model.excludes) {
             exclude(pattern)
-        }
-        eachFile {
-            println("-> COPY $name")
-        }
-        doFirst {
-            println("-> USING EXCLUDES: $excludes")
-            println("-> USING ATTRIBUTES: ${manifest.attributes}")
         }
     }
 
     gr8 {
         create("gr8") {
             // TODO This should work by passing `executableJar` directly to th Gr8 plugin
-            programJar(executableJar.flatMap { it.archiveFile })
+            programJar(preMinifiedJar.flatMap { it.archiveFile })
             archiveName("gradle-${project.name}-minified.jar")
             configuration("runtimeClasspath")
             proguardFile("src/main/proguard/minified-jar.pro")
@@ -104,10 +123,19 @@ afterEvaluate {
 
     // TODO This dependency should be configured by the Gr8 plugin
     tasks.named<EmbeddedJarTask>("gr8EmbeddedJar").configure {
-        dependsOn(executableJar)
+        dependsOn(preMinifiedJar)
     }
 
-    model.minifiedJar = tasks.named<Gr8Task>("gr8R8Jar").flatMap { it.outputJar() }
+    // TODO It does not seem possible to lazily configure the Gr8 output file name, so make a copy
+    val intermediateMinifiedJar = tasks.named<Gr8Task>("gr8R8Jar").flatMap { it.outputJar() }
+    val minifiedJarFileName = extensions.getByType<ModuleIdentityExtension>().version.map { model.jarName(project, it.baseVersion) }
+    val minifiedJar by tasks.registering(Copy::class) {
+        destinationDir = minifiedLibsDir.get().asFile
+        from(intermediateMinifiedJar) {
+            rename { minifiedJarFileName.get() }
+        }
+    }
+    model.minifiedJar = minifiedJar.map { File(it.destinationDir, minifiedJarFileName.get()) }
 }
 
 private

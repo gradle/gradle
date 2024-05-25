@@ -20,15 +20,6 @@ plugins {
     java
 }
 
-interface LaunchableJar {
-    /**
-     * The main class for the application. Can be undefined.
-     */
-    val mainClassName: Property<String>
-}
-
-val app = extensions.create<LaunchableJar>("app")
-
 val manifestClasspath by configurations.creating {
     isTransitive = false
 
@@ -36,11 +27,9 @@ val manifestClasspath by configurations.creating {
 }
 
 tasks.jar.configure {
+    dependsOn(manifestClasspath)
     val classpath = manifestClasspath.elements.map { classpathDependency ->
         classpathDependency.joinToString(" ") { it.asFile.name }
     }
     manifest.attributes("Class-Path" to classpath)
-    if (app.mainClassName.isPresent) {
-        manifest.attributes("Main-Class" to app.mainClassName)
-    }
 }

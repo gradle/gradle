@@ -1,3 +1,5 @@
+import gradlebuild.startscript.tasks.GradleStartScriptGenerator
+
 /*
  * Copyright 2024 the original author or authors.
  *
@@ -16,7 +18,7 @@
 
 plugins {
     id("gradlebuild.distribution.implementation-java")
-    id("gradlebuild.launchable-jar")
+    id("gradlebuild.minified-application-jar")
     id("gradlebuild.start-scripts")
 }
 
@@ -24,18 +26,30 @@ description = "Java 6-compatible entry point of the `gradle` command. Boostraps 
 
 gradlebuildJava.usedForStartup()
 
-app {
+application {
+    implementationTitle = "Gradle CLI"
     mainClassName = "org.gradle.launcher.GradleMain"
+
+    // Exclude META-INF resources from Guava etc. added via transitive dependencies
+    excludeFromDependencies("META-INF/*")
+
+    outputJarName { "gradle-cli-main-${it.version}.jar" }
 }
 
 dependencies {
     implementation(projects.javaLanguageExtensions)
     implementation(project(":build-process-services"))
 
-    manifestClasspath(projects.javaLanguageExtensions)
-    manifestClasspath(project(":build-process-services"))
-    manifestClasspath(project(":base-services"))
-    manifestClasspath(project(":concurrent"))
-
+    // For start script generation
     agentsClasspath(project(":instrumentation-agent"))
+}
+
+// Use the minified JAR at runtime
+configurations.runtimeElements.configure {
+    outgoing.artifacts.clear()
+    outgoing.artifact(application.minifiedJar)
+}
+
+tasks.named<GradleStartScriptGenerator>("startScripts").configure {
+    launcherJar = files(application.minifiedJar)
 }

@@ -15,8 +15,8 @@
  */
 
 plugins {
-    id("gradlebuild.distribution.api-java")
-    id("gradlebuild.minified-jar")
+    id("gradlebuild.distribution.implementation-java")
+    id("gradlebuild.minified-application-jar")
 }
 
 description = "Entry point of the Gradle wrapper command"
@@ -49,8 +49,11 @@ dependencies {
     crossVersionTestDistributionRuntimeOnly(project(":distributions-full"))
 }
 
-minify {
+application {
     implementationTitle = "Gradle Wrapper"
+    mainClassName = "org.gradle.wrapper.GradleWrapperMain"
+
+    outputJarName { "gradle-wrapper.jar" }
 
     // Exclude META-INF resources from Guava etc. added via transitive dependencies
     excludeFromDependencies("META-INF/*")
@@ -65,15 +68,11 @@ minify {
 // After introducing gr8, wrapper jar is generated as build/libs/gradle-wrapper-executable.jar and processed
 //   by gr8, then the processed `gradle-wrapper.jar` need to be copied back to build/libs for promotion build
 val copyGr8OutputJarAsGradleWrapperJar by tasks.registering(Copy::class) {
-    from(minify.minifiedJar) {
-        rename { "gradle-wrapper.jar" }
-    }
+    from(application.minifiedJar)
     into(layout.buildDirectory.dir("libs"))
 }
 
 tasks.jar {
-    from(minify.minifiedJar) {
-        rename { "gradle-wrapper.jar" }
-    }
+    from(application.minifiedJar)
     dependsOn(copyGr8OutputJarAsGradleWrapperJar)
 }
