@@ -26,9 +26,9 @@ import org.gradle.tooling.ToolingModelContract
     InterpretationStepFeature.ResolutionResultPostprocessing.ConventionApplication::class
 ])
 sealed interface InterpretationStepFeature {
-    val featureKeys: List<String>
-
-    interface DocumentChecks : InterpretationStepFeature
+    interface DocumentChecks : InterpretationStepFeature {
+        val checkKeys: Iterable<String>
+    }
     sealed interface ResolutionResultPostprocessing : InterpretationStepFeature {
         interface ConventionDefinition : ResolutionResultPostprocessing
         interface ConventionApplication : ResolutionResultPostprocessing

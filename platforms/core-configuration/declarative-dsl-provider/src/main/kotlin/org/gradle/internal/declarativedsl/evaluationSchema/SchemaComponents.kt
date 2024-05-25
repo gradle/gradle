@@ -19,6 +19,9 @@ package org.gradle.internal.declarativedsl.evaluationSchema
 import org.gradle.declarative.dsl.evaluation.AnalysisStatementFilter
 import org.gradle.declarative.dsl.evaluation.EvaluationSchema
 import org.gradle.declarative.dsl.schema.AnalysisSchema
+import org.gradle.internal.declarativedsl.evaluator.schema.DefaultEvaluationSchema
+import org.gradle.internal.declarativedsl.evaluator.conversion.DefaultEvaluationAndConversionSchema
+import org.gradle.internal.declarativedsl.evaluator.conversion.EvaluationAndConversionSchema
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeCustomAccessors
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeFunctionResolver
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimePropertyResolver
@@ -62,12 +65,10 @@ fun buildEvaluationSchema(
     topLevelReceiverType: KClass<*>,
     analysisStatementFilter: AnalysisStatementFilter,
     schemaComponents: EvaluationSchemaBuilder.() -> Unit
-): EvaluationSchema {
-    return DefaultEvaluationSchema(
-        analysisSchema(topLevelReceiverType, DefaultEvaluationSchemaBuilder().apply(schemaComponents)),
-        analysisStatementFilter
-    )
-}
+): EvaluationSchema = DefaultEvaluationSchema(
+    analysisSchema(topLevelReceiverType, DefaultEvaluationSchemaBuilder().apply(schemaComponents)),
+    analysisStatementFilter
+)
 
 
 internal

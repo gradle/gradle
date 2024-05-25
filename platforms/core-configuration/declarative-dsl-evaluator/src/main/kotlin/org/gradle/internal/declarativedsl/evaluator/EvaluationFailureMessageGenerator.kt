@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,60 +21,56 @@ import org.gradle.internal.declarativedsl.analysis.ResolutionError
 import org.gradle.internal.declarativedsl.language.LanguageTreeElement
 import org.gradle.internal.declarativedsl.language.SourceData
 import org.gradle.internal.declarativedsl.objectGraph.AssignmentTraceElement
-import org.gradle.api.GradleException
-import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.internal.declarativedsl.checks.DocumentCheckFailure
-import org.gradle.internal.declarativedsl.checks.DocumentCheckFailureReason
-import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure
+import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult.NotEvaluated.StageFailure
+import org.gradle.internal.declarativedsl.evaluator.checks.DocumentCheckFailure
+import org.gradle.internal.declarativedsl.evaluator.checks.DocumentCheckFailureReason
 import org.gradle.internal.declarativedsl.language.ParsingError
 import org.gradle.internal.declarativedsl.language.SingleFailureResult
 import org.gradle.internal.declarativedsl.language.UnsupportedConstruct
 
 
-internal
-class DeclarativeDslNotEvaluatedException(
-    private val scriptSource: ScriptSource,
-    private val stageFailures: List<StageFailure>
-) : GradleException() {
-    override val message: String
-        get() = buildString {
-            appendLine("Failed to interpret the declarative DSL file '${scriptSource.fileName}':")
-            stageFailures.forEach { stageFailure ->
-                when (stageFailure) {
-                    is StageFailure.FailuresInLanguageTree -> {
-                        appendLine("Failures in building the language tree:".indent(1))
-                        if (stageFailure.failures.isNotEmpty()) {
-                            formatFailuresInLanguageTree(stageFailure.failures).forEach {
-                                appendLine(it.indent(2))
-                            }
+object EvaluationFailureMessageGenerator {
+    fun generateFailureMessage(
+        scriptSourceIdentifier: String,
+        stageFailures: List<StageFailure>
+    ): String = buildString {
+        appendLine("Failed to interpret the declarative DSL file '$scriptSourceIdentifier':")
+        stageFailures.forEach { stageFailure ->
+            when (stageFailure) {
+                is StageFailure.FailuresInLanguageTree -> {
+                    appendLine("Failures in building the language tree:".indent(1))
+                    if (stageFailure.failures.isNotEmpty()) {
+                        formatFailuresInLanguageTree(stageFailure.failures).forEach {
+                            appendLine(it.indent(2))
                         }
                     }
+                }
 
-                    is StageFailure.FailuresInResolution -> {
-                        appendLine("Failures in resolution:".indent(1))
-                        stageFailure.errors.forEach {
-                            appendLine(formatResolutionError(it).indent(2))
-                        }
+                is StageFailure.FailuresInResolution -> {
+                    appendLine("Failures in resolution:".indent(1))
+                    stageFailure.errors.forEach {
+                        appendLine(formatResolutionError(it).indent(2))
                     }
+                }
 
-                    StageFailure.NoParseResult -> appendLine("Failed to parse due to syntax errors")
-                    is StageFailure.NoSchemaAvailable -> appendLine("No associated schema for ${stageFailure.target}")
-                    is StageFailure.AssignmentErrors -> {
-                        appendLine("Failures in assignments:".indent(1))
-                        stageFailure.usages.forEach { unassigned ->
-                            appendLine(describedUnassignedValueUsage(unassigned).indent(2))
-                        }
+                StageFailure.NoParseResult -> appendLine("Failed to parse due to syntax errors")
+                is StageFailure.NoSchemaAvailable -> appendLine("No associated schema for ${stageFailure.scriptContext}")
+                is StageFailure.AssignmentErrors -> {
+                    appendLine("Failures in assignments:".indent(1))
+                    stageFailure.usages.forEach { unassigned ->
+                        appendLine(describedUnassignedValueUsage(unassigned).indent(2))
                     }
+                }
 
-                    is StageFailure.DocumentCheckFailures -> {
-                        appendLine("Failures in document checks:".indent(1))
-                        stageFailure.failures.forEach { failure ->
-                            appendLine(describeDocumentCheckFailure(failure).indent(2))
-                        }
+                is StageFailure.DocumentCheckFailures -> {
+                    appendLine("Failures in document checks:".indent(1))
+                    stageFailure.failures.forEach { failure ->
+                        appendLine(describeDocumentCheckFailure(failure).indent(2))
                     }
                 }
             }
         }
+    }
 
     private
     fun formatFailuresInLanguageTree(failures: List<SingleFailureResult>): List<String> = buildList {

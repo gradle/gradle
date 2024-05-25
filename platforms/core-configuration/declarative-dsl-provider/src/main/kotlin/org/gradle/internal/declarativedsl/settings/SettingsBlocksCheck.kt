@@ -18,16 +18,16 @@ package org.gradle.internal.declarativedsl.settings
 
 import org.gradle.api.initialization.Settings
 import org.gradle.declarative.dsl.evaluation.InterpretationStepFeature
-import org.gradle.internal.declarativedsl.checks.DocumentCheck
-import org.gradle.internal.declarativedsl.checks.DocumentCheckFailure
-import org.gradle.internal.declarativedsl.checks.DocumentCheckFailureLocation.FailedAtNode
-import org.gradle.internal.declarativedsl.checks.DocumentCheckFailureReason
 import org.gradle.internal.declarativedsl.dom.DocumentResolution
 import org.gradle.internal.declarativedsl.dom.DocumentResolution.ElementResolution.SuccessfulElementResolution.PropertyConfiguringElementResolved
 import org.gradle.internal.declarativedsl.dom.ResolvedDeclarativeDocument
 import org.gradle.internal.declarativedsl.dom.ResolvedDeclarativeDocument.ResolvedDocumentNode
 import org.gradle.internal.declarativedsl.dom.ResolvedDeclarativeDocument.ResolvedDocumentNode.ResolvedElementNode
 import org.gradle.internal.declarativedsl.dom.UnresolvedBase
+import org.gradle.internal.declarativedsl.evaluator.checks.DocumentCheck
+import org.gradle.internal.declarativedsl.evaluator.checks.DocumentCheckFailure
+import org.gradle.internal.declarativedsl.evaluator.checks.DocumentCheckFailureLocation.FailedAtNode
+import org.gradle.internal.declarativedsl.evaluator.checks.DocumentCheckFailureReason
 import org.gradle.internal.declarativedsl.plugins.PluginsCollectingPluginsBlock
 import org.gradle.plugin.management.PluginManagementSpec
 
@@ -36,7 +36,7 @@ internal
 object SettingsBlocksCheck : DocumentCheck {
 
     val feature = object : InterpretationStepFeature.DocumentChecks {
-        override val featureKeys: List<String>
+        override val checkKeys: Iterable<String>
             get() = listOf(checkKey)
     }
 

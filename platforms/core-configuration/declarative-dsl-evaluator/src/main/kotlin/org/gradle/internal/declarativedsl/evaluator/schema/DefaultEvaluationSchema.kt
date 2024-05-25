@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.declarative.dsl.evaluation
+package org.gradle.internal.declarativedsl.evaluator.schema
 
-import java.io.Serializable
+import org.gradle.declarative.dsl.evaluation.AnalysisStatementFilter
+import org.gradle.declarative.dsl.evaluation.EvaluationSchema
+import org.gradle.declarative.dsl.schema.AnalysisSchema
+import org.gradle.internal.declarativedsl.analysis.analyzeEverything
 
 
-interface InterpretationSequenceStep : Serializable {
-    val stepIdentifier: String
-    val assignmentGeneration: OperationGenerationId
-    val features: Set<InterpretationStepFeature>
-    val evaluationSchemaForStep: EvaluationSchema
-}
+class DefaultEvaluationSchema(
+    override val analysisSchema: AnalysisSchema,
+    override val analysisStatementFilter: AnalysisStatementFilter = analyzeEverything,
+) : EvaluationSchema
+
+

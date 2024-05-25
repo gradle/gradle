@@ -30,9 +30,9 @@ import org.gradle.internal.declarativedsl.analysis.DefaultOperationGenerationId
 import org.gradle.internal.declarativedsl.analysis.and
 import org.gradle.internal.declarativedsl.analysis.implies
 import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
-import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationAndConversionSchema
-import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequenceStepWithConversion
 import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationAndConversionSchema
+import org.gradle.internal.declarativedsl.evaluator.conversion.EvaluationAndConversionSchema
+import org.gradle.internal.declarativedsl.evaluator.conversion.InterpretationSequenceStepWithConversion
 import org.gradle.internal.declarativedsl.plugins.PluginsTopLevelReceiver
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.plugin.management.internal.DefaultPluginRequest
@@ -50,15 +50,15 @@ class PluginsInterpretationSequenceStep(
     private val scriptSource: ScriptSource,
     private val getTargetServices: () -> ServiceRegistry,
 ) : InterpretationSequenceStepWithConversion<PluginsTopLevelReceiver> {
-    override fun evaluationSchemaForStep(): EvaluationAndConversionSchema =
-        buildEvaluationAndConversionSchema(PluginsTopLevelReceiver::class, isTopLevelPluginsBlock) {
+    override val evaluationSchemaForStep: EvaluationAndConversionSchema
+        get() = buildEvaluationAndConversionSchema(PluginsTopLevelReceiver::class, isTopLevelPluginsBlock) {
             gradleDslGeneralSchema()
         }
 
     override fun getTopLevelReceiverFromTarget(target: Any) = PluginsTopLevelReceiver()
 
     override val features: Set<InterpretationStepFeature>
-        get() = setOf(SettingsBlocksCheck.feature,)
+        get() = setOf(SettingsBlocksCheck.feature)
 
     override fun whenEvaluated(resultReceiver: PluginsTopLevelReceiver) {
         val pluginRequests = resultReceiver.plugins.specs.map {

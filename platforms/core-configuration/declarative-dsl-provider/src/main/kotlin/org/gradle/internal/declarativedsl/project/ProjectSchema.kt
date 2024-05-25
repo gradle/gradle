@@ -20,8 +20,8 @@ import org.gradle.internal.declarativedsl.analysis.analyzeEverything
 import org.gradle.internal.declarativedsl.common.dependencyCollectors
 import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.DefaultInterpretationSequence
-import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationAndConversionSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationAndConversionSchema
+import org.gradle.internal.declarativedsl.evaluator.conversion.EvaluationAndConversionSchema
 import org.gradle.internal.declarativedsl.software.softwareTypesWithPluginApplication
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 

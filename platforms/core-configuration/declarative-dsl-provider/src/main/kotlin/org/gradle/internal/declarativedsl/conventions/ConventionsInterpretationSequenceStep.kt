@@ -28,6 +28,7 @@ import org.gradle.internal.declarativedsl.common.dependencyCollectors
 import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.SimpleInterpretationSequenceStep
 import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationSchema
+import org.gradle.internal.declarativedsl.evaluator.conventions.ConventionDefinition
 import org.gradle.internal.declarativedsl.software.softwareTypesConventions
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 

@@ -14,14 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.features
+package org.gradle.internal.declarativedsl.evaluator.features
 
 import org.gradle.declarative.dsl.evaluation.InterpretationStepFeature
-import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 
 
-interface ResolutionResultHandler : InterpretationStepFeatureHandler<InterpretationStepFeature.ResolutionResultPostprocessing> {
-    fun processResolutionResult(resolutionResult: ResolutionResult): ResolutionResult
+interface InterpretationStepFeatureHandler<F : InterpretationStepFeature> {
+    fun shouldHandleFeature(feature: F): Boolean
 }
-
-

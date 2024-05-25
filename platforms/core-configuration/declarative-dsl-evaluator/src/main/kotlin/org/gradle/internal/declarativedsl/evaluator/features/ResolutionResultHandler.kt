@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.declarative.dsl.evaluation
+package org.gradle.internal.declarativedsl.evaluator.features
 
-import java.io.Serializable
+import org.gradle.declarative.dsl.evaluation.InterpretationStepFeature
+import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 
 
-interface InterpretationSequenceStep : Serializable {
-    val stepIdentifier: String
-    val assignmentGeneration: OperationGenerationId
-    val features: Set<InterpretationStepFeature>
-    val evaluationSchemaForStep: EvaluationSchema
+interface ResolutionResultHandler : InterpretationStepFeatureHandler<InterpretationStepFeature.ResolutionResultPostprocessing> {
+    fun processResolutionResult(resolutionResult: ResolutionResult): ResolutionResult
 }
+
+

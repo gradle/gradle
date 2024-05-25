@@ -14,15 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarative.dsl.model.conventions;
+@NonNullApi
+package org.gradle.plugin.software.internal;
 
-/**
- * Represents a reusable convention declared for a software type.
- *
- * @param <T> the type of the receiver of the convention
- *
- * @since 8.9
- */
-public interface Convention<T extends ConventionReceiver> {
-    void apply(T receiver);
-}
+import org.gradle.api.NonNullApi;

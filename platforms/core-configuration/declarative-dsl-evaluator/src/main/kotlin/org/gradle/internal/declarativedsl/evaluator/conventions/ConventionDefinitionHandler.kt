@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.conventions
+package org.gradle.internal.declarativedsl.evaluator.conventions
 
 import org.gradle.declarative.dsl.evaluation.InterpretationStepFeature
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
-import org.gradle.internal.declarativedsl.features.ResolutionResultHandler
+import org.gradle.internal.declarativedsl.evaluator.features.ResolutionResultHandler
 
 
-internal
-object ConventionDefinition : InterpretationStepFeature.ResolutionResultPostprocessing.ConventionDefinition {
-    override val featureKeys: List<String> = emptyList()
-}
+object ConventionDefinition : InterpretationStepFeature.ResolutionResultPostprocessing.ConventionDefinition
 
 
 class ConventionDefinitionCollector(private val conventionRegistrar: ConventionDefinitionRegistrar) : ResolutionResultHandler {
@@ -32,12 +29,12 @@ class ConventionDefinitionCollector(private val conventionRegistrar: ConventionD
         feature is InterpretationStepFeature.ResolutionResultPostprocessing.ConventionDefinition
 
     override fun processResolutionResult(resolutionResult: ResolutionResult): ResolutionResult {
-        conventionRegistrar.addConventions(ConventionsResolutionProcessor.process(resolutionResult))
+        conventionRegistrar.registerConventions(ConventionsResolutionProcessor.process(resolutionResult))
         return resolutionResult
     }
 }
 
 
 interface ConventionDefinitionRegistrar {
-    fun addConventions(conventionsBySoftwareType: Map<String, SoftwareTypeConventionResolutionResults>)
+    fun registerConventions(conventionsBySoftwareType: Map<String, SoftwareTypeConventionResolutionResults>)
 }

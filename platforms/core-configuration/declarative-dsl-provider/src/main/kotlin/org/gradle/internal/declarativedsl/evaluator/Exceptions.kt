@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarative.dsl.model.conventions;
+package org.gradle.internal.declarativedsl.evaluator
 
-/**
- * Marker interface for objects that can receive conventions of a certain type and apply them appropriately.
- *
- * @since 8.9
- */
-public interface ConventionReceiver {
+import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult.NotEvaluated.StageFailure
+
+
+class DeclarativeDslNotEvaluatedException(
+    private val scriptSourceIdentifier: String,
+    private val stageFailures: List<StageFailure>
+) : Exception() {
+    override val message: String
+        get() = EvaluationFailureMessageGenerator.generateFailureMessage(scriptSourceIdentifier, stageFailures)
 }

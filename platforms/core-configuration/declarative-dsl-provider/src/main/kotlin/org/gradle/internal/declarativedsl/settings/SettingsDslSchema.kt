@@ -30,13 +30,13 @@ import org.gradle.internal.declarativedsl.analysis.and
 import org.gradle.internal.declarativedsl.analysis.implies
 import org.gradle.internal.declarativedsl.analysis.not
 import org.gradle.internal.declarativedsl.conventions.isConventionsConfiguringCall
-import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationAndConversionSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaBuilder
 import org.gradle.internal.declarativedsl.evaluationSchema.SimpleInterpretationSequenceStepWithConversion
 import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationAndConversionSchema
 import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
 import org.gradle.internal.declarativedsl.conventions.conventionsDefinitionInterpretationSequenceStep
 import org.gradle.internal.declarativedsl.evaluationSchema.DefaultInterpretationSequence
+import org.gradle.internal.declarativedsl.evaluator.conversion.EvaluationAndConversionSchema
 import org.gradle.internal.declarativedsl.project.thirdPartyExtensions
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.conventions
+package org.gradle.internal.declarativedsl.evaluator.conventions
 
 import org.gradle.declarative.dsl.evaluation.InterpretationStepFeature
 import org.gradle.declarative.dsl.schema.ConfigureAccessor
@@ -24,15 +24,11 @@ import org.gradle.internal.declarativedsl.analysis.NestedObjectAccessRecord
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 import org.gradle.internal.declarativedsl.analysis.transformation.OriginReplacement.replaceReceivers
-import org.gradle.internal.declarativedsl.features.ResolutionResultHandler
-import org.gradle.internal.declarativedsl.software.SOFTWARE_TYPE_ACCESSOR_PREFIX
-import kotlin.collections.flatMap
+import org.gradle.internal.declarativedsl.evaluator.features.ResolutionResultHandler
+import org.gradle.internal.declarativedsl.evaluator.softwareTypes.SOFTWARE_TYPE_ACCESSOR_PREFIX
 
 
-internal
-object ConventionApplication : InterpretationStepFeature.ResolutionResultPostprocessing.ConventionApplication {
-    override val featureKeys: List<String> = emptyList()
-}
+object ConventionApplication : InterpretationStepFeature.ResolutionResultPostprocessing.ConventionApplication
 
 
 class ConventionApplicationHandler(private val softwareTypeConventionRepository: SoftwareTypeConventionRepository) : ResolutionResultHandler {

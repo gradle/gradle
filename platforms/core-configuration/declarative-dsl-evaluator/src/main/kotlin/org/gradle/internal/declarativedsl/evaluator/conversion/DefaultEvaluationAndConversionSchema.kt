@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,28 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.evaluationSchema
+package org.gradle.internal.declarativedsl.evaluator.conversion
 
 import org.gradle.declarative.dsl.evaluation.AnalysisStatementFilter
-import org.gradle.declarative.dsl.evaluation.EvaluationSchema
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.internal.declarativedsl.analysis.analyzeEverything
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeCustomAccessors
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeFunctionResolver
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimePropertyResolver
-
-
-interface EvaluationAndConversionSchema : EvaluationSchema {
-    val runtimePropertyResolvers: List<RuntimePropertyResolver>
-    val runtimeFunctionResolvers: List<RuntimeFunctionResolver>
-    val runtimeCustomAccessors: List<RuntimeCustomAccessors>
-}
-
-
-class DefaultEvaluationSchema(
-    override val analysisSchema: AnalysisSchema,
-    override val analysisStatementFilter: AnalysisStatementFilter = analyzeEverything,
-) : EvaluationSchema
 
 
 class DefaultEvaluationAndConversionSchema(

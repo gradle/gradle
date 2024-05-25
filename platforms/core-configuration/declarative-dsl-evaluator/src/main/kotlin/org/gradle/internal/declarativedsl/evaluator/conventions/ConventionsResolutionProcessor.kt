@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.conventions
+package org.gradle.internal.declarativedsl.evaluator.conventions
 
 import org.gradle.internal.declarativedsl.analysis.AssignmentRecord
 import org.gradle.internal.declarativedsl.analysis.DataAdditionRecord

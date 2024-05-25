@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.features
+package org.gradle.plugin.software.internal;
 
-import org.gradle.declarative.dsl.evaluation.InterpretationStepFeature
-
-
-interface InterpretationStepFeatureHandler<F : InterpretationStepFeature> {
-    fun shouldHandleFeature(feature: F): Boolean
+/**
+ * Marker interface for objects that can receive conventions of a certain type and apply them appropriately.
+ *
+ * @since 8.9
+ */
+public interface ConventionReceiver {
 }

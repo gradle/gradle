@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.declarative.dsl.evaluation
+package org.gradle.plugin.software.internal;
 
-import java.io.Serializable
-
-
-interface InterpretationSequenceStep : Serializable {
-    val stepIdentifier: String
-    val assignmentGeneration: OperationGenerationId
-    val features: Set<InterpretationStepFeature>
-    val evaluationSchemaForStep: EvaluationSchema
+/**
+ * Represents a reusable convention declared for a software type.
+ *
+ * @param <T> the type of the receiver of the convention
+ *
+ * @since 8.9
+ */
+public interface Convention<T extends ConventionReceiver> {
+    void apply(T receiver);
 }

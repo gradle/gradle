@@ -19,13 +19,13 @@ package org.gradle.internal.declarativedsl.settings
 import org.gradle.declarative.dsl.evaluation.EvaluationSchema
 import org.gradle.internal.declarativedsl.analysis.DefaultOperationGenerationId
 import org.gradle.internal.declarativedsl.analysis.tracingCodeResolver
-import org.gradle.internal.declarativedsl.checks.DocumentCheckFailure
-import org.gradle.internal.declarativedsl.checks.DocumentCheckFailureReason
 import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
 import org.gradle.internal.declarativedsl.dom.resolvedDocument
 import org.gradle.internal.declarativedsl.dom.toDocument
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaBuilder
 import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationSchema
+import org.gradle.internal.declarativedsl.evaluator.checks.DocumentCheckFailure
+import org.gradle.internal.declarativedsl.evaluator.checks.DocumentCheckFailureReason
 import org.gradle.internal.declarativedsl.language.SourceIdentifier
 import org.gradle.internal.declarativedsl.parsing.DefaultLanguageTreeBuilder
 import org.gradle.internal.declarativedsl.parsing.parse

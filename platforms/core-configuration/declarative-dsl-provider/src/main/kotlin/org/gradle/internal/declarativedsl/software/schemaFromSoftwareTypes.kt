@@ -28,6 +28,7 @@ import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaBuild
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationAndConversionSchemaBuilder
 import org.gradle.internal.declarativedsl.evaluationSchema.FixedTypeDiscovery
 import org.gradle.internal.declarativedsl.evaluationSchema.ObjectConversionComponent
+import org.gradle.internal.declarativedsl.evaluator.softwareTypes.SOFTWARE_TYPE_ACCESSOR_PREFIX
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeCustomAccessors
 import org.gradle.internal.declarativedsl.schemaBuilder.DataSchemaBuilder
 import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
@@ -68,10 +69,6 @@ fun EvaluationSchemaBuilder.softwareTypesConventions(
     val softwareTypeInfo = buildSoftwareTypeInfo(softwareTypeRegistry, schemaTypeToExtend) { _, _ -> }
     registerAnalysisSchemaComponent(SoftwareTypeComponent(schemaTypeToExtend, softwareTypeInfo))
 }
-
-
-internal
-const val SOFTWARE_TYPE_ACCESSOR_PREFIX = "softwareType"
 
 
 private

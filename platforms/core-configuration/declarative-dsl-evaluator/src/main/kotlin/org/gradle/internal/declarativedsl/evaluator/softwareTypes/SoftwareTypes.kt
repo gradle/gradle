@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-@NonNullApi
-package org.gradle.internal.declarative.dsl.model.conventions;
+package org.gradle.internal.declarativedsl.evaluator.softwareTypes
 
-import org.gradle.api.NonNullApi;
+
+const val SOFTWARE_TYPE_ACCESSOR_PREFIX = "softwareType"

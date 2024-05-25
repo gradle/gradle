@@ -14,14 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.checks
+package org.gradle.internal.declarativedsl.evaluator.checks
 
+import org.gradle.declarative.dsl.evaluation.InterpretationStepFeature
 import org.gradle.internal.declarativedsl.dom.ResolvedDeclarativeDocument
+import org.gradle.internal.declarativedsl.evaluator.features.InterpretationStepFeatureHandler
 import org.gradle.internal.declarativedsl.language.SourceData
 
 
-interface DocumentCheck {
+interface DocumentCheck : InterpretationStepFeatureHandler<InterpretationStepFeature.DocumentChecks> {
     val checkKey: String
+
+    override fun shouldHandleFeature(feature: InterpretationStepFeature.DocumentChecks): Boolean =
+        checkKey in feature.checkKeys
+
     fun detectFailures(resolvedDeclarativeDocument: ResolvedDeclarativeDocument): List<DocumentCheckFailure>
 }
 
