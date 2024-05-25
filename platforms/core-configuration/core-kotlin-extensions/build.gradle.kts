@@ -14,8 +14,8 @@ dependencies {
     api(libs.futureKotlin("stdlib"))
 
     implementation(projects.baseServices)
-    implementation(projects.javaLanguageExtensionsKt)
     implementation(projects.messaging)
     implementation(projects.resources)
     implementation(projects.serviceProvider)
+    implementation(projects.stdlibKotlinExtensions)
 }

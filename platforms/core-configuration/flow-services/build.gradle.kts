@@ -31,9 +31,9 @@ dependencies {
     api(libs.futureKotlin("stdlib"))
 
     implementation(projects.core)
-    implementation(projects.javaLanguageExtensionsKt)
     implementation(projects.messaging)
     implementation(projects.problemsApi)
+    implementation(projects.stdlibKotlinExtensions)
 
     implementation(libs.guava)
     implementation(libs.inject)

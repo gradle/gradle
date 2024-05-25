@@ -630,13 +630,6 @@
     "crossVersionTests": false
   },
   {
-    "name": "java-language-extensions-kt",
-    "path": "platforms/core-configuration/java-language-extensions-kt",
-    "unitTests": false,
-    "functionalTests": false,
-    "crossVersionTests": false
-  },
-  {
     "name": "java-platform",
     "path": "platforms/jvm/java-platform",
     "unitTests": true,
@@ -1047,6 +1040,13 @@
     "path": "testing/soak",
     "unitTests": false,
     "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "stdlib-kotlin-extensions",
+    "path": "platforms/core-configuration/stdlib-kotlin-extensions",
+    "unitTests": false,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {

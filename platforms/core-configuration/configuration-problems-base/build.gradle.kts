@@ -29,7 +29,7 @@ dependencies {
 
     api(libs.futureKotlin("stdlib"))
 
-    implementation(projects.javaLanguageExtensionsKt)
+    implementation(projects.stdlibKotlinExtensions)
 
     implementation(libs.guava)
 }

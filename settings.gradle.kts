@@ -130,7 +130,7 @@ val core = platform("core") {
         subproject("kotlin-dsl-tooling-models")
         subproject("kotlin-dsl-plugins")
         subproject("kotlin-dsl-integ-tests")
-        subproject("java-language-extensions-kt")
+        subproject("stdlib-kotlin-extensions")
         subproject("model-core")
         subproject("model-groovy")
     }

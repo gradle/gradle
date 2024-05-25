@@ -73,12 +73,12 @@ dependencies {
     implementation(project(":file-watching"))
     implementation(projects.flowServices)
     implementation(project(":input-tracking"))
-    implementation(projects.javaLanguageExtensionsKt)
     implementation(project(":platform-jvm"))
     implementation(projects.problemsApi)
     implementation(project(":process-services"))
     implementation(project(":publish"))
     implementation(projects.serialization)
+    implementation(projects.stdlibKotlinExtensions)
     implementation(project(":tooling-api"))
 
     implementation(libs.asm)
