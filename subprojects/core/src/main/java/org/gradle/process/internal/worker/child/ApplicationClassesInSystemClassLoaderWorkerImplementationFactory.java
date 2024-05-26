@@ -22,8 +22,6 @@ import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.io.StreamByteBuffer;
-import org.gradle.internal.nativeintegration.services.NativeServices;
-import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
 import org.gradle.internal.process.ArgWriter;
 import org.gradle.internal.remote.Address;
 import org.gradle.internal.remote.internal.inet.MultiChoiceAddress;
@@ -150,10 +148,6 @@ public class ApplicationClassesInSystemClassLoaderWorkerImplementationFactory {
                 }
             }
 
-            // When not explicitly set, use the value from the daemon process
-            NativeServicesMode nativeServicesMode = processBuilder.getNativeServicesMode() == NativeServicesMode.NOT_SET
-                ? NativeServicesMode.from(NativeServices.getInstance().createNativeCapabilities().useNativeIntegrations())
-                : processBuilder.getNativeServicesMode();
             WorkerConfig config = new WorkerConfig(
                 logLevel,
                 publishProcessInfo,
@@ -162,7 +156,7 @@ public class ApplicationClassesInSystemClassLoaderWorkerImplementationFactory {
                 workerId,
                 displayName,
                 processBuilder.getWorker(),
-                nativeServicesMode
+                processBuilder.getNativeServicesMode()
             );
 
             // Serialize the worker config, this is consumed by SystemApplicationClassLoaderWorker

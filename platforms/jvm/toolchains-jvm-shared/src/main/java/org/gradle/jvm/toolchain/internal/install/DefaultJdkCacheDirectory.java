@@ -152,7 +152,8 @@ public class DefaultJdkCacheDirectory implements JdkCacheDirectory {
                 throw new IOException("Failed to create install parent directory: " + installFolder.getParentFile());
             }
             // Before checking existence, lock the install folder name to prevent concurrent installations
-            try (FileLock ignored = acquireWriteLock(installFolder, "Provisioning JDK from " + uri)) {
+            // An extra string is added to prevent the lock from being created inside the install folder
+            try (FileLock ignored = acquireWriteLock(new File(installFolder.getParentFile(), installFolder.getName() + ".reserved"), "Provisioning JDK from " + uri)) {
                 if (installFolder.exists()) {
                     if (isMarkedLocation(installFolder)) {
                         LOGGER.info("Toolchain from {} already installed at {}", uri, installFolder);
@@ -223,7 +224,7 @@ public class DefaultJdkCacheDirectory implements JdkCacheDirectory {
                 return new UnpackedRoot(subFolder, uncheckedMetadata);
             }
         }
-        throw new IllegalStateException("Unpacked JDK archive does not contain a Java home: " + unpackFolder);
+        throw new IllegalStateException("Unpacked JDK archive does not contain a Java home: " + unpackFolder, uncheckedMetadata.getErrorCause());
     }
 
     private JvmInstallationMetadata getUncheckedMetadata(File root) {
@@ -237,7 +238,7 @@ public class DefaultJdkCacheDirectory implements JdkCacheDirectory {
         }
     }
 
-    private static String getInstallFolderName(JvmInstallationMetadata metadata) {
+    public static String getInstallFolderName(JvmInstallationMetadata metadata) {
         String vendor = metadata.getJvmVendor();
         if (vendor == null || vendor.isEmpty()) {
             vendor = metadata.getVendor().getRawVendor();

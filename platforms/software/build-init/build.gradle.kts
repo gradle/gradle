@@ -27,6 +27,7 @@ dependencies {
     api(libs.maven3Settings)
 
     api(projects.javaLanguageExtensions)
+    api(projects.serviceProvider)
     api(project(":base-services"))
     api(project(":core"))
     api(project(":core-api"))
@@ -44,7 +45,7 @@ dependencies {
         because("Needs access to StartScriptGenerator.")
     }
     implementation(project(":plugins-jvm-test-suite"))
-    implementation(project(":wrapper"))
+    implementation(project(":wrapper-main"))
     implementation(project(":wrapper-shared"))
 
     implementation(libs.groovy)
@@ -109,3 +110,7 @@ packageCycles {
 }
 
 integTest.testJvmXmx = "1g"
+
+tasks.isolatedProjectsIntegTest {
+    enabled = true
+}

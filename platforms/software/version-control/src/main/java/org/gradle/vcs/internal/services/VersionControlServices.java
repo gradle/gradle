@@ -33,7 +33,7 @@ import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
+import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.vcs.SourceControl;
@@ -59,7 +59,7 @@ import org.gradle.vcs.internal.resolver.VcsVersionWorkingDirResolver;
 import javax.inject.Inject;
 import java.util.Collection;
 
-public class VersionControlServices extends AbstractPluginServiceRegistry {
+public class VersionControlServices extends AbstractGradleModuleServices {
     @Override
     public void registerBuildTreeServices(ServiceRegistration registration) {
         registration.addProvider(new VersionControlBuildTreeServices());

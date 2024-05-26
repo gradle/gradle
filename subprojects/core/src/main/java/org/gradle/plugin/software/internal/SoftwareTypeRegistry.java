@@ -35,7 +35,7 @@ public interface SoftwareTypeRegistry {
      * Returns a set of the software types available along with their model types and associated plugins.  Note that once
      * method is called, calling {@link #register(Class)} will result in an error.
      */
-    Set<SoftwareTypeImplementation> getSoftwareTypeImplementations();
+    Set<SoftwareTypeImplementation<?>> getSoftwareTypeImplementations();
 
     /**
      * Returns whether a plugin is registered as providing a software type or not.

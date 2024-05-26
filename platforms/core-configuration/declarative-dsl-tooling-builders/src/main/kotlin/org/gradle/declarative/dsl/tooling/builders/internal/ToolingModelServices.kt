@@ -18,12 +18,12 @@ package org.gradle.declarative.dsl.tooling.builders.internal
 
 import org.gradle.declarative.dsl.tooling.builders.DeclarativeSchemaModelBuilder
 import org.gradle.internal.service.ServiceRegistration
-import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry
+import org.gradle.internal.service.scopes.AbstractGradleModuleServices
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 import org.gradle.tooling.provider.model.internal.BuildScopeToolingModelBuilderRegistryAction
 
 
-class ToolingModelServices : AbstractPluginServiceRegistry() {
+class ToolingModelServices : AbstractGradleModuleServices() {
 
     override fun registerBuildServices(registration: ServiceRegistration) {
         registration.addProvider(BuildScopeToolingServices)

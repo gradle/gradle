@@ -49,6 +49,7 @@ public class DefaultUserCodeApplicationContext implements UserCodeApplicationCon
     @Override
     public void gradleRuntime(Runnable runnable) {
         CurrentApplication current = currentApplication.get();
+        //noinspection ThreadLocalSetWithNull
         currentApplication.set(null);
         try {
             runnable.run();

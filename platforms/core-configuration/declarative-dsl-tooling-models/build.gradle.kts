@@ -18,7 +18,7 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("gradlebuild.distribution.api-kotlin")
+    id("gradlebuild.distribution.implementation-kotlin")
     id("gradlebuild.publish-public-libraries")
 }
 
@@ -27,7 +27,7 @@ description = "Declarative DSL Tooling Models for IDEs"
 dependencies {
     compileOnly(project(":tooling-api"))
 
-    compileOnly(libs.futureKotlin("stdlib")) {
+    compileOnly(libs.kotlinStdlib) {
         because(
             "used by the compiler, but there should be no binary dependency on the stdlib; " +
                 "this project should be usable by Kotlin-less consumers, see: `NoKotlinStdlibBinaryDependencyTest`"

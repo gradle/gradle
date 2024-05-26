@@ -16,6 +16,15 @@
 
 package org.gradle.internal.declarativedsl.evaluationSchema
 
+import org.gradle.declarative.dsl.schema.ExternalObjectProviderKey
+import org.gradle.internal.declarativedsl.analysis.OperationGenerationId
+import org.gradle.internal.declarativedsl.analysis.ResolutionResult
+import org.gradle.internal.declarativedsl.mappingToJvm.DeclarativeReflectionToObjectConverter
+import org.gradle.internal.declarativedsl.mappingToJvm.ReflectionToObjectConverter
+import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeCustomAccessors
+import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeFunctionResolver
+import org.gradle.internal.declarativedsl.mappingToJvm.RuntimePropertyResolver
+
 
 internal
 class InterpretationSequence(
@@ -26,9 +35,24 @@ class InterpretationSequence(
 internal
 interface InterpretationSequenceStep<R : Any> {
     val stepIdentifier: String
+    val assignmentGeneration: OperationGenerationId
     fun evaluationSchemaForStep(): EvaluationSchema
     fun getTopLevelReceiverFromTarget(target: Any): R
     fun whenEvaluated(resultReceiver: R)
+    fun processResolutionResult(resolutionResult: ResolutionResult): ResolutionResult = resolutionResult
+    fun getReflectionToObjectConverter(
+        externalObjectsMap: Map<ExternalObjectProviderKey, Any>,
+        topLevelObject: Any,
+        functionResolver: RuntimeFunctionResolver,
+        propertyResolver: RuntimePropertyResolver,
+        customAccessors: RuntimeCustomAccessors
+    ): ReflectionToObjectConverter = DeclarativeReflectionToObjectConverter(
+        externalObjectsMap,
+        topLevelObject,
+        functionResolver,
+        propertyResolver,
+        customAccessors
+    )
 }
 
 
@@ -39,6 +63,7 @@ interface InterpretationSequenceStep<R : Any> {
 internal
 class SimpleInterpretationSequenceStep(
     override val stepIdentifier: String,
+    override val assignmentGeneration: OperationGenerationId = OperationGenerationId.PROPERTY_ASSIGNMENT,
     private val buildEvaluationSchema: () -> EvaluationSchema
 ) : InterpretationSequenceStep<Any> {
     override fun evaluationSchemaForStep(): EvaluationSchema = buildEvaluationSchema()

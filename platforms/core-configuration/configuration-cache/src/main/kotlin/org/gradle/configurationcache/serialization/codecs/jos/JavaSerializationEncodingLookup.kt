@@ -16,7 +16,7 @@
 
 package org.gradle.configurationcache.serialization.codecs.jos
 
-import org.gradle.configurationcache.serialization.codecs.Encoding
+import org.gradle.internal.serialize.graph.Encoding
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import java.io.ObjectOutputStream

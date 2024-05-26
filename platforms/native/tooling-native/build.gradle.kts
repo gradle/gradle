@@ -11,7 +11,7 @@ errorprone {
 }
 
 dependencies {
-    api(project(":base-services"))
+    api(projects.serviceProvider)
     api(project(":core-api"))
     api(project(":core"))
     api(project(":ide")) {
@@ -19,6 +19,7 @@ dependencies {
         api(project(":tooling-api"))
     }
 
+    implementation(projects.baseServices)
     implementation(project(":file-collections"))
     implementation(project(":language-native"))
     implementation(project(":platform-native"))

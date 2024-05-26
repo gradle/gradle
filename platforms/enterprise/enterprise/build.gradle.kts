@@ -10,7 +10,12 @@ errorprone {
     )
 }
 
+tasks.isolatedProjectsIntegTest {
+    enabled = true
+}
+
 dependencies {
+    api(projects.serviceProvider)
     api(project(":build-operations"))
     api(project(":base-services"))
     api(project(":configuration-cache"))
@@ -26,6 +31,7 @@ dependencies {
     api(project(":snapshots"))
     api(project(":testing-jvm"))
     api(project(":time"))
+    api(project(":problems-api"))
 
     api(libs.inject)
     api(libs.jsr305)
@@ -56,6 +62,7 @@ dependencies {
     integTestImplementation(project(":messaging"))
     integTestImplementation(project(":persistent-cache"))
     integTestImplementation(project(":native"))
+    integTestImplementation(testFixtures(project(":problems-api")))
     integTestImplementation(libs.guava)
 
     integTestDistributionRuntimeOnly(project(":distributions-full"))

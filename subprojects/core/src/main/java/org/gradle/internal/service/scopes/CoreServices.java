@@ -18,7 +18,7 @@ package org.gradle.internal.service.scopes;
 
 import org.gradle.internal.service.ServiceRegistration;
 
-public class CoreServices extends AbstractPluginServiceRegistry {
+public class CoreServices extends AbstractGradleModuleServices {
     @Override
     public void registerCrossBuildSessionServices(ServiceRegistration registration) {
         registration.addProvider(new CoreCrossBuildSessionServices());

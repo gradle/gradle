@@ -41,7 +41,6 @@ import org.gradle.internal.declarativedsl.language.SourceIdentifier
 import org.gradle.internal.declarativedsl.mappingToJvm.CompositeCustomAccessors
 import org.gradle.internal.declarativedsl.mappingToJvm.CompositeFunctionResolver
 import org.gradle.internal.declarativedsl.mappingToJvm.CompositePropertyResolver
-import org.gradle.internal.declarativedsl.mappingToJvm.DeclarativeReflectionToObjectConverter
 import org.gradle.internal.declarativedsl.objectGraph.AssignmentResolver
 import org.gradle.internal.declarativedsl.objectGraph.AssignmentTraceElement
 import org.gradle.internal.declarativedsl.objectGraph.AssignmentTracer
@@ -121,17 +120,19 @@ class DefaultDeclarativeKotlinScriptEvaluator(
 
         val evaluationSchema = step.evaluationSchemaForStep()
 
-        val resolver = tracingCodeResolver(evaluationSchema.analysisStatementFilter)
+        val resolver = tracingCodeResolver(step.assignmentGeneration, evaluationSchema.analysisStatementFilter)
 
         val languageModel = languageModelFromLightParser(scriptSource)
 
         if (languageModel.allFailures.isNotEmpty()) {
             failureReasons += FailuresInLanguageTree(languageModel.allFailures)
         }
-        val resolution = resolver.resolve(evaluationSchema.analysisSchema, languageModel.imports, languageModel.topLevelBlock)
+        var resolution = resolver.resolve(evaluationSchema.analysisSchema, languageModel.imports, languageModel.topLevelBlock)
         if (resolution.errors.isNotEmpty()) {
             failureReasons += FailuresInResolution(resolution.errors)
         }
+
+        resolution = step.processResolutionResult(resolution)
 
         val document = resolvedDocument(evaluationSchema.analysisSchema, resolver.trace, languageModel.toDocument())
         val checkResults = evaluationSchema.documentChecks.flatMap { it.detectFailures(document) }
@@ -155,7 +156,7 @@ class DefaultDeclarativeKotlinScriptEvaluator(
         val customAccessors = CompositeCustomAccessors(evaluationSchema.runtimeCustomAccessors)
 
         val topLevelReceiver = step.getTopLevelReceiverFromTarget(target)
-        val converter = DeclarativeReflectionToObjectConverter(emptyMap(), topLevelReceiver, functionResolver, propertyResolver, customAccessors)
+        val converter = step.getReflectionToObjectConverter(emptyMap(), topLevelReceiver, functionResolver, propertyResolver, customAccessors)
         converter.apply(topLevelObjectReflection)
 
         step.whenEvaluated(topLevelReceiver)

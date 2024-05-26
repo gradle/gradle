@@ -21,6 +21,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.initialization.Settings
+import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.model.ModelMap
 import org.gradle.model.Mutate
@@ -166,7 +167,7 @@ class PluginBuilder {
         """
     }
 
-    PluginBuilder addPluginSource(String id, String className, String impl) {
+    PluginBuilder addPluginSource(String id, String className, @GroovyBuildScriptLanguage String impl) {
         addPluginId(id, className)
         groovy("${className}.groovy") << impl
         this

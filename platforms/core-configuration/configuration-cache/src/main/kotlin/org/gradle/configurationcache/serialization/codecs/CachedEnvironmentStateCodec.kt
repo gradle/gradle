@@ -16,13 +16,13 @@
 
 package org.gradle.configurationcache.serialization.codecs
 
-import org.gradle.configurationcache.problems.PropertyTrace
-import org.gradle.configurationcache.serialization.Codec
-import org.gradle.configurationcache.serialization.ReadContext
-import org.gradle.configurationcache.serialization.WriteContext
-import org.gradle.configurationcache.serialization.readList
-import org.gradle.configurationcache.serialization.withPropertyTrace
-import org.gradle.configurationcache.serialization.writeCollection
+import org.gradle.internal.configuration.problems.PropertyTrace
+import org.gradle.internal.serialize.graph.Codec
+import org.gradle.internal.serialize.graph.ReadContext
+import org.gradle.internal.serialize.graph.WriteContext
+import org.gradle.internal.serialize.graph.readList
+import org.gradle.internal.serialize.graph.withPropertyTrace
+import org.gradle.internal.serialize.graph.writeCollection
 import org.gradle.configurationcache.services.ConfigurationCacheEnvironmentChangeTracker
 
 

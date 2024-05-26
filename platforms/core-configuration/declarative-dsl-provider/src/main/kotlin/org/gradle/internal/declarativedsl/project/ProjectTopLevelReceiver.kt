@@ -17,5 +17,4 @@
 package org.gradle.internal.declarativedsl.project
 
 
-internal
 interface ProjectTopLevelReceiver

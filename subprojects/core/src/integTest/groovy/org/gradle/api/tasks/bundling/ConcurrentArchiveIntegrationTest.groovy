@@ -19,6 +19,7 @@ package org.gradle.api.tasks.bundling
 import org.apache.commons.io.FileUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.precondition.Requires
@@ -34,6 +35,7 @@ class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
     BlockingHttpServer server = new BlockingHttpServer()
 
     @Issue("https://github.com/gradle/gradle/issues/22685")
+    @ToBeFixedForIsolatedProjects(because = "Access to root project from sub projects")
     def "can visit and edit zip archive differently from two different projects in a multiproject build"() {
         given: "an archive in the root of a multiproject build"
         createZip('test.zip') {
@@ -92,6 +94,7 @@ class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/22685")
+    @ToBeFixedForIsolatedProjects(because = "Access to root project from sub projects")
     def "can visit and edit tar archive differently from two different projects in a multiproject build"() {
         given: "an archive in the root of a multiproject build"
         createTar('test.tar') {
@@ -151,6 +154,7 @@ class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
 
 
     @Issue("https://github.com/gradle/gradle/issues/22685")
+    @ToBeFixedForIsolatedProjects(because = "Access to root project from sub projects")
     def "can visit and edit zip archive differently from two different projects with the same name in different directories in a multiproject build"() {
         given: "an archive in the root of a multiproject build"
         createZip('test.zip') {

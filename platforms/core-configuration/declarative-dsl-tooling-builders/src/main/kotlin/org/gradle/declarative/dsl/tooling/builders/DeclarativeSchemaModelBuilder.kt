@@ -30,6 +30,9 @@ import java.io.Serializable
 class DeclarativeSchemaModelBuilder(private val softwareTypeRegistry: SoftwareTypeRegistry) : ToolingModelBuilder, BuildScopeModelBuilder {
 
     override fun create(target: BuildState?): Any {
+        // Make sure the project tree has been loaded and can be queried (but not necessarily configured)
+        target?.ensureProjectsLoaded()
+
         val schema = projectEvaluationSchema(softwareTypeRegistry).analysisSchema
         return DefaultDeclarativeSchemaModel(schema)
     }

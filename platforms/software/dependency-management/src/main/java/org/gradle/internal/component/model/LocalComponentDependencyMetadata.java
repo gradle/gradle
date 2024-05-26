@@ -106,7 +106,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         }
 
         // Use attribute matching if it is supported.
-        if (targetComponentState.getCandidatesForGraphVariantSelection().supportsAttributeMatching()) {
+        if (!targetComponentState.getCandidatesForGraphVariantSelection().getVariantsForAttributeMatching().isEmpty()) {
             VariantGraphResolveState selected = variantSelector.selectByAttributeMatching(
                 consumerAttributes,
                 explicitRequestedCapabilities, targetComponentState,
@@ -117,7 +117,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         }
 
         // Otherwise, select the legacy configuration.
-        VariantGraphResolveState selected = variantSelector.selectLegacyVariant(consumerAttributes, targetComponentState, consumerSchema);
+        VariantGraphResolveState selected = variantSelector.selectLegacyVariant(consumerAttributes, targetComponentState, consumerSchema, variantSelector.getFailureHandler());
         return new GraphVariantSelectionResult(Collections.singletonList(selected), false);
     }
 

@@ -40,33 +40,11 @@ class ToBeFixedForConfigurationCacheRule implements TestRule {
         if (enabledBottomSpec && enabledIteration) {
             ToBeFixedForConfigurationCache.Skip skip = annotation.skip()
             if (skip == ToBeFixedForConfigurationCache.Skip.DO_NOT_SKIP) {
-                return new ExpectingFailureRuleStatement(base)
+                return new ExpectingFailureRuleStatement(base, "Configuration Cache")
             } else {
                 return new UnsupportedWithConfigurationCacheRule.SkippingRuleStatement(base)
             }
         }
         return base
-    }
-
-    private static class ExpectingFailureRuleStatement extends Statement {
-
-        private final Statement next
-
-        private ExpectingFailureRuleStatement(Statement next) {
-            this.next = next
-        }
-
-        @Override
-        void evaluate() throws Throwable {
-            try {
-                next.evaluate()
-                throw new ToBeFixedSpecInterceptor.UnexpectedSuccessException("Configuration Cache")
-            } catch (ToBeFixedSpecInterceptor.UnexpectedSuccessException ex) {
-                throw ex
-            } catch (Throwable ex) {
-                System.err.println("Failed with configuration cache as expected:")
-                ex.printStackTrace()
-            }
-        }
     }
 }

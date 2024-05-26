@@ -17,15 +17,17 @@
 package org.gradle.configurationcache.serialization.codecs
 
 import org.gradle.api.Task
+import org.gradle.api.internal.GeneratedSubclasses.unpackType
 import org.gradle.api.internal.tasks.TaskContainerInternal
-import org.gradle.configurationcache.problems.DocumentationSection.RequirementsTaskAccess
-import org.gradle.configurationcache.serialization.Codec
-import org.gradle.configurationcache.serialization.IsolateOwner
-import org.gradle.configurationcache.serialization.ReadContext
-import org.gradle.configurationcache.serialization.WriteContext
-import org.gradle.configurationcache.serialization.logUnsupported
-import org.gradle.configurationcache.serialization.readEnum
-import org.gradle.configurationcache.serialization.writeEnum
+import org.gradle.configurationcache.serialization.IsolateOwners
+import org.gradle.internal.serialize.graph.logUnsupportedBaseType
+import org.gradle.internal.configuration.problems.DocumentationSection.RequirementsTaskAccess
+import org.gradle.internal.serialize.graph.Codec
+import org.gradle.internal.serialize.graph.ReadContext
+import org.gradle.internal.serialize.graph.WriteContext
+import org.gradle.internal.serialize.graph.logUnsupported
+import org.gradle.internal.serialize.graph.readEnum
+import org.gradle.internal.serialize.graph.writeEnum
 
 
 private
@@ -50,10 +52,10 @@ object TaskReferenceCodec : Codec<Task> {
 
         else -> {
             writeEnum(ReferenceType.PROHIBITED)
-            logUnsupported(
+            logUnsupportedBaseType(
                 "serialize",
                 Task::class,
-                value.javaClass,
+                unpackType(value),
                 documentationSection = RequirementsTaskAccess
             )
         }
@@ -64,7 +66,7 @@ object TaskReferenceCodec : Codec<Task> {
         val owner = isolate.owner
         val delegate = owner.delegate
 
-        val isTaskReferencesAllowed = owner is IsolateOwner.OwnerTask && owner.allowTaskReferences
+        val isTaskReferencesAllowed = owner is IsolateOwners.OwnerTask && owner.allowTaskReferences
         val isTaskFromSameProject = delegate is Task && delegate.project == value.project
 
         return isTaskReferencesAllowed && isTaskFromSameProject

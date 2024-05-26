@@ -21,6 +21,7 @@ errorprone {
 dependencies {
     api(projects.javaLanguageExtensions)
     api(projects.serialization)
+    api(projects.serviceProvider)
     api(project(":base-services"))
     api(project(":build-events"))
     api(project(":build-operations"))
@@ -40,8 +41,9 @@ dependencies {
     api(project(":test-suites-base"))
     api(project(":toolchains-jvm"))
     api(project(":toolchains-jvm-shared"))
-    api(project(":worker-processes"))
+    api(project(":worker-main"))
     api(project(":workers"))
+    api(project(":build-process-services"))
 
     api(libs.asm)
     api(libs.fastutil)

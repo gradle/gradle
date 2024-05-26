@@ -20,7 +20,7 @@ import org.gradle.api.internal.tasks.userinput.DefaultUserInputReader;
 import org.gradle.api.internal.tasks.userinput.UserInputReader;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
+import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.tooling.internal.provider.serialization.ClassLoaderCache;
 import org.gradle.internal.daemon.serialization.DaemonSidePayloadClassLoaderFactory;
 import org.gradle.tooling.internal.provider.serialization.DefaultPayloadClassLoaderRegistry;
@@ -29,7 +29,7 @@ import org.gradle.tooling.internal.provider.serialization.PayloadClassLoaderFact
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.WellKnownClassLoaderRegistry;
 
-public class DaemonServices extends AbstractPluginServiceRegistry {
+public class DaemonServices extends AbstractGradleModuleServices {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.add(UserInputReader.class, DefaultUserInputReader.class);

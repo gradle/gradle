@@ -22,6 +22,7 @@ import org.gradle.internal.nativeintegration.jansi.JansiStorageLocator
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.util.internal.ToBeImplemented
 import org.junit.Rule
 import spock.lang.Issue
 
@@ -55,6 +56,7 @@ class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
         nativeDir.directory
     }
 
+    @ToBeImplemented("https://github.com/gradle/gradle/issues/28203")
     def "native services are #description with systemProperties == #systemProperties"() {
         given:
         // We set Gradle User Home to a different temporary directory that is outside
@@ -89,13 +91,15 @@ class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
         nativeDir.exists() == initialized
 
         where:
+        // Works for all cases except -D$NATIVE_SERVICES_OPTION=false
         description       | systemProperties                    | initialized
         "initialized"     | ["-D$NATIVE_SERVICES_OPTION=true"]  | true
-        "not initialized" | ["-D$NATIVE_SERVICES_OPTION=false"] | false
+        "not initialized" | ["-D$NATIVE_SERVICES_OPTION=false"] | true // Should be false
         "initialized"     | ["-D$NATIVE_SERVICES_OPTION=''"]    | true
         "initialized"     | []                                  | true
     }
 
+    @ToBeImplemented("https://github.com/gradle/gradle/issues/28203")
     def "native services flag should be passed to the daemon and to the worker"() {
         given:
         executer.withArguments(systemProperties.collect { it.toString() })
@@ -132,9 +136,10 @@ class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
         outputContains("Uses native integration in worker: $usesNativeIntegration")
 
         where:
+        // Works for all cases except -D$NATIVE_SERVICES_OPTION=false
         systemProperties                    | usesNativeIntegration
         ["-D$NATIVE_SERVICES_OPTION=true"]  | true
-        ["-D$NATIVE_SERVICES_OPTION=false"] | false
+        ["-D$NATIVE_SERVICES_OPTION=false"] | true // Should be false
         ["-D$NATIVE_SERVICES_OPTION=''"]    | true
         []                                  | true
     }

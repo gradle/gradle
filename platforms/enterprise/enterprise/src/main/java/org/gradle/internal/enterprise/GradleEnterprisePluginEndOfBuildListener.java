@@ -16,7 +16,10 @@
 
 package org.gradle.internal.enterprise;
 
+import org.gradle.api.problems.internal.Problem;
+
 import javax.annotation.Nullable;
+import java.util.Collection;
 
 /**
  * Used to signal the end of build to the plugin.
@@ -31,6 +34,10 @@ public interface GradleEnterprisePluginEndOfBuildListener {
     interface BuildResult {
         @Nullable
         Throwable getFailure();
+
+        Collection<Problem> getProblems();
+
+        Collection<Problem> getProblemsFor(Throwable failure);
     }
 
     void buildFinished(BuildResult buildResult);

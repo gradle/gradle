@@ -22,7 +22,9 @@ import org.gradle.api.tasks.OutputFiles
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.operations.execution.CachingDisabledReasonCategory
+import org.gradle.test.fixtures.Flaky
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 
@@ -253,6 +255,8 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
         annotation << [OutputFiles.simpleName, OutputDirectories.simpleName]
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Investigate")
+    @Flaky(because = "https://github.com/gradle/gradle-private/issues/4206")
     def "cacheability for a task with overlapping outputs is OVERLAPPING_OUTPUTS"() {
         buildFile """
             task cacheable(type: Cacheable)
@@ -460,5 +464,14 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
             assert it.result.cachingDisabledReasonMessage == message
             return true
         })
+    }
+
+    @Override
+    AbstractIntegrationSpec withBuildCache() {
+        // When configuration cache is enabled, the task graph for cache-hit builds will be loaded from the cache and tasks will run in parallel and start in an arbitrary order
+        // Use max-workers=1 to force non-parallel execution and the tasks to run in the specified order
+        // (--no-parallel doesn't have an effect with CC, but max-workers should affect both CC and parallel executors)
+        args("--max-workers=1")
+        return super.withBuildCache()
     }
 }

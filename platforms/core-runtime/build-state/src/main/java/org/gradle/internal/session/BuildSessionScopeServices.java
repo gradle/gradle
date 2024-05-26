@@ -24,7 +24,7 @@ import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.event.ScopedListenerManager;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.internal.service.scopes.GradleModuleServices;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.WorkerSharedBuildSessionScopeServices;
 import org.gradle.plugin.use.internal.InjectedPluginClasspath;
@@ -52,10 +52,10 @@ public class BuildSessionScopeServices extends WorkerSharedBuildSessionScopeServ
         this.buildEventConsumer = buildEventConsumer;
     }
 
-    void configure(ServiceRegistration registration, List<PluginServiceRegistry> pluginServiceRegistries) {
+    void configure(ServiceRegistration registration, List<GradleModuleServices> servicesProviders) {
         registration.add(StartParameterInternal.class, startParameter);
-        for (PluginServiceRegistry pluginServiceRegistry : pluginServiceRegistries) {
-            pluginServiceRegistry.registerBuildSessionServices(registration);
+        for (GradleModuleServices services : servicesProviders) {
+            services.registerBuildSessionServices(registration);
         }
         registration.add(InjectedPluginClasspath.class, new InjectedPluginClasspath(injectedPluginClassPath));
         registration.add(BuildCancellationToken.class, buildCancellationToken);

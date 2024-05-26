@@ -38,13 +38,13 @@ import org.gradle.internal.resource.connector.ResourceConnectorFactory
 import org.gradle.internal.resource.connector.ResourceConnectorSpecification
 import org.gradle.internal.resource.transfer.ExternalResourceConnector
 import org.gradle.internal.service.ServiceRegistration
-import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry
+import org.gradle.internal.service.scopes.AbstractGradleModuleServices
 import java.io.File
-import org.gradle.configurationcache.extensions.add
+import org.gradle.internal.extensions.core.add
 import org.gradle.invocation.IsolatedProjectEvaluationListenerProvider
 
 
-class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
+class ConfigurationCacheServices : AbstractGradleModuleServices() {
     override fun registerGlobalServices(registration: ServiceRegistration) {
         registration.run {
             add(BeanConstructors::class.java)

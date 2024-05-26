@@ -16,15 +16,18 @@
 
 package org.gradle.configurationcache.serialization.codecs
 
-import org.gradle.configurationcache.problems.PropertyKind
-import org.gradle.configurationcache.serialization.ReadContext
-import org.gradle.configurationcache.serialization.WriteContext
+import org.gradle.internal.configuration.problems.PropertyKind
+import org.gradle.internal.serialize.graph.Decoding
+import org.gradle.internal.serialize.graph.Encoding
+import org.gradle.internal.serialize.graph.EncodingProducer
+import org.gradle.internal.serialize.graph.ReadContext
+import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.configurationcache.serialization.beans.readPropertyValue
 import org.gradle.configurationcache.serialization.beans.reportUnsupportedFieldType
 import org.gradle.configurationcache.serialization.beans.unsupportedFieldTypeFor
 import org.gradle.configurationcache.serialization.beans.writeNextProperty
-import org.gradle.configurationcache.serialization.logPropertyProblem
-import org.gradle.configurationcache.serialization.withDebugFrame
+import org.gradle.internal.serialize.graph.logPropertyProblem
+import org.gradle.internal.serialize.graph.withDebugFrame
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier.isStatic
 

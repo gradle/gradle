@@ -15,7 +15,7 @@ errorprone {
 }
 
 dependencies {
-    api(project(":base-services"))
+    api(projects.serviceProvider)
     api(project(":core"))
     api(project(":core-api"))
     api(project(":resources"))
@@ -31,6 +31,7 @@ dependencies {
     }
     api(libs.guava)
 
+    implementation(projects.baseServices)
     implementation(project(":hashing"))
 
     implementation(libs.commonsLang)

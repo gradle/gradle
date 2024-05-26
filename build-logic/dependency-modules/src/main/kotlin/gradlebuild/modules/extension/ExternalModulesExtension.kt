@@ -22,7 +22,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
 
     val groovyVersion = if (isBundleGroovy4) "4.0.20" else "3.0.21"
     val configurationCacheReportVersion = "1.5"
-    val gradleIdeStarterVersion = "0.2-SNAPSHOT"
+    val gradleIdeStarterVersion = "0.3"
     val kotlinVersion = "1.9.23"
 
     fun futureKotlin(module: String) = "org.jetbrains.kotlin:kotlin-$module:$kotlinVersion"
@@ -45,7 +45,6 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val bouncycastlePkix = "org.bouncycastle:bcpkix-jdk18on"
     val bouncycastleProvider = "org.bouncycastle:bcprov-jdk18on"
     val bsh = "org.apache-extras.beanshell:bsh"
-    val capsule = "io.usethesource:capsule"
     val commonsCodec = "commons-codec:commons-codec"
     val commonsCompress = "org.apache.commons:commons-compress"
     val commonsHttpclient = "org.apache.httpcomponents:httpclient"
@@ -114,6 +113,9 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val junitPlatform = "org.junit.platform:junit-platform-launcher"
     val junitPlatformEngine = "org.junit.platform:junit-platform-engine"
     val jzlib = "com.jcraft:jzlib"
+    val kotlinCompilerEmbeddable = futureKotlin("compiler-embeddable")
+    val kotlinReflect = futureKotlin("reflect")
+    val kotlinStdlib = futureKotlin("stdlib")
     val kryo = "com.esotericsoftware.kryo:kryo"
     val log4jToSlf4j = "org.slf4j:log4j-over-slf4j"
     val maven3Artifact = "org.apache.maven:maven-artifact"
@@ -228,7 +230,6 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
         bouncycastlePgp to License.MIT,
         bouncycastleProvider to License.MIT,
         bsh to License.Apache2,
-        capsule to License.BSDStyle,
         commonsCodec to License.Apache2,
         commonsCompress to License.Apache2,
         commonsHttpclient to License.Apache2,

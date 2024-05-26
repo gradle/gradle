@@ -7,7 +7,7 @@ description = "Kotlin DSL Tooling Builders for IDEs"
 dependencies {
     api(project(":core-api"))
     api(project(":core"))
-    api(libs.futureKotlin("stdlib"))
+    api(libs.kotlinStdlib)
 
     implementation(projects.javaLanguageExtensions)
     implementation(projects.time)
@@ -20,6 +20,7 @@ dependencies {
     implementation(project(":tooling-api"))
     implementation(project(":logging"))
     implementation(project(":kotlin-dsl-tooling-models"))
+    implementation(project(":build-process-services"))
 
     testImplementation(testFixtures(project(":kotlin-dsl")))
     integTestImplementation(testFixtures(project(":tooling-api")))

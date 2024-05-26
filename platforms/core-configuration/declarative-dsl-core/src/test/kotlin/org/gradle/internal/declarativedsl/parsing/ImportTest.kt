@@ -1,6 +1,7 @@
 package org.gradle.internal.declarativedsl.parsing
 
 import org.gradle.internal.declarativedsl.analysis.AnalysisContext
+import org.gradle.internal.declarativedsl.analysis.OperationGenerationId
 import org.gradle.internal.declarativedsl.analysis.DefaultAnalysisSchema
 import org.gradle.internal.declarativedsl.analysis.DefaultDataClass
 import org.gradle.internal.declarativedsl.analysis.ErrorCollectorImpl
@@ -36,7 +37,8 @@ class ImportTest {
                 emptySet()
             ),
             emptyMap(),
-            errorCollector
+            errorCollector,
+            OperationGenerationId.PROPERTY_ASSIGNMENT
         )
     }
 

@@ -5,9 +5,9 @@ import org.gradle.declarative.dsl.schema.DataProperty
 import org.gradle.declarative.dsl.schema.ExternalObjectProviderKey
 import org.gradle.declarative.dsl.schema.SchemaFunction
 import org.gradle.internal.declarativedsl.analysis.AssignmentMethod
+import org.gradle.internal.declarativedsl.analysis.OperationId
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
 import org.gradle.internal.declarativedsl.analysis.ParameterValueBinding
-import org.gradle.internal.declarativedsl.mappingToJvm.DeclarativeReflectionToObjectConverter.ConversionFilter
 import org.gradle.internal.declarativedsl.objectGraph.ObjectReflection
 import org.gradle.internal.declarativedsl.objectGraph.PropertyValueReflection
 
@@ -18,16 +18,9 @@ class DeclarativeReflectionToObjectConverter(
     private val functionResolver: RuntimeFunctionResolver,
     private val propertyResolver: RuntimePropertyResolver,
     private val customAccessors: RuntimeCustomAccessors
-) {
-    fun interface ConversionFilter {
-        fun filterProperties(dataObjectReflection: ObjectReflection.DataObjectReflection): Iterable<DataProperty>
+) : ReflectionToObjectConverter {
 
-        companion object {
-            val none = ConversionFilter { dataObjectReflection -> dataObjectReflection.properties.keys }
-        }
-    }
-
-    fun apply(objectReflection: ObjectReflection, conversionFilter: ConversionFilter = ConversionFilter.none) {
+    override fun apply(objectReflection: ObjectReflection, conversionFilter: ReflectionToObjectConverter.ConversionFilter) {
         if (objectReflection is ObjectReflection.DataObjectReflection) {
             conversionFilter.filterProperties(objectReflection).forEach { property ->
                 val assigned = objectReflection.properties.getValue(property)
@@ -101,7 +94,7 @@ class DeclarativeReflectionToObjectConverter(
 
     private
     sealed interface ObjectAccessKey {
-        data class Identity(val id: Long) : ObjectAccessKey
+        data class Identity(val id: OperationId) : ObjectAccessKey
         data class CustomAccessor(val owner: ObjectOrigin, val accessorId: String) : ObjectAccessKey
         data class ConfiguringLambda(val owner: ObjectOrigin, val function: SchemaFunction) : ObjectAccessKey
     }

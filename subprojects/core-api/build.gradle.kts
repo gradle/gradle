@@ -41,10 +41,11 @@ dependencies {
     implementation(projects.io)
     implementation(project(":base-services-groovy"))
     implementation(project(":logging"))
+    implementation(project(":build-process-services"))
     implementation(libs.commonsLang)
     implementation(libs.slf4jApi)
 
-    runtimeOnly(libs.futureKotlin("reflect"))
+    runtimeOnly(libs.kotlinReflect)
 
     testImplementation(libs.asm)
     testImplementation(libs.asmCommons)

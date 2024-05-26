@@ -28,7 +28,6 @@ import org.gradle.api.internal.provider.Collectors.ElementsFromCollectionProvide
 import org.gradle.api.internal.provider.Collectors.SingleElement;
 import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.SupportsConvention;
 import org.gradle.internal.Cast;
 import org.gradle.util.internal.TextUtil;
 
@@ -84,7 +83,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     private final Class<T> elementType;
     private final Supplier<ImmutableCollection.Builder<T>> collectionFactory;
     private final ValueCollector<T> valueCollector;
-    private CollectionSupplier<T, C> defaultValue = emptySupplier();
+    private CollectionSupplier<T, C> defaultValue;
 
     AbstractCollectionProperty(PropertyHost host, Class<? extends Collection> collectionType, Class<T> elementType, Supplier<ImmutableCollection.Builder<T>> collectionFactory) {
         super(host);
@@ -92,7 +91,17 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         this.elementType = elementType;
         this.collectionFactory = collectionFactory;
         valueCollector = new ValidatingValueCollector<>(collectionType, elementType, ValueSanitizers.forType(elementType));
+        init();
+    }
+
+    private void init() {
+        defaultValue = emptySupplier();
         init(defaultValue, noValueSupplier());
+    }
+
+    @Override
+    protected CollectionSupplier<T, C> getDefaultValue() {
+        return defaultValue;
     }
 
     @Override
@@ -244,7 +253,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     @Override
     public void set(@Nullable final Iterable<? extends T> elements) {
         if (elements == null) {
-            doUnset(true);
+            unsetValueAndDefault();
         } else {
             setSupplier(new CollectingSupplier(new ElementsFromCollection<>(elements)));
         }
@@ -268,17 +277,10 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         setSupplier(new CollectingSupplier(new ElementsFromCollectionProvider<>(p)));
     }
 
-    @Override
-    public SupportsConvention unset() {
-        doUnset(false);
-        return this;
-    }
-
-    private void doUnset(boolean changeDefault) {
-        super.unset();
-        if (changeDefault) {
-            defaultValue = noValueSupplier();
-        }
+    private void unsetValueAndDefault() {
+        // assign no-value default before restoring to it
+        defaultValue = noValueSupplier();
+        unset();
     }
 
     @Override

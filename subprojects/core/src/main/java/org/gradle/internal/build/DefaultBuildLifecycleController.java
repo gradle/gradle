@@ -66,7 +66,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         Finished
     }
 
-    public static final ImmutableList<State> CONFIGURATION_STATES = ImmutableList.of(State.Configure, State.TaskSchedule, State.ReadyToRun);
+    private static final ImmutableList<State> CONFIGURATION_STATES = ImmutableList.of(State.Configure, State.TaskSchedule, State.ReadyToRun);
 
     private final ExceptionAnalyser exceptionAnalyser;
     private final BuildListener buildListener;

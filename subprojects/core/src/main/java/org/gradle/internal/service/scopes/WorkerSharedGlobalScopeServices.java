@@ -29,6 +29,7 @@ import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.cache.FileLockManager;
+import org.gradle.cache.GlobalCache;
 import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.cache.internal.DefaultCacheFactory;
@@ -132,6 +133,7 @@ public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
     PropertyFactory createPropertyFactory(PropertyHost propertyHost) {
         return new DefaultPropertyFactory(propertyHost);
     }
+
     ManagedFactoryRegistry createManagedFactoryRegistry(NamedObjectInstantiator namedObjectInstantiator, InstantiatorFactory instantiatorFactory, PropertyFactory propertyFactory, FileCollectionFactory fileCollectionFactory, FileFactory fileFactory, FilePropertyFactory filePropertyFactory) {
         return new DefaultManagedFactoryRegistry().withFactories(
             instantiatorFactory.getManagedFactory(),
@@ -151,6 +153,10 @@ public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
 
     DefaultModuleRegistry createModuleRegistry(CurrentGradleInstallation currentGradleInstallation) {
         return new DefaultModuleRegistry(additionalModuleClassPath, currentGradleInstallation.getInstallation());
+    }
+
+    GlobalCache createGlobalCache(DefaultModuleRegistry moduleRegistry) {
+        return moduleRegistry::getGlobalCacheRoots;
     }
 
     CurrentGradleInstallation createCurrentGradleInstallation() {

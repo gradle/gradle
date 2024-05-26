@@ -302,14 +302,6 @@ class RuleBindings {
             return getByPath(getByState(nodeAtState.state), nodeAtState.path.toString());
         }
 
-        public void remove(ModelNodeInternal node, RuleBinder ruleBinder) {
-            unbind(ruleBinder, node);
-            for (ModelNode.State state : ModelNode.State.values()) {
-                Map<String, List<RuleBinder>> byState = getByState(state);
-                getByPath(byState, node.getPath().toString()).clear();
-            }
-        }
-
         @Override
         public String toString() {
             return name;
