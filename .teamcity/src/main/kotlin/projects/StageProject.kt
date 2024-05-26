@@ -1,5 +1,6 @@
 package projects
 
+import common.Os
 import common.hiddenArtifactDestination
 import common.uuidPrefix
 import configurations.BaseGradleBuildType
@@ -67,7 +68,12 @@ class StageProject(
             stage.flameGraphs.map { createFlameGraphs(model, stage, it) }
 
         functionalTests = stage.functionalTests
-            .map { FunctionalTest(model, it.asConfigurationId(model), it.asName(), it.asName(), it, stage = stage) }
+            .map {
+                FunctionalTest(
+                    model, it.asConfigurationId(model), it.asName(), it.asName(), it, stage = stage,
+                    extraParameters = if (it.os == Os.LINUX) "-DenableTestDistribution=%enableTestDistribution% -DtestDistributionPartitionSizeInSeconds=%testDistributionPartitionSizeInSeconds%" else ""
+                )
+            }
         functionalTests.forEach(this::buildType)
 
         val crossVersionTests = functionalTests.filter { it.testCoverage.isCrossVersionTest }
@@ -119,7 +125,12 @@ class StageProject(
         get() = testType in setOf(TestType.allVersionsCrossVersion, TestType.quickFeedbackCrossVersion)
 
     private
-    fun createPerformanceTests(model: CIBuildModel, performanceTestBucketProvider: PerformanceTestBucketProvider, stage: Stage, performanceTestCoverage: PerformanceTestCoverage): PerformanceTestsPass {
+    fun createPerformanceTests(
+        model: CIBuildModel,
+        performanceTestBucketProvider: PerformanceTestBucketProvider,
+        stage: Stage,
+        performanceTestCoverage: PerformanceTestCoverage
+    ): PerformanceTestsPass {
         val performanceTestProject = AutomaticallySplitPerformanceTestProject(model, performanceTestBucketProvider, stage, performanceTestCoverage)
         subProject(performanceTestProject)
         return PerformanceTestsPass(model, performanceTestProject).also(this::buildType)
@@ -151,17 +162,18 @@ class StageProject(
     }
 
     private
-    fun createFlameGraphBuild(model: CIBuildModel, stage: Stage, flameGraphGenerationBuildSpec: FlameGraphGeneration.FlameGraphGenerationBuildSpec, bucketIndex: Int): PerformanceTest = flameGraphGenerationBuildSpec.run {
-        PerformanceTest(
-            model,
-            stage,
-            flameGraphGenerationBuildSpec,
-            description = "Flame graphs with $profiler for ${performanceScenario.scenario.scenario} | ${performanceScenario.testProject} on ${os.asName()} (bucket $bucketIndex)",
-            performanceSubProject = "performance",
-            bucketIndex = bucketIndex,
-            extraParameters = "--profiler $profiler --tests \"${performanceScenario.scenario.className}.${performanceScenario.scenario.scenario}\"",
-            testProjects = listOf(performanceScenario.testProject),
-            performanceTestTaskSuffix = "PerformanceAdHocTest"
-        )
-    }
+    fun createFlameGraphBuild(model: CIBuildModel, stage: Stage, flameGraphGenerationBuildSpec: FlameGraphGeneration.FlameGraphGenerationBuildSpec, bucketIndex: Int): PerformanceTest =
+        flameGraphGenerationBuildSpec.run {
+            PerformanceTest(
+                model,
+                stage,
+                flameGraphGenerationBuildSpec,
+                description = "Flame graphs with $profiler for ${performanceScenario.scenario.scenario} | ${performanceScenario.testProject} on ${os.asName()} (bucket $bucketIndex)",
+                performanceSubProject = "performance",
+                bucketIndex = bucketIndex,
+                extraParameters = "--profiler $profiler --tests \"${performanceScenario.scenario.className}.${performanceScenario.scenario.scenario}\"",
+                testProjects = listOf(performanceScenario.testProject),
+                performanceTestTaskSuffix = "PerformanceAdHocTest"
+            )
+        }
 }
