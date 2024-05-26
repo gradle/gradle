@@ -108,7 +108,7 @@ fun getTestTaskName(testCoverage: TestCoverage, subprojects: List<String>): Stri
         if (testCoverage.testType == TestType.isolatedProjects) "isolatedProjectsIntegTest" else "${testCoverage.testType.name}Test"
     return when {
         subprojects.isEmpty() -> {
-            if(testTaskName == "quickTest") "eIT" else testTaskName
+            if(testTaskName == "quickTest") "eIT -x distributions-integ-test:eIT" else testTaskName
         }
 
         else -> {
