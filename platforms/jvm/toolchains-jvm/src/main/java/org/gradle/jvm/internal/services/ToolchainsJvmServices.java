@@ -16,7 +16,6 @@
 
 package org.gradle.jvm.internal.services;
 
-import net.rubygrapefruit.platform.SystemInfo;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.invocation.Gradle;
@@ -55,6 +54,7 @@ import org.gradle.jvm.toolchain.internal.WindowsInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.install.DefaultJavaToolchainProvisioningService;
 import org.gradle.jvm.toolchain.internal.install.DefaultJdkCacheDirectory;
 import org.gradle.jvm.toolchain.internal.install.SecureFileDownloader;
+import org.gradle.platform.Architecture;
 import org.gradle.platform.internal.DefaultBuildPlatform;
 
 import java.util.List;
@@ -62,8 +62,9 @@ import java.util.List;
 public class ToolchainsJvmServices extends AbstractGradleModuleServices {
     protected static class BuildServices {
 
-        protected DefaultBuildPlatform createBuildPlatform(ObjectFactory objectFactory, SystemInfo systemInfo, OperatingSystem operatingSystem) {
-            return objectFactory.newInstance(DefaultBuildPlatform.class, systemInfo, operatingSystem);
+        protected DefaultBuildPlatform createBuildPlatform(ObjectFactory objectFactory, OperatingSystem operatingSystem) {
+            Architecture architecture = Architecture.current();
+            return objectFactory.newInstance(DefaultBuildPlatform.class, architecture, operatingSystem);
         }
 
         protected DefaultJavaToolchainResolverRegistry createJavaToolchainResolverRegistry(
