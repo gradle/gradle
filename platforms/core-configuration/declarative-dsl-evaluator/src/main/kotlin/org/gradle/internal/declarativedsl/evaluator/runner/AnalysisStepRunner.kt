@@ -21,7 +21,7 @@ import org.gradle.declarative.dsl.evaluation.InterpretationStepFeature
 import org.gradle.declarative.dsl.evaluation.InterpretationStepFeature.DocumentChecks
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 import org.gradle.internal.declarativedsl.analysis.tracingCodeResolver
-import org.gradle.internal.declarativedsl.dom.resolvedDocument
+import org.gradle.internal.declarativedsl.dom.resolution.resolutionContainer
 import org.gradle.internal.declarativedsl.dom.toDocument
 import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult.NotEvaluated
 import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult.NotEvaluated.StageFailure.AssignmentErrors
@@ -63,11 +63,12 @@ open class AnalysisStepRunner : InterpretationSequenceStepRunner<AnalysisStepCon
         val resultHandlers = stepContext.supportedResolutionResultHandlers.filter { processor -> postProcessingFeatures.any(processor::shouldHandleFeature) }
         val resolution = resultHandlers.fold(initialResolution) { acc, it -> it.processResolutionResult(acc) }
 
-        val document = resolvedDocument(evaluationSchema.analysisSchema, resolver.trace, languageModel.toDocument())
+        val document = languageModel.toDocument()
+        val documentResolutionContainer = resolutionContainer(evaluationSchema.analysisSchema, resolver.trace, document)
 
         val checkFeatures = step.features.filterIsInstance<DocumentChecks>()
         val checkResults = stepContext.supportedDocumentChecks.filter { checkFeatures.any(it::shouldHandleFeature) }
-            .flatMap { it.detectFailures(document) }
+            .flatMap { it.detectFailures(document, documentResolutionContainer) }
 
         if (checkResults.isNotEmpty()) {
             failureReasons += DocumentCheckFailures(checkResults)
