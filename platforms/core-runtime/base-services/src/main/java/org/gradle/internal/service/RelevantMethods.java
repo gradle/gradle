@@ -15,10 +15,9 @@
  */
 package org.gradle.internal.service;
 
-import com.google.common.collect.ImmutableList;
-
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -52,9 +51,9 @@ public class RelevantMethods {
 
     private static class RelevantMethodsBuilder {
         private final Class<?> type;
-        private final ImmutableList.Builder<ServiceMethod> decorators = ImmutableList.builder();
-        private final ImmutableList.Builder<ServiceMethod> factories = ImmutableList.builder();
-        private final ImmutableList.Builder<ServiceMethod> configurers = ImmutableList.builder();
+        private final List<ServiceMethod> decorators = new ArrayList<ServiceMethod>();
+        private final List<ServiceMethod> factories = new ArrayList<ServiceMethod>();
+        private final List<ServiceMethod> configurers = new ArrayList<ServiceMethod>();
 
         private final Set<String> seen = new HashSet<String>();
 
@@ -71,7 +70,7 @@ public class RelevantMethods {
                     addMethod(method);
                 }
             }
-            return new RelevantMethods(decorators.build(), factories.build(), configurers.build());
+            return new RelevantMethods(decorators, factories, configurers);
         }
 
         private void addMethod(Method method) {
@@ -95,7 +94,7 @@ public class RelevantMethods {
             }
         }
 
-        public void add(ImmutableList.Builder<ServiceMethod> builder, Method method) {
+        public void add(List<ServiceMethod> builder, Method method) {
             StringBuilder signature = new StringBuilder();
             signature.append(method.getName());
             for (Class<?> parameterType : method.getParameterTypes()) {
