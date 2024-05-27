@@ -322,15 +322,23 @@ public enum JavaVersion {
         return versionName;
     }
 
+    /**
+     * Returns the major version number as a {@link String}
+     *
+     * @see #getMajorVersionNumber() for the integer value
+     * @since 1.8
+     */
     public String getMajorVersion() {
         return String.valueOf(getMajorVersionNumber());
     }
 
     /**
-     * Returns the major version number.
+     * Returns the major version number
      *
+     * @see #getMajorVersion() for the string value
      * @since 8.9
      */
+    @Incubating
     public int getMajorVersionNumber() {
         return ordinal() + 1;
     }
