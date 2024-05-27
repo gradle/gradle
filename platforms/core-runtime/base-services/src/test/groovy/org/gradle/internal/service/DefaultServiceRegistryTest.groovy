@@ -588,6 +588,7 @@ class DefaultServiceRegistryTest extends Specification {
 
     def usesOverriddenFactoryMethodToCreateServiceInstance() {
         def registry = new TestRegistry() {
+            @Provides
             @Override
             protected String createString() {
                 return "overridden"
@@ -1683,14 +1684,17 @@ class DefaultServiceRegistryTest extends Specification {
             super(parent)
         }
 
+        @Provides
         protected String createString() {
             return get(Integer).toString()
         }
 
+        @Provides
         protected Integer createInt() {
             return 12
         }
 
+        @Provides
         protected Factory<BigDecimal> createTestFactory() {
             return new TestFactory()
         }
@@ -1750,12 +1754,14 @@ class DefaultServiceRegistryTest extends Specification {
     }
 
     private static class UnsupportedInjectionProvider implements ServiceProvider {
+        @Provides
         Number create(String[] values) {
             return values.length
         }
     }
 
     private static class UnsupportedWildcardProvider implements ServiceProvider {
+        @Provides
         Number create(List<? super String> values) {
             return values.length
         }
