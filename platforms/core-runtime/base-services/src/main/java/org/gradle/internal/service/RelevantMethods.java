@@ -91,6 +91,8 @@ public class RelevantMethods {
                 } else {
                     add(factories, method);
                 }
+            } else if (method.getAnnotation(Provides.class) != null) {
+                throw new ServiceValidationException(String.format("Non-factory method %s.%s() must not be annotated with @Provides.", type.getName(), method.getName()));
             }
         }
 

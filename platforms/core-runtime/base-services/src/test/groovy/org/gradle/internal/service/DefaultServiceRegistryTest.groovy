@@ -386,6 +386,24 @@ class DefaultServiceRegistryTest extends Specification {
         }
     }
 
+    def failsWhenNonCreateMethodHasAnnotation() {
+        def registry = new DefaultServiceRegistry()
+
+        when:
+        registry.addProvider(new AnnotatedNonServiceProvider())
+
+        then:
+        ServiceValidationException e = thrown()
+        e.message == "Non-factory method ${AnnotatedNonServiceProvider.name}.factoryWithAnnotation() must not be annotated with @Provides."
+    }
+
+    private static class AnnotatedNonServiceProvider implements ServiceRegistrationProvider {
+        @Provides
+        String factoryWithAnnotation() {
+            return "bad-method-name"
+        }
+    }
+
     def failsWhenInterfaceIsRegistered() {
         def registry = new DefaultServiceRegistry()
         when:
