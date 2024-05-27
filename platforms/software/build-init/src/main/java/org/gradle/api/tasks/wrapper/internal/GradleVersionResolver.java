@@ -32,6 +32,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -67,14 +68,30 @@ public class GradleVersionResolver {
     }
 
     private GradleVersion resolve() {
+        return resolveGradleVersion(gradleVersionRequest);
+    }
+
+    public GradleVersion resolveGradleVersion(@Nullable String request) {
+        return resolveGradleVersion(new GradleVersionRequest(request));
+    }
+
+    private GradleVersion resolveGradleVersion(GradleVersionRequest gradleVersionRequest) {
+        Function<String, GradleVersion> toGradleVersion = version -> {
+            try {
+                return GradleVersion.version(version);
+            } catch (Exception e) {
+                throw new WrapperVersionException("Invalid version specified for argument '--gradle-version': " + e.getMessage(), e);
+            }
+        };
+
         switch (gradleVersionRequest.requestType) {
             case DYNAMIC_VERSION:
                 String version = getSingleVersion(gradleVersionRequest.dynamicVersion);
-                return GradleVersion.version(version);
+                return toGradleVersion.apply(version);
             case SEMANTIC_VERSION:
                 return resolveSemanticVersion(gradleVersionRequest.majorVersion, gradleVersionRequest.minorVersion);
             case VERSION:
-                return GradleVersion.version(gradleVersionRequest.request);
+                return toGradleVersion.apply(gradleVersionRequest.request);
             default:
                 throw new IllegalArgumentException("Unknown request type: " + gradleVersionRequest.requestType);
         }

@@ -52,8 +52,7 @@ class WrapperUpgradeIntegrationTest extends AbstractWrapperIntegrationSpec {
         def failure = updateWrapperTo(badVersion).runWithFailure()
 
         and:
-        failure.assertHasDescription("Invalid version specified for argument '--gradle-version'")
-        failure.assertHasCause("'$badVersion' is not a valid Gradle version string (examples: '9.0.0', '9.1.0-rc-1')")
+        failure.assertHasCause("Invalid version specified for argument '--gradle-version': '$badVersion' is not a valid Gradle version string (examples: '9.0.0', '9.1.0-rc-1')")
         assertHasResolution(failure)
 
         where:
