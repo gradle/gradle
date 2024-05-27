@@ -58,7 +58,7 @@ dependencies {
 // end::use_dependency_bundle[]
 
 // tag::type_unsafe_access[]
-val versionCatalog = extensions.getByType<VersionCatalogsExtension>().named("libs")
+val versionCatalog = versionCatalogs.named("libs")
 println("Library aliases: ${versionCatalog.libraryAliases}")
 dependencies {
     versionCatalog.findLibrary("groovy-json").ifPresent {
