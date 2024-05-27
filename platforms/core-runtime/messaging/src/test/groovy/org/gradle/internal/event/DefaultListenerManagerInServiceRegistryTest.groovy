@@ -300,6 +300,7 @@ class DefaultListenerManagerInServiceRegistryTest extends Specification {
         given:
         def services = new DefaultServiceRegistry()
         services.addProvider(new ServiceProvider() {
+            @Provides
             ListenerManager createListenerManager() {
                 return new DefaultListenerManager(Scope.BuildTree)
             }
@@ -316,6 +317,7 @@ class DefaultListenerManagerInServiceRegistryTest extends Specification {
     def "fails when listener service is not declared as listener type"() {
         def listener = Mock(SubListener)
         services.addProvider(new ServiceProvider() {
+            @Provides
             Runnable createListener() {
                 return listener
             }
@@ -337,6 +339,7 @@ class DefaultListenerManagerInServiceRegistryTest extends Specification {
         def broadcast = listenerManager.getBroadcaster(TestListener)
         broadcast.something("12")
         services.addProvider(new ServiceProvider() {
+            @Provides
             TestListener createListener() {
                 created.run()
                 return listener
@@ -356,6 +359,7 @@ class DefaultListenerManagerInServiceRegistryTest extends Specification {
 
         when:
         services.addProvider(new ServiceProvider() {
+            @Provides
             TestListenerService createListener() {
                 created.run()
                 return service
