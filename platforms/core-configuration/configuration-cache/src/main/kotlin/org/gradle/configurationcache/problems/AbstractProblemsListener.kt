@@ -18,7 +18,7 @@ package org.gradle.configurationcache.problems
 
 import org.gradle.configurationcache.ConfigurationCacheError
 import org.gradle.configurationcache.ConfigurationCacheThrowable
-import org.gradle.configurationcache.extensions.maybeUnwrapInvocationTargetException
+import org.gradle.internal.extensions.stdlib.maybeUnwrapInvocationTargetException
 import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.configuration.problems.StructuredMessage

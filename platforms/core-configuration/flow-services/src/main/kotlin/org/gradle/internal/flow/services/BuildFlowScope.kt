@@ -25,7 +25,7 @@ import org.gradle.api.flow.FlowActionSpec
 import org.gradle.api.flow.FlowParameters
 import org.gradle.api.flow.FlowProviders
 import org.gradle.api.flow.FlowScope
-import org.gradle.configurationcache.extensions.uncheckedCast
+import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.isolated.IsolationScheme
 import org.gradle.internal.service.scopes.Scope

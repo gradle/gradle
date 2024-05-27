@@ -18,7 +18,7 @@ package org.gradle.internal.serialize.graph
 
 import it.unimi.dsi.fastutil.objects.ReferenceArrayList
 import org.gradle.api.logging.Logger
-import org.gradle.configurationcache.extensions.uncheckedCast
+import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.PropertyTrace

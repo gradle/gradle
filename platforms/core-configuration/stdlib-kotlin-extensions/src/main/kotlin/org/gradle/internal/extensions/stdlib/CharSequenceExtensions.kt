@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.extensions
+package org.gradle.internal.extensions.stdlib
+
+import java.util.Locale
 
 
-/**
- * Thread unsafe version of [lazy].
- *
- * @see LazyThreadSafetyMode.NONE
- */
-fun <T> unsafeLazy(initializer: () -> T): Lazy<T> = lazy(LazyThreadSafetyMode.NONE, initializer)
+fun CharSequence.capitalized(): String =
+    when {
+        isEmpty() -> ""
+        else -> get(0).let { initial ->
+            when {
+                initial.isLowerCase() -> initial.titlecase(Locale.getDefault()) + substring(1)
+                else -> toString()
+            }
+        }
+    }

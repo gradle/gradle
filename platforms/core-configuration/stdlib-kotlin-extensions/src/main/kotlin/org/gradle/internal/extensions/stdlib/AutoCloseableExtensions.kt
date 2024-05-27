@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.extensions
+package org.gradle.internal.extensions.stdlib
 
 
 inline fun <T : AutoCloseable, U> T.useToRun(action: T.() -> U): U =

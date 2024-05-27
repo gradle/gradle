@@ -18,9 +18,9 @@ package org.gradle.configurationcache.isolation
 
 import org.gradle.api.IsolatedAction
 import org.gradle.configurationcache.ConfigurationCacheError
-import org.gradle.configurationcache.extensions.invert
-import org.gradle.configurationcache.extensions.uncheckedCast
-import org.gradle.configurationcache.extensions.useToRun
+import org.gradle.internal.extensions.stdlib.invert
+import org.gradle.internal.extensions.stdlib.uncheckedCast
+import org.gradle.internal.extensions.stdlib.useToRun
 import org.gradle.configurationcache.logger
 import org.gradle.configurationcache.problems.AbstractProblemsListener
 import org.gradle.internal.configuration.problems.PropertyProblem

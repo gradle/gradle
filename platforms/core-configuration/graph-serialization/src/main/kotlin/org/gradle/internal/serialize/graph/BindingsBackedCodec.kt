@@ -17,7 +17,7 @@
 package org.gradle.internal.serialize.graph
 
 import com.google.common.collect.ImmutableList
-import org.gradle.configurationcache.extensions.uncheckedCast
+import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.serialize.Serializer
 import kotlin.reflect.KClass
 

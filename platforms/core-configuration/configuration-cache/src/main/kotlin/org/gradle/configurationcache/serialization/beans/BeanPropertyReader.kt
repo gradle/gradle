@@ -17,7 +17,7 @@
 package org.gradle.configurationcache.serialization.beans
 
 import org.gradle.api.GradleException
-import org.gradle.configurationcache.extensions.unsafeLazy
+import org.gradle.internal.extensions.stdlib.unsafeLazy
 import org.gradle.internal.configuration.problems.PropertyKind
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.serialize.graph.BeanStateReader

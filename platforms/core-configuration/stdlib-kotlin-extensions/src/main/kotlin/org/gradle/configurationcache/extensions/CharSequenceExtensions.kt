@@ -19,6 +19,10 @@ package org.gradle.configurationcache.extensions
 import java.util.Locale
 
 
+@Deprecated(
+    "This was never intended as a public API.",
+    ReplaceWith("this.let { if (it.isEmpty()) it else it[0].titlecase(java.util.Locale.getDefault()) + it.substring(1) }")
+)
 fun CharSequence.capitalized(): String =
     when {
         isEmpty() -> ""

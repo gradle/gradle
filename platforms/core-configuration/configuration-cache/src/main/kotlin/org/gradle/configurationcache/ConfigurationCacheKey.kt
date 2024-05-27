@@ -16,7 +16,7 @@
 
 package org.gradle.configurationcache
 
-import org.gradle.configurationcache.extensions.unsafeLazy
+import org.gradle.internal.extensions.stdlib.unsafeLazy
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.buildtree.BuildActionModelRequirements
 import org.gradle.internal.hash.Hasher

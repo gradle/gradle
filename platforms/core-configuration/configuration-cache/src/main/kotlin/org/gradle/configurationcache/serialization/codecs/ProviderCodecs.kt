@@ -41,7 +41,7 @@ import org.gradle.api.services.BuildServiceParameters
 import org.gradle.api.services.internal.BuildServiceDetails
 import org.gradle.api.services.internal.BuildServiceProvider
 import org.gradle.api.services.internal.BuildServiceRegistryInternal
-import org.gradle.configurationcache.extensions.uncheckedCast
+import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.configurationcache.serialization.IsolateOwners
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.configuration.problems.PropertyTrace

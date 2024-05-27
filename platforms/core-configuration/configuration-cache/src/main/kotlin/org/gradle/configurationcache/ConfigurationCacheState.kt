@@ -33,7 +33,7 @@ import org.gradle.api.services.internal.RegisteredBuildServiceProvider
 import org.gradle.caching.configuration.BuildCache
 import org.gradle.caching.configuration.internal.BuildCacheServiceRegistration
 import org.gradle.internal.extensions.core.serviceOf
-import org.gradle.configurationcache.extensions.uncheckedCast
+import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.configuration.problems.DocumentationSection.NotYetImplementedSourceDependencies
 import org.gradle.internal.flow.services.BuildFlowScope
 import org.gradle.internal.serialize.graph.DefaultReadContext
