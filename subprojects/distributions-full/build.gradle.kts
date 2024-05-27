@@ -65,8 +65,6 @@ fun registerApiJarTask(taskName: String, dirName: String, dependencies: NamedDom
         }.files
     })
     destinationDirectory = layout.buildDirectory.dir("public-api/$dirName")
-    // FIXME This is required because package-info.class files are duplicated
-    duplicatesStrategy = DuplicatesStrategy.WARN
 }
 
 val coreApiTask = registerApiJarTask("jarCoreApi", "core-api", configurations.coreRuntimeClasspath)
