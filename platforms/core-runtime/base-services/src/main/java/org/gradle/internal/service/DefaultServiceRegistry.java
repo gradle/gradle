@@ -58,10 +58,13 @@ import java.util.concurrent.atomic.AtomicReference;
  *
  * <li>Calling {@link #addProvider(ServiceRegistrationProvider)} to register a service provider bean. A provider bean may have factory, decorator and configuration methods as described below.</li>
  *
- * <li>Adding a factory method. A factory method should have a name that starts with 'create', and have a non-void return type. For example, <code>protected SomeService createSomeService() { ....
- * }</code>. Parameters are injected using services from this registry or its parents. Parameter of type {@link ServiceRegistry} will receive the service registry that owns the service. Parameter of
- * type {@code List<T>} will receive all services of type T, if any. If a parameter has the same type as the return type of the factory method, then that parameter will be located in the parent registry.
- * This allows decorating services.</li>
+ * <li>Adding a factory method. A factory method should be annotated with {@literal @}{@link Provides}, have a name that starts with 'create', and have a non-void return type.
+ * For example, <code>@Provides protected SomeService createSomeService() { ....
+ * }</code>.
+ * Parameters are injected using services from this registry or its parents. Parameter of type {@link ServiceRegistry} will receive the service registry that owns the service. Parameter of
+ * type {@code List<T>} will receive all services of type {@code T}, if any.
+ * If a parameter has the same type as the return type of the factory method, then that parameter will be located in the parent registry.
+ * This allows decorating services, i.e. specializing a service from a parent scope.</li>
  *
  * <li>Adding a configure method. A configure method should be called 'configure', take a {@link ServiceRegistration} parameter, and a have a void return type. Additional parameters are injected using
  * services from this registry or its parents.</li>
