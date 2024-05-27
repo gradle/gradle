@@ -64,8 +64,8 @@ import org.gradle.internal.problems.DefaultProblemDiagnosticsFactory;
 import org.gradle.internal.problems.DefaultProblemLocationAnalyzer;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.Provides;
-import org.gradle.internal.service.ServiceProvider;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.GradleModuleServices;
 import org.gradle.internal.service.scopes.Scope;
 
@@ -74,7 +74,7 @@ import java.util.List;
 /**
  * Contains the singleton services for a single build tree which consists of one or more builds.
  */
-public class BuildTreeScopeServices implements ServiceProvider {
+public class BuildTreeScopeServices implements ServiceRegistrationProvider {
     private final BuildInvocationScopeId buildInvocationScopeId;
     private final BuildTreeState buildTree;
     private final BuildTreeModelControllerServices.Supplier modelServices;

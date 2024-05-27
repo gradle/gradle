@@ -47,7 +47,7 @@ import org.gradle.internal.resource.DefaultTextFileResourceLoader
 import org.gradle.internal.scripts.ProjectScopedScriptResolution
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.Provides
-import org.gradle.internal.service.ServiceProvider
+import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -252,14 +252,14 @@ class DefaultProjectSpec extends Specification {
         serviceRegistry.add(FileCollectionFactory, Stub(FileCollectionFactory))
 
         def antBuilder = Mock(AntBuilder)
-        serviceRegistry.addProvider(new ServiceProvider() {
+        serviceRegistry.addProvider(new ServiceRegistrationProvider() {
             @Provides
             Factory<AntBuilder> createAntBuilder() {
                 return () -> antBuilder
             }
         })
 
-        serviceRegistry.addProvider(new ServiceProvider() {
+        serviceRegistry.addProvider(new ServiceRegistrationProvider() {
             @Provides
             DefaultProjectLayout createProjectLayout(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
                 def filePropertyFactory = new DefaultFilePropertyFactory(PropertyHost.NO_OP, fileResolver, fileCollectionFactory)

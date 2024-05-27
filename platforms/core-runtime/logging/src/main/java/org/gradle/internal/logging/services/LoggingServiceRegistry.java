@@ -32,7 +32,7 @@ import org.gradle.internal.logging.source.NoOpLoggingSystem;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.Provides;
-import org.gradle.internal.service.ServiceProvider;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.time.Time;
 
@@ -49,7 +49,7 @@ import org.gradle.internal.time.Time;
  */
 public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
 
-    public static final ServiceProvider NO_OP = new ServiceProvider() {
+    public static final ServiceRegistrationProvider NO_OP = new ServiceRegistrationProvider() {
         @Provides
         OutputEventListener createOutputEventListener() {
             return OutputEventListener.NO_OP;

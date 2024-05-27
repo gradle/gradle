@@ -52,8 +52,8 @@ import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.Provides;
-import org.gradle.internal.service.ServiceProvider;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.process.ExecOperations;
 import org.gradle.process.internal.DefaultExecOperations;
@@ -64,7 +64,7 @@ import java.io.File;
 /**
  * These Project scoped services are shared between the main build process and worker processes.
  */
-public class WorkerSharedProjectScopeServices implements ServiceProvider {
+public class WorkerSharedProjectScopeServices implements ServiceRegistrationProvider {
     private final File projectDir;
 
     public WorkerSharedProjectScopeServices(File projectDir) {

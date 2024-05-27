@@ -20,8 +20,8 @@ import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.operations.trace.BuildOperationTrace;
 import org.gradle.internal.service.Provides;
-import org.gradle.internal.service.ServiceProvider;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.CrossBuildSessionParameters;
@@ -65,7 +65,7 @@ public class CrossBuildSessionState implements Closeable {
         CompositeStoppable.stoppable(services).stop();
     }
 
-    private class Services implements ServiceProvider {
+    private class Services implements ServiceRegistrationProvider {
 
         private final StartParameterInternal startParameter;
 

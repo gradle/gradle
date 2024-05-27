@@ -25,8 +25,8 @@ import org.gradle.internal.buildprocess.execution.StartParamsValidatingActionExe
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.service.DefaultServiceLocator;
 import org.gradle.internal.service.Provides;
-import org.gradle.internal.service.ServiceProvider;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.GradleModuleServices;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
@@ -34,7 +34,7 @@ import org.gradle.launcher.exec.BuildExecutor;
 
 import java.util.List;
 
-public class BuildProcessScopeServices implements ServiceProvider {
+public class BuildProcessScopeServices implements ServiceRegistrationProvider {
     void configure(ServiceRegistration registration, ClassLoaderRegistry classLoaderRegistry) {
         List<GradleModuleServices> servicesProviders = new DefaultServiceLocator(classLoaderRegistry.getRuntimeClassLoader(), classLoaderRegistry.getPluginsClassLoader()).getAll(GradleModuleServices.class);
         for (GradleModuleServices services : servicesProviders) {

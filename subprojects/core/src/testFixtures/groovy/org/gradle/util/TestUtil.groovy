@@ -54,8 +54,8 @@ import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.model.StateTransitionControllerFactory
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.Provides
-import org.gradle.internal.service.ServiceProvider
 import org.gradle.internal.service.ServiceRegistration
+import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.state.ManagedFactoryRegistry
 import org.gradle.test.fixtures.file.TestDirectoryProvider
@@ -154,7 +154,7 @@ class TestUtil {
             it.add(DocumentationRegistry, new DocumentationRegistry())
             it.add(FileCollectionFactory, fileCollectionFactory)
             it.add(DefaultPropertyFactory)
-            it.addProvider(new ServiceProvider() {
+            it.addProvider(new ServiceRegistrationProvider() {
                 @Provides
                 InstantiatorFactory createInstantiatorFactory() {
                     TestUtil.instantiatorFactory()

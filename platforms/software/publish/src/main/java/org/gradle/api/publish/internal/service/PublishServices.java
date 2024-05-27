@@ -23,8 +23,8 @@ import org.gradle.api.publish.internal.component.DefaultSoftwareComponentFactory
 import org.gradle.api.publish.internal.mapping.DefaultDependencyCoordinateResolverFactory;
 import org.gradle.api.publish.internal.validation.DuplicatePublicationTracker;
 import org.gradle.internal.service.Provides;
-import org.gradle.internal.service.ServiceProvider;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 
 public class PublishServices extends AbstractGradleModuleServices {
@@ -40,7 +40,7 @@ public class PublishServices extends AbstractGradleModuleServices {
         registration.addProvider(new GlobalScopeServices());
     }
 
-    private static class GlobalScopeServices implements ServiceProvider {
+    private static class GlobalScopeServices implements ServiceRegistrationProvider {
         @Provides
         SoftwareComponentFactory createSoftwareComponentFactory(ObjectFactory objectFactory) {
             return new DefaultSoftwareComponentFactory(objectFactory);

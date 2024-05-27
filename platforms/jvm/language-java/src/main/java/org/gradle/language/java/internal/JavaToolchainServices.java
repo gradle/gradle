@@ -22,8 +22,8 @@ import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetec
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.service.Provides;
-import org.gradle.internal.service.ServiceProvider;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.jvm.toolchain.internal.JavaCompilerFactory;
 import org.gradle.process.internal.ExecHandleFactory;
@@ -38,7 +38,7 @@ public class JavaToolchainServices extends AbstractGradleModuleServices {
         registration.addProvider(new ProjectScopeCompileServices());
     }
 
-    private static class ProjectScopeCompileServices implements ServiceProvider {
+    private static class ProjectScopeCompileServices implements ServiceRegistrationProvider {
         @Provides
         JavaCompilerFactory createJavaCompilerFactory(
             WorkerDaemonFactory workerDaemonFactory,

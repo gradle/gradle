@@ -50,8 +50,8 @@ import org.gradle.internal.buildtree.RunTasksRequirements
 import org.gradle.internal.configuration.problems.DefaultProblemFactory
 import org.gradle.internal.scripts.ProjectScopedScriptResolution
 import org.gradle.internal.service.Provides
-import org.gradle.internal.service.ServiceProvider
 import org.gradle.internal.service.ServiceRegistration
+import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.internal.snapshot.ValueSnapshotter
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
 import org.gradle.util.internal.IncubationLogger
@@ -220,7 +220,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
     }
 
     private
-    class SharedBuildTreeScopedServices : ServiceProvider {
+    class SharedBuildTreeScopedServices : ServiceRegistrationProvider {
         @Provides
         fun createToolingModelParameterCarrierFactory(valueSnapshotter: ValueSnapshotter): ToolingModelParameterCarrier.Factory {
             return DefaultToolingModelParameterCarrierFactory(valueSnapshotter)
@@ -228,19 +228,19 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
     }
 
     private
-    class ConfigurationCacheModelProvider : ServiceProvider {
+    class ConfigurationCacheModelProvider : ServiceRegistrationProvider {
         @Provides
         fun createLocalComponentCache(cache: BuildTreeConfigurationCache): LocalComponentCache = ConfigurationCacheAwareLocalComponentCache(cache)
     }
 
     private
-    class VintageModelProvider : ServiceProvider {
+    class VintageModelProvider : ServiceRegistrationProvider {
         @Provides
         fun createLocalComponentCache(): LocalComponentCache = LocalComponentCache.NO_CACHE
     }
 
     private
-    class ConfigurationCacheBuildTreeProvider : ServiceProvider {
+    class ConfigurationCacheBuildTreeProvider : ServiceRegistrationProvider {
         @Provides
         fun createBuildTreeWorkGraphPreparer(buildRegistry: BuildStateRegistry, buildTaskSelector: BuildTaskSelector, cache: BuildTreeConfigurationCache): BuildTreeWorkGraphPreparer {
             return ConfigurationCacheAwareBuildTreeWorkGraphPreparer(DefaultBuildTreeWorkGraphPreparer(buildRegistry, buildTaskSelector), cache)
@@ -248,7 +248,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
     }
 
     private
-    class VintageBuildTreeProvider : ServiceProvider {
+    class VintageBuildTreeProvider : ServiceRegistrationProvider {
         @Provides
         fun createBuildTreeWorkGraphPreparer(buildRegistry: BuildStateRegistry, buildTaskSelector: BuildTaskSelector): BuildTreeWorkGraphPreparer {
             return DefaultBuildTreeWorkGraphPreparer(buildRegistry, buildTaskSelector)

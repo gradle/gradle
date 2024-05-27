@@ -21,8 +21,8 @@ import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.authentication.DefaultAwsImAuthentication;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.service.Provides;
-import org.gradle.internal.service.ServiceProvider;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 
 
@@ -37,14 +37,14 @@ public class S3ResourcesServices extends AbstractGradleModuleServices {
         registration.addProvider(new AuthenticationSchemeAction());
     }
 
-    private static class GlobalScopeServices implements ServiceProvider {
+    private static class GlobalScopeServices implements ServiceRegistrationProvider {
         @Provides
         ResourceConnectorFactory createS3ConnectorFactory() {
             return new S3ConnectorFactory();
         }
     }
 
-    private static class AuthenticationSchemeAction implements ServiceProvider {
+    private static class AuthenticationSchemeAction implements ServiceRegistrationProvider {
         public void configure(ServiceRegistration registration, AuthenticationSchemeRegistry authenticationSchemeRegistry) {
             authenticationSchemeRegistry.registerScheme(AwsImAuthentication.class, DefaultAwsImAuthentication.class);
         }

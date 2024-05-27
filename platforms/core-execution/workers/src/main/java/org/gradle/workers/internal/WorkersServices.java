@@ -31,8 +31,8 @@ import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.service.Provides;
-import org.gradle.internal.service.ServiceProvider;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.internal.state.ManagedFactoryRegistry;
@@ -67,7 +67,7 @@ public class WorkersServices extends AbstractGradleModuleServices {
         registration.add(IsolatedClassloaderWorkerFactory.class);
     }
 
-    private static class BuildSessionScopeServices implements ServiceProvider {
+    private static class BuildSessionScopeServices implements ServiceRegistrationProvider {
         @Provides
         WorkerDirectoryProvider createWorkerDirectoryProvider(GradleUserHomeDirProvider gradleUserHomeDirProvider) {
             return new DefaultWorkerDirectoryProvider(gradleUserHomeDirProvider);
@@ -84,7 +84,7 @@ public class WorkersServices extends AbstractGradleModuleServices {
         }
     }
 
-    private static class GradleUserHomeServices implements ServiceProvider {
+    private static class GradleUserHomeServices implements ServiceRegistrationProvider {
         @Provides
         WorkerDaemonClientsManager createWorkerDaemonClientsManager(WorkerProcessFactory workerFactory,
                                                                     LoggingManagerInternal loggingManager,
@@ -112,7 +112,7 @@ public class WorkersServices extends AbstractGradleModuleServices {
         }
     }
 
-    private static class ProjectScopeServices implements ServiceProvider {
+    private static class ProjectScopeServices implements ServiceRegistrationProvider {
         @Provides
         WorkerExecutor createWorkerExecutor(InstantiatorFactory instantiatorFactory,
                                             WorkerDaemonFactory daemonWorkerFactory,

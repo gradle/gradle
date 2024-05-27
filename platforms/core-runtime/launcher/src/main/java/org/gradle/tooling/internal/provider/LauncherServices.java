@@ -58,8 +58,8 @@ import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.logging.LoggingBuildOperationProgressBroadcaster;
 import org.gradle.internal.operations.notify.BuildOperationNotificationValve;
 import org.gradle.internal.service.Provides;
-import org.gradle.internal.service.ServiceProvider;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.internal.session.BuildSessionActionExecutor;
 import org.gradle.internal.snapshot.CaseSensitivity;
@@ -104,14 +104,14 @@ public class LauncherServices extends AbstractGradleModuleServices {
         registration.addProvider(new ToolingBuildTreeScopeServices());
     }
 
-    static class ToolingGlobalScopeServices implements ServiceProvider {
+    static class ToolingGlobalScopeServices implements ServiceRegistrationProvider {
         @Provides
         BuildLoggerFactory createBuildLoggerFactory(StyledTextOutputFactory styledTextOutputFactory, WorkValidationWarningReporter workValidationWarningReporter) {
             return new BuildLoggerFactory(styledTextOutputFactory, workValidationWarningReporter, Time.clock(), null);
         }
     }
 
-    static class ToolingBuildSessionScopeServices implements ServiceProvider {
+    static class ToolingBuildSessionScopeServices implements ServiceRegistrationProvider {
         @Provides
         BuildSessionActionExecutor createActionExecutor(
             BuildEventListenerFactory listenerFactory,
@@ -181,7 +181,7 @@ public class LauncherServices extends AbstractGradleModuleServices {
 
     }
 
-    static class ToolingBuildTreeScopeServices implements ServiceProvider {
+    static class ToolingBuildTreeScopeServices implements ServiceRegistrationProvider {
         @Provides
         ProblemStream createProblemStream(StartParameter parameter, ProblemDiagnosticsFactory diagnosticsFactory){
             return  parameter.getWarningMode().shouldDisplayMessages()? diagnosticsFactory.newUnlimitedStream() : diagnosticsFactory.newStream();

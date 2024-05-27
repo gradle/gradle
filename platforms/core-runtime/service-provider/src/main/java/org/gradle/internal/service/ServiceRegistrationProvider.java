@@ -16,5 +16,10 @@
 
 package org.gradle.internal.service;
 
-public interface ServiceProvider {
+/**
+ * Marker interface for service registration providers.
+ *
+ * These are types contain method annotated with {@literal @}{@link Provides} to register services.
+ */
+public interface ServiceRegistrationProvider {
 }

@@ -26,8 +26,8 @@ import org.gradle.internal.authentication.DefaultDigestAuthentication;
 import org.gradle.internal.authentication.DefaultHttpHeaderAuthentication;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.service.Provides;
-import org.gradle.internal.service.ServiceProvider;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 
 public class HttpResourcesServices extends AbstractGradleModuleServices {
@@ -41,7 +41,7 @@ public class HttpResourcesServices extends AbstractGradleModuleServices {
         registration.addProvider(new AuthenticationSchemeAction());
     }
 
-    private static class GlobalScopeServices implements ServiceProvider {
+    private static class GlobalScopeServices implements ServiceRegistrationProvider {
         @Provides
         SslContextFactory createSslContextFactory() {
             return new DefaultSslContextFactory();
@@ -58,7 +58,7 @@ public class HttpResourcesServices extends AbstractGradleModuleServices {
         }
     }
 
-    private static class AuthenticationSchemeAction implements ServiceProvider {
+    private static class AuthenticationSchemeAction implements ServiceRegistrationProvider {
         public void configure(ServiceRegistration registration, AuthenticationSchemeRegistry authenticationSchemeRegistry) {
             authenticationSchemeRegistry.registerScheme(BasicAuthentication.class, DefaultBasicAuthentication.class);
             authenticationSchemeRegistry.registerScheme(DigestAuthentication.class, DefaultDigestAuthentication.class);

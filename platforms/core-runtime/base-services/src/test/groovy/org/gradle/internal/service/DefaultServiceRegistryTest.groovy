@@ -142,7 +142,7 @@ class DefaultServiceRegistryTest extends Specification {
 
     def injectsServicesIntoProviderFactoryMethod() {
         def registry = new DefaultServiceRegistry()
-        registry.addProvider(new ServiceProvider() {
+        registry.addProvider(new ServiceRegistrationProvider() {
             @Provides
             Integer createInteger() {
                 return 12
@@ -160,7 +160,7 @@ class DefaultServiceRegistryTest extends Specification {
 
     def injectsGenericTypesIntoProviderFactoryMethod() {
         def registry = new DefaultServiceRegistry()
-        registry.addProvider(new ServiceProvider() {
+        registry.addProvider(new ServiceRegistrationProvider() {
             @Provides
             Integer createInteger(Factory<String> factory) {
                 return factory.create().length()
@@ -191,7 +191,7 @@ class DefaultServiceRegistryTest extends Specification {
 
     def canHaveMultipleServicesWithParameterizedTypesAndSameRawType() {
         def registry = new DefaultServiceRegistry()
-        registry.addProvider(new ServiceProvider() {
+        registry.addProvider(new ServiceRegistrationProvider() {
             @Provides
             Integer createInteger(Callable<Integer> factory) {
                 return factory.call()
@@ -221,7 +221,7 @@ class DefaultServiceRegistryTest extends Specification {
     def injectsParentServicesIntoProviderFactoryMethod() {
         def parent = Mock(ParentServices)
         def registry = new DefaultServiceRegistry(registry(parent))
-        registry.addProvider(new ServiceProvider() {
+        registry.addProvider(new ServiceRegistrationProvider() {
             @Provides
             String createString(Number n) {
                 return n.toString()
@@ -251,7 +251,7 @@ class DefaultServiceRegistryTest extends Specification {
             }
         }
         def registry = new DefaultServiceRegistry(parent)
-        registry.addProvider(new ServiceProvider() {
+        registry.addProvider(new ServiceRegistrationProvider() {
             @Provides
             String createString(Callable<String> callable, Factory<String> factory) {
                 return callable.call() + ' ' + factory.create()
@@ -265,7 +265,7 @@ class DefaultServiceRegistryTest extends Specification {
     def injectsServiceRegistryIntoProviderFactoryMethod() {
         def parent = Mock(ParentServices)
         def registry = new DefaultServiceRegistry(registry(parent))
-        registry.addProvider(new ServiceProvider() {
+        registry.addProvider(new ServiceRegistrationProvider() {
             @Provides
             String createString(ServiceRegistry services) {
                 assert services.is(registry)
@@ -301,7 +301,7 @@ class DefaultServiceRegistryTest extends Specification {
         def registry = new DefaultServiceRegistry()
 
         when:
-        registry.addProvider(new ServiceProvider() {
+        registry.addProvider(new ServiceRegistrationProvider() {
             @Provides
             ServiceRegistry createServices() {
                 return new DefaultServiceRegistry()
@@ -379,7 +379,7 @@ class DefaultServiceRegistryTest extends Specification {
         e.message == "Method ${UnannotatedServiceProvider.name}.createWithoutAnnotation() must be annotated with @Provides."
     }
 
-    private static class UnannotatedServiceProvider implements ServiceProvider {
+    private static class UnannotatedServiceProvider implements ServiceRegistrationProvider {
         @SuppressWarnings('unused')
         String createWithoutAnnotation() {
             return "no-annotation"
@@ -400,7 +400,7 @@ class DefaultServiceRegistryTest extends Specification {
 
     def cachesInstancesCreatedUsingAProviderFactoryMethod() {
         def registry = new DefaultServiceRegistry()
-        def provider = new ServiceProvider() {
+        def provider = new ServiceRegistrationProvider() {
             @Provides
             String createString(Number number) {
                 return number.toString()
@@ -710,7 +710,7 @@ class DefaultServiceRegistryTest extends Specification {
         registry.register({ ServiceRegistration registration ->
             registration.add(Number, 12)
             registration.add(TestServiceImpl)
-            registration.addProvider(new ServiceProvider() {
+            registration.addProvider(new ServiceRegistrationProvider() {
                 @Provides
                 String createString() {
                     return "hi"
@@ -728,9 +728,9 @@ class DefaultServiceRegistryTest extends Specification {
         def registry = new DefaultServiceRegistry()
 
         given:
-        registry.addProvider(new ServiceProvider() {
+        registry.addProvider(new ServiceRegistrationProvider() {
             void configure(ServiceRegistration registration, Number value) {
-                registration.addProvider(new ServiceProvider() {
+                registration.addProvider(new ServiceRegistrationProvider() {
                     @Provides
                     String createString() {
                         return value.toString()
@@ -786,7 +786,7 @@ class DefaultServiceRegistryTest extends Specification {
     }
 
     def canGetAllServicesOfAGivenType() {
-        registry.addProvider(new ServiceProvider() {
+        registry.addProvider(new ServiceRegistrationProvider() {
             @Provides
             String createOtherString() {
                 return "hi"
@@ -812,7 +812,7 @@ class DefaultServiceRegistryTest extends Specification {
     }
 
     def canGetAllServicesOfAGivenTypeUsingCollectionType() {
-        registry.addProvider(new ServiceProvider() {
+        registry.addProvider(new ServiceRegistrationProvider() {
             @Provides
             String createOtherString() {
                 return "hi"
@@ -828,7 +828,7 @@ class DefaultServiceRegistryTest extends Specification {
 
     def canGetAllServicesOfARawType() {
         def registry = new DefaultServiceRegistry()
-        registry.addProvider(new ServiceProvider() {
+        registry.addProvider(new ServiceRegistrationProvider() {
             @Provides
             String createString() {
                 return "hi"
@@ -859,7 +859,7 @@ class DefaultServiceRegistryTest extends Specification {
         def parent1 = Stub(ParentServices)
         def parent2 = Stub(ParentServices)
         def registry = new DefaultServiceRegistry(registry(parent1), registry(parent2))
-        registry.addProvider(new ServiceProvider() {
+        registry.addProvider(new ServiceRegistrationProvider() {
             @Provides
             Long createLong() {
                 return 12
@@ -878,7 +878,7 @@ class DefaultServiceRegistryTest extends Specification {
         def parent1 = Stub(ParentServices)
         def parent2 = Stub(ParentServices)
         def registry = new DefaultServiceRegistry(registry(parent1), registry(parent2))
-        registry.addProvider(new ServiceProvider() {
+        registry.addProvider(new ServiceRegistrationProvider() {
             @Provides
             Long createLong(Long parent) {
                 return parent + 1
@@ -1142,7 +1142,7 @@ class DefaultServiceRegistryTest extends Specification {
         def service = Mock(TestStopService)
 
         given:
-        registry.addProvider(new ServiceProvider() {
+        registry.addProvider(new ServiceRegistrationProvider() {
             @Provides
             TestStopService createServices() {
                 return service
@@ -1164,7 +1164,7 @@ class DefaultServiceRegistryTest extends Specification {
         def registry = new DefaultServiceRegistry()
 
         given:
-        registry.addProvider(new ServiceProvider() {
+        registry.addProvider(new ServiceRegistrationProvider() {
             @Provides
             CloseableService createService3() {
                 return service3
@@ -1176,7 +1176,7 @@ class DefaultServiceRegistryTest extends Specification {
             }
 
         })
-        registry.addProvider(new ServiceProvider() {
+        registry.addProvider(new ServiceRegistrationProvider() {
             @Provides
             TestCloseService createService1(TestStopService a, CloseableService b) {
                 return service1
@@ -1205,7 +1205,7 @@ class DefaultServiceRegistryTest extends Specification {
         def registry = new DefaultServiceRegistry()
 
         given:
-        registry.addProvider(new ServiceProvider() {
+        registry.addProvider(new ServiceRegistrationProvider() {
             @Provides
             TestCloseService createService3() {
                 return service3
@@ -1216,7 +1216,7 @@ class DefaultServiceRegistryTest extends Specification {
                 return service2
             }
         })
-        registry.addProvider(new ServiceProvider() {
+        registry.addProvider(new ServiceRegistrationProvider() {
             @Provides
             TestStopService createService1(List<TestCloseService> services) {
                 return service1
@@ -1244,7 +1244,7 @@ class DefaultServiceRegistryTest extends Specification {
         def registry = new DefaultServiceRegistry()
 
         given:
-        registry.addProvider(new ServiceProvider() {
+        registry.addProvider(new ServiceRegistrationProvider() {
             @Provides
             TestStopService createService2(CloseableService b) {
                 return service2
@@ -1280,7 +1280,7 @@ class DefaultServiceRegistryTest extends Specification {
         def service = Mock(TestStopService)
 
         given:
-        registry.addProvider(new ServiceProvider() {
+        registry.addProvider(new ServiceRegistrationProvider() {
             @Provides
             TestStopService createServices() {
                 return service
@@ -1355,7 +1355,7 @@ class DefaultServiceRegistryTest extends Specification {
     def "does not close services from child registries"() {
         given:
         def parentService = Mock(TestCloseService)
-        registry.addProvider(new ServiceProvider() {
+        registry.addProvider(new ServiceRegistrationProvider() {
             @Provides
             Closeable createCloseableService() {
                 parentService
@@ -1364,7 +1364,7 @@ class DefaultServiceRegistryTest extends Specification {
 
         def child = new DefaultServiceRegistry(registry)
         def childService = Mock(TestStopService)
-        child.addProvider(new ServiceProvider() {
+        child.addProvider(new ServiceRegistrationProvider() {
             @Provides
             Stoppable createCloseableService(Closeable dependency) {
                 childService
@@ -1395,7 +1395,7 @@ class DefaultServiceRegistryTest extends Specification {
         def child = new DefaultServiceRegistry(parent)
 
         given:
-        parent.addProvider(new ServiceProvider() {
+        parent.addProvider(new ServiceRegistrationProvider() {
             @Provides
             CloseableService createService3() {
                 return service3
@@ -1407,7 +1407,7 @@ class DefaultServiceRegistryTest extends Specification {
             }
         })
 
-        child.addProvider(new ServiceProvider() {
+        child.addProvider(new ServiceRegistrationProvider() {
             @Provides
             TestCloseService createService1(TestStopService a, CloseableService b) {
                 return service1
@@ -1718,7 +1718,7 @@ class DefaultServiceRegistryTest extends Specification {
         }
     }
 
-    private static class TestProvider implements ServiceProvider {
+    private static class TestProvider implements ServiceRegistrationProvider {
         @Provides
         String createString(Integer integer) {
             return integer.toString()
@@ -1740,7 +1740,7 @@ class DefaultServiceRegistryTest extends Specification {
         }
     }
 
-    private static class StringProvider implements ServiceProvider {
+    private static class StringProvider implements ServiceRegistrationProvider {
         @Provides
         String createString(Runnable r) {
             return "hi"
@@ -1752,7 +1752,7 @@ class DefaultServiceRegistryTest extends Specification {
         }
     }
 
-    private static class ProviderWithCycle implements ServiceProvider {
+    private static class ProviderWithCycle implements ServiceRegistrationProvider {
         @Provides
         String createString(Integer value) {
             return value.toString()
@@ -1764,33 +1764,33 @@ class DefaultServiceRegistryTest extends Specification {
         }
     }
 
-    private static class NullProvider implements ServiceProvider {
+    private static class NullProvider implements ServiceRegistrationProvider {
         @Provides
         String createString() {
             return null
         }
     }
 
-    private static class UnsupportedInjectionProvider implements ServiceProvider {
+    private static class UnsupportedInjectionProvider implements ServiceRegistrationProvider {
         @Provides
         Number create(String[] values) {
             return values.length
         }
     }
 
-    private static class UnsupportedWildcardProvider implements ServiceProvider {
+    private static class UnsupportedWildcardProvider implements ServiceRegistrationProvider {
         @Provides
         Number create(List<? super String> values) {
             return values.length
         }
     }
 
-    private static class NoOpConfigureProvider implements ServiceProvider {
+    private static class NoOpConfigureProvider implements ServiceRegistrationProvider {
         void configure(ServiceRegistration registration, String value) {
         }
     }
 
-    private static class BrokenConfigureProvider implements ServiceProvider {
+    private static class BrokenConfigureProvider implements ServiceRegistrationProvider {
         static def failure = new RuntimeException()
 
         void configure(ServiceRegistration registration) {
@@ -1798,7 +1798,7 @@ class DefaultServiceRegistryTest extends Specification {
         }
     }
 
-    private static class BrokenProvider implements ServiceProvider {
+    private static class BrokenProvider implements ServiceRegistrationProvider {
         static def failure = new RuntimeException()
 
         @Provides
@@ -1813,7 +1813,7 @@ class DefaultServiceRegistryTest extends Specification {
     }
 
 
-    private static class ConflictingDecoratorMethods implements ServiceProvider {
+    private static class ConflictingDecoratorMethods implements ServiceRegistrationProvider {
         @Provides
         Long createLong(Long value) {
             return value + 2
@@ -1825,21 +1825,21 @@ class DefaultServiceRegistryTest extends Specification {
         }
     }
 
-    private static class TestDecoratingProviderWithCreate implements ServiceProvider {
+    private static class TestDecoratingProviderWithCreate implements ServiceRegistrationProvider {
         @Provides
         Long createLong(Long value) {
             return value + 2
         }
     }
 
-    private static class TestDecoratingProviderWithDecorate implements ServiceProvider {
+    private static class TestDecoratingProviderWithDecorate implements ServiceRegistrationProvider {
         @Provides
         Long decorateLong(Long value) {
             return value + 2
         }
     }
 
-    private static class BrokenDecoratingProviderWithCreate implements ServiceProvider {
+    private static class BrokenDecoratingProviderWithCreate implements ServiceRegistrationProvider {
         static def failure = new RuntimeException()
 
         @Provides
@@ -1848,7 +1848,7 @@ class DefaultServiceRegistryTest extends Specification {
         }
     }
 
-    private static class BrokenDecoratingProviderWithDecorate implements ServiceProvider {
+    private static class BrokenDecoratingProviderWithDecorate implements ServiceRegistrationProvider {
         static def failure = new RuntimeException()
 
         @Provides
@@ -1857,14 +1857,14 @@ class DefaultServiceRegistryTest extends Specification {
         }
     }
 
-    private static class NullDecoratorWithCreate implements ServiceProvider {
+    private static class NullDecoratorWithCreate implements ServiceRegistrationProvider {
         @Provides
         String createString(String value) {
             return null
         }
     }
 
-    private static class NullDecoratorWithDecorate implements ServiceProvider {
+    private static class NullDecoratorWithDecorate implements ServiceRegistrationProvider {
         @Provides
         String decorateString(String value) {
             return null

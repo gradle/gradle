@@ -23,11 +23,11 @@ import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.operations.BuildOperationRunner;
-import org.gradle.internal.service.ServiceProvider;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.session.BuildSessionLifecycleListener;
 
-public class GradleUserHomeCleanupServices implements ServiceProvider {
+public class GradleUserHomeCleanupServices implements ServiceRegistrationProvider {
 
     public void configure(
         ServiceRegistration registration,

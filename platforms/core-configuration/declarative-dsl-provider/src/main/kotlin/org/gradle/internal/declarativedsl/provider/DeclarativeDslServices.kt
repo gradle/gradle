@@ -21,8 +21,8 @@ import org.gradle.internal.declarativedsl.evaluator.DefaultDeclarativeKotlinScri
 import org.gradle.internal.declarativedsl.evaluator.DefaultInterpretationSchemaBuilder
 import org.gradle.internal.declarativedsl.evaluator.StoringInterpretationSchemaBuilder
 import org.gradle.internal.service.Provides
-import org.gradle.internal.service.ServiceProvider
 import org.gradle.internal.service.ServiceRegistration
+import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 
@@ -35,7 +35,7 @@ class DeclarativeDslServices : AbstractGradleModuleServices() {
 
 
 internal
-object BuildServices : ServiceProvider {
+object BuildServices : ServiceRegistrationProvider {
 
     @Provides
     fun createDeclarativeKotlinScriptEvaluator(

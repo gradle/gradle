@@ -29,7 +29,7 @@ import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 import org.gradle.internal.remote.internal.inet.TcpIncomingConnector;
 import org.gradle.internal.remote.internal.inet.TcpOutgoingConnector;
 import org.gradle.internal.service.Provides;
-import org.gradle.internal.service.ServiceProvider;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 
 import java.util.UUID;
 
@@ -44,7 +44,7 @@ import java.util.UUID;
  *
  * </ul>
  */
-public class MessagingServices implements ServiceProvider {
+public class MessagingServices implements ServiceRegistrationProvider {
     private final IdGenerator<UUID> idGenerator = new UUIDGenerator();
 
     @Provides

@@ -26,8 +26,8 @@ import org.gradle.composite.internal.plugins.CompositeBuildPluginResolverContrib
 import org.gradle.internal.buildtree.GlobalDependencySubstitutionRegistry;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.Provides;
-import org.gradle.internal.service.ServiceProvider;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.internal.snapshot.impl.ValueSnapshotterSerializerRegistry;
 import org.gradle.internal.typeconversion.NotationParser;
@@ -50,14 +50,14 @@ public class CompositeBuildServices extends AbstractGradleModuleServices {
         registration.add(CompositeBuildPluginResolverContributor.class);
     }
 
-    private static class CompositeBuildSessionScopeServices implements ServiceProvider {
+    private static class CompositeBuildSessionScopeServices implements ServiceRegistrationProvider {
         @Provides
         public ValueSnapshotterSerializerRegistry createCompositeBuildsValueSnapshotterSerializerRegistry() {
             return new CompositeBuildsValueSnapshotterSerializerRegistry();
         }
     }
 
-    private static class CompositeBuildTreeScopeServices implements ServiceProvider {
+    private static class CompositeBuildTreeScopeServices implements ServiceRegistrationProvider {
         public void configure(ServiceRegistration serviceRegistration) {
             serviceRegistration.add(BuildStateFactory.class);
             serviceRegistration.add(DefaultIncludedBuildFactory.class);

@@ -105,7 +105,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.TextUriResourceLoader;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.Provides;
-import org.gradle.internal.service.ServiceProvider;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.internal.typeconversion.TypeConverter;
@@ -1479,7 +1479,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         DependencyManagementServices dms = getServices().get(DependencyManagementServices.class);
         InstantiatorFactory instantiatorFactory = services.get(InstantiatorFactory.class);
         DefaultServiceRegistry lookup = new DefaultServiceRegistry(services);
-        lookup.addProvider(new ServiceProvider() {
+        lookup.addProvider(new ServiceRegistrationProvider() {
             @Provides
             public DependencyResolutionServices createServices() {
                 return dms.create(

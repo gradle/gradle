@@ -16,8 +16,8 @@
 
 package org.gradle.internal.service.scopes;
 
-import org.gradle.internal.service.ServiceProvider;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 
 /**
  * Can be implemented by Gradle modules to provide services in various scopes.
@@ -25,7 +25,7 @@ import org.gradle.internal.service.ServiceRegistration;
  * <p>Implementations are discovered using the JAR service locator mechanism (see {@link org.gradle.internal.service.ServiceLocator}).
  */
 @ServiceScope(Scope.Global.class)
-public interface GradleModuleServices extends ServiceProvider {
+public interface GradleModuleServices extends ServiceRegistrationProvider {
     /**
      * Called once per process, to register any globally scoped services. These services are reused across builds in the same process.
      * The services are closed when the process finishes.

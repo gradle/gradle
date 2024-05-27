@@ -39,7 +39,7 @@ class ServiceRegistryBuilderTest extends Specification {
     @ServiceScope(Scope.BuildTree)
     static class BuildTreeScopedService {}
 
-    static class ScopedServiceProvider implements ServiceProvider {
+    static class ScopedServiceProvider implements ServiceRegistrationProvider {
         @Provides
         BuildTreeScopedService createScopedService() {
             return new BuildTreeScopedService()

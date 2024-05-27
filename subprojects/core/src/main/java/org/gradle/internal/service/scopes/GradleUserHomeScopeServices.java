@@ -84,8 +84,8 @@ import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.remote.MessagingServer;
 import org.gradle.internal.service.Provides;
-import org.gradle.internal.service.ServiceProvider;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.process.internal.ExecFactory;
@@ -101,7 +101,7 @@ import java.util.List;
 /**
  * Defines the shared services scoped to a particular Gradle user home directory. These services are reused across multiple builds and operations.
  */
-public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServices implements ServiceProvider {
+public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServices implements ServiceRegistrationProvider {
     private final ServiceRegistry globalServices;
 
     public GradleUserHomeScopeServices(ServiceRegistry globalServices) {

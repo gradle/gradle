@@ -20,8 +20,8 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Artif
 import org.gradle.api.internal.artifacts.transform.TransformExecutionListener;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.service.Provides;
-import org.gradle.internal.service.ServiceProvider;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 
 public class DependencyServices extends AbstractGradleModuleServices {
@@ -61,7 +61,7 @@ public class DependencyServices extends AbstractGradleModuleServices {
         registration.addProvider(new DependencyManagementGradleServices());
     }
 
-    private static class DependencyManagementGradleServices implements ServiceProvider {
+    private static class DependencyManagementGradleServices implements ServiceRegistrationProvider {
         @Provides
         TransformExecutionListener createTransformExecutionListener(ListenerManager listenerManager) {
             return listenerManager.getBroadcaster(TransformExecutionListener.class);

@@ -41,9 +41,9 @@ import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
 import org.gradle.internal.execution.workspace.impl.CacheBasedImmutableWorkspaceProvider;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.service.Provides;
-import org.gradle.internal.service.ServiceProvider;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 
-public class DependencyManagementGradleUserHomeScopeServices implements ServiceProvider {
+public class DependencyManagementGradleUserHomeScopeServices implements ServiceRegistrationProvider {
 
     @Provides
     ToPlannedNodeConverter createToPlannedTransformStepConverter() {

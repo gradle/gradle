@@ -51,8 +51,8 @@ import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.Provides;
-import org.gradle.internal.service.ServiceProvider;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.util.GradleVersion;
@@ -66,7 +66,7 @@ import java.util.List;
 public final class BuildCacheServices extends AbstractGradleModuleServices {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
-        registration.addProvider(new ServiceProvider() {
+        registration.addProvider(new ServiceRegistrationProvider() {
             @Provides
             BufferProvider createBufferProvider() {
                 // TODO Make buffer size configurable
@@ -77,7 +77,7 @@ public final class BuildCacheServices extends AbstractGradleModuleServices {
 
     @Override
     public void registerBuildTreeServices(ServiceRegistration registration) {
-        registration.addProvider(new ServiceProvider() {
+        registration.addProvider(new ServiceRegistrationProvider() {
             private static final String GRADLE_VERSION_KEY = "gradleVersion";
 
             @Provides
@@ -99,7 +99,7 @@ public final class BuildCacheServices extends AbstractGradleModuleServices {
 
     @Override
     public void registerBuildServices(ServiceRegistration registration) {
-        registration.addProvider(new ServiceProvider() {
+        registration.addProvider(new ServiceRegistrationProvider() {
 
             @Provides
             BuildCacheConfigurationInternal createBuildCacheConfiguration(
@@ -119,7 +119,7 @@ public final class BuildCacheServices extends AbstractGradleModuleServices {
     @Override
     public void registerGradleServices(ServiceRegistration registration) {
         // Not build scoped because of dependency on GradleInternal for build path
-        registration.addProvider(new ServiceProvider() {
+        registration.addProvider(new ServiceRegistrationProvider() {
 
             @Provides
             TarPackerFileSystemSupport createPackerFileSystemSupport(Deleter deleter) {

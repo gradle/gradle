@@ -55,8 +55,8 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 import org.gradle.internal.remote.services.MessagingServices;
 import org.gradle.internal.service.Provides;
-import org.gradle.internal.service.ServiceProvider;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.Scope.Global;
 import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.process.internal.ExecFactory;
@@ -69,7 +69,7 @@ import java.net.InetAddress;
  * should be as few as possible to keep the CLI startup fast. Global services that are only needed for the process running the build should go in
  * {@link GlobalScopeServices}.
  */
-public class BasicGlobalScopeServices implements ServiceProvider {
+public class BasicGlobalScopeServices implements ServiceRegistrationProvider {
     void configure(ServiceRegistration serviceRegistration) {
         serviceRegistration.add(FileLookup.class, DefaultFileLookup.class);
         serviceRegistration.addProvider(new MessagingServices());

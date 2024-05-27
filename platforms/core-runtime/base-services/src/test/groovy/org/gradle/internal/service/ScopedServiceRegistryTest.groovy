@@ -191,7 +191,7 @@ class ScopedServiceRegistryTest extends Specification {
 
     static class UnscopedService {}
 
-    static class UnscopedServiceProvider implements ServiceProvider {
+    static class UnscopedServiceProvider implements ServiceRegistrationProvider {
         @Provides
         UnscopedService createScopedService() {
             return new UnscopedService()
@@ -204,28 +204,28 @@ class ScopedServiceRegistryTest extends Specification {
 
     static class BuildTreeScopedServiceInterfaceUnscopedImpl implements BuildTreeScopedServiceInterface {}
 
-    static class BuildTreeScopedServiceProvider implements ServiceProvider {
+    static class BuildTreeScopedServiceProvider implements ServiceRegistrationProvider {
         @Provides
         BuildTreeScopedService createScopedService() {
             return new BuildTreeScopedService()
         }
     }
 
-    static class BuildTreeScopedServiceInterfaceProvider implements ServiceProvider {
+    static class BuildTreeScopedServiceInterfaceProvider implements ServiceRegistrationProvider {
         @Provides
         BuildTreeScopedServiceInterface createScopedService() {
             return new BuildTreeScopedServiceInterfaceUnscopedImpl()
         }
     }
 
-    static class BuildTreeScopedServiceInterfaceUnscopedImplProvider implements ServiceProvider {
+    static class BuildTreeScopedServiceInterfaceUnscopedImplProvider implements ServiceRegistrationProvider {
         @Provides
         BuildTreeScopedServiceInterfaceUnscopedImpl createScopedService() {
             return new BuildTreeScopedServiceInterfaceUnscopedImpl()
         }
     }
 
-    static class MultiScopedServiceProvider implements ServiceProvider {
+    static class MultiScopedServiceProvider implements ServiceRegistrationProvider {
         @Provides
         GlobalAndBuildScopedService createScopedService() {
             return new GlobalAndBuildScopedService()

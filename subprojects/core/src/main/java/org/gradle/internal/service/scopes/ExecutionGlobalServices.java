@@ -92,7 +92,7 @@ import org.gradle.internal.reflect.annotations.TypeAnnotationMetadataStore;
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore;
 import org.gradle.internal.scripts.ScriptOrigin;
 import org.gradle.internal.service.Provides;
-import org.gradle.internal.service.ServiceProvider;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.work.DisableCachingByDefault;
 import org.gradle.work.Incremental;
@@ -102,7 +102,7 @@ import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.List;
 
-public class ExecutionGlobalServices implements ServiceProvider {
+public class ExecutionGlobalServices implements ServiceRegistrationProvider {
     @VisibleForTesting
     public static final ImmutableSet<Class<? extends Annotation>> PROPERTY_TYPE_ANNOTATIONS = ImmutableSet.of(
         Console.class,

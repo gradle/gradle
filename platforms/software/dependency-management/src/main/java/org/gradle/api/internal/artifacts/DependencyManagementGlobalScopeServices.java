@@ -65,15 +65,15 @@ import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.resource.transport.file.FileConnectorFactory;
 import org.gradle.internal.service.Provides;
-import org.gradle.internal.service.ServiceProvider;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.typeconversion.CrossBuildCachingNotationConverter;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.work.Incremental;
 import org.gradle.work.NormalizeLineEndings;
 
-class DependencyManagementGlobalScopeServices implements ServiceProvider {
+class DependencyManagementGlobalScopeServices implements ServiceRegistrationProvider {
     void configure(ServiceRegistration registration) {
         registration.add(VersionParser.class);
         registration.add(IvyContextManager.class, DefaultIvyContextManager.class);

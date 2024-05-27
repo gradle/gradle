@@ -35,15 +35,15 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.cached.DefaultExternalResourceFileStore;
 import org.gradle.internal.service.Provides;
-import org.gradle.internal.service.ServiceProvider;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.util.internal.SimpleMapInterner;
 
 /**
  * The set of dependency management services that are created per project.
  */
-class DependencyManagementProjectScopeServices implements ServiceProvider {
+class DependencyManagementProjectScopeServices implements ServiceRegistrationProvider {
     void configure(ServiceRegistration registration) {
         registration.add(DefaultExternalResourceFileStore.Factory.class);
         registration.add(DefaultArtifactIdentifierFileStore.Factory.class);

@@ -26,8 +26,8 @@ import org.gradle.api.tasks.javadoc.internal.JavadocToolAdapter;
 import org.gradle.cache.internal.FileContentCacheFactory;
 import org.gradle.internal.build.event.OperationResultPostProcessorFactory;
 import org.gradle.internal.service.Provides;
-import org.gradle.internal.service.ServiceProvider;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.jvm.JvmLibrary;
 import org.gradle.jvm.toolchain.JavadocTool;
@@ -60,7 +60,7 @@ public class JavaLanguageServices extends AbstractGradleModuleServices {
 
     @Override
     public void registerBuildTreeServices(ServiceRegistration registration) {
-        registration.addProvider(new ServiceProvider() {
+        registration.addProvider(new ServiceRegistrationProvider() {
             @Provides
             public AnnotationProcessorDetector createAnnotationProcessorDetector(FileContentCacheFactory cacheFactory, LoggingConfiguration loggingConfiguration) {
                 return new AnnotationProcessorDetector(cacheFactory, LoggerFactory.getLogger(AnnotationProcessorDetector.class), loggingConfiguration.getShowStacktrace() != ShowStacktrace.INTERNAL_EXCEPTIONS);
@@ -68,7 +68,7 @@ public class JavaLanguageServices extends AbstractGradleModuleServices {
         });
     }
 
-    private static class JavaGlobalScopeServices implements ServiceProvider {
+    private static class JavaGlobalScopeServices implements ServiceRegistrationProvider {
         @Provides
         OperationResultPostProcessorFactory createJavaSubscribableBuildActionRunnerRegistration() {
             return (clientSubscriptions, consumer) -> clientSubscriptions.isRequested(OperationType.TASK)
@@ -77,14 +77,14 @@ public class JavaLanguageServices extends AbstractGradleModuleServices {
         }
     }
 
-    private static class JavaBuildScopeServices implements ServiceProvider {
+    private static class JavaBuildScopeServices implements ServiceRegistrationProvider {
         public void configure(ServiceRegistration registration, ComponentTypeRegistry componentTypeRegistry) {
             componentTypeRegistry.maybeRegisterComponentType(JvmLibrary.class)
                 .registerArtifactType(JavadocArtifact.class, ArtifactType.JAVADOC);
         }
     }
 
-    private static class JavaProjectScopeServices implements ServiceProvider {
+    private static class JavaProjectScopeServices implements ServiceRegistrationProvider {
         @Provides
         public ToolchainToolFactory createToolFactory(ExecActionFactory generator) {
             // TODO should we create all tools via this factory?

@@ -23,8 +23,8 @@ import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.service.Provides;
-import org.gradle.internal.service.ServiceProvider;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.process.internal.worker.child.WorkerDirectoryProvider;
@@ -38,7 +38,7 @@ public class GroovyServices extends AbstractGradleModuleServices {
         registration.addProvider(new ProjectServices());
     }
 
-    private static class ProjectServices implements ServiceProvider {
+    private static class ProjectServices implements ServiceRegistrationProvider {
         @Provides
         public GroovyCompilerFactory createGroovyCompilerFactory(
             WorkerDaemonFactory workerDaemonFactory,

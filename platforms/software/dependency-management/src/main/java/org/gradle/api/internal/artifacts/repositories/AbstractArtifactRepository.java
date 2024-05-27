@@ -44,7 +44,7 @@ import org.gradle.internal.resolve.caching.ImplicitInputsCapturingInstantiator;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.Provides;
-import org.gradle.internal.service.ServiceProvider;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 
 import javax.annotation.Nullable;
 import java.net.URI;
@@ -174,7 +174,7 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
      */
     ImplicitInputsCapturingInstantiator createInjectorForMetadataSuppliers(final RepositoryTransport transport, InstantiatorFactory instantiatorFactory, final URI rootUri, final FileStore<String> externalResourcesFileStore) {
         DefaultServiceRegistry registry = new DefaultServiceRegistry();
-        registry.addProvider(new ServiceProvider() {
+        registry.addProvider(new ServiceRegistrationProvider() {
             @Provides
             RepositoryResourceAccessor createResourceAccessor() {
                 return createRepositoryAccessor(transport, rootUri, externalResourcesFileStore);

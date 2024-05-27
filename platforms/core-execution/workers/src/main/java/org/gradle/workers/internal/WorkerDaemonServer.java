@@ -53,7 +53,7 @@ import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.Provides;
-import org.gradle.internal.service.ServiceProvider;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.WorkerSharedBuildSessionScopeServices;
@@ -183,7 +183,7 @@ public class WorkerDaemonServer implements RequestHandler<TransportableActionExe
      * This works around that by recreating the build session scope services for every request.
      */
     @NonNullApi
-    static class WorkerBuildSessionScopeWorkaroundServices implements ServiceProvider {
+    static class WorkerBuildSessionScopeWorkaroundServices implements ServiceRegistrationProvider {
         private final File projectCacheDir;
 
         WorkerBuildSessionScopeWorkaroundServices(File projectCacheDir) {

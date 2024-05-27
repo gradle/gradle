@@ -23,12 +23,12 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.service.Provides
-import org.gradle.internal.service.ServiceProvider
+import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.internal.service.ServiceRegistry
 
 
 internal
-object FlowServicesProvider : ServiceProvider {
+object FlowServicesProvider : ServiceRegistrationProvider {
 
     @Provides
     fun createFlowProviders(): FlowProviders =

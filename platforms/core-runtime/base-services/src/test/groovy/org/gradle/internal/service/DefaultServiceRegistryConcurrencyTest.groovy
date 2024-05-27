@@ -22,7 +22,7 @@ import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 class DefaultServiceRegistryConcurrencyTest extends ConcurrentSpec {
     def "multiple threads can locate services"() {
         def registry = new DefaultServiceRegistry()
-        registry.addProvider(new ServiceProvider() {
+        registry.addProvider(new ServiceRegistrationProvider() {
             @Provides
             String createString(Integer value) {
                 return value.toString()
@@ -55,7 +55,7 @@ class DefaultServiceRegistryConcurrencyTest extends ConcurrentSpec {
 
     def "multiple threads can locate factories"() {
         def registry = new DefaultServiceRegistry()
-        registry.addProvider(new ServiceProvider() {
+        registry.addProvider(new ServiceRegistrationProvider() {
             @Provides
             Factory<String> createString(BigDecimal value) {
                 return { value.toString() } as Factory
@@ -88,7 +88,7 @@ class DefaultServiceRegistryConcurrencyTest extends ConcurrentSpec {
 
     def "multiple threads can locate all services"() {
         def registry = new DefaultServiceRegistry()
-        registry.addProvider(new ServiceProvider() {
+        registry.addProvider(new ServiceRegistrationProvider() {
             @Provides
             String createString(Integer value) {
                 return value.toString()

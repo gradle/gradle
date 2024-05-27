@@ -21,7 +21,7 @@ import org.gradle.cache.internal.CacheAccessSerializer;
 import org.gradle.cache.internal.MapBackedCache;
 import org.gradle.internal.file.Chmod;
 import org.gradle.internal.service.Provides;
-import org.gradle.internal.service.ServiceProvider;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 
 import java.io.File;
 import java.util.HashMap;
@@ -31,7 +31,7 @@ import java.util.Properties;
 /**
  * Takes care of instantiating and wiring together the services required for a daemon registry.
  */
-public class DaemonRegistryServices implements ServiceProvider {
+public class DaemonRegistryServices implements ServiceRegistrationProvider {
     private final File daemonBaseDir;
     private final Cache<File, DaemonRegistry> daemonRegistryCache;
 

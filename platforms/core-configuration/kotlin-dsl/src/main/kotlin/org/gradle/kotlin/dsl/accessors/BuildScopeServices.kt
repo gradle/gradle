@@ -21,13 +21,13 @@ import org.gradle.internal.execution.ExecutionEngine
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.service.Provides
-import org.gradle.internal.service.ServiceProvider
+import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
 import org.gradle.kotlin.dsl.concurrent.AsyncIOScopeFactory
 
 
 internal
-object BuildScopeServices : ServiceProvider {
+object BuildScopeServices : ServiceRegistrationProvider {
 
     @Provides
     fun createStage1BlocksAccessorClassPathGenerator(

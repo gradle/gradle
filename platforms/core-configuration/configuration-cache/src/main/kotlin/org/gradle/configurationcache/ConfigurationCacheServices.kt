@@ -39,8 +39,8 @@ import org.gradle.internal.resource.connector.ResourceConnectorFactory
 import org.gradle.internal.resource.connector.ResourceConnectorSpecification
 import org.gradle.internal.resource.transfer.ExternalResourceConnector
 import org.gradle.internal.service.Provides
-import org.gradle.internal.service.ServiceProvider
 import org.gradle.internal.service.ServiceRegistration
+import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices
 import org.gradle.invocation.IsolatedProjectEvaluationListenerProvider
 import java.io.File
@@ -89,7 +89,7 @@ class ConfigurationCacheServices : AbstractGradleModuleServices() {
     }
 
     private
-    object RemoteScriptUpToDateCheckerProvider : ServiceProvider {
+    object RemoteScriptUpToDateCheckerProvider : ServiceRegistrationProvider {
         @Provides
         fun createRemoteScriptUpToDateChecker(
             artifactCachesProvider: ArtifactCachesProvider,
@@ -117,7 +117,7 @@ class ConfigurationCacheServices : AbstractGradleModuleServices() {
     }
 
     private
-    object ExecutionAccessCheckerProvider : ServiceProvider {
+    object ExecutionAccessCheckerProvider : ServiceRegistrationProvider {
         @Provides
         fun createExecutionAccessChecker(
             listenerManager: ListenerManager,
@@ -134,7 +134,7 @@ class ConfigurationCacheServices : AbstractGradleModuleServices() {
     }
 
     private
-    object TaskExecutionAccessCheckerProvider : ServiceProvider {
+    object TaskExecutionAccessCheckerProvider : ServiceRegistrationProvider {
         @Provides
         fun createTaskExecutionAccessChecker(
             configurationTimeBarrier: ConfigurationTimeBarrier,
@@ -154,7 +154,7 @@ class ConfigurationCacheServices : AbstractGradleModuleServices() {
     }
 
     private
-    object IgnoredConfigurationInputsProvider : ServiceProvider {
+    object IgnoredConfigurationInputsProvider : ServiceRegistrationProvider {
         @Provides
         fun createIgnoredConfigurationInputs(
             configurationCacheStartParameter: ConfigurationCacheStartParameter,

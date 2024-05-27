@@ -23,8 +23,8 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.jvm.internal.DefaultJvmPluginServices;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.internal.service.Provides;
-import org.gradle.internal.service.ServiceProvider;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.jvm.JvmLibrary;
 import org.gradle.language.base.artifact.SourcesArtifact;
@@ -42,14 +42,14 @@ public class JvmLanguageServices extends AbstractGradleModuleServices {
         registration.add(DefaultJvmPluginServices.class);
     }
 
-    private static class ProjectScopeServices implements ServiceProvider {
+    private static class ProjectScopeServices implements ServiceRegistrationProvider {
         @Provides
         SourceSetContainer createSourceSetContainer(ObjectFactory objectFactory) {
             return objectFactory.newInstance(DefaultSourceSetContainer.class);
         }
     }
 
-    private static class ComponentRegistrationAction implements ServiceProvider {
+    private static class ComponentRegistrationAction implements ServiceRegistrationProvider {
         /**
          * @param registration unused parameter required by convention, see {@link org.gradle.internal.service.DefaultServiceRegistry}.
          */

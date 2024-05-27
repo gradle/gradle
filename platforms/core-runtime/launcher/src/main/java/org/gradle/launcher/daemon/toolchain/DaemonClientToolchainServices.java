@@ -27,8 +27,8 @@ import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.Provides;
-import org.gradle.internal.service.ServiceProvider;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.jvm.toolchain.internal.AsdfInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.DefaultOsXJavaHomeCommand;
 import org.gradle.jvm.toolchain.internal.InstallationSupplier;
@@ -44,7 +44,7 @@ import org.gradle.jvm.toolchain.internal.install.DefaultJdkCacheDirectory;
 
 import java.util.List;
 
-public class DaemonClientToolchainServices implements ServiceProvider {
+public class DaemonClientToolchainServices implements ServiceRegistrationProvider {
 
     private final ToolchainConfiguration toolchainConfiguration;
 

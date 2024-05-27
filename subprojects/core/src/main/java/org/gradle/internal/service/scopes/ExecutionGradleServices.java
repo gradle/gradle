@@ -85,7 +85,7 @@ import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.Provides;
-import org.gradle.internal.service.ServiceProvider;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.util.GradleVersion;
@@ -95,7 +95,7 @@ import java.util.function.Supplier;
 
 import static org.gradle.internal.execution.steps.AfterExecutionOutputFilter.NO_FILTER;
 
-public class ExecutionGradleServices implements ServiceProvider {
+public class ExecutionGradleServices implements ServiceRegistrationProvider {
     @Provides
     ExecutionHistoryCacheAccess createCacheAccess(BuildScopedCacheBuilderFactory cacheBuilderFactory) {
         return new DefaultExecutionHistoryCacheAccess(cacheBuilderFactory);

@@ -16,7 +16,7 @@
 
 package org.gradle.internal.service;
 
-class ProviderWithGenericTypes implements ServiceProvider {
+class ProviderWithGenericTypes implements ServiceRegistrationProvider {
     @Provides
     Integer createInteger(Runnable action) {
         action.run();

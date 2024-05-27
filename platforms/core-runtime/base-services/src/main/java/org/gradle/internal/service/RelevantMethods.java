@@ -40,7 +40,7 @@ public class RelevantMethods {
         this.configurers = configurers;
     }
 
-    public static RelevantMethods getMethods(Class<? extends ServiceProvider> type) {
+    public static RelevantMethods getMethods(Class<? extends ServiceRegistrationProvider> type) {
         RelevantMethods relevantMethods = METHODS_CACHE.get(type);
         if (relevantMethods == null) {
             relevantMethods = new RelevantMethodsBuilder(type).build();
@@ -57,7 +57,7 @@ public class RelevantMethods {
 
         private final Set<String> seen = new HashSet<String>();
 
-        public RelevantMethodsBuilder(Class<? extends ServiceProvider> type) {
+        public RelevantMethodsBuilder(Class<? extends ServiceRegistrationProvider> type) {
             this.type = type;
         }
 
