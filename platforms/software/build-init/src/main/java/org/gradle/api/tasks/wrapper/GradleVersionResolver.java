@@ -24,6 +24,7 @@ import org.gradle.api.tasks.wrapper.internal.DefaultWrapperVersionsResources;
 import org.gradle.api.tasks.wrapper.internal.DefaultWrapperVersionsResources.WrapperVersionException;
 import org.gradle.util.GradleVersion;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.Type;
 import java.util.Map;
 
@@ -83,21 +84,25 @@ class GradleVersionResolver {
 
     GradleVersion getGradleVersion() {
         if (gradleVersion == null) {
-            gradleVersion = GradleVersion.version(resolve(gradleVersionString));
+            gradleVersion = resolveGradleVersion(gradleVersionString);
         }
         return gradleVersion;
     }
 
+    GradleVersion resolveGradleVersion(@Nullable String version) {
+        try {
+            return GradleVersion.version(resolve(version));
+        } catch (Exception e) {
+            throw new WrapperVersionException("Invalid version specified for argument '--gradle-version': '" + version + "'. Valid examples: 1.0, 1.0-rc-1, latest, nightly.", e);
+        }
+    }
+
     void setGradleVersionString(String gradleVersionString) {
         if (!isPlaceHolder(gradleVersionString)) {
-            try {
-                this.gradleVersion = GradleVersion.version(gradleVersionString);
-            } catch (Exception e) {
-                throw new WrapperVersionException("Invalid version specified for argument '--gradle-version'", e);
-            }
+            this.gradleVersion = resolveGradleVersion(gradleVersionString);
         }
 
-        if (this.gradleVersionString != gradleVersionString) {
+        if (!gradleVersionString.equals(this.gradleVersionString)) {
             this.gradleVersionString = gradleVersionString;
             this.gradleVersion = null;
         }
