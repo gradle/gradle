@@ -20,9 +20,11 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
@@ -33,6 +35,8 @@ import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.api.tasks.wrapper.internal.DefaultWrapperVersionsResources;
 import org.gradle.api.tasks.wrapper.internal.WrapperDefaults;
 import org.gradle.api.tasks.wrapper.internal.WrapperGenerator;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.GUtil;
 import org.gradle.util.internal.WrapperDistributionUrlConverter;
@@ -41,7 +45,6 @@ import org.gradle.wrapper.Download;
 import org.gradle.wrapper.Logger;
 import org.gradle.wrapper.WrapperExecutor;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.net.URI;
@@ -89,44 +92,56 @@ public abstract class Wrapper extends DefaultTask {
         PROJECT, GRADLE_USER_HOME
     }
 
-    private Object scriptFile = WrapperDefaults.SCRIPT_PATH;
-    private Object jarFile = WrapperDefaults.JAR_FILE_PATH;
-    private String distributionPath = DEFAULT_DISTRIBUTION_PARENT_NAME;
-    private PathBase distributionBase = WrapperDefaults.DISTRIBUTION_BASE;
-    private String distributionUrl;
-    private String distributionSha256Sum;
     private final GradleVersionResolver gradleVersionResolver = new GradleVersionResolver();
-    private DistributionType distributionType = WrapperDefaults.DISTRIBUTION_TYPE;
-    private String archivePath = WrapperDefaults.ARCHIVE_PATH;
-    private PathBase archiveBase = WrapperDefaults.ARCHIVE_BASE;
     private final Property<Integer> networkTimeout = getProject().getObjects().property(Integer.class);
-    private boolean distributionUrlConfigured = false;
     private final boolean isOffline = getProject().getGradle().getStartParameter().isOffline();
 
     public Wrapper() {
         getValidateDistributionUrl().convention(WrapperDefaults.VALIDATE_DISTRIBUTION_URL);
+        getScriptFile().convention(getProject().getObjects().fileProperty()).fileValue(getFileOperations().file(WrapperDefaults.SCRIPT_PATH));
+        getJarFile().convention(getProject().getObjects().fileProperty()).fileValue(getFileOperations().file(WrapperDefaults.JAR_FILE_PATH));
+        getDistributionPath().convention(DEFAULT_DISTRIBUTION_PARENT_NAME);
+        getDistributionBase().convention(WrapperDefaults.DISTRIBUTION_BASE);
+        getDistributionType().convention(WrapperDefaults.DISTRIBUTION_TYPE);
+        getArchivePath().convention(WrapperDefaults.ARCHIVE_PATH);
+        getArchiveBase().convention(WrapperDefaults.ARCHIVE_BASE);
+        getGradleVersion().convention(GradleVersion.current().getVersion());
     }
 
     @TaskAction
     void generate() {
-        File jarFileDestination = getJarFile();
-        File unixScript = getScriptFile();
+        File jarFileDestination = getJarFile().get().getAsFile();
+        File unixScript = getScriptFile().getAsFile().get();
         FileResolver resolver = getFileLookup().getFileResolver(unixScript.getParentFile());
         String jarFileRelativePath = resolver.resolveAsRelativePath(jarFileDestination);
         File propertiesFile = getPropertiesFile();
         Properties existingProperties = propertiesFile.exists() ? GUtil.loadProperties(propertiesFile) : null;
+        DistributionType distributionType = getDistributionType().get();
 
         checkProperties(existingProperties);
-        validateDistributionUrl(propertiesFile.getParentFile());
+
+        gradleVersionResolver.setGradleVersionString(getGradleVersion().get());
+        String distributionUrl = getDistributionUrl().isPresent()
+            ? getDistributionUrl().get()
+            : WrapperGenerator.getDistributionUrl(gradleVersionResolver.getGradleVersion(), distributionType);
+
+        if (!getGradleVersion().get().equals(GradleVersion.current().getVersion()) || getDistributionUrl().isPresent()) {
+            // When custom version is configured do a validation
+            validateDistributionUrl(distributionUrl, propertiesFile.getParentFile());
+        }
 
         WrapperGenerator.generate(
-            archiveBase, archivePath,
-            distributionBase, distributionPath,
+            getArchiveBase().get(),
+            getArchivePath().get(),
+            getDistributionBase().get(),
+            getDistributionPath().get(),
             getDistributionSha256Sum(existingProperties),
             propertiesFile,
-            jarFileDestination, jarFileRelativePath,
-            unixScript, getBatchScript(),
-            getDistributionUrl(),
+            jarFileDestination,
+            jarFileRelativePath,
+            unixScript,
+            getBatchScript(),
+            distributionUrl,
             getValidateDistributionUrl().get(),
             networkTimeout.getOrNull()
         );
@@ -138,7 +153,7 @@ public abstract class Wrapper extends DefaultTask {
             : null;
 
         if (!isCurrentVersion() &&
-            distributionSha256Sum == null &&
+            getDistributionSha256Sum().getOrNull() == null &&
             checksumProperty != null) {
             throw new GradleException("gradle-wrapper.properties contains distributionSha256Sum property, but the wrapper configuration does not have one. Specify one in the wrapper task configuration or with the --gradle-distribution-sha256-sum task option");
         }
@@ -146,9 +161,8 @@ public abstract class Wrapper extends DefaultTask {
 
     private static final String DISTRIBUTION_URL_EXCEPTION_MESSAGE = "Test of distribution url %s failed. Please check the values set with --gradle-distribution-url and --gradle-version.";
 
-    private void validateDistributionUrl(File uriRoot) {
-        if (distributionUrlConfigured && getValidateDistributionUrl().get()) {
-            String url = getDistributionUrl();
+    private void validateDistributionUrl(String url, File uriRoot) {
+        if (getValidateDistributionUrl().get()) {
             URI uri = getDistributionUri(uriRoot, url);
             if (uri.getScheme().equals("file")) {
                 if (!Files.exists(Paths.get(uri).toAbsolutePath())) {
@@ -173,6 +187,7 @@ public abstract class Wrapper extends DefaultTask {
     }
 
     private String getDistributionSha256Sum(Properties existingProperties) {
+        String distributionSha256Sum = getDistributionSha256Sum().getOrNull();
         if (distributionSha256Sum != null) {
             return distributionSha256Sum;
         } else if (isCurrentVersion() && existingProperties != null) {
@@ -190,86 +205,41 @@ public abstract class Wrapper extends DefaultTask {
      * Returns the file to write the wrapper script to.
      */
     @OutputFile
-    public File getScriptFile() {
-        return getServices().get(FileOperations.class).file(scriptFile);
-    }
-
-    /**
-     * The file to write the wrapper script to.
-     *
-     * @since 4.0
-     */
-    public void setScriptFile(File scriptFile) {
-        this.scriptFile = scriptFile;
-    }
-
-    /**
-     * The file to write the wrapper script to.
-     */
-    public void setScriptFile(Object scriptFile) {
-        this.scriptFile = scriptFile;
-    }
+    @ReplacesEagerProperty
+    public abstract RegularFileProperty getScriptFile();
 
     /**
      * Returns the file to write the wrapper batch script to.
      */
     @OutputFile
+    @ToBeReplacedByLazyProperty(comment = "This should be a Provider<RegularFile>, but we don't support automatic upgrades for that case yet")
     public File getBatchScript() {
-        return WrapperGenerator.getBatchScript(getScriptFile());
+        return WrapperGenerator.getBatchScript(getScriptFile().getAsFile().get());
     }
 
     /**
      * Returns the file to write the wrapper jar file to.
      */
     @OutputFile
-    public File getJarFile() {
-        return getServices().get(FileOperations.class).file(jarFile);
-    }
-
-    /**
-     * The file to write the wrapper jar file to.
-     *
-     * @since 4.0
-     */
-    public void setJarFile(File jarFile) {
-        this.jarFile = jarFile;
-    }
-
-    /**
-     * The file to write the wrapper jar file to.
-     */
-    public void setJarFile(Object jarFile) {
-        this.jarFile = jarFile;
-    }
+    @ReplacesEagerProperty
+    public abstract RegularFileProperty getJarFile();
 
     /**
      * Returns the file to write the wrapper properties to.
      */
     @OutputFile
+    @ToBeReplacedByLazyProperty(comment = "This should be a Provider<RegularFile>, but we don't support automatic upgrades for that case yet")
     public File getPropertiesFile() {
-        return WrapperGenerator.getPropertiesFile(getJarFile());
+        return WrapperGenerator.getPropertiesFile(getJarFile().getAsFile().get());
     }
 
     /**
      * Returns the path where the gradle distributions needed by the wrapper are unzipped. The path is relative to the
      * distribution base directory
-     *
-     * @see #setDistributionPath(String)
      */
     @Input
-    public String getDistributionPath() {
-        return distributionPath;
-    }
-
-    /**
-     * Sets the path where the gradle distributions needed by the wrapper are unzipped. The path is relative to the
-     * distribution base directory
-     *
-     * @see #setDistributionPath(String)
-     */
-    public void setDistributionPath(String distributionPath) {
-        this.distributionPath = distributionPath;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getDistributionPath();
 
     /**
      * Set Wrapper versions resources.
@@ -286,55 +256,32 @@ public abstract class Wrapper extends DefaultTask {
     }
 
     /**
-     * Returns the gradle version for the wrapper.
-     *
-     * @throws GradleException if the label that can be provided via {@link #setGradleVersion(String)} can not be resolved at the moment. For example, there is not a `release-candidate` available at all times.
-     * @see #setGradleVersion(String)
-     */
-    @Input
-    public String getGradleVersion() {
-        return gradleVersionResolver.getGradleVersion().getVersion();
-    }
-
-    /**
      * The version of the gradle distribution required by the wrapper.
      * This is usually the same version of Gradle you use for building your project.
      * The following labels are allowed to specify a version: {@code latest}, {@code release-candidate}, {@code nightly}, and {@code release-nightly}
      *
      * <p>The resulting distribution url is validated before it is written to the gradle-wrapper.properties file.
      */
+    @Input
+    @ReplacesEagerProperty
     @Option(option = "gradle-version", description = "The version of the Gradle distribution required by the wrapper. " +
         "The following labels are allowed: latest, release-candidate, nightly, and release-nightly.")
-    public void setGradleVersion(String gradleVersion) {
-        distributionUrlConfigured = true;
-        this.gradleVersionResolver.setGradleVersionString(gradleVersion);
-    }
+    public abstract Property<String> getGradleVersion();
 
     /**
-     * Returns the type of the Gradle distribution to be used by the wrapper.
-     *
-     * @see #setDistributionType(DistributionType)
+     * Returns the type of the Gradle distribution to be used by the wrapper. By default, this is {@link DistributionType#BIN},
+     * which is the binary-only Gradle distribution without documentation.
      */
     @Input
-    public DistributionType getDistributionType() {
-        return distributionType;
-    }
-
-    /**
-     * The type of the Gradle distribution to be used by the wrapper. By default, this is {@link DistributionType#BIN},
-     * which is the binary-only Gradle distribution without documentation.
-     *
-     * @see DistributionType
-     */
+    @ReplacesEagerProperty
     @Option(option = "distribution-type", description = "The type of the Gradle distribution to be used by the wrapper.")
-    public void setDistributionType(DistributionType distributionType) {
-        this.distributionType = distributionType;
-    }
+    public abstract Property<DistributionType> getDistributionType();
 
     /**
      * The list of available gradle distribution types.
      */
     @OptionValues("distribution-type")
+    @ToBeReplacedByLazyProperty(comment = "Should this be lazy?")
     public List<DistributionType> getAvailableDistributionTypes() {
         return Arrays.asList(DistributionType.values());
     }
@@ -350,53 +297,14 @@ public abstract class Wrapper extends DefaultTask {
      * project, you might submit the distribution to your version control system. That way no download is necessary at
      * all. This might be in particular interesting, if you provide a custom gradle snapshot to the wrapper, because you
      * don't need to provide a download server then.
-     */
-    @Input
-    public String getDistributionUrl() {
-        if (distributionUrl != null) {
-            return distributionUrl;
-        }
-
-        return WrapperGenerator.getDistributionUrl(gradleVersionResolver.getGradleVersion(), distributionType);
-    }
-
-    /**
-     * The URL to download the gradle distribution from.
-     *
-     * <p>If not set, the download URL is the default for the specified {@link #getGradleVersion()}.
-     *
-     * <p>If {@link #getGradleVersion()} is not set, will return null.
-     *
-     * <p>The wrapper downloads a certain distribution and caches it. If your distribution base is the
-     * project, you might submit the distribution to your version control system. That way no download is necessary at
-     * all. This might be in particular interesting, if you provide a custom gradle snapshot to the wrapper, because you
-     * don't need to provide a download server then.
      *
      * <p>The distribution url is validated before it is written to the gradle-wrapper.properties file.
      */
-    @Option(option = "gradle-distribution-url", description = "The URL to download the Gradle distribution from.")
-    public void setDistributionUrl(String url) {
-        distributionUrlConfigured = true;
-        this.distributionUrl = url;
-    }
-
-    /**
-     * The SHA-256 hash sum of the gradle distribution.
-     *
-     * <p>If not set, the hash sum of the gradle distribution is not verified.
-     *
-     * <p>The wrapper allows for verification of the downloaded Gradle distribution via SHA-256 hash sum comparison.
-     * This increases security against targeted attacks by preventing a man-in-the-middle attacker from tampering with
-     * the downloaded Gradle distribution.
-     *
-     * @since 4.5
-     */
-    @Nullable
+    @Input
     @Optional
-    @Input
-    public String getDistributionSha256Sum() {
-        return distributionSha256Sum;
-    }
+    @ReplacesEagerProperty
+    @Option(option = "gradle-distribution-url", description = "The URL to download the Gradle distribution from.")
+    public abstract Property<String> getDistributionUrl();
 
     /**
      * The SHA-256 hash sum of the gradle distribution.
@@ -409,61 +317,35 @@ public abstract class Wrapper extends DefaultTask {
      *
      * @since 4.5
      */
+    @Input
+    @Optional
+    @ReplacesEagerProperty
     @Option(option = "gradle-distribution-sha256-sum", description = "The SHA-256 hash sum of the gradle distribution.")
-    public void setDistributionSha256Sum(@Nullable String distributionSha256Sum) {
-        this.distributionSha256Sum = distributionSha256Sum;
-    }
+    public abstract Property<String> getDistributionSha256Sum();
 
     /**
      * The distribution base specifies whether the unpacked wrapper distribution should be stored in the project or in
      * the gradle user home dir.
      */
     @Input
-    public PathBase getDistributionBase() {
-        return distributionBase;
-    }
-
-    /**
-     * The distribution base specifies whether the unpacked wrapper distribution should be stored in the project or in
-     * the gradle user home dir.
-     */
-    public void setDistributionBase(PathBase distributionBase) {
-        this.distributionBase = distributionBase;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<PathBase> getDistributionBase();
 
     /**
      * Returns the path where the gradle distributions archive should be saved (i.e. the parent dir). The path is
      * relative to the archive base directory.
      */
     @Input
-    public String getArchivePath() {
-        return archivePath;
-    }
-
-    /**
-     * Set's the path where the gradle distributions archive should be saved (i.e. the parent dir). The path is relative
-     * to the parent dir specified with {@link #getArchiveBase()}.
-     */
-    public void setArchivePath(String archivePath) {
-        this.archivePath = archivePath;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getArchivePath();
 
     /**
      * The archive base specifies whether the unpacked wrapper distribution should be stored in the project or in the
      * gradle user home dir.
      */
     @Input
-    public PathBase getArchiveBase() {
-        return archiveBase;
-    }
-
-    /**
-     * The archive base specifies whether the unpacked wrapper distribution should be stored in the project or in the
-     * gradle user home dir.
-     */
-    public void setArchiveBase(PathBase archiveBase) {
-        this.archiveBase = archiveBase;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<PathBase> getArchiveBase();
 
     /**
      * The network timeout specifies how many ms to wait for when the wrapper is performing network operations, such
@@ -494,4 +376,10 @@ public abstract class Wrapper extends DefaultTask {
     protected FileLookup getFileLookup() {
         throw new UnsupportedOperationException();
     }
+
+    @Inject
+    protected abstract FileOperations getFileOperations();
+
+    @Inject
+    protected abstract ObjectFactory getObjectFactory();
 }
