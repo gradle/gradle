@@ -30,7 +30,9 @@ import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.internal.state.ManagedFactoryRegistry;
@@ -65,23 +67,25 @@ public class WorkersServices extends AbstractGradleModuleServices {
         registration.add(IsolatedClassloaderWorkerFactory.class);
     }
 
-    @SuppressWarnings("unused") // Used by reflection
-    private static class BuildSessionScopeServices {
+    private static class BuildSessionScopeServices implements ServiceRegistrationProvider {
+        @Provides
         WorkerDirectoryProvider createWorkerDirectoryProvider(GradleUserHomeDirProvider gradleUserHomeDirProvider) {
             return new DefaultWorkerDirectoryProvider(gradleUserHomeDirProvider);
         }
 
+        @Provides
         ConditionalExecutionQueueFactory createConditionalExecutionQueueFactory(ExecutorFactory executorFactory, WorkerLimits workerLimits, WorkerLeaseService workerLeaseService) {
             return new DefaultConditionalExecutionQueueFactory(workerLimits, executorFactory, workerLeaseService);
         }
 
+        @Provides
         WorkerExecutionQueueFactory createWorkerExecutionQueueFactory(ConditionalExecutionQueueFactory conditionalExecutionQueueFactory) {
             return new WorkerExecutionQueueFactory(conditionalExecutionQueueFactory);
         }
     }
 
-    @SuppressWarnings("unused") // Used by reflection
-    private static class GradleUserHomeServices {
+    private static class GradleUserHomeServices implements ServiceRegistrationProvider {
+        @Provides
         WorkerDaemonClientsManager createWorkerDaemonClientsManager(WorkerProcessFactory workerFactory,
                                                                     LoggingManagerInternal loggingManager,
                                                                     ListenerManager listenerManager,
@@ -92,21 +96,24 @@ public class WorkersServices extends AbstractGradleModuleServices {
             return new WorkerDaemonClientsManager(new WorkerDaemonStarter(workerFactory, loggingManager, classPathRegistry, actionExecutionSpecFactory), listenerManager, loggingManager, memoryManager, memoryInfo);
         }
 
+        @Provides
         ClassLoaderStructureProvider createClassLoaderStructureProvider(ClassLoaderRegistry classLoaderRegistry) {
             return new ClassLoaderStructureProvider(classLoaderRegistry);
         }
 
+        @Provides
         IsolatableSerializerRegistry createIsolatableSerializerRegistry(ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ManagedFactoryRegistry managedFactoryRegistry) {
             return new IsolatableSerializerRegistry(classLoaderHierarchyHasher, managedFactoryRegistry);
         }
 
+        @Provides
         ActionExecutionSpecFactory createActionExecutionSpecFactory(IsolatableFactory isolatableFactory, IsolatableSerializerRegistry serializerRegistry) {
             return new DefaultActionExecutionSpecFactory(isolatableFactory, serializerRegistry);
         }
     }
 
-    @SuppressWarnings("unused") // Used by reflection
-    private static class ProjectScopeServices {
+    private static class ProjectScopeServices implements ServiceRegistrationProvider {
+        @Provides
         WorkerExecutor createWorkerExecutor(InstantiatorFactory instantiatorFactory,
                                             WorkerDaemonFactory daemonWorkerFactory,
                                             IsolatedClassloaderWorkerFactory isolatedClassloaderWorkerFactory,
@@ -146,6 +153,7 @@ public class WorkersServices extends AbstractGradleModuleServices {
             return workerExecutor;
         }
 
+        @Provides
         WorkerDaemonFactory createWorkerDaemonFactory(WorkerDaemonClientsManager workerDaemonClientsManager, BuildOperationRunner buildOperationRunner) {
             return new WorkerDaemonFactory(workerDaemonClientsManager, buildOperationRunner);
         }

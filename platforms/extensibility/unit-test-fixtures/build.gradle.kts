@@ -22,6 +22,7 @@ description = "Public types for unit testing plugins"
 
 dependencies {
     api(libs.jsr305)
+    api(projects.serviceProvider)
     api(project(":base-services"))
     api(project(":build-operations"))
     api(project(":concurrent"))
@@ -32,7 +33,6 @@ dependencies {
     api(project(":time"))
     api(project(":build-process-services"))
 
-    implementation(projects.serviceProvider)
     implementation(project(":build-state"))
     implementation(project(":file-collections"))
     implementation(project(":file-temp"))

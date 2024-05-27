@@ -21,6 +21,7 @@ dependencies {
 
     implementation(projects.concurrent)
     implementation(project(":enterprise-logging"))
+    implementation(projects.serviceProvider)
 
     implementation(libs.slf4jApi)
 

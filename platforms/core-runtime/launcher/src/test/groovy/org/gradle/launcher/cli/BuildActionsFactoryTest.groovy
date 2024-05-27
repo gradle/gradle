@@ -28,6 +28,8 @@ import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.internal.service.DefaultServiceRegistry
+import org.gradle.internal.service.Provides
+import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonAction
 import org.gradle.launcher.daemon.client.DaemonClient
@@ -60,7 +62,8 @@ class BuildActionsFactoryTest extends Specification {
         loggingServices.add(OutputEventListener, Mock(OutputEventListener))
         loggingServices.add(GlobalUserInputReceiver, Mock(GlobalUserInputReceiver))
         loggingServices.add(StyledTextOutputFactory, Mock(StyledTextOutputFactory))
-        loggingServices.addProvider(new Object() {
+        loggingServices.addProvider(new ServiceRegistrationProvider() {
+            @Provides
             Factory<LoggingManagerInternal> createFactory() {
                 return factoryLoggingManager
             }

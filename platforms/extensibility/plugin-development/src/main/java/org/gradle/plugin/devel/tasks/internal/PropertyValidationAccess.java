@@ -34,6 +34,7 @@ import org.gradle.internal.properties.annotations.TypeMetadataWalker;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.internal.service.DefaultServiceLocator;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.GradleModuleServices;
@@ -57,7 +58,7 @@ public class PropertyValidationAccess {
         ServiceRegistryBuilder builder = ServiceRegistryBuilder.builder().displayName("Global services");
         // Should reuse `GlobalScopeServices` here, however this requires a bunch of stuff in order to discover the plugin service registries
         // For now, re-implement the discovery here
-        builder.provider(new Object() {
+        builder.provider(new ServiceRegistrationProvider() {
             @SuppressWarnings("unused")
             void configure(ServiceRegistration registration) {
                 registration.add(ScopedListenerManager.class, new DefaultListenerManager(Global.class));
@@ -76,7 +77,6 @@ public class PropertyValidationAccess {
         this.typeSchemes = services.getAll(TypeScheme.class);
     }
 
-    @SuppressWarnings("unused")
     public static void collectValidationProblems(Class<?> topLevelBean, TypeValidationContext validationContext) {
         INSTANCE.collectTypeValidationProblems(topLevelBean, validationContext);
     }

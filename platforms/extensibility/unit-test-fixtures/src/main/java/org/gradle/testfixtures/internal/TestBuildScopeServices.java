@@ -26,6 +26,7 @@ import org.gradle.initialization.GradlePropertiesController;
 import org.gradle.internal.build.BuildModelControllerServices;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 
@@ -46,18 +47,22 @@ public class TestBuildScopeServices extends BuildScopeServices {
     }
 
     @Override
+    @Provides
     protected GradleProperties createGradleProperties(GradlePropertiesController gradlePropertiesController) {
         return new EmptyGradleProperties();
     }
 
+    @Provides
     protected BuildCancellationToken createBuildCancellationToken() {
         return new DefaultBuildCancellationToken();
     }
 
+    @Provides
     protected BuildClientMetaData createClientMetaData() {
         return new DefaultBuildClientMetaData(new GradleLauncherMetaData());
     }
 
+    @Provides
     protected CurrentGradleInstallation createCurrentGradleInstallation() {
         return new CurrentGradleInstallation(new GradleInstallation(homeDir));
     }

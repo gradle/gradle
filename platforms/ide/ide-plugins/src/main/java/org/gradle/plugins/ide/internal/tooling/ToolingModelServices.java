@@ -22,7 +22,9 @@ import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.project.ProjectTaskLister;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.buildtree.BuildModelParameters;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.plugins.ide.internal.configurer.DefaultUniqueProjectNameProvider;
 import org.gradle.plugins.ide.internal.configurer.UniqueProjectNameProvider;
@@ -37,14 +39,14 @@ public class ToolingModelServices extends AbstractGradleModuleServices {
         registration.addProvider(new BuildScopeToolingServices());
     }
 
-    private static class BuildScopeToolingServices {
+    private static class BuildScopeToolingServices implements ServiceRegistrationProvider {
 
-        @SuppressWarnings("unused")
+        @Provides
         protected UniqueProjectNameProvider createBuildProjectRegistry(ProjectStateRegistry projectRegistry) {
             return new DefaultUniqueProjectNameProvider(projectRegistry);
         }
 
-        @SuppressWarnings("unused")
+        @Provides
         protected BuildScopeToolingModelBuilderRegistryAction createIdeBuildScopeToolingModelBuilderRegistryAction(
             final ProjectTaskLister taskLister,
             final ProjectPublicationRegistry projectPublicationRegistry,

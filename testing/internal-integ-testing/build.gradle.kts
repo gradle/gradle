@@ -79,6 +79,7 @@ dependencies {
         because("Part of the public API")
     }
 
+    implementation(projects.serviceProvider)
     implementation(project(":base-services-groovy"))
     implementation(project(":build-cache"))
     implementation(project(":build-events"))

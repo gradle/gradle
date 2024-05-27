@@ -84,6 +84,8 @@ import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
+import org.gradle.internal.service.Provides;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.util.GradleVersion;
@@ -93,11 +95,13 @@ import java.util.function.Supplier;
 
 import static org.gradle.internal.execution.steps.AfterExecutionOutputFilter.NO_FILTER;
 
-public class ExecutionGradleServices {
+public class ExecutionGradleServices implements ServiceRegistrationProvider {
+    @Provides
     ExecutionHistoryCacheAccess createCacheAccess(BuildScopedCacheBuilderFactory cacheBuilderFactory) {
         return new DefaultExecutionHistoryCacheAccess(cacheBuilderFactory);
     }
 
+    @Provides
     ExecutionHistoryStore createExecutionHistoryStore(
         ExecutionHistoryCacheAccess executionHistoryCacheAccess,
         InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
@@ -112,6 +116,7 @@ public class ExecutionGradleServices {
         );
     }
 
+    @Provides
     OutputFilesRepository createOutputFilesRepository(BuildScopedCacheBuilderFactory cacheBuilderFactory, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
         PersistentCache cacheAccess = cacheBuilderFactory
             .createCrossVersionCacheBuilder("buildOutputCleanup")
@@ -122,10 +127,12 @@ public class ExecutionGradleServices {
         return new DefaultOutputFilesRepository(cacheAccess, inMemoryCacheDecoratorFactory);
     }
 
+    @Provides
     OutputChangeListener createOutputChangeListener(ListenerManager listenerManager) {
         return listenerManager.getBroadcaster(OutputChangeListener.class);
     }
 
+    @Provides
     public ExecutionEngine createExecutionEngine(
         BuildCacheController buildCacheController,
         BuildCancellationToken cancellationToken,

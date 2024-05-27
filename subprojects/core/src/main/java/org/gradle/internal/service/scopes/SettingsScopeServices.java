@@ -42,6 +42,7 @@ import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.plugin.software.internal.PluginScheme;
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
@@ -60,18 +61,22 @@ public class SettingsScopeServices extends DefaultServiceRegistry {
         });
     }
 
+    @Provides
     protected BuildLayout createBuildLayout(FileFactory fileFactory) {
         return new DefaultBuildLayout(settings, fileFactory);
     }
 
+    @Provides
     protected FileResolver createFileResolver(FileLookup fileLookup) {
         return fileLookup.getFileResolver(settings.getSettingsDir());
     }
 
+    @Provides
     protected PluginRegistry createPluginRegistry(PluginRegistry parentRegistry) {
         return parentRegistry.createChild(settings.getClassLoaderScope());
     }
 
+    @Provides
     protected PluginManagerInternal createPluginManager(
         Instantiator instantiator,
         PluginRegistry pluginRegistry,
@@ -91,14 +96,17 @@ public class SettingsScopeServices extends DefaultServiceRegistry {
         return instantiator.newInstance(DefaultPluginManager.class, pluginRegistry, instantiatorFactory.inject(this), target, buildOperationRunner, userCodeApplicationContext, decorator, domainObjectCollectionFactory);
     }
 
+    @Provides
     protected ConfigurationTargetIdentifier createConfigurationTargetIdentifier() {
         return ConfigurationTargetIdentifier.of(settings);
     }
 
+    @Provides
     protected GradleInternal createGradleInternal() {
         return settings.getGradle();
     }
 
+    @Provides
     protected CacheConfigurationsInternal createCacheConfigurations(ObjectFactory objectFactory, CacheConfigurationsInternal persistentCacheConfigurations, GradleInternal gradleInternal, LegacyCacheCleanupEnablement legacyCacheCleanupEnablement) {
         CacheConfigurationsInternal cacheConfigurations = objectFactory.newInstance(DefaultCacheConfigurations.class, legacyCacheCleanupEnablement);
         if (gradleInternal.isRootBuild()) {

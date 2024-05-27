@@ -64,14 +64,16 @@ import org.gradle.internal.properties.annotations.TypeAnnotationHandler;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.resource.transport.file.FileConnectorFactory;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.typeconversion.CrossBuildCachingNotationConverter;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.work.Incremental;
 import org.gradle.work.NormalizeLineEndings;
 
-class DependencyManagementGlobalScopeServices {
+class DependencyManagementGlobalScopeServices implements ServiceRegistrationProvider {
     void configure(ServiceRegistration registration) {
         registration.add(VersionParser.class);
         registration.add(IvyContextManager.class, DefaultIvyContextManager.class);
@@ -80,6 +82,7 @@ class DependencyManagementGlobalScopeServices {
         registration.add(LocalConfigurationMetadataBuilder.class, DefaultLocalConfigurationMetadataBuilder.class);
     }
 
+    @Provides
     NotationParser<Object, ComponentSelector> createComponentSelectorFactory(ImmutableModuleIdentifierFactory moduleIdentifierFactory, CrossBuildInMemoryCacheFactory cacheFactory) {
         return NotationParserBuilder
             .toType(ComponentSelector.class)
@@ -87,6 +90,7 @@ class DependencyManagementGlobalScopeServices {
             .toComposite();
     }
 
+    @Provides
     DependencyMetadataFactory createDependencyMetadataFactory(ExcludeRuleConverter excludeRuleConverter) {
         return new DefaultDependencyMetadataFactory(
             new ProjectDependencyMetadataConverter(excludeRuleConverter),
@@ -94,34 +98,42 @@ class DependencyManagementGlobalScopeServices {
         );
     }
 
+    @Provides
     ResourceConnectorFactory createFileConnectorFactory() {
         return new FileConnectorFactory();
     }
 
+    @Provides
     ProducerGuard<ExternalResourceName> createProducerAccess() {
         return ProducerGuard.adaptive();
     }
 
+    @Provides
     TypeAnnotationHandler createCacheableTransformAnnotationHandler() {
         return new CacheableTransformTypeAnnotationHandler();
     }
 
+    @Provides
     InputArtifactAnnotationHandler createInputArtifactAnnotationHandler() {
         return new InputArtifactAnnotationHandler();
     }
 
+    @Provides
     InputArtifactDependenciesAnnotationHandler createInputArtifactDependenciesAnnotationHandler() {
         return new InputArtifactDependenciesAnnotationHandler();
     }
 
+    @Provides
     PreferJavaRuntimeVariant createPreferJavaRuntimeVariant(NamedObjectInstantiator instantiator) {
         return new PreferJavaRuntimeVariant(instantiator);
     }
 
+    @Provides
     PlatformSupport createPlatformSupport(NamedObjectInstantiator instantiator) {
         return new PlatformSupport(instantiator);
     }
 
+    @Provides
     TransformParameterScheme createTransformParameterScheme(InspectionSchemeFactory inspectionSchemeFactory, InstantiatorFactory instantiatorFactory) {
         InstantiationScheme instantiationScheme = instantiatorFactory.decorateScheme();
         InspectionScheme inspectionScheme = inspectionSchemeFactory.inspectionScheme(
@@ -150,6 +162,7 @@ class DependencyManagementGlobalScopeServices {
         return new TransformParameterScheme(instantiationScheme, inspectionScheme);
     }
 
+    @Provides
     TransformActionScheme createTransformActionScheme(InspectionSchemeFactory inspectionSchemeFactory, InstantiatorFactory instantiatorFactory) {
         InstantiationScheme instantiationScheme = instantiatorFactory.injectScheme(ImmutableSet.of(
             InputArtifact.class,

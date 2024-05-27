@@ -20,6 +20,7 @@ dependencies {
 
     implementation(projects.io)
     implementation(projects.messaging)
+    implementation(projects.serviceProvider)
 
     implementation(libs.commonsLang)
     implementation(libs.slf4jApi)

@@ -57,7 +57,9 @@ import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.logging.LoggingBuildOperationProgressBroadcaster;
 import org.gradle.internal.operations.notify.BuildOperationNotificationValve;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.internal.session.BuildSessionActionExecutor;
 import org.gradle.internal.snapshot.CaseSensitivity;
@@ -102,13 +104,15 @@ public class LauncherServices extends AbstractGradleModuleServices {
         registration.addProvider(new ToolingBuildTreeScopeServices());
     }
 
-    static class ToolingGlobalScopeServices {
+    static class ToolingGlobalScopeServices implements ServiceRegistrationProvider {
+        @Provides
         BuildLoggerFactory createBuildLoggerFactory(StyledTextOutputFactory styledTextOutputFactory, WorkValidationWarningReporter workValidationWarningReporter) {
             return new BuildLoggerFactory(styledTextOutputFactory, workValidationWarningReporter, Time.clock(), null);
         }
     }
 
-    static class ToolingBuildSessionScopeServices {
+    static class ToolingBuildSessionScopeServices implements ServiceRegistrationProvider {
+        @Provides
         BuildSessionActionExecutor createActionExecutor(
             BuildEventListenerFactory listenerFactory,
             ExecutorFactory executorFactory,
@@ -161,6 +165,7 @@ public class LauncherServices extends AbstractGradleModuleServices {
                             buildOperationNotificationValve))));
         }
 
+        @Provides
         UserInputHandler createUserInputHandler(BuildRequestMetaData requestMetaData, OutputEventListenerManager outputEventListenerManager, Clock clock, UserInputReader inputReader) {
             if (!requestMetaData.isInteractive()) {
                 return new NonInteractiveUserInputHandler();
@@ -169,17 +174,20 @@ public class LauncherServices extends AbstractGradleModuleServices {
             return new DefaultUserInputHandler(outputEventListenerManager.getBroadcaster(), clock, inputReader);
         }
 
+        @Provides
         BuildScanUserInputHandler createBuildScanUserInputHandler(UserInputHandler userInputHandler) {
             return new DefaultBuildScanUserInputHandler(userInputHandler);
         }
 
     }
 
-    static class ToolingBuildTreeScopeServices {
-
+    static class ToolingBuildTreeScopeServices implements ServiceRegistrationProvider {
+        @Provides
         ProblemStream createProblemStream(StartParameter parameter, ProblemDiagnosticsFactory diagnosticsFactory){
             return  parameter.getWarningMode().shouldDisplayMessages()? diagnosticsFactory.newUnlimitedStream() : diagnosticsFactory.newStream();
         }
+
+        @Provides
         BuildTreeActionExecutor createActionExecutor(
             List<BuildActionRunner> buildActionRunners,
             StyledTextOutputFactory styledTextOutputFactory,
@@ -240,6 +248,7 @@ public class LauncherServices extends AbstractGradleModuleServices {
                 problemsService);
         }
 
+        @Provides
         BuildLoggerFactory createBuildLoggerFactory(StyledTextOutputFactory styledTextOutputFactory, WorkValidationWarningReporter workValidationWarningReporter, Clock clock, GradleEnterprisePluginManager gradleEnterprisePluginManager) {
             return new BuildLoggerFactory(styledTextOutputFactory, workValidationWarningReporter, clock, gradleEnterprisePluginManager);
         }

@@ -23,7 +23,6 @@ import org.gradle.api.AntBuilder;
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.project.IsolatedProject;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.PathValidation;
@@ -75,6 +74,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.ExtensionContainer;
+import org.gradle.api.project.IsolatedProject;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
@@ -104,6 +104,8 @@ import org.gradle.internal.model.RuleBasedPluginListener;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.TextUriResourceLoader;
 import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.Provides;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.internal.typeconversion.TypeConverter;
@@ -1477,7 +1479,8 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         DependencyManagementServices dms = getServices().get(DependencyManagementServices.class);
         InstantiatorFactory instantiatorFactory = services.get(InstantiatorFactory.class);
         DefaultServiceRegistry lookup = new DefaultServiceRegistry(services);
-        lookup.addProvider(new Object() {
+        lookup.addProvider(new ServiceRegistrationProvider() {
+            @Provides
             public DependencyResolutionServices createServices() {
                 return dms.create(
                     services.get(FileResolver.class),

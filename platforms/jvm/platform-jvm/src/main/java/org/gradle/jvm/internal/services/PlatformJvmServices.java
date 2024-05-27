@@ -21,6 +21,7 @@ import org.gradle.internal.jvm.inspection.InvalidJvmInstallationCacheInvalidator
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 
 public class PlatformJvmServices extends AbstractGradleModuleServices {
@@ -30,7 +31,7 @@ public class PlatformJvmServices extends AbstractGradleModuleServices {
     }
 
     private void registerInvalidJavaInstallationsCacheInvalidator(ServiceRegistration registration) {
-        registration.addProvider(new Object() {
+        registration.addProvider(new ServiceRegistrationProvider() {
             public void configure(ServiceRegistration serviceRegistration, JvmMetadataDetector globalJvmMetadataDetector) {
                 if (globalJvmMetadataDetector instanceof ConditionalInvalidation) {
                     // Avoiding generic-unchecked cast with this intermediate implementation that checks the types of the items:

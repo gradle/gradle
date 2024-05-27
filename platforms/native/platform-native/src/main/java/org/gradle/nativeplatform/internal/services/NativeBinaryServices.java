@@ -20,7 +20,9 @@ import net.rubygrapefruit.platform.SystemInfo;
 import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
 import org.gradle.nativeplatform.internal.DefaultTargetMachineFactory;
@@ -85,41 +87,50 @@ public class NativeBinaryServices extends AbstractGradleModuleServices {
         registration.addProvider(new ProjectCompilerServices());
     }
 
-    private static final class BuildSessionScopeServices {
+    private static final class BuildSessionScopeServices implements ServiceRegistrationProvider {
+        @Provides
         WindowsSdkLocator createWindowsSdkLocator(OperatingSystem os, WindowsRegistry windowsRegistry, SystemInfo systemInfo) {
             return new DefaultWindowsSdkLocator(os, windowsRegistry, systemInfo);
         }
 
+        @Provides
         VisualCppMetadataProvider createVisualCppMetadataProvider(WindowsRegistry windowsRegistry) {
             return new DefaultVisualCppMetadataProvider(windowsRegistry);
         }
 
+        @Provides
         WindowsRegistryVersionLocator createWindowsRegistryVersionLocator(WindowsRegistry windowsRegistry) {
             return new WindowsRegistryVersionLocator(windowsRegistry);
         }
 
+        @Provides
         CommandLineToolVersionLocator createCommandLineVersionLocator(ExecActionFactory execActionFactory, VisualCppMetadataProvider visualCppMetadataProvider, VswhereVersionLocator vswhereLocator) {
             return new CommandLineToolVersionLocator(execActionFactory, visualCppMetadataProvider, vswhereLocator);
         }
 
+        @Provides
         VswhereVersionLocator createVswhereVersionLocator(WindowsRegistry windowsRegistry, OperatingSystem os) {
             return new DefaultVswhereVersionLocator(windowsRegistry, os);
         }
 
+        @Provides
         SystemPathVersionLocator createSystemPathVersionLocator(OperatingSystem os, VisualStudioMetaDataProvider versionDeterminer) {
             return new SystemPathVersionLocator(os, versionDeterminer);
         }
 
+        @Provides
         VisualStudioMetaDataProvider createVisualStudioMetadataProvider(CommandLineToolVersionLocator commandLineToolVersionLocator, WindowsRegistryVersionLocator windowsRegistryVersionLocator, VisualCppMetadataProvider visualCppMetadataProvider) {
             return new VisualStudioVersionDeterminer(commandLineToolVersionLocator, windowsRegistryVersionLocator, visualCppMetadataProvider);
         }
 
+        @Provides
         VisualStudioLocator createVisualStudioLocator(CommandLineToolVersionLocator commandLineLocator, WindowsRegistryVersionLocator windowsRegistryLocator, SystemPathVersionLocator systemPathLocator, VisualStudioMetaDataProvider versionDeterminer, SystemInfo systemInfo) {
             return new DefaultVisualStudioLocator(commandLineLocator, windowsRegistryLocator, systemPathLocator, versionDeterminer, systemInfo);
         }
     }
 
-    private static final class ProjectCompilerServices {
+    private static final class ProjectCompilerServices implements ServiceRegistrationProvider {
+        @Provides
         CompilerOutputFileNamingSchemeFactory createCompilerOutputFileNamingSchemeFactory(RelativeFilePathResolver fileResolver) {
             return new CompilerOutputFileNamingSchemeFactory(fileResolver);
         }

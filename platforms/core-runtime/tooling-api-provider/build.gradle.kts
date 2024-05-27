@@ -23,6 +23,7 @@ description = "The Tooling API provider implementation (the version-specific par
 dependencies {
     api(project(":tooling-api"))
 
+    implementation(projects.serviceProvider)
     implementation(libs.jsr305)
     implementation(libs.slf4jApi)
     implementation(project(":launcher"))

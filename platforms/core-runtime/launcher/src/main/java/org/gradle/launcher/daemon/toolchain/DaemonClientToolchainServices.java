@@ -26,7 +26,9 @@ import org.gradle.internal.jvm.inspection.JvmInstallationProblemReporter;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.jvm.toolchain.internal.AsdfInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.DefaultOsXJavaHomeCommand;
 import org.gradle.jvm.toolchain.internal.InstallationSupplier;
@@ -42,7 +44,7 @@ import org.gradle.jvm.toolchain.internal.install.DefaultJdkCacheDirectory;
 
 import java.util.List;
 
-public class DaemonClientToolchainServices {
+public class DaemonClientToolchainServices implements ServiceRegistrationProvider {
 
     private final ToolchainConfiguration toolchainConfiguration;
 
@@ -67,13 +69,17 @@ public class DaemonClientToolchainServices {
         registration.add(WindowsInstallationSupplier.class);
     }
 
+    @Provides
     protected DaemonJavaToolchainQueryService createDaemonJavaToolchainQueryService(JavaInstallationRegistry javaInstallationRegistry) {
         return new DaemonJavaToolchainQueryService(javaInstallationRegistry);
     }
+
+    @Provides
     protected JavaInstallationRegistry createJavaInstallationRegistry(ToolchainConfiguration toolchainConfiguration, List<InstallationSupplier> installationSuppliers, JvmMetadataDetector jvmMetadataDetector, ProgressLoggerFactory progressLoggerFactory, FileResolver fileResolver, JdkCacheDirectory jdkCacheDirectory) {
         return new DefaultJavaInstallationRegistry(toolchainConfiguration, installationSuppliers, jvmMetadataDetector, null, OperatingSystem.current(), progressLoggerFactory, fileResolver, jdkCacheDirectory, new JvmInstallationProblemReporter());
     }
 
+    @Provides
     protected JdkCacheDirectory createJdkCacheDirectory(GradleUserHomeDirProvider gradleUserHomeDirProvider, FileLockManager fileLockManager, JvmMetadataDetector jvmMetadataDetector, GradleUserHomeTemporaryFileProvider gradleUserHomeTemporaryFileProvider) {
         return new DefaultJdkCacheDirectory(gradleUserHomeDirProvider, null, fileLockManager, jvmMetadataDetector, gradleUserHomeTemporaryFileProvider);
     }

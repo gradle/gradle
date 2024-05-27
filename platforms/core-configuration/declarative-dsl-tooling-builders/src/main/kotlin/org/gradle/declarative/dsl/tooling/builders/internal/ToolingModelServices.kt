@@ -17,7 +17,9 @@
 package org.gradle.declarative.dsl.tooling.builders.internal
 
 import org.gradle.declarative.dsl.tooling.builders.DeclarativeSchemaModelBuilder
+import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistration
+import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 import org.gradle.tooling.provider.model.internal.BuildScopeToolingModelBuilderRegistryAction
@@ -32,9 +34,9 @@ class ToolingModelServices : AbstractGradleModuleServices() {
 
 
 internal
-object BuildScopeToolingServices {
+object BuildScopeToolingServices : ServiceRegistrationProvider {
 
-    @Suppress("unused")
+    @Provides
     fun createIdeBuildScopeToolingModelBuilderRegistryAction(softwareTypeRegistry: SoftwareTypeRegistry): BuildScopeToolingModelBuilderRegistryAction {
         return BuildScopeToolingModelBuilderRegistryAction {
             it.register(DeclarativeSchemaModelBuilder(softwareTypeRegistry))

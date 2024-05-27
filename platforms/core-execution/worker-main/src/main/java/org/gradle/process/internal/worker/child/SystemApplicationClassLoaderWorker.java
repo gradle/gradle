@@ -33,6 +33,8 @@ import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.internal.remote.services.MessagingServices;
 import org.gradle.internal.serialize.InputStreamBackedDecoder;
 import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.Provides;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.Scope.Global;
 import org.gradle.process.internal.health.memory.DefaultJvmMemoryInfo;
@@ -183,11 +185,11 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         return loggingManagerInternal;
     }
 
-    @SuppressWarnings("UnusedMethod")
     private static class WorkerServices extends DefaultServiceRegistry {
         public WorkerServices(ServiceRegistry parent, final File gradleUserHomeDir) {
             super(parent);
-            addProvider(new Object() {
+            addProvider(new ServiceRegistrationProvider() {
+                @Provides
                 GradleUserHomeDirProvider createGradleUserHomeDirProvider() {
                     return new GradleUserHomeDirProvider() {
                         @Override
@@ -199,22 +201,27 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
             });
         }
 
+        @Provides
         ScopedListenerManager createListenerManager() {
             return new DefaultListenerManager(Global.class);
         }
 
+        @Provides
         OsMemoryInfo createOsMemoryInfo() {
             return new DisabledOsMemoryInfo();
         }
 
+        @Provides
         JvmMemoryInfo createJvmMemoryInfo() {
             return new DefaultJvmMemoryInfo();
         }
 
+        @Provides
         MemoryManager createMemoryManager(OsMemoryInfo osMemoryInfo, JvmMemoryInfo jvmMemoryInfo, ListenerManager listenerManager, ExecutorFactory executorFactory) {
             return new DefaultMemoryManager(osMemoryInfo, jvmMemoryInfo, listenerManager, executorFactory);
         }
 
+        @Provides
         WorkerDirectoryProvider createWorkerDirectoryProvider(GradleUserHomeDirProvider gradleUserHomeDirProvider) {
             return new DefaultWorkerDirectoryProvider(gradleUserHomeDirProvider);
         }

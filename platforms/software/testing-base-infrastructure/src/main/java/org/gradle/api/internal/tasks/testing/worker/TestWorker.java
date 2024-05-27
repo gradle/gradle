@@ -34,6 +34,7 @@ import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Clock;
 import org.gradle.process.internal.worker.WorkerProcessContext;
@@ -218,22 +219,22 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
             this.workerProcessContext = workerProcessContext;
         }
 
-        @SuppressWarnings("UnusedMethod")
+        @Provides
         protected Clock createClock() {
             return workerProcessContext.getServiceRegistry().get(Clock.class);
         }
 
-        @SuppressWarnings("UnusedMethod")
+        @Provides
         protected IdGenerator<Object> createIdGenerator() {
             return new CompositeIdGenerator(workerProcessContext.getWorkerId(), new LongIdGenerator());
         }
 
-        @SuppressWarnings("UnusedMethod")
+        @Provides
         protected ExecutorFactory createExecutorFactory() {
             return new DefaultExecutorFactory();
         }
 
-        @SuppressWarnings("UnusedMethod")
+        @Provides
         protected ActorFactory createActorFactory(ExecutorFactory executorFactory) {
             return new DefaultActorFactory(executorFactory);
         }

@@ -8,4 +8,6 @@ gradlebuildJava.usedInWorkers()
 
 dependencies {
     api(projects.javaLanguageExtensions)
+
+    api(libs.errorProneAnnotations)
 }

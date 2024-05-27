@@ -17,6 +17,8 @@
 package org.gradle.internal.event
 
 import org.gradle.internal.service.DefaultServiceRegistry
+import org.gradle.internal.service.Provides
+import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.internal.service.scopes.EventScope
 import org.gradle.internal.service.scopes.ListenerService
 import org.gradle.internal.service.scopes.Scope
@@ -36,7 +38,8 @@ class DefaultListenerManagerInServiceRegistryTest extends Specification {
         def listener = Mock(TestListener)
 
         when:
-        services.addProvider(new Object() {
+        services.addProvider(new ServiceRegistrationProvider() {
+            @Provides
             TestListener createListener() {
                 created.run()
                 return listener
@@ -61,7 +64,8 @@ class DefaultListenerManagerInServiceRegistryTest extends Specification {
         def listener = Mock(TestListener)
 
         when:
-        services.addProvider(new Object() {
+        services.addProvider(new ServiceRegistrationProvider() {
+            @Provides
             TestListener createListener() {
                 created.run()
                 return listener
@@ -85,7 +89,8 @@ class DefaultListenerManagerInServiceRegistryTest extends Specification {
         def listener = Mock(TestListener)
 
         when:
-        services.addProvider(new Object() {
+        services.addProvider(new ServiceRegistrationProvider() {
+            @Provides
             TestListener createListener() {
                 return listener
             }
@@ -110,7 +115,8 @@ class DefaultListenerManagerInServiceRegistryTest extends Specification {
         def services = new DefaultServiceRegistry()
 
         when:
-        services.addProvider(new Object() {
+        services.addProvider(new ServiceRegistrationProvider() {
+            @Provides
             DefaultListenerManager createListenerManager() {
                 created.run()
                 return listenerManager
@@ -133,11 +139,13 @@ class DefaultListenerManagerInServiceRegistryTest extends Specification {
         def listener = Mock(TestListener)
 
         when:
-        services.addProvider(new Object() {
+        services.addProvider(new ServiceRegistrationProvider() {
+            @Provides
             DifferentListener createListener1() {
                 throw new RuntimeException("should not happen")
             }
 
+            @Provides
             TestListener createListener() {
                 return listener
             }
@@ -161,7 +169,8 @@ class DefaultListenerManagerInServiceRegistryTest extends Specification {
 
         when:
         def broadcast = listenerManager.getBroadcaster(TestListener)
-        services.addProvider(new Object() {
+        services.addProvider(new ServiceRegistrationProvider() {
+            @Provides
             TestListener createListener() {
                 created.run()
                 return listener
@@ -186,7 +195,8 @@ class DefaultListenerManagerInServiceRegistryTest extends Specification {
 
         when:
         listenerManager.addListener(Stub(TestListener))
-        services.addProvider(new Object() {
+        services.addProvider(new ServiceRegistrationProvider() {
+            @Provides
             TestListener createListener() {
                 created.run()
                 return listener
@@ -211,7 +221,8 @@ class DefaultListenerManagerInServiceRegistryTest extends Specification {
         def listener = Mock(MultipleListeners)
 
         when:
-        services.addProvider(new Object() {
+        services.addProvider(new ServiceRegistrationProvider() {
+            @Provides
             MultipleListeners createListener() {
                 created.run()
                 return listener
@@ -246,13 +257,15 @@ class DefaultListenerManagerInServiceRegistryTest extends Specification {
         def services = new DefaultServiceRegistry()
 
         when:
-        services.addProvider(new Object() {
+        services.addProvider(new ServiceRegistrationProvider() {
+            @Provides
             TestListener createTestListener() {
                 created.run()
                 return listener
             }
         })
-        services.addProvider(new Object() {
+        services.addProvider(new ServiceRegistrationProvider() {
+            @Provides
             DefaultListenerManager createListenerManager() {
                 return listenerManager
             }
@@ -286,7 +299,8 @@ class DefaultListenerManagerInServiceRegistryTest extends Specification {
     def "fails when listener manager factory is not declared as annotation handler"() {
         given:
         def services = new DefaultServiceRegistry()
-        services.addProvider(new Object() {
+        services.addProvider(new ServiceRegistrationProvider() {
+            @Provides
             ListenerManager createListenerManager() {
                 return new DefaultListenerManager(Scope.BuildTree)
             }
@@ -302,7 +316,8 @@ class DefaultListenerManagerInServiceRegistryTest extends Specification {
 
     def "fails when listener service is not declared as listener type"() {
         def listener = Mock(SubListener)
-        services.addProvider(new Object() {
+        services.addProvider(new ServiceRegistrationProvider() {
+            @Provides
             Runnable createListener() {
                 return listener
             }
@@ -323,7 +338,8 @@ class DefaultListenerManagerInServiceRegistryTest extends Specification {
         when:
         def broadcast = listenerManager.getBroadcaster(TestListener)
         broadcast.something("12")
-        services.addProvider(new Object() {
+        services.addProvider(new ServiceRegistrationProvider() {
+            @Provides
             TestListener createListener() {
                 created.run()
                 return listener
@@ -342,7 +358,8 @@ class DefaultListenerManagerInServiceRegistryTest extends Specification {
         def service = Mock(TestListenerService)
 
         when:
-        services.addProvider(new Object() {
+        services.addProvider(new ServiceRegistrationProvider() {
+            @Provides
             TestListenerService createListener() {
                 created.run()
                 return service
@@ -372,7 +389,8 @@ class DefaultListenerManagerInServiceRegistryTest extends Specification {
         def service = Mock(TestListenerService)
 
         when:
-        services.addProvider(new Object() {
+        services.addProvider(new ServiceRegistrationProvider() {
+            @Provides
             TestListenerService createListener(Runnable action) {
                 action.run()
                 return service

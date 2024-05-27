@@ -21,13 +21,13 @@ plugins {
 description = "Types for build process and session state management"
 
 dependencies {
+    api(projects.serviceProvider)
     api(project(":core"))
     api(project(":base-services"))
     api(project(":java-language-extensions"))
     api(project(":daemon-protocol"))
     api(project(":logging"))
 
-    implementation(projects.serviceProvider)
     implementation(project(":core-api"))
     implementation(project(":messaging"))
     implementation(project(":concurrent"))
