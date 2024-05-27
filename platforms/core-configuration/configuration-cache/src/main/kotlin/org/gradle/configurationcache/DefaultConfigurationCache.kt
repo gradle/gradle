@@ -23,8 +23,8 @@ import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logging
 import org.gradle.configurationcache.cacheentry.EntryDetails
-import org.gradle.configurationcache.extensions.toDefaultLowerCase
-import org.gradle.configurationcache.extensions.uncheckedCast
+import org.gradle.internal.extensions.stdlib.toDefaultLowerCase
+import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprintController
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.configurationcache.metadata.ProjectMetadataController

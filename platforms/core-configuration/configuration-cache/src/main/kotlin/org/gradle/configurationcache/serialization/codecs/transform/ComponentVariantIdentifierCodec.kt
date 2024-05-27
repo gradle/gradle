@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.capabilities.Capability
 import org.gradle.api.internal.artifacts.transform.ComponentVariantIdentifier
 import org.gradle.api.internal.attributes.ImmutableAttributes
-import org.gradle.configurationcache.extensions.uncheckedCast
+import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext

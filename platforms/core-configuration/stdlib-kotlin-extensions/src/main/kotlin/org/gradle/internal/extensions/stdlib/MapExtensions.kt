@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.extensions
+package org.gradle.internal.extensions.stdlib
 
 
 fun <V> Map<String, V>.filterKeysByPrefix(prefix: String): Map<String, V?> =

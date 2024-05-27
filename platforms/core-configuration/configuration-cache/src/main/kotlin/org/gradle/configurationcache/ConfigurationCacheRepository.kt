@@ -28,8 +28,8 @@ import org.gradle.cache.internal.streams.DefaultValueStore
 import org.gradle.cache.internal.streams.ValueStore
 import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory
 import org.gradle.configurationcache.ConfigurationCacheStateStore.StateFile
-import org.gradle.configurationcache.extensions.toDefaultLowerCase
-import org.gradle.configurationcache.extensions.unsafeLazy
+import org.gradle.internal.extensions.stdlib.toDefaultLowerCase
+import org.gradle.internal.extensions.stdlib.unsafeLazy
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.file.FileAccessTimeJournal
 import org.gradle.internal.file.impl.SingleDepthFileAccessTracker

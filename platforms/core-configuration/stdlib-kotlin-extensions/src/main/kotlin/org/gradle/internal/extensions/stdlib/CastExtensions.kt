@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.extensions.core
+package org.gradle.internal.extensions.stdlib
 
-import org.gradle.api.Project
-import org.gradle.api.plugins.ExtraPropertiesExtension
-import org.gradle.internal.extensions.stdlib.uncheckedCast
+import org.gradle.internal.Cast
 
 
-inline fun <reified T : Any> Project.setSingletonProperty(value: T) {
-    extra[T::class.java.name] = value
-}
-
-
-inline fun <reified T> Project.popSingletonProperty(): T? =
-    extra.remove(T::class.java.name)?.uncheckedCast()
-
-
-val Project.extra: ExtraPropertiesExtension
-    get() = extensions.extraProperties
+fun <T> Any.uncheckedCast(): T =
+    Cast.uncheckedNonnullCast(this)

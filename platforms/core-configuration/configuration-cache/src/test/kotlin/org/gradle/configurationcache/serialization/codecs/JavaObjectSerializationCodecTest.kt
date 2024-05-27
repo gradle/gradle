@@ -19,8 +19,8 @@ package org.gradle.configurationcache.serialization.codecs
 import com.google.common.reflect.TypeToken
 import com.nhaarman.mockitokotlin2.mock
 import org.gradle.api.Project
-import org.gradle.configurationcache.extensions.uncheckedCast
-import org.gradle.configurationcache.extensions.useToRun
+import org.gradle.internal.extensions.stdlib.uncheckedCast
+import org.gradle.internal.extensions.stdlib.useToRun
 import org.gradle.internal.configuration.problems.DocumentationSection.NotYetImplementedJavaSerialization
 import org.gradle.internal.configuration.problems.PropertyKind
 import org.gradle.internal.configuration.problems.PropertyTrace

@@ -18,9 +18,9 @@ package org.gradle.internal.configuration.problems
 
 import com.google.common.base.Supplier
 import org.gradle.api.InvalidUserCodeException
-import org.gradle.configurationcache.extensions.capitalized
 import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.code.UserCodeSource
+import org.gradle.internal.extensions.stdlib.capitalized
 import org.gradle.problems.ProblemDiagnostics
 import org.gradle.problems.buildtree.ProblemDiagnosticsFactory
 

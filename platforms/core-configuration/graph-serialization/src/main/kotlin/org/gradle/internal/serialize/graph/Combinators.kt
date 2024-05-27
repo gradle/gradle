@@ -16,8 +16,8 @@
 
 package org.gradle.internal.serialize.graph
 
-import org.gradle.configurationcache.extensions.uncheckedCast
-import org.gradle.configurationcache.extensions.useToRun
+import org.gradle.internal.extensions.stdlib.uncheckedCast
+import org.gradle.internal.extensions.stdlib.useToRun
 import org.gradle.internal.serialize.BaseSerializerFactory
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder

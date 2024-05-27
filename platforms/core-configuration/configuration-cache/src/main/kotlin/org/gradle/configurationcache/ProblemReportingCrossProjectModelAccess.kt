@@ -77,7 +77,7 @@ import org.gradle.configurationcache.CrossProjectModelAccessPattern.ALLPROJECTS
 import org.gradle.configurationcache.CrossProjectModelAccessPattern.CHILD
 import org.gradle.configurationcache.CrossProjectModelAccessPattern.DIRECT
 import org.gradle.configurationcache.CrossProjectModelAccessPattern.SUBPROJECT
-import org.gradle.configurationcache.extensions.uncheckedCast
+import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.configuration.problems.ProblemFactory
 import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.configuration.problems.StructuredMessage

@@ -23,8 +23,8 @@ import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.configurationcache.CheckedFingerprint
 import org.gradle.internal.extensions.core.fileSystemEntryType
-import org.gradle.configurationcache.extensions.filterKeysByPrefix
-import org.gradle.configurationcache.extensions.uncheckedCast
+import org.gradle.internal.extensions.stdlib.filterKeysByPrefix
+import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.configurationcache.logger
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.file.FileType
