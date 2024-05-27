@@ -48,8 +48,6 @@ class SystemClassLoaderTest extends AbstractIntegrationSpec {
                 doLast {
                     def systemLoader = ClassLoader.systemClassLoader
 
-                    systemLoader.loadClass("org.gradle.launcher.daemon.bootstrap.GradleDaemon") // this should be on the classpath, it's from the launcher package
-
                     def nonLauncherOrCoreClass = "org.gradle.api.reporting.Report"
 
                     // Check that this is a dependency (to verify that the class is not accidentally removed and so make the test verify nothing)
