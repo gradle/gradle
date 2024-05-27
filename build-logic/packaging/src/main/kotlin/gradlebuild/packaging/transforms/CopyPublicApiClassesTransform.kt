@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.transform.TransformOutputs
 import org.gradle.api.artifacts.transform.TransformParameters
 import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.provider.Provider
+import org.gradle.api.tasks.Classpath
 import java.util.zip.ZipFile
 
 // TODO This should work via filtering classes dirs, but for that we need to be able to set a default attribute
@@ -30,6 +31,7 @@ import java.util.zip.ZipFile
 abstract class CopyPublicApiClassesTransform : TransformAction<TransformParameters.None> {
 
     @get:InputArtifact
+    @get:Classpath
     abstract val inputArtifact: Provider<FileSystemLocation>
 
     override fun transform(outputs: TransformOutputs) {
@@ -39,7 +41,7 @@ abstract class CopyPublicApiClassesTransform : TransformAction<TransformParamete
         zipFile.stream().forEach { entry ->
             if (entry.name.endsWith(".class")) {
                 val packageName = entry.name.substringBeforeLast('/').replace('/', '.')
-                if (packageName.startsWith("org.gradle")) {
+                if (PublicApi.isPublicApiPackage(packageName)) {
                     val outputFile = outputRoot.resolve(entry.name)
                     outputFile.parentFile.mkdirs()
                     zipFile.getInputStream(entry).use { input ->

@@ -1,5 +1,7 @@
 package gradlebuild.basics
 
+import java.util.regex.Pattern
+
 
 /**
  * This is the definition of what constitutes the Gradle public API.
@@ -47,4 +49,20 @@ object PublicApi {
     )
 
     val excludes = listOf("**/internal/**")
+
+    private val includePackagePatterns: List<Pattern> by lazy {
+        includes.map {
+            if (it.endsWith("/**")) {
+                Pattern.compile(it.substring(0, it.length - 3).replace("/", "\\.") + "(\\..+)?")
+            } else {
+                Pattern.compile(it.substring(0, it.length - 2).replace("/", "\\.") + "\\.[^.]+")
+            }
+        }
+    }
+
+    private val excludePackagePatterns = listOf(Pattern.compile(".+\\.internal(\\..+)?"))
+
+    fun isPublicApiPackage(packageName: String) =
+        includePackagePatterns.any { it.matcher(packageName).matches() } &&
+            !excludePackagePatterns.any { it.matcher(packageName).matches() }
 }
