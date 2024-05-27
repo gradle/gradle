@@ -63,7 +63,7 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         ApiCompilerResult result = new ApiCompilerResult();
         JavaCompiler.CompilationTask task = createCompileTask(spec, result);
         boolean success = task.call();
-        diagnosticToProblemListener.reportDiagnosticCounts();
+        diagnosticToProblemListener.printDiagnosticCounts();
         if (!success) {
             throw new CompilationFailedException(result);
         }
