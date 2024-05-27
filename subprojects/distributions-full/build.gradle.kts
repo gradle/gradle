@@ -1,4 +1,3 @@
-import gradlebuild.basics.buildId
 import gradlebuild.packaging.transforms.CopyPublicApiClassesTransform
 
 plugins {
@@ -52,20 +51,27 @@ tasks.register<Copy>("copyDistributionsToRootBuild") {
     into(rootProject.layout.buildDirectory.dir("distributions"))
 }
 
-tasks.register<Jar>("jarPublicApi") {
-    from(configurations.runtimeClasspath.map { classpath ->
+fun registerApiJarTask(taskName: String, dirName: String, dependencies: NamedDomainObjectProvider<Configuration>) = tasks.register<Jar>(taskName) {
+    from(dependencies.map { classpath ->
         classpath.incoming.artifactView {
             attributes {
                 attribute(filteredAttribute, Filtering.PUBLIC_API)
             }
-            componentFilter {
-                it is ProjectComponentIdentifier &&
+            componentFilter { component ->
+                component is ProjectComponentIdentifier &&
                     // FIXME Why is this dependency present here? Can we exclude it better?
-                    buildTreePath != ":build-logic:kotlin-dsl-shared-runtime"
+                    component.buildTreePath != ":build-logic:kotlin-dsl-shared-runtime"
             }
         }.files
     })
-    destinationDirectory = layout.buildDirectory.dir("public-api")
+    destinationDirectory = layout.buildDirectory.dir("public-api/$dirName")
     // FIXME This is required because package-info.class files are duplicated
     duplicatesStrategy = DuplicatesStrategy.WARN
+}
+
+val coreApiTask = registerApiJarTask("jarCoreApi", "core-api", configurations.coreRuntimeClasspath)
+val fullApiTask = registerApiJarTask("jarFullApi", "full-api", configurations.runtimeClasspath)
+
+tasks.register("jarPublicApi") {
+    dependsOn(coreApiTask, fullApiTask)
 }
