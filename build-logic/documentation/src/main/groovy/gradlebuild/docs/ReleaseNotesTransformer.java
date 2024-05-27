@@ -165,10 +165,8 @@ public class ReleaseNotesTransformer extends FilterReader {
             String name = h23element.text();
             String anchor = h23element.attr("id");
             if(!name.startsWith("Table") && tag.equals("h2")){
-                System.out.println(tag + name + anchor);
                 toc.append("<li class=\"mainTopic\"><a/></li>").children().last().select("a").first().text(name).attr("href", "#" + anchor);
             } else if(!name.startsWith("Table") && tag.equals("h3")){
-                System.out.println(tag + name + anchor);
                 toc.append("<li class=\"subTopic\"><a/></li>").children().last().select("a").first().text(name).attr("href", "#" + anchor);
             }
         }
