@@ -80,7 +80,9 @@ Method <org.gradle.api.tasks.testing.Test.getJavaLauncher()> is not abstract
 Method <org.gradle.api.tasks.testing.Test.getStableClasspath()> is not abstract
 Method <org.gradle.api.tasks.testing.Test.getTestClassesDirs()> is not abstract
 Method <org.gradle.api.tasks.testing.Test.getTestFrameworkProperty()> is not abstract
+Method <org.gradle.api.tasks.wrapper.Wrapper.getBatchScript()> is not abstract
 Method <org.gradle.api.tasks.wrapper.Wrapper.getNetworkTimeout()> is not abstract
+Method <org.gradle.api.tasks.wrapper.Wrapper.getPropertiesFile()> is not abstract
 Method <org.gradle.buildinit.tasks.InitBuild.getInsecureProtocol()> is not abstract
 Method <org.gradle.buildinit.tasks.InitBuild.getJavaVersion()> is not abstract
 Method <org.gradle.buildinit.tasks.InitBuild.getSplitProject()> is not abstract
