@@ -53,17 +53,19 @@ tasks.register<Copy>("copyDistributionsToRootBuild") {
 }
 
 tasks.register<Jar>("jarPublicApi") {
-    from(configurations.runtimeClasspath.get().incoming.artifactView {
-        attributes {
-            attribute(filteredAttribute, Filtering.PUBLIC_API)
-        }
-        componentFilter {
-            it is ProjectComponentIdentifier &&
-                // FIXME Why is this dependency present here? Can we exclude it better?
-                !it.buildTreePath.equals(":build-logic:kotlin-dsl-shared-runtime")
-        }
-    }.files)
-    destinationDirectory = layout.buildDirectory.dir("public-api-jar")
+    from(configurations.runtimeClasspath.map { classpath ->
+        classpath.incoming.artifactView {
+            attributes {
+                attribute(filteredAttribute, Filtering.PUBLIC_API)
+            }
+            componentFilter {
+                it is ProjectComponentIdentifier &&
+                    // FIXME Why is this dependency present here? Can we exclude it better?
+                    buildTreePath != ":build-logic:kotlin-dsl-shared-runtime"
+            }
+        }.files
+    })
+    destinationDirectory = layout.buildDirectory.dir("public-api")
     // FIXME This is required because package-info.class files are duplicated
     duplicatesStrategy = DuplicatesStrategy.WARN
 }
