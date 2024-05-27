@@ -76,15 +76,15 @@ public class RelevantMethods {
         private void addMethod(Method method) {
             if (method.getName().equals("configure")) {
                 if (!method.getReturnType().equals(Void.TYPE)) {
-                    throw new ServiceLookupException(String.format("Method %s.%s() must return void.", type.getName(), method.getName()));
+                    throw new ServiceValidationException(String.format("Method %s.%s() must return void.", type.getName(), method.getName()));
                 }
                 add(configurers, method);
             } else if (method.getName().startsWith("create") || method.getName().startsWith("decorate")) {
                 if (method.getAnnotation(Provides.class) == null) {
-                    throw new ServiceLookupException(String.format("Method %s.%s() must be annotated with @Provides.", type.getName(), method.getName()));
+                    throw new ServiceValidationException(String.format("Method %s.%s() must be annotated with @Provides.", type.getName(), method.getName()));
                 }
                 if (method.getReturnType().equals(Void.TYPE)) {
-                    throw new ServiceLookupException(String.format("Method %s.%s() must not return void.", type.getName(), method.getName()));
+                    throw new ServiceValidationException(String.format("Method %s.%s() must not return void.", type.getName(), method.getName()));
                 }
                 if (takesReturnTypeAsParameter(method)) {
                     add(decorators, method);

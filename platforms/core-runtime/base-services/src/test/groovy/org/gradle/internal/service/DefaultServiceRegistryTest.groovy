@@ -368,6 +368,24 @@ class DefaultServiceRegistryTest extends Specification {
         e.cause == BrokenProvider.failure
     }
 
+    def failsWhenCreateMethodHasNoAnnotation() {
+        def registry = new DefaultServiceRegistry()
+
+        when:
+        registry.addProvider(new UnannotatedServiceProvider())
+
+        then:
+        ServiceValidationException e = thrown()
+        e.message == "Method ${UnannotatedServiceProvider.name}.createWithoutAnnotation() must be annotated with @Provides."
+    }
+
+    private static class UnannotatedServiceProvider implements ServiceProvider {
+        @SuppressWarnings('unused')
+        String createWithoutAnnotation() {
+            return "no-annotation"
+        }
+    }
+
     def failsWhenInterfaceIsRegistered() {
         def registry = new DefaultServiceRegistry()
         when:
@@ -1700,7 +1718,7 @@ class DefaultServiceRegistryTest extends Specification {
         }
     }
 
-    private static class TestProvider implements ServiceProvider{
+    private static class TestProvider implements ServiceProvider {
         @Provides
         String createString(Integer integer) {
             return integer.toString()
