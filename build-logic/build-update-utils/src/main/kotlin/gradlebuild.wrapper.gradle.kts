@@ -1,10 +1,17 @@
-import gradlebuild.basics.capitalize
 import com.google.gson.Gson
+import gradlebuild.basics.capitalize
 import java.net.URI
+import java.nio.charset.Charset
 
 wrapperUpdateTask("nightly", "nightly")
 wrapperUpdateTask("rc", "release-candidate")
 wrapperUpdateTask("current", "current")
+
+private
+fun Provider<RegularFile>.writeText(text: String, charset: Charset = Charsets.UTF_8) = this.get().asFile.writeText(text, charset)
+
+private
+fun Provider<RegularFile>.readText(charset: Charset = Charsets.UTF_8) = this.get().asFile.readText(charset)
 
 tasks.withType<Wrapper>().configureEach {
     val jvmOpts = "-Dfile.encoding=UTF-8"
