@@ -53,8 +53,6 @@ tasks.register<Copy>("copyDistributionsToRootBuild") {
 }
 
 tasks.register<Jar>("jarPublicApi") {
-    // FIXME This dependsOn() shouldn't be required
-    dependsOn(configurations.runtimeClasspath)
     from(configurations.runtimeClasspath.get().incoming.artifactView {
         attributes {
             attribute(filteredAttribute, Filtering.PUBLIC_API)
