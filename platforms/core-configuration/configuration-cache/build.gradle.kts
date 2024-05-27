@@ -69,7 +69,6 @@ dependencies {
     implementation(project(":enterprise-operations"))
     implementation(project(":execution"))
     implementation(project(":files"))
-    implementation(project(":file-watching"))
     implementation(project(":functional"))
     implementation(projects.flowServices)
     implementation(projects.guavaSerializationCodecs)

@@ -51,18 +51,18 @@ public class DefaultFileWatcherProbeRegistry implements FileWatcherProbeRegistry
     private ImmutableSet<File> probedHierarchies = ImmutableSet.of();
 
     @Override
-    public void registerProbe(File watchableHierarchy, @Nullable File probeDirectory) {
+    public void registerProbe(File watchableHierarchy, File probeDirectory) {
         LOGGER.debug("Registering probe for {}", watchableHierarchy);
 
         FileStore fileStore = getFileStore(watchableHierarchy.toPath());
         WatchProbeImpl watchProbe;
         if (fileStore != null) {
             watchProbe = probesByFS.computeIfAbsent(fileStore, fs -> {
-                File probeFile = getProbeFile(probeDirectory, watchableHierarchy);
+                File probeFile = new File(probeDirectory, "file-system.probe");
                 return new WatchProbeImpl(probeFile, isSubpath(probeFile, watchableHierarchy));
             });
         } else { // fallback, unlikely to happen
-            File probeFile = getProbeFile(probeDirectory, watchableHierarchy);
+            File probeFile = new File(probeDirectory, "file-system.probe");
             watchProbe = watchProbesByHierarchy
                 .values()
                 .stream()
@@ -74,13 +74,6 @@ public class DefaultFileWatcherProbeRegistry implements FileWatcherProbeRegistry
         }
 
         watchProbe.addWatchableHierarchy(watchableHierarchy);
-    }
-
-    private static File getProbeFile(@Nullable File probeDirectory, File watchableHierarchy) {
-        if (probeDirectory == null) {
-            probeDirectory = new File(watchableHierarchy, ".gradle");
-        }
-        return new File(probeDirectory, "file-system.probe");
     }
 
     private static boolean isSubpath(File probeFile, File watchableHierarchy) {

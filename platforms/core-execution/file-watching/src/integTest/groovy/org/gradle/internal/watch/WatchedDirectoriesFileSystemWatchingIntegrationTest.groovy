@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableSet
 import com.gradle.develocity.testing.annotations.LocalOnly
 import org.apache.commons.io.FileUtils
 import org.gradle.cache.GlobalCacheLocations
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.service.scopes.VirtualFileSystemServices
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -110,9 +109,7 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
         withWatchFs().run("assemble", "--info")
         then:
         skipped(":includedBuild:jar")
-        // configuration cache registers all build directories at startup so the cache fingerprint can be checked
-        def expectedWatchableCount = GradleContextualExecuter.isConfigCache() ? 4 : 2
-        assertWatchableHierarchies([ImmutableSet.of(consumer, includedBuild)] * expectedWatchableCount)
+        assertWatchableHierarchies([ImmutableSet.of(consumer, includedBuild)] * 2)
         when:
         includedBuild.file("src/main/java/NewClass.java")  << "public class NewClass {}"
         withWatchFs().run("assemble")
@@ -152,9 +149,7 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
         when:
         withWatchFs().run "buildInBuild", "--info"
         then:
-        // configuration cache registers all build directories at startup so the cache fingerprint can be checked
-        def expectedWatchableCount = GradleContextualExecuter.isConfigCache() ? 2 : 1
-        assertWatchableHierarchies([ImmutableSet.of(consumer)] * expectedWatchableCount + [ImmutableSet.of(consumer, buildInBuild)])
+        assertWatchableHierarchies([ImmutableSet.of(consumer), ImmutableSet.of(consumer, buildInBuild)])
     }
 
     def "gracefully handle the root project directory not being available"() {

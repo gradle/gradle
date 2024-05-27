@@ -22,7 +22,6 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.internal.watch.registry.WatchMode;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
 /**
@@ -47,7 +46,7 @@ public interface BuildLifecycleAwareVirtualFileSystem extends VirtualFileSystem 
      * This method is first called for the root directory of the root project.
      * It is also called for the root directories of included builds, and all other nested builds.
      */
-    void registerWatchableHierarchy(File rootDirectoryForWatching, @Nullable File probeDirectory);
+    void registerWatchableHierarchy(File rootDirectoryForWatching, File probeDirectory);
 
     /**
      * Returns if anything is being watched.
