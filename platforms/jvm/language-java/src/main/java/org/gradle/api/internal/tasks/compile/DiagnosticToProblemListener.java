@@ -23,6 +23,8 @@ import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JCDiagnostic;
 import com.sun.tools.javac.util.JavacMessages;
 import com.sun.tools.javac.util.Log;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.Severity;
@@ -44,22 +46,29 @@ import java.util.function.Function;
 @ClientCodeWrapper.Trusted
 public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileObject> {
 
+    public static final String FORMATTER_FALLBACK_MESSAGE = "Failed to format diagnostic message, falling back to default message formatting";
+
+    private static final Logger LOGGER = Logging.getLogger(DiagnosticToProblemListener.class);
+
     private final InternalProblemReporter problemReporter;
-    private final Context context;
     private final Function<Diagnostic<? extends JavaFileObject>, String> messageFormatter;
 
-    DiagnosticToProblemListener(InternalProblemReporter problemReporter, Context context, Function<Diagnostic<? extends JavaFileObject>, String> messageFormatter) {
+    DiagnosticToProblemListener(InternalProblemReporter problemReporter, Function<Diagnostic<? extends JavaFileObject>, String> messageFormatter) {
         this.problemReporter = problemReporter;
-        this.context = context;
         this.messageFormatter = messageFormatter;
     }
 
     public DiagnosticToProblemListener(InternalProblemReporter problemReporter, Context context) {
         this.problemReporter = problemReporter;
-        this.context = context;
         this.messageFormatter = diagnostic -> {
-            DiagnosticFormatter<JCDiagnostic> formatter = Log.instance(context).getDiagnosticFormatter();
-            return formatter.format((JCDiagnostic) diagnostic, JavacMessages.instance(context).getCurrentLocale());
+            try {
+                DiagnosticFormatter<JCDiagnostic> formatter = Log.instance(context).getDiagnosticFormatter();
+                return formatter.format((JCDiagnostic) diagnostic, JavacMessages.instance(context).getCurrentLocale());
+            } catch (Exception ex) {
+                // If for some reason the formatter fails, we can still get the message
+                LOGGER.error(FORMATTER_FALLBACK_MESSAGE);
+                return diagnostic.getMessage(Locale.getDefault());
+            }
         };
     }
 
