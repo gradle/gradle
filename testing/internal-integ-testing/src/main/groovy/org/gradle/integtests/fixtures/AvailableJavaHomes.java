@@ -31,12 +31,10 @@ import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistributio
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.Jvm;
-import org.gradle.internal.jvm.inspection.CachingJvmMetadataDetector;
 import org.gradle.internal.jvm.inspection.DefaultJavaInstallationRegistry;
 import org.gradle.internal.jvm.inspection.DefaultJvmMetadataDetector;
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 import org.gradle.internal.jvm.inspection.JvmInstallationProblemReporter;
-import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.internal.operations.TestBuildOperationRunner;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.progress.NoOpProgressLoggerFactory;
@@ -284,9 +282,8 @@ public abstract class AvailableJavaHomes {
         TemporaryFileProvider temporaryFileProvider = TestFiles.tmpDirTemporaryFileProvider(new File(SystemProperties.getInstance().getJavaIoTmpDir()));
         DefaultJvmMetadataDetector defaultJvmMetadataDetector =
             new DefaultJvmMetadataDetector(execHandleFactory, temporaryFileProvider);
-        JvmMetadataDetector metadataDetector = new CachingJvmMetadataDetector(defaultJvmMetadataDetector);
         ToolchainConfiguration toolchainConfiguration = new DefaultToolchainConfiguration();
-        final List<JvmInstallationMetadata> jvms = new DefaultJavaInstallationRegistry(toolchainConfiguration, defaultInstallationSuppliers(toolchainConfiguration), metadataDetector, new TestBuildOperationRunner(), OperatingSystem.current(), new NoOpProgressLoggerFactory(), new IdentityFileResolver(), Collections::emptySet, new JvmInstallationProblemReporter())
+        final List<JvmInstallationMetadata> jvms = new DefaultJavaInstallationRegistry(toolchainConfiguration, defaultInstallationSuppliers(toolchainConfiguration), defaultJvmMetadataDetector, new TestBuildOperationRunner(), OperatingSystem.current(), new NoOpProgressLoggerFactory(), new IdentityFileResolver(), Collections::emptySet, new JvmInstallationProblemReporter())
             .toolchains()
             .stream()
             .map(x -> x.metadata)

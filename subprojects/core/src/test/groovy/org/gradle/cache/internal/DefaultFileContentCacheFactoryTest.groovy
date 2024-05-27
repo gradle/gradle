@@ -21,7 +21,6 @@ import org.gradle.cache.AsyncCacheAccess
 import org.gradle.cache.CacheDecorator
 import org.gradle.cache.CrossProcessCacheAccess
 import org.gradle.cache.MultiProcessSafeIndexedCache
-import org.gradle.cache.internal.scopes.DefaultCacheScopeMapping
 import org.gradle.cache.internal.scopes.DefaultGlobalScopedCacheBuilderFactory
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.execution.OutputChangeListener
@@ -32,7 +31,6 @@ import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.TestInMemoryCacheFactory
-import org.gradle.util.GradleVersion
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
@@ -46,7 +44,6 @@ class DefaultFileContentCacheFactoryTest extends Specification {
     def listenerManager = new DefaultListenerManager(Scope.Build)
     def fileSystemAccess = Mock(FileSystemAccess)
     def cachesDir = tmpDir.file("caches")
-    def cacheScopeMapping = new DefaultCacheScopeMapping(cachesDir, GradleVersion.current())
     def cacheRepository = new DefaultUnscopedCacheBuilderFactory(new TestInMemoryCacheFactory())
     def globalScopedCache = new DefaultGlobalScopedCacheBuilderFactory(cachesDir, cacheRepository)
     def inMemoryTaskArtifactCache = new DefaultInMemoryCacheDecoratorFactory(false, new TestCrossBuildInMemoryCacheFactory()) {

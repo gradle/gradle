@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,14 +23,14 @@ import java.io.IOException;
 public class InvalidJvmInstallationCacheInvalidator implements Closeable {
 
     @Nonnull
-    private final ConditionalInvalidation<JvmInstallationMetadata> cache;
+    private final CachingJvmMetadataDetector cache;
 
-    public InvalidJvmInstallationCacheInvalidator(@Nonnull ConditionalInvalidation<JvmInstallationMetadata> cache) {
+    public InvalidJvmInstallationCacheInvalidator(@Nonnull CachingJvmMetadataDetector cache) {
         this.cache = cache;
     }
 
     @Override
     public void close() throws IOException {
-        cache.invalidateItemsMatching(metadata -> !metadata.isValidInstallation());
+        cache.cleanInvalidMetadata();
     }
 }

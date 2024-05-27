@@ -22,6 +22,9 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.GradleVersion
+
+import java.util.regex.Pattern
 
 /**
  * Introduces helper methods to write integration tests using Java toolchains.
@@ -104,5 +107,20 @@ trait JavaToolchainFixture {
     JavaVersion classJavaVersion(File classFile) {
         assert classFile.exists()
         return JavaVersion.forClass(classFile.bytes)
+    }
+
+    /**
+     * Cleans resolved toolchains metadata stored under Gradle USER_HOME cache directory
+     */
+    def cleanToolchainsMetadataCache() {
+        executer.gradleUserHomeDir.file("caches", GradleVersion.current().version, "toolchainsMetadata").deleteDir()
+    }
+
+    /**
+     * Returns the number of received metadata installations given a JVM from the specified build output.
+     */
+    int countReceivedJvmInstallationsMetadata(Jvm jvm, String output) {
+        def metadataAccessMarker = "Received JVM installation metadata from '$jvm.javaHome.absolutePath'"
+        return Pattern.compile(Pattern.quote(metadataAccessMarker)).matcher(output).count
     }
 }

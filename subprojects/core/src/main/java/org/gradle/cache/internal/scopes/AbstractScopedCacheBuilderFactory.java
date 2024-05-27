@@ -35,7 +35,7 @@ public abstract class AbstractScopedCacheBuilderFactory implements ScopedCacheBu
 
     public AbstractScopedCacheBuilderFactory(File rootDir, UnscopedCacheBuilderFactory unscopedCacheBuilderFactory) {
         this.rootDir = rootDir;
-        this.cacheScopeMapping = new DefaultCacheScopeMapping(rootDir, GradleVersion.current());
+        this.cacheScopeMapping = new NamedCacheScopeMapping(rootDir, GradleVersion.current().getVersion());
         this.unscopedCacheBuilderFactory = unscopedCacheBuilderFactory;
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,9 @@ package org.gradle.internal.jvm.inspection
 
 import spock.lang.Specification
 
-import java.util.function.Predicate
-
 class InvalidJvmInstallationCacheInvalidatorTest extends Specification {
     def 'closing triggers cache invalidation'() {
-        def cache = Mock(ConditionalInvalidation<JvmInstallationMetadata>)
+        def cache = Mock(CachingJvmMetadataDetector)
 
         given:
         def invalidator = new InvalidJvmInstallationCacheInvalidator(cache)
@@ -31,6 +29,6 @@ class InvalidJvmInstallationCacheInvalidatorTest extends Specification {
         invalidator.close()
 
         then:
-        1 * cache.invalidateItemsMatching(_ as Predicate)
+        1 * cache.cleanInvalidMetadata()
     }
 }

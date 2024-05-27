@@ -67,4 +67,58 @@ class DaemonToolchainIntegrationTest extends AbstractIntegrationSpec implements 
         fails("help")
         failure.assertHasDescription("Cannot find a Java installation on your machine")
     }
+
+    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    def "Given non existing toolchain metadata cache When execute any consecutive tasks Then metadata is resolved only for the first build"() {
+        def otherJvm = AvailableJavaHomes.differentVersion
+
+        given:
+        cleanToolchainsMetadataCache()
+        writeJvmCriteria(otherJvm)
+
+        when:
+        def results = (0..2).collect {
+            withInstallations(otherJvm).executer
+                .withArgument("--info")
+                .withTasks("help")
+                .run()
+        }
+
+        then:
+        results.size() == 3
+        1 == countReceivedJvmInstallationsMetadata(otherJvm, results[0].plainTextOutput)
+        0 == countReceivedJvmInstallationsMetadata(otherJvm, results[1].plainTextOutput)
+        0 == countReceivedJvmInstallationsMetadata(otherJvm, results[2].plainTextOutput)
+    }
+
+    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    def "Given daemon toolchain and task with specific toolchain When execute task Then metadata is resolved only one time storing resolution into cache shared between daemon and task toolchain"() {
+        def otherJvm = AvailableJavaHomes.differentVersion
+        def otherMetadata = AvailableJavaHomes.getJvmInstallationMetadata(otherJvm)
+
+        given:
+        cleanToolchainsMetadataCache()
+        writeJvmCriteria(otherJvm)
+        buildFile << """
+            apply plugin: 'jvm-toolchains'
+            tasks.register('exec', JavaExec) {
+                javaLauncher.set(javaToolchains.launcherFor {
+                    languageVersion = JavaLanguageVersion.of($otherMetadata.languageVersion.majorVersion)
+                    vendor = JvmVendorSpec.matching("${otherMetadata.vendor.knownVendor.name()}")
+                })
+                mainClass.set("None")
+                jvmArgs = ['-version']
+            }
+        """
+
+        when:
+        def result = withInstallations(otherJvm).executer
+            .withToolchainDetectionEnabled()
+            .withArgument("--info")
+            .withTasks("exec")
+            .run()
+
+        then:
+        1 == countReceivedJvmInstallationsMetadata(otherJvm, result.plainTextOutput)
+    }
 }
