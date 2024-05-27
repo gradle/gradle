@@ -1,3 +1,12 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.file.ProjectLayout",
+            "member": "Method org.gradle.api.file.ProjectLayout.getRootDirectory()",
+            "acceptation": "Add ProjectLayout.getRootDirectory()",
+            "changes": [
+                "Method added to interface"
+            ]
+        }
+    ]
 }

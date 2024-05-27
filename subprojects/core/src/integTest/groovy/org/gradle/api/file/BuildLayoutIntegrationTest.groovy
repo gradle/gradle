@@ -77,6 +77,7 @@ class BuildLayoutIntegrationTest extends AbstractIntegrationSpec {
         // setting a custom settings location is deprecated
         executer.noDeprecationChecks()
         groovyFile(customSettingsFile, """
+            // changing the root project dir does not impact the build dir obtained from BuildLayout
             rootProject.projectDir = file('..')
             ${printLocations()}
         """)
@@ -85,7 +86,7 @@ class BuildLayoutIntegrationTest extends AbstractIntegrationSpec {
         run("help", "--settings-file", customSettingsPath)
 
         then:
-        outputContains("settings root dir: " + testDirectory + ".")
+        outputContains("settings root dir: " + customSettingsDir + ".")
         outputContains("settings dir: " + customSettingsDir + ".")
         outputContains("settings source file: " + customSettingsFile + ".")
     }
