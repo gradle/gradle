@@ -25,7 +25,7 @@ import java.lang.reflect.Type;
  * Provides a set of zero or more services. The get-methods may be called concurrently. {@link #stop()} is guaranteed to be only called once,
  * after all get-methods have completed.
  */
-interface ServiceSource extends Stoppable {
+interface ServiceProvider extends Stoppable {
     /**
      * Locates a service instance of the given type. Returns null if this provider does not provide a service of this type.
      */

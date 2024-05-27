@@ -1551,11 +1551,11 @@ class DefaultServiceRegistryTest extends Specification {
         }
 
         @Override
-        void requiredBy(ServiceSource serviceProvider) {
+        void requiredBy(ServiceProvider serviceProvider) {
         }
     }
 
-    private static class MockServiceProvider implements ServiceSource {
+    private static class MockServiceProvider implements ServiceProvider {
         private final ParentServices parentServices
         private final Map<Object, Service> services = [:]
 
@@ -1613,7 +1613,7 @@ class DefaultServiceRegistryTest extends Specification {
         }
 
         @Override
-        ServiceSource asServiceSource() {
+        ServiceProvider asProvider() {
             return new MockServiceProvider(parentServices)
         }
 

@@ -27,5 +27,5 @@ interface Service {
      */
     Object get();
 
-    void requiredBy(ServiceSource serviceProvider);
+    void requiredBy(ServiceProvider serviceProvider);
 }
