@@ -52,18 +52,15 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
     private static final Logger LOGGER = Logging.getLogger(DiagnosticToProblemListener.class);
 
     private final InternalProblemReporter problemReporter;
+    private final Context context;
     private final Function<Diagnostic<? extends JavaFileObject>, String> messageFormatter;
 
     private int errorCount = 0;
     private int warningCount = 0;
 
-    DiagnosticToProblemListener(InternalProblemReporter problemReporter, Context context, Function<Diagnostic<? extends JavaFileObject>, String> messageFormatter) {
-        this.problemReporter = problemReporter;
-        this.messageFormatter = messageFormatter;
-    }
-
     public DiagnosticToProblemListener(InternalProblemReporter problemReporter, Context context) {
         this.problemReporter = problemReporter;
+        this.context = context;
         this.messageFormatter = diagnostic -> {
             try {
                 DiagnosticFormatter<JCDiagnostic> formatter = Log.instance(context).getDiagnosticFormatter();
