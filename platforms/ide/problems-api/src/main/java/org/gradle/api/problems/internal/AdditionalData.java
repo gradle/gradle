@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,30 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events.problems;
+package org.gradle.api.problems.internal;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.NonNullApi;
-
-import java.util.Map;
 
 /**
- * Additional data attached to the problem.
+ * Marker interface for additional data that can be attached to a {@link Problem}.
  * <p>
- * There are no subtypes defined for this interface yet. Clients should expect some defined in future versions of Gradle.
- * <p>
- * The information returned by {@code #getAsMap} is considered dynamic information and subject to change between Gradle versions.
+ * This is effectively a sealed interface that is used to restrict the types of additional data that can be attached to a problem.
+ * The list interfaces supported by the problems API are:
+ * <ul>
+ *     <li>{@link GeneralData}</li>
+ *     <li>{@link org.gradle.api.problems.internal.TypeValidationData}</li>
+ *     <li>{@link org.gradle.api.problems.internal.DeprecationData}</li>
+ * </ul>
  *
- * @since 8.6
+ * @see InternalProblemSpec#additionalData(Class, Action)
  */
 @Incubating
-@NonNullApi
 public interface AdditionalData {
 
-    /**
-     * Returns additional data as a map.
-     *
-     * @since 8.6
-     */
-    Map<String, Object> getAsMap();
 }

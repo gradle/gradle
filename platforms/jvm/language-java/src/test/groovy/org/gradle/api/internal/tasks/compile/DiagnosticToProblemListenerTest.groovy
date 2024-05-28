@@ -27,7 +27,7 @@ class DiagnosticToProblemListenerTest extends Specification {
 
     def spec = Mock(InternalProblemSpec) {
         // We report the formatted message in all cases
-        1 * additionalData("formatted", "Formatted message")
+        1 * additionalData(org.gradle.api.problems.internal.GeneralDataSpec, _)
     }
 
     def diagnosticToProblemListener = new DiagnosticToProblemListener(null, (fo) -> "Formatted message")

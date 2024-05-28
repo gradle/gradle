@@ -19,6 +19,7 @@ package org.gradle.internal.reflect;
 import org.gradle.api.Action;
 import org.gradle.api.problems.internal.DefaultProblemBuilder;
 import org.gradle.api.problems.internal.Problem;
+import org.gradle.api.problems.internal.TypeValidationDataSpec;
 import org.gradle.internal.reflect.validation.DefaultTypeAwareProblemBuilder;
 import org.gradle.internal.reflect.validation.TypeAwareProblemBuilder;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
@@ -28,8 +29,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Optional;
 import java.util.function.Supplier;
-
-import static org.gradle.internal.reflect.validation.DefaultTypeAwareProblemBuilder.PLUGIN_ID;
 
 abstract public class ProblemRecordingTypeValidationContext implements TypeValidationContext {
     private final Class<?> rootType;
@@ -52,14 +51,13 @@ abstract public class ProblemRecordingTypeValidationContext implements TypeValid
         return pluginId.get();
     }
 
-
     @Override
     public void visitPropertyProblem(Action<? super TypeAwareProblemBuilder> problemSpec) {
         DefaultTypeAwareProblemBuilder problemBuilder = getDefaultTypeAwareProblemBuilder(problemSpec);
         problemBuilder.withAnnotationType(rootType);
         pluginId()
             .map(PluginId::getId)
-            .ifPresent(id -> problemBuilder.additionalData(PLUGIN_ID, id));
+            .ifPresent(id -> problemBuilder.additionalData(TypeValidationDataSpec.class, data -> data.pluginId(id)));
         recordProblem(problemBuilder.build());
     }
 

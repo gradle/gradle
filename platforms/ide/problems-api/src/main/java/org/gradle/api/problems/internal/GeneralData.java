@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.reflect.validation;
+package org.gradle.api.problems.internal;
 
-import org.gradle.api.NonNullApi;
-import org.gradle.api.problems.internal.InternalProblemSpec;
+import java.util.Map;
 
-import javax.annotation.Nullable;
+/**
+ * General additional data type that can be used to attach arbitrary data to a problem with a string map.
+ */
+public interface GeneralData extends AdditionalData {
 
-@NonNullApi
-public interface TypeAwareProblemBuilder extends InternalProblemSpec {
-    TypeAwareProblemBuilder withAnnotationType(@Nullable Class<?> classWithAnnotationAttached);
-
-    TypeAwareProblemBuilder forProperty(String propertyName);
-
-    TypeAwareProblemBuilder parentProperty(@Nullable String parentProperty);
+    Map<String, String> getAsMap();
 }
