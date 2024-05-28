@@ -236,12 +236,13 @@ public abstract class CollectionUtils {
      *
      * Nulls are not removed, they are left intact.
      *
-     * If a non null object cannot be cast to the target type, a ClassCastException will be thrown.
+     * If a non-null object cannot be cast to the target type, a ClassCastException will be thrown.
      *
      * @param things The things to flatten
      * @param <T> The target type in the flattened list
      * @return A flattened list of the given things
      */
+    @SuppressWarnings("MixedMutabilityReturnType")
     public static <T> List<T> flattenCollections(Class<T> type, Object... things) {
         if (things == null) {
             return Collections.singletonList(null);

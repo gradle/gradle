@@ -28,6 +28,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.Reader;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -229,9 +230,10 @@ public class GFileUtils {
      * @return tail content
      * @throws GFileUtils.TailReadingException when reading failed
      */
+    @SuppressWarnings("DefaultCharset")
     public static String tail(File file, int maxLines) throws TailReadingException {
         BufferedReader reader = null;
-        FileReader fileReader = null;
+        Reader fileReader = null;
         try {
             fileReader = new FileReader(file);
             reader = new BufferedReader(fileReader);
