@@ -50,7 +50,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.internal.service.scopes.Scope;
-import org.gradle.jvm.toolchain.internal.AutoDetectingInstallationSupplier;
+import org.gradle.jvm.toolchain.internal.ToolchainConfiguration;
 import org.gradle.launcher.cli.DefaultCommandLineActionFactory;
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
 import org.gradle.process.internal.streams.SafeStreams;
@@ -566,6 +566,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             gradleInvocation.implicitLauncherJvmArgs.add(String.format("-D%s=%s", key, value));
         }
         if (isDebugLauncher()) {
+            if (System.getenv().containsKey("CI")) {
+                throw new IllegalArgumentException("Builds cannot be started with the debugger enabled on CI. This will cause tests to hang forever. Remove the call to startLauncherInDebugger().");
+            }
             gradleInvocation.implicitLauncherJvmArgs.add(debugLauncher.toDebugArgument());
         }
         gradleInvocation.implicitLauncherJvmArgs.add("-ea");
@@ -643,7 +646,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
     private JavaVersion getJavaVersionFromJavaHome() {
         try {
-            return JVM_VERSION_DETECTOR.getJavaVersion(Jvm.forHome(getJavaHomeLocation()));
+            return JavaVersion.toVersion(JVM_VERSION_DETECTOR.getJavaVersionMajor(Jvm.forHome(getJavaHomeLocation())));
         } catch (IllegalArgumentException | JavaHomeException e) {
             return JavaVersion.current();
         }
@@ -1090,7 +1093,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             allArgs.add("-Porg.gradle.java.installations.auto-download=false");
         }
         if (disableToolchainDetection) {
-            allArgs.add("-P" + AutoDetectingInstallationSupplier.AUTO_DETECT + "=false");
+            allArgs.add("-P" + ToolchainConfiguration.AUTO_DETECT + "=false");
         }
 
         boolean hasAgentArgument = args.stream().anyMatch(s -> s.contains(DaemonBuildOptions.ApplyInstrumentationAgentOption.GRADLE_PROPERTY));

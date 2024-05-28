@@ -16,7 +16,6 @@
 
 package org.gradle.caching.internal;
 
-import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
@@ -24,8 +23,8 @@ import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal
 import org.gradle.caching.configuration.internal.BuildCacheServiceRegistration;
 import org.gradle.caching.configuration.internal.DefaultBuildCacheConfiguration;
 import org.gradle.caching.configuration.internal.DefaultBuildCacheServiceRegistration;
-import org.gradle.caching.internal.controller.BuildCacheController;
-import org.gradle.caching.internal.controller.impl.RootBuildCacheControllerRef;
+import org.gradle.caching.internal.controller.impl.LifecycleAwareBuildCacheController;
+import org.gradle.caching.internal.controller.impl.LifecycleAwareBuildCacheControllerFactory;
 import org.gradle.caching.internal.origin.OriginMetadataFactory;
 import org.gradle.caching.internal.packaging.BuildCacheEntryPacker;
 import org.gradle.caching.internal.packaging.impl.DefaultTarPackerFileSystemSupport;
@@ -37,11 +36,14 @@ import org.gradle.caching.internal.services.BuildCacheControllerFactory;
 import org.gradle.caching.internal.services.DefaultBuildCacheControllerFactory;
 import org.gradle.caching.local.DirectoryBuildCache;
 import org.gradle.caching.local.internal.DirectoryBuildCacheServiceFactory;
+import org.gradle.internal.build.BuildState;
+import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.file.BufferProvider;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.FileException;
 import org.gradle.internal.file.ThreadLocalBufferProvider;
 import org.gradle.internal.hash.StreamHasher;
+import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
@@ -75,8 +77,8 @@ public final class BuildCacheServices extends AbstractPluginServiceRegistry {
         registration.addProvider(new Object() {
             private static final String GRADLE_VERSION_KEY = "gradleVersion";
 
-            RootBuildCacheControllerRef createRootBuildCacheControllerRef() {
-                return new RootBuildCacheControllerRef();
+            LifecycleAwareBuildCacheControllerFactory createRootBuildCacheControllerRef() {
+                return new LifecycleAwareBuildCacheControllerFactory();
             }
 
             OriginMetadataFactory createOriginMetadataFactory(
@@ -127,33 +129,19 @@ public final class BuildCacheServices extends AbstractPluginServiceRegistry {
                     new TarBuildCacheEntryPacker(fileSystemSupport, new FilePermissionsAccessAdapter(fileSystem), fileHasher, stringInterner, bufferProvider));
             }
 
-            BuildCacheController createBuildCacheController(
-                ServiceRegistry serviceRegistry,
+            LifecycleAwareBuildCacheController createBuildCacheController(
+                BuildState build,
+                LifecycleAwareBuildCacheControllerFactory rootControllerRef,
+                BuildCacheControllerFactory buildCacheControllerFactory,
                 InstantiatorFactory instantiatorFactory,
-                GradleInternal gradle,
-                BuildCacheConfigurationInternal buildCacheConfiguration,
-                RootBuildCacheControllerRef rootControllerRef,
-                BuildCacheControllerFactory buildCacheControllerFactory
+                ServiceRegistry services
             ) {
-                if (isRoot(gradle) || isGradleBuildTaskRoot(rootControllerRef)) {
-                    return buildCacheControllerFactory.createController(gradle.getIdentityPath(), buildCacheConfiguration, instantiatorFactory.inject(serviceRegistry));
+                InstanceGenerator injectingGenerator = instantiatorFactory.inject(services);
+                if (build instanceof RootBuildState) {
+                    return rootControllerRef.createForRootBuild(build.getIdentityPath(), buildCacheControllerFactory, injectingGenerator);
                 } else {
-                    // must be an included build or buildSrc
-                    return rootControllerRef.getForNonRootBuild();
+                    return rootControllerRef.createForNonRootBuild(build.getIdentityPath(), buildCacheControllerFactory, injectingGenerator);
                 }
-            }
-
-            private boolean isGradleBuildTaskRoot(RootBuildCacheControllerRef rootControllerRef) {
-                // GradleBuild tasks operate with their own build session and tree scope.
-                // Therefore, they have their own RootBuildCacheControllerRef.
-                // This prevents them from reusing the build cache configuration defined by the root.
-                // There is no way to detect that a Gradle instance represents a GradleBuild invocation.
-                // If there were, that would be a better heuristic than this.
-                return !rootControllerRef.isSet();
-            }
-
-            private boolean isRoot(GradleInternal gradle) {
-                return gradle.isRootBuild();
             }
 
             BuildCacheControllerFactory createBuildCacheControllerFactory(

@@ -16,23 +16,16 @@
 
 package org.gradle.jvm.toolchain.internal;
 
-import org.gradle.api.Transformer;
-import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ProviderFactory;
-
 import javax.inject.Inject;
 import java.io.File;
-import java.util.Collections;
 import java.util.Set;
 
-public class SdkmanInstallationSupplier extends AutoDetectingInstallationSupplier {
-
-    private Provider<String> candidatesDir;
+public class SdkmanInstallationSupplier implements InstallationSupplier {
+    private final ToolchainConfiguration toolchainConfiguration;
 
     @Inject
-    public SdkmanInstallationSupplier(ProviderFactory factory) {
-        super(factory);
-        candidatesDir = getEnvironmentProperty("SDKMAN_CANDIDATES_DIR").orElse(defaultSdkmanCandidatesDirectory());
+    public SdkmanInstallationSupplier(ToolchainConfiguration toolchainConfiguration) {
+        this.toolchainConfiguration = toolchainConfiguration;
     }
 
     @Override
@@ -41,19 +34,12 @@ public class SdkmanInstallationSupplier extends AutoDetectingInstallationSupplie
     }
 
     @Override
-    protected Set<InstallationLocation> findCandidates() {
-        return candidatesDir.map(findJavaCandidates()).getOrElse(Collections.emptySet());
+    public Set<InstallationLocation> get() {
+        return findJavaCandidates(toolchainConfiguration.getSdkmanCandidatesDirectory());
     }
 
-    private String defaultSdkmanCandidatesDirectory() {
-        return new File(System.getProperty("user.home"), ".sdkman/candidates").getAbsolutePath();
+    private Set<InstallationLocation> findJavaCandidates(File candidatesDir) {
+        final File root = new File(candidatesDir, "java");
+        return FileBasedInstallationFactory.fromDirectory(root, getSourceName(), InstallationLocation::autoDetected);
     }
-
-    private Transformer<Set<InstallationLocation>, String> findJavaCandidates() {
-        return candidatesDir -> {
-            final File root = new File(candidatesDir, "java");
-            return FileBasedInstallationFactory.fromDirectory(root, getSourceName(), InstallationLocation::autoDetected);
-        };
-    }
-
 }

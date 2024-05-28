@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class GradleEnterprisePluginEndOfBuildCallbackIntegrationTest extends AbstractIntegrationSpec {
 
-    def plugin = new GradleEnterprisePluginCheckInFixture(testDirectory, mavenRepo, createExecuter())
+    def plugin = new DevelocityPluginCheckInFixture(testDirectory, mavenRepo, createExecuter())
 
     def setup() {
         settingsFile << plugin.pluginManagement() << plugin.plugins()

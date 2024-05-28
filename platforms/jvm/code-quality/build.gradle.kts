@@ -37,6 +37,7 @@ dependencies {
     api(project(":plugins-java-base"))
     api(project(":reporting"))
     api(project(":toolchains-jvm"))
+    api(project(":toolchains-jvm-shared"))
     api(project(":workers"))
 
     api(libs.groovy)
@@ -60,6 +61,7 @@ dependencies {
     testImplementation(testFixtures(project(":model-core")))
 
     testFixturesImplementation(project(":core"))
+    testFixturesImplementation(testFixtures(project(":core")))
     testFixturesImplementation(project(":core-api"))
     testFixturesImplementation(project(":base-services"))
 

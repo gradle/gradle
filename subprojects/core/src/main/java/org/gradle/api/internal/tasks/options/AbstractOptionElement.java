@@ -87,13 +87,4 @@ abstract class AbstractOptionElement implements OptionElement {
                     optionName, optionType.getName(), declaringClass.getName()));
         }
     }
-
-    protected static Class<?> calculateOptionType(Class<?> type) {
-        //we don't want to support "--flag true" syntax
-        if (type == Boolean.class || type == Boolean.TYPE) {
-            return Void.TYPE;
-        } else {
-            return type;
-        }
-    }
 }

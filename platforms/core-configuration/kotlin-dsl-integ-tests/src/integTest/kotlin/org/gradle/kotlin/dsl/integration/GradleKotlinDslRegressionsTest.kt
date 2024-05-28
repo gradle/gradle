@@ -71,6 +71,10 @@ class GradleKotlinDslRegressionsTest : AbstractKotlinIntegrationTest() {
             dependencies {
                 implementation(gradleKotlinDsl())
             }
+            tasks.withType<KotlinCompile>().configureEach {
+                // Work around JVM validation issue: https://youtrack.jetbrains.com/issue/KT-66919
+                jvmTargetValidationMode = org.jetbrains.kotlin.gradle.dsl.jvm.JvmTargetValidationMode.WARNING
+            }
         """)
 
         withFile("src/main/kotlin/code.kt", """
@@ -137,6 +141,8 @@ class GradleKotlinDslRegressionsTest : AbstractKotlinIntegrationTest() {
                 implementation(gradleKotlinDsl())
             }
             tasks.withType<KotlinCompile>().configureEach {
+                // Work around JVM validation issue: https://youtrack.jetbrains.com/issue/KT-66919
+                jvmTargetValidationMode = org.jetbrains.kotlin.gradle.dsl.jvm.JvmTargetValidationMode.WARNING
                 compilerOptions.freeCompilerArgs.add("-Xjsr305=strict")
             }
         """)

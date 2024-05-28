@@ -171,9 +171,5 @@ class KotlinLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegration
 
         then:
         assertTestPassed("org.example.LibraryTest", "someLibraryMethodReturnsTrue")
-
-        where:
-        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
-
     }
 }

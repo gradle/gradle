@@ -132,7 +132,6 @@ public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
     PropertyFactory createPropertyFactory(PropertyHost propertyHost) {
         return new DefaultPropertyFactory(propertyHost);
     }
-
     ManagedFactoryRegistry createManagedFactoryRegistry(NamedObjectInstantiator namedObjectInstantiator, InstantiatorFactory instantiatorFactory, PropertyFactory propertyFactory, FileCollectionFactory fileCollectionFactory, FileFactory fileFactory, FilePropertyFactory filePropertyFactory) {
         return new DefaultManagedFactoryRegistry().withFactories(
             instantiatorFactory.getManagedFactory(),

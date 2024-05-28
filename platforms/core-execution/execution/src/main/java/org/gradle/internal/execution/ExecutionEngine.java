@@ -25,11 +25,14 @@ import org.gradle.internal.Try;
 import org.gradle.internal.execution.UnitOfWork.Identity;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.ExecutionOutputState;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Optional;
 
+@ServiceScope({Scope.Build.class, Scope.Gradle.class})
 public interface ExecutionEngine {
     Request createRequest(UnitOfWork work);
 

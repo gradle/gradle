@@ -45,21 +45,6 @@ plugins {
 }
 ----
 
-[[sec:working_with_files_in_custom_tasks_and_plugins]]
-== Working with files
-
-You should use Gradle's <<custom_gradle_types.adoc#managed_properties,managed properties>>.
-This will enable <<lazy_configuration.adoc#lazy_configuration,lazy configuration>> so that the actual location will only be resolved when the file is needed and can be reconfigured at any time during build configuration.
-
-Let's start by creating a convention plugin called `greetings`:
-
-====
-include::sample[dir="snippets/plugins/greeting/kotlin", files="buildSrc/src/main/kotlin/greetings.gradle.kts[tags=extension]"]
-include::sample[dir="snippets/plugins/greeting/groovy", files="buildSrc/src/main/groovy/greetings.gradle[tags=extension]"]
-====
-
-You can find out more about working with files lazily in <<working_with_files.adoc#working_with_files,Working with Files>>.
-
 [[sec:getting_input_from_the_build]]
 == Making a plugin configurable using extensions
 

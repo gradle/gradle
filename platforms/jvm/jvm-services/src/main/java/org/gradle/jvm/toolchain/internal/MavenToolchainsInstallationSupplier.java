@@ -44,17 +44,18 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
-public class MavenToolchainsInstallationSupplier extends AutoDetectingInstallationSupplier {
+public class MavenToolchainsInstallationSupplier implements InstallationSupplier {
 
     private static final String PROPERTY_NAME = "org.gradle.java.installations.maven-toolchains-file";
     private static final String PARSE_EXPRESSION = "/toolchains/toolchain[type='jdk']/configuration/jdkHome//text()";
     private static final Logger LOGGER = Logging.getLogger(MavenToolchainsInstallationSupplier.class);
     private static final Pattern ENV_VARIABLE_PATTERN = Pattern.compile("\\$\\{env\\.([^}]+)}");
 
+    private final ProviderFactory providerFactory;
     private final Provider<String> toolchainLocation;
     private final XPathFactory xPathFactory;
     private final DocumentBuilderFactory documentBuilderFactory;
@@ -62,11 +63,11 @@ public class MavenToolchainsInstallationSupplier extends AutoDetectingInstallati
 
     @Inject
     public MavenToolchainsInstallationSupplier(ProviderFactory factory, FileResolver fileResolver) {
-        super(factory);
-        toolchainLocation = factory.gradleProperty(PROPERTY_NAME).orElse(defaultMavenToolchainsDefinitionsLocation());
-        xPathFactory = XmlFactories.newXPathFactory();
-        documentBuilderFactory = XmlFactories.newDocumentBuilderFactory();
+        this.toolchainLocation = factory.gradleProperty(PROPERTY_NAME).orElse(defaultMavenToolchainsDefinitionsLocation());
+        this.xPathFactory = XmlFactories.newXPathFactory();
+        this.documentBuilderFactory = XmlFactories.newDocumentBuilderFactory();
         this.fileResolver = fileResolver;
+        this.providerFactory = factory;
     }
 
     @Override
@@ -75,7 +76,7 @@ public class MavenToolchainsInstallationSupplier extends AutoDetectingInstallati
     }
 
     @Override
-    protected Set<InstallationLocation> findCandidates() {
+    public Set<InstallationLocation> get() {
         File toolchainFile = fileResolver.resolve(toolchainLocation.get());
         if (toolchainFile.exists()) {
             try (FileInputStream toolchain = new FileInputStream(toolchainFile)) {
@@ -94,12 +95,12 @@ public class MavenToolchainsInstallationSupplier extends AutoDetectingInstallati
                         StringBuffer resolvedValue = new StringBuffer();
                         while (matcher.find()) {
                             String envVariableName = matcher.group(1);
-                            Provider<String> envVariableValue = getEnvironmentProperty(envVariableName);
-                            if (envVariableValue.getOrNull() == null) {
+                            String envVariableValue = providerFactory.environmentVariable(envVariableName).getOrNull();
+                            if (envVariableValue == null) {
                                 matcher.appendReplacement(resolvedValue, "\\${env." + envVariableName + "}");
                                 continue;
                             }
-                            matcher.appendReplacement(resolvedValue, Matcher.quoteReplacement(envVariableValue.get()));
+                            matcher.appendReplacement(resolvedValue, Matcher.quoteReplacement(envVariableValue));
                         }
                         // If no match or there is remaining text after the environment property, append it.
                         matcher.appendTail(resolvedValue);

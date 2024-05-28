@@ -19,6 +19,8 @@ package org.gradle.caching.internal.controller;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.CacheableEntity;
 import org.gradle.caching.internal.controller.service.BuildCacheLoadResult;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 import java.io.Closeable;
@@ -28,7 +30,10 @@ import java.util.Optional;
 
 /**
  * High-level controller for build-cache operations; can load and store {@link CacheableEntity}s with a given {@link BuildCacheKey}.
+ *
+ * <p>Note that some implementations are mutable and may change behavior over the lifetime of a build.</p>
  */
+@ServiceScope(Scope.Gradle.class)
 public interface BuildCacheController extends Closeable {
 
     boolean isEnabled();

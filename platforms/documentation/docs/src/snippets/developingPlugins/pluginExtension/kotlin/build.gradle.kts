@@ -5,7 +5,7 @@ plugins {
 site {
     outputDir = layout.buildDirectory.file("mysite")
 
-    customData {
+    siteInfo {
         websiteUrl = "https://gradle.org"
         vcsUrl = "https://github.com/gradle/gradle-site-plugin"
     }

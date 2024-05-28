@@ -30,7 +30,7 @@ class ApplyGradleEnterprisePluginFixture {
 
     static void applyEnterprisePlugin(File settingsFile) {
         def settingsText = settingsFile.text
-        def matcher = settingsText =~ /id[ (]["']com.gradle.enterprise["'][)]? version[ (]["'](.*)["'][)]?/
+        def matcher = settingsText =~ /id[ (]["']com.gradle.develocity["'][)]? version[ (]["'](.*)["'][)]?/
         if (matcher.find()) {
             settingsFile.text = settingsText.substring(0, matcher.start(1)) + VERSION + settingsText.substring(matcher.end(1))
         } else {

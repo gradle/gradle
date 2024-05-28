@@ -19,7 +19,7 @@ package org.gradle.kotlin.dsl.support.delegates
 import groovy.lang.Closure
 import org.gradle.api.Action
 import org.gradle.api.AntBuilder
-import org.gradle.api.IsolatedProject
+import org.gradle.api.project.IsolatedProject
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.api.PathValidation

@@ -24,6 +24,7 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.invocation.BuildAction;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.services.NativeServices;
@@ -33,9 +34,10 @@ import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
+import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.launcher.daemon.configuration.DaemonServerConfiguration;
 import org.gradle.launcher.daemon.context.DaemonContext;
-import org.gradle.launcher.daemon.context.DaemonContextBuilder;
+import org.gradle.launcher.daemon.context.DefaultDaemonContext;
 import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
 import org.gradle.launcher.daemon.protocol.DaemonMessageSerializer;
 import org.gradle.launcher.daemon.registry.DaemonDir;
@@ -71,6 +73,8 @@ import org.gradle.tooling.internal.provider.action.BuildActionSerializer;
 import java.io.File;
 import java.util.UUID;
 
+import static org.gradle.internal.FileUtils.canonicalize;
+
 /**
  * Takes care of instantiating and wiring together the services required by the daemon server.
  */
@@ -88,20 +92,19 @@ public class DaemonServices extends DefaultServiceRegistry {
         addProvider(new GlobalScopeServices(!configuration.isSingleUse(), AgentStatus.of(configuration.isInstrumentationAgentAllowed()), additionalModuleClassPath));
     }
 
-    protected DaemonContext createDaemonContext(AgentStatus agentStatus) {
-        DaemonContextBuilder builder = new DaemonContextBuilder(get(ProcessEnvironment.class));
-        builder.setDaemonRegistryDir(configuration.getBaseDir());
-        builder.setIdleTimeout(configuration.getIdleTimeout());
-        builder.setUid(configuration.getUid());
-        builder.setPriority(configuration.getPriority());
-
+    protected DaemonContext createDaemonContext(AgentStatus agentStatus, ProcessEnvironment processEnvironment) {
         LOGGER.debug("Creating daemon context with opts: {}", configuration.getJvmOptions());
-
-        builder.setDaemonOpts(configuration.getJvmOptions());
-        builder.setApplyInstrumentationAgent(agentStatus.isAgentInstrumentationEnabled());
-        builder.setNativeServicesMode(configuration.getNativeServicesMode());
-
-        return builder.create();
+        return new DefaultDaemonContext(configuration.getUid(),
+            canonicalize(Jvm.current().getJavaHome()),
+            JavaLanguageVersion.current(),
+            configuration.getBaseDir(),
+            processEnvironment.maybeGetPid(),
+            configuration.getIdleTimeout(),
+            configuration.getJvmOptions(),
+            agentStatus.isAgentInstrumentationEnabled(),
+            configuration.getNativeServicesMode(),
+            configuration.getPriority()
+        );
     }
 
     public File getDaemonLogFile() {

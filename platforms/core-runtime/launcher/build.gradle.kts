@@ -22,12 +22,15 @@ errorprone {
 }
 
 dependencies {
+    api(project(":toolchains-jvm-shared"))
+
     implementation(project(":base-services"))
     implementation(project(":functional"))
     implementation(project(":enterprise-operations"))
     implementation(project(":enterprise-workers"))
     implementation(project(":cli"))
     implementation(project(":messaging"))
+    implementation(project(":build-configuration"))
     implementation(project(":build-option"))
     implementation(project(":native"))
     implementation(project(":logging"))
@@ -92,6 +95,7 @@ dependencies {
     integTestImplementation(libs.guava)
     integTestImplementation(libs.commonsLang)
     integTestImplementation(libs.commonsIo)
+    integTestImplementation(testFixtures(project(":build-configuration")))
 
     testRuntimeOnly(project(":distributions-core")) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")

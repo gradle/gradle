@@ -28,7 +28,7 @@ import org.gradle.util.internal.VersionNumber
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.ConcurrentHashMap
 
-// https://plugins.gradle.org/plugin/com.gradle.enterprise
+// https://plugins.gradle.org/plugin/com.gradle.develocity
 class BuildScanPluginSmokeTest extends AbstractSmokeTest {
 
     enum CI {
@@ -140,6 +140,11 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         "3.16",
         "3.16.1",
         "3.16.2",
+        "3.17",
+        "3.17.1",
+        "3.17.2",
+        "3.17.3",
+        "3.17.4"
     ]
 
     // Current injection scripts support Develocity plugin 3.3 and above
@@ -154,6 +159,7 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
     private static final VersionNumber FIRST_VERSION_CALLING_BUILD_PATH = VersionNumber.parse("3.13.1")
     private static final VersionNumber FIRST_VERSION_BUNDLING_TEST_RETRY_PLUGIN = VersionNumber.parse("3.12")
     private static final VersionNumber FIRST_VERSION_SUPPORTING_SAFE_MODE = VersionNumber.parse("3.15")
+    private static final VersionNumber FIRST_VERSION_UNDER_DEVELOCITY_BRAND = VersionNumber.parse("3.17")
 
     private static final List<String> SUPPORTED_WITH_GRADLE_8_CONFIGURATION_CACHE = SUPPORTED
         .findAll { FIRST_VERSION_SUPPORTING_GRADLE_8_CONFIGURATION_CACHE <= VersionNumber.parse(it) }
@@ -174,8 +180,8 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         then:
         scanRunner()
             .expectLegacyDeprecationWarningIf(FIRST_VERSION_SUPPORTING_CHECK_IN_SERVICE <= versionNumber && versionNumber < FIRST_VERSION_CALLING_BUILD_PATH,
-                "Develocity plugin $version has been deprecated. " +
-                    "Starting with Gradle 9.0, only Develocity plugin 3.13.1 or newer is supported. " +
+                "Gradle Enterprise plugin $version has been deprecated. " +
+                    "Starting with Gradle 9.0, only Gradle Enterprise plugin 3.13.1 or newer is supported. " +
                     "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#unsupported_ge_plugin_3.13"
             )
             .expectLegacyDeprecationWarningIf(versionNumber < FIRST_VERSION_CALLING_BUILD_PATH,
@@ -201,8 +207,8 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         then:
         scanRunner()
             .expectLegacyDeprecationWarningIf(versionNumber < FIRST_VERSION_CALLING_BUILD_PATH,
-                "Develocity plugin $version has been deprecated. " +
-                    "Starting with Gradle 9.0, only Develocity plugin 3.13.1 or newer is supported. " +
+                "Gradle Enterprise plugin $version has been deprecated. " +
+                    "Starting with Gradle 9.0, only Gradle Enterprise plugin 3.13.1 or newer is supported. " +
                     "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#unsupported_ge_plugin_3.13"
             )
             .expectLegacyDeprecationWarningIf(versionNumber < FIRST_VERSION_CALLING_BUILD_PATH,
@@ -227,8 +233,8 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         then:
         scanRunner("-Dorg.gradle.unsafe.isolated-projects=true")
             .expectLegacyDeprecationWarningIf(versionNumber < FIRST_VERSION_CALLING_BUILD_PATH,
-                "Develocity plugin $version has been deprecated. " +
-                    "Starting with Gradle 9.0, only Develocity plugin 3.13.1 or newer is supported. " +
+                "Gradle Enterprise plugin $version has been deprecated. " +
+                    "Starting with Gradle 9.0, only Gradle Enterprise plugin 3.13.1 or newer is supported. " +
                     "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#unsupported_ge_plugin_3.13"
             )
             .expectLegacyDeprecationWarningIf(versionNumber < FIRST_VERSION_CALLING_BUILD_PATH,
@@ -254,7 +260,7 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
             .build().output
 
         then:
-        output.contains("Develocity plugin has been disabled as it is incompatible with isolated projects feature")
+        output.contains("Gradle Enterprise plugin has been disabled as it is incompatible with the isolated projects feature")
         !output.contains("Build scan written to")
 
         where:
@@ -306,9 +312,17 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
 
         expect:
         scanRunner("--init-script", initScript)
+            .maybeExpectLegacyDeprecationWarningIf(FIRST_VERSION_UNDER_DEVELOCITY_BRAND <= versionNumber,
+                "WARNING: The following functionality has been deprecated and will be removed in the next major release of the Develocity Gradle plugin:")
+            .maybeExpectLegacyDeprecationWarningIf(FIRST_VERSION_UNDER_DEVELOCITY_BRAND <= versionNumber,
+                "WARNING: The following functionality has been deprecated and will be removed in the next major release of the Develocity Gradle plugin. " +
+                    "For assistance with migration, see https://gradle.com/help/gradle-plugin-develocity-migration.")
+            .maybeExpectLegacyDeprecationWarningIf(FIRST_VERSION_UNDER_DEVELOCITY_BRAND <= versionNumber,
+                "WARNING: The following functionality has been deprecated and will be removed in the next major release of the Develocity Gradle plugin. Run with '-Ddevelocity.deprecation.captureOrigin=true' to see where the deprecated functionality is being used. " +
+                    "For assistance with migration, see https://gradle.com/help/gradle-plugin-develocity-migration.")
             .expectLegacyDeprecationWarningIf(FIRST_VERSION_SUPPORTING_CHECK_IN_SERVICE <= versionNumber && versionNumber < FIRST_VERSION_CALLING_BUILD_PATH,
-                "Develocity plugin $pluginVersion has been deprecated. " +
-                    "Starting with Gradle 9.0, only Develocity plugin 3.13.1 or newer is supported. " +
+                "Gradle Enterprise plugin $pluginVersion has been deprecated. " +
+                    "Starting with Gradle 9.0, only Gradle Enterprise plugin 3.13.1 or newer is supported. " +
                     "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#unsupported_ge_plugin_3.13"
             )
             .expectLegacyDeprecationWarningIf(versionNumber < FIRST_VERSION_CALLING_BUILD_PATH,
@@ -338,8 +352,22 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
     }
 
     void usePluginVersion(String version) {
+        def develocityPlugin = VersionNumber.parse(version) >= VersionNumber.parse("3.17")
         def gradleEnterprisePlugin = VersionNumber.parse(version) >= VersionNumber.parse("3.0")
-        if (gradleEnterprisePlugin) {
+        if (develocityPlugin) {
+            settingsFile << """
+                plugins {
+                    id "com.gradle.develocity" version "$version"
+                }
+
+                develocity {
+                    buildScan {
+                        termsOfUseUrl = 'https://gradle.com/help/legal-terms-of-use'
+                        termsOfUseAgree = 'yes'
+                    }
+                }
+            """
+        } else if (gradleEnterprisePlugin) {
             settingsFile << """
                 plugins {
                     id "com.gradle.enterprise" version "$version"

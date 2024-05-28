@@ -1,0 +1,96 @@
+plugins {
+    id 'groovy'
+}
+
+repositories {
+    mavenCentral()
+}
+
+// tag::set-prop[]
+// Setting a property
+def simpleMessageProperty = project.objects.property(String)
+simpleMessageProperty.set("Hello, World from a Property!")
+// Accessing a property
+println(simpleMessageProperty.get())
+// end::set-prop[]
+
+// tag::set-prov[]
+// Setting a provider
+def simpleMessageProvider = project.providers.provider { "Hello, World from a Provider!" }
+// Accessing a provider
+println(simpleMessageProvider.get())
+// end::set-prov[]
+
+// tag::introduction[]
+abstract class MyIntroTask extends DefaultTask {
+    @Input
+    abstract Property<String> getConfiguration()
+
+    @TaskAction
+    void printConfiguration() {
+        println "Configuration value: ${configuration.get()}"
+    }
+}
+
+Provider<String> configurationProvider = project.provider { "Hello, Gradle!" }
+
+tasks.register("myIntroTask", MyIntroTask) {
+    it.setConfiguration(configurationProvider)
+}
+// end::introduction[]
+
+// Property
+// tag::prop-managed[]
+abstract class MyPropertyTask extends DefaultTask {
+    @Input
+    abstract Property<String> messageProperty = project.objects.property(String)
+
+    @TaskAction
+    void printMessage() {
+        println(messageProperty.get())
+    }
+}
+
+tasks.register('myPropertyTask', MyPropertyTask) {
+    messageProperty.set("Hello, Gradle!")
+}
+// end::prop-managed[]
+
+// Provider
+// tag::prov-managed[]
+abstract class MyProviderTask extends DefaultTask {
+    final Provider<String> messageProvider = project.providers.provider { "Hello, Gradle!" }
+
+    @TaskAction
+    void printMessage() {
+        println(messageProvider.get())
+    }
+}
+
+tasks.register('MyProviderTask', MyProviderTask)
+// end::prov-managed[]
+
+// Named managed type
+// tag::named[]
+interface MyNamedType {
+    String getName()
+}
+
+class MyNamedTypeImpl implements MyNamedType {
+    String name
+
+    MyNamedTypeImpl(String name) {
+        this.name = name
+    }
+}
+
+class MyPluginExtension {
+    NamedDomainObjectContainer<MyNamedType> myNamedContainer
+
+    MyPluginExtension(Project project) {
+        myNamedContainer = project.container(MyNamedType) { name ->
+            new MyNamedTypeImpl(name)
+        }
+    }
+}
+// end::named[]

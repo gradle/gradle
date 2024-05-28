@@ -125,6 +125,7 @@ class ParameterizedTests extends Specification {
                         testClass("org.example.ParameterizedTests") {
                             testDisplayName "ParameterizedTests"
                             testMethodSuite("length of #name is #length") {
+                                operationDisplayName "length of #name is #length"
                                 testDisplayName "length of #name is #length"
                                 test("length of Spock is 5") {
                                     testDisplayName "length of Spock is 5"

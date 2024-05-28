@@ -23,28 +23,28 @@
 /settings.gradle*                           @gradle/bt-developer-productivity
 gradle/shared-with-buildSrc/                @gradle/bt-developer-productivity
 platforms/build-infrastructure/             @gradle/bt-developer-productivity
-subprojects/internal-architecture-testing/  @gradle/bt-developer-productivity
 subprojects/internal-build-reports/         @gradle/bt-developer-productivity
-subprojects/internal-integ-testing/         @gradle/bt-developer-productivity
-subprojects/internal-performance-testing/   @gradle/bt-developer-productivity
-subprojects/internal-testing/               @gradle/bt-developer-productivity
+testing/internal-architecture-testing/      @gradle/bt-developer-productivity
+testing/internal-integ-testing/             @gradle/bt-developer-productivity
+testing/internal-performance-testing/       @gradle/bt-developer-productivity
+testing/internal-testing/                   @gradle/bt-developer-productivity
 
 # Release coordination
 subprojects/core-platform/              @gradle/bt-support
 subprojects/distributions-dependencies/ @gradle/bt-support
 subprojects/distributions-full/         @gradle/bt-support
-subprojects/performance/                @gradle/bt-support
-subprojects/smoke-test/                 @gradle/bt-support
-subprojects/soak/                       @gradle/bt-support
+testing/performance/                    @gradle/bt-support
+testing/smoke-test/                     @gradle/bt-support
+testing/soak/                           @gradle/bt-support
 
 # Cross-cutting architecture checks and decisions
 .github/CODEOWNERS                          @gradle/bt-architecture-council
 architecture/                               @gradle/bt-architecture-council
-subprojects/architecture-test               @gradle/bt-architecture-council
+testing/architecture-test                   @gradle/bt-architecture-council
 
 # Core automation platform (core/configuration)
 platforms/core-configuration/               @gradle/bt-configuration
-subprojects/smoke-ide-test/                 @gradle/bt-configuration
+testing/smoke-ide-test/                     @gradle/bt-configuration
 
 # Core automation platform (Kotlin DSL)
 build-logic/kotlin-dsl/                                     @gradle/bt-kotlin-dsl-maintainers

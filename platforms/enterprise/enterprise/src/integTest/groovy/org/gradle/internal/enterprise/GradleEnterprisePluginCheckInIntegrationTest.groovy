@@ -32,7 +32,7 @@ import static org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginC
 
 class GradleEnterprisePluginCheckInIntegrationTest extends AbstractIntegrationSpec {
 
-    def plugin = new GradleEnterprisePluginCheckInFixture(testDirectory, mavenRepo, createExecuter())
+    def plugin = new DevelocityPluginCheckInFixture(testDirectory, mavenRepo, createExecuter())
 
     def setup() {
         settingsFile << plugin.pluginManagement()
@@ -108,7 +108,7 @@ class GradleEnterprisePluginCheckInIntegrationTest extends AbstractIntegrationSp
 
         when:
         if (applied && VersionNumber.parse(pluginVersion) < MINIMUM_SUPPORTED_PLUGIN_VERSION_SINCE_GRADLE_9) {
-            executer.expectDocumentedDeprecationWarning("Develocity plugin $pluginVersion has been deprecated. Starting with Gradle 9.0, only Develocity plugin 3.13.1 or newer is supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#unsupported_ge_plugin_3.13")
+            executer.expectDocumentedDeprecationWarning("Gradle Enterprise plugin $pluginVersion has been deprecated. Starting with Gradle 9.0, only Gradle Enterprise plugin 3.13.1 or newer is supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#unsupported_ge_plugin_3.13")
         }
         succeeds("t", "--configuration-cache")
 
@@ -116,7 +116,7 @@ class GradleEnterprisePluginCheckInIntegrationTest extends AbstractIntegrationSp
         output.contains("present: ${applied}")
 
         and:
-        output.contains("gradleEnterprisePlugin.checkIn.unsupported.reasonMessage = $UNSUPPORTED_PLUGIN_DUE_TO_CONFIGURATION_CACHING_MESSAGE") != applied
+        output.contains("develocityPlugin.checkIn.unsupported.reasonMessage = $UNSUPPORTED_PLUGIN_DUE_TO_CONFIGURATION_CACHING_MESSAGE") != applied
 
         where:
         pluginVersion                               | applied
@@ -141,7 +141,7 @@ class GradleEnterprisePluginCheckInIntegrationTest extends AbstractIntegrationSp
         output.contains("present: ${applied}")
 
         and:
-        output.contains("gradleEnterprisePlugin.checkIn.unsupported.reasonMessage = $UNSUPPORTED_PLUGIN_DUE_TO_ISOLATED_PROJECTS_MESSAGE") != applied
+        output.contains("develocityPlugin.checkIn.unsupported.reasonMessage = $UNSUPPORTED_PLUGIN_DUE_TO_ISOLATED_PROJECTS_MESSAGE") != applied
 
         where:
         pluginVersion                           | applied

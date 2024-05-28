@@ -28,10 +28,10 @@ class GradleEnterprisePluginCheckInFixture extends BaseBuildScanPluginCheckInFix
             projectDir,
             mavenRepo,
             pluginBuildExecuter,
-            AutoAppliedGradleEnterprisePlugin.ID.id,
+            AutoAppliedGradleEnterprisePlugin.GRADLE_ENTERPRISE_PLUGIN_ID.id,
             'com.gradle.enterprise.gradleplugin',
             'GradleEnterprisePlugin',
-            AutoAppliedGradleEnterprisePlugin.NAME
+            AutoAppliedGradleEnterprisePlugin.GRADLE_ENTERPRISE_PLUGIN_ARTIFACT_NAME
         )
     }
 

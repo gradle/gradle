@@ -15,6 +15,7 @@
  */
 package org.gradle.launcher.daemon.registry
 
+
 import org.gradle.cache.FileLockManager
 import org.gradle.cache.internal.DefaultFileLockManager
 import org.gradle.cache.internal.ProcessMetaDataProvider
@@ -22,6 +23,7 @@ import org.gradle.cache.internal.locklistener.FileLockContentionHandler
 import org.gradle.internal.file.Chmod
 import org.gradle.internal.remote.internal.inet.SocketInetAddress
 import org.gradle.internal.service.DefaultServiceRegistry
+import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.launcher.daemon.configuration.DaemonParameters
 import org.gradle.launcher.daemon.context.DefaultDaemonContext
 import org.gradle.test.fixtures.ConcurrentTestUtil
@@ -63,6 +65,7 @@ class DaemonRegistryServicesTest extends Specification {
                 def context = new DefaultDaemonContext(
                     "$idx",
                     new File("$idx"),
+                    JavaLanguageVersion.current(),
                     new File("$idx"),
                     idx,
                     5000,

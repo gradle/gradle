@@ -17,15 +17,21 @@
 package org.gradle.quality.integtest.fixtures
 
 
+import org.gradle.api.JavaVersion
 import org.gradle.api.plugins.quality.PmdPlugin
+import org.gradle.test.fixtures.VersionCoverage
 
 class PmdCoverage {
     /**
      * @see {org.gradle.api.plugins.quality.pmd.AbstractPmdPluginVersionIntegrationTest#requiredSourceCompatibility()} Java source compatibility for PMD versions
      */
-    private final static List<String> ALL = [PmdPlugin.DEFAULT_PMD_VERSION, '5.0.5', '5.1.1', '5.3.3', '6.0.0', '6.13.0', '7.0.0'].asImmutable()
+    private final static Set<String> ALL = [PmdPlugin.DEFAULT_PMD_VERSION, '5.0.5', '5.1.1', '5.3.3', '6.0.0', '6.13.0', '7.0.0'].asImmutable()
 
-    static List<String> getSupportedVersionsByJdk() {
-        ALL
+    static Set<String> getSupportedVersionsByJdk() {
+        if (JavaVersion.current() <= JavaVersion.VERSION_21) {
+            ALL
+        } else {
+            VersionCoverage.versionsAtLeast(ALL, '7.0.0')
+        }
     }
 }

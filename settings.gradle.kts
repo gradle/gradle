@@ -26,8 +26,8 @@ pluginManagement {
 }
 
 plugins {
-    id("com.gradle.develocity").version("3.17") // Sync with `build-logic-commons/build-platform/build.gradle.kts`
-    id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.7.6")
+    id("com.gradle.develocity").version("3.17.4") // Sync with `build-logic-commons/build-platform/build.gradle.kts`
+    id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.10.0")
     id("org.gradle.toolchains.foojay-resolver-convention") version ("0.8.0")
 //    id("net.ltgt.errorprone").version("3.1.0")
 }
@@ -71,6 +71,7 @@ val core = platform("core") {
         subproject("base-annotations")
         subproject("base-services")
         subproject("bootstrap")
+        subproject("build-configuration")
         subproject("build-operations")
         subproject("build-option")
         subproject("build-profile")
@@ -194,6 +195,7 @@ val jvm = platform("jvm") {
     subproject("language-java")
     subproject("language-jvm")
     subproject("toolchains-jvm")
+    subproject("toolchains-jvm-shared")
     subproject("java-compiler-plugin")
     subproject("java-platform")
     subproject("normalization-java")

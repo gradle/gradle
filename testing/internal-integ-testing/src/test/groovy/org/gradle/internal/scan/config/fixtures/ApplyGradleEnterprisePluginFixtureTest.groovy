@@ -34,7 +34,7 @@ class ApplyGradleEnterprisePluginFixtureTest extends Specification {
 
         then:
         file.text =="""plugins {
-            |    id("com.gradle.enterprise") version("${VERSION}")
+            |    id("com.gradle.develocity") version("${VERSION}")
             |}
             |
             |includeBuild '../lib'""".stripMargin()
@@ -64,7 +64,7 @@ class ApplyGradleEnterprisePluginFixtureTest extends Specification {
             |}
             |
             |plugins {
-            |    id("com.gradle.enterprise") version("${VERSION}")
+            |    id("com.gradle.develocity") version("${VERSION}")
             |}
             |
             |includeBuild '../lib'""".stripMargin()

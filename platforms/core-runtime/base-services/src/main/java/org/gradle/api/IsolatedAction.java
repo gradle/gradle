@@ -19,18 +19,22 @@ package org.gradle.api;
 import java.io.Serializable;
 
 /**
- * Performs some action against objects of type {@link T}.
+ * Defines an action that is applied to objects of type {@link T}, with each target getting its own isolated action instance.
  *
- * <p>
- * <b>IMPORTANT: </b> Isolated action instances are never reused. TBD
- * </p>
+ * Each isolated action is re-created through Configuration Cache serialization before it is applied to a target.
+ * This approach ensures that sharing mutable state across targets via any means
+ * (including {@link org.gradle.api.services.BuildService}, which are not supported) is prevented.
+ * The absence of shared mutable state allows these actions to be safely executed in parallel as needed.
  *
- * @param <T> The type of object which the action expects.
+ * <p><b>IMPORTANT:</b> As isolated action instances are recreated using Configuration Cache serialization, they must
+ * adhere to the <a href="https://docs.gradle.org/current/userguide/configuration_cache.html#config_cache:requirements">same requirements</a>
+ * as any other object serialized into the Configuration Cache.</p>
+ *
+ * @param <T> The type of object the action operates on.
  * @since 8.8
  */
 @HasImplicitReceiver
 @Incubating
-@FunctionalInterface
 public interface IsolatedAction<T> extends Serializable {
     /**
      * Performs this action against the given object.

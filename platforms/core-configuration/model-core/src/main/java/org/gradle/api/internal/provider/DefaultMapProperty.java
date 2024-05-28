@@ -55,7 +55,7 @@ import static org.gradle.internal.Cast.uncheckedNonnullCast;
  * @param <K> the type of entry key
  * @param <V> the type of entry value
  */
-public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSupplier<K, V>> implements MapProperty<K, V>, MapProviderInternal<K, V> {
+public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSupplier<K, V>> implements MapProperty<K, V>, MapProviderInternal<K, V>, MapPropertyInternal<K, V> {
     private static final String NULL_KEY_FORBIDDEN_MESSAGE = String.format("Cannot add an entry with a null key to a property of type %s.", Map.class.getSimpleName());
     private static final String NULL_VALUE_FORBIDDEN_MESSAGE = String.format("Cannot add an entry with a null value to a property of type %s.", Map.class.getSimpleName());
 
@@ -312,7 +312,6 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         return new KeySetProvider();
     }
 
-    @Override
     public void replace(Transformer<? extends @org.jetbrains.annotations.Nullable Provider<? extends Map<? extends K, ? extends V>>, ? super Provider<Map<K, V>>> transformation) {
         Provider<? extends Map<? extends K, ? extends V>> newValue = transformation.transform(shallowCopy());
         if (newValue != null) {

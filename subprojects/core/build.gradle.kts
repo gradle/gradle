@@ -89,6 +89,7 @@ dependencies {
     api(project(":build-option"))
     api(project(":cli"))
     api(project(":core-api"))
+    api(project(":declarative-dsl-api"))
     api(project(":enterprise-logging"))
     api(project(":enterprise-operations"))
     api(project(":execution"))
