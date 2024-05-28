@@ -122,4 +122,4 @@ fun isGradlePropertyType(type: KType): Boolean = type.classifier == Property::cl
 
 
 private
-fun propertyValueType(type: KType): KType = type.arguments[0].type ?: error("expected a declared property type")
+fun propertyValueType(type: KType): KType = type.arguments[0].type ?: error("expected a declared property type") // TODO: is this a user facing error?

@@ -1,5 +1,6 @@
 package org.gradle.internal.declarativedsl.parsing
 
+import org.gradle.internal.declarativedsl.analysis.failure
 import org.intellij.lang.annotations.Language
 import org.jetbrains.kotlin.com.intellij.lang.impl.PsiBuilderFactoryImpl
 import org.jetbrains.kotlin.lexer.KotlinLexer
@@ -33,8 +34,8 @@ data class ParsedLightTree(
 )
 
 
-fun parse(@Language("kts") code: String): ParsedLightTree {
-    val (wrappedCode, codeOffset, suffixLength) = wrapScriptIntoClassInitializerBlock(code)
+fun parse(@Language("kts") code: String, source: String? = null): ParsedLightTree {
+    val (wrappedCode, codeOffset, suffixLength) = wrapScriptIntoClassInitializerBlock(code, source)
     return ParsedLightTree(
         KotlinLightParser.parse(psiBuilderFactory.createBuilder(parserDefinition, lexer, wrappedCode)),
         wrappedCode,
@@ -54,7 +55,7 @@ fun main() {
 
 
 private
-fun wrapScriptIntoClassInitializerBlock(@Language("kts") code: String): Triple<String, Int, Int> {
+fun wrapScriptIntoClassInitializerBlock(@Language("kts") code: String, source: String?): Triple<String, Int, Int> {
     val packageStatements = mutableListOf<String>()
     val importStatements = mutableListOf<String>()
     val codeStatements = mutableListOf<String>()
@@ -84,7 +85,7 @@ fun wrapScriptIntoClassInitializerBlock(@Language("kts") code: String): Triple<S
         } // TODO: ugly, brittle hack...
     }
 
-    if (packageStatements.size > 2) error("Multiple package statements")
+    if (packageStatements.size > 2) failure("Multiple package statements in $source")
 
     fun addNewlineIfNotBlank(it: String) = when {
         it.isNotBlank() -> it + "\n"

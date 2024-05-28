@@ -19,6 +19,7 @@ package org.gradle.internal.declarativedsl.schemaBuilder
 import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.internal.declarativedsl.analysis.DataTypeRefInternal
 import org.gradle.internal.declarativedsl.analysis.DefaultFqName
+import org.gradle.internal.declarativedsl.analysis.failure
 import org.gradle.internal.declarativedsl.analysis.ref
 import org.gradle.internal.declarativedsl.language.DataTypeInternal
 import kotlin.reflect.KCallable
@@ -38,14 +39,14 @@ fun KClassifier.toDataTypeRef(): DataTypeRef =
         Boolean::class -> DataTypeInternal.DefaultBooleanDataType.ref
         Long::class -> DataTypeInternal.DefaultLongDataType.ref
         is KClass<*> -> DataTypeRefInternal.DefaultName(DefaultFqName.parse(checkNotNull(qualifiedName)))
-        else -> error("unexpected type")
+        else -> error("can't convert unexpected type to data type reference: ${this::class.simpleName}")
     }
 
 
 internal
 fun KType.checkInScope(typeScope: DataSchemaBuilder.PreIndex, receiver: KClass<*>? = null, function: KFunction<*>) {
     if (classifier?.isInScope(typeScope) != true) {
-        error("Type used in function ${format(receiver, function)} is not in schema scope: $this")
+        failure("Type used in function ${format(receiver, function)} is not in schema scope: $this")
     }
 }
 
@@ -72,7 +73,7 @@ fun KCallable<*>.returnTypeToRefOrError(receiver: KClass<*>?) =
 
 
 fun KCallable<*>.returnTypeToRefOrError(receiver: KClass<*>?, typeMapping: (KCallable<*>) -> KType) =
-    typeMapping(this).toDataTypeRef() ?: error("Conversion to data types failed for return type of ${format(receiver, this)}: ${typeMapping(this)}")
+    typeMapping(this).toDataTypeRef() ?: failure("Conversion to data types failed for return type of ${format(receiver, this)}: ${typeMapping(this)}")
 
 
 fun KParameter.parameterTypeToRefOrError(receiver: KClass<*>?, function: KFunction<*>) =
@@ -80,7 +81,7 @@ fun KParameter.parameterTypeToRefOrError(receiver: KClass<*>?, function: KFuncti
 
 
 fun KParameter.parameterTypeToRefOrError(receiver: KClass<*>?, function: KFunction<*>, typeMapping: (KParameter) -> KType) =
-    typeMapping(this).toDataTypeRef() ?: error("Conversion to data types failed for parameter type of function ${format(receiver, function)}: ${typeMapping(this)}")
+    typeMapping(this).toDataTypeRef() ?: failure("Conversion to data types failed for parameter type of function ${format(receiver, function)}: ${typeMapping(this)}")
 
 
 private

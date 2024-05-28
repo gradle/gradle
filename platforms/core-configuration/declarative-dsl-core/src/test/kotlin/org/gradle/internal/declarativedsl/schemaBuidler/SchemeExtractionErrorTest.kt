@@ -18,6 +18,7 @@ package org.gradle.internal.declarativedsl.schemaBuidler
 
 import org.gradle.api.provider.ListProperty
 import org.gradle.declarative.dsl.model.annotations.Restricted
+import org.gradle.internal.declarativedsl.analysis.DeclarativeDslInterpretationException
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.core.IsEqual.equalTo
@@ -29,7 +30,7 @@ object SchemeExtractionErrorTest {
 
     @Test
     fun `data type ref conversion of getter return type fails`() {
-        val exception = assertFailsWith<IllegalStateException>(
+        val exception = assertFailsWith<DeclarativeDslInterpretationException>(
             block = { schemaFromTypes(ReceiverGetterReturn::class, listOf(ReceiverGetterReturn::class)) }
         )
         assertThat(
@@ -45,7 +46,7 @@ object SchemeExtractionErrorTest {
 
     @Test
     fun `data type ref conversion of property return type fails`() {
-        val exception = assertFailsWith<IllegalStateException>(
+        val exception = assertFailsWith<DeclarativeDslInterpretationException>(
             block = { schemaFromTypes(ReceiverPropertyReturn::class, listOf(ReceiverPropertyReturn::class)) }
         )
         assertThat(
@@ -62,7 +63,7 @@ object SchemeExtractionErrorTest {
 
     @Test
     fun `data type ref conversion of function param type fails`() {
-        val exception = assertFailsWith<IllegalStateException>(
+        val exception = assertFailsWith<DeclarativeDslInterpretationException>(
             block = {
                 schemaFromTypes(
                     ReceiverFunctionParam::class,
@@ -84,7 +85,7 @@ object SchemeExtractionErrorTest {
 
     @Test
     fun `data type ref conversion of function return type fails`() {
-        val exception = assertFailsWith<IllegalStateException>(
+        val exception = assertFailsWith<DeclarativeDslInterpretationException>(
             block = {
                 schemaFromTypes(
                     ReceiverFunctionReturn::class,
@@ -100,7 +101,7 @@ object SchemeExtractionErrorTest {
 
     @Test
     fun `type used not in schema scope`() {
-        val exception = assertFailsWith<IllegalStateException>(
+        val exception = assertFailsWith<DeclarativeDslInterpretationException>(
             block = {
                 schemaFromTypes(
                     ReceiverFunctionReturn::class,

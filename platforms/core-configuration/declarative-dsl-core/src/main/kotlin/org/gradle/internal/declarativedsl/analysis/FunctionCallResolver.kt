@@ -203,10 +203,10 @@ class FunctionCallResolverImpl(
                 }
             } else {
                 if (requiresConfigureLambda)
-                    error("Expected a configuring lambda in the call of ${function.schemaFunction.format(function.receiver)}, but it was not provided")
+                    failure("Expected a configuring lambda in the call of ${function.schemaFunction.format(function.receiver)}, but it was not provided")
             }
         } else if (lambda != null) {
-            error("A lambda is not expected in the call of ${function.schemaFunction.format(function.receiver)}, but it was provided")
+            failure("A lambda is not expected in the call of ${function.schemaFunction.format(function.receiver)}, but it was provided")
         }
     }
 
@@ -246,9 +246,9 @@ class FunctionCallResolverImpl(
             require(receiver != null)
 
             val parameter = function.schemaFunction.parameters.singleOrNull()
-                ?: error("${function.schemaFunction.format(function.receiver, lowercase = false)} is a builder functions and should have a single parameter")
+                ?: failure("${function.schemaFunction.format(function.receiver, lowercase = false)} is a builder functions and should have a single parameter")
             parameter.semantics as? ParameterSemantics.StoreValueInProperty
-                ?: error("${function.schemaFunction.format(function.receiver, lowercase = false)} is a builder function and must assign its parameter to a property")
+                ?: failure("${function.schemaFunction.format(function.receiver, lowercase = false)} is a builder function and must assign its parameter to a property")
         }
     }
 
