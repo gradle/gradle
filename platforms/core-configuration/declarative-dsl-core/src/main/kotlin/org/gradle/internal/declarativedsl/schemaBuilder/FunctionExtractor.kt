@@ -124,7 +124,7 @@ class DefaultFunctionExtractor(
                     // is value parameter, not a configuring block:
                     val isNotLastParameter = index != fnParams.lastIndex
                     val isNotConfigureLambda = configureLambdas.getTypeConfiguredByLambda(param.type)?.let {
-                        typeConfiguredByLambda -> param.parameterTypeToRefOrError(inType, function) { typeConfiguredByLambda } != maybeConfigureTypeRef
+                            typeConfiguredByLambda -> param.parameterTypeToRefOrError(inType, function) { typeConfiguredByLambda } != maybeConfigureTypeRef
                     } ?: true
                     isNotLastParameter || isNotConfigureLambda
                 }
@@ -283,7 +283,7 @@ class DefaultFunctionExtractor(
                 check(function.parameters.filter { it != function.instanceParameter }.size == 1) { "a configuring function may not accept any other parameters" }
                 val accessor =
                     if (property != null) ConfigureAccessorInternal.DefaultProperty(property)
-                    else ConfigureAccessorInternal.DefaultConfiguringLambdaArgument(lastParam.parameterTypeToRefOrError(inType, function) { configuredType } )
+                    else ConfigureAccessorInternal.DefaultConfiguringLambdaArgument(lastParam.parameterTypeToRefOrError(inType, function) { configuredType })
                 FunctionSemanticsInternal.DefaultAccessAndConfigure(accessor, returnType, blockRequirement)
             }
 

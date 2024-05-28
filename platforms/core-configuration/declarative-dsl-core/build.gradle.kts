@@ -18,7 +18,6 @@ tasks.withType<KotlinCompile>().configureEach {
 }
 
 dependencies {
-    api(project(":core-api"))
     api(projects.declarativeDslToolingModels)
 
     api(libs.kotlinCompilerEmbeddable)
@@ -29,6 +28,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.6.2")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
 
+    testImplementation(project(":core-api"))
     testImplementation(libs.futureKotlin("test-junit5"))
     testImplementation("org.jetbrains:annotations:24.0.1")
 

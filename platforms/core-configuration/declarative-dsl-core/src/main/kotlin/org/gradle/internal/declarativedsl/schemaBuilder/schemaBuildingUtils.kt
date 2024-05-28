@@ -70,14 +70,18 @@ val KCallable<*>.annotationsWithGetters: List<Annotation>
 fun KCallable<*>.returnTypeToRefOrError(receiver: KClass<*>?) =
     returnTypeToRefOrError(receiver) { this.returnType }
 
-fun KCallable<*>.returnTypeToRefOrError(receiver: KClass<*>?, typeMapping: (KCallable<*>) -> KType) = typeMapping(this).toDataTypeRef() ?:
-    error("Conversion to data types failed for return type of ${format(receiver, this)}: ${typeMapping(this)}")
+
+fun KCallable<*>.returnTypeToRefOrError(receiver: KClass<*>?, typeMapping: (KCallable<*>) -> KType) =
+    typeMapping(this).toDataTypeRef() ?: error("Conversion to data types failed for return type of ${format(receiver, this)}: ${typeMapping(this)}")
+
 
 fun KParameter.parameterTypeToRefOrError(receiver: KClass<*>?, function: KFunction<*>) =
     parameterTypeToRefOrError(receiver, function) { this.type }
 
-fun KParameter.parameterTypeToRefOrError(receiver: KClass<*>?, function: KFunction<*>, typeMapping: (KParameter) -> KType) = typeMapping(this).toDataTypeRef() ?:
-    error("Conversion to data types failed for parameter type of function ${format(receiver, function)}: ${typeMapping(this)}")
+
+fun KParameter.parameterTypeToRefOrError(receiver: KClass<*>?, function: KFunction<*>, typeMapping: (KParameter) -> KType) =
+    typeMapping(this).toDataTypeRef() ?: error("Conversion to data types failed for parameter type of function ${format(receiver, function)}: ${typeMapping(this)}")
+
 
 private
 fun format(receiver: KClass<*>?, callable: KCallable<*>) =

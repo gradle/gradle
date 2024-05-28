@@ -41,7 +41,6 @@ object SchemeExtractionErrorTest {
     abstract class ReceiverGetterReturn {
         @Restricted
         abstract fun getList(): List<String?>?
-
     }
 
     @Test
@@ -59,7 +58,6 @@ object SchemeExtractionErrorTest {
 
         @get:Restricted
         var x: List<String> = emptyList()
-
     }
 
     @Test
@@ -82,7 +80,6 @@ object SchemeExtractionErrorTest {
 
         @Restricted
         abstract fun size(list: ListProperty<String>): Int
-
     }
 
     @Test
@@ -121,7 +118,5 @@ object SchemeExtractionErrorTest {
 
         @Restricted
         abstract fun mood(): ListProperty<String>
-
     }
-
 }
