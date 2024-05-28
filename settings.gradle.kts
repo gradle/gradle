@@ -53,6 +53,11 @@ unassigned {
     subproject("distributions-full")
 }
 
+// Public API publishing
+unassigned {
+    subproject("public-api")
+}
+
 // Gradle implementation projects
 unassigned {
     subproject("core")
