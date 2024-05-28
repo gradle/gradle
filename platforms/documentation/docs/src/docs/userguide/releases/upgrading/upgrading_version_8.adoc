@@ -52,6 +52,12 @@ In previous versions of Gradle, the daemon log file, located at `$<<directory_la
 To prevent clients that may use different default encoding from reading data incorrectly, this file is now always encoded with UTF-8.
 This change may affect third-party tools trying to read this file.
 
+==== Compiling against Gradle implementation classpath
+
+In previous versions of Gradle, some JVM projects that did not declare any dependencies were erroneously compiled against the Gradle API.
+This meant that compilations without any declared dependencies were able to compile against Gradle classes without declaring a `gradleApi` dependency.
+Declare a `gradleApi` dependency or use the `java-gradle-plugin` plugin if you wish to compile against the Gradle API.
+
 [[changes_8.8]]
 == Upgrading from 8.7 and earlier
 
