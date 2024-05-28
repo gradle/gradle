@@ -394,6 +394,8 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
                 case Busy:
                 case Canceled:
                     throw new DaemonUnavailableException(String.format("This daemon is currently executing: %s", currentCommandExecution));
+                case Idle:
+                    break;
             }
 
             LOGGER.debug("Command execution: started {} after {} minutes of idle", commandDisplayName, getIdleMinutes());
@@ -457,7 +459,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
     private double getIdleMinutes() {
         lock.lock();
         try {
-            return idleTimer.getElapsedMillis() / 1000 / 60;
+            return idleTimer.getElapsedMillis() / 1000.0 / 60.0;
         } finally {
             lock.unlock();
         }

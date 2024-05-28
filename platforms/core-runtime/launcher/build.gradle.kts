@@ -5,22 +5,6 @@ plugins {
 
 description = "Implementation for launching, controlling and communicating with Gradle Daemon from CLI and TAPI"
 
-errorprone {
-    disabledChecks.addAll(
-        "DefaultCharset", // 5 occurrences
-        "FutureReturnValueIgnored", // 2 occurrences
-        "InlineFormatString", // 1 occurrences
-        "LockNotBeforeTry", // 7 occurrences
-        "MissingCasesInEnumSwitch", // 1 occurrences
-        "NarrowCalculation", // 1 occurrences
-        "StringCaseLocaleUsage", // 1 occurrences
-        "StringSplitter", // 1 occurrences
-        "URLEqualsHashCode", // 3 occurrences
-        "UndefinedEquals", // 1 occurrences
-        "UnusedVariable", // 3 occurrences
-    )
-}
-
 dependencies {
     api(project(":base-services"))
     api(project(":build-events"))

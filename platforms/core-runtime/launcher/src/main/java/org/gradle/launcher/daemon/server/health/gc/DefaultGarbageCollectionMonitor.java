@@ -24,6 +24,7 @@ import org.gradle.util.internal.CollectionUtils;
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 public class DefaultGarbageCollectionMonitor implements GarbageCollectionMonitor {
@@ -41,8 +42,8 @@ public class DefaultGarbageCollectionMonitor implements GarbageCollectionMonitor
     public DefaultGarbageCollectionMonitor(GarbageCollectorMonitoringStrategy gcStrategy, ScheduledExecutorService pollingExecutor) {
         this.pollingExecutor = pollingExecutor;
         this.gcStrategy = gcStrategy;
-        this.heapEvents = new DefaultSlidingWindow<GarbageCollectionEvent>(EVENT_WINDOW);
-        this.nonHeapEvents = new DefaultSlidingWindow<GarbageCollectionEvent>(EVENT_WINDOW);
+        this.heapEvents = new DefaultSlidingWindow<>(EVENT_WINDOW);
+        this.nonHeapEvents = new DefaultSlidingWindow<>(EVENT_WINDOW);
         if (gcStrategy != GarbageCollectorMonitoringStrategy.UNKNOWN && !Boolean.getBoolean(DISABLE_POLLING_SYSTEM_PROPERTY)) {
             pollForValues();
         }
@@ -55,7 +56,7 @@ public class DefaultGarbageCollectionMonitor implements GarbageCollectionMonitor
                 return element.getName().equals(gcStrategy.getGarbageCollectorName());
             }
         });
-        pollingExecutor.scheduleAtFixedRate(new GarbageCollectionCheck(Time.clock(), garbageCollectorMXBean, gcStrategy.getHeapPoolName(), heapEvents, gcStrategy.getNonHeapPoolName(), nonHeapEvents), POLL_DELAY_SECONDS, POLL_INTERVAL_SECONDS, TimeUnit.SECONDS);
+        ScheduledFuture<?> ignored = pollingExecutor.scheduleAtFixedRate(new GarbageCollectionCheck(Time.clock(), garbageCollectorMXBean, gcStrategy.getHeapPoolName(), heapEvents, gcStrategy.getNonHeapPoolName(), nonHeapEvents), POLL_DELAY_SECONDS, POLL_INTERVAL_SECONDS, TimeUnit.SECONDS);
     }
 
     @Override

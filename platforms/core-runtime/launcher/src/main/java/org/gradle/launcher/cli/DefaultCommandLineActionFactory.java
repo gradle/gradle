@@ -54,9 +54,7 @@ import org.gradle.util.internal.DefaultGradleVersion;
 import javax.annotation.Nullable;
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 /**
  * <p>Responsible for converting a set of command-line arguments into a {@link Runnable} action.</p>
@@ -198,26 +196,20 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
         public void execute(ExecutionListener executionListener) {
             DefaultGradleVersion currentVersion = DefaultGradleVersion.current();
 
-            final StringBuilder sb = new StringBuilder();
-            sb.append("%n------------------------------------------------------------%nGradle ");
-            sb.append(currentVersion.getVersion());
-            sb.append("%n------------------------------------------------------------%n%nBuild time:   ");
-            sb.append(currentVersion.getBuildTimestamp());
-            sb.append("%nRevision:     ");
-            sb.append(currentVersion.getGitRevision());
-            sb.append("%n%nKotlin:       ");
-            sb.append(KotlinDslVersion.current().getKotlinVersion());
-            sb.append("%nGroovy:       ");
-            sb.append(ReleaseInfo.getVersion());
-            sb.append("%nAnt:          ");
-            sb.append(Main.getAntVersion());
-            sb.append("%nJVM:          ");
-            sb.append(Jvm.current());
-            sb.append("%nOS:           ");
-            sb.append(OperatingSystem.current());
-            sb.append("%n");
-
-            System.out.println(String.format(sb.toString()));
+            System.out.println();
+            System.out.println("------------------------------------------------------------");
+            System.out.println("Gradle " + currentVersion.getVersion());
+            System.out.println("------------------------------------------------------------");
+            System.out.println();
+            System.out.println("Build time:   " + currentVersion.getBuildTimestamp());
+            System.out.println("Revision:     " + currentVersion.getGitRevision());
+            System.out.println();
+            System.out.println("Kotlin:       " + KotlinDslVersion.current().getKotlinVersion());
+            System.out.println("Groovy:       " + ReleaseInfo.getVersion());
+            System.out.println("Ant:          " + Main.getAntVersion());
+            System.out.println("JVM:          " + Jvm.current());
+            System.out.println("OS:           " + OperatingSystem.current());
+            System.out.println();
         }
     }
 
@@ -234,8 +226,8 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
     private class ParseAndBuildAction extends NonParserConfiguringCommandLineActionCreator implements Action<ExecutionListener> {
         private final ServiceRegistry loggingServices;
         private final List<String> args;
-        private List<CommandLineActionCreator> actionCreators;
-        private CommandLineParser parser = new CommandLineParser();
+        private final List<CommandLineActionCreator> actionCreators;
+        private final CommandLineParser parser = new CommandLineParser();
 
         private ParseAndBuildAction(ServiceRegistry loggingServices, List<String> args) {
             this.loggingServices = loggingServices;
@@ -333,7 +325,6 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
             parser.allowMixedSubcommandsAndOptions();
 
             WelcomeMessageConfiguration welcomeMessageConfiguration = new WelcomeMessageConfiguration(WelcomeMessageDisplayMode.ONCE);
-            Map<String, String> allProperties = Collections.emptyMap();
 
             try {
                 ParsedCommandLine parsedCommandLine = parser.parse(args);
@@ -344,7 +335,6 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
 
                 // Read *.properties files
                 AllProperties properties = layoutToPropertiesConverter.convert(initialProperties, buildLayout);
-                allProperties = properties.getProperties();
 
                 // Calculate the logging configuration
                 loggingBuildOptions.convert(parsedCommandLine, properties.getProperties(), loggingConfiguration);
@@ -361,7 +351,7 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
             try {
                 Action<ExecutionListener> exceptionReportingAction =
                     new ExceptionReportingAction(reporter, loggingManager,
-                        new NativeServicesInitializingAction(buildLayout, loggingConfiguration, loggingManager, allProperties,
+                        new NativeServicesInitializingAction(buildLayout, loggingConfiguration, loggingManager,
                             new WelcomeMessageAction(buildLayout, welcomeMessageConfiguration,
                                 new DebugLoggerWarningAction(loggingConfiguration, action))));
                 exceptionReportingAction.execute(executionListener);
