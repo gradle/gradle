@@ -4,12 +4,6 @@ plugins {
 
 description = "Implementation of build event services and build event types (work item, tasks, tests, configuration, etc)"
 
-errorprone {
-    disabledChecks.addAll(
-        "FutureReturnValueIgnored", // 1 occurrences
-    )
-}
-
 dependencies {
     api(projects.concurrent)
     api(projects.javaLanguageExtensions)
