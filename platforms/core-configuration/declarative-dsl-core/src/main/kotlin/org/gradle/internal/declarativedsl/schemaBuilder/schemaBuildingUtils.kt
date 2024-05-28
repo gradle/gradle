@@ -43,12 +43,9 @@ fun KClassifier.toDataTypeRef(): DataTypeRef =
 
 
 internal
-fun checkInScope(
-    type: KType,
-    typeScope: DataSchemaBuilder.PreIndex
-) {
-    if (type.classifier?.isInScope(typeScope) != true) {
-        error("type $type used in a function is not in schema scope")  // TODO: improve this one too
+fun KType.checkInScope(typeScope: DataSchemaBuilder.PreIndex, receiver: KClass<*>? = null, function: KFunction<*>) {
+    if (classifier?.isInScope(typeScope) != true) {
+        error("Type used in function ${format(receiver, function)} is not in schema scope: $this")
     }
 }
 

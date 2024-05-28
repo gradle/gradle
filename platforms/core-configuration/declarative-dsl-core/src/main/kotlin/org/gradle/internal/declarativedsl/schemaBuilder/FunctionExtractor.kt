@@ -108,7 +108,7 @@ class DefaultFunctionExtractor(
 
         val returnType = function.returnType
 
-        checkInScope(returnType, preIndex)
+        returnType.checkInScope(preIndex, inType, function)
         val returnClass = function.returnType.classifier as KClass<*>
         val fnParams = function.parameters
 
@@ -172,7 +172,7 @@ class DefaultFunctionExtractor(
         check(function.instanceParameter == null)
 
         val returnType = function.returnType
-        checkInScope(returnType, preIndex)
+        returnType.checkInScope(preIndex, function = function)
 
         val returnTypeClassifier = function.returnType
         val semanticsFromSignature = FunctionSemanticsInternal.DefaultPure(function.returnTypeToRefOrError(null))
@@ -200,7 +200,7 @@ class DefaultFunctionExtractor(
         preIndex: DataSchemaBuilder.PreIndex
     ): DataParameter {
         val paramType = fnParam.type
-        checkInScope(paramType, preIndex)
+        paramType.checkInScope(preIndex, receiver, function)
         val paramSemantics = getParameterSemantics(functionSemantics, function, fnParam, returnClass, preIndex)
         return DefaultDataParameter(fnParam.name, fnParam.parameterTypeToRefOrError(receiver, function), fnParam.isOptional, paramSemantics)
     }

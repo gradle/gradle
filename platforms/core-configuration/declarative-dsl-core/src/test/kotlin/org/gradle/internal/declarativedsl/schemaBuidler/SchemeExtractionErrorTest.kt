@@ -28,7 +28,7 @@ import kotlin.test.assertFailsWith
 object SchemeExtractionErrorTest {
 
     @Test
-    fun `getter return type`() {
+    fun `data type ref conversion of getter return type fails`() {
         val exception = assertFailsWith<IllegalStateException>(
             block = { schemaFromTypes(ReceiverGetterReturn::class, listOf(ReceiverGetterReturn::class)) }
         )
@@ -45,7 +45,7 @@ object SchemeExtractionErrorTest {
     }
 
     @Test
-    fun `property return type`() {
+    fun `data type ref conversion of property return type fails`() {
         val exception = assertFailsWith<IllegalStateException>(
             block = { schemaFromTypes(ReceiverPropertyReturn::class, listOf(ReceiverPropertyReturn::class)) }
         )
@@ -63,7 +63,7 @@ object SchemeExtractionErrorTest {
     }
 
     @Test
-    fun `function param type`() {
+    fun `data type ref conversion of function param type fails`() {
         val exception = assertFailsWith<IllegalStateException>(
             block = {
                 schemaFromTypes(
@@ -86,7 +86,7 @@ object SchemeExtractionErrorTest {
     }
 
     @Test
-    fun `function return type`() {
+    fun `data type ref conversion of function return type fails`() {
         val exception = assertFailsWith<IllegalStateException>(
             block = {
                 schemaFromTypes(
@@ -98,6 +98,22 @@ object SchemeExtractionErrorTest {
         assertThat(
             exception.message,
             equalTo("Conversion to data types failed for return type of ReceiverFunctionReturn.mood: org.gradle.api.provider.ListProperty<kotlin.String>")
+        )
+    }
+
+    @Test
+    fun `type used not in schema scope`() {
+        val exception = assertFailsWith<IllegalStateException>(
+            block = {
+                schemaFromTypes(
+                    ReceiverFunctionReturn::class,
+                    listOf(ReceiverFunctionReturn::class)
+                )
+            }
+        )
+        assertThat(
+            exception.message,
+            equalTo("Type used in function ReceiverFunctionReturn.mood is not in schema scope: org.gradle.api.provider.ListProperty<kotlin.String>")
         )
     }
 
