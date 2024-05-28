@@ -293,6 +293,7 @@ public class GFileUtils {
      * @return tail content
      * @throws org.gradle.util.GFileUtils.TailReadingException when reading failed
      */
+    @SuppressWarnings("DefaultCharset")
     public static String tail(File file, int maxLines) throws TailReadingException {
         logDeprecation();
         BufferedReader reader = null;

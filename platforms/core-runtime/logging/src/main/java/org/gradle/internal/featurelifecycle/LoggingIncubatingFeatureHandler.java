@@ -23,7 +23,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class LoggingIncubatingFeatureHandler implements FeatureHandler<IncubatingFeatureUsage> {
-    private static final String INCUBATION_MESSAGE = "%s is an incubating feature.";
     private static final Logger LOGGER = LoggerFactory.getLogger(LoggingIncubatingFeatureHandler.class);
 
     private final Set<String> features = new HashSet<String>();
@@ -31,7 +30,7 @@ public class LoggingIncubatingFeatureHandler implements FeatureHandler<Incubatin
     @Override
     public void featureUsed(IncubatingFeatureUsage usage) {
         if (features.add(usage.getSummary())) {
-            LOGGER.warn(String.format(INCUBATION_MESSAGE, usage.getSummary()));
+            LOGGER.warn(String.format("%s is an incubating feature.", usage.getSummary()));
         }
     }
 

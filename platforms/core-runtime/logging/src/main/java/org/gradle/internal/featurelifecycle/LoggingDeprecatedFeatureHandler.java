@@ -191,7 +191,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
         if (warningMode == WarningMode.Summary && deprecationsFound) {
             LOGGER.warn("\n{} {}.\n\nYou can use '--{} {}' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.\n\n{}",
                 WARNING_SUMMARY, DefaultGradleVersion.current().getNextMajorVersion().getVersion(),
-                LoggingConfigurationBuildOptions.WarningsOption.LONG_OPTION, WarningMode.All.name().toLowerCase(),
+                LoggingConfigurationBuildOptions.WarningsOption.LONG_OPTION, WarningMode.All.name().toLowerCase(Locale.ROOT),
                 DOCUMENTATION_REGISTRY.getDocumentationRecommendationFor("on this", "command_line_interface", "sec:command_line_warnings"));
         }
     }
