@@ -16,7 +16,6 @@
 
 package org.gradle.internal.file;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 
