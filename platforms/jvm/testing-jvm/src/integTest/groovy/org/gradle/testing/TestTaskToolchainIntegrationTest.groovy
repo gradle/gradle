@@ -154,17 +154,12 @@ class TestTaskToolchainIntegrationTest extends AbstractIntegrationSpec implement
         given:
         def executable = TextUtil.normaliseFileSeparators(Jvm.current().javaExecutable.toString())
 
-        println("FUCK1: ${executable}")
-
         buildFile << """
             apply plugin:'java'
             ${mavenCentralRepository()}
             dependencies {
                 testImplementation 'junit:junit:4.13'
             }
-            println("FUCK2: " + new File(".").getCanonicalFile().toPath())
-            println("FUCK3: " + new File("${executable}").toPath())
-            println("FUCK4: " + new File(".").getCanonicalFile().toPath().relativize(new File("${executable}").toPath()).toString())
             test {
                 executable = new File(".").getCanonicalFile().toPath().relativize(new File("${executable}").toPath()).toString()
             }
