@@ -18,10 +18,10 @@ package org.gradle.configurationcache.serialization.codecs
 
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
-import org.gradle.configurationcache.serialization.Codec
-import org.gradle.configurationcache.serialization.ReadContext
-import org.gradle.configurationcache.serialization.WriteContext
-import org.gradle.configurationcache.serialization.readNonNull
+import org.gradle.internal.serialize.graph.Codec
+import org.gradle.internal.serialize.graph.ReadContext
+import org.gradle.internal.serialize.graph.WriteContext
+import org.gradle.internal.serialize.graph.readNonNull
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.isolation.Isolatable
 import org.gradle.internal.snapshot.impl.BooleanValueSnapshot

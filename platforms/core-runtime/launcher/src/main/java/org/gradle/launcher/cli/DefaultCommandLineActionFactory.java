@@ -25,7 +25,9 @@ import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
+import org.gradle.configuration.DefaultBuildClientMetaData;
 import org.gradle.configuration.GradleLauncherMetaData;
+import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.Actions;
 import org.gradle.internal.buildevents.BuildExceptionReporter;
@@ -85,8 +87,8 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
             new BuildExceptionReporter(loggingServices.get(StyledTextOutputFactory.class), loggingConfiguration, clientMetaData()));
     }
 
-    private static GradleLauncherMetaData clientMetaData() {
-        return new GradleLauncherMetaData();
+    private static BuildClientMetaData clientMetaData() {
+        return new DefaultBuildClientMetaData(new GradleLauncherMetaData());
     }
 
     private static void showUsage(PrintStream out, CommandLineParser parser) {

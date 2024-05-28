@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.artifacts.LenientConfiguration;
-import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.UnresolvedDependency;
@@ -305,23 +304,6 @@ public class DefaultLenientConfiguration implements LenientConfigurationInternal
         @Override
         public FileCollectionStructureVisitor.VisitType prepareForVisit(FileCollectionInternal.Source source) {
             return FileCollectionStructureVisitor.VisitType.Visit;
-        }
-    }
-
-    public static class ArtifactResolveException extends ResolveException {
-        private final String type;
-        private final String displayName;
-
-        public ArtifactResolveException(String type, String displayName, Iterable<? extends Throwable> failures) {
-            super(displayName, failures);
-            this.type = type;
-            this.displayName = displayName;
-        }
-
-        // Need to override as error message is hardcoded in constructor of public type ResolveException
-        @Override
-        public String getMessage() {
-            return String.format("Could not resolve all %s for %s.", type, displayName);
         }
     }
 

@@ -421,6 +421,46 @@ class BasicParsingTest {
     }
 
     @Test
+    fun `keeps empty lines in line number counting`() {
+        val results = parse(
+            """
+            import a.b.c
+
+            // start of actual script content is here -- imports are counted separately because of the workarounds
+
+            f(x)
+
+
+            a = 1
+            """.trimIndent()
+        )
+
+        val expected = """
+            Import [indexes: 0..12, line/column: 1/1..1/13, file: test (
+                name parts = [a, b, c]
+            )
+            FunctionCall [indexes: 104..108, line/column: 3/1..3/5, file: test] (
+                name = f
+                args = [
+                    FunctionArgument.Positional [indexes: 106..107, line/column: 3/3..3/4, file: test] (
+                        expr = PropertyAccess [indexes: 106..107, line/column: 3/3..3/4, file: test] (
+                            name = x
+                        )
+                    )
+                ]
+            )
+            Assignment [indexes: 111..116, line/column: 6/1..6/6, file: test] (
+                lhs = PropertyAccess [indexes: 111..112, line/column: 6/1..6/2, file: test] (
+                    name = a
+                )
+                rhs = IntLiteral [indexes: 115..116, line/column: 6/5..6/6, file: test] (1)
+            )
+        """.trimIndent()
+
+        results.assert(expected)
+    }
+
+    @Test
     fun `parse infix function call with regular arguments`() {
         val results = parse(
             """

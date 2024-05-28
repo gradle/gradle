@@ -20,28 +20,27 @@ import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import org.gradle.api.Describable
-import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.logging.Logger
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.configurationcache.CheckedFingerprint
-import org.gradle.configurationcache.problems.PropertyProblem
-import org.gradle.configurationcache.problems.PropertyTrace
-import org.gradle.configurationcache.problems.StructuredMessageBuilder
-import org.gradle.configurationcache.serialization.CircularReferences
-import org.gradle.configurationcache.serialization.Codec
-import org.gradle.configurationcache.serialization.IsolateOwner
-import org.gradle.configurationcache.serialization.ReadContext
-import org.gradle.configurationcache.serialization.ReadIdentities
-import org.gradle.configurationcache.serialization.ReadIsolate
-import org.gradle.configurationcache.serialization.Tracer
-import org.gradle.configurationcache.serialization.WriteContext
-import org.gradle.configurationcache.serialization.WriteIdentities
-import org.gradle.configurationcache.serialization.WriteIsolate
-import org.gradle.configurationcache.serialization.beans.BeanStateReader
-import org.gradle.configurationcache.serialization.beans.BeanStateWriter
-import org.gradle.configurationcache.serialization.runReadOperation
-import org.gradle.configurationcache.serialization.runWriteOperation
+import org.gradle.internal.configuration.problems.PropertyProblem
+import org.gradle.internal.configuration.problems.PropertyTrace
+import org.gradle.internal.configuration.problems.StructuredMessageBuilder
+import org.gradle.internal.serialize.graph.CircularReferences
+import org.gradle.internal.serialize.graph.Codec
+import org.gradle.internal.serialize.graph.IsolateOwner
+import org.gradle.internal.serialize.graph.ReadContext
+import org.gradle.internal.serialize.graph.ReadIdentities
+import org.gradle.internal.serialize.graph.ReadIsolate
+import org.gradle.internal.serialize.graph.Tracer
+import org.gradle.internal.serialize.graph.WriteContext
+import org.gradle.internal.serialize.graph.WriteIdentities
+import org.gradle.internal.serialize.graph.WriteIsolate
+import org.gradle.internal.serialize.graph.BeanStateReader
+import org.gradle.internal.serialize.graph.BeanStateWriter
+import org.gradle.internal.serialize.graph.runReadOperation
+import org.gradle.internal.serialize.graph.runWriteOperation
 import org.gradle.internal.Try
 import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.HashCode
@@ -465,10 +464,10 @@ class ConfigurationCacheFingerprintCheckerTest {
         override fun onFinish(action: () -> Unit) =
             undefined()
 
-        override fun beanStateReaderFor(beanType: Class<*>): BeanStateReader =
+        override fun <T : Any> getSingletonProperty(propertyType: Class<T>): T =
             undefined()
 
-        override fun getProject(path: String): ProjectInternal =
+        override fun beanStateReaderFor(beanType: Class<*>): BeanStateReader =
             undefined()
 
         override var immediateMode: Boolean

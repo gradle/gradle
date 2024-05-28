@@ -33,11 +33,7 @@ import org.gradle.configuration.project.DelayedConfigurationActions
 import org.gradle.configuration.project.LifecycleProjectEvaluator
 import org.gradle.configuration.project.PluginsProjectConfigureActions
 import org.gradle.configuration.project.ProjectEvaluator
-import org.gradle.configurationcache.extensions.get
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprintController
-import org.gradle.configurationcache.flow.FlowServicesProvider
-import org.gradle.configurationcache.problems.ProblemFactory
-import org.gradle.configurationcache.problems.ProblemsListener
 import org.gradle.configurationcache.services.ConfigurationCacheEnvironment
 import org.gradle.configurationcache.services.DefaultEnvironment
 import org.gradle.initialization.BuildCancellationToken
@@ -51,12 +47,17 @@ import org.gradle.internal.build.BuildModelControllerServices
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.IntermediateBuildActionRunner
+import org.gradle.internal.configuration.problems.ProblemFactory
+import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.extensions.core.get
 import org.gradle.internal.model.StateTransitionControllerFactory
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.CachingServiceLocator
+import org.gradle.internal.service.Provides
+import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.internal.service.scopes.BuildScopeServices
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.invocation.DefaultGradle
@@ -74,7 +75,6 @@ class DefaultBuildModelControllerServices(
             registration.add(BuildDefinition::class.java, buildDefinition)
             registration.add(BuildState::class.java, owner)
             registration.addProvider(ServicesProvider(buildDefinition, parentBuild, services))
-            registration.addProvider(FlowServicesProvider)
             if (buildModelParameters.isConfigurationCache) {
                 registration.addProvider(ConfigurationCacheBuildControllerProvider())
                 registration.add(ConfigurationCacheEnvironment::class.java)
@@ -100,7 +100,8 @@ class DefaultBuildModelControllerServices(
         private val buildDefinition: BuildDefinition,
         private val parentBuild: BuildState?,
         private val buildScopeServices: BuildScopeServices
-    ) {
+    ) : ServiceRegistrationProvider {
+        @Provides
         fun createGradleModel(instantiator: Instantiator, serviceRegistryFactory: ServiceRegistryFactory): GradleInternal? {
             return instantiator.newInstance(
                 DefaultGradle::class.java,
@@ -110,10 +111,12 @@ class DefaultBuildModelControllerServices(
             )
         }
 
+        @Provides
         fun createBuildLifecycleController(buildLifecycleControllerFactory: BuildLifecycleControllerFactory): BuildLifecycleController {
             return buildLifecycleControllerFactory.newInstance(buildDefinition, buildScopeServices)
         }
 
+        @Provides
         fun createIntermediateToolingModelProvider(
             buildOperationExecutor: BuildOperationExecutor,
             buildModelParameters: BuildModelParameters,
@@ -127,7 +130,8 @@ class DefaultBuildModelControllerServices(
     }
 
     private
-    class ConfigurationCacheBuildControllerProvider {
+    class ConfigurationCacheBuildControllerProvider : ServiceRegistrationProvider {
+        @Provides
         fun createBuildModelController(
             gradle: GradleInternal,
             stateTransitionControllerFactory: StateTransitionControllerFactory,
@@ -139,7 +143,8 @@ class DefaultBuildModelControllerServices(
     }
 
     private
-    class VintageBuildControllerProvider {
+    class VintageBuildControllerProvider : ServiceRegistrationProvider {
+        @Provides
         fun createBuildModelController(
             gradle: GradleInternal,
             stateTransitionControllerFactory: StateTransitionControllerFactory
@@ -152,7 +157,8 @@ class DefaultBuildModelControllerServices(
     }
 
     private
-    class ConfigurationCacheIsolatedProjectsProvider {
+    class ConfigurationCacheIsolatedProjectsProvider : ServiceRegistrationProvider {
+        @Provides
         fun createCrossProjectModelAccess(
             projectRegistry: ProjectRegistry<ProjectInternal>,
             problemsListener: ProblemsListener,
@@ -167,12 +173,14 @@ class DefaultBuildModelControllerServices(
             )
         }
 
+        @Provides
         fun createDynamicCallProjectIsolationProblemReporting(dynamicCallContextTracker: DynamicCallContextTracker): DynamicCallProblemReporting =
             DefaultDynamicCallProblemReporting().also { reporting ->
                 dynamicCallContextTracker.onEnter(reporting::enterDynamicCall)
                 dynamicCallContextTracker.onLeave(reporting::leaveDynamicCall)
             }
 
+        @Provides
         fun createDynamicLookupRoutine(
             dynamicCallContextTracker: DynamicCallContextTracker,
             buildModelParameters: BuildModelParameters
@@ -183,19 +191,22 @@ class DefaultBuildModelControllerServices(
     }
 
     private
-    class VintageIsolatedProjectsProvider {
+    class VintageIsolatedProjectsProvider : ServiceRegistrationProvider {
+        @Provides
         fun createCrossProjectModelAccess(
             projectRegistry: ProjectRegistry<ProjectInternal>
         ): CrossProjectModelAccess {
             return DefaultCrossProjectModelAccess(projectRegistry)
         }
 
+        @Provides
         fun createDynamicLookupRoutine(): DynamicLookupRoutine =
             DefaultDynamicLookupRoutine()
     }
 
     private
-    class ConfigurationCacheModelProvider {
+    class ConfigurationCacheModelProvider : ServiceRegistrationProvider {
+        @Provides
         fun createProjectEvaluator(
             buildOperationRunner: BuildOperationRunner,
             cachingServiceLocator: CachingServiceLocator,
@@ -209,7 +220,8 @@ class DefaultBuildModelControllerServices(
     }
 
     private
-    class VintageModelProvider {
+    class VintageModelProvider : ServiceRegistrationProvider {
+        @Provides
         fun createProjectEvaluator(
             buildOperationRunner: BuildOperationRunner,
             cachingServiceLocator: CachingServiceLocator,

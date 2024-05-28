@@ -22,7 +22,6 @@ import org.gradle.performance.annotations.Scenario
 import org.gradle.profiler.mutations.AbstractCleanupMutator
 import org.gradle.profiler.mutations.ClearGradleUserHomeMutator
 import org.gradle.profiler.mutations.ClearProjectCacheMutator
-import spock.lang.Ignore
 
 import static org.gradle.performance.annotations.ScenarioType.PER_DAY
 import static org.gradle.performance.results.OperatingSystem.LINUX
@@ -32,7 +31,6 @@ import static org.gradle.performance.results.OperatingSystem.WINDOWS
 @RunFor(
     @Scenario(type = PER_DAY, operatingSystems = [LINUX, MAC_OS, WINDOWS], testProjects = ["largeEmptyMultiProjectDeclarativeDsl"])
 )
-@Ignore
 class DeclarativeDslFirstUsePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     private static final int WARMUP_RUNS = 5

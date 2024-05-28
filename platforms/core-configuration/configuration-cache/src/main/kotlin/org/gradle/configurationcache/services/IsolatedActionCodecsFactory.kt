@@ -23,8 +23,8 @@ import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory.ValueS
 import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.api.services.internal.BuildServiceProvider
 import org.gradle.configurationcache.serialization.codecs.BeanCodec
-import org.gradle.configurationcache.serialization.codecs.Bindings
-import org.gradle.configurationcache.serialization.codecs.BindingsBuilder
+import org.gradle.internal.serialize.graph.Bindings
+import org.gradle.internal.serialize.graph.BindingsBuilder
 import org.gradle.configurationcache.serialization.codecs.DirectoryCodec
 import org.gradle.configurationcache.serialization.codecs.DirectoryPropertyCodec
 import org.gradle.configurationcache.serialization.codecs.FixedValueReplacingProviderCodec
@@ -33,7 +33,7 @@ import org.gradle.configurationcache.serialization.codecs.LoggerCodec
 import org.gradle.configurationcache.serialization.codecs.MapPropertyCodec
 import org.gradle.configurationcache.serialization.codecs.PropertyCodec
 import org.gradle.configurationcache.serialization.codecs.ProviderCodec
-import org.gradle.configurationcache.serialization.codecs.ProxyCodec
+import org.gradle.internal.serialize.codecs.stdlib.ProxyCodec
 import org.gradle.configurationcache.serialization.codecs.RegularFileCodec
 import org.gradle.configurationcache.serialization.codecs.RegularFilePropertyCodec
 import org.gradle.configurationcache.serialization.codecs.ServicesCodec
@@ -44,7 +44,7 @@ import org.gradle.configurationcache.serialization.codecs.jos.ExternalizableCode
 import org.gradle.configurationcache.serialization.codecs.jos.JavaObjectSerializationCodec
 import org.gradle.configurationcache.serialization.codecs.jos.JavaSerializationEncodingLookup
 import org.gradle.configurationcache.serialization.codecs.unsupportedTypes
-import org.gradle.configurationcache.serialization.unsupported
+import org.gradle.internal.serialize.graph.unsupported
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 

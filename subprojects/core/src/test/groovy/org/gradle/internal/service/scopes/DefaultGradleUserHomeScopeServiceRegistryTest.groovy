@@ -18,6 +18,8 @@ package org.gradle.internal.service.scopes
 
 import org.gradle.initialization.GradleUserHomeDirProvider
 import org.gradle.internal.service.DefaultServiceRegistry
+import org.gradle.internal.service.Provides
+import org.gradle.internal.service.ServiceRegistrationProvider
 import spock.lang.Specification
 
 class DefaultGradleUserHomeScopeServiceRegistryTest extends Specification {
@@ -199,7 +201,8 @@ class DefaultGradleUserHomeScopeServiceRegistryTest extends Specification {
     class SomeGlobalService {
     }
 
-    class GlobalServiceProvider {
+    class GlobalServiceProvider implements ServiceRegistrationProvider {
+        @Provides
         SomeGlobalService createGlobalService() {
             return new SomeGlobalService()
         }
@@ -219,7 +222,8 @@ class DefaultGradleUserHomeScopeServiceRegistryTest extends Specification {
         }
     }
 
-    class HomeDirServiceProvider {
+    class HomeDirServiceProvider implements ServiceRegistrationProvider {
+        @Provides
         SomeHomeDirService createService(GradleUserHomeDirProvider homeDirProvider) {
             return new SomeHomeDirService(homeDirProvider.gradleUserHomeDirectory)
         }

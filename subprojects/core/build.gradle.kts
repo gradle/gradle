@@ -76,6 +76,7 @@ dependencies {
     api(projects.concurrent)
     api(projects.javaLanguageExtensions)
     api(projects.serialization)
+    api(projects.serviceProvider)
     api(projects.time)
     api(project(":base-services"))
     api(project(":base-services-groovy"))
@@ -111,7 +112,8 @@ dependencies {
     api(project(":process-services"))
     api(project(":resources"))
     api(project(":snapshots"))
-    api(project(":worker-processes"))
+    api(project(":worker-main"))
+    api(project(":build-process-services"))
 
     api(libs.ant)
     api(libs.asm)
@@ -143,7 +145,7 @@ dependencies {
     }
     implementation(libs.xmlApis)
 
-    compileOnly(libs.futureKotlin("stdlib")) {
+    compileOnly(libs.kotlinStdlib) {
         because("it needs to forward calls from instrumented code to the Kotlin standard library")
     }
 
@@ -218,6 +220,9 @@ dependencies {
     testFixturesApi(testFixtures(project(":snapshots"))) {
         because("test fixtures expose file snapshot related functionality")
     }
+    testFixturesApi(project(":unit-test-fixtures")) {
+        because("test fixtures expose ProjectBuilder")
+    }
     testFixturesImplementation(project(":build-option"))
     testFixturesImplementation(project(":enterprise-operations"))
     testFixturesImplementation(project(":messaging"))
@@ -261,6 +266,7 @@ dependencies {
     integTestImplementation(project(":dependency-management"))
     integTestImplementation(project(":launcher"))
     integTestImplementation(project(":war"))
+    integTestImplementation(project(":daemon-services"))
     integTestImplementation(libs.jansi)
     integTestImplementation(libs.jetbrainsAnnotations)
     integTestImplementation(libs.jetty)
@@ -269,8 +275,9 @@ dependencies {
     integTestImplementation(testFixtures(project(":file-temp")))
 
     testRuntimeOnly(project(":distributions-core")) {
-        because("ProjectBuilder tests load services from a Gradle distribution.")
+        because("This is required by ProjectBuilder, but ProjectBuilder cannot declare :distributions-core as a dependency due to conflicts with other distributions.")
     }
+
     integTestDistributionRuntimeOnly(project(":distributions-jvm")) {
         because("Some tests utilise the 'java-gradle-plugin' and with that TestKit, some also use the 'war' plugin")
     }
@@ -299,6 +306,10 @@ tasks.test {
 
 tasks.compileTestGroovy {
     groovyOptions.fork("memoryInitialSize" to "128M", "memoryMaximumSize" to "1G")
+}
+
+tasks.isolatedProjectsIntegTest {
+    enabled = true
 }
 
 integTest.usesJavadocCodeSnippets = true

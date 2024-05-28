@@ -16,13 +16,20 @@
 
 package org.gradle.internal.declarativedsl.evaluator
 
-import org.gradle.internal.declarativedsl.analysis.AnalysisSchema
-import org.gradle.internal.declarativedsl.serialization.SchemaSerialization
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
+import org.gradle.declarative.dsl.schema.AnalysisSchema
+import org.gradle.declarative.dsl.schema.ExternalObjectProviderKey
+import org.gradle.internal.declarativedsl.analysis.OperationGenerationId
+import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequence
 import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequenceStep
+import org.gradle.internal.declarativedsl.serialization.SchemaSerialization
+import org.gradle.internal.declarativedsl.mappingToJvm.ReflectionToObjectConverter
+import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeCustomAccessors
+import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeFunctionResolver
+import org.gradle.internal.declarativedsl.mappingToJvm.RuntimePropertyResolver
 import java.io.File
 
 
@@ -32,7 +39,7 @@ import java.io.File
  */
 internal
 class StoringInterpretationSchemaBuilder(
-    private val schemaBuilder: InterpretationSchemaBuilder
+    private val schemaBuilder: InterpretationSchemaBuilder,
 ) : InterpretationSchemaBuilder {
     override fun getEvaluationSchemaForScript(targetInstance: Any, scriptContext: RestrictedScriptContext): InterpretationSchemaBuildingResult =
         addSerializationToSteps(targetInstance, schemaBuilder.getEvaluationSchemaForScript(targetInstance, scriptContext))
@@ -53,7 +60,6 @@ class StoringInterpretationSchemaBuilder(
     private
     fun storeSchemaResult(targetInstance: Any, identifier: String, analysisSchema: AnalysisSchema) {
         val file = schemaFile(targetInstance, identifier)
-
         file.parentFile.mkdirs()
         file.writeText(SchemaSerialization.schemaToJsonString(analysisSchema))
     }
@@ -78,8 +84,19 @@ class StoringInterpretationSchemaBuilder(
         private val schemaHandler: (schemaId: String, schema: AnalysisSchema) -> Unit
     ) : InterpretationSequenceStep<R> {
         override val stepIdentifier: String = step.stepIdentifier
+        override val assignmentGeneration: OperationGenerationId = step.assignmentGeneration
         override fun evaluationSchemaForStep(): EvaluationSchema = step.evaluationSchemaForStep().also { schemaHandler(stepIdentifier, it.analysisSchema) }
         override fun getTopLevelReceiverFromTarget(target: Any): R = step.getTopLevelReceiverFromTarget(target)
         override fun whenEvaluated(resultReceiver: R) = step.whenEvaluated(resultReceiver)
+        override fun processResolutionResult(resolutionResult: ResolutionResult): ResolutionResult = step.processResolutionResult(resolutionResult)
+        override fun getReflectionToObjectConverter(
+            externalObjectsMap: Map<ExternalObjectProviderKey, Any>,
+            topLevelObject: Any,
+            functionResolver: RuntimeFunctionResolver,
+            propertyResolver: RuntimePropertyResolver,
+            customAccessors: RuntimeCustomAccessors
+        ): ReflectionToObjectConverter {
+            return step.getReflectionToObjectConverter(externalObjectsMap, topLevelObject, functionResolver, propertyResolver, customAccessors)
+        }
     }
 }

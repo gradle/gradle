@@ -374,7 +374,7 @@ public class DependencyGraphBuilder {
         for (ModuleResolveState module : resolveState.getModules()) {
             ComponentState selected = module.getSelected();
             if (selected != null) {
-                ResolutionFailureHandler resolutionFailureHandler = resolveState.getVariantSelector().getFailureProcessor();
+                ResolutionFailureHandler resolutionFailureHandler = resolveState.getVariantSelector().getFailureHandler();
                 if (selected.isRejected()) {
                     GradleException error = new GradleException(selected.getRejectedErrorMessage());
                     attachFailureToEdges(error, module.getIncomingEdges());

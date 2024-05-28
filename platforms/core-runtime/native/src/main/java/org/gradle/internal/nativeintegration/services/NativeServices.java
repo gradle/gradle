@@ -54,6 +54,7 @@ import org.gradle.internal.nativeintegration.network.HostnameLookup;
 import org.gradle.internal.nativeintegration.processenvironment.NativePlatformBackedProcessEnvironment;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceCreationException;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
@@ -343,6 +344,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         // Don't close
     }
 
+    @Provides
     protected GradleUserHomeDirProvider createGradleUserHomeDirProvider() {
         return new GradleUserHomeDirProvider() {
             @Override
@@ -352,14 +354,17 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         };
     }
 
+    @Provides
     protected OperatingSystem createOperatingSystem() {
         return OperatingSystem.current();
     }
 
+    @Provides
     protected Jvm createJvm() {
         return Jvm.current();
     }
 
+    @Provides
     protected ProcessEnvironment createProcessEnvironment(OperatingSystem operatingSystem) {
         if (useNativeIntegrations) {
             try {
@@ -373,6 +378,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         return new UnsupportedEnvironment();
     }
 
+    @Provides
     protected ConsoleDetector createConsoleDetector(OperatingSystem operatingSystem) {
         return new TestOverrideConsoleDetector(backingConsoleDetector(operatingSystem));
     }
@@ -401,14 +407,16 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         return new FallbackConsoleDetector();
     }
 
+    @Provides
     protected WindowsRegistry createWindowsRegistry(OperatingSystem operatingSystem) {
         if (useNativeIntegrations && operatingSystem.isWindows()) {
             return net.rubygrapefruit.platform.Native.get(WindowsRegistry.class);
         }
-        return notAvailable(WindowsRegistry.class);
+        return notAvailable(WindowsRegistry.class, operatingSystem);
     }
 
-    public SystemInfo createSystemInfo() {
+    @Provides
+    public SystemInfo createSystemInfo(OperatingSystem operatingSystem) {
         if (useNativeIntegrations) {
             try {
                 return net.rubygrapefruit.platform.Native.get(SystemInfo.class);
@@ -416,10 +424,11 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
                 LOGGER.debug("Native-platform system info is not available. Continuing with fallback.");
             }
         }
-        return notAvailable(SystemInfo.class);
+        return notAvailable(SystemInfo.class, operatingSystem);
     }
 
-    protected Memory createMemory() {
+    @Provides
+    protected Memory createMemory(OperatingSystem operatingSystem) {
         if (useNativeIntegrations) {
             try {
                 return net.rubygrapefruit.platform.Native.get(Memory.class);
@@ -427,9 +436,10 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
                 LOGGER.debug("Native-platform memory integration is not available. Continuing with fallback.");
             }
         }
-        return notAvailable(Memory.class);
+        return notAvailable(Memory.class, operatingSystem);
     }
 
+    @Provides
     protected ProcessLauncher createProcessLauncher() {
         if (useNativeIntegrations) {
             try {
@@ -441,7 +451,8 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         return new DefaultProcessLauncher();
     }
 
-    protected PosixFiles createPosixFiles() {
+    @Provides
+    protected PosixFiles createPosixFiles(OperatingSystem operatingSystem) {
         if (useNativeIntegrations) {
             try {
                 return net.rubygrapefruit.platform.Native.get(PosixFiles.class);
@@ -449,9 +460,10 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
                 LOGGER.debug("Native-platform posix files integration is not available. Continuing with fallback.");
             }
         }
-        return notAvailable(UnavailablePosixFiles.class);
+        return notAvailable(UnavailablePosixFiles.class, operatingSystem);
     }
 
+    @Provides
     protected HostnameLookup createHostnameLookup() {
         if (useNativeIntegrations) {
             try {
@@ -470,6 +482,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         return new FixedHostname(hostname);
     }
 
+    @Provides
     protected FileMetadataAccessor createFileMetadataAccessor(OperatingSystem operatingSystem) {
         // Based on the benchmark found in org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessorBenchmark
         // and the results in the PR https://github.com/gradle/gradle/pull/12966
@@ -491,6 +504,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         return new FallbackFileMetadataAccessor();
     }
 
+    @Provides
     public NativeCapabilities createNativeCapabilities() {
         return new NativeCapabilities() {
             @Override
@@ -505,7 +519,8 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         };
     }
 
-    protected FileSystems createFileSystems() {
+    @Provides
+    protected FileSystems createFileSystems(OperatingSystem operatingSystem) {
         if (useNativeIntegrations) {
             try {
                 return net.rubygrapefruit.platform.Native.get(FileSystems.class);
@@ -513,16 +528,16 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
                 LOGGER.debug("Native-platform file systems information is not available. Continuing with fallback.");
             }
         }
-        return notAvailable(FileSystems.class);
+        return notAvailable(FileSystems.class, operatingSystem);
     }
 
-    private <T> T notAvailable(Class<T> type) {
-        return Cast.uncheckedNonnullCast(Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[]{type}, new BrokenService(type.getSimpleName())));
+    private <T> T notAvailable(Class<T> type, OperatingSystem operatingSystem) {
+        return Cast.uncheckedNonnullCast(Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[]{type}, new BrokenService(type.getSimpleName(), useNativeIntegrations, operatingSystem)));
     }
 
     private static String format(Throwable throwable) {
         StringBuilder builder = new StringBuilder();
-        builder.append(throwable.toString());
+        builder.append(throwable);
         for (Throwable current = throwable.getCause(); current != null; current = current.getCause()) {
             builder.append(SystemProperties.getInstance().getLineSeparator());
             builder.append("caused by: ");
@@ -533,14 +548,18 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
 
     private static class BrokenService implements InvocationHandler {
         private final String type;
+        private final boolean useNativeIntegrations;
+        private final OperatingSystem operatingSystem;
 
-        private BrokenService(String type) {
+        private BrokenService(String type, boolean useNativeIntegrations, OperatingSystem operatingSystem) {
             this.type = type;
+            this.useNativeIntegrations = useNativeIntegrations;
+            this.operatingSystem = operatingSystem;
         }
 
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-            throw new org.gradle.internal.nativeintegration.NativeIntegrationUnavailableException(String.format("%s is not supported on this operating system.", type));
+            throw new org.gradle.internal.nativeintegration.NativeIntegrationUnavailableException(String.format("Service '%s' is not available (os=%s, enabled=%s).", type, operatingSystem, useNativeIntegrations));
         }
     }
 

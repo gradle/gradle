@@ -19,10 +19,10 @@ package org.gradle.configurationcache.serialization.codecs
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.resources.ApiTextResourceAdapter
 import org.gradle.api.resources.TextResourceFactory
-import org.gradle.configurationcache.serialization.Codec
-import org.gradle.configurationcache.serialization.ReadContext
-import org.gradle.configurationcache.serialization.WriteContext
-import org.gradle.configurationcache.serialization.ownerService
+import org.gradle.internal.serialize.graph.Codec
+import org.gradle.internal.serialize.graph.ReadContext
+import org.gradle.internal.serialize.graph.WriteContext
+import org.gradle.internal.serialize.graph.ownerService
 import java.net.URI
 
 

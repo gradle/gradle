@@ -219,6 +219,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
     }
 
     private class MetaClassAdapter {
+        @SuppressWarnings("unused") // May be used dynamically.
         protected String getDisplayName() {
             return BeanDynamicObject.this.getDisplayName();
         }
@@ -471,6 +472,8 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             return DynamicInvokeResult.notFound();
         }
 
+        @SuppressWarnings("MixedMutabilityReturnType")
+        // This might be too invasive to fix properly because it is in the dynamic code.
         public Map<String, ?> getProperties() {
             if (!includeProperties) {
                 return Collections.emptyMap();

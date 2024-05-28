@@ -31,6 +31,8 @@ import org.gradle.internal.logging.source.JavaUtilLoggingSystem;
 import org.gradle.internal.logging.source.NoOpLoggingSystem;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.Provides;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.time.Time;
 
@@ -47,7 +49,8 @@ import org.gradle.internal.time.Time;
  */
 public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
 
-    public static final Object NO_OP = new Object() {
+    public static final ServiceRegistrationProvider NO_OP = new ServiceRegistrationProvider() {
+        @Provides
         OutputEventListener createOutputEventListener() {
             return OutputEventListener.NO_OP;
         }
@@ -113,10 +116,12 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
         return new NestedLogging();
     }
 
+    @Provides
     protected Clock createTimeProvider() {
         return Time.clock();
     }
 
+    @Provides
     protected StyledTextOutputFactory createStyledTextOutputFactory() {
         return new DefaultStyledTextOutputFactory(getStdoutListener(), get(Clock.class));
     }
@@ -128,6 +133,7 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
         return stdoutListener;
     }
 
+    @Provides
     protected DefaultLoggingManagerFactory createLoggingManagerFactory() {
         OutputEventListener outputEventBroadcaster = outputEventListenerManager.getBroadcaster();
 
@@ -143,14 +149,17 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
             stderr);
     }
 
+    @Provides
     protected OutputEventListener createOutputEventListener(OutputEventListenerManager manager) {
         return manager.getBroadcaster();
     }
 
+    @Provides
     protected OutputEventListenerManager createOutputEventListenerManager() {
         return outputEventListenerManager;
     }
 
+    @Provides
     protected DefaultUserInputReceiver createUserInput() {
         return userInput;
     }
@@ -167,6 +176,7 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
 
     private static class NestedLogging extends LoggingServiceRegistry {
 
+        @Provides
         @Override
         protected DefaultLoggingManagerFactory createLoggingManagerFactory() {
             // Don't configure anything

@@ -29,12 +29,11 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.build.CompositeBuildParticipantBuildState;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
-import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory;
-import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.internal.model.CalculatedValueContainer;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.util.Path;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.Map;
 import java.util.Objects;
@@ -42,11 +41,13 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Default implementation of {@link BuildTreeLocalComponentProvider}.
+ *
+ * <p>Currently, the metadata for a component is different based on whether it is consumed from the
+ * producing build or from another build. This distinction can go away in Gradle 9.0.</p>
  */
 public class DefaultBuildTreeLocalComponentProvider implements BuildTreeLocalComponentProvider, HoldsProjectState {
 
     private final ProjectStateRegistry projectStateRegistry;
-    private final LocalComponentGraphResolveStateFactory resolveStateFactory;
     private final LocalComponentCache localComponentCache;
     private final LocalComponentProvider localComponentProvider;
 
@@ -61,15 +62,14 @@ public class DefaultBuildTreeLocalComponentProvider implements BuildTreeLocalCom
      */
     private final ConcurrentMetadataCache foreignIdentifiedComponents;
 
+    @Inject
     public DefaultBuildTreeLocalComponentProvider(
         ProjectStateRegistry projectStateRegistry,
         CalculatedValueContainerFactory calculatedValueContainerFactory,
-        LocalComponentGraphResolveStateFactory resolveStateFactory,
         LocalComponentCache localComponentCache,
         LocalComponentProvider localComponentProvider
     ) {
         this.projectStateRegistry = projectStateRegistry;
-        this.resolveStateFactory = resolveStateFactory;
         this.localComponentCache = localComponentCache;
         this.localComponentProvider = localComponentProvider;
 
@@ -110,7 +110,7 @@ public class DefaultBuildTreeLocalComponentProvider implements BuildTreeLocalCom
 
         // Get the local component, then transform it to have a foreign identifier
         // This accesses project state.
-        LocalComponentMetadata metadata = projectState.fromMutableState(p -> {
+        return projectState.fromMutableState(p -> {
             LocalComponentGraphResolveState originalComponent = getLocalComponent(projectIdentifier, projectState);
             ProjectComponentIdentifier foreignIdentifier = buildState.idToReferenceProjectFromAnotherBuild(projectIdentifier);
             return originalComponent.copy(foreignIdentifier, originalArtifact -> {
@@ -119,8 +119,6 @@ public class DefaultBuildTreeLocalComponentProvider implements BuildTreeLocalCom
                 return new CompositeProjectComponentArtifactMetadata(foreignIdentifier, originalArtifact, file);
             });
         });
-
-        return resolveStateFactory.stateFor(metadata);
     }
 
     @Override

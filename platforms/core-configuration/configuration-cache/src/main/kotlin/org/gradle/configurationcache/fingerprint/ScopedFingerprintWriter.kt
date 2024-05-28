@@ -16,10 +16,10 @@
 
 package org.gradle.configurationcache.fingerprint
 
-import org.gradle.configurationcache.problems.PropertyTrace
-import org.gradle.configurationcache.serialization.DefaultWriteContext
-import org.gradle.configurationcache.serialization.runWriteOperation
-import org.gradle.configurationcache.serialization.withPropertyTrace
+import org.gradle.internal.configuration.problems.PropertyTrace
+import org.gradle.internal.serialize.graph.DefaultWriteContext
+import org.gradle.internal.serialize.graph.runWriteOperation
+import org.gradle.internal.serialize.graph.withPropertyTrace
 import java.io.Closeable
 
 

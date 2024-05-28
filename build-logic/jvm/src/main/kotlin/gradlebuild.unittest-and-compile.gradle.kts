@@ -254,15 +254,12 @@ fun configureTests() {
 
         configureJvmForTest()
         addOsAsInputs()
+        configureRerun()
 
         if (BuildEnvironment.isCiServer) {
-            configureRerun()
             develocity.testRetry {
                 maxRetries.convention(determineMaxRetries())
                 maxFailures = determineMaxFailures()
-            }
-            doFirst {
-                logger.lifecycle("maxParallelForks for '$path' is $maxParallelForks")
             }
         }
 
@@ -272,8 +269,7 @@ fun configureTests() {
 
         extensions.findByType<DevelocityTestConfiguration>()?.testDistribution {
             this as TestDistributionConfigurationInternal
-            // Dogfooding TD against ge-td-dogfooding in order to test new features and benefit from bug fixes before they are released
-            server = uri("https://ge-td-dogfooding.grdev.net")
+            server = uri("https://ge.gradle.org")
 
             if (project.testDistributionEnabled && !isUnitTest() && !isPerformanceProject() && !isNativeProject()) {
                 enabled = true

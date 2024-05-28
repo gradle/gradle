@@ -121,4 +121,35 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
             problem("Build file 'a/build.gradle.kts': Project ':a' cannot access 'Project.buildDir' functionality on subprojects of project ':'", 2)
         }
     }
+
+    def "build script can query basic details of projects in a function called from allprojects block"() {
+        createDirs("a", "b")
+        settingsFile << """
+            rootProject.name = "root"
+            include("a", "b")
+        """
+        buildKotlinFile << """
+            fun printInfo(p: Project) {
+                println("project name = " + p.name)
+            }
+
+            allprojects {
+                printInfo(project)
+            }
+
+            tasks.register("something")
+        """
+
+        when:
+        isolatedProjectsRun("something")
+
+        then:
+        outputContains("project name = root")
+        outputContains("project name = a")
+        outputContains("project name = b")
+
+        fixture.assertStateStored {
+            projectsConfigured(":", ":a", ":b")
+        }
+    }
 }

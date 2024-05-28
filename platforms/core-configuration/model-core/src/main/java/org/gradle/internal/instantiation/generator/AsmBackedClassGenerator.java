@@ -1699,6 +1699,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 // GENERATE ConfigureUtil.configureUsing(v);
                 _ALOAD(stackVar);
 
+                assert lastParameterType.equals(ACTION_TYPE) || lastParameterType.equals(ISOLATED_ACTION_TYPE);
+
                 String methodName = lastParameterType.equals(ISOLATED_ACTION_TYPE)
                     ? "configureUsingIsolatedAction"
                     : "configureUsing";

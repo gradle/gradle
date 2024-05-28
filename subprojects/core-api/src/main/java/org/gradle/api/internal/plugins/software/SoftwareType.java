@@ -41,9 +41,10 @@ public @interface SoftwareType {
 
     /**
      * The model type used to configure the software type.  Note that this class should be the same type or a super type of the return type
-     * of the method that this annotation is applied to.
+     * of the method that this annotation is applied to.  If this value is not set, the public model type will default to the return type of
+     * the method.
      *
      * @since 8.9
      */
-    Class<?> modelPublicType();
+    Class<?> modelPublicType() default Void.class;
 }

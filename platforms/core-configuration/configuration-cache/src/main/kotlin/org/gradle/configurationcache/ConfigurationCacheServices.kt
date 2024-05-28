@@ -33,18 +33,20 @@ import org.gradle.execution.ExecutionAccessListener
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.execution.WorkExecutionTracker
+import org.gradle.internal.extensions.core.add
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.resource.connector.ResourceConnectorFactory
 import org.gradle.internal.resource.connector.ResourceConnectorSpecification
 import org.gradle.internal.resource.transfer.ExternalResourceConnector
+import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistration
-import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry
-import java.io.File
-import org.gradle.configurationcache.extensions.add
+import org.gradle.internal.service.ServiceRegistrationProvider
+import org.gradle.internal.service.scopes.AbstractGradleModuleServices
 import org.gradle.invocation.IsolatedProjectEvaluationListenerProvider
+import java.io.File
 
 
-class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
+class ConfigurationCacheServices : AbstractGradleModuleServices() {
     override fun registerGlobalServices(registration: ServiceRegistration) {
         registration.run {
             add(BeanConstructors::class.java)
@@ -87,7 +89,8 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
     }
 
     private
-    object RemoteScriptUpToDateCheckerProvider {
+    object RemoteScriptUpToDateCheckerProvider : ServiceRegistrationProvider {
+        @Provides
         fun createRemoteScriptUpToDateChecker(
             artifactCachesProvider: ArtifactCachesProvider,
             startParameter: ConfigurationCacheStartParameter,
@@ -114,8 +117,8 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
     }
 
     private
-    object ExecutionAccessCheckerProvider {
-
+    object ExecutionAccessCheckerProvider : ServiceRegistrationProvider {
+        @Provides
         fun createExecutionAccessChecker(
             listenerManager: ListenerManager,
             modelParameters: BuildModelParameters,
@@ -131,7 +134,8 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
     }
 
     private
-    object TaskExecutionAccessCheckerProvider {
+    object TaskExecutionAccessCheckerProvider : ServiceRegistrationProvider {
+        @Provides
         fun createTaskExecutionAccessChecker(
             configurationTimeBarrier: ConfigurationTimeBarrier,
             modelParameters: BuildModelParameters,
@@ -150,7 +154,8 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
     }
 
     private
-    object IgnoredConfigurationInputsProvider {
+    object IgnoredConfigurationInputsProvider : ServiceRegistrationProvider {
+        @Provides
         fun createIgnoredConfigurationInputs(
             configurationCacheStartParameter: ConfigurationCacheStartParameter,
             fileSystem: FileSystem

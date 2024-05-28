@@ -19,6 +19,7 @@ import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.logging.console.GlobalUserInputReceiver;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.context.DaemonCompatibilitySpec;
@@ -34,6 +35,8 @@ public class DaemonClientServices extends DaemonClientServicesSupport {
     public DaemonClientServices(ServiceRegistry parent, DaemonParameters daemonParameters, DaemonRequestContext requestContext, InputStream buildStandardInput) {
         super(parent, daemonParameters, requestContext, buildStandardInput);
     }
+
+    @Provides
     protected DaemonClient createDaemonClient(IdGenerator<UUID> idGenerator) {
         DaemonCompatibilitySpec matchingContextSpec = new DaemonCompatibilitySpec(get(DaemonRequestContext.class));
         return new DaemonClient(

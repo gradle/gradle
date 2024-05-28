@@ -7,7 +7,7 @@ import org.gradle.internal.declarativedsl.language.LocalValue
 import org.gradle.internal.declarativedsl.language.PropertyAccess
 
 
-fun defaultCodeResolver(elementFilter: AnalysisStatementFilter = analyzeEverything): ResolverImpl {
+fun defaultCodeResolver(generationId: OperationGenerationId = OperationGenerationId.PROPERTY_ASSIGNMENT, elementFilter: AnalysisStatementFilter = analyzeEverything): ResolverImpl {
     return ResolverServicesContainer().run {
         analysisStatementFilter = elementFilter
         functionCallResolver = FunctionCallResolverImpl(this, this)
@@ -17,12 +17,12 @@ fun defaultCodeResolver(elementFilter: AnalysisStatementFilter = analyzeEverythi
         statementResolver = StatementResolverImpl(propertyAccessResolver, expressionResolver, errorCollector)
         codeAnalyzer = CodeAnalyzerImpl(analysisStatementFilter, statementResolver)
 
-        ResolverImpl(codeAnalyzer, errorCollector)
+        ResolverImpl(codeAnalyzer, errorCollector, generationId)
     }
 }
 
 
-fun tracingCodeResolver(elementFilter: AnalysisStatementFilter = analyzeEverything): TracingResolver {
+fun tracingCodeResolver(generationId: OperationGenerationId = OperationGenerationId.PROPERTY_ASSIGNMENT, elementFilter: AnalysisStatementFilter = analyzeEverything): TracingResolver {
     return ResolverServicesContainer().run {
         analysisStatementFilter = elementFilter
         functionCallResolver = FunctionCallResolverImpl(this, this)
@@ -39,7 +39,7 @@ fun tracingCodeResolver(elementFilter: AnalysisStatementFilter = analyzeEverythi
 
         codeAnalyzer = CodeAnalyzerImpl(analysisStatementFilter, statementResolver)
 
-        TracingResolver(ResolverImpl(codeAnalyzer, errorCollector), tracer)
+        TracingResolver(ResolverImpl(codeAnalyzer, errorCollector, generationId), tracer)
     }
 }
 

@@ -30,7 +30,7 @@ import javax.annotation.Nullable;
 @ServiceScope(Scope.BuildTree.class)
 public interface BuildModelControllerServices {
     /**
-     * Makes the following services available:
+     * Provides an action to make the following services available in the {@link Scope.Build} scope:
      *
      * <ul>
      *     <li>{@link BuildLifecycleController}</li>

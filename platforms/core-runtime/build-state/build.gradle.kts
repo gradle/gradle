@@ -18,15 +18,19 @@ plugins {
     id("gradlebuild.distribution.implementation-java")
 }
 
-description = "Types for build state management"
+description = "Types for build process and session state management"
 
 dependencies {
-    api(project(":core")) {
-        because("API because of AgentStatus")
-    }
-    api(project(":base-services")) {
-        because("API because of ServiceRegistry")
-    }
+    api(projects.serviceProvider)
+    api(project(":core"))
+    api(project(":base-services"))
+    api(project(":java-language-extensions"))
+    api(project(":daemon-protocol"))
+    api(project(":logging"))
+
+    implementation(project(":core-api"))
+    implementation(project(":messaging"))
     implementation(project(":concurrent"))
-    implementation(project(":java-language-extensions"))
+    implementation(project(":logging-api"))
+    implementation(project(":problems-api"))
 }

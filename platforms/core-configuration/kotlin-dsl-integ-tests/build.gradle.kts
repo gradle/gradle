@@ -20,7 +20,7 @@ dependencies {
     integTestImplementation(libs.mockwebserver) {
         exclude(group = "org.bouncycastle").because("MockWebServer uses a different version of BouncyCastle")
     }
-    integTestImplementation(libs.futureKotlin("compiler-embeddable"))
+    integTestImplementation(libs.kotlinCompilerEmbeddable)
     integTestImplementation(libs.mockitoKotlin)
 
     integTestDistributionRuntimeOnly(project(":distributions-full"))

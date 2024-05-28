@@ -208,7 +208,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
 
         for (ComponentArtifactMetadata artifactMetaData : artifactSetResolveResult.getResult()) {
             BuildableArtifactResolveResult resolveResult = new DefaultBuildableArtifactResolveResult();
-            artifactResolver.resolveArtifact(componentState.getResolveMetadata(), artifactMetaData, resolveResult);
+            artifactResolver.resolveArtifact(componentState.getArtifactMetadata(), artifactMetaData, resolveResult);
             try {
                 artifacts.addArtifact(externalResolverFactory.verifiedArtifact(new DefaultResolvedArtifactResult(artifactMetaData.getId(), ImmutableAttributes.EMPTY, ImmutableCapabilities.EMPTY, Describables.of(componentState.getId().getDisplayName()), type, resolveResult.getResult().getFile())));
             } catch (Exception e) {

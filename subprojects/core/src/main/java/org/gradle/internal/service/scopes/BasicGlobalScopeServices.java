@@ -54,7 +54,9 @@ import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 import org.gradle.internal.remote.services.MessagingServices;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.Scope.Global;
 import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.process.internal.ExecFactory;
@@ -67,12 +69,13 @@ import java.net.InetAddress;
  * should be as few as possible to keep the CLI startup fast. Global services that are only needed for the process running the build should go in
  * {@link GlobalScopeServices}.
  */
-public class BasicGlobalScopeServices {
+public class BasicGlobalScopeServices implements ServiceRegistrationProvider {
     void configure(ServiceRegistration serviceRegistration) {
         serviceRegistration.add(FileLookup.class, DefaultFileLookup.class);
         serviceRegistration.addProvider(new MessagingServices());
     }
 
+    @Provides
     FileLockManager createFileLockManager(ProcessEnvironment processEnvironment, FileLockContentionHandler fileLockContentionHandler) {
         return new DefaultFileLockManager(
             new DefaultProcessMetaDataProvider(
@@ -80,6 +83,7 @@ public class BasicGlobalScopeServices {
             fileLockContentionHandler);
     }
 
+    @Provides
     FileLockContentionHandler createFileLockContentionHandler(ExecutorFactory executorFactory, InetAddressFactory inetAddressFactory) {
         return new DefaultFileLockContentionHandler(
             executorFactory,
@@ -96,14 +100,17 @@ public class BasicGlobalScopeServices {
             });
     }
 
+    @Provides
     ExecutorFactory createExecutorFactory() {
         return new DefaultExecutorFactory();
     }
 
+    @Provides
     DocumentationRegistry createDocumentationRegistry() {
         return new DocumentationRegistry();
     }
 
+    @Provides
     JvmMetadataDetector createJvmMetadataDetector(ExecHandleFactory execHandleFactory, TemporaryFileProvider temporaryFileProvider) {
         return new CachingJvmMetadataDetector(
             new ReportingJvmMetadataDetector(
@@ -113,40 +120,49 @@ public class BasicGlobalScopeServices {
         );
     }
 
+    @Provides
     JvmVersionDetector createJvmVersionDetector(JvmMetadataDetector detector) {
         return new DefaultJvmVersionDetector(detector);
     }
 
+    @Provides
     ExecFactory createExecFactory(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, ExecutorFactory executorFactory, TemporaryFileProvider temporaryFileProvider) {
         return DefaultExecActionFactory.of(fileResolver, fileCollectionFactory, executorFactory, temporaryFileProvider);
     }
 
+    @Provides
     FileResolver createFileResolver(FileLookup lookup) {
         return lookup.getFileResolver();
     }
 
+    @Provides
     DirectoryFileTreeFactory createDirectoryFileTreeFactory(Factory<PatternSet> patternSetFactory, FileSystem fileSystem) {
         return new DefaultDirectoryFileTreeFactory(patternSetFactory, fileSystem);
     }
 
+    @Provides
     PropertyHost createPropertyHost() {
         return PropertyHost.NO_OP;
     }
 
+    @Provides
     FileCollectionFactory createFileCollectionFactory(PathToFileResolver fileResolver, Factory<PatternSet> patternSetFactory, DirectoryFileTreeFactory directoryFileTreeFactory, PropertyHost propertyHost, FileSystem fileSystem) {
         return new DefaultFileCollectionFactory(fileResolver, DefaultTaskDependencyFactory.withNoAssociatedProject(), directoryFileTreeFactory, patternSetFactory, propertyHost, fileSystem);
     }
 
+    @Provides
     PatternSpecFactory createPatternSpecFactory(ListenerManager listenerManager) {
         PatternSpecFactory patternSpecFactory = PatternSpecFactory.INSTANCE;
         listenerManager.addListener(patternSpecFactory);
         return patternSpecFactory;
     }
 
+    @Provides
     Factory<PatternSet> createPatternSetFactory(final PatternSpecFactory patternSpecFactory) {
         return PatternSets.getPatternSetFactory(patternSpecFactory);
     }
 
+    @Provides
     ScopedListenerManager createListenerManager() {
         return new DefaultListenerManager(Global.class);
     }

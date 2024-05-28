@@ -22,33 +22,36 @@ import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.internal.tasks.TaskDestroyablesInternal
 import org.gradle.api.internal.tasks.TaskInputFilePropertyBuilderInternal
 import org.gradle.api.internal.tasks.TaskLocalStateInternal
 import org.gradle.api.specs.Spec
-import org.gradle.configurationcache.extensions.uncheckedCast
-import org.gradle.configurationcache.problems.PropertyKind
-import org.gradle.configurationcache.problems.PropertyTrace
-import org.gradle.configurationcache.serialization.Codec
-import org.gradle.configurationcache.serialization.IsolateContext
-import org.gradle.configurationcache.serialization.IsolateOwner
-import org.gradle.configurationcache.serialization.MutableIsolateContext
-import org.gradle.configurationcache.serialization.ReadContext
-import org.gradle.configurationcache.serialization.WriteContext
+import org.gradle.configurationcache.ProjectProvider
+import org.gradle.internal.extensions.stdlib.uncheckedCast
+import org.gradle.internal.configuration.problems.PropertyKind
+import org.gradle.internal.configuration.problems.PropertyTrace
+import org.gradle.internal.serialize.graph.Codec
+import org.gradle.internal.serialize.graph.IsolateContext
+import org.gradle.configurationcache.serialization.IsolateOwners
+import org.gradle.internal.serialize.graph.MutableIsolateContext
+import org.gradle.internal.serialize.graph.ReadContext
+import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.configurationcache.serialization.beans.BeanPropertyWriter
 import org.gradle.configurationcache.serialization.beans.readPropertyValue
 import org.gradle.configurationcache.serialization.beans.writeNextProperty
-import org.gradle.configurationcache.serialization.readClassOf
-import org.gradle.configurationcache.serialization.readCollection
-import org.gradle.configurationcache.serialization.readCollectionInto
-import org.gradle.configurationcache.serialization.readEnum
-import org.gradle.configurationcache.serialization.readNonNull
-import org.gradle.configurationcache.serialization.withDebugFrame
-import org.gradle.configurationcache.serialization.withIsolate
-import org.gradle.configurationcache.serialization.withPropertyTrace
-import org.gradle.configurationcache.serialization.writeCollection
-import org.gradle.configurationcache.serialization.writeEnum
+import org.gradle.internal.serialize.graph.getSingletonProperty
+import org.gradle.internal.serialize.graph.readClassOf
+import org.gradle.internal.serialize.graph.readCollection
+import org.gradle.internal.serialize.graph.readCollectionInto
+import org.gradle.internal.serialize.graph.readEnum
+import org.gradle.internal.serialize.graph.readNonNull
+import org.gradle.internal.serialize.graph.withDebugFrame
+import org.gradle.internal.serialize.graph.withIsolate
+import org.gradle.internal.serialize.graph.withPropertyTrace
+import org.gradle.internal.serialize.graph.writeCollection
+import org.gradle.internal.serialize.graph.writeEnum
 import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.execution.plan.TaskNodeFactory
 import org.gradle.internal.execution.model.InputNormalizer
@@ -230,7 +233,7 @@ suspend fun <T> T.withTaskOf(
     codec: Codec<Any?>,
     action: suspend () -> Unit
 ) where T : IsolateContext, T : MutableIsolateContext {
-    withIsolate(IsolateOwner.OwnerTask(task), codec) {
+    withIsolate(IsolateOwners.OwnerTask(task), codec) {
         withPropertyTrace(PropertyTrace.Task(taskType, task.identityPath.path)) {
             if (task.isCompatibleWithConfigurationCache) {
                 action()
@@ -487,9 +490,14 @@ fun ReadContext.createTask(projectPath: String, taskName: String, taskClass: Cla
 }
 
 
+internal
+fun ReadContext.getProject(path: String): ProjectInternal =
+    getSingletonProperty<ProjectProvider>().invoke(path)
+
+
 private
 inline fun IsolateContext.withTaskReferencesAllowed(action: () -> Unit) {
-    val ownerTask = isolate.owner as IsolateOwner.OwnerTask
+    val ownerTask = isolate.owner as IsolateOwners.OwnerTask
     try {
         ownerTask.allowTaskReferences = true
         action()

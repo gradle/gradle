@@ -24,15 +24,30 @@ import java.util.function.Supplier;
 /**
  * Contains the minimal data required to construct a complete {@link org.gradle.api.artifacts.result.ResolutionResult}.
  */
-public interface MinimalResolutionResult {
+public class MinimalResolutionResult {
+
+    private final Supplier<ResolvedComponentResult> rootSource;
+    private final ImmutableAttributes requestedAttributes;
+
+    public MinimalResolutionResult(
+        Supplier<ResolvedComponentResult> rootSource,
+        ImmutableAttributes requestedAttributes
+    ) {
+        this.rootSource = rootSource;
+        this.requestedAttributes = requestedAttributes;
+    }
 
     /**
      * A function which provides root of the dependency graph.
      */
-    Supplier<ResolvedComponentResult> getRootSource();
+    public Supplier<ResolvedComponentResult> getRootSource() {
+        return rootSource;
+    }
 
     /**
-     * The desugared request attributes used to initially build the dependency graph.
+     * The request attributes used to initially build the dependency graph.
      */
-    ImmutableAttributes getRequestedAttributes();
+    public ImmutableAttributes getRequestedAttributes() {
+        return requestedAttributes;
+    }
 }

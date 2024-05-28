@@ -23,11 +23,13 @@ pluginManagement {
         }
         gradlePluginPortal()
     }
+    includeBuild("build-logic-settings")
 }
 
 plugins {
-    id("com.gradle.develocity").version("3.17.2") // Sync with `build-logic-commons/build-platform/build.gradle.kts`
-    id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.10.0")
+    id("gradlebuild.build-environment")
+    id("com.gradle.develocity").version("3.17.4") // Sync with `build-logic-commons/build-platform/build.gradle.kts`
+    id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.10.1")
     id("org.gradle.toolchains.foojay-resolver-convention") version ("0.8.0")
 //    id("net.ltgt.errorprone").version("3.1.0")
 }
@@ -39,9 +41,7 @@ apply(from = "gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
 
 val architectureElements = mutableListOf<ArchitectureElementBuilder>()
 
-// If you include a new subproject here, you will need to execute the
-// ./gradlew generateSubprojectsInfo
-// task to update metadata about the build for CI
+// If you include a new subproject here, consult internal documentation "Adding a new Build Tool subproject" page
 
 unassigned {
     subproject("distributions-dependencies") // platform for dependency versions
@@ -56,7 +56,6 @@ unassigned {
 // Gradle implementation projects
 unassigned {
     subproject("core")
-    subproject("plugins")
     subproject("build-events")
     subproject("diagnostics")
     subproject("composite-builds")
@@ -70,19 +69,25 @@ val core = platform("core") {
     module("core-runtime") {
         subproject("base-asm")
         subproject("base-services")
-        subproject("bootstrap")
         subproject("build-configuration")
         subproject("build-operations")
         subproject("build-option")
+        subproject("build-process-services")
         subproject("build-profile")
         subproject("build-state")
         subproject("cli")
+        subproject("client-services")
         subproject("concurrent")
+        subproject("daemon-main")
+        subproject("daemon-protocol")
+        subproject("daemon-services")
+        subproject("daemon-server")
         subproject("distributions-basics")
         subproject("distributions-core")
         subproject("file-temp")
         subproject("files")
         subproject("functional")
+        subproject("gradle-cli-main")
         subproject("installation-beacon")
         subproject("instrumentation-agent")
         subproject("instrumentation-declarations")
@@ -97,9 +102,10 @@ val core = platform("core") {
         subproject("native")
         subproject("process-services")
         subproject("serialization")
+        subproject("service-provider")
         subproject("time")
-        subproject("worker-services")
-        subproject("wrapper")
+        subproject("tooling-api-provider")
+        subproject("wrapper-main")
         subproject("wrapper-shared")
     }
 
@@ -108,7 +114,17 @@ val core = platform("core") {
         subproject("api-metadata")
         subproject("base-services-groovy")
         subproject("configuration-cache")
+        subproject("configuration-problems-base")
+        subproject("core-kotlin-extensions")
+        subproject("declarative-dsl-api")
+        subproject("declarative-dsl-core")
+        subproject("declarative-dsl-provider")
+        subproject("declarative-dsl-tooling-models")
+        subproject("declarative-dsl-tooling-builders")
         subproject("file-collections")
+        subproject("flow-services")
+        subproject("graph-serialization")
+        subproject("guava-serialization-codecs")
         subproject("input-tracking")
         subproject("kotlin-dsl")
         subproject("kotlin-dsl-provider-plugins")
@@ -116,11 +132,10 @@ val core = platform("core") {
         subproject("kotlin-dsl-tooling-models")
         subproject("kotlin-dsl-plugins")
         subproject("kotlin-dsl-integ-tests")
+        subproject("stdlib-kotlin-extensions")
+        subproject("stdlib-serialization-codecs")
         subproject("model-core")
         subproject("model-groovy")
-        subproject("declarative-dsl-api")
-        subproject("declarative-dsl-provider")
-        subproject("declarative-dsl-core")
     }
 
     // Core Execution Module
@@ -138,7 +153,7 @@ val core = platform("core") {
         subproject("hashing")
         subproject("persistent-cache")
         subproject("snapshots")
-        subproject("worker-processes")
+        subproject("worker-main")
         subproject("workers")
     }
 }
@@ -185,6 +200,7 @@ val software = platform("software") {
     subproject("security")
     subproject("signing")
     subproject("testing-base")
+    subproject("testing-base-infrastructure")
     subproject("test-suites-base")
     subproject("version-control")
 }
@@ -228,6 +244,7 @@ platform("extensibility") {
     uses(jvm)
     subproject("plugin-use")
     subproject("plugin-development")
+    subproject("unit-test-fixtures")
     subproject("test-kit")
 }
 

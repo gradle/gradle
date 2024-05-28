@@ -21,12 +21,13 @@ import org.gradle.api.artifacts.DependencyResolutionListener;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
-import org.gradle.api.internal.artifacts.ResolveExceptionContextualizer;
+import org.gradle.api.internal.artifacts.ResolveExceptionMapper;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
+import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -63,7 +64,8 @@ public class DefaultConfigurationFactory {
     private final NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser;
     private final NotationParser<Object, Capability> capabilityNotationParser;
     private final ImmutableAttributesFactory attributesFactory;
-    private final ResolveExceptionContextualizer exceptionContextualizer;
+    private final ResolveExceptionMapper exceptionContextualizer;
+    private final AttributeDesugaring attributeDesugaring;
     private final UserCodeApplicationContext userCodeApplicationContext;
     private final ProjectStateRegistry projectStateRegistry;
     private final WorkerThreadRegistry workerThreadRegistry;
@@ -84,7 +86,8 @@ public class DefaultConfigurationFactory {
         BuildOperationRunner buildOperationRunner,
         PublishArtifactNotationParserFactory artifactNotationParserFactory,
         ImmutableAttributesFactory attributesFactory,
-        ResolveExceptionContextualizer exceptionContextualizer,
+        ResolveExceptionMapper exceptionMapper,
+        AttributeDesugaring attributeDesugaring,
         UserCodeApplicationContext userCodeApplicationContext,
         ProjectStateRegistry projectStateRegistry,
         WorkerThreadRegistry workerThreadRegistry,
@@ -104,7 +107,8 @@ public class DefaultConfigurationFactory {
         this.artifactNotationParser = artifactNotationParserFactory.create();
         this.capabilityNotationParser = new CapabilityNotationParserFactory(true).create();
         this.attributesFactory = attributesFactory;
-        this.exceptionContextualizer = exceptionContextualizer;
+        this.exceptionContextualizer = exceptionMapper;
+        this.attributeDesugaring = attributeDesugaring;
         this.userCodeApplicationContext = userCodeApplicationContext;
         this.projectStateRegistry = projectStateRegistry;
         this.workerThreadRegistry = workerThreadRegistry;
@@ -144,6 +148,7 @@ public class DefaultConfigurationFactory {
                 attributesFactory,
                 rootComponentMetadataBuilder,
                 exceptionContextualizer,
+                attributeDesugaring,
                 userCodeApplicationContext,
                 projectStateRegistry,
                 workerThreadRegistry,
@@ -187,6 +192,7 @@ public class DefaultConfigurationFactory {
             attributesFactory,
             rootComponentMetadataBuilder,
             exceptionContextualizer,
+            attributeDesugaring,
             userCodeApplicationContext,
             projectStateRegistry,
             workerThreadRegistry,
@@ -229,6 +235,7 @@ public class DefaultConfigurationFactory {
             attributesFactory,
             rootComponentMetadataBuilder,
             exceptionContextualizer,
+            attributeDesugaring,
             userCodeApplicationContext,
             projectStateRegistry,
             workerThreadRegistry,
@@ -271,6 +278,7 @@ public class DefaultConfigurationFactory {
             attributesFactory,
             rootComponentMetadataBuilder,
             exceptionContextualizer,
+            attributeDesugaring,
             userCodeApplicationContext,
             projectStateRegistry,
             workerThreadRegistry,

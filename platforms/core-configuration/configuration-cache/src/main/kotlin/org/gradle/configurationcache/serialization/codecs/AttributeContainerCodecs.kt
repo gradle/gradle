@@ -21,13 +21,13 @@ import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
-import org.gradle.configurationcache.extensions.uncheckedCast
-import org.gradle.configurationcache.serialization.Codec
-import org.gradle.configurationcache.serialization.ReadContext
-import org.gradle.configurationcache.serialization.WriteContext
-import org.gradle.configurationcache.serialization.readCollection
-import org.gradle.configurationcache.serialization.readNonNull
-import org.gradle.configurationcache.serialization.writeCollection
+import org.gradle.internal.extensions.stdlib.uncheckedCast
+import org.gradle.internal.serialize.graph.Codec
+import org.gradle.internal.serialize.graph.ReadContext
+import org.gradle.internal.serialize.graph.WriteContext
+import org.gradle.internal.serialize.graph.readCollection
+import org.gradle.internal.serialize.graph.readNonNull
+import org.gradle.internal.serialize.graph.writeCollection
 import org.gradle.internal.state.Managed
 import org.gradle.internal.state.ManagedFactoryRegistry
 

@@ -31,6 +31,7 @@ import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.HasAttributes;
+import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ResolutionResultProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolvableDependenciesInternal;
@@ -38,6 +39,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionC
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
+import org.gradle.api.internal.artifacts.resolver.ResolutionOutputsInternal;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.provider.Property;
@@ -155,15 +157,15 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
                         "In order to use the '--all-variants' option, the configuration must not be resolved before this task is executed."
                     );
                 }
-                configurationInternal.getResolutionStrategy().setReturnAllVariants(true);
+                configurationInternal.getResolutionStrategy().setIncludeAllSelectableVariantResults(true);
             }
             configurationName = configuration.getName();
             configurationDescription = configuration.toString();
             zConfigurationAttributes = getProject().provider(configuration::getAttributes);
 
             ProviderFactory providerFactory = getProject().getProviders();
-            ResolutionResultProvider<VisitedGraphResults> graphResultsProvider =
-                ((ResolvableDependenciesInternal) configuration.getIncoming()).getGraphResultsProvider();
+            ResolutionOutputsInternal resolutionOutputs = ((ResolvableDependenciesInternal) configuration.getIncoming()).getResolutionOutputs();
+            ResolutionResultProvider<VisitedGraphResults> graphResultsProvider = resolutionOutputs.getRawResults().map(ResolverResults::getVisitedGraph);
             errorHandler.addErrorSource(providerFactory.provider(() ->
                 graphResultsProvider.getValue().getResolutionFailure()
                     .map(Collections::singletonList)

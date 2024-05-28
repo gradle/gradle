@@ -22,7 +22,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
 
     val groovyVersion = if (isBundleGroovy4) "4.0.20" else "3.0.21"
     val configurationCacheReportVersion = "1.5"
-    val gradleIdeStarterVersion = "0.2-SNAPSHOT"
+    val gradleIdeStarterVersion = "0.3"
     val kotlinVersion = "1.9.23"
 
     fun futureKotlin(module: String) = "org.jetbrains.kotlin:kotlin-$module:$kotlinVersion"
@@ -45,7 +45,6 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val bouncycastlePkix = "org.bouncycastle:bcpkix-jdk18on"
     val bouncycastleProvider = "org.bouncycastle:bcprov-jdk18on"
     val bsh = "org.apache-extras.beanshell:bsh"
-    val capsule = "io.usethesource:capsule"
     val commonsCodec = "commons-codec:commons-codec"
     val commonsCompress = "org.apache.commons:commons-compress"
     val commonsHttpclient = "org.apache.httpcomponents:httpclient"
@@ -83,7 +82,8 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val gson = "com.google.code.gson:gson"
     val guava = "com.google.guava:guava"
     val h2Database = "com.h2database:h2"
-    val hamcrest = "org.hamcrest:hamcrest-core"
+    val hamcrest = "org.hamcrest:hamcrest"
+    val hamcrestCore = "org.hamcrest:hamcrest-core"
     val httpcore = "org.apache.httpcomponents:httpcore"
     val inject = "javax.inject:javax.inject"
     val ivy = "org.apache.ivy:ivy"
@@ -113,6 +113,9 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val junitPlatform = "org.junit.platform:junit-platform-launcher"
     val junitPlatformEngine = "org.junit.platform:junit-platform-engine"
     val jzlib = "com.jcraft:jzlib"
+    val kotlinCompilerEmbeddable = futureKotlin("compiler-embeddable")
+    val kotlinReflect = futureKotlin("reflect")
+    val kotlinStdlib = futureKotlin("stdlib")
     val kryo = "com.esotericsoftware.kryo:kryo"
     val log4jToSlf4j = "org.slf4j:log4j-over-slf4j"
     val maven3Artifact = "org.apache.maven:maven-artifact"
@@ -175,6 +178,9 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val javaParser = "com.github.javaparser:javaparser-core"
     val jetty = "org.eclipse.jetty:jetty-http"
     val jettySecurity = "org.eclipse.jetty:jetty-security"
+    val jettyServer = "org.eclipse.jetty:jetty-server"
+    val jettyServlet = "org.eclipse.jetty:jetty-servlet"
+    val jettyUtil = "org.eclipse.jetty:jetty-util"
     val jettyWebApp = "org.eclipse.jetty:jetty-webapp"
     val joptSimple = "net.sf.jopt-simple:jopt-simple"
     val jsoup = "org.jsoup:jsoup"
@@ -188,7 +194,10 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val mockitoKotlin2 = "com.nhaarman.mockitokotlin2:mockito-kotlin"
     val mockwebserver = "com.squareup.okhttp3:mockwebserver"
     val mySqlConnector = "mysql:mysql-connector-java"
+    val netty = "io.netty:netty-all"
+    val opentest4j = "org.opentest4j:opentest4j"
     val samplesCheck = "org.gradle.exemplar:samples-check"
+    val samplesDiscovery = "org.gradle.exemplar:samples-discovery"
     val snappy = "org.iq80.snappy:snappy"
     val servletApi = "javax.servlet:javax.servlet-api"
     val socksProxy = "com.github.bbottema:java-socks-proxy-server"
@@ -198,6 +207,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val sshdOsgi = "org.apache.sshd:sshd-osgi"
     val sshdScp = "org.apache.sshd:sshd-scp"
     val sshdSftp = "org.apache.sshd:sshd-sftp"
+    val testcontainers = "org.testcontainers:testcontainers"
     val testcontainersSpock = "org.testcontainers:spock"
     val typesafeConfig = "com.typesafe:config"
     val xerces = "xerces:xercesImpl"
@@ -220,7 +230,6 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
         bouncycastlePgp to License.MIT,
         bouncycastleProvider to License.MIT,
         bsh to License.Apache2,
-        capsule to License.BSDStyle,
         commonsCodec to License.Apache2,
         commonsCompress to License.Apache2,
         commonsHttpclient to License.Apache2,
@@ -244,6 +253,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
         guava to License.Apache2,
         h2Database to License.EPL,
         hamcrest to License.BSD3,
+        hamcrestCore to License.BSD3,
         httpcore to License.Apache2,
         hikariCP to License.Apache2,
         inject to License.Apache2,

@@ -74,7 +74,8 @@ trait SoftwareTypeFixture {
             "AnotherSoftwareTypeExtension",
             "AnotherSoftwareTypeExtension",
             "AnotherSoftwareTypeImplPlugin",
-            "anotherSoftwareType"
+            "anotherSoftwareType",
+            anotherSoftwareTypeExtensionConventions
         )
 
         return pluginBuilder
@@ -132,12 +133,34 @@ trait SoftwareTypeFixture {
         )
     }
 
+    PluginBuilder withSettingsPluginThatConfiguresSoftwareTypeConventions() {
+        return withSoftwareTypePlugins(
+            softwareTypeExtension,
+            projectPluginThatProvidesSoftwareType,
+            settingsPluginThatConfiguresSoftwareTypeConventions
+        )
+    }
+
+    PluginBuilder withSoftwareTypePluginThatExposesExtensionWithDependencies() {
+        PluginBuilder pluginBuilder = withSoftwareTypePlugins(
+            softwareTypeExtension,
+            getProjectPluginThatProvidesSoftwareType("TestSoftwareTypeExtensionWithDependencies", "TestSoftwareTypeExtensionWithDependencies"),
+            settingsPluginThatRegistersSoftwareType
+        )
+
+        pluginBuilder.file("src/main/java/org/gradle/test/TestSoftwareTypeExtensionWithDependencies.java") << softwareTypeExtensionWithAddersAndDependencies
+        pluginBuilder.file("src/main/java/org/gradle/test/LibraryDependencies.java") << libraryDependencies
+
+        return pluginBuilder
+    }
+
     static String getSoftwareTypeExtension() {
         return """
             package org.gradle.test;
 
             import org.gradle.declarative.dsl.model.annotations.Configuring;
             import org.gradle.declarative.dsl.model.annotations.Restricted;
+
             import org.gradle.api.Action;
             import org.gradle.api.model.ObjectFactory;
             import org.gradle.api.provider.ListProperty;
@@ -148,17 +171,16 @@ trait SoftwareTypeFixture {
             @Restricted
             public abstract class TestSoftwareTypeExtension {
                 private final Foo foo;
+                private boolean isFooConfigured = false;
 
                 @Inject
                 public TestSoftwareTypeExtension(ObjectFactory objects) {
                     this.foo = objects.newInstance(Foo.class);
-                    this.foo.getBar().set("bar");
-
-                    getId().convention("<no id>");
                 }
 
                 @Restricted
                 public abstract Property<String> getId();
+
 
                 public Foo getFoo() {
                     return foo;
@@ -166,16 +188,20 @@ trait SoftwareTypeFixture {
 
                 @Configuring
                 public void foo(Action<? super Foo> action) {
+                    isFooConfigured = true;
                     action.execute(foo);
                 }
 
                 public abstract static class Foo {
-                    public Foo() {
-                        this.getBar().convention("nothing");
-                    }
+                    public Foo() { }
 
                     @Restricted
                     public abstract Property<String> getBar();
+                }
+
+                @Override
+                public String toString() {
+                    return "id = " + getId().get() + "\\nbar = " + getFoo().getBar().get() + (isFooConfigured ? "\\n(foo is configured)" : "");
                 }
             }
         """
@@ -187,6 +213,7 @@ trait SoftwareTypeFixture {
 
             import org.gradle.declarative.dsl.model.annotations.Configuring;
             import org.gradle.declarative.dsl.model.annotations.Restricted;
+
             import org.gradle.api.provider.Property;
             import org.gradle.api.Action;
 
@@ -195,15 +222,16 @@ trait SoftwareTypeFixture {
                 @Restricted
                 Property<String> getId();
 
+
                 Foo getFoo();
 
                 @Configuring
-                void foo(Action<? super Foo> action);
+                default void foo(Action<? super Foo> action) {
+                    action.execute(getFoo());
+                }
 
                 public abstract static class Foo {
-                    public Foo() {
-                        this.getBar().convention("nothing");
-                    }
+                    public Foo() { }
 
                     @Restricted
                     public abstract Property<String> getBar();
@@ -231,9 +259,6 @@ trait SoftwareTypeFixture {
                 @Inject
                 public TestSoftwareTypeExtensionImpl(ObjectFactory objects) {
                     this.foo = objects.newInstance(Foo.class);
-                    this.foo.getBar().set("bar");
-
-                    getId().convention("<no id>");
                 }
 
                 @Override
@@ -241,13 +266,13 @@ trait SoftwareTypeFixture {
                     return foo;
                 }
 
-                @Override
-                public void foo(Action<? super Foo> action) {
-                    action.execute(foo);
-                }
-
                 @Restricted
                 public abstract Property<String> getNonPublic();
+
+                @Override
+                public String toString() {
+                    return "id = " + getId().get() + "\\nbar = " + getFoo().getBar().get();
+                }
             }
         """
     }
@@ -266,18 +291,17 @@ trait SoftwareTypeFixture {
             @RegistersSoftwareTypes({ ${softwareTypeImplPluginClassName.collect { it + ".class" }.join(", ")} })
             abstract public class SoftwareTypeRegistrationPlugin implements Plugin<Settings> {
                 @Override
-                public void apply(Settings target) {
-
-                }
+                public void apply(Settings target) { }
             }
         """
     }
 
     static String getProjectPluginThatProvidesSoftwareType(
         String implementationTypeClassName = "TestSoftwareTypeExtension",
-        String publicTypeClassName = "TestSoftwareTypeExtension",
+        String publicTypeClassName = null,
         String softwareTypePluginClassName = "SoftwareTypeImplPlugin",
-        String softwareType = "testSoftwareType"
+        String softwareType = "testSoftwareType",
+        String conventions = testSoftwareTypeExtensionConventions
     ) {
         return """
             package org.gradle.test;
@@ -293,21 +317,40 @@ trait SoftwareTypeFixture {
 
             abstract public class ${softwareTypePluginClassName} implements Plugin<Project> {
 
-                @SoftwareType(name="${softwareType}", modelPublicType=${publicTypeClassName}.class)
+                @SoftwareType(${getSoftwareTypeArguments(softwareType, publicTypeClassName)})
                 abstract public ${implementationTypeClassName} getTestSoftwareTypeExtension();
 
                 @Override
                 public void apply(Project target) {
                     System.out.println("Applying " + getClass().getSimpleName());
                     ${implementationTypeClassName} extension = getTestSoftwareTypeExtension();
+                    ${conventions}
                     target.getTasks().register("print${implementationTypeClassName}Configuration", DefaultTask.class, task -> {
                         task.doLast("print restricted extension content", t -> {
-                            System.out.println("id = " + extension.getId().get());
-                            System.out.println("bar = " + extension.getFoo().getBar().get());
+                            System.out.println(extension);
                         });
                     });
                 }
             }
+        """
+    }
+
+    private static getSoftwareTypeArguments(String name, String modelPublicType) {
+        return "name=\"${name}\"" +
+            (modelPublicType ? ", modelPublicType=${modelPublicType}.class" : "")
+    }
+
+    static String getTestSoftwareTypeExtensionConventions() {
+        return """
+            extension.getId().convention("<no id>");
+            extension.getFoo().getBar().convention("bar");
+        """
+    }
+
+    static String getAnotherSoftwareTypeExtensionConventions(String variableName = "extension") {
+        return """
+            ${variableName}.getFoo().convention("foo");
+            ${variableName}.getBar().getBaz().convention("baz");
         """
     }
 
@@ -332,8 +375,7 @@ trait SoftwareTypeFixture {
                     ${implementationTypeClassName} extension = getTestSoftwareTypeExtension();
                     target.getTasks().register("print${implementationTypeClassName}Configuration", DefaultTask.class, task -> {
                         task.doLast("print restricted extension content", t -> {
-                            System.out.println("id = " + extension.getId().get());
-                            System.out.println("bar = " + extension.getFoo().getBar().get());
+                            System.out.println(extension);
                         });
                     });
                 }
@@ -348,44 +390,40 @@ trait SoftwareTypeFixture {
             import org.gradle.declarative.dsl.model.annotations.Adding;
             import org.gradle.declarative.dsl.model.annotations.Configuring;
             import org.gradle.declarative.dsl.model.annotations.Restricted;
+
             import org.gradle.api.Action;
             import org.gradle.api.model.ObjectFactory;
             import org.gradle.api.provider.ListProperty;
             import org.gradle.api.provider.Property;
+            import org.gradle.api.tasks.Nested;
 
             import javax.inject.Inject;
 
             @Restricted
             public abstract class AnotherSoftwareTypeExtension {
-                private final Foo foo;
-
                 @Inject
-                public AnotherSoftwareTypeExtension(ObjectFactory objects) {
-                    this.foo = objects.newInstance(Foo.class);
-                    this.foo.getBar().set("bar");
-
-                    getId().convention("<no id>");
-                }
+                public AnotherSoftwareTypeExtension() { }
 
                 @Restricted
-                public abstract Property<String> getId();
+                public abstract Property<String> getFoo();
 
-                public Foo getFoo() {
-                    return foo;
-                }
+                @Nested
+                public abstract Bar getBar();
 
                 @Configuring
-                public void foo(Action<? super Foo> action) {
-                    action.execute(foo);
+                public void bar(Action<? super Bar> action) {
+                    action.execute(getBar());
                 }
 
-                public abstract static class Foo {
-                    public Foo() {
-                        this.getBar().convention("nothing");
-                    }
+                public abstract static class Bar {
+                    public Bar() { }
 
                     @Restricted
-                    public abstract Property<String> getBar();
+                    public abstract Property<String> getBaz();
+                }
+
+                public String toString() {
+                    return "foo = " + getFoo().get() + "\\nbaz = " + getBar().getBaz().get();
                 }
             }
         """
@@ -411,10 +449,11 @@ trait SoftwareTypeFixture {
                 @Override
                 public void apply(Project target) {
                     ${implementationTypeClassName} extension = getTestSoftwareTypeExtension();
+                    extension.getFoo().getBar().convention("bar");
+                    extension.getId().convention("<no id>");
                     target.getTasks().register("print${implementationTypeClassName}Configuration", DefaultTask.class, task -> {
                         task.doLast("print restricted extension content", t -> {
-                            System.out.println("id = " + extension.getId().get());
-                            System.out.println("bar = " + extension.getFoo().getBar().get());
+                            System.out.println(extension);
                         });
                     });
                 }
@@ -469,8 +508,7 @@ trait SoftwareTypeFixture {
                     ${implementationTypeClassName} extension = getTestSoftwareTypeExtension();
                     target.getTasks().register("print${implementationTypeClassName}Configuration", DefaultTask.class, task -> {
                         task.doLast("print restricted extension content", t -> {
-                            System.out.println("id = " + extension.getId().get());
-                            System.out.println("bar = " + extension.getFoo().getBar().get());
+                            System.out.println(extension);
                         });
                     });
                     System.out.println(getFoo());
@@ -506,17 +544,17 @@ trait SoftwareTypeFixture {
                 public void apply(Project target) {
                     System.out.println("Applying " + getClass().getSimpleName());
                     TestSoftwareTypeExtension extension = getTestSoftwareTypeExtension();
+                    ${testSoftwareTypeExtensionConventions}
                     target.getTasks().register("printTestSoftwareTypeExtensionConfiguration", DefaultTask.class, task -> {
                         task.doLast("print restricted extension content", t -> {
-                            System.out.println("id = " + extension.getId().get());
-                            System.out.println("bar = " + extension.getFoo().getBar().get());
+                            System.out.println(extension);
                         });
                     });
                     AnotherSoftwareTypeExtension another = getAnotherSoftwareTypeExtension();
+                    ${getAnotherSoftwareTypeExtensionConventions("another")}
                     target.getTasks().register("printAnotherSoftwareTypeExtensionConfiguration", DefaultTask.class, task -> {
                         task.doLast("print restricted extension content", t -> {
-                            System.out.println("id = " + another.getId().get());
-                            System.out.println("bar = " + another.getFoo().getBar().get());
+                            System.out.println(another);
                         });
                     });
                 }
@@ -556,8 +594,7 @@ trait SoftwareTypeFixture {
                     AnotherSoftwareTypeExtension extension = getTestSoftwareTypeExtension();
                     target.getTasks().register("printTestSoftwareTypeExtensionConfiguration", DefaultTask.class, task -> {
                         task.doLast("print restricted extension content", t -> {
-                            System.out.println("id = " + extension.getId().get());
-                            System.out.println("bar = " + extension.getFoo().getBar().get());
+                            System.out.println(extension);
                         });
                     });
                 }
@@ -587,13 +624,141 @@ trait SoftwareTypeFixture {
                     }
 
                     public static abstract class Foo {
-                        public Foo() {
-                            this.getBar().convention("nothing");
-                        }
+                        public Foo() { }
 
                         @Restricted
                         public abstract Property<String> getBar();
                     }
+                }
+            }
+        """
+    }
+
+    static String getSettingsPluginThatConfiguresSoftwareTypeConventions(List<String> softwareTypeImplPluginClassName = ["SoftwareTypeImplPlugin"]) {
+        return """
+            package org.gradle.test;
+
+            import org.gradle.api.DefaultTask;
+            import org.gradle.api.Plugin;
+            import org.gradle.api.initialization.Settings;
+            import org.gradle.api.internal.SettingsInternal;
+            import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
+            import ${RegistersSoftwareTypes.class.name};
+
+            @RegistersSoftwareTypes({ ${softwareTypeImplPluginClassName.collect { it + ".class" }.join(", ")} })
+            abstract public class SoftwareTypeRegistrationPlugin implements Plugin<Settings> {
+                @Override
+                public void apply(Settings target) {
+                    TestSoftwareTypeExtension convention = (TestSoftwareTypeExtension) target.getExtensions().getByName("testSoftwareType");
+                    convention.getId().convention("plugin");
+                    convention.getFoo().getBar().convention("plugin");
+                }
+            }
+        """
+    }
+
+    static String getLibraryDependencies() {
+        return """
+            package org.gradle.test;
+
+            import org.gradle.api.artifacts.dsl.Dependencies;
+            import org.gradle.api.artifacts.dsl.DependencyCollector;
+            import org.gradle.declarative.dsl.model.annotations.Restricted;
+
+
+            @Restricted
+            public interface LibraryDependencies extends Dependencies {
+
+                DependencyCollector getApi();
+
+                DependencyCollector getImplementation();
+
+                DependencyCollector getRuntimeOnly();
+
+                DependencyCollector getCompileOnly();
+
+                // CompileOnlyApi is not included here, since both Android and KMP do not support it.
+                // Does that mean we should also reconsider if we should support it? Or, should we
+                // talk to Android and KMP about adding support
+            }
+        """
+    }
+
+    static String getSoftwareTypeExtensionWithAddersAndDependencies() {
+        return """
+            package org.gradle.test;
+
+            import org.gradle.api.Action;
+            import org.gradle.api.model.ObjectFactory;
+            import org.gradle.api.provider.Property;
+            import org.gradle.api.provider.ListProperty;
+            import org.gradle.api.artifacts.dsl.DependencyCollector;
+            import org.gradle.declarative.dsl.model.annotations.Configuring;
+            import org.gradle.declarative.dsl.model.annotations.Restricted;
+            import org.gradle.declarative.dsl.model.annotations.Adding;
+            import org.gradle.api.tasks.Nested;
+
+            import java.util.List;
+            import javax.inject.Inject;
+
+            @Restricted
+            public abstract class TestSoftwareTypeExtensionWithDependencies extends TestSoftwareTypeExtension {
+                @Inject
+                public TestSoftwareTypeExtensionWithDependencies(ObjectFactory objects) {
+                    super(objects);
+                }
+
+                @Nested
+                abstract public LibraryDependencies getDependencies();
+
+                @Configuring
+                public void dependencies(Action<? super LibraryDependencies> action) {
+                    action.execute(getDependencies());
+                }
+
+
+                public abstract ListProperty<String> getList();
+
+                @Adding
+                public void addToList(String value) {
+                    getList().add(value);
+                }
+
+                @Nested
+                public abstract Bar getBar();
+
+                @Configuring
+                public void bar(Action<? super Bar> action) {
+                    action.execute(getBar());
+                }
+
+                public abstract static class Bar {
+
+                    public abstract ListProperty<String> getBaz();
+
+                    @Adding
+                    public void addToBaz(String value) {
+                        getBaz().add(value);
+                    }
+                }
+
+                @Override
+                public String toString() {
+                    return super.toString() +
+                        "\\nlist = " + printList(getList().get()) +
+                        "\\nbaz = " + printList(getBar().getBaz().get()) +
+                        "\\napi = " + printDependencies(getDependencies().getApi()) +
+                        "\\nimplementation = " + printDependencies(getDependencies().getImplementation()) +
+                        "\\nruntimeOnly = " + printDependencies(getDependencies().getRuntimeOnly()) +
+                        "\\ncompileOnly = " + printDependencies(getDependencies().getCompileOnly());
+                }
+
+                private String printDependencies(DependencyCollector collector) {
+                    return collector.getDependencies().get().stream().map(Object::toString).collect(java.util.stream.Collectors.joining(", "));
+                }
+
+                private String printList(List<?> list) {
+                    return list.stream().map(Object::toString).collect(java.util.stream.Collectors.joining(", "));
                 }
             }
         """

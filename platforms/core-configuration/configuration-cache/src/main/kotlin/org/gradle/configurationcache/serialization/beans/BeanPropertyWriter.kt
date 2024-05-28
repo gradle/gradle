@@ -19,11 +19,12 @@ package org.gradle.configurationcache.serialization.beans
 import com.google.common.primitives.Primitives.wrap
 import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.IConventionAware
-import org.gradle.configurationcache.extensions.uncheckedCast
-import org.gradle.configurationcache.problems.PropertyKind
-import org.gradle.configurationcache.serialization.Codec
-import org.gradle.configurationcache.serialization.WriteContext
-import org.gradle.configurationcache.serialization.withDebugFrame
+import org.gradle.internal.extensions.stdlib.uncheckedCast
+import org.gradle.internal.configuration.problems.PropertyKind
+import org.gradle.internal.serialize.graph.BeanStateWriter
+import org.gradle.internal.serialize.graph.Codec
+import org.gradle.internal.serialize.graph.WriteContext
+import org.gradle.internal.serialize.graph.withDebugFrame
 import java.lang.reflect.Field
 
 

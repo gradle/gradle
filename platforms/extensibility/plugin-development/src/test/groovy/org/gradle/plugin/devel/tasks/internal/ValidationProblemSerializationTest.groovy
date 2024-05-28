@@ -16,19 +16,26 @@
 
 package org.gradle.plugin.devel.tasks.internal
 
+import com.google.common.collect.HashMultimap
 import com.google.gson.Gson
 import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.DefaultProblemReporter
+import org.gradle.api.problems.internal.DeprecationData
+import org.gradle.api.problems.internal.DeprecationDataSpec
 import org.gradle.api.problems.internal.DocLink
+import org.gradle.api.problems.internal.GeneralData
+import org.gradle.api.problems.internal.GeneralDataSpec
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.api.problems.internal.InternalProblemReporter
 import org.gradle.api.problems.internal.ProblemEmitter
+import org.gradle.api.problems.internal.TypeValidationData
+import org.gradle.api.problems.internal.TypeValidationDataSpec
 import spock.lang.Specification
 
 class ValidationProblemSerializationTest extends Specification {
 
     Gson gson = ValidationProblemSerialization.createGsonBuilder().create()
-    InternalProblemReporter problemReporter = new DefaultProblemReporter(Stub(ProblemEmitter), [], org.gradle.internal.operations.CurrentBuildOperationRef.instance())
+    InternalProblemReporter problemReporter = new DefaultProblemReporter(Stub(ProblemEmitter), [], org.gradle.internal.operations.CurrentBuildOperationRef.instance(), HashMultimap.create())
 
     def "can serialize and deserialize a validation problem"() {
         given:
@@ -183,8 +190,12 @@ class ValidationProblemSerializationTest extends Specification {
         given:
         def problem = problemReporter.create {
             it.id("id", "label", GradleCoreProblemGroup.validation())
-                .additionalData("key 1", "value 1")
-                .additionalData("key 2", "value 2")
+                .additionalData(TypeValidationDataSpec.class) {
+                    it.propertyName("property")
+                    it.typeName("type")
+                    it.parentPropertyName("parent")
+                    it.pluginId("id")
+                }
         }
 
         when:
@@ -197,7 +208,51 @@ class ValidationProblemSerializationTest extends Specification {
         deserialized[0].definition.id.displayName == "label"
         deserialized[0].locations == [] as List
         deserialized[0].definition.documentationLink == null
-        deserialized[0].additionalData["key 1"] == "value 1"
-        deserialized[0].additionalData["key 2"] == "value 2"
+        (deserialized[0].additionalData as TypeValidationData).propertyName == 'property'
+        (deserialized[0].additionalData as TypeValidationData).typeName == 'type'
+        (deserialized[0].additionalData as TypeValidationData).parentPropertyName == 'parent'
+        (deserialized[0].additionalData as TypeValidationData).pluginId == 'id'
+    }
+
+    def "can serialize generic additional data"() {
+        given:
+        def problem = problemReporter.create {
+            it.id("id", "label")
+                .additionalData(GeneralDataSpec) {
+                    it.put('foo', 'bar')
+                }
+        }
+
+        when:
+        def json = gson.toJson([problem])
+        def deserialized = ValidationProblemSerialization.parseMessageList(json)
+
+        then:
+        deserialized.size() == 1
+        deserialized[0].definition.id.name == "id"
+        deserialized[0].definition.id.displayName == "label"
+        deserialized[0].additionalData instanceof GeneralData
+        (deserialized[0].additionalData as GeneralData).asMap == ['foo' : 'bar']
+    }
+
+    def "can serialize deprecation additional data"() {
+        given:
+        def problem = problemReporter.create {
+            it.id("id", "label")
+                .additionalData(DeprecationDataSpec) {
+                    it.type(DeprecationData.Type.BUILD_INVOCATION)
+                }
+        }
+
+        when:
+        def json = gson.toJson([problem])
+        def deserialized = ValidationProblemSerialization.parseMessageList(json)
+
+        then:
+        deserialized.size() == 1
+        deserialized[0].definition.id.name == "id"
+        deserialized[0].definition.id.displayName == "label"
+        deserialized[0].additionalData instanceof DeprecationData
+        (deserialized[0].additionalData as DeprecationData).type == DeprecationData.Type.BUILD_INVOCATION
     }
 }

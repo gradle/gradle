@@ -16,15 +16,15 @@
 
 package org.gradle.configurationcache.serialization.codecs
 
-import org.gradle.configurationcache.problems.DocumentationSection
-import org.gradle.configurationcache.serialization.Codec
-import org.gradle.configurationcache.serialization.IsolateContext
-import org.gradle.configurationcache.serialization.ReadContext
-import org.gradle.configurationcache.serialization.WriteContext
+import org.gradle.internal.configuration.problems.DocumentationSection
+import org.gradle.internal.serialize.graph.Codec
+import org.gradle.internal.serialize.graph.IsolateContext
+import org.gradle.internal.serialize.graph.ReadContext
+import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.configurationcache.serialization.beans.unsupportedFieldDeclaredTypes
-import org.gradle.configurationcache.serialization.encodeBean
-import org.gradle.configurationcache.serialization.decodeBean
-import org.gradle.configurationcache.serialization.logUnsupported
+import org.gradle.internal.serialize.graph.encodeBean
+import org.gradle.internal.serialize.graph.decodeBean
+import org.gradle.internal.serialize.graph.logUnsupported
 import org.objectweb.asm.Type
 import org.objectweb.asm.Type.getArgumentTypes
 import java.lang.invoke.SerializedLambda

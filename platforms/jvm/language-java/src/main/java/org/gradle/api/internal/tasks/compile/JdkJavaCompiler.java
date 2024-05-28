@@ -36,6 +36,7 @@ import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
@@ -73,6 +74,7 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
     private JavaCompiler.CompilationTask createCompileTask(JavaCompileSpec spec, ApiCompilerResult result) {
         List<String> options = new JavaCompilerArgumentsBuilder(spec).build();
         ContextAwareJavaCompiler compiler = compilerFactory.create();
+        Objects.requireNonNull(compiler, "Compiler factory returned null compiler");
 
         MinimalJavaCompileOptions compileOptions = spec.getCompileOptions();
         Charset charset = Optional.ofNullable(compileOptions.getEncoding())

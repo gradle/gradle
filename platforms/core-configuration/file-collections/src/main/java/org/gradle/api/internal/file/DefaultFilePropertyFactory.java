@@ -41,6 +41,7 @@ import org.gradle.internal.state.Managed;
 import javax.annotation.Nullable;
 import java.io.File;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.gradle.api.internal.lambdas.SerializableLambdas.bifunction;
 import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
 
@@ -180,7 +181,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
         }
     }
 
-    private static abstract class AbstractFileVar<T extends FileSystemLocation, THIS extends FileSystemLocationProperty<T>> extends DefaultProperty<T> implements FileSystemLocationProperty<T> {
+    private static abstract class AbstractFileVar<T extends FileSystemLocation, THIS extends FileSystemLocationProperty<T>> extends DefaultProperty<T> implements FileSystemLocationPropertyInternal<T> {
 
         public AbstractFileVar(PropertyHost host, Class<T> type) {
             super(host, type);
@@ -191,6 +192,19 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
         @Override
         public Provider<File> getAsFile() {
             return new MappingProvider<>(File.class, this, new ToFileTransformer());
+        }
+
+        @Override
+        public void conventionFromAnyFile(Provider<Object> provider) {
+            convention(provider.map(value -> {
+                if (value instanceof File) {
+                    return fromFile((File) value);
+                } else if (checkNotNull(getType()).isAssignableFrom(value.getClass())) {
+                    return Cast.uncheckedNonnullCast(value);
+                } else {
+                    throw new IllegalArgumentException("Cannot convert " + value.getClass() + " to " + getType());
+                }
+            }));
         }
 
         @Override

@@ -24,10 +24,16 @@ import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter
 import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter.Companion.isCallNamed
 import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter.Companion.isConfiguringCall
 import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter.Companion.isTopLevelElement
+import org.gradle.internal.declarativedsl.analysis.OperationGenerationId
 import org.gradle.internal.declarativedsl.analysis.and
 import org.gradle.internal.declarativedsl.analysis.implies
+import org.gradle.internal.declarativedsl.evaluationSchema.CompositeEvaluationSchemaComponent
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchema
+import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaComponent
 import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequenceStep
+import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationSchema
+import org.gradle.internal.declarativedsl.evaluationSchema.plus
+import org.gradle.internal.declarativedsl.project.gradleDslGeneralSchemaComponent
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.plugin.management.internal.DefaultPluginRequest
 import org.gradle.plugin.management.internal.PluginRequestInternal
@@ -39,14 +45,14 @@ import org.gradle.plugin.use.internal.PluginRequestApplicator
 internal
 class PluginsInterpretationSequenceStep(
     override val stepIdentifier: String = "plugins",
+    override val assignmentGeneration: OperationGenerationId = OperationGenerationId.PROPERTY_ASSIGNMENT,
     private val targetScope: ClassLoaderScope,
     private val scriptSource: ScriptSource,
+    private val additionalSchemaComponent: EvaluationSchemaComponent = CompositeEvaluationSchemaComponent(emptyList()),
     private val getTargetServices: () -> ServiceRegistry,
 ) : InterpretationSequenceStep<PluginsTopLevelReceiver> {
-    override fun evaluationSchemaForStep(): EvaluationSchema = EvaluationSchema(
-        schemaForPluginsBlock,
-        analysisStatementFilter = isTopLevelPluginsBlock
-    )
+    override fun evaluationSchemaForStep(): EvaluationSchema =
+        buildEvaluationSchema(PluginsTopLevelReceiver::class, gradleDslGeneralSchemaComponent() + additionalSchemaComponent, isTopLevelPluginsBlock)
 
     override fun getTopLevelReceiverFromTarget(target: Any) = PluginsTopLevelReceiver()
 

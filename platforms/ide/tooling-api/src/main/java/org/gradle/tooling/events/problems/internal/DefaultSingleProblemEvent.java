@@ -92,6 +92,7 @@ public class DefaultSingleProblemEvent extends BaseProgressEvent implements Sing
         return failure;
     }
 
+    @Override
     public AdditionalData getAdditionalData() {
         return additionalData;
     }

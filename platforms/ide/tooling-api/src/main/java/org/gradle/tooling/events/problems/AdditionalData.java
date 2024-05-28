@@ -24,7 +24,9 @@ import java.util.Map;
 /**
  * Additional data attached to the problem.
  * <p>
- * The only supported value type is {@link String}.
+ * There are no subtypes defined for this interface yet. Clients should expect some defined in future versions of Gradle.
+ * <p>
+ * The information returned by {@code #getAsMap} is considered dynamic information and subject to change between Gradle versions.
  *
  * @since 8.6
  */

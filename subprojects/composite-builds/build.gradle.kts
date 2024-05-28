@@ -17,6 +17,7 @@ dependencies {
     api(projects.concurrent)
     api(projects.javaLanguageExtensions)
     api(projects.serialization)
+    api(projects.serviceProvider)
     api(project(":build-operations"))
     api(project(":base-services"))
     api(project(":core"))
@@ -25,6 +26,7 @@ dependencies {
     api(project(":messaging"))
     api(project(":model-core"))
     api(project(":plugin-use"))
+    api(project(":build-state"))
 
     api(libs.inject)
     api(libs.jsr305)
@@ -32,6 +34,7 @@ dependencies {
     implementation(projects.time)
     implementation(project(":enterprise-logging"))
     implementation(project(":enterprise-operations"))
+    implementation(project(":daemon-services"))
     implementation(project(":logging"))
 
     implementation(libs.slf4jApi)

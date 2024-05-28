@@ -275,7 +275,7 @@ public class NamedObjectInstantiator implements ManagedFactory {
         // Disallow instance fields. This doesn't guarantee that the object is immutable, just makes it less likely
         // We might tighten this constraint to also disallow any _code_ on immutable types that reaches out to static state
         for (Field field : type.getDeclaredFields()) {
-            if (Modifier.isStatic(field.getModifiers()) || GroovyObject.class.isAssignableFrom(type) && field.getName().equals("metaClass")) {
+            if (Modifier.isStatic(field.getModifiers()) || (GroovyObject.class.isAssignableFrom(type) && field.getName().equals("metaClass"))) {
                 continue;
             }
             collector.add(field, "A Named implementation class must not define any instance fields.");

@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.compile;
 import com.sun.source.util.JavacTask;
 import com.sun.tools.javac.util.Context;
 
+import javax.annotation.Nullable;
 import javax.tools.DiagnosticListener;
 import javax.tools.JavaCompiler;
 import javax.tools.JavaFileManager;
@@ -32,7 +33,7 @@ import java.io.Writer;
 public interface ContextAwareJavaCompiler extends JavaCompiler {
 
     JavacTask getTask(
-        Writer out,
+        @Nullable Writer out,
         JavaFileManager fileManager,
         DiagnosticListener<? super JavaFileObject> diagnosticListener,
         Iterable<String> options,

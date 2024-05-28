@@ -32,7 +32,7 @@ public interface CacheFactory {
     /**
      * Opens a cache with the given options. The caller must close the cache when finished with it.
      */
-    PersistentCache open(File cacheDir, String displayName, Map<String, ?> properties, LockOptions lockOptions, @Nullable Consumer<? super PersistentCache> initializer, @Nullable CacheCleanupStrategy cacheCleanupStrategy) throws CacheOpenException;
+    PersistentCache open(File cacheDir, String displayName, Map<String, ?> properties, LockOptions lockOptions, @Nullable Consumer<? super PersistentCache> initializer, CacheCleanupStrategy cacheCleanupStrategy) throws CacheOpenException;
 
     /**
      * Visit the caches created by this factory.

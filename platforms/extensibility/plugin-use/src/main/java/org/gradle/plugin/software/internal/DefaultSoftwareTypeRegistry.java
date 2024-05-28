@@ -38,7 +38,7 @@ import java.util.Set;
 public class DefaultSoftwareTypeRegistry implements SoftwareTypeRegistry {
     private final Set<Class<? extends Plugin<Project>>> pluginClasses = new LinkedHashSet<>();
     private final Map<String, Class<? extends Plugin<Project>>> registeredTypes = new HashMap<>();
-    private Set<SoftwareTypeImplementation> softwareTypeImplementations;
+    private Set<SoftwareTypeImplementation<?>> softwareTypeImplementations;
 
     private final InspectionScheme inspectionScheme;
 
@@ -54,8 +54,8 @@ public class DefaultSoftwareTypeRegistry implements SoftwareTypeRegistry {
         pluginClasses.add(pluginClass);
     }
 
-    private Set<SoftwareTypeImplementation> discoverSoftwareTypeImplementations() {
-        final ImmutableSet.Builder<SoftwareTypeImplementation> softwareTypeImplementationsBuilder = ImmutableSet.builder();
+    private Set<SoftwareTypeImplementation<?>> discoverSoftwareTypeImplementations() {
+        final ImmutableSet.Builder<SoftwareTypeImplementation<?>> softwareTypeImplementationsBuilder = ImmutableSet.builder();
         pluginClasses.forEach(pluginClass -> {
             TypeToken<?> pluginType = TypeToken.of(pluginClass);
             TypeMetadataWalker.typeWalker(inspectionScheme.getMetadataStore(), SoftwareType.class)
@@ -65,7 +65,7 @@ public class DefaultSoftwareTypeRegistry implements SoftwareTypeRegistry {
     }
 
     @Override
-    public Set<SoftwareTypeImplementation> getSoftwareTypeImplementations() {
+    public Set<SoftwareTypeImplementation<?>> getSoftwareTypeImplementations() {
         if (softwareTypeImplementations == null) {
             softwareTypeImplementations = discoverSoftwareTypeImplementations();
         }
@@ -80,9 +80,9 @@ public class DefaultSoftwareTypeRegistry implements SoftwareTypeRegistry {
     private static class SoftwareTypeImplementationRecordingVisitor implements TypeMetadataWalker.StaticMetadataVisitor {
         private final Class<? extends Plugin<Project>> pluginClass;
         private final Map<String, Class<? extends Plugin<Project>>> registeredTypes;
-        private final ImmutableSet.Builder<SoftwareTypeImplementation> softwareTypeImplementationsBuilder;
+        private final ImmutableSet.Builder<SoftwareTypeImplementation<?>> softwareTypeImplementationsBuilder;
 
-        public SoftwareTypeImplementationRecordingVisitor(Class<? extends Plugin<Project>> pluginClass, Map<String, Class<? extends Plugin<Project>>> registeredTypes, ImmutableSet.Builder<SoftwareTypeImplementation> softwareTypeImplementationsBuilder) {
+        public SoftwareTypeImplementationRecordingVisitor(Class<? extends Plugin<Project>> pluginClass, Map<String, Class<? extends Plugin<Project>>> registeredTypes, ImmutableSet.Builder<SoftwareTypeImplementation<?>> softwareTypeImplementationsBuilder) {
             this.pluginClass = pluginClass;
             this.registeredTypes = registeredTypes;
             this.softwareTypeImplementationsBuilder = softwareTypeImplementationsBuilder;
@@ -101,13 +101,17 @@ public class DefaultSoftwareTypeRegistry implements SoftwareTypeRegistry {
                 }
 
                 softwareTypeImplementationsBuilder.add(
-                    new DefaultSoftwareTypeImplementation(
+                    new DefaultSoftwareTypeImplementation<>(
                         softwareType.name(),
-                        softwareType.modelPublicType(),
+                        publicTypeOf(propertyMetadata, softwareType),
                         Cast.uncheckedNonnullCast(pluginClass)
                     )
                 );
             });
+        }
+
+        private static Class<?> publicTypeOf(PropertyMetadata propertyMetadata, SoftwareType softwareType) {
+            return softwareType.modelPublicType() == Void.class ? propertyMetadata.getDeclaredType().getRawType() : softwareType.modelPublicType();
         }
     }
 }

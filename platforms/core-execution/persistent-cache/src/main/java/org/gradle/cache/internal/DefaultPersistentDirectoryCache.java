@@ -26,7 +26,6 @@ import org.gradle.internal.operations.BuildOperationRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -49,8 +48,8 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
         String displayName,
         Map<String, ?> properties,
         LockOptions lockOptions,
-        @Nullable Consumer<? super PersistentCache> initAction,
-        @Nullable CacheCleanupStrategy cacheCleanupStrategy,
+        Consumer<? super PersistentCache> initAction,
+        CacheCleanupStrategy cacheCleanupStrategy,
         FileLockManager lockManager,
         ExecutorFactory executorFactory,
         BuildOperationRunner buildOperationRunner
@@ -115,9 +114,7 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
                     }
                     FileUtils.forceDelete(file);
                 }
-                if (initAction != null) {
-                    initAction.accept(DefaultPersistentDirectoryCache.this);
-                }
+                initAction.accept(DefaultPersistentDirectoryCache.this);
                 try (FileOutputStream propertiesFileOutputStream = new FileOutputStream(propertiesFile)) {
                     properties.store(propertiesFileOutputStream, null);
                 }

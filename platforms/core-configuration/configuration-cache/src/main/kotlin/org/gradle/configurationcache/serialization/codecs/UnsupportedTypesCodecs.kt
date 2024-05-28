@@ -16,7 +16,6 @@
 
 package org.gradle.configurationcache.serialization.codecs
 
-import org.gradle.api.project.IsolatedProject
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ArtifactView
 import org.gradle.api.artifacts.ConfigurationContainer
@@ -49,6 +48,7 @@ import org.gradle.api.attributes.CompatibilityRuleChain
 import org.gradle.api.attributes.DisambiguationRuleChain
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
+import org.gradle.api.project.IsolatedProject
 import org.gradle.api.publish.Publication
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.internal.BuildServiceProvider
@@ -56,17 +56,18 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskDependency
-import org.gradle.configurationcache.flow.BuildWorkResultProvider
-import org.gradle.configurationcache.problems.DocumentationSection
-import org.gradle.configurationcache.serialization.Codec
-import org.gradle.configurationcache.serialization.IsolateContext
-import org.gradle.configurationcache.serialization.ReadContext
-import org.gradle.configurationcache.serialization.WriteContext
-import org.gradle.configurationcache.serialization.logUnsupported
-import org.gradle.configurationcache.serialization.unsupported
+import org.gradle.internal.serialize.graph.unsupported
+import org.gradle.internal.configuration.problems.DocumentationSection
 import org.gradle.internal.event.AbstractBroadcastDispatch
 import org.gradle.internal.event.ListenerBroadcast
+import org.gradle.internal.flow.services.BuildWorkResultProvider
 import org.gradle.internal.scripts.GradleScript
+import org.gradle.internal.serialize.graph.BindingsBuilder
+import org.gradle.internal.serialize.graph.Codec
+import org.gradle.internal.serialize.graph.IsolateContext
+import org.gradle.internal.serialize.graph.ReadContext
+import org.gradle.internal.serialize.graph.WriteContext
+import org.gradle.internal.serialize.graph.logUnsupported
 import org.gradle.internal.service.DefaultServiceRegistry
 import java.io.FileDescriptor
 import java.io.RandomAccessFile

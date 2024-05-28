@@ -17,6 +17,8 @@
 package org.gradle.internal.enterprise
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
 class DevelocityBuildLifecycleServiceIntegrationTest extends AbstractIntegrationSpec {
 
@@ -25,7 +27,7 @@ class DevelocityBuildLifecycleServiceIntegrationTest extends AbstractIntegration
             include 'foo', 'bar'
             includeBuild 'included'
 
-            gradle.services.get(${DevelocityBuildLifecycleService.name}).beforeProject {
+            $beforeProject {
                 def projectPath = it.buildTreePath
                 println "Configuring '\$projectPath'"
                 it.tasks.register("myTask") {
@@ -50,6 +52,41 @@ class DevelocityBuildLifecycleServiceIntegrationTest extends AbstractIntegration
         outputDoesNotContain("Configuring ':included")
     }
 
+    @Requires(
+        value = IntegTestPreconditions.NotIsolatedProjects,
+        reason = "accessing `tasks` from subprojects is in violation of Isolated Projects"
+    )
+    def "lifecycle applied build logic runs before subprojects configuration logic"() {
+        given:
+        settingsFile """
+            include 'sub'
+
+            $beforeProject {
+                it.tasks.register("myTask") {
+                }
+            }
+        """
+        createDir 'sub'
+
+        and:
+        buildFile '''
+            subprojects {
+                tasks.named("myTask") {
+                    def projectName = project.name
+                    doLast {
+                        println "${projectName}.MyTask.doLast is running"
+                    }
+                }
+            }
+        '''
+
+        when:
+        run 'myTask'
+
+        then:
+        outputContains 'sub.MyTask.doLast is running'
+    }
+
     def "can use lifecycle service in included build"() {
         settingsFile << """
             include 'foo', 'bar'
@@ -59,7 +96,7 @@ class DevelocityBuildLifecycleServiceIntegrationTest extends AbstractIntegration
         file('included/settings.gradle') << """
             include 'sub1', 'sub2'
 
-            gradle.services.get(${DevelocityBuildLifecycleService.name}).beforeProject {
+            $beforeProject {
                 def projectPath = it.buildTreePath
                 println "Configuring '\$projectPath'"
                 it.tasks.register("myTask") {
@@ -76,5 +113,9 @@ class DevelocityBuildLifecycleServiceIntegrationTest extends AbstractIntegration
         outputDoesNotContain("Configuring ':'")
         outputDoesNotContain("Configuring ':foo")
         outputDoesNotContain("Configuring ':bar")
+    }
+
+    def getBeforeProject() {
+        "gradle.services.get(${DevelocityBuildLifecycleService.name}).beforeProject"
     }
 }

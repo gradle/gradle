@@ -29,6 +29,7 @@ import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.cache.FileLockManager;
+import org.gradle.cache.GlobalCache;
 import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.cache.internal.DefaultCacheFactory;
@@ -61,6 +62,7 @@ import org.gradle.internal.operations.DefaultBuildOperationIdFactory;
 import org.gradle.internal.operations.DefaultBuildOperationListenerManager;
 import org.gradle.internal.operations.DefaultBuildOperationRunner;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.state.DefaultManagedFactoryRegistry;
 import org.gradle.internal.state.ManagedFactoryRegistry;
 import org.gradle.internal.time.Clock;
@@ -85,53 +87,67 @@ public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
         this.additionalModuleClassPath = additionalModuleClassPath;
     }
 
+    @Provides
     protected CacheFactory createCacheFactory(FileLockManager fileLockManager, ExecutorFactory executorFactory, BuildOperationRunner buildOperationRunner) {
         return new DefaultCacheFactory(fileLockManager, executorFactory, buildOperationRunner);
     }
 
+    @Provides
     LegacyTypesSupport createLegacyTypesSupport() {
         return new DefaultLegacyTypesSupport();
     }
 
+    @Provides
     BuildOperationIdFactory createBuildOperationIdProvider() {
         return new DefaultBuildOperationIdFactory();
     }
 
+    @Provides
     ProgressLoggerFactory createProgressLoggerFactory(OutputEventListener outputEventListener, Clock clock, BuildOperationIdFactory buildOperationIdFactory) {
         return new DefaultProgressLoggerFactory(new ProgressLoggingBridge(outputEventListener), clock, buildOperationIdFactory);
     }
 
+    @Provides
     Clock createClock() {
         return Time.clock();
     }
 
+    @Provides
     CrossBuildInMemoryCacheFactory createCrossBuildInMemoryCacheFactory(ListenerManager listenerManager) {
         return new DefaultCrossBuildInMemoryCacheFactory(listenerManager);
     }
 
+    @Provides
     NamedObjectInstantiator createNamedObjectInstantiator(CrossBuildInMemoryCacheFactory cacheFactory) {
         return new NamedObjectInstantiator(cacheFactory);
     }
 
+    @Provides
     TaskDependencyFactory createTaskDependencyFactory() {
         return DefaultTaskDependencyFactory.withNoAssociatedProject();
     }
 
+    @Provides
     DefaultFilePropertyFactory createFilePropertyFactory(PropertyHost propertyHost, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
         return new DefaultFilePropertyFactory(propertyHost, fileResolver, fileCollectionFactory);
     }
 
+    @Provides
     StreamHasher createStreamHasher() {
         return new DefaultStreamHasher();
     }
 
+    @Provides
     Deleter createDeleter(Clock clock, FileSystem fileSystem, OperatingSystem os) {
         return new DefaultDeleter(clock::getCurrentTime, fileSystem::isSymlink, os.isWindows());
     }
 
+    @Provides
     PropertyFactory createPropertyFactory(PropertyHost propertyHost) {
         return new DefaultPropertyFactory(propertyHost);
     }
+
+    @Provides
     ManagedFactoryRegistry createManagedFactoryRegistry(NamedObjectInstantiator namedObjectInstantiator, InstantiatorFactory instantiatorFactory, PropertyFactory propertyFactory, FileCollectionFactory fileCollectionFactory, FileFactory fileFactory, FilePropertyFactory filePropertyFactory) {
         return new DefaultManagedFactoryRegistry().withFactories(
             instantiatorFactory.getManagedFactory(),
@@ -149,26 +165,37 @@ public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
         );
     }
 
+    @Provides
     DefaultModuleRegistry createModuleRegistry(CurrentGradleInstallation currentGradleInstallation) {
         return new DefaultModuleRegistry(additionalModuleClassPath, currentGradleInstallation.getInstallation());
     }
 
+    @Provides
+    GlobalCache createGlobalCache(DefaultModuleRegistry moduleRegistry) {
+        return moduleRegistry::getGlobalCacheRoots;
+    }
+
+    @Provides
     CurrentGradleInstallation createCurrentGradleInstallation() {
         return CurrentGradleInstallation.locate();
     }
 
+    @Provides
     ClassLoaderFactory createClassLoaderFactory() {
         return new DefaultClassLoaderFactory();
     }
 
+    @Provides
     BuildOperationListenerManager createBuildOperationListenerManager() {
         return new DefaultBuildOperationListenerManager();
     }
 
+    @Provides
     CurrentBuildOperationRef createCurrentBuildOperationRef() {
         return CurrentBuildOperationRef.instance();
     }
 
+    @Provides
     BuildOperationRunner createBuildOperationRunner(
         Clock clock,
         CurrentBuildOperationRef currentBuildOperationRef,

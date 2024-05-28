@@ -26,27 +26,20 @@ import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.Describables;
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
-import org.gradle.internal.component.resolution.failure.exception.ConfigurationSelectionException;
-import org.gradle.internal.component.resolution.failure.type.ConfigurationNotConsumableFailure;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 
 import javax.annotation.Nullable;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
 
-public abstract class AbstractComponentGraphResolveState<T extends ComponentGraphResolveMetadata, S extends ComponentResolveMetadata> implements ComponentGraphResolveState, ComponentArtifactResolveState {
+public abstract class AbstractComponentGraphResolveState<T extends ComponentGraphResolveMetadata> implements ComponentGraphResolveState, ComponentArtifactResolveState {
     private final long instanceId;
     private final T graphMetadata;
-    private final S artifactMetadata;
     private final AttributeDesugaring attributeDesugaring;
 
-    public AbstractComponentGraphResolveState(long instanceId, T graphMetadata, S artifactMetadata, AttributeDesugaring attributeDesugaring) {
+    public AbstractComponentGraphResolveState(long instanceId, T graphMetadata, AttributeDesugaring attributeDesugaring) {
         this.instanceId = instanceId;
         this.graphMetadata = graphMetadata;
-        this.artifactMetadata = artifactMetadata;
         this.attributeDesugaring = attributeDesugaring;
     }
 
@@ -70,21 +63,17 @@ public abstract class AbstractComponentGraphResolveState<T extends ComponentGrap
         return graphMetadata;
     }
 
-    public S getArtifactMetadata() {
-        return artifactMetadata;
-    }
-
     @Override
-    public GraphSelectionCandidates getCandidatesForGraphVariantSelection() {
-        return new DefaultGraphSelectionCandidates(this);
-    }
+    public abstract GraphSelectionCandidates getCandidatesForGraphVariantSelection();
 
     @Override
     public boolean isAdHoc() {
         return false;
     }
 
-    protected abstract Optional<List<? extends VariantGraphResolveState>> getVariantsForGraphTraversal();
+    protected AttributeDesugaring getAttributeDesugaring() {
+        return attributeDesugaring;
+    }
 
     @Nullable
     @Override
@@ -99,7 +88,7 @@ public abstract class AbstractComponentGraphResolveState<T extends ComponentGrap
 
     @Override
     public void resolveArtifactsWithType(ArtifactResolver artifactResolver, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
-        artifactResolver.resolveArtifactsWithType(getResolveMetadata(), artifactType, result);
+        artifactResolver.resolveArtifactsWithType(getArtifactMetadata(), artifactType, result);
     }
 
     protected ImmutableCapabilities capabilitiesFor(ImmutableCapabilities capabilities) {
@@ -112,9 +101,9 @@ public abstract class AbstractComponentGraphResolveState<T extends ComponentGrap
 
     protected abstract static class AbstractVariantGraphResolveState implements VariantGraphResolveState {
         private final Lazy<ResolvedVariantResult> publicView;
-        private final AbstractComponentGraphResolveState<?, ?> component;
+        private final AbstractComponentGraphResolveState<?> component;
 
-        public AbstractVariantGraphResolveState(AbstractComponentGraphResolveState<?, ?> component) {
+        public AbstractVariantGraphResolveState(AbstractComponentGraphResolveState<?> component) {
             this.publicView = Lazy.locking().of(() -> createVariantResult(null));
             this.component = component;
         }
@@ -143,48 +132,6 @@ public abstract class AbstractComponentGraphResolveState<T extends ComponentGrap
                 component.attributeDesugaring.desugar(metadata.getAttributes()),
                 component.capabilitiesFor(metadata.getCapabilities()),
                 externalVariant);
-        }
-    }
-
-    private static class DefaultGraphSelectionCandidates implements GraphSelectionCandidates {
-        private final List<? extends VariantGraphResolveState> variants;
-        private final AbstractComponentGraphResolveState<?, ?> component;
-
-        public DefaultGraphSelectionCandidates(AbstractComponentGraphResolveState<?, ?> component) {
-            this.variants = component.getVariantsForGraphTraversal().orElse(Collections.emptyList());
-            this.component = component;
-        }
-
-        @Override
-        public boolean isUseVariants() {
-            return !variants.isEmpty();
-        }
-
-        @Override
-        public List<? extends VariantGraphResolveState> getVariants() {
-            if (variants.isEmpty()) {
-                throw new IllegalStateException("No variants available for selection");
-            }
-            return variants;
-        }
-
-        @Nullable
-        @Override
-        public VariantGraphResolveState getVariantByConfigurationName(String name) {
-            ConfigurationGraphResolveState conf = component.getConfiguration(name);
-            if (conf == null) {
-                return null;
-            }
-
-            // Ensure configuration is consumable, since all variants are by definition consumable.
-            ConfigurationGraphResolveMetadata metadata = conf.getMetadata();
-            if (!metadata.isCanBeConsumed()) {
-                ConfigurationNotConsumableFailure failure = new ConfigurationNotConsumableFailure(name, component.getId().getDisplayName());
-                String message = String.format("Selected configuration '" + failure.getRequestedName() + "' on '" + failure.getRequestedComponentDisplayName() + "' but it can't be used as a project dependency because it isn't intended for consumption by other components.");
-                throw new ConfigurationSelectionException(message, failure, Collections.emptyList());
-            }
-
-            return conf.asVariant();
         }
     }
 }
