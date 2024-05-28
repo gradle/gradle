@@ -27,7 +27,7 @@ class ConventionStorage : ConventionDefinitionRegistrar, SoftwareTypeConventionR
     val conventionsMap = mutableMapOf<String, SoftwareTypeConventionResolutionResults>()
 
     override fun registerConventions(conventionsBySoftwareType: Map<String, SoftwareTypeConventionResolutionResults>) {
-        // TODO: what if invoked multiple times?
+        conventionsMap.clear()
         conventionsMap.putAll(conventionsBySoftwareType)
     }
 
