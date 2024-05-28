@@ -617,7 +617,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
     }
 
     def "ignores toolchain usages at configuration time"() {
-        JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentJdk)
+        JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
         buildFile << """
             println(javaToolchains.launcherFor {
                 languageVersion = JavaLanguageVersion.of(${jdkMetadata.languageVersion.majorVersion})
