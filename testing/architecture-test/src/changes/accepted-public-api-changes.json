@@ -5,15 +5,7 @@
             "member": "Class org.gradle.api.plugins.ApplicationPlugin",
             "acceptation": "Renamed Application Plugin -> Java Application Plugin",
             "changes": [
-                "Class has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.api.plugins.ApplicationPlugin",
-            "member": "Constructor org.gradle.api.plugins.ApplicationPlugin()",
-            "acceptation": "Renamed Application Plugin -> Java Application Plugin",
-            "changes": [
-                "Constructor has been removed"
+                "Deprecated annotation was added"
             ]
         },
         {
@@ -121,22 +113,6 @@
             "member": "Field TASK_START_SCRIPTS_NAME",
             "acceptation": "Renamed Application Plugin -> Java Application Plugin",
             "changes": []
-        },
-        {
-            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
-            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getApplication(org.gradle.plugin.use.PluginDependenciesSpec)",
-            "acceptation": "Renamed Application Plugin -> Java Application Plugin",
-            "changes": [
-                "Method has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
-            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getJava-application(org.gradle.plugin.use.PluginDependenciesSpec)",
-            "acceptation": "Renamed Application Plugin -> Java Application Plugin",
-            "changes": [
-                "Method added to public class"
-            ]
         }
     ]
 }

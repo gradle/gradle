@@ -31,6 +31,11 @@ class JavaApplicationPluginIntegrationTest extends WellBehavedPluginTest {
         return "installDist"
     }
 
+    @Override
+    String getPluginName() {
+        return "application"
+    }
+
     def setup() {
         createSampleProjectSetup()
     }

@@ -59,7 +59,8 @@ import static org.gradle.api.distribution.plugins.DistributionPlugin.TASK_INSTAL
  *
  * @see <a href="https://docs.gradle.org/current/userguide/application_plugin.html">Application plugin reference</a>
  */
-public abstract class JavaApplicationPlugin implements Plugin<Project> {
+@SuppressWarnings("deprecation")
+public abstract class JavaApplicationPlugin extends ApplicationPlugin implements Plugin<Project> {
     public static final String APPLICATION_PLUGIN_NAME = "application";
     public static final String APPLICATION_GROUP = APPLICATION_PLUGIN_NAME;
     public static final String TASK_RUN_NAME = "run";
