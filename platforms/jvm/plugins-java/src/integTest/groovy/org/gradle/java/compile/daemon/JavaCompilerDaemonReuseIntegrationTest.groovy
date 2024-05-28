@@ -163,24 +163,32 @@ class JavaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReuse
                 [op.displayName, it]
             }
 
-        verifyAll(receivedProblem(0)) {
+        // We expect 4 problems. We need to grab them by calling receivedProblem, otherwise our cleanup check will complain about untested problems
+        def problems = (0..3).collect {
+            receivedProblem(it)
+        }.sort {
+            // We sort the problems first by operationId and then by details to make the test deterministic
+            p1, p2 -> return p1.operationId <=> p2.operationId ?: p1.details.replaceAll(testDirectory.toString(), '') <=> p2.details.replaceAll(testDirectory.toString(), '')
+        }
+
+        verifyAll(problems[0]) {
             operationId == taskOperations["Task :compileJava"].id
             fqid == 'compilation:java:java-compilation-note'
             details == "${testDirectory}/src/main/java/ClassWithWarning1.java uses or overrides a deprecated API."
             getSingleLocation(FileLocation).path == "${testDirectory}/src/main/java/ClassWithWarning1.java"
         }
-        verifyAll(receivedProblem(1)) {
+        verifyAll(problems[1]) {
+            operationId == taskOperations["Task :compileJava"].id
+            fqid == 'compilation:java:java-compilation-note'
+            details == 'Recompile with -Xlint:deprecation for details.'
+        }
+        verifyAll(problems[2]) {
             operationId == taskOperations["Task :compileMain2Java"].id
             fqid == 'compilation:java:java-compilation-note'
             details == "${testDirectory}/src/main2/java/ClassWithWarning2.java uses or overrides a deprecated API."
             getSingleLocation(FileLocation).path == "${testDirectory}/src/main2/java/ClassWithWarning2.java"
         }
-        verifyAll(receivedProblem(2)) {
-            operationId == taskOperations["Task :compileJava"].id
-            fqid == 'compilation:java:java-compilation-note'
-            details == 'Recompile with -Xlint:deprecation for details.'
-        }
-        verifyAll(receivedProblem(3)) {
+        verifyAll(problems[3]) {
             operationId == taskOperations["Task :compileMain2Java"].id
             fqid == 'compilation:java:java-compilation-note'
             details == 'Recompile with -Xlint:deprecation for details.'
