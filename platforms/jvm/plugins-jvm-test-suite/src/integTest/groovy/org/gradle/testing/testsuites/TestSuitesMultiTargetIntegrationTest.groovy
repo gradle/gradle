@@ -153,7 +153,8 @@ class TestSuitesMultiTargetIntegrationTest extends AbstractIntegrationSpec imple
         withInstallations(Jvm.current(), otherJvm).fails("testAggregateTestReport")
 
         then:
-        failure.assertThatCause(containsNormalizedString("However we cannot choose between the following variants of project"))
+        failure.assertThatCause(containsNormalizedString("There are several available matching variants of project :"))
+        failure.assertThatCause(containsNormalizedString("The only attribute distinguishing these variants is 'org.gradle.testsuite.target.name'. Add this attribute to the consumer's configuration to resolve the ambiguity:"))
     }
 
     def "reports of multiple targets can be aggregated if variant information is specified"() {

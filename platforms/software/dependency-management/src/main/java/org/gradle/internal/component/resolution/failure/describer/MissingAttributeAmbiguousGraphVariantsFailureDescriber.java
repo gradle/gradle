@@ -24,6 +24,8 @@ import org.gradle.internal.component.resolution.failure.ResolutionCandidateAsses
 import org.gradle.internal.component.resolution.failure.type.VariantAwareAmbiguousResolutionFailure;
 import org.gradle.internal.logging.text.TreeFormatter;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
@@ -85,6 +87,13 @@ public abstract class MissingAttributeAmbiguousGraphVariantsFailureDescriber ext
         return formatter.toString();
     }
 
+    @Override
+    protected List<String> buildResolutions(String... resolutions) {
+        List<String> result = new ArrayList<>(super.buildResolutions(resolutions));
+        result.add(suggestDependencyInsight());
+        return result;
+    }
+
     private void buildSpecificAttributeSuggestionMsg(VariantAwareAmbiguousResolutionFailure failure, String distinguishingAttribute, TreeFormatter formatter) {
         formatter.node("The only attribute distinguishing these variants is '" + distinguishingAttribute + "'. Add this attribute to the consumer's configuration to resolve the ambiguity:");
         formatter.startChildren();
@@ -97,5 +106,9 @@ public abstract class MissingAttributeAmbiguousGraphVariantsFailureDescriber ext
             .filter(attribute -> Objects.equals(attribute.getAttribute().getName(), distinguishingAttribute))
             .map(assessedAttribute -> Objects.requireNonNull(assessedAttribute.getProvided()).toString())
             .findFirst().orElseThrow(IllegalStateException::new);
+    }
+
+    private String suggestDependencyInsight() {
+        return "Use the dependencyInsight report with the --all-variants option to view all variants of the ambiguous dependency.  This report is described at " + getDocumentationRegistry().getDocumentationFor("viewing_debugging_dependencies", "sec:identifying_reason_dependency_selection") + ".";
     }
 }
