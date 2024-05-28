@@ -41,7 +41,6 @@ dependencies {
     api(project(":logging-api"))
     api(project(":native"))
     api(project(":problems-api"))
-    api(project(":functional"))
 
     api(libs.jansi)
     api(libs.jsr305)
