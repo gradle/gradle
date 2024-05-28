@@ -40,7 +40,7 @@ dependencies {
 
     implementation(projects.loggingApi)
     implementation(projects.platformNative)
-    implementation(projects.pluginsApplication) {
+    implementation(projects.pluginsJavaApplication) {
         because("Needs access to StartScriptGenerator.")
     }
     implementation(projects.pluginsJvmTestSuite)

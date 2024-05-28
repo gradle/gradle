@@ -17,7 +17,7 @@ dependencies {
     pluginsRuntimeOnly(projects.ide)
     pluginsRuntimeOnly(projects.idePlugins)
     pluginsRuntimeOnly(projects.jacoco)
-    pluginsRuntimeOnly(projects.pluginsApplication)
+    pluginsRuntimeOnly(projects.pluginsJavaApplication)
     pluginsRuntimeOnly(projects.pluginsGroovy)
     pluginsRuntimeOnly(projects.pluginsJava)
     pluginsRuntimeOnly(projects.pluginsJavaBase)
