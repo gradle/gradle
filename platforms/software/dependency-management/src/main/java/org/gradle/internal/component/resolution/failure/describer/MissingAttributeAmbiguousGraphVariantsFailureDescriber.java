@@ -26,6 +26,7 @@ import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -39,7 +40,12 @@ import java.util.stream.Collectors;
  * In this situation, we can provide a very brief message pointing to the exact solution needed.
  */
 public abstract class MissingAttributeAmbiguousGraphVariantsFailureDescriber extends AmbiguousGraphVariantsFailureDescriber {
-    private final Map<VariantAwareAmbiguousResolutionFailure, String> suggestableDistinctAttributes = new HashMap<>();
+    /**
+     * Map from failure -> name of attribute that would distinguish each candidate.
+     * This map exists to avoid re-discovering the unrequested attributes between the calls to `canDescribeFailure` and `describeFailure`.
+     * Each failure will be added once (by identity), then removed during failure description.
+     */
+    private final IdentityHashMap<VariantAwareAmbiguousResolutionFailure, String> suggestableDistinctAttributes = new IdentityHashMap<>();
 
     @Override
     public boolean canDescribeFailure(VariantAwareAmbiguousResolutionFailure failure) {
