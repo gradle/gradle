@@ -16,18 +16,18 @@
 
 package org.gradle.internal.declarativedsl.common
 
-import org.gradle.internal.declarativedsl.schemaBuilder.CollectedPropertyInformation
-import org.gradle.internal.declarativedsl.schemaBuilder.PropertyExtractor
-import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
-import org.gradle.internal.declarativedsl.schemaBuilder.annotationsWithGetters
-import org.gradle.internal.declarativedsl.schemaBuilder.toDataTypeRefOrError
 import org.gradle.api.provider.Property
 import org.gradle.declarative.dsl.model.annotations.AccessFromCurrentReceiverOnly
 import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl
 import org.gradle.internal.declarativedsl.analysis.DefaultDataProperty
 import org.gradle.internal.declarativedsl.evaluationSchema.AnalysisSchemaComponent
+import org.gradle.internal.declarativedsl.schemaBuilder.CollectedPropertyInformation
 import org.gradle.internal.declarativedsl.schemaBuilder.MemberFilter
+import org.gradle.internal.declarativedsl.schemaBuilder.PropertyExtractor
+import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
+import org.gradle.internal.declarativedsl.schemaBuilder.annotationsWithGetters
 import org.gradle.internal.declarativedsl.schemaBuilder.isPublicAndRestricted
+import org.gradle.internal.declarativedsl.schemaBuilder.returnTypeToRefOrError
 import java.util.Locale
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
@@ -73,7 +73,7 @@ class GradlePropertyApiPropertyExtractor(
             CollectedPropertyInformation(
                 property.name,
                 property.returnType,
-                propertyValueType(property.returnType).toDataTypeRefOrError(),
+                property.returnTypeToRefOrError(kClass) { propertyValueType(property.returnType) },
                 DefaultDataProperty.DefaultPropertyMode.DefaultWriteOnly,
                 hasDefaultValue = false,
                 isHiddenInDeclarativeDsl = isHidden,
@@ -93,7 +93,7 @@ class GradlePropertyApiPropertyExtractor(
             checkNotNull(getter)
             val nameAfterGet = name.substringAfter("get")
             val propertyName = nameAfterGet.replaceFirstChar { it.lowercase(Locale.getDefault()) }
-            val type = propertyValueType(getter.returnType).toDataTypeRefOrError()
+            val type = getter.returnTypeToRefOrError(kClass) { propertyValueType(getter.returnType) }
             val isHidden = getter.annotations.any { it is HiddenInDeclarativeDsl }
             val isDirectAccessOnly = getter.annotations.any { it is AccessFromCurrentReceiverOnly }
             CollectedPropertyInformation(

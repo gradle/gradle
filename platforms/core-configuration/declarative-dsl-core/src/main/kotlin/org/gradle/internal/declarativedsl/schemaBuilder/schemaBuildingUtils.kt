@@ -24,6 +24,8 @@ import org.gradle.internal.declarativedsl.language.DataTypeInternal
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
 import kotlin.reflect.KClassifier
+import kotlin.reflect.KFunction
+import kotlin.reflect.KParameter
 import kotlin.reflect.KProperty
 import kotlin.reflect.KType
 
@@ -46,7 +48,7 @@ fun checkInScope(
     typeScope: DataSchemaBuilder.PreIndex
 ) {
     if (type.classifier?.isInScope(typeScope) != true) {
-        error("type $type used in a function is not in schema scope")
+        error("type $type used in a function is not in schema scope")  // TODO: improve this one too
     }
 }
 
@@ -68,11 +70,23 @@ val KCallable<*>.annotationsWithGetters: List<Annotation>
     get() = this.annotations + if (this is KProperty) this.getter.annotations else emptyList()
 
 
-fun KType.toDataTypeRefOrError() =
-    toDataTypeRef() ?: error("failed to convert type $this to data type")
+fun KCallable<*>.returnTypeToRefOrError(receiver: KClass<*>?) =
+    returnTypeToRefOrError(receiver) { this.returnType }
 
+fun KCallable<*>.returnTypeToRefOrError(receiver: KClass<*>?, typeMapping: (KCallable<*>) -> KType) = typeMapping(this).toDataTypeRef() ?:
+    error("Conversion to data types failed for return type of ${format(receiver, this)}: ${typeMapping(this)}")
+
+fun KParameter.parameterTypeToRefOrError(receiver: KClass<*>?, function: KFunction<*>) =
+    parameterTypeToRefOrError(receiver, function) { this.type }
+
+fun KParameter.parameterTypeToRefOrError(receiver: KClass<*>?, function: KFunction<*>, typeMapping: (KParameter) -> KType) = typeMapping(this).toDataTypeRef() ?:
+    error("Conversion to data types failed for parameter type of function ${format(receiver, function)}: ${typeMapping(this)}")
 
 private
+fun format(receiver: KClass<*>?, callable: KCallable<*>) =
+    "${receiver?.simpleName.let { s -> "$s." }}${callable.name}"
+
+
 fun KType.toDataTypeRef(): DataTypeRef? = when {
     // isMarkedNullable -> TODO: support nullable types
     arguments.isNotEmpty() -> null // TODO: support for some particular generic types

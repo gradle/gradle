@@ -99,7 +99,7 @@ class DefaultPropertyExtractor(private val includeMemberFilter: MemberFilter = i
             if (!propertyNamePredicate(propertyName))
                 return@mapNotNull null
 
-            val type = getter.returnType.toDataTypeRefOrError()
+            val type = getter.returnTypeToRefOrError(kClass)
             val isHidden = getter.annotations.any { it is HiddenInDeclarativeDsl }
             val isDirectAccessOnly = getter.annotations.any { it is AccessFromCurrentReceiverOnly }
             val setter = functionsByName["set$nameAfterGet"]?.find { fn -> fn.parameters.singleOrNull { it != fn.instanceParameter }?.type == getter.returnType }
@@ -117,17 +117,17 @@ class DefaultPropertyExtractor(private val includeMemberFilter: MemberFilter = i
                 kClass.primaryConstructor?.parameters.orEmpty().any { it.name == property.name && it.type == property.returnType })
                 && property.visibility == KVisibility.PUBLIC
                 && propertyNamePredicate(property.name)
-        }.map { property -> kPropertyInformation(property) }
+        }.map { property -> kPropertyInformation(kClass, property) }
 
     private
-    fun kPropertyInformation(property: KProperty<*>): CollectedPropertyInformation {
+    fun kPropertyInformation(kClass: KClass<*>, property: KProperty<*>): CollectedPropertyInformation {
         val isReadOnly = property !is KMutableProperty<*>
         val isHidden = property.annotationsWithGetters.any { it is HiddenInDeclarativeDsl }
         val isDirectAccessOnly = property.annotationsWithGetters.any { it is AccessFromCurrentReceiverOnly }
         return CollectedPropertyInformation(
             property.name,
             property.returnType,
-            property.returnType.toDataTypeRefOrError(),
+            property.returnTypeToRefOrError(kClass),
             if (isReadOnly) DefaultPropertyMode.DefaultReadOnly else DefaultPropertyMode.DefaultReadWrite,
             hasDefaultValue = run {
                 isReadOnly || property.annotationsWithGetters.any { it is HasDefaultValue }

@@ -18,6 +18,7 @@ tasks.withType<KotlinCompile>().configureEach {
 }
 
 dependencies {
+    api(project(":core-api"))
     api(projects.declarativeDslToolingModels)
 
     api(libs.kotlinCompilerEmbeddable)
