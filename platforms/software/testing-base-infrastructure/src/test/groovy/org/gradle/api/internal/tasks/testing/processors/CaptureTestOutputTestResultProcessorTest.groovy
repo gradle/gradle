@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.testing.processors
 
 import org.gradle.api.internal.tasks.testing.*
+import org.gradle.api.internal.tasks.testing.redirector.TestOutputRedirector
 import spock.lang.Specification
 import spock.lang.Subject
 

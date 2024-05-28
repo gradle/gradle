@@ -59,7 +59,7 @@ public class TestWorkerTest extends ConcurrentSpec {
         System.properties['org.gradle.test.worker'] == '<worker-id>'
 
         and:
-        1 * factory.create(_) >> processor
+        1 * factory.create(_, _, _) >> processor
         1 * connection.addOutgoing(TestResultProcessor) >> resultProcessor
         1 * connection.addIncoming(RemoteTestClassProcessor, worker)
         1 * connection.useParameterSerializers(_)

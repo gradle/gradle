@@ -51,7 +51,6 @@ dependencies {
     implementation(projects.messaging)
 
     implementation(libs.julToSlf4j)
-    implementation(libs.ant)
     implementation(libs.commonsLang)
     implementation(libs.commonsIo)
     implementation(libs.guava)

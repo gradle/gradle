@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.tasks.testing.junit;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.InvalidUserDataException;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.Description;
@@ -23,6 +22,7 @@ import org.junit.runner.manipulation.Filter;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 /**
@@ -133,7 +133,7 @@ class CategoryFilter extends Filter {
         StringBuilder sb = new StringBuilder();
         if (!inclusions.isEmpty()) {
             sb.append("(");
-            sb.append(StringUtils.join(inclusions, " OR "));
+            sb.append(join(inclusions, " OR "));
             sb.append(")");
             if (!exclusions.isEmpty()) {
                 sb.append(" AND ");
@@ -141,10 +141,25 @@ class CategoryFilter extends Filter {
         }
         if (!exclusions.isEmpty()) {
             sb.append("NOT (");
-            sb.append(StringUtils.join(exclusions, " OR "));
+            sb.append(join(exclusions, " OR "));
             sb.append(")");
         }
 
         return sb.toString();
+    }
+
+    // Can be replaced with String.join when workers are updated to run in JDK 8.
+    private static String join(Set<String> strings, String delimiter) {
+        StringBuilder result = new StringBuilder();
+        Iterator<String> iterator = strings.iterator();
+
+        while (iterator.hasNext()) {
+            result.append(iterator.next());
+            if (iterator.hasNext()) {
+                result.append(delimiter);
+            }
+        }
+
+        return result.toString();
     }
 }

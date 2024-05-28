@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.testing.processors
+package org.gradle.api.internal.tasks.testing.redirector
 
-import org.gradle.api.logging.StandardOutputListener
 import org.gradle.internal.SystemProperties
 import org.gradle.util.internal.RedirectStdOutAndErr
 import org.junit.Rule
@@ -26,8 +25,8 @@ class DefaultStandardOutputRedirectorTest extends Specification {
 
     @Rule public final RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()
     private final DefaultStandardOutputRedirector redirector = new DefaultStandardOutputRedirector()
-    private final StandardOutputListener stdOutListener = Mock()
-    private final StandardOutputListener stdErrListener = Mock()
+    private final StandardOutputRedirector.OutputListener stdOutListener = Mock()
+    private final StandardOutputRedirector.OutputListener stdErrListener = Mock()
 
     def startAndStopDoesNothingWhenNothingRedirected() {
         when:

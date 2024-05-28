@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.testing.processors
+package org.gradle.api.internal.tasks.testing.redirector
 
 import org.apache.commons.io.IOUtils
-import org.gradle.api.internal.tasks.testing.JULRedirector
-import org.gradle.api.logging.StandardOutputListener
 import org.gradle.internal.SystemProperties
 import org.gradle.util.internal.RedirectStdOutAndErr
 import org.junit.Rule
@@ -35,8 +33,8 @@ class JULRedirectorTest extends Specification {
 
     @Rule public final RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()
     private DefaultStandardOutputRedirector redirector = new JULRedirector()
-    private final StandardOutputListener stdOutListener = Mock()
-    private final StandardOutputListener stdErrListener = Mock()
+    private final StandardOutputRedirector.OutputListener stdOutListener = Mock()
+    private final StandardOutputRedirector.OutputListener stdErrListener = Mock()
     private final Logger logger1 = Logger.getLogger("")
     private final Logger logger2 = Logger.getLogger("hello")
     private final Logger logger3 = Logger.getLogger("hello.world")
