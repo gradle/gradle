@@ -245,7 +245,7 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
     }
 
     private sortOutNotSupportedNotWorkingCombinations(String gradleVersion) {
-        Assume.assumeFalse(clientJdkVersion.majorVersion.toInteger() >= 16 && GradleVersion.version(gradleVersion) <= GradleVersion.version("4.0"))
+        Assume.assumeFalse(clientJdkVersion.majorVersionNumber >= 16 && GradleVersion.version(gradleVersion) <= GradleVersion.version("4.0"))
     }
 
     @Flaky

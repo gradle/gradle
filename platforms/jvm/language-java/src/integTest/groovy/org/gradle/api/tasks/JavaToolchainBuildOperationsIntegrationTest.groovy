@@ -404,7 +404,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         // e: Unknown JVM target version: 21
         // Supported versions: 1.6, 1.8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18
         JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.getDifferentVersion({
-            it.languageVersion.majorVersion.toInteger() <= 17
+            it.languageVersion.majorVersionNumber <= 17
         }))
 
         given:

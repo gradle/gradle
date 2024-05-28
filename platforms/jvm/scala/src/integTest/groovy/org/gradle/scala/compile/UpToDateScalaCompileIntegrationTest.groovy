@@ -175,7 +175,7 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec implem
     def "compilation emits toolchain usage events"() {
         captureBuildOperations()
 
-        def jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.getDifferentJdk { it.languageVersion.majorVersion.toInteger() in 8..17 })
+        def jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.getDifferentJdk { it.languageVersion.majorVersionNumber in 8..17 })
 
         buildScript """
             apply plugin: 'scala'

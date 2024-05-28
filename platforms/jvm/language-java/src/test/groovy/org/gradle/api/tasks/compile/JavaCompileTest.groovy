@@ -205,7 +205,7 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
         def javaCompile = project.tasks.create('compileJava', JavaCompile)
         javaCompile.destinationDirectory.fileValue(new File('somewhere'))
 
-        def prevJavaVersion = JavaVersion.toVersion(Jvm.current().javaVersion.majorVersion.toInteger() - 1).toString()
+        def prevJavaVersion = JavaVersion.toVersion(Jvm.current().javaVersion.majorVersionNumber - 1).toString()
 
         given:
         javaCompile.setSourceCompatibility(prevJavaVersion)

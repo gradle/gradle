@@ -592,7 +592,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         given:
         def someJdk = Jvm.current()
         setupProjectWithToolchain(someJdk.javaVersion)
-        def prevJavaVersion = JavaVersion.toVersion(someJdk.javaVersion.majorVersion.toInteger() - 1)
+        def prevJavaVersion = JavaVersion.toVersion(someJdk.javaVersion.majorVersionNumber - 1)
         project.java.sourceCompatibility = prevJavaVersion
 
         when:

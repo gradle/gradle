@@ -38,11 +38,11 @@ trait JavaToolchainFixture {
     }
 
     String javaPluginToolchainVersion(Jvm jvm) {
-        return javaPluginToolchainVersion(jvm.javaVersion.majorVersion.toInteger())
+        return javaPluginToolchainVersion(jvm.javaVersion.majorVersionNumber)
     }
 
     String javaPluginToolchainVersion(JvmInstallationMetadata installationMetadata) {
-        return javaPluginToolchainVersion(installationMetadata.languageVersion.majorVersion.toInteger())
+        return javaPluginToolchainVersion(installationMetadata.languageVersion.majorVersionNumber)
     }
 
     String javaPluginToolchainVersion(Integer majorVersion) {

@@ -491,7 +491,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
     def "can compile with a custom compiler executable"() {
         def otherJdk = AvailableJavaHomes.getJdk(JavaVersion.current())
         def jdk = AvailableJavaHomes.getDifferentVersion {
-            def v = it.languageVersion.majorVersion.toInteger()
+            def v = it.languageVersion.majorVersionNumber
             11 <= v && v <= 18 // Java versions supported by ECJ releases used in the test
         }
 
