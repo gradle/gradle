@@ -25,35 +25,37 @@ import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import org.gradle.problems.buildtree.ProblemStream;
 
 import static org.gradle.api.problems.internal.DefaultProblemCategory.GRADLE_CORE_NAMESPACE;
 
 @ServiceScope(Scope.BuildTree.class)
 public class DefaultProblems implements InternalProblems {
 
-    private final ProblemStream problemStream;
     private final CurrentBuildOperationRef currentBuildOperationRef;
+    @Nullable
+    private final ExceptionAnalyser exceptionAnalyser;
     private final ProblemEmitter emitter;
     private final InternalProblemReporter internalReporter;
     private final Multimap<Throwable, Problem> problemsForThrowables = Multimaps.synchronizedMultimap(HashMultimap.<Throwable, Problem>create());
 
     public DefaultProblems(ProblemEmitter emitter, CurrentBuildOperationRef currentBuildOperationRef) {
-        this(emitter, null, currentBuildOperationRef);
+       this(emitter, null, currentBuildOperationRef);
     }
 
     public DefaultProblems(ProblemEmitter emitter) {
         this(emitter, null, CurrentBuildOperationRef.instance());
     }
 
-    public DefaultProblems(ProblemEmitter emitter, ProblemStream problemStream, CurrentBuildOperationRef currentBuildOperationRef) {
+    public DefaultProblems(ProblemEmitter emitter, ProblemStream problemStream, CurrentBuildOperationRef currentBuildOperationRef, @Nullable ExceptionAnalyser exceptionAnalyser) {
         this.emitter = emitter;
         this.problemStream = problemStream;
         this.currentBuildOperationRef = currentBuildOperationRef;
         internalReporter = createReporter(emitter, problemStream, problemsForThrowables);
+        this.exceptionAnalyser = exceptionAnalyser;
     }
 
     @Override
@@ -82,9 +84,7 @@ public class DefaultProblems implements InternalProblems {
     public void reportMapping(Throwable throwable) {
         ImmutableMap.Builder<Throwable, Collection<Problem>> builder = ImmutableMap.builder();
 
-        // TODO: handle MultiCauseException
-
-        Throwable cause = throwable;
+        Throwable cause = getTransformed(throwable);
         Throwable priorCause = null;
         do {
             Collection<Problem> problems = problemsForThrowables.get(cause);
@@ -96,5 +96,12 @@ public class DefaultProblems implements InternalProblems {
         } while (cause != null && cause != priorCause);
 
         emitter.emit(builder.build(), currentBuildOperationRef.get().getId());
+    }
+
+    private Throwable getTransformed(Throwable throwable) {
+        if (exceptionAnalyser == null) {
+            return throwable;
+        }
+        return exceptionAnalyser.transform(throwable);
     }
 }

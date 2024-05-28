@@ -20,9 +20,9 @@ import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
+import org.gradle.api.problems.internal.ExceptionAnalyser
 import org.gradle.deployment.internal.DefaultDeploymentRegistry
 import org.gradle.initialization.RootBuildLifecycleListener
-import org.gradle.initialization.exception.ExceptionAnalyser
 import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.BuildModelControllerServices
 import org.gradle.internal.build.BuildStateRegistry

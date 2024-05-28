@@ -17,11 +17,12 @@
 package org.gradle.internal.buildprocess.execution;
 
 import org.gradle.BuildResult;
+import org.gradle.api.ProjectConfigurationException;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.configuration.ShowStacktrace;
+import org.gradle.api.problems.internal.ExceptionAnalyser;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.exception.DefaultExceptionAnalyser;
-import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.initialization.exception.MultipleBuildFailuresExceptionAnalyser;
 import org.gradle.initialization.exception.StackTraceSanitizingExceptionAnalyser;
 import org.gradle.internal.buildevents.BuildLogger;
@@ -53,7 +54,9 @@ public class SessionFailureReportingActionExecutor implements BuildActionExecuto
             // TODO - wire this stuff in properly
 
             // Sanitise the exception and report it
-            ExceptionAnalyser exceptionAnalyser = new MultipleBuildFailuresExceptionAnalyser(new DefaultExceptionAnalyser(new NoOpProblemDiagnosticsFactory()));
+            ExceptionAnalyser exceptionAnalyser = new MultipleBuildFailuresExceptionAnalyser(
+                new DefaultExceptionAnalyser(
+                    new NoOpProblemDiagnosticsFactory(), ProjectConfigurationException.class));
             if (action.getStartParameter().getShowStacktrace() != ShowStacktrace.ALWAYS_FULL) {
                 exceptionAnalyser = new StackTraceSanitizingExceptionAnalyser(exceptionAnalyser);
             }

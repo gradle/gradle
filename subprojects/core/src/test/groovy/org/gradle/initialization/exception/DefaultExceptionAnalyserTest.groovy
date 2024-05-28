@@ -332,7 +332,7 @@ class DefaultExceptionAnalyserTest extends Specification {
     }
 
     private DefaultExceptionAnalyser analyser() {
-        return new DefaultExceptionAnalyser(diagnosticsFactory)
+        return new DefaultExceptionAnalyser(diagnosticsFactory, ProjectConfigurationException)
     }
 
     @Contextual

@@ -1548,7 +1548,6 @@ Class <org.gradle.ide.xcode.tasks.internal.XcodeWorkspaceSettingsFile> is not an
 Class <org.gradle.initialization.definition.DefaultInjectedPluginDependencies> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultInjectedPluginDependencies.java:0)
 Class <org.gradle.initialization.definition.DefaultInjectedPluginDependency> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultInjectedPluginDependency.java:0)
 Class <org.gradle.initialization.exception.DefaultExceptionAnalyser> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultExceptionAnalyser.java:0)
-Class <org.gradle.initialization.exception.ExceptionAnalyser> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ExceptionAnalyser.java:0)
 Class <org.gradle.initialization.exception.ExceptionCollector> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ExceptionCollector.java:0)
 Class <org.gradle.initialization.exception.InitializationException> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (InitializationException.java:0)
 Class <org.gradle.initialization.exception.MultipleBuildFailuresExceptionAnalyser> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (MultipleBuildFailuresExceptionAnalyser.java:0)

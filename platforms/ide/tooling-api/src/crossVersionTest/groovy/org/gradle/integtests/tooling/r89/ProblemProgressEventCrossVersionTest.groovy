@@ -190,6 +190,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         then:
         thrown(BuildException)
         def problems = listener.problems
+        problems.size() == 2
         validateCompilationProblem(problems, buildFile)
         problems[0].failure.failure.message == "Could not compile build file '$buildFile.absolutePath'."
 

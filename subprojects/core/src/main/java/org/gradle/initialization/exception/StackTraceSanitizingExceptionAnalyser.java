@@ -17,6 +17,7 @@
 package org.gradle.initialization.exception;
 
 import org.codehaus.groovy.runtime.StackTraceUtils;
+import org.gradle.api.problems.internal.ExceptionAnalyser;
 
 import javax.annotation.Nullable;
 import java.util.List;

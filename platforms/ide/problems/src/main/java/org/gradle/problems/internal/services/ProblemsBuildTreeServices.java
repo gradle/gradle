@@ -17,6 +17,7 @@
 package org.gradle.problems.internal.services;
 
 import org.gradle.api.problems.internal.DefaultProblems;
+import org.gradle.api.problems.internal.ExceptionAnalyser;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
@@ -30,9 +31,15 @@ public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
     @Provides
     InternalProblems createProblemsService(
         BuildOperationProgressEventEmitter buildOperationProgressEventEmitter,
+        ExceptionAnalyser exceptionAnalyser
         ProblemStream problemStream
     ) {
         BuildOperationBasedProblemEmitter emitter = new BuildOperationBasedProblemEmitter(buildOperationProgressEventEmitter);
-        return new DefaultProblems(emitter, problemStream, CurrentBuildOperationRef.instance());
+        return new DefaultProblems(emitter, problemStream, CurrentBuildOperationRef.instance(), exceptionAnalyser);
+    }
+
+    @Provides
+    ProblemTransformer createPluginIdLocationTransformer(ProblemStream problemStream) {
+        return new ProblemStreamLocationTransformer(problemStream);
     }
 }
