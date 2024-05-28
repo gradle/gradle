@@ -22,8 +22,6 @@ import org.gradle.integtests.fixtures.ConfigurationUsageChangingFixture
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
-import static org.gradle.util.internal.TextUtil.toPlatformLineSeparators
-
 @FluidDependenciesResolveTest
 abstract class AbstractConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationSpec implements ConfigurationUsageChangingFixture {
 
@@ -1034,10 +1032,10 @@ All of them match the consumer attributes:
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause toPlatformLineSeparators("""The consumer was configured to find attribute 'buildType' with value 'debug', attribute 'flavor' with value 'free'. There are several available matching variants of project :b
+        failure.assertHasCause """The consumer was configured to find attribute 'buildType' with value 'debug', attribute 'flavor' with value 'free'. There are several available matching variants of project :b
 The only attribute distinguishing these variants is 'extra'. Add this attribute to the consumer's configuration to resolve the ambiguity:
   - Value: 'extra 2' selects variant: 'bar'
-  - Value: 'extra' selects variant: 'foo'""")
+  - Value: 'extra' selects variant: 'foo'"""
     }
 
     /**
@@ -1443,19 +1441,19 @@ All of them match the consumer attributes:
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause toPlatformLineSeparators("""The consumer was configured to find attribute 'buildType' with value 'debug', attribute 'flavor' with value 'free'. There are several available matching variants of project :c
+        failure.assertHasCause """The consumer was configured to find attribute 'buildType' with value 'debug', attribute 'flavor' with value 'free'. There are several available matching variants of project :c
 The only attribute distinguishing these variants is 'extra'. Add this attribute to the consumer's configuration to resolve the ambiguity:
   - Value: 'extra' selects variant: 'foo'
-  - Value: 'extra 2' selects variant: 'foo2'""")
+  - Value: 'extra 2' selects variant: 'foo2'"""
 
         when:
         fails ':a:checkRelease'
 
         then:
-        failure.assertHasCause toPlatformLineSeparators("""The consumer was configured to find attribute 'buildType' with value 'release', attribute 'flavor' with value 'free'. There are several available matching variants of project :c
+        failure.assertHasCause """The consumer was configured to find attribute 'buildType' with value 'release', attribute 'flavor' with value 'free'. There are several available matching variants of project :c
 The only attribute distinguishing these variants is 'extra'. Add this attribute to the consumer's configuration to resolve the ambiguity:
   - Value: 'extra' selects variant: 'bar'
-  - Value: 'extra 2' selects variant: 'bar2'""")
+  - Value: 'extra 2' selects variant: 'bar2'"""
     }
 
     def "context travels down to transitive dependencies with external dependencies in graph"() {
