@@ -100,7 +100,7 @@ class WrapperTest extends AbstractTaskTest {
         wrapper.setJarFile(getProject().file("build/gradle-wrapper.jar"))
 
         expect:
-        getProject().file("build/gradle-wrapper.properties") == wrapper.getPropertiesFile()
+        getProject().file("build/gradle-wrapper.properties") == wrapper.getPropertiesFile().getAsFile().get()
     }
 
     @ToBeImplemented("We should mock a http request for a test")

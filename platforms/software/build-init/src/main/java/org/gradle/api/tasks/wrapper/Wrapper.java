@@ -20,6 +20,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileOperations;
@@ -35,6 +36,8 @@ import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.api.tasks.wrapper.internal.DefaultWrapperVersionsResources;
 import org.gradle.api.tasks.wrapper.internal.WrapperDefaults;
 import org.gradle.api.tasks.wrapper.internal.WrapperGenerator;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.util.GradleVersion;
@@ -114,7 +117,7 @@ public abstract class Wrapper extends DefaultTask {
         File unixScript = getScriptFile().getAsFile().get();
         FileResolver resolver = getFileLookup().getFileResolver(unixScript.getParentFile());
         String jarFileRelativePath = resolver.resolveAsRelativePath(jarFileDestination);
-        File propertiesFile = getPropertiesFile();
+        File propertiesFile = getPropertiesFile().get().getAsFile();
         Properties existingProperties = propertiesFile.exists() ? GUtil.loadProperties(propertiesFile) : null;
         DistributionType distributionType = getDistributionType().get();
 
@@ -140,7 +143,7 @@ public abstract class Wrapper extends DefaultTask {
             jarFileDestination,
             jarFileRelativePath,
             unixScript,
-            getBatchScript(),
+            getBatchScript().get().getAsFile(),
             distributionUrl,
             getValidateDistributionUrl().get(),
             networkTimeout.getOrNull()
@@ -213,8 +216,12 @@ public abstract class Wrapper extends DefaultTask {
      */
     @OutputFile
     @ToBeReplacedByLazyProperty(comment = "This should be a Provider<RegularFile>, but we don't support automatic upgrades for that case yet")
-    public File getBatchScript() {
-        return WrapperGenerator.getBatchScript(getScriptFile().getAsFile().get());
+    @ReplacesEagerProperty(replacedAccessors = {
+        @ReplacedAccessor(value = AccessorType.GETTER, name = "getPropertiesFile")
+    })
+    public RegularFileProperty getBatchScript() {
+        // TODO: Replace with Provider<RegularFile>
+        return getObjectFactory().fileProperty().fileProvider(getScriptFile().getLocationOnly().map(file -> WrapperGenerator.getBatchScript(file.getAsFile())));
     }
 
     /**
@@ -229,8 +236,12 @@ public abstract class Wrapper extends DefaultTask {
      */
     @OutputFile
     @ToBeReplacedByLazyProperty(comment = "This should be a Provider<RegularFile>, but we don't support automatic upgrades for that case yet")
-    public File getPropertiesFile() {
-        return WrapperGenerator.getPropertiesFile(getJarFile().getAsFile().get());
+    @ReplacesEagerProperty(replacedAccessors = {
+        @ReplacedAccessor(value = AccessorType.GETTER, name = "getPropertiesFile")
+    })
+    public RegularFileProperty getPropertiesFile() {
+        // TODO: Replace with Provider<RegularFile>
+        return getObjectFactory().fileProperty().fileProvider(getJarFile().getLocationOnly().map(file -> WrapperGenerator.getPropertiesFile(file.getAsFile())));
     }
 
     /**
@@ -382,4 +393,7 @@ public abstract class Wrapper extends DefaultTask {
 
     @Inject
     protected abstract ObjectFactory getObjectFactory();
+
+    @Inject
+    protected abstract ProjectLayout getProjectLayout();
 }

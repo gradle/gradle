@@ -199,6 +199,8 @@ Method <org.gradle.api.tasks.testing.Test.getWorkingDir()> does not have raw ret
 Method <org.gradle.api.tasks.testing.Test.isScanForTestClasses()> does not have raw return type assignable to org.gradle.api.provider.Property in (Test.java:0)
 Method <org.gradle.api.tasks.testing.TestReport.getDestinationDir()> does not have raw return type assignable to org.gradle.api.provider.Property in (TestReport.java:0)
 Method <org.gradle.api.tasks.wrapper.Wrapper.getAvailableDistributionTypes()> does not have raw return type assignable to org.gradle.api.provider.Provider in (Wrapper.java:0)
+Method <org.gradle.api.tasks.wrapper.Wrapper.getBatchScript()> does not have raw return type assignable to org.gradle.api.provider.Provider in (Wrapper.java:0)
+Method <org.gradle.api.tasks.wrapper.Wrapper.getPropertiesFile()> does not have raw return type assignable to org.gradle.api.provider.Provider in (Wrapper.java:0)
 Method <org.gradle.buildinit.tasks.InitBuild.getAvailableBuildTypes()> does not have raw return type assignable to org.gradle.api.provider.Provider in (InitBuild.java:0)
 Method <org.gradle.buildinit.tasks.InitBuild.getAvailableDSLs()> does not have raw return type assignable to org.gradle.api.provider.Provider in (InitBuild.java:0)
 Method <org.gradle.buildinit.tasks.InitBuild.getAvailableTestFrameworks()> does not have raw return type assignable to org.gradle.api.provider.Provider in (InitBuild.java:0)
