@@ -162,11 +162,11 @@ class TestTaskToolchainIntegrationTest extends AbstractIntegrationSpec implement
             dependencies {
                 testImplementation 'junit:junit:4.13'
             }
-            println("FUCK2: " + new File(".").getAbsoluteFile().toPath())
+            println("FUCK2: " + new File(".").getCanonicalFile().toPath())
             println("FUCK3: " + new File("${executable}").toPath())
-            println("FUCK4: " + new File(".").getAbsoluteFile().toPath().relativize(new File("${executable}").toPath()).toString())
+            println("FUCK4: " + new File(".").getCanonicalFile().toPath().relativize(new File("${executable}").toPath()).toString())
             test {
-                executable = new File(".").getAbsoluteFile().toPath().relativize(new File("${executable}").toPath()).toString()
+                executable = new File(".").getCanonicalFile().toPath().relativize(new File("${executable}").toPath()).toString()
             }
         """
         when:
