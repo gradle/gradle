@@ -25,21 +25,14 @@ import org.objectweb.asm.commons.Remapper
 import java.io.BufferedInputStream
 import java.io.File
 import java.io.FileInputStream
-import java.io.IOException
-import java.net.URI
-import java.nio.file.FileSystems
-import java.nio.file.FileVisitResult
-import java.nio.file.FileVisitor
 import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.attribute.BasicFileAttributes
-import java.util.jar.JarFile
 import java.util.jar.JarOutputStream
 import java.util.zip.ZipEntry
+import java.util.zip.ZipInputStream
 
 
 private
-val ignoredPackagePatterns = PackagePatterns(setOf("java"))
+val ignoredPackagePatterns = NameMatcher.packageHierarchy("java")
 
 
 object Attributes {
@@ -50,117 +43,110 @@ object Attributes {
 
 class JarAnalyzer(
     private val shadowPackage: String,
-    private val keepPackages: Set<String>,
-    private val unshadedPackages: Set<String>,
-    private val ignorePackages: Set<String>
+    private val keepPackages: NameMatcher,
+    private val unshadedPackages: NameMatcher,
+    private val ignorePackages: NameMatcher
 ) {
-
-    fun analyze(jarFile: File, classesDir: File, manifestFile: File, buildReceipt: File): ClassGraph {
+    fun analyze(jarFile: File, additionalJars: List<File>, classesDir: File, manifestFile: File, resourcesDir: File): ClassGraph {
         val classGraph = classGraph()
 
-        val jarUri = URI.create("jar:${jarFile.toPath().toUri()}")
-        FileSystems.newFileSystem(jarUri, emptyMap<String, Any>()).use { jarFileSystem ->
-            jarFileSystem.rootDirectories.forEach {
-                visitClassDirectory(it, classGraph, classesDir, manifestFile.toPath(), buildReceipt.toPath())
-            }
+        val seen = mutableSetOf<String>()
+        analyzeJar(jarFile, false, classGraph, classesDir, manifestFile, resourcesDir, seen)
+        for (file in additionalJars) {
+            analyzeJar(file, true, classGraph, classesDir, manifestFile, resourcesDir, seen)
         }
         return classGraph
     }
 
     private
+    fun analyzeJar(jarFile: File, transitive: Boolean, classGraph: ClassGraph, classesDir: File, manifestFile: File, resourcesDir: File, seen: MutableSet<String>) {
+        println("-> Visiting ${jarFile.name}")
+        ZipInputStream(BufferedInputStream(FileInputStream(jarFile))).use { input ->
+            while (true) {
+                val entry = input.nextEntry ?: break
+                visitEntry(input, transitive, entry, classGraph, classesDir, manifestFile, resourcesDir, seen)
+            }
+        }
+    }
+
+    private
     fun classGraph() =
         ClassGraph(
-            PackagePatterns(keepPackages),
-            PackagePatterns(unshadedPackages),
-            PackagePatterns(ignorePackages),
+            keepPackages,
+            unshadedPackages,
+            ignorePackages,
             shadowPackage
         )
 
-    private
-    fun visitClassDirectory(dir: Path, classes: ClassGraph, classesDir: File, manifest: Path, buildReceipt: Path) {
-        Files.walkFileTree(
-            dir,
-            object : FileVisitor<Path> {
+    private fun visitEntry(file: ZipInputStream, transitive: Boolean, entry: ZipEntry, classGraph: ClassGraph, classesDir: File, manifestFile: File, resourcesDir: File, seen: MutableSet<String>) {
+        if (entry.isDirectory || !seen.add(entry.name)) {
+            return
+        }
 
-                private
-                var seenManifest: Boolean = false
+        when {
+            entry.isClassFilePath() -> {
+                visitClassFile(file, entry, classGraph, classesDir)
+            }
 
-                override fun preVisitDirectory(dir: Path?, attrs: BasicFileAttributes?) =
-                    FileVisitResult.CONTINUE
+            entry.isManifestFilePath() -> {
+                Files.copy(file, manifestFile.toPath())
+            }
 
-                override fun visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult {
-                    when {
-                        file.isClassFilePath() -> {
-                            visitClassFile(file)
-                        }
-                        file.isBuildReceipt() -> {
-                            Files.copy(file, buildReceipt)
-                        }
-                        file.isUnseenManifestFilePath() -> {
-                            seenManifest = true
-                            Files.copy(file, manifest)
-                        }
-                    }
-                    return FileVisitResult.CONTINUE
+            else -> {
+                if (transitive) {
+                    classGraph.transitiveResources.add(entry.name)
+                } else {
+                    classGraph.resources.add(entry.name)
                 }
-
-                override fun visitFileFailed(file: Path?, exc: IOException?) =
-                    FileVisitResult.TERMINATE
-
-                override fun postVisitDirectory(dir: Path?, exc: IOException?) =
-                    FileVisitResult.CONTINUE
-
-                private
-                fun Path.isClassFilePath() =
-                    toString().endsWith(".class")
-
-                private
-                fun Path.isBuildReceipt() =
-                    toString() == "/org/gradle/build-receipt.properties"
-
-                private
-                fun Path.isUnseenManifestFilePath() =
-                    toString() == "/${JarFile.MANIFEST_NAME}" && !seenManifest
-
-                private
-                fun visitClassFile(file: Path) {
-                    try {
-                        val reader = ClassReader(Files.newInputStream(file))
-                        val details = classes[reader.className]
-                        details.visited = true
-                        val classWriter = ClassWriter(0)
-                        reader.accept(
-                            ClassRemapper(
-                                classWriter,
-                                object : Remapper() {
-                                    override fun map(name: String): String {
-                                        if (ignoredPackagePatterns.matches(name)) {
-                                            return name
-                                        }
-                                        val dependencyDetails = classes[name]
-                                        if (dependencyDetails !== details) {
-                                            details.dependencies.add(dependencyDetails)
-                                        }
-                                        return dependencyDetails.outputClassName
-                                    }
-                                }
-                            ),
-                            ClassReader.EXPAND_FRAMES
-                        )
-
-                        classesDir.resolve(details.outputClassFilename).apply {
-                            parentFile.mkdirs()
-                            writeBytes(classWriter.toByteArray())
-                        }
-                    } catch (exception: Exception) {
-                        throw ClassAnalysisException("Could not transform class from ${file.toFile()}", exception)
-                    }
+                resourcesDir.resolve(entry.name).apply {
+                    parentFile.mkdirs()
+                    Files.copy(file, toPath())
                 }
             }
-        )
+        }
+    }
+
+    private
+    fun ZipEntry.isClassFilePath() = name.endsWith(".class")
+
+    private
+    fun ZipEntry.isManifestFilePath() = name == "META-INF/MANIFEST.MF"
+
+    private
+    fun visitClassFile(file: ZipInputStream, entry: ZipEntry, classes: ClassGraph, classesDir: File) {
+        try {
+            val reader = ClassReader(file)
+            val details = classes[reader.className]
+            details.visited = true
+            val classWriter = ClassWriter(0)
+            reader.accept(
+                ClassRemapper(
+                    classWriter,
+                    object : Remapper() {
+                        override fun map(name: String): String {
+                            if (ignoredPackagePatterns.matches(name)) {
+                                return name
+                            }
+                            val dependencyDetails = classes[name]
+                            if (dependencyDetails !== details) {
+                                details.dependencies.add(dependencyDetails)
+                            }
+                            return dependencyDetails.outputClassName
+                        }
+                    }
+                ),
+                ClassReader.EXPAND_FRAMES
+            )
+
+            classesDir.resolve(details.outputClassFilename).apply {
+                parentFile.mkdirs()
+                writeBytes(classWriter.toByteArray())
+            }
+        } catch (exception: Exception) {
+            throw ClassAnalysisException("Could not transform class from ${entry.name}", exception)
+        }
     }
 }
-
 
 fun JarOutputStream.addJarEntry(entryName: String, sourceFile: File) {
     val entry = ZipEntry(entryName)

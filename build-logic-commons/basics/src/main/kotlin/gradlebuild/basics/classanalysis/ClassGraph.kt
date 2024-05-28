@@ -18,9 +18,9 @@ package gradlebuild.basics.classanalysis
 
 
 class ClassGraph(
-    private val keepPackages: PackagePatterns,
-    private val unshadedPackages: PackagePatterns,
-    private val ignorePackages: PackagePatterns,
+    private val keepPackages: NameMatcher,
+    private val unshadedPackages: NameMatcher,
+    private val ignorePackages: NameMatcher,
     shadowPackage: String
 ) {
 
@@ -29,6 +29,11 @@ class ClassGraph(
 
     val entryPoints: MutableSet<ClassDetails> = linkedSetOf()
 
+    val resources: MutableSet<String> = linkedSetOf()
+
+    val transitiveResources: MutableSet<String> = linkedSetOf()
+
+    private
     val shadowPackagePrefix =
         shadowPackage.takeIf(String::isNotEmpty)
             ?.let { it.replace('.', '/') + "/" }
@@ -53,34 +58,4 @@ class ClassDetails(val outputClassName: String) {
     val dependencies: MutableSet<ClassDetails> = linkedSetOf()
     val outputClassFilename
         get() = "$outputClassName.class"
-}
-
-
-class PackagePatterns(givenPrefixes: Set<String>) {
-
-    private
-    val prefixes: MutableSet<String> = hashSetOf()
-
-    private
-    val names: MutableSet<String> = hashSetOf()
-
-    init {
-        givenPrefixes.map { it.replace('.', '/') }.forEach { internalName ->
-            names.add(internalName)
-            prefixes.add("$internalName/")
-        }
-    }
-
-    fun matches(packageName: String): Boolean {
-        if (names.contains(packageName)) {
-            return true
-        }
-        for (prefix in prefixes) {
-            if (packageName.startsWith(prefix)) {
-                names.add(packageName)
-                return true
-            }
-        }
-        return false
-    }
 }

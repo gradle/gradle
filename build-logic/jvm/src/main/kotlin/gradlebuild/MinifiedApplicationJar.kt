@@ -44,12 +44,12 @@ interface MinifiedApplicationJar {
     val mainClassName: Property<String>
 
     /**
-     * Excludes the given resources from the minified JAR.
+     * Excludes the given resources from the minified JAR. Can use '*' wildcard.
      */
-    fun exclude(pattern: String)
+    fun excludeResources(pattern: String)
 
     /**
-     * Excludes the given resources from dependencies merged into the minified JAR.
+     * Excludes the given resources from dependencies merged into the minified JAR. Can use '*' wildcard.
      */
-    fun excludeFromDependencies(pattern: String)
+    fun excludeResourcesFromDependencies(pattern: String)
 }

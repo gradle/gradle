@@ -1,5 +1,3 @@
-import gradlebuild.startscript.tasks.GradleStartScriptGenerator
-
 /*
  * Copyright 2024 the original author or authors.
  *
@@ -31,11 +29,7 @@ application {
     mainClassName = "org.gradle.launcher.GradleMain"
 
     // Exclude META-INF resources from Guava etc. added via transitive dependencies
-    excludeFromDependencies("META-INF/*")
-
-    // Exclude these to avoid conflicts when the JAR is included in functional test classpath
-    excludeFromDependencies("org/slf4j/Logger.class")
-    excludeFromDependencies("org/slf4j/ILoggerFactory.class")
+    excludeResourcesFromDependencies("META-INF/*")
 
     outputJarName { "gradle-cli-main-${it.version}.jar" }
 }

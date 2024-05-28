@@ -18,6 +18,7 @@ package gradlebuild.shade.transforms
 
 import com.google.gson.Gson
 import gradlebuild.basics.classanalysis.JarAnalyzer
+import gradlebuild.basics.classanalysis.NameMatcher
 import gradlebuild.identity.tasks.BuildReceipt
 import org.gradle.api.artifacts.transform.CacheableTransform
 import org.gradle.api.artifacts.transform.InputArtifact
@@ -47,6 +48,10 @@ const val relocatedClassesDirName = "classes"
 
 
 private
+const val resourcesDirName = "resources"
+
+
+private
 const val manifestFileName = "MANIFEST.MF"
 
 
@@ -73,9 +78,16 @@ abstract class ShadeClasses : TransformAction<ShadeClasses.Parameters> {
         val classesDir = outputDirectory.resolve(relocatedClassesDirName)
         classesDir.mkdir()
         val manifestFile = outputDirectory.resolve(manifestFileName)
-        val buildReceiptFile = outputDirectory.resolve(BuildReceipt.buildReceiptFileName)
+        val resourcesDir = outputDirectory.resolve(resourcesDirName)
 
-        val classGraph = JarAnalyzer(parameters.shadowPackage.get(), parameters.keepPackages.get(), parameters.unshadedPackages.get(), parameters.ignoredPackages.get()).analyze(input.get().asFile, classesDir, manifestFile, buildReceiptFile)
+        val analyzer = JarAnalyzer(
+            parameters.shadowPackage.get(),
+            NameMatcher.packages(parameters.keepPackages.get()),
+            NameMatcher.packages(parameters.unshadedPackages.get()),
+            NameMatcher.packages(parameters.ignoredPackages.get())
+        )
+
+        val classGraph = analyzer.analyze(input.get().asFile, emptyList(), classesDir, manifestFile, resourcesDir)
 
         outputDirectory.resolve(classTreeFileName).bufferedWriter().use {
             Gson().toJson(classGraph.getDependencies(), it)
@@ -145,7 +157,7 @@ abstract class FindBuildReceipt : TransformAction<TransformParameters.None> {
     abstract val input: Provider<FileSystemLocation>
 
     override fun transform(outputs: TransformOutputs) {
-        val manifest = input.get().asFile.resolve(BuildReceipt.buildReceiptFileName)
+        val manifest = input.get().asFile.resolve(resourcesDirName + BuildReceipt.buildReceiptFileName)
         if (manifest.exists()) {
             outputs.file(manifest)
         }

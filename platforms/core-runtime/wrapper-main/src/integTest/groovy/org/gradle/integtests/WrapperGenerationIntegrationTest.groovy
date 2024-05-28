@@ -181,10 +181,11 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
 
         Manifest manifest = contents.file('META-INF/MANIFEST.MF').withInputStream { new Manifest(it) } as Manifest
         with(manifest.mainAttributes) {
-            size() == 3
+            size() == 4
             getValue(Attributes.Name.MANIFEST_VERSION) == '1.0'
             getValue(Attributes.Name.IMPLEMENTATION_TITLE) == 'Gradle Wrapper'
             getValue(Attributes.Name.IMPLEMENTATION_VERSION) == GradleVersion.current().baseVersion.version
+            getValue(Attributes.Name.MAIN_CLASS) != null
         }
     }
 

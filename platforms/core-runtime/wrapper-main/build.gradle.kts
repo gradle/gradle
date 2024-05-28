@@ -56,11 +56,11 @@ application {
     outputJarName { "gradle-wrapper.jar" }
 
     // Exclude META-INF resources from Guava etc. added via transitive dependencies
-    excludeFromDependencies("META-INF/*")
+    excludeResourcesFromDependencies("META-INF/*")
 
     // Exclude properties files that are not required
-    exclude("gradle-*-classpath.properties")
-    exclude("gradle-*-parameter-names.properties")
+    excludeResources("gradle-*-classpath.properties")
+    excludeResources("gradle-*-parameter-names.properties")
 }
 
 // https://github.com/gradle/gradle/issues/26658
