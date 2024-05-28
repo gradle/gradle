@@ -25,7 +25,6 @@ import org.gradle.internal.component.resolution.failure.type.VariantAwareAmbiguo
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
