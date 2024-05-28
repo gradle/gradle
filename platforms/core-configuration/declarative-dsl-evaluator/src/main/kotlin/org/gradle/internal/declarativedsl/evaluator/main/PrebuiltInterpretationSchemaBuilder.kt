@@ -19,7 +19,7 @@ package org.gradle.internal.declarativedsl.evaluator.main
 import org.gradle.declarative.dsl.evaluation.InterpretationSequence
 import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuilder
 import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuildingResult
-import org.gradle.internal.declarativedsl.evaluator.schema.RestrictedScriptContext
+import org.gradle.internal.declarativedsl.evaluator.schema.DeclarativeScriptContext
 
 
 internal
@@ -27,9 +27,9 @@ class PrebuiltInterpretationSchemaBuilder(
     private val settingsSequence: InterpretationSequence,
     private val projectSequence: InterpretationSequence
 ) : InterpretationSchemaBuilder {
-    override fun getEvaluationSchemaForScript(scriptContext: RestrictedScriptContext): InterpretationSchemaBuildingResult = when (scriptContext) {
-        RestrictedScriptContext.ProjectScript -> InterpretationSchemaBuildingResult.InterpretationSequenceAvailable(projectSequence)
-        is RestrictedScriptContext.SettingsScript -> InterpretationSchemaBuildingResult.InterpretationSequenceAvailable(settingsSequence)
-        RestrictedScriptContext.UnknownScript -> InterpretationSchemaBuildingResult.SchemaNotBuilt
+    override fun getEvaluationSchemaForScript(scriptContext: DeclarativeScriptContext): InterpretationSchemaBuildingResult = when (scriptContext) {
+        DeclarativeScriptContext.ProjectScript -> InterpretationSchemaBuildingResult.InterpretationSequenceAvailable(projectSequence)
+        is DeclarativeScriptContext.SettingsScript -> InterpretationSchemaBuildingResult.InterpretationSequenceAvailable(settingsSequence)
+        DeclarativeScriptContext.UnknownScript -> InterpretationSchemaBuildingResult.SchemaNotBuilt
     }
 }

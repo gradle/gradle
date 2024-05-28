@@ -26,7 +26,7 @@ import org.gradle.internal.declarativedsl.evaluator.conversion.EvaluationAndConv
 import org.gradle.internal.declarativedsl.evaluator.conversion.InterpretationSequenceStepWithConversion
 import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuilder
 import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuildingResult
-import org.gradle.internal.declarativedsl.evaluator.schema.RestrictedScriptContext
+import org.gradle.internal.declarativedsl.evaluator.schema.DeclarativeScriptContext
 import org.gradle.internal.declarativedsl.serialization.SchemaSerialization
 import java.io.File
 
@@ -41,7 +41,7 @@ class StoringInterpretationSchemaBuilder(
     private val settingsDir: File
 ) : InterpretationSchemaBuilder {
 
-    override fun getEvaluationSchemaForScript(scriptContext: RestrictedScriptContext): InterpretationSchemaBuildingResult =
+    override fun getEvaluationSchemaForScript(scriptContext: DeclarativeScriptContext): InterpretationSchemaBuildingResult =
         addSerializationToSteps(schemaBuilder.getEvaluationSchemaForScript(scriptContext))
 
     private

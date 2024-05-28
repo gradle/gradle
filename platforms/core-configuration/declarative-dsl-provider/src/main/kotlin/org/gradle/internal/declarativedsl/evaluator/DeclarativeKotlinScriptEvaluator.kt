@@ -38,7 +38,7 @@ import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepRunner
 import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult
 import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuilder
 import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuildingResult
-import org.gradle.internal.declarativedsl.evaluator.schema.RestrictedScriptContext
+import org.gradle.internal.declarativedsl.evaluator.schema.DeclarativeScriptContext
 import org.gradle.internal.declarativedsl.settings.SettingsBlocksCheck
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 
@@ -108,9 +108,9 @@ class DefaultDeclarativeKotlinScriptEvaluator(
         target: Any,
         scriptSource: ScriptSource,
         targetScope: ClassLoaderScope
-    ): RestrictedScriptContext = when (target) {
+    ): DeclarativeScriptContext = when (target) {
         is Settings -> LoadedSettingsScriptContext(target as SettingsInternal, targetScope, scriptSource)
-        is Project -> RestrictedScriptContext.ProjectScript
-        else -> RestrictedScriptContext.UnknownScript
+        is Project -> DeclarativeScriptContext.ProjectScript
+        else -> DeclarativeScriptContext.UnknownScript
     }
 }

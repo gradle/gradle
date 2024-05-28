@@ -21,7 +21,7 @@ import org.gradle.declarative.dsl.evaluation.InterpretationSequence
 
 interface InterpretationSchemaBuilder {
     fun getEvaluationSchemaForScript(
-        scriptContext: RestrictedScriptContext,
+        scriptContext: DeclarativeScriptContext,
     ): InterpretationSchemaBuildingResult
 }
 
@@ -32,10 +32,10 @@ sealed interface InterpretationSchemaBuildingResult {
 }
 
 
-sealed interface RestrictedScriptContext {
-    interface SettingsScript : RestrictedScriptContext
+sealed interface DeclarativeScriptContext {
+    interface SettingsScript : DeclarativeScriptContext
 
-    object ProjectScript : RestrictedScriptContext
+    object ProjectScript : DeclarativeScriptContext
 
-    object UnknownScript : RestrictedScriptContext
+    object UnknownScript : DeclarativeScriptContext
 }

@@ -17,7 +17,7 @@
 package org.gradle.internal.declarativedsl.evaluator.runner
 
 import org.gradle.internal.declarativedsl.analysis.ResolutionError
-import org.gradle.internal.declarativedsl.evaluator.schema.RestrictedScriptContext
+import org.gradle.internal.declarativedsl.evaluator.schema.DeclarativeScriptContext
 import org.gradle.internal.declarativedsl.evaluator.checks.DocumentCheckFailure
 import org.gradle.internal.declarativedsl.language.SingleFailureResult
 import org.gradle.internal.declarativedsl.objectGraph.AssignmentTraceElement
@@ -28,7 +28,7 @@ sealed interface EvaluationResult<out R : StepResult> {
 
     class NotEvaluated(val stageFailures: List<StageFailure>) : EvaluationResult<Nothing> {
         sealed interface StageFailure {
-            data class NoSchemaAvailable(val scriptContext: RestrictedScriptContext) : StageFailure
+            data class NoSchemaAvailable(val scriptContext: DeclarativeScriptContext) : StageFailure
             object NoParseResult : StageFailure
             data class FailuresInLanguageTree(val failures: List<SingleFailureResult>) : StageFailure
             data class FailuresInResolution(val errors: List<ResolutionError>) : StageFailure

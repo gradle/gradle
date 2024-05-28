@@ -21,7 +21,7 @@ import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepRunner
 import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult
 import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuilder
 import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuildingResult
-import org.gradle.internal.declarativedsl.evaluator.schema.RestrictedScriptContext
+import org.gradle.internal.declarativedsl.evaluator.schema.DeclarativeScriptContext
 import org.gradle.internal.declarativedsl.evaluator.conventions.ConventionApplicationHandler
 import org.gradle.internal.declarativedsl.evaluator.conventions.ConventionDefinitionCollector
 import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepContext
@@ -66,8 +66,8 @@ class SimpleAnalysisEvaluator(
 
     private
     fun scriptContextFromFileName(fileName: String) = when (File(fileName).name) {
-        "build.gradle.dcl" -> RestrictedScriptContext.ProjectScript
-        "settings.gradle.dcl" -> object : RestrictedScriptContext.SettingsScript {}
-        else -> RestrictedScriptContext.UnknownScript
+        "build.gradle.dcl" -> DeclarativeScriptContext.ProjectScript
+        "settings.gradle.dcl" -> object : DeclarativeScriptContext.SettingsScript {}
+        else -> DeclarativeScriptContext.UnknownScript
     }
 }

@@ -28,7 +28,7 @@ import org.gradle.internal.declarativedsl.evaluator.GradleProcessInterpretationS
 import org.gradle.internal.declarativedsl.evaluator.LoadedSettingsScriptContext
 import org.gradle.internal.declarativedsl.evaluator.schema.DefaultEvaluationSchema
 import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuildingResult
-import org.gradle.internal.declarativedsl.evaluator.schema.RestrictedScriptContext
+import org.gradle.internal.declarativedsl.evaluator.schema.DeclarativeScriptContext
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 import org.gradle.tooling.provider.model.ToolingModelBuilder
 import org.gradle.tooling.provider.model.internal.BuildScopeModelBuilder
@@ -48,7 +48,7 @@ class DeclarativeSchemaModelBuilder(private val softwareTypeRegistry: SoftwareTy
 
         val settingsSequence = schemaBuilder.getEvaluationSchemaForScript(settingsContext)
             .sequenceOrError().analysisOnly()
-        val projectSequence = schemaBuilder.getEvaluationSchemaForScript(RestrictedScriptContext.ProjectScript)
+        val projectSequence = schemaBuilder.getEvaluationSchemaForScript(DeclarativeScriptContext.ProjectScript)
             .sequenceOrError().analysisOnly()
 
         return DefaultDeclarativeSchemaModel(settingsSequence, projectSequence)

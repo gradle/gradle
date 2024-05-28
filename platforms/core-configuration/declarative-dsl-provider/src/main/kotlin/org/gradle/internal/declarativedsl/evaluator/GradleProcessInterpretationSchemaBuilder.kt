@@ -23,7 +23,7 @@ import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaB
 import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuildingResult
 import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuildingResult.InterpretationSequenceAvailable
 import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuildingResult.SchemaNotBuilt
-import org.gradle.internal.declarativedsl.evaluator.schema.RestrictedScriptContext
+import org.gradle.internal.declarativedsl.evaluator.schema.DeclarativeScriptContext
 import org.gradle.internal.declarativedsl.project.projectInterpretationSequence
 import org.gradle.internal.declarativedsl.settings.settingsInterpretationSequence
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
@@ -32,18 +32,18 @@ import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 class GradleProcessInterpretationSchemaBuilder(
     private val softwareTypeRegistry: SoftwareTypeRegistry
 ) : InterpretationSchemaBuilder {
-    override fun getEvaluationSchemaForScript(scriptContext: RestrictedScriptContext): InterpretationSchemaBuildingResult =
+    override fun getEvaluationSchemaForScript(scriptContext: DeclarativeScriptContext): InterpretationSchemaBuildingResult =
         when (scriptContext) {
-            is RestrictedScriptContext.UnknownScript -> SchemaNotBuilt
+            is DeclarativeScriptContext.UnknownScript -> SchemaNotBuilt
 
-            is RestrictedScriptContext.SettingsScript -> {
+            is DeclarativeScriptContext.SettingsScript -> {
                 require(scriptContext is LoadedSettingsScriptContext) { "A ${LoadedSettingsScriptContext::class.simpleName} is needed to build the settings schema" }
                 InterpretationSequenceAvailable(
                     settingsInterpretationSequence(scriptContext.settings, scriptContext.targetScope, scriptContext.scriptSource, softwareTypeRegistry)
                 )
             }
 
-            is RestrictedScriptContext.ProjectScript -> InterpretationSequenceAvailable(projectInterpretationSequence)
+            is DeclarativeScriptContext.ProjectScript -> InterpretationSequenceAvailable(projectInterpretationSequence)
         }
 
     private
@@ -55,4 +55,4 @@ data class LoadedSettingsScriptContext(
     val settings: SettingsInternal,
     val targetScope: ClassLoaderScope,
     val scriptSource: ScriptSource
-) : RestrictedScriptContext.SettingsScript
+) : DeclarativeScriptContext.SettingsScript
