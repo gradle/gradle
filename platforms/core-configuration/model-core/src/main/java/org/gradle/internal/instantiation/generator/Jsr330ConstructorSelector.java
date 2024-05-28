@@ -25,7 +25,7 @@ import org.gradle.internal.logging.text.TreeFormatter;
 import java.lang.reflect.Modifier;
 
 class Jsr330ConstructorSelector implements ConstructorSelector {
-    static final String CUSTOM_GRADLE_TASK_DOC_LINK = "Rewrite the class with a constructor injection. " + new DocumentationRegistry().getDocumentationRecommendationFor("information on developing custom gradle task types", "custom_tasks");
+    static final String CUSTOM_GRADLE_TASK_DOC_LINK = "Rewrite the class with a constructor injection. " + new DocumentationRegistry().getDocumentationRecommendationFor("information on developing custom gradle task types", "custom_gradle_types", "service_injection");
 
     private final CrossBuildInMemoryCache<Class<?>, CachedConstructor> constructorCache;
     private final ClassGenerator classGenerator;
