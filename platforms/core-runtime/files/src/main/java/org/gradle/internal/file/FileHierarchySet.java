@@ -133,23 +133,6 @@ public abstract class FileHierarchySet {
             this.rootNode = rootNode;
         }
 
-        @VisibleForTesting
-        List<String> flatten() {
-            final List<String> prefixes = new ArrayList<String>();
-            rootNode.visitHierarchy(0, new NodeVisitor() {
-                @Override
-                public void visitNode(int depth, Node node) {
-                    if (depth == 0) {
-                        prefixes.add(node.prefix);
-                    } else {
-                        prefixes.add(depth + ":" + node.prefix.replace(File.separatorChar, '/'));
-                    }
-
-                }
-            });
-            return prefixes;
-        }
-
         @Override
         public boolean contains(String path) {
             return rootNode.contains(path, 0);
@@ -170,6 +153,7 @@ public abstract class FileHierarchySet {
             return plus(toAbsolutePath(rootDir));
         }
 
+        @SuppressWarnings("ReferenceEquality")
         @Override
         public FileHierarchySet plus(String absolutePath) {
             Node newRoot = rootNode.plus(removeTrailingSeparator(absolutePath));
@@ -248,6 +232,7 @@ public abstract class FileHierarchySet {
             rootNode.visitHierarchy(0, new NodeVisitor() {
                 private boolean first = true;
 
+                @SuppressWarnings("InlineMeInliner")
                 @Override
                 public void visitNode(int depth, Node node) {
                     if (first) {
