@@ -27,6 +27,8 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.workers.internal.ExecuteWorkItemBuildOperationType
 
+import java.util.regex.Pattern
+
 class JavaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReuseIntegrationTest {
     @Override
     String getCompileTaskType() {
@@ -169,7 +171,7 @@ class JavaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReuse
         }.sort {
             // We sort the problems first by operationId and then by details to make the test deterministic
             // In order to make the sorting less error-prone, we delete the test directory path from the details
-            p1, p2 -> return p1.operationId <=> p2.operationId ?: p1.details.replaceAll(testDirectory.toString(), '') <=> p2.details.replaceAll(testDirectory.toString(), '')
+            p1, p2 -> return p1.operationId <=> p2.operationId ?: p1.details.replaceAll(Pattern.quote(testDirectory.toString()), '') <=> p2.details.replaceAll(Pattern.quote(testDirectory.toString()), '')
         }
 
         verifyAll(problems[0]) {
