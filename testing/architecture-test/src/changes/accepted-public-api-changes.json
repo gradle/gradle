@@ -1,0 +1,142 @@
+{
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.plugins.ApplicationPlugin",
+            "member": "Class org.gradle.api.plugins.ApplicationPlugin",
+            "acceptation": "Renamed Application Plugin -> Java Application Plugin",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.ApplicationPlugin",
+            "member": "Constructor org.gradle.api.plugins.ApplicationPlugin()",
+            "acceptation": "Renamed Application Plugin -> Java Application Plugin",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.ApplicationPlugin",
+            "member": "Field APPLICATION_GROUP",
+            "acceptation": "Renamed Application Plugin -> Java Application Plugin",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.ApplicationPlugin",
+            "member": "Field APPLICATION_PLUGIN_NAME",
+            "acceptation": "Renamed Application Plugin -> Java Application Plugin",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.ApplicationPlugin",
+            "member": "Field TASK_DIST_TAR_NAME",
+            "acceptation": "Renamed Application Plugin -> Java Application Plugin",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.ApplicationPlugin",
+            "member": "Field TASK_DIST_ZIP_NAME",
+            "acceptation": "Renamed Application Plugin -> Java Application Plugin",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.ApplicationPlugin",
+            "member": "Field TASK_RUN_NAME",
+            "acceptation": "Renamed Application Plugin -> Java Application Plugin",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.ApplicationPlugin",
+            "member": "Field TASK_START_SCRIPTS_NAME",
+            "acceptation": "Renamed Application Plugin -> Java Application Plugin",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.ApplicationPlugin",
+            "member": "Method org.gradle.api.plugins.ApplicationPlugin.apply(org.gradle.api.Project)",
+            "acceptation": "Renamed Application Plugin -> Java Application Plugin",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaApplicationPlugin",
+            "member": "Class org.gradle.api.plugins.JavaApplicationPlugin",
+            "acceptation": "Renamed Application Plugin -> Java Application Plugin",
+            "changes": [
+                "Interface has been added"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaApplicationPlugin",
+            "member": "Constructor org.gradle.api.plugins.JavaApplicationPlugin()",
+            "acceptation": "Renamed Application Plugin -> Java Application Plugin",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaApplicationPlugin",
+            "member": "Field APPLICATION_GROUP",
+            "acceptation": "Renamed Application Plugin -> Java Application Plugin",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaApplicationPlugin",
+            "member": "Field APPLICATION_PLUGIN_NAME",
+            "acceptation": "Renamed Application Plugin -> Java Application Plugin",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaApplicationPlugin",
+            "member": "Field TASK_DIST_TAR_NAME",
+            "acceptation": "Renamed Application Plugin -> Java Application Plugin",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaApplicationPlugin",
+            "member": "Field TASK_DIST_ZIP_NAME",
+            "acceptation": "Renamed Application Plugin -> Java Application Plugin",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaApplicationPlugin",
+            "member": "Field TASK_RUN_NAME",
+            "acceptation": "Renamed Application Plugin -> Java Application Plugin",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaApplicationPlugin",
+            "member": "Field TASK_START_SCRIPTS_NAME",
+            "acceptation": "Renamed Application Plugin -> Java Application Plugin",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getApplication(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Renamed Application Plugin -> Java Application Plugin",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getJava-application(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Renamed Application Plugin -> Java Application Plugin",
+            "changes": [
+                "Method added to public class"
+            ]
+        }
+    ]
+}
