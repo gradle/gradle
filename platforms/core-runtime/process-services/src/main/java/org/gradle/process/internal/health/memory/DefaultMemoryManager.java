@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 public class DefaultMemoryManager implements MemoryManager, Stoppable {
@@ -79,7 +80,7 @@ public class DefaultMemoryManager implements MemoryManager, Stoppable {
     }
 
     private void start() {
-        scheduler.scheduleAtFixedRate(new MemoryCheck(), STATUS_INTERVAL_SECONDS, STATUS_INTERVAL_SECONDS, TimeUnit.SECONDS);
+        ScheduledFuture<?> ignored = scheduler.scheduleAtFixedRate(new MemoryCheck(), STATUS_INTERVAL_SECONDS, STATUS_INTERVAL_SECONDS, TimeUnit.SECONDS);
         LOGGER.debug("Memory status broadcaster started");
         if (osMemoryStatusSupported) {
             addListener(osMemoryStatusListener);
