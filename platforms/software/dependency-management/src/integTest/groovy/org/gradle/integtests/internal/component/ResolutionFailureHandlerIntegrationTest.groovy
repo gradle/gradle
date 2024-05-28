@@ -100,7 +100,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @ToBeFixedForConfigurationCache
-    def "demonstrate ambiguous graph variant selection failure for externalDep"() {
+    def "demonstrate ambiguous graph variant selection failure with single disambiguating value for externalDep"() {
         ambiguousGraphVariantForExternalDep.prepare()
 
         expect:
@@ -113,22 +113,10 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         assertFullMessageCorrect("""   > Could not resolve com.squareup.okhttp3:okhttp:4.4.0.
      Required by:
          project :
-      > The consumer was configured to find attribute 'org.gradle.category' with value 'documentation'. However we cannot choose between the following variants of com.squareup.okhttp3:okhttp:4.4.0:
-          - javadocElements
-          - sourcesElements
-        All of them match the consumer attributes:
-          - Variant 'javadocElements' capability com.squareup.okhttp3:okhttp:4.4.0 declares attribute 'org.gradle.category' with value 'documentation':
-              - Unmatched attributes:
-                  - Provides org.gradle.dependency.bundling 'external' but the consumer didn't ask for it
-                  - Provides org.gradle.docstype 'javadoc' but the consumer didn't ask for it
-                  - Provides org.gradle.status 'release' but the consumer didn't ask for it
-                  - Provides org.gradle.usage 'java-runtime' but the consumer didn't ask for it
-          - Variant 'sourcesElements' capability com.squareup.okhttp3:okhttp:4.4.0 declares attribute 'org.gradle.category' with value 'documentation':
-              - Unmatched attributes:
-                  - Provides org.gradle.dependency.bundling 'external' but the consumer didn't ask for it
-                  - Provides org.gradle.docstype 'sources' but the consumer didn't ask for it
-                  - Provides org.gradle.status 'release' but the consumer didn't ask for it
-                  - Provides org.gradle.usage 'java-runtime' but the consumer didn't ask for it""")
+      > The consumer was configured to find attribute 'org.gradle.category' with value 'documentation'. There are several available matching variants of com.squareup.okhttp3:okhttp:4.4.0
+        The only attribute distinguishing these variants is 'org.gradle.docstype'. Add this attribute to the consumer's configuration to resolve the ambiguity:
+          - Value: 'javadoc' selects variant: 'javadocElements'
+          - Value: 'sources' selects variant: 'sourcesElements'""")
 
         and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()

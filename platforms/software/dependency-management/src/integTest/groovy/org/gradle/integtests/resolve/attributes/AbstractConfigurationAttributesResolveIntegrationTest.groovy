@@ -22,6 +22,8 @@ import org.gradle.integtests.fixtures.ConfigurationUsageChangingFixture
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
+import static org.gradle.util.internal.TextUtil.toPlatformLineSeparators
+
 @FluidDependenciesResolveTest
 abstract class AbstractConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationSpec implements ConfigurationUsageChangingFixture {
 
@@ -597,7 +599,7 @@ Configuration 'bar' declares attribute 'flavor' with value 'free':
         failure.assertHasDescription("Could not determine the dependencies of task ':a:checkDebug'.")
         failure.assertHasCause("Could not resolve all dependencies for configuration ':a:compile'.")
         failure.assertHasCause("Could not resolve project :b.")
-        failure.assertHasCause("""Cannot choose between the following variants of project :b:
+        failure.assertHasCause("""Cannot choose between the available variants of project :b:
   - bar
   - foo
 All of them match the consumer attributes:
@@ -1032,16 +1034,10 @@ All of them match the consumer attributes:
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause """The consumer was configured to find attribute 'buildType' with value 'debug', attribute 'flavor' with value 'free'. However we cannot choose between the following variants of project :b:
-  - bar
-  - foo
-All of them match the consumer attributes:
-  - Variant 'bar' capability test:b:unspecified declares attribute 'buildType' with value 'debug', attribute 'flavor' with value 'free':
-      - Unmatched attribute:
-          - Provides extra 'extra 2' but the consumer didn't ask for it
-  - Variant 'foo' capability test:b:unspecified declares attribute 'buildType' with value 'debug', attribute 'flavor' with value 'free':
-      - Unmatched attribute:
-          - Provides extra 'extra' but the consumer didn't ask for it"""
+        failure.assertHasCause toPlatformLineSeparators("""The consumer was configured to find attribute 'buildType' with value 'debug', attribute 'flavor' with value 'free'. There are several available matching variants of project :b
+The only attribute distinguishing these variants is 'extra'. Add this attribute to the consumer's configuration to resolve the ambiguity:
+  - Value: 'extra 2' selects variant: 'bar'
+  - Value: 'extra' selects variant: 'foo'""")
     }
 
     /**
@@ -1447,31 +1443,19 @@ All of them match the consumer attributes:
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause """The consumer was configured to find attribute 'buildType' with value 'debug', attribute 'flavor' with value 'free'. However we cannot choose between the following variants of project :c:
-  - foo
-  - foo2
-All of them match the consumer attributes:
-  - Variant 'foo' capability test:c:unspecified declares attribute 'buildType' with value 'debug', attribute 'flavor' with value 'free':
-      - Unmatched attribute:
-          - Provides extra 'extra' but the consumer didn't ask for it
-  - Variant 'foo2' capability test:c:unspecified declares attribute 'buildType' with value 'debug', attribute 'flavor' with value 'free':
-      - Unmatched attribute:
-          - Provides extra 'extra 2' but the consumer didn't ask for it"""
+        failure.assertHasCause toPlatformLineSeparators("""The consumer was configured to find attribute 'buildType' with value 'debug', attribute 'flavor' with value 'free'. There are several available matching variants of project :c
+The only attribute distinguishing these variants is 'extra'. Add this attribute to the consumer's configuration to resolve the ambiguity:
+  - Value: 'extra' selects variant: 'foo'
+  - Value: 'extra 2' selects variant: 'foo2'""")
 
         when:
         fails ':a:checkRelease'
 
         then:
-        failure.assertHasCause """The consumer was configured to find attribute 'buildType' with value 'release', attribute 'flavor' with value 'free'. However we cannot choose between the following variants of project :c:
-  - bar
-  - bar2
-All of them match the consumer attributes:
-  - Variant 'bar' capability test:c:unspecified declares attribute 'buildType' with value 'release', attribute 'flavor' with value 'free':
-      - Unmatched attribute:
-          - Provides extra 'extra' but the consumer didn't ask for it
-  - Variant 'bar2' capability test:c:unspecified declares attribute 'buildType' with value 'release', attribute 'flavor' with value 'free':
-      - Unmatched attribute:
-          - Provides extra 'extra 2' but the consumer didn't ask for it"""
+        failure.assertHasCause toPlatformLineSeparators("""The consumer was configured to find attribute 'buildType' with value 'release', attribute 'flavor' with value 'free'. There are several available matching variants of project :c
+The only attribute distinguishing these variants is 'extra'. Add this attribute to the consumer's configuration to resolve the ambiguity:
+  - Value: 'extra' selects variant: 'bar'
+  - Value: 'extra 2' selects variant: 'bar2'""")
     }
 
     def "context travels down to transitive dependencies with external dependencies in graph"() {

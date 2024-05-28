@@ -70,7 +70,7 @@ public abstract class AmbiguousGraphVariantsFailureDescriber extends AbstractRes
             ambiguousVariants.put(candidate.getDisplayName(), candidate);
         }
         if (failure.getRequestedAttributes().isEmpty()) {
-            formatter.node("Cannot choose between the following variants of ");
+            formatter.node("Cannot choose between the available variants of ");
         } else {
             String node = "The consumer was configured to find " + describer.describeAttributeSet(failure.getRequestedAttributes().asMap());
             if (listAvailableVariants) {
