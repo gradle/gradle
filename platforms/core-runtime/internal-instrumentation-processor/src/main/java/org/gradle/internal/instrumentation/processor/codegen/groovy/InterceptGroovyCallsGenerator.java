@@ -78,6 +78,7 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
             .addTypes(interceptorTypeSpecs);
     }
 
+    @SuppressWarnings("ReturnValueIgnored")
     private static List<TypeSpec> generateInterceptorClasses(Collection<CallInterceptionRequest> interceptionRequests, Consumer<? super HasFailures.FailureInfo> onFailure) {
         List<TypeSpec> result = new ArrayList<>(interceptionRequests.size() / 2);
 
@@ -175,6 +176,7 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
         return requests.stream().anyMatch(it -> it.getInterceptedCallable().getKind() == GROOVY_PROPERTY_GETTER || it.getInterceptedCallable().getKind() == GROOVY_PROPERTY_SETTER);
     }
 
+    @SuppressWarnings("ReturnValueIgnored")
     private static CodeBlock interceptorClassJavadoc(Collection<CallInterceptionRequest> requests) {
         List<CodeBlock> result = new ArrayList<>();
         result.add(CodeBlock.of("Intercepts the following declarations:<ul>"));
