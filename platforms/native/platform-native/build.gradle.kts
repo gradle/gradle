@@ -15,7 +15,6 @@ errorprone {
         "StaticAssignmentInConstructor", // 1 occurrences
         "StringCaseLocaleUsage", // 3 occurrences
         "StringCharset", // 2 occurrences
-        "StringSplitter", // 1 occurrences
         "UnnecessaryTypeArgument", // 2 occurrences
         "UnusedMethod", // 11 occurrences
         "UnusedTypeParameter", // 1 occurrences

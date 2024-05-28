@@ -46,6 +46,7 @@ errorproneExtension.disabledChecks.addAll(
     "InjectOnConstructorOfAbstractClass", // We use abstract injection as a pattern
     "JavaxInjectOnAbstractMethod", // We use abstract injection as a pattern
     "JavaUtilDate", // We are fine with using Date
+    "StringSplitter", // We are fine with using String.split() as is
 )
 
 project.plugins.withType<JavaBasePlugin> {
