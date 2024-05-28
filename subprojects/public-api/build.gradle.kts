@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 
-import com.google.common.base.Strings
 import gradlebuild.basics.capitalize
 import gradlebuild.packaging.transforms.CopyPublicApiClassesTransform
-import org.apache.commons.lang.StringUtils
 
 plugins {
     id("gradlebuild.distribution.packaging")
@@ -49,8 +47,8 @@ dependencies {
     }
 }
 
-fun registerApiJarTask(name: String, dependencies: NamedDomainObjectProvider<Configuration>) {
-    val task = tasks.register<Jar>("jar${name.split("-").map { it.capitalize() }.joinToString("")}") {
+fun registerApiJarTask(artifactName: String, dependencies: NamedDomainObjectProvider<Configuration>) {
+    val task = tasks.register<Jar>("jar${artifactName.split("-").joinToString("") { it.capitalize() }}") {
         from(dependencies.map { classpath ->
             classpath.incoming.artifactView {
                 attributes {
@@ -63,15 +61,42 @@ fun registerApiJarTask(name: String, dependencies: NamedDomainObjectProvider<Con
                 }
             }.files
         })
-        destinationDirectory = layout.buildDirectory.dir("public-api/${name}")
+        destinationDirectory = layout.buildDirectory.dir("public-api/${artifactName}")
     }
 
     publishing {
         publications {
-            create<MavenPublication>(name) {
+            create<MavenPublication>(artifactName) {
                 groupId = "org.gradle.experimental"
-                artifactId = name
+                artifactId = artifactName
                 artifact(task)
+
+                pom {
+                    name = "org.gradle.experimental:${artifactName}"
+                    // TODO Add artifact type in description
+                    description = "Public API for Gradle"
+
+                    // TODO Reuse these from gradlebuild.publish-public-libraries.gradle
+                    url = "https://gradle.org"
+                    licenses {
+                        license {
+                            name = "Apache-2.0"
+                            url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
+                        }
+                    }
+                    developers {
+                        developer {
+                            name = "The Gradle team"
+                            organization = "Gradle Inc."
+                            organizationUrl = "https://gradle.org"
+                        }
+                    }
+                    scm {
+                        connection = "scm:git:git://github.com/gradle/gradle.git"
+                        developerConnection = "scm:git:ssh://github.com:gradle/gradle.git"
+                        url = "https://github.com/gradle/gradle"
+                    }
+                }
             }
         }
     }
