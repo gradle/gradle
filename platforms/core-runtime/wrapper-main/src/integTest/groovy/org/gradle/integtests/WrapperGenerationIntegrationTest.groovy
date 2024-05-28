@@ -35,6 +35,8 @@ import java.util.jar.Manifest
 import static org.hamcrest.CoreMatchers.containsString
 
 class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
+    private static final HashCode EXPECTED_WRAPPER_JAR_HASH = HashCode.fromString("498495120a03b9a6ab5d155f5de3c8f0d986a449153702fb80fc80e134484f17")
+
     def "generated wrapper scripts use correct line separators"() {
         buildFile << """
             wrapper {
@@ -95,7 +97,7 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
         executer.inDirectory(file("second")).withTasks("wrapper").run()
 
         then: "the checksum should be constant (unless there are code changes)"
-        Hashing.sha256().hashFile(file("first/gradle/wrapper/gradle-wrapper.jar")) == HashCode.fromString("cb0da6751c2b753a16ac168bb354870ebb1e162e9083f116729cec9c781156b8")
+        Hashing.sha256().hashFile(file("first/gradle/wrapper/gradle-wrapper.jar")) == EXPECTED_WRAPPER_JAR_HASH
 
         and:
         file("first/gradle/wrapper/gradle-wrapper.jar").md5Hash == file("second/gradle/wrapper/gradle-wrapper.jar").md5Hash
