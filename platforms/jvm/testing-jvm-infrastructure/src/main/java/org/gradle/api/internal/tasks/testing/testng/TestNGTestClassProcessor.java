@@ -115,7 +115,7 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
         if (spec.getThreadCount() > 0) {
             testNg.setThreadCount(spec.getThreadCount());
         }
-
+        setSuiteThreadPoolSize(testNg, spec.getSuiteThreadPoolSize());
         setConfigFailurePolicy(testNg, spec.getConfigFailurePolicy());
         setPreserveOrder(testNg, spec.getPreserveOrder());
         setGroupByInstances(testNg, spec.getGroupByInstances());
@@ -210,6 +210,20 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
             JavaMethod.of(TestNG.class, Object.class, "setExecutorFactoryClass", String.class).invoke(testNg, threadPoolFactoryClass);
         } catch (NoSuchMethodException e) {
             throw new InvalidUserDataException("The version of TestNG used does not support setting thread pool factory class.");
+        }
+    }
+
+    private void setSuiteThreadPoolSize(TestNG testNg, int suiteThreadPoolSize) {
+        if (suiteThreadPoolSize < 1) {
+            throw new InvalidUserDataException("suiteThreadPoolSize must be greater than or equal to 1.");
+        }
+
+        try {
+            JavaMethod.of(TestNG.class, Object.class, "setSuiteThreadPoolSize", int.class).invoke(testNg, suiteThreadPoolSize);
+        } catch (NoSuchMethodException e) {
+            if (suiteThreadPoolSize != 1) {
+                throw new InvalidUserDataException("The version of TestNG used does not support setting thread pool size.");
+            }
         }
     }
 
