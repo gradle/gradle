@@ -17,8 +17,12 @@
 package org.gradle.internal.component.resolution.failure.describer;
 
 import org.gradle.api.attributes.Attribute;
+import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.internal.component.model.AttributeDescriberSelector;
+import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
 import org.gradle.internal.component.resolution.failure.type.VariantAwareAmbiguousResolutionFailure;
+import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -68,8 +72,24 @@ public abstract class MissingAttributeAmbiguousGraphVariantsFailureDescriber ext
         String distinguishingAttribute = suggestableDistinctAttributes.remove(failure);
         assert distinguishingAttribute != null;
 
+        AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(failure.getRequestedAttributes(), schema);
+        TreeFormatter formatter = new TreeFormatter();
+        summarizeAmbiguousVariants(failure, describer, formatter, false);
+        buildSpecificAttributeSuggestionMsg(failure, distinguishingAttribute, formatter);
+        return formatter.toString();
+    }
 
+    private void buildSpecificAttributeSuggestionMsg(VariantAwareAmbiguousResolutionFailure failure, String distinguishingAttribute, TreeFormatter formatter) {
+        formatter.node("The only attribute distinguishing these variants is '" + distinguishingAttribute + "'. Add this attribute to the consumer's configuration to resolve the ambiguity:");
+        formatter.startChildren();
+        failure.getCandidates().forEach(candidate -> formatter.node("Value: '" + attributeValueForCandidate(candidate, distinguishingAttribute) + "' selects variant: '" + candidate.getDisplayName() + "'"));
+        formatter.endChildren();
+    }
 
-        return "I FOUND YOU!";
+    private String attributeValueForCandidate(ResolutionCandidateAssessor.AssessedCandidate candidate, String distinguishingAttribute) {
+        return candidate.getOnlyOnCandidateAttributes().stream()
+            .filter(attribute -> Objects.equals(attribute.getAttribute().getName(), distinguishingAttribute))
+            .map(assessedAttribute -> Objects.requireNonNull(assessedAttribute.getProvided()).toString())
+            .findFirst().orElseThrow(IllegalStateException::new);
     }
 }

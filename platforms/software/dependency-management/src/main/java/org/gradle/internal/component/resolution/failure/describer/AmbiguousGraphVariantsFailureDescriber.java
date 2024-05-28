@@ -50,24 +50,9 @@ public abstract class AmbiguousGraphVariantsFailureDescriber extends AbstractRes
 
     protected String buildAmbiguousGraphVariantsFailureMsg(VariantAwareAmbiguousResolutionFailure failure, AttributesSchemaInternal schema) {
         AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(failure.getRequestedAttributes(), schema);
-
-        Map<String, ResolutionCandidateAssessor.AssessedCandidate> ambiguousVariants = new TreeMap<>();
-        for (ResolutionCandidateAssessor.AssessedCandidate candidate : failure.getCandidates()) {
-            ambiguousVariants.put(candidate.getDisplayName(), candidate);
-        }
         TreeFormatter formatter = new TreeFormatter();
-       if (failure.getRequestedAttributes().isEmpty()) {
-            formatter.node("Cannot choose between the following variants of ");
-        } else {
-            formatter.node("The consumer was configured to find " + describer.describeAttributeSet(failure.getRequestedAttributes().asMap()) + ". However we cannot choose between the following variants of ");
-        }
-        formatter.append(style(StyledTextOutput.Style.Info, failure.getRequestedName()));
-        formatter.startChildren();
-        for (String configuration : ambiguousVariants.keySet()) {
-            formatter.node(configuration);
-        }
-        formatter.endChildren();
-        formatter.node("All of them match the consumer attributes");
+        Map<String, ResolutionCandidateAssessor.AssessedCandidate> ambiguousVariants = summarizeAmbiguousVariants(failure, describer, formatter, true);
+
         // We're sorting the names of the variants and later attributes
         // to make sure the output is consistently the same between invocations
         formatter.startChildren();
@@ -77,6 +62,34 @@ public abstract class AmbiguousGraphVariantsFailureDescriber extends AbstractRes
         formatter.endChildren();
 
         return formatter.toString();
+    }
+
+    protected Map<String, ResolutionCandidateAssessor.AssessedCandidate> summarizeAmbiguousVariants(VariantAwareAmbiguousResolutionFailure failure, AttributeDescriber describer, TreeFormatter formatter, boolean listAvailableVariants) {
+        Map<String, ResolutionCandidateAssessor.AssessedCandidate> ambiguousVariants = new TreeMap<>();
+        for (ResolutionCandidateAssessor.AssessedCandidate candidate : failure.getCandidates()) {
+            ambiguousVariants.put(candidate.getDisplayName(), candidate);
+        }
+        if (failure.getRequestedAttributes().isEmpty()) {
+            formatter.node("Cannot choose between the following variants of ");
+        } else {
+            String node = "The consumer was configured to find " + describer.describeAttributeSet(failure.getRequestedAttributes().asMap());
+            if (listAvailableVariants) {
+                node = node + ". However we cannot choose between the following variants of ";
+            } else {
+                node = node + ". There are several available matching variants of ";
+            }
+            formatter.node(node);
+        }
+        formatter.append(style(StyledTextOutput.Style.Info, failure.getRequestedName()));
+        if (listAvailableVariants) {
+            formatter.startChildren();
+            for (String configuration : ambiguousVariants.keySet()) {
+                formatter.node(configuration);
+            }
+            formatter.endChildren();
+            formatter.node("All of them match the consumer attributes");
+        }
+        return ambiguousVariants;
     }
 
     private void formatUnselectable(

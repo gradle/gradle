@@ -47,25 +47,52 @@ import spock.lang.Ignore
 class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
     // region resolution failures
     // region Graph Variant failures
-    def "demonstrate ambiguous graph variant selection failure for project"() {
-        ambiguousGraphVariantForProject.prepare()
+    def "demonstrate ambiguous graph variant selection failure with single disambiguating value for project"() {
+        ambiguousGraphVariantForProjectWithSingleDisambiguatingAttribute.prepare()
 
         expect:
-        assertResolutionFailsAsExpected(ambiguousGraphVariantForProject)
+        assertResolutionFailsAsExpected(ambiguousGraphVariantForProjectWithSingleDisambiguatingAttribute)
+
+        and: "Has error output"
+        failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
+        failure.assertHasCause("Could not resolve project :.")
+        assertFullMessageCorrect("""      > The consumer was configured to find attribute 'color' with value 'blue'. There are several available matching variants of project :
+        The only attribute distinguishing these variants is 'shape'. Add this attribute to the consumer's configuration to resolve the ambiguity:
+          - Value: 'round' selects variant: 'blueRoundElements'
+          - Value: 'square' selects variant: 'blueSquareElements'
+          - Value: 'triangle' selects variant: 'blueTriangleElements'""")
+        and: "Helpful resolutions are provided"
+        assertSuggestsReviewingAlgorithm()
+        assertSuggestsViewingDocs("Ambiguity errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-ambiguity.")
+    }
+
+    def "demonstrate ambiguous graph variant without single disambiguating value selection failure for project"() {
+        ambiguousGraphVariantForProjectWithoutSingleDisambiguatingAttribute.prepare()
+
+        expect:
+        assertResolutionFailsAsExpected(ambiguousGraphVariantForProjectWithSingleDisambiguatingAttribute)
 
         and: "Has error output"
         failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
         failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
         failure.assertHasCause("Could not resolve project :.")
         assertFullMessageCorrect("""      > The consumer was configured to find attribute 'color' with value 'blue'. However we cannot choose between the following variants of project ::
-          - blueRoundElements
-          - blueSquareElements
+          - blueRoundTransparentElements
+          - blueSquareOpaqueElements
+          - blueSquareTransparentElements
         All of them match the consumer attributes:
-          - Variant 'blueRoundElements' capability :${temporaryFolder.getTestDirectory().getName()}:unspecified declares attribute 'color' with value 'blue':
-              - Unmatched attribute:
+          - Variant 'blueRoundTransparentElements' capability :${temporaryFolder.getTestDirectory().getName()}:unspecified declares attribute 'color' with value 'blue':
+              - Unmatched attributes:
+                  - Provides opacity 'transparent' but the consumer didn't ask for it
                   - Provides shape 'round' but the consumer didn't ask for it
-          - Variant 'blueSquareElements' capability :${temporaryFolder.getTestDirectory().getName()}:unspecified declares attribute 'color' with value 'blue':
-              - Unmatched attribute:
+          - Variant 'blueSquareOpaqueElements' capability :${temporaryFolder.getTestDirectory().getName()}:unspecified declares attribute 'color' with value 'blue':
+              - Unmatched attributes:
+                  - Provides opacity 'opaque' but the consumer didn't ask for it
+                  - Provides shape 'square' but the consumer didn't ask for it
+          - Variant 'blueSquareTransparentElements' capability :${temporaryFolder.getTestDirectory().getName()}:unspecified declares attribute 'color' with value 'blue':
+              - Unmatched attributes:
+                  - Provides opacity 'transparent' but the consumer didn't ask for it
                   - Provides shape 'square' but the consumer didn't ask for it""")
         and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
@@ -421,7 +448,8 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    private final Demonstration ambiguousGraphVariantForProject = new Demonstration("Ambiguous graph variant (project)", VariantSelectionException.class, VariantAwareAmbiguousResolutionFailure.class, this.&setupAmbiguousGraphVariantFailureForProject)
+    private final Demonstration ambiguousGraphVariantForProjectWithSingleDisambiguatingAttribute = new Demonstration("Ambiguous graph variant (project with single disambiguating attribute)", VariantSelectionException.class, VariantAwareAmbiguousResolutionFailure.class, this.&setupAmbiguousGraphVariantFailureForProjectWithSingleDisambiguatingAttribute)
+    private final Demonstration ambiguousGraphVariantForProjectWithoutSingleDisambiguatingAttribute = new Demonstration("Ambiguous graph variant (project without single disambiguating attribute)", VariantSelectionException.class, VariantAwareAmbiguousResolutionFailure.class, this.&setupAmbiguousGraphVariantFailureForProjectWithoutSingleDisambiguatingAttribute)
     private final Demonstration ambiguousGraphVariantForExternalDep = new Demonstration("Ambiguous graph variant (external)", VariantSelectionException.class, VariantAwareAmbiguousResolutionFailure.class, this.&setupAmbiguousGraphVariantFailureForExternalDep)
     private final Demonstration noMatchingGraphVariantsForProject = new Demonstration("No matching graph variants (project dependency)", VariantSelectionException.class, IncompatibleGraphVariantFailure.class, this.&setupNoMatchingGraphVariantsFailureForProject)
     private final Demonstration noMatchingGraphVariantsForExternalDep = new Demonstration("No matching graph variants (external dependency)", VariantSelectionException.class, IncompatibleGraphVariantFailure.class, this.&setupNoMatchingGraphVariantsFailureForExternalDep)
@@ -438,7 +466,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
     private final Demonstration ambiguousArtifactVariants = new Demonstration("Ambiguous artifact variants", ArtifactVariantSelectionException.class, AmbiguousResolutionFailure.class, this.&setupAmbiguousArtifactVariantsFailureForProject)
 
     private final List<Demonstration> demonstrations = [
-        ambiguousGraphVariantForProject,
+        ambiguousGraphVariantForProjectWithSingleDisambiguatingAttribute,
         ambiguousGraphVariantForExternalDep,
         noMatchingGraphVariantsForProject,
         noMatchingGraphVariantsForExternalDep,
@@ -623,7 +651,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    private void setupAmbiguousGraphVariantFailureForProject() {
+    private void setupAmbiguousGraphVariantFailureForProjectWithSingleDisambiguatingAttribute() {
         buildKotlinFile <<  """
             val color = Attribute.of("color", String::class.java)
             val shape = Attribute.of("shape", String::class.java)
@@ -636,6 +664,49 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
                 consumable("blueSquareElements") {
                     attributes.attribute(color, "blue")
                     attributes.attribute(shape, "square")
+                }
+                consumable("blueTriangleElements") {
+                    attributes.attribute(color, "blue")
+                    attributes.attribute(shape, "triangle")
+                }
+
+                dependencyScope("blueFilesDependencies")
+
+                resolvable("resolveMe") {
+                    extendsFrom(configurations.getByName("blueFilesDependencies"))
+                    attributes.attribute(color, "blue")
+                }
+            }
+
+            dependencies {
+                add("blueFilesDependencies", project(":"))
+            }
+
+            ${forceConsumerResolution()}
+        """
+    }
+
+    private void setupAmbiguousGraphVariantFailureForProjectWithoutSingleDisambiguatingAttribute() {
+        buildKotlinFile << """
+            val color = Attribute.of("color", String::class.java)
+            val shape = Attribute.of("shape", String::class.java)
+            val opacity = Attribute.of("opacity", String::class.java)
+
+            configurations {
+                consumable("blueRoundTransparentElements") {
+                    attributes.attribute(color, "blue")
+                    attributes.attribute(shape, "round")
+                    attributes.attribute(opacity, "transparent")
+                }
+                consumable("blueSquareOpaqueElements") {
+                    attributes.attribute(color, "blue")
+                    attributes.attribute(shape, "square")
+                    attributes.attribute(opacity, "opaque")
+                }
+                consumable("blueSquareTransparentElements") {
+                    attributes.attribute(color, "blue")
+                    attributes.attribute(shape, "square")
+                    attributes.attribute(opacity, "transparent")
                 }
 
                 dependencyScope("blueFilesDependencies")
