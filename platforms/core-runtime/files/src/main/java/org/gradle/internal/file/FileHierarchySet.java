@@ -16,6 +16,7 @@
 
 package org.gradle.internal.file;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 
@@ -116,7 +117,8 @@ public abstract class FileHierarchySet {
         }
     };
 
-    private static class PrefixFileSet extends FileHierarchySet {
+    @VisibleForTesting
+    static class PrefixFileSet extends FileHierarchySet {
         private final Node rootNode;
 
         PrefixFileSet(File rootDir) {
@@ -130,6 +132,23 @@ public abstract class FileHierarchySet {
 
         PrefixFileSet(Node rootNode) {
             this.rootNode = rootNode;
+        }
+
+        @VisibleForTesting
+        List<String> flatten() {
+            final List<String> prefixes = new ArrayList<String>();
+            rootNode.visitHierarchy(0, new NodeVisitor() {
+                @Override
+                public void visitNode(int depth, Node node) {
+                    if (depth == 0) {
+                        prefixes.add(node.prefix);
+                    } else {
+                        prefixes.add(depth + ":" + node.prefix.replace(File.separatorChar, '/'));
+                    }
+
+                }
+            });
+            return prefixes;
         }
 
         @Override
