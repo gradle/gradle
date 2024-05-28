@@ -76,6 +76,17 @@ fun registerApiJarTask(artifactName: String, dependencies: NamedDomainObjectProv
                     // TODO Add artifact type in description
                     description = "Public API for Gradle"
 
+                    // TODO Can we do this in a CC-compatible way?
+                    withXml {
+                        val dependenciesNode = asNode().appendNode("dependencies")
+                        // TODO Handle this via resolved dependencies
+                        dependenciesNode.appendNode("dependency").apply {
+                            appendNode("groupId", libs.groovyGroup)
+                            appendNode("artifactId", "groovy")
+                            appendNode("version", libs.groovyVersion)
+                        }
+                    }
+
                     // TODO Reuse these from gradlebuild.publish-public-libraries.gradle
                     url = "https://gradle.org"
                     licenses {
