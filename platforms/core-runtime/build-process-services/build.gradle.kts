@@ -4,12 +4,6 @@ plugins {
 
 description = "Services and types used to setup a build process from a Gradle distribution."
 
-errorprone {
-    disabledChecks.addAll(
-        "StringSplitter",
-    )
-}
-
 dependencies {
     api(project(":java-language-extensions"))
     api(project(":base-services"))
