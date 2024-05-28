@@ -323,7 +323,7 @@ public enum JavaVersion {
     }
 
     /**
-     * Returns the major version number as a {@link String}
+     * Returns the major version number as a {@link String}.
      *
      * @see #getMajorVersionNumber() for the integer value
      * @since 1.8
@@ -333,7 +333,7 @@ public enum JavaVersion {
     }
 
     /**
-     * Returns the major version number
+     * Returns the major version number.
      *
      * @see #getMajorVersion() for the string value
      * @since 8.9
