@@ -60,10 +60,10 @@ class JavaExecToolchainIntegrationTest extends AbstractIntegrationSpec implement
 
         where:
         type           | jdk                             | plugin
-        'differentJdk' | AvailableJavaHomes.differentJdk | 'java-base'
-        'current'      | Jvm.current()                   | 'java-base'
-        'differentJdk' | AvailableJavaHomes.differentJdk | 'jvm-toolchains'
-        'current'      | Jvm.current()                   | 'jvm-toolchains'
+        'differentJdk' | AvailableJavaHomes.differentVersion | 'java-base'
+        'current'      | Jvm.current()                       | 'java-base'
+        'differentJdk' | AvailableJavaHomes.differentVersion | 'jvm-toolchains'
+        'current'      | Jvm.current()                       | 'jvm-toolchains'
     }
 
     def "fails on toolchain and executable mismatch (with application plugin)"() {
