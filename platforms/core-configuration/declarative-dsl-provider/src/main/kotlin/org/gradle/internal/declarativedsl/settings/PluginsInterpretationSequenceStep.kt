@@ -20,6 +20,7 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.plugins.PluginManagerInternal
 import org.gradle.declarative.dsl.evaluation.AnalysisStatementFilter
+import org.gradle.declarative.dsl.evaluation.InterpretationSequenceStep.StepIdentifier
 import org.gradle.declarative.dsl.evaluation.InterpretationStepFeature
 import org.gradle.declarative.dsl.evaluation.OperationGenerationId
 import org.gradle.groovy.scripts.ScriptSource
@@ -30,6 +31,7 @@ import org.gradle.internal.declarativedsl.analysis.DefaultOperationGenerationId
 import org.gradle.internal.declarativedsl.analysis.and
 import org.gradle.internal.declarativedsl.analysis.implies
 import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
+import org.gradle.internal.declarativedsl.evaluationSchema.DefaultStepIdentifier
 import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationAndConversionSchema
 import org.gradle.internal.declarativedsl.evaluator.conversion.EvaluationAndConversionSchema
 import org.gradle.internal.declarativedsl.evaluator.conversion.InterpretationSequenceStepWithConversion
@@ -44,12 +46,15 @@ import org.gradle.plugin.use.internal.PluginRequestApplicator
 
 internal
 class PluginsInterpretationSequenceStep(
-    override val stepIdentifier: String = "plugins",
+    stepIdentifierString: String = "plugins",
     override val assignmentGeneration: OperationGenerationId = DefaultOperationGenerationId.finalEvaluation,
     private val targetScope: ClassLoaderScope,
     private val scriptSource: ScriptSource,
     private val getTargetServices: () -> ServiceRegistry,
 ) : InterpretationSequenceStepWithConversion<PluginsTopLevelReceiver> {
+
+    override val stepIdentifier: StepIdentifier = DefaultStepIdentifier(stepIdentifierString)
+
     override val evaluationSchemaForStep: EvaluationAndConversionSchema
         get() = buildEvaluationAndConversionSchema(PluginsTopLevelReceiver::class, isTopLevelPluginsBlock) {
             gradleDslGeneralSchema()

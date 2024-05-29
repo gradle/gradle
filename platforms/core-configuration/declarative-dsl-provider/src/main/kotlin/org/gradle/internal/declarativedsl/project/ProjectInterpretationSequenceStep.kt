@@ -28,7 +28,7 @@ import org.gradle.plugin.software.internal.SoftwareTypeRegistry
  */
 internal
 fun projectInterpretationSequenceStep(softwareTypeRegistry: SoftwareTypeRegistry) = SimpleInterpretationSequenceStepWithConversion(
-    stepIdentifier = "project",
+    "project",
     assignmentGeneration = DefaultOperationGenerationId.finalEvaluation,
     features = setOf(ConventionApplication()),
 ) {

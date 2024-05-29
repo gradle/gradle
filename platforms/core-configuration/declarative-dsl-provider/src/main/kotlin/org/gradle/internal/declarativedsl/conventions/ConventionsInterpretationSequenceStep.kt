@@ -35,7 +35,7 @@ import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 
 internal
 fun conventionsDefinitionInterpretationSequenceStep(softwareTypeRegistry: SoftwareTypeRegistry) = SimpleInterpretationSequenceStep(
-    stepIdentifier = "settingsConventions",
+    "settingsConventions",
     assignmentGeneration = DefaultOperationGenerationId.convention,
     features = setOf(ConventionDefinition()),
     buildEvaluationAndConversionSchema = { conventionsEvaluationSchema(softwareTypeRegistry) }

@@ -83,13 +83,13 @@ class StoringInterpretationSchemaBuilder(
         private val step: InterpretationSequenceStep,
         val schemaHandler: (schemaId: String, schema: AnalysisSchema) -> Unit
     ) : InterpretationSequenceStep {
-        override val stepIdentifier: String = step.stepIdentifier
+        override val stepIdentifier: InterpretationSequenceStep.StepIdentifier = step.stepIdentifier
         override val assignmentGeneration: OperationGenerationId = step.assignmentGeneration
         override val features: Set<InterpretationStepFeature>
             get() = step.features
 
         override val evaluationSchemaForStep: EvaluationSchema by lazy {
-            step.evaluationSchemaForStep.also { schemaHandler(stepIdentifier, it.analysisSchema) }
+            step.evaluationSchemaForStep.also { schemaHandler(stepIdentifier.key, it.analysisSchema) }
         }
     }
 
@@ -99,7 +99,7 @@ class StoringInterpretationSchemaBuilder(
         schemaHandler: (schemaId: String, schema: AnalysisSchema) -> Unit
     ) : SchemaHandlingInterpretationSequenceStep(step, schemaHandler), InterpretationSequenceStepWithConversion<R> {
         override val evaluationSchemaForStep: EvaluationAndConversionSchema by lazy {
-            step.evaluationSchemaForStep.also { schemaHandler(stepIdentifier, it.analysisSchema) }
+            step.evaluationSchemaForStep.also { schemaHandler(stepIdentifier.key, it.analysisSchema) }
         }
         override fun getTopLevelReceiverFromTarget(target: Any): R = step.getTopLevelReceiverFromTarget(target)
         override fun whenEvaluated(resultReceiver: R) = step.whenEvaluated(resultReceiver)

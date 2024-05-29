@@ -17,6 +17,7 @@
 package org.gradle.internal.declarativedsl.evaluator.main
 
 import org.gradle.declarative.dsl.evaluation.InterpretationSequence
+import org.gradle.declarative.dsl.evaluation.InterpretationSequenceStep
 import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepRunner
 import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult
 import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuilder
@@ -52,7 +53,7 @@ class SimpleAnalysisEvaluator(
     fun evaluate(
         scriptFileName: String,
         scriptSource: String
-    ): Map<String, EvaluationResult<AnalysisStepResult>> {
+    ): Map<InterpretationSequenceStep.StepIdentifier, EvaluationResult<AnalysisStepResult>> {
         val scriptContext = scriptContextFromFileName(scriptFileName)
         return when (val built = schemaBuilder.getEvaluationSchemaForScript(scriptContext)) {
             InterpretationSchemaBuildingResult.SchemaNotBuilt -> emptyMap()

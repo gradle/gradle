@@ -116,8 +116,8 @@ class DeclarativeDslToolingModelsCrossVersionTest extends ToolingApiSpecificatio
         def settings = evaluator.evaluate("settings.gradle.dcl", file("settings.gradle.dcl").text)
         def project = evaluator.evaluate("build.gradle.dcl", file("build.gradle.dcl").text)
 
-        ["settingsPluginManagement", "settingsPlugins", "settingsConventions", "settings"].toSet() == settings.keySet()
-        ["project"].toSet() == project.keySet()
+        ["settingsPluginManagement", "settingsPlugins", "settingsConventions", "settings"].toSet() == settings.keySet().collect { it.key }.toSet()
+        ["project"].toSet() == project.keySet().collect { it.key }.toSet()
 
         and: 'conventions get properly applied'
         ((project.values()[0] as EvaluationResult.Evaluated).stepResult as AnalysisStepResult).assignmentTrace.resolvedAssignments.entrySet().any {
