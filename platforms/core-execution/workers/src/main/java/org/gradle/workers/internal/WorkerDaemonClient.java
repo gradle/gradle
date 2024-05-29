@@ -62,6 +62,10 @@ class WorkerDaemonClient implements Stoppable, Describable {
         workerClient.stop();
     }
 
+    public void kill() {
+        workerClient.stopNow();
+    }
+
     DaemonForkOptions getForkOptions() {
         return forkOptions;
     }

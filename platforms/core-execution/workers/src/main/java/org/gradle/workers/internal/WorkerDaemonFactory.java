@@ -30,9 +30,10 @@ public class WorkerDaemonFactory implements WorkerFactory {
     private final WorkerDaemonClientsManager clientsManager;
     private final BuildOperationRunner buildOperationRunner;
 
-    public WorkerDaemonFactory(WorkerDaemonClientsManager clientsManager, BuildOperationRunner buildOperationRunner) {
+    public WorkerDaemonFactory(WorkerDaemonClientsManager clientsManager, BuildOperationRunner buildOperationRunner, WorkerDaemonClientSessionHandler workerDaemonClientSessionHandler) {
         this.clientsManager = clientsManager;
         this.buildOperationRunner = buildOperationRunner;
+        workerDaemonClientSessionHandler.start();
     }
 
     @Override

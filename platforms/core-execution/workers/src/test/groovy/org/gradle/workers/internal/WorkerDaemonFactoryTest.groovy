@@ -28,8 +28,9 @@ class WorkerDaemonFactoryTest extends Specification {
     def client = Mock(WorkerDaemonClient)
     def buildOperationRunner = Mock(BuildOperationRunner)
     def buildOperation = Mock(BuildOperationRef)
+    def workerDaemonClientSessionHandler = Mock(WorkerDaemonClientSessionHandler)
 
-    @Subject factory = new WorkerDaemonFactory(clientsManager, buildOperationRunner)
+    @Subject factory = new WorkerDaemonFactory(clientsManager, buildOperationRunner, workerDaemonClientSessionHandler)
 
     def workingDir = new File("some-dir")
     def projectCacheDir = new File("some-cache-dir")
