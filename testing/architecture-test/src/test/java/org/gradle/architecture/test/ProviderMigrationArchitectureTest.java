@@ -33,17 +33,22 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.launcher.cli.WelcomeMessageConfiguration;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.resources.TextResource;
+import org.gradle.internal.instrumentation.api.annotations.ToBeKeptEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.reflect.PropertyAccessorType;
+import org.gradle.model.ModelElement;
 
 import javax.inject.Inject;
 
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
 import static com.tngtech.archunit.core.domain.JavaMember.Predicates.declaredIn;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.annotatedWith;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
@@ -127,6 +132,38 @@ public class ProviderMigrationArchitectureTest {
     public static final ArchRule public_api_task_properties_should_not_use_text_resources = freeze(methods()
         .that(are(task_properties))
         .should().notHaveRawReturnType(TextResource.class));
+
+    @ArchTest
+    public static final ArchRule public_api_properties_should_have_migration_annotation = freeze(methods()
+        .that(are(mutable_public_API_properties.or(task_properties))
+            // We won't upgrade deprecated methods and classes
+            .and(not(annotatedWith(Deprecated.class)))
+            .and(not(declaredIn(annotatedWith(Deprecated.class))))
+            // A lazy type
+            .and(not(declaredIn(ConfigurableFileTree.class)))
+            // Exceptions should not be upgraded
+            .and(not(declaredIn(assignableTo(Exception.class))))
+            // Dependency management
+            .and(not(declaredIn(resideInAPackage("org.gradle.api.artifacts.."))))
+            .and(not(declaredIn(resideInAPackage("org.gradle.api.attributes"))))
+            // Software model
+            .and(not(declaredIn(assignableTo(ModelElement.class))))
+            // IDE Plugins
+            .and(not(declaredIn(resideInAPackage("org.gradle.ide.."))))
+            .and(not(declaredIn(resideInAPackage("org.gradle.plugins.ide.."))))
+            // Kotlin DSL
+            .and(not(declaredIn(resideInAPackage("org.gradle.kotlin.dsl"))))
+            // Native
+            .and(not(declaredIn(resideInAPackage("org.gradle.nativeplatform.."))))
+            .and(not(declaredIn(resideInAPackage("org.gradle.language.nativeplatform.."))))
+            .and(not(declaredIn(resideInAPackage("org.gradle.language.swift.."))))
+            .and(not(declaredIn(resideInAPackage("org.gradle.language.rc.."))))
+            .and(not(declaredIn(resideInAPackage("org.gradle.language.assembler.."))))
+        )
+        .and().doNotHaveRawReturnType(assignableTo(Provider.class))
+        .and().doNotHaveRawReturnType(assignableTo(ConfigurableFileCollection.class))
+        .should().beAnnotatedWith(ToBeReplacedByLazyProperty.class)
+        .orShould().beAnnotatedWith(ToBeKeptEagerProperty.class));
 
     private static HaveLazyReturnType haveProviderReturnType() {
         return new HaveLazyReturnType(Property.class, Provider.class);
