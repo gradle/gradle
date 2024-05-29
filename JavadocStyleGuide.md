@@ -9,18 +9,15 @@ The basic formatting of Javadoc blocks is as seen in this example:
 ```java
 /**
  * Returns an Image object that can then be painted on the screen.
- * The url argument must specify an absolute <a href="#{@link}">{@link URL}</a>. The name
- * argument is a specifier that is relative to the url argument.
  * <p>
- * This method always returns immediately, whether or not the
- * image exists. When this applet attempts to draw the image on
- * the screen, the data will be loaded. The graphics primitives
- * that draw the image will incrementally paint on the screen.
+ * The url argument must specify an absolute <a href="#{@link}">{@link URL}</a>. 
+ * The name argument is a specifier that is relative to the url argument.
+ * This method always returns immediately, whether or not the image exists. 
  *
- * @param  url  an absolute URL giving the base location of the image
- * @param  name the location of the image, relative to the url argument
- * @return      the image at the specified URL
- * @see         Image
+ * @param url an absolute URL giving the base location of the image
+ * @param name the location of the image, relative to the url argument
+ * @return the image at the specified URL
+ * @see Image
  */
 public Image getImage(URL url, String name) {
    try {
@@ -34,6 +31,7 @@ public Image getImage(URL url, String name) {
 Basic formatting rules:
 
 - The first line contains the begin-comment delimiter ( `/**`).
+- The first sentence is a summary.
 - Notice the inline tag `{@link URL}`, which converts to an HTML hyperlink pointing to the documentation for the URL class.
 - If you have more than one paragraph in the doc comment, separate the paragraphs with a `<p>` paragraph tag, as shown.
 - Insert a blank comment line between the description and the list of tags, as shown.
@@ -63,16 +61,7 @@ One blank line—that is, a line containing only the aligned leading asterisk (`
  */
 ```
 
-Each paragraph except the first has `<p>` immediately before the first word, with no space after it:
-
-```java
-/**
- * argument is a specifier that is relative to the url argument.
- * <p>This method always returns immediately, whether or not the
- */
-```
-
-Alternatively, a `<p>` can be placed on a separate line:
+Each paragraph is denoted by a `<p>` which is placed on a separate line:
 
 ```java
 /**
@@ -100,9 +89,10 @@ Similarly, the ampersand (&) should be written as `&amp;`.
 
 ```java
 /**
- * The url argument must specify an absolute <a href="#{@link}">{@link URL}</a>. The name
+ * This &amp; that.
  */
 ```
+
 ### 1.1.5 Links
 
 The `{@link <class or method reference>}` tag is specifically used to link to the Javadoc of other classes and methods. 
@@ -110,7 +100,7 @@ This is an inline tag that converts to an HTML hyperlink pointing to the documen
 
 ```java
 /**
- * This &amp; that.
+ * The url argument must specify an absolute <a href="#{@link}">{@link URL}</a>. The name
  */
 ```
 
@@ -134,7 +124,7 @@ Use `<code>...</code>` style for keywords and names including:
 
 ### 1.1.7 Block tags
 
-Any of the standard "block tags" that are used appear in the order `@param`, `@return`, `@throw`s`, `@deprecated`, and these four types never appear with an empty description:
+Any of the standard "block tags" that are used appear in the order `@param`, `@return`, `@throws`, `@deprecated`, and these four types never appear with an empty description:
 
 ```java
 /**
@@ -151,24 +141,26 @@ Full list of tags (in order):
 |---|---------------|--------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------|
 | 1 | `@param`      | Methods and constructors only                                                  | Include this if applicable                                                                 |
 | 2 | `@return`     | Methods only                                                                   | Include this if applicable                                                                 |
-| 3 | `@exception`  | Same as `@throws`                                                              | Include this if applicable                                                                 |
+| 3 | `@throws`  | Same as `@exception`                                                              | Include this if applicable                                                                 |
 | 4 | `@see`        | Adds a “See Also” heading with a link or text entry that points to a reference | `@see string`<br>`@see <a href=”URL#value”>label</a>`<br>`@see package.class#member label` |
 | 5 | `@since`      | Adds a “Since” heading                                                         | Include the Gradle version if applicable                                                   |
 | 6 | `@deprecated` | Adds a comment indicating that this API should no longer be used               | Make sure to have an alternative API linked                                                |
 
 Custom Gradle tags:
 
-| # | Tag            | Usage                                        | Notes                                            |
-|---|----------------|----------------------------------------------|--------------------------------------------------|
-| 1 | `@apiNote`     | Adds a “API Note” heading                    | Describe interesting details about the API       |
-| 2 | `@implSpec`    | Adds a “Implementation Requirements” heading | Describe what we expect the plugin author to do  |
-| 3 | `@implNote`    | Adds a “Implementation Note” heading         | Describe the implementation provided by Gradle   |
+| # | Tag         | Usage                                        | Notes                                                                                                                                                                                                               |
+|---|-------------|----------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 1 | `@apiSpec`  | Adds a “API Requirements” heading            | A description that applies equally to all valid implementations of the method, including preconditions, postconditions, etc.                                                                                        |
+| 2 | `@apiNote`  | Adds a “API Note” heading                    | A commentary, rationale, or example pertaining to the API.                                                                                                                                                          |
+| 3 | `@implSpec` | Adds a “Implementation Requirements” heading | This is where the default implementation (or an overrideable implementation in a class) is specified.                                                                                                               |
+| 4 | `@implNote` | Adds a “Implementation Note” heading         | This section contains informative notes about the implementation, such as advice to implementors, or performance characteristics that are specific to the implementation in this class of this version of the JDK.  |
 
 When a block tag doesn't fit on a single line, continuation lines are indented four (or more) spaces from the position of the `@`.
 
 ## 1.2 The summary fragment
 
-Each Javadoc block begins with a brief summary fragment. 
+Each Javadoc block begins with a brief summary fragment - this is the first sentence up until the character `.` is encountered.
+
 This fragment is very important: it is the only part of the text that appears in certain contexts such as class and method indexes:
 
 ```java
@@ -220,4 +212,29 @@ At the minimum, Javadoc is present for every public class, and every public or p
 
 ```java
 public Image getImage(URL url, String name) {}
+```
+
+## 1.5 A note on IDEs
+
+IntelliJ IDEA will display <p> or an empty * as a new line:
+
+```java
+/**
+ * A
+ *              // <- this will be rendered as <br>
+ * B
+ ```
+
+```java
+/**
+ * A
+ * <p>
+ * B
+ ```
+
+Render as:
+
+```text
+A
+B
 ```
