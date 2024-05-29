@@ -798,8 +798,6 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
 
         protected abstract Type[] getParameterTypes();
 
-        protected abstract Member getFactory();
-
         protected abstract String getFactoryDisplayName();
 
         @Override
@@ -911,8 +909,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
             return method.getParameterTypes();
         }
 
-        @Override
-        protected Member getFactory() {
+        private Member getFactory() {
             return method.getMethod();
         }
 
@@ -992,8 +989,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
             return constructor.getGenericParameterTypes();
         }
 
-        @Override
-        protected Member getFactory() {
+        private Member getFactory() {
             return constructor;
         }
 

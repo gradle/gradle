@@ -89,7 +89,7 @@ public abstract class AbstractInstrumentationProcessor extends AbstractProcessor
             .flatMap(element -> findActualTypesToVisit(element).stream())
             .sorted(Comparator.comparing(AbstractInstrumentationProcessor::elementQualifiedName));
         collectAndProcessRequests(annotatedTypes);
-        return true;
+        return false;
     }
 
     private Set<Element> findActualTypesToVisit(Element typeElement) {

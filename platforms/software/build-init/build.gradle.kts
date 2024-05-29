@@ -16,7 +16,6 @@ errorprone {
         "InconsistentCapitalization", // 1 occurrences
         "ReferenceEquality", // 1 occurrences
         "StringCaseLocaleUsage", // 5 occurrences
-        "StringSplitter", // 4 occurrences
         "UnusedMethod", // 1 occurrences
     )
 }

@@ -8,7 +8,6 @@ errorprone {
     disabledChecks.addAll(
         "NotJavadoc", // 1 occurrences
         "StringCaseLocaleUsage", // 1 occurrences
-        "StringSplitter", // 1 occurrences
         "UnusedMethod", // 2 occurrences
         "UnusedVariable", // 1 occurrences
     )

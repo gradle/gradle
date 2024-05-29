@@ -69,6 +69,7 @@ import java.lang.reflect.Proxy;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.EnumSet;
+import java.util.Locale;
 import java.util.Map;
 
 import static org.gradle.internal.nativeintegration.filesystem.services.JdkFallbackHelper.newInstanceOrFallback;
@@ -232,7 +233,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
                 LOGGER.debug("Native-platform is not available.", ex);
                 useNativeIntegrations = false;
             } catch (NativeException ex) {
-                if (ex.getCause() instanceof UnsatisfiedLinkError && ex.getCause().getMessage().toLowerCase().contains("already loaded in another classloader")) {
+                if (ex.getCause() instanceof UnsatisfiedLinkError && ex.getCause().getMessage().toLowerCase(Locale.ROOT).contains("already loaded in another classloader")) {
                     LOGGER.debug("Unable to initialize native-platform. Failure: {}", format(ex));
                     useNativeIntegrations = false;
                 } else if (ex.getMessage().equals("Could not extract native JNI library.")

@@ -26,6 +26,7 @@ public final class LogLevelMapping {
     private LogLevelMapping() {
     }
 
+    @SuppressWarnings("DoubleBraceInitialization")
     public static final Map<Integer, LogLevel> ANT_IVY_2_SLF4J = new HashMap<Integer, LogLevel>() {
         {
             // Project is `org.apache.tools.ant.Project`

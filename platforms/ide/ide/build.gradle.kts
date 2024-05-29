@@ -10,7 +10,6 @@ errorprone {
         "LoopOverCharArray", // 1 occurrences
         "ObjectEqualsForPrimitives", // 3 occurrences
         "StringCaseLocaleUsage", // 2 occurrences
-        "StringSplitter", // 1 occurrences
     )
 }
 

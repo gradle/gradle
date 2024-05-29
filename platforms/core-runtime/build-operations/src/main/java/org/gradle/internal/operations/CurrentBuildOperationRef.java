@@ -25,6 +25,7 @@ public class CurrentBuildOperationRef {
 
     private static final CurrentBuildOperationRef INSTANCE = new CurrentBuildOperationRef();
 
+    @SuppressWarnings("ThreadLocalUsage")
     private final ThreadLocal<BuildOperationRef> ref = new ThreadLocal<BuildOperationRef>();
 
     public static CurrentBuildOperationRef instance() {

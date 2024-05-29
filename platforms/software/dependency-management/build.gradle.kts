@@ -38,7 +38,6 @@ errorprone {
         "StreamResourceLeak", // 1 occurrences
         "StringCaseLocaleUsage", // 3 occurrences
         "StringCharset", // 1 occurrences
-        "StringSplitter", // 4 occurrences
         "TypeParameterShadowing", // 4 occurrences
         "TypeParameterUnusedInFormals", // 2 occurrences
         "UndefinedEquals", // 1 occurrences

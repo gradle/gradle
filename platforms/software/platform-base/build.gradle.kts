@@ -7,7 +7,6 @@ errorprone {
         "MixedMutabilityReturnType", // 1 occurrences
         "ModifiedButNotUsed", // 1 occurrences
         "StringCaseLocaleUsage", // 1 occurrences
-        "StringSplitter", // 1 occurrences
         "UnusedMethod", // 5 occurrences
     )
 }

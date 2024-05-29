@@ -30,6 +30,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
@@ -382,7 +383,7 @@ public class Jvm implements JavaInfo {
     public boolean isIbmJvm() {
         for (String vendorProperty : VENDOR_PROPERTIES) {
             if (System.getProperties().containsKey(vendorProperty)
-                && System.getProperty(vendorProperty).toLowerCase().startsWith("ibm corporation")) {
+                && System.getProperty(vendorProperty).toLowerCase(Locale.ROOT).startsWith("ibm corporation")) {
                 return true;
             }
         }

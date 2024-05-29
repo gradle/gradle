@@ -157,8 +157,8 @@ public class HealthExpirationStrategy implements DaemonExpirationStrategy {
             return false;
         }
 
+        statusLock.lock();
         try {
-            statusLock.lock();
             DaemonExpirationStatus previous = mostSevereStatus;
             mostSevereStatus = highestPriorityOf(previous, newStatus);
             return previous != mostSevereStatus;

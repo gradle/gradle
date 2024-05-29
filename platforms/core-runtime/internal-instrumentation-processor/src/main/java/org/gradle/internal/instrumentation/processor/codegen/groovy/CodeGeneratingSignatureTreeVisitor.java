@@ -104,7 +104,7 @@ class CodeGeneratingSignatureTreeVisitor {
             CodeBlock interceptorArgs = CodeBlock.join(Arrays.asList(CodeBlock.of("result"), argsCode), ", ");
             result.addStatement("$T.$L($L)", implementationOwner, implementationName, interceptorArgs);
             result.addStatement("return result");
-        } else if (request.getInterceptedCallable().getReturnType().getType() == Type.VOID_TYPE) {
+        } else if (request.getInterceptedCallable().getReturnType().getType().equals(Type.VOID_TYPE)) {
             result.addStatement("$T.$L($L)", implementationOwner, implementationName, argsCode);
             result.addStatement("return null");
         } else {

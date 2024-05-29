@@ -11,7 +11,6 @@ errorprone {
     disabledChecks.addAll(
         "CatchAndPrintStackTrace", // 1 occurrences
         "ImmutableEnumChecker", // 1 occurrences
-        "StringSplitter", // 1 occurrences
     )
 }
 

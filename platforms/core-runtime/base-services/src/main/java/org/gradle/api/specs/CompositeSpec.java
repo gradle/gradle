@@ -63,7 +63,7 @@ public abstract class CompositeSpec<T> implements Spec<T> {
         }
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "TypeParameterUnusedInFormals"})
     static <T> T uncheckedCast(Object object) {
         return (T) object;
     }

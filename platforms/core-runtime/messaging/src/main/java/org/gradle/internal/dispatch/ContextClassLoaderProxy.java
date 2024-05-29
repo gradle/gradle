@@ -18,8 +18,6 @@ package org.gradle.internal.dispatch;
 
 /**
  * Creates a proxy object which sets the context ClassLoader when invoking methods on the target object.
- *
- * @param <T>
  */
 public class ContextClassLoaderProxy<T> {
     private final ProxyDispatchAdapter<T> adapter;
