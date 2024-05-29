@@ -264,10 +264,10 @@ fun functionalTestExtraParameters(buildScanTag: String, os: Os, arch: Arch, test
         ).filter { it.isNotBlank() }.joinToString(separator = " ")
 }
 
-fun functionalTestParameters(os: Os): List<String> {
+fun functionalTestParameters(os: Os, arch: Arch = Arch.AMD64): List<String> {
     return listOf(
         "-PteamCityBuildId=%teamcity.build.id%",
-        os.javaInstallationLocations(),
+        os.javaInstallationLocations(arch),
         "-Porg.gradle.java.installations.auto-download=false",
         "-Porg.gradle.java.installations.auto-detect=false",
     )
